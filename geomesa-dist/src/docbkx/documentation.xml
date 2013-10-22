@@ -379,7 +379,7 @@ DataStore dataStore = createDataStore();
 
   // create the feature-type (a "schema" in GeoTools parlance)
   // (will also create the Accumulo table, if it does not already exist)
-  String featureSchema = "NAME:String,SKU:Long,COST:Double,SELL_BY:Date," +
+  String featureSchema = "NAME:String,SKU:java.lang.Long,COST:Double,SELL_BY:Date," +
     IndexEntryType.getTypeSpec();  // built-in GeoMesa attributes
   SimpleFeatureType featureType = DataUtilities.createType(featureName,
     featureSchema);
