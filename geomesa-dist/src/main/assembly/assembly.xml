@@ -28,6 +28,7 @@
             <includes>
                 <include>geomesa:geomesa-core:*:with-dependencies</include>
                 <include>org.geotools:gt-xml</include>
+                <include>org.geotools:gt-epsg-hsql</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -49,7 +50,20 @@
                 <include>geomesa:geomesa-core:*:with-dependencies</include>
                 <include>org.geotools:gt-xml</include>
                 <include>geomesa:geomesa-utils</include>
+                <include>org.geotools:gt-epsg-hsql</include>
+                <include>org.apache.accumulo:accumulo-core</include>
+                <include>org.apache.thrift:libthrift</include>
+                <include>org.apache.hadoop:hadoop-core</include>
+                <include>org.apache.hadoop:zookeeper</include>
+                <include>org.apache.accumulo:cloudtrace</include>
+                <include>org.slf4j:*</include>
+                <include>commons-lang:commons-lang</include>
+                <include>commons-logging:commons-logging</include>
+                <include>commons-collections:commons-collections</include>
+                <include>log4j:log4j</include>
+                <include>hsqldb:hsqldb</include>
             </includes>
+            <scope>test</scope>
         </dependencySet>
     </dependencySets>
 
