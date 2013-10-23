@@ -62,9 +62,6 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
                              authorizations, indexSchemaFormat)
   }
 
-  lazy val mockInstance = new MockInstance()
-  lazy val mockConnector = mockInstance.getConnector("user", "password")
-
   def buildAccumuloConnector(params: JMap[String,Serializable]): Connector = {
     val zookeepers = zookeepersParam.lookUp(params).asInstanceOf[String]
     val instance = instanceIdParam.lookUp(params).asInstanceOf[String]
@@ -72,8 +69,10 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val password = passwordParam.lookUp(params).asInstanceOf[String]
     val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
 
-    if (useMock) mockConnector
-    else new ZooKeeperInstance(instance, zookeepers).getConnector(user, password.getBytes)
+    if (useMock) 
+      new MockInstance(instance).getConnector(user, password.getBytes)
+    else 
+      new ZooKeeperInstance(instance, zookeepers).getConnector(user, password.getBytes)
   }
 
   override def getDisplayName = "Accumulo Feature Data Store"
