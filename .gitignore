@@ -5,3 +5,7 @@
 .idea/**
 target
 atlassian*
+.project
+.classpath
+.settings
+.cache
