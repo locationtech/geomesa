@@ -23,6 +23,7 @@ import geomesa.core.index.SpatioTemporalIndexSchema._
 import geomesa.utils.text.WKTUtils
 import java.util.Date
 import org.geotools.filter.text.ecql.ECQL
+import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{Interval => JodaInterval, DateTime, Duration, DateTimeZone}
 import org.opengis.filter._
 import org.opengis.filter.expression._
@@ -31,6 +32,7 @@ import org.opengis.filter.temporal._
 import org.opengis.geometry.BoundingBox
 import org.opengis.temporal.Period
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 object FilterToAccumulo {
   val IntervalBound = 0
@@ -230,27 +232,37 @@ case class FilterExtractor(geometryPropertyName: String, temporalPropertyNames: 
     }
   }
 
+  val fmt = ISODateTimeFormat.dateTime()
+  def extractDate(v: Any): Try[Date] = v match {
+    case d: Date => util.Success(d)
+    case s: String => Try(fmt.parseDateTime(s).toDate)
+    case _ => util.Failure(new Exception("Invalid date type"))
+  }
+
   def processBetween(filter: PropertyIsBetween): Option[Extraction] = {
     getPropertyName(filter.getExpression) match {
       case Some(property) if property == geometryPropertyName =>
         throw new Exception("BETWEEN is not supported as a geometric predicate")
 
       case Some(property) if temporalPropertyNames.contains(property) =>
-        val childLeft = filter.getLowerBoundary.evaluate(null)
-        if (!childLeft.isInstanceOf[Date])
-          throw new Exception("BETWEEN's lower boundary must be a Date")
-        val childRight = filter.getUpperBoundary.evaluate(null)
-        if (!childRight.isInstanceOf[Date])
-          throw new Exception("BETWEEN's upperboundary must be a Date")
-        Some(Extraction(
-          SetLikePolygon.undefined,
-          Some(new JodaInterval(
-            childLeft.asInstanceOf[Date].getTime,
-            childRight.asInstanceOf[Date].getTime,
-            DateTimeZone.forID("UTC")
-          )),
-          SetLikeFilter.everything
-        ))
+        val result = for {
+          childLeft  <- extractDate(filter.getLowerBoundary.evaluate(null))
+          childRight <- extractDate(filter.getUpperBoundary.evaluate(null))
+        } yield {
+          Some(Extraction(
+            SetLikePolygon.undefined,
+            Some(new JodaInterval(
+              childLeft.asInstanceOf[Date].getTime,
+              childRight.asInstanceOf[Date].getTime,
+              DateTimeZone.forID("UTC")
+            )),
+            SetLikeFilter.everything
+          ))
+        }
+        result match {
+          case util.Success(d) => d
+          case util.Failure(t) => throw t
+        }
 
       case _ => throw new Exception(
         "BETWEEN is only supported on direct time property names, not nested expressions")
