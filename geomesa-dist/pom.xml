@@ -24,7 +24,7 @@
     </parent>
 
     <artifactId>geomesa-dist</artifactId>
-    <name>GeoMesa Distributed</name>
+    <name>GeoMesa Distribution tar.gz</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,9 +33,7 @@
     <dependencies>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-core</artifactId>
-            <classifier>with-dependencies</classifier>
-            <version>${project.version}</version>
+            <artifactId>geomesa-distributed-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>geomesa</groupId>
@@ -45,7 +43,6 @@
             <groupId>geomesa</groupId>
             <artifactId>geomesa-plugin</artifactId>
             <classifier>geoserver-plugin</classifier>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>

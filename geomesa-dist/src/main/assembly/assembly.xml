@@ -26,14 +26,14 @@
         <dependencySet>
             <outputDirectory>${dist.accumulo.lib.ext}</outputDirectory>
             <includes>
-                <include>geomesa:geomesa-core:*:with-dependencies</include>
+                <include>geomesa:geomesa-distributed-runtime:*</include>
                 <include>org.geotools:gt-xml</include>
             </includes>
         </dependencySet>
         <dependencySet>
             <outputDirectory>${dist.hdfs}</outputDirectory>
             <includes>
-                <include>geomesa:geomesa-core:*:with-dependencies</include>
+                <include>geomesa:geomesa-distributed-runtime:*</include>
                 <include>org.geotools:gt-xml</include>
             </includes>
         </dependencySet>
@@ -46,7 +46,7 @@
         <dependencySet>
             <outputDirectory>${dist.dev}</outputDirectory>
             <includes>
-                <include>geomesa:geomesa-core:*:with-dependencies</include>
+                <include>geomesa:geomesa-distributed-runtime:*</include>
                 <include>org.geotools:gt-xml</include>
                 <include>geomesa:geomesa-utils</include>
             </includes>

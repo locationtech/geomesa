@@ -9,7 +9,7 @@ There are a few sub-projects which correspond to the main aims of this project.
 This sub-project contains the code which runs remotely on the "cloud", in this
 case the Accumulo key-value store.
 
-Changes here require that you upload the "with-dependencies" created in the target to the cloud
+Changes here require that you upload the geomesa-distributed-runtime to the cloud
 (specifically, to the tablet servers' lib/ext directory).
 The other two projects also depend on this one, so depending on your change you will need to update them as well.
 
@@ -27,6 +27,11 @@ Or from the sub-project's directory
 ```geomesa-tools> mvn scala:console```
 
 By default, all of the project packages in ```core``` are loaded along with JavaConversions, JavaConverters.
+
+### geomesa-distributed-runtime
+
+This sub-project assembled a jar with dependencies that must be distributed to Accumulo tablet servers lib/ext
+directory.
 
 ### geomesa-plugin
 
