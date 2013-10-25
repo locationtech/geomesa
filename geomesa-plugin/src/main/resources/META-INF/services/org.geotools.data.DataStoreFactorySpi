@@ -1,1 +1,1 @@
-geomesa.data.AccumuloDataStoreFactory
+geomesa.core.data.AccumuloDataStoreFactory
