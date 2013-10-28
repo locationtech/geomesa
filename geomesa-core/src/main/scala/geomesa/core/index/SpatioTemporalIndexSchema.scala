@@ -209,7 +209,7 @@ case class SpatioTemporalIndexEntryDecoder(ghDecoder: GeohashDecoder, dtDecoder:
 
   def decode(key: Key) =
     SpatioTemporalIndexEntry(
-      "UNUSED_FEATURE_ID_STANDIN",
+      "",
       getGeohashGeom(ghDecoder.decode(key)),
       dtDecoder.map(_.decode(key)))
 }
@@ -651,11 +651,8 @@ object SpatioTemporalIndexSchema extends RegexParsers {
     }
   }
 
-  def decodeIdFromEncodedSimpleFeature(value: Value): String = value match {
-    case null => null
-    case _    =>
-      val vString = value.toString
-      vString.substring(0, vString.indexOf("="))
+  def decodeIdFromEncodedSimpleFeature(value: Value): String = {
+    val vString = value.toString
+    vString.substring(0, vString.indexOf("="))
   }
-
 }

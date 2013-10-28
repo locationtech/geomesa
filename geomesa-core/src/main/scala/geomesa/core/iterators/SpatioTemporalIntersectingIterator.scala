@@ -246,7 +246,7 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
 
     // it may be possible to pollute the key space so that index rows can be
     // confused for data rows; skip until you know you've found a data row
-    //skipIndexEntries(dataSource)
+    skipIndexEntries(dataSource)
 
     if (!dataSource.hasTop ||
       dataSource.getTopKey == null ||
