@@ -26,6 +26,7 @@
     <modules>
         <module>geomesa-utils</module>
         <module>geomesa-core</module>
+        <module>geomesa-core-with-deps</module>
         <module>geomesa-plugin</module>
         <module>geomesa-dist</module>
     </modules>
