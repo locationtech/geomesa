@@ -600,11 +600,9 @@ object SpatioTemporalIndexSchema extends RegexParsers {
 
   // only those geometries known to contain only point data can guarantee that
   // they do not contain duplicates
-  def mayContainDuplicates(featureType: SimpleFeatureType): Boolean = try {
-    !(featureType.getType(SF_PROPERTY_GEOMETRY).getBinding == classOf[Point])
-  } catch {
-    case t: Throwable => true
-  }
+  def mayContainDuplicates(featureType: SimpleFeatureType): Boolean =
+    if (featureType == null) true
+    else featureType.getType(SF_PROPERTY_GEOMETRY).getBinding != classOf[Point]
 
   // builds a SpatioTemporalIndexSchema (requiring a feature type)
   def apply(s: String, featureType: SimpleFeatureType): SpatioTemporalIndexSchema =
@@ -641,7 +639,7 @@ object SpatioTemporalIndexSchema extends RegexParsers {
     val buf = v.get()
     val idLength = ByteBuffer.wrap(buf, 0, 4).getInt
     val (idPortion, geomDatePortion) = buf.drop(4).splitAt(idLength)
-    val id = new java.lang.String(idPortion)
+    val id = new String(idPortion)
     val geomLength = ByteBuffer.wrap(geomDatePortion, 0, 4).getInt
     if(geomLength < (geomDatePortion.length - 4)) {
       val (l,r) = geomDatePortion.drop(4).splitAt(geomLength)
@@ -651,10 +649,11 @@ object SpatioTemporalIndexSchema extends RegexParsers {
     }
   }
 
-  val reFID = """^([^=]+)""".r
   def decodeIdFromEncodedSimpleFeature(value: Value): String = value match {
     case null => null
-    case _    => Try(reFID.findFirstMatchIn(value.toString).get.toString).getOrElse(null)
+    case _    =>
+      val vString = value.toString
+      vString.substring(0, vString.indexOf("="))
   }
 
 }
