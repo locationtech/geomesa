@@ -61,6 +61,7 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
   private var nextKey: Key = null
   private var nextValue: Value = null
   private var curId: Text = null
+  private var deduplicate: Boolean = false
 
   // each batch-scanner thread maintains its own (imperfect!) list of the
   // unique (in-polygon) identifiers it has seen
@@ -82,6 +83,7 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
         options.get(DEFAULT_INTERVAL_PROPERTY_NAME))
     if (options.containsKey(DEFAULT_CACHE_SIZE_NAME))
       maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
+    deduplicate = SpatioTemporalIndexSchema.mayContainDuplicates(featureType)
 
     this.indexSource = source.deepCopy(env)
     this.dataSource = source.deepCopy(env)
@@ -108,12 +110,15 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
    *
    * @return False if this identifier is in the local cache; True otherwise
    */
-  def isIdUnique(id:String) : Boolean = (id!=null) && !inMemoryIdCache.contains(id)
+  lazy val isIdUnique: (String) => Boolean =
+    if (deduplicate) (id:String) => (id!=null) && !inMemoryIdCache.contains(id)
+    else                       _ => true
 
-  def rememberId(id:String) {
-    if (id!=null && !inMemoryIdCache.contains(id) && inMemoryIdCache.size < maxInMemoryIdCacheEntries)
-      inMemoryIdCache.add(id)
-  }
+  lazy val rememberId: (String) => Unit =
+    if (deduplicate) (id: String) => {
+      if (id!=null && !inMemoryIdCache.contains(id) && inMemoryIdCache.size < maxInMemoryIdCacheEntries)
+        inMemoryIdCache.add(id)
+    } else _ => Unit
 
   /**
    * There may not be a time-filter, in which case we should not bother checking
@@ -157,12 +162,14 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
   // (though we still share some requirements -- non-nulls -- with data entries)
   private def isKeyValueAnIndexEntry(key: Key, value: Value): Boolean =
     (key != null) &&
-    (key.getColumnQualifier != null) &&
-    (key.getColumnQualifier.toString != AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME)
+    (
+      (key.getColumnQualifier == null) ||
+      (key.getColumnQualifier.toString != AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME)
+    )
 
   def skipIndexEntries(itr: SortedKeyValueIterator[Key,Value]) {
     while (itr != null && itr.hasTop && isKeyValueAnIndexEntry(itr.getTopKey, itr.getTopValue))
-      itr.next()
+    itr.next()
   }
 
   def skipDataEntries(itr: SortedKeyValueIterator[Key,Value]) {
@@ -192,7 +199,7 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
     // be sure to start on an index entry
     skipDataEntries(indexSource)
 
-    while (indexSource.hasTop && indexSource.getTopKey != null && nextValue == null) {
+    while (nextValue == null && indexSource.hasTop && indexSource.getTopKey != null) {
       // only consider this index entry if we could fully decode the key
       decodeKey(indexSource.getTopKey).map { decodedKey =>
         // the value contains the full-resolution geometry and time; use them
@@ -203,12 +210,12 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
         // see whether this box is acceptable
         // (the tests are ordered from fastest to slowest to take advantage of
         // short-circuit evaluation)
-        if (isIdUnique(decodedKey.sid) && isDateTimeAcceptable && isGeomAcceptable) {
+        if (isIdUnique(decodedValue.id) && isDateTimeAcceptable && isGeomAcceptable) {
           // stash this ID
-          rememberId(decodedKey.sid)
+          rememberId(decodedValue.id)
 
           // advance the data-iterator to its corresponding match
-          seekData(decodedKey.sid)
+          seekData(decodedValue.id)
         }
       }
 
@@ -371,6 +378,7 @@ object SpatioTemporalIntersectingIterator {
                                .getOrElse((Long.MinValue, Long.MaxValue))
     start + "~" + end
   }
+
   private def decodeInterval(str: String): Interval =
     str.split("~") match {
       case Array(s, e) =>

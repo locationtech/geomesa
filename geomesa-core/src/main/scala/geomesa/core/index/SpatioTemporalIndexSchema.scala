@@ -36,7 +36,7 @@ import org.geotools.feature.simple.SimpleFeatureImpl
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.SimpleFeatureType
-import scala.util.Random
+import scala.util.{Try, Random}
 import scala.util.parsing.combinator.RegexParsers
 
 // A secondary index consists of interleaved elements of a composite key stored in
@@ -113,16 +113,9 @@ case class SpatioTemporalIndexSchema(encoder: SpatioTemporalIndexEncoder,
     val rawIter = planner.within(bs, poly, interval, simpleFeatureType, ecql, queryID)
 
     // the final iterator may need duplicates removed
-    // (only those geometries known to contain only point data can guarantee that
-    // they do not contain duplicates)
-    val containsDupes = try {
-      !(featureType.getType(SF_PROPERTY_GEOMETRY).getBinding == classOf[Point])
-    } catch {
-      case t: Throwable => true
-    }
     val finalIter : Iterator[Entry[Key,Value]] =
-      if(containsDupes)
-        new DeDuplicatingIterator(rawIter, (key:Key,value:Value) => decode(key).sid)
+      if (mayContainDuplicates(featureType))
+        new DeDuplicatingIterator(rawIter, (key:Key,value:Value) => decodeIdFromEncodedSimpleFeature(value))
       else rawIter
 
     // return only the attribute-maps (the values out of this iterator)
@@ -209,14 +202,14 @@ case class SpatioTemporalIndexEncoder(rowf: TextFormatter[SpatioTemporalIndexEnt
 
 }
 
-case class SpatioTemporalIndexEntryDecoder(idDecoder: IdDecoder, ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder])
+case class SpatioTemporalIndexEntryDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder])
   extends IndexEntryDecoder[SpatioTemporalIndexEntry] {
 
   import GeohashUtils._
 
   def decode(key: Key) =
     SpatioTemporalIndexEntry(
-      idDecoder.decode(key),
+      "",
       getGeohashGeom(ghDecoder.decode(key)),
       dtDecoder.map(_.decode(key)))
 }
@@ -274,7 +267,7 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner, cfPlanner: Co
              simpleFeatureType: String, ecql:Option[String],
              queryID:String) : JIterator[Entry[Key,Value]] = {
 
-    // figure out which of our various filter we intend to use
+    // figure out which of our various filters we intend to use
     // based on the arguments passed in
     val filter = buildFilter(poly, interval)
 
@@ -329,7 +322,8 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner, cfPlanner: Co
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
                                   "within-" + randomPrintableString(5),
                                   classOf[SpatioTemporalIntersectingIterator])
-    SpatioTemporalIntersectingIterator.setOptions(cfg, schema, poly, interval, featureType)
+    SpatioTemporalIntersectingIterator.setOptions(
+      cfg, schema, poly, interval, featureType)
     bs.addScanIterator(cfg)
   }
 
@@ -460,20 +454,16 @@ object SpatioTemporalIndexSchema extends RegexParsers {
     case str => ConstantTextFormatter(str)
   }
 
-  // An id encoder. '%15#id' would pad the id out to 15 characters
-  def idEncoder: Parser[IdFormatter] = pattern("\\d+".r, "id") ^^ {
-    case len => IdFormatter(len.toInt)
-  }
-
   // a key element consists of a separator and any number of random partitions, geohashes, and dates
   def keypart: Parser[CompositeTextFormatter[SpatioTemporalIndexEntry]] =
     (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) ^^ {
       case sep ~ xs => CompositeTextFormatter[SpatioTemporalIndexEntry](xs, sep)
     }
 
+  // the column qualifier must end with an ID-encoder
   def cqpart: Parser[CompositeTextFormatter[SpatioTemporalIndexEntry]] =
-    (sep ~ idEncoder ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) ^^ {
-      case sep ~ idEncoder ~ xs => CompositeTextFormatter[SpatioTemporalIndexEntry](idEncoder::xs, sep)
+    (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder) ~ idEncoder) ^^ {
+      case sep ~ xs ~ id => CompositeTextFormatter[SpatioTemporalIndexEntry](xs :+ id, sep)
     }
 
   // An index key is three keyparts, one for row, colf, and colq
@@ -554,6 +544,12 @@ object SpatioTemporalIndexSchema extends RegexParsers {
       case _ => sys.error("Id must be first element of column qualifier")
     }
 
+  // An id encoder. '%15#id' would pad the id out to 15 characters
+  def idEncoder: Parser[IdFormatter] = pattern("[0-9]*".r, "id") ^^ {
+    case len if len.length > 0 => IdFormatter(len.toInt)
+    case _                     => IdFormatter(0)
+  }
+
   def idDecoderParser = keypart ~ "::" ~ keypart ~ "::" ~ cqpart ^^ {
     case rowf ~ "::" ~ cff ~ "::" ~ cqf => {
       val bits = extractIdEncoder(cqf.lf, 0, cqf.sep.length)
@@ -604,12 +600,17 @@ object SpatioTemporalIndexSchema extends RegexParsers {
     case fail: NoSuccess => throw new Exception(fail.msg)
   }
 
+  // only those geometries known to contain only point data can guarantee that
+  // they do not contain duplicates
+  def mayContainDuplicates(featureType: SimpleFeatureType): Boolean =
+    if (featureType == null) true
+    else featureType.getType(SF_PROPERTY_GEOMETRY).getBinding != classOf[Point]
+
   // builds a SpatioTemporalIndexSchema (requiring a feature type)
   def apply(s: String, featureType: SimpleFeatureType): SpatioTemporalIndexSchema =
     SpatioTemporalIndexSchema(
       buildKeyEncoder(s),
       SpatioTemporalIndexEntryDecoder(
-        buildIdDecoder(s),
         buildGeohashDecoder(s),
         buildDateDecoder(s)),
       SpatioTemporalIndexQueryPlanner(
@@ -619,23 +620,39 @@ object SpatioTemporalIndexSchema extends RegexParsers {
         featureType),
       featureType)
 
-  def encodeIndexValue(entry: SpatioTemporalIndexEntry) = {
+  // the index value consists of the feature's:
+  // 1.  ID
+  // 2.  WKB-encoded geometry
+  // 3.  start-date/time
+  def encodeIndexValue(entry: SpatioTemporalIndexEntry): Value = {
+    val encodedId = entry.sid.getBytes
     val encodedGeom = WKBUtils.write(entry.geometry)
     val encodedDtg = entry.dt.map(dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array()).getOrElse(Array[Byte]())
-    ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++ encodedDtg
+
+    new Value(
+      ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
+      ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
+      encodedDtg)
   }
 
-  case class DecodedIndexValue(geom: Geometry, dtgMillis: Option[Long])
+  case class DecodedIndexValue(id: String, geom: Geometry, dtgMillis: Option[Long])
 
   def decodeIndexValue(v: Value): DecodedIndexValue = {
     val buf = v.get()
-    val geomLength = ByteBuffer.wrap(buf, 0, 4).getInt
-    if(geomLength < (buf.length - 4)) {
-      val (l,r) = buf.drop(4).splitAt(geomLength)
-      DecodedIndexValue(WKBUtils.read(l), Some(ByteBuffer.wrap(r).getLong))
+    val idLength = ByteBuffer.wrap(buf, 0, 4).getInt
+    val (idPortion, geomDatePortion) = buf.drop(4).splitAt(idLength)
+    val id = new String(idPortion)
+    val geomLength = ByteBuffer.wrap(geomDatePortion, 0, 4).getInt
+    if(geomLength < (geomDatePortion.length - 4)) {
+      val (l,r) = geomDatePortion.drop(4).splitAt(geomLength)
+      DecodedIndexValue(id, WKBUtils.read(l), Some(ByteBuffer.wrap(r).getLong))
     } else {
-      DecodedIndexValue(WKBUtils.read(buf.drop(4)), None)
+      DecodedIndexValue(id, WKBUtils.read(buf.drop(4)), None)
     }
   }
 
+  def decodeIdFromEncodedSimpleFeature(value: Value): String = {
+    val vString = value.toString
+    vString.substring(0, vString.indexOf("="))
+  }
 }

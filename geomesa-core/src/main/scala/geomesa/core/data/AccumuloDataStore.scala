@@ -115,28 +115,29 @@ class AccumuloDataStore(val connector: Connector,
 
   override def createSchema(featureType: SimpleFeatureType) {
     val featureName = featureType.getName.getLocalPart
-    val paddingLength = math.max(40, featureName.length + 9)  // 40 allows UUIDs
-    val netSchemaFormat = getNetIndexSchemaFormat(featureName, paddingLength)
+    val netSchemaFormat = getNetIndexSchemaFormat(featureName)
 
-    createSchema(featureType, paddingLength, netSchemaFormat)
+    createSchema(featureType, netSchemaFormat)
   }
 
-  def createSchema(featureType: SimpleFeatureType, paddingLength: Int,
+  def createSchema(featureType: SimpleFeatureType,
                    indexSchemaFormat: String) {
 
     createTableIfNotExists(tableName, indexSchemaFormat, featureType)
-    writeMetadata(featureType, connector, tableName, paddingLength, indexSchemaFormat)
+    writeMetadata(featureType, connector, tableName, indexSchemaFormat)
   }
 
   def writeMetadata(sft: SimpleFeatureType,
-                    paddingLength: Int,
                     indexSchemaFormat: String) {
-    writeMetadata(sft, connector, tableName, paddingLength, indexSchemaFormat)
+    writeMetadata(sft, connector, tableName, indexSchemaFormat)
   }
 
-  def getNetIndexSchemaFormat(featureName:String, paddingLength:Int) : String = {
+  def getNetIndexSchemaFormat(featureName:String) : String = {
+    // the sole purpose of having the ID tacked on to the end of the key is
+    // to provide for differentiation among similar entries (same geometry,
+    // date time) mapped to the same shard/partition
     val defaultIndexSchemaFormat = "%~#s%99#r%" + featureName +
-                                   "#cstr%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%" + paddingLength + "#id%4,3#gh%ddHH#d"
+                                   "#cstr%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%#id"
 
     indexSchemaFormat match {
       case null => defaultIndexSchemaFormat
@@ -147,18 +148,6 @@ class AccumuloDataStore(val connector: Connector,
   def writeMetadata(sft: SimpleFeatureType,
                     connector: Connector,
                     tableName: String,
-                    netSchemaFormat: String) {
-    // provide sensible defaults for most SHP-file storage
-    val featureName = sft.getName.getLocalPart
-    val paddingLength = math.max(40, featureName.length + 9)  // 40 allows UUIDs
-    writeMetadata(sft, connector, tableName, paddingLength,
-                  netSchemaFormat)
-  }
-
-  def writeMetadata(sft: SimpleFeatureType,
-                    connector: Connector,
-                    tableName: String,
-                    paddingLength: Int,
                     indexSchemaFormat: String) {
 
     val featureName = sft.getName.getLocalPart
