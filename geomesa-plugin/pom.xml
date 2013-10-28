@@ -40,6 +40,12 @@
             <artifactId>geomesa-utils</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+        </dependency>
+
+        <!-- provided dependencies -->
+        <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
         </dependency>
@@ -50,16 +56,10 @@
         <dependency>
             <groupId>org.geoserver</groupId>
             <artifactId>main</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.geoserver.web</groupId>
             <artifactId>web-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
         </dependency>
     </dependencies>
 
