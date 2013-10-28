@@ -32,13 +32,13 @@ class SpatioTemporalIndexSchemaTest extends Specification {
 
   "SpatioTemporalIndexSchemaTest" should {
     "parse a valid string" in {
-      val schema = SpatioTemporalIndexSchema("%~#s%foo#cstr%99#r::%~#s%0,4#gh::%~#s%15#id%4,3#gh",
+      val schema = SpatioTemporalIndexSchema("%~#s%foo#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%15#id",
         dummyType)
       schema should not be null
     }
 
     "allow geohash in the row" in {
-      val schema = SpatioTemporalIndexSchema("%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%15#id%5,2#gh",
+      val schema = SpatioTemporalIndexSchema("%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id",
         dummyType)
       val matched = schema.planner.keyPlanner match {
         case CompositePlanner(List(ConstStringPlanner("foo"), GeoHashKeyPlanner(0,1), RandomPartitionPlanner(99)),"~") => true
@@ -52,7 +52,7 @@ class SpatioTemporalIndexSchemaTest extends Specification {
 
   val nowOption = Some[DateTime](new DateTime())
 
-  val schemaEncoding = "%~#s%feature#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh"
+  val schemaEncoding = "%~#s%feature#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%#id"
   val index = SpatioTemporalIndexSchema(schemaEncoding, dummyType)
 
   "single-point (-78.4953560 38.0752150)" should {
@@ -63,7 +63,7 @@ class SpatioTemporalIndexSchemaTest extends Specification {
       indexEntries.size must equalTo(2)
       val key : Key = indexEntries.head._1
       val keyStr : String = key.getColumnFamily + "::" + key.getColumnQualifier
-      keyStr must equalTo("dqb0::tg3")
+      keyStr must equalTo("dqb0::tg3~TEST_POINT")
     }
   }
 
@@ -75,7 +75,7 @@ class SpatioTemporalIndexSchemaTest extends Specification {
       indexEntries.size must equalTo(6)
       val key : Key = indexEntries.head._1
       val keyStr : String = key.getColumnFamily + "::" + key.getColumnQualifier
-      keyStr must equalTo("dqb0::mdw")
+      keyStr must equalTo("dqb0::mdw~TEST_LINE")
     }
   }
 
@@ -87,7 +87,7 @@ class SpatioTemporalIndexSchemaTest extends Specification {
       indexEntries.size must equalTo(6)
       val key : Key = indexEntries.head._1
       val keyStr : String = key.getColumnFamily + "::" + key.getColumnQualifier
-      keyStr must equalTo("dn..::...")
+      keyStr must equalTo("dn..::...~TEST_POLYGON")
     }
   }
 

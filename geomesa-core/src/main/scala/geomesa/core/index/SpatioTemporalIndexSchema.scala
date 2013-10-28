@@ -460,9 +460,10 @@ object SpatioTemporalIndexSchema extends RegexParsers {
       case sep ~ xs => CompositeTextFormatter[SpatioTemporalIndexEntry](xs, sep)
     }
 
+  // the column qualifier must end with an ID-encoder
   def cqpart: Parser[CompositeTextFormatter[SpatioTemporalIndexEntry]] =
-    (sep ~ rep(idEncoder | randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) ^^ {
-      case sep ~ xs => CompositeTextFormatter[SpatioTemporalIndexEntry](xs, sep)
+    (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder) ~ idEncoder) ^^ {
+      case sep ~ xs ~ id => CompositeTextFormatter[SpatioTemporalIndexEntry](xs :+ id, sep)
     }
 
   // An index key is three keyparts, one for row, colf, and colq
@@ -544,8 +545,9 @@ object SpatioTemporalIndexSchema extends RegexParsers {
     }
 
   // An id encoder. '%15#id' would pad the id out to 15 characters
-  def idEncoder: Parser[IdFormatter] = pattern("\\d+".r, "id") ^^ {
-    case len => IdFormatter(len.toInt)
+  def idEncoder: Parser[IdFormatter] = pattern("[0-9]*".r, "id") ^^ {
+    case len if len.length > 0 => IdFormatter(len.toInt)
+    case _                     => IdFormatter(0)
   }
 
   def idDecoderParser = keypart ~ "::" ~ keypart ~ "::" ~ cqpart ^^ {

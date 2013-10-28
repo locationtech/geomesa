@@ -137,7 +137,7 @@ class AccumuloDataStore(val connector: Connector,
     // to provide for differentiation among similar entries (same geometry,
     // date time) mapped to the same shard/partition
     val defaultIndexSchemaFormat = "%~#s%99#r%" + featureName +
-                                   "#cstr%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%50#id"
+                                   "#cstr%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%#id"
 
     indexSchemaFormat match {
       case null => defaultIndexSchemaFormat
