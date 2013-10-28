@@ -128,7 +128,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>*:*</include>
-                                    <include>org.geotools:gt-epsg-hsql:jar:provided</include>
+                                    <include>org.geotools:gt-epsg-hsql</include>
                                 </includes>
                                 <excludes>
                                     <exclude>org.slf4j:*</exclude>
