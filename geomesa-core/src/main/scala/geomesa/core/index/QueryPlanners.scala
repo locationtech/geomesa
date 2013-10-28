@@ -52,7 +52,7 @@ case object KeyAccept extends KeyPlan {
   // above \x7F throws a "unsupported non-ascii character" error, which is why
   // our maximum character here is \0x7E, "~"
   val MIN_START = "\u0000"
-  val MAX_END = "~" * 10 // arbitrarily long
+  val MAX_END = "~"
 
   def join(right: KeyPlan, sep: String): KeyPlan = right match {
     case KeyRange(rstart, rend) => KeyRange(MIN_START + sep + rstart, MAX_END + sep + rend)

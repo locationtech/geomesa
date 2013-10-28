@@ -52,7 +52,7 @@ class SpatioTemporalIndexSchemaTest extends Specification {
 
   val nowOption = Some[DateTime](new DateTime())
 
-  val schemaEncoding = "%~#s%feature#cstr%99#r::%~#s%0,4#gh::%~#s%6#id%4,3#gh"
+  val schemaEncoding = "%~#s%feature#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh"
   val index = SpatioTemporalIndexSchema(schemaEncoding, dummyType)
 
   "single-point (-78.4953560 38.0752150)" should {
@@ -63,7 +63,7 @@ class SpatioTemporalIndexSchemaTest extends Specification {
       indexEntries.size must equalTo(2)
       val key : Key = indexEntries.head._1
       val keyStr : String = key.getColumnFamily + "::" + key.getColumnQualifier
-      keyStr must equalTo("dqb0::TEST_POINT~tg3")
+      keyStr must equalTo("dqb0::tg3")
     }
   }
 
@@ -75,7 +75,7 @@ class SpatioTemporalIndexSchemaTest extends Specification {
       indexEntries.size must equalTo(6)
       val key : Key = indexEntries.head._1
       val keyStr : String = key.getColumnFamily + "::" + key.getColumnQualifier
-      keyStr must equalTo("dqb0::TEST_LINE~mdw")
+      keyStr must equalTo("dqb0::mdw")
     }
   }
 
@@ -87,7 +87,33 @@ class SpatioTemporalIndexSchemaTest extends Specification {
       indexEntries.size must equalTo(6)
       val key : Key = indexEntries.head._1
       val keyStr : String = key.getColumnFamily + "::" + key.getColumnQualifier
-      keyStr must equalTo("dn..::TEST_POLYGON~...")
+      keyStr must equalTo("dn..::...")
+    }
+  }
+
+  "index-value encoder and decoder" should {
+    "encode and decode round-trip properly" in {
+      // inputs
+      val wkt = "POINT (-78.495356 38.075215)"
+      val id = "Feature0123456789"
+      val geom = WKTUtils.read(wkt)
+      val dt = nowOption
+      val entry = SpatioTemporalIndexEntry(id, geom, dt)
+
+      // output
+      val value = SpatioTemporalIndexSchema.encodeIndexValue(entry)
+
+      // requirements
+      value must not beNull
+
+      // return trip
+      val decoded = SpatioTemporalIndexSchema.decodeIndexValue(value)
+
+      // requirements
+      decoded must not equalTo null
+      decoded.id must be equalTo id
+      WKTUtils.write(decoded.geom) must be equalTo wkt
+      dt.get must be equalTo nowOption.get
     }
   }
 }

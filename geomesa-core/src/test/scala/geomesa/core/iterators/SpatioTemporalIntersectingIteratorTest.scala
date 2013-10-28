@@ -64,7 +64,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val wktQuery = "POLYGON((45 23, 48 23, 48 27, 45 27, 45 23))"
 
     val featureName = "feature"
-    val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%6#id%4,3#gh%ddHH#d"
+    val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
     val featureType = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
     val index = SpatioTemporalIndexSchema(schemaEncoding, featureType)
 
@@ -270,7 +270,8 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
   "Realistic Mock Accumulo" should {
     "use our iterators and aggregators the same way we do" in {
       // run this query on regular data
-      val numHits: Int = runMockAccumuloTest("mock-real")
+      val numHits: Int = runMockAccumuloTest("mock-real",
+        TestData.fullData, None, 113)
 
       // validate the total number of query-hits
       numHits must be equalTo (21)
