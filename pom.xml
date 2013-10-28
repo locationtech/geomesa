@@ -204,6 +204,17 @@
                 <artifactId>geomesa-plugin</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>geomesa</groupId>
+                <artifactId>geomesa-core-with-deps</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>geomesa</groupId>
+                <artifactId>geomesa-plugin</artifactId>
+                <classifier>geoserver-plugin</classifier>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- provided dependencies -->
             <dependency>
