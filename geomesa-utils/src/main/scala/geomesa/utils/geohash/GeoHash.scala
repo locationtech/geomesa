@@ -16,15 +16,34 @@
 
 package geomesa.utils.geohash
 
-import com.vividsolutions.jts.geom.Point
-import com.vividsolutions.jts.geom.{Coordinate, PrecisionModel, GeometryFactory}
+import com.vividsolutions.jts.geom.{Point, Coordinate, PrecisionModel, GeometryFactory}
 import scala.collection.BitSet
+import scala.collection.immutable.{BitSet => IBitSet}
+import com.typesafe.scalalogging.slf4j.Logging
 
-case class GeoHash(x: Double, y: Double,
-                   bbox: BoundingBox,
-                   bitset: BitSet,
-                   hash: String,
-                   prec: Int) extends Comparable[GeoHash] {
+/**
+ * GeoHashes above GeoHash.MAX_PRECISION are not supported.
+ * @param x
+ * @param y
+ * @param bbox
+ * @param bitset
+ * @param prec
+ */
+case class GeoHash private[GeoHash] (x: Double,
+                                     y: Double,
+                                     bbox: BoundingBox,
+                                     bitset: BitSet,
+                                     prec: Int, // checked in factory methods in companion object
+                                     private[GeoHash] val optHash: Option[String]) extends Comparable[GeoHash] {
+
+  import GeoHash._
+
+  /**
+   * Hash string is calculated lazily if GeoHash object was created
+   * from a Point, because calculation is expensive
+   */
+  lazy val hash = optHash.getOrElse(toBase32(bitset, prec))
+
   /**
    * Utility method to return the bit-string as a full binary string.
    *
@@ -38,56 +57,54 @@ case class GeoHash(x: Double, y: Double,
    * order, so that their correspondence with the base-32
    * characters is directly readable.
    */
-  def toBinaryString : String = {
-    val boolMap : Map[Boolean,String] = Map(false -> "0", true -> "1")
+  def toBinaryString: String =
     (0 until prec).map((bitIndex) => boolMap(bitset(bitIndex))).mkString
-  }
 
   def getPoint = GeoHash.factory.createPoint(new Coordinate(x,y))
 
-  def contains(gh: GeoHash): Boolean =
-    if(prec > gh.prec) false else bitset.subsetOf(gh.bitset)
+  def contains(gh: GeoHash): Boolean = prec <= gh.prec && bitset.subsetOf(gh.bitset)
 
   def next(): GeoHash =  GeoHash(GeoHash.next(bitset, prec), prec)
 
-  override def equals(obj: Any): Boolean = {
-    obj match {
-      case that: GeoHash => this.hash == that.hash && this.prec == that.prec
-      case _ => false
-    }
+  override def equals(obj: Any): Boolean = obj match {
+    case that: GeoHash => this.bitset == that.bitset && this.prec == that.prec
+    case _ => false
   }
 
-  // Overriding equals obligates me to override hashCode.
-  override def hashCode: Int = (hash+prec.toString).hashCode
+  // Overriding equals obligates us to override hashCode.
+  override def hashCode: Int = bitset.hashCode + prec
 
   override def compareTo(gh: GeoHash) = this.hash.compareTo(gh.hash)
 }
 
-case class Bounds(l: Double, r: Double) {
-  lazy val mid = l+((r-l)/2.0)
+case class Bounds(low: Double,
+                  high: Double) {
+  lazy val mid = (low+high)/2.0
 }
 
-object GeoHash {
+object GeoHash extends Logging {
+
+  val MAX_PRECISION = 63 // our bitset operations assume all bits fit in one Long
+  private[GeoHash] val boolMap : Map[Boolean,String] = Map(false -> "0", true -> "1")
   lazy val factory: GeometryFactory = new GeometryFactory(new PrecisionModel, 4326)
 
-  def apply(string: String): GeoHash = decode(string)
-  def apply(string: String, precision:Int): GeoHash = decode(string, Some[Int](precision))
+  def apply(string: String): GeoHash = decode(string) // precision checked in decode
+  def apply(string: String, precision:Int): GeoHash = decode(string, Some[Int](precision)) // precision checked in decode
 
   // We expect points in x,y order, i.e., longitude first.
-  def apply(p: Point, prec: Int): GeoHash = apply(p.getX, p.getY, prec)
-  def apply(bs: BitSet, prec: Int): GeoHash = decode(toBase32(bs, prec), Some(prec))
+  def apply(p: Point, prec: Int): GeoHash = apply(p.getX, p.getY, prec) // precision checked in apply
+  def apply(bs: BitSet, prec: Int): GeoHash = decode(toBase32(bs, prec), Some(prec)) // precision checked in decode
 
   // We expect points x,y i.e., lon-lat
   def apply(lon: Double, lat: Double, prec: Int = 25): GeoHash = {
-    val (lonb, lonBits) = fixLons(lon, prec)
-    val (latb, latBits) = fixLats(lat, prec)
-    val bitset = lonBits | latBits
-    val hash = toBase32(bitset, prec)
-    val bbox = BoundingBox(lonb, latb)
-    GeoHash(lonb.mid, latb.mid, bbox, bitset, hash, prec)
+    checkPrecision(prec)
+    val (bbox, bitset) = boxBitsForLonLatPrec(lon, lat, prec)
+    GeoHash(bbox.midLon, bbox.midLat, bbox, bitset, prec, None)
   }
 
   def covering(ll: GeoHash, ur: GeoHash, prec: Int = 25) = {
+    checkPrecision(prec)
+
     val bbox = BoundingBox(ll.getPoint, ur.getPoint)
 
     def subsIntersecting(hash: GeoHash): Seq[GeoHash] = {
@@ -103,6 +120,10 @@ object GeoHash {
     val init = BoundingBox.getCoveringGeoHash(bbox, prec)
     subsIntersecting(init)
   }
+
+  def checkPrecision(precision: Int) =
+    require(precision <= MAX_PRECISION,
+            s"GeoHash precision of $precision requested, but precisions above $MAX_PRECISION are not supported")
 
   /**
    * Get the dimensions of the geohash grid bounded by ll and ur at precision.
@@ -196,11 +217,19 @@ object GeoHash {
     }})._2
   }
 
-
-
   private val bits = Array(16,8,4,2,1)
   private val latBounds = Bounds(-90.0,90.0)
+  private lazy val latRange: Double = latBounds.high - latBounds.low
   private val lonBounds = Bounds(-180.0,180.0)
+  private lazy val lonRange: Double = lonBounds.high - lonBounds.low
+
+  private lazy val powersOf2Map: Map[Int, Long] =
+    (0 to MAX_PRECISION).map(i => (i, 1L << i)).toMap // 1L << i == math.pow(2,i).toLong
+  private lazy val latDeltaMap: Map[Int, Double]  =
+    (0 to MAX_PRECISION).map(i => (i, latRange / powersOf2Map(i))).toMap
+  private lazy val lonDeltaMap: Map[Int, Double] =
+    (0 to MAX_PRECISION).map(i => (i, lonRange / powersOf2Map(i))).toMap
+
   protected[geohash] val base32 = "0123456789bcdefghjkmnpqrstuvwxyz"
   private val characterMap: Map[Char, BitSet] =
     base32.zipWithIndex.map { case (c, i) => c -> bitSetFromBase32Character(i) }.toMap
@@ -219,21 +248,58 @@ object GeoHash {
   private def toPaddedBinaryString(i: Long, length: Int): String =
     String.format("%" + length + "s", i.toBinaryString).replace(' ', '0')
 
-  private def fixLons = fixedPoint(0, lonBounds)(_,_)
-  private def fixLats = fixedPoint(1, latBounds)(_,_)
-  private def fixedPoint(initV: Int, initBounds: Bounds)(v: Double, length: Int): (Bounds, BitSet) = {
-    val toggled = (initV until length by 2).scanLeft((initBounds,initV)) {
-      case ((b, i), idx) =>
-        encode(v, b, idx)
-    }.drop(1)
-    val oneBitIndexes = toggled.map { case (bounds, t) => t }.filter(_ != -1)
-    val (finalBound, _) = if (toggled.size > 0) toggled.last else (initBounds, null)
-    (finalBound, BitSet(oneBitIndexes: _*))
+  /**
+   * Get the bitset and bounding box for a geohash at the given latitude and
+   * longitude with the given precision.
+   * Assumes prec <= 63, that is, all bits in the bitset fit in one Long
+   * @param lon the longitude (x value)
+   * @param lat the latitude (y value)
+   * @param prec precision (# of bits)
+   * @return tuple containing the bounding box and bitset.
+   */
+  private def boxBitsForLonLatPrec(lon: Double, lat: Double, prec: Int): (BoundingBox, BitSet) = {
+    val minLon = lonBounds.low
+    val minLat = latBounds.low
+
+    val latBits = prec / 2
+    val lonBits = latBits + prec % 2
+
+    val lonDelta = lonDeltaMap(lonBits)
+    val lonIndex = ((lon - minLon) / lonDelta).toLong
+
+    val latDelta = latDeltaMap(latBits)
+    val latIndex = ((lat - minLat) / latDelta).toLong
+
+    val bitSet = IBitSet.fromBitMaskNoCopy(Array(interleaveReverseBits(lonIndex, latIndex, prec)))
+
+    val bbox = BoundingBox(Bounds((minLon+lonDelta*lonIndex), (minLon+lonDelta*(lonIndex+1))),
+                           Bounds((minLat+latDelta*latIndex), (minLat+latDelta*(latIndex+1))))
+
+    (bbox, bitSet)
   }
 
-  private def encode(v: Double, bounds: Bounds, idx: Int): (Bounds, Int) =
-    if(v < bounds.mid) (bounds.copy(r=bounds.mid), -1)
-    else (bounds.copy(l=bounds.mid), idx)
+  /**
+   * Interleaves and reverses the bits of two longs. The two longs must be same size or
+   * @param first can be one bit longer than second
+   * @param second must be same size as first or one bit shorter
+   * @param numBits The total number of bits of the interleaved & reversed result
+   * @return long with a total of numBits bits of first and second interleaved & reversed
+   */
+  private def interleaveReverseBits(first: Long, second: Long, numBits: Int): Long = {
+    /* We start with the first value of the interleaved long, coming from first if
+       numBits is odd or from second if numBits is even */
+    val even = (numBits & 0x01) == 0
+    val (actualFirst, actualSecond) = if(even) (second, first) else (first, second)
+    val numPairs = numBits >> 1
+    var result = 0L
+    (0 until numPairs).foreach{ pairNum =>
+      result = (result << 1) | ((actualFirst >> pairNum) & 1L)
+      result = (result << 1) | ((actualSecond >> pairNum) & 1L)
+    }
+    if (!even) result = (result << 1) | ((actualFirst >> numPairs) & 1L)
+
+    result
+  }
 
   /**
    * There is no visible difference between "t4bt" as a 20-bit GeoHash and
@@ -253,6 +319,7 @@ object GeoHash {
   private def decode(string: String, precisionOption:Option[Int]=None): GeoHash = {
     // figure out what precision we should use
     val precision : Int = precisionOption.getOrElse(5*string.length)
+    checkPrecision(precision)
 
     // compute bit-sets for both the full and partial characters
     val bitsets : Seq[BitSet] = string.zipWithIndex.map {
@@ -263,7 +330,7 @@ object GeoHash {
     val finalBitset : BitSet = bitsets.size match {
       case 0 => BitSet()
       case 1 => bitsets(0)
-      case _ => bitsets.reduce((bitsetA, bitsetB) => bitsetA | bitsetB)
+      case _ => bitsets.reduce(_|_)
     }
 
     // compute the geometry implied by this bit-set
@@ -271,7 +338,7 @@ object GeoHash {
     val latb = latFromBitset(finalBitset, precision)
     val bbox = BoundingBox(lonb, latb)
 
-    GeoHash(lonb.mid, latb.mid, bbox, finalBitset, string, precision)
+    GeoHash(lonb.mid, latb.mid, bbox, finalBitset, precision, Some(string))
   }
 
   private def lonFromBitset = boundsFromBitset(0, lonBounds)(_,_)
@@ -279,30 +346,12 @@ object GeoHash {
   private def boundsFromBitset(startIdx: Int, bounds: Bounds)(bs: BitSet, prec: Int): Bounds =
     (startIdx until prec by 2).foldLeft(bounds) {
       case (bounds: Bounds, i: Int) =>
-        if(!bs(i)) bounds.copy(r=bounds.mid)
-        else bounds.copy(l=bounds.mid)
+        if(!bs(i)) bounds.copy(high=bounds.mid)
+        else bounds.copy(low=bounds.mid)
     }
 
 
   private def shift(n: Int, bs: BitSet): BitSet = bs.map(_ + n)
-
-  /**
-   * Remember that a BitSet is simply a list of (true) bit-indexes, so the
-   * hexadecimal number 0xC would be BitSet(3, 2).  Shifting these bits right,
-   * then, is simply a matter of decrementing the bit indexes by the number
-   * of positions you wish to move them.  Continuing the preceding example,
-   * 0xC >> 2 would be BitSet(3-2=1, 2-2=0).
-   *
-   * Note:  There is no wrap-around with this method.  Bits that are right-
-   * shifted beneath index 0 should be considered lost!
-   *
-   * @param n the number of positions by which to shift all bits right
-   * @param bs the BitSet whose indexes are to be decremented
-   * @return the BitSet shifted right
-   */
-  private def shiftRight(n: Int, bs: BitSet): BitSet = {
-    bs.dropWhile((bitIndex) => bitIndex < n).map((bitIndex) => bitIndex - n)
-  }
 
   private def toBase32(bitset: BitSet, prec: Int): String = {
     // compute the precision padded to the next 5-bit boundary
@@ -322,8 +371,6 @@ object GeoHash {
     base32(v.foldLeft(0)((cur,i) => cur + (if (bitset(i)) bits(i%bits.length) else 0)))
 
   //@todo make faster?
-  def subHashes(geohash:GeoHash)={
-    base32.map(str=>GeoHash(geohash.hash+str))
-  }
+  def subHashes(geohash:GeoHash) = base32.map(str=>GeoHash(geohash.hash+str))
 
 }

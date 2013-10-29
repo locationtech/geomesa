@@ -76,6 +76,20 @@
             <artifactId>joda-convert</artifactId>
         </dependency>
 
+        <!-- logging -->
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>scalalogging-slf4j_2.10</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
         <!-- test dependencies -->
         <dependency>
             <groupId>junit</groupId>
