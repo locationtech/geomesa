@@ -77,18 +77,21 @@ case class BoundingBox(ll: Point, ur: Point) {
    */
   def contains(geom: Geometry): Boolean = poly.contains(geom)
 
-  def longitudeSize = ur.getX - ll.getX
+  lazy val longitudeSize = ur.getX - ll.getX
 
-  def latitudeSize = ur.getY - ll.getY
+  lazy val latitudeSize = ur.getY - ll.getY
 
-  def minLon = ll.getX
-  def minLat = ll.getY
-  def maxLon = ur.getX
-  def maxLat = ur.getY
+  lazy val minLon = ll.getX
+  lazy val minLat = ll.getY
+  lazy val maxLon = ur.getX
+  lazy val maxLat = ur.getY
 
-  def getCenterPoint(): Point =
-    BoundingBox.geomFactory.createPoint(new Coordinate((minLon+maxLon)/2,
-                                                       (minLat+maxLat)/2))
+  // these very simple calculations work because this class assumes min{x|y} < max{x|y}
+  // (no date line or pole wrap-arounds)
+  lazy val midLon = (minLon + maxLon) / 2
+  lazy val midLat = (minLat + maxLat) / 2
+
+  lazy val centerPoint = BoundingBox.geomFactory.createPoint(new Coordinate(midLon,midLat))
 
   def getExpandedBoundingBox(that: BoundingBox): BoundingBox = BoundingBox.getCoveringBoundingBox(this, that)
 }

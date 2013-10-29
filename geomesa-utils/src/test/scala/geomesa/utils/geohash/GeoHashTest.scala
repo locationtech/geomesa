@@ -23,9 +23,11 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scala.math._
+import com.typesafe.scalalogging.slf4j.Logging
 
 @RunWith(classOf[JUnitRunner])
-class GeoHashTest extends Specification {
+class GeoHashTest extends Specification
+                          with Logging {
 
   "ezs42" should {
     "decode to -5.6, 42.6" in {
@@ -37,19 +39,45 @@ class GeoHashTest extends Specification {
 
   "-5.6, 42.6" should {
     "hash to ezs42 at 25 bits precision" in {
+      GeoHash(-5.6, 42.6, 25).x must equalTo(-5.60302734375)
+      GeoHash(-5.6, 42.6, 25).y must equalTo(42.60498046875)
+      GeoHash(-5.6, 42.6, 25).prec must equalTo(25)
+      GeoHash(-5.6, 42.6, 25).bbox must equalTo(BoundingBox(-5.625, -5.5810546875, 42.626953125, 42.5830078125))
+      GeoHash(-5.6, 42.6, 25).bitset must equalTo(BitSet(1,2,4,5,6,7,8,9,10,11,17,23))
       GeoHash(-5.6, 42.6, 25).hash must equalTo("ezs42")
     }
   }
 
   "-78, 38" should {
     "hash to dqb81 at 25 bits precision" in {
-      GeoHash(-78, 38,25).hash must equalTo("dqb81")
+      GeoHash(-78, 38, 25).x must equalTo(-77.98095703125)
+      GeoHash(-78, 38, 25).y must equalTo(37.99072265625)
+      GeoHash(-78, 38, 25).prec must equalTo(25)
+      GeoHash(-78, 38, 25).bbox must equalTo(BoundingBox(-78.0029296875, -77.958984375, 38.0126953125, 37.96875))
+      GeoHash(-78, 38, 25).bitset must equalTo(BitSet(1,2,5,7,8,11,13,16,24))
+      GeoHash(-78, 38, 25).hash must equalTo("dqb81")
     }
   }
 
   "-78, 38" should {
     "hash to dqb81h at 27 bits precision" in {
+      GeoHash(-78, 38, 27).x must equalTo(-77.991943359375)
+      GeoHash(-78, 38, 27).y must equalTo(38.001708984375)
+      GeoHash(-78, 38, 27).prec must equalTo(27)
+      GeoHash(-78, 38, 27).bbox must equalTo(BoundingBox(-78.0029296875, -77.98095703125, 38.0126953125, 37.99072265625))
+      GeoHash(-78, 38, 27).bitset must equalTo(BitSet(1,2,5,7,8,11,13,16,24,25))
       GeoHash(-78, 38, 27).hash must equalTo("dqb81h")
+    }
+  }
+
+  "-78, 38" should {
+    "hash to dqb81jdn at 40 bits precision" in {
+      GeoHash(-78, 38, 40).x must equalTo(-78.0000114440918)
+      GeoHash(-78, 38, 40).y must equalTo(38.000078201293945)
+      GeoHash(-78, 38, 40).prec must equalTo(40)
+      GeoHash(-78, 38, 40).bbox must equalTo(BoundingBox(-78.00018310546875, -77.99983978271484, 38.00016403198242, 37.99999237060547))
+      GeoHash(-78, 38, 40).bitset must equalTo(BitSet(1,2,5,7,8,11,13,16,24,25,29,31,32,35,37))
+      GeoHash(-78, 38, 40).hash must equalTo("dqb81jdn")
     }
   }
 
@@ -74,6 +102,8 @@ class GeoHashTest extends Specification {
       val x : Double = -78.0
       val y : Double = 38.0
       for (precision <- 20 to 40) yield {
+        logger.debug(s"precision: $precision")
+
         // encode this value
         val ghEncoded : GeoHash = GeoHash(x, y, precision)
 
@@ -87,10 +117,16 @@ class GeoHashTest extends Specification {
 
         // the bit-strings must match
         ghEncoded.toBinaryString must equalTo(ghDecoded.toBinaryString)
+        ghEncoded.bbox must equalTo(ghDecoded.bbox)
+        ghEncoded.hash must equalTo(ghDecoded.hash)
+        ghEncoded.bitset must equalTo(ghDecoded.bitset)
+        ghEncoded.prec must equalTo(ghDecoded.prec)
 
         // compute tolerance based on precision
         val minHalvings : Double = floor(precision/2)
         val tolerance : Double = 360.0 * pow(0.5, minHalvings)
+
+        logger.debug(s"decoded: ${ghDecoded.y}, ${ghDecoded.x}; encoded: ${ghEncoded.y}, ${ghEncoded.x}")
 
         // the round-trip geometry must be within tolerance of the original
         ghDecoded.x must beCloseTo(x, tolerance)
