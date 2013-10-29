@@ -285,7 +285,7 @@ object GeoHash extends Logging {
      */
     val (actualFirst, actualSecond) = if(numBits % 2 == 0) (second, first) else (first, second)
 
-    (0 until numBits).foldLeft(0L){ case (currLong, i) =>
+    (0 until numBits).foldLeft(0L){ (currLong, i) =>
       val indIndex = i / 2
       if(i % 2 == 0) currLong | shiftLongLeft(actualFirst & (1L << indIndex), numBits-3*indIndex-1)
       else currLong | shiftLongLeft(actualSecond & (1L << indIndex), numBits-3*indIndex-2)
