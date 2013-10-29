@@ -68,12 +68,12 @@ case class GeoHash(x: Double,
   def next(): GeoHash =  GeoHash(GeoHash.next(bitset, prec), prec)
 
   override def equals(obj: Any): Boolean = obj match {
-    case that: GeoHash => this.bitset == that.bitset
+    case that: GeoHash => this.bitset == that.bitset && this.prec == that.prec
     case _ => false
   }
 
   // Overriding equals obligates us to override hashCode.
-  override def hashCode: Int = bitset.hashCode
+  override def hashCode: Int = bitset.hashCode + prec
 
   override def compareTo(gh: GeoHash) = this.hash.compareTo(gh.hash)
 }
