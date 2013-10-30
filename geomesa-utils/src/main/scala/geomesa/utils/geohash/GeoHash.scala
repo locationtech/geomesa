@@ -374,7 +374,6 @@ object GeoHash extends Logging {
     base32(v.foldLeft(0)((cur,i) => cur + (if (bitset(i)) bits(i%bits.length) else 0)))
 
   //@todo make faster?
-  def subHashes(geohash:GeoHash)=
-    base32.map(str=>GeoHash(geohash.hash+str))
+  def subHashes(geohash:GeoHash) = base32.map(str=>GeoHash(geohash.hash+str))
 
 }
