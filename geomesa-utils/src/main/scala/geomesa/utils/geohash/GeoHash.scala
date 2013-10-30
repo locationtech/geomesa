@@ -28,14 +28,13 @@ import com.typesafe.scalalogging.slf4j.Logging
  * @param bbox
  * @param bitset
  * @param prec
- * @param specifiedHash
  */
 case class GeoHash private[GeoHash] (x: Double,
                                      y: Double,
                                      bbox: BoundingBox,
                                      bitset: BitSet,
                                      prec: Int, // checked in factory methods in companion object
-                                     private[GeoHash] val specifiedHash: Option[String]) extends Comparable[GeoHash] {
+                                     private[GeoHash] val optHash: Option[String]) extends Comparable[GeoHash] {
 
   import GeoHash._
 
@@ -43,7 +42,7 @@ case class GeoHash private[GeoHash] (x: Double,
    * Hash string is calculated lazily if GeoHash object was created
    * from a Point, because calculation is expensive
    */
-  lazy val hash = specifiedHash.getOrElse(toBase32(bitset, prec))
+  lazy val hash = optHash.getOrElse(toBase32(bitset, prec))
 
   /**
    * Utility method to return the bit-string as a full binary string.
