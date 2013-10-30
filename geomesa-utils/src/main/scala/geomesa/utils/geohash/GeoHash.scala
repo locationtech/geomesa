@@ -16,10 +16,10 @@
 
 package geomesa.utils.geohash
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Point, Coordinate, PrecisionModel, GeometryFactory}
 import scala.collection.BitSet
 import scala.collection.immutable.{BitSet => IBitSet}
-import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * GeoHashes above GeoHash.MAX_PRECISION are not supported.
