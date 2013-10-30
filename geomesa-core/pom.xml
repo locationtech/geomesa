@@ -86,6 +86,20 @@
             <artifactId>jta</artifactId>
         </dependency>
 
+        <!-- logging -->
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>scalalogging-slf4j_2.10</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
         <!-- provided dependencies -->
         <dependency>
             <groupId>org.apache.accumulo</groupId>

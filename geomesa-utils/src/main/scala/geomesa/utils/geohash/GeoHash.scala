@@ -39,6 +39,8 @@ case class GeoHash(x: Double,
 
   import GeoHash._
 
+  checkPrecision(prec)
+
   /**
    * Hash string is calculated lazily if GeoHash object was created
    * from a Point, because calculation is expensive
@@ -85,24 +87,27 @@ case class Bounds(low: Double,
 
 object GeoHash extends Logging {
 
-  val MAX_PRECISION = 50
+  val MAX_PRECISION = 63 // our bitset operations assume all bits fit in one Long
   private[GeoHash] val boolMap : Map[Boolean,String] = Map(false -> "0", true -> "1")
   lazy val factory: GeometryFactory = new GeometryFactory(new PrecisionModel, 4326)
 
-  def apply(string: String): GeoHash = decode(string)
-  def apply(string: String, precision:Int): GeoHash = decode(string, Some[Int](precision))
+  def apply(string: String): GeoHash = decode(string) // precision checked in decode
+  def apply(string: String, precision:Int): GeoHash = decode(string, Some[Int](precision)) // precision checked in decode
 
   // We expect points in x,y order, i.e., longitude first.
-  def apply(p: Point, prec: Int): GeoHash = apply(p.getX, p.getY, prec)
-  def apply(bs: BitSet, prec: Int): GeoHash = decode(toBase32(bs, prec), Some(prec))
+  def apply(p: Point, prec: Int): GeoHash = apply(p.getX, p.getY, prec) // precision checked in apply
+  def apply(bs: BitSet, prec: Int): GeoHash = decode(toBase32(bs, prec), Some(prec)) // precision checked in decode
 
   // We expect points x,y i.e., lon-lat
   def apply(lon: Double, lat: Double, prec: Int = 25): GeoHash = {
+    checkPrecision(prec)
     val (bbox, bitset) = boxBitsForLonLatPrec(lon, lat, prec)
     GeoHash(bbox.midLon, bbox.midLat, bbox, bitset, prec, None)
   }
 
   def covering(ll: GeoHash, ur: GeoHash, prec: Int = 25) = {
+    checkPrecision(prec)
+
     val bbox = BoundingBox(ll.getPoint, ur.getPoint)
 
     def subsIntersecting(hash: GeoHash): Seq[GeoHash] = {
@@ -118,6 +123,10 @@ object GeoHash extends Logging {
     val init = BoundingBox.getCoveringGeoHash(bbox, prec)
     subsIntersecting(init)
   }
+
+  def checkPrecision(precision: Int) =
+    require(precision <= MAX_PRECISION,
+            s"GeoHash precision of $precision requested, but precisions above $MAX_PRECISION are not supported")
 
   /**
    * Get the dimensions of the geohash grid bounded by ll and ur at precision.
@@ -218,7 +227,7 @@ object GeoHash extends Logging {
   private lazy val lonRange: Double = lonBounds.high - lonBounds.low
 
   private lazy val powersOf2Map: Map[Int, Long] =
-    (0 to MAX_PRECISION).map(i => (i, math.pow(2, i).toLong)).toMap
+    (0 to MAX_PRECISION).map(i => (i, 1L << i)).toMap // 1L << i == math.pow(2,i).toLong
   private lazy val latDeltaMap: Map[Int, Double]  =
     (0 to MAX_PRECISION).map(i => (i, latRange / powersOf2Map(i))).toMap
   private lazy val lonDeltaMap: Map[Int, Double] =
@@ -245,6 +254,7 @@ object GeoHash extends Logging {
   /**
    * Get the bitset and bounding box for a geohash at the given latitude and
    * longitude with the given precision.
+   * Assumes prec <= 63, that is, all bits in the bitset fit in one Long
    * @param lon the longitude (x value)
    * @param lat the latitude (y value)
    * @param prec precision (# of bits)
@@ -272,8 +282,7 @@ object GeoHash extends Logging {
   }
 
   /**
-   * Interleaves and reverses the bits of two longs.
-   * The two longs must be same size
+   * Interleaves and reverses the bits of two longs. The two longs must be same size or
    * @param first can be one bit longer than second
    * @param second must be same size as first or one bit shorter
    * @param numBits The total number of bits of the interleaved & reversed result
@@ -281,24 +290,19 @@ object GeoHash extends Logging {
    */
   private def interleaveReverseBits(first: Long, second: Long, numBits: Int): Long = {
     /* We start with the first value of the interleaved long, coming from first if
-     * numBits is odd or from second if numBits is even
-     */
-    val (actualFirst, actualSecond) = if(numBits % 2 == 0) (second, first) else (first, second)
-
-    (0 until numBits).foldLeft(0L){ (currLong, i) =>
-      val indIndex = i / 2
-      if(i % 2 == 0) currLong | shiftLongLeft(actualFirst & (1L << indIndex), numBits-3*indIndex-1)
-      else currLong | shiftLongLeft(actualSecond & (1L << indIndex), numBits-3*indIndex-2)
+       numBits is odd or from second if numBits is even */
+    val even = (numBits & 0x01) == 0
+    val (actualFirst, actualSecond) = if(even) (second, first) else (first, second)
+    val numPairs = numBits >> 1
+    var result = 0L
+    (0 until numPairs).foreach{ pairNum =>
+      result = (result << 1) | ((actualFirst >> pairNum) & 1L)
+      result = (result << 1) | ((actualSecond >> pairNum) & 1L)
     }
-  }
+    if (!even) result = (result << 1) | ((actualFirst >> numPairs) & 1L)
 
-  /**
-   * Shifts a long to the left if value is positive, or right if negative. 0 does not shift.
-   * @param value
-   * @param shift
-   * @return
-   */
-  private def shiftLongLeft(value: Long, shift: Int) = if(shift > 0) value << shift else value >> -shift
+    result
+  }
 
   /**
    * There is no visible difference between "t4bt" as a 20-bit GeoHash and
@@ -318,6 +322,7 @@ object GeoHash extends Logging {
   private def decode(string: String, precisionOption:Option[Int]=None): GeoHash = {
     // figure out what precision we should use
     val precision : Int = precisionOption.getOrElse(5*string.length)
+    checkPrecision(precision)
 
     // compute bit-sets for both the full and partial characters
     val bitsets : Seq[BitSet] = string.zipWithIndex.map {

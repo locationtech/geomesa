@@ -17,13 +17,13 @@
 package geomesa.utils.geohash
 
 import collection.BitSet
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Point
 import geomesa.utils.text.WKTUtils
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scala.math._
-import com.typesafe.scalalogging.slf4j.Logging
 
 @RunWith(classOf[JUnitRunner])
 class GeoHashTest extends Specification
@@ -81,6 +81,17 @@ class GeoHashTest extends Specification
     }
   }
 
+  "-78, 38" should {
+    "hash to dqb81jdnh32t8 at 63 bits precision" in {
+      GeoHash(-78, 38, 63).x must equalTo(-78.00000000279397)
+      GeoHash(-78, 38, 63).y must equalTo(38.00000004004687)
+      GeoHash(-78, 38, 63).prec must equalTo(63)
+      GeoHash(-78, 38, 63).bbox must equalTo(BoundingBox(-78.00000004470348, -77.99999996088445, 38.00000008195639, 37.999999998137355))
+      GeoHash(-78, 38, 63).bitset must equalTo(BitSet(1,2,5,7,8,11,13,16,24,25,29,31,32,35,37,40,48,49,53,55,56,59,61))
+      GeoHash(-78, 38, 63).hash must equalTo("dqb81jdnh32t8")
+    }
+  }
+
   "dqb0c" should {
     "decode to -78.68408203125,38.12255859375 at 25 bits precision" in {
       val gh = GeoHash("dqb0c")
@@ -101,7 +112,7 @@ class GeoHashTest extends Specification
     "encode and decode correctly at multiple precisions" in {
       val x : Double = -78.0
       val y : Double = 38.0
-      for (precision <- 20 to 40) yield {
+      for (precision <- 20 to 63) yield {
         logger.debug(s"precision: $precision")
 
         // encode this value
