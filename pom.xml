@@ -404,12 +404,6 @@
                         <include>**/*Test.java</include>
                     </includes>
                     <argLine>${maven.test.jvmargs}</argLine>
-                    <systemProperties>
-                        <property>
-                            <name>log4j.configuration</name>
-                            <value>test-log4j.xml</value>
-                        </property>
-                    </systemProperties>
                     <environmentVariables>
                         <ACCUMULO_HOME>${accumulo.home.dir}</ACCUMULO_HOME>
                     </environmentVariables>
