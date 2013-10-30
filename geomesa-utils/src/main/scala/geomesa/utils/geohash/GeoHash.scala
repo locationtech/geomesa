@@ -34,12 +34,10 @@ case class GeoHash private[GeoHash] (x: Double,
                                      y: Double,
                                      bbox: BoundingBox,
                                      bitset: BitSet,
-                                     prec: Int,
+                                     prec: Int, // checked in factory methods in companion object
                                      private[GeoHash] val specifiedHash: Option[String]) extends Comparable[GeoHash] {
 
   import GeoHash._
-
-  checkPrecision(prec)
 
   /**
    * Hash string is calculated lazily if GeoHash object was created
