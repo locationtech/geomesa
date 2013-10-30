@@ -30,12 +30,12 @@ import com.typesafe.scalalogging.slf4j.Logging
  * @param prec
  * @param specifiedHash
  */
-case class GeoHash(x: Double,
-                   y: Double,
-                   bbox: BoundingBox,
-                   bitset: BitSet,
-                   prec: Int,
-                   specifiedHash: Option[String]) extends Comparable[GeoHash] {
+case class GeoHash private[GeoHash] (x: Double,
+                                     y: Double,
+                                     bbox: BoundingBox,
+                                     bitset: BitSet,
+                                     prec: Int,
+                                     private[GeoHash] val specifiedHash: Option[String]) extends Comparable[GeoHash] {
 
   import GeoHash._
 
