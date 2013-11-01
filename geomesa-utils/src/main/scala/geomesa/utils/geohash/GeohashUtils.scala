@@ -533,17 +533,29 @@ object GeohashUtils extends GeomDistance {
     (for (keeper:DecompositionCandidate <- keepers) yield keeper.gh).toList
   }
 
+  def getDecomposableGeometry(targetGeom: Geometry): Geometry = targetGeom match {
+    case g: Point                                            => targetGeom
+    case g: Polygon                                          => targetGeom
+    case g: LineString      if targetGeom.getNumPoints < 100 => targetGeom
+    case g: MultiLineString if targetGeom.getNumPoints < 100 => targetGeom
+    case _                                                   => targetGeom.convexHull
+  }
+
   /**
    * Quick-and-dirty sieve that ensures that we don't waste time decomposing
    * single points.
    */
-  def decomposeGeometry(targetGeom:Geometry, maxSize:Int=100, resolutions:ResolutionRange=new ResolutionRange(0,40,5)) : List[GeoHash] = {
+  def decomposeGeometry(targetGeom:Geometry, maxSize:Int=100,
+                        resolutions:ResolutionRange=new ResolutionRange(0,40,5),
+                        relaxFit: Boolean = true) : List[GeoHash] =
     // quick hit to avoid wasting time for single points
     targetGeom match {
       case point:Point => List(GeoHash(point.getX, point.getY, resolutions.maxBitsResolution))
-      case _ => decomposeGeometry_(targetGeom, maxSize, resolutions)
+      case _ => decomposeGeometry_(
+        if (relaxFit) getDecomposableGeometry(targetGeom) else targetGeom,
+        maxSize,
+        resolutions)
     }
-  }
 
   /**
    * Given a geometry, estimate how many bits precision would be required to
