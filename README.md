@@ -20,11 +20,11 @@ spun into this project's pom.
 
 You can invoke it one of two ways
 
-From the root directory by specifying geomesa-tools
-```geomesa> mvn -pl geomesa-tools scala:console```
+From the root directory by specifying geomesa-core
+```geomesa> mvn -pl geomesa-core scala:console```
 
 Or from the sub-project's directory
-```geomesa-tools> mvn scala:console```
+```geomesa-core> mvn scala:console```
 
 By default, all of the project packages in ```core``` are loaded along with JavaConversions, JavaConverters.
 
