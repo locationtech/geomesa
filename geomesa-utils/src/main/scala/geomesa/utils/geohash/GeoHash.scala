@@ -85,8 +85,27 @@ case class Bounds(low: Double,
 object GeoHash extends Logging {
 
   val MAX_PRECISION = 63 // our bitset operations assume all bits fit in one Long
+
   private[GeoHash] val boolMap : Map[Boolean,String] = Map(false -> "0", true -> "1")
+
   lazy val factory: GeometryFactory = new GeometryFactory(new PrecisionModel, 4326)
+
+  private val latBounds = Bounds(-90.0,90.0)
+  private lazy val latRange: Double = latBounds.high - latBounds.low
+  private val lonBounds = Bounds(-180.0,180.0)
+  private lazy val lonRange: Double = lonBounds.high - lonBounds.low
+
+  private lazy val powersOf2Map: Map[Int, Long] =
+    (0 to MAX_PRECISION).map(i => (i, 1L << i)).toMap // 1L << i == math.pow(2,i).toLong
+  private lazy val latDeltaMap: Map[Int, Double]  =
+    (0 to MAX_PRECISION).map(i => (i, latRange / powersOf2Map(i / 2))).toMap
+  private lazy val lonDeltaMap: Map[Int, Double] =
+    (0 to MAX_PRECISION).map(i => (i, lonRange / powersOf2Map(i / 2 + i % 2))).toMap
+
+  private val bits = Array(16,8,4,2,1)
+  protected[geohash] val base32 = "0123456789bcdefghjkmnpqrstuvwxyz"
+  private val characterMap: Map[Char, BitSet] =
+    base32.zipWithIndex.map { case (c, i) => c -> bitSetFromBase32Character(i) }.toMap
 
   def apply(string: String): GeoHash = decode(string) // precision checked in decode
   def apply(string: String, precision:Int): GeoHash = decode(string, Some[Int](precision)) // precision checked in decode
@@ -98,8 +117,13 @@ object GeoHash extends Logging {
   // We expect points x,y i.e., lon-lat
   def apply(lon: Double, lat: Double, prec: Int = 25): GeoHash = {
     checkPrecision(prec)
-    val (bbox, bitset) = boxBitsForLonLatPrec(lon, lat, prec)
-    GeoHash(bbox.midLon, bbox.midLat, bbox, bitset, prec, None)
+
+    val lonDelta = lonDeltaMap(prec)
+    val latDelta = latDeltaMap(prec)
+    val lonIndex = ((lon - lonBounds.low) / lonDelta).toLong
+    val latIndex = ((lat - latBounds.low) / latDelta).toLong
+
+    encode(lonIndex, latIndex, lonDelta, latDelta, prec)
   }
 
   def covering(ll: GeoHash, ur: GeoHash, prec: Int = 25) = {
@@ -151,8 +175,10 @@ object GeoHash extends Logging {
    * @param gh the geohash
    * @return an array containing first the latitude index and then the longitude index
    */
-  def gridIndicesForLatLong(gh: GeoHash) = Array(gridIndexForLatitude(gh),
-                                                 gridIndexForLongitude(gh))
+  def gridIndicesForLatLong(gh: GeoHash) = {
+    val (lonIndex, latIndex) = extractReverseBits(gh.bitset.toBitMask.head, gh.prec)
+    Array(latIndex, lonIndex)
+  }
 
   /**
    * Gets a long value representing a latitude index within the grid of geohashes
@@ -161,8 +187,11 @@ object GeoHash extends Logging {
    * @param gh the geohash
    * @return latitude index
    */
-  def gridIndexForLatitude(gh: GeoHash) =
-    bitSetToIndex(extractEveryOtherBitFromBitset(gh.bitset, 1, gh.prec), gh.prec / 2)
+  def gridIndexForLatitude(gh: GeoHash) = {
+    val (_, latIndex) = extractReverseBits(gh.bitset.toBitMask.head, gh.prec)
+    latIndex
+  }
+
 
   /**
    * Gets a long value representing a longitude index within th grid of geohashes
@@ -171,8 +200,11 @@ object GeoHash extends Logging {
    * @param gh the geohash
    * @return longitude index
    */
-  def gridIndexForLongitude(gh: GeoHash) =
-    bitSetToIndex(extractEveryOtherBitFromBitset(gh.bitset, 0, gh.prec), gh.prec / 2 + gh.prec % 2)
+  def gridIndexForLongitude(gh: GeoHash) = {
+    val (lonIndex, _) = extractReverseBits(gh.bitset.toBitMask.head, gh.prec)
+    lonIndex
+  }
+
 
   /**
    * Composes a geohash from a latitude and longitude index for the grid of geohashes
@@ -188,24 +220,14 @@ object GeoHash extends Logging {
    * @return a geohash at the specified latitude and longitude index for the given geohash precision
    */
   def composeGeoHashFromBitIndicesAndPrec(latIndex: Long, lonIndex: Long, prec: Int): GeoHash = {
-    val bitsLat = prec / 2
-    val bitsLon = bitsLat + prec % 2
-
-    val latBinString = toPaddedBinaryString(latIndex, bitsLat)
-    val lonBinString = toPaddedBinaryString(lonIndex, bitsLon)
-
-    require(latBinString.length == bitsLat, "latitude Long value " + latIndex +" too high for precision of " + prec)
-    require(lonBinString.length == bitsLon, "longitude Long value " + lonIndex +" too high for precision of " + prec)
-
-    val bs = BitSet((0 until prec).map(i => if (i % 2 == 0) lonBinString(i / 2) else latBinString(i / 2))
-      .zipWithIndex.filter { case (c, idx) => c == '1' }.map(_._2): _*)
-
-    GeoHash(bs, prec)
+    checkPrecision(prec)
+    encode(lonIndex, latIndex, lonDeltaMap(prec), latDeltaMap(prec), prec)
   }
+
 
   def next(gh: GeoHash): GeoHash = GeoHash(GeoHash.next(gh.bitset), gh.prec)
 
-  def next(bs:BitSet, precision:Int=64) : BitSet = {
+  def next(bs:BitSet, precision:Int=63) : BitSet = {
     (0 until precision).reverse.foldLeft(true,BitSet())((t,idx) => t match { case (carry,newBS) => {
       if (carry) {
         if (bs(idx)) (true, newBS)
@@ -217,88 +239,23 @@ object GeoHash extends Logging {
     }})._2
   }
 
-  private val bits = Array(16,8,4,2,1)
-  private val latBounds = Bounds(-90.0,90.0)
-  private lazy val latRange: Double = latBounds.high - latBounds.low
-  private val lonBounds = Bounds(-180.0,180.0)
-  private lazy val lonRange: Double = lonBounds.high - lonBounds.low
-
-  private lazy val powersOf2Map: Map[Int, Long] =
-    (0 to MAX_PRECISION).map(i => (i, 1L << i)).toMap // 1L << i == math.pow(2,i).toLong
-  private lazy val latDeltaMap: Map[Int, Double]  =
-    (0 to MAX_PRECISION).map(i => (i, latRange / powersOf2Map(i))).toMap
-  private lazy val lonDeltaMap: Map[Int, Double] =
-    (0 to MAX_PRECISION).map(i => (i, lonRange / powersOf2Map(i))).toMap
-
-  protected[geohash] val base32 = "0123456789bcdefghjkmnpqrstuvwxyz"
-  private val characterMap: Map[Char, BitSet] =
-    base32.zipWithIndex.map { case (c, i) => c -> bitSetFromBase32Character(i) }.toMap
-
-  private def bitSetToIndex(bs: BitSet, prec: Int): Long =
-    (0 until prec).map(bit => if (bs(bit)) 1 else 0).reverse
-      .zipWithIndex.filter{ case (bit, i) => bit > 0 }.map{ case (bit, i) => math.pow(2,i).toLong }.sum
-
-  private def extractEveryOtherBitFromBitset(bs: BitSet, offset:Int, prec:Int): BitSet =
-    BitSet((offset until prec by 2).map(bit => if (bs(bit)) 1 else 0)
-      .zipWithIndex.filter { case (bit, i) => bit > 0}.map(_._2): _*)
-
-  private def bitSetFromBase32Character(charIndex: Long): BitSet =
-    BitSet(toPaddedBinaryString(charIndex, 5).zipWithIndex.filter { case (c,idx) => c == '1' }.map(_._2): _*)
-
-  private def toPaddedBinaryString(i: Long, length: Int): String =
-    String.format("%" + length + "s", i.toBinaryString).replace(' ', '0')
 
   /**
-   * Get the bitset and bounding box for a geohash at the given latitude and
-   * longitude with the given precision.
+   * Create the geohash at the given latitude and longitude index with the given deltas and precision.
    * Assumes prec <= 63, that is, all bits in the bitset fit in one Long
-   * @param lon the longitude (x value)
-   * @param lat the latitude (y value)
+   * @param lonIndex: the longitude index (x index)
+   * @param latIndex: the latitude index (y index)
+   * @param lonDelta the longitude (x) delta per grid cell for the given precision
+   * @param latDelta the latitude (y) delta per grid cell for the given precision
    * @param prec precision (# of bits)
-   * @return tuple containing the bounding box and bitset.
+   * @return the encoded GeoHash (note that calculation of the actual hash string is lazy)
    */
-  private def boxBitsForLonLatPrec(lon: Double, lat: Double, prec: Int): (BoundingBox, BitSet) = {
-    val minLon = lonBounds.low
-    val minLat = latBounds.low
-
-    val latBits = prec / 2
-    val lonBits = latBits + prec % 2
-
-    val lonDelta = lonDeltaMap(lonBits)
-    val lonIndex = ((lon - minLon) / lonDelta).toLong
-
-    val latDelta = latDeltaMap(latBits)
-    val latIndex = ((lat - minLat) / latDelta).toLong
+  def encode(lonIndex: Long, latIndex: Long, lonDelta: Double, latDelta: Double, prec: Int): GeoHash = {
 
     val bitSet = IBitSet.fromBitMaskNoCopy(Array(interleaveReverseBits(lonIndex, latIndex, prec)))
+    val bbox = bboxFromIndiciesDeltas(lonIndex, latIndex, lonDelta, latDelta)
 
-    val bbox = BoundingBox(Bounds((minLon+lonDelta*lonIndex), (minLon+lonDelta*(lonIndex+1))),
-                           Bounds((minLat+latDelta*latIndex), (minLat+latDelta*(latIndex+1))))
-
-    (bbox, bitSet)
-  }
-
-  /**
-   * Interleaves and reverses the bits of two longs. The two longs must be same size or
-   * @param first can be one bit longer than second
-   * @param second must be same size as first or one bit shorter
-   * @param numBits The total number of bits of the interleaved & reversed result
-   * @return long with a total of numBits bits of first and second interleaved & reversed
-   */
-  private def interleaveReverseBits(first: Long, second: Long, numBits: Int): Long = {
-    /* We start with the first value of the interleaved long, coming from first if
-       numBits is odd or from second if numBits is even */
-    val even = (numBits & 0x01) == 0
-    val (actualFirst, actualSecond) = if(even) (second, first) else (first, second)
-    val numPairs = numBits >> 1
-    var result = 0L
-    (0 until numPairs).foreach{ pairNum =>
-      result = (result << 1) | ((actualFirst >> pairNum) & 1L)
-      result = (result << 1) | ((actualSecond >> pairNum) & 1L)
-    }
-    if (!even) result = (result << 1) | ((actualFirst >> numPairs) & 1L)
-
-    result
+    GeoHash(bbox.midLon, bbox.midLat, bbox, bitSet, prec, None)
   }
 
   /**
@@ -316,47 +273,87 @@ object GeoHash extends Logging {
    * @param precisionOption the desired precision as an option
    * @return the decoded GeoHash
    */
-  private def decode(string: String, precisionOption:Option[Int]=None): GeoHash = {
+  private def decode(string: String, precisionOption: Option[Int] = None): GeoHash = {
     // figure out what precision we should use
-    val precision : Int = precisionOption.getOrElse(5*string.length)
-    checkPrecision(precision)
+    val prec = precisionOption.getOrElse(5*string.length)
+    checkPrecision(prec)
 
     // compute bit-sets for both the full and partial characters
-    val bitsets : Seq[BitSet] = string.zipWithIndex.map {
-      case (c: Char, i: Int) => shift(i*5, characterMap(c))
-    }
+    val bitsets = string.zipWithIndex.map { case (c: Char, i: Int) => shift(i*5, characterMap(c)) }
 
     // OR all of these bit-sets together
-    val finalBitset : BitSet = bitsets.size match {
+    val finalBitset: BitSet = bitsets.size match {
       case 0 => BitSet()
       case 1 => bitsets(0)
       case _ => bitsets.reduce(_|_)
     }
 
-    // compute the geometry implied by this bit-set
-    val lonb = lonFromBitset(finalBitset, precision)
-    val latb = latFromBitset(finalBitset, precision)
-    val bbox = BoundingBox(lonb, latb)
+    val (lonIndex, latIndex) = extractReverseBits(finalBitset.toBitMask.head, prec)
+    val (lonDelta, latDelta) = (lonDeltaMap(prec), latDeltaMap(prec))
+    val bbox = bboxFromIndiciesDeltas(lonIndex, latIndex, lonDelta, latDelta)
 
-    GeoHash(lonb.mid, latb.mid, bbox, finalBitset, precision, Some(string))
+    GeoHash(bbox.midLon, bbox.midLat, bbox, finalBitset, prec, Some(string))
   }
 
-  private def lonFromBitset = boundsFromBitset(0, lonBounds)(_,_)
-  private def latFromBitset = boundsFromBitset(1, latBounds)(_,_)
-  private def boundsFromBitset(startIdx: Int, bounds: Bounds)(bs: BitSet, prec: Int): Bounds =
-    (startIdx until prec by 2).foldLeft(bounds) {
-      case (bounds: Bounds, i: Int) =>
-        if(!bs(i)) bounds.copy(high=bounds.mid)
-        else bounds.copy(low=bounds.mid)
-    }
+  private def bboxFromIndiciesDeltas(lonIndex: Long,
+                                     latIndex: Long,
+                                     lonDelta: Double,
+                                     latDelta: Double): BoundingBox =
+    BoundingBox(Bounds((lonBounds.low+lonDelta*lonIndex), (lonBounds.low+lonDelta*(lonIndex+1))),
+                Bounds((latBounds.low+latDelta*latIndex), (latBounds.low+latDelta*(latIndex+1))))
 
+  /**
+   * Reverses and interleaves every other bits of two longs into one long. The two longs must be
+   * same size or first can be one bit longer than second.
+   * @param first first long
+   * @param second second long
+   * @param numBits The total number of bits of the interleaved & reversed result
+   * @return long with a total of numBits bits of first and second interleaved & reversed
+   */
+  private def interleaveReverseBits(first: Long, second: Long, numBits: Int): Long = {
+    /* We start with the first value of the interleaved long, coming from first if
+       numBits is odd or from second if numBits is even */
+    val even = (numBits & 0x01) == 0
+    val (actualFirst, actualSecond) = if(even) (second, first) else (first, second)
+    val numPairs = numBits >> 1
+    var result = 0L
+    (0 until numPairs).foreach{ pairNum =>
+      result = (result << 1) | ((actualFirst >> pairNum) & 1L)
+      result = (result << 1) | ((actualSecond >> pairNum) & 1L)
+    }
+    if (!even) (result << 1) | ((actualFirst >> numPairs) & 1L) else result
+  }
+
+  /**
+   * Reverses and extracts every other bit up to numBits and extracts them into two longs.
+   * @param value the long
+   * @param numBits the number of bits to extract from the long
+   * @return (first long, second long)  The first long will be one bit longer than the second if
+   *         numBits is odd
+   */
+  private def extractReverseBits(value: Long, numBits: Int): (Long, Long) = {
+    val numPairs = numBits >> 1
+    var first = 0L
+    var second = 0L
+    (0 until numPairs).foreach{ pairNum =>
+      first = (first << 1) | ((value >> pairNum * 2) & 1L)
+      second = (second << 1) | ((value >> (pairNum * 2 + 1)) & 1L)
+    }
+    ((if((numBits & 0x01) == 1) ((first << 1) | ((value >> (numBits - 1)) & 1L)) else first), second)
+  }
 
   private def shift(n: Int, bs: BitSet): BitSet = bs.map(_ + n)
+
+  private def bitSetFromBase32Character(charIndex: Long): BitSet =
+    BitSet(toPaddedBinaryString(charIndex, 5).zipWithIndex.filter { case (c,idx) => c == '1' }.map(_._2): _*)
+
+  private def toPaddedBinaryString(i: Long, length: Int): String =
+    String.format("%" + length + "s", i.toBinaryString).replace(' ', '0')
 
   private def toBase32(bitset: BitSet, prec: Int): String = {
     // compute the precision padded to the next 5-bit boundary
     val numLeftoverBits = prec % 5
-    val precision : Int = prec + (numLeftoverBits match {
+    val precision = prec + (numLeftoverBits match {
       case 0 => 0
       case _ => (5-numLeftoverBits)
     })
@@ -369,8 +366,5 @@ object GeoHash extends Logging {
 
   private def ch(v: IndexedSeq[Int], bitset: BitSet) =
     base32(v.foldLeft(0)((cur,i) => cur + (if (bitset(i)) bits(i%bits.length) else 0)))
-
-  //@todo make faster?
-  def subHashes(geohash:GeoHash) = base32.map(str=>GeoHash(geohash.hash+str))
 
 }
