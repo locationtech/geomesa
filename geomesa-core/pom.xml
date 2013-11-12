@@ -88,10 +88,6 @@
 
         <!-- logging -->
         <dependency>
-            <groupId>com.typesafe</groupId>
-            <artifactId>scalalogging-slf4j_2.10</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
