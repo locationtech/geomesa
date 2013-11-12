@@ -11,8 +11,10 @@
 # - This script is meant to be run from the "dev" sub-directory where
 #   the distribution .tar.gz file was unpacked.
 
-export CLASSPATH="./:"`find . -iname "*.jar" | tr "\n" ":"`
-export SCALA_HOME=`find . -iname "*core*dependencies.jar"`
+export CONF=`find . -name geomesa-site.xml`
+export CONF_DIR=`dirname $CONF`
+export CLASSPATH="$CONF_DIR:"`find . -iname "*.jar" | tr "\n" ":"`
+export SCALA_HOME="lib"
 
 java \
   $JAVA_OPTS \
@@ -20,3 +22,4 @@ java \
   -Dscala.home="$SCALA_HOME" \
   -Dscala.usejavacp=true \
   scala.tools.nsc.MainGenericRunner  "$@"
+reset
