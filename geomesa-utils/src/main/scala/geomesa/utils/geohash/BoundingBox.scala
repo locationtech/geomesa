@@ -39,14 +39,14 @@ case class BoundingBox(ll: Point, ur: Point) {
   require(ll.getY <= ur.getY)
 
   lazy val envelope: Envelope = new Envelope(ll.getX, ur.getX, ll.getY, ur.getY)
-  lazy val geom: Geometry = llGeoFactory.toGeometry(envelope)
+  lazy val geom: Geometry = latLonGeoFactory.toGeometry(envelope)
   lazy val poly: Polygon = geom match {
     case p: Polygon => p
     case _ => throw new Exception("geometry for bounding box is not a polygon")
   }
 
-  lazy val ul: Point = llGeoFactory.createPoint(new Coordinate(ll.getX, ur.getY))
-  lazy val lr: Point = llGeoFactory.createPoint(new Coordinate(ur.getX, ll.getY))
+  lazy val ul: Point = latLonGeoFactory.createPoint(new Coordinate(ll.getX, ur.getY))
+  lazy val lr: Point = latLonGeoFactory.createPoint(new Coordinate(ur.getX, ll.getY))
 
   def intersects(bbox: BoundingBox): Boolean = covers(bbox.ll) || covers(bbox.ul) ||
                                                covers(bbox.lr) || covers(bbox.ur)
@@ -88,7 +88,7 @@ case class BoundingBox(ll: Point, ur: Point) {
   lazy val midLon = (minLon + maxLon) / 2
   lazy val midLat = (minLat + maxLat) / 2
 
-  lazy val centerPoint = llGeoFactory.createPoint(new Coordinate(midLon,midLat))
+  lazy val centerPoint = latLonGeoFactory.createPoint(new Coordinate(midLon,midLat))
 
   def getExpandedBoundingBox(that: BoundingBox): BoundingBox =
     BoundingBox.getCoveringBoundingBox(this, that)
@@ -101,7 +101,7 @@ object BoundingBox {
   implicit def toEnvelope(bbox: BoundingBox): Envelope = bbox.envelope
   implicit def toGeometry(bbox: BoundingBox): Geometry = bbox.geom
 
-  lazy val llGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
+  lazy val latLonGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
 
   def apply(x1: Double, x2: Double, y1: Double, y2: Double): BoundingBox =
      apply(Bounds(Math.min(x1, x2), Math.max(x1, x2)),
@@ -111,8 +111,8 @@ object BoundingBox {
     val Bounds(minLat, maxLat) = lats
     val Bounds(minLon, maxLon) = lons
     new BoundingBox(
-      llGeoFactory.createPoint(new Coordinate(minLon, minLat)),
-      llGeoFactory.createPoint(new Coordinate(maxLon, maxLat)))
+      latLonGeoFactory.createPoint(new Coordinate(minLon, minLat)),
+      latLonGeoFactory.createPoint(new Coordinate(maxLon, maxLat)))
   }
 
   def apply(env: Envelope): BoundingBox = {
@@ -128,8 +128,8 @@ object BoundingBox {
   def getAreaOfBoundingBox(bbox: BoundingBox): Double = bbox.geom.getArea
 
   def bboxToPoly(ll: Point, ur: Point): Polygon =
-    llGeoFactory.createPolygon(
-      llGeoFactory.createLinearRing(Array(new Coordinate(ll.getX, ll.getY),
+    latLonGeoFactory.createPolygon(
+      latLonGeoFactory.createLinearRing(Array(new Coordinate(ll.getX, ll.getY),
         new Coordinate(ll.getX, ur.getY),
         new Coordinate(ur.getX, ur.getY),
         new Coordinate(ur.getX, ll.getY),
