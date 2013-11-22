@@ -29,9 +29,13 @@ import org.specs2.runner.JUnitRunner
 class QueryPlannersTest extends Specification {
   "QueryPlanner" should {
     "return full ranges for unspecified dates " in {
-      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(SpatialFilter(GeoHash("c23j").bbox.poly)) must be equalTo(KeyRange("01", "12"))
-      DatePlanner(DateTimeFormat.forPattern("ss")).getKeyPlan(SpatialFilter(GeoHash("c23j").bbox.poly)) must be equalTo(KeyRange("00", "59"))
-      DatePlanner(DateTimeFormat.forPattern("MM-dd")).getKeyPlan(SpatialFilter(GeoHash("c23j").bbox.poly)) must be equalTo(KeyRange("01-01", "12-31"))
+      val ghPoly =  GeoHash("c23j").bbox.geom match {
+        case p: Polygon => p
+        case _ => throw new Exception("geohash c23j should have a polygon bounding box")
+      }
+      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(SpatialFilter(ghPoly)) must be equalTo(KeyRange("01", "12"))
+      DatePlanner(DateTimeFormat.forPattern("ss")).getKeyPlan(SpatialFilter(ghPoly)) must be equalTo(KeyRange("00", "59"))
+      DatePlanner(DateTimeFormat.forPattern("MM-dd")).getKeyPlan(SpatialFilter(ghPoly)) must be equalTo(KeyRange("01-01", "12-31"))
     }
     "return apprpriate ranges for date ranges" in {
       val dt1 = new DateTime(2005, 3, 3, 5, 7, DateTimeZone.forID("UTC"))

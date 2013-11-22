@@ -147,7 +147,7 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
         // either the geohash geom is completely contained
         // within the search area or the original geometry
         // intersects the search area
-        p.contains(gh.bbox.poly) || p.intersects(geom)
+        p.contains(gh.bbox.geom) || p.intersects(geom)
     }
 
   // data rows are the only ones with "SimpleFeatureAttribute" in the ColQ
