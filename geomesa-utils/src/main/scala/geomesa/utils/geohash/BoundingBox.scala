@@ -40,10 +40,6 @@ case class BoundingBox(ll: Point, ur: Point) {
 
   lazy val envelope: Envelope = new Envelope(ll.getX, ur.getX, ll.getY, ur.getY)
   lazy val geom: Geometry = latLonGeoFactory.toGeometry(envelope)
-  lazy val poly: Polygon = geom match {
-    case p: Polygon => p
-    case _ => throw new Exception("geometry for bounding box is not a polygon")
-  }
 
   lazy val ul: Point = latLonGeoFactory.createPoint(new Coordinate(ll.getX, ur.getY))
   lazy val lr: Point = latLonGeoFactory.createPoint(new Coordinate(ur.getX, ll.getY))
