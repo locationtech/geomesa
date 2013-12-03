@@ -97,10 +97,20 @@ object GeoHash extends Logging {
 
   private lazy val powersOf2Map: Map[Int, Long] =
     (0 to MAX_PRECISION).map(i => (i, 1L << i)).toMap // 1L << i == math.pow(2,i).toLong
+
   private lazy val latDeltaMap: Map[Int, Double]  =
     (0 to MAX_PRECISION).map(i => (i, latRange / powersOf2Map(i / 2))).toMap
+  def latitudeDeltaForPrecision(prec: Int): Double = {
+    checkPrecision(prec)
+    latDeltaMap(prec)
+  }
+
   private lazy val lonDeltaMap: Map[Int, Double] =
     (0 to MAX_PRECISION).map(i => (i, lonRange / powersOf2Map(i / 2 + i % 2))).toMap
+  def longitudeDeltaForPrecision(prec: Int): Double = {
+    checkPrecision(prec)
+    lonDeltaMap(prec)
+  }
 
   private val bits = Array(16,8,4,2,1)
   protected[geohash] val base32 = "0123456789bcdefghjkmnpqrstuvwxyz"
