@@ -42,7 +42,6 @@
         <dependency>
             <groupId>geomesa</groupId>
             <artifactId>geomesa-plugin</artifactId>
-            <classifier>geoserver-plugin</classifier>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>

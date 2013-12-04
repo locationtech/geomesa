@@ -210,12 +210,6 @@
                 <artifactId>geomesa-distributed-runtime</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>geomesa</groupId>
-                <artifactId>geomesa-plugin</artifactId>
-                <classifier>geoserver-plugin</classifier>
-                <version>${project.version}</version>
-            </dependency>
 
             <!-- logging -->
             <dependency>
