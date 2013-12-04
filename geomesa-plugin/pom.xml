@@ -66,22 +66,43 @@
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/main/assembly/jar.xml</descriptor>
-                    </descriptors>
-                    <outputDirectory>target</outputDirectory>
-                    <finalName>geomesa-plugin-${project.version}</finalName>
-                    <appendAssemblyId>true</appendAssemblyId>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.2</version>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <id>build-assembly</id>
                         <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.geotools:*</exclude>
+                                    <exclude>org.apache.*:*</exclude>
+                                    <exclude>org.apache.commons.*:*</exclude>
+                                    <exclude>com.google.*:*</exclude>
+                                    <exclude>javax.*:*</exclude>
+                                    <exclude>com.vividsolutions:*</exclude>
+                                    <exclude>commons*:*</exclude>
+                                    <exclude>net.java.dev:*</exclude>
+                                    <exclude>net.java.dev.jsr-275:*</exclude>
+                                    <exclude>java3d:*</exclude>
+                                    <exclude>net.sf.ehcache:*</exclude>
+                                    <exclude>jdom:*</exclude>
+                                    <exclude>org.slf4j:*</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>geomesa:geomesa-core</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                            </filters>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
