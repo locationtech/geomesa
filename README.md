@@ -37,8 +37,8 @@ directory.
 
 This sub-project creates a plugin which provides WFS and WMS support.
 
-The JAR named geomesa-plugin-<Version>-geoserver-plugin.jar is ready to be deployed in GeoServer by
-copying it into geoserver/WEB-INF/lib/
+The JAR named geomesa-plugin-<Version>.jar is ready to be deployed in GeoServer by copying it into
+geoserver/WEB-INF/lib/
 
 ### geomesa-utils
 
