@@ -75,11 +75,9 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
                             <artifactSet>
                                 <excludes>
                                     <exclude>org.geotools:*</exclude>
-                                    <exclude>org.apache.*:*</exclude>
                                     <exclude>org.apache.commons.*:*</exclude>
                                     <exclude>com.google.*:*</exclude>
                                     <exclude>javax.*:*</exclude>
