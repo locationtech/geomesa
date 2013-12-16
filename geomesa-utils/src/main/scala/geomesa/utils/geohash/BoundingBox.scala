@@ -32,23 +32,17 @@ import scala.collection.BitSet
  *   NB: Lat-lon rectangles which cross the {+|-}180 longitude line cannot be represented.
  */
 case class BoundingBox(ll: Point, ur: Point) {
+  
+  import BoundingBox._
+  
   require(ll.getX <= ur.getX)
   require(ll.getY <= ur.getY)
 
-  val gf = BoundingBox.geomFactory
+  lazy val envelope: Envelope = new Envelope(ll.getX, ur.getX, ll.getY, ur.getY)
+  lazy val geom: Geometry = latLonGeoFactory.toGeometry(envelope)
 
-  lazy val poly =
-    gf.createPolygon(gf.createLinearRing(
-      Array(
-        ll.getCoordinate,
-        ul.getCoordinate,
-        ur.getCoordinate,
-        lr.getCoordinate,
-        ll.getCoordinate)),
-      Array())
-
-  lazy val ul = BoundingBox.geomFactory.createPoint(new Coordinate(ll.getX, ur.getY))
-  lazy val lr = BoundingBox.geomFactory.createPoint(new Coordinate(ur.getX, ll.getY))
+  lazy val ul: Point = latLonGeoFactory.createPoint(new Coordinate(ll.getX, ur.getY))
+  lazy val lr: Point = latLonGeoFactory.createPoint(new Coordinate(ur.getX, ll.getY))
 
   def intersects(bbox: BoundingBox): Boolean = covers(bbox.ll) || covers(bbox.ul) ||
                                                covers(bbox.lr) || covers(bbox.ur)
@@ -72,13 +66,12 @@ case class BoundingBox(ll: Point, ur: Point) {
   /**
    * This bounding box contains geom iff no points of goem lie in the exterior of this bounding box,
    * and at least one point of the interior of goem lies in the interior of this bounding box.
-   * @param geom
+   * @param otherGeom
    * @return
    */
-  def contains(geom: Geometry): Boolean = poly.contains(geom)
+  def contains(otherGeom: Geometry): Boolean = geom.contains(otherGeom)
 
   lazy val longitudeSize = ur.getX - ll.getX
-
   lazy val latitudeSize = ur.getY - ll.getY
 
   lazy val minLon = ll.getX
@@ -91,14 +84,20 @@ case class BoundingBox(ll: Point, ur: Point) {
   lazy val midLon = (minLon + maxLon) / 2
   lazy val midLat = (minLat + maxLat) / 2
 
-  lazy val centerPoint = BoundingBox.geomFactory.createPoint(new Coordinate(midLon,midLat))
+  lazy val centerPoint = latLonGeoFactory.createPoint(new Coordinate(midLon,midLat))
 
-  def getExpandedBoundingBox(that: BoundingBox): BoundingBox = BoundingBox.getCoveringBoundingBox(this, that)
+  def getExpandedBoundingBox(that: BoundingBox): BoundingBox =
+    BoundingBox.getCoveringBoundingBox(this, that)
 }
 
 object BoundingBox {
-  val geomFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
-  val geohashPrecision = 40
+  /* TODO: remove this and refer to max precision in GeoHash class? */
+  val DEFAULT_PRECISION = 40
+
+  implicit def toEnvelope(bbox: BoundingBox): Envelope = bbox.envelope
+  implicit def toGeometry(bbox: BoundingBox): Geometry = bbox.geom
+
+  lazy val latLonGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
 
   def apply(x1: Double, x2: Double, y1: Double, y2: Double): BoundingBox =
      apply(Bounds(Math.min(x1, x2), Math.max(x1, x2)),
@@ -108,25 +107,25 @@ object BoundingBox {
     val Bounds(minLat, maxLat) = lats
     val Bounds(minLon, maxLon) = lons
     new BoundingBox(
-      geomFactory.createPoint(new Coordinate(minLon, minLat)),
-      geomFactory.createPoint(new Coordinate(maxLon, maxLat)))
+      latLonGeoFactory.createPoint(new Coordinate(minLon, minLat)),
+      latLonGeoFactory.createPoint(new Coordinate(maxLon, maxLat)))
   }
 
   def apply(env: Envelope): BoundingBox = {
     apply(env.getMinX, env.getMaxX, env.getMinY, env.getMaxY)
   }
 
-  def geoHashFromEwkb(ewkb: String): GeoHash = {
+  def geoHashFromEwkb(ewkb: String, precision: Int = DEFAULT_PRECISION): GeoHash = {
     val b = Base64.decodeBase64(ewkb.getBytes)
     val wkt = WKBUtils.read(b)
-    GeoHash(wkt.getInteriorPoint.getY, wkt.getInteriorPoint.getX, geohashPrecision)
+    GeoHash(wkt.getInteriorPoint.getY, wkt.getInteriorPoint.getX, precision)
   }
 
-  def getAreaOfBoundingBox(bbox: BoundingBox): Double = bbox.poly.getArea
+  def getAreaOfBoundingBox(bbox: BoundingBox): Double = bbox.geom.getArea
 
   def bboxToPoly(ll: Point, ur: Point): Polygon =
-    geomFactory.createPolygon(
-      geomFactory.createLinearRing(Array(new Coordinate(ll.getX, ll.getY),
+    latLonGeoFactory.createPolygon(
+      latLonGeoFactory.createLinearRing(Array(new Coordinate(ll.getX, ll.getY),
         new Coordinate(ll.getX, ur.getY),
         new Coordinate(ur.getX, ur.getY),
         new Coordinate(ur.getX, ll.getY),
@@ -137,7 +136,7 @@ object BoundingBox {
   def getGeoHashesFromBoundingBox(bbox: BoundingBox): List[String] =
     getGeoHashesFromBoundingBox(bbox, 32)
 
-  def intersects(l: BoundingBox, r: BoundingBox): Boolean = l.poly.intersects(r.poly)
+  def intersects(l: BoundingBox, r: BoundingBox): Boolean = l.geom.intersects(r.geom)
 
   def getCoveringBoundingBox(l:BoundingBox, r:BoundingBox) = {
     val maxLon = math.max(l.ur.getX, r.ur.getX)
@@ -146,18 +145,21 @@ object BoundingBox {
     val minLat = math.min( l.ll.getY,r.ll.getY)
     BoundingBox(Bounds(minLon,maxLon), Bounds(minLat,maxLat))
   }
+
   /**
    *
    * @param bbox
    * @param maxHashes
    * @return
    */
-  def getGeoHashesFromBoundingBox(bbox: BoundingBox, maxHashes: Int): List[String] = {
+  def getGeoHashesFromBoundingBox(bbox: BoundingBox,
+                                  maxHashes: Int,
+                                  precision: Int = DEFAULT_PRECISION): List[String] = {
 
     def getMinBoxes(hashList: List[GeoHash]): List[String] = {
       val hashes = hashList.flatMap(h => generateSubGeoHashes(h)) filter
           (hash => intersects(bbox, hash.bbox))
-      if (hashes.size < maxHashes && hashes.size > 0 && hashes.head.prec < geohashPrecision) {
+      if (hashes.size < maxHashes && hashes.size > 0 && hashes.head.prec < precision) {
         //double check - you could get way too many here from the subhashing
         val childHashes = getMinBoxes(hashes)
         if (childHashes.size > maxHashes) {
@@ -169,11 +171,13 @@ object BoundingBox {
         hashes.map(hash => hash.hash)
       }
     }
-    getMinBoxes(List(getCoveringGeoHash(bbox, geohashPrecision)))
+    getMinBoxes(List(getCoveringGeoHash(bbox, precision)))
   }
 
-  def getCoveringGeoHashesFromBoundingBox(bbox: BoundingBox, maxHashes: Int): CoveringGeoHashes =
-    new CoveringGeoHashes(getGeoHashesFromBoundingBox(bbox, maxHashes).map(GeoHash(_)))
+  def getCoveringGeoHashesFromBoundingBox(bbox: BoundingBox,
+                                          maxHashes: Int,
+                                          precision: Int = DEFAULT_PRECISION): CoveringGeoHashes =
+    new CoveringGeoHashes(getGeoHashesFromBoundingBox(bbox, maxHashes, precision).map(GeoHash(_)))
 
   /**
    * get geohash that covers the bounding box to the given precision 
