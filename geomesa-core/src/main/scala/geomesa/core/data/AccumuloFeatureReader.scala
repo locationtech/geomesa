@@ -73,7 +73,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
         case Some(rawPoly)                         => bounds match {
           case null                          => (rawPoly, false)
           case b if rawPoly.disjoint(bounds) => (null, true)
-          case b if rawPoly.covers(bounds)   => (null, false)
+          case b if rawPoly.covers(bounds)   => (bounds.asInstanceOf[Polygon], false)
           case _                             =>
             (rawPoly.intersection(bounds).asInstanceOf[Polygon], false)
         }
