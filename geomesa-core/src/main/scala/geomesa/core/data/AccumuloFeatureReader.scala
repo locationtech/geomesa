@@ -18,7 +18,7 @@
 package geomesa.core.data
 
 import collection.immutable.TreeSet
-import com.vividsolutions.jts.geom.{GeometryFactory, PrecisionModel, Polygon}
+import com.vividsolutions.jts.geom._
 import geomesa.core.data.FilterToAccumulo.{SetLikeFilter, SetLikeInterval, SetLikePolygon, SetLikeExtraction}
 import geomesa.core.index._
 import geomesa.utils.geohash.GeohashUtils
@@ -42,7 +42,10 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
   lazy val bounds = dataStore.getBounds(query) match {
     case null => null
-    case b => geomFactory.toGeometry(b)
+    case b =>
+      val res = geomFactory.toGeometry(b)
+      if(res.isInstanceOf[Point] || res.isInstanceOf[LineString]) res.buffer(0.01).asInstanceOf[Polygon]
+      else res.asInstanceOf[Polygon]
   }
 
   lazy val (iterValues,bs) =
