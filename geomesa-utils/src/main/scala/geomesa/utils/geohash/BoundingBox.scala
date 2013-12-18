@@ -174,6 +174,16 @@ object BoundingBox {
     getMinBoxes(List(getCoveringGeoHash(bbox, precision)))
   }
 
+  /**
+   * This method is *only* here for Java compatibility
+   * @param bbox
+   * @param maxHashes
+   * @return
+   */
+  def getCoveringGeoHashesFromBoundingBox(bbox: BoundingBox,
+                                          maxHashes: Int): CoveringGeoHashes =
+    getCoveringGeoHashesFromBoundingBox(bbox, maxHashes, DEFAULT_PRECISION)
+
   def getCoveringGeoHashesFromBoundingBox(bbox: BoundingBox,
                                           maxHashes: Int,
                                           precision: Int = DEFAULT_PRECISION): CoveringGeoHashes =
