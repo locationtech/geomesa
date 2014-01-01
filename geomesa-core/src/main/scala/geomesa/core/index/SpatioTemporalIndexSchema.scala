@@ -462,7 +462,7 @@ object SpatioTemporalIndexSchema extends RegexParsers {
 
   // the column qualifier must end with an ID-encoder
   def cqpart: Parser[CompositeTextFormatter[SpatioTemporalIndexEntry]] =
-    (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder) ~ idEncoder) ^^ {
+    phrase(sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder) ~ idEncoder) ^^ {
       case sep ~ xs ~ id => CompositeTextFormatter[SpatioTemporalIndexEntry](xs :+ id, sep)
     }
 

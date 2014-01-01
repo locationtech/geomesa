@@ -24,6 +24,7 @@ import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class SpatioTemporalIndexSchemaTest extends Specification {
@@ -45,6 +46,20 @@ class SpatioTemporalIndexSchemaTest extends Specification {
         case _ => false
       }
       matched must be equalTo true
+    }
+
+    "allow extra elements inside the column qualifier" in {
+      val schema = Try(SpatioTemporalIndexSchema(
+        "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%9#r%ColQ#cstr%15#id%5,2#gh",
+        dummyType))
+      schema.isFailure must be equalTo true
+    }
+
+    "complain when there are extra elements at the end" in {
+      val schema = Try(SpatioTemporalIndexSchema(
+        "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%15#id%5,2#gh",
+        dummyType))
+      schema.isFailure must be equalTo true
     }
   }
 
