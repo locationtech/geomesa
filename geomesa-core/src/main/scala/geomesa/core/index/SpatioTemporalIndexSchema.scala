@@ -647,7 +647,7 @@ object SpatioTemporalIndexSchema extends RegexParsers {
       val (l,r) = geomDatePortion.drop(4).splitAt(geomLength)
       DecodedIndexValue(id, WKBUtils.read(l), Some(ByteBuffer.wrap(r).getLong))
     } else {
-      DecodedIndexValue(id, WKBUtils.read(buf.drop(4)), None)
+      DecodedIndexValue(id, WKBUtils.read(geomDatePortion.drop(4)), None)
     }
   }
 
