@@ -24,7 +24,7 @@ import geomesa.core.index._
 import geomesa.utils.text.WKTUtils
 import java.util
 import org.apache.accumulo.core.Constants
-import org.apache.accumulo.core.client.BatchScanner
+import org.apache.accumulo.core.client.{BatchWriterConfig, BatchScanner}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.data._
 import org.geotools.data.DataUtilities
@@ -34,6 +34,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scala.util.Random
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 
 @RunWith(classOf[JUnitRunner])
 class SpatioTemporalIntersectingIteratorTest extends Specification {
@@ -189,9 +190,9 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
       val TEST_AUTHORIZATIONS = Constants.NO_AUTHS
 
       val mockInstance = new MockInstance()
-      val c = mockInstance.getConnector(TEST_USER, TEST_AUTHORIZATIONS.getAuthorizationsArray)
+      val c = mockInstance.getConnector(TEST_USER, new PasswordToken(Array[Byte]()))
       c.tableOperations.create(TEST_TABLE)
-      val bw = c.createBatchWriter(TEST_TABLE, 1000L, 1000L, 1)
+      val bw = c.createBatchWriter(TEST_TABLE, new BatchWriterConfig)
 
       // populate the mock table
       val dataList: util.Collection[(Key, Value)] = TestData.encodeDataList(entries)

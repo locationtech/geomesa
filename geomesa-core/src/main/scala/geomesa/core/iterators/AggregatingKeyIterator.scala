@@ -128,7 +128,7 @@ class AggregatingKeyIterator extends SortedKeyValueIterator[Key, Value] with Opt
     this.iterator = source
     try {
       val clazz = options(AggregatingKeyIterator.aggClass)
-      val aggClazz = AccumuloClassLoader.loadClass(clazz, classOf[SurfaceAggregatingIterator])
+      val aggClazz = AccumuloClassLoader.getClassLoader.loadClass(clazz)
       this.aggregator = aggClazz.newInstance.asInstanceOf[KeyAggregator]
     }
     catch {
@@ -160,7 +160,7 @@ class AggregatingKeyIterator extends SortedKeyValueIterator[Key, Value] with Opt
     for (entry <- options.entrySet) {
       var clazz: Class[_ <: Combiner] = null
       try {
-        clazz = AccumuloClassLoader.loadClass(entry.getValue, classOf[Combiner])
+        clazz = AccumuloClassLoader.getClassLoader.loadClass(entry.getValue).asInstanceOf[Class[_ <: Combiner]]
         clazz.newInstance
       }
       catch {

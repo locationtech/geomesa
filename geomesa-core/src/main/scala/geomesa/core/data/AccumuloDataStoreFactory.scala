@@ -27,6 +27,7 @@ import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import scala.collection.JavaConversions._
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -70,9 +71,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
 
     if (useMock) 
-      new MockInstance(instance).getConnector(user, password.getBytes)
+      new MockInstance(instance).getConnector(user, new PasswordToken(password.getBytes))
     else 
-      new ZooKeeperInstance(instance, zookeepers).getConnector(user, password.getBytes)
+      new ZooKeeperInstance(instance, zookeepers).getConnector(user, new PasswordToken(password.getBytes))
   }
 
   override def getDisplayName = "Accumulo Feature Data Store"

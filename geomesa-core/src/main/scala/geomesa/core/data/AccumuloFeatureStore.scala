@@ -26,7 +26,6 @@ import java.util.{List => JList, Set => JSet, Map => JMap, UUID}
 import org.apache.accumulo.core.client.mapreduce.AccumuloFileOutputFormat
 import org.apache.accumulo.core.data.{Value, Key}
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.filecache.DistributedCache
 import org.apache.hadoop.fs.{Path, FileSystem}
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
@@ -156,7 +155,7 @@ class MapReduceAccumuloFeatureStore(dataStore: MapReduceAccumuloDataStore,
                       mapredCSVFilePath: Path,
                       outputDir: String,
                       accConnParams: JMap[String, Serializable]) {
-    val job = new Job(new Configuration)
+    val job = Job.getInstance(new Configuration)
     AccumuloDataStoreFactory.configureJob(job, accConnParams)
     val conf = job.getConfiguration
     job.setMapperClass(classOf[FeatureIngestMapper])
@@ -173,7 +172,7 @@ class MapReduceAccumuloFeatureStore(dataStore: MapReduceAccumuloDataStore,
     FileInputFormat.setMaxInputSplitSize(job, 20000000)
 
     fs.listStatus(new Path(hdfsJarPath)).foreach { case f =>
-      DistributedCache.addArchiveToClassPath(new Path(f.getPath.toUri.getPath), job.getConfiguration)
+      job.addArchiveToClassPath(new Path(f.getPath.toUri.getPath))
                                                  }
 
     // both the indexing schema and the simple-feature type must go to the mapper

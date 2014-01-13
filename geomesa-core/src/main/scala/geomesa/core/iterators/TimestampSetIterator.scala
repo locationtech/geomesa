@@ -39,7 +39,7 @@ object TimestampSetIterator {
     val iteratorName: String = "tsi-" + UUID.randomUUID.toString
     val cfg = new IteratorSetting(10, iteratorName, classOf[TimestampSetIterator])
     cfg.addOption(timestampsOption, timestampLongs.map(_.toString).mkString(";"))
-    InputFormatBase.addIterator(job.getConfiguration, cfg)
+    InputFormatBase.addIterator(job, cfg)
   }
 
   final val timestampsOption: String = "timestampsOption"

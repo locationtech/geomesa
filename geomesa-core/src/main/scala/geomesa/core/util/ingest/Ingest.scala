@@ -28,7 +28,6 @@ import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.mapreduce.AccumuloFileOutputFormat
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.filecache.DistributedCache
 import org.apache.hadoop.fs.{Path, FileSystem}
 import org.apache.hadoop.io.{Text, LongWritable}
 import org.apache.hadoop.mapred.{JobConf, JobClient}
@@ -40,6 +39,7 @@ import org.geotools.factory.Hints
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime}
 import org.opengis.feature.simple.SimpleFeatureType
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 
 /**
  * This package contains a simplistic, map-reduce-based ingest capability
@@ -288,9 +288,9 @@ object Ingester extends App with Configurable {
   val hdfsOutputDir = config.get("hdfs.output.dir")
   val hdfsLibraryDir = config.get("hdfs.lib.dir")
 
-  type Mapper = HMapper[LongWritable,Text,Key,Value]
+  type GeomesaMapper = HMapper[LongWritable,Text,Key,Value]
 
-  class IngestMapper extends Mapper {
+  class IngestMapper extends HMapper[LongWritable,Text,Key,Value] {
     // when these are not repeated here from the outer scope, only the declaration
     // (but NOT the value) are available to the remote mapper
     val IndexSchema = "IndexSchema"
@@ -303,7 +303,7 @@ object Ingester extends App with Configurable {
     lazy val idxSchema = SpatioTemporalIndexSchema(schema, featureType)
     var ingestible: Ingestible = null
 
-    override def setup(context: Mapper#Context) {
+    override def setup(context: HMapper[LongWritable,Text,Key,Value]#Context) {
       super.setup(context)
 
       schema = context.getConfiguration.get(IndexSchema)
@@ -313,7 +313,7 @@ object Ingester extends App with Configurable {
       featureType = ingestible.featureType
     }
 
-    override def map(key: LongWritable, value: Text, context: Mapper#Context) {
+    override def map(key: LongWritable, value: Text, context: HMapper[LongWritable, Text, Key, Value]#Context) {
       if (value == null) println("Value is null.")
       if (ingestible== null) println("IngestData is null.")
 
@@ -340,7 +340,7 @@ object Ingester extends App with Configurable {
 
   val outputDir = hdfsOutputDir
 
-  val job = new Job(new Configuration())
+  val job = Job.getInstance(new Configuration())
   val conf = job.getConfiguration
   job.setJobName(s"Ingesting $featureName to Accumulo.")
 
@@ -373,7 +373,7 @@ object Ingester extends App with Configurable {
 
   // add JARs to the distributed cache
   fs.listStatus(new Path(hdfsLibraryDir)).foreach { case f =>
-    DistributedCache.addArchiveToClassPath(new Path(f.getPath.toUri.getPath), conf)
+    job.addArchiveToClassPath(new Path(f.getPath.toUri.getPath))
   }
 
   job.submit()
@@ -391,7 +391,7 @@ object Ingester extends App with Configurable {
 
   // bulk import
   val connector = new ZooKeeperInstance(outsideIngestible.instanceId, outsideIngestible.zookeepers)
-    .getConnector(outsideIngestible.user, outsideIngestible.password.getBytes)
+    .getConnector(outsideIngestible.user, new PasswordToken(outsideIngestible.password.getBytes))
   connector.tableOperations().importDirectory(outsideIngestible.tableName, filesDir.toString, failureDir.toString, true)
 }
 

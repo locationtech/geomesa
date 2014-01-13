@@ -32,9 +32,9 @@
     </modules>
 
     <properties>
-        <scala.version>2.10.2</scala.version>
-        <accumulo.version>1.4.3</accumulo.version>
-        <hadoop.version>0.20.2</hadoop.version>
+        <scala.version>2.10.3</scala.version>
+        <accumulo.version>1.5.0</accumulo.version>
+        <hadoop.version>2.0.0-alpha</hadoop.version>
         <geoserver.version>2.3.5</geoserver.version>
         <gt.version>9.5</gt.version>
         <jts.version>1.13</jts.version>
@@ -269,7 +269,7 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-core</artifactId>
+                <artifactId>hadoop-client</artifactId>
                 <version>${hadoop.version}</version>
                 <scope>provided</scope>
                 <exclusions>
@@ -290,6 +290,12 @@
                         <artifactId>jsp-2.1</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>1.7.5</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.geoserver.web</groupId>
