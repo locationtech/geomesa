@@ -30,6 +30,9 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.DataUtilities
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.SimpleFeatureType
+import org.apache.commons.vfs2.impl.VFSClassLoader
+import org.geotools.factory.GeoTools
+import org.apache.log4j.Logger
 
 case class Attribute(name: Text, value: Text)
 
@@ -62,6 +65,7 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
   private var nextValue: Value = null
   private var curId: Text = null
   private var deduplicate: Boolean = false
+  private val log = Logger.getLogger(classOf[SpatioTemporalIntersectingIterator])
 
   // each batch-scanner thread maintains its own (imperfect!) list of the
   // unique (in-polygon) identifiers it has seen
@@ -71,6 +75,9 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
   def init(source: SortedKeyValueIterator[Key, Value],
            options: java.util.Map[String, String],
            env: IteratorEnvironment) {
+    log.info("Initializing classLoader")
+    SpatioTemporalIntersectingIterator.initClassLoader(log)
+
     val featureType = DataUtilities.createType("DummyType", options.get(DEFAULT_FEATURE_TYPE))
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     schema = SpatioTemporalIndexSchema(schemaEncoding, featureType)
@@ -304,6 +311,35 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
 object SpatioTemporalIntersectingIterator {
 
   import geomesa.core._
+  import collection.JavaConversions._
+
+  val initialized = new ThreadLocal[Boolean]
+  initialized.set(false)
+
+  def initClassLoader(log: Logger) =
+    if(!initialized.get()) {
+      this.synchronized {
+        if(!initialized.get()) {
+          try {
+            log.info("Initializing classloader")
+            // locate the geomesa-distributed-runtime jar
+            val cl = classOf[SpatioTemporalIntersectingIterator].getClassLoader.asInstanceOf[VFSClassLoader]
+            cl.getFileObjects.foreach { fo =>
+              log.info(fo.getURL)
+              log.info(fo.getName.getBaseName)
+            }
+            val url = cl.getFileObjects.map(_.getURL).filter { _.toString.contains("geomesa-distributed-runtime") }.head
+            val u = java.net.URLClassLoader.newInstance(Array(url), cl)
+            GeoTools.addClassLoader(u)
+          } catch {
+            case t: Throwable =>
+              log.error("Caught exception", t)
+          } finally {
+            initialized.set(true)
+          }
+        }
+      }
+    }
 
   implicit def value2text(value: Value): Text = new Text(value.get)
 
