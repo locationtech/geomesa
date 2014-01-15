@@ -33,6 +33,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.factory.GeoTools
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.SimpleFeatureType
+import java.util
 
 case class Attribute(name: Text, value: Text)
 
@@ -247,23 +248,23 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
     val indexSourceTopKey = indexSource.getTopKey
 
     val dataSeekKey = new Key(indexSourceTopKey.getRow, curId)
-    dataSource.seek(new Range(dataSeekKey, null),
-      List[ByteSequence](new ArrayByteSequence(nextId.getBytes)).asJavaCollection,
-      true)
+    val range = new Range(dataSeekKey, null)
+    val colFamilies = List[ByteSequence](new ArrayByteSequence(nextId.getBytes)).asJavaCollection
+    dataSource.seek(range, colFamilies, true)
 
     // it may be possible to pollute the key space so that index rows can be
     // confused for data rows; skip until you know you've found a data row
     skipIndexEntries(dataSource)
 
-    if (!dataSource.hasTop ||
-      dataSource.getTopKey == null ||
-      dataSource.getTopKey.getColumnFamily.toString != nextId
-    )
-      throw new Exception("Could not find the data key corresponding to index " +
-        s"key $indexSourceTopKey and dataId is $nextId.")
+    if (!dataSource.hasTop || dataSource.getTopKey == null || dataSource.getTopKey.getColumnFamily.toString != nextId)
+      log.error(s"Could not find the data key corresponding to index key $indexSourceTopKey and dataId is $nextId.")
+    else {
+      val cq = dataSource.getTopKey.getColumnQualifier
+      val valueText = new Text(dataSource.getTopValue.get())
 
-    nextKey = new Key(indexSourceTopKey)
-    nextValue = SpatioTemporalIntersectingIterator.encodeAttributeValue(dataSource.getTopKey.getColumnQualifier, new Text(dataSource.getTopValue.get()))
+      nextKey = new Key(indexSourceTopKey)
+      nextValue = SpatioTemporalIntersectingIterator.encodeAttributeValue(cq, valueText)
+    }
   }
 
   /**
