@@ -130,5 +130,30 @@ class SpatioTemporalIndexSchemaTest extends Specification {
       WKTUtils.write(decoded.geom) must be equalTo wkt
       dt.get must be equalTo nowOption.get
     }
+
+    "encode and decode round-trip properly when there is no datetime" in {
+      // inputs
+      val wkt = "POINT (-78.495356 38.075215)"
+      val id = "Feature0123456789"
+      val geom = WKTUtils.read(wkt)
+      val dt: Option[DateTime] = None
+      val entry = SpatioTemporalIndexEntry(id, geom, dt)
+
+      // output
+      val value = SpatioTemporalIndexSchema.encodeIndexValue(entry)
+
+      // requirements
+      value must not beNull
+
+      // return trip
+      val decoded = SpatioTemporalIndexSchema.decodeIndexValue(value)
+
+      // requirements
+      decoded must not equalTo null
+      decoded.id must be equalTo id
+      WKTUtils.write(decoded.geom) must be equalTo wkt
+      dt.isDefined must be equalTo false
+    }
+
   }
 }
