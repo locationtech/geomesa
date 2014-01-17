@@ -33,29 +33,31 @@
 
     <properties>
         <scala.version>2.10.2</scala.version>
-        <accumulo.version>1.4.3</accumulo.version>
-        <hadoop.version>0.20.2-cdh3u6</hadoop.version>
         <geoserver.version>2.3.5</geoserver.version>
         <gt.version>9.5</gt.version>
         <jts.version>1.13</jts.version>
         <ehcache.version>2.6.2</ehcache.version>
 
-        <!-- logging properties -->
+        <!-- environment-dependent versions -->
+        <accumulo.version>1.4.3</accumulo.version>
+        <hadoop.version>0.20.2-cdh3u6</hadoop.version>
+        <zookeeper.version>3.3.6</zookeeper.version>
+
+        <!-- logging properties
+             we expect logging jars to be provided -->
         <!-- accumulo 1.4.3 is incompatible with a 1.5.6+ version of slf4j -->
         <slf4j.version>1.4.3</slf4j.version>
         <logback.version>0.9.8</logback.version>
         <scalalogging.version>1.0.1</scalalogging.version>
-        <zookeeper.version>3.3.6</zookeeper.version>
 
         <!-- distribution properties -->
         <dist.accumulo.lib.ext>accumulo/lib/ext</dist.accumulo.lib.ext>
         <dist.hdfs>hdfs</dist.hdfs>
-        <dist.geoserver.lib>geoserver/lib</dist.geoserver.lib>
+        <dist.geoserver.lib>geoserver/WEB-INF/lib</dist.geoserver.lib>
         <dist.dev>dev</dist.dev>
 
         <!-- testing properties -->
         <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit</maven.test.jvmargs>
-        <accumulo.home.dir>/opt/cloud/base/accumulo</accumulo.home.dir>
         <fork.mode>once</fork.mode>
     </properties>
 
@@ -244,13 +246,11 @@
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
                 <exclusions>
-		    <!-- needed for shapefile ingest through scala repl in the
-			 interactive environment
+                    <!-- needed for shapefile ingest through scala repl in the interactive environment
                     <exclusion>
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-log4j12</artifactId>
-                    </exclusion>
-		    -->
+                    </exclusion>-->
                     <!-- we should exclude this, but accumulo has source-level references
                          to log4j so scala won't compile without it
                     <exclusion>
@@ -420,9 +420,6 @@
                         <include>**/*Test.java</include>
                     </includes>
                     <argLine>${maven.test.jvmargs}</argLine>
-                    <environmentVariables>
-                        <ACCUMULO_HOME>${accumulo.home.dir}</ACCUMULO_HOME>
-                    </environmentVariables>
                 </configuration>
             </plugin>
             <plugin>
