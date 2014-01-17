@@ -43,7 +43,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   lazy val bounds = dataStore.getBounds(query) match {
     case null => null
     case b =>
-      val res = geomFactory.toGeometry(b)
+      val res = latLonGeoFactory.toGeometry(b)
       if(res.isInstanceOf[Point] || res.isInstanceOf[LineString]) res.buffer(0.01).asInstanceOf[Polygon]
       else res.asInstanceOf[Polygon]
   }
@@ -124,19 +124,17 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
       }
     }
 
-  def getFeatureType = sft
+  override def getFeatureType = sft
 
-  def next = SimpleFeatureEncoder.decode(getFeatureType, iterValues.next())
+  override def next() = SimpleFeatureEncoder.decode(getFeatureType, iterValues.next())
 
-  def hasNext = iterValues.hasNext
+  override def hasNext = iterValues.hasNext
 
-  def close() {
-    bs.map(_.close())
-  }
+  override def close() = bs.foreach(_.close())
 }
 
 object AccumuloFeatureReader {
-  val geomFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
+  val latLonGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
 
   // used when the query-polygon is disjoint with the known feature bounds
   def emptyValueIterator : Iterator[Value] = List[Value]().iterator
