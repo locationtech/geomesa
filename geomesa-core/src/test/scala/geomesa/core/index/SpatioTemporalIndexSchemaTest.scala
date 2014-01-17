@@ -24,6 +24,7 @@ import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class SpatioTemporalIndexSchemaTest extends Specification {
@@ -45,6 +46,20 @@ class SpatioTemporalIndexSchemaTest extends Specification {
         case _ => false
       }
       matched must be equalTo true
+    }
+
+    "allow extra elements inside the column qualifier" in {
+      val schema = Try(SpatioTemporalIndexSchema(
+        "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%9#r%ColQ#cstr%15#id%5,2#gh",
+        dummyType))
+      schema.isFailure must be equalTo true
+    }
+
+    "complain when there are extra elements at the end" in {
+      val schema = Try(SpatioTemporalIndexSchema(
+        "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%15#id%5,2#gh",
+        dummyType))
+      schema.isFailure must be equalTo true
     }
   }
 
@@ -115,5 +130,30 @@ class SpatioTemporalIndexSchemaTest extends Specification {
       WKTUtils.write(decoded.geom) must be equalTo wkt
       dt.get must be equalTo nowOption.get
     }
+
+    "encode and decode round-trip properly when there is no datetime" in {
+      // inputs
+      val wkt = "POINT (-78.495356 38.075215)"
+      val id = "Feature0123456789"
+      val geom = WKTUtils.read(wkt)
+      val dt: Option[DateTime] = None
+      val entry = SpatioTemporalIndexEntry(id, geom, dt)
+
+      // output
+      val value = SpatioTemporalIndexSchema.encodeIndexValue(entry)
+
+      // requirements
+      value must not beNull
+
+      // return trip
+      val decoded = SpatioTemporalIndexSchema.decodeIndexValue(value)
+
+      // requirements
+      decoded must not equalTo null
+      decoded.id must be equalTo id
+      WKTUtils.write(decoded.geom) must be equalTo wkt
+      dt.isDefined must be equalTo false
+    }
+
   }
 }

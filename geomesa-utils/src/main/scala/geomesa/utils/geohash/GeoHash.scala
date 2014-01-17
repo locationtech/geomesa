@@ -29,12 +29,12 @@ import com.typesafe.scalalogging.slf4j.Logging
  * @param bitset
  * @param prec
  */
-case class GeoHash private[GeoHash] (x: Double,
-                                     y: Double,
-                                     bbox: BoundingBox,
-                                     bitset: BitSet,
-                                     prec: Int, // checked in factory methods in companion object
-                                     private[GeoHash] val optHash: Option[String]) extends Comparable[GeoHash] {
+case class GeoHash private(x: Double,
+                           y: Double,
+                           bbox: BoundingBox,
+                           bitset: BitSet,
+                           prec: Int, // checked in factory methods in companion object
+                           private val optHash: Option[String]) extends Comparable[GeoHash] {
 
   import GeoHash._
 
@@ -86,7 +86,7 @@ object GeoHash extends Logging {
 
   val MAX_PRECISION = 63 // our bitset operations assume all bits fit in one Long
 
-  private[GeoHash] val boolMap : Map[Boolean,String] = Map(false -> "0", true -> "1")
+  private val boolMap : Map[Boolean,String] = Map(false -> "0", true -> "1")
 
   lazy val factory: GeometryFactory = new GeometryFactory(new PrecisionModel, 4326)
 
@@ -96,11 +96,21 @@ object GeoHash extends Logging {
   private lazy val lonRange: Double = lonBounds.high - lonBounds.low
 
   private lazy val powersOf2Map: Map[Int, Long] =
-    (0 to MAX_PRECISION).map(i => (i, 1L << i)).toMap // 1L << i == math.pow(2,i).toLong
+    (0 to   MAX_PRECISION).map(i => (i, 1L << i)).toMap // 1L << i == math.pow(2,i).toLong
+
   private lazy val latDeltaMap: Map[Int, Double]  =
     (0 to MAX_PRECISION).map(i => (i, latRange / powersOf2Map(i / 2))).toMap
+  def latitudeDeltaForPrecision(prec: Int): Double = {
+    checkPrecision(prec)
+    latDeltaMap(prec)
+  }
+
   private lazy val lonDeltaMap: Map[Int, Double] =
     (0 to MAX_PRECISION).map(i => (i, lonRange / powersOf2Map(i / 2 + i % 2))).toMap
+  def longitudeDeltaForPrecision(prec: Int): Double = {
+    checkPrecision(prec)
+    lonDeltaMap(prec)
+  }
 
   private val bits = Array(16,8,4,2,1)
   protected[geohash] val base32 = "0123456789bcdefghjkmnpqrstuvwxyz"
