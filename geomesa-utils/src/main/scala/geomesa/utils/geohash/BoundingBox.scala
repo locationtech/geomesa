@@ -34,9 +34,9 @@ import scala.collection.BitSet
 case class BoundingBox(ll: Point, ur: Point) {
   
   import BoundingBox._
-  
-  require(ll.getX <= ur.getX)
-  require(ll.getY <= ur.getY)
+
+  require(ll.getX <= ur.getX, s"Bounding box lower left X: ${ll.getX} > upper right X: ${ur.getX}")
+  require(ll.getY <= ur.getY, s"Bounding box lower left Y: ${ll.getY} > upper right Y: ${ur.getY}")
 
   lazy val envelope: Envelope = new Envelope(ll.getX, ur.getX, ll.getY, ur.getY)
   lazy val geom: Geometry = latLonGeoFactory.toGeometry(envelope)
@@ -132,10 +132,6 @@ object BoundingBox {
         new Coordinate(ll.getX, ll.getY))),
       Array())
 
-  //not sure if 32 is optimal, but seems to work well
-  def getGeoHashesFromBoundingBox(bbox: BoundingBox): List[String] =
-    getGeoHashesFromBoundingBox(bbox, 32)
-
   def intersects(l: BoundingBox, r: BoundingBox): Boolean = l.geom.intersects(r.geom)
 
   def getCoveringBoundingBox(l:BoundingBox, r:BoundingBox) = {
@@ -149,11 +145,11 @@ object BoundingBox {
   /**
    *
    * @param bbox
-   * @param maxHashes
+   * @param maxHashes default is 32 - not sure if 32 is optimal, but seems to work well
    * @return
    */
   def getGeoHashesFromBoundingBox(bbox: BoundingBox,
-                                  maxHashes: Int,
+                                  maxHashes: Int = 32,
                                   precision: Int = DEFAULT_PRECISION): List[String] = {
 
     def getMinBoxes(hashList: List[GeoHash]): List[String] = {

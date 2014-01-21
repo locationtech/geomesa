@@ -137,7 +137,7 @@ class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
     val scanner = connector.createBatchScanner(table, auths, 10)
     scanner.fetchColumn(new Text(columnFamily), new Text(columnQualifier))
 
-    val ranges = BoundingBoxUtil.getRangesByRow(BoundingBox.getGeoHashesFromBoundingBox(bbox, 32))
+    val ranges = BoundingBoxUtil.getRangesByRow(BoundingBox.getGeoHashesFromBoundingBox(bbox))
 
     scanner.setRanges(ranges)
     timeParam match {
