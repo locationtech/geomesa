@@ -34,9 +34,9 @@ import scala.collection.BitSet
 case class BoundingBox(ll: Point, ur: Point) {
   
   import BoundingBox._
-  
-  require(ll.getX <= ur.getX)
-  require(ll.getY <= ur.getY)
+
+  require(ll.getX <= ur.getX, s"Bounding box lower left X: ${ll.getX} > upper right X: ${ur.getX}")
+  require(ll.getY <= ur.getY, s"Bounding box lower left Y: ${ll.getY} > upper right Y: ${ur.getY}")
 
   lazy val envelope: Envelope = new Envelope(ll.getX, ur.getX, ll.getY, ur.getY)
   lazy val geom: Geometry = latLonGeoFactory.toGeometry(envelope)
@@ -132,10 +132,6 @@ object BoundingBox {
         new Coordinate(ll.getX, ll.getY))),
       Array())
 
-  //not sure if 32 is optimal, but seems to work well
-  def getGeoHashesFromBoundingBox(bbox: BoundingBox): List[String] =
-    getGeoHashesFromBoundingBox(bbox, 32)
-
   def intersects(l: BoundingBox, r: BoundingBox): Boolean = l.geom.intersects(r.geom)
 
   def getCoveringBoundingBox(l:BoundingBox, r:BoundingBox) = {
@@ -147,13 +143,27 @@ object BoundingBox {
   }
 
   /**
+   * Here only to get around inexplicable errors (perhaps caused by old version of java - 6u26):
+   * Caused by: java.lang.NoSuchMethodError: geomesa.utils.geohash.BoundingBox$.getGeoHashesFromBoundingBox$default$2()I
+   *     at geomesa.plugin.wms.CoverageReader.getScanBuffers(CoverageReader.scala:140)
+   *     at geomesa.plugin.wms.CoverageReader.getImage(CoverageReader.scala:126)
+   *     at geomesa.plugin.wms.CoverageReader.read(CoverageReader.scala:108)
+   * I suspect a scala bug, or a bug in the way we're packaging geomesa plugin
    *
    * @param bbox
-   * @param maxHashes
+   * @return
+   */
+  def getGeoHashesFromBoundingBox(bbox: BoundingBox): List[String] =
+    getGeoHashesFromBoundingBox(bbox, 32, DEFAULT_PRECISION)
+
+  /**
+   *
+   * @param bbox
+   * @param maxHashes default is 32 - not sure if 32 is optimal, but seems to work well
    * @return
    */
   def getGeoHashesFromBoundingBox(bbox: BoundingBox,
-                                  maxHashes: Int,
+                                  maxHashes: Int = 32,
                                   precision: Int = DEFAULT_PRECISION): List[String] = {
 
     def getMinBoxes(hashList: List[GeoHash]): List[String] = {
