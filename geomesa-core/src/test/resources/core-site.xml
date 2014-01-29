@@ -26,38 +26,4 @@
         <value>file:///tmp/</value>
     </property>
 
-    <property>
-        <name>hadoop.proxyuser.oozie.hosts</name>
-        <value>*</value>
-    </property>
-
-    <property>
-        <name>hadoop.proxyuser.oozie.groups</name>
-        <value>*</value>
-    </property>
-
-    <property>
-        <name>io.sort.factor</name>
-        <value>100</value>
-    </property>
-    <property>
-        <name>io.sort.mb</name>
-        <value>384</value>
-    </property>
-    <property>
-        <name>io.sort.spill.percent</name>
-        <value>1.0</value>
-    </property>
-
-    <property>
-        <name>spinoza.accumulo.authorizations</name>
-        <value>A,B,C</value>
-    </property>
-
-    <property>
-        <name>spinoza.use.mock.connection</name>
-        <value>false</value>
-    </property>
-
-
 </configuration>

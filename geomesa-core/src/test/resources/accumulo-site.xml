@@ -23,9 +23,5 @@
         <value>ant:2181,art:2181,stripebranch:2181</value>
     </property>
 
-    <property>
-        <name>instance.dfs.dir</name>
-        <value>/accumulo</value>
-    </property>
 </configuration>
 

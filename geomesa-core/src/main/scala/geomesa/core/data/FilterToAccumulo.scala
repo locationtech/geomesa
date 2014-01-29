@@ -218,7 +218,7 @@ case class FilterExtractor(geometryPropertyName: String, temporalPropertyNames: 
 
   def processBinaryGeometryPredicate(filter: BinarySpatialOperator): Option[Extraction] = {
     getPropertyName(filter.getExpression1) match {
-      case Some(property) if property == geometryPropertyName =>
+      case Some(property) if (property == geometryPropertyName || property.isEmpty) =>
         Some(Extraction(getGeometry(filter.getExpression2), SetLikeInterval.undefined, SetLikeFilter.everything))
       case _ => Some(Extraction(SetLikePolygon.undefined, SetLikeInterval.undefined, SetLikeFilter.everything))
     }

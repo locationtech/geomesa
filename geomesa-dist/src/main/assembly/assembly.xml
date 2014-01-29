@@ -27,14 +27,12 @@
             <outputDirectory>${dist.accumulo.lib.ext}</outputDirectory>
             <includes>
                 <include>geomesa:geomesa-distributed-runtime:*</include>
-                <include>org.geotools:gt-xml</include>
             </includes>
         </dependencySet>
         <dependencySet>
             <outputDirectory>${dist.hdfs}</outputDirectory>
             <includes>
                 <include>geomesa:geomesa-distributed-runtime:*</include>
-                <include>org.geotools:gt-xml</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -44,12 +42,33 @@
             </includes>
         </dependencySet>
         <dependencySet>
-            <outputDirectory>${dist.dev}</outputDirectory>
+            <outputDirectory>${dist.dev}/lib</outputDirectory>
             <includes>
                 <include>geomesa:geomesa-distributed-runtime:*</include>
-                <include>org.geotools:gt-xml</include>
                 <include>geomesa:geomesa-utils</include>
+                <include>org.apache.accumulo:accumulo-core</include>
+                <include>org.apache.accumulo:cloudtrace</include>
+                <include>org.apache.thrift:libthrift</include>
+                <include>org.apache.zookeeper:zookeeper</include>
+                <include>org.apache.hadoop:hadoop-core</include>
+                <include>org.apache.hadoop.thirdparty.guava:guava</include>
+                <include>org.codehaus.jackson:jackson-core-asl</include>
+                <include>org.codehaus.jackson:jackson-mapper-asl</include>
+                <include>org.geotools:gt-shapefile</include>
+                <include>org.geotools:gt-epsg-hsql</include>
+                <include>org.scala-lang:scala-compiler</include>
+                <include>org.scala-lang:scala-library</include>
+                <include>org.scala-lang:scala-reflect</include>
+                <include>org.scala-lang:jline</include>
+                <include>org.slf4j:*</include>
+                <include>commons-httpclient:commons-httpclient</include>
+                <include>commons-lang:commons-lang</include>
+                <include>commons-logging:commons-logging</include>
+                <include>commons-collections:commons-collections</include>
+                <include>log4j:log4j</include>
+                <include>hsqldb:hsqldb</include>
             </includes>
+            <scope>test</scope>
         </dependencySet>
     </dependencySets>
 
@@ -62,6 +81,26 @@
             <source>src/main/scripts/scala-repl.sh</source>
             <outputDirectory>${dist.dev}</outputDirectory>
             <fileMode>0777</fileMode>
+        </file>
+        <file>
+            <source>../geomesa-core/src/test/resources/geomesa-site.xml</source>
+            <outputDirectory>${dist.dev}/conf</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-core/src/test/resources/hdfs-site.xml</source>
+            <outputDirectory>${dist.dev}/conf</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-core/src/test/resources/core-site.xml</source>
+            <outputDirectory>${dist.dev}/conf</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-core/src/test/resources/mapred-site.xml</source>
+            <outputDirectory>${dist.dev}/conf</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-core/src/test/resources/accumulo-site.xml</source>
+            <outputDirectory>${dist.dev}/conf</outputDirectory>
         </file>
     </files>
 </assembly>
