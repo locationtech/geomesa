@@ -35,8 +35,8 @@ case class BoundingBox(ll: Point, ur: Point) {
   
   import BoundingBox._
 
-  require(ll.getX <= ur.getX, "Bounding box lower left X: " + ll.getX + " > upper right X: " + ur.getX)
-  require(ll.getY <= ur.getY, "Bounding box lower left Y: " + ll.getY + " > upper right Y: " + ur.getY)
+  require(ll.getX <= ur.getX, s"Bounding box lower left X: ${ll.getX} > upper right X: ${ur.getX}")
+  require(ll.getY <= ur.getY, s"Bounding box lower left Y: ${ll.getY} > upper right Y: ${ur.getY}")
 
   lazy val envelope: Envelope = new Envelope(ll.getX, ur.getX, ll.getY, ur.getY)
   lazy val geom: Geometry = latLonGeoFactory.toGeometry(envelope)
@@ -142,18 +142,14 @@ object BoundingBox {
     BoundingBox(Bounds(minLon,maxLon), Bounds(minLat,maxLat))
   }
 
-  //not sure if 32 is optimal, but seems to work well
-  def getGeoHashesFromBoundingBox(bbox: BoundingBox): List[String] =
-    getGeoHashesFromBoundingBox(bbox, 32)
-
   /**
    *
    * @param bbox
-   * @param maxHashes
+   * @param maxHashes default is 32 - not sure if 32 is optimal, but seems to work well
    * @return
    */
   def getGeoHashesFromBoundingBox(bbox: BoundingBox,
-                                  maxHashes: Int,
+                                  maxHashes: Int = 32,
                                   precision: Int = DEFAULT_PRECISION): List[String] = {
 
     def getMinBoxes(hashList: List[GeoHash]): List[String] = {
