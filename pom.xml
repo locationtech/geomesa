@@ -32,7 +32,7 @@
     </modules>
 
     <properties>
-        <scala.version>2.10.2</scala.version>
+        <scala.version>2.10.3</scala.version>
         <geoserver.version>2.3.5</geoserver.version>
         <gt.version>9.5</gt.version>
         <jts.version>1.13</jts.version>
