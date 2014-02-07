@@ -24,7 +24,7 @@ import geomesa.core.index._
 import geomesa.utils.text.WKTUtils
 import java.util
 import org.apache.accumulo.core.Constants
-import org.apache.accumulo.core.client.BatchScanner
+import org.apache.accumulo.core.client.{IteratorSetting, Connector, BatchWriterConfig, BatchScanner}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.data._
 import org.geotools.data.DataUtilities
@@ -34,9 +34,15 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scala.util.Random
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.hadoop.io.Text
 
 @RunWith(classOf[JUnitRunner])
 class SpatioTemporalIntersectingIteratorTest extends Specification {
+
+  val TEST_USER = "root"
+  val TEST_TABLE = "test_table"
+  val TEST_AUTHORIZATIONS = Constants.NO_AUTHS
 
   sequential
 
@@ -74,7 +80,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     def createObject(id: String, wkt: String, dt: DateTime = null): List[(Key, Value)] = {
       val geomType: String = wkt.split( """\(""").head
       val geometry: Geometry = WKTUtils.read(wkt)
-      val entry = new UnitTestEntry(id, geometry, dt)
+      val entry = new UnitTestEntry(s"|data|$id", geometry, dt)
       entry.setAttribute(geomType, id)
       entry.setAttribute("attr2", "2nd" + id)
       index.encode(entry).toList
@@ -183,15 +189,12 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
       map
     }
 
-    def setupMockAccumuloTable(entries: List[Entry], numExpected: Int): BatchScanner = {
-      val TEST_USER = "root"
-      val TEST_TABLE = "test_table_" + getRandomSuffix
-      val TEST_AUTHORIZATIONS = Constants.NO_AUTHS
 
+    def setupMockAccumuloTable(entries: List[Entry], numExpected: Int): Connector = {
       val mockInstance = new MockInstance()
-      val c = mockInstance.getConnector(TEST_USER, TEST_AUTHORIZATIONS.getAuthorizationsArray)
+      val c = mockInstance.getConnector(TEST_USER, new PasswordToken(Array[Byte]()))
       c.tableOperations.create(TEST_TABLE)
-      val bw = c.createBatchWriter(TEST_TABLE, 1000L, 1000L, 1)
+      val bw = c.createBatchWriter(TEST_TABLE, new BatchWriterConfig)
 
       // populate the mock table
       val dataList: util.Collection[(Key, Value)] = TestData.encodeDataList(entries)
@@ -202,16 +205,17 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
       }
 
       // add the schema description
-      val mutSchema = new Mutation(featureName)
+      val mutSchema = new Mutation(s"~META_$featureName")
       mutSchema.put("schema", schemaEncoding, emptyBytes)
       bw.addMutation(mutSchema)
 
       // add the attributes description
-      val mutAttributes = new Mutation(featureName)
+      val mutAttributes = new Mutation(s"~META_$featureName")
       mutAttributes.put("attributes", UnitTestEntryType.encodedSimpleFeatureType, emptyBytes)
       bw.addMutation(mutAttributes)
 
-      c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
+      bw.flush()
+      c
     }
   }
 
@@ -230,7 +234,8 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     }
 
     // create the batch scanner
-    val bs = TestData.setupMockAccumuloTable(entries, numExpectedDataIn)
+    val c = TestData.setupMockAccumuloTable(entries, numExpectedDataIn)
+    val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
 
     // fetch results from the schema!
     val itr = schema.query(bs, polygon, dtFilter, UnitTestEntryType.getTypeSpec, ecqlFilter)

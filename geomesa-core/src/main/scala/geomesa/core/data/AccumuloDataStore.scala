@@ -22,7 +22,7 @@ import geomesa.core.index.{SpatioTemporalIndexSchema, IndexEntryType}
 import java.io.Serializable
 import java.util.{Map=>JMap}
 import org.apache.accumulo.core.client.mock.MockConnector
-import org.apache.accumulo.core.client.{IteratorSetting, TableExistsException, Connector}
+import org.apache.accumulo.core.client.{BatchWriterConfig, IteratorSetting, TableExistsException, Connector}
 import org.apache.accumulo.core.data.{Key, Mutation, Value, Range}
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.Authorizations
@@ -79,7 +79,7 @@ class AccumuloDataStore(val connector: Connector,
       // consistent with what the current feature needs, then complain, and
       // refuse to add the current feature
       //@TODO revisit this constraint once dynamic re-keying is coded
-      val numSplits = connector.tableOperations().getSplits(tableName).size
+      val numSplits = connector.tableOperations().listSplits(tableName).size
       if (numSplits > 0 && numSplits != maxShard)
         throw new Exception(s"Table $tableName already has $numSplits splits, " +
           s"but the new feature requires $maxShard.  These features cannot share" +
@@ -179,9 +179,14 @@ class AccumuloDataStore(val connector: Connector,
 
   private val metaDataCache = scala.collection.mutable.HashMap[(String, Text), Option[String]]()
 
+  val batchWriterConfig =
+    new BatchWriterConfig()
+      .setMaxMemory(10000L)
+      .setMaxWriteThreads(10)
+
   // record a single piece of metadata
   private def writeMetadataItem(featureName: String, colFam: Text, metadata: Value) {
-    val writer = connector.createBatchWriter(tableName, 100000L, 100000L, 10)
+    val writer = connector.createBatchWriter(tableName, batchWriterConfig)
 
     val mutation = new Mutation(getMetadataRowID(featureName))
     mutation.put(colFam, EMPTY_COLQ, System.currentTimeMillis(), metadata)
@@ -327,7 +332,7 @@ class AccumuloDataStore(val connector: Connector,
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE
 
-  def createBatchScanner = connector.createBatchScanner(tableName, authorizations, 20)
+  def createBatchScanner = connector.createBatchScanner(tableName, authorizations, 100)
 
   // Accumulo assumes that the failures directory exists.  This function assumes that you have already created it.
   def importDirectory(tableName: String,

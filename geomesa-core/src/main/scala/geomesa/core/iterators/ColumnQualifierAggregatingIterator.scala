@@ -45,8 +45,8 @@ class ColumnQualifierAggregatingIterator(other: ColumnQualifierAggregatingIterat
            env: IteratorEnvironment) {
     this.source = source
     val aggClass = options.get(DEFAULT_AGGREGATOR_CLASS_PROPERTY_NAME)
-    val clazz = AccumuloClassLoader.loadClass(aggClass, classOf[ColumnQualifierAggregator])
-    aggregator = clazz.newInstance()
+    val clazz = AccumuloClassLoader.getClassLoader.loadClass(aggClass)
+    aggregator = clazz.newInstance().asInstanceOf[ColumnQualifierAggregator]
   }
 
   def hasTop = aggrKey != null || source.hasTop

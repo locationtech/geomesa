@@ -24,11 +24,15 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+import org.apache.log4j.Logger
 
 class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env: IteratorEnvironment)
   extends SortedKeyValueIterator[Key, Value]{
 
+  private val log = Logger.getLogger(classOf[SimpleFeatureFilteringIterator])
+
   import geomesa.core._
+  SpatioTemporalIntersectingIterator.initClassLoader(log)
 
   var source: SortedKeyValueIterator[Key,Value] = null
   var topKey: Key = null

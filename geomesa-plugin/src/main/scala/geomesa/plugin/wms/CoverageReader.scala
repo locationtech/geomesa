@@ -42,6 +42,7 @@ import org.opengis.parameter.{InvalidParameterValueException, GeneralParameterVa
 import scala.collection.JavaConversions._
 import util.Random
 import geomesa.core.util.BoundingBoxUtil
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 
 
 object CoverageReader {
@@ -67,7 +68,7 @@ class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
   this.coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(this.hints)
 
   val zkInstance = new ZooKeeperInstance(instanceId, zookeepers)
-  val connector = zkInstance.getConnector(user, password.getBytes)
+  val connector = zkInstance.getConnector(user, new PasswordToken(password.getBytes))
 
   // When parsing an old-form Accumulo layer URI the authtokens field matches the empty string, requesting no authorizations
   val auths = new Authorizations(authtokens.split(","): _*)
