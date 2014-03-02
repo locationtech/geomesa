@@ -36,6 +36,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.hadoop.io.Text
+import org.geotools.feature.simple.SimpleFeatureBuilder
 
 @RunWith(classOf[JUnitRunner])
 class SpatioTemporalIntersectingIteratorTest extends Specification {
@@ -54,17 +55,13 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
   val emptyBytes = new Value(Array[Byte]())
 
-  object UnitTestEntryType extends TypeInitializer {
-    def getTypeSpec =
-      "POINT:String," + "LINESTRING:String," + "POLYGON:String," + "attr2:String," + IndexEntryType.getTypeSpec
+  object UnitTestEntryType  {
+    def getTypeSpec = "POINT:String," + "LINESTRING:String," + "POLYGON:String," + "attr2:String," + spec
   }
-
-  class UnitTestEntry(sid: String, geom: Geometry, dt: DateTime = null)
-    extends SpatioTemporalIndexEntry(sid, geom, if (dt == null) None else Some(dt), UnitTestEntryType)
 
   object TestData {
 
-    case class Entry(wkt: String, id: String, dt: DateTime = defaultDateTime)
+    case class Entry(wkt: String, id: String, dt: DateTime = new DateTime(defaultDateTime))
 
     // set up the geographic query polygon
     val wktQuery = "POLYGON((45 23, 48 23, 48 27, 45 27, 45 23))"
@@ -74,13 +71,13 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val featureType = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
     val index = SpatioTemporalIndexSchema(schemaEncoding, featureType)
 
-    val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC"))
+    val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
 
     // utility function that can encode multiple types of geometry
     def createObject(id: String, wkt: String, dt: DateTime = null): List[(Key, Value)] = {
       val geomType: String = wkt.split( """\(""").head
       val geometry: Geometry = WKTUtils.read(wkt)
-      val entry = new UnitTestEntry(s"|data|$id", geometry, dt)
+      val entry = SimpleFeatureBuilder.build(featureType, List(null, null, null, null, geometry, dt.toDate, dt.toDate), s"|data|$id")
       entry.setAttribute(geomType, id)
       entry.setAttribute("attr2", "2nd" + id)
       index.encode(entry).toList
@@ -152,7 +149,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
           (20.0 + 10.0 * rng.nextDouble()).toString + " " +
           ")"
         val dt = new DateTime(
-          scala.math.round(minTime + (maxTime - minTime) * rng.nextDouble()).toLong,
+          math.round(minTime + (maxTime - minTime) * rng.nextDouble()),
           DateTimeZone.forID("UTC")
         )
         Entry(wkt, (100000 + i).toString, dt)
@@ -211,7 +208,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
       // add the attributes description
       val mutAttributes = new Mutation(s"~META_$featureName")
-      mutAttributes.put("attributes", UnitTestEntryType.encodedSimpleFeatureType, emptyBytes)
+      mutAttributes.put("attributes", UnitTestEntryType.getTypeSpec, emptyBytes)
       bw.addMutation(mutAttributes)
 
       bw.flush()
@@ -219,9 +216,12 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     }
   }
 
-  def runMockAccumuloTest(label: String, entries: List[TestData.Entry] = TestData.fullData,
-                          ecqlFilter: Option[String] = None, numExpectedDataIn: Int = 113,
-                          dtFilter: Interval = null, overrideGeometry: Boolean = false,
+  def runMockAccumuloTest(label: String,
+                          entries: List[TestData.Entry] = TestData.fullData,
+                          ecqlFilter: Option[String] = None,
+                          numExpectedDataIn: Int = 113,
+                          dtFilter: Interval = null,
+                          overrideGeometry: Boolean = false,
                           doPrint: Boolean = true): Int = {
 
     // create the schema, and require de-duplication
@@ -244,7 +244,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val retval = if (doPrint) {
       val results: List[Value] = itr.toList
       results.map(value => {
-        val simpleFeature = SimpleFeatureEncoder.decode(UnitTestEntryType.defaultSimpleFeatureType, value)
+        val simpleFeature = SimpleFeatureEncoder.decode(TestData.featureType, value)
         val attrs = simpleFeature.getAttributes.map(attr => if (attr == null) "" else attr.toString).mkString("|")
         println("[SII." + label + "] query-hit:  " + simpleFeature.getID + "=" + attrs)
       })

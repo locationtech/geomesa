@@ -474,7 +474,9 @@ object GeohashUtils extends GeomDistance {
    * @return the list of GeoHash cells into which this polygon was decomposed
    *         under the given constraints
    */
-  private def decomposeGeometry_(targetGeom:Geometry, maxSize:Int=100, resolutions:ResolutionRange=new ResolutionRange(5,40,5)) : List[GeoHash] = {
+  private def decomposeGeometry_(targetGeom: Geometry,
+                                 maxSize: Int = 100,
+                                 resolutions: ResolutionRange = new ResolutionRange(5,40,5)) : List[GeoHash] = {
     lazy val geomCatcher = catching(classOf[Exception])
     val targetArea : Double = geomCatcher.opt { targetGeom.getArea }.getOrElse(0.0)
     val targetLength : Double = geomCatcher.opt { targetGeom.getLength }.getOrElse(0.0)
@@ -545,16 +547,16 @@ object GeohashUtils extends GeomDistance {
    * Quick-and-dirty sieve that ensures that we don't waste time decomposing
    * single points.
    */
-  def decomposeGeometry(targetGeom:Geometry, maxSize:Int=100,
-                        resolutions:ResolutionRange=new ResolutionRange(0,40,5),
-                        relaxFit: Boolean = true) : List[GeoHash] =
+  def decomposeGeometry(targetGeom: Geometry,
+                        maxSize: Int = 100,
+                        resolutions: ResolutionRange = new ResolutionRange(0, 40, 5),
+                        relaxFit: Boolean = true): List[GeoHash] =
     // quick hit to avoid wasting time for single points
     targetGeom match {
-      case point:Point => List(GeoHash(point.getX, point.getY, resolutions.maxBitsResolution))
+      case point: Point => List(GeoHash(point.getX, point.getY, resolutions.maxBitsResolution))
       case _ => decomposeGeometry_(
-        if (relaxFit) getDecomposableGeometry(targetGeom) else targetGeom,
-        maxSize,
-        resolutions)
+        if (relaxFit) getDecomposableGeometry(targetGeom)
+        else targetGeom, maxSize, resolutions)
     }
 
   /**
@@ -564,7 +566,7 @@ object GeohashUtils extends GeomDistance {
    * This method does not account for any specific latitude!
    */
   def estimateGeometryGeohashPrecision(geometry:Geometry) : Int = {
-    if (geometry==null) 0
+    if (geometry == null) 0
     else {
       // compute the span (in degrees) of this geometry
       val envelope = geometry.getEnvelopeInternal
@@ -587,22 +589,19 @@ object GeohashUtils extends GeomDistance {
    * @param geometry the geometric expression of a GeoHash
    * @return the most likely GeoHash that is represented by the given geometry
    */
-  def reconstructGeohashFromGeometry(geometry:Geometry) : GeoHash = {
-    // you must have a rectangular geometry for this function to make any sense
-    if (geometry==null) throw new Exception("Invalid geometry")
-    if (!geometry.isRectangle) throw new Exception("Non-rectangular geometry")
-
-    // the GeoHash always builds around the centroid, so compute that up front
-    val centroid : Point = geometry.getCentroid
-
-    // figure out the precision of this GeoHash
-    val precision = estimateGeometryGeohashPrecision(geometry)
-
-    GeoHash(centroid.getX, centroid.getY, precision.toInt)
+  def reconstructGeohashFromGeometry(geometry: Geometry): GeoHash = geometry match {
+    case null => throw new Exception("Invalid geometry")
+    case _ if "Point".equals(geometry.getGeometryType) => GeoHash(geometry.asInstanceOf[Point], maxRealisticGeoHashPrecision)
+    case _ if geometry.isRectangle => GeoHash(geometry.getCentroid, estimateGeometryGeohashPrecision(geometry))
+    case m: MultiPolygon =>
+      if(m.getNumGeometries != 1) throw new Exception("Expected simple geometry")
+      else if(!m.getGeometryN(0).isRectangle) throw new Exception("Expected rectangular geometry")
+      else GeoHash(m.getGeometryN(0).getCentroid, estimateGeometryGeohashPrecision(m.getGeometryN(0)))
+    case _ => throw new Exception("Invalid geometry")
   }
 
-  /**
-   * Given an index-schema format such as "%1,3#gh", it becomes necessary to
+    /**
+   * Given an index-schema format such as 5005"%1,3#gh", it becomes necessary to
    * identify which unique 3-character GeoHash sub-strings intersect the
    * query polygon.  This routine performs exactly such an identification.
    *
@@ -622,11 +621,10 @@ object GeohashUtils extends GeomDistance {
    * @return the list of unique GeoHash sub-strings from 35-bits precision that
    *         intersect the target polygon; an empty list if there are too many
    */
-  def getUniqueGeohashSubstringsInPolygon(poly:Polygon,
-                                          offset:Int,
-                                          bits:Int,
-                                          MAX_KEYS_IN_LIST:Int=Int.MaxValue):
-  Seq[String] = {
+  def getUniqueGeohashSubstringsInPolygon(poly: Polygon,
+                                          offset: Int,
+                                          bits: Int,
+                                          MAX_KEYS_IN_LIST: Int = Int.MaxValue): Seq[String] = {
 
     // the list of allowable GeoHash characters
     val base32seq = GeoHash.base32.toSeq

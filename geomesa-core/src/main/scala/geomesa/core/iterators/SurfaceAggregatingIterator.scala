@@ -22,15 +22,7 @@ import java.nio.ByteBuffer
 import org.apache.accumulo.core.data.{Value, Key}
 
 
-/**
- * Aggregates geohash surface into a byte array grid.
- * hash is row
- *
- * User: taylor
- * Date: 12/20/12
- * Time: 1:23 PM
- */
-class SurfaceAggregatingIterator extends KeyAggregator{
+class SurfaceAggregatingIterator extends KeyAggregator {
   var bbox:BoundingBox = null
   var xdim = 0
   var ydim= 0

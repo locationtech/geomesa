@@ -16,11 +16,14 @@
 
 package geomesa.core.index
 
+import SpatioTemporalIndexEntry._
 import org.apache.hadoop.io.Text
-import org.joda.time.DateTimeZone
+import org.joda.time.{DateTime, DateTimeZone}
+import org.opengis.feature.simple.SimpleFeature
 import util.Random
+import scala.collection.immutable.IndexedSeq
 
-trait TextFormatter[E <: IndexEntry] {
+trait TextFormatter[E] {
   def format(entry: E): Text
   def numBits: Int
 }
@@ -41,39 +44,45 @@ object TextFormatter {
  * @param offset how many characters (from the left) to skip
  * @param numBits how many characters to use
  */
-case class GeoHashTextFormatter(offset: Int, numBits: Int) extends TextFormatter[SpatioTemporalIndexEntry] {
-  def format(entry: SpatioTemporalIndexEntry) = new Text(entry.gh.hash.padTo(7,".").mkString.drop(offset).take(numBits))
+
+case class GeoHashTextFormatter(offset: Int, numBits: Int) extends TextFormatter[SimpleFeature] {
+  def format(entry: SimpleFeature) = {
+    val hash = entry.gh.hash
+    val padded = hash.padTo(7, ".").mkString
+    val partial = padded.drop(offset).take(numBits)
+    new Text(partial)
+  }
 }
 
 // note:  this will fail if you have an entry lacking a valid date
-case class DateTextFormatter(f: String) extends TextFormatter[SpatioTemporalIndexEntry] {
+case class DateTextFormatter(f: String) extends TextFormatter[SimpleFeature] {
   val timeZone = DateTimeZone.forID("UTC")
   val numBits = f.length
   val formatter = org.joda.time.format.DateTimeFormat.forPattern(f)
-  def format(entry: SpatioTemporalIndexEntry) = new Text(formatter.print(
-    entry.dt.get.withZone(timeZone)))
+  def format(entry: SimpleFeature) =
+    new Text(formatter.print(entry.dt.getOrElse(new DateTime()).withZone(timeZone)))
 }
 
 // the intent is that "%99#r" will mean:  create shards from 0..99
-case class PartitionTextFormatter[E <: IndexEntry](numPartitions: Int) extends TextFormatter[E] {
+case class PartitionTextFormatter[E](numPartitions: Int) extends TextFormatter[E] {
   val numBits: Int = numPartitions.toString.length
   val fmt = ("%0" + numBits + "d").format(_: Int)
   def getRandomPartion = Random.nextInt(numPartitions + 1)
   def format(entry: E): Text = new Text(""+fmt(getRandomPartion))
 }
 
-case class ConstantTextFormatter[E <: IndexEntry](constStr: String) extends TextFormatter[E] {
+case class ConstantTextFormatter[E](constStr: String) extends TextFormatter[E] {
   val constText = new Text(constStr)
   def format(entry: E) = constText
   def numBits = constStr.length
 }
 
-case class IdFormatter(maxLength: Int) extends TextFormatter[SpatioTemporalIndexEntry] {
-  def format(entry: SpatioTemporalIndexEntry): Text = new Text(entry.sid.padTo(maxLength, "_").mkString)
+case class IdFormatter(maxLength: Int) extends TextFormatter[SimpleFeature] {
+  def format(entry: SimpleFeature): Text = new Text(entry.sid.padTo(maxLength, "_").mkString)
   def numBits: Int = maxLength
 }
 
-case class CompositeTextFormatter[E <: IndexEntry](lf: Seq[TextFormatter[E]], sep: String) extends TextFormatter[E] {
+case class CompositeTextFormatter[E](lf: Seq[TextFormatter[E]], sep: String) extends TextFormatter[E] {
   val numBits = lf.map(_.numBits).sum
   def format(entry: E) = new Text(lf.map { _.format(entry) }.mkString(sep))
 }

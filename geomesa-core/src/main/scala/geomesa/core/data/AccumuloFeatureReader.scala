@@ -29,16 +29,20 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
-                             featureName: String,
-                             query: Query,
-                             indexSchemaFmt: String,
-                             attributes: String,
-                             sft: SimpleFeatureType)
-    extends FeatureReader[SimpleFeatureType, SimpleFeature] {
+                            featureName: String,
+                            query: Query,
+                            indexSchemaFmt: String,
+                            attributes: String,
+                            sft: SimpleFeatureType)
+  extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
+  import collection.JavaConversions._
   import AccumuloFeatureReader._
 
   lazy val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
+  lazy val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
+  lazy val dtgStartField        = sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, SF_PROPERTY_START_TIME).asInstanceOf[String]
+  lazy val dtgEndField          = sft.getUserData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
 
   lazy val bounds = dataStore.getBounds(query) match {
     case null => null
@@ -55,9 +59,8 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
       // extract the query polygon, the query interval, and the filter that
       // results from removing these portions
-      val extractor = FilterExtractor(
-        SF_PROPERTY_GEOMETRY,
-        TreeSet(SF_PROPERTY_START_TIME, SF_PROPERTY_END_TIME))
+      val extractor = FilterExtractor(geometryPropertyName, TreeSet(dtgStartField, dtgEndField))
+
       val Extraction(optPolygon, optInterval, optFilter) = {
         val extraction = extractor.extractAndModify(givenFilter)
         if (SetLikeExtraction.isDefined(extraction)) extraction.get
@@ -110,7 +113,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
       val bs = dataStore.createBatchScanner
 
       val iter =  if(isDisjoint) emptyValueIterator
-                  else           indexSchema.query(bs, polygon, interval, attributes, ecql)
+      else           indexSchema.query(bs, polygon, interval, attributes, ecql)
 
       ( iter, Some(bs) )
     } catch {

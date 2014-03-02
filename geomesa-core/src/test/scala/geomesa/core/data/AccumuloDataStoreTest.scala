@@ -31,7 +31,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
 
-  val geotimeAttributes = IndexEntryType.getTypeSpec
+  val geotimeAttributes = geomesa.core.index.spec
 
   def createStore: AccumuloDataStore =
     // the specific parameter values should not matter, as we
@@ -39,11 +39,11 @@ class AccumuloDataStoreTest extends Specification {
     DataStoreFinder.getDataStore(Map(
       "instanceId" -> "mycloud",
       "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"->"myuser",
-      "password"->"mypassword",
-      "auths"->"A,B,C",
-      "tableName"->"testwrite",
-      "useMock"->"true")).asInstanceOf[AccumuloDataStore]
+      "user"       -> "myuser",
+      "password"   -> "mypassword",
+      "auths"      -> "A,B,C",
+      "tableName"  -> "testwrite",
+      "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
 
   "AccumuloDataStore" should {
     "be accessible through DataStoreFinder" in {
@@ -93,7 +93,7 @@ class AccumuloDataStoreTest extends Specification {
       val res = fs.addFeatures(featureCollection)
 
       // compose a CQL query that uses a reasonably-sized polygon for searching
-      val cqlFilter = CQL.toFilter(s"BBOX($SF_PROPERTY_GEOMETRY, 44.9,48.9,45.1,49.1)")
+      val cqlFilter = CQL.toFilter(s"BBOX(geomesa_index_geometry, 44.9,48.9,45.1,49.1)")
       val query = new Query(sftName, cqlFilter)
 
       // Let's read out what we wrote.
@@ -114,14 +114,13 @@ class AccumuloDataStoreTest extends Specification {
       // create the data store
       val ds = createStore
       val sftName = "testType"
-      val sft = DataUtilities.createType(sftName,
-        s"NAME:String,$geotimeAttributes")
+      val sft = DataUtilities.createType(sftName, s"NAME:String,$geotimeAttributes")
       ds.createSchema(sft)
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
       // create a feature
-      val liveFeature = SimpleFeatureBuilder.build(sft, List(), "fid-1")
       val geom = WKTUtils.read("POINT(45.0 49.0)")
+      val liveFeature = SimpleFeatureBuilder.build(sft, List("testType", geom, null), "fid-1")
       liveFeature.setDefaultGeometry(geom)
 
       // make sure we ask the system to re-use the provided feature-ID
@@ -135,7 +134,7 @@ class AccumuloDataStoreTest extends Specification {
       val res = fs.addFeatures(featureCollection)
 
       // compose a CQL query that uses a polygon that is disjoint with the feature bounds
-      val cqlFilter = CQL.toFilter(s"BBOX($SF_PROPERTY_GEOMETRY, 64.9,68.9,65.1,69.1)")
+      val cqlFilter = CQL.toFilter(s"BBOX(geomesa_index_geometry, 64.9,68.9,65.1,69.1)")
       val query = new Query(sftName, cqlFilter)
 
       // Let's read out what we wrote.
