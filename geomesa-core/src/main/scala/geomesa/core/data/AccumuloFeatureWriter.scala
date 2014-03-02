@@ -63,9 +63,6 @@ class AccumuloFeatureWriter(featureType: SimpleFeatureType,
                             indexer: SpatioTemporalIndexSchema,
                             recordWriter: RecordWriter[Key,Value]) extends SimpleFeatureWriter {
 
-  private val typeString = DataUtilities.encodeType(featureType)
-  private val attrNames = featureType.getAttributeDescriptors.map(_.getName.toString)
-
   var currentFeature: SimpleFeature = null
 
   def getFeatureType: SimpleFeatureType = featureType
@@ -74,28 +71,15 @@ class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
   def write() {
     // require a non-null feature with a non-null geometry
-    if (currentFeature != null && currentFeature.getDefaultGeometry != null) {
-
-      // the geometry is used un-typed; the indexer will complain if the type is unrecognized
-      val geometry = currentFeature.getDefaultGeometry.asInstanceOf[Geometry]
-
-      // try to extract an end-time
-      // (for now, we only support a single date/time per entry)
-      val date = currentFeature.getAttribute(SF_PROPERTY_END_TIME).asInstanceOf[Date]
-
-      // ensure that we have at least one value, even if NULL, for every attribute
-      // in the new simple-feature type
-      val attrMap = attrNames.map { name => (name, currentFeature.getAttribute(name)) }.toMap
-
-      // the schema return all (key, value) pairs to write to Accumulo
-      val keyVals = indexer.encode(new AccumuloFeature(currentFeature.getID, geometry, date, attrMap))
-      keyVals.foreach { case (k,v) => recordWriter.write(k,v) }
-    } else {
-      // complain
-      //@TODO transition to logging
+    if (currentFeature != null && currentFeature.getDefaultGeometry != null)
+      indexer.encode(currentFeature).foreach {
+        case (k,v) => recordWriter.write(k,v)
+      }
+    else
       println("[WARNING] AccumuloFeatureWriter.write:  " +
-              "Invalid feature to write:  " + currentFeature)
-    }
+        "Invalid feature to write:  " + currentFeature)
+
+    currentFeature = null
   }
 
   def hasNext: Boolean = false
@@ -109,24 +93,4 @@ class AccumuloFeatureWriter(featureType: SimpleFeatureType,
     recordWriter.close(null)
   }
 
-  // these two definitions are required for initializing types inside the indexing service
-  object AccumuloFeatureType extends TypeInitializer {
-    def getTypeSpec : String = typeString
-  }
-  class AccumuloFeature(sid:String,
-                         geom:Geometry,
-                         dt:Date,
-                         attributesMap:Map[String,Object])
-      extends SpatioTemporalIndexEntry(sid, geom,
-                                       if(dt==null) Some(new DateTime(DateTimeZone.forID("UTC")))
-                                       else Some(new DateTime(dt.getTime, DateTimeZone.forID("UTC"))),
-                                       AccumuloFeatureType) {
-
-    // use all of the attribute-value pairs passed in, but do not overwrite
-    // any existing values
-    attributesMap.foreach { case (name,value) =>
-      if (getAttribute(name) == null)
-        setAttribute(name, value)
-                          }
-  }
 }

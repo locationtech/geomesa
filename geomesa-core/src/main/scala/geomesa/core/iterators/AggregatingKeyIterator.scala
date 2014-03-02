@@ -22,6 +22,7 @@ import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators._
 import org.apache.accumulo.start.classloader.AccumuloClassLoader
 import scala.collection.JavaConversions._
+import org.apache.accumulo.start.classloader.vfs.AccumuloVFSClassLoader
 
 object AggregatingKeyIterator {
   val aggClass = "aggClass"
@@ -128,19 +129,10 @@ class AggregatingKeyIterator extends SortedKeyValueIterator[Key, Value] with Opt
     this.iterator = source
     try {
       val clazz = options(AggregatingKeyIterator.aggClass)
-      val aggClazz = AccumuloClassLoader.getClassLoader.loadClass(clazz)
+      val aggClazz = AccumuloVFSClassLoader.loadClass(clazz)
       this.aggregator = aggClazz.newInstance.asInstanceOf[KeyAggregator]
-    }
-    catch {
-      case e: ClassNotFoundException => {
-        throw new IOException(e)
-      }
-      case e: InstantiationException => {
-        throw new IOException(e)
-      }
-      case e: IllegalAccessException => {
-        throw new IOException(e)
-      }
+    } catch {
+      case e: Throwable => throw new IOException(e)
     }
     for (key <- options.keySet) {
       if (key.startsWith(AggregatingKeyIterator.aggOpt)) {
@@ -164,15 +156,7 @@ class AggregatingKeyIterator extends SortedKeyValueIterator[Key, Value] with Opt
         clazz.newInstance
       }
       catch {
-        case e: ClassNotFoundException => {
-          throw new IllegalArgumentException("class not found: " + entry.getValue)
-        }
-        case e: InstantiationException => {
-          throw new IllegalArgumentException("instantiation exception: " + entry.getValue)
-        }
-        case e: IllegalAccessException => {
-          throw new IllegalArgumentException("illegal access exception: " + entry.getValue)
-        }
+        case e: Throwable => throw new IllegalArgumentException(e)
       }
     }
     true

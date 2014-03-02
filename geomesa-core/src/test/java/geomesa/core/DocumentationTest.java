@@ -19,7 +19,6 @@ package geomesa.core;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import geomesa.core.index.Constants;
-import geomesa.core.index.IndexEntryType;
 import geomesa.utils.geotools.ShapefileIngest;
 import org.geotools.data.*;
 import org.geotools.factory.Hints;
@@ -39,118 +38,118 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DocumentationTest {
-    public DataStore createDataStore() throws IOException {
-        // build the map of parameters
-        Map<String,Serializable> params = new HashMap<String,Serializable>();
-        params.put("instanceId", "yourcloud");
-        params.put("zookeepers" , "zoo1:2181,zoo2:2181,zoo3:2181");
-        params.put("user","youruser");
-        params.put("password","yourpwd");
-        params.put("auths","A,B,C");
-        params.put("tableName","testwrite");
+  public DataStore createDataStore() throws IOException {
+    // build the map of parameters
+    Map<String,Serializable> params = new HashMap<String,Serializable>();
+    params.put("instanceId", "yourcloud");
+    params.put("zookeepers" , "zoo1:2181,zoo2:2181,zoo3:2181");
+    params.put("user","youruser");
+    params.put("password","yourpwd");
+    params.put("auths","A,B,C");
+    params.put("tableName","testwrite");
 
-        // fetch the data store from the finder
-        return DataStoreFinder.getDataStore(params);
-    }
+    // fetch the data store from the finder
+    return DataStoreFinder.getDataStore(params);
+  }
 
-    public FeatureIterator queryTest() throws IOException {
-        // assume we have previously stored a feature type we called "Product"
-        String featureName = "Product";
+  public FeatureIterator queryTest() throws IOException {
+    // assume we have previously stored a feature type we called "Product"
+    String featureName = "Product";
 
-        // fetch the data store, and use it to get a feature source
-        DataStore dataStore = createDataStore();
-        FeatureSource featureSource =
-                dataStore.getFeatureSource(featureName);
+    // fetch the data store, and use it to get a feature source
+    DataStore dataStore = createDataStore();
+    FeatureSource featureSource =
+      dataStore.getFeatureSource(featureName);
 
-        // submit the "get everything" query, and accept a results iterator
-        return featureSource.getFeatures().features();
-    }
+    // submit the "get everything" query, and accept a results iterator
+    return featureSource.getFeatures().features();
+  }
 
-    public FeatureIterator queryTestFiltered(String featureName)
-            throws IOException, CQLException {
+  public FeatureIterator queryTestFiltered(String featureName)
+    throws IOException, CQLException {
 
-        // fetch the data store, and use it to get a feature source
-        DataStore dataStore = createDataStore();
-        FeatureSource featureSource =
-                dataStore.getFeatureSource(featureName);
+    // fetch the data store, and use it to get a feature source
+    DataStore dataStore = createDataStore();
+    FeatureSource featureSource =
+      dataStore.getFeatureSource(featureName);
 
-        // construct a filter that uses both geography and time
-        String bbox = "BBOX(" +
-                Constants.SF_PROPERTY_GEOMETRY + ", -78.0, 38.2, -77.3, 39.1)";
-        String period = "( NOT (" + Constants.SF_PROPERTY_START_TIME +
-                " AFTER 2012-12-31T23:59:59Z))" +
-                " AND ( NOT (" + Constants.SF_PROPERTY_END_TIME +
-                " BEFORE 2012-01-01T00:00:00Z))";
-        Filter cqlFilter = ECQL.toFilter(bbox + " AND " + period);
-        Query query = new Query(featureName, cqlFilter);
+    // construct a filter that uses both geography and time
+    String bbox = "BBOX(" +
+      Constants.SF_PROPERTY_GEOMETRY + ", -78.0, 38.2, -77.3, 39.1)";
+    String period = "( NOT (" + Constants.SF_PROPERTY_START_TIME +
+      " AFTER 2012-12-31T23:59:59Z))" +
+      " AND ( NOT (" + Constants.SF_PROPERTY_END_TIME +
+      " BEFORE 2012-01-01T00:00:00Z))";
+    Filter cqlFilter = ECQL.toFilter(bbox + " AND " + period);
+    Query query = new Query(featureName, cqlFilter);
 
-        // submit the filtered query, and accept a results iterator
-        return featureSource.getFeatures(query).features();
-    }
+    // submit the filtered query, and accept a results iterator
+    return featureSource.getFeatures(query).features();
+  }
 
-    public SimpleFeatureType createFeatureType(DataStore dataStore)
-            throws IOException, SchemaException {
+  public SimpleFeatureType createFeatureType(DataStore dataStore)
+    throws IOException, SchemaException {
 
-        // name of the feature to create
-        String featureName = "Product";
+    // name of the feature to create
+    String featureName = "Product";
 
-        // create the feature-type (a "schema" in GeoTools parlance)
-        String featureSchema = "NAME:String,SKU:Long,COST:Double,SELL_BY:Date," +
-                IndexEntryType.getTypeSpec();  // built-in geomesa attributes
-        SimpleFeatureType featureType = DataUtilities.createType(featureName,
-                featureSchema);
-        dataStore.createSchema(featureType);
+    // create the feature-type (a "schema" in GeoTools parlance)
+    String featureSchema = "NAME:String,SKU:Long,COST:Double,SELL_BY:Date," +
+      Constants.TYPE_SPEC;  // built-in geomesa attributes
+    SimpleFeatureType featureType = DataUtilities.createType(featureName,
+      featureSchema);
+    dataStore.createSchema(featureType);
 
-        return featureType;
-    }
+    return featureType;
+  }
 
-    public SimpleFeature createFeature(String featureName, DataStore dataStore)
-            throws IOException, ParseException {
+  public SimpleFeature createFeature(String featureName, DataStore dataStore)
+    throws IOException, ParseException {
 
-        // fetch the feature-type corresponding to this name
-        SimpleFeatureType featureType = dataStore.getSchema(featureName);
+    // fetch the feature-type corresponding to this name
+    SimpleFeatureType featureType = dataStore.getSchema(featureName);
 
-        // create the feature
-        Object[] noValues = {};
-        SimpleFeature newFeature = SimpleFeatureBuilder.build(featureType,
-                noValues, "SomeNewProductID");
+    // create the feature
+    Object[] noValues = {};
+    SimpleFeature newFeature = SimpleFeatureBuilder.build(featureType,
+      noValues, "SomeNewProductID");
 
-        // initialize a few fields
-        newFeature.setDefaultGeometry((new WKTReader()).read("POINT(45.0 49.0)"));
-        newFeature.setAttribute("NAME", "New Product Name");
-        newFeature.setAttribute("SKU", "011235813");
-        newFeature.setAttribute("COST", 1.23);
-        newFeature.setAttribute("SELL_BY", new Date());
-        newFeature.setAttribute(Constants.SF_PROPERTY_START_TIME, new Date());
-        newFeature.setAttribute(Constants.SF_PROPERTY_END_TIME, new Date());
+    // initialize a few fields
+    newFeature.setDefaultGeometry((new WKTReader()).read("POINT(45.0 49.0)"));
+    newFeature.setAttribute("NAME", "New Product Name");
+    newFeature.setAttribute("SKU", "011235813");
+    newFeature.setAttribute("COST", 1.23);
+    newFeature.setAttribute("SELL_BY", new Date());
+    newFeature.setAttribute(Constants.SF_PROPERTY_START_TIME, new Date());
+    newFeature.setAttribute(Constants.SF_PROPERTY_END_TIME, new Date());
 
-        return newFeature;
-    }
+    return newFeature;
+  }
 
-    public void writeFeature(String featureName, SimpleFeature feature,
-                             DataStore dataStore)
-        throws Exception {
+  public void writeFeature(String featureName, SimpleFeature feature,
+                           DataStore dataStore)
+    throws Exception {
 
-        // get a feature store
-        FeatureSource featureSource = dataStore.getFeatureSource(featureName);
-        if (!(featureSource instanceof FeatureStore))
-            throw new Exception("Could not retrieve feature store");
-        FeatureStore featureStore = (FeatureStore)featureSource;
+    // get a feature store
+    FeatureSource featureSource = dataStore.getFeatureSource(featureName);
+    if (!(featureSource instanceof FeatureStore))
+      throw new Exception("Could not retrieve feature store");
+    FeatureStore featureStore = (FeatureStore)featureSource;
 
-        // preserve the ID that we created for this feature
-        feature.getUserData().put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE);
+    // preserve the ID that we created for this feature
+    feature.getUserData().put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE);
 
-        // write this feature collection to the store
-        featureStore.addFeatures(DataUtilities.collection(feature));
-    }
+    // write this feature collection to the store
+    featureStore.addFeatures(DataUtilities.collection(feature));
+  }
 
-    public void ingestShapefile(String shapefileName, String featureName)
+  public void ingestShapefile(String shapefileName, String featureName)
     throws IOException {
 
-        // fetch a data store
-        DataStore dataStore = createDataStore();
+    // fetch a data store
+    DataStore dataStore = createDataStore();
 
-        // delegate this work
-        ShapefileIngest.ingestShapefile(shapefileName, dataStore, featureName);
-    }
+    // delegate this work
+    ShapefileIngest.ingestShapefile(shapefileName, dataStore, featureName);
+  }
 }

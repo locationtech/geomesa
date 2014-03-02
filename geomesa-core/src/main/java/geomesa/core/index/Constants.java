@@ -23,13 +23,12 @@ import org.joda.time.DateTime;
  * the Java portion of the API.
  */
 public class Constants {
-    public final static String SF_PROPERTY_GEOMETRY =
-            geomesa.core.index.package$.MODULE$.SF_PROPERTY_GEOMETRY();
-    public final static String SF_PROPERTY_START_TIME =
-            geomesa.core.index.package$.MODULE$.SF_PROPERTY_START_TIME();
-    public final static String SF_PROPERTY_END_TIME =
-            geomesa.core.index.package$.MODULE$.SF_PROPERTY_END_TIME();
+  public final static String SF_PROPERTY_GEOMETRY   = package$.MODULE$.SF_PROPERTY_GEOMETRY();
+  public final static String SF_PROPERTY_START_TIME = package$.MODULE$.SF_PROPERTY_START_TIME();
+  public final static String SF_PROPERTY_END_TIME   = package$.MODULE$.SF_PROPERTY_END_TIME();
 
-    public final static DateTime MIN_DATE = geomesa.core.index.package$.MODULE$.MIN_DATE();
-    public final static DateTime MAX_DATE = geomesa.core.index.package$.MODULE$.MAX_DATE();
+  public final static String TYPE_SPEC              = package$.MODULE$.spec();
+
+  public final static DateTime MIN_DATE = package$.MODULE$.MIN_DATE();
+  public final static DateTime MAX_DATE = package$.MODULE$.MAX_DATE();
 }

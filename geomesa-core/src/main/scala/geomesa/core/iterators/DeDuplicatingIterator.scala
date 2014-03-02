@@ -23,16 +23,17 @@ import java.util.{Iterator=>JIterator}
 import net.sf.ehcache.{Element, CacheManager}
 import org.apache.accumulo.core.data.{Key, Value}
 
-class KVEntry(akey:Key, avalue:Value) extends Entry[Key,Value] {
-  def this(entry:Entry[Key,Value]) = this(entry.getKey, entry.getValue)
+class KVEntry(akey: Key, avalue: Value) extends Entry[Key, Value] {
+  def this(entry: Entry[Key, Value]) = this(entry.getKey, entry.getValue)
 
-  var key:Key = if (akey==null) null else new Key(akey)
-  var value:Value = if (avalue==null) null else new Value(avalue)
+  var key   = if (akey == null) null else new Key(akey)
+  var value = if (avalue == null) null else new Value(avalue)
 
-  def getValue : Value = value
-  def getKey : Key = key
-  def setValue(value:Value) : Value = { throw new UnsupportedOperationException }
-  def setKey(key:Key) : Key = { throw new UnsupportedOperationException }
+  def getValue = value
+  def getKey   = key
+
+  def setValue(value: Value) = ???
+  def setKey(key: Key)       = ???
 }
 
 /**
@@ -41,54 +42,53 @@ class KVEntry(akey:Key, avalue:Value) extends Entry[Key,Value] {
  * @param source the original iterator that may contain duplicate ID-rows
  * @param idFetcher the way to extract an ID from any one of the keys
  */
-class DeDuplicatingIterator(source:JIterator[Entry[Key,Value]],
-                            idFetcher:(Key,Value)=>String)
-  extends Iterator[Entry[Key,Value]] {
+class DeDuplicatingIterator(source: JIterator[Entry[Key, Value]],
+                            idFetcher:(Key, Value) => String)
+  extends Iterator[Entry[Key, Value]] {
 
   val deduper = new DeDuplicator(idFetcher)
-  private[this] def findTop : Entry[Key,Value] = {
-    var top : Entry[Key,Value] = null
-    while (top==null && source.hasNext) {
+  private[this] def findTop = {
+    var top: Entry[Key,Value] = null
+    while (top == null && source.hasNext) {
       top = source.next
-      if (deduper.isDuplicate(top))
-        top = null
+      if (deduper.isDuplicate(top)) top = null
     }
-    if (top==null) deduper.close
+    if (top == null) deduper.close
     top
   }
-  var nextEntry : Entry[Key,Value] = findTop
-  override def next : Entry[Key,Value] = { val result = nextEntry; nextEntry = findTop; result }
-  override def hasNext : Boolean = nextEntry!=null
+  var nextEntry = findTop
+  override def next : Entry[Key, Value] = {
+    val result = nextEntry
+    nextEntry = findTop; result
+  }
+
+  override def hasNext = nextEntry != null
 }
 
-class DeDuplicator(idFetcher:(Key,Value)=>String) {
+class DeDuplicator(idFetcher: (Key, Value) => String) {
   val cacheName = UUID.randomUUID().toString
 
   cacheManager.addCache(cacheName)
   val cache = cacheManager.getCache(cacheName)
 
-  val dummyConstant: Int = 0
+  val dummyConstant = 0
 
-  def isUnique(key:Key, value:Value) : Boolean = {
-    val id : String = idFetcher(key, value)
+  def isUnique(key:Key, value:Value) = {
+    val id = idFetcher(key, value)
     val result = !cache.isKeyInCache(id)
     cache.put(new Element(id, dummyConstant))
     result
   }
 
-  def isDuplicate(key:Key, value:Value) : Boolean = !isUnique(key, value)
+  def isDuplicate(key: Key, value: Value): Boolean = !isUnique(key, value)
 
-  def isDuplicate(entry:Entry[Key,Value]) : Boolean = {
-    if (entry==null || entry.getKey==null) true
-    else {
-      !isUnique(entry.getKey, entry.getValue)
-    }
-  }
+  def isDuplicate(entry: Entry[Key, Value]): Boolean =
+    if (entry == null || entry.getKey == null) true
+    else !isUnique(entry.getKey, entry.getValue)
 
   // safe to call repeatedly
   def close() {
-    if (cacheManager.cacheExists(cacheName))
-      cacheManager.removeCache(cacheName)
+    if (cacheManager.cacheExists(cacheName)) cacheManager.removeCache(cacheName)
   }
 }
 
