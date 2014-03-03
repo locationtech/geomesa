@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/geomesa/geomesa.png?branch=master)](https://travis-ci.org/geomesa/geomesa)
+[![Build Status](https://travis-ci.org/locationtech/geomesa.png?branch=master)](https://travis-ci.org/locationtech/geomesa)
 
 # geomesa Project Structure
 
