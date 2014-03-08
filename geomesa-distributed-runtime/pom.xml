@@ -45,6 +45,18 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>accumulo1.5.1</id>
+            <dependencies>
+                <dependency>
+                    <groupId>geomesa</groupId>
+                    <artifactId>geomesa-shell</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
     <build>
         <plugins>
             <plugin>
