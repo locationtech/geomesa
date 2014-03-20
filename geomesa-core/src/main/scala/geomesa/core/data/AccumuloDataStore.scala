@@ -19,7 +19,7 @@ package geomesa.core.data
 
 import geomesa.core
 import geomesa.core.data.AccumuloFeatureWriter.{LocalRecordWriter, MapReduceRecordWriter}
-import geomesa.core.index.SpatioTemporalIndexSchema
+import geomesa.core.index.{Constants, SpatioTemporalIndexSchema}
 import java.io.Serializable
 import java.util.{Map=>JMap}
 import org.apache.accumulo.core.client.mock.MockConnector
@@ -256,7 +256,7 @@ class AccumuloDataStore(val connector: Connector,
   // Implementation of Abstract method
   def getSchema(featureName: String) = {
     val sft = DataUtilities.createType(featureName, getAttributes(featureName))
-    val dtgField = readMetadataItem(featureName, DTGFIELD_CF).getOrElse("")
+    val dtgField = readMetadataItem(featureName, DTGFIELD_CF).getOrElse(Constants.SF_PROPERTY_START_TIME)
     sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
     sft.getUserData.put(core.index.SF_PROPERTY_END_TIME,   dtgField)
     sft
