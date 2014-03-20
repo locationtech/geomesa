@@ -20,8 +20,9 @@ import SpatioTemporalIndexEntry._
 import org.apache.hadoop.io.Text
 import org.joda.time.{DateTime, DateTimeZone}
 import org.opengis.feature.simple.SimpleFeature
-import util.Random
-import scala.collection.immutable.IndexedSeq
+import scala.util.Try
+import scala.util.hashing.MurmurHash3
+import org.geotools.data.DataUtilities
 
 trait TextFormatter[E] {
   def format(entry: E): Text
@@ -63,12 +64,43 @@ case class DateTextFormatter(f: String) extends TextFormatter[SimpleFeature] {
     new Text(formatter.print(entry.dt.getOrElse(new DateTime()).withZone(timeZone)))
 }
 
-// the intent is that "%99#r" will mean:  create shards from 0..99
-case class PartitionTextFormatter[E](numPartitions: Int) extends TextFormatter[E] {
+/**
+ * Responsible for assigning a shard number (partition) to the given
+ * entry based on a hash of the feature ID.
+ *
+ * MurmurHash3 was chosen, because 1) it is part of the standard
+ * Scala libraries; 2) it claims to do a reasonable job spreading
+ * hash values around.  See http://code.google.com/p/smhasher/wiki/MurmurHash3
+ *
+ * Assumptions:
+ * <ul>
+ *   <li>IDs that are null will be hashed based on the string version
+ *       of the feature.  (It should not be possible to have a null
+ *       ID, or at least not easy:  Both DataUtilities.createFeature
+ *       and SimpleFeatureBuilder.buildFeature will automatically
+ *       generate an ID if you don't provide a non-null ID of your
+ *       own)
+ *   <li>We will need code to cover the case where an ID changes,
+ *       because it may mean moving an entry to a different tablet-
+ *       server.  (How likely is this to happen?)</li>
+ * </ul>
+ *
+ * @param numPartitions "%99#r" will mean:  create shards from 0..99
+ * @tparam E some descendant of IndexEntry
+ */
+case class PartitionTextFormatter[E <: SimpleFeature](numPartitions: Int) extends TextFormatter[E] {
   val numBits: Int = numPartitions.toString.length
   val fmt = ("%0" + numBits + "d").format(_: Int)
-  def getRandomPartion = Random.nextInt(numPartitions + 1)
-  def format(entry: E): Text = new Text(""+fmt(getRandomPartion))
+
+  def getIdHashPartition(entry: E): Int = {
+    val toHash = entry.getID match {
+      case null => DataUtilities.encodeFeature(entry)
+      case id   => id
+    }
+    Math.abs(MurmurHash3.stringHash(toHash) % (numPartitions + 1))
+  }
+
+  def format(entry: E): Text = new Text(fmt(getIdHashPartition(entry)))
 }
 
 case class ConstantTextFormatter[E](constStr: String) extends TextFormatter[E] {
