@@ -33,7 +33,7 @@ import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import scala.util.Random
+import scala.util.{Try, Random}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.hadoop.io.Text
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -155,6 +155,8 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
         Entry(wkt, (100000 + i).toString, dt)
       }).toList
     }
+
+    val pointWithNoID = List(Entry("POINT(-78.0 38.0)", null))
 
     val shortListOfPoints = List[Entry](
       Entry("POINT(47.2 25.6)", "1"), // hit
@@ -409,4 +411,11 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     }
   }
 
+  "Feature with a null ID" should {
+    "not fail to insert" in {
+      val c = Try(TestData.setupMockAccumuloTable(TestData.pointWithNoID, TestData.pointWithNoID.length))
+
+      c.isFailure must be equalTo false
+    }
+  }
 }
