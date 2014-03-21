@@ -1,0 +1,76 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<parent>
+        <groupId>geomesa</groupId>
+        <artifactId>geomesa</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+	</parent>
+
+	<properties>
+		<gs.version>2.3.5</gs.version>
+		<jetty.port>8080</jetty.port>
+	</properties>
+
+	<groupId>geomesa</groupId>
+	<artifactId>geomesa-geoserver</artifactId>
+	<packaging>war</packaging>
+
+	<name>GeoServer WAR Overlay</name>
+	
+	<repositories>
+		<repository>
+			<id>opengeo</id>
+			<url>http://repo.opengeo.org</url>
+		</repository>
+	</repositories>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.geoserver.web</groupId>
+			<artifactId>web-app</artifactId>
+			<version>${geoserver.version}</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>geomesa</groupId>
+			<artifactId>geomesa-plugin</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>geoserver</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<overlays>
+						<overlay>
+							<groupId>org.geoserver.web</groupId>
+							<artifactId>web-app</artifactId>
+						</overlay>
+					</overlays>
+					<warSourceExcludes>WEB-INF/web.xml</warSourceExcludes>
+					<packagingExcludes>META-INF/context.xml</packagingExcludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>maven-jetty-plugin</artifactId>
+				<version>6.1.10</version>
+				<configuration>
+					<contextPath>geoserver</contextPath>
+					<connectors>
+						<connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
+							<port>${jetty.port}</port>
+							<maxIdleTime>60000</maxIdleTime>
+						</connector>
+					</connectors>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
