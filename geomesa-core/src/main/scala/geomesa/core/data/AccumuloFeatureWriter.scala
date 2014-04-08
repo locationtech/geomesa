@@ -30,6 +30,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTimeZone, DateTime}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
+import org.geotools.factory.Hints
 
 object AccumuloFeatureWriter {
 
@@ -65,16 +66,27 @@ class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
   var currentFeature: SimpleFeature = null
 
+  val builder = new SimpleFeatureBuilder(featureType)
+
   def getFeatureType: SimpleFeatureType = featureType
 
   def remove() {}
 
   def write() {
     // require a non-null feature with a non-null geometry
-    if (currentFeature != null && currentFeature.getDefaultGeometry != null)
+    if (currentFeature != null && currentFeature.getDefaultGeometry != null) {
+      // see if there's a suggested ID to use for this feature
+      // (relevant when this insertion is wrapped inside a Transaction)
+      if (currentFeature.getUserData.containsKey(Hints.PROVIDED_FID)) {
+        builder.init(currentFeature)
+        currentFeature = builder.buildFeature(
+          currentFeature.getUserData.get(Hints.PROVIDED_FID).toString)
+      }
+
       indexer.encode(currentFeature).foreach {
         case (k,v) => recordWriter.write(k,v)
       }
+    }
     else
       println("[WARNING] AccumuloFeatureWriter.write:  " +
         "Invalid feature to write:  " + currentFeature)
@@ -92,5 +104,4 @@ class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   def close() {
     recordWriter.close(null)
   }
-
 }
