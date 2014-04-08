@@ -19,7 +19,7 @@ package geomesa.core.data
 import collection.JavaConversions._
 import geomesa.utils.text.WKTUtils
 import org.geotools.data.{Query, DataUtilities, Transaction, DataStoreFinder}
-import org.geotools.factory.Hints
+import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
@@ -27,6 +27,8 @@ import geomesa.core.index._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.geotools.geometry.jts.JTSFactoryFinder
+import com.vividsolutions.jts.geom.Coordinate
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
@@ -143,6 +145,40 @@ class AccumuloDataStoreTest extends Specification {
       results.getSchema should be equalTo(sft)
       res.length should be equalTo(1)
       features.hasNext should be equalTo(false)
+    }
+
+    "process a DWithin query correctly" in {
+      // create the data store
+      val ds = createStore
+      val sftName = "dwithintest"
+      val sft = DataUtilities.createType(sftName, s"NAME:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      // create a feature
+      val geom = WKTUtils.read("POINT(45.0 49.0)")
+      val liveFeature = SimpleFeatureBuilder.build(sft, List("testType", null, geom), "fid-1")
+      liveFeature.setDefaultGeometry(geom)
+
+      // make sure we ask the system to re-use the provided feature-ID
+      liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      val featureCollection = new DefaultFeatureCollection(sftName, sft)
+      featureCollection.add(liveFeature)
+      val res = fs.addFeatures(featureCollection)
+
+      // compose a CQL query that uses a polygon that is disjoint with the feature bounds
+      val ff = CommonFactoryFinder.getFilterFactory2
+      val geomFactory = JTSFactoryFinder.getGeometryFactory
+      val q = ff.dwithin(ff.property("geom"), ff.literal(geomFactory.createPoint(new Coordinate(45.000001, 48.99999))), 100.0, "meters")
+      val query = new Query(sftName, q)
+
+      // Let's read out what we wrote.
+      val results = fs.getFeatures(query)
+      val features = results.features
+      val f = features.next()
+      f.getID mustEqual "fid-1"
+      features.hasNext must beFalse
     }
   }
 }

@@ -17,16 +17,12 @@
 
 package geomesa.core.data
 
-import collection.immutable.TreeSet
 import com.vividsolutions.jts.geom._
-import geomesa.core.data.FilterToAccumulo.{SetLikeFilter, SetLikeInterval, SetLikePolygon, SetLikeExtraction}
 import geomesa.core.index._
-import geomesa.utils.geohash.GeohashUtils
-import org.apache.accumulo.core.data.Value
-import org.geotools.data.{Query, FeatureReader}
+import org.geotools.data.{DataUtilities, Query, FeatureReader}
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             featureName: String,
@@ -36,13 +32,15 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             sft: SimpleFeatureType)
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
-  import collection.JavaConversions._
   import AccumuloFeatureReader._
+  import collection.JavaConversions._
 
+  lazy val ff = CommonFactoryFinder.getFilterFactory2
   lazy val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
   lazy val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
   lazy val dtgStartField        = sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, SF_PROPERTY_START_TIME).asInstanceOf[String]
   lazy val dtgEndField          = sft.getUserData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
+  lazy val encodedSFT           = DataUtilities.encodeType(sft)
 
   lazy val bounds = dataStore.getBounds(query) match {
     case null => null
@@ -52,80 +50,16 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
       else res.asInstanceOf[Polygon]
   }
 
-  lazy val (iterValues,bs) =
-    if(query.getFilter == Filter.EXCLUDE) emptyResultsSet
-    else try {
-      val givenFilter = query.getFilter
+  val filterVisitor = new FilterToAccumulo(sft)
+  val rewrittenCQL = filterVisitor.visit(query)
+  val cqlString = ECQL.toCQL(rewrittenCQL)
 
-      // extract the query polygon, the query interval, and the filter that
-      // results from removing these portions
-      val extractor = FilterExtractor(geometryPropertyName, TreeSet(dtgStartField, dtgEndField))
+  // run the query
+  lazy val bs = dataStore.createBatchScanner
 
-      val Extraction(optPolygon, optInterval, optFilter) = {
-        val extraction = extractor.extractAndModify(givenFilter)
-        if (SetLikeExtraction.isDefined(extraction)) extraction.get
-        else Extraction(
-          SetLikePolygon.nothing,
-          SetLikeInterval.nothing,
-          SetLikeFilter.nothing
-        )
-      }
-
-      // compute the net query-polygon, interval, and ECQL filter
-      val (polygon, isDisjoint) = optPolygon match {
-        case op if SetLikePolygon.isUndefined(op)  => (null, false)
-        case op if SetLikePolygon.isNothing(op)    => (null, true)
-        case op if SetLikePolygon.isEverything(op) => (null, false)
-        case Some(rawPoly)                         => bounds match {
-          case null                          => (rawPoly, false)
-          case b if rawPoly.disjoint(bounds) => (null, true)
-          case b if rawPoly.covers(bounds)   => (bounds.asInstanceOf[Polygon], false)
-          case _                             =>
-            (rawPoly.intersection(bounds).asInstanceOf[Polygon], false)
-        }
-      }
-      val interval = optInterval match {
-        case oi if SetLikeInterval.isUndefined(oi)  => null
-        case oi if SetLikeInterval.isNothing(oi)    => null
-        case oi if SetLikeInterval.isEverything(oi) => null
-        case Some(i)                                => i
-      }
-      val ecql: Option[String] = optFilter match {
-        case of if SetLikeFilter.isUndefined(of)  => None
-        case of if SetLikeFilter.isNothing(of)    => None
-        case of if SetLikeFilter.isEverything(of) => None
-        case Some(filter)                         => Some(ECQL.toCQL(filter))
-      }
-
-      // how large a query polygon do we have?
-      val ghPrecision= GeohashUtils.estimateGeometryGeohashPrecision(polygon)
-
-      //@TODO convert this to DEBUG logging as part of CBGEO-34
-      println("[AccumuloFeatureReader]")
-      println("  Query:  " + query.toString)
-      println("  Polygon:  " + polygon)
-      println("  Are query-polygon and bounds disjoint?  " + isDisjoint)
-      println(s"  Interval:  $interval")
-      println("  GeoHash precision:  " + ghPrecision)
-      println("  ECQL:  " + ecql)
-
-      // run the query
-      val bs = dataStore.createBatchScanner
-
-      val iter =  if(isDisjoint) emptyValueIterator
-      else           indexSchema.query(bs, polygon, interval, attributes, ecql)
-
-      ( iter, Some(bs) )
-    } catch {
-      case t: Throwable => {
-        // let the user (perusing the log, no doubt) see why the query failed
-        //@TODO convert this to DEBUG logging as part of CBGEO-34
-        println("Could not satisfy query request", t)
-
-        // dummy return value
-        emptyResultsSet
-      }
-    }
+  lazy val spatial = filterVisitor.spatialPredicate
+  lazy val temporal = filterVisitor.temporalPredicate
+  lazy val iterValues = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString))
 
   override def getFeatureType = sft
 
@@ -133,15 +67,9 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
   override def hasNext = iterValues.hasNext
 
-  override def close() = bs.foreach(_.close())
+  override def close() = bs.close()
 }
 
 object AccumuloFeatureReader {
   val latLonGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
-
-  // used when the query-polygon is disjoint with the known feature bounds
-  def emptyValueIterator : Iterator[Value] = List[Value]().iterator
-
-  // useful when a query should return nothing
-  private def emptyResultsSet = (emptyValueIterator, None)
 }
