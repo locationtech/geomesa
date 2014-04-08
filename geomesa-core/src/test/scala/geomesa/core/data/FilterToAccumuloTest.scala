@@ -1,213 +1,145 @@
-/*
- * Copyright 2013 Commonwealth Computer Research, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package geomesa.core.data
 
-import collection.immutable.TreeSet
-import com.vividsolutions.jts.geom.Polygon
-import geomesa.core.data.FilterToAccumulo.{SetLikeFilter, SetLikeInterval, SetLikePolygon}
-import geomesa.core.index._
+import collection.JavaConversions._
+import com.vividsolutions.jts.geom.{Polygon, Coordinate}
+import geomesa.core.index.Constants
 import geomesa.utils.text.WKTUtils
+import org.geotools.data.DataUtilities
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.Interval
-import org.joda.time.format.DateTimeFormat
+import org.geotools.geometry.jts.{JTS, ReferencedEnvelope, JTSFactoryFinder}
+import org.geotools.referencing.CRS
+import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.junit.runner.RunWith
 import org.opengis.filter.Filter
+import org.opengis.filter.spatial.DWithin
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class FilterToAccumuloTest extends Specification {
-  val dtf = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZoneUTC()
 
-  val MinDate = SpatioTemporalIndexSchema.minDateTime
-  val MaxDate = SpatioTemporalIndexSchema.maxDateTime
+  val WGS84       = DefaultGeographicCRS.WGS84
+  val ff          = CommonFactoryFinder.getFilterFactory2
+  val geomFactory = JTSFactoryFinder.getGeometryFactory
+  val sft         = DataUtilities.createType("test", "id:Integer,prop:String,dtg:Date,otherGeom:Geometry:srid=4326,*geom:Point:srid=4326")
+  sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
 
-  // re-used test data
-  val date = "2010-01-01T00:00:00.000Z"
-  val dateEarly = "2010-01-01T00:00:00.000Z"
-  val dateLate = "2010-01-31T23:59:59.999Z"
-  val dateEarly2 = "2010-01-15T00:00:00.000Z"
-  val dateLate2 = "2010-02-15T23:59:59.999Z"
-  val dateEarlyLow = "2010-01-01T00:00:00.000Z"
-  val dateEarlyHigh = "2010-01-01T00:01:00.000Z"
-
-
-  case class ExtractionResult(polygon: Option[Polygon], interval: Option[Interval], ecqlOut: String)
-
-  def extract(ecqlIn: String, defaultPolygon: Polygon = null,
-              defaultInterval: Interval = null,
-              defaultFilter: Filter = Filter.INCLUDE): ExtractionResult = {
-
-    val extractor = FilterExtractor(SF_PROPERTY_GEOMETRY, TreeSet(SF_PROPERTY_START_TIME, SF_PROPERTY_END_TIME))
-    val extraction = extractor.extractAndModify(ECQL.toFilter(ecqlIn)).getOrElse(
-      Extraction(
-        SetLikePolygon.nothing,
-        SetLikeInterval.nothing,
-        SetLikeFilter.nothing
-      )
-    )
-    val ecqlOut = extraction match {
-      case null => null
-      case _ => ECQL.toCQL(extraction.filter.getOrElse(Filter.INCLUDE))
+  "BBOX queries" should {
+    "set the spatial predicate and simplify the query" in {
+      val q = ff.bbox("geom", -80.0, 30, -70, 40, CRS.toSRS(WGS84))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(q)
+      result mustEqual Filter.INCLUDE
     }
-    ExtractionResult(extraction.polygon, extraction.interval, ecqlOut)
-  }
 
-  def normalizedCQL(cql: String): String = ECQL.toCQL(ECQL.toFilter(cql))
-
-  "extraction/modification of filter with polygon, without interval" should {
-    "behave correctly" in {
-      val ecqlIn = s"(foo <= 1.34 AND BBOX($SF_PROPERTY_GEOMETRY, 1, 2, 3, 4))"
-      val ExtractionResult(polygon, interval, ecqlOut) = extract(ecqlIn)
-
-      SetLikePolygon.isDefined(polygon) must be equalTo true
-      WKTUtils.write(polygon.get) must be equalTo "POLYGON ((1 2, 1 4, 3 4, 3 2, 1 2))"
-      SetLikeInterval.isUndefined(interval) must be equalTo true
-      ecqlOut must be equalTo "foo <= 1.34"
+    "set the spatial predicate and remove from the subsequent query" in {
+      val q =
+        ff.and(
+          ff.like(ff.property("prop"), "foo"),
+          ff.bbox("geom", -80.0, 30, -70, 40, CRS.toSRS(WGS84))
+        )
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(q)
+      result mustEqual ff.like(ff.property("prop"), "foo")
     }
   }
 
-  "extraction/modification of filter with polygon OR polygon, without interval" should {
-    "behave correctly" in {
-      val ecqlIn = s"(foo <= 1.34 AND (BBOX($SF_PROPERTY_GEOMETRY, 1, 3, 2, 4) OR BBOX($SF_PROPERTY_GEOMETRY, 2, 3, 3, 4)))"
-      val ExtractionResult(polygon, interval, ecqlOut) = extract(ecqlIn)
+  "DWithin queries" should {
+    val targetPoint = geomFactory.createPoint(new Coordinate(-70, 30))
 
-      SetLikePolygon.isDefined(polygon) must be equalTo true
-      WKTUtils.write(polygon.get) must be equalTo "POLYGON ((1 3, 1 4, 2 4, 3 4, 3 3, 2 3, 1 3))"
-      SetLikeInterval.isDefined(interval) must be equalTo false
-      ecqlOut must be equalTo "foo <= 1.34"
+    "take in meters" in {
+      val q =
+        ff.dwithin(ff.property("geom"), ff.literal(targetPoint), 100.0, "meters")
+
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(q)
+      val expected = WKTUtils.read("POLYGON ((-70.00103642615518 29.999097895754463, -69.9989635738448 29.999097895754463, -69.9989635738448 30.000902095962825, -70.00103642615518 30.000902095962825, -70.00103642615518 29.999097895754463))").asInstanceOf[Polygon]
+      val resultEnv = f2a.spatialPredicate
+      resultEnv.equalsNorm(expected) must beTrue
+      result.asInstanceOf[DWithin].getDistance mustEqual 0.0010364167811696486
     }
   }
 
-  "extraction/modification of filter without polygon, with interval AFTER" should {
-    "behave correctly" in {
-      val ecqlIn = s"(INCLUDE AND ($SF_PROPERTY_START_TIME AFTER $date)) AND (foo <= 1.34)"
-      val ExtractionResult(polygon, interval, ecqlOut) = extract(ecqlIn)
+  "Within queries" should {
+    "set the spatial predicate and simplify the query if rectangular" in {
+      val rectWithin =
+        ff.within(
+          ff.property("geom"),
+          ff.literal(WKTUtils.read("POLYGON((-80 30,-70 30,-70 40,-80 40,-80 30))")))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(rectWithin)
+      result mustEqual Filter.INCLUDE
+    }
 
-      SetLikePolygon.isDefined(polygon) must be equalTo false
-      SetLikeInterval.isDefined(interval) must be equalTo true
-      interval.get.toString must be equalTo s"$date/${SpatioTemporalIndexSchema.maxDateTime}"
-      ecqlOut must be equalTo "foo <= 1.34"
+    "set the spatial predicate and keep the geom query if not rectangular" in {
+      val rectWithin =
+        ff.within(
+          ff.property("geom"),
+          ff.literal(WKTUtils.read("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))")))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(rectWithin)
+      result mustNotEqual Filter.INCLUDE
     }
   }
 
-  "extraction/modification of filter without polygon, with interval BEFORE" should {
-    "behave correctly" in {
-      val ecqlIn = s"(INCLUDE AND ($SF_PROPERTY_START_TIME BEFORE $date)) AND (foo <= 1.34)"
-      val ExtractionResult(polygon, interval, ecqlOut) = extract(ecqlIn)
+  "Temporal queries" should {
+    "set the temporal predicate and simplify the query" in {
+      val pred = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-02-01T00:00:00Z")
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      f2a.temporalPredicate mustEqual interval
+      result mustEqual Filter.INCLUDE
+    }
 
-      SetLikePolygon.isDefined(polygon) must be equalTo false
-      SetLikeInterval.isDefined(interval) must be equalTo true
-      interval.get.toString must be equalTo s"${SpatioTemporalIndexSchema.minDateTime}/$date"
-      ecqlOut must be equalTo "foo <= 1.34"
+    "with spatial queries should simplify the query" in {
+      val temporal = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-02-01T00:00:00Z")
+      val spatial = ff.within(ff.property("geom"), ff.literal(WKTUtils.read("POLYGON((-80 30,-70 30,-70 40,-80 40,-80 30))")))
+      val pred = ff.and(temporal, spatial)
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      f2a.temporalPredicate mustEqual interval
+      result mustEqual Filter.INCLUDE
+    }
+
+    "with spatial queries and property queries should simplify the query" in {
+      val temporal = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-02-01T00:00:00Z")
+      val spatial = ff.within(ff.property("geom"), ff.literal(WKTUtils.read("POLYGON((-80 30,-70 30,-70 40,-80 40,-80 30))")))
+      val prop = ff.like(ff.property("prop"), "FOO%")
+      val pred = ff.and(List(temporal, spatial, prop))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      f2a.temporalPredicate mustEqual interval
+      result.toString mustEqual prop.toString
     }
   }
 
-  "extraction/modification of filter without polygon, with interval BETWEEN" should {
-    "behave correctly" in {
-      val ecqlIn = s"(INCLUDE AND ($SF_PROPERTY_START_TIME BETWEEN $dateEarly AND $dateLate)) AND (foo <= 1.34)"
-      val ExtractionResult(polygon, interval, ecqlOut) = extract(ecqlIn)
-
-      SetLikePolygon.isDefined(polygon) must be equalTo false
-      SetLikeInterval.isDefined(interval) must be equalTo true
-      interval.get.toString must be equalTo s"$dateEarly/$dateLate"
-      ecqlOut must be equalTo "foo <= 1.34"
+  "Logic queries" should {
+    "keep property queries" in {
+      val temporal = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-02-01T00:00:00Z")
+      val spatial = ff.within(ff.property("geom"), ff.literal(WKTUtils.read("POLYGON((-80 30,-70 30,-70 40,-80 40,-80 30))")))
+      val prop1 = ff.like(ff.property("prop"), "FOO%")
+      val prop2 = ff.like(ff.property("prop"), "BAR%")
+      val prop = ff.and(prop1, prop2)
+      val pred = ff.and(List(temporal, spatial, prop))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      f2a.temporalPredicate mustEqual interval
+      result.toString mustEqual prop.toString
     }
   }
 
-  "extraction/modification of filter with polygon OR polygon, with interval DURING" should {
-    "behave correctly" in {
-      val ecqlIn = s"($SF_PROPERTY_START_TIME DURING $dateEarly/$dateLate) AND (foo <= 1.34 AND (BBOX($SF_PROPERTY_GEOMETRY, 1, 3, 2, 4) OR BBOX($SF_PROPERTY_GEOMETRY, 2, 3, 3, 4)))"
-      val ExtractionResult(polygon, interval, ecqlOut) = extract(ecqlIn)
-
-      SetLikePolygon.isDefined(polygon) must be equalTo true
-      WKTUtils.write(polygon.get) must be equalTo "POLYGON ((1 3, 1 4, 2 4, 3 4, 3 3, 2 3, 1 3))"
-      SetLikeInterval.isDefined(interval) must be equalTo true
-      interval.get.toString must be equalTo s"$dateEarly/$dateLate"
-      ecqlOut must be equalTo "foo <= 1.34"
-    }
-  }
-
-  "extraction/modification of filter with polygon OR polygon, with interval DURING OR interval DURING" should {
-    "behave correctly" in {
-      val ecqlIn = s"(($SF_PROPERTY_START_TIME DURING $dateEarly2/$dateLate2) OR $SF_PROPERTY_START_TIME DURING $dateEarly/$dateLate) AND (foo <= 1.34 AND (BBOX($SF_PROPERTY_GEOMETRY, 1, 3, 2, 4) OR BBOX($SF_PROPERTY_GEOMETRY, 2, 3, 3, 4)))"
-      val ExtractionResult(polygon, interval, ecqlOut) = extract(ecqlIn)
-
-      SetLikePolygon.isDefined(polygon) must be equalTo true
-      WKTUtils.write(polygon.get) must be equalTo "POLYGON ((1 3, 1 4, 2 4, 3 4, 3 3, 2 3, 1 3))"
-      SetLikeInterval.isDefined(interval) must be equalTo true
-      interval.get.toString must be equalTo s"$dateEarly/$dateLate2"
-      ecqlOut must be equalTo "foo <= 1.34"
-    }
-  }
-
-  "extraction/modification of filter with polygon AND polygon, with interval DURING AND interval DURING" should {
-    "behave correctly" in {
-      val ecqlIn = s"(($SF_PROPERTY_START_TIME DURING $dateEarly2/$dateLate2) AND $SF_PROPERTY_START_TIME DURING $dateEarly/$dateLate) AND (foo <= 1.34 AND (BBOX($SF_PROPERTY_GEOMETRY, 1, 2, 5, 4) AND BBOX($SF_PROPERTY_GEOMETRY, 2, 0, 7, 3)))"
-      val ExtractionResult(polygon, interval, ecqlOut) = extract(ecqlIn)
-
-      SetLikePolygon.isDefined(polygon) must be equalTo true
-      WKTUtils.write(polygon.get) must be equalTo "POLYGON ((5 3, 5 2, 2 2, 2 3, 5 3))"
-      SetLikeInterval.isDefined(interval) must be equalTo true
-      interval.get.toString must be equalTo s"$dateEarly2/$dateLate"
-      ecqlOut must be equalTo "foo <= 1.34"
-    }
-  }
-
-  "extraction/modification of OR filter with polygon AND polygon, with interval DURING AND interval DURING" should {
-    "behave correctly" in {
-      val ecqlIn = s"(($SF_PROPERTY_START_TIME DURING $dateEarly2/$dateLate2) AND $SF_PROPERTY_START_TIME DURING $dateEarly/$dateLate) OR (foo <= 1.34 AND (BBOX($SF_PROPERTY_GEOMETRY, 1, 3, 2, 4) AND BBOX($SF_PROPERTY_GEOMETRY, 2, 3, 3, 4)))"
-      val ExtractionResult(polygon, interval, ecqlOut) = extract(ecqlIn)
-
-      // this query is of the form:  { temporal constraint } OR { spatial constraint }
-      // this doesn't boil down to a single, simple query-(polygon|interval) pair;
-      // for this type of query, just pass everything through as ECQL
-
-      SetLikePolygon.isDefined(polygon) must be equalTo false
-      SetLikeInterval.isDefined(interval) must be equalTo false
-      ecqlOut must be equalTo normalizedCQL(ecqlIn)
-    }
-  }
-
-  "AND with more than two children" should {
-    "behave correctly" in {
-      val fieldName = "ID"
-      val quote = "\""
-      val quotedFieldName = s"$quote$fieldName$quote"
-      val ecqlIn = s"(INCLUDE AND ( $quotedFieldName = 88481 ) AND ( $SF_PROPERTY_START_TIME BETWEEN $dateEarly AND $dateLate ) AND BBOX ($SF_PROPERTY_GEOMETRY, 1, 3, 2, 4))"
-      val ExtractionResult(polygon, interval, ecqlOut) = extract(ecqlIn)
-
-      SetLikePolygon.isDefined(polygon) must be equalTo true
-      WKTUtils.write(polygon.get) must be equalTo "POLYGON ((1 3, 1 4, 2 4, 2 3, 1 3))"
-      SetLikeInterval.isDefined(interval) must be equalTo true
-      interval.get.toString must be equalTo s"$dateEarly/$dateLate"
-      ecqlOut must be equalTo s"$fieldName = 88481"
-    }
-  }
-
-  "EQUALS on date" should {
-    "behave correctly" in {
-      val ecqlIn = s"(INCLUDE AND ($SF_PROPERTY_START_TIME = $dateEarly)) AND (foo <= 1.34)"
-      val ExtractionResult(polygon, interval, ecqlOut) = extract(ecqlIn)
-
-      SetLikePolygon.isDefined(polygon) must be equalTo false
-      SetLikeInterval.isDefined(interval) must be equalTo true
-      interval.get.toString must be equalTo s"$dateEarlyLow/$dateEarlyHigh"
-      ecqlOut must be equalTo "foo <= 1.34"
-    }
-  }
 }

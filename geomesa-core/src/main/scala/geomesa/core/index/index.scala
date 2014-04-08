@@ -21,6 +21,8 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.joda.time.DateTime
 import org.opengis.filter.identity.FeatureId
 import org.geotools.data.DataUtilities
+import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.`type`.AttributeDescriptor
 
 /**
  * These are package-wide constants.
@@ -29,10 +31,13 @@ package object index {
   val MIN_DATE = new DateTime(Long.MinValue)
   val MAX_DATE = new DateTime(Long.MaxValue)
 
-  val SF_PROPERTY_GEOMETRY = "geomesa_index_geometry"
+  val SF_PROPERTY_GEOMETRY   = "geomesa_index_geometry"
   val SF_PROPERTY_START_TIME = "geomesa_index_start_time"
   val SF_PROPERTY_END_TIME   = "geomesa_index_end_time"
 
+  def getDtgFieldName(sft: SimpleFeatureType) =
+    sft.getUserData.get(SF_PROPERTY_START_TIME).toString
+  def getDtgDescriptor(sft: SimpleFeatureType) = sft.getDescriptor(getDtgFieldName(sft))
   val spec = "geomesa_index_geometry:Geometry:srid=4326,geomesa_index_start_time:Date,geomesa_index_end_time:Date"
   val indexSFT = DataUtilities.createType("geomesa-idx", spec)
 

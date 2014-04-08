@@ -22,6 +22,8 @@ import org.geotools.util.{Converter, ConverterFactory}
 import org.geotools.factory.Hints
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.DateTime
+import org.opengis.temporal.{Position, Instant}
+import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant, DefaultPeriod}
 
 object Conversions {
 
@@ -40,6 +42,11 @@ object Conversions {
   }
 
   implicit def toRichSimpleFeatureIterator(iter: SimpleFeatureIterator) = new RichSimpleFeatureIterator(iter)
+  implicit def opengisInstantToJodaInstant(instant: Instant): org.joda.time.Instant = new DateTime(instant.getPosition.getDate).toInstant
+  implicit def jodaInstantToOpengisInstant(instant: org.joda.time.Instant): org.opengis.temporal.Instant = new DefaultInstant(new DefaultPosition(instant.toDate))
+  implicit def jodaIntervalToOpengisPeriod(interval: org.joda.time.Interval): org.opengis.temporal.Period =
+    new DefaultPeriod(interval.getStart.toInstant, interval.getEnd.toInstant)
+
 }
 
 class JodaConverterFactory extends ConverterFactory {
