@@ -24,18 +24,11 @@ import scala.collection.mutable.{HashSet => MutableHashSet}
 import scala.util.control.Exception.catching
 
 /**
- * The following bits of code are related to generating an automatic estimate
- * of the resolution that ought to be used for a particular polygon, such as
- * an area of operations (AO).
- *
- * These routines have been bundled into a trait, so that it can be mixed into
- * other a geographic/geometric module that can itself be imported into, for
- * example, the <code>AOService</code>.
- *
- * Long term, clearly, if we keep this kind of idea, the code should be merged
- * in to some other location.  "commons-geo" might be a good candidate.  For
- * now, the idea is to give this a try, and see whether it's worth preserving
- * at all.
+ * The following bits of code are related to common operations involving
+ * GeoHashes, such as recommending a GeoHash precision for an enclosing
+ * polygon; decomposing a polygon into a fixed number of subordinate
+ * GeoHashes; enumerating possible sub-strings within subordinate GeoHashes
+ * for a given polygon; etc.
  */
 object GeohashUtils extends GeomDistance {
   // make sure the implicits related to distance are in-scope
