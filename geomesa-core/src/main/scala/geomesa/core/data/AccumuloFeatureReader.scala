@@ -46,7 +46,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
     case null => null
     case b =>
       val res = latLonGeoFactory.toGeometry(b)
-      if(res.isInstanceOf[Point] || res.isInstanceOf[LineString]) res.buffer(0.01).asInstanceOf[Polygon]
+      if(res.isInstanceOf[Point] || res.isInstanceOf[LineString]) res.buffer(1.5 / (1 << 10).toDouble).asInstanceOf[Polygon]
       else res.asInstanceOf[Polygon]
   }
 

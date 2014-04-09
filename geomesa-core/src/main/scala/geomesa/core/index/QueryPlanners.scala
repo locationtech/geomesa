@@ -19,7 +19,7 @@ package geomesa.core.index
 import KeyUtils._
 import com.vividsolutions.jts.geom.Polygon
 import geomesa.utils.CartesianProductIterable
-import geomesa.utils.geohash.GeohashUtils
+import geomesa.utils.geohash.{GeoHash, GeohashUtils}
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.{DateTime, DateTimeZone}
 
@@ -203,7 +203,7 @@ case class KeyListTiered(keys:Seq[String], parent:Option[KeyTiered]=None) extend
 }
 
 object KeyUtils {
-  val MAX_KEYS_IN_LIST = 1<<16
+  val MAX_KEYS_IN_LIST = 65536
   val MAX_KEYS_IN_REGEX = 1024
 
   // assume that strings are all of the same size
@@ -271,13 +271,33 @@ trait ColumnFamilyPlanner {
 trait GeoHashPlanner {
   def polyToGeoHashes(poly: Polygon, offset: Int, bits: Int): Seq[String] =
     GeohashUtils.getUniqueGeohashSubstringsInPolygon(poly, offset, bits, MAX_KEYS_IN_LIST)
+
+  // takes care of the case where overflow forces a return value
+  // that is an empty list
+  def polyToPlan(poly: Polygon, offset: Int, bits: Int): KeyPlan = {
+    val subHashes = polyToGeoHashes(poly, offset, bits).sorted
+    subHashes match {
+      case subs if subs.size == 0 =>
+        // if the list is empty, then there are probably too many 35-bit GeoHashes
+        // that fall inside the given polygon; in this case, return the LL, UR
+        // GeoHash endpoints of the entire range (which could encompass many
+        // more GeoHashes than we wish, but can only be better than (or equal
+        // to) a full-table scan)
+        val env = poly.getEnvelopeInternal
+        val ghLL = GeoHash(env.getMinX, env.getMinY)
+        val ghUR = GeoHash(env.getMaxX, env.getMaxY)
+        KeyRange(ghLL.hash, ghUR.hash)
+      case subs => KeyList(subs.sorted)
+    }
+  }
+
   def getKeyPlan(filter: Filter, offset: Int, bits: Int) = filter match {
     case SpatialFilter(poly) =>
-      KeyList(polyToGeoHashes(poly, offset, bits).sorted)
+      polyToPlan(poly, offset, bits)
     case SpatialDateFilter(poly,dt) =>
-      KeyList(polyToGeoHashes(poly, offset, bits).sorted)
+      polyToPlan(poly, offset, bits)
     case SpatialDateRangeFilter(poly,dtStart,dtEnd) =>
-      KeyList(polyToGeoHashes(poly, offset, bits).sorted)
+      polyToPlan(poly, offset, bits)
     case AcceptEverythingFilter => KeyAccept
     case _ => KeyInvalid // degenerate outcome
   }
