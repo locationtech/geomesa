@@ -33,7 +33,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.factory.GeoTools
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import java.util
+import scala.util.Try
 
 case class Attribute(name: Text, value: Text)
 
@@ -51,8 +51,9 @@ case class Attribute(name: Text, value: Text)
  * The other trick to remember about iterators is that they essentially pre-fetch
  * data.  "hasNext" really means, "was there a next record that you already found".
  */
-class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, Value] {
+class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Value] {
 
+  import SpatioTemporalIndexEntry._
   import geomesa.core._
 
   private var indexSource: SortedKeyValueIterator[Key, Value] = null
@@ -65,6 +66,10 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
   private var nextKey: Key = null
   private var nextValue: Value = null
   private var curId: Text = null
+
+  // Used by aggregators that extend STII
+  protected var curFeature: SimpleFeature = null
+
   private var deduplicate: Boolean = false
   private val log = Logger.getLogger(classOf[SpatioTemporalIntersectingIterator])
 
@@ -189,14 +194,8 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
    * Attempt to decode the given key.  This should only succeed in the cases
    * where the key corresponds to an index-entry (not a data-entry).
    */
-  def decodeKey(key:Key): Option[SimpleFeature] =
-    try {
-      Some(schema.decode(key))
-    } catch {
-      case t:Throwable => None
-    }
+  def decodeKey(key:Key): Option[SimpleFeature] = Try(schema.decode(key)).toOption
 
-  import SpatioTemporalIndexEntry._
   /**
    * Advances the index-iterator to the next qualifying entry, and then
    * updates the data-iterator to match what ID the index-iterator found
@@ -212,6 +211,7 @@ class SpatioTemporalIntersectingIterator() extends SortedKeyValueIterator[Key, V
     while (nextValue == null && indexSource.hasTop && indexSource.getTopKey != null) {
       // only consider this index entry if we could fully decode the key
       decodeKey(indexSource.getTopKey).map { decodedKey =>
+        curFeature = decodedKey
         // the value contains the full-resolution geometry and time; use them
         lazy val decodedValue = SpatioTemporalIndexSchema.decodeIndexValue(indexSource.getTopValue)
         lazy val isGeomAcceptable: Boolean = wrappedGeomFilter(decodedKey.gh, decodedValue.geom)

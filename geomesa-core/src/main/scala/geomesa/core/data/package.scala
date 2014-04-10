@@ -23,8 +23,9 @@ import org.geotools.data.FeatureWriter
 import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 
 package object data {
-  import geomesa.core.index._
+
   import collection.JavaConversions._
+  import geomesa.core.index._
 
   val INSTANCE_ID        = "geomesa.instance.id"
   val ZOOKEEPERS         = "geomesa.zookeepers"

@@ -1,3 +1,20 @@
+/*
+ * Copyright 2013 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
 package geomesa.core.data
 
 import collection.JavaConversions._
@@ -7,16 +24,16 @@ import geomesa.utils.text.WKTUtils
 import org.geotools.data.DataUtilities
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geometry.jts.{JTS, ReferencedEnvelope, JTSFactoryFinder}
+import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.junit.runner.RunWith
 import org.opengis.filter.Filter
 import org.opengis.filter.spatial.DWithin
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
 
 @RunWith(classOf[JUnitRunner])
 class FilterToAccumuloTest extends Specification {

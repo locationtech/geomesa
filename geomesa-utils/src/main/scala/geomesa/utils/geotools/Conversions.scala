@@ -16,14 +16,16 @@
 
 package geomesa.utils.geotools
 
+import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data.simple.SimpleFeatureIterator
-import org.opengis.feature.simple.SimpleFeature
-import org.geotools.util.{Converter, ConverterFactory}
 import org.geotools.factory.Hints
-import org.joda.time.format.ISODateTimeFormat
-import org.joda.time.DateTime
-import org.opengis.temporal.{Position, Instant}
+import org.geotools.geometry.DirectPosition2D
 import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant, DefaultPeriod}
+import org.geotools.util.{Converter, ConverterFactory}
+import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
+import org.opengis.feature.simple.SimpleFeature
+import org.opengis.temporal.Instant
 
 object Conversions {
 
@@ -47,6 +49,10 @@ object Conversions {
   implicit def jodaIntervalToOpengisPeriod(interval: org.joda.time.Interval): org.opengis.temporal.Period =
     new DefaultPeriod(interval.getStart.toInstant, interval.getEnd.toInstant)
 
+
+  implicit class RichCoord(val c: Coordinate) extends AnyVal {
+    def toPoint2D = new DirectPosition2D(c.x, c.y)
+  }
 }
 
 class JodaConverterFactory extends ConverterFactory {

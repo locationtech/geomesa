@@ -189,6 +189,16 @@
                 <version>${gt.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.geotools</groupId>
+                <artifactId>gt-process-feature</artifactId>
+                <version>${gt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
+                <artifactId>gt-render</artifactId>
+                <version>${gt.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>commons-pool</groupId>
                 <artifactId>commons-pool</artifactId>
                 <version>1.6</version>

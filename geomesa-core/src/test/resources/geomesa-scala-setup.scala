@@ -27,9 +27,13 @@ import collection.JavaConverters._
 import geomesa.core._
 import geomesa.core.data._
 import geomesa.utils.geohash._
+import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text._
 import geomesa.core.index._
 import geomesa.core.iterators._
 import geomesa.utils.geotools._
 import org.geotools.data._
+import org.geotools.factory._
+import org.geotools.temporal.`object`._
 import org.joda.time.{DateTimeZone, DateTime}
+
