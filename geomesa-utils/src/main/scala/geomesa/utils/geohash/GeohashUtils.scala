@@ -16,11 +16,11 @@
 
 package geomesa.utils.geohash
 
+import collection.BitSet
+import collection.immutable.Range.Inclusive
+import collection.mutable.{HashSet => MutableHashSet}
 import com.vividsolutions.jts.geom._
 import geomesa.utils.text.WKTUtils
-import scala.collection.BitSet
-import scala.collection.immutable.Range.Inclusive
-import scala.collection.mutable.{HashSet => MutableHashSet}
 import scala.util.control.Exception.catching
 
 /**
