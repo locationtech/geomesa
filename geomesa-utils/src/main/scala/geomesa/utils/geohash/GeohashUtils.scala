@@ -53,23 +53,22 @@ object GeohashUtils extends GeomDistance {
     if (minBitsResolution >= maxBitsResolution)
       throw new IllegalArgumentException("Minimum resolution must be strictly greater than maximum resolution.")
 
-    override def toString() : String = "{" + minBitsResolution.toString + ", +" + numBitsIncrement + "..., " + maxBitsResolution.toString + "}"
+    override def toString(): String = "{" + minBitsResolution.toString + ", +" + numBitsIncrement + "..., " + maxBitsResolution.toString + "}"
 
-    def getNumChildren : Int = (1 << numBitsIncrement)
+    def getNumChildren: Int = 1 << numBitsIncrement
 
     def getNextChildren(parent:BitSet, oldPrecision:Int) : List[BitSet] = {
-      (Range(0, getNumChildren).map((i:Int) => {
+      Range(0, getNumChildren).map((i: Int) => {
         // compute bit-set corresponding to this integer,
         // and add it to the left-shifted version of the parent
-        val bitString : String = i.toBinaryString
+        val bitString = i.toBinaryString
 
-        Range(0, numBitsIncrement).foldLeft(parent)((bs:BitSet,j:Int) => {
-          val c : Char = if (j<bitString.length) bitString.charAt(j) else '0'
-
-          if (c=='1') (bs + (oldPrecision + bitString.length - 1 - j))
+        Range(0, numBitsIncrement).foldLeft(parent)((bs: BitSet, j: Int) => {
+          val c = if (j < bitString.length) bitString.charAt(j) else '0'
+          if (c == '1') bs + (oldPrecision + bitString.length - 1 - j)
           else bs
         })
-      })).toList
+      }).toList
     }
   }
 
@@ -235,9 +234,10 @@ object GeohashUtils extends GeomDistance {
     val env = defaultGeometryFactory.toGeometry(geom.getEnvelopeInternal)
 
     // conduct the search through the various candidate resolutions
-    val (maxBits:Int, ghOpt:Option[GeoHash]) = resolutions.foldRight((resolutions.minBitsResolution, None:Option[GeoHash])){(bits:Int,res:(Int,Option[GeoHash])) =>
-      val gh = GeoHash(centroid.getX, centroid.getY, bits)
-      if (getGeohashGeom(gh).contains(env) && bits>=res._1) (bits, Some(gh)) else res
+    val (_, ghOpt) = resolutions.foldRight((resolutions.minBitsResolution, Option.empty[GeoHash])){
+      case (bits, orig@(res, _)) =>
+        val gh = GeoHash(centroid.getX, centroid.getY, bits)
+        if (getGeohashGeom(gh).contains(env) && bits >= res) (bits, Some(gh)) else orig
     }
 
     // validate that you found a usable result
@@ -285,7 +285,7 @@ object GeohashUtils extends GeomDistance {
 
     def isSatisfiedBy(numBoxes:Long, getArea:()=>Double, getSpans:()=>(Double,Double)) : Boolean = {
       if (numBoxes >= minSmallestBoxes && numBoxes <= maxSmallestBoxes) {
-        val (minSpan:Double, maxSpan:Double) = getSpans()
+        val (minSpan, maxSpan) = getSpans()
         minSpan >= minSpanMeters && maxSpan <= maxSpanMeters
       } else {
         false
@@ -393,8 +393,9 @@ object GeohashUtils extends GeomDistance {
     lazy val areaInside : Double = area - areaOutside
     lazy val resolution : Int = gh.prec
     lazy val isResolutionOk : Boolean =
-      (resolution >= resolutions.minBitsResolution &&
-        resolution <= resolutions.maxBitsResolution)
+      resolution >= resolutions.minBitsResolution &&
+        resolution <= resolutions.maxBitsResolution
+
     lazy val intersectsTarget : Boolean =
       geomCatcher.opt { geom.intersects(targetGeom) }.getOrElse(false)
     lazy val intersection : Geometry =
@@ -695,11 +696,11 @@ object GeohashUtils extends GeomDistance {
     }
 
     // find the qualifying GeoHashes within these covering rectangles
-    coverings.foreach { coveringPatch => {
+    coverings.foreach { coveringPatch =>
       // how many characters total are left within this patch?
       val numCharsLeft = offset + bits - coveringPatch.hash.length
       consider(GH(coveringPatch), numCharsLeft)
-    }}
+    }
 
     // add dotted versions, if appropriate (to match decomposed GeoHashes that
     // may be encoded at less than a full 35-bits precision)
