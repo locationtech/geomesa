@@ -32,33 +32,24 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             sft: SimpleFeatureType)
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
-  import AccumuloFeatureReader._
   import collection.JavaConversions._
 
-  lazy val ff = CommonFactoryFinder.getFilterFactory2
-  lazy val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
-  lazy val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
-  lazy val dtgStartField        = sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, SF_PROPERTY_START_TIME).asInstanceOf[String]
-  lazy val dtgEndField          = sft.getUserData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
-  lazy val encodedSFT           = DataUtilities.encodeType(sft)
-
-  lazy val bounds = dataStore.getBounds(query) match {
-    case null => null
-    case b =>
-      val res = latLonGeoFactory.toGeometry(b)
-      if(res.isInstanceOf[Point] || res.isInstanceOf[LineString]) res.buffer(1.5 / (1 << 10).toDouble).asInstanceOf[Polygon]
-      else res.asInstanceOf[Polygon]
-  }
+  val ff = CommonFactoryFinder.getFilterFactory2
+  val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
+  val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
+  val dtgStartField        = sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, SF_PROPERTY_START_TIME).asInstanceOf[String]
+  val dtgEndField          = sft.getUserData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
+  val encodedSFT           = DataUtilities.encodeType(sft)
 
   val filterVisitor = new FilterToAccumulo(sft)
   val rewrittenCQL = filterVisitor.visit(query)
   val cqlString = ECQL.toCQL(rewrittenCQL)
 
   // run the query
-  lazy val bs = dataStore.createBatchScanner
+  val bs = dataStore.createBatchScanner
 
-  lazy val spatial = filterVisitor.spatialPredicate
-  lazy val temporal = filterVisitor.temporalPredicate
+  val spatial = filterVisitor.spatialPredicate
+  val temporal = filterVisitor.temporalPredicate
   lazy val iterValues = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString))
 
   override def getFeatureType = sft
