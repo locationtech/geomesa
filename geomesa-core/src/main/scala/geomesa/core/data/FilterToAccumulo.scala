@@ -11,7 +11,7 @@ import org.geotools.filter.visitor.SimplifyingFilterVisitor
 import org.geotools.geometry.jts.{JTSFactoryFinder, JTS}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.{DateTime, Interval}
+import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -21,6 +21,7 @@ import org.opengis.filter.temporal._
 import org.opengis.temporal.Instant
 import geomesa.utils.text.WKTUtils
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
+import org.joda.time.format.ISODateTimeFormat
 
 // FilterToAccumulo extracts the spatial and temporal predicates from the
 // filter while rewriting the filter to optimize for scanning Accumulo
@@ -145,11 +146,22 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     val attr = prop.evaluate(sft).asInstanceOf[AttributeDescriptor]
     if(!attr.getLocalName.equals(dtgField.getLocalName)) ff.and(acc, op)
     else {
-      val start = op.getLowerBoundary.evaluate(null).asInstanceOf[Instant]
-      val end   = op.getUpperBoundary.evaluate(null).asInstanceOf[Instant]
+      val start = extractDTG(op.getLowerBoundary.evaluate(null))
+      val end   = extractDTG(op.getUpperBoundary.evaluate(null))
       temporalPredicate = new Interval(start, end)
       acc
     }
+  }
+
+  private def extractDTG(o: AnyRef) = parseDTG(o).withZone(DateTimeZone.UTC)
+
+  private def parseDTG(o: AnyRef): DateTime = o match {
+    case i:  Instant                => new DateTime(i.getPosition.getDate.getTime)
+    case d:  java.util.Date         => new DateTime(d.getTime)
+    case j:  org.joda.time.Instant  => j.toDateTime
+    case dt: DateTime               => dt
+    case s:  String                 => ISODateTimeFormat.dateTime().parseDateTime(s)
+    case _                          => throw new IllegalArgumentException("Unknown dtg type")
   }
 
 }

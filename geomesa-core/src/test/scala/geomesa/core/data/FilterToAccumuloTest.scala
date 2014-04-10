@@ -16,6 +16,7 @@ import org.opengis.filter.Filter
 import org.opengis.filter.spatial.DWithin
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
 
 @RunWith(classOf[JUnitRunner])
 class FilterToAccumuloTest extends Specification {
@@ -122,6 +123,56 @@ class FilterToAccumuloTest extends Specification {
       f2a.temporalPredicate mustEqual interval
       result.toString mustEqual prop.toString
     }
+
+    "should be able to use BETWEEN with string literals" in {
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      val temporal = ff.between(ff.property("dtg"),
+        ff.literal("2011-01-01T00:00:00.000Z"),
+        ff.literal("2011-02-01T00:00:00.000Z"))
+      val spatial = ff.within(ff.property("geom"),
+        ff.literal(WKTUtils.read("POLYGON((-80 30,-70 30,-70 40,-80 40,-80 30))")))
+      val pred = ff.and(List(temporal, spatial))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      f2a.temporalPredicate mustEqual interval
+      result mustEqual Filter.INCLUDE
+    }
+
+    "should be able to use BETWEEN with java.util.Date" in {
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      val temporal = ff.between(ff.property("dtg"),
+        ff.literal(new DateTime("2011-01-01T00:00:00.000Z").toDate),
+        ff.literal(new DateTime("2011-02-01T00:00:00.000Z").toDate))
+      val spatial = ff.within(ff.property("geom"),
+        ff.literal(WKTUtils.read("POLYGON((-80 30,-70 30,-70 40,-80 40,-80 30))")))
+      val pred = ff.and(List(temporal, spatial))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      f2a.temporalPredicate mustEqual interval
+      result mustEqual Filter.INCLUDE
+    }
+
+    "should be able to use BETWEEN with org.opengis.temporal.Instant" in {
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      val s = new DefaultInstant(new DefaultPosition(new DateTime("2011-01-01T00:00:00.000Z").toDate))
+      val e = new DefaultInstant(new DefaultPosition(new DateTime("2011-02-01T00:00:00.000Z").toDate))
+      val temporal = ff.between(ff.property("dtg"), ff.literal(s), ff.literal(e))
+      val spatial = ff.within(ff.property("geom"),
+        ff.literal(WKTUtils.read("POLYGON((-80 30,-70 30,-70 40,-80 40,-80 30))")))
+      val pred = ff.and(List(temporal, spatial))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      f2a.temporalPredicate mustEqual interval
+      result mustEqual Filter.INCLUDE
+    }
+
+
   }
 
   "Logic queries" should {
