@@ -57,19 +57,19 @@ object GeohashUtils extends GeomDistance {
 
     def getNumChildren: Int = 1 << numBitsIncrement
 
-    def getNextChildren(parent:BitSet, oldPrecision:Int) : List[BitSet] = {
-      Range(0, getNumChildren).map((i: Int) => {
-        // compute bit-set corresponding to this integer,
-        // and add it to the left-shifted version of the parent
+    def getNextChildren(parent:BitSet, oldPrecision:Int) : List[BitSet] =
+      Range(0, getNumChildren).map { i =>
+      // compute bit-set corresponding to this integer,
+      // and add it to the left-shifted version of the parent
         val bitString = i.toBinaryString
 
-        Range(0, numBitsIncrement).foldLeft(parent)((bs: BitSet, j: Int) => {
+        Range(0, numBitsIncrement).foldLeft(parent) { case (bs, j) =>
           val c = if (j < bitString.length) bitString.charAt(j) else '0'
           if (c == '1') bs + (oldPrecision + bitString.length - 1 - j)
           else bs
-        })
-      }).toList
-    }
+        }
+      }.toList
+
   }
 
   /**
