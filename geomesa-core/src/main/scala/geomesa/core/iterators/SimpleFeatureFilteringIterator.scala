@@ -16,13 +16,16 @@
 
 package geomesa.core.iterators
 
+import collection.JavaConversions._
 import geomesa.core.data.SimpleFeatureEncoder
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.log4j.Logger
 import org.geotools.data.DataUtilities
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.process.vector.TransformProcess
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import scala.util.Try
@@ -43,10 +46,13 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var nextValue: Value = null
   var curFeature: SimpleFeature = null
 
-  var simpleFeatureType : SimpleFeatureType = null
+  var simpleFeatureType: SimpleFeatureType = null
+  var targetFeatureType: SimpleFeatureType = null
 
   // the default filter accepts everything
-  var filter : Filter = null
+  var filter: Filter = null
+
+  var transform: (SimpleFeature => Value) = (_: SimpleFeature) => source.getTopValue
 
   def evalFilter(v: Value) = {
     curFeature = SimpleFeatureEncoder.decode(simpleFeatureType, v)
@@ -68,6 +74,25 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
 
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
     simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
+
+    val transformSchema = options.get(GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
+    targetFeatureType =
+      if (transformSchema != null) DataUtilities.createType(this.getClass.getCanonicalName, transformSchema)
+      else simpleFeatureType
+
+    val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
+    transform =
+      if(transformString != null) {
+        val defs = TransformProcess.toDefinition(transformString)
+        val builder = new SimpleFeatureBuilder(targetFeatureType)
+        (feature: SimpleFeature) => {
+          builder.reset()
+          defs.map { t => builder.set(t.name, t.expression.evaluate(feature)) }
+          val newFeature = builder.buildFeature(feature.getID)
+          new Value(DataUtilities.encodeFeature(newFeature).getBytes)
+        }
+      } else _ => source.getTopValue
+
 
     // read off the filter expression, if applicable
     filter =
@@ -97,7 +122,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
       if (evalFilter(source.getTopValue)) {
         // if accepted, copy the value, because reusing them is UNSAFE
         nextKey = new Key(source.getTopKey)
-        nextValue = new Value(source.getTopValue)
+        nextValue = new Value(transform(curFeature))
       }
 
       // you MUST advance to the next key
@@ -140,5 +165,10 @@ object SimpleFeatureFilteringIterator {
 
   def setECQLFilter(cfg: IteratorSetting, ecql: String) {
     cfg.addOption(GEOMESA_ITERATORS_ECQL_FILTER, ecql)
+  }
+
+  def setTransforms(cfg: IteratorSetting, transform: String, schema: Option[SimpleFeatureType]) {
+    cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
+    schema.map(sft => cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, DataUtilities.encodeType(sft)))
   }
 }

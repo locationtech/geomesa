@@ -36,6 +36,10 @@
             <artifactId>geomesa-utils</artifactId>
         </dependency>
         <dependency>
+            <groupId>geomesa</groupId>
+            <artifactId>geomesa-filter</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-main</artifactId>
         </dependency>
