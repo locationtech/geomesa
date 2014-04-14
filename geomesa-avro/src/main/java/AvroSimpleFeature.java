@@ -35,8 +35,8 @@ public class AvroSimpleFeature implements SimpleFeature {
     final String[] names;
     final Object[] values;
     FeatureId id;
-    final HashMap<String, Integer> nameIndex =  new HashMap<String, Integer>();
-    final HashMap<Object, Object> userData = new HashMap<Object, Object>();
+    final HashMap<String, Integer> nameIndex =  new HashMap<>();
+    final HashMap<Object, Object> userData = new HashMap<>();
     final Schema schema;
     public static final String FEATURE_ID_FIELD_NAME = "__fid__";
 
@@ -92,7 +92,7 @@ public class AvroSimpleFeature implements SimpleFeature {
         for(int i = 0; i < values.length; i++){
             me.put(names[i], values[i]);
         }
-        final DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(this.schema);
+        final DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(this.schema);
         datumWriter.write(me,encoder);
         encoder.flush();
     }
