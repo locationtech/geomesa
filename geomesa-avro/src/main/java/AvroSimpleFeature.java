@@ -9,6 +9,7 @@ import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.geotools.data.DataUtilities;
+import org.geotools.feature.SchemaException;
 import org.geotools.filter.identity.FeatureIdImpl;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.GeometryAttribute;
@@ -24,10 +25,7 @@ import org.opengis.geometry.BoundingBox;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AvroSimpleFeature implements SimpleFeature {
 
@@ -38,7 +36,12 @@ public class AvroSimpleFeature implements SimpleFeature {
     final HashMap<String, Integer> nameIndex = new HashMap<>();
     final HashMap<Object, Object> userData = new HashMap<>();
     final Schema schema;
-    public static final String FEATURE_ID_FIELD_NAME = "__fid__";
+    protected static final String FEATURE_ID_AVRO_FIELD_NAME = "__fid__";
+    protected static final String AVRO_SIMPLE_FEATURE_VERSION = "__version__";
+    private static final int VERSION = 1;
+    protected static final String AVRO_NAMESPACE = "org.geomesa";
+
+
 
     public AvroSimpleFeature(FeatureId id, SimpleFeatureType sft) {
         this.id = id;
@@ -55,40 +58,60 @@ public class AvroSimpleFeature implements SimpleFeature {
         this.schema = AvroSimpleFeature.generateSchema(sft);
     }
 
-    public static Schema generateSchema(SimpleFeatureType sft) {
+    protected static Schema generateAvroSchema(final String typeName, final String geoSchema) throws SchemaException {
+        final SimpleFeatureType sft = DataUtilities.createType(typeName, geoSchema);
+        return generateSchema(sft);
+    }
+
+    protected static Schema generateSchema(SimpleFeatureType sft) {
         SchemaBuilder.FieldAssembler assembler = SchemaBuilder
                 .record(sft.getTypeName())
-                .namespace("org.geotools").fields()
-                .name(FEATURE_ID_FIELD_NAME).type().stringType().noDefault();
-        for (String name : DataUtilities.attributeNames(sft)) {
-            assembler = assembler.name(name).type().stringType().noDefault();
+                .namespace(AVRO_NAMESPACE).fields()
+                .name(AVRO_SIMPLE_FEATURE_VERSION).type().intType().noDefault()
+                .name(FEATURE_ID_AVRO_FIELD_NAME).type().stringType().noDefault();
+
+        for (AttributeDescriptor attributeDescriptor: sft.getAttributeDescriptors()) {
+            final String name = attributeDescriptor.getLocalName();
+            final Class<?> clazz = attributeDescriptor.getType().getBinding();
+            if(clazz == String.class){
+                assembler = assembler.name(name).type().stringType().noDefault();
+            }
+            else if(clazz == Integer.class){
+                assembler = assembler.name(name).type().intType().noDefault();
+            }
+            else if(clazz == Long.class){
+                assembler = assembler.name(name).type().longType().noDefault();
+            }
+            else if(clazz == Double.class){
+                assembler = assembler.name(name).type().doubleType().noDefault();
+            }
+            else if(clazz == Float.class){
+                assembler = assembler.name(name).type().floatType().noDefault();
+            }
+            else if(clazz == Boolean.class){
+                assembler = assembler.name(name).type().booleanType().noDefault();
+            }
+            else if(clazz == UUID.class){
+                assembler = assembler.name(name).type().bytesType().noDefault();
+            }
+            else if(clazz == Date.class){
+                // Represent as long (millis)
+                assembler = assembler.name(name).type().longType().noDefault();
+            }
+            else {
+                //TODO handle other things like shapes and points, etc.
+            }
         }
         return (Schema) assembler.endRecord();
     }
 
-//    public static Schema generateSchema(String typeName, List<AttributeDescriptor> attributeDescriptorList){
-//        SchemaBuilder.FieldAssembler assembler = SchemaBuilder
-//                .record(typeName)
-//                .namespace("org.geotools").fields()
-//                .name("__id__").type().stringType().noDefault();
-//        for(AttributeDescriptor descriptor: attributeDescriptorList){
-//            final String attributeName = descriptor.getType().getName().toString();
-//            //TODO determine type properly
-//            final SchemaBuilder.FieldTypeBuilder fieldTypeBuilder = assembler.name(attributeName).type();
-//            if(descriptor.isNillable()){
-//                assembler = fieldTypeBuilder.nullable().stringType().noDefault();
-//            }
-//            else{
-//                assembler = fieldTypeBuilder.stringType().noDefault();
-//            }
-//        }
-//        return  (Schema) assembler.endRecord();
-//    }
+
 
     public void write(OutputStream os) throws IOException {
         final BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(os, null);
         final GenericRecord me = new GenericData.Record(this.schema);
-        me.put(FEATURE_ID_FIELD_NAME, this.getID());
+        me.put(AVRO_SIMPLE_FEATURE_VERSION, VERSION);
+        me.put(FEATURE_ID_AVRO_FIELD_NAME, this.getID());
         for (int i = 0; i < values.length; i++) {
             me.put(names[i], values[i]);
         }
@@ -155,7 +178,7 @@ public class AvroSimpleFeature implements SimpleFeature {
     }
 
     public List<Object> getAttributes() {
-        throw new UnsupportedOperationException();
+        return Arrays.asList(this.values);
     }
 
     public Object getDefaultGeometry() {
@@ -303,4 +326,6 @@ public class AvroSimpleFeature implements SimpleFeature {
     public int hashCode() {
         return id.hashCode() * sft.hashCode();
     }
+
+
 }
