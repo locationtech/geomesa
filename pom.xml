@@ -29,6 +29,7 @@
         <module>geomesa-distributed-runtime</module>
         <module>geomesa-plugin</module>
         <module>geomesa-dist</module>
+        <module>geomesa-avro</module>
     </modules>
 
     <properties>
