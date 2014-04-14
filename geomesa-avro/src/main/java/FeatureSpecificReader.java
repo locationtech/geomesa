@@ -123,60 +123,35 @@ public class FeatureSpecificReader implements DatumReader<AvroSimpleFeature> {
         }
     }
 
-    protected void setOrConsume(AvroSimpleFeature reuse, String field, Decoder in) throws IOException {
-        final Class<?> clazz = typeMap.get(field);
+    protected void consume(Class<?> clazz, Decoder in) throws IOException {
         if (clazz == String.class) {
-            if (fieldsDesired.contains(field)) {
-                reuse.setAttribute(field, in.readString().toString());
-            } else {
-                in.skipString();
-            }
+            in.skipString();
         } else if (clazz == Integer.class) {
-            if (fieldsDesired.contains(field)) {
-                reuse.setAttribute(field, in.readInt());
-            } else {
-                in.readInt();
-            }
+            in.readInt();
         } else if (clazz == Long.class) {
-            if (fieldsDesired.contains(field)) {
-                reuse.setAttribute(field, in.readLong());
-            } else {
-                in.readLong();
-            }
+            in.readLong();
         } else if (clazz == Double.class) {
-            if (fieldsDesired.contains(field)) {
-                reuse.setAttribute(field, in.readDouble());
-            } else {
-                in.readDouble();
-            }
+           in.readDouble();
         } else if (clazz == Float.class) {
-            if (fieldsDesired.contains(field)) {
-                reuse.setAttribute(field, in.readFloat());
-            } else {
-                in.readFloat();
-            }
+            in.readFloat();
         } else if (clazz == Boolean.class) {
-            if (fieldsDesired.contains(field)) {
-                reuse.setAttribute(field, in.readBoolean());
-            } else {
-                in.readBoolean();
-            }
+            in.readBoolean();
         } else if (clazz == UUID.class) {
-            if (fieldsDesired.contains(field)) {
-                ByteBuffer bb = in.readBytes(null);
-                //TODO convert to UUID
-            } else {
-                in.skipBytes();
-            }
+           in.skipBytes();
         } else if (clazz == Date.class) {
-            // represented as a long as millis
-            if (fieldsDesired.contains(field)) {
-                reuse.setAttribute(field, new Date(in.readLong()));
-            } else {
-                in.readLong();
-            }
+           in.readLong();
         } else {
             //TODO handle other things like shapes and points, etc.
+        }
+    }
+
+    protected void setOrConsume(AvroSimpleFeature reuse, String field, Decoder in) throws IOException {
+        final Class<?> clazz = typeMap.get(field);
+        if (fieldsDesired.contains(field)) {
+            set(reuse,field, in);
+        }
+        else{
+            consume(typeMap.get(field), in);
         }
     }
 
