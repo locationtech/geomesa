@@ -8,6 +8,7 @@ import org.apache.avro.io.DecoderFactory;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
 import org.geotools.filter.identity.FeatureIdImpl;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -162,7 +163,7 @@ public class AvroSimpleFeatureTest {
         final List<AvroSimpleFeature> fsrList = readAvroWithFSRDecoder(avroFile, sample.schema, sample.getFeatureType(), null);
 
         // read with generic decoder
-        final List<AvroSimpleFeature> genericList = readAvroWithGenericDecoder(avroFile,sample.schema, sample.getFeatureType());
+        final List<AvroSimpleFeature> genericList = readAvroWithGenericDecoder(avroFile, sample.schema, sample.getFeatureType());
 
         // read back in the pipe file
         final List<SimpleFeature> pipeList = readPipeFile(pipeFile, sample.getFeatureType());
@@ -198,12 +199,13 @@ public class AvroSimpleFeatureTest {
     }
 
     @Test
+    @Ignore
     public void compareTime() throws SchemaException, IOException {
 
         final int numFields = 60;
-        final int numRecords = 1_000_000;
+        final int numRecords = 1_000_000;   // test lots of time to remove error and get better mean
         System.out.printf("Number of fields: %d\n", numFields);
-        System.out.println("Number of Records: "+numRecords);
+        System.out.println("Number of Records: " + numRecords);
 
         // Create field names prepended with f
         final StringBuilder sb = new StringBuilder();
@@ -277,7 +279,7 @@ public class AvroSimpleFeatureTest {
         decoder = DecoderFactory.get().binaryDecoder(fis, null);
 
         final List<String> featureToRead = Arrays.asList("f0", "f1", "f3", "f30", "f59");
-        System.out.println("Reading features: "+featureToRead);
+        System.out.println("Reading features: " + featureToRead);
         final FeatureSpecificReader fsr = new FeatureSpecificReader(featureToRead, sample.schema);
         List<String> reuse = new LinkedList<>();
         while (!decoder.isEnd() && (reuse = fsr.read(reuse, decoder)) != null) {

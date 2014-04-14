@@ -35,19 +35,19 @@ public class AvroSimpleFeature implements SimpleFeature {
     final String[] names;
     final Object[] values;
     FeatureId id;
-    final HashMap<String, Integer> nameIndex =  new HashMap<>();
+    final HashMap<String, Integer> nameIndex = new HashMap<>();
     final HashMap<Object, Object> userData = new HashMap<>();
     final Schema schema;
     public static final String FEATURE_ID_FIELD_NAME = "__fid__";
 
-    public AvroSimpleFeature(FeatureId id, SimpleFeatureType sft){
+    public AvroSimpleFeature(FeatureId id, SimpleFeatureType sft) {
         this.id = id;
         this.values = new Object[sft.getAttributeCount()];
         this.names = new String[sft.getAttributeCount()];
         this.sft = sft;
 
-        int i=0;
-        for(String name: DataUtilities.attributeNames(sft)){
+        int i = 0;
+        for (String name : DataUtilities.attributeNames(sft)) {
             names[i++] = name;
             nameIndex.put(name, sft.indexOf(name));
         }
@@ -55,15 +55,15 @@ public class AvroSimpleFeature implements SimpleFeature {
         this.schema = AvroSimpleFeature.generateSchema(sft);
     }
 
-    public static Schema generateSchema(SimpleFeatureType sft){
+    public static Schema generateSchema(SimpleFeatureType sft) {
         SchemaBuilder.FieldAssembler assembler = SchemaBuilder
                 .record(sft.getTypeName())
                 .namespace("org.geotools").fields()
                 .name(FEATURE_ID_FIELD_NAME).type().stringType().noDefault();
-        for(String name: DataUtilities.attributeNames(sft)){
+        for (String name : DataUtilities.attributeNames(sft)) {
             assembler = assembler.name(name).type().stringType().noDefault();
         }
-       return  (Schema) assembler.endRecord();
+        return (Schema) assembler.endRecord();
     }
 
 //    public static Schema generateSchema(String typeName, List<AttributeDescriptor> attributeDescriptorList){
@@ -86,14 +86,14 @@ public class AvroSimpleFeature implements SimpleFeature {
 //    }
 
     public void write(OutputStream os) throws IOException {
-        final BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(os,null);
+        final BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(os, null);
         final GenericRecord me = new GenericData.Record(this.schema);
         me.put(FEATURE_ID_FIELD_NAME, this.getID());
-        for(int i = 0; i < values.length; i++){
+        for (int i = 0; i < values.length; i++) {
             me.put(names[i], values[i]);
         }
         final DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(this.schema);
-        datumWriter.write(me,encoder);
+        datumWriter.write(me, encoder);
         encoder.flush();
     }
 
@@ -106,13 +106,14 @@ public class AvroSimpleFeature implements SimpleFeature {
         return sft;
     }
 
-    public void setID( String id ) {
-        ((FeatureIdImpl)this.id).setID(id);
+    public void setID(String id) {
+        ((FeatureIdImpl) this.id).setID(id);
     }
 
     public FeatureId getIdentifier() {
         return id;
     }
+
     public String getID() {
         return id.getID();
     }
@@ -159,7 +160,7 @@ public class AvroSimpleFeature implements SimpleFeature {
 
     public Object getDefaultGeometry() {
         GeometryDescriptor defaultGeometry = sft.getGeometryDescriptor();
-        return defaultGeometry != null ? getAttribute( defaultGeometry.getName() ) : null;
+        return defaultGeometry != null ? getAttribute(defaultGeometry.getName()) : null;
     }
 
     public void setAttributes(Object[] object) {
@@ -168,16 +169,16 @@ public class AvroSimpleFeature implements SimpleFeature {
 
     public void setDefaultGeometry(Object defaultGeometry) {
         GeometryDescriptor descriptor = sft.getGeometryDescriptor();
-        setAttribute(descriptor.getName(), defaultGeometry );
+        setAttribute(descriptor.getName(), defaultGeometry);
     }
 
     public BoundingBox getBounds() {
         Object obj = getDefaultGeometry();
-        if( obj instanceof Geometry){
+        if (obj instanceof Geometry) {
             Geometry geometry = (Geometry) obj;
-            return new ReferencedEnvelope( geometry.getEnvelopeInternal(), sft.getCoordinateReferenceSystem() );
+            return new ReferencedEnvelope(geometry.getEnvelopeInternal(), sft.getCoordinateReferenceSystem());
         }
-        return new ReferencedEnvelope( sft.getCoordinateReferenceSystem() );
+        return new ReferencedEnvelope(sft.getCoordinateReferenceSystem());
     }
 
     public GeometryAttribute getDefaultGeometryProperty() {
@@ -208,7 +209,7 @@ public class AvroSimpleFeature implements SimpleFeature {
         throw new UnsupportedOperationException();
     }
 
-    public Collection<?extends Property> getValue() {
+    public Collection<? extends Property> getValue() {
         throw new UnsupportedOperationException();
     }
 
@@ -235,6 +236,7 @@ public class AvroSimpleFeature implements SimpleFeature {
     public void setValue(Object value) {
         throw new UnsupportedOperationException();
     }
+
     public void validate() {
     }
 
@@ -242,7 +244,6 @@ public class AvroSimpleFeature implements SimpleFeature {
      * override of equals.  Returns if the passed in object is equal to this.
      *
      * @param obj the Object to test for equality.
-     *
      * @return <code>true</code> if the object is equal, <code>false</code>
      *         otherwise.
      */
