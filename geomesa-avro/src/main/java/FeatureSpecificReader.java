@@ -1,8 +1,10 @@
+import com.vividsolutions.jts.geom.*;
 import org.apache.avro.Schema;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.geotools.data.DataUtilities;
 import org.geotools.filter.identity.FeatureIdImpl;
+import org.geotools.util.Converters;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.identity.FeatureId;
@@ -113,13 +115,18 @@ public class FeatureSpecificReader implements DatumReader<AvroSimpleFeature> {
         } else if (clazz == Boolean.class) {
             reuse.setAttribute(field, in.readBoolean());
         } else if (clazz == UUID.class) {
-            ByteBuffer bb = in.readBytes(null);
-            //TODO convert to UUID
+            final ByteBuffer bb = in.readBytes(null);
+            final UUID uuid = new UUID(bb.getLong(), bb.getLong());
+            reuse.setAttribute(field, uuid);
         } else if (clazz == Date.class) {
             // represented as a long as millis
             reuse.setAttribute(field, new Date(in.readLong()));
-        } else {
-            //TODO handle other things like shapes and points, etc.
+        }
+        else if (Geometry.class.isAssignableFrom(clazz)){
+            reuse.setAttribute(field, Converters.convert(in.readString(),clazz));
+        }
+        else{
+            //illegal state?
         }
     }
 
@@ -140,8 +147,16 @@ public class FeatureSpecificReader implements DatumReader<AvroSimpleFeature> {
            in.skipBytes();
         } else if (clazz == Date.class) {
            in.readLong();
-        } else {
-            //TODO handle other things like shapes and points, etc.
+        }
+//        else if(clazz == Geometry.class || clazz == Point.class || clazz == LineString.class
+//                || clazz == Polygon.class || clazz == MultiPoint.class || clazz == MultiLineString.class
+//                || clazz == MultiPolygon.class || clazz == GeometryCollection.class){
+//            in.skipString();
+//        }
+        else
+        {
+           //Assume string
+            in.skipString();
         }
     }
 

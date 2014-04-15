@@ -1,3 +1,7 @@
+import com.vividsolutions.jts.geom.*;
+import geomesa.utils.geohash.GeohashUtils;
+import geomesa.utils.text.WKTUtils;
+import geomesa.utils.text.WKTUtils$;
 import junit.framework.Assert;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -18,6 +22,8 @@ import org.opengis.filter.identity.FeatureId;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class AvroSimpleFeatureTest {
@@ -41,7 +47,7 @@ public class AvroSimpleFeatureTest {
         return simpleFeature;
     }
 
-    protected AvroSimpleFeature createFancyType(final String schema, final String id) throws SchemaException {
+    protected AvroSimpleFeature createFancyType(final String schema, final String id) throws SchemaException, ParseException {
         final SimpleFeatureType sft = DataUtilities.createType("test", schema);
         final Random r = new Random();
         r.setSeed(0);
@@ -70,15 +76,23 @@ public class AvroSimpleFeatureTest {
                 simpleFeature.setAttribute(name, Boolean.valueOf(r.nextBoolean()));
             }
             else if(clazz == UUID.class){
-                final byte[] b = new byte[128];
-                r.nextBytes(b);
-                simpleFeature.setAttribute(name, ByteBuffer.wrap(b));
+                final UUID uuid = UUID.fromString("12345678-1234-1234-1234-123456789023");
+                simpleFeature.setAttribute(name, uuid);
             }
             else if(clazz == Date.class){
-                // Represent as long (millis)
-                simpleFeature.setAttribute(name, Long.valueOf(r.nextLong()));
+                final Date date = new SimpleDateFormat("yyyyMMdd").parse("20140102");
+                simpleFeature.setAttribute(name, date);
+            }
+            else if(clazz == Point.class){
+                Point p = (Point) GeohashUtils.wkt2geom("POINT(45.0 49.0)");
+                simpleFeature.setAttribute(name, p);
+            }
+            else if(clazz == Polygon.class){
+                Polygon p = (Polygon) GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))");
+                simpleFeature.setAttribute(name, p);
             }
             else{
+                System.out.println(clazz);
                 //todo others like geometry
             }
         }
@@ -307,12 +321,12 @@ public class AvroSimpleFeatureTest {
 
 
     @Test
-    public void testFancySerializeAndDeserialize() throws SchemaException, IOException {
+    public void testFancySerializeAndDeserialize() throws SchemaException, IOException, ParseException {
         final int numRecords = 1;
 
         // Create fields
         // TODO more things
-        final String geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean";
+        final String geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,f8:Polygon:srid=4326";
 
         // Create an avro file with a custom schema but no header...
         final List<AvroSimpleFeature> sfList = new ArrayList<>();
@@ -329,7 +343,7 @@ public class AvroSimpleFeatureTest {
         final File pipeFile = writePipeFile(sfList);
 
         // read back in the avro
-        final SimpleFeatureType subsetType = DataUtilities.createType("subsetType", "f0:String,f3:Float");
+        final SimpleFeatureType subsetType = DataUtilities.createType("subsetType", "f0:String,f3:Float,f5:UUID,f6:Date");
         final List<AvroSimpleFeature> fsrList = readAvroWithFSRDecoder(avroFile,  oldType, subsetType);
 
         // read with generic decoder
@@ -351,11 +365,11 @@ public class AvroSimpleFeatureTest {
             Assert.assertEquals(original.getID(), fullFeature.getID());
             Assert.assertEquals(original.getID(), pipeFeature.getID());
 
-            Assert.assertEquals(5, original.getAttributeCount());
-            Assert.assertEquals(5, fullFeature.getAttributeCount());
-            Assert.assertEquals(5, pipeFeature.getAttributeCount());
+            Assert.assertEquals(9, original.getAttributeCount());
+            Assert.assertEquals(9, fullFeature.getAttributeCount());
+            Assert.assertEquals(9, pipeFeature.getAttributeCount());
 
-            Assert.assertEquals(2, subset.getAttributeCount());
+            Assert.assertEquals(4, subset.getAttributeCount());
 
             Assert.assertEquals(original.getAttributeCount(), pipeFeature.getAttributeCount());
             Assert.assertTrue(original.getAttributeCount() > subset.getAttributeCount());
@@ -373,7 +387,7 @@ public class AvroSimpleFeatureTest {
 
 
     @Test
-    @Ignore
+//    @Ignore
     public void compareTimeWithStrings() throws SchemaException, IOException {
         System.out.println("Beginning performance test...");
         final int numFields = 60;

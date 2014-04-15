@@ -1,4 +1,4 @@
-import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.*;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.file.DataFileWriter;
@@ -12,6 +12,7 @@ import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
 import org.geotools.filter.identity.FeatureIdImpl;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.util.Converters;
 import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
@@ -25,10 +26,12 @@ import org.opengis.geometry.BoundingBox;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 public class AvroSimpleFeature implements SimpleFeature {
 
+    final Map<String, Class<?>> typeMap = new HashMap<>();
     final protected SimpleFeatureType sft;
     final String[] names;
     final Object[] values;
@@ -56,6 +59,12 @@ public class AvroSimpleFeature implements SimpleFeature {
         }
 
         this.schema = AvroSimpleFeature.generateSchema(sft);
+
+        for (final AttributeDescriptor attributeDescriptor : sft.getAttributeDescriptors()) {
+            final String name = attributeDescriptor.getLocalName();
+            final Class<?> clazz = attributeDescriptor.getType().getBinding();
+            typeMap.put(name, clazz);
+        }
     }
 
     protected static Schema generateAvroSchema(final String typeName, final String geoSchema) throws SchemaException {
@@ -99,7 +108,8 @@ public class AvroSimpleFeature implements SimpleFeature {
                 assembler = assembler.name(name).type().longType().noDefault();
             }
             else {
-                //TODO handle other things like shapes and points, etc.
+                // Assume string serialization for othe types...
+                assembler = assembler.name(name).type().stringType().noDefault();
             }
         }
         return (Schema) assembler.endRecord();
@@ -113,7 +123,36 @@ public class AvroSimpleFeature implements SimpleFeature {
         me.put(AVRO_SIMPLE_FEATURE_VERSION, VERSION);
         me.put(FEATURE_ID_AVRO_FIELD_NAME, this.getID());
         for (int i = 0; i < values.length; i++) {
-            me.put(names[i], values[i]);
+            final Class<?> clazz = typeMap.get(names[i]);
+            if(clazz == String.class || clazz == Integer.class || clazz == Long.class || clazz == Double.class
+                    || clazz == Float.class || clazz == Boolean.class){
+                me.put(names[i], values[i]);
+            }
+            else if(clazz == UUID.class) {
+                final UUID uuid = (UUID) values[i];
+                final ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+                bb.putLong(uuid.getMostSignificantBits());
+                bb.putLong(uuid.getLeastSignificantBits());
+                bb.flip();
+                me.put(names[i], bb);
+            }
+            else if(clazz == Date.class){
+                final Date d = (Date)values[i];
+                final Long l = d.getTime();
+                me.put(names[i], l);
+            }
+            else if (Geometry.class.isAssignableFrom(clazz)) {
+                Geometry geometry = (Geometry) values[i];
+                String txt = geometry.toText();
+                me.put(names[i], txt);
+            }
+            else {
+                String txt = Converters.convert(values[i], String.class);
+                if( txt == null ){ // could not convert?
+                    txt = values[i].toString();
+                }
+                me.put(names[i], txt);
+            }
         }
         final DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(this.schema);
         datumWriter.write(me, encoder);
