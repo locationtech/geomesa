@@ -381,7 +381,7 @@ public class AvroSimpleFeatureTest {
     public void compareTimeWithStrings() throws SchemaException, IOException {
         System.out.println("Beginning performance test...");
         final int numFields = 60;
-        final int numRecords = 1000;   // test lots of time to remove error and get better mean
+        final int numRecords = 100_000;   // test lots of time to remove error and get better mean
         System.out.printf("Number of fields: %d\n", numFields);
         System.out.println("Number of Records: " + numRecords);
 

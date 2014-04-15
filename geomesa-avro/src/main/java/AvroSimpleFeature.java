@@ -57,12 +57,35 @@ public class AvroSimpleFeature implements SimpleFeature {
                 }
             });
 
+    static final LoadingCache<SimpleFeatureType, String[]> nameCache = CacheBuilder.newBuilder()
+            .maximumSize(100)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .build(new CacheLoader<SimpleFeatureType, String[]>() {
+                public String[] load(SimpleFeatureType sft) {
+                    return DataUtilities.attributeNames(sft);
+                }
+            });
+
+    static final LoadingCache<SimpleFeatureType, Map<String, Integer>> nameIndexCache = CacheBuilder.newBuilder()
+            .maximumSize(100)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .build(new CacheLoader<SimpleFeatureType, Map<String, Integer>>() {
+                public Map<String, Integer> load(SimpleFeatureType sft) {
+                    final Map<String, Integer> map = new HashMap<>();
+                    final String[] names = DataUtilities.attributeNames(sft);
+                    for (final String name : DataUtilities.attributeNames(sft)) {
+                        map.put(name, sft.indexOf(name));
+                    }
+                    return map;
+                }
+            });
+
     final Map<String, Class<?>> typeMap;
     final protected SimpleFeatureType sft;
     final String[] names;
     final Object[] values;
     FeatureId id;
-    final HashMap<String, Integer> nameIndex = new HashMap<>();
+    final Map<String, Integer> nameIndex;
     final HashMap<Object, Object> userData = new HashMap<>();
     final Schema schema;
     protected static final String FEATURE_ID_AVRO_FIELD_NAME = "__fid__";
@@ -73,16 +96,11 @@ public class AvroSimpleFeature implements SimpleFeature {
     public AvroSimpleFeature(final FeatureId id, final SimpleFeatureType sft) {
         this.id = id;
         this.values = new Object[sft.getAttributeCount()];
-        this.names = new String[sft.getAttributeCount()];
         this.sft = sft;
 
-        int i = 0;
-        for (final String name : DataUtilities.attributeNames(sft)) {
-            names[i++] = name;
-            nameIndex.put(name, sft.indexOf(name));
-        }
-
         try {
+            this.names = nameCache.get(sft);
+            this.nameIndex = nameIndexCache.get(sft);
             this.schema = avroSchemaCache.get(sft);
             this.typeMap = typeMapCache.get(sft);
         } catch (ExecutionException e) {
@@ -91,6 +109,7 @@ public class AvroSimpleFeature implements SimpleFeature {
 
     }
 
+    // Version 1 of serialization...if this changes fundamentally the feature version variable should be incremented
     static Schema generateSchema(final SimpleFeatureType sft) {
         SchemaBuilder.FieldAssembler assembler = SchemaBuilder
                 .record(sft.getTypeName())

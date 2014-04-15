@@ -52,6 +52,7 @@ public class FeatureSpecificReader implements DatumReader<AvroSimpleFeature> {
             }
         }
 
+        // TODO collapse and share with AvroSimpleFeature which duplicates code
         for (final AttributeDescriptor attributeDescriptor : oldType.getAttributeDescriptors()) {
             final String name = attributeDescriptor.getLocalName();
             final Class<?> clazz = attributeDescriptor.getType().getBinding();
@@ -121,11 +122,9 @@ public class FeatureSpecificReader implements DatumReader<AvroSimpleFeature> {
         } else if (clazz == Date.class) {
             // represented as a long as millis
             reuse.setAttribute(field, new Date(in.readLong()));
-        }
-        else if (Geometry.class.isAssignableFrom(clazz)){
-            reuse.setAttribute(field, Converters.convert(in.readString(),clazz));
-        }
-        else{
+        } else if (Geometry.class.isAssignableFrom(clazz)) {
+            reuse.setAttribute(field, Converters.convert(in.readString(), clazz));
+        } else {
             //illegal state? log something...schema might have changed
         }
     }
@@ -138,19 +137,17 @@ public class FeatureSpecificReader implements DatumReader<AvroSimpleFeature> {
         } else if (clazz == Long.class) {
             in.readLong();
         } else if (clazz == Double.class) {
-           in.readDouble();
+            in.readDouble();
         } else if (clazz == Float.class) {
             in.readFloat();
         } else if (clazz == Boolean.class) {
             in.readBoolean();
         } else if (clazz == UUID.class) {
-           in.skipBytes();
+            in.skipBytes();
         } else if (clazz == Date.class) {
-           in.readLong();
-        }
-        else if (Geometry.class.isAssignableFrom(clazz))
-        {
-           //Assume string
+            in.readLong();
+        } else if (Geometry.class.isAssignableFrom(clazz)) {
+            //Assume string
             in.skipString();
         }
     }
@@ -158,9 +155,8 @@ public class FeatureSpecificReader implements DatumReader<AvroSimpleFeature> {
     protected void setOrConsume(AvroSimpleFeature reuse, String field, Decoder in) throws IOException {
         final Class<?> clazz = typeMap.get(field);
         if (fieldsDesired.contains(field)) {
-            set(reuse,field, in);
-        }
-        else{
+            set(reuse, field, in);
+        } else {
             consume(typeMap.get(field), in);
         }
     }
