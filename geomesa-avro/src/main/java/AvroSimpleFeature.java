@@ -1,7 +1,9 @@
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.vividsolutions.jts.geom.*;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
-import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
@@ -9,7 +11,6 @@ import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.geotools.data.DataUtilities;
-import org.geotools.feature.SchemaException;
 import org.geotools.filter.identity.FeatureIdImpl;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.Converters;
@@ -18,7 +19,6 @@ import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.AttributeType;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.Name;
 import org.opengis.filter.identity.FeatureId;
@@ -28,10 +28,36 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 public class AvroSimpleFeature implements SimpleFeature {
 
-    final Map<String, Class<?>> typeMap = new HashMap<>();
+    static final LoadingCache<SimpleFeatureType, Map<String, Class<?>>> typeMapCache = CacheBuilder.newBuilder()
+            .maximumSize(100)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .build(new CacheLoader<SimpleFeatureType, Map<String, Class<?>>>() {
+                public Map<String, Class<?>> load(SimpleFeatureType sft) {
+                    final Map<String, Class<?>> map = new HashMap<>();
+                    for (final AttributeDescriptor attributeDescriptor : sft.getAttributeDescriptors()) {
+                        final String name = attributeDescriptor.getLocalName();
+                        final Class<?> clazz = attributeDescriptor.getType().getBinding();
+                        map.put(name, clazz);
+                    }
+                    return map;
+                }
+            });
+
+    static final LoadingCache<SimpleFeatureType, Schema> avroSchemaCache = CacheBuilder.newBuilder()
+            .maximumSize(100)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .build(new CacheLoader<SimpleFeatureType, Schema>() {
+                public Schema load(SimpleFeatureType sft) {
+                    return generateSchema(sft);
+                }
+            });
+
+    final Map<String, Class<?>> typeMap;
     final protected SimpleFeatureType sft;
     final String[] names;
     final Object[] values;
@@ -44,78 +70,61 @@ public class AvroSimpleFeature implements SimpleFeature {
     private static final int VERSION = 1;
     protected static final String AVRO_NAMESPACE = "org.geomesa";
 
-
-
-    public AvroSimpleFeature(FeatureId id, SimpleFeatureType sft) {
+    public AvroSimpleFeature(final FeatureId id, final SimpleFeatureType sft) {
         this.id = id;
         this.values = new Object[sft.getAttributeCount()];
         this.names = new String[sft.getAttributeCount()];
         this.sft = sft;
 
         int i = 0;
-        for (String name : DataUtilities.attributeNames(sft)) {
+        for (final String name : DataUtilities.attributeNames(sft)) {
             names[i++] = name;
             nameIndex.put(name, sft.indexOf(name));
         }
 
-        this.schema = AvroSimpleFeature.generateSchema(sft);
-
-        for (final AttributeDescriptor attributeDescriptor : sft.getAttributeDescriptors()) {
-            final String name = attributeDescriptor.getLocalName();
-            final Class<?> clazz = attributeDescriptor.getType().getBinding();
-            typeMap.put(name, clazz);
+        try {
+            this.schema = avroSchemaCache.get(sft);
+            this.typeMap = typeMapCache.get(sft);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("Unable to create type map and schema");
         }
+
     }
 
-    protected static Schema generateAvroSchema(final String typeName, final String geoSchema) throws SchemaException {
-        final SimpleFeatureType sft = DataUtilities.createType(typeName, geoSchema);
-        return generateSchema(sft);
-    }
-
-    protected static Schema generateSchema(SimpleFeatureType sft) {
+    static Schema generateSchema(final SimpleFeatureType sft) {
         SchemaBuilder.FieldAssembler assembler = SchemaBuilder
                 .record(sft.getTypeName())
                 .namespace(AVRO_NAMESPACE).fields()
                 .name(AVRO_SIMPLE_FEATURE_VERSION).type().intType().noDefault()
                 .name(FEATURE_ID_AVRO_FIELD_NAME).type().stringType().noDefault();
 
-        for (AttributeDescriptor attributeDescriptor: sft.getAttributeDescriptors()) {
+        for (AttributeDescriptor attributeDescriptor : sft.getAttributeDescriptors()) {
             final String name = attributeDescriptor.getLocalName();
             final Class<?> clazz = attributeDescriptor.getType().getBinding();
-            if(clazz == String.class){
+            if (clazz == String.class) {
                 assembler = assembler.name(name).type().stringType().noDefault();
-            }
-            else if(clazz == Integer.class){
+            } else if (clazz == Integer.class) {
                 assembler = assembler.name(name).type().intType().noDefault();
-            }
-            else if(clazz == Long.class){
+            } else if (clazz == Long.class) {
                 assembler = assembler.name(name).type().longType().noDefault();
-            }
-            else if(clazz == Double.class){
+            } else if (clazz == Double.class) {
                 assembler = assembler.name(name).type().doubleType().noDefault();
-            }
-            else if(clazz == Float.class){
+            } else if (clazz == Float.class) {
                 assembler = assembler.name(name).type().floatType().noDefault();
-            }
-            else if(clazz == Boolean.class){
+            } else if (clazz == Boolean.class) {
                 assembler = assembler.name(name).type().booleanType().noDefault();
-            }
-            else if(clazz == UUID.class){
+            } else if (clazz == UUID.class) {
                 assembler = assembler.name(name).type().bytesType().noDefault();
-            }
-            else if(clazz == Date.class){
+            } else if (clazz == Date.class) {
                 // Represent as long (millis)
                 assembler = assembler.name(name).type().longType().noDefault();
-            }
-            else {
+            } else {
                 // Assume string serialization for othe types...
                 assembler = assembler.name(name).type().stringType().noDefault();
             }
         }
         return (Schema) assembler.endRecord();
     }
-
-
 
     public void write(OutputStream os) throws IOException {
         final BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(os, null);
@@ -124,31 +133,27 @@ public class AvroSimpleFeature implements SimpleFeature {
         me.put(FEATURE_ID_AVRO_FIELD_NAME, this.getID());
         for (int i = 0; i < values.length; i++) {
             final Class<?> clazz = typeMap.get(names[i]);
-            if(clazz == String.class || clazz == Integer.class || clazz == Long.class || clazz == Double.class
-                    || clazz == Float.class || clazz == Boolean.class){
+            if (clazz == String.class || clazz == Integer.class || clazz == Long.class || clazz == Double.class
+                    || clazz == Float.class || clazz == Boolean.class) {
                 me.put(names[i], values[i]);
-            }
-            else if(clazz == UUID.class) {
+            } else if (clazz == UUID.class) {
                 final UUID uuid = (UUID) values[i];
                 final ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
                 bb.putLong(uuid.getMostSignificantBits());
                 bb.putLong(uuid.getLeastSignificantBits());
                 bb.flip();
                 me.put(names[i], bb);
-            }
-            else if(clazz == Date.class){
-                final Date d = (Date)values[i];
+            } else if (clazz == Date.class) {
+                final Date d = (Date) values[i];
                 final Long l = d.getTime();
                 me.put(names[i], l);
-            }
-            else if (Geometry.class.isAssignableFrom(clazz)) {
+            } else if (Geometry.class.isAssignableFrom(clazz)) {
                 Geometry geometry = (Geometry) values[i];
                 String txt = geometry.toText();
                 me.put(names[i], txt);
-            }
-            else {
+            } else {
                 String txt = Converters.convert(values[i], String.class);
-                if( txt == null ){ // could not convert?
+                if (txt == null) { // could not convert?
                     txt = values[i].toString();
                 }
                 me.put(names[i], txt);
@@ -158,7 +163,6 @@ public class AvroSimpleFeature implements SimpleFeature {
         datumWriter.write(me, encoder);
         encoder.flush();
     }
-
 
     public SimpleFeatureType getFeatureType() {
         return sft;

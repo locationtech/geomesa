@@ -54,44 +54,34 @@ public class AvroSimpleFeatureTest {
 
         final FeatureId fid = new FeatureIdImpl(id);
         final AvroSimpleFeature simpleFeature = new AvroSimpleFeature(fid, sft);
-        for(AttributeDescriptor attributeDescriptor: sft.getAttributeDescriptors()){
+        for (AttributeDescriptor attributeDescriptor : sft.getAttributeDescriptors()) {
             final String name = attributeDescriptor.getLocalName();
             final Class<?> clazz = attributeDescriptor.getType().getBinding();
-            if(clazz == String.class){
-               simpleFeature.setAttribute(name, randomString(sft.indexOf(name),8,r));
-            }
-            else if(clazz == Integer.class){
+            if (clazz == String.class) {
+                simpleFeature.setAttribute(name, randomString(sft.indexOf(name), 8, r));
+            } else if (clazz == Integer.class) {
                 simpleFeature.setAttribute(name, Integer.valueOf(r.nextInt()));
-            }
-            else if(clazz == Long.class){
+            } else if (clazz == Long.class) {
                 simpleFeature.setAttribute(name, Long.valueOf(r.nextLong()));
-            }
-            else if(clazz == Double.class){
+            } else if (clazz == Double.class) {
                 simpleFeature.setAttribute(name, Double.valueOf(r.nextDouble()));
-            }
-            else if(clazz == Float.class){
+            } else if (clazz == Float.class) {
                 simpleFeature.setAttribute(name, Float.valueOf(r.nextFloat()));
-            }
-            else if(clazz == Boolean.class){
+            } else if (clazz == Boolean.class) {
                 simpleFeature.setAttribute(name, Boolean.valueOf(r.nextBoolean()));
-            }
-            else if(clazz == UUID.class){
+            } else if (clazz == UUID.class) {
                 final UUID uuid = UUID.fromString("12345678-1234-1234-1234-123456789023");
                 simpleFeature.setAttribute(name, uuid);
-            }
-            else if(clazz == Date.class){
+            } else if (clazz == Date.class) {
                 final Date date = new SimpleDateFormat("yyyyMMdd").parse("20140102");
                 simpleFeature.setAttribute(name, date);
-            }
-            else if(clazz == Point.class){
+            } else if (clazz == Point.class) {
                 Point p = (Point) GeohashUtils.wkt2geom("POINT(45.0 49.0)");
                 simpleFeature.setAttribute(name, p);
-            }
-            else if(clazz == Polygon.class){
+            } else if (clazz == Polygon.class) {
                 Polygon p = (Polygon) GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))");
                 simpleFeature.setAttribute(name, p);
-            }
-            else{
+            } else {
                 System.out.println(clazz);
                 //todo others like geometry
             }
@@ -188,7 +178,7 @@ public class AvroSimpleFeatureTest {
         return sfList;
     }
 
-    public List<AvroSimpleFeature> getSubsetData() throws IOException, SchemaException{
+    public List<AvroSimpleFeature> getSubsetData() throws IOException, SchemaException {
         final int numFields = 60;
         final int numRecords = 10;
         // Create field names prepended with f
@@ -223,11 +213,11 @@ public class AvroSimpleFeatureTest {
 
         Assert.assertEquals(10, fsrList.size());
 
-        for(final AvroSimpleFeature sf : fsrList){
+        for (final AvroSimpleFeature sf : fsrList) {
             Assert.assertEquals(5, sf.getAttributeCount());
             final List<Object> attrs = sf.getAttributes();
             Assert.assertEquals(5, attrs.size());
-            for(Object o: attrs){
+            for (Object o : attrs) {
                 Assert.assertTrue(o instanceof String);
                 String s = (String) o;
                 Assert.assertNotNull(s);
@@ -244,7 +234,7 @@ public class AvroSimpleFeatureTest {
     @Test(expected = NullPointerException.class)
     public void testSubsetNull() throws IOException, SchemaException {
         final List<AvroSimpleFeature> fsrList = getSubsetData();
-        for(final AvroSimpleFeature sf : fsrList){
+        for (final AvroSimpleFeature sf : fsrList) {
             sf.getAttribute("f20");  //should not exist in subset data!
         }
     }
@@ -278,7 +268,7 @@ public class AvroSimpleFeatureTest {
 
         // read back in the avro
         final SimpleFeatureType subsetType = DataUtilities.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String");
-        final List<AvroSimpleFeature> fsrList = readAvroWithFSRDecoder(avroFile,  oldType, subsetType);
+        final List<AvroSimpleFeature> fsrList = readAvroWithFSRDecoder(avroFile, oldType, subsetType);
 
         // read everything back
         final List<AvroSimpleFeature> genericList = readAvroWithGenericDecoder(avroFile, oldType);
@@ -344,7 +334,7 @@ public class AvroSimpleFeatureTest {
 
         // read back in the avro
         final SimpleFeatureType subsetType = DataUtilities.createType("subsetType", "f0:String,f3:Float,f5:UUID,f6:Date");
-        final List<AvroSimpleFeature> fsrList = readAvroWithFSRDecoder(avroFile,  oldType, subsetType);
+        final List<AvroSimpleFeature> fsrList = readAvroWithFSRDecoder(avroFile, oldType, subsetType);
 
         // read with generic decoder
         final List<AvroSimpleFeature> genericList = readAvroWithFSRDecoder(avroFile, oldType, oldType);

@@ -126,7 +126,7 @@ public class FeatureSpecificReader implements DatumReader<AvroSimpleFeature> {
             reuse.setAttribute(field, Converters.convert(in.readString(),clazz));
         }
         else{
-            //illegal state?
+            //illegal state? log something...schema might have changed
         }
     }
 
@@ -148,12 +148,7 @@ public class FeatureSpecificReader implements DatumReader<AvroSimpleFeature> {
         } else if (clazz == Date.class) {
            in.readLong();
         }
-//        else if(clazz == Geometry.class || clazz == Point.class || clazz == LineString.class
-//                || clazz == Polygon.class || clazz == MultiPoint.class || clazz == MultiLineString.class
-//                || clazz == MultiPolygon.class || clazz == GeometryCollection.class){
-//            in.skipString();
-//        }
-        else
+        else if (Geometry.class.isAssignableFrom(clazz))
         {
            //Assume string
             in.skipString();
