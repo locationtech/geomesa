@@ -47,6 +47,20 @@ public class AvroSimpleFeatureTest {
         return simpleFeature;
     }
 
+    protected AvroSimpleFeature createTypeWithGeo() throws SchemaException, ParseException {
+        final String schema = "f0:Point,f1:Polygon,f2:LineString";
+        final SimpleFeatureType sft = DataUtilities.createType("test", schema);
+
+        final FeatureId fid = new FeatureIdImpl("fakeid");
+        final AvroSimpleFeature simpleFeature = new AvroSimpleFeature(fid, sft);
+
+        simpleFeature.setAttribute("f0", (Point) GeohashUtils.wkt2geom("POINT(45.0 49.0)"));
+        simpleFeature.setAttribute("f1", (Polygon) GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))"));
+        simpleFeature.setAttribute("f2", (LineString) GeohashUtils.wkt2geom("LINESTRING(47.28515625 25.576171875, 48 26, 49 27)"));
+
+        return simpleFeature;
+    }
+
     protected AvroSimpleFeature createFancyType(final String schema, final String id) throws SchemaException, ParseException {
         final SimpleFeatureType sft = DataUtilities.createType("test", schema);
         final Random r = new Random();
@@ -237,6 +251,22 @@ public class AvroSimpleFeatureTest {
         for (final AvroSimpleFeature sf : fsrList) {
             sf.getAttribute("f20");  //should not exist in subset data!
         }
+    }
+
+    @Test
+    public void testGeoTypes() throws SchemaException, ParseException, IOException {
+        final AvroSimpleFeature sf = createTypeWithGeo();
+        final File avroFile = writeAvroFile(Arrays.asList(sf));
+        final List<AvroSimpleFeature> fsrList = readAvroWithFSRDecoder(avroFile, sf.getType(), sf.getType());
+
+        Assert.assertEquals(1, fsrList.size());
+        final SimpleFeature readSf = fsrList.get(0);
+        Assert.assertEquals(3, readSf.getAttributeCount());
+        Assert.assertEquals(sf.getAttributeCount(), readSf.getAttributeCount());
+
+        Assert.assertEquals(sf.getAttribute("f0"), readSf.getAttribute("f0"));
+        Assert.assertEquals(sf.getAttribute("f1"), readSf.getAttribute("f1"));
+        Assert.assertEquals(sf.getAttribute("f2"), readSf.getAttribute("f2"));
     }
 
     @Test
