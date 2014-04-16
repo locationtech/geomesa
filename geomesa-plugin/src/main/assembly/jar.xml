@@ -31,6 +31,7 @@
                 <exclude>javax.servlet:*</exclude>
                 <exclude>org.geotools:*</exclude>
                 <exclude>org.geotools.xsd:*</exclude>
+                <exclude>javax.*:*</exclude>
             </excludes>
             <useProjectArtifact>false</useProjectArtifact>
         </dependencySet>

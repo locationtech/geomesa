@@ -23,17 +23,20 @@ package object core {
   val DEFAULT_GEOMETRY_PROPERTY_NAME = "SF_PROPERTY_GEOMETRY"
 
   val DEFAULT_FEATURE_TYPE = "geomesa.feature.type"
-  val DEFAULT_SCHEMA_NAME = "geomesa.index.schema"
+  val DEFAULT_SCHEMA_NAME  = "geomesa.index.schema"
   val DEFAULT_FEATURE_NAME = "geomesa.index.feature"
-  val INGEST_TABLE_NAME = "geomesa.ingest.table"
-  val DEFAULT_POLY_PROPERTY_NAME = "geomesa.index.poly"
-  val DEFAULT_INTERVAL_PROPERTY_NAME = "geomesa.index.interval"
-  val DEFAULT_ATTRIBUTE_NAMES = "geomesa.index.shapefile.attribute-names"
-  val DEFAULT_CACHE_SIZE_NAME = "geomesa.index.cache-size"
-  val DEFAULT_CACHE_TABLE_NAME = "geomesa.index.cache-table"
+
+  val INGEST_TABLE_NAME                      = "geomesa.ingest.table"
+  val DEFAULT_POLY_PROPERTY_NAME             = "geomesa.index.poly"
+  val DEFAULT_INTERVAL_PROPERTY_NAME         = "geomesa.index.interval"
+  val DEFAULT_ATTRIBUTE_NAMES                = "geomesa.index.shapefile.attribute-names"
+  val DEFAULT_CACHE_SIZE_NAME                = "geomesa.index.cache-size"
+  val DEFAULT_CACHE_TABLE_NAME               = "geomesa.index.cache-table"
   val DEFAULT_AGGREGATOR_CLASS_PROPERTY_NAME = "geomesa.iterators.aggregator-class"
 
   val GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE = "geomesa.iterators.aggregator-types"
-  val GEOMESA_ITERATORS_ECQL_FILTER = "geomesa.iterators.ecql-filter"
+  val GEOMESA_ITERATORS_ECQL_FILTER         = "geomesa.iterators.ecql-filter"
+  val GEOMESA_ITERATORS_TRANSFORM           = "geomesa.iterators.transform"
+  val GEOMESA_ITERATORS_TRANSFORM_SCHEMA    = "geomesa.iterators.transform.schema"
 
 }

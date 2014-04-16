@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-
 package geomesa.core.data
 
-import com.vividsolutions.jts.geom._
 import geomesa.core.index._
+import geomesa.core.iterators.DensityIterator
+import org.apache.accumulo.core.data.Value
 import org.geotools.data.{DataUtilities, Query, FeatureReader}
 import org.geotools.factory.CommonFactoryFinder
+import org.geotools.factory.Hints.{IntegerKey, ClassKey}
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
@@ -32,35 +34,66 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             sft: SimpleFeatureType)
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
-  import collection.JavaConversions._
+  import AccumuloFeatureReader._
 
   val ff = CommonFactoryFinder.getFilterFactory2
   val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
   val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
-  val dtgStartField        = sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, SF_PROPERTY_START_TIME).asInstanceOf[String]
-  val dtgEndField          = sft.getUserData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
   val encodedSFT           = DataUtilities.encodeType(sft)
 
-  val filterVisitor = new FilterToAccumulo(sft)
-  val rewrittenCQL = filterVisitor.visit(query)
-  val cqlString = ECQL.toCQL(rewrittenCQL)
+  val projectedSFT =
+    if(query.getHints.containsKey(DENSITY_KEY)) DataUtilities.createType(sft.getTypeName, "encodedraster:String,geom:Point:srid=4326")
+    else sft
 
-  // run the query
-  val bs = dataStore.createBatchScanner
+  val derivedQuery =
+    if(query.getHints.containsKey(BBOX_KEY)) {
+      val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
+      val q1 = new Query(sft.getTypeName, ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env))
+      DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
+    } else query
+
+  val filterVisitor = new FilterToAccumulo(sft)
+  val rewrittenCQL = filterVisitor.visit(derivedQuery)
+  val cqlString = ECQL.toCQL(rewrittenCQL)
 
   val spatial = filterVisitor.spatialPredicate
   val temporal = filterVisitor.temporalPredicate
-  lazy val iterValues = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString))
+
+  lazy val bs = dataStore.createBatchScanner
+  lazy val iter = {
+    val transformOption = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
+    val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
+    if (query.getHints.containsKey(DENSITY_KEY)) {
+      val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Integer]
+      val height = query.getHints.get(HEIGHT_KEY).asInstanceOf[Integer]
+      val q = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString),
+        transformOption, transformSchema, density = true, width, height)
+      unpackDensityFeatures(q)
+    } else {
+      val q = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString),
+        transformOption, transformSchema, density = false)
+      val result = transformSchema.map { tschema => q.map { v => SimpleFeatureEncoder.decode(tschema, v) } }
+      result.getOrElse(q.map { v => SimpleFeatureEncoder.decode(sft, v) })
+    }
+  }
+
+  def unpackDensityFeatures(iter: Iterator[Value]) =
+    iter.flatMap { i => DensityIterator.expandFeature(SimpleFeatureEncoder.decode(projectedSFT, i)) }
 
   override def getFeatureType = sft
 
-  override def next() = SimpleFeatureEncoder.decode(getFeatureType, iterValues.next())
+  override def next() = iter.next()
 
-  override def hasNext = iterValues.hasNext
+  override def hasNext = iter.hasNext
 
   override def close() = bs.close()
 }
 
 object AccumuloFeatureReader {
-  val latLonGeoFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326)
+  val DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
+  val WIDTH_KEY   = new IntegerKey(256)
+  val HEIGHT_KEY  = new IntegerKey(256)
+  val BBOX_KEY    = new ClassKey(classOf[ReferencedEnvelope])
+
+
 }
