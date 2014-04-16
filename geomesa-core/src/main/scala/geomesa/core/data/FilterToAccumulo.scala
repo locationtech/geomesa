@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package geomesa.core.data
 
 import collection.JavaConversions._
@@ -11,6 +27,7 @@ import org.geotools.filter.visitor.SimplifyingFilterVisitor
 import org.geotools.geometry.jts.{JTSFactoryFinder, JTS}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
@@ -19,9 +36,6 @@ import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 import org.opengis.temporal.Instant
-import geomesa.utils.text.WKTUtils
-import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
-import org.joda.time.format.ISODateTimeFormat
 
 // FilterToAccumulo extracts the spatial and temporal predicates from the
 // filter while rewriting the filter to optimize for scanning Accumulo
