@@ -1,7 +1,9 @@
+package geomesa.avro.java;
+
 import com.vividsolutions.jts.geom.*;
+import geomesa.avro.java.AvroSimpleFeature;
+import geomesa.avro.java.FeatureSpecificReader;
 import geomesa.utils.geohash.GeohashUtils;
-import geomesa.utils.text.WKTUtils;
-import geomesa.utils.text.WKTUtils$;
 import junit.framework.Assert;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -12,16 +14,13 @@ import org.apache.avro.io.DecoderFactory;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
 import org.geotools.filter.identity.FeatureIdImpl;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.identity.FeatureId;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;

@@ -30,6 +30,7 @@
         <module>geomesa-plugin</module>
         <module>geomesa-dist</module>
         <module>geomesa-avro</module>
+        <module>geomesa-avro-scala</module>
     </modules>
 
     <properties>

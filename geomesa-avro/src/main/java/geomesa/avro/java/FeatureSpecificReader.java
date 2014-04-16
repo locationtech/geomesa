@@ -1,3 +1,5 @@
+package geomesa.avro.java;
+
 import com.vividsolutions.jts.geom.*;
 import org.apache.avro.Schema;
 import org.apache.avro.io.DatumReader;
