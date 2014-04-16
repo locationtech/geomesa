@@ -29,20 +29,21 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   //case class Record(clazz: Class[_], name: String, idx: Int, schema: Schema)
 
   // Initialize class variables
-  val values: Array[Object] = new Array[Object](sft.getAttributeCount)
-  val userData: JMap[Object, Object] = new JHashMap[Object, Object]()
+  val values = new Array[Object](sft.getAttributeCount)
+  val userData = new JHashMap[Object, Object]()
   val typeMap = Caches.typeMapCache.get(sft)
   val names = Caches.nameCache.get(sft)
   val nameIndex = Caches.nameIndexCache.get(sft)
   val schema = Caches.avroSchemaCache.get(sft)
 
-  private val primitiveTypes = List(classOf[String], classOf[Integer], classOf[Long], classOf[Double], classOf[Float], classOf[Boolean])
+  private val primitiveTypes = List(classOf[String], classOf[Integer], classOf[Long], classOf[Double],
+    classOf[Float], classOf[Boolean])
 
   def write(os: OutputStream) {
-    val encoder: BinaryEncoder = EncoderFactory.get.binaryEncoder(os, null)
-    val me: GenericRecord = new GenericData.Record(this.schema)
-    me.put(Caches.AVRO_SIMPLE_FEATURE_VERSION, Caches.VERSION)
-    me.put(Caches.FEATURE_ID_AVRO_FIELD_NAME, getID)
+    val encoder = EncoderFactory.get.binaryEncoder(os, null)
+    val record = new GenericData.Record(schema)
+    record.put(Caches.AVRO_SIMPLE_FEATURE_VERSION, Caches.VERSION)
+    record.put(Caches.FEATURE_ID_AVRO_FIELD_NAME, getID)
 
     values.zipWithIndex.foreach { case (v, idx) =>
       val x = typeMap.get(names(idx)) match {
@@ -65,10 +66,10 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
           txt
         }
       }
-      me.put(names(idx),x)
+      record.put(names(idx),x)
     }
-    val datumWriter: DatumWriter[GenericRecord] = new GenericDatumWriter[GenericRecord](this.schema)
-    datumWriter.write(me, encoder)
+    val datumWriter = new GenericDatumWriter[GenericRecord](this.schema)
+    datumWriter.write(record, encoder)
     encoder.flush
   }
 
