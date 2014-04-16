@@ -185,7 +185,7 @@ class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
   def fromBoundingBox(minY: Double, maxY: Double) =
     math.round((LOG180 - math.log(maxY - minY)) / LOG2).intValue()
 
-  import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader._
+  import org.geotools.coverage.grid.io.GridCoverage2DReader._
 
   override def getMetadataNames: Array[String] = Array[String](TIME_DOMAIN, HAS_TIME_DOMAIN)
 

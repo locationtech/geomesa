@@ -21,10 +21,12 @@ import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.FeatureWriter
 import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import org.geotools.factory.Hints.ClassKey
 
 package object data {
-  import geomesa.core.index._
+
   import collection.JavaConversions._
+  import geomesa.core.index._
 
   val INSTANCE_ID        = "geomesa.instance.id"
   val ZOOKEEPERS         = "geomesa.zookeepers"
@@ -43,6 +45,8 @@ package object data {
   val EMPTY_VALUE        = new Value(Array[Byte]())
   val EMPTY_COLQ         = new Text(EMPTY_STRING)
   val WHOLE_WORLD_BOUNDS = "-180.0:180.0:-90.0:90.0"
+  val TRANSFORMS         = new ClassKey(classOf[String])
+  val TRANSFORM_SCHEMA   = new ClassKey(classOf[SimpleFeatureType])
 
   type TASKIOCTX = TaskInputOutputContext[_, _, Key, Value]
   type SFFeatureWriter = FeatureWriter[SimpleFeatureType, SimpleFeature]
