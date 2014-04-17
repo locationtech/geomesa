@@ -13,22 +13,21 @@ import com.vividsolutions.jts.geom.Geometry
 
 class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType)
   extends DatumReader[AvroSimpleFeature] {
-  
+
   import scala.collection.JavaConversions._
+  import AvroSimpleFeature._
 
   var oldSchema = AvroSimpleFeature.generateSchema(oldType)
   val newSchema = AvroSimpleFeature.generateSchema(newType)
   val fieldsDesired = new HashSet() ++ DataUtilities.attributeNames(newType)
 
   def isDataField(f: Schema.Field) =
-    !f.name.equals(Caches.FEATURE_ID_AVRO_FIELD_NAME) && !f.name.equals(AVRO_SIMPLE_FEATURE_VERSION)
+    !f.name.equals(FEATURE_ID_AVRO_FIELD_NAME) && !f.name.equals(AVRO_SIMPLE_FEATURE_VERSION)
 
   val dataFields = oldSchema.getFields.filter { isDataField }
 
-  val typeMap =
-    oldType.getAttributeDescriptors.map { ad =>
-      ad.getLocalName -> ad.getType.getBinding
-    }.toMap
+  val typeMap: Map[String, Class[_]] =
+    oldType.getAttributeDescriptors.map { ad => ad.getLocalName -> ad.getType.getBinding }.toMap
 
   def setSchema(schema:Schema) = oldSchema = schema
 
