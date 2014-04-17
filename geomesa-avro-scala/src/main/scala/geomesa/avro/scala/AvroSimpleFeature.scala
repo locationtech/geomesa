@@ -44,28 +44,32 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
     record.put(AvroSimpleFeature.FEATURE_ID_AVRO_FIELD_NAME, getID)
 
     values.zipWithIndex.foreach { case (v, idx) =>
-      val x = typeMap(names(idx)) match {
-        case t if primitiveTypes.contains(t) =>
-          v
+       val x = v == null match {
+         case true =>
+           v
+         case false => typeMap(names(idx)) match {
+            case t if primitiveTypes.contains(t) =>
+              v
 
-        case t if classOf[UUID].isAssignableFrom(t) =>
-          val uuid = v.asInstanceOf[UUID]
-          val bb = ByteBuffer.allocate(16)
-          bb.putLong(uuid.getMostSignificantBits)
-          bb.putLong(uuid.getLeastSignificantBits)
-          bb.flip
-          bb
+            case t if classOf[UUID].isAssignableFrom(t) =>
+              val uuid = v.asInstanceOf[UUID]
+              val bb = ByteBuffer.allocate(16)
+              bb.putLong(uuid.getMostSignificantBits)
+              bb.putLong(uuid.getLeastSignificantBits)
+              bb.flip
+              bb
 
-        case t if classOf[Date].isAssignableFrom(t) =>
-          v.asInstanceOf[Date].getTime
+            case t if classOf[Date].isAssignableFrom(t) => {
+              v.asInstanceOf[Date].getTime
+            }
 
-        case t if classOf[Geometry].isAssignableFrom(t) =>
-          v.asInstanceOf[Geometry].toText
+            case t if classOf[Geometry].isAssignableFrom(t) =>
+              v.asInstanceOf[Geometry].toText
 
-        case _ =>
-          Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
-      }
-
+            case _ =>
+              Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
+          }
+       }
       record.put(names(idx), x)
     }
     val datumWriter = new GenericDatumWriter[GenericRecord](this.schema)
