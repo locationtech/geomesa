@@ -29,7 +29,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
 
   import AvroSimpleFeature._
 
-  val values    = Array[AnyRef].ofDim(sft.getAttributeCount)
+  val values    = Array.ofDim[AnyRef](sft.getAttributeCount)
   val userData  = collection.mutable.HashMap.empty[AnyRef, AnyRef]
   val typeMap   = typeMapCache.get(sft)
   val names     = nameCache.get(sft)
@@ -39,11 +39,11 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   def write(os: OutputStream) {
     val encoder = EncoderFactory.get.binaryEncoder(os, null)
     val record = new GenericData.Record(schema)
-    record.put(Caches.AVRO_SIMPLE_FEATURE_VERSION, Caches.VERSION)
-    record.put(Caches.FEATURE_ID_AVRO_FIELD_NAME, getID)
+    record.put(AvroSimpleFeature.AVRO_SIMPLE_FEATURE_VERSION, AvroSimpleFeature.VERSION)
+    record.put(AvroSimpleFeature.FEATURE_ID_AVRO_FIELD_NAME, getID)
 
     values.zipWithIndex.foreach { case (v, idx) =>
-      val x = typeMap.get(names(idx)) match {
+      val x = typeMap(names(idx)) match {
         case t if primitiveTypes.contains(t) =>
           v
 
@@ -62,7 +62,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
           v.asInstanceOf[Geometry].toText
 
         case _ =>
-          Option(Converters.convert(v, classOf[String])).getOrElse(_.toString)
+          Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
       }
 
       record.put(names(idx), x)
@@ -74,22 +74,21 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
 
   def getFeatureType = sft
   def getType = sft
-  def setID(idStr: String) = id.setID(id)
   def getIdentifier = id
   def getID = id.getID
-  def getAttribute(name: String) = getAttribute(nameIndex.get(name))
+  def getAttribute(name: String) = nameIndex.get(name).map(getAttribute).getOrElse(throw new NullPointerException("Invalid attribute"))
   def getAttribute(name: Name) = getAttribute(name.getLocalPart)
   def getAttribute(index: Int) = values(index)
-  def setAttribute(name: String, value: Object) = setAttribute(nameIndex.get(name), value)
+  def setAttribute(name: String, value: Object) = setAttribute(nameIndex(name), value)
   def setAttribute(name: Name, value: Object) = setAttribute(name.getLocalPart, value)
   def setAttribute(index: Int, value: Object) = values(index) = value
   def setAttributes(values: JList[Object]) =
-    values.zipWithIndex.foreach { case (v, idx) => {setAttribute(idx, v)}}
+    values.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
 
   def getAttributeCount = values.length
   def getAttributes: JList[Object] = values.toList
   def getDefaultGeometry: Object =
-    Try(sft.getGeometryDescriptor.getName).map { getAttribute(_) }.getOrElse(null)
+    Try(sft.getGeometryDescriptor.getName).map { getAttribute }.getOrElse(null)
 
   def setAttributes(`object`: Array[Object])= ???
   def setDefaultGeometry(defaultGeometry: Object) =
@@ -132,55 +131,37 @@ object AvroSimpleFeature {
       classOf[Boolean]
     )
 
-  val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Class[_]]] =
+  def loadingCacheBuilder[V <: AnyRef](f: SimpleFeatureType => V) =
     CacheBuilder
       .newBuilder
       .maximumSize(100)
       .expireAfterWrite(10, TimeUnit.MINUTES)
       .build(
-        new CacheLoader[SimpleFeatureType, Map[String, Class[_]]] {
-          def load(sft: SimpleFeatureType): Map[String, Class[_]] =
-            sft.getAttributeDescriptors.map { ad =>
-              val name = ad.getLocalName
-              val clazz = ad.getType.getBinding
-              (name, clazz)
-            }.toMap
+        new CacheLoader[SimpleFeatureType, V] {
+          def load(sft: SimpleFeatureType): V = f(sft)
         }
       )
+
+  val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Class[_]]] =
+    loadingCacheBuilder { sft =>
+      sft.getAttributeDescriptors.map { ad =>
+        val name = ad.getLocalName
+        val clazz = ad.getType.getBinding
+        (name, clazz)
+      }.toMap
+    }
 
   val avroSchemaCache: LoadingCache[SimpleFeatureType, Schema] =
-    CacheBuilder
-      .newBuilder
-      .maximumSize(100)
-      .expireAfterWrite(10, TimeUnit.MINUTES).
-      build(
-        new CacheLoader[SimpleFeatureType, Schema] {
-          def load(sft: SimpleFeatureType): Schema = generateSchema(sft)
-        }
-      )
+    loadingCacheBuilder { sft => generateSchema(sft) }
 
   val nameCache: LoadingCache[SimpleFeatureType, Array[String]] =
-    CacheBuilder
-      .newBuilder
-      .maximumSize(100)
-      .expireAfterWrite(10, TimeUnit.MINUTES).
-      build(
-        new CacheLoader[SimpleFeatureType, Array[String]] {
-          def load(sft: SimpleFeatureType) = DataUtilities.attributeNames(sft)
-        }
-      )
+    loadingCacheBuilder { sft => DataUtilities.attributeNames(sft) }
 
-  val nameIndexCache: LoadingCache[SimpleFeatureType, Map[String, Integer]] =
-    CacheBuilder
-      .newBuilder
-      .maximumSize(100)
-      .expireAfterWrite(10, TimeUnit.MINUTES).
-      build(
-        new CacheLoader[SimpleFeatureType, Map[String, Int]] {
-          def load(sft: SimpleFeatureType): JMap[String, Integer] =
-            DataUtilities.attributeNames(sft).map { name => (name, sft.indexOf(name)) }.toMap
-        }
-      )
+  val nameIndexCache: LoadingCache[SimpleFeatureType, Map[String, Int]] =
+    loadingCacheBuilder { sft =>
+      DataUtilities.attributeNames(sft).map { name => (name, sft.indexOf(name)) }.toMap
+    }
+
 
   final val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   final val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
@@ -188,28 +169,36 @@ object AvroSimpleFeature {
   final val AVRO_NAMESPACE: String = "org.geomesa"
 
   def generateSchema(sft: SimpleFeatureType): Schema = {
-    var assembler: SchemaBuilder.FieldAssembler[_] =
+    val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
       SchemaBuilder.record(sft.getTypeName)
-        .namespace(AVRO_NAMESPACE).fields
+        .namespace(AVRO_NAMESPACE)
+        .fields
         .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
         .name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
 
-    import scala.collection.JavaConversions._
-    sft.getAttributeDescriptors.foreach { ad =>
-      val name = ad.getLocalName
-      assembler = ad.getType.getBinding match {
-        case c if classOf[String].isAssignableFrom(c)   => assembler.name(name).`type`.stringType.noDefault
-        case c if classOf[Integer].isAssignableFrom(c)  => assembler.name(name).`type`.intType.noDefault
-        case c if classOf[Long].isAssignableFrom(c)     => assembler.name(name).`type`.longType.noDefault
-        case c if classOf[Double].isAssignableFrom(c)   => assembler.name(name).`type`.doubleType.noDefault
-        case c if classOf[Float].isAssignableFrom(c)    => assembler.name(name).`type`.floatType.noDefault
-        case c if classOf[Boolean].isAssignableFrom(c)  => assembler.name(name).`type`.booleanType.noDefault
-        case c if classOf[UUID].isAssignableFrom(c)     => assembler.name(name).`type`.bytesType.noDefault
-        case c if classOf[Date].isAssignableFrom(c)     => assembler.name(name).`type`.longType.noDefault
-        case c if classOf[Geometry].isAssignableFrom(c) => assembler.name(name).`type`.stringType.noDefault
+    val result =
+      sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
+        val name    = ad.getLocalName
+        val binding = ad.getType.getBinding
+        addField(assembler, name, binding)
       }
-    }
-    assembler.endRecord.asInstanceOf[Schema]
+
+    result.endRecord
   }
+
+  def addField(assembler: SchemaBuilder.FieldAssembler[Schema],
+               name: String,
+               ct: Class[_]): SchemaBuilder.FieldAssembler[Schema] =
+    ct match {
+      case c if classOf[String].isAssignableFrom(c)   => assembler.name(name).`type`.stringType.noDefault
+      case c if classOf[Integer].isAssignableFrom(c)  => assembler.name(name).`type`.intType.noDefault
+      case c if classOf[Long].isAssignableFrom(c)     => assembler.name(name).`type`.longType.noDefault
+      case c if classOf[Double].isAssignableFrom(c)   => assembler.name(name).`type`.doubleType.noDefault
+      case c if classOf[Float].isAssignableFrom(c)    => assembler.name(name).`type`.floatType.noDefault
+      case c if classOf[Boolean].isAssignableFrom(c)  => assembler.name(name).`type`.booleanType.noDefault
+      case c if classOf[UUID].isAssignableFrom(c)     => assembler.name(name).`type`.bytesType.noDefault
+      case c if classOf[Date].isAssignableFrom(c)     => assembler.name(name).`type`.longType.noDefault
+      case c if classOf[Geometry].isAssignableFrom(c) => assembler.name(name).`type`.stringType.noDefault
+    }
 
 }
