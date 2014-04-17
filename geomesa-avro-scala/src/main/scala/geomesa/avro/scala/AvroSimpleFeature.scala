@@ -23,6 +23,7 @@ import org.opengis.geometry.BoundingBox
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.`type`.AttributeDescriptor
 import scala.util.Try
+import org.apache.avro.SchemaBuilder.BaseFieldTypeBuilder
 
 
 class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
@@ -119,6 +120,14 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
 }
 
 object AvroSimpleFeature {
+
+  def apply(sf: SimpleFeature) = {
+    val asf = new AvroSimpleFeature(sf.getIdentifier, sf.getFeatureType)
+    for (i <- 0 until sf.getAttributeCount) asf.setAttribute(i, sf.getAttribute(i))
+
+    asf
+  }
+
   import scala.collection.JavaConversions._
 
   val primitiveTypes =
@@ -180,7 +189,8 @@ object AvroSimpleFeature {
       sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
         val name    = ad.getLocalName
         val binding = ad.getType.getBinding
-        addField(assembler, name, binding)
+        val nillable = ad.isNillable
+        addField(assembler, name, binding, nillable)
       }
 
     result.endRecord
@@ -188,17 +198,20 @@ object AvroSimpleFeature {
 
   def addField(assembler: SchemaBuilder.FieldAssembler[Schema],
                name: String,
-               ct: Class[_]): SchemaBuilder.FieldAssembler[Schema] =
+               ct: Class[_],
+               nillable: Boolean): SchemaBuilder.FieldAssembler[Schema] = {
+    val baseType = if (nillable) assembler.name(name).`type`.nullable() else assembler.name(name).`type`
     ct match {
-      case c if classOf[String].isAssignableFrom(c)   => assembler.name(name).`type`.stringType.noDefault
-      case c if classOf[Integer].isAssignableFrom(c)  => assembler.name(name).`type`.intType.noDefault
-      case c if classOf[Long].isAssignableFrom(c)     => assembler.name(name).`type`.longType.noDefault
-      case c if classOf[Double].isAssignableFrom(c)   => assembler.name(name).`type`.doubleType.noDefault
-      case c if classOf[Float].isAssignableFrom(c)    => assembler.name(name).`type`.floatType.noDefault
-      case c if classOf[Boolean].isAssignableFrom(c)  => assembler.name(name).`type`.booleanType.noDefault
-      case c if classOf[UUID].isAssignableFrom(c)     => assembler.name(name).`type`.bytesType.noDefault
-      case c if classOf[Date].isAssignableFrom(c)     => assembler.name(name).`type`.longType.noDefault
-      case c if classOf[Geometry].isAssignableFrom(c) => assembler.name(name).`type`.stringType.noDefault
+      case c if classOf[String].isAssignableFrom(c)   => baseType.stringType().noDefault()
+      case c if classOf[Integer].isAssignableFrom(c)  => baseType.intType.noDefault
+      case c if classOf[Long].isAssignableFrom(c)     => baseType.longType.noDefault
+      case c if classOf[Double].isAssignableFrom(c)   => baseType.doubleType.noDefault
+      case c if classOf[Float].isAssignableFrom(c)    => baseType.floatType.noDefault
+      case c if classOf[Boolean].isAssignableFrom(c)  => baseType.booleanType.noDefault
+      case c if classOf[UUID].isAssignableFrom(c)     => baseType.bytesType.noDefault
+      case c if classOf[Date].isAssignableFrom(c)     => baseType.longType.noDefault
+      case c if classOf[Geometry].isAssignableFrom(c) => baseType.stringType.noDefault
     }
+  }
 
 }

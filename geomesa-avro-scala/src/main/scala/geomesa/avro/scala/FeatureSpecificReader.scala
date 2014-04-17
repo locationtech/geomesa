@@ -29,6 +29,9 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   val typeMap: Map[String, Class[_]] =
     oldType.getAttributeDescriptors.map { ad => ad.getLocalName -> ad.getType.getBinding }.toMap
 
+  val nullMap: Map[String, Boolean] =
+    oldType.getAttributeDescriptors.map { ad => ad.getLocalName -> ad.isNillable }.toMap
+
   def setSchema(schema:Schema) = oldSchema = schema
 
   def read(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
@@ -41,12 +44,25 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     // Followed by the data fields
     val sf = new AvroSimpleFeature(id, newType)
     if(dataFields.size != fieldsDesired.size)
-      dataFields.foreach { f => setOrConsume(sf, f.name, in, typeMap.get(f.name).get) }
+      dataFields.foreach { f =>
+        checkNull(f.name(), in) match {
+          case true => in.readNull()
+          case false => setOrConsume(sf, f.name, in, typeMap.get(f.name).get)
+        }
+      }
     else
-      dataFields.foreach { f => set(sf, f.name, in, typeMap.get(f.name).get) }
-
+      dataFields.foreach { f =>
+        checkNull(f.name(), in) match {
+          case true => in.readNull()
+          case false => set(sf, f.name, in, typeMap.get(f.name).get)
+        }
+      }
     sf
   }
+
+  // null at index 1 according to schema builder...beware 1.7.5 is avro version...might change with later versions
+  // look at the json schema to verify the position that the null is in
+  protected def checkNull(field:String, in:Decoder) = nullMap.get(field).get && in.readIndex() == 1
 
   protected def setOrConsume(sf: AvroSimpleFeature, field: String, in:Decoder, cls: Class[_]) =
     if (fieldsDesired.contains(field)) set(sf,field, in, cls)

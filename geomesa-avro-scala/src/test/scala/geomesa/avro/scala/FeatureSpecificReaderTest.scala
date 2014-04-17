@@ -1,7 +1,6 @@
 package geomesa.avro.scala
 
 import com.vividsolutions.jts.geom.{LineString, Polygon, Point}
-import geomesa.avro.scala.{FeatureSpecificReader, AvroSimpleFeature}
 import geomesa.utils.geohash
 import geomesa.utils.geohash.GeohashUtils
 import java.io._
@@ -21,7 +20,7 @@ class FeatureSpecificReaderTest {
 
 
   def createTypeWithGeo: AvroSimpleFeature = {
-    val sft = DataUtilities.createType("test",  "f0:Point,f1:Polygon,f2:LineString");
+    val sft = DataUtilities.createType("test","f0:Point,f1:Polygon,f2:LineString");
     val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
 
     sf.setAttribute("f0", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])
@@ -170,20 +169,23 @@ class FeatureSpecificReaderTest {
     Assert.assertEquals(orig.getAttribute("f2"), sf.getAttribute("f2"))
   }
 
-  @Test
-  def testSimpleDeserialize = {
-    val fields = 60
-    val records = 100
-
-    val sb = new mutable.StringBuilder
-    for (i <- 0 until fields) {
-      if(i != 0) sb.append(",")
+  def buildStringSchema(numFields: Int) : String = {
+    val sb = new StringBuilder()
+    for (i <- 0 until numFields) {
+      if (i != 0) sb.append(",")
       sb.append(f"f$i%d:String")
     }
-    val geoSchema = sb.toString()
+    sb.toString()
+  }
+
+  @Test
+  def testSimpleDeserialize = {
+    val numFields = 60
+    val numRecords = 100
+    val geoSchema = buildStringSchema(numFields)
 
     val sfList :List[AvroSimpleFeature] =
-      for (i <- (0 until records).toList) yield  createStringFeatures(geoSchema, fields, i.toString)
+      for (i <- (0 until numRecords).toList) yield  createStringFeatures(geoSchema, numFields, i.toString)
 
     val oldType = sfList(0).getType
     val avroFile = writeAvroFile(sfList)
@@ -204,9 +206,9 @@ class FeatureSpecificReaderTest {
       Assert.assertEquals(f1.getID, f2.getID)
       Assert.assertEquals(f1.getID, f3.getID)
 
-      Assert.assertEquals(fields, f1.getAttributeCount)
+      Assert.assertEquals(numFields, f1.getAttributeCount)
       Assert.assertEquals(5, f2.getAttributeCount)     //subset
-      Assert.assertEquals(fields, f3.getAttributeCount)
+      Assert.assertEquals(numFields, f3.getAttributeCount)
 
       for(s <- List("f0","f1", "f3", "f30", "f59")) {
         Assert.assertEquals(f1.getAttribute(s), f2.getAttribute(s))
@@ -271,6 +273,35 @@ class FeatureSpecificReaderTest {
       }
 
     }
+  }
+
+  @Test
+  def speedTestWithStringFields = {
+    println("Beginning Performance Testing against file...")
+    val numFields = 60
+    val numRecords = 1000
+    println(f"Number of fields: $numFields%d")
+    println(f"Number of records: $numRecords%d")
+
+    val geoSchema = buildStringSchema(numFields)
+    val sfList = for (i <- (0 until numRecords).toList) yield  createStringFeatures(geoSchema, numFields, i.toString)
+
+    val oldType = sfList(0).getType
+    val subsetType = DataUtilities.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
+
+    val avroFile = writeAvroFile(sfList)
+    val pipeFile = writePipeFile(sfList)
+
+    val pipeStart = System.currentTimeMillis()
+    val pipeList = readPipeFile(pipeFile, oldType)
+    val pipeTime = System.currentTimeMillis() - pipeStart
+    println(f"Text Read time $pipeTime%dms")
+
+    val avroStart = System.currentTimeMillis()
+    val fsrList = readAvroWithFsr(avroFile, oldType, subsetType)
+    val avroTime = System.currentTimeMillis() - avroStart
+    println(f"Avro Subset Read time $avroTime%dms")
+
   }
 
 

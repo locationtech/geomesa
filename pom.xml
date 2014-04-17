@@ -30,7 +30,7 @@
         <module>geomesa-plugin</module>
         <module>geomesa-dist</module>
         <module>geomesa-filter</module>
-        <module>geomesa-avro</module>
+        <!--<module>geomesa-avro</module>-->
         <module>geomesa-avro-scala</module>
     </modules>
 
@@ -229,7 +229,7 @@
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-mapper-asl</artifactId>
-                <version>1.0.1</version>
+                <version>1.9.3</version>
             </dependency>
             <dependency>
                 <groupId>javax.transaction</groupId>
