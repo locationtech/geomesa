@@ -33,7 +33,7 @@ import org.geotools.geometry.jts.{JTSFactoryFinder, JTS, ReferencedEnvelope}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Random
 import geomesa.utils.geotools.GridSnap
-import geomesa.core.data.AccumuloFeatureReader
+import geomesa.core.data.{SimpleFeatureEncoder, AccumuloFeatureReader}
 
 class DensityIterator extends SimpleFeatureFilteringIterator {
 
@@ -92,7 +92,7 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
     val feature = featureBuilder.buildFeature(Random.nextString(6))
     result.clear()
 
-    new Value(DataUtilities.encodeFeature(feature).getBytes)
+    SimpleFeatureEncoder.encode(feature)
   }
 }
 

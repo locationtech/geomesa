@@ -30,7 +30,6 @@
         <module>geomesa-plugin</module>
         <module>geomesa-dist</module>
         <module>geomesa-filter</module>
-        <!--<module>geomesa-avro</module>-->
         <module>geomesa-avro-scala</module>
     </modules>
 
@@ -244,6 +243,11 @@
             <dependency>
                 <groupId>geomesa</groupId>
                 <artifactId>geomesa-utils</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>geomesa</groupId>
+                <artifactId>geomesa-avro-scala</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

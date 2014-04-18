@@ -31,7 +31,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 class SpatioTemporalIndexSchemaTest extends Specification {
 
   import collection.JavaConversions._
-  val dummyType = DataUtilities.createType("DummyType", s"foo:String,bar:Geometry,baz:Date,$SF_PROPERTY_GEOMETRY:Geometry,$SF_PROPERTY_START_TIME:Date, $SF_PROPERTY_END_TIME:Date")
+  val dummyType = DataUtilities.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$SF_PROPERTY_GEOMETRY:Geometry,$SF_PROPERTY_START_TIME:Date,$SF_PROPERTY_END_TIME:Date")
 
   "SpatioTemporalIndexSchemaTest" should {
     "parse a valid string" in {

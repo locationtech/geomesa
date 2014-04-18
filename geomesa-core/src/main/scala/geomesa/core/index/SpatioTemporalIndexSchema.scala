@@ -38,6 +38,8 @@ import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Random
 import scala.util.parsing.combinator.RegexParsers
+import geomesa.avro.scala.FeatureSpecificReader
+import java.io.ByteArrayInputStream
 
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)
@@ -688,8 +690,5 @@ object SpatioTemporalIndexSchema extends RegexParsers {
     }
   }
 
-  def decodeIdFromEncodedSimpleFeature(value: Value): String = {
-    val vString = value.toString
-    vString.substring(0, vString.indexOf("="))
-  }
+  def decodeIdFromEncodedSimpleFeature(value: Value): String = SimpleFeatureEncoder.extractFeatureId(value)
 }

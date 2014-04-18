@@ -89,7 +89,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
           builder.reset()
           defs.map { t => builder.set(t.name, t.expression.evaluate(feature)) }
           val newFeature = builder.buildFeature(feature.getID)
-          new Value(DataUtilities.encodeFeature(newFeature).getBytes)
+          new Value(SimpleFeatureEncoder.encode(newFeature))
         }
       } else _ => source.getTopValue
 

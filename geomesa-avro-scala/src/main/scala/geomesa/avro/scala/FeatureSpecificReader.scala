@@ -1,7 +1,7 @@
 package geomesa.avro.scala
 
 import java.util.{Date, UUID}
-import org.apache.avro.io.{Decoder, DatumReader}
+import org.apache.avro.io.{DecoderFactory, Decoder, DatumReader}
 import org.apache.avro.Schema
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
@@ -9,6 +9,7 @@ import org.geotools.util.Converters
 import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.immutable.HashSet
 import com.vividsolutions.jts.geom.Geometry
+import java.io.InputStream
 
 
 class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType)
@@ -104,5 +105,14 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
 }
 
 object FeatureSpecificReader{
+
+  // use when you want the entire feature back, not a subset
   def apply(sftType: SimpleFeatureType) = new FeatureSpecificReader(sftType, sftType)
+
+  // first field is serialization version, 2nd field is ID of simple feature
+  def extractId(is: InputStream): String = {
+    val decoder = DecoderFactory.get().binaryDecoder(is, null)
+    decoder.readInt()
+    decoder.readString()
+  }
 }
