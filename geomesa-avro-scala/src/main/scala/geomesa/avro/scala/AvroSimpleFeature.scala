@@ -116,7 +116,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   def getValue: util.Collection[_ <: Property] = ???
   def setValue(value: util.Collection[Property]) = ???
   def getDescriptor: AttributeDescriptor = ???
-  def getName: Name = ???
+  def getName: Name = sft.getName
   def getUserData = userData
   def isNillable = true
   def setValue(value: Object) = ???
