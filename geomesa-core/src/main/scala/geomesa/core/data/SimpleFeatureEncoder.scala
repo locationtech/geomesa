@@ -103,9 +103,6 @@ class AvroFeatureEncoder extends SimpleFeatureEncoder {
   def extractFeatureId(value: Value) = FeatureSpecificReader.extractId(new ByteArrayInputStream(value.get()))
 
   val readerCache: LoadingCache[SimpleFeatureType, FeatureSpecificReader] =
-    AvroSimpleFeature.loadingCacheBuilder {
-      sft =>
-        FeatureSpecificReader(sft)
-    }
+    AvroSimpleFeature.loadingCacheBuilder { sft => FeatureSpecificReader(sft) }
 }
 

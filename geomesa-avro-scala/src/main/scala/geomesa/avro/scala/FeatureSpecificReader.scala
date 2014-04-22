@@ -46,17 +46,13 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     val sf = new AvroSimpleFeature(id, newType)
     if(dataFields.size != fieldsDesired.size)
       dataFields.foreach { f =>
-        checkNull(f.name(), in) match {
-          case true => in.readNull()
-          case false => setOrConsume(sf, f.name, in, typeMap.get(f.name).get)
-        }
+        if(checkNull(f.name(), in)) in.readNull()
+        else setOrConsume(sf, f.name, in, typeMap.get(f.name).get)
       }
     else
       dataFields.foreach { f =>
-        checkNull(f.name(), in) match {
-          case true => in.readNull()
-          case false => set(sf, f.name, in, typeMap.get(f.name).get)
-        }
+        if(checkNull(f.name(), in)) in.readNull()
+        else set(sf, f.name, in, typeMap.get(f.name).get)
       }
     sf
   }

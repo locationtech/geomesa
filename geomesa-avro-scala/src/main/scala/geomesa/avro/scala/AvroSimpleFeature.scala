@@ -9,23 +9,22 @@ import java.lang._
 import java.nio._
 import java.util
 import java.util.concurrent.TimeUnit
+import java.util.{Date, UUID, List => JList}
 import org.apache.avro.generic.{GenericDatumWriter, GenericData, GenericRecord}
 import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
 import org.apache.avro.{SchemaBuilder, Schema}
 import org.geotools.data.DataUtilities
-import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.Converters
-import org.opengis.feature.{Property, GeometryAttribute}
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
-import org.opengis.filter.identity.FeatureId
-import java.util.{Date, UUID, List => JList}
-import org.opengis.geometry.BoundingBox
-import org.opengis.feature.`type`.Name
-import org.opengis.feature.`type`.AttributeDescriptor
-import scala.util.Try
-import org.apache.avro.SchemaBuilder.BaseFieldTypeBuilder
 import org.geotools.feature.GeometryAttributeImpl
 import org.geotools.feature.`type`.AttributeDescriptorImpl
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.util.Converters
+import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.feature.`type`.Name
+import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import org.opengis.feature.{Property, GeometryAttribute}
+import org.opengis.filter.identity.FeatureId
+import org.opengis.geometry.BoundingBox
+import scala.util.Try
 
 
 class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
@@ -44,37 +43,39 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
     record.put(AvroSimpleFeature.AVRO_SIMPLE_FEATURE_VERSION, AvroSimpleFeature.VERSION)
     record.put(AvroSimpleFeature.FEATURE_ID_AVRO_FIELD_NAME, getID)
 
-    values.zipWithIndex.foreach { case (v, idx) =>
-      val x = v == null match {
-        case true =>
-          v
-        case false => typeMap(names(idx)) match {
-          case t if primitiveTypes.contains(t) =>
-            v
-
-          case t if classOf[UUID].isAssignableFrom(t) =>
-            val uuid = v.asInstanceOf[UUID]
-            val bb = ByteBuffer.allocate(16)
-            bb.putLong(uuid.getMostSignificantBits)
-            bb.putLong(uuid.getLeastSignificantBits)
-            bb.flip
-            bb
-
-          case t if classOf[Date].isAssignableFrom(t) => {
-            v.asInstanceOf[Date].getTime
-          }
-
-          case t if classOf[Geometry].isAssignableFrom(t) =>
-            v.asInstanceOf[Geometry].toText
-
-          case _ =>
-            Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
-        }
-      }
-      record.put(names(idx), x)
+    val converted = values.zipWithIndex.map {
+      case t@(null, _) => t
+      case (v, idx)    => (convertValue(idx, v), idx)
     }
+
+    converted.foreach { case (x, idx) => record.put(names(idx), x) }
     datumWriter.write(record, encoder)
     encoder.flush()
+  }
+
+
+  def convertValue(idx: Int, v: AnyRef) = {
+    typeMap(names(idx)) match {
+      case t if primitiveTypes.contains(t) =>
+        v
+
+      case t if classOf[UUID].isAssignableFrom(t) =>
+        val uuid = v.asInstanceOf[UUID]
+        val bb = ByteBuffer.allocate(16)
+        bb.putLong(uuid.getMostSignificantBits)
+        bb.putLong(uuid.getLeastSignificantBits)
+        bb.flip
+        bb
+
+      case t if classOf[Date].isAssignableFrom(t) =>
+        v.asInstanceOf[Date].getTime
+
+      case t if classOf[Geometry].isAssignableFrom(t) =>
+        v.asInstanceOf[Geometry].toText
+
+      case _ =>
+        Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
+    }
   }
 
   def write(os: OutputStream) {
