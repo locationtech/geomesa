@@ -40,6 +40,7 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import geomesa.core.data.FeatureEncoding.FeatureEncoding
 
 /**
  *
@@ -53,7 +54,8 @@ import scala.collection.JavaConverters._
 class AccumuloDataStore(val connector: Connector,
                         val tableName: String,
                         val authorizations: Authorizations,
-                        val indexSchemaFormat: String = "DEFAULT")
+                        val indexSchemaFormat: String = "DEFAULT",
+                        val featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
   extends AbstractDataStore {
 
   private def buildDefaultSchema(name: String) =
@@ -74,7 +76,7 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   def configureNewTable(indexSchemaFormat: String, featureType: SimpleFeatureType, tableName: String) {
-    val indexSchema = SpatioTemporalIndexSchema(indexSchemaFormat, featureType)
+    val indexSchema = SpatioTemporalIndexSchema(indexSchemaFormat, featureType, featureEncoder)
     val maxShard = indexSchema.maxShard
 
     val splits = (1 to maxShard).map { i => s"%0${maxShard.toString.length}d".format(i) }.map(new Text(_))
@@ -195,6 +197,8 @@ class AccumuloDataStore(val connector: Connector,
     result
   }
 
+  val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(featureEncoding)
+
   def getFeatureTypes = createTypeNames().map(_.toString)
 
   def getTypeNames: Array[String] = getFeatureTypes.toArray
@@ -270,13 +274,13 @@ class AccumuloDataStore(val connector: Connector,
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
     val attributes = getAttributes(featureName)
     val sft = getSchema(featureName)
-    new AccumuloFeatureReader(this, featureName, query, indexSchemaFmt, attributes, sft)
+    new AccumuloFeatureReader(this, featureName, query, indexSchemaFmt, attributes, sft, featureEncoder)
   }
 
   override def createFeatureWriter(featureName: String, transaction: Transaction): SFFeatureWriter = {
     val featureType = getSchema(featureName)
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
-    val schema = SpatioTemporalIndexSchema(indexSchemaFmt, featureType)
+    val schema = SpatioTemporalIndexSchema(indexSchemaFmt, featureType, featureEncoder)
     val writer = new LocalRecordWriter(tableName, connector)
     new AccumuloFeatureWriter(featureType, schema, writer)
   }
@@ -311,8 +315,9 @@ class MapReduceAccumuloDataStore(connector: Connector,
                                  tableName: String,
                                  authorizations: Authorizations,
                                  val params: JMap[String, Serializable],
-                                 indexSchemaFormat: String = "DEFAULT")
-  extends AccumuloDataStore(connector, tableName, authorizations, indexSchemaFormat) {
+                                 indexSchemaFormat: String = "DEFAULT",
+                                 featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
+  extends AccumuloDataStore(connector, tableName, authorizations, indexSchemaFormat, featureEncoding) {
 
   override def createFeatureSource(featureName: String): SimpleFeatureSource =
     new MapReduceAccumuloFeatureStore(this, featureName)
@@ -323,7 +328,7 @@ class MapReduceAccumuloDataStore(connector: Connector,
   def createMapReduceFeatureWriter(featureName: String, context: TASKIOCTX): SFFeatureWriter = {
     val featureType = getSchema(featureName)
     val idxFmt = getIndexSchemaFmt(featureName)
-    val idx = SpatioTemporalIndexSchema(idxFmt, featureType)
+    val idx = SpatioTemporalIndexSchema(idxFmt, featureType, featureEncoder)
     val writer = new MapReduceRecordWriter(context)
     new AccumuloFeatureWriter(featureType, idx, writer)
   }

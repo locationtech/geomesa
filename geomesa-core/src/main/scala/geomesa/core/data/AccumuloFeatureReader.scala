@@ -31,13 +31,14 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             query: Query,
                             indexSchemaFmt: String,
                             attributes: String,
-                            sft: SimpleFeatureType)
+                            sft: SimpleFeatureType,
+                            featureEncoder: SimpleFeatureEncoder)
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
   import AccumuloFeatureReader._
 
   val ff = CommonFactoryFinder.getFilterFactory2
-  val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft)
+  val indexSchema = SpatioTemporalIndexSchema(indexSchemaFmt, sft, featureEncoder)
   val geometryPropertyName = sft.getGeometryDescriptor.getName.toString
   val encodedSFT           = DataUtilities.encodeType(sft)
 
@@ -72,13 +73,13 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
     } else {
       val q = indexSchema.query(bs, spatial, temporal, encodedSFT, Some(cqlString),
         transformOption, transformSchema, density = false)
-      val result = transformSchema.map { tschema => q.map { v => SimpleFeatureEncoder.decode(tschema, v) } }
-      result.getOrElse(q.map { v => SimpleFeatureEncoder.decode(sft, v) })
+      val result = transformSchema.map { tschema => q.map { v => featureEncoder.decode(tschema, v) } }
+      result.getOrElse(q.map { v => featureEncoder.decode(sft, v) })
     }
   }
 
   def unpackDensityFeatures(iter: Iterator[Value]) =
-    iter.flatMap { i => DensityIterator.expandFeature(SimpleFeatureEncoder.decode(projectedSFT, i)) }
+    iter.flatMap { i => DensityIterator.expandFeature(featureEncoder.decode(projectedSFT, i)) }
 
   override def getFeatureType = sft
 

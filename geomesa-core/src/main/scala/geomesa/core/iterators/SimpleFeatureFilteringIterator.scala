@@ -17,7 +17,7 @@
 package geomesa.core.iterators
 
 import collection.JavaConversions._
-import geomesa.core.data.SimpleFeatureEncoder
+import geomesa.core.data._
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -49,13 +49,15 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var simpleFeatureType: SimpleFeatureType = null
   var targetFeatureType: SimpleFeatureType = null
 
+  var featureEncoder: SimpleFeatureEncoder = null
+
   // the default filter accepts everything
   var filter: Filter = null
 
   var transform: (SimpleFeature => Value) = (_: SimpleFeature) => source.getTopValue
 
   def evalFilter(v: Value) = {
-    curFeature = SimpleFeatureEncoder.decode(simpleFeatureType, v)
+    curFeature = featureEncoder.decode(simpleFeatureType, v)
     filter.evaluate(curFeature)
   }
 
@@ -71,6 +73,8 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
            options: java.util.Map[String, String],
            env: IteratorEnvironment) {
     this.source = source
+
+    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(options.get(FEATURE_ENCODING))
 
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
     simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
@@ -89,7 +93,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
           builder.reset()
           defs.map { t => builder.set(t.name, t.expression.evaluate(feature)) }
           val newFeature = builder.buildFeature(feature.getID)
-          new Value(SimpleFeatureEncoder.encode(newFeature))
+          new Value(featureEncoder.encode(newFeature))
         }
       } else _ => source.getTopValue
 
@@ -171,4 +175,5 @@ object SimpleFeatureFilteringIterator {
     cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
     schema.map(sft => cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, DataUtilities.encodeType(sft)))
   }
+
 }

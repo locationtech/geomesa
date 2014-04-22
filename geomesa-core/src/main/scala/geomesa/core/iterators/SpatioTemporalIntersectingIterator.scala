@@ -34,6 +34,8 @@ import org.geotools.factory.GeoTools
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Try
+import geomesa.core.data._
+import scala.Some
 
 case class Attribute(name: Text, value: Text)
 
@@ -85,8 +87,10 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
     SpatioTemporalIntersectingIterator.initClassLoader(log)
 
     val featureType = DataUtilities.createType("DummyType", options.get(DEFAULT_FEATURE_TYPE))
+
+    val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(options.get(FEATURE_ENCODING))
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
-    schema = SpatioTemporalIndexSchema(schemaEncoding, featureType)
+    schema = SpatioTemporalIndexSchema(schemaEncoding, featureType, featureEncoder)
     if (options.containsKey(DEFAULT_POLY_PROPERTY_NAME)) {
       val polyWKT = options.get(DEFAULT_POLY_PROPERTY_NAME)
       poly = WKTUtils.read(polyWKT)

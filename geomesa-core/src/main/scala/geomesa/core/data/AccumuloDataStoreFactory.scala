@@ -50,16 +50,34 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       if(params.containsKey(connParam.key)) connParam.lookUp(params).asInstanceOf[Connector]
       else buildAccumuloConnector(params)
 
+    val featureEncoding =
+       if (featureEncParam.lookUp(params) != null)
+         featureEncParam.lookUp(params).asInstanceOf[String] match {
+           case "avro" => FeatureEncoding.AVRO
+           case "text" => FeatureEncoding.TEXT
+           case _ => throw new IllegalArgumentException("Feature type must be of type text or avro")
+         }
+       else FeatureEncoding.AVRO
+
     if (mapreduceParam.lookUp(params) != null && mapreduceParam.lookUp(params).asInstanceOf[String] == "true")
       if(idxSchemaParam.lookUp(params) != null)
-        new MapReduceAccumuloDataStore(connector, tableName, authorizations, params, idxSchemaParam.lookUp(params).asInstanceOf[String])
+        new MapReduceAccumuloDataStore(connector,
+                                       tableName,
+                                       authorizations,
+                                       params,
+                                       idxSchemaParam.lookUp(params).asInstanceOf[String],
+                                       featureEncoding = featureEncoding)
       else
-        new MapReduceAccumuloDataStore(connector, tableName, authorizations, params)
+        new MapReduceAccumuloDataStore(connector, tableName, authorizations, params, featureEncoding = featureEncoding)
     else {
       if(idxSchemaParam.lookUp(params) != null)
-        new AccumuloDataStore(connector, tableName, authorizations, idxSchemaParam.lookUp(params).asInstanceOf[String])
+        new AccumuloDataStore(connector,
+                              tableName,
+                              authorizations,
+                              idxSchemaParam.lookUp(params).asInstanceOf[String],
+                              featureEncoding = featureEncoding)
       else
-        new AccumuloDataStore(connector, tableName, authorizations)
+        new AccumuloDataStore(connector, tableName, authorizations, featureEncoding = featureEncoding)
     }
 
   }
@@ -105,6 +123,7 @@ object AccumuloDataStoreFactory {
     val idxSchemaParam    = new Param("indexSchemaFormat", classOf[String], "The feature-specific index-schema format", false)
     val mockParam         = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
     val mapreduceParam    = new Param("useMapReduce", classOf[String], "Use MapReduce ingest", false)
+    val featureEncParam   = new Param("featureEncoding", classOf[String], "The feature encoding format (text or avro). Default is Avro", false, "avro")
   }
 
   import params._
@@ -117,6 +136,7 @@ object AccumuloDataStoreFactory {
     conf.set(ACCUMULO_PASS, passwordParam.lookUp(params).asInstanceOf[String])
     conf.set(TABLE, tableNameParam.lookUp(params).asInstanceOf[String])
     conf.set(AUTHS, authsParam.lookUp(params).asInstanceOf[String])
+    conf.set(FEATURE_ENCODING, featureEncParam.lookUp(params).asInstanceOf[String])
     job
   }
 
@@ -128,5 +148,6 @@ object AccumuloDataStoreFactory {
       passwordParam.key -> conf.get(ACCUMULO_PASS),
       tableNameParam.key -> conf.get(TABLE),
       authsParam.key -> conf.get(AUTHS),
+      featureEncParam.key -> conf.get(FEATURE_ENCODING),
       "useMapReduce" -> "true")
 }

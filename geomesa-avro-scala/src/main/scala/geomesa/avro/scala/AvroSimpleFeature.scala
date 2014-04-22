@@ -10,7 +10,7 @@ import java.nio._
 import java.util
 import java.util.concurrent.TimeUnit
 import org.apache.avro.generic.{GenericDatumWriter, GenericData, GenericRecord}
-import org.apache.avro.io.EncoderFactory
+import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
 import org.apache.avro.{SchemaBuilder, Schema}
 import org.geotools.data.DataUtilities
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -18,12 +18,14 @@ import org.geotools.util.Converters
 import org.opengis.feature.{Property, GeometryAttribute}
 import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 import org.opengis.filter.identity.FeatureId
-import java.util.{Map => JMap, Date, UUID, List => JList}
+import java.util.{Date, UUID, List => JList}
 import org.opengis.geometry.BoundingBox
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.`type`.AttributeDescriptor
 import scala.util.Try
 import org.apache.avro.SchemaBuilder.BaseFieldTypeBuilder
+import org.geotools.feature.GeometryAttributeImpl
+import org.geotools.feature.`type`.AttributeDescriptorImpl
 
 
 class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
@@ -37,44 +39,48 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   val nameIndex = nameIndexCache.get(sft)
   val schema    = avroSchemaCache.get(sft)
 
-  def write(os: OutputStream) {
-    val encoder = EncoderFactory.get.binaryEncoder(os, null)
+  def write(datumWriter: GenericDatumWriter[GenericRecord], encoder: BinaryEncoder){
     val record = new GenericData.Record(schema)
     record.put(AvroSimpleFeature.AVRO_SIMPLE_FEATURE_VERSION, AvroSimpleFeature.VERSION)
     record.put(AvroSimpleFeature.FEATURE_ID_AVRO_FIELD_NAME, getID)
 
     values.zipWithIndex.foreach { case (v, idx) =>
-       val x = v == null match {
-         case true =>
-           v
-         case false => typeMap(names(idx)) match {
-            case t if primitiveTypes.contains(t) =>
-              v
+      val x = v == null match {
+        case true =>
+          v
+        case false => typeMap(names(idx)) match {
+          case t if primitiveTypes.contains(t) =>
+            v
 
-            case t if classOf[UUID].isAssignableFrom(t) =>
-              val uuid = v.asInstanceOf[UUID]
-              val bb = ByteBuffer.allocate(16)
-              bb.putLong(uuid.getMostSignificantBits)
-              bb.putLong(uuid.getLeastSignificantBits)
-              bb.flip
-              bb
+          case t if classOf[UUID].isAssignableFrom(t) =>
+            val uuid = v.asInstanceOf[UUID]
+            val bb = ByteBuffer.allocate(16)
+            bb.putLong(uuid.getMostSignificantBits)
+            bb.putLong(uuid.getLeastSignificantBits)
+            bb.flip
+            bb
 
-            case t if classOf[Date].isAssignableFrom(t) => {
-              v.asInstanceOf[Date].getTime
-            }
-
-            case t if classOf[Geometry].isAssignableFrom(t) =>
-              v.asInstanceOf[Geometry].toText
-
-            case _ =>
-              Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
+          case t if classOf[Date].isAssignableFrom(t) => {
+            v.asInstanceOf[Date].getTime
           }
-       }
+
+          case t if classOf[Geometry].isAssignableFrom(t) =>
+            v.asInstanceOf[Geometry].toText
+
+          case _ =>
+            Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
+        }
+      }
       record.put(names(idx), x)
     }
-    val datumWriter = new GenericDatumWriter[GenericRecord](this.schema)
     datumWriter.write(record, encoder)
     encoder.flush()
+  }
+
+  def write(os: OutputStream) {
+    val encoder = EncoderFactory.get.binaryEncoder(os, null)
+    val datumWriter = new GenericDatumWriter[GenericRecord](schema)
+    write(datumWriter, encoder)
   }
 
   def getFeatureType = sft
@@ -92,12 +98,12 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
 
   def getAttributeCount = values.length
   def getAttributes: JList[Object] = values.toList
-  def getDefaultGeometry: Object =
-    Try(sft.getGeometryDescriptor.getName).map { getAttribute }.getOrElse(null)
+  def getDefaultGeometry: Object = Try(sft.getGeometryDescriptor.getName).map { getAttribute }.getOrElse(null)
 
   def setAttributes(`object`: Array[Object])= ???
-  def setDefaultGeometry(defaultGeometry: Object) =
-    setAttribute(sft.getGeometryDescriptor.getName, defaultGeometry)
+
+  def setDefaultGeometry(geo: Object) =
+    setAttribute(sft.getGeometryDescriptor.getName, geo)
 
   def getBounds: BoundingBox = getDefaultGeometry match {
     case g: Geometry =>
@@ -106,20 +112,44 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
       new ReferencedEnvelope(sft.getCoordinateReferenceSystem)
   }
 
-  def getDefaultGeometryProperty: GeometryAttribute = ???
-  def setDefaultGeometryProperty(defaultGeometry: GeometryAttribute) = ???
+  def getDefaultGeometryProperty: GeometryAttribute = {
+    val geoDesc = sft.getGeometryDescriptor
+    geoDesc != null match {
+      case true =>
+        new GeometryAttributeImpl(getDefaultGeometry, geoDesc, null)
+      case false =>
+        null
+    }
+  }
+
+  def setDefaultGeometryProperty(geoAttr: GeometryAttribute) = geoAttr != null match {
+    case true =>
+      setDefaultGeometry(geoAttr.getValue)
+    case false =>
+      setDefaultGeometry(null)
+  }
+
   def getProperties: util.Collection[Property] = ???
   def getProperties(name: Name): util.Collection[Property] = ???
   def getProperties(name: String): util.Collection[Property] = ???
   def getProperty(name: Name): Property = ???
   def getProperty(name: String): Property = ???
-  def getValue: util.Collection[_ <: Property] = ???
-  def setValue(value: util.Collection[Property]) = ???
-  def getDescriptor: AttributeDescriptor = ???
+
+  def getValue: util.Collection[_ <: Property] = getProperties
+
+  def setValue(values: util.Collection[Property]) = values.zipWithIndex.foreach { case (p, idx) =>
+    this.values(idx) = p.getValue}
+
+  def getDescriptor: AttributeDescriptor = new AttributeDescriptorImpl(sft, sft.getName, 0, Int.MaxValue, true, null)
+
   def getName: Name = sft.getName
+
   def getUserData = userData
+
   def isNillable = true
-  def setValue(value: Object) = ???
+
+  def setValue(newValue: Object) = setValue (newValue.asInstanceOf[util.Collection[Property]])
+
   def validate() = { }
 }
 
@@ -173,6 +203,11 @@ object AvroSimpleFeature {
   val nameIndexCache: LoadingCache[SimpleFeatureType, Map[String, Int]] =
     loadingCacheBuilder { sft =>
       DataUtilities.attributeNames(sft).map { name => (name, sft.indexOf(name)) }.toMap
+    }
+
+  val datumWriterCache: LoadingCache[SimpleFeatureType, GenericDatumWriter[GenericRecord]] =
+    loadingCacheBuilder { sft =>
+      new GenericDatumWriter[GenericRecord](avroSchemaCache.get(sft))
     }
 
 

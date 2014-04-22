@@ -48,7 +48,8 @@ class AccumuloDataStoreTest extends Specification {
       "password"   -> "mypassword",
       "auths"      -> "A,B,C",
       "tableName"  -> "testwrite",
-      "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
+      "useMock"    -> "true",
+      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
 
   "AccumuloDataStore" should {
     "be accessible through DataStoreFinder" in {
@@ -106,6 +107,7 @@ class AccumuloDataStoreTest extends Specification {
       val features = results.features
       var containsGeometry = false
 
+      println("hasNext "+ features.hasNext)
       while(features.hasNext) {
         containsGeometry = containsGeometry | features.next.getDefaultGeometry.equals(geom)
       }

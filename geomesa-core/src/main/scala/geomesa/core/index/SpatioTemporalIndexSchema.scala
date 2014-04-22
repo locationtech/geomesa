@@ -80,7 +80,8 @@ import java.io.ByteArrayInputStream
 case class SpatioTemporalIndexSchema(encoder: SpatioTemporalIndexEncoder,
                                      decoder: SpatioTemporalIndexEntryDecoder,
                                      planner: SpatioTemporalIndexQueryPlanner,
-                                     featureType: SimpleFeatureType)
+                                     featureType: SimpleFeatureType,
+                                     featureEncoder: SimpleFeatureEncoder)
   extends IndexSchema[SimpleFeature] {
 
   import SpatioTemporalIndexSchema._
@@ -119,7 +120,7 @@ case class SpatioTemporalIndexSchema(encoder: SpatioTemporalIndexEncoder,
     // the final iterator may need duplicates removed
     val finalIter: Iterator[Entry[Key,Value]] =
       if (mayContainDuplicates(featureType))
-        new DeDuplicatingIterator(rawIter, (key: Key, value: Value) => decodeIdFromEncodedSimpleFeature(value))
+        new DeDuplicatingIterator(rawIter, (key: Key, value: Value) => featureEncoder.extractFeatureId(value))
       else rawIter
 
     // return only the attribute-maps (the values out of this iterator)
@@ -159,7 +160,8 @@ object SpatioTemporalIndexEntry {
 
 case class SpatioTemporalIndexEncoder(rowf: TextFormatter[SimpleFeature],
                                       cff: TextFormatter[SimpleFeature],
-                                      cqf: TextFormatter[SimpleFeature])
+                                      cqf: TextFormatter[SimpleFeature],
+                                      featureEncoder: SimpleFeatureEncoder)
 extends IndexEntryEncoder[SimpleFeature] {
 
   import GeohashUtils._
@@ -202,14 +204,14 @@ extends IndexEntryEncoder[SimpleFeature] {
     val indexEntries = keys.map { k => (k, iv) }
 
     // the (single) data value is the encoded (serialized-to-string) SimpleFeature
-    val dataValue = SimpleFeatureEncoder.encode(entryToEncode)
+    val dataValue = featureEncoder.encode(entryToEncode)
 
     // data entries are stored separately (and independently) from the index entries;
     // each attribute gets its own data row (though currently, we use only one attribute
     // that represents the entire, encoded feature)
     val dataEntries = rowIDs.map { rowID =>
       val key = new Key(rowID, id, AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME_TEXT)
-      (key, new Value(dataValue))
+      (key, dataValue)
     }
 
     (indexEntries ++ dataEntries).toList
@@ -231,8 +233,11 @@ case class SpatioTemporalIndexEntryDecoder(ghDecoder: GeohashDecoder,
 
 }
 
-case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner, cfPlanner: ColumnFamilyPlanner,
-                                           schema:String, featureType: SimpleFeatureType)
+case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
+                                           cfPlanner: ColumnFamilyPlanner,
+                                           schema:String,
+                                           featureType: SimpleFeatureType,
+                                           featureEncoder: SimpleFeatureEncoder)
   extends QueryPlanner[SimpleFeature] {
 
   // these are priority values for Accumulo iterators
@@ -319,6 +324,8 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner, cfPlanner: Co
     bs.iterator()
   }
 
+  def configureFeatureEncoding(cfg: IteratorSetting) = cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
+
   // establishes the regular expression that defines (minimally) acceptable rows
   def configureRowRegexIterator(bs: BatchScanner, regex: String) {
     val name = "regexRow-" + randomPrintableString(5)
@@ -348,6 +355,7 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner, cfPlanner: Co
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
                                   "within-" + randomPrintableString(5),
                                   classOf[SpatioTemporalIntersectingIterator])
+    configureFeatureEncoding(cfg)
     SpatioTemporalIntersectingIterator.setOptions(
       cfg, schema, poly, interval, featureType)
     bs.addScanIterator(cfg)
@@ -381,6 +389,7 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner, cfPlanner: Co
                                   "sffilter-" + randomPrintableString(5),
                                   clazz)
 
+    configureFeatureEncoding(cfg)
     SimpleFeatureFilteringIterator.setFeatureType(cfg, simpleFeatureType)
     ecql.foreach(SimpleFeatureFilteringIterator.setECQLFilter(cfg, _))
     transforms.foreach(SimpleFeatureFilteringIterator.setTransforms(cfg, _, transformSchema))
@@ -508,11 +517,14 @@ object SpatioTemporalIndexSchema extends RegexParsers {
 
   // An index key is three keyparts, one for row, colf, and colq
   def formatter = keypart ~ "::" ~ keypart ~ "::" ~ cqpart ^^ {
-    case rowf ~ "::" ~ cff ~ "::" ~ cqf => SpatioTemporalIndexEncoder(rowf, cff, cqf)
+    case rowf ~ "::" ~ cff ~ "::" ~ cqf => (rowf, cff, cqf)
   }
 
   // builds the encoder from a string representation
-  def buildKeyEncoder(s: String): SpatioTemporalIndexEncoder = parse(formatter, s).get
+  def buildKeyEncoder(s: String, featureEncoder: SimpleFeatureEncoder): SpatioTemporalIndexEncoder = {
+    val (rowf, cff, cqf) = parse(formatter, s).get
+    SpatioTemporalIndexEncoder(rowf, cff, cqf, featureEncoder)
+  }
 
   // extracts an entire date encoder from a key part
   @tailrec
@@ -647,15 +659,17 @@ object SpatioTemporalIndexSchema extends RegexParsers {
     else featureType.getGeometryDescriptor.getType.getBinding != classOf[Point]
 
   // builds a SpatioTemporalIndexSchema (requiring a feature type)
-  def apply(s: String, featureType: SimpleFeatureType): SpatioTemporalIndexSchema = {
-    val keyEncoder        = buildKeyEncoder(s)
+  def apply(s: String,
+            featureType: SimpleFeatureType,
+            featureEncoder: SimpleFeatureEncoder): SpatioTemporalIndexSchema = {
+    val keyEncoder        = buildKeyEncoder(s, featureEncoder)
     val geohashDecoder    = buildGeohashDecoder(s)
     val dateDecoder       = buildDateDecoder(s)
     val keyPlanner        = buildKeyPlanner(s)
     val cfPlanner         = buildColumnFamilyPlanner(s)
     val indexEntryDecoder = SpatioTemporalIndexEntryDecoder(geohashDecoder, dateDecoder)
-    val queryPlanner      = SpatioTemporalIndexQueryPlanner(keyPlanner, cfPlanner, s, featureType)
-    SpatioTemporalIndexSchema(keyEncoder, indexEntryDecoder, queryPlanner, featureType)
+    val queryPlanner      = SpatioTemporalIndexQueryPlanner(keyPlanner, cfPlanner, s, featureType, featureEncoder)
+    SpatioTemporalIndexSchema(keyEncoder, indexEntryDecoder, queryPlanner, featureType, featureEncoder)
   }
 
   // the index value consists of the feature's:
@@ -690,5 +704,4 @@ object SpatioTemporalIndexSchema extends RegexParsers {
     }
   }
 
-  def decodeIdFromEncodedSimpleFeature(value: Value): String = SimpleFeatureEncoder.extractFeatureId(value)
 }
