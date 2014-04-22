@@ -1,7 +1,6 @@
-package geomesa.avro.scala
+package geomesa.core.avro
 
 import com.vividsolutions.jts.geom.{LineString, Polygon, Point}
-import geomesa.utils.geohash
 import geomesa.utils.geohash.GeohashUtils
 import java.io._
 import java.text.SimpleDateFormat

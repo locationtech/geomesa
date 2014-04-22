@@ -1,5 +1,4 @@
-package geomesa.avro.scala
-
+package geomesa.core.avro
 
 import collection.JavaConversions._
 import com.google.common.cache.{CacheLoader, LoadingCache, CacheBuilder}

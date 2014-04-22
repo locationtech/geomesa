@@ -38,8 +38,8 @@ import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Random
 import scala.util.parsing.combinator.RegexParsers
-import geomesa.avro.scala.FeatureSpecificReader
 import java.io.ByteArrayInputStream
+import geomesa.core.avro.FeatureSpecificReader
 
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)

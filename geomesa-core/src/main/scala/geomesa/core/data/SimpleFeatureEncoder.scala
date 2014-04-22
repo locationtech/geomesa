@@ -21,9 +21,10 @@ import org.apache.accumulo.core.data.Value
 import org.geotools.data.DataUtilities
 import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 import com.google.common.cache.{LoadingCache}
-import geomesa.avro.scala.{AvroSimpleFeature, FeatureSpecificReader}
+import geomesa.avro.scala.FeatureSpecificReader
 import org.apache.avro.io.DecoderFactory
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
+import geomesa.core.avro.{FeatureSpecificReader, AvroSimpleFeature}
 
 
 /**
