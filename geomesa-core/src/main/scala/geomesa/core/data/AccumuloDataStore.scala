@@ -67,16 +67,18 @@ class AccumuloDataStore(val connector: Connector,
   type KVEntry = JMap.Entry[Key,Value]
 
   def createTableIfNotExists(tableName: String,
-                             featureType: SimpleFeatureType) {
+                             featureType: SimpleFeatureType,
+                             featureEncoding: FeatureEncoding) {
     if (!tableOps.exists(tableName))
       connector.tableOperations.create(tableName)
 
     if(!connector.isInstanceOf[MockConnector])
-      configureNewTable(createIndexSchema(featureType), featureType, tableName)
+      configureNewTable(createIndexSchema(featureType), featureType, tableName, featureEncoding)
   }
 
-  def configureNewTable(indexSchemaFormat: String, featureType: SimpleFeatureType, tableName: String) {
-    val indexSchema = SpatioTemporalIndexSchema(indexSchemaFormat, featureType, featureEncoder)
+  def configureNewTable(indexSchemaFormat: String, featureType: SimpleFeatureType, tableName: String, fe: FeatureEncoding) {
+    val encoder = SimpleFeatureEncoderFactory.createEncoder(fe)
+    val indexSchema = SpatioTemporalIndexSchema(indexSchemaFormat, featureType, encoder)
     val maxShard = indexSchema.maxShard
 
     val splits = (1 to maxShard).map { i => s"%0${maxShard.toString.length}d".format(i) }.map(new Text(_))
@@ -95,7 +97,7 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   override def createSchema(featureType: SimpleFeatureType) {
-    createTableIfNotExists(tableName, featureType)
+    createTableIfNotExists(tableName, featureType, featureEncoding)
     writeMetadata(featureType)
   }
 
@@ -111,6 +113,8 @@ class AccumuloDataStore(val connector: Connector,
       val dtgField = userData.get(core.index.SF_PROPERTY_START_TIME)
       writeMetadataItem(featureName, DTGFIELD_CF, new Value(dtgField.asInstanceOf[String].getBytes))
     }
+    val fe = SimpleFeatureEncoderFactory.createEncoder(featureEncoding).getName
+    writeMetadataItem(featureName, FEAT_ENCODING_CF, new Value(fe.getBytes()))
   }
 
 
@@ -197,8 +201,6 @@ class AccumuloDataStore(val connector: Connector,
     result
   }
 
-  val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(featureEncoding)
-
   def getFeatureTypes = createTypeNames().map(_.toString)
 
   def getTypeNames: Array[String] = getFeatureTypes.toArray
@@ -216,6 +218,9 @@ class AccumuloDataStore(val connector: Connector,
 
   def getAttributes(featureName: String) =
     readMetadataItem(featureName, ATTRIBUTES_CF).getOrElse(EMPTY_STRING)
+
+  def getFeatureEncoder(featureName: String) =
+    SimpleFeatureEncoderFactory.createEncoder(readMetadataItem(featureName, FEAT_ENCODING_CF).getOrElse("text"))
 
   // We assume that they want the bounds for everything.
   override def getBounds(query: Query): ReferencedEnvelope = {
@@ -274,13 +279,15 @@ class AccumuloDataStore(val connector: Connector,
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
     val attributes = getAttributes(featureName)
     val sft = getSchema(featureName)
-    new AccumuloFeatureReader(this, featureName, query, indexSchemaFmt, attributes, sft, featureEncoder)
+    val fe = getFeatureEncoder(featureName)
+    new AccumuloFeatureReader(this, featureName, query, indexSchemaFmt, attributes, sft, fe)
   }
 
   override def createFeatureWriter(featureName: String, transaction: Transaction): SFFeatureWriter = {
     val featureType = getSchema(featureName)
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
-    val schema = SpatioTemporalIndexSchema(indexSchemaFmt, featureType, featureEncoder)
+    val fe = getFeatureEncoder(featureName)
+    val schema = SpatioTemporalIndexSchema(indexSchemaFmt, featureType, fe)
     val writer = new LocalRecordWriter(tableName, connector)
     new AccumuloFeatureWriter(featureType, schema, writer)
   }
@@ -328,7 +335,8 @@ class MapReduceAccumuloDataStore(connector: Connector,
   def createMapReduceFeatureWriter(featureName: String, context: TASKIOCTX): SFFeatureWriter = {
     val featureType = getSchema(featureName)
     val idxFmt = getIndexSchemaFmt(featureName)
-    val idx = SpatioTemporalIndexSchema(idxFmt, featureType, featureEncoder)
+    val fe = getFeatureEncoder(featureName)
+    val idx = SpatioTemporalIndexSchema(idxFmt, featureType, fe)
     val writer = new MapReduceRecordWriter(context)
     new AccumuloFeatureWriter(featureType, idx, writer)
   }

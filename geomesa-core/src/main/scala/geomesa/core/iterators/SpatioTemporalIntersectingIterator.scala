@@ -88,7 +88,10 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
 
     val featureType = DataUtilities.createType("DummyType", options.get(DEFAULT_FEATURE_TYPE))
 
-    val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(options.get(FEATURE_ENCODING))
+    // default to text if not found for backwards compatibility
+    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
+    val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
+
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     schema = SpatioTemporalIndexSchema(schemaEncoding, featureType, featureEncoder)
     if (options.containsKey(DEFAULT_POLY_PROPERTY_NAME)) {

@@ -74,7 +74,9 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
            env: IteratorEnvironment) {
     this.source = source
 
-    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(options.get(FEATURE_ENCODING))
+    // default to text if not found for backwards compatibility
+    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
+    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
 
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
     simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
