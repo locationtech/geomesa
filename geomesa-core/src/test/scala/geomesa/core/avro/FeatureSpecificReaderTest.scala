@@ -41,12 +41,11 @@ class FeatureSpecificReaderTest {
   def writePipeFile(sfList: List[AvroSimpleFeature]) : File = {
     val f = File.createTempFile("pipe", ".tmp")
     f.deleteOnExit()
-    val fos = new FileOutputStream(f)
     val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f)))
-    sfList.foreach(f => {
+    sfList.foreach { f =>
       writer.write(DataUtilities.encodeFeature(f, true))
       writer.newLine()
-    })
+    }
     writer.close()
     f
   }
@@ -58,14 +57,10 @@ class FeatureSpecificReaderTest {
     val decoder = DecoderFactory.get().binaryDecoder(fis, null)
     val fsr = new FeatureSpecificReader(oldType, newType)
 
-    val sfList = new ListBuffer[AvroSimpleFeature]()
+    val result = Iterator.continually(fsr.read(null, decoder)).takeWhile { asf => !decoder.isEnd && asf != null }
 
-    var reuse: AvroSimpleFeature = null
-    while (!decoder.isEnd && (reuse = fsr.read(null, decoder)) != null) {
-      sfList += reuse
-    }
     fis.close()
-    return sfList.toList
+    result.toList
   }
 
   def readPipeFile(f:File, sft:SimpleFeatureType) : List[SimpleFeature] = {
@@ -82,7 +77,7 @@ class FeatureSpecificReaderTest {
     for(i <- 0 until len) {
       sb.append(fieldId)
     }
-    sb.toString
+    sb.toString()
   }
 
   def createStringFeatures(schema:String, size: Int, id: String) : AvroSimpleFeature = {
@@ -126,7 +121,7 @@ class FeatureSpecificReaderTest {
   }
 
   @Test
-  def testSubset = {
+  def testSubset() = {
     val subset = getSubsetData
     Assert.assertEquals(10, subset.size)
 
@@ -139,17 +134,17 @@ class FeatureSpecificReaderTest {
         Assert.assertNotNull(attr.asInstanceOf[String])
       })
 
-      Assert.assertEquals("00000000", sf.getAttribute("f0"));
-      Assert.assertEquals("11111111", sf.getAttribute("f1"));
-      Assert.assertEquals("33333333", sf.getAttribute("f3"));
-      Assert.assertEquals("3030303030303030", sf.getAttribute("f30"));
-      Assert.assertEquals("5959595959595959", sf.getAttribute("f59"));
+      Assert.assertEquals("00000000", sf.getAttribute("f0"))
+      Assert.assertEquals("11111111", sf.getAttribute("f1"))
+      Assert.assertEquals("33333333", sf.getAttribute("f3"))
+      Assert.assertEquals("3030303030303030", sf.getAttribute("f30"))
+      Assert.assertEquals("5959595959595959", sf.getAttribute("f59"))
     })
   }
 
   @Test(expected = classOf[NullPointerException])
-  def testMemberNotInSubsetIsNull = {
-    val x = getSubsetData(0).getAttribute("f20")
+  def testMemberNotInSubsetIsNull() = {
+    getSubsetData(0).getAttribute("f20")
   }
 
   @Test
@@ -178,7 +173,7 @@ class FeatureSpecificReaderTest {
   }
 
   @Test
-  def testSimpleDeserialize = {
+  def testSimpleDeserialize() = {
     val numFields = 60
     val numRecords = 100
     val geoSchema = buildStringSchema(numFields)
@@ -245,7 +240,7 @@ class FeatureSpecificReaderTest {
   }
 
   @Test
-  def testComplexDeserialize = {
+  def testComplexDeserialize() = {
     val numRecords = 1
     val sfList = createComplicatedFeatures(numRecords)
     val oldType = sfList(0).getType
@@ -275,7 +270,7 @@ class FeatureSpecificReaderTest {
   }
 
   @Test
-  def speedTestWithStringFields = {
+  def speedTestWithStringFields() = {
     println("Beginning Performance Testing against file...")
     val numFields = 60
     val numRecords = 1000
@@ -292,12 +287,12 @@ class FeatureSpecificReaderTest {
     val pipeFile = writePipeFile(sfList)
 
     val pipeStart = System.currentTimeMillis()
-    val pipeList = readPipeFile(pipeFile, oldType)
+    readPipeFile(pipeFile, oldType)
     val pipeTime = System.currentTimeMillis() - pipeStart
     println(f"Text Read time $pipeTime%dms")
 
     val avroStart = System.currentTimeMillis()
-    val fsrList = readAvroWithFsr(avroFile, oldType, subsetType)
+    readAvroWithFsr(avroFile, oldType, subsetType)
     val avroTime = System.currentTimeMillis() - avroStart
     println(f"Avro Subset Read time $avroTime%dms")
 

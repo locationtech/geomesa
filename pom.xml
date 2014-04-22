@@ -30,7 +30,6 @@
         <module>geomesa-plugin</module>
         <module>geomesa-dist</module>
         <module>geomesa-filter</module>
-        <module>geomesa-avro-scala</module>
     </modules>
 
     <properties>
@@ -248,11 +247,6 @@
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-avro-scala</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>geomesa</groupId>
                 <artifactId>geomesa-filter</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -379,7 +373,6 @@
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
                 <version>1.7.5</version>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.geoserver</groupId>
@@ -418,6 +411,18 @@
                 <artifactId>junit</artifactId>
                 <version>4.5</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>11.0.1</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>findbugs</artifactId>
+                <version>2.0.3</version>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -16,27 +16,24 @@
 
 package geomesa.core.util.shell
 
-import cascading.accumulo.AccumuloSource
 import com.google.common.hash.Hashing
-import com.twitter.scalding.{Tool, Args, Job, TextLine}
+import com.twitter.scalding._
 import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.AccumuloDataStore
-import geomesa.core.index.{CompositeTextFormatter, Constants, SpatioTemporalIndexSchema}
+import geomesa.core.index.{Constants, SpatioTemporalIndexSchema}
 import geomesa.core.iterators.SpatioTemporalIntersectingIterator
 import java.io.File
 import java.net.{URLClassLoader, URLEncoder, URLDecoder}
-import java.util.UUID
+import java.nio.charset.Charset
 import org.apache.accumulo.core.client.Connector
-import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.util.shell.{Shell, Command}
 import org.apache.commons.cli.{Option => Opt, Options, CommandLine}
 import org.apache.commons.vfs2.impl.VFSClassLoader
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{Path, FileSystem}
 import org.apache.hadoop.mapred.JobConf
 import org.apache.hadoop.util.ToolRunner
-import org.geotools.data.{DataStoreFinder, DataUtilities}
+import org.geotools.data.{Transaction, DataStoreFinder, DataUtilities}
 import org.geotools.factory.Hints
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
@@ -50,6 +47,7 @@ class IngestFeatureCommand extends Command {
   val lonOpt    = new Opt("lon", true, "Name of longitude field")
   val dtgOpt    = new Opt("dtg", true, "Name of datetime field")
   val dtgFmtOpt = new Opt("dtgfmt", true, "Format of datetime field")
+  val pwOpt     = new Opt("pw", true, "User's password")
   val idOpt     = new Opt("idfields", true, "Comma separated list of id fields")
   val csvOpt    = new Opt("csv", false, "Data is in CSV")
   val tsvOpt    = new Opt("tsv", false, "Data is in TSV")
@@ -75,16 +73,11 @@ class IngestFeatureCommand extends Command {
     val latField = cl.getOptionValue(latOpt.getOpt)
     val lonField = cl.getOptionValue(lonOpt.getOpt)
     val dtgField = cl.getOptionValue(dtgOpt.getOpt)
+    val password = cl.getOptionValue(pwOpt.getOpt)
 
     val dtgFmt   =
       if(cl.hasOption(dtgFmtOpt.getOpt)) cl.getOptionValue(dtgFmtOpt.getOpt)
       else "EPOCHMILLIS"
-
-    val idx = SpatioTemporalIndexSchema(schema, sft)
-    val hashSep = idx.encoder.rowf match {
-      case CompositeTextFormatter(_, sep) => sep
-      case _                              => "~"
-    }
 
     val idFields =
       if(cl.hasOption(idOpt.getOpt)) cl.getOptionValue(idOpt.getOpt)
@@ -94,10 +87,6 @@ class IngestFeatureCommand extends Command {
       if(cl.hasOption(csvOpt.getOpt)) "CSV"
       else if(cl.hasOption(tsvOpt.getOpt)) "TSV"
       else "TSV"
-
-    val fs = FileSystem.newInstance(new Configuration())
-    val ingestPath = new Path(s"/tmp/geomesa/ingest/${conn.whoami()}/${shellState.getTableName}/${UUID.randomUUID().toString.take(5)}")
-    fs.mkdirs(ingestPath.getParent)
 
     val libJars = buildLibJars
 
@@ -109,27 +98,17 @@ class IngestFeatureCommand extends Command {
         idFields,
         latField, lonField,
         dtgField, dtgFmt, dtgTargetField,
-        hashSep,
-        idx.maxShard + 1,
-        ingestPath,
         shellState,
         conn,
+        password,
         delim)
     } catch {
-      case t: Throwable => t.printStackTrace
+      case t: Throwable => t.printStackTrace()
     }
-
-    bulkIngest(ingestPath, fs, conn, shellState)
 
     0
   }
 
-
-  def bulkIngest(ingestPath: Path, fs: FileSystem, conn: Connector, shellState: Shell) {
-    val failurePath = new Path(ingestPath, "failure")
-    fs.mkdirs(failurePath)
-    conn.tableOperations().importDirectory(shellState.getTableName, ingestPath.toString, failurePath.toString, true)
-  }
 
   def runInjestJob(libJars: String,
                    path: String,
@@ -142,13 +121,12 @@ class IngestFeatureCommand extends Command {
                    dtgField: String,
                    dtgFmt: String,
                    dtgTargetField: String,
-                   hashSep: String,
-                   numReducers: Int,
-                   ingestPath: Path,
                    shellState: Shell,
                    conn: Connector,
+                   password: String,
                    delim: String) {
     val jobConf = new JobConf
+    jobConf.setSpeculativeExecution(false)
 
     ToolRunner.run(jobConf, new Tool,
       Array(
@@ -165,11 +143,12 @@ class IngestFeatureCommand extends Command {
         "--geomesa.ingest.dtgfield",         dtgField,
         "--geomesa.ingest.dtgfmt",           dtgFmt,
         "--geomesa.ingest.dtgtargetfield",   dtgTargetField,
-        "--geomesa.ingest.hashsep",          hashSep,
-        "--geomesa.ingest.numreducers",      s"$numReducers",
-        "--geomesa.ingest.outpath",          ingestPath.toString,
         "--geomesa.ingest.table",            shellState.getTableName,
         "--geomesa.ingest.instance",         conn.getInstance().getInstanceName,
+        "--geomesa.ingest.zookeepers",       conn.getInstance().getZooKeepers,
+        "--geomesa.ingest.user",             conn.whoami(),
+        "--geomesa.ingest.password",         password,
+        "--geomesa.ingest.auths",            conn.securityOperations().getUserAuthorizations(conn.whoami()).toString,
         "--geomesa.ingest.delim",            delim)
     )
   }
@@ -189,7 +168,7 @@ class IngestFeatureCommand extends Command {
 
   override def getOptions = {
     val options = new Options
-    List(pathOpt, latOpt, lonOpt, dtgOpt, dtgFmtOpt, idOpt, csvOpt, tsvOpt).map(options.addOption(_))
+    List(pathOpt, latOpt, lonOpt, dtgOpt, dtgFmtOpt, idOpt, csvOpt, tsvOpt, pwOpt).map(options.addOption(_))
     options
   }
 
@@ -217,8 +196,10 @@ class SFTIngest(args: Args) extends Job(args) {
   lazy val dtgField         = args("geomesa.ingest.dtgfield")
   lazy val dtgFmt           = args.getOrElse("geomesa.ingest.dtgfmt", "MILLISEPOCH")
   lazy val dtgTargetField   = args.getOrElse("geomesa.ingest.dtgtargetfield", Constants.SF_PROPERTY_START_TIME)
-  lazy val hashSep          = args.getOrElse("geomesa.ingest.hashsep", "~")
-  lazy val numReducers      = args.getOrElse("geomesa.ingest.numreducers", "100").toInt
+  lazy val zookeepers       = args("geomesa.ingest.zookeepers")
+  lazy val user             = args("geomesa.ingest.user")
+  lazy val password         = args("geomesa.ingest.password")
+  lazy val auths            = args("geomesa.ingest.auths")
 
   lazy val delim    = args("geomesa.ingest.delim") match {
       case "TSV" => "\t"
@@ -232,24 +213,29 @@ class SFTIngest(args: Args) extends Job(args) {
   }
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
   lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt)
-  lazy val idx = SpatioTemporalIndexSchema(schema, sft)
 
   private val instance = args("geomesa.ingest.instance")
   private val table    = args("geomesa.ingest.table")
-  private val output   = args("geomesa.ingest.outpath")
-  lazy val accumuloSink = new AccumuloSource(instance, table, output)
+
+  lazy val params =
+    Map(
+      "zookeepers" -> zookeepers,
+      "instanceId" -> instance,
+      "tableName"  -> table,
+      "user"       -> user,
+      "password"   -> password,
+      "auths"      -> auths
+    )
+  lazy val ds = DataStoreFinder.getDataStore(params)
+  lazy val fw = ds.getFeatureWriter(typeName, Transaction.AUTO_COMMIT)
 
   lazy val attributes = sft.getAttributeDescriptors
   lazy val dtBuilder = buildDtBuilder
   lazy val idBuilder = buildIDBuilder
 
-  lazy val hashFn = (k: Key) => k.getRow.toString.split(hashSep, 1).head
-
   TextLine(path)
     .flatMap('line -> List('key, 'value)) { line: String => parseFeature(line) }
-    .project('key, 'value)
-    .partition('key -> 'hash) { k: Key => hashFn(k) } { _.sortBy('key).reducers(numReducers) }
-    .write(accumuloSink)
+    .write(NullSource)
 
   def parseFeature(line: String): List[geomesa.core.index.KeyValuePair] = {
     try {
@@ -263,32 +249,30 @@ class SFTIngest(args: Args) extends Job(args) {
       val geom = geomFactory.createPoint(new Coordinate(lon, lat))
       val dtg = dtBuilder(feature.getAttribute(dtgField))
 
-      feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       feature.setDefaultGeometry(geom)
       feature.setAttribute(dtgTargetField, dtg.toDate)
-
-      idx.encode(feature).toList
-    } catch {
-      case t: Throwable => {
-        t.printStackTrace()
-        List()
+      val toWrite = fw.next()
+      sft.getAttributeDescriptors.foreach { ad =>
+        toWrite.setAttribute(ad.getName, feature.getAttribute(ad.getName))
       }
+      toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+      toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      fw.write()
+    } catch {
+      case t: Throwable => t.printStackTrace()
     }
+    Nil
   }
 
   def buildIDBuilder: (Array[String]) => String = {
     idFields match {
       case s if "HASH".equals(s) =>
         val hashFn = Hashing.md5()
-        attrs => hashFn.newHasher().putString(attrs.mkString("|")).hash().toString
+        attrs => hashFn.newHasher().putString(attrs.mkString("|"), Charset.defaultCharset()).hash().toString
 
       case s: String =>
-        val idSplit = idFields.split(",").map {
-          f => sft.indexOf(f)
-        }
-        attrs => idSplit.map {
-          idx => attrs(idx)
-        }.mkString("_")
+        val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
+        attrs => idSplit.map { idx => attrs(idx) }.mkString("_")
     }
   }
   
