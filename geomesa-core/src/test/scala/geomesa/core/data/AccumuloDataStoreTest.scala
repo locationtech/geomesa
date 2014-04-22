@@ -107,7 +107,6 @@ class AccumuloDataStoreTest extends Specification {
       val features = results.features
       var containsGeometry = false
 
-      println("hasNext "+ features.hasNext)
       while(features.hasNext) {
         containsGeometry = containsGeometry | features.next.getDefaultGeometry.equals(geom)
       }
