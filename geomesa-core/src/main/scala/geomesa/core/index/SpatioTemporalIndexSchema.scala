@@ -324,7 +324,8 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
     bs.iterator()
   }
 
-  def configureFeatureEncoding(cfg: IteratorSetting) = cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
+  def configureFeatureEncoding(cfg: IteratorSetting) =
+    cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
 
   // establishes the regular expression that defines (minimally) acceptable rows
   def configureRowRegexIterator(bs: BatchScanner, regex: String) {
