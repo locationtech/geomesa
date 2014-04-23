@@ -176,7 +176,7 @@ sealed trait KeyTiered extends KeyPlan {
   val optList: Option[KeyList] = None
   val optRange: Option[KeyRange] = None
   def toRanges: Seq[KeyRange] = if (optRange.isDefined) Seq(optRange.get)
-    else optList.get.keys.map(key => KeyRange(key,key))
+    else optList.get.keys.map(key => KeyRange(key, key))
   def toRanges(parentRange: KeyRange, sep: String): Seq[KeyRange] =
     toRanges.map(range =>
       KeyRange(parentRange.start + sep + range.start,
@@ -188,11 +188,11 @@ sealed trait KeyTiered extends KeyPlan {
   }
   def join(right: KeyPlan, sep: String): KeyPlan = right match {
     case KeyRangeTiered(rstart, rend, None) => KeyRangeTiered(rstart, rend, Some(this))
-    case KeyRange(rstart, rend) => KeyRangeTiered(rstart, rend, Some(this))
-    case KeyListTiered(rkeys, None) => KeyListTiered(rkeys, Some(this))
-    case KeyList(rkeys) => KeyListTiered(rkeys, Some(this))
-    case KeyAccept => KeyRangeTiered(KeyAccept.MIN_START, KeyAccept.MAX_END, Some(this))
-    case _ => KeyInvalid  // degenerate case
+    case KeyRange(rstart, rend)             => KeyRangeTiered(rstart, rend, Some(this))
+    case KeyListTiered(rkeys, None)         => KeyListTiered(rkeys, Some(this))
+    case KeyList(rkeys)                     => KeyListTiered(rkeys, Some(this))
+    case KeyAccept                          => KeyRangeTiered(KeyAccept.MIN_START, KeyAccept.MAX_END, Some(this))
+    case _                                  => KeyInvalid  // degenerate case
   }
 }
 case class KeyRangeTiered(start: String, end: String, parent:Option[KeyTiered]=None) extends KeyTiered {
@@ -393,9 +393,9 @@ case class CompositePlanner(seq: Seq[KeyPlanner], sep: String) extends KeyPlanne
   def getKeyPlan(filter:Filter): KeyPlan = {
     val joined = seq.map(_.getKeyPlan(filter)).reduce(_.join(_, sep))
     joined match {
-      case kt:KeyTiered => KeyRanges(kt.toRanges(sep))
+      case kt:KeyTiered    => KeyRanges(kt.toRanges(sep).map { r => KeyRange(r.start, r.end + "~~") })
       case KeyRegex(regex) => joined.join(KeyRegex(".*"), "")
-      case _ => joined
+      case _               => joined
     }
   }
 }
