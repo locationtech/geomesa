@@ -29,6 +29,7 @@ import org.geotools.process.vector.TransformProcess
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import scala.util.Try
+import geomesa.core.transform.TransformCreator
 
 class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env: IteratorEnvironment)
   extends SortedKeyValueIterator[Key, Value] {
@@ -88,17 +89,8 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
 
     val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
     transform =
-      if(transformString != null) {
-        val defs = TransformProcess.toDefinition(transformString)
-        val builder = new SimpleFeatureBuilder(targetFeatureType)
-        (feature: SimpleFeature) => {
-          builder.reset()
-          defs.map { t => builder.set(t.name, t.expression.evaluate(feature)) }
-          val newFeature = builder.buildFeature(feature.getID)
-          new Value(featureEncoder.encode(newFeature))
-        }
-      } else _ => source.getTopValue
-
+      if(transformString != null) TransformCreator.createTransform(targetFeatureType, featureEncoder, transformString)
+      else _ => source.getTopValue
 
     // read off the filter expression, if applicable
     filter =
