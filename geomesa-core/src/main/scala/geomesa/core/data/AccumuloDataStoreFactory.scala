@@ -17,21 +17,25 @@
 
 package geomesa.core.data
 
+import collection.JavaConversions._
 import java.io.Serializable
 import java.util.{Map => JMap}
 import org.apache.accumulo.core.client.mock.MockInstance
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
-import scala.collection.JavaConversions._
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import util.Try
+import scala.reflect.ClassTag
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
-  import AccumuloDataStoreFactory.params._
+  import AccumuloDataStoreFactory._
+  import params._
+
   // this is a pass-through required of the ancestor interface
   def createNewDataStore(params: JMap[String, Serializable]) = createDataStore(params)
 
@@ -50,16 +54,31 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       if(params.containsKey(connParam.key)) connParam.lookUp(params).asInstanceOf[Connector]
       else buildAccumuloConnector(params)
 
+
+    val featureEncoding =
+      featureEncParam.lookupOpt[String](params)
+        .map(FeatureEncoding.withName)
+        .getOrElse(FeatureEncoding.AVRO)
+
     if (mapreduceParam.lookUp(params) != null && mapreduceParam.lookUp(params).asInstanceOf[String] == "true")
       if(idxSchemaParam.lookUp(params) != null)
-        new MapReduceAccumuloDataStore(connector, tableName, authorizations, params, idxSchemaParam.lookUp(params).asInstanceOf[String])
+        new MapReduceAccumuloDataStore(connector,
+                                       tableName,
+                                       authorizations,
+                                       params,
+                                       idxSchemaParam.lookUp(params).asInstanceOf[String],
+                                       featureEncoding = featureEncoding)
       else
-        new MapReduceAccumuloDataStore(connector, tableName, authorizations, params)
+        new MapReduceAccumuloDataStore(connector, tableName, authorizations, params, featureEncoding = featureEncoding)
     else {
       if(idxSchemaParam.lookUp(params) != null)
-        new AccumuloDataStore(connector, tableName, authorizations, idxSchemaParam.lookUp(params).asInstanceOf[String])
+        new AccumuloDataStore(connector,
+                              tableName,
+                              authorizations,
+                              idxSchemaParam.lookUp(params).asInstanceOf[String],
+                              featureEncoding = featureEncoding)
       else
-        new AccumuloDataStore(connector, tableName, authorizations)
+        new AccumuloDataStore(connector, tableName, authorizations, featureEncoding = featureEncoding)
     }
 
   }
@@ -94,6 +113,11 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 }
 
 object AccumuloDataStoreFactory {
+  implicit class RichParam(val p: Param) {
+    def lookupOpt[A](params: JMap[String, Serializable]) =
+      Option(p.lookUp(params)).asInstanceOf[Option[A]]
+  }
+
   object params {
     val connParam         = new Param("connector", classOf[Connector], "The Accumulo connector", false)
     val instanceIdParam   = new Param("instanceId", classOf[String], "The Accumulo Instance ID", true)
@@ -105,6 +129,7 @@ object AccumuloDataStoreFactory {
     val idxSchemaParam    = new Param("indexSchemaFormat", classOf[String], "The feature-specific index-schema format", false)
     val mockParam         = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
     val mapreduceParam    = new Param("useMapReduce", classOf[String], "Use MapReduce ingest", false)
+    val featureEncParam   = new Param("featureEncoding", classOf[String], "The feature encoding format (text or avro). Default is Avro", false, "avro")
   }
 
   import params._
@@ -117,6 +142,7 @@ object AccumuloDataStoreFactory {
     conf.set(ACCUMULO_PASS, passwordParam.lookUp(params).asInstanceOf[String])
     conf.set(TABLE, tableNameParam.lookUp(params).asInstanceOf[String])
     conf.set(AUTHS, authsParam.lookUp(params).asInstanceOf[String])
+    conf.set(FEATURE_ENCODING, featureEncParam.lookUp(params).asInstanceOf[String])
     job
   }
 
@@ -128,5 +154,6 @@ object AccumuloDataStoreFactory {
       passwordParam.key -> conf.get(ACCUMULO_PASS),
       tableNameParam.key -> conf.get(TABLE),
       authsParam.key -> conf.get(AUTHS),
+      featureEncParam.key -> conf.get(FEATURE_ENCODING),
       "useMapReduce" -> "true")
 }
