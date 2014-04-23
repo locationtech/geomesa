@@ -26,23 +26,25 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scala.util.Try
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import geomesa.core.data.SimpleFeatureEncoderFactory
 
 @RunWith(classOf[JUnitRunner])
 class SpatioTemporalIndexSchemaTest extends Specification {
 
   import collection.JavaConversions._
-  val dummyType = DataUtilities.createType("DummyType", s"foo:String,bar:Geometry,baz:Date,$SF_PROPERTY_GEOMETRY:Geometry,$SF_PROPERTY_START_TIME:Date, $SF_PROPERTY_END_TIME:Date")
+  val dummyType = DataUtilities.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$SF_PROPERTY_GEOMETRY:Geometry,$SF_PROPERTY_START_TIME:Date,$SF_PROPERTY_END_TIME:Date")
+  val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
 
   "SpatioTemporalIndexSchemaTest" should {
     "parse a valid string" in {
       val schema = SpatioTemporalIndexSchema("%~#s%foo#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%15#id",
-        dummyType)
+        dummyType, featureEncoder)
       schema should not be null
     }
 
     "allow geohash in the row" in {
       val schema = SpatioTemporalIndexSchema("%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id",
-        dummyType)
+        dummyType, featureEncoder)
       val matched = schema.planner.keyPlanner match {
         case CompositePlanner(List(ConstStringPlanner("foo"), GeoHashKeyPlanner(0,1), RandomPartitionPlanner(99)),"~") => true
         case _ => false
@@ -53,14 +55,14 @@ class SpatioTemporalIndexSchemaTest extends Specification {
     "allow extra elements inside the column qualifier" in {
       val schema = Try(SpatioTemporalIndexSchema(
         "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%9#r%ColQ#cstr%15#id%5,2#gh",
-        dummyType))
+        dummyType, featureEncoder))
       schema.isFailure must be equalTo true
     }
 
     "complain when there are extra elements at the end" in {
       val schema = Try(SpatioTemporalIndexSchema(
         "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%15#id%5,2#gh",
-        dummyType))
+        dummyType, featureEncoder))
       schema.isFailure must be equalTo true
     }
   }
@@ -70,7 +72,7 @@ class SpatioTemporalIndexSchemaTest extends Specification {
   val now = new DateTime().toDate
 
   val schemaEncoding = "%~#s%feature#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%#id"
-  val index = SpatioTemporalIndexSchema(schemaEncoding, dummyType)
+  val index = SpatioTemporalIndexSchema(schemaEncoding, dummyType, featureEncoder)
 
   "single-point (-78.4953560 38.0752150)" should {
     "encode to 1 index row" in {

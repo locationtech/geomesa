@@ -17,17 +17,14 @@
 
 package geomesa.core.data
 
-import com.vividsolutions.jts.geom.Geometry
 import geomesa.core.index._
-import java.util.Date
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
 import org.apache.accumulo.core.data.{Mutation, Value, Key}
 import org.apache.hadoop.mapred.{Reporter, RecordWriter}
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
-import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.DateTime
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
 import org.geotools.factory.Hints

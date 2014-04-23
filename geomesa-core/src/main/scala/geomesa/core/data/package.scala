@@ -35,10 +35,12 @@ package object data {
   val AUTHS              = "geomesa.auths"
   val TABLE              = "geomesa.table"
   val FEATURE_NAME       = "geomesa.feature.name"
+  val FEATURE_ENCODING   = "geomesa.feature.encoding"
   val ATTRIBUTES_CF      = new Text("attributes")
   val BOUNDS_CF          = new Text("bounds")
   val SCHEMA_CF          = new Text("schema")
   val DTGFIELD_CF        = new Text("dtgfield")
+  val FEAT_ENCODING_CF   = new Text("featureEncoding")
   val METADATA_TAG       = "~METADATA"
   val METADATA_TAG_END   = s"$METADATA_TAG~~"
   val EMPTY_STRING       = ""

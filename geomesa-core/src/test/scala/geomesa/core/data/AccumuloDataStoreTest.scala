@@ -48,7 +48,8 @@ class AccumuloDataStoreTest extends Specification {
       "password"   -> "mypassword",
       "auths"      -> "A,B,C",
       "tableName"  -> "testwrite",
-      "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
+      "useMock"    -> "true",
+      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
 
   "AccumuloDataStore" should {
     "be accessible through DataStoreFinder" in {
