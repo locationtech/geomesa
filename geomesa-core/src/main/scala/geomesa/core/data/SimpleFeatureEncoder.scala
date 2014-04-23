@@ -86,7 +86,10 @@ object ThreadSafeDataUtilities {
 class AvroFeatureEncoder extends SimpleFeatureEncoder {
 
   def encode(feature: SimpleFeature): Value = {
-    val asf = AvroSimpleFeature(feature)
+    val asf = feature.getClass match {
+      case c if classOf[AvroSimpleFeature].isAssignableFrom(c) => feature.asInstanceOf[AvroSimpleFeature]
+      case _ =>  AvroSimpleFeature(feature)
+    }
     val baos = new ByteArrayOutputStream()
     asf.write(baos)
     new Value(baos.toByteArray)
