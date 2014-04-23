@@ -47,9 +47,10 @@
         <!-- logging properties
              we expect logging jars to be provided -->
         <!-- accumulo 1.4.3 is incompatible with a 1.5.6+ version of slf4j -->
-        <slf4j.version>1.4.3</slf4j.version>
-        <logback.version>0.9.8</logback.version>
-        <scalalogging.version>1.0.1</scalalogging.version>
+        <!-- 1.7.x is for hadoop 2 and accumulo 1.5.x -->
+        <slf4j.version>1.7.1</slf4j.version>
+        <logback.version>1.1.1</logback.version>
+        <scalalogging.version>1.1.0</scalalogging.version>
 
         <!-- distribution properties -->
         <dist.accumulo.lib.ext>accumulo/lib/ext</dist.accumulo.lib.ext>
@@ -227,7 +228,7 @@
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-mapper-asl</artifactId>
-                <version>1.0.1</version>
+                <version>1.9.3</version>
             </dependency>
             <dependency>
                 <groupId>javax.transaction</groupId>
@@ -372,7 +373,6 @@
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
                 <version>1.7.5</version>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.geoserver</groupId>
@@ -411,6 +411,18 @@
                 <artifactId>junit</artifactId>
                 <version>4.5</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>11.0.1</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>findbugs</artifactId>
+                <version>2.0.3</version>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

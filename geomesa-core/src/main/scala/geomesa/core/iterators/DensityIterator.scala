@@ -33,7 +33,6 @@ import org.geotools.geometry.jts.{JTSFactoryFinder, JTS, ReferencedEnvelope}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Random
 import geomesa.utils.geotools.GridSnap
-import geomesa.core.data.AccumuloFeatureReader
 
 class DensityIterator extends SimpleFeatureFilteringIterator {
 
@@ -60,22 +59,17 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
   }
 
   override def next() = {
-    var outOfRange = false
     do {
-      super.next()
-      if (super.hasTop && !outOfRange) {
-        if (!curRange.afterEndKey(topKey.followingKey(PartialKey.ROW))) {
-          val geom = curFeature.getDefaultGeometry.asInstanceOf[Point]
-          val coord = geom.getCoordinate
-          val x = snap.x(snap.i(coord.x))
-          val y = snap.y(snap.j(coord.y))
-          val cur = Option(result.get(x, y)).getOrElse(0)
-          result.put(x, y, cur + 1)
-        } else {
-          outOfRange = true
-        }
+      if (super.hasTop) {
+        val geom = curFeature.getDefaultGeometry.asInstanceOf[Point]
+        val coord = geom.getCoordinate
+        val x = snap.x(snap.i(coord.x))
+        val y = snap.y(snap.j(coord.y))
+        val cur = Option(result.get(x, y)).getOrElse(0)
+        result.put(x, y, cur + 1)
+        super.next()
       }
-    } while(nextKey != null && !outOfRange)
+    } while(nextKey != null && super.hasTop && !curRange.afterEndKey(topKey.followingKey(PartialKey.ROW)))
   }
 
   override def seek(range: ARange,
@@ -92,7 +86,7 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
     val feature = featureBuilder.buildFeature(Random.nextString(6))
     result.clear()
 
-    new Value(DataUtilities.encodeFeature(feature).getBytes)
+    featureEncoder.encode(feature)
   }
 }
 

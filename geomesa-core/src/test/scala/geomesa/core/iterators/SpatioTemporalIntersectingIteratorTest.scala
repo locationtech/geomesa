@@ -19,7 +19,7 @@ package geomesa.core.iterators
 import collection.JavaConversions._
 import collection.JavaConverters._
 import com.vividsolutions.jts.geom.{Polygon, Geometry}
-import geomesa.core.data.SimpleFeatureEncoder
+import geomesa.core.data.{SimpleFeatureEncoderFactory, SimpleFeatureEncoder}
 import geomesa.core.index._
 import geomesa.utils.text.WKTUtils
 import java.util
@@ -66,10 +66,11 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     // set up the geographic query polygon
     val wktQuery = "POLYGON((45 23, 48 23, 48 27, 45 27, 45 23))"
 
+    val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
     val featureName = "feature"
     val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
     val featureType = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
-    val index = SpatioTemporalIndexSchema(schemaEncoding, featureType)
+    val index = SpatioTemporalIndexSchema(schemaEncoding, featureType, featureEncoder)
 
     val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
 
@@ -226,8 +227,10 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
                           overrideGeometry: Boolean = false,
                           doPrint: Boolean = true): Int = {
 
+    val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
+
     // create the schema, and require de-duplication
-    val schema = SpatioTemporalIndexSchema(TestData.schemaEncoding, TestData.featureType)
+    val schema = SpatioTemporalIndexSchema(TestData.schemaEncoding, TestData.featureType, featureEncoder)
 
     // create the query polygon
     val polygon: Polygon = overrideGeometry match {
@@ -246,7 +249,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val retval = if (doPrint) {
       val results: List[Value] = itr.toList
       results.map(value => {
-        val simpleFeature = SimpleFeatureEncoder.decode(TestData.featureType, value)
+        val simpleFeature = featureEncoder.decode(TestData.featureType, value)
         val attrs = simpleFeature.getAttributes.map(attr => if (attr == null) "" else attr.toString).mkString("|")
         println("[SII." + label + "] query-hit:  " + simpleFeature.getID + "=" + attrs)
       })

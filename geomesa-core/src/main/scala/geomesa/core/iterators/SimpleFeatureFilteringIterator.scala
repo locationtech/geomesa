@@ -17,7 +17,7 @@
 package geomesa.core.iterators
 
 import collection.JavaConversions._
-import geomesa.core.data.SimpleFeatureEncoder
+import geomesa.core.data._
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -29,6 +29,7 @@ import org.geotools.process.vector.TransformProcess
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import scala.util.Try
+import geomesa.core.transform.TransformCreator
 
 class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env: IteratorEnvironment)
   extends SortedKeyValueIterator[Key, Value] {
@@ -49,13 +50,15 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var simpleFeatureType: SimpleFeatureType = null
   var targetFeatureType: SimpleFeatureType = null
 
+  var featureEncoder: SimpleFeatureEncoder = null
+
   // the default filter accepts everything
   var filter: Filter = null
 
   var transform: (SimpleFeature => Value) = (_: SimpleFeature) => source.getTopValue
 
   def evalFilter(v: Value) = {
-    curFeature = SimpleFeatureEncoder.decode(simpleFeatureType, v)
+    curFeature = featureEncoder.decode(simpleFeatureType, v)
     filter.evaluate(curFeature)
   }
 
@@ -72,6 +75,10 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
            env: IteratorEnvironment) {
     this.source = source
 
+    // default to text if not found for backwards compatibility
+    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
+    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
+
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
     simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
 
@@ -82,17 +89,8 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
 
     val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
     transform =
-      if(transformString != null) {
-        val defs = TransformProcess.toDefinition(transformString)
-        val builder = new SimpleFeatureBuilder(targetFeatureType)
-        (feature: SimpleFeature) => {
-          builder.reset()
-          defs.map { t => builder.set(t.name, t.expression.evaluate(feature)) }
-          val newFeature = builder.buildFeature(feature.getID)
-          new Value(DataUtilities.encodeFeature(newFeature).getBytes)
-        }
-      } else _ => source.getTopValue
-
+      if(transformString != null) TransformCreator.createTransform(targetFeatureType, featureEncoder, transformString)
+      else _ => source.getTopValue
 
     // read off the filter expression, if applicable
     filter =
@@ -171,4 +169,5 @@ object SimpleFeatureFilteringIterator {
     cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
     schema.map(sft => cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, DataUtilities.encodeType(sft)))
   }
+
 }
