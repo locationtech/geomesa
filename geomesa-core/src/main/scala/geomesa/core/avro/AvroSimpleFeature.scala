@@ -13,7 +13,7 @@ import org.apache.avro.generic.{GenericDatumWriter, GenericData, GenericRecord}
 import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
 import org.apache.avro.{SchemaBuilder, Schema}
 import org.geotools.data.DataUtilities
-import org.geotools.feature.GeometryAttributeImpl
+import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.feature.`type`.AttributeDescriptorImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
@@ -132,8 +132,8 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   def getProperties: util.Collection[Property] = ???
   def getProperties(name: Name): util.Collection[Property] = ???
   def getProperties(name: String): util.Collection[Property] = ???
-  def getProperty(name: Name): Property = ???
-  def getProperty(name: String): Property = ???
+  def getProperty(name: Name): Property = getProperty(name.getLocalPart)
+  def getProperty(name: String): Property = new AttributeImpl(getAttribute(name), sft.getDescriptor(name), id)
 
   def getValue: util.Collection[_ <: Property] = getProperties
 
