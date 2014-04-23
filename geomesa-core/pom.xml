@@ -20,7 +20,7 @@
     <parent>
         <groupId>geomesa</groupId>
         <artifactId>geomesa</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>geomesa-core</artifactId>
@@ -38,10 +38,6 @@
         <dependency>
             <groupId>geomesa</groupId>
             <artifactId>geomesa-filter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>geomesa</groupId>
-            <artifactId>geomesa-avro-scala</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -132,6 +128,14 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-hsql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>findbugs</artifactId>
         </dependency>
         <!-- test dependencies -->
         <dependency>

@@ -17,21 +17,25 @@
 
 package geomesa.core.data
 
+import collection.JavaConversions._
 import java.io.Serializable
 import java.util.{Map => JMap}
 import org.apache.accumulo.core.client.mock.MockInstance
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
-import scala.collection.JavaConversions._
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import util.Try
+import scala.reflect.ClassTag
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
-  import AccumuloDataStoreFactory.params._
+  import AccumuloDataStoreFactory._
+  import params._
+
   // this is a pass-through required of the ancestor interface
   def createNewDataStore(params: JMap[String, Serializable]) = createDataStore(params)
 
@@ -50,14 +54,11 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       if(params.containsKey(connParam.key)) connParam.lookUp(params).asInstanceOf[Connector]
       else buildAccumuloConnector(params)
 
+
     val featureEncoding =
-       if (featureEncParam.lookUp(params) != null)
-         featureEncParam.lookUp(params).asInstanceOf[String] match {
-           case "avro" => FeatureEncoding.AVRO
-           case "text" => FeatureEncoding.TEXT
-           case _ => throw new IllegalArgumentException("Feature type must be of type text or avro")
-         }
-       else FeatureEncoding.AVRO
+      featureEncParam.lookupOpt[String](params)
+        .map(FeatureEncoding.withName)
+        .getOrElse(FeatureEncoding.AVRO)
 
     if (mapreduceParam.lookUp(params) != null && mapreduceParam.lookUp(params).asInstanceOf[String] == "true")
       if(idxSchemaParam.lookUp(params) != null)
@@ -112,6 +113,11 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 }
 
 object AccumuloDataStoreFactory {
+  implicit class RichParam(val p: Param) {
+    def lookupOpt[A](params: JMap[String, Serializable]) =
+      Option(p.lookUp(params)).asInstanceOf[Option[A]]
+  }
+
   object params {
     val connParam         = new Param("connector", classOf[Connector], "The Accumulo connector", false)
     val instanceIdParam   = new Param("instanceId", classOf[String], "The Accumulo Instance ID", true)

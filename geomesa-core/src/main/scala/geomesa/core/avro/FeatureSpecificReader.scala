@@ -1,22 +1,22 @@
-package geomesa.avro.scala
+package geomesa.core.avro
 
+import com.vividsolutions.jts.geom.Geometry
+import java.io.InputStream
 import java.util.{Date, UUID}
-import org.apache.avro.io.{DecoderFactory, Decoder, DatumReader}
 import org.apache.avro.Schema
+import org.apache.avro.io.{DecoderFactory, Decoder, DatumReader}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.util.Converters
 import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.immutable.HashSet
-import com.vividsolutions.jts.geom.Geometry
-import java.io.InputStream
 
 
 class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType)
   extends DatumReader[AvroSimpleFeature] {
 
-  import scala.collection.JavaConversions._
   import AvroSimpleFeature._
+  import scala.collection.JavaConversions._
 
   var oldSchema = AvroSimpleFeature.generateSchema(oldType)
   val newSchema = AvroSimpleFeature.generateSchema(newType)
@@ -46,17 +46,13 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     val sf = new AvroSimpleFeature(id, newType)
     if(dataFields.size != fieldsDesired.size)
       dataFields.foreach { f =>
-        checkNull(f.name(), in) match {
-          case true => in.readNull()
-          case false => setOrConsume(sf, f.name, in, typeMap.get(f.name).get)
-        }
+        if(checkNull(f.name(), in)) in.readNull()
+        else setOrConsume(sf, f.name, in, typeMap.get(f.name).get)
       }
     else
       dataFields.foreach { f =>
-        checkNull(f.name(), in) match {
-          case true => in.readNull()
-          case false => set(sf, f.name, in, typeMap.get(f.name).get)
-        }
+        if(checkNull(f.name(), in)) in.readNull()
+        else set(sf, f.name, in, typeMap.get(f.name).get)
       }
     sf
   }

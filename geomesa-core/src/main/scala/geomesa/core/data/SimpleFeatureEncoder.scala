@@ -16,14 +16,14 @@
 
 package geomesa.core.data
 
+import com.google.common.cache.LoadingCache
+import geomesa.core.avro.{FeatureSpecificReader, AvroSimpleFeature}
 import geomesa.utils.text.ObjectPoolFactory
+import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 import org.apache.accumulo.core.data.Value
+import org.apache.avro.io.DecoderFactory
 import org.geotools.data.DataUtilities
 import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
-import com.google.common.cache.{LoadingCache}
-import geomesa.avro.scala.{AvroSimpleFeature, FeatureSpecificReader}
-import org.apache.avro.io.DecoderFactory
-import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 
 
 /**
@@ -106,9 +106,6 @@ class AvroFeatureEncoder extends SimpleFeatureEncoder {
   def extractFeatureId(value: Value) = FeatureSpecificReader.extractId(new ByteArrayInputStream(value.get()))
 
   val readerCache: LoadingCache[SimpleFeatureType, FeatureSpecificReader] =
-    AvroSimpleFeature.loadingCacheBuilder {
-      sft =>
-        FeatureSpecificReader(sft)
-    }
+    AvroSimpleFeature.loadingCacheBuilder { sft => FeatureSpecificReader(sft) }
 }
 

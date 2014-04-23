@@ -38,8 +38,8 @@ import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Random
 import scala.util.parsing.combinator.RegexParsers
-import geomesa.avro.scala.FeatureSpecificReader
 import java.io.ByteArrayInputStream
+import geomesa.core.avro.FeatureSpecificReader
 
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)
@@ -324,7 +324,8 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
     bs.iterator()
   }
 
-  def configureFeatureEncoding(cfg: IteratorSetting) = cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
+  def configureFeatureEncoding(cfg: IteratorSetting) =
+    cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
 
   // establishes the regular expression that defines (minimally) acceptable rows
   def configureRowRegexIterator(bs: BatchScanner, regex: String) {
