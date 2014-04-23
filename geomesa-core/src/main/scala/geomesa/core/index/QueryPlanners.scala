@@ -393,7 +393,7 @@ case class CompositePlanner(seq: Seq[KeyPlanner], sep: String) extends KeyPlanne
   def getKeyPlan(filter:Filter): KeyPlan = {
     val joined = seq.map(_.getKeyPlan(filter)).reduce(_.join(_, sep))
     joined match {
-      case kt:KeyTiered    => KeyRanges(kt.toRanges(sep).map { r => KeyRange(r.start, r.end + "~~") })
+      case kt:KeyTiered    => KeyRanges(kt.toRanges(sep))
       case KeyRegex(regex) => joined.join(KeyRegex(".*"), "")
       case _               => joined
     }

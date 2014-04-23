@@ -57,10 +57,14 @@ class FeatureSpecificReaderTest {
     val decoder = DecoderFactory.get().binaryDecoder(fis, null)
     val fsr = new FeatureSpecificReader(oldType, newType)
 
-    val result = Iterator.continually(fsr.read(null, decoder)).takeWhile { asf => !decoder.isEnd && asf != null }
+    val sfList = new ListBuffer[AvroSimpleFeature]()
+
+    do {
+      sfList += fsr.read(null, decoder)
+    } while(!decoder.isEnd)
 
     fis.close()
-    result.toList
+    sfList.toList
   }
 
   def readPipeFile(f:File, sft:SimpleFeatureType) : List[SimpleFeature] = {
@@ -143,9 +147,8 @@ class FeatureSpecificReaderTest {
   }
 
   @Test(expected = classOf[NullPointerException])
-  def testMemberNotInSubsetIsNull() = {
-    getSubsetData(0).getAttribute("f20")
-  }
+  def testMemberNotInSubsetIsNull(): Unit = getSubsetData(0).getAttribute("f20")
+
 
   @Test
   def testGeoTypes() = {
