@@ -241,7 +241,6 @@ class SFTIngest(args: Args) extends Job(args) {
 
   TextLine(path).using(new CloseableFeatureWriter)
     .foreach('line) { (cfw: CloseableFeatureWriter, line: String) => parseFeature(cfw.fw, line) }
-    .write(NullSource)
 
   def parseFeature(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String): Unit = {
     try {
