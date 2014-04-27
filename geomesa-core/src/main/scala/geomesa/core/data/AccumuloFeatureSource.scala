@@ -17,8 +17,10 @@
 package geomesa.core.data
 
 import collection.JavaConversions._
+import geomesa.process.TubeVisitor
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.geotools.process.vector.TransformProcess
 import org.joda.time.DateTime
@@ -26,6 +28,7 @@ import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
+import geomesa.core.index.Constants
 
 trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
   val dataStore: AccumuloDataStore
@@ -87,20 +90,31 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource,
                                 query: Query)
   extends DefaultFeatureResults(source, query) {
 
+  val ds  = source.getDataStore.asInstanceOf[AccumuloDataStore]
+  val ff  = CommonFactoryFinder.getFilterFactory2
+
   override def getSchema: SimpleFeatureType =
-    if(query.getHints.containsKey(TRANSFORMS)) query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
+    if(query.getHints.containsKey(TRANSFORMS))
+      query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
     else super.getSchema
 
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener) = visitor match {
     // TODO: implement min/max iterators
-    case v: MinVisitor =>
-      v.setValue(new DateTime(2000,1,1,0,0).toDate)
-    case v: MaxVisitor =>
-      v.setValue(new DateTime().toDate)
-    case v: BoundsVisitor =>
-      val bounds = source.getDataStore.asInstanceOf[AccumuloDataStore].getBounds(query)
-      v.reset(bounds)
-    case _ => super.accepts(visitor, progress)
+    case v: MinVisitor    => v.setValue(new DateTime(2000,1,1,0,0).toDate)
+    case v: MaxVisitor    => v.setValue(new DateTime().toDate)
+    case v: BoundsVisitor => v.reset(ds.getBounds(query))
+    case v: TubeVisitor   => v.setValue(tubeSelect(v))
+    case _                => super.accepts(visitor, progress)
+  }
+
+  def tubeSelect(params: TubeVisitor): SimpleFeatureCollection = {
+    val geomProperty = ff.property(getSchema.getGeometryDescriptor.getName)
+    val dateProperty = ff.property(getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])
+    val dtgFilter = ff.between(dateProperty, ff.literal(params.startDate), ff.literal(params.endDate))
+    val bufferedGeom = params.geom.buffer(0.01)
+    val bufferedGeomFilter = ff.within(geomProperty, ff.literal(bufferedGeom))
+    val combinedFilter = ff.and(List(query.getFilter, bufferedGeomFilter, dtgFilter))
+    source.getFeatures(combinedFilter)
   }
 
 }
