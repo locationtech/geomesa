@@ -89,7 +89,7 @@ class FeatureWritersTest extends Specification {
         originalFeature2.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
         featureCollection.add(originalFeature2)
 
-        /* create a second feature */
+        /* create a third feature */
         val originalFeature3 = SimpleFeatureBuilder.build(sft, List(), "id3")
         originalFeature3.setDefaultGeometry(geom)
         originalFeature3.setAttribute("name","kyle")

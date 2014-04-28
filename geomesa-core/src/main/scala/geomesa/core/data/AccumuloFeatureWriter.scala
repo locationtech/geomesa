@@ -23,6 +23,7 @@ import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
 import org.apache.accumulo.core.data.{PartialKey, Mutation, Value, Key}
 import org.apache.hadoop.mapred.{Reporter, RecordWriter}
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
+import org.apache.log4j.Logger
 import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.factory.Hints
@@ -78,6 +79,8 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
                                      indexer: SpatioTemporalIndexSchema,
                                      recordWriter: RecordWriter[Key,Value]) extends SimpleFeatureWriter {
 
+  private val log = Logger.getLogger(classOf[AccumuloFeatureWriter])
+
   def getFeatureType: SimpleFeatureType = featureType
 
   /* Return a String representing nextId - use UUID.random for universal uniqueness across multiple ingest nodes */
@@ -99,8 +102,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
     val kvPairsToWrite =
       if (toWrite.getDefaultGeometry != null) indexer.encode(toWrite)
       else {
-        println("[WARNING] AccumuloFeatureWriter.write:  " +
-          "Invalid feature to write:  " + DataUtilities.encodeFeature(toWrite))
+        log.warn("Invalid feature to write:  " + DataUtilities.encodeFeature(toWrite))
         List()
       }
     kvPairsToWrite.foreach { case (k,v) => recordWriter.write(k,v) }
@@ -145,11 +147,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
   var live: SimpleFeature = null      /* feature to let user modify   */
   var original: SimpleFeature = null  /* feature returned from reader */
 
-  override def remove =
-    if (original != null)
-      indexer.encode(original).foreach {
-        case (k,v) => deleter.write(k,v)
-      }
+  override def remove = if (original != null) indexer.encode(original).foreach { case (k,v) => deleter.write(k,v) }
 
   override def hasNext = reader.hasNext
 
@@ -164,10 +162,10 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
   /* Delete keys from original index and data entries that are different from new keys */
   /* Return list of old keys that should be deleted */
   def keysToDelete = {
-    val oldKeys = indexer.encode(original).map{ case (k,v) => k }
-    val newKeys = indexer.encode(live).map{ case (k,v) => k }
-    oldKeys.zip(newKeys).filter { case(o, n)
-      => !o.equals(n, PartialKey.ROW_COLFAM_COLQUAL_COLVIS) }.map{ case (k1, k2) => k1
+    val oldKeys = indexer.encode(original).map { case (k,v) => k }
+    val newKeys = indexer.encode(live).map { case (k,v) => k }
+    oldKeys.zip(newKeys).filter { case(o, n) =>
+      !o.equals(n, PartialKey.ROW_COLFAM_COLQUAL_COLVIS) }.map{ case (k1, k2) => k1
     }
   }
 
