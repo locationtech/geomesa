@@ -344,7 +344,7 @@ class FeatureWritersTest extends Specification {
         }
         origFeatures.size should be equalTo(5)
 
-        val filter = CQL.toFilter("name = 'will' or name='george'")
+        val filter = CQL.toFilter("include")
         val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
 
         val newDate = sdf.parse("20120102")
@@ -372,6 +372,8 @@ class FeatureWritersTest extends Specification {
           val n = newFeatures(k)
 
           o.getID must be equalTo(n.getID)
+          o.getDefaultGeometry must not be equalTo(n.getDefaultGeometry)
+          o.getAttribute(index.SF_PROPERTY_START_TIME) must not be equalTo(n.getAttribute(index.SF_PROPERTY_START_TIME))
         }
       }
 
