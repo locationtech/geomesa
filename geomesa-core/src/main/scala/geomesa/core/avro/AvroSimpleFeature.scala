@@ -92,7 +92,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   def getAttribute(index: Int) = values(index)
   def setAttribute(name: String, value: Object) = setAttribute(nameIndex(name), value)
   def setAttribute(name: Name, value: Object) = setAttribute(name.getLocalPart, value)
-  def setAttribute(index: Int, value: Object) = values(index) = value
+  def setAttribute(index: Int, value: Object) = values(index) = Converters.convert(value, getFeatureType.getDescriptor(index).getType.getBinding).asInstanceOf[AnyRef]
   def setAttributes(values: JList[Object]) =
     values.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
 
