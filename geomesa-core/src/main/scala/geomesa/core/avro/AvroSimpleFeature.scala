@@ -92,10 +92,13 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   def getAttribute(index: Int) = values(index)
   def setAttribute(name: String, value: Object) = setAttribute(nameIndex(name), value)
   def setAttribute(name: Name, value: Object) = setAttribute(name.getLocalPart, value)
-  def setAttribute(index: Int, value: Object) = values(index) = Converters.convert(value, getFeatureType.getDescriptor(index).getType.getBinding).asInstanceOf[AnyRef]
+  def setAttribute(index: Int, value: Object) = setAttributeNoConvert(index, Converters.convert(value, getFeatureType.getDescriptor(index).getType.getBinding).asInstanceOf[AnyRef])
   def setAttributes(values: JList[Object]) =
     values.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
 
+  def setAttributeNoConvert(index: Int, value: Object) = values(index) = value
+  def setAttributeNoConvert(name: String, value: Object): Unit = setAttributeNoConvert(nameIndex(name), value)
+  def setAttributeNoConvert(name: Name, value: Object): Unit = setAttributeNoConvert(name.getLocalPart, value)
   def getAttributeCount = values.length
   def getAttributes: JList[Object] = values.toList
   def getDefaultGeometry: Object = Try(sft.getGeometryDescriptor.getName).map { getAttribute }.getOrElse(null)

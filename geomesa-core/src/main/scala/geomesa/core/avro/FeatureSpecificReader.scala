@@ -84,7 +84,7 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
       case c if classOf[Geometry].isAssignableFrom(cls) =>
         Converters.convert(in.readString(), cls).asInstanceOf[Object]
     }
-    sf.setAttribute(field, obj)
+    sf.setAttributeNoConvert(field, obj)
   }
 
   protected def consume(cls: Class[_], in:Decoder) = cls match {
