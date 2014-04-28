@@ -16,17 +16,22 @@
 
 package geomesa.core.data
 
-import scala.collection.JavaConversions._
+import geomesa.core.index
 import geomesa.utils.text.WKTUtils
+import java.text.SimpleDateFormat
+import java.util.TimeZone
 import org.geotools.data._
-import org.geotools.factory.{GeoTools, CommonFactoryFinder, Hints}
+import org.geotools.data.simple.SimpleFeatureIterator
+import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scala.collection
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class FeatureWritersTest extends Specification {
@@ -34,6 +39,12 @@ class FeatureWritersTest extends Specification {
   sequential
 
   val geotimeAttributes = geomesa.core.index.spec
+  val sftName = "mutableType"
+  val sft = DataUtilities.createType(sftName, s"name:String,age:Integer,$geotimeAttributes")
+
+  val sdf = new SimpleDateFormat("yyyyMMdd")
+  sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))
+  val dateToIndex = sdf.parse("20140102")
 
   def createStore: AccumuloDataStore =
     // the specific parameter values should not matter, as we
@@ -45,16 +56,13 @@ class FeatureWritersTest extends Specification {
       "user"       -> "myuser",
       "password"   -> "mypassword",
       "auths"      -> "A,B,C",
-      "tableName"  -> "testwrite",
-      "useMock"    -> "true",
-      "featureEncoding" -> "avro")
+      "tableName"  -> "differentTableFromOtherTests", //note the table needs to be different to prevent testing errors,
+      "useMock"    -> "true")
     ).asInstanceOf[AccumuloDataStore]
 
-    "AccumuloDataStore" should {
+    "AccumuloFeatureWriter" should {
       "provide ability to update a single feature that it wrote and preserve feature IDs" in {
         val ds = createStore
-        val sftName = "mutableType"
-        val sft = DataUtilities.createType(sftName, s"name:String,age:Integer,$geotimeAttributes")
         ds.createSchema(sft)
         val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
@@ -109,20 +117,12 @@ class FeatureWritersTest extends Specification {
         val query = new Query(sftName, cqlFilter)
 
         /* Let's read out what we wrote...we should only get tom and billy back out */
-        val results = fs.getFeatures(query)
-        val features = results.features
-        val nameAgeMap = collection.mutable.HashMap.empty[String, Int]
-        val featureIdMap = collection.mutable.HashMap.empty[String, String]
-        while(features.hasNext) {
-          val sf = features.next()
-          nameAgeMap.put(sf.getAttribute("name").asInstanceOf[String], sf.getAttribute("age").asInstanceOf[Int])
-          featureIdMap.put(sf.getAttribute("name").asInstanceOf[String], sf.getID)
-        }
-
+        val nameAgeMap = getMap[String, Int](getFeatures(sftName, fs, "include"), "name", "age")
         nameAgeMap.size should equalTo(2)
         nameAgeMap should contain( "tom" -> 60)
         nameAgeMap should contain( "billy" -> 25)
 
+        val featureIdMap = getMap[String, String](getFeatures(sftName, fs, "include"), "name", (sf:SimpleFeature) => sf.getID)
         featureIdMap.size should equalTo(2)
         featureIdMap should contain( "tom" -> "id2")
         featureIdMap should contain( "billy" -> "id1")
@@ -130,7 +130,6 @@ class FeatureWritersTest extends Specification {
 
       "be able to replace all features in a store using a general purpose FeatureWriter" in {
         val ds = createStore
-        val sftName = "mutableType"
         val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
         /* from the test before there are 2 features left over - validate that's true and delete  */
@@ -148,11 +147,11 @@ class FeatureWritersTest extends Specification {
         val sftType = ds.getSchema(sftName)
         val geom = WKTUtils.read("POINT(45.0 49.0)")
         val c = new DefaultFeatureCollection
-        c.add(SimpleFeatureBuilder.build(sftType, Array("will", 56.asInstanceOf[AnyRef], geom, null, null), "fid1"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("george", 33.asInstanceOf[AnyRef], geom, null, null), "fid2"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("sue", 99.asInstanceOf[AnyRef], geom, null, null), "fid3"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("karen", 50.asInstanceOf[AnyRef], geom, null, null), "fid4"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("bob", 56.asInstanceOf[AnyRef], geom, null, null), "fid5"))
+        c.add(SimpleFeatureBuilder.build(sftType, Array("will", 56.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid1"))
+        c.add(SimpleFeatureBuilder.build(sftType, Array("george", 33.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid2"))
+        c.add(SimpleFeatureBuilder.build(sftType, Array("sue", 99.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid3"))
+        c.add(SimpleFeatureBuilder.build(sftType, Array("karen", 50.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid4"))
+        c.add(SimpleFeatureBuilder.build(sftType, Array("bob", 56.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid5"))
 
         val ids = c.map { f => f.getID}
         try {
@@ -166,18 +165,8 @@ class FeatureWritersTest extends Specification {
 
         countFeatures(fs, sftName) should equalTo(5)
 
-        val query = new Query(sftName, CQL.toFilter("include"))
-
-        val results = fs.getFeatures(query)
-        val features = results.features
-        val featureIdMap = collection.mutable.HashMap.empty[String, String]
-        while(features.hasNext) {
-          val sf = features.next()
-          featureIdMap.put(sf.getAttribute("name").asInstanceOf[String], sf.getID)
-        }
-
         /* this tests the Hints.PROVIDED_FID feature */
-
+        val featureIdMap = getMap[String, String](getFeatures(sftName, fs, "include"), "name", (sf: SimpleFeature) => sf.getID)
         featureIdMap.size should equalTo(5)
         featureIdMap should contain("will" -> "fid1")
         featureIdMap should contain("george" -> "fid2")
@@ -188,30 +177,19 @@ class FeatureWritersTest extends Specification {
 
       "be able to update all features based on some ecql or something" in {
         val ds = createStore
-        val sftName = "mutableType"
         val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
         val filter = CQL.toFilter("(age > 50 AND age < 99) or (name = 'karen')");
         fs.modifyFeatures(Array("age"), Array(60.asInstanceOf[AnyRef]), filter)
 
-        val query = new Query(sftName, CQL.toFilter("age = 60"))
-
-        val results = fs.getFeatures(query)
-        val features = results.features
-        val nameAgeMap = collection.mutable.HashMap.empty[String, Int]
-        val featureIdMap = collection.mutable.HashMap.empty[String, String]
-        while(features.hasNext) {
-          val sf = features.next()
-          nameAgeMap.put(sf.getAttribute("name").asInstanceOf[String], sf.getAttribute("age").asInstanceOf[Int])
-          featureIdMap.put(sf.getAttribute("name").asInstanceOf[String], sf.getID)
-        }
-
+        val nameAgeMap = getMap[String, Int](getFeatures(sftName, fs, "age = 60"), "name", "age")
         nameAgeMap.size should equalTo(3)
         nameAgeMap should contain( "will" -> 60)
         nameAgeMap should contain( "karen" -> 60)
         nameAgeMap should contain( "bob" -> 60)
 
         /* feature id should stay the same */
+        val featureIdMap = getMap[String, String](getFeatures(sftName, fs, "age = 60"),"name", (sf:SimpleFeature) => sf.getID)
         featureIdMap.size should equalTo(3)
         featureIdMap should contain("will" -> "fid1")
         featureIdMap should contain("karen" -> "fid4")
@@ -220,7 +198,6 @@ class FeatureWritersTest extends Specification {
 
       "provide ability to add data inside transactions" in {
         val ds = createStore
-        val sftName = "mutableType"
         val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
         val sftType = ds.getSchema(sftName)
@@ -236,15 +213,8 @@ class FeatureWritersTest extends Specification {
           fs.addFeatures(c)
           trans.commit()
 
-          val query = new Query(sftName, CQL.toFilter("(age = 15) or (age = 16) or (age = 17)"))
-          val results = fs.getFeatures(query)
-          val features = results.features
-          val nameAgeMap = collection.mutable.HashMap.empty[String, Int]
-          while(features.hasNext) {
-            val sf = features.next()
-            nameAgeMap.put(sf.getAttribute("name").asInstanceOf[String], sf.getAttribute("age").asInstanceOf[Int])
-          }
-
+          val features = getFeatures(sftName, fs, "(age = 15) or (age = 16) or (age = 17)")
+          val nameAgeMap = getMap[String, Int](features, "name", "age")
           nameAgeMap.size should equalTo(3)
           nameAgeMap should contain( "dude1" -> 15)
           nameAgeMap should contain( "dude2" -> 16)
@@ -262,7 +232,6 @@ class FeatureWritersTest extends Specification {
 
       "provide ability to remove inside transactions" in {
         val ds = createStore
-        val sftName = "mutableType"
         val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
         val trans = new DefaultTransaction("trans1")
         fs.setTransaction(trans)
@@ -270,19 +239,10 @@ class FeatureWritersTest extends Specification {
           fs.removeFeatures(CQL.toFilter("name = 'dude1' or name='dude2' or name='dude3'"))
           trans.commit()
 
-          val query = new Query(sftName, CQL.toFilter("include"))
-          val results = fs.getFeatures(query)
-          val features = results.features
-          val nameAgeMap = collection.mutable.HashMap.empty[String, Int]
-          while(features.hasNext) {
-            val sf = features.next()
-            nameAgeMap.put(sf.getAttribute("name").asInstanceOf[String], sf.getAttribute("age").asInstanceOf[Int])
-          }
-
+          val nameAgeMap = getMap[String, Int](getFeatures(sftName, fs, "include"), "name", "age")
           nameAgeMap.keySet should not contain ("dude1")
           nameAgeMap.keySet should not contain ("dude2")
           nameAgeMap.keySet should not contain ("dude3")
-
           nameAgeMap.keySet should containAllOf(List("will", "george", "sue", "karen", "bob"))
           nameAgeMap.size should equalTo(5)
 
@@ -296,15 +256,105 @@ class FeatureWritersTest extends Specification {
           trans.close()
         }
       }
+
+      "issue delete keys when geometry changes" in {
+        val ds = createStore
+        val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+        val featureCollection = new DefaultFeatureCollection(sftName, sft)
+        val filter = CQL.toFilter("name = 'bob' or name='karen'")
+        val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
+
+        while(writer.hasNext){
+          val sf = writer.next
+          sf.setDefaultGeometry(WKTUtils.read("POINT(50.0 50)"))
+          writer.write
+        }
+        writer.close
+
+        // Verify old geo bbox doesn't return them
+        val map45 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 44.9,48.9,45.1,49.1)"),"name", "age")
+        map45.keySet.size should equalTo(3)
+        map45.keySet should containAllOf(List("will", "george", "sue"))
+
+        // Verify that new geometries are written with a bbox query that uses the index
+        val map50 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 49.9,49.9,50.1,50.1)"),"name", "age")
+        map50.keySet.size should equalTo(2)
+        map50.keySet should containAllOf(List("bob", "karen"))
+
+        // get them all
+        val mapLarge = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 44.0,44.0,51.0,51.0)"),"name", "age")
+        mapLarge.keySet.size should equalTo(5)
+        mapLarge.keySet should containAllOf(List("will", "george", "sue", "bob", "karen"))
+
+        // get none
+        val mapNone = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 30.0,30.0,31.0,31.0)"),"name", "age")
+        mapNone.keySet.size should equalTo(0)
+      }
+
+      "issue delete keys when datetime changes" in {
+        val ds = createStore
+        val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+        val attr = index.SF_PROPERTY_START_TIME
+        val map1 = getMap[String,Int](getFeatures(sftName, fs, "include"),"name", attr)
+
+        val filter = CQL.toFilter("name = 'will' or name='george'")
+        val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
+
+        val newDate = sdf.parse("20140202")
+        while(writer.hasNext){
+          val sf = writer.next
+          sf.setAttribute(index.SF_PROPERTY_START_TIME, newDate)
+          writer.write
+        }
+        writer.close
+
+        // Verify old daterange doesn't return them
+        val mapJan = getMap[String,Int](getFeatures(sftName, fs, s"$attr DURING 2013-12-29T00:00:00Z/2014-01-04T00:00:00Z"),"name", "age")
+        mapJan.keySet.size should equalTo(3)
+        mapJan.keySet should containAllOf(List("sue", "bob", "karen"))
+
+        // Verify new date range returns things
+        val mapFeb = getMap[String,Int](getFeatures(sftName, fs, s"$attr DURING 2014-02-01T00:00:00Z/2014-02-03T00:00:00Z"),"name", "age")
+        mapFeb.keySet.size should equalTo(2)
+        mapFeb.keySet should containAllOf(List("will","george"))
+
+        // Verify large date range returns everything
+        val mapJanFeb = getMap[String,Int](getFeatures(sftName, fs, s"$attr DURING 2014-01-01T00:00:00Z/2014-02-03T00:00:00Z"),"name", "age")
+        mapJanFeb.keySet.size should equalTo(5)
+        mapJanFeb.keySet should containAllOf(List("will", "george", "sue", "bob", "karen"))
+
+        // Verify other date range returns nothing
+        val map2013 = getMap[String,Int](getFeatures(sftName, fs, s"$attr DURING 2013-01-01T00:00:00Z/2013-12-31T00:00:00Z"),"name", "age")
+        map2013.keySet.size should equalTo(0)
+      }
+
     }
 
-  def countFeatures(fs:AccumuloFeatureStore, sftName:String): Int = {
-    val cqlFilter = CQL.toFilter("include")
-    val query = new Query(sftName, cqlFilter)
-    val results = fs.getFeatures(query)
-    val features = results.features
+  def getFeatures(sftName: String, store: AccumuloFeatureStore, cql: String): SimpleFeatureIterator = {
+    val query = new Query(sftName, CQL.toFilter(cql))
+    val results = store.getFeatures(query)
+    results.features
+  }
+
+  def getMap[K,V](features: SimpleFeatureIterator, keyAttr: String, valAttr: String) : Map[K, V] = {
+    getMap[K,V](features, keyAttr, (sf:SimpleFeature) => sf.getAttribute(valAttr))
+  }
+
+  def getMap[K,V](features: SimpleFeatureIterator, keyAttr: String, valFunc: (SimpleFeature => AnyRef)) : Map[K, V] = {
+    val map = collection.mutable.HashMap.empty[K, V]
+    while(features.hasNext) {
+      val sf = features.next()
+      map.put(sf.getAttribute(keyAttr).asInstanceOf[K], valFunc(sf).asInstanceOf[V])
+    }
+    map.toMap
+  }
+
+  def countFeatures(store:AccumuloFeatureStore, sftName:String): Int = {
+    val features = getFeatures(sftName, store, "include")
     var count = 0
-    while(features.hasNext) { features.next(); count = count + 1}
+    while(features.hasNext) { features.next(); count += 1}
     count
   }
 
