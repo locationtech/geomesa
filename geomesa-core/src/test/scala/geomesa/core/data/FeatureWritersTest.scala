@@ -297,7 +297,6 @@ class FeatureWritersTest extends Specification {
         val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
         val attr = index.SF_PROPERTY_START_TIME
-        val map1 = getMap[String,Int](getFeatures(sftName, fs, "include"),"name", attr)
 
         val filter = CQL.toFilter("name = 'will' or name='george'")
         val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
@@ -328,6 +327,52 @@ class FeatureWritersTest extends Specification {
         // Verify other date range returns nothing
         val map2013 = getMap[String,Int](getFeatures(sftName, fs, s"$attr DURING 2013-01-01T00:00:00Z/2013-12-31T00:00:00Z"),"name", "age")
         map2013.keySet.size should equalTo(0)
+      }
+
+      "ensure that feature IDs are not changed when spatiotemporal indexes change" in {
+        val ds = createStore
+        val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+        val origFeatures =  {
+          val features = getFeatures(sftName, fs, "include")
+          val map = collection.mutable.HashMap.empty[String,SimpleFeature]
+          while(features.hasNext) {
+            val sf = features.next()
+            map.put(sf.getAttribute("name").asInstanceOf[String], sf)
+          }
+          map.toMap
+        }
+        origFeatures.size should be equalTo(5)
+
+        val filter = CQL.toFilter("name = 'will' or name='george'")
+        val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
+
+        val newDate = sdf.parse("20120102")
+        while(writer.hasNext){
+          val sf = writer.next
+          sf.setAttribute(index.SF_PROPERTY_START_TIME, newDate)
+          sf.setDefaultGeometry(WKTUtils.read("POINT(10.0 10.0)"))
+          writer.write
+        }
+        writer.close
+
+        val newFeatures =  {
+          val features = getFeatures(sftName, fs, "include")
+          val map = collection.mutable.HashMap.empty[String,SimpleFeature]
+          while(features.hasNext) {
+            val sf = features.next()
+            map.put(sf.getAttribute("name").asInstanceOf[String], sf)
+          }
+          map.toMap
+        }
+        newFeatures.size should be equalTo(origFeatures.size)
+
+        newFeatures.keys.foreach { k =>
+          val o = origFeatures(k)
+          val n = newFeatures(k)
+
+          o.getID must be equalTo(n.getID)
+        }
       }
 
     }
