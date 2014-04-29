@@ -18,7 +18,7 @@
 package geomesa.core.data
 
 import geomesa.core
-import geomesa.core.data.AccumuloFeatureWriter.{LocalRecordWriter, MapReduceRecordWriter}
+import geomesa.core.data.AccumuloFeatureWriter.{LocalRecordDeleter, LocalRecordWriter, MapReduceRecordWriter}
 import geomesa.core.index.{Constants, SpatioTemporalIndexSchema}
 import java.io.Serializable
 import java.util.{Map=>JMap}
@@ -56,7 +56,7 @@ class AccumuloDataStore(val connector: Connector,
                         val authorizations: Authorizations,
                         val indexSchemaFormat: String = "DEFAULT",
                         val featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
-  extends AbstractDataStore {
+  extends AbstractDataStore(true) {
 
   private def buildDefaultSchema(name: String) =
     s"%~#s%99#r%${name}#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
@@ -283,13 +283,25 @@ class AccumuloDataStore(val connector: Connector,
     new AccumuloFeatureReader(this, featureName, query, indexSchemaFmt, attributes, sft, fe)
   }
 
-  override def createFeatureWriter(featureName: String, transaction: Transaction): SFFeatureWriter = {
-    val featureType = getSchema(featureName)
-    val indexSchemaFmt = getIndexSchemaFmt(featureName)
-    val fe = getFeatureEncoder(featureName)
+  /* create a general purpose writer that is capable of insert, deletes, and updates */
+  override def createFeatureWriter(typeName: String, transaction: Transaction): SFFeatureWriter = {
+    val featureType = getSchema(typeName)
+    val indexSchemaFmt = getIndexSchemaFmt(typeName)
+    val fe = getFeatureEncoder(typeName)
     val schema = SpatioTemporalIndexSchema(indexSchemaFmt, featureType, fe)
     val writer = new LocalRecordWriter(tableName, connector)
-    new AccumuloFeatureWriter(featureType, schema, writer)
+    val deleter = new LocalRecordDeleter(tableName, connector)
+    new ModifyAccumuloFeatureWriter(featureType, schema, writer, deleter, this)
+  }
+
+  /* optimized for GeoTools API to return writer ONLY for appending (aka don't scan table) */
+  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): SFFeatureWriter = {
+    val featureType = getSchema(typeName)
+    val indexSchemaFmt = getIndexSchemaFmt(typeName)
+    val fe = getFeatureEncoder(typeName)
+    val schema = SpatioTemporalIndexSchema(indexSchemaFmt, featureType, fe)
+    val writer = new LocalRecordWriter(tableName, connector)
+    new AppendAccumuloFeatureWriter(featureType, schema, writer)
   }
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE
@@ -338,7 +350,8 @@ class MapReduceAccumuloDataStore(connector: Connector,
     val fe = getFeatureEncoder(featureName)
     val idx = SpatioTemporalIndexSchema(idxFmt, featureType, fe)
     val writer = new MapReduceRecordWriter(context)
-    new AccumuloFeatureWriter(featureType, idx, writer)
+    // TODO allow deletes? modifications?
+    new AppendAccumuloFeatureWriter(featureType, idx, writer)
   }
 
 }
