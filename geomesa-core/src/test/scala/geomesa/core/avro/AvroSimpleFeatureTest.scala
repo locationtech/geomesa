@@ -1,5 +1,6 @@
 package geomesa.core.avro
 
+import collection.JavaConversions._
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
@@ -34,7 +35,7 @@ class AvroSimpleFeatureTest extends Specification {
       f.setAttribute(1,"2013-01-02T00:00:00.000Z") // this date format should be converted
       f.setAttribute(2,"POINT(45.0 49.0)")
 
-      f.validate
+      f.validate must not(throwA [org.opengis.feature.IllegalAttributeException])
     }
 
     "fail to validate a correct object" in {
@@ -45,7 +46,36 @@ class AvroSimpleFeatureTest extends Specification {
       f.setAttributeNoConvert(1, "2013-01-02T00:00:00.000Z") // don't convert
       f.setAttribute(2,"POINT(45.0 49.0)")
 
-      f.validate must throwA [org.opengis.feature.IllegalAttributeException]
+      f.validate must throwA [org.opengis.feature.IllegalAttributeException]  //should throw it
+    }
+
+    "properly convert empty strings to null" in {
+      val sft = DataUtilities.createType(
+        "testType",
+        "a:Integer,b:Float,c:Double,d:Boolean,e:Date,f:UUID,g:Point"+
+        ",h:LineString,i:Polygon,j:MultiPoint,k:MultiLineString"+
+        ",l:MultiPolygon,m:GeometryCollection"
+      )
+
+
+      val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+      f.setAttribute("a","")
+      f.setAttribute("b","")
+      f.setAttribute("c","")
+      f.setAttribute("d","")
+      f.setAttribute("e","")
+      f.setAttribute("f","")
+      f.setAttribute("g","")
+      f.setAttribute("h","")
+      f.setAttribute("i","")
+      f.setAttribute("j","")
+      f.setAttribute("k","")
+      f.setAttribute("l","")
+      f.setAttribute("m","")
+
+      f.getAttributes.foreach { v => v must beNull}
+
+      f.validate must not(throwA [org.opengis.feature.IllegalAttributeException])
     }
   }
 }
