@@ -24,4 +24,28 @@ class AvroSimpleFeatureTest extends Specification {
       f.getAttribute(2) must beAnInstanceOf[Geometry]
     }
   }
+
+  "AvroSimpleFeature" should {
+    "properly validate a correct object" in {
+      val sft = DataUtilities.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
+
+      val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+      f.setAttribute(0,"1")
+      f.setAttribute(1,"2013-01-02T00:00:00.000Z") // this date format should be converted
+      f.setAttribute(2,"POINT(45.0 49.0)")
+
+      f.validate
+    }
+
+    "fail to validate a correct object" in {
+      val sft = DataUtilities.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
+
+      val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+      f.setAttribute(0,"1")
+      f.setAttributeNoConvert(1, "2013-01-02T00:00:00.000Z") // don't convert
+      f.setAttribute(2,"POINT(45.0 49.0)")
+
+      f.validate must throwA [org.opengis.feature.IllegalAttributeException]
+    }
+  }
 }
