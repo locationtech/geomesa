@@ -52,7 +52,7 @@ class TextFeatureEncoder extends SimpleFeatureEncoder{
   def encode(feature:SimpleFeature) : Value =
     new Value(ThreadSafeDataUtilities.encodeFeature(feature).getBytes)
 
-  def decode(simpleFeatureType: SimpleFeatureTy07pe, featureValue: Value) = {
+  def decode(simpleFeatureType: SimpleFeatureType, featureValue: Value) = {
     ThreadSafeDataUtilities.createFeature(simpleFeatureType, featureValue.toString)
   }
 
