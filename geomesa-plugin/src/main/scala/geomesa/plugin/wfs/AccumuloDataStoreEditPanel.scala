@@ -38,7 +38,7 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
   val zookeepers = addTextPanel(paramsModel, new Param("zookeepers", classOf[String], "Zookeepers", true))
   val user = addTextPanel(paramsModel, new Param("user", classOf[String], "User", true))
   val password = addTextPanel(paramsModel, new Param("password", classOf[String], "Password", true))
-  val auths = addTextPanel(paramsModel, new Param("auths", classOf[String], "Authorizations", true))
+  val auths = addTextPanel(paramsModel, new Param("auths", classOf[String], "Authorizations", false))
   val tableName = addTextPanel(paramsModel, new Param("tableName", classOf[String], "The Accumulo Table Name", true))
 
   val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, tableName)
@@ -47,14 +47,7 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
   storeEditForm.add(new IFormValidator() {
     def getDependentFormComponents = dependentFormComponents
 
-    def validate(form: Form[_]) {
-      require(user.getValue != null)
-      require(password.getValue != null)
-      require(instanceId.getValue != null)
-      require(tableName.getValue != null)
-      require(zookeepers.getValue != null)
-      require(auths.getValue != null)
-    }
+    def validate(form: Form[_]) {}
   })
 
   def addTextPanel(paramsModel: IModel[_], param: Param): FormComponent[_] = {
