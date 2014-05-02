@@ -19,6 +19,9 @@ package geomesa.core.data
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
 import geomesa.core.index
+import geomesa.utils.geometry.Geometry._
+import geomesa.utils.filters.Filters._
+import geomesa.utils.time.Time._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.GeometryUtils
 import org.geotools.data.Query
@@ -35,35 +38,204 @@ import org.opengis.filter._
 import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
-import org.opengis.temporal.Instant
+import org.opengis.temporal.{Period => OGCPeriod, Instant}
+import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
+
+object FilterToAccumulo {
+  val allTime              = new Interval(0, Long.MaxValue)
+  val wholeWorld           = new Envelope(-180, 180, -90, 90)
+
+  val geoFactory = JTSFactoryFinder.getGeometryFactory
+
+  val MinTime = new DateTime(0L)
+  val MaxTime = new DateTime(Long.MaxValue)
+
+  val DTF = ISODateTimeFormat.dateTime
+}
+
+import FilterToAccumulo._
 
 // FilterToAccumulo extracts the spatial and temporal predicates from the
 // filter while rewriting the filter to optimize for scanning Accumulo
 class FilterToAccumulo(sft: SimpleFeatureType) {
-
   val dtgField  = index.getDtgDescriptor(sft)
   val geomField = sft.getGeometryDescriptor
 
-  val allTime            = new Interval(0, Long.MaxValue)
-  val wholeWorld         = new Envelope(-180, -90, 180, 90)
-
-  var spatialPredicate:  Polygon  = null
-  var temporalPredicate: Interval    = null
-
-  val ff = CommonFactoryFinder.getFilterFactory2
-  val geoFactory = JTSFactoryFinder.getGeometryFactory
+  var spatialPredicate:  Polygon  = noPolygon
+  var temporalPredicate: Interval = noInterval
 
   def visit(query: Query): Filter = visit(query.getFilter)
   def visit(filter: Filter): Filter =
     process(filter).accept(new SimplifyingFilterVisitor, null).asInstanceOf[Filter]
 
-  def processChildren(op: BinaryLogicOperator, lf: (Filter, Filter) => Filter): Filter =
-    op.getChildren.reduce { (l, r) => lf(process(l), process(r)) }
+  case class VisitedData(raw: Filter, evaluated: Filter, polygon: Polygon, interval: Interval) {
+    def simplify: Filter = evaluated match {
+      case Filter.INCLUDE if polygon != noPolygon && interval != noInterval =>
+        ff.and(intersects, during)
+      case Filter.INCLUDE if polygon != noPolygon  =>
+        intersects
+      case Filter.INCLUDE if interval != noInterval =>
+        during
+      case f => f
+    }
+
+    def intersects: Filter = raw match {
+      case f: SpatialOperator => f
+      case _                  =>
+        ff.intersects(ff.property(geomField.getLocalName), ff.literal(polygon))
+    }
+
+    def during: Filter = raw match {
+      case f: BinaryTemporalOperator => f
+      case _                         =>
+        ff.during(ff.property(dtgField.getLocalName), ff.literal(interval))
+    }
+  }
+
+  def simplifyChildren(nodes: Seq[VisitedData], fnx: (Filter, Filter) => Filter): Filter = {
+    nodes.map(_.evaluated).filter(_ != Filter.INCLUDE) match {
+      case children if children.size == 0 => Filter.INCLUDE
+      case children if children.size == 1 => children.head
+      case children =>
+        children.reduce { (left, right) => ff.or(left, right) }
+    }
+  }
+
+  def evaluateChildrenIndependently(filter: BinaryLogicOperator): Seq[VisitedData] =
+    filter.getChildren.map { child =>
+      val f2a = new FilterToAccumulo(sft)
+      val childEval = f2a.process(child)
+      VisitedData(child, childEval, f2a.spatialPredicate, f2a.temporalPredicate)
+    }
+
+  def onlyPolygons(nodes: Seq[VisitedData]) = !nodes.exists {
+    case node if node.polygon == noPolygon   => true
+    case node if node.interval != noInterval => true
+    case _                                   => false
+  }
+
+  def onlyIntervals(nodes: Seq[VisitedData]) = !nodes.exists {
+    case node if node.polygon != noPolygon   => true
+    case node if node.interval == noInterval => true
+    case _                                   => false
+  }
+
+  def processOrChildren(op: BinaryLogicOperator): Filter = {
+    val nodes = evaluateChildrenIndependently(op)
+
+    spatialPredicate = noPolygon
+    temporalPredicate = noInterval
+
+    // you can reduce a sequence of nodes if they all set (only) geometry
+    if (onlyPolygons(nodes)) {
+      spatialPredicate = nodes.map(_.polygon).reduce { (left, right) =>
+        left.getSafeUnion(right) }
+      simplifyChildren(nodes, ff.or)
+    } else {
+      // you can reduce a sequence of nodes if they all set (only) time
+      if (onlyIntervals(nodes)) {
+        temporalPredicate = nodes.map(_.interval).reduce { (left, right) =>
+          left.getSafeUnion(right) }
+        simplifyChildren(nodes, ff.or)
+      } else {
+        // this was neither all geometry nor all interval
+        val leftovers = nodes.map(_.simplify).filter(_ != Filter.INCLUDE)
+        leftovers.size match {
+          case 0 => Filter.INCLUDE
+          case 1 => leftovers.head
+          case _ => ff.or(leftovers)
+        }
+      }
+    }
+  }
+
+  def processAndChildren(op: BinaryLogicOperator): Filter = {
+    val nodes = evaluateChildrenIndependently(op)
+    val result = nodes.tail.foldLeft(nodes.head)((soFar, node) => {
+      val nextEval = (soFar.evaluated, node.evaluated) match {
+        case (Filter.EXCLUDE, _) => Filter.EXCLUDE
+        case (_, Filter.EXCLUDE) => Filter.EXCLUDE
+        case (Filter.INCLUDE, e) => e
+        case (e, Filter.INCLUDE) => e
+        case (e0, e1)            => ff.and(e0, e1)
+      }
+      VisitedData(
+        Filter.INCLUDE,
+        nextEval,
+        soFar.polygon.getSafeIntersection(node.polygon),
+        soFar.interval.getSafeIntersection(node.interval)
+      )
+    })
+
+    spatialPredicate = result.polygon
+    temporalPredicate = result.interval
+    result.evaluated
+  }
+
+  def negateSingleton(childEval: Filter): Filter = {
+    val notAttributes = (spatialPredicate, temporalPredicate, childEval) match {
+      case (sp, tp, _) if sp != noPolygon || tp != noInterval => Filter.INCLUDE
+      case (_, _, Filter.INCLUDE)                             => Filter.EXCLUDE
+      case (_, _, Filter.EXCLUDE)                             => Filter.INCLUDE
+      case (_, _, f)                                          => ff.not(f)
+    }
+    val notSpatial = if (spatialPredicate != noPolygon) {
+      JTS.toGeometry(wholeWorld).difference(spatialPredicate) match {
+        case p: Polygon =>
+          spatialPredicate = p
+          Filter.INCLUDE
+        case _          =>
+          val oldSpace = spatialPredicate
+          spatialPredicate = noPolygon
+          ff.not(ff.intersects(ff.property(geomField.getLocalName), ff.literal(oldSpace)))
+      }
+    } else Filter.INCLUDE
+    val notTemporal = if (temporalPredicate != noInterval) {
+      val oldTemporal = temporalPredicate
+      temporalPredicate = noInterval
+      (oldTemporal.getStart, oldTemporal.getEnd) match {
+        case (MinTime, MaxTime)  => Filter.EXCLUDE
+        case (s, MaxTime)        =>
+          ff.not(ff.after(ff.property(dtgField.getLocalName), dt2lit(s)))
+        case (MinTime, e)        =>
+          ff.not(ff.before(ff.property(dtgField.getLocalName), dt2lit(e)))
+        case (s, e)              =>
+          ff.not(ff.during(ff.property(dtgField.getLocalName),
+            ff.literal(dts2lit(s, e))))
+      }
+    } else Filter.INCLUDE
+    // these three components are joined by an implied AND; build (and simplify) that expression
+    Seq[Filter](notSpatial, notTemporal, notAttributes).foldLeft(Filter.INCLUDE.asInstanceOf[Filter])((filterSoFar, subFilter) =>
+      (filterSoFar, subFilter) match {
+        case (Filter.EXCLUDE, _) => Filter.EXCLUDE
+        case (_, Filter.EXCLUDE) => Filter.EXCLUDE
+        case (Filter.INCLUDE, s) => s
+        case (f, Filter.INCLUDE) => f
+        case (f, s) => ff.and(f, s)
+      })
+  }
   
+  def processNot(op: Not): Filter = {
+    spatialPredicate = noPolygon
+    temporalPredicate = noInterval
+
+    op.getFilter match {
+      case f: Not => process(f.getFilter)
+      case f: And =>
+        process(ff.or(f.getChildren.map(child => ff.not(child))))
+      case f: Or  =>
+        process(ff.and(f.getChildren.map(child => ff.not(child))))
+      case f      => negateSingleton(process(f))
+    }
+  }
+
   def process(filter: Filter, acc: Filter = Filter.INCLUDE): Filter = filter match {
     // Logical filters
-    case op: Or    => processChildren(op, ff.or)
-    case op: And   => processChildren(op, ff.and)
+    case op: Or    => processOrChildren(op)
+    case op: And   => processAndChildren(op)
+
+    // Negation filter
+    case op: Not   => processNot(op)
 
     // Spatial filters
     case op: BBOX       => visitBBOX(op, acc)
@@ -143,12 +315,14 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     val attr     = prop.evaluate(sft).asInstanceOf[AttributeDescriptor]
     if(!attr.getLocalName.equals(dtgField.getLocalName)) ff.and(acc, bto)
     else {
-      val period = lit.evaluate(null).asInstanceOf[org.opengis.temporal.Period]
+      val time = lit.evaluate(null)
+      val startTime = getStart(time)
+      val endTime = getEnd(time)
       temporalPredicate = bto match {
-        case op: Before    => new Interval(new DateTime(0L), period.getEnding)
-        case op: After     => new Interval(period.getBeginning, new DateTime(Long.MaxValue))
-        case op: During    => new Interval(period.getBeginning, period.getEnding)
-        case op: TContains => new Interval(period.getBeginning, period.getEnding)
+        case op: Before    => new Interval(MinTime, endTime)
+        case op: After     => new Interval(startTime, MaxTime)
+        case op: During    => new Interval(startTime, endTime)
+        case op: TContains => new Interval(startTime, endTime)
         case _             => throw new IllegalArgumentException("Invalid query")
       }
       acc
@@ -178,4 +352,15 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     case _                          => throw new IllegalArgumentException("Unknown dtg type")
   }
 
+  private def getStart(o: AnyRef): Instant = o match {
+    case p: OGCPeriod => p.getBeginning
+    case _            => new DefaultInstant(
+      new DefaultPosition(extractDTG(o).toDate))
+  }
+
+  private def getEnd(o: AnyRef): Instant = o match {
+    case p: OGCPeriod => p.getEnding
+    case _            => new DefaultInstant(
+      new DefaultPosition(extractDTG(o).toDate))
+  }
 }
