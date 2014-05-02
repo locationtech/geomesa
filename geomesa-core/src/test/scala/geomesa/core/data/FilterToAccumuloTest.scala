@@ -208,6 +208,85 @@ class FilterToAccumuloTest extends Specification {
       f2a.temporalPredicate mustEqual interval
       result.toString mustEqual prop.toString
     }
+
+    "handle geometric conjunctions" in {
+      val spatial_a = ff.bbox("geom", -80.0, 30, -70, 38, CRS.toSRS(WGS84))
+      val spatial_b = ff.bbox("geom", -80.0, 32, -70, 40, CRS.toSRS(WGS84))
+      val pred = ff.and(List(spatial_a, spatial_b))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      val polygon = WKTUtils.read("POLYGON ((-80 32, -80 38, -70 38, -70 32, -80 32))")
+      f2a.spatialPredicate mustEqual polygon
+      result mustEqual Filter.INCLUDE
+    }
+
+    "handle geometric disjunctions" in {
+      val spatial_a = ff.bbox("geom", -80.0, 30, -70, 38, CRS.toSRS(WGS84))
+      val spatial_b = ff.bbox("geom", -80.0, 32, -70, 40, CRS.toSRS(WGS84))
+      val pred = ff.or(List(spatial_a, spatial_b))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      val polygon = WKTUtils.read("POLYGON ((-80 30, -80 32, -80 38, -80 40, -70 40, -70 38, -70 32, -70 30, -80 30))")
+      f2a.spatialPredicate mustEqual polygon
+      result mustEqual Filter.INCLUDE
+    }
+
+    "handle temporal conjunctions" in {
+      val temporal_a = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-01-20T00:00:00Z")
+      val temporal_b = ECQL.toFilter("dtg DURING 2011-01-10T00:00:00Z/2011-02-01T00:00:00Z")
+      val pred = ff.and(List(temporal_a, temporal_b))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      val interval = new Interval(
+        new DateTime("2011-01-10T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-01-20T00:00:00Z", DateTimeZone.UTC))
+      f2a.temporalPredicate mustEqual interval
+      result mustEqual Filter.INCLUDE
+    }
+
+    "handle temporal disjunctions" in {
+      val temporal_a = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-01-20T00:00:00Z")
+      val temporal_b = ECQL.toFilter("dtg DURING 2011-01-10T00:00:00Z/2011-02-01T00:00:00Z")
+      val pred = ff.or(List(temporal_a, temporal_b))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      val interval = new Interval(
+        new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC),
+        new DateTime("2011-02-01T00:00:00Z", DateTimeZone.UTC))
+      f2a.temporalPredicate mustEqual interval
+      result mustEqual Filter.INCLUDE
+    }
+
+    "handle degenerate disjunctions" in {
+      val temporal = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-01-20T00:00:00Z")
+      val spatial = ff.bbox("geom", -80.0, 30, -70, 40, CRS.toSRS(WGS84))
+      val pred = ff.or(List(temporal, spatial))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(pred)
+      f2a.temporalPredicate mustEqual f2a.noInterval
+      f2a.spatialPredicate mustEqual f2a.noPolygon
+      result.toString mustEqual pred.toString
+    }
+
+    "combine nested logical functions (and reduce the filter) correctly" in {
+      val temporal_a = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00Z/2011-01-20T00:00:00Z")
+      val temporal_b = ECQL.toFilter("dtg DURING 2011-01-10T00:00:00Z/2011-02-01T00:00:00Z")
+      val temporal_c = ECQL.toFilter("dtg DURING 2011-08-10T00:00:00Z/2011-09-01T00:00:00Z")
+      val spatial_a = ff.bbox("geom", -80.0, 30, -70, 38, CRS.toSRS(WGS84))
+      val spatial_b = ff.bbox("geom", -80.0, 32, -70, 40, CRS.toSRS(WGS84))
+      val spatial_c = ff.bbox("geom", -100.0, 30, -90, 40, CRS.toSRS(WGS84))
+
+      val predicateAndSpatial = ff.and(spatial_a, spatial_b)
+      val predicateAndTemporal = ff.and(temporal_a, temporal_b)
+      val predicateOrST = ff.or(temporal_c, spatial_c)
+      val predicateOr = ff.or(List(predicateAndSpatial, predicateAndTemporal, predicateOrST))
+
+      val f2a = new FilterToAccumulo(sft)
+      f2a.visit(predicateOr)
+
+      f2a.temporalPredicate mustEqual f2a.noInterval
+      f2a.spatialPredicate mustEqual f2a.noPolygon
+    }
   }
 
 }
