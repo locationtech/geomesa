@@ -56,27 +56,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
   import SpatioTemporalIndexEntry._
   import geomesa.core._
 
-  private var indexSource: SortedKeyValueIterator[Key, Value] = null
-  //private var dataSource: SortedKeyValueIterator[Key, Value] = null
-  private var interval: Interval = null
-  private var poly: Geometry = null
-  private var schema: SpatioTemporalIndexSchema = null
-  private var topKey: Key = null
-  //private var topValue: Value = null
-  private var nextKey: Key = null
-  //private var nextValue: Value = null
-  private var curId: Text = null
-
-  // Used by aggregators that extend STII
-  //var curFeature: SimpleFeature = null
-  curFeature = null
-  private var deduplicate: Boolean = false
   private val log = Logger.getLogger(classOf[IndexIterator])
-
-  // each batch-scanner thread maintains its own (imperfect!) list of the
-  // unique (in-polygon) identifiers it has seen
-  private var maxInMemoryIdCacheEntries = 10000
-  private val inMemoryIdCache = new JHashSet[String]()
 
   override def init(source: SortedKeyValueIterator[Key, Value],
            options: java.util.Map[String, String],
@@ -106,99 +86,6 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     this.indexSource = source.deepCopy(env)
   }
 
-  override def hasTop = nextKey != null || topKey != null
-
-  override def getTopKey = topKey
-
-  //override def getTopValue = topValue
-
-  /**
-   * Returns a local estimate as to whether the current identifier
-   * is likely to be a duplicate.
-   *
-   * Because we set a limit on how many unique IDs will be preserved in
-   * the local cache, a TRUE response is always accurate, but a FALSE
-   * response may not be accurate.  (That is, this cache allows for false-
-   * negatives, but no false-positives.)  We accept this, because there is
-   * a final, client-side filter that will eliminate all duplicate IDs
-   * definitively.  The purpose of the local cache is to reduce traffic
-   * through the remainder of the iterator/aggregator pipeline as quickly as
-   * possible.
-   *
-   * @return False if this identifier is in the local cache; True otherwise
-   */
-  override lazy val isIdUnique: (String) => Boolean =
-    if (deduplicate) (id:String) => (id!=null) && !inMemoryIdCache.contains(id)
-    else                       _ => true
-
-  override lazy val rememberId: (String) => Unit =
-    if (deduplicate) (id: String) => {
-      if (id!=null && !inMemoryIdCache.contains(id) && inMemoryIdCache.size < maxInMemoryIdCacheEntries)
-        inMemoryIdCache.add(id)
-    } else _ => Unit
-
-  /**
-   * There may not be a time-filter, in which case we should not bother checking
-   * every time, but should establish once (when first requested) the fastest
-   * version of validating an entry's time.
-   */
-  override lazy val wrappedTimeFilter =
-    // if there is effectively no date/time-search, all records automatically qualify
-    SpatioTemporalIndexSchema.somewhen(interval) match {
-      case None    => (dtOpt: Option[Long]) => true
-      case Some(i) =>
-        (dtg: Option[Long]) =>
-          dtg.map(l => l >= interval.getStart.getMillis && l <= interval.getEnd.getMillis).getOrElse(true)
-    }
-
-  /**
-   * There may not be a geometry-filter, in which case we should not bother checking
-   * every time, but should establish once (when first requested) the fastest
-   * version of validating an entry's geometry.
-   */
-  override lazy val wrappedGeomFilter =
-    // if there is effectively no geographic-search, all records automatically qualify
-    SpatioTemporalIndexSchema.somewhere(poly) match {
-      case None    => (gh: GeoHash, geom: Geometry) => true
-      case Some(p) => (gh: GeoHash, geom: Geometry) =>
-        // either the geohash geom is completely contained
-        // within the search area or the original geometry
-        // intersects the search area
-        p.contains(gh.bbox.geom) || p.intersects(geom)
-    }
-
-  // data rows are the only ones with "SimpleFeatureAttribute" in the ColQ
-  // (if we expand on the idea of separating out attributes more, we will need
-  // to revisit this function)
-  private def isKeyValueADataEntry(key: Key, value: Value): Boolean =
-    (key != null) &&
-    (key.getColumnQualifier != null) &&
-    (key.getColumnQualifier.toString == AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME)
-
-  // if it's not a data entry, it's an index entry
-  // (though we still share some requirements -- non-nulls -- with data entries)
-  private def isKeyValueAnIndexEntry(key: Key, value: Value): Boolean =
-    (key != null) &&
-    (
-      (key.getColumnQualifier == null) ||
-      (key.getColumnQualifier.toString != AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME)
-    )
-
-  override def skipIndexEntries(itr: SortedKeyValueIterator[Key,Value]) {
-    while (itr != null && itr.hasTop && isKeyValueAnIndexEntry(itr.getTopKey, itr.getTopValue))
-    itr.next()
-  }
-
-  override def skipDataEntries(itr: SortedKeyValueIterator[Key,Value]) {
-    while (itr != null && itr.hasTop && isKeyValueADataEntry(itr.getTopKey, itr.getTopValue))
-      itr.next()
-  }
-
-  /**
-   * Attempt to decode the given key.  This should only succeed in the cases
-   * where the key corresponds to an index-entry (not a data-entry).
-   */
-  override def decodeKey(key:Key): Option[SimpleFeature] = Try(schema.decode(key)).toOption
 
   /**
    * Advances the index-iterator to the next qualifying entry, and then
@@ -255,26 +142,6 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
       findTop()
     }
-  }
-
-  /**
-   * Position the index-source.  Consequently, updates the data-source.
-   *
-   * @param range
-   * @param columnFamilies
-   * @param inclusive
-   */
-  override def seek(range: Range, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean) {
-    // move the source iterator to the right starting spot
-    indexSource.seek(range, columnFamilies, inclusive)
-
-    // find the first index-entry that is inside the search polygon
-    // (use the current entry, if it's already inside the search polygon)
-    findTop()
-
-    // pre-fetch the next entry, if one exists
-    // (the idea is to always be one entry ahead)
-    if (nextKey != null) next()
   }
 
   override def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("IndexIterator does not support deepCopy.")

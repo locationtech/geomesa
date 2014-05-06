@@ -345,7 +345,7 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
   def configureSpatioTemporalIterator(bs: BatchScanner, poly: Polygon,
                                                   interval: Interval, skipData: Boolean) {
-    // FIXME: this is ugly, clean up if possible.
+    // FIXME: this is really ugly, clean up if possible.
     if (skipData) {
       val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
         "within-" + randomPrintableString(5),

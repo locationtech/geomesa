@@ -58,27 +58,27 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
   import SpatioTemporalIndexEntry._
   import geomesa.core._
 
-  private var indexSource: SortedKeyValueIterator[Key, Value] = null
-  private var dataSource: SortedKeyValueIterator[Key, Value] = null
-  private var interval: Interval = null
-  private var poly: Geometry = null
-  private var schema: SpatioTemporalIndexSchema = null
-  private var topKey: Key = null
-  private var topValue: Value = null
-  private var nextKey: Key = null
-  private var nextValue: Value = null
-  private var curId: Text = null
+  protected var indexSource: SortedKeyValueIterator[Key, Value] = null
+  protected var dataSource: SortedKeyValueIterator[Key, Value] = null
+  protected var interval: Interval = null
+  protected var poly: Geometry = null
+  protected var schema: SpatioTemporalIndexSchema = null
+  protected var topKey: Key = null
+  protected var topValue: Value = null
+  protected var nextKey: Key = null
+  protected var nextValue: Value = null
+  protected var curId: Text = null
 
   // Used by aggregators that extend STII
   protected var curFeature: SimpleFeature = null
 
-  private var deduplicate: Boolean = false
+  protected var deduplicate: Boolean = false
   private val log = Logger.getLogger(classOf[SpatioTemporalIntersectingIterator])
 
   // each batch-scanner thread maintains its own (imperfect!) list of the
   // unique (in-polygon) identifiers it has seen
-  private var maxInMemoryIdCacheEntries = 10000
-  private val inMemoryIdCache = new JHashSet[String]()
+  protected var maxInMemoryIdCacheEntries = 10000
+  protected val inMemoryIdCache = new JHashSet[String]()
 
   def init(source: SortedKeyValueIterator[Key, Value],
            options: java.util.Map[String, String],
@@ -173,14 +173,14 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
   // data rows are the only ones with "SimpleFeatureAttribute" in the ColQ
   // (if we expand on the idea of separating out attributes more, we will need
   // to revisit this function)
-  private def isKeyValueADataEntry(key: Key, value: Value): Boolean =
+  protected def isKeyValueADataEntry(key: Key, value: Value): Boolean =
     (key != null) &&
     (key.getColumnQualifier != null) &&
     (key.getColumnQualifier.toString == AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME)
 
   // if it's not a data entry, it's an index entry
   // (though we still share some requirements -- non-nulls -- with data entries)
-  private def isKeyValueAnIndexEntry(key: Key, value: Value): Boolean =
+  protected def isKeyValueAnIndexEntry(key: Key, value: Value): Boolean =
     (key != null) &&
     (
       (key.getColumnQualifier == null) ||
