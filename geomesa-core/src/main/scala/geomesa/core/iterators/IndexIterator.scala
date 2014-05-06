@@ -57,7 +57,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
   import geomesa.core._
 
   private var indexSource: SortedKeyValueIterator[Key, Value] = null
-  private var dataSource: SortedKeyValueIterator[Key, Value] = null
+  //private var dataSource: SortedKeyValueIterator[Key, Value] = null
   private var interval: Interval = null
   private var poly: Geometry = null
   private var schema: SpatioTemporalIndexSchema = null
@@ -277,7 +277,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     if (nextKey != null) next()
   }
 
-  override def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("STII does not support deepCopy.")
+  override def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("IndexIterator does not support deepCopy.")
 }
 
 object IndexIterator {
