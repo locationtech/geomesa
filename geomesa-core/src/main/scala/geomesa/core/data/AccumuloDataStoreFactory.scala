@@ -124,7 +124,7 @@ object AccumuloDataStoreFactory {
     val zookeepersParam   = new Param("zookeepers", classOf[String], "Zookeepers", true)
     val userParam         = new Param("user", classOf[String], "Accumulo user", true)
     val passwordParam     = new Param("password", classOf[String], "Password", true)
-    val authsParam        = new Param("auths", classOf[String], "Accumulo authorizations", true)
+    val authsParam        = new Param("auths", classOf[String], "Accumulo authorizations", false)
     val tableNameParam    = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
     val idxSchemaParam    = new Param("indexSchemaFormat", classOf[String], "The feature-specific index-schema format", false)
     val mockParam         = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
