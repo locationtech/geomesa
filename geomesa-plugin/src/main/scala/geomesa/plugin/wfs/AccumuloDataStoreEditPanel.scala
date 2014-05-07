@@ -20,10 +20,11 @@ package geomesa.plugin.wfs
 import org.apache.wicket.behavior.SimpleAttributeModifier
 import org.apache.wicket.markup.html.form.validation.IFormValidator
 import org.apache.wicket.markup.html.form.{FormComponent, Form}
+import org.apache.wicket.markup.html.panel.Panel
 import org.apache.wicket.model.{ResourceModel, IModel, PropertyModel}
 import org.geoserver.catalog.DataStoreInfo
 import org.geoserver.web.data.store.StoreEditPanel
-import org.geoserver.web.data.store.panel.TextParamPanel
+import org.geoserver.web.data.store.panel.{ParamPanel, PasswordParamPanel, TextParamPanel}
 import org.geoserver.web.util.MapModel
 import org.geotools.data.DataAccessFactory.Param
 
@@ -37,8 +38,8 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
   val instanceId = addTextPanel(paramsModel, new Param("instanceId", classOf[String], "The Accumulo Instance ID", true))
   val zookeepers = addTextPanel(paramsModel, new Param("zookeepers", classOf[String], "Zookeepers", true))
   val user = addTextPanel(paramsModel, new Param("user", classOf[String], "User", true))
-  val password = addTextPanel(paramsModel, new Param("password", classOf[String], "Password", true))
-  val auths = addTextPanel(paramsModel, new Param("auths", classOf[String], "Authorizations", true))
+  val password = addPasswordPanel(paramsModel, new Param("password", classOf[String], "Password", true))
+  val auths = addTextPanel(paramsModel, new Param("auths", classOf[String], "Authorizations", false))
   val tableName = addTextPanel(paramsModel, new Param("tableName", classOf[String], "The Accumulo Table Name", true))
 
   val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, tableName)
@@ -47,14 +48,7 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
   storeEditForm.add(new IFormValidator() {
     def getDependentFormComponents = dependentFormComponents
 
-    def validate(form: Form[_]) {
-      require(user.getValue != null)
-      require(password.getValue != null)
-      require(instanceId.getValue != null)
-      require(tableName.getValue != null)
-      require(zookeepers.getValue != null)
-      require(auths.getValue != null)
-    }
+    def validate(form: Form[_]) {}
   })
 
   def addTextPanel(paramsModel: IModel[_], param: Param): FormComponent[_] = {
@@ -65,12 +59,27 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
       new TextParamPanel(paramName,
         new MapModel(paramsModel, paramName).asInstanceOf[IModel[_]],
         new ResourceModel(resourceKey, paramName), required)
-    textParamPanel.getFormComponent.setType(classOf[String])
+    addPanel(textParamPanel, param, resourceKey)
+  }
+
+  def addPasswordPanel(paramsModel: IModel[_], param: Param): FormComponent[_] = {
+    val paramName = param.key
+    val resourceKey = getClass.getSimpleName + "." + paramName
+    val required = param.required
+    val passParamPanel =
+      new PasswordParamPanel(paramName,
+        new MapModel(paramsModel, paramName).asInstanceOf[IModel[_]],
+        new ResourceModel(resourceKey, paramName), required)
+    addPanel(passParamPanel, param, resourceKey)
+  }
+
+  def addPanel(paramPanel: Panel with ParamPanel, param: Param, resourceKey: String): FormComponent[_] = {
+    paramPanel.getFormComponent.setType(classOf[String])
     val defaultTitle = String.valueOf(param.description)
     val titleModel = new ResourceModel(resourceKey + ".title", defaultTitle)
     val title = String.valueOf(titleModel.getObject)
-    textParamPanel.add(new SimpleAttributeModifier("title", title))
-    add(textParamPanel)
-    textParamPanel.getFormComponent
+    paramPanel.add(new SimpleAttributeModifier("title", title))
+    add(paramPanel)
+    paramPanel.getFormComponent
   }
 }
