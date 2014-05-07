@@ -35,10 +35,7 @@ import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Try
 import geomesa.core.data._
-import scala.Some
 import geomesa.core._
-import geomesa.core.iterators.Attribute
-import scala.Some
 
 case class Attribute(name: Text, value: Text)
 
@@ -324,6 +321,9 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
 object SpatioTemporalIntersectingIterator extends IteratorHelperObject {
 }
 
+/**
+ *  This trait contains many methods and values of general use to companion Iterator objects
+ */
 trait IteratorHelperObject  {
   val initialized = new ThreadLocal[Boolean] {
     override def initialValue(): Boolean = false
@@ -334,15 +334,13 @@ trait IteratorHelperObject  {
       try {
         // locate the geomesa-distributed-runtime jar
         val cl = this.getClass.getClassLoader.asInstanceOf[VFSClassLoader]
-        val url = cl.getFileObjects.map(_.getURL).filter {
-          _.toString.contains("geomesa-distributed-runtime")
-        }.head
-        if (log != null) log.debug(s"Found geomesa-distributed-runtime at $url")
+        val url = cl.getFileObjects.map(_.getURL).filter {_.toString.contains("geomesa-distributed-runtime")}.head
+        if(log != null) log.debug(s"Found geomesa-distributed-runtime at $url")
         val u = java.net.URLClassLoader.newInstance(Array(url), cl)
         GeoTools.addClassLoader(u)
       } catch {
         case t: Throwable =>
-          if (log != null) log.error("Failed to initialize GeoTools' ClassLoader ", t)
+          if(log != null) log.error("Failed to initialize GeoTools' ClassLoader ", t)
       } finally {
         initialized.set(true)
       }
@@ -419,7 +417,7 @@ trait IteratorHelperObject  {
 
   def encodeInterval(interval: Option[Interval]): String = {
     val (start, end) = interval.map(i => (i.getStart.getMillis, i.getEnd.getMillis))
-      .getOrElse((Long.MinValue, Long.MaxValue))
+                               .getOrElse((Long.MinValue, Long.MaxValue))
     start + "~" + end
   }
 
@@ -427,7 +425,7 @@ trait IteratorHelperObject  {
     str.split("~") match {
       case Array(s, e) =>
         new Interval(new DateTime(s.toLong, DateTimeZone.forID("UTC")),
-          new DateTime(e.toLong, DateTimeZone.forID("UTC")))
+                     new DateTime(e.toLong, DateTimeZone.forID("UTC")))
       case pieces => throw new Exception("Wrong number of pieces for interval:  " + pieces.size)
     }
 }

@@ -341,21 +341,26 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
     bs.addScanIterator(cfg)
   }
 
-  // returns entries for items that either:
-  // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
-  // 2) the DateTime intersects the query interval; this is a coarse-grained filter
+  /** configure a SpatioTemporalIterator that returns entries for items for which:
+    * 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
+    * 2) the DateTime intersects the query interval; this is a coarse-grained filter
+    * 3) both 1) and 2) above
+    * 4) just return all items
+    *
+    * The actual iterator used is determined by the name of the iterator companion object passed as an argument
+    *
+    **/
+
   def configureSpatioTemporalIterator(bs: BatchScanner, poly: Polygon,
                                                   interval: Interval, iteratorObject: IteratorHelperObject) {
     // get name of the iterator class, **assuming** that the companion object has the same name
     val iteratorClassName= iteratorObject.getClass.getName.split("\\$").last
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
-      "within-" + randomPrintableString(5),iteratorClassName)
+                                  "within-" + randomPrintableString(5), iteratorClassName)
     configureFeatureEncoding(cfg)
     iteratorObject.setOptions(cfg, schema, poly, interval, featureType)
     bs.addScanIterator(cfg)
   }
-
-
 
   // transforms:  (index key, (attribute,encoded feature)) -> (index key, encoded feature)
   // (there should only be one data-row per entry:  the encoded SimpleFeature)

@@ -38,18 +38,15 @@ import geomesa.core.data._
 import scala.Some
 
 /**
- * Remember that we maintain two sources:  one for index records (that determines
- * whether the point is inside the search polygon), and one for data records (that
- * can consist of multiple data rows per index row, one data-row per attribute).
- * Each time the index source advances, we need to reposition the data source.
+ * This is an Index Only Iterator, to be used in situations where the data records are
+ * not useful enough to pay the penalty of decoding which one must pay when using the
+ * SpatioTemporalIntersectingIterator.
  *
- * This iterator returns as its nextKey and nextValue responses the key and value
- * from the DATA iterator, not from the INDEX iterator.  The assumption is that
- * the data rows are what we care about; that we do not care about the index
- * rows that merely helped us find the data rows quickly.
+ * This iterator returns as its nextKey the key for the INDEX iterator. nextValue is
+ * always null.
  *
- * The other trick to remember about iterators is that they essentially pre-fetch
- * data.  "hasNext" really means, "was there a next record that you already found".
+ * Note that this extends the SpatioTemporalIntersectingIterator, but never creates a dataSource
+ * and hence never iterates through it.
  */
 class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyValueIterator[Key, Value] {
 
@@ -86,8 +83,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
 
   /**
-   * Advances the index-iterator to the next qualifying entry, and then
-   * updates the data-iterator to match what ID the index-iterator found
+   * Advances the index-iterator to the next qualifying entry
    */
   override def findTop() {
     // clear out the reference to the next entry
