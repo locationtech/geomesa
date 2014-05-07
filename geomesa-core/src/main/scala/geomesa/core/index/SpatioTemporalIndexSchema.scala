@@ -305,20 +305,21 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
     planQuery(bs, filter)
 
     //FIXME : change once API is defined for the index only iterator
-    val skipData = transforms match{
-      case s:Option[String] if s == "IGNORE" => true
-      case _ => false
+    val theSpatioTemporalIterator = transforms match{
+      case s:Option[String] if s == "IGNORE" => IndexIterator
+      case _ => SpatioTemporalIntersectingIterator
     }
+
     // set up space, time iterators as appropriate for this filter
     filter match {
       case _ : SpatialDateFilter | _ : SpatialDateRangeFilter =>
-        configureSpatioTemporalIterator(bs, poly, interval, skipData)
+        configureSpatioTemporalIterator(bs, poly, interval, theSpatioTemporalIterator)
       case _ : SpatialFilter =>
-        configureSpatioTemporalIterator(bs, poly, null, skipData)
+        configureSpatioTemporalIterator(bs, poly, null, theSpatioTemporalIterator)
       case _ : DateFilter | _ : DateRangeFilter =>
-        configureSpatioTemporalIterator(bs, null, interval, skipData)
+        configureSpatioTemporalIterator(bs, null, interval, theSpatioTemporalIterator)
       case _ =>  // degenerate case:  no polygon, no interval
-        configureSpatioTemporalIterator(bs, null, null, skipData)
+        configureSpatioTemporalIterator(bs, null, null, theSpatioTemporalIterator)
     }
 
     // always set up the aggregating-combiner and simple-feature filtering iterator
@@ -344,14 +345,15 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
   // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
   def configureSpatioTemporalIterator(bs: BatchScanner, poly: Polygon,
-                                                  interval: Interval, skipData: Boolean) {
+                                                  interval: Interval, iteratorObject: IteratorHelperObject) {
     // FIXME: this is really ugly, clean up if possible.
-    if (skipData) {
+    if (iteratorObject.getClass.getName == "IndexIterator")
+    {
       val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
         "within-" + randomPrintableString(5),
-        classOf[IndexIterator])
+        iteratorObject.getClass.getName)
       configureFeatureEncoding(cfg)
-      IndexIterator.setOptions(
+      iteratorObject.setOptions(
         cfg, schema, poly, interval, featureType)
       bs.addScanIterator(cfg)
     }

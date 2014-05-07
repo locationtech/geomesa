@@ -36,6 +36,9 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Try
 import geomesa.core.data._
 import scala.Some
+import geomesa.core._
+import geomesa.core.iterators.Attribute
+import scala.Some
 
 case class Attribute(name: Text, value: Text)
 
@@ -73,7 +76,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
   protected var curFeature: SimpleFeature = null
 
   protected var deduplicate: Boolean = false
-  private val log = Logger.getLogger(classOf[SpatioTemporalIntersectingIterator])
+  protected val log = Logger.getLogger(this.getClass)
 
   // each batch-scanner thread maintains its own (imperfect!) list of the
   // unique (in-polygon) identifiers it has seen
@@ -318,10 +321,10 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
   def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("STII does not support deepCopy.")
 }
 
-object SpatioTemporalIntersectingIterator {
+object SpatioTemporalIntersectingIterator extends IteratorHelperObject {
+}
 
-  import geomesa.core._
-
+trait IteratorHelperObject  {
   val initialized = new ThreadLocal[Boolean] {
     override def initialValue(): Boolean = false
   }
@@ -330,18 +333,21 @@ object SpatioTemporalIntersectingIterator {
     if(!initialized.get()) {
       try {
         // locate the geomesa-distributed-runtime jar
-        val cl = classOf[SpatioTemporalIntersectingIterator].getClassLoader.asInstanceOf[VFSClassLoader]
-        val url = cl.getFileObjects.map(_.getURL).filter { _.toString.contains("geomesa-distributed-runtime") }.head
-        if(log != null) log.debug(s"Found geomesa-distributed-runtime at $url")
+        val cl = this.getClass.getClassLoader.asInstanceOf[VFSClassLoader]
+        val url = cl.getFileObjects.map(_.getURL).filter {
+          _.toString.contains("geomesa-distributed-runtime")
+        }.head
+        if (log != null) log.debug(s"Found geomesa-distributed-runtime at $url")
         val u = java.net.URLClassLoader.newInstance(Array(url), cl)
         GeoTools.addClassLoader(u)
       } catch {
         case t: Throwable =>
-          if(log != null) log.error("Failed to initialize GeoTools' ClassLoader ", t)
+          if (log != null) log.error("Failed to initialize GeoTools' ClassLoader ", t)
       } finally {
         initialized.set(true)
       }
     }
+
 
   implicit def value2text(value: Value): Text = new Text(value.get)
 
@@ -411,17 +417,17 @@ object SpatioTemporalIntersectingIterator {
     cfg.addOption(DEFAULT_FEATURE_TYPE, DataUtilities.encodeType(featureType))
   }
 
-  private def encodeInterval(interval: Option[Interval]): String = {
+  def encodeInterval(interval: Option[Interval]): String = {
     val (start, end) = interval.map(i => (i.getStart.getMillis, i.getEnd.getMillis))
-                               .getOrElse((Long.MinValue, Long.MaxValue))
+      .getOrElse((Long.MinValue, Long.MaxValue))
     start + "~" + end
   }
 
-  private def decodeInterval(str: String): Interval =
+  def decodeInterval(str: String): Interval =
     str.split("~") match {
       case Array(s, e) =>
         new Interval(new DateTime(s.toLong, DateTimeZone.forID("UTC")),
-                     new DateTime(e.toLong, DateTimeZone.forID("UTC")))
+          new DateTime(e.toLong, DateTimeZone.forID("UTC")))
       case pieces => throw new Exception("Wrong number of pieces for interval:  " + pieces.size)
     }
 }

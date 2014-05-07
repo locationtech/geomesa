@@ -47,7 +47,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
                           numExpectedDataIn: Int = 113,
                           dtFilter: Interval = null,
                           overrideGeometry: Boolean = false,
-                          doPrint: Boolean = false): Int = {
+                          doPrint: Boolean = true): Int = {
 
     val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
 
@@ -74,7 +74,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
       results.map(value => {
         val simpleFeature = featureEncoder.decode(TestData.featureType, value)
         val attrs = simpleFeature.getAttributes.map(attr => if (attr == null) "" else attr.toString).mkString("|")
-        println("[SII." + label + "] query-hit:  " + simpleFeature.getID + "=" + attrs)
+        println("[II." + label + "] query-hit:  " + simpleFeature.getID + "=" + attrs)
       })
       results.size
     } else itr.size
