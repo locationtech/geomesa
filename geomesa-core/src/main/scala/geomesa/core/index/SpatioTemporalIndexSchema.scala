@@ -346,26 +346,13 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
   def configureSpatioTemporalIterator(bs: BatchScanner, poly: Polygon,
                                                   interval: Interval, iteratorObject: IteratorHelperObject) {
-    // FIXME: this is really ugly, clean up if possible.
-    if (iteratorObject.getClass.getName == "IndexIterator")
-    {
-      val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
-        "within-" + randomPrintableString(5),
-        iteratorObject.getClass.getName)
-      configureFeatureEncoding(cfg)
-      iteratorObject.setOptions(
-        cfg, schema, poly, interval, featureType)
-      bs.addScanIterator(cfg)
-    }
-    else {
-      val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
-        "within-" + randomPrintableString(5),
-        classOf[SpatioTemporalIntersectingIterator])
-      configureFeatureEncoding(cfg)
-      SpatioTemporalIntersectingIterator.setOptions(
-        cfg, schema, poly, interval, featureType)
-      bs.addScanIterator(cfg)
-    }
+    // get name of the iterator class, **assuming** that the companion object has the same name
+    val iteratorClassName= iteratorObject.getClass.getName.split("\\$").last
+    val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
+      "within-" + randomPrintableString(5),iteratorClassName)
+    configureFeatureEncoding(cfg)
+    iteratorObject.setOptions(cfg, schema, poly, interval, featureType)
+    bs.addScanIterator(cfg)
   }
 
 
