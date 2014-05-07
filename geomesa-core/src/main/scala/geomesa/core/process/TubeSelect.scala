@@ -1,6 +1,6 @@
 package geomesa.process
 
-import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.geom.{GeometryCollection, Geometry}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
 import org.geotools.process.factory.{DescribeResult, DescribeParameter, DescribeProcess}
@@ -8,6 +8,7 @@ import org.geotools.process.vector.VectorProcess
 import org.geotools.util.NullProgressListener
 import org.opengis.feature.Feature
 import java.util.Date
+import org.opengis.filter.Filter
 
 @DescribeProcess(
   title = "Performs a tube select on one feature based on another",
@@ -18,9 +19,9 @@ class TubeSelect extends VectorProcess {
   @DescribeResult(description = "Output feature collection")
   def  execute(
                 @DescribeParameter(
-                  name = "lineString",
-                  description = "The line string around which to select features")
-                lineString: Geometry,
+                  name = "geometry",
+                  description = "Geometry or GeometryCollection around which to tube")
+                geometry: Geometry,
 
                 @DescribeParameter(
                   name = "featureCollection",
@@ -35,19 +36,35 @@ class TubeSelect extends VectorProcess {
                 @DescribeParameter(
                   name = "endDate",
                   description = "The start date of the query")
-                endDate: Date
+                endDate: Date,
 
-                ): SimpleFeatureCollection = {
+                @DescribeParameter(
+                  name = "bufferSize",
+                  description = "Buffer size in degrees around geo tube")
+                bufferSize: Double,
+
+                @DescribeParameter(
+                  name = "filter",
+                  min = 0,
+                  description = "The filter to apply")
+                filter: Filter
+
+              ): SimpleFeatureCollection = {
 
     // assume for now that firstFeatures is a singleton collection
-    val tubeVisitor = new TubeVisitor(lineString, startDate, endDate)
+    val tubeVisitor = new TubeVisitor(geometry, startDate, endDate, bufferSize, Option(filter).getOrElse(Filter.INCLUDE))
     collection.accepts(tubeVisitor, new NullProgressListener)
     tubeVisitor.getResult.asInstanceOf[TubeResult].results
   }
 
 }
 
-class TubeVisitor(val geom: Geometry, val startDate: Date, val endDate: Date) extends FeatureCalc {
+class TubeVisitor(
+                  val geom: Geometry,
+                  val startDate: Date,
+                  val endDate: Date,
+                  val bufferSize: Double,
+                  val filter: Filter) extends FeatureCalc {
 
   var resultCalc: TubeResult = null
 
