@@ -8,6 +8,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.geotools.feature.simple.SimpleFeatureImpl
 
 @RunWith(classOf[JUnitRunner])
 class AvroSimpleFeatureTest extends Specification {
