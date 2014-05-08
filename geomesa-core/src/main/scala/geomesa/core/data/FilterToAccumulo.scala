@@ -37,7 +37,6 @@ import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 import org.opengis.temporal.Instant
-import org.geotools.filter.text.ecql.ECQL
 
 // FilterToAccumulo extracts the spatial and temporal predicates from the
 // filter while rewriting the filter to optimize for scanning Accumulo
@@ -47,7 +46,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
   val geomField = sft.getGeometryDescriptor
 
   val allTime              = new Interval(0, Long.MaxValue)
-  val wholeWorld           = new Envelope(-180, -90, 180, 90)
+  val wholeWorld           = new Envelope(-180, 180, -90, 90)
 
   val noPolygon : Polygon  = null
   val noInterval: Interval = null
@@ -220,10 +219,61 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     result.evaluated
   }
 
+  def processNot(op: Not): Filter = {
+    spatialPredicate = noPolygon
+    temporalPredicate = noInterval
+
+    op.getFilter match {
+      case f: Not => process(f.getFilter)
+      case f: And =>
+        process(ff.or(f.getChildren.map(child => ff.not(child))))
+      case f: Or  =>
+        process(ff.and(f.getChildren.map(child => ff.not(child))))
+      case f      =>
+        val childEval = process(f)
+        val notAttributes =
+          if (spatialPredicate != noPolygon || temporalPredicate != noInterval)
+            Filter.INCLUDE
+          else childEval match {
+            case Filter.INCLUDE => Filter.EXCLUDE
+            case Filter.EXCLUDE => Filter.INCLUDE
+            case f              => ff.not(f)
+          }
+        val notSpatial = if (spatialPredicate != noPolygon) {
+          wholeWorld.difference(spatialPredicate) match {
+            case p: Polygon =>
+              spatialPredicate = p
+              Filter.INCLUDE
+            case _          =>
+              val oldSpace = spatialPredicate
+              spatialPredicate = noPolygon
+              ff.not(ff.intersects(ff.property(geomField.getLocalName), ff.literal(oldSpace)))
+          }
+        } else Filter.INCLUDE
+        val notTemporal = if (temporalPredicate != noInterval) {
+          val oldTemporal = temporalPredicate
+          temporalPredicate = noInterval
+          ff.not(ff.during(ff.property(dtgField.getLocalName), ff.literal(oldTemporal)))
+        } else Filter.INCLUDE
+        // these three components are joined by an implied AND; build (and simplify) that expression
+        Seq[Filter](notSpatial, notTemporal, notAttributes).foldLeft(Filter.INCLUDE.asInstanceOf[Filter])((filterSoFar, subFilter) =>
+          (filterSoFar, subFilter) match {
+            case (Filter.EXCLUDE, s) => Filter.EXCLUDE
+            case (f, Filter.EXCLUDE) => Filter.EXCLUDE
+            case (Filter.INCLUDE, s) => s
+            case (f, Filter.INCLUDE) => f
+            case (f, s) => ff.and(f, s)
+          })
+    }
+  }
+
   def process(filter: Filter, acc: Filter = Filter.INCLUDE): Filter = filter match {
     // Logical filters
     case op: Or    => processOrChildren(op)
     case op: And   => processAndChildren(op)
+
+    // Negation filter
+    case op: Not   => processNot(op)
 
     // Spatial filters
     case op: BBOX       => visitBBOX(op, acc)
