@@ -3,6 +3,7 @@ package geomesa.core.avro
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.DataUtilities
+import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -76,6 +77,20 @@ class AvroSimpleFeatureTest extends Specification {
       f.getAttributes.foreach { v => v must beNull}
 
       f.validate must not(throwA [org.opengis.feature.IllegalAttributeException])
+    }
+  }
+
+  "AvroSimpleFeature" should {
+    "give back a null when an attribute doesn't exist" in {
+
+      // Verify that AvroSimpleFeature returns null for attributes that do not exist like SimpleFeatureImpl
+      val sft = DataUtilities.createType("avrotesttype", "a:Integer,b:String")
+      val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+      sf.getAttribute("c") must not(throwA[NullPointerException])
+      sf.getAttribute("c") should beNull
+
+      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      oldSf.getAttribute("c") should beNull
     }
   }
 }
