@@ -20,6 +20,7 @@ package geomesa.core.data
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Polygon, Coordinate}
 import geomesa.core.index.Constants
+import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text.WKTUtils
 import org.geotools.data.DataUtilities
 import org.geotools.factory.CommonFactoryFinder
@@ -30,10 +31,15 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.junit.runner.RunWith
-import org.opengis.filter.Filter
+import org.opengis.filter.{And, Or, Not, Filter}
 import org.opengis.filter.spatial.DWithin
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.opengis.filter.temporal.During
+import org.joda.time.format.{ISODateTimeFormat, DateTimeFormatter}
+import org.opengis.temporal.Period
+import org.opengis.filter.expression.{Expression, Literal}
+import org.opengis.feature.`type`.AttributeDescriptor
 
 @RunWith(classOf[JUnitRunner])
 class FilterToAccumuloTest extends Specification {
@@ -188,8 +194,95 @@ class FilterToAccumuloTest extends Specification {
       f2a.temporalPredicate mustEqual interval
       result mustEqual Filter.INCLUDE
     }
+  }
 
+  implicit class PrettyFilter(filter: Filter) {
+    val dtf = ISODateTimeFormat.dateTime
 
+    def prettyInterval(exp: Expression): String = {
+      val interval = exp.asInstanceOf[Literal].evaluate(null) match {
+        case null => null
+        case p: org.opengis.temporal.Period => new Interval(p.getBeginning, p.getEnding)
+        case i: Interval => i
+      }
+      dtf.print(interval.getStartMillis) + "/" + dtf.print(interval.getEndMillis)
+    }
+
+    def toFullerString: String = filter match {
+      case f: And =>
+        val terms = f.getChildren.map(_.toFullerString).mkString(" AND ")
+        "[ " + terms + " ]"
+      case f: Or =>
+        val terms = f.getChildren.map(_.toFullerString).mkString(" OR ")
+        "[ " + terms + " ]"
+      case f: During =>
+        "[ " + f.getExpression1.toString + " DURING " + prettyInterval(f.getExpression2) + " ]"
+      case f: Not => "[ NOT " + f.getFilter.toFullerString
+      case f         => f.toString
+    }
+  }
+
+  "Negations" should {
+    val wholeWorld = WKTUtils.read("POLYGON((-180 -90,-180 90,180 90,180 -90,-180 -90))")
+    val temporal_a = ECQL.toFilter("dtg DURING 2011-01-01T00:00:00.000Z/2011-01-20T00:00:00.000Z")
+    val spatial_a = ff.bbox("geom", -80.0, 30, -70, 38, CRS.toSRS(WGS84))
+    val polygon_a = WKTUtils.read("POLYGON((-80 30,-70 30,-70 38,-80 38,-80 30))")
+    val polygon_not_a = wholeWorld.difference(polygon_a)
+    val attribute_a = ECQL.toFilter("prop = 'foo'")
+
+    "handle single geometry" in {
+      val filter = ff.not(spatial_a)
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(filter)
+
+      f2a.spatialPredicate mustEqual polygon_not_a
+      f2a.temporalPredicate must beNull
+      result.toString mustEqual Filter.INCLUDE.toString
+    }
+
+    "handle single interval" in {
+      val filter = ff.not(temporal_a)
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(filter)
+
+      f2a.spatialPredicate must beNull
+      f2a.temporalPredicate must beNull
+      result.toFullerString mustEqual filter.toFullerString
+    }
+
+    "handle single non-geometry, non-interval" in {
+      val filter = ff.not(attribute_a)
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(filter)
+
+      f2a.spatialPredicate must beNull
+      f2a.temporalPredicate must beNull
+      result.toFullerString mustEqual filter.toFullerString
+    }
+
+    "handle conjunctive geometry + interval + attribute" in {
+      val filter = ff.not(ff.and(List(spatial_a, temporal_a, attribute_a)))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(filter)
+
+      val filter2 = ff.or(List(ff.intersects(ff.property("geom"), ff.literal(polygon_not_a)), ff.not(temporal_a), ff.not(attribute_a)))
+
+      f2a.spatialPredicate must beNull
+      f2a.temporalPredicate must beNull
+      result.toFullerString mustEqual filter2.toFullerString
+    }
+
+    "handle disjunctive geometry + interval + attribute" in {
+      val filter = ff.not(ff.or(List(spatial_a, temporal_a, attribute_a)))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(filter)
+
+      val filter2 = ff.and(List(ff.not(temporal_a), ff.not(attribute_a)))
+
+      f2a.spatialPredicate mustEqual polygon_not_a
+      f2a.temporalPredicate must beNull
+      result.toFullerString mustEqual filter2.toFullerString
+    }
   }
 
   "Logic queries" should {
