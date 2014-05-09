@@ -11,14 +11,12 @@ import org.geotools.data.store.DataFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.identity.FeatureId;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -28,10 +26,14 @@ import java.util.List;
 *
 */
 public class CompositeFeatureCollection extends DataFeatureCollection {
-    final Collection<SimpleFeatureCollection> collections;
+    final List<SimpleFeatureCollection> collections;
 
     public CompositeFeatureCollection(Collection<SimpleFeatureCollection> collections) {
-        this.collections = collections;
+        this.collections = new LinkedList<SimpleFeatureCollection>(collections);
+    }
+
+    public boolean add(SimpleFeatureCollection sf ) {
+        return collections.add(sf);
     }
 
     protected Iterator openIterator() throws IOException {

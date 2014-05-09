@@ -28,8 +28,6 @@ import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
-import geomesa.core.index.Constants
-import geomesa.core.util.CompositeFeatureCollection
 
 trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
   val dataStore: AccumuloDataStore
@@ -104,24 +102,8 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource,
     case v: MinVisitor    => v.setValue(new DateTime(2000,1,1,0,0).toDate)
     case v: MaxVisitor    => v.setValue(new DateTime().toDate)
     case v: BoundsVisitor => v.reset(ds.getBounds(query))
-    case v: TubeVisitor   => v.setValue(tubeSelect(v))
+    case v: TubeVisitor   => v.setValue(v.tubeSelect(source, query))
     case _                => super.accepts(visitor, progress)
-  }
-
-  def tubeSelect(params: TubeVisitor): SimpleFeatureCollection = {
-    val geomProperty = ff.property(getSchema.getGeometryDescriptor.getName)
-    val dateProperty = ff.property(getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])
-    val dtgFilter = ff.between(dateProperty, ff.literal(params.startDate), ff.literal(params.endDate))
-    val bufferedUnionedGeom = params.geom.buffer(params.bufferSize).union
-
-    val features = (0 until bufferedUnionedGeom.getNumGeometries).map { i =>
-      val bufferedGeom = bufferedUnionedGeom.getGeometryN(i)
-      val bufferedGeomFilter = ff.within(geomProperty, ff.literal(bufferedGeom))
-      val combinedFilter = ff.and(List(query.getFilter, bufferedGeomFilter, dtgFilter, params.filter))
-      source.getFeatures(combinedFilter)
-    }
-
-    new CompositeFeatureCollection(features).asInstanceOf[SimpleFeatureCollection]
   }
 
 }
