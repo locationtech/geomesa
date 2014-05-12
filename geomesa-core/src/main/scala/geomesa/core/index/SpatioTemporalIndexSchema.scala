@@ -98,7 +98,7 @@ case class SpatioTemporalIndexSchema(encoder: SpatioTemporalIndexEncoder,
             rawInterval: Interval,
             simpleFeatureType: String,
             ecql: Option[String] = None,
-            transforms: Option[String] = None,
+            transformDefs: Option[String] = None,
             transformSchema: Option[SimpleFeatureType] = None,
             density: Boolean = false,
             width: Int = 0,
@@ -115,7 +115,7 @@ case class SpatioTemporalIndexSchema(encoder: SpatioTemporalIndexEncoder,
 
     // perform the query as requested
     val rawIter =
-      planner.within(bs, poly, interval, simpleFeatureType, ecql, transforms, transformSchema, queryID, density, width, height)
+      planner.within(bs, poly, interval, simpleFeatureType, ecql, transformDefs, transformSchema, queryID, density, width, height)
 
     // the final iterator may need duplicates removed
     val finalIter: Iterator[Entry[Key,Value]] =
@@ -290,7 +290,7 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
              interval: Interval,
              simpleFeatureType: String,
              ecql: Option[String],
-             transforms: Option[String],
+             transformDefs: Option[String],
              transformSchema: Option[SimpleFeatureType] = None,
              queryID: String,
              density: Boolean = false,
@@ -301,12 +301,17 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
     // based on the arguments passed in
     val filter = buildFilter(poly, interval)
 
+    // figure out what transforms are requested, if any
+    // scan transform schema and compare to key's schema
+    val transformToIndex = ???
+    val transforms = Option("IGNORE")
+
     // set up row ranges and regular expression filter
     planQuery(bs, filter)
 
     //FIXME : change once API is defined for the index only iterator
     val theSpatioTemporalIterator = transforms match{
-      case s:Option[String] if s == "IGNORE" => IndexIterator
+      case Some("IGNORE") => IndexIterator
       case _ => SpatioTemporalIntersectingIterator
     }
 
@@ -322,11 +327,13 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
         configureSpatioTemporalIterator(bs, null, null, theSpatioTemporalIterator)
     }
 
-    // always set up the aggregating-combiner and simple-feature filtering iterator
-    configureAttributeAggregator(bs)
-    configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql,
-      transforms, transformSchema, density, poly, width, height)
-
+    // set up the aggregating-combiner and simple-feature filtering iterator,
+    // if we expect SimpleFeatures to be present
+    if (theSpatioTemporalIterator != IndexIterator ) {
+      configureAttributeAggregator(bs)
+      configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql,
+        transforms, transformSchema, density, poly, width, height)
+    }
     bs.iterator()
   }
 
@@ -377,7 +384,7 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
   def configureSimpleFeatureFilteringIterator(bs: BatchScanner,
                                               simpleFeatureType: String,
                                               ecql: Option[String],
-                                              transforms: Option[String],
+                                              transformDefs: Option[String],
                                               transformSchema: Option[SimpleFeatureType],
                                               density: Boolean,
                                               poly: Polygon = null,
@@ -393,7 +400,7 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
     configureFeatureEncoding(cfg)
     SimpleFeatureFilteringIterator.setFeatureType(cfg, simpleFeatureType)
     ecql.foreach(SimpleFeatureFilteringIterator.setECQLFilter(cfg, _))
-    transforms.foreach(SimpleFeatureFilteringIterator.setTransforms(cfg, _, transformSchema))
+    transformDefs.foreach(SimpleFeatureFilteringIterator.setTransforms(cfg, _, transformSchema))
 
     if(density) DensityIterator.configure(cfg, poly, width, height)
     bs.addScanIterator(cfg)

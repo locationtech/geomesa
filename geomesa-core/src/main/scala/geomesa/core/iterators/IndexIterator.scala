@@ -35,7 +35,11 @@ import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Try
 import geomesa.core.data._
+import geomesa.core.data.SimpleFeatureEncoder
+import geomesa.core.index._
 import scala.Some
+import org.geotools.feature.simple.SimpleFeatureBuilder
+import collection.JavaConversions._
 
 /**
  * This is an Index Only Iterator, to be used in situations where the data records are
@@ -52,6 +56,8 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
   import SpatioTemporalIndexEntry._
   import geomesa.core._
+  // This iterator encodes SimpleFeatures to Values
+  protected var featureEncoder: SimpleFeatureEncoder = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
            options: java.util.Map[String, String],
@@ -63,7 +69,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
     // default to text if not found for backwards compatibility
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
+    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
 
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     schema = SpatioTemporalIndexSchema(schemaEncoding, featureType, featureEncoder)
@@ -107,15 +113,29 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
         if (isIdUnique(decodedValue.id) && isDateTimeAcceptable && isGeomAcceptable) {
           // stash this ID
           rememberId(decodedValue.id)
+          // now increment the value of nextKey, copy because reusing it is UNSAFE
+          nextKey = new Key(indexSource.getTopKey)
+          // using the already decoded index value, generate a SimpleFeature and set as the Value
+          val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(decodedValue.id, decodedValue.geom, decodedValue.dtgMillis)
+          nextValue = featureEncoder.encode(nextSimpleFeature)
         }
       }
       // you MUST advance to the next key
       indexSource.next()
-       // skip over any intervening data entries, should they exist
+      // skip over any intervening data entries, should they exist
       skipDataEntries(indexSource)
     }
   }
   override def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("IndexIterator does not support deepCopy.")
 }
 
-object IndexIterator extends IteratorHelperObject
+object IndexIterator extends IteratorHelperObject {
+
+  def encodeIndexValueToSF(id: String, geom: Geometry, dtgMillis: Option[Long]): SimpleFeature = {
+    val dtg: Option[DateTime]  = dtgMillis match {
+      case Some(t) => Some(new DateTime(t))   // watch the time zone!
+      case _ => None
+    }
+    SimpleFeatureBuilder.build(indexSFT, List(geom, dtg), id)
+  }
+}
