@@ -1,20 +1,19 @@
 package geomesa.core.process
 
 import collection.JavaConversions._
-import org.junit.Test
-import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
-import org.specs2.mutable.Specification
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
+import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
+import geomesa.process.{TubeVisitor, TubeSelect}
 import geomesa.utils.text.WKTUtils
+import org.geotools.data.{DataUtilities, DataStoreFinder}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
-import org.joda.time.{DateTimeZone, DateTime}
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
-import org.opengis.filter.Filter
-import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
-import geomesa.process.TubeSelect
+import org.joda.time.{DateTimeZone, DateTime}
+import org.junit.runner.RunWith
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class TubeSelectTest extends Specification {
@@ -70,13 +69,12 @@ class TubeSelectTest extends Specification {
 
       // get back type b from tube
       val ts = new TubeSelect()
-      val results = ts.execute(tubeFeatures, features, null, "not implemented yet", 1, 1, 0)
+      val results = ts.execute(tubeFeatures, features, null, 1, 1, 0, "not implemented yet", 0)
 
       val f = results.features()
       while(f.hasNext) {
         val sf = f.next
         sf.getAttribute("type") should equalTo("b")
-        println(DataUtilities.encodeFeature(sf))
       }
 
       results.size should equalTo(4)
@@ -110,18 +108,29 @@ class TubeSelectTest extends Specification {
 
       // get back type b from tube
       val ts = new TubeSelect()
-      val results = ts.execute(tubeFeatures, features, null, "not implemented yet", 1, 1, 0)
+      val results = ts.execute(tubeFeatures, features, null, 1, 1, 0, "not implemented yet", 0)
 
       val f = results.features()
       while(f.hasNext) {
         val sf = f.next
         sf.getAttribute("type") should equalTo("b")
-        println(DataUtilities.encodeFeature(sf))
       }
 
       results.size should equalTo(4)
     }
 
 
+  }
+
+  "TubeVistitor" should {
+    "approximate meters to degrees" in {
+      val geoFac = new GeometryFactory
+
+      // calculated km at various latitude by USGS
+      List(0, 30, 60, 89).zip(List(110.57, 110.85, 111.41, 111.69)).foreach { case(lat, dist) =>
+        val deg = TubeVisitor.metersToDegrees(110.57*1000, geoFac.createPoint(new Coordinate(0, lat)))
+        (1.0-dist) should beLessThan(.0001)
+      }
+    }
   }
 }

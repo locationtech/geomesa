@@ -3,7 +3,7 @@ package geomesa.process
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
 import geomesa.core.index.Constants
-import geomesa.core.util.CompositeFeatureCollection
+import geomesa.core.util.MultiCollection
 import java.util.Date
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
@@ -15,7 +15,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.feature.visitor._
 import org.geotools.filter.{SortByImpl, AttributeExpressionImpl}
 import org.geotools.process.factory.{DescribeResult, DescribeParameter, DescribeProcess}
-import org.geotools.process.vector.{CollectGeometries, VectorProcess}
+import org.geotools.process.vector.VectorProcess
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.util.NullProgressListener
 import org.opengis.feature.Feature
@@ -23,6 +23,8 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 import scala.collection.mutable.ListBuffer
+import org.geotools.filter.text.ecql.ECQL
+import org.apache.log4j.Logger
 
 @DescribeProcess(
   title = "Performs a tube select on one feature collection based on another feature collection",
@@ -49,11 +51,6 @@ class TubeSelect extends VectorProcess {
                filter: Filter,
 
                @DescribeParameter(
-                 name = "gapFill",
-                 description = "Method of filling gap (none, straightLine, aroundLand, possiblePath)")
-               gapFill: String,
-
-               @DescribeParameter(
                  name = "maxSpeed",
                  min = 0,
                  description = "Max speed of the object in m/s for none, straightLine, aroundLand gapfill methods")
@@ -66,6 +63,18 @@ class TubeSelect extends VectorProcess {
                maxTime: Long,
 
                @DescribeParameter(
+                 name = "bufferSize",
+                 min = 0,
+                 description = "Buffer size in meters to use instead of maxSpeed/maxTime calculation")
+               bufferSize: Double,
+
+               @DescribeParameter(
+                 name = "gapFill",
+                 min = 0,
+                 description = "Method of filling gap (none, straightLine, aroundLand, possiblePath)")
+               gapFill: String,
+
+               @DescribeParameter(
                  name = "percentIncrease",
                  min = 0,
                  description = "Percent Increase of radius of buffer between points for possiblePath gapfill")
@@ -74,7 +83,15 @@ class TubeSelect extends VectorProcess {
                ): SimpleFeatureCollection = {
 
     // assume for now that firstFeatures is a singleton collection
-    val tubeVisitor = new TubeVisitor(tubeFeatures, featureCollection, Option(filter).getOrElse(Filter.INCLUDE), gapFill, maxSpeed, maxTime, percentIncrease)
+    val tubeVisitor = new TubeVisitor(
+                                      tubeFeatures,
+                                      featureCollection,
+                                      Option(filter).getOrElse(Filter.INCLUDE),
+                                      Option(maxSpeed).getOrElse(0),
+                                      Option(maxTime).getOrElse(0),
+                                      Option(bufferSize).getOrElse(0),
+                                      Option(gapFill).getOrElse(GapFill.NONE),
+                                      Option(percentIncrease).getOrElse(0))
     featureCollection.accepts(tubeVisitor, new NullProgressListener)
     tubeVisitor.getResult.asInstanceOf[TubeResult].results
   }
@@ -92,11 +109,14 @@ class TubeVisitor(
                    val tubeFeatures: SimpleFeatureCollection,
                    val featureCollection: SimpleFeatureCollection,
                    val filter: Filter,
-                   val gapFill: String,
                    val maxSpeed: Long,
                    val maxTime: Long,
+                   val bufferSize: Double,
+                   val gapFill: String,
                    val percentIncrease: Int
                    ) extends FeatureCalc {
+
+  private val log = Logger.getLogger(classOf[TubeVisitor])
 
   var resultCalc: TubeResult = null
 
@@ -108,69 +128,57 @@ class TubeVisitor(
     resultCalc = TubeResult(r)
   }
 
+  val ff  = CommonFactoryFinder.getFilterFactory2
+
+  // Needs to be optimized to do fewer queries...currently does one query
+  // per feature in the source since we have to buffer each feature by
+  // time and geometry.
   def tubeSelect(source: SimpleFeatureSource, query: Query): SimpleFeatureCollection = {
-//    val dtgFilter = getDtgFilter
-    val tubeGeometries = getTubeGeometries
+    log.debug("Tubing on with query: "+query)
+    // Sort and buffer geometry - sorting needs to be done for line filling methods
+    val sortedTube = TubeVisitor.sortByDate(tubeFeatures)
+    val buffered = TubeVisitor.bufferPoints(sortedTube, bufferDistance)
 
     val geomProperty = ff.property(source.getSchema.getGeometryDescriptor.getName)
 
-    val itr = tubeGeometries.features
-    val cfc = new CompositeFeatureCollection(List[SimpleFeatureCollection]())
+    val itr = buffered.features
+    val collections = new ListBuffer[SimpleFeatureCollection]
     while(itr.hasNext) {
       val sf = itr.next
-      val bufferedGeom = sf.getDefaultGeometry
-      val bufferedGeomFilter = ff.within(geomProperty, ff.literal(bufferedGeom))
+      val geom = sf.getDefaultGeometry
+      val geomFilter = ff.within(geomProperty, ff.literal(geom))
 
       val minDate = new Date(sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date].getTime - maxTime)
       val maxDate = new Date(sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date].getTime + maxTime)
       val dateProperty = ff.property(tubeFeatures.getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])
       val dtgFilter = ff.between(dateProperty, ff.literal(minDate), ff.literal(maxDate))
 
-      val combinedFilter = ff.and(List(query.getFilter, bufferedGeomFilter, dtgFilter, filter))
-      cfc.add(source.getFeatures(combinedFilter))
+      val combinedFilter = ff.and(List(query.getFilter, geomFilter, dtgFilter, filter))
+      log.debug("Running tube subquery with filter: "+ ECQL.toCQL(combinedFilter))
+      collections += source.getFeatures(combinedFilter)
     }
-    cfc
-//    val features = (0 until tubeGeometries.getNumGeometries).map { i =>
-//      val bufferedGeom = tubeGeometries.getGeometryN(i)
-//      val bufferedGeomFilter = ff.within(geomProperty, ff.literal(bufferedGeom))
-//      val combinedFilter = ff.and(List(query.getFilter, bufferedGeomFilter, dtgFilter, filter))
-//      source.getFeatures(combinedFilter)
-//    }
-//
-//    new CompositeFeatureCollection(features).asInstanceOf[SimpleFeatureCollection]
+    new MultiCollection(source.getSchema, collections)
   }
 
+  def bufferDistance: Double = if(bufferSize > 0) bufferSize else maxSpeed * maxTime*1000
 
+}
 
-  def getTubeGeometries() = {
-    val sortedTube = sortByDate(tubeFeatures)
+object TubeVisitor {
 
-    val buffered = bufferPoints(sortedTube, calcDistance)
-    //new CollectGeometries execute(buffered, new NullProgressListener) union
-    buffered
+  val calc = new GeodeticCalculator()
+  val geoFac = new GeometryFactory
+
+  // calculate degrees from meters at a given point
+  def metersToDegrees(meters: Double, point: Point) = {
+    calc.setStartingGeographicPoint(point.getX, point.getY)
+    calc.setDirection(0, meters)
+    val dest2D = calc.getDestinationGeographicPoint
+    val destPoint = geoFac.createPoint(new Coordinate(dest2D.getX, dest2D.getY))
+    point.distance(destPoint)
   }
 
-  val ff  = CommonFactoryFinder.getFilterFactory2
-
-  def calcDistance = {
-    maxSpeed * maxTime
-  }
-
-  def sortByDate(features: SimpleFeatureCollection) = {
-    // Get source features and sort
-    val dateField = new AttributeExpressionImpl(new NameImpl(Constants.SF_PROPERTY_START_TIME))
-    val sortBy = new SortByImpl(dateField, SortOrder.DESCENDING)
-    new SortedSimpleFeatureCollection(features, Array(sortBy))
-  }
-
-  def getDtgFilter = {
-    // Calculate some bounding geometry and time frame based on the source features
-    val (minDate, maxDate) = getMinMaxDate(tubeFeatures)
-    val dateProperty = ff.property(tubeFeatures.getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])
-    ff.between(dateProperty, ff.literal(minDate), ff.literal(maxDate))
-  }
-
-
+  def bufferPoint(point: Point, meters: Double) = point.buffer(metersToDegrees(meters, point))
 
   def bufferPoints(features: SimpleFeatureCollection, meters: Double) = {
     val itr = features.features()
@@ -179,14 +187,8 @@ class TubeVisitor(
 
     while(itr.hasNext){
       val sf = itr.next()
-      val point = sf.getDefaultGeometry.asInstanceOf[Point]
-
-      val calc = new GeodeticCalculator(features.getSchema.getCoordinateReferenceSystem)
-      calc.setStartingGeographicPoint(point.getX, point.getY)
-      calc.setDirection(0, meters)
-      val dest2D = calc.getDestinationGeographicPoint
-      val destPoint = (new GeometryFactory).createPoint(new Coordinate(dest2D.getX, dest2D.getY))
-      val bufPoint = point.buffer(point.distance(destPoint))
+      val geom = sf.getDefaultGeometry.asInstanceOf[Point]
+      val bufPoint = bufferPoint(geom, meters)
 
       builder.init(sf)
       val newSf = builder.buildFeature(sf.getID)
@@ -197,17 +199,12 @@ class TubeVisitor(
     new ListFeatureCollection(features.getSchema, buffered)
   }
 
-  def getMinMaxDate(features: SimpleFeatureCollection): (Date, Date) = {
-    val minVisitor = new MinVisitor(Constants.SF_PROPERTY_START_TIME)
-    features.accepts(minVisitor, new NullProgressListener)
-    val minDate = minVisitor.getResult.getValue.asInstanceOf[java.util.Date]
-
-    val maxVisitor = new MaxVisitor(Constants.SF_PROPERTY_START_TIME)
-    features.accepts(maxVisitor, new NullProgressListener)
-    val maxDate = maxVisitor.getResult.getValue.asInstanceOf[java.util.Date]
-
-    (minDate, maxDate)
+  def sortByDate(features: SimpleFeatureCollection) = {
+    val dateField = new AttributeExpressionImpl(new NameImpl(Constants.SF_PROPERTY_START_TIME))
+    val sortBy = new SortByImpl(dateField, SortOrder.DESCENDING)
+    new SortedSimpleFeatureCollection(features, Array(sortBy))
   }
+
 }
 
 case class TubeResult(results: SimpleFeatureCollection) extends AbstractCalcResult

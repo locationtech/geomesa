@@ -81,6 +81,14 @@
             </wps:Data>
         </wps:Input>
 
+	<wps:Input>
+            <ows:Identifier>bufferSize</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>1000.0</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+
+
         <wps:Input>
             <ows:Identifier>maxSpeed</ows:Identifier>
             <wps:Data>
