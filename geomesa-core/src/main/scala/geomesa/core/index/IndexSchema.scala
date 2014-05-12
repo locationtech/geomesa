@@ -100,9 +100,7 @@ case class IndexSchema(encoder: IndexEncoder,
       case _ => 1  // couldn't find a matching partitioner
     }
 
-  def query(query: Query, getBS: => BatchScanner): (Iterator[SimpleFeature], BatchScanner) = {
-    val bs = getBS
-
+  def query(query: Query, bs: BatchScanner): Iterator[SimpleFeature] = {
     val ff = CommonFactoryFinder.getFilterFactory2
     val derivedQuery =
       if(query.getHints.containsKey(BBOX_KEY)) {
@@ -144,7 +142,7 @@ case class IndexSchema(encoder: IndexEncoder,
     def unpackDensityFeatures(iter: Iterator[Value]) =
       iter.flatMap { i => DensityIterator.expandFeature(featureEncoder.decode(projectedSFT, i)) }
 
-    (iter, bs)
+    iter
   }
 
   def planQuery(bs: BatchScanner,
