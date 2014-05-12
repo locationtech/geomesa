@@ -1,7 +1,7 @@
 package geomesa.core.process
 
 import collection.JavaConversions._
-import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
+import com.vividsolutions.jts.geom.{Point, Coordinate, GeometryFactory}
 import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
 import geomesa.process.{TubeVisitor, TubeSelect}
 import geomesa.utils.text.WKTUtils
@@ -35,11 +35,13 @@ class TubeSelectTest extends Specification {
       "useMock"    -> "true",
       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
 
-  val sftName = "tubeTestType"
-  val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+
 
   "TubeSelect" should {
     "should do a simple tube with geo interpolation" in {
+      val sftName = "tubeTestType"
+      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+
       val ds = createStore
 
       ds.createSchema(sft)
@@ -81,6 +83,8 @@ class TubeSelectTest extends Specification {
     }
 
     "should do a simple tube with geo + time interpolation" in {
+      val sftName = "tubeTestType"
+      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
       val ds = createStore
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
@@ -119,6 +123,91 @@ class TubeSelectTest extends Specification {
       results.size should equalTo(4)
     }
 
+    "should properly convert speed/time to distance" in {
+      val sftName = "tubetest2"
+      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+
+
+      val ds = createStore
+
+      ds.createSchema(sft)
+
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      val featureCollection = new DefaultFeatureCollection(sftName, sft)
+
+      var i = 0
+      List("a", "b").foreach { name =>
+        for(lon <- 40 until 50; lat <- 40 until 50) {
+          val sf = SimpleFeatureBuilder.build(sft, List(), name+i.toString)
+          i += 1
+          sf.setDefaultGeometry(WKTUtils.read(f"POINT($lon%d $lat%d)"))
+          sf.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-02T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute("type",name)
+          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+          featureCollection.add(sf)
+        }
+      }
+
+      // write the feature to the store
+      val res = fs.addFeatures(featureCollection)
+
+      // tube features
+      val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geomesa_index_geometry, 40, 40, 40, 50) AND type = 'a'"))
+
+      // result set to tube on
+      val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
+
+      // get back type b from tube
+      val ts = new TubeSelect()
+
+      // 110 m/s times 1000 seconds is just 100km which is under 1 degree
+      val results = ts.execute(tubeFeatures, features, null, 110, 1000, 0, "not implemented yet", 0)
+
+      val f = results.features()
+      while(f.hasNext) {
+        val sf = f.next
+        sf.getAttribute("type") should equalTo("b")
+        val point = sf.getDefaultGeometry.asInstanceOf[Point]
+        point.getX should be equalTo(40.0)
+        point.getY should be between(40.0, 50.0)
+      }
+
+      results.size should equalTo(10)
+    }
+
+    "should properly dedup overlapping results based on buffer size " in {
+      val sftName = "tubetest2"
+
+      val ds = createStore
+
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      // tube features
+      val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geomesa_index_geometry, 40, 40, 40, 50) AND type = 'a'"))
+
+      // result set to tube on
+      val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
+
+      // get back type b from tube
+      val ts = new TubeSelect()
+
+      // this time we use 112km which is just over 1 degree so we should pick up additional features
+      // but with buffer overlap since the features in the collection are 1 degrees apart
+      val results = ts.execute(tubeFeatures, features, null, 112, 1000, 0, "not implemented yet", 0)
+
+      val f = results.features()
+      while(f.hasNext) {
+        val sf = f.next
+        println(DataUtilities.encodeFeature(sf))
+        sf.getAttribute("type") should equalTo("b")
+        val point = sf.getDefaultGeometry.asInstanceOf[Point]
+        point.getX should be between(40.0, 41.0)
+        point.getY should be between(40.0, 50.0)
+      }
+
+      results.size should equalTo(20)
+    }
 
   }
 

@@ -3,8 +3,9 @@ package geomesa.process
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
 import geomesa.core.index.Constants
-import geomesa.core.util.MultiCollection
+import geomesa.core.util.UniqueMultiCollection
 import java.util.Date
+import org.apache.log4j.Logger
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
@@ -13,6 +14,7 @@ import org.geotools.feature.NameImpl
 import org.geotools.feature.collection.SortedSimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.feature.visitor._
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.{SortByImpl, AttributeExpressionImpl}
 import org.geotools.process.factory.{DescribeResult, DescribeParameter, DescribeProcess}
 import org.geotools.process.vector.VectorProcess
@@ -23,8 +25,6 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 import scala.collection.mutable.ListBuffer
-import org.geotools.filter.text.ecql.ECQL
-import org.apache.log4j.Logger
 
 @DescribeProcess(
   title = "Performs a tube select on one feature collection based on another feature collection",
@@ -157,7 +157,10 @@ class TubeVisitor(
       log.debug("Running tube subquery with filter: "+ ECQL.toCQL(combinedFilter))
       collections += source.getFeatures(combinedFilter)
     }
-    new MultiCollection(source.getSchema, collections)
+
+    // Currently we buffer these in memory but this could be pushed into the iterator stack if it can handle
+    // multiple queries and deduplicate results.
+    new UniqueMultiCollection(source.getSchema, collections)
   }
 
   def bufferDistance: Double = if(bufferSize > 0) bufferSize else maxSpeed * maxTime
