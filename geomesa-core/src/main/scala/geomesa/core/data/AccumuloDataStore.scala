@@ -19,7 +19,7 @@ package geomesa.core.data
 
 import geomesa.core
 import geomesa.core.data.AccumuloFeatureWriter.{LocalRecordDeleter, LocalRecordWriter, MapReduceRecordWriter}
-import geomesa.core.index.{Constants, SpatioTemporalIndexSchema}
+import geomesa.core.index.{Constants, IndexSchema}
 import java.io.Serializable
 import java.util.{Map=>JMap}
 import org.apache.accumulo.core.client.mock.MockConnector
@@ -78,7 +78,7 @@ class AccumuloDataStore(val connector: Connector,
 
   def configureNewTable(indexSchemaFormat: String, featureType: SimpleFeatureType, tableName: String, fe: FeatureEncoding) {
     val encoder = SimpleFeatureEncoderFactory.createEncoder(fe)
-    val indexSchema = SpatioTemporalIndexSchema(indexSchemaFormat, featureType, encoder)
+    val indexSchema = IndexSchema(indexSchemaFormat, featureType, encoder)
     val maxShard = indexSchema.maxShard
 
     val splits = (1 to maxShard).map { i => s"%0${maxShard.toString.length}d".format(i) }.map(new Text(_))
@@ -288,7 +288,7 @@ class AccumuloDataStore(val connector: Connector,
     val featureType = getSchema(typeName)
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
     val fe = getFeatureEncoder(typeName)
-    val schema = SpatioTemporalIndexSchema(indexSchemaFmt, featureType, fe)
+    val schema = IndexSchema(indexSchemaFmt, featureType, fe)
     val writer = new LocalRecordWriter(tableName, connector)
     val deleter = new LocalRecordDeleter(tableName, connector)
     new ModifyAccumuloFeatureWriter(featureType, schema, writer, deleter, this)
@@ -299,7 +299,7 @@ class AccumuloDataStore(val connector: Connector,
     val featureType = getSchema(typeName)
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
     val fe = getFeatureEncoder(typeName)
-    val schema = SpatioTemporalIndexSchema(indexSchemaFmt, featureType, fe)
+    val schema = IndexSchema(indexSchemaFmt, featureType, fe)
     val writer = new LocalRecordWriter(tableName, connector)
     new AppendAccumuloFeatureWriter(featureType, schema, writer)
   }
@@ -348,7 +348,7 @@ class MapReduceAccumuloDataStore(connector: Connector,
     val featureType = getSchema(featureName)
     val idxFmt = getIndexSchemaFmt(featureName)
     val fe = getFeatureEncoder(featureName)
-    val idx = SpatioTemporalIndexSchema(idxFmt, featureType, fe)
+    val idx = IndexSchema(idxFmt, featureType, fe)
     val writer = new MapReduceRecordWriter(context)
     // TODO allow deletes? modifications?
     new AppendAccumuloFeatureWriter(featureType, idx, writer)

@@ -16,7 +16,7 @@
 
 package geomesa.core.index
 
-import SpatioTemporalIndexEntry._
+import IndexEntry._
 import org.apache.hadoop.io.Text
 import org.joda.time.{DateTime, DateTimeZone}
 import org.opengis.feature.simple.SimpleFeature

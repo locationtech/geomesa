@@ -19,8 +19,8 @@ package geomesa.core.iterators
 
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.Envelope
-import geomesa.core.data.{AccumuloFeatureReader, AccumuloDataStoreFactory}
-import geomesa.core.index.Constants
+import geomesa.core.data.AccumuloDataStoreFactory
+import geomesa.core.index.{QueryHints, Constants}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.hadoop.io.Text
@@ -30,17 +30,18 @@ import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
-import org.geotools.referencing.crs.DefaultGeographicCRS
 
 @RunWith(classOf[JUnitRunner])
 class DensityIteratorTest extends Specification {
 
   import geomesa.utils.geotools.Conversions._
+
   "DensityIterator" should {
     "compute densities" in {
       val mockInstance = new MockInstance("dummy")
@@ -93,10 +94,10 @@ class DensityIteratorTest extends Specification {
 
       val q = new Query("test", ECQL.toFilter("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"))
       val geom = q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope]
-      q.getHints.put(AccumuloFeatureReader.DENSITY_KEY, java.lang.Boolean.TRUE)
-      q.getHints.put(AccumuloFeatureReader.BBOX_KEY, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
-      q.getHints.put(AccumuloFeatureReader.WIDTH_KEY, 600)
-      q.getHints.put(AccumuloFeatureReader.HEIGHT_KEY, 600)
+      q.getHints.put(QueryHints.DENSITY_KEY, java.lang.Boolean.TRUE)
+      q.getHints.put(QueryHints.BBOX_KEY, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
+      q.getHints.put(QueryHints.WIDTH_KEY, 600)
+      q.getHints.put(QueryHints.HEIGHT_KEY, 600)
       val results = fs.getFeatures(q)
 
       val iter = results.features().toList

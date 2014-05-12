@@ -23,6 +23,8 @@ import geomesa.utils.geohash.{GeoHash, GeohashUtils}
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.{DateTime, DateTimeZone}
 
+trait Filter
+
 case object AcceptEverythingFilter extends Filter
 case class SpatialFilter(poly: Polygon) extends Filter
 case class DateFilter(dt:DateTime) extends Filter

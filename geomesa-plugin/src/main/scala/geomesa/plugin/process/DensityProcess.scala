@@ -23,6 +23,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.data.Query
 import org.opengis.coverage.grid.GridGeometry
 import geomesa.core.data.AccumuloFeatureReader
+import geomesa.core.index.QueryHints
 
 @DescribeProcess(
   title = "Heatmap",
@@ -43,10 +44,10 @@ class DensityProcess extends HeatmapProcess {
         targetQuery,
         targetGridGeometry)
 
-    q.getHints.put(AccumuloFeatureReader.BBOX_KEY, argOutputEnv)
-    q.getHints.put(AccumuloFeatureReader.DENSITY_KEY, java.lang.Boolean.TRUE)
-    q.getHints.put(AccumuloFeatureReader.WIDTH_KEY, argOutputWidth)
-    q.getHints.put(AccumuloFeatureReader.HEIGHT_KEY, argOutputHeight)
+    q.getHints.put(QueryHints.BBOX_KEY, argOutputEnv)
+    q.getHints.put(QueryHints.DENSITY_KEY, java.lang.Boolean.TRUE)
+    q.getHints.put(QueryHints.WIDTH_KEY, argOutputWidth)
+    q.getHints.put(QueryHints.HEIGHT_KEY, argOutputHeight)
     q
   }
 }
