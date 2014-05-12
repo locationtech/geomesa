@@ -100,26 +100,24 @@ case class IndexSchema(encoder: IndexEncoder,
       case _ => 1  // couldn't find a matching partitioner
     }
 
-  def query(gtquery: Query, getBS: => BatchScanner): (Iterator[SimpleFeature], BatchScanner) = {
-    // JNH: translation
-    val sft = featureType
+  def query(query: Query, getBS: => BatchScanner): (Iterator[SimpleFeature], BatchScanner) = {
     val bs = getBS
 
     val ff = CommonFactoryFinder.getFilterFactory2
     val derivedQuery =
-      if(gtquery.getHints.containsKey(BBOX_KEY)) {
-        val env = gtquery.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
-        val q1 = new Query(sft.getTypeName, ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env))
-        DataUtilities.mixQueries(q1, gtquery, "geomesa.mixed.query")
-      } else gtquery
+      if(query.getHints.containsKey(BBOX_KEY)) {
+        val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
+        val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
+        DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
+      } else query
 
-    val encodedSFT = DataUtilities.encodeType(sft)
+    val encodedSFT = DataUtilities.encodeType(featureType)
 
     val projectedSFT =
-      if(gtquery.getHints.containsKey(DENSITY_KEY)) DataUtilities.createType(sft.getTypeName, "encodedraster:String,geom:Point:srid=4326")
-      else sft
+      if(query.getHints.containsKey(DENSITY_KEY)) DataUtilities.createType(featureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
+      else featureType
 
-    val filterVisitor = new FilterToAccumulo(sft)
+    val filterVisitor = new FilterToAccumulo(featureType)
     val rewrittenCQL = filterVisitor.visit(derivedQuery)
     val cqlString = ECQL.toCQL(rewrittenCQL)
 
@@ -127,19 +125,19 @@ case class IndexSchema(encoder: IndexEncoder,
     val temporal = filterVisitor.temporalPredicate
 
     lazy val iter: Iterator[SimpleFeature] = {
-      val transformOption = Option(gtquery.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
-      val transformSchema = Option(gtquery.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
-      if (gtquery.getHints.containsKey(DENSITY_KEY)) {
-        val width = gtquery.getHints.get(WIDTH_KEY).asInstanceOf[Integer]
-        val height = gtquery.getHints.get(HEIGHT_KEY).asInstanceOf[Integer]
-        val q: Iterator[Value] = query(bs, spatial, temporal, encodedSFT, Some(cqlString),
+      val transformOption = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
+      val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
+      if (query.getHints.containsKey(DENSITY_KEY)) {
+        val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Integer]
+        val height = query.getHints.get(HEIGHT_KEY).asInstanceOf[Integer]
+        val q: Iterator[Value] = planQuery(bs, spatial, temporal, encodedSFT, Some(cqlString),
           transformOption, transformSchema, density = true, width, height)
         unpackDensityFeatures(q)
       } else {
-        val q: Iterator[Value] = query(bs, spatial, temporal, encodedSFT, Some(cqlString),
+        val q: Iterator[Value] = planQuery(bs, spatial, temporal, encodedSFT, Some(cqlString),
           transformOption, transformSchema, density = false)
         val result = transformSchema.map { tschema => q.map { v => featureEncoder.decode(tschema, v) } }
-        result.getOrElse(q.map { v => featureEncoder.decode(sft, v) })
+        result.getOrElse(q.map { v => featureEncoder.decode(featureType, v) })
       }
     }
 
@@ -149,7 +147,7 @@ case class IndexSchema(encoder: IndexEncoder,
     (iter, bs)
   }
 
-  def query(bs: BatchScanner,
+  def planQuery(bs: BatchScanner,
             rawPoly: Polygon,
             rawInterval: Interval,
             simpleFeatureType: String,
@@ -314,7 +312,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     }
   }
 
-  def buildFilter(poly: Polygon, interval: Interval): Filter =
+  def buildFilter(poly: Polygon, interval: Interval): KeyPlanningFilter =
     (IndexSchema.somewhere(poly), IndexSchema.somewhen(interval)) match {
       case (None, None)       => AcceptEverythingFilter
       case (None, Some(i))    => if (i.getStart == i.getEnd) DateFilter(i.getStart)
@@ -454,7 +452,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def randomPrintableString(length:Int=5) : String = (1 to length).
     map(i => Random.nextPrintableChar()).mkString
 
-  def planQuery(bs: BatchScanner, filter: Filter): BatchScanner = {
+  def planQuery(bs: BatchScanner, filter: KeyPlanningFilter): BatchScanner = {
     val keyPlan = keyPlanner.getKeyPlan(filter)
     val columnFamilies = cfPlanner.getColumnFamiliesToFetch(filter)
 

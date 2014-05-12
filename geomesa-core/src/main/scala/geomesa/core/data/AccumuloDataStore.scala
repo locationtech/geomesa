@@ -277,10 +277,9 @@ class AccumuloDataStore(val connector: Connector,
   // This override is important as it allows us to optimize and plan our search with the Query.
   override def getFeatureReader(featureName: String, query: Query) = {
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
-    val attributes = getAttributes(featureName)
     val sft = getSchema(featureName)
     val fe = getFeatureEncoder(featureName)
-    new AccumuloFeatureReader(this, featureName, query, indexSchemaFmt, attributes, sft, fe)
+    new AccumuloFeatureReader(this, query, indexSchemaFmt, sft, fe)
   }
 
   /* create a general purpose writer that is capable of insert, deletes, and updates */

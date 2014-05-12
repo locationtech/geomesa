@@ -21,10 +21,8 @@ import org.geotools.data.{Query, FeatureReader}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
-                            featureName: String,              // JNH can go.
                             query: Query,
                             indexSchemaFmt: String,
-                            attributes: String,         // JNH can go.
                             sft: SimpleFeatureType,
                             featureEncoder: SimpleFeatureEncoder)
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {

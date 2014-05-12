@@ -243,7 +243,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
 
     // fetch results from the schema!
-    val itr = schema.query(bs, polygon, dtFilter, UnitTestEntryType.getTypeSpec, ecqlFilter)
+    val itr = schema.planQuery(bs, polygon, dtFilter, UnitTestEntryType.getTypeSpec, ecqlFilter)
 
     // print out the hits
     val retval = if (doPrint) {

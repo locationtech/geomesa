@@ -23,15 +23,15 @@ import geomesa.utils.geohash.{GeoHash, GeohashUtils}
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.{DateTime, DateTimeZone}
 
-trait Filter
+trait KeyPlanningFilter
 
-case object AcceptEverythingFilter extends Filter
-case class SpatialFilter(poly: Polygon) extends Filter
-case class DateFilter(dt:DateTime) extends Filter
-case class DateRangeFilter(start:DateTime, end:DateTime) extends Filter
-case class SpatialDateFilter(poly:Polygon, dt:DateTime) extends Filter
+case object AcceptEverythingFilter extends KeyPlanningFilter
+case class SpatialFilter(poly: Polygon) extends KeyPlanningFilter
+case class DateFilter(dt:DateTime) extends KeyPlanningFilter
+case class DateRangeFilter(start:DateTime, end:DateTime) extends KeyPlanningFilter
+case class SpatialDateFilter(poly:Polygon, dt:DateTime) extends KeyPlanningFilter
 case class SpatialDateRangeFilter(poly:Polygon, start:DateTime, end:DateTime)
-  extends Filter
+  extends KeyPlanningFilter
 
 sealed trait KeyPlan {
   def join(right: KeyPlan, sep: String): KeyPlan
@@ -263,11 +263,11 @@ object KeyUtils {
 }
 
 trait KeyPlanner {
-  def getKeyPlan(filter:Filter): KeyPlan
+  def getKeyPlan(filter:KeyPlanningFilter): KeyPlan
 }
 
 trait ColumnFamilyPlanner {
-  def getColumnFamiliesToFetch(filter: Filter): KeyPlan
+  def getColumnFamiliesToFetch(filter: KeyPlanningFilter): KeyPlan
 }
 
 trait GeoHashPlanner {
@@ -293,7 +293,7 @@ trait GeoHashPlanner {
     }
   }
 
-  def getKeyPlan(filter: Filter, offset: Int, bits: Int) = filter match {
+  def getKeyPlan(filter: KeyPlanningFilter, offset: Int, bits: Int) = filter match {
     case SpatialFilter(poly) =>
       polyToPlan(poly, offset, bits)
     case SpatialDateFilter(poly,dt) =>
@@ -306,7 +306,7 @@ trait GeoHashPlanner {
 }
 
 case class GeoHashKeyPlanner(offset: Int, bits: Int) extends KeyPlanner with GeoHashPlanner {
-  def getKeyPlan(filter: Filter) = getKeyPlan(filter, offset, bits) match {
+  def getKeyPlan(filter: KeyPlanningFilter) = getKeyPlan(filter, offset, bits) match {
     case KeyList(keys) => KeyListTiered(keys)
     case KeyAccept => KeyAccept
     case _ => KeyInvalid
@@ -314,22 +314,22 @@ case class GeoHashKeyPlanner(offset: Int, bits: Int) extends KeyPlanner with Geo
 }
 
 case class GeoHashColumnFamilyPlanner(offset: Int, bits: Int) extends ColumnFamilyPlanner with GeoHashPlanner {
-  def getColumnFamiliesToFetch(filter: Filter): KeyPlan = getKeyPlan(filter, offset, bits)
+  def getColumnFamiliesToFetch(filter: KeyPlanningFilter): KeyPlan = getKeyPlan(filter, offset, bits)
 }
 
 case class RandomPartitionPlanner(numPartitions: Int) extends KeyPlanner {
   val numBits: Int = numPartitions.toString.length
-  def getKeyPlan(filter: Filter) = KeyListTiered((0 to numPartitions).map(_.toString.reverse.padTo(numBits,"0").reverse.mkString))
+  def getKeyPlan(filter: KeyPlanningFilter) = KeyListTiered((0 to numPartitions).map(_.toString.reverse.padTo(numBits,"0").reverse.mkString))
 }
 
 case class ConstStringPlanner(cstr: String) extends KeyPlanner {
-  def getKeyPlan(filter:Filter) = KeyListTiered(List(cstr))
+  def getKeyPlan(filter:KeyPlanningFilter) = KeyListTiered(List(cstr))
 }
 
 case class DatePlanner(formatter: DateTimeFormatter) extends KeyPlanner {
   val endDates = List(9999,12,31,23,59,59,999)
   val startDates = List(0,1,1,0,0,0,0)
-  def getKeyPlan(filter:Filter) = filter match {
+  def getKeyPlan(filter:KeyPlanningFilter) = filter match {
     case DateFilter(dt) => KeyRange(formatter.print(dt),formatter.print(dt))
     case SpatialDateFilter(_,dt) => KeyRange(formatter.print(dt),formatter.print(dt))
     case DateRangeFilter(start,end) => {// @todo - add better ranges for wrap-around case
@@ -392,7 +392,7 @@ case class DatePlanner(formatter: DateTimeFormatter) extends KeyPlanner {
 }
 
 case class CompositePlanner(seq: Seq[KeyPlanner], sep: String) extends KeyPlanner {
-  def getKeyPlan(filter:Filter): KeyPlan = {
+  def getKeyPlan(filter:KeyPlanningFilter): KeyPlan = {
     val joined = seq.map(_.getKeyPlan(filter)).reduce(_.join(_, sep))
     joined match {
       case kt:KeyTiered    => KeyRanges(kt.toRanges(sep))
