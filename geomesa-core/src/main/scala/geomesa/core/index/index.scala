@@ -17,12 +17,13 @@
 package geomesa.core
 
 import org.apache.accumulo.core.data.{Value, Key}
-import org.geotools.filter.identity.FeatureIdImpl
-import org.joda.time.DateTime
-import org.opengis.filter.identity.FeatureId
 import org.geotools.data.DataUtilities
+import org.geotools.factory.Hints.{IntegerKey, ClassKey}
+import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.joda.time.DateTime
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.filter.identity.FeatureId
 
 /**
  * These are package-wide constants.
@@ -44,5 +45,12 @@ package object index {
   implicit def string2id(s: String): FeatureId = new FeatureIdImpl(s)
 
   type KeyValuePair = (Key, Value)
+
+  object QueryHints {
+    val DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
+    val WIDTH_KEY   = new IntegerKey(256)
+    val HEIGHT_KEY  = new IntegerKey(256)
+    val BBOX_KEY    = new ClassKey(classOf[ReferencedEnvelope])
+  }
 }
 
