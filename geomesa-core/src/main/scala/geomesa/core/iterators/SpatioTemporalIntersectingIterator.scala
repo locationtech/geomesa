@@ -18,7 +18,7 @@ package geomesa.core.iterators
 
 import collection.JavaConverters._
 import com.vividsolutions.jts.geom._
-import geomesa.core.index.{SpatioTemporalIndexEntry, SpatioTemporalIndexSchema}
+import geomesa.core.index.{IndexEntry, IndexSchema}
 import geomesa.utils.geohash.GeoHash
 import geomesa.utils.text.WKTUtils
 import java.io.{DataInputStream, ByteArrayInputStream, ByteArrayOutputStream, DataOutputStream}
@@ -55,14 +55,14 @@ case class Attribute(name: Text, value: Text)
  */
 class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Value] {
 
-  import SpatioTemporalIndexEntry._
+  import IndexEntry._
   import geomesa.core._
 
   private var indexSource: SortedKeyValueIterator[Key, Value] = null
   private var dataSource: SortedKeyValueIterator[Key, Value] = null
   private var interval: Interval = null
   private var poly: Geometry = null
-  private var schema: SpatioTemporalIndexSchema = null
+  private var schema: IndexSchema = null
   private var topKey: Key = null
   private var topValue: Value = null
   private var nextKey: Key = null
@@ -93,7 +93,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
     val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
 
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
-    schema = SpatioTemporalIndexSchema(schemaEncoding, featureType, featureEncoder)
+    schema = IndexSchema(schemaEncoding, featureType, featureEncoder)
     if (options.containsKey(DEFAULT_POLY_PROPERTY_NAME)) {
       val polyWKT = options.get(DEFAULT_POLY_PROPERTY_NAME)
       poly = WKTUtils.read(polyWKT)
@@ -103,7 +103,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
         options.get(DEFAULT_INTERVAL_PROPERTY_NAME))
     if (options.containsKey(DEFAULT_CACHE_SIZE_NAME))
       maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
-    deduplicate = SpatioTemporalIndexSchema.mayContainDuplicates(featureType)
+    deduplicate = IndexSchema.mayContainDuplicates(featureType)
 
     this.indexSource = source.deepCopy(env)
     this.dataSource = source.deepCopy(env)
@@ -147,7 +147,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
    */
   lazy val wrappedTimeFilter =
     // if there is effectively no date/time-search, all records automatically qualify
-    SpatioTemporalIndexSchema.somewhen(interval) match {
+    IndexSchema.somewhen(interval) match {
       case None    => (dtOpt: Option[Long]) => true
       case Some(i) =>
         (dtg: Option[Long]) =>
@@ -161,7 +161,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
    */
   lazy val wrappedGeomFilter =
     // if there is effectively no geographic-search, all records automatically qualify
-    SpatioTemporalIndexSchema.somewhere(poly) match {
+    IndexSchema.somewhere(poly) match {
       case None    => (gh: GeoHash, geom: Geometry) => true
       case Some(p) => (gh: GeoHash, geom: Geometry) =>
         // either the geohash geom is completely contained
@@ -220,7 +220,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
       decodeKey(indexSource.getTopKey).map { decodedKey =>
         curFeature = decodedKey
         // the value contains the full-resolution geometry and time; use them
-        lazy val decodedValue = SpatioTemporalIndexSchema.decodeIndexValue(indexSource.getTopValue)
+        lazy val decodedValue = IndexSchema.decodeIndexValue(indexSource.getTopValue)
         lazy val isGeomAcceptable: Boolean = wrappedGeomFilter(decodedKey.gh, decodedValue.geom)
         lazy val isDateTimeAcceptable: Boolean = wrappedTimeFilter(decodedValue.dtgMillis)
 
@@ -404,9 +404,9 @@ object SpatioTemporalIntersectingIterator {
                  featureType: SimpleFeatureType) {
 
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-    if (SpatioTemporalIndexSchema.somewhere(poly).isDefined)
+    if (IndexSchema.somewhere(poly).isDefined)
       cfg.addOption(DEFAULT_POLY_PROPERTY_NAME, poly.toText)
-    if (SpatioTemporalIndexSchema.somewhen(interval).isDefined)
+    if (IndexSchema.somewhen(interval).isDefined)
       cfg.addOption(DEFAULT_INTERVAL_PROPERTY_NAME, encodeInterval(Option(interval)))
     cfg.addOption(DEFAULT_FEATURE_TYPE, DataUtilities.encodeType(featureType))
   }

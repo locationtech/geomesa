@@ -15,6 +15,7 @@ import org.apache.avro.{SchemaBuilder, Schema}
 import org.geotools.data.DataUtilities
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.feature.`type`.AttributeDescriptorImpl
+import org.geotools.feature.`type`.Types
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -87,23 +88,28 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   def getType = sft
   def getIdentifier = id
   def getID = id.getID
-  def getAttribute(name: String) = nameIndex.get(name).map(getAttribute).getOrElse(throw new NullPointerException("Invalid attribute"))
+
+  def getAttribute(name: String) = nameIndex.get(name).map(getAttribute).getOrElse(null)
   def getAttribute(name: Name) = getAttribute(name.getLocalPart)
   def getAttribute(index: Int) = values(index)
+
   def setAttribute(name: String, value: Object) = setAttribute(nameIndex(name), value)
   def setAttribute(name: Name, value: Object) = setAttribute(name.getLocalPart, value)
-  def setAttribute(index: Int, value: Object) = values(index) = value
-  def setAttributes(values: JList[Object]) =
-    values.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
+  def setAttribute(index: Int, value: Object) = setAttributeNoConvert(index, Converters.convert(value, getFeatureType.getDescriptor(index).getType.getBinding).asInstanceOf[AnyRef])
+  def setAttributes(vals: JList[Object]) = vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
+  def setAttributes(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
+
+  def setAttributeNoConvert(index: Int, value: Object) = values(index) = value
+  def setAttributeNoConvert(name: String, value: Object): Unit = setAttributeNoConvert(nameIndex(name), value)
+  def setAttributeNoConvert(name: Name, value: Object): Unit = setAttributeNoConvert(name.getLocalPart, value)
+  def setAttributesNoConvert(vals: JList[Object]) = vals.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
+  def setAttributesNoConvert(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
 
   def getAttributeCount = values.length
   def getAttributes: JList[Object] = values.toList
   def getDefaultGeometry: Object = Try(sft.getGeometryDescriptor.getName).map { getAttribute }.getOrElse(null)
 
-  def setAttributes(`object`: Array[Object])= ???
-
-  def setDefaultGeometry(geo: Object) =
-    setAttribute(sft.getGeometryDescriptor.getName, geo)
+  def setDefaultGeometry(geo: Object) = setAttribute(sft.getGeometryDescriptor.getName, geo)
 
   def getBounds: BoundingBox = getDefaultGeometry match {
     case g: Geometry =>
@@ -150,7 +156,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
 
   def setValue(newValue: Object) = setValue (newValue.asInstanceOf[util.Collection[Property]])
 
-  def validate() = { }
+  def validate = values.zipWithIndex.foreach { case (v, idx) => Types.validate(getType.getDescriptor(idx), v) }
 }
 
 object AvroSimpleFeature {
