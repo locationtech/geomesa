@@ -19,6 +19,7 @@ package geomesa.core.data
 
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Polygon, Coordinate}
+import geomesa.core.data.FilterToAccumulo._
 import geomesa.core.index.Constants
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text.WKTUtils
@@ -356,8 +357,8 @@ class FilterToAccumuloTest extends Specification {
       val pred = ff.or(List(temporal, spatial))
       val f2a = new FilterToAccumulo(sft)
       val result = f2a.visit(pred)
-      f2a.temporalPredicate mustEqual f2a.noInterval
-      f2a.spatialPredicate mustEqual f2a.noPolygon
+      f2a.temporalPredicate mustEqual noInterval
+      f2a.spatialPredicate mustEqual noPolygon
       result.toString mustEqual pred.toString
     }
 
@@ -377,8 +378,8 @@ class FilterToAccumuloTest extends Specification {
       val f2a = new FilterToAccumulo(sft)
       f2a.visit(predicateOr)
 
-      f2a.temporalPredicate mustEqual f2a.noInterval
-      f2a.spatialPredicate mustEqual f2a.noPolygon
+      f2a.temporalPredicate mustEqual noInterval
+      f2a.spatialPredicate mustEqual noPolygon
     }
   }
 

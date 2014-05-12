@@ -38,40 +38,81 @@ import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 import org.opengis.temporal.Instant
 
-// FilterToAccumulo extracts the spatial and temporal predicates from the
-// filter while rewriting the filter to optimize for scanning Accumulo
-class FilterToAccumulo(sft: SimpleFeatureType) {
-
-  val dtgField  = index.getDtgDescriptor(sft)
-  val geomField = sft.getGeometryDescriptor
-
+object FilterToAccumulo {
   val allTime              = new Interval(0, Long.MaxValue)
   val wholeWorld           = new Envelope(-180, 180, -90, 90)
 
   val noPolygon : Polygon  = null
   val noInterval: Interval = null
 
-  var spatialPredicate:  Polygon  = noPolygon
-  var temporalPredicate: Interval = noInterval
-
   val ff = CommonFactoryFinder.getFilterFactory2
   val geoFactory = JTSFactoryFinder.getGeometryFactory
 
-  implicit def env2poly(env: Envelope): Polygon = WKTUtils.read(
-    "POLYGON((" +
-      env.getMinX + " " + env.getMinY + ", " +
-      env.getMinX + " " + env.getMaxY + ", " +
-      env.getMaxX + " " + env.getMaxY + ", " +
-      env.getMaxX + " " + env.getMinY + ", " +
-      env.getMinX + " " + env.getMinY +
-    "))"
-  ).asInstanceOf[Polygon]
+  implicit class RichPolygon(self: Polygon) {
+    def getSafeUnion(other: Polygon): Polygon = {
+      if (self != noPolygon && other != noPolygon) {
+        if (self.overlaps(other)) {
+          val p = self.union(other)
+          p.normalize()
+          p.asInstanceOf[Polygon]
+        } else {
+          // they don't overlap; take the merge of their envelopes
+          // (since we don't support MultiPolygon returns yet)
+          val env = self.getEnvelopeInternal
+          env.expandToInclude(other.getEnvelopeInternal)
+          JTS.toGeometry(env)
+        }
+      } else noPolygon
+    }
+    
+    def getSafeIntersection(other: Polygon): Polygon =
+      if (self == noPolygon) other
+      else if (other == noPolygon) self
+      else if (self.intersects(other)) {
+        val p = self.intersection(other)
+        p.normalize()
+        p.asInstanceOf[Polygon]
+      } else noPolygon
+  }
+
+  implicit class RichInterval(self: Interval) {
+    def getSafeUnion(other: Interval): Interval = {
+      if (self != noInterval && other != noInterval) {
+        new Interval(
+          if (self.getStart.isBefore(other.getStart)) self.getStart else other.getStart,
+          if (self.getEnd.isAfter(other.getEnd)) self.getEnd else other.getEnd
+        )
+      } else noInterval
+    }
+
+    def getSafeIntersection(other: Interval): Interval =
+      if (self == noInterval) other
+      else if (other == noInterval) self
+      else {
+        new Interval(
+          if (self.getStart.isBefore(other.getStart)) other.getStart else self.getStart,
+          if (self.getEnd.isAfter(other.getEnd)) other.getEnd else self.getEnd
+        )
+      }
+  }
+}
+
+import FilterToAccumulo._
+
+// FilterToAccumulo extracts the spatial and temporal predicates from the
+// filter while rewriting the filter to optimize for scanning Accumulo
+class FilterToAccumulo(sft: SimpleFeatureType) {
+  val dtgField  = index.getDtgDescriptor(sft)
+  val geomField = sft.getGeometryDescriptor
+
+  var spatialPredicate:  Polygon  = noPolygon
+  var temporalPredicate: Interval = noInterval
 
   def visit(query: Query): Filter = visit(query.getFilter)
   def visit(filter: Filter): Filter =
     process(filter).accept(new SimplifyingFilterVisitor, null).asInstanceOf[Filter]
 
-  case class EvalNode(raw: Filter, evaluated: Filter, polygon: Polygon, interval: Interval) {
+  case class VisitedData(raw: Filter, evaluated: Filter, polygon: Polygon, interval: Interval) {
     def simplify: Filter = evaluated match {
       case Filter.INCLUDE if polygon != noPolygon && interval != noInterval =>
         ff.and(intersects, during)
@@ -95,53 +136,21 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     }
   }
 
-  def getSafeUnionPolygon(a: Polygon, b: Polygon): Polygon = {
-    if (a != noPolygon && b != noPolygon) {
-      if (a.overlaps(b)) {
-        val p = a.union(b)
-        p.normalize()
-        p.asInstanceOf[Polygon]
-      } else {
-        // they don't overlap; take the merge of their envelopes
-        // (since we don't support MultiPolygon returns yet)
-        val env = a.getEnvelopeInternal
-        env.expandToInclude(b.getEnvelopeInternal)
-        env2poly(env)
-      }
-    } else noPolygon
-  }
-
-  def getSafeUnionInterval(a: Interval, b: Interval): Interval = {
-    if (a != noInterval && b != noInterval) {
-      new Interval(
-        if (a.getStart.isBefore(b.getStart)) a.getStart else b.getStart,
-        if (a.getEnd.isAfter(b.getEnd)) a.getEnd else b.getEnd
-      )
-    } else noInterval
-  }
-
-  def simplifyChildren(nodes: Seq[EvalNode], fnx: (Filter, Filter) => Filter): Filter = {
+  def simplifyChildren(nodes: Seq[VisitedData], fnx: (Filter, Filter) => Filter): Filter = {
     nodes.map(_.evaluated).filter(_ != Filter.INCLUDE) match {
       case children if children.size == 0 => Filter.INCLUDE
       case children if children.size == 1 => children.head
       case children =>
-        children.foldLeft(children.head)((filterSoFar, child) => ff.or(filterSoFar, child))
+        children.reduce { (left, right) => ff.or(left, right) }
     }
   }
 
-  def evaluateChildrenIndependently(filter: BinaryLogicOperator): Seq[EvalNode] =
-    filter.getChildren.map(child => {
-      val oldPolygon = spatialPredicate
-      val oldInterval = temporalPredicate
-      spatialPredicate = noPolygon
-      temporalPredicate = noInterval
-      val childEval = process(child)
-      val p = spatialPredicate
-      val t = temporalPredicate
-      spatialPredicate = oldPolygon
-      temporalPredicate = oldInterval
-      EvalNode(child, childEval, p, t)
-    })
+  def evaluateChildrenIndependently(filter: BinaryLogicOperator): Seq[VisitedData] =
+    filter.getChildren.map { child =>
+      val f2a = new FilterToAccumulo(sft)
+      val childEval = f2a.process(child)
+      VisitedData(child, childEval, f2a.spatialPredicate, f2a.temporalPredicate)
+    }
 
   def processOrChildren(op: BinaryLogicOperator): Filter = {
     val nodes = evaluateChildrenIndependently(op)
@@ -152,17 +161,15 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     // you can reduce a sequence of nodes if they all set (only) geometry
     val onlyPolygons = nodes.filter(node => node.polygon != noPolygon && node.interval == noInterval)
     if (onlyPolygons.size == nodes.size) {
-      spatialPredicate = nodes.foldLeft(nodes.head.polygon)((pSoFar, node) =>
-        getSafeUnionPolygon(pSoFar, node.polygon)
-      )
+      spatialPredicate = nodes.map(_.polygon).reduce { (left, right) =>
+        left.getSafeUnion(right) }
       simplifyChildren(nodes, ff.or)
     } else {
       // you can reduce a sequence of nodes if they all set (only) time
       val onlyIntervals = nodes.filter(node => node.polygon == noPolygon && node.interval != noInterval)
       if (onlyIntervals.size == nodes.size) {
-        temporalPredicate = nodes.foldLeft(nodes.head.interval)((iSoFar, node) =>
-            getSafeUnionInterval(iSoFar, node.interval)
-        )
+        temporalPredicate = nodes.map(_.interval).reduce { (left, right) =>
+          left.getSafeUnion(right) }
         simplifyChildren(nodes, ff.or)
       } else {
         // this was neither all geometry nor all interval
@@ -176,28 +183,8 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     }
   }
 
-  def getSafeIntersectionPolygon(a: Polygon, b: Polygon): Polygon =
-    if (a == noPolygon) b
-    else if (b == noPolygon) a
-    else if (a.intersects(b)) {
-      val p = a.intersection(b)
-      p.normalize()
-      p.asInstanceOf[Polygon]
-    } else noPolygon
-
-  def getSafeIntersectionInterval(a: Interval, b: Interval): Interval =
-    if (a == noInterval) b
-    else if (b == noInterval) a
-    else {
-      new Interval(
-        if (a.getStart.isBefore(b.getStart)) b.getStart else a.getStart,
-        if (a.getEnd.isAfter(b.getEnd)) b.getEnd else a.getEnd
-      )
-    }
-
   def processAndChildren(op: BinaryLogicOperator): Filter = {
     val nodes = evaluateChildrenIndependently(op)
-
     val result = nodes.tail.foldLeft(nodes.head)((soFar, node) => {
       val nextEval = (soFar.evaluated, node.evaluated) match {
         case (Filter.EXCLUDE, _) => Filter.EXCLUDE
@@ -206,11 +193,11 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
         case (e, Filter.INCLUDE) => e
         case (e0, e1)            => ff.and(e0, e1)
       }
-      EvalNode(
+      VisitedData(
         Filter.INCLUDE,
         nextEval,
-        getSafeIntersectionPolygon(soFar.polygon, node.polygon),
-        getSafeIntersectionInterval(soFar.interval, node.interval)
+        soFar.polygon.getSafeIntersection(node.polygon),
+        soFar.interval.getSafeIntersection(node.interval)
       )
     })
 
@@ -240,7 +227,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
             case f              => ff.not(f)
           }
         val notSpatial = if (spatialPredicate != noPolygon) {
-          wholeWorld.difference(spatialPredicate) match {
+          JTS.toGeometry(wholeWorld).difference(spatialPredicate) match {
             case p: Polygon =>
               spatialPredicate = p
               Filter.INCLUDE
