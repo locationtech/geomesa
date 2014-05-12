@@ -187,8 +187,8 @@ object TubeVisitor {
 
     while(itr.hasNext){
       val sf = itr.next()
-      val geom = sf.getDefaultGeometry.asInstanceOf[Point]
-      val bufPoint = bufferPoint(geom, meters)
+      val point = sf.getDefaultGeometry.asInstanceOf[Point]
+      val bufPoint = bufferPoint(point, meters)
 
       builder.init(sf)
       val newSf = builder.buildFeature(sf.getID)
