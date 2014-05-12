@@ -59,7 +59,7 @@ class TubeSelect extends VectorProcess {
                @DescribeParameter(
                  name = "maxTime",
                  min = 0,
-                 description = "Time as milliseconds for none, straightLine, aroundLand gapfill methods")
+                 description = "Time as seconds for none, straightLine, aroundLand gapfill methods")
                maxTime: Long,
 
                @DescribeParameter(
@@ -160,7 +160,7 @@ class TubeVisitor(
     new MultiCollection(source.getSchema, collections)
   }
 
-  def bufferDistance: Double = if(bufferSize > 0) bufferSize else maxSpeed * maxTime*1000
+  def bufferDistance: Double = if(bufferSize > 0) bufferSize else maxSpeed * maxTime
 
 }
 

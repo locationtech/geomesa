@@ -80,21 +80,22 @@
             <ows:Identifier>bufferSize</ows:Identifier>
             <wps:Data>
 		<!-- 112km is slightly larger than 111034km which is approx 1 degree -->
-                <wps:LiteralData>112000</wps:LiteralData>
+                <!--<wps:LiteralData>112000</wps:LiteralData>-->
+		<wps:LiteralData>0</wps:LiteralData>
             </wps:Data>
         </wps:Input>
 
         <wps:Input>
             <ows:Identifier>maxSpeed</ows:Identifier>
             <wps:Data>
-                <wps:LiteralData>0</wps:LiteralData>
+                <wps:LiteralData>112000</wps:LiteralData>
             </wps:Data>
         </wps:Input>
 
         <wps:Input>
             <ows:Identifier>maxTime</ows:Identifier>
             <wps:Data>
-                <wps:LiteralData>0</wps:LiteralData>
+                <wps:LiteralData>1</wps:LiteralData>
             </wps:Data>
         </wps:Input>
 
