@@ -18,6 +18,7 @@ package geomesa.core.iterators
 
 import collection.JavaConverters._
 import com.vividsolutions.jts.geom._
+import geomesa.core.data.DATA_ROW
 import geomesa.core.index.{IndexEntry, IndexSchema}
 import geomesa.utils.geohash.GeoHash
 import geomesa.utils.text.WKTUtils
@@ -176,7 +177,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
   private def isKeyValueADataEntry(key: Key, value: Value): Boolean =
     (key != null) &&
     (key.getColumnQualifier != null) &&
-    (key.getColumnQualifier.toString == AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME)
+    (key.getColumnQualifier == DATA_ROW)
 
   // if it's not a data entry, it's an index entry
   // (though we still share some requirements -- non-nulls -- with data entries)
@@ -184,7 +185,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
     (key != null) &&
     (
       (key.getColumnQualifier == null) ||
-      (key.getColumnQualifier.toString != AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME)
+      (key.getColumnQualifier != DATA_ROW)
     )
 
   def skipIndexEntries(itr: SortedKeyValueIterator[Key,Value]) {
@@ -268,11 +269,8 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
     if (!dataSource.hasTop || dataSource.getTopKey == null || dataSource.getTopKey.getColumnFamily.toString != nextId)
       log.error(s"Could not find the data key corresponding to index key $indexSourceTopKey and dataId is $nextId.")
     else {
-      val cq = dataSource.getTopKey.getColumnQualifier
-      val valueText = new Text(dataSource.getTopValue.get())
-
       nextKey = new Key(indexSourceTopKey)
-      nextValue = SpatioTemporalIntersectingIterator.encodeAttributeValue(cq, valueText)
+      nextValue = dataSource.getTopValue
     }
   }
 

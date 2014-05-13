@@ -32,7 +32,6 @@ import java.util.{Iterator => JIterator}
 import org.apache.accumulo.core.client.{IteratorSetting, BatchScanner}
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.data.Value
-import org.apache.accumulo.core.iterators.Combiner
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
@@ -260,7 +259,7 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
     // each attribute gets its own data row (though currently, we use only one attribute
     // that represents the entire, encoded feature)
     val dataEntries = rowIDs.map { rowID =>
-      val key = new Key(rowID, id, AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME_TEXT)
+      val key = new Key(rowID, id, DATA_ROW)
       (key, dataValue)
     }
 
@@ -364,8 +363,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         configureSpatioTemporalIntersectingIterator(bs, null, null)
     }
 
-    // always set up the aggregating-combiner and simple-feature filtering iterator
-    configureAttributeAggregator(bs)
+    // always set up the simple-feature filtering iterator
     configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql,
       transforms, transformSchema, density, poly, width, height)
 
@@ -407,16 +405,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     configureFeatureEncoding(cfg)
     SpatioTemporalIntersectingIterator.setOptions(
       cfg, schema, poly, interval, featureType)
-    bs.addScanIterator(cfg)
-  }
-
-  // transforms:  (index key, (attribute,encoded feature)) -> (index key, encoded feature)
-  // (there should only be one data-row per entry:  the encoded SimpleFeature)
-  def configureAttributeAggregator(bs: BatchScanner) {
-    val cfg = new IteratorSetting(iteratorPriority_AttributeAggregator,
-                                  "aggrcomb-" + randomPrintableString(5),
-                                  classOf[AggregatingCombiner])
-    Combiner.setCombineAllColumns(cfg, true)
     bs.addScanIterator(cfg)
   }
 
