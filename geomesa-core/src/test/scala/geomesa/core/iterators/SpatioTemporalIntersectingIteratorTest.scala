@@ -19,24 +19,25 @@ package geomesa.core.iterators
 import collection.JavaConversions._
 import collection.JavaConverters._
 import com.vividsolutions.jts.geom.{Polygon, Geometry}
-import geomesa.core.data.{SimpleFeatureEncoderFactory, SimpleFeatureEncoder}
+import geomesa.core.data.SimpleFeatureEncoderFactory
 import geomesa.core.index._
 import geomesa.utils.text.WKTUtils
 import java.util
 import org.apache.accumulo.core.Constants
-import org.apache.accumulo.core.client.{IteratorSetting, Connector, BatchWriterConfig, BatchScanner}
 import org.apache.accumulo.core.client.mock.MockInstance
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.client.{IteratorSetting, Connector, BatchWriterConfig}
 import org.apache.accumulo.core.data._
-import org.geotools.data.DataUtilities
+import org.apache.hadoop.io.Text
+import org.geotools.data.{DataUtilities, Query}
+import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{Interval, DateTimeZone, DateTime}
 import org.junit.runner.RunWith
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scala.util.{Try, Random}
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.hadoop.io.Text
-import org.geotools.feature.simple.SimpleFeatureBuilder
 
 @RunWith(classOf[JUnitRunner])
 class SpatioTemporalIntersectingIteratorTest extends Specification {
@@ -69,7 +70,9 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
     val featureName = "feature"
     val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
-    val featureType = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
+    val featureType: SimpleFeatureType = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
+    featureType.getUserData.put(SF_PROPERTY_START_TIME, "geomesa_index_start_time")
+
     val index = IndexSchema(schemaEncoding, featureType, featureEncoder)
 
     val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
@@ -242,14 +245,27 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val c = TestData.setupMockAccumuloTable(entries, numExpectedDataIn)
     val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
 
+    val gf = s"WITHIN(geomesa_index_geometry, ${polygon.toText})"
+    val dt: Option[String] = Option(dtFilter).map(int =>
+      s"(geomesa_index_start_time between '${int.getStart}' AND '${int.getEnd}')"
+    )
+
+    def red(f: String, og: Option[String]) = og match {
+      case Some(g) => s"$f AND $g"
+      case None => f
+    }
+
+    val tfString = red(red(gf, dt), ecqlFilter)
+    val tf = ECQL.toFilter(tfString)
+
+    val q = new Query(TestData.featureType.getTypeName, tf)
     // fetch results from the schema!
-    val itr = schema.planQuery(bs, polygon, dtFilter, UnitTestEntryType.getTypeSpec, ecqlFilter)
+    val itr = schema.query(q, bs)
 
     // print out the hits
     val retval = if (doPrint) {
-      val results: List[Value] = itr.toList
-      results.map(value => {
-        val simpleFeature = featureEncoder.decode(TestData.featureType, value)
+      val results: List[SimpleFeature] = itr.toList
+      results.map(simpleFeature => {
         val attrs = simpleFeature.getAttributes.map(attr => if (attr == null) "" else attr.toString).mkString("|")
         println("[SII." + label + "] query-hit:  " + simpleFeature.getID + "=" + attrs)
       })
