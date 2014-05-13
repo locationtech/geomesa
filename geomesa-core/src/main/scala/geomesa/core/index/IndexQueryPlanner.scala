@@ -13,13 +13,13 @@ import org.apache.accumulo.core.iterators.Combiner
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.Interval
 import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConversions._
 import scala.util.Random
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.filter.text.ecql.ECQL
 
 case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              cfPlanner: ColumnFamilyPlanner,
@@ -29,12 +29,14 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
   def buildFilter(poly: Polygon, interval: Interval): KeyPlanningFilter =
     (IndexSchema.somewhere(poly), IndexSchema.somewhen(interval)) match {
-      case (None, None)       => AcceptEverythingFilter
-      case (None, Some(i))    => if (i.getStart == i.getEnd) DateFilter(i.getStart)
-      else DateRangeFilter(i.getStart, i.getEnd)
-      case (Some(p), None)    => SpatialFilter(poly)
-      case (Some(p), Some(i)) => if (i.getStart == i.getEnd) SpatialDateFilter(p, i.getStart)
-      else SpatialDateRangeFilter(p, i.getStart, i.getEnd)
+      case (None, None)       =>    AcceptEverythingFilter
+      case (None, Some(i))    =>
+        if (i.getStart == i.getEnd) DateFilter(i.getStart)
+        else                        DateRangeFilter(i.getStart, i.getEnd)
+      case (Some(p), None)    =>    SpatialFilter(poly)
+      case (Some(p), Some(i)) =>
+        if (i.getStart == i.getEnd) SpatialDateFilter(p, i.getStart)
+        else                        SpatialDateRangeFilter(p, i.getStart, i.getEnd)
     }
 
 

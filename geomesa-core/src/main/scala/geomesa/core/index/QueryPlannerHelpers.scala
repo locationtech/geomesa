@@ -1,13 +1,5 @@
 package geomesa.core.index
 
-import com.vividsolutions.jts.geom.Polygon
-import org.joda.time.Interval
-
-class QueryPlannerHelpers {
-
-}
-
-
 object ApportionedRanges {
   // these are priority values for Accumulo iterators
   val HIGHEST_ITERATOR_PRIORITY = 0
