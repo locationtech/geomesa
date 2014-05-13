@@ -41,7 +41,7 @@ package object data {
   val SCHEMA_CF          = new Text("schema")
   val DTGFIELD_CF        = new Text("dtgfield")
   val FEAT_ENCODING_CF   = new Text("featureEncoding")
-  val DATA_ROW           = new Text("dr")
+  val DATA_ROW           = new Text("0x00dr")
   val METADATA_TAG       = "~METADATA"
   val METADATA_TAG_END   = s"$METADATA_TAG~~"
   val EMPTY_STRING       = ""
