@@ -40,7 +40,7 @@
                                                     <wps:Data>
                                                         <wps:ComplexData mimeType="text/plain; subtype=cql">
                                                             <!--<![CDATA[(BBOX(geomesa_index_geometry, 44.9,44.9,45.1,45.1) OR BBOX(geomesa_index_geometry, 45.9, 45.9, 46.1, 46.1) OR BBOX(geomesa_index_geometry, 46.9, 46.9, 47.1, 47.1) OR BBOX(geomesa_index_geometry, 47.9, 47.9, 48.1, 48.1)) AND type='a']]></wps:ComplexData>-->
-                                                            <![CDATA[BBOX(geomesa_index_geometry, 40.0, 4.0, 40.0, 50.0) AND type='a']]></wps:ComplexData>
+                                                            <![CDATA[BBOX(geomesa_index_geometry, 40.0, 40.0, 40.0, 50.0) AND type='a']]></wps:ComplexData>
                                                     </wps:Data>
                                                 </wps:Input>
                                             </wps:DataInputs>
@@ -67,7 +67,7 @@
             </wps:Reference>
         </wps:Input>
 
-				<wps:Input>
+	<wps:Input>
             <ows:Identifier>filter</ows:Identifier>
             <wps:Data>
                 <!-- filter based on some attribute 'type' being equal to 'b' -->
@@ -98,21 +98,6 @@
                 <wps:LiteralData>1</wps:LiteralData>
             </wps:Data>
         </wps:Input>
-
-        <wps:Input>
-            <ows:Identifier>gapFill</ows:Identifier>
-            <wps:Data>
-                <wps:LiteralData>none</wps:LiteralData>
-            </wps:Data>
-        </wps:Input>
-
-        <wps:Input>
-            <ows:Identifier>percentIncrease</ows:Identifier>
-            <wps:Data>
-                <wps:LiteralData>0</wps:LiteralData>
-            </wps:Data>
-        </wps:Input>
-
        
     </wps:DataInputs>
     <wps:ResponseForm>
