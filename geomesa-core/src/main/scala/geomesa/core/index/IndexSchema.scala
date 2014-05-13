@@ -99,6 +99,7 @@ case class IndexSchema(encoder: IndexEncoder,
 
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
   def adaptIterator(accumuloIterator: JIterator[Entry[Key,Value]], query: Query): Iterator[SimpleFeature] = {
+    val returnSFT = getReturnSFT(query)
 
     // the final iterator may need duplicates removed
     val uniqKVIter: Iterator[Entry[Key,Value]] =
@@ -106,21 +107,19 @@ case class IndexSchema(encoder: IndexEncoder,
         new DeDuplicatingIterator(accumuloIterator, (key: Key, value: Value) => featureEncoder.extractFeatureId(value))
       else accumuloIterator
 
-    // return only the attribute-maps (the values out of this iterator)
-    val valueIter: Iterator[Value] = uniqKVIter.map(_.getValue)
-
-    // Handle Density surfaces differently.
-    if (query.getHints.containsKey(DENSITY_KEY)) {
-      val projectedSFT = DataUtilities.createType(featureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
-      valueIter.flatMap { encodedDensity => DensityIterator.expandFeature(featureEncoder.decode(projectedSFT, encodedDensity)) }
-    } else {
-      // Decode values into SFs
-      val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
-      val result = transformSchema.map { tschema => valueIter.map { v => featureEncoder.decode(tschema, v) } }
-      result.getOrElse(valueIter.map { v => featureEncoder.decode(featureType, v) })
-    }
-
+    // Decode according to the SFT return type.
+    uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue) }
   }
+
+  // This function calculates the SimpleFeatureType of the returned SFs.
+  private def getReturnSFT(query: Query): SimpleFeatureType =
+    query match {
+      case _: Query if query.getHints.containsKey(DENSITY_KEY)  =>
+        DataUtilities.createType(featureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
+      case _: Query if query.getHints.get(TRANSFORM_SCHEMA) != null =>
+        query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
+      case _ => featureType
+    }
 }
 
 object IndexSchema extends RegexParsers {
