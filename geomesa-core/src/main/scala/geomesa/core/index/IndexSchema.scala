@@ -21,29 +21,19 @@ import collection.JavaConversions._
 import com.vividsolutions.jts.geom.Point
 import com.vividsolutions.jts.geom.{Geometry,Polygon}
 import geomesa.core.data._
-import geomesa.core.iterators.FEATURE_ENCODING
-import geomesa.core.iterators._
 import geomesa.core.index.QueryHints._
-import geomesa.utils.geohash.GeohashUtils
+import geomesa.core.iterators._
 import geomesa.utils.text.{WKBUtils, WKTUtils}
 import java.nio.ByteBuffer
 import java.util.Map.Entry
 import java.util.{Iterator => JIterator}
-import org.apache.accumulo.core.client.{IteratorSetting, BatchScanner}
+import org.apache.accumulo.core.client.BatchScanner
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.data.Value
-import org.apache.accumulo.core.iterators.Combiner
-import org.apache.accumulo.core.iterators.user.RegExFilter
-import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import scala.util.Random
 import scala.util.parsing.combinator.RegexParsers
 
 // A secondary index consists of interleaved elements of a composite key stored in
@@ -101,381 +91,35 @@ case class IndexSchema(encoder: IndexEncoder,
     }
 
   def query(query: Query, bs: BatchScanner): Iterator[SimpleFeature] = {
-    val ff = CommonFactoryFinder.getFilterFactory2
-    val derivedQuery =
-      if(query.getHints.containsKey(BBOX_KEY)) {
-        val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
-        val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
-        DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
-      } else query
-
-    val encodedSFT = DataUtilities.encodeType(featureType)
-
-    val projectedSFT =
-      if(query.getHints.containsKey(DENSITY_KEY)) DataUtilities.createType(featureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
-      else featureType
-
-    val filterVisitor = new FilterToAccumulo(featureType)
-    val rewrittenCQL = filterVisitor.visit(derivedQuery)
-    val cqlString = ECQL.toCQL(rewrittenCQL)
-
-    val spatial = filterVisitor.spatialPredicate
-    val temporal = filterVisitor.temporalPredicate
-
-    lazy val iter: Iterator[SimpleFeature] = {
-      val transformOption = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
-      val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
-      if (query.getHints.containsKey(DENSITY_KEY)) {
-        val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Integer]
-        val height = query.getHints.get(HEIGHT_KEY).asInstanceOf[Integer]
-        val q: Iterator[Value] = planQuery(bs, spatial, temporal, encodedSFT, Some(cqlString),
-          transformOption, transformSchema, density = true, width, height)
-        unpackDensityFeatures(q)
-      } else {
-        val q: Iterator[Value] = planQuery(bs, spatial, temporal, encodedSFT, Some(cqlString),
-          transformOption, transformSchema, density = false)
-        val result = transformSchema.map { tschema => q.map { v => featureEncoder.decode(tschema, v) } }
-        result.getOrElse(q.map { v => featureEncoder.decode(featureType, v) })
-      }
-    }
-
-    def unpackDensityFeatures(iter: Iterator[Value]) =
-      iter.flatMap { i => DensityIterator.expandFeature(featureEncoder.decode(projectedSFT, i)) }
-
-    iter
+    // Perform the query
+    val accumuloIterator = planner.getIterator(bs, query)
+    // Convert Accumulo results to SimpleFeatures.
+    adaptIterator(accumuloIterator, query)
   }
 
-  def planQuery(bs: BatchScanner,
-            rawPoly: Polygon,
-            rawInterval: Interval,
-            simpleFeatureType: String,
-            ecql: Option[String] = None,
-            transforms: Option[String] = None,
-            transformSchema: Option[SimpleFeatureType] = None,
-            density: Boolean = false,
-            width: Int = 0,
-            height: Int = 0): Iterator[Value] = {
-    // standardize the two key query arguments:  polygon and date-range
-    val poly = netPolygon(rawPoly)
-    val interval = netInterval(rawInterval)
-
-    val polyHash = poly match {
-      case null => "NULL"
-      case _ => poly.hashCode().toString
-    }
-    val queryID = System.currentTimeMillis().toString + "~" + polyHash + "~" + bs.hashCode().toString
-
-    // perform the query as requested
-    val rawIter =
-      planner.within(bs, poly, interval, simpleFeatureType, ecql, transforms, transformSchema, queryID, density, width, height)
+  // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
+  def adaptIterator(accumuloIterator: JIterator[Entry[Key,Value]], query: Query): Iterator[SimpleFeature] = {
+    val returnSFT = getReturnSFT(query)
 
     // the final iterator may need duplicates removed
-    val finalIter: Iterator[Entry[Key,Value]] =
+    val uniqKVIter: Iterator[Entry[Key,Value]] =
       if (mayContainDuplicates(featureType))
-        new DeDuplicatingIterator(rawIter, (key: Key, value: Value) => featureEncoder.extractFeatureId(value))
-      else rawIter
+        new DeDuplicatingIterator(accumuloIterator, (key: Key, value: Value) => featureEncoder.extractFeatureId(value))
+      else accumuloIterator
 
-    // return only the attribute-maps (the values out of this iterator)
-    finalIter.map(_.getValue)
+    // Decode according to the SFT return type.
+    uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue) }
   }
 
-}
-
-object IndexEntry {
-
-  import collection.JavaConversions._
-  implicit class IndexEntrySFT(sf: SimpleFeature) {
-    lazy val userData = sf.getFeatureType.getUserData
-    lazy val dtgStartField = userData.getOrElse(SF_PROPERTY_START_TIME, SF_PROPERTY_START_TIME).asInstanceOf[String]
-    lazy val dtgEndField = userData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
-
-    lazy val sid = sf.getID
-    lazy val gh = GeohashUtils.reconstructGeohashFromGeometry(geometry)
-    def geometry = sf.getDefaultGeometry.asInstanceOf[Geometry]
-    def setGeometry(geometry: Geometry) {
-      sf.setDefaultGeometry(geometry)
+  // This function calculates the SimpleFeatureType of the returned SFs.
+  private def getReturnSFT(query: Query): SimpleFeatureType =
+    query match {
+      case _: Query if query.getHints.containsKey(DENSITY_KEY)  =>
+        DataUtilities.createType(featureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
+      case _: Query if query.getHints.get(TRANSFORM_SCHEMA) != null =>
+        query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
+      case _ => featureType
     }
-
-    private def getTime(attr: String) = sf.getAttribute(attr).asInstanceOf[java.util.Date]
-    def startTime = getTime(dtgStartField)
-    def endTime   = getTime(dtgEndField)
-    lazy val dt   = Option(startTime).map { d => new DateTime(d) }
-
-    private def setTime(attr: String, time: DateTime) =
-      sf.setAttribute(attr, if (time == null) null else time.toDate)
-
-    def setStartTime(time: DateTime) = setTime(dtgStartField, time)
-    def setEndTime(time: DateTime)   = setTime(dtgEndField, time)
-  }
-
-}
-
-case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
-                        cff: TextFormatter[SimpleFeature],
-                        cqf: TextFormatter[SimpleFeature],
-                        featureEncoder: SimpleFeatureEncoder) {
-
-  import GeohashUtils._
-  import IndexEntry._
-
-  val formats = Array(rowf,cff,cqf)
-
-  // the resolutions are valid for decomposed objects are all 5-bit boundaries
-  // between 5-bits and 35-bits (inclusive)
-  lazy val decomposableResolutions: ResolutionRange = new ResolutionRange(0, 35, 5)
-
-  // the maximum number of sub-units into which a geometry may be decomposed
-  lazy val maximumDecompositions: Int = 5
-
-  def encode(entryToEncode: SimpleFeature): List[KeyValuePair] = {
-    // decompose non-point geometries into multiple index entries
-    // (a point will return a single GeoHash at the maximum allowable resolution)
-    val geohashes =
-      decomposeGeometry(entryToEncode.geometry, maximumDecompositions, decomposableResolutions)
-
-    val entries = geohashes.map { gh =>
-      val copy = SimpleFeatureBuilder.copy(entryToEncode)
-      val geom = getGeohashGeom(gh)
-      copy.setDefaultGeometry(geom)
-      copy
-    }
-
-    // remember the resulting index-entries
-    val keys = entries.map { entry =>
-      val Array(r, cf, cq) = formats.map { _.format(entry) }
-      new Key(r, cf, cq, entry.dt.map(_.getMillis).getOrElse(DateTime.now().getMillis))
-    }
-    val rowIDs = keys.map(_.getRow)
-    val id = new Text(entryToEncode.sid)
-
-    val indexValue = IndexSchema.encodeIndexValue(entryToEncode)
-    val iv = new Value(indexValue)
-    // the index entries are (key, FID) pairs
-    val indexEntries = keys.map { k => (k, iv) }
-
-    // the (single) data value is the encoded (serialized-to-string) SimpleFeature
-    val dataValue = featureEncoder.encode(entryToEncode)
-
-    // data entries are stored separately (and independently) from the index entries;
-    // each attribute gets its own data row (though currently, we use only one attribute
-    // that represents the entire, encoded feature)
-    val dataEntries = rowIDs.map { rowID =>
-      val key = new Key(rowID, id, AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME_TEXT)
-      (key, dataValue)
-    }
-
-    (indexEntries ++ dataEntries).toList
-  }
-
-}
-
-case class IndexEntryDecoder(ghDecoder: GeohashDecoder,
-                             dtDecoder: Option[DateDecoder]) {
-
-  import GeohashUtils._
-
-  def decode(key: Key) = {
-    val gh = getGeohashGeom(ghDecoder.decode(key))
-    val dt = dtDecoder.map(_.decode(key))
-    SimpleFeatureBuilder.build(indexSFT, List(gh, dt), "")
-  }
-
-}
-
-case class IndexQueryPlanner(keyPlanner: KeyPlanner,
-                             cfPlanner: ColumnFamilyPlanner,
-                             schema:String,
-                             featureType: SimpleFeatureType,
-                             featureEncoder: SimpleFeatureEncoder) {
-
-  // these are priority values for Accumulo iterators
-  val HIGHEST_ITERATOR_PRIORITY = 0
-  val LOWEST_ITERATOR_PRIORITY = 1000
-
-  /**
-   * Given a range of integers, return a uniformly-spaced sample whose count matches
-   * the desired quantity.  The end-points of the range should be inclusive.
-   *
-   * @param minValue the minimum value of the range of integers
-   * @param maxValue the maximum value of the range of integers
-   * @param rawNumItems the number of points to allocate
-   * @return the points uniformly spaced over this range
-   */
-  def apportionRange(minValue: Int = 0, maxValue: Int = 100, rawNumItems: Int = 3) : Seq[Int] = {
-    val numItems = scala.math.max(rawNumItems, 1)
-    if (minValue==maxValue) List.fill(numItems)(minValue)
-    else {
-      val span = maxValue - minValue
-      (1 to numItems).map(n => scala.math.round((n-1.0)/(numItems-1.0)*span+minValue).toInt)
-    }
-  }
-
-  def buildFilter(poly: Polygon, interval: Interval): KeyPlanningFilter =
-    (IndexSchema.somewhere(poly), IndexSchema.somewhen(interval)) match {
-      case (None, None)       => AcceptEverythingFilter
-      case (None, Some(i))    => if (i.getStart == i.getEnd) DateFilter(i.getStart)
-                                 else DateRangeFilter(i.getStart, i.getEnd)
-      case (Some(p), None)    => SpatialFilter(poly)
-      case (Some(p), Some(i)) => if (i.getStart == i.getEnd) SpatialDateFilter(p, i.getStart)
-                                 else SpatialDateRangeFilter(p, i.getStart, i.getEnd)
-    }
-
-  // the order in which the various iterators are applied depends upon their
-  // priority values:  lower priority-values run earlier, and higher priority-
-  // values will run later; here, we visually assign priorities from highest
-  // to lowest so that the first item in this list will run first, and the last
-  // item in the list will run last
-  val Seq(
-    iteratorPriority_RowRegex, // highest priority:  runs first
-    iteratorPriority_ColFRegex,
-    iteratorPriority_SpatioTemporalIterator,
-    iteratorPriority_AttributeAggregator,
-    iteratorPriority_SimpleFeatureFilteringIterator  // lowest priority:  runs last
-  ) = apportionRange(HIGHEST_ITERATOR_PRIORITY, LOWEST_ITERATOR_PRIORITY, 5)
-
-  def within(bs: BatchScanner,
-             poly: Polygon,
-             interval: Interval,
-             simpleFeatureType: String,
-             ecql: Option[String],
-             transforms: Option[String],
-             transformSchema: Option[SimpleFeatureType] = None,
-             queryID: String,
-             density: Boolean = false,
-             width: Int = 0,
-             height: Int = 0) : JIterator[Entry[Key,Value]] = {
-
-    // figure out which of our various filters we intend to use
-    // based on the arguments passed in
-    val filter = buildFilter(poly, interval)
-
-    // set up row ranges and regular expression filter
-    planQuery(bs, filter)
-
-    // set up space, time iterators as appropriate for this filter
-    filter match {
-      case _ : SpatialDateFilter | _ : SpatialDateRangeFilter =>
-        configureSpatioTemporalIntersectingIterator(bs, poly, interval)
-      case _ : SpatialFilter =>
-        configureSpatioTemporalIntersectingIterator(bs, poly)
-      case _ : DateFilter | _ : DateRangeFilter =>
-        configureTemporalIntersectingIterator(bs, interval)
-      case _ =>  // degenerate case:  no polygon, no interval
-        configureSpatioTemporalIntersectingIterator(bs, null, null)
-    }
-
-    // always set up the aggregating-combiner and simple-feature filtering iterator
-    configureAttributeAggregator(bs)
-    configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql,
-      transforms, transformSchema, density, poly, width, height)
-
-    bs.iterator()
-  }
-
-  def configureFeatureEncoding(cfg: IteratorSetting) =
-    cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
-
-  // establishes the regular expression that defines (minimally) acceptable rows
-  def configureRowRegexIterator(bs: BatchScanner, regex: String) {
-    val name = "regexRow-" + randomPrintableString(5)
-    val cfg = new IteratorSetting(iteratorPriority_RowRegex, name, classOf[RegExFilter])
-    RegExFilter.setRegexs(cfg, regex, null, null, null, false)
-    bs.addScanIterator(cfg)
-  }
-
-  // returns only the data entries -- no index entries -- for items whose
-  // GeoHash-box intersects the query polygon; this is a coarse-grained filter
-  def configureSpatioTemporalIntersectingIterator(bs: BatchScanner, poly: Polygon) {
-    configureSpatioTemporalIntersectingIterator(bs, poly, null)
-  }
-
-  // returns only the data entries -- no index entries -- for items whose
-  // DateTime intersects the query interval; this is a coarse-grained filter
-  def configureTemporalIntersectingIterator(bs: BatchScanner,
-                                            interval: Interval) {
-    configureSpatioTemporalIntersectingIterator(bs, null, interval)
-  }
-
-  // returns only the data entries -- no index entries -- for items that either:
-  // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
-  // 2) the DateTime intersects the query interval; this is a coarse-grained filter
-  def configureSpatioTemporalIntersectingIterator(bs: BatchScanner, poly: Polygon,
-                                                  interval: Interval) {
-    val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
-                                  "within-" + randomPrintableString(5),
-                                  classOf[SpatioTemporalIntersectingIterator])
-    configureFeatureEncoding(cfg)
-    SpatioTemporalIntersectingIterator.setOptions(
-      cfg, schema, poly, interval, featureType)
-    bs.addScanIterator(cfg)
-  }
-
-  // transforms:  (index key, (attribute,encoded feature)) -> (index key, encoded feature)
-  // (there should only be one data-row per entry:  the encoded SimpleFeature)
-  def configureAttributeAggregator(bs: BatchScanner) {
-    val cfg = new IteratorSetting(iteratorPriority_AttributeAggregator,
-                                  "aggrcomb-" + randomPrintableString(5),
-                                  classOf[AggregatingCombiner])
-    Combiner.setCombineAllColumns(cfg, true)
-    bs.addScanIterator(cfg)
-  }
-
-  // assumes that it receives an iterator over data-only entries, and aggregates
-  // the values into a map of attribute, value pairs
-  def configureSimpleFeatureFilteringIterator(bs: BatchScanner,
-                                              simpleFeatureType: String,
-                                              ecql: Option[String],
-                                              transforms: Option[String],
-                                              transformSchema: Option[SimpleFeatureType],
-                                              density: Boolean,
-                                              poly: Polygon = null,
-                                              width: Int, height: Int) {
-    val clazz =
-      if(density) classOf[DensityIterator]
-      else classOf[SimpleFeatureFilteringIterator]
-
-    val cfg = new IteratorSetting(iteratorPriority_SimpleFeatureFilteringIterator,
-                                  "sffilter-" + randomPrintableString(5),
-                                  clazz)
-
-    configureFeatureEncoding(cfg)
-    SimpleFeatureFilteringIterator.setFeatureType(cfg, simpleFeatureType)
-    ecql.foreach(SimpleFeatureFilteringIterator.setECQLFilter(cfg, _))
-    transforms.foreach(SimpleFeatureFilteringIterator.setTransforms(cfg, _, transformSchema))
-
-    if(density) DensityIterator.configure(cfg, poly, width, height)
-    bs.addScanIterator(cfg)
-  }
-
-  def randomPrintableString(length:Int=5) : String = (1 to length).
-    map(i => Random.nextPrintableChar()).mkString
-
-  def planQuery(bs: BatchScanner, filter: KeyPlanningFilter): BatchScanner = {
-    val keyPlan = keyPlanner.getKeyPlan(filter)
-    val columnFamilies = cfPlanner.getColumnFamiliesToFetch(filter)
-
-    // always try to use range(s) to remove easy false-positives
-    val accRanges: Seq[org.apache.accumulo.core.data.Range] = keyPlan match {
-      case KeyRanges(ranges) => ranges.map(r => new org.apache.accumulo.core.data.Range(r.start, r.end))
-      case _ => Seq(new org.apache.accumulo.core.data.Range())
-    }
-    bs.setRanges(accRanges)
-
-    // always try to set a RowID regular expression
-    //@TODO this is broken/disabled as a result of the KeyTier
-    keyPlan.toRegex match {
-      case KeyRegex(regex) => configureRowRegexIterator(bs, regex)
-      case _ => // do nothing
-    }
-
-    // if you have a list of distinct column-family entries, fetch them
-    columnFamilies match {
-      case KeyList(keys) => keys.foreach(cf => bs.fetchColumnFamily(new Text(cf)))
-      case _ => // do nothing
-    }
-
-    bs
-  }
 }
 
 object IndexSchema extends RegexParsers {
@@ -502,20 +146,6 @@ object IndexSchema extends RegexParsers {
   val DEFAULT_TIME = new DateTime(0, DateTimeZone.forID("UTC"))
 
   val emptyBytes = new Value(Array[Byte]())
-
-  def netPolygon(poly: Polygon): Polygon = poly match {
-    case null => null
-    case p if (p.covers(IndexSchema.everywhere)) =>
-      IndexSchema.everywhere
-    case p if (IndexSchema.everywhere.covers(p)) => p
-    case _ => poly.intersection(IndexSchema.everywhere).
-      asInstanceOf[Polygon]
-  }
-
-  def netInterval(interval: Interval): Interval = interval match {
-    case null => null
-    case _    => IndexSchema.everywhen.overlap(interval)
-  }
 
   def pattern[T](p: => Parser[T], code: String): Parser[T] = "%" ~> p <~ ("#" + code)
 
@@ -719,6 +349,12 @@ object IndexSchema extends RegexParsers {
     val indexEntryDecoder = IndexEntryDecoder(geohashDecoder, dateDecoder)
     val queryPlanner      = IndexQueryPlanner(keyPlanner, cfPlanner, s, featureType, featureEncoder)
     IndexSchema(keyEncoder, indexEntryDecoder, queryPlanner, featureType, featureEncoder)
+  }
+
+  def getIndexEntryDecoder(s: String) = {
+    val geohashDecoder    = buildGeohashDecoder(s)
+    val dateDecoder       = buildDateDecoder(s)
+    IndexEntryDecoder(geohashDecoder, dateDecoder)
   }
 
   // the index value consists of the feature's:
