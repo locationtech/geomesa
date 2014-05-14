@@ -90,11 +90,9 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource,
   extends DefaultFeatureResults(source, query) {
 
   val ds  = source.getDataStore.asInstanceOf[AccumuloDataStore]
-  val ff  = CommonFactoryFinder.getFilterFactory2
 
   override def getSchema: SimpleFeatureType =
-    if(query.getHints.containsKey(TRANSFORMS))
-      query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
+    if(query.getHints.containsKey(TRANSFORMS)) query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
     else super.getSchema
 
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener) = visitor match {
