@@ -19,7 +19,7 @@ package geomesa.core.iterators
 import collection.JavaConverters._
 import com.vividsolutions.jts.geom._
 import geomesa.core.data.DATA_CQ
-import geomesa.core.index.{IndexEntry, IndexSchema}
+import geomesa.core.index.{IndexEntry, IndexSchema, IndexEntryDecoder}
 import geomesa.utils.geohash.GeoHash
 import geomesa.utils.text.WKTUtils
 import java.io.{DataInputStream, ByteArrayInputStream, ByteArrayOutputStream, DataOutputStream}
@@ -35,8 +35,6 @@ import org.geotools.factory.GeoTools
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Try
-import geomesa.core.data._
-import scala.Some
 
 case class Attribute(name: Text, value: Text)
 
@@ -63,7 +61,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
   private var dataSource: SortedKeyValueIterator[Key, Value] = null
   private var interval: Interval = null
   private var poly: Geometry = null
-  private var schema: IndexSchema = null
+  private var decoder: IndexEntryDecoder = null
   private var topKey: Key = null
   private var topValue: Value = null
   private var nextKey: Key = null
@@ -89,12 +87,9 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
 
     val featureType = DataUtilities.createType("DummyType", options.get(DEFAULT_FEATURE_TYPE))
 
-    // default to text if not found for backwards compatibility
-    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
-
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
-    schema = IndexSchema(schemaEncoding, featureType, featureEncoder)
+    decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
+
     if (options.containsKey(DEFAULT_POLY_PROPERTY_NAME)) {
       val polyWKT = options.get(DEFAULT_POLY_PROPERTY_NAME)
       poly = WKTUtils.read(polyWKT)
@@ -202,7 +197,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
    * Attempt to decode the given key.  This should only succeed in the cases
    * where the key corresponds to an index-entry (not a data-entry).
    */
-  def decodeKey(key:Key): Option[SimpleFeature] = Try(schema.decode(key)).toOption
+  def decodeKey(key:Key): Option[SimpleFeature] = Try(decoder.decode(key)).toOption
 
   /**
    * Advances the index-iterator to the next qualifying entry, and then
@@ -398,22 +393,16 @@ object SpatioTemporalIntersectingIterator {
     Attribute(attribute, value)
   }
 
-  def setOptions(cfg: IteratorSetting, schema: String, poly: Polygon, interval: Interval,
+  def setOptions(cfg: IteratorSetting, schema: String, poly: Option[Polygon], interval: Option[Interval],
                  featureType: SimpleFeatureType) {
-
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-    if (IndexSchema.somewhere(poly).isDefined)
-      cfg.addOption(DEFAULT_POLY_PROPERTY_NAME, poly.toText)
-    if (IndexSchema.somewhen(interval).isDefined)
-      cfg.addOption(DEFAULT_INTERVAL_PROPERTY_NAME, encodeInterval(Option(interval)))
+    poly.foreach { p => cfg.addOption(DEFAULT_POLY_PROPERTY_NAME, p.toText) }
+    interval.foreach { int => cfg.addOption(DEFAULT_INTERVAL_PROPERTY_NAME, encodeInterval(int)) }
     cfg.addOption(DEFAULT_FEATURE_TYPE, DataUtilities.encodeType(featureType))
   }
 
-  private def encodeInterval(interval: Option[Interval]): String = {
-    val (start, end) = interval.map(i => (i.getStart.getMillis, i.getEnd.getMillis))
-                               .getOrElse((Long.MinValue, Long.MaxValue))
-    start + "~" + end
-  }
+  private def encodeInterval(interval: Interval): String =
+    interval.getStart.getMillis + "~" +  interval.getEnd.getMillis
 
   private def decodeInterval(str: String): Interval =
     str.split("~") match {
