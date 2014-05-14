@@ -2,7 +2,7 @@ package geomesa.core.index
 
 import com.vividsolutions.jts.geom.Geometry
 import geomesa.core.data.SimpleFeatureEncoder
-import geomesa.core.iterators.AttributeAggregator
+import geomesa.core.data.DATA_CQ
 import geomesa.utils.geohash.GeohashUtils
 import org.apache.accumulo.core.data.{Value, Key}
 import org.apache.hadoop.io.Text
@@ -89,7 +89,7 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
     // each attribute gets its own data row (though currently, we use only one attribute
     // that represents the entire, encoded feature)
     val dataEntries = rowIDs.map { rowID =>
-      val key = new Key(rowID, id, AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME_TEXT)
+      val key = new Key(rowID, id, DATA_CQ)
       (key, dataValue)
     }
 

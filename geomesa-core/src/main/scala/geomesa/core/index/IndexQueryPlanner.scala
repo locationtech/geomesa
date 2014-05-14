@@ -25,8 +25,7 @@ object IndexQueryPlanner {
   val iteratorPriority_RowRegex                       = 0
   val iteratorPriority_ColFRegex                      = 100
   val iteratorPriority_SpatioTemporalIterator         = 200
-  val iteratorPriority_AttributeAggregator            = 300
-  val iteratorPriority_SimpleFeatureFilteringIterator = 400
+  val iteratorPriority_SimpleFeatureFilteringIterator = 300
 }
 
 import IndexQueryPlanner._
@@ -103,9 +102,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     // Configure STII
     configureSpatioTemporalIntersectingIterator(bs, opoly, oint)
 
-    // always set up the aggregating-combiner and simple-feature filtering iterator
-    configureAttributeAggregator(bs)
-
     configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql, query, poly)
 
     bs.iterator()
@@ -131,16 +127,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       classOf[SpatioTemporalIntersectingIterator])
     SpatioTemporalIntersectingIterator.setOptions(
       cfg, schema, poly, interval, featureType)
-    bs.addScanIterator(cfg)
-  }
-
-  // transforms:  (index key, (attribute,encoded feature)) -> (index key, encoded feature)
-  // (there should only be one data-row per entry:  the encoded SimpleFeature)
-  def configureAttributeAggregator(bs: BatchScanner) {
-    val cfg = new IteratorSetting(iteratorPriority_AttributeAggregator,
-      "aggrcomb-" + randomPrintableString(5),
-      classOf[AggregatingCombiner])
-    Combiner.setCombineAllColumns(cfg, true)
     bs.addScanIterator(cfg)
   }
 
