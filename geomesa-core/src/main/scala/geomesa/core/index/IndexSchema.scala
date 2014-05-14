@@ -258,7 +258,7 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
     // each data entry contains the encoded SimpleFeature.
     // We use a magic string in the CQ to mark the difference.
     val dataEntries = rowIDs.map { rowID =>
-      val key = new Key(rowID, id, DATA_ROW)
+      val key = new Key(rowID, id, DATA_CQ)
       (key, dataValue)
     }
 
