@@ -299,10 +299,10 @@ DataStore dataStore = createDataStore();
   // construct a filter that uses both geography and time
   String bbox = "BBOX(" +
     Constants.SF_PROPERTY_GEOMETRY + ", -78.0, 38.2, -77.3, 39.1)";
-  String period = "( NOT (" + Constants.SF_PROPERTY_START_TIME +
-    " AFTER 2012-12-31T23:59:59Z))" +
-    " AND ( NOT (" + Constants.SF_PROPERTY_END_TIME +
-    " BEFORE 2012-01-01T00:00:00Z))";
+  String period = "(" + Constants.SF_PROPERTY_START_TIME +
+    " BEFORE 2012-12-31T23:59:59Z)" +
+    " AND (" + Constants.SF_PROPERTY_END_TIME +
+    " AFTER 2012-01-01T00:00:00Z)";
   Filter cqlFilter = ECQL.toFilter(bbox + " AND " + period);
   Query query = new Query(featureName, cqlFilter);
 
