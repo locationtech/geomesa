@@ -14,6 +14,8 @@ import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import geomesa.core.util.SFCIterator
+import org.geotools.data.collection.ListFeatureCollection
 
 @RunWith(classOf[JUnitRunner])
 class TubeSelectTest extends Specification {
@@ -71,7 +73,7 @@ class TubeSelectTest extends Specification {
 
       // get back type b from tube
       val ts = new TubeSelect()
-      val results = ts.execute(tubeFeatures, features, null, 1, 1, 0, 5)
+      val results = ts.execute(tubeFeatures, features, null, 1, 1, 0, 5, null)
 
       val f = results.features()
       while (f.hasNext) {
@@ -112,7 +114,7 @@ class TubeSelectTest extends Specification {
 
       // get back type b from tube
       val ts = new TubeSelect()
-      val results = ts.execute(tubeFeatures, features, null, 1, 1, 0, 5)
+      val results = ts.execute(tubeFeatures, features, null, 1, 1, 0, 5, null)
 
       val f = results.features()
       while (f.hasNext) {
@@ -162,7 +164,7 @@ class TubeSelectTest extends Specification {
       val ts = new TubeSelect()
 
       // 110 m/s times 1000 seconds is just 100km which is under 1 degree
-      val results = ts.execute(tubeFeatures, features, null, 110, 1000, 0, 5)
+      val results = ts.execute(tubeFeatures, features, null, 110, 1000, 0, 5, null)
 
       val f = results.features()
       while (f.hasNext) {
@@ -194,7 +196,7 @@ class TubeSelectTest extends Specification {
 
       // this time we use 112km which is just over 1 degree so we should pick up additional features
       // but with buffer overlap since the features in the collection are 1 degrees apart
-      val results = ts.execute(tubeFeatures, features, null, 112, 1000, 0, 5)
+      val results = ts.execute(tubeFeatures, features, null, 112, 1000, 0, 5, null)
 
       val f = results.features()
       while (f.hasNext) {
@@ -207,6 +209,79 @@ class TubeSelectTest extends Specification {
       }
 
       results.size should equalTo(20)
+    }
+  }
+
+  "TubeSelect" should {
+    "should handle all geometries" in {
+      val sftName = "tubeline"
+      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+
+      val ds = createStore
+
+      ds.createSchema(sft)
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      val featureCollection = new DefaultFeatureCollection(sftName, sft)
+
+      List("b").foreach { name =>
+        List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
+          val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
+          sf.setDefaultGeometry(WKTUtils.read(f"POINT(40 $lat%d)"))
+          sf.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute("type", name)
+          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+          featureCollection.add(sf)
+        }
+      }
+
+      val bLine = SimpleFeatureBuilder.build(sft, List(), "b-line")
+      bLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
+      bLine.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      bLine.setAttribute("type", "b")
+      bLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+      featureCollection.add(bLine)
+
+      val bPoly = SimpleFeatureBuilder.build(sft, List(), "b-poly")
+      bPoly.setDefaultGeometry(WKTUtils.read("POLYGON((40 40, 41 40, 41 41, 40 41, 40 40))"))
+      bPoly.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      bPoly.setAttribute("type", "b")
+      bPoly.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+      featureCollection.add(bPoly)
+
+
+
+      // tube features
+      val aLine = SimpleFeatureBuilder.build(sft, List(), "a-line")
+      aLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
+      aLine.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      aLine.setAttribute(geomesa.core.index.SF_PROPERTY_END_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      aLine.setAttribute("type", "a")
+      aLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+      val tubeFeatures = new ListFeatureCollection(sft, List(aLine))
+      //featureCollection.add(aLine)
+
+      // write the feature to the store
+      val res = fs.addFeatures(featureCollection)
+
+      //val tubeFeatures = fs.getFeatures(CQL.toFilter("type = 'a'"))
+
+      // result set to tube on
+      val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
+
+      features.size should equalTo(6)
+
+      // get back type b from tube
+      val ts = new TubeSelect()
+      val results = ts.execute(tubeFeatures, features, null, 112, 1, 0, 5, null)
+
+      val f = results.features()
+      while (f.hasNext) {
+        val sf = f.next
+        sf.getAttribute("type") should equalTo("b")
+      }
+
+      results.size should equalTo(6)
     }
   }
 
