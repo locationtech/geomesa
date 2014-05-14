@@ -18,7 +18,6 @@ package geomesa.core.iterators
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 
 trait IteratorTest {
   val TEST_TABLE_NAME: String = "query_test"
@@ -29,7 +28,7 @@ trait IteratorTest {
   }
 
   def buildTestConnection: Connector = {
-    new MockInstance().getConnector("root", new PasswordToken(Array[Byte]()))
+    new MockInstance().getConnector("root", "mockpass".getBytes)
   }
 
   def resetTestTable(conn: Connector, testTableName: String) {
@@ -44,7 +43,7 @@ trait IteratorTest {
   }
 
   def initializeTables(data: Map[Key, Value]) {
-    val writer: BatchWriter = conn.createBatchWriter(TEST_TABLE_NAME, new BatchWriterConfig)
+    val writer: BatchWriter = conn.createBatchWriter(TEST_TABLE_NAME, 90L, 90L, 1)
     for (key <- data.keys) {
       val m1: Mutation = new Mutation(key.getRow)
       m1.put(key.getColumnFamily, key.getColumnQualifier, data(key))

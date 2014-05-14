@@ -18,7 +18,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>geomesa</groupId>
-    <artifactId>geomesa</artifactId>
+    <artifactId>geomesa-acc1.4</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>GeoMesa</name>
@@ -35,14 +35,14 @@
     <properties>
         <scala.version>2.10.3</scala.version>
         <geoserver.version>2.5</geoserver.version>
-        <gt.version>11.0</gt.version>
+        <gt.version>10.6</gt.version>
         <jts.version>1.13</jts.version>
         <ehcache.version>2.6.2</ehcache.version>
 
         <!-- environment-dependent versions -->
         <zookeeper.version>3.3.6</zookeeper.version>
-        <accumulo.version>1.5.0</accumulo.version>
-        <hadoop.version>2.2.0</hadoop.version>
+        <accumulo.version>1.4.3</accumulo.version>
+        <hadoop.version>0.20.2-cdh3u6</hadoop.version>
 
         <!-- logging properties
              we expect logging jars to be provided -->
@@ -63,31 +63,6 @@
         <fork.mode>once</fork.mode>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>accumulo1.5.1</id>
-            <modules>
-                <module>geomesa-shell</module>
-            </modules>
-            <properties>
-                <accumulo.version>1.5.1-SNAPSHOT</accumulo.version>
-            </properties>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>geomesa</groupId>
-                        <artifactId>geomesa-shell</artifactId>
-                        <version>${project.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>cascading.accumulo</groupId>
-                        <artifactId>accumulo-scalding</artifactId>
-                        <version>2.0-SNAPSHOT</version>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
-        </profile>
-    </profiles>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -237,34 +212,39 @@
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-core</artifactId>
+                <artifactId>geomesa-core-acc1.4</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-utils</artifactId>
+                <artifactId>geomesa-utils-acc1.4</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-filter</artifactId>
+                <artifactId>geomesa-filter-acc1.4</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-plugin</artifactId>
+                <artifactId>geomesa-plugin-acc1.4</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-distributed-runtime</artifactId>
+                <artifactId>geomesa-distributed-runtime-acc1.4</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-plugin</artifactId>
+                <artifactId>geomesa-plugin-acc1.4</artifactId>
                 <classifier>geoserver-plugin</classifier>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>11.0.1</version>
             </dependency>
 
             <!-- logging -->
@@ -347,6 +327,18 @@
                         <groupId>org.mortbay.jetty</groupId>
                         <artifactId>jsp-2.1</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-log4j12</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>log4j</groupId>
+                        <artifactId>log4j</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>hsqldb</groupId>
+                        <artifactId>hsqldb</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -365,6 +357,10 @@
                     <exclusion>
                         <groupId>com.sun.jdmk</groupId>
                         <artifactId>jmxtools</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>log4j</groupId>
+                        <artifactId>log4j</artifactId>
                     </exclusion>
                 </exclusions>
                 <scope>provided</scope>
@@ -412,12 +408,7 @@
                 <version>4.5</version>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>11.0.1</version>
-                <scope>provided</scope>
-            </dependency>
+
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>findbugs</artifactId>
@@ -532,6 +523,10 @@
         <repository>
             <id>opengeo</id>
             <url>http://repo.opengeo.org</url>
+        </repository>
+        <repository>
+            <id>cloudera</id>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
         </repository>
     </repositories>
 

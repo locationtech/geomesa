@@ -19,7 +19,7 @@ package geomesa.core.data
 
 import geomesa.core.index._
 import java.util.UUID
-import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
+import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.data.{PartialKey, Mutation, Value, Key}
 import org.apache.hadoop.mapred.{Reporter, RecordWriter}
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
@@ -29,6 +29,7 @@ import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.apache.accumulo.core.security.ColumnVisibility
 
 object AccumuloFeatureWriter {
 
@@ -37,11 +38,11 @@ object AccumuloFeatureWriter {
   val EMPTY_VALUE = new Value()
 
   class LocalRecordWriter(tableName: String, connector: Connector) extends AccumuloRecordWriter {
-    private val bw = connector.createBatchWriter(tableName, new BatchWriterConfig())
+    private val bw = connector.createBatchWriter(tableName, 1024L, 10L, 10)
 
     def write(key: Key, value: Value) {
       val m = new Mutation(key.getRow)
-      m.put(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed, key.getTimestamp, value)
+      m.put(key.getColumnFamily, key.getColumnQualifier, new ColumnVisibility(key.getColumnVisibility), key.getTimestamp, value)
       bw.addMutation(m)
     }
 
@@ -52,11 +53,11 @@ object AccumuloFeatureWriter {
   }
 
   class LocalRecordDeleter(tableName: String, connector: Connector) extends AccumuloRecordWriter {
-    private val bw = connector.createBatchWriter(tableName, new BatchWriterConfig())
+    private val bw = connector.createBatchWriter(tableName, 1024L, 10L, 10)
 
     def write(key: Key, value: Value) {
       val m = new Mutation(key.getRow)
-      m.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed, key.getTimestamp)
+      m.putDelete(key.getColumnFamily, key.getColumnQualifier, new ColumnVisibility(key.getColumnVisibility), key.getTimestamp)
       bw.addMutation(m)
     }
 

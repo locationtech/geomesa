@@ -26,26 +26,26 @@
         <dependencySet>
             <outputDirectory>${dist.accumulo.lib.ext}</outputDirectory>
             <includes>
-                <include>geomesa:geomesa-distributed-runtime:*</include>
+                <include>geomesa:geomesa-distributed-runtime-acc1.4:*</include>
             </includes>
         </dependencySet>
         <dependencySet>
             <outputDirectory>${dist.hdfs}</outputDirectory>
             <includes>
-                <include>geomesa:geomesa-distributed-runtime:*</include>
+                <include>geomesa:geomesa-distributed-runtime-acc1.4:*</include>
             </includes>
         </dependencySet>
         <dependencySet>
             <outputDirectory>${dist.geoserver.lib}</outputDirectory>
             <includes>
-                <include>geomesa:geomesa-plugin:*:geoserver-plugin</include>
+                <include>geomesa:geomesa-plugin-acc1.4:*:geoserver-plugin</include>
             </includes>
         </dependencySet>
         <dependencySet>
             <outputDirectory>${dist.dev}/lib</outputDirectory>
             <includes>
-                <include>geomesa:geomesa-distributed-runtime:*</include>
-                <include>geomesa:geomesa-utils</include>
+                <include>geomesa:geomesa-distributed-runtime-acc1.4:*</include>
+                <include>geomesa:geomesa-utils-acc1.4</include>
                 <include>org.apache.accumulo:accumulo-core</include>
                 <include>org.apache.accumulo:cloudtrace</include>
                 <include>org.apache.thrift:libthrift</include>
