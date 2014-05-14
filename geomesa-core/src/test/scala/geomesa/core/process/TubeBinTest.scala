@@ -39,19 +39,19 @@ class TubeBinTest extends Specification {
         sf
       }
 
-      val features = new ListFeatureCollection(sft, list)
-      println("features: "+features.size)
-      val binnedFeatures = TubeVisitor.timeBinAndUnion(features, 6).features
+      println("features: "+list.size)
+      val binnedFeatures = TubeVisitor.timeBinAndUnion(list, 6)
 
-      while(binnedFeatures.hasNext) {
-        val sf = binnedFeatures.next
+      binnedFeatures.foreach { sf =>
        // println(DataUtilities.encodeFeature(sf))
-        if (sf.getDefaultGeometry.isInstanceOf[GeometryCollection]){
+        if (sf.getDefaultGeometry.isInstanceOf[GeometryCollection])
           println("size: " + sf.getDefaultGeometry.asInstanceOf[GeometryCollection].getNumGeometries +" "+ sf.getDefaultGeometry)
-        }
         else println("size: 1")
       }
 
+      TubeVisitor.timeBinAndUnion(list, 1).size should equalTo(1)
+
+      TubeVisitor.timeBinAndUnion(list, 0).size should equalTo(1)
     }
 
   }
