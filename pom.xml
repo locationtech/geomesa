@@ -18,10 +18,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>geomesa</groupId>
-    <artifactId>geomesa</artifactId>
+    <artifactId>geomesa-accumulo1.5</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>GeoMesa</name>
+    <name>GeoMesa - [Accumulo 1.5.x]</name>
 
     <modules>
         <module>geomesa-utils</module>
@@ -41,14 +41,14 @@
 
         <!-- environment-dependent versions -->
         <zookeeper.version>3.3.6</zookeeper.version>
-        <accumulo.version>1.5.0</accumulo.version>
+        <accumulo.version>1.5.1</accumulo.version>
         <hadoop.version>2.2.0</hadoop.version>
 
         <!-- logging properties
              we expect logging jars to be provided -->
         <!-- accumulo 1.4.3 is incompatible with a 1.5.6+ version of slf4j -->
         <!-- 1.7.x is for hadoop 2 and accumulo 1.5.x -->
-        <slf4j.version>1.7.1</slf4j.version>
+        <slf4j.version>1.7.5</slf4j.version>
         <logback.version>1.1.1</logback.version>
         <scalalogging.version>1.1.0</scalalogging.version>
 
@@ -61,33 +61,9 @@
         <!-- testing properties -->
         <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit</maven.test.jvmargs>
         <fork.mode>once</fork.mode>
+        <avro.version>1.7.5</avro.version>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>accumulo1.5.1</id>
-            <modules>
-                <module>geomesa-shell</module>
-            </modules>
-            <properties>
-                <accumulo.version>1.5.1-SNAPSHOT</accumulo.version>
-            </properties>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>geomesa</groupId>
-                        <artifactId>geomesa-shell</artifactId>
-                        <version>${project.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>cascading.accumulo</groupId>
-                        <artifactId>accumulo-scalding</artifactId>
-                        <version>2.0-SNAPSHOT</version>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
-        </profile>
-    </profiles>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -237,32 +213,32 @@
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-core</artifactId>
+                <artifactId>geomesa-core-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-utils</artifactId>
+                <artifactId>geomesa-utils-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-filter</artifactId>
+                <artifactId>geomesa-filter-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-plugin</artifactId>
+                <artifactId>geomesa-plugin-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-distributed-runtime</artifactId>
+                <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-plugin</artifactId>
+                <artifactId>geomesa-plugin-accumulo1.5</artifactId>
                 <classifier>geoserver-plugin</classifier>
                 <version>${project.version}</version>
             </dependency>
@@ -372,7 +348,7 @@
             <dependency>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
-                <version>1.7.5</version>
+                <version>${avro.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.geoserver</groupId>
@@ -509,9 +485,9 @@
     </build>
 
     <scm>
-        <connection>scm:git:git@github.com:geomesa/geomesa.git</connection>
-        <developerConnection>scm:git:git@github.com:geomesa/geomesa.git</developerConnection>
-        <url>https://github.com/geomesa/geomesa</url>
+        <connection>scm:git:git@github.com:locationtech/geomesa.git</connection>
+        <developerConnection>scm:git:git@github.com:locationtech/geomesa.git</developerConnection>
+        <url>https://github.com/locationtech/geomesa</url>
         <tag>HEAD</tag>
     </scm>
 
