@@ -48,13 +48,13 @@ class TubeSelect extends VectorProcess {
                @DescribeParameter(
                  name = "maxSpeed",
                  min = 0,
-                 description = "Max speed of the object in m/s for none, straightLine, aroundLand gapfill methods")
+                 description = "Max speed of the object in m/s for nofill, straightLine, aroundLand gapfill methods")
                maxSpeed: java.lang.Long,
 
                @DescribeParameter(
                  name = "maxTime",
                  min = 0,
-                 description = "Time as seconds for none, straightLine, aroundLand gapfill methods")
+                 description = "Time as seconds for nofill, straightLine, aroundLand gapfill methods")
                maxTime: java.lang.Long,
 
                @DescribeParameter(
@@ -72,7 +72,7 @@ class TubeSelect extends VectorProcess {
                @DescribeParameter(
                  name = "gapFill",
                  min = 0,
-                 description = "Method of filling gap (none, straightLine)")
+                 description = "Method of filling gap (nofill, straightLine)")
                gapFill: String
 
                ): SimpleFeatureCollection = {
@@ -95,7 +95,7 @@ class TubeSelect extends VectorProcess {
 
 object GapFill extends Enumeration{
   type GapFill = Value
-  val NOFILL = Value("none")
+  val NOFILL = Value("nofill")
 }
 
 class TubeVisitor(
@@ -132,8 +132,9 @@ class TubeVisitor(
     val queryResults = new ListBuffer[SimpleFeatureCollection]
 
     binnedTube.foreach { sf =>
-      val minDate = new Date(sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date].getTime - maxTime)
-      val maxDate = new Date(sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date].getTime + maxTime)
+      val sfTime = sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date].getTime
+      val minDate = new Date(sfTime - maxTime)
+      val maxDate = new Date(sfTime + maxTime)
       val dateProperty = ff.property(source.getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])
       val dtgFilter = ff.between(dateProperty, ff.literal(minDate), ff.literal(maxDate))
 
