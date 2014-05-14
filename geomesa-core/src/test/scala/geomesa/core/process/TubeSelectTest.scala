@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.{Point, Coordinate, GeometryFactory}
 import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
 import geomesa.process.{TubeVisitor, TubeSelect}
 import geomesa.utils.text.WKTUtils
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{DataUtilities, DataStoreFinder}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
@@ -14,8 +15,6 @@ import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import geomesa.core.util.SFCIterator
-import org.geotools.data.collection.ListFeatureCollection
 
 @RunWith(classOf[JUnitRunner])
 class TubeSelectTest extends Specification {

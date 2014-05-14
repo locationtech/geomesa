@@ -1,17 +1,17 @@
 package geomesa.core.process
 
 import collection.JavaConversions._
-import org.geotools.data.DataUtilities
-import org.geotools.feature.simple.SimpleFeatureBuilder
-import geomesa.utils.text.WKTUtils
-import org.joda.time.{DateTimeZone, DateTime}
-import org.geotools.factory.Hints
-import org.geotools.data.collection.ListFeatureCollection
-import geomesa.process.TubeVisitor
-import org.specs2.mutable.Specification
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 import com.vividsolutions.jts.geom.GeometryCollection
+import geomesa.process.TubeVisitor
+import geomesa.utils.text.WKTUtils
+import org.geotools.data.DataUtilities
+import org.geotools.data.collection.ListFeatureCollection
+import org.geotools.factory.Hints
+import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.joda.time.{DateTimeZone, DateTime}
+import org.junit.runner.RunWith
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 
 @RunWith(classOf[JUnitRunner])

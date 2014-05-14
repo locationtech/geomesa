@@ -1,10 +1,9 @@
 package geomesa.core.util
 
-import org.specs2.mutable.Specification
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
-import org.opengis.feature.simple.SimpleFeatureType
 import org.geotools.data.DataUtilities
+import org.junit.runner.RunWith
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class MultiCollectionTest  extends Specification {

@@ -20,7 +20,6 @@ import collection.JavaConversions._
 import geomesa.process.TubeVisitor
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.geotools.process.vector.TransformProcess
 import org.joda.time.DateTime
