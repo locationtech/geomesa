@@ -19,12 +19,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>geomesa</groupId>
-        <artifactId>geomesa</artifactId>
+        <artifactId>geomesa-accumulo1.5</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-dist</artifactId>
-    <name>GeoMesa Distribution tar.gz</name>
+    <artifactId>geomesa-dist-accumulo1.5</artifactId>
+    <name>GeoMesa Distribution tar.gz - [Accumulo 1.5.x]</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,15 +33,15 @@
     <dependencies>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-distributed-runtime</artifactId>
+            <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
         </dependency>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-utils</artifactId>
+            <artifactId>geomesa-utils-accumulo1.5</artifactId>
         </dependency>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-plugin</artifactId>
+            <artifactId>geomesa-plugin-accumulo1.5</artifactId>
             <classifier>geoserver-plugin</classifier>
         </dependency>
         <dependency>
@@ -140,7 +140,7 @@
                     <sectionLabelIncludesComponentLabel>true</sectionLabelIncludesComponentLabel>
                     <entities>
                         <entity>
-                            <name>version</name>
+                            <name>version - [Accumulo 1.5.x]</name>
                             <value>${project.version}</value>
                         </entity>
                     </entities>
