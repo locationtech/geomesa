@@ -49,6 +49,7 @@
                 <include>org.apache.accumulo:accumulo-core</include>
                 <include>org.apache.accumulo:accumulo-trace</include>
                 <include>org.apache.accumulo:accumulo-fate</include>
+                <include>org.apache.commons:commons-vfs2</include>
                 <include>org.apache.thrift:libthrift</include>
                 <include>org.apache.zookeeper:zookeeper</include>
                 <include>org.apache.hadoop:hadoop-common</include>
