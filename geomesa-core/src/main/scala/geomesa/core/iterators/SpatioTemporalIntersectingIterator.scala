@@ -18,7 +18,7 @@ package geomesa.core.iterators
 
 import collection.JavaConverters._
 import com.vividsolutions.jts.geom._
-import geomesa.core.data.DATA_ROW
+import geomesa.core.data.DATA_CQ
 import geomesa.core.index.{IndexEntry, IndexSchema}
 import geomesa.utils.geohash.GeoHash
 import geomesa.utils.text.WKTUtils
@@ -177,7 +177,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
   private def isKeyValueADataEntry(key: Key, value: Value): Boolean =
     (key != null) &&
     (key.getColumnQualifier != null) &&
-    (key.getColumnQualifier == DATA_ROW)
+    (key.getColumnQualifier == DATA_CQ)
 
   // if it's not a data entry, it's an index entry
   // (though we still share some requirements -- non-nulls -- with data entries)
@@ -185,7 +185,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
     (key != null) &&
     (
       (key.getColumnQualifier == null) ||
-      (key.getColumnQualifier != DATA_ROW)
+      (key.getColumnQualifier != DATA_CQ)
     )
 
   def skipIndexEntries(itr: SortedKeyValueIterator[Key,Value]) {
