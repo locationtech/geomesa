@@ -98,7 +98,14 @@
                 <wps:LiteralData>1</wps:LiteralData>
             </wps:Data>
         </wps:Input>
-       
+
+         <wps:Input>
+            <ows:Identifier>maxBins</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>5</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+      
     </wps:DataInputs>
     <wps:ResponseForm>
         <wps:RawDataOutput mimeType="application/json">

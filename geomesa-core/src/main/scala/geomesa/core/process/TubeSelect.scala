@@ -214,7 +214,11 @@ object TubeVisitor {
   // Bin ordered features into maxBins number of bins by filling bins to a maxBinSize
   def timeBinAndUnion(features: SimpleFeatureCollection, maxBins: Int): SimpleFeatureCollection = {
     val numFeatures = features.size
-    val binSize = numFeatures / maxBins + (if (numFeatures % maxBins == 0 ) 0 else 1)
+    val binSize =
+      if(maxBins > 0 )
+        numFeatures / maxBins + (if (numFeatures % maxBins == 0 ) 0 else 1)
+      else
+        numFeatures
 
     val bins = collection.mutable.HashMap.empty[Int, ListFeatureCollection]
     var bin = 0
