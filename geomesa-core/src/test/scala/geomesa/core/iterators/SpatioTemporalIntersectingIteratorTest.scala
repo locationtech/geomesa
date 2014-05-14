@@ -70,7 +70,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val featureName = "feature"
     val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
     val featureType = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
-    val index = SpatioTemporalIndexSchema(schemaEncoding, featureType, featureEncoder)
+    val index = IndexSchema(schemaEncoding, featureType, featureEncoder)
 
     val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
 
@@ -230,11 +230,11 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
 
     // create the schema, and require de-duplication
-    val schema = SpatioTemporalIndexSchema(TestData.schemaEncoding, TestData.featureType, featureEncoder)
+    val schema = IndexSchema(TestData.schemaEncoding, TestData.featureType, featureEncoder)
 
     // create the query polygon
     val polygon: Polygon = overrideGeometry match {
-      case true => SpatioTemporalIndexSchema.everywhere
+      case true => IndexSchema.everywhere
       case false => WKTUtils.read(TestData.wktQuery).asInstanceOf[Polygon]
     }
 
@@ -243,7 +243,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
 
     // fetch results from the schema!
-    val itr = schema.query(bs, polygon, dtFilter, UnitTestEntryType.getTypeSpec, ecqlFilter)
+    val itr = schema.planQuery(bs, polygon, dtFilter, UnitTestEntryType.getTypeSpec, ecqlFilter)
 
     // print out the hits
     val retval = if (doPrint) {
@@ -358,7 +358,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
       val ecqlFilter = "true = true"
 
       // run this query on regular data
-      val dtFilter = SpatioTemporalIndexSchema.everywhen
+      val dtFilter = IndexSchema.everywhen
       val numHits: Int = runMockAccumuloTest("mock-huge-notime",
         TestData.hugeData, Some(ecqlFilter), TestData.hugeData.size, dtFilter,
         doPrint = false)
@@ -371,7 +371,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
   "Large Mock Accumulo with a global request" should {
     "return an unfiltered results-set" in {
       // run this query on regular data
-      val dtFilter = SpatioTemporalIndexSchema.everywhen
+      val dtFilter = IndexSchema.everywhen
       val numHits: Int = runMockAccumuloTest("mock-huge-notime",
         TestData.hugeData, None, TestData.hugeData.size, dtFilter,
         overrideGeometry = true, doPrint = false)

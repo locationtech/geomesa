@@ -17,7 +17,7 @@
 
 package geomesa.core.iterators
 
-import geomesa.core.index.SpatioTemporalIndexSchema
+import geomesa.core.index.IndexSchema
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
@@ -61,7 +61,7 @@ class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] {
     while (nextKey == null && indexSource.hasTop && !isData) {
       log.trace(s"Checking ${indexSource.getTopKey}")
       nextKey = indexSource.getTopKey
-      curId = SpatioTemporalIndexSchema.decodeIndexValue(indexSource.getTopValue).id
+      curId = IndexSchema.decodeIndexValue(indexSource.getTopValue).id
 
       val dataSeekKey = new Key(indexSource.getTopKey.getRow, new Text(curId))
       val range = new Range(dataSeekKey, null)

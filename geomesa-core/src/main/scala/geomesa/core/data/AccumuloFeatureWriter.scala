@@ -76,7 +76,7 @@ object AccumuloFeatureWriter {
 }
 
 abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
-                                     indexer: SpatioTemporalIndexSchema,
+                                     indexer: IndexSchema,
                                      recordWriter: RecordWriter[Key,Value]) extends SimpleFeatureWriter {
 
   private val log = Logger.getLogger(classOf[AccumuloFeatureWriter])
@@ -118,7 +118,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
 
 class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
-                                  indexer: SpatioTemporalIndexSchema,
+                                  indexer: IndexSchema,
                                   recordWriter: RecordWriter[Key,Value])
   extends AccumuloFeatureWriter(featureType, indexer, recordWriter) {
 
@@ -137,7 +137,7 @@ class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
 }
 
 class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
-                                      indexer: SpatioTemporalIndexSchema,
+                                      indexer: IndexSchema,
                                       recordWriter: RecordWriter[Key,Value],
                                       deleter: RecordWriter[Key, Value],
                                       dataStore: AccumuloDataStore)
