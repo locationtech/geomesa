@@ -255,9 +255,8 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
     // the (single) data value is the encoded (serialized-to-string) SimpleFeature
     val dataValue = featureEncoder.encode(entryToEncode)
 
-    // data entries are stored separately (and independently) from the index entries;
-    // each attribute gets its own data row (though currently, we use only one attribute
-    // that represents the entire, encoded feature)
+    // each data entry contains the encoded SimpleFeature.
+    // We use a magic string in the CQ to mark the difference.
     val dataEntries = rowIDs.map { rowID =>
       val key = new Key(rowID, id, DATA_ROW)
       (key, dataValue)
