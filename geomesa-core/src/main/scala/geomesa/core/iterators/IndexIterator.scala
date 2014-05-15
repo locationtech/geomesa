@@ -40,14 +40,19 @@ import geomesa.core.index._
 import scala.Some
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import collection.JavaConversions._
+import org.geotools.process.vector.TransformProcess
+import org.geotools.filter.text.ecql.ECQL
+import org.geotools.filter.FilterAttributeExtractor
+import org.geotools.data.transform.Definition
+import org.opengis.filter.expression.ExpressionVisitor
 
 /**
  * This is an Index Only Iterator, to be used in situations where the data records are
- * not useful enough to pay the penalty of decoding which one must pay when using the
+ * not useful enough to pay the penalty of decoding when using the
  * SpatioTemporalIntersectingIterator.
  *
- * This iterator returns as its nextKey the key for the INDEX iterator. nextValue is
- * always null.
+ * This iterator returns as its nextKey the key for the index. nextValue is
+ * the value for the INDEX, mapped into a SimpleFeature
  *
  * Note that this extends the SpatioTemporalIntersectingIterator, but never creates a dataSource
  * and hence never iterates through it.
@@ -131,11 +136,67 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
 object IndexIterator extends IteratorHelperObject {
 
+  /**
+   *  Converts values taken from the Index Value to a SimpleFeature, using the indexSFT schema
+   *  Note that the ID, taken from the index, is preserved
+   *
+   */
   def encodeIndexValueToSF(id: String, geom: Geometry, dtgMillis: Option[Long]): SimpleFeature = {
-    val dtg: Option[DateTime]  = dtgMillis match {
-      case Some(t) => Some(new DateTime(t))   // watch the time zone!
-      case _ => None
+    val attributeList = dtgMillis match {
+      case Some(t) => List( geom, new DateTime(t,DateTimeZone.forID("UTC")))  // FIXME watch the time zone!
+      case _ => List( geom )
     }
-    SimpleFeatureBuilder.build(indexSFT, List(geom, dtg), id)
+    SimpleFeatureBuilder.build(indexSFT, attributeList, id)
+  }
+
+  /**
+   * Scans the ECQL predicate, the transform definition and transform schema to determine if only index attributes are
+   * used/requested, and thus the IndexIterator can be used
+   *
+   */
+  def useIndexOnlyIterator(ecqlPredicate:Option[String], transformDefs: Option[String], transformSchema: Option[SimpleFeatureType]) = {
+    (ecqlPredicate, transformDefs, transformSchema) match {
+      case (Some(ep), Some(td), Some(ts)) => isTransformToIndexOnly(td, ts) & filterOnIndexAttributes(ep, indexSFT)
+      case (None, Some(td), Some(ts)) => isTransformToIndexOnly(td, ts)
+      case _ => false
+    }
+  }
+
+  /**
+   *  Checks the transform for mapping to the index attributes: geometry and optionally time
+   */
+  def isTransformToIndexOnly(transformDefs: String, transformSchema: SimpleFeatureType ):Boolean = {
+    ((transformSchema == indexSFT)    // target schema matches the idx SimpleFeature
+      | isJustGeo(transformSchema)) &&   // OR, just contains the geometry, AND
+          isIdentityTransformation(transformDefs) // the variables for the target schema are taken straight from the index
+  }
+
+  /**
+   *  Checks a schema to see if only the geometry is present. Since the Geometry is not optional, if there is only
+   *  one attribute, then only the geometry is present
+   */
+  def isJustGeo(transformSchema:SimpleFeatureType):Boolean = transformSchema.getAttributeCount == 1
+
+  /**
+   * Tests if a transform simply selects attributes, with no scaling or renaming
+   */
+  def isIdentityTransformation(transformDefs:String) = {
+    // convert to a transform
+    val theDefinitions = TransformProcess.toDefinition(transformDefs)
+    // check that, for each definition, the name and expression match
+    theDefinitions.forall( aDef => aDef.name == aDef.expression.toString  )
+  }
+
+  /**
+   * Tests if the filter is applied to only attributes found in the indexSFT schema
+   */
+  def filterOnIndexAttributes(ecql_text: String, targetSchema: SimpleFeatureType):Boolean = {
+    // convert the ECQL to a filter, then visit that filter to get the attributes
+    val filterAttributeList = ECQL.toFilter(ecql_text).
+                                            accept(new FilterAttributeExtractor, null).asInstanceOf[List[String]]
+
+    val schemaAttributeList = targetSchema.getAttributeDescriptors
+    // now check to see if the filter operates on any attributes NOT in the target schema
+    filterAttributeList.forall{attribute:String => schemaAttributeList.contains(attribute)}
   }
 }

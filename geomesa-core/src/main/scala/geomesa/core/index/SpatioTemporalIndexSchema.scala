@@ -301,20 +301,16 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
     // based on the arguments passed in
     val filter = buildFilter(poly, interval)
 
-    // figure out what transforms are requested, if any
-    // scan transform schema and compare to key's schema
-    val transformToIndex = ???
-    val transforms = Option("IGNORE")
-
     // set up row ranges and regular expression filter
     planQuery(bs, filter)
 
-    //FIXME : change once API is defined for the index only iterator
-    val theSpatioTemporalIterator = transforms match{
-      case Some("IGNORE") => IndexIterator
-      case _ => SpatioTemporalIntersectingIterator
+    // if the IndexIterator can be used instead of the IntersectingIterator, do it
+    val theSpatioTemporalIterator = IndexIterator.useIndexOnlyIterator(ecql,transformDefs,transformSchema) match{
+      case true => IndexIterator
+      case false => SpatioTemporalIntersectingIterator
     }
 
+    //val theSpatioTemporalIterator =  SpatioTemporalIntersectingIterator
     // set up space, time iterators as appropriate for this filter
     filter match {
       case _ : SpatialDateFilter | _ : SpatialDateRangeFilter =>
@@ -332,7 +328,7 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
     if (theSpatioTemporalIterator != IndexIterator ) {
       configureAttributeAggregator(bs)
       configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql,
-        transforms, transformSchema, density, poly, width, height)
+        transformDefs, transformSchema, density, poly, width, height)
     }
     bs.iterator()
   }
