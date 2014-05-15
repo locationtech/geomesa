@@ -54,7 +54,7 @@ class TableVersionTest extends Specification {
     val metadataMutation = new Mutation(s"~METADATA_$sftName")
     metadataMutation.put("attributes", "", s"name:String,geomesa_index_geometry:Geometry:srid=4326,geomesa_index_start_time:Date,geomesa_index_end_time:Date")
     metadataMutation.put("bounds", "", "45.0:45.0:49.0:49.0")
-    metadataMutation.put("schema", "", "%~#s%99#r%mutableType#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id")
+    metadataMutation.put("schema", "", s"%~#s%99#r%$sftName#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id")
     bw.addMutation(metadataMutation)
 
     // Insert features
@@ -75,12 +75,12 @@ class TableVersionTest extends Specification {
   }
 
   val rowIds = List(
-    "09~mutableType~v00~20120102",
-    "95~mutableType~v00~20120102",
-    "53~mutableType~v00~20120102",
-    "77~mutableType~v00~20120102",
-    "36~mutableType~v00~20120102",
-    "91~mutableType~v00~20120102")
+    "09~regressionTestType~v00~20120102",
+    "95~regressionTestType~v00~20120102",
+    "53~regressionTestType~v00~20120102",
+    "77~regressionTestType~v00~20120102",
+    "36~regressionTestType~v00~20120102",
+    "91~regressionTestType~v00~20120102")
 
   val hex = new Hex
   val indexValues = List(
