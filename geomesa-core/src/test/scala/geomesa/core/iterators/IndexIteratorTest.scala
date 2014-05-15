@@ -64,10 +64,13 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     val c = TestData.setupMockAccumuloTable(entries, numExpectedDataIn)
     val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
 
-    val transform: Option[String] = Some("IGNORE")
+    val transform: Option[String] = Some("geomesa_index_geometry=geomesa_index_geometry ; " +
+      "geomesa_index_start_time=geomesa_index_start_time ;" +
+       "geomesa_index_end_time=geomesa_index_end_time ")
+    val transformSchema = Some(indexSFT)
     // fetch results from the schema!
-    val itr = schema.query(bs, polygon, dtFilter, UnitTestEntryType.getTypeSpec, ecqlFilter, transform)
-
+    val itr = schema.query(bs, polygon, dtFilter, UnitTestEntryType.getTypeSpec, ecqlFilter, transform, transformSchema)
+    //val itr = schema.query(bs, polygon, dtFilter, UnitTestEntryType.getTypeSpec, ecqlFilter)
     // print out the hits
     val retval = if (doPrint) {
       val results: List[Value] = itr.toList
