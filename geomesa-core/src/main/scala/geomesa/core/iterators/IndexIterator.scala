@@ -191,12 +191,19 @@ object IndexIterator extends IteratorHelperObject {
    * Tests if the filter is applied to only attributes found in the indexSFT schema
    */
   def filterOnIndexAttributes(ecql_text: String, targetSchema: SimpleFeatureType):Boolean = {
-    // convert the ECQL to a filter, then visit that filter to get the attributes
-    val filterAttributeList = ECQL.toFilter(ecql_text).
-                                            accept(new FilterAttributeExtractor, null).asInstanceOf[List[String]]
+    ecql_text match {
+      case "INCLUDE" => true // doesn't filter on anything
+      case _ => {
+        // convert the ECQL to a filter, then visit that filter to get the attributes
+        val filterAttributeList = ECQL.toFilter(ecql_text).
+          accept(new FilterAttributeExtractor, null).asInstanceOf[List[String]]
 
-    val schemaAttributeList = targetSchema.getAttributeDescriptors
-    // now check to see if the filter operates on any attributes NOT in the target schema
-    filterAttributeList.forall{attribute:String => schemaAttributeList.contains(attribute)}
+        val schemaAttributeList = targetSchema.getAttributeDescriptors.map(_.getLocalName)
+        // now check to see if the filter operates on any attributes NOT in the target schema
+        println("schemaAttributes:" + schemaAttributeList)
+        println("filterAttributeList:" + filterAttributeList + " " + ecql_text)
+        filterAttributeList.forall { attribute: String => schemaAttributeList.contains(attribute)}
+      }
+    }
   }
 }
