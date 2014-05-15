@@ -24,7 +24,7 @@ import geomesa.core.index.Constants
 import geomesa.utils.geometry.Geometry._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text.WKTUtils
-import geomesa.utils.time.Interval._
+import geomesa.utils.time.Time._
 import org.geotools.data.DataUtilities
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL

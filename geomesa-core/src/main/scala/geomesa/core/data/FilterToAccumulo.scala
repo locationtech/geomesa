@@ -20,7 +20,7 @@ import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
 import geomesa.core.index
 import geomesa.utils.geometry.Geometry._
-import geomesa.utils.time.Interval._
+import geomesa.utils.time.Time._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.GeometryUtils
 import org.geotools.data.Query
@@ -166,6 +166,40 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     result.evaluated
   }
 
+  def negateSingleton(childEval: Filter): Filter = {
+    val notAttributes = (spatialPredicate, temporalPredicate, childEval) match {
+      case (sp, tp, _) if sp != noPolygon || tp != noInterval => Filter.INCLUDE
+      case (_, _, Filter.INCLUDE)                             => Filter.EXCLUDE
+      case (_, _, Filter.EXCLUDE)                             => Filter.INCLUDE
+      case (_, _, f)                                         => ff.not(f)
+    }
+    val notSpatial = if (spatialPredicate != noPolygon) {
+      JTS.toGeometry(wholeWorld).difference(spatialPredicate) match {
+        case p: Polygon =>
+          spatialPredicate = p
+          Filter.INCLUDE
+        case _          =>
+          val oldSpace = spatialPredicate
+          spatialPredicate = noPolygon
+          ff.not(ff.intersects(ff.property(geomField.getLocalName), ff.literal(oldSpace)))
+      }
+    } else Filter.INCLUDE
+    val notTemporal = if (temporalPredicate != noInterval) {
+      val oldTemporal = temporalPredicate
+      temporalPredicate = noInterval
+      ff.not(ff.during(ff.property(dtgField.getLocalName), ff.literal(oldTemporal)))
+    } else Filter.INCLUDE
+    // these three components are joined by an implied AND; build (and simplify) that expression
+    Seq[Filter](notSpatial, notTemporal, notAttributes).foldLeft(Filter.INCLUDE.asInstanceOf[Filter])((filterSoFar, subFilter) =>
+      (filterSoFar, subFilter) match {
+        case (Filter.EXCLUDE, _) => Filter.EXCLUDE
+        case (_, Filter.EXCLUDE) => Filter.EXCLUDE
+        case (Filter.INCLUDE, s) => s
+        case (f, Filter.INCLUDE) => f
+        case (f, s) => ff.and(f, s)
+      })
+  }
+  
   def processNot(op: Not): Filter = {
     spatialPredicate = noPolygon
     temporalPredicate = noInterval
@@ -176,40 +210,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
         process(ff.or(f.getChildren.map(child => ff.not(child))))
       case f: Or  =>
         process(ff.and(f.getChildren.map(child => ff.not(child))))
-      case f      =>
-        val childEval = process(f)
-
-        val notAttributes = (spatialPredicate, temporalPredicate, childEval) match {
-          case (sp, tp, _) if sp != noPolygon || tp != noInterval => Filter.INCLUDE
-          case (_, _, Filter.INCLUDE)                             => Filter.EXCLUDE
-          case (_, _, Filter.EXCLUDE)                             => Filter.INCLUDE
-          case (_, _, fi)                                         => ff.not(fi)
-        }
-        val notSpatial = if (spatialPredicate != noPolygon) {
-          JTS.toGeometry(wholeWorld).difference(spatialPredicate) match {
-            case p: Polygon =>
-              spatialPredicate = p
-              Filter.INCLUDE
-            case _          =>
-              val oldSpace = spatialPredicate
-              spatialPredicate = noPolygon
-              ff.not(ff.intersects(ff.property(geomField.getLocalName), ff.literal(oldSpace)))
-          }
-        } else Filter.INCLUDE
-        val notTemporal = if (temporalPredicate != noInterval) {
-          val oldTemporal = temporalPredicate
-          temporalPredicate = noInterval
-          ff.not(ff.during(ff.property(dtgField.getLocalName), ff.literal(oldTemporal)))
-        } else Filter.INCLUDE
-        // these three components are joined by an implied AND; build (and simplify) that expression
-        Seq[Filter](notSpatial, notTemporal, notAttributes).foldLeft(Filter.INCLUDE.asInstanceOf[Filter])((filterSoFar, subFilter) =>
-          (filterSoFar, subFilter) match {
-            case (Filter.EXCLUDE, s) => Filter.EXCLUDE
-            case (f, Filter.EXCLUDE) => Filter.EXCLUDE
-            case (Filter.INCLUDE, s) => s
-            case (f, Filter.INCLUDE) => f
-            case (f, s) => ff.and(f, s)
-          })
+      case f      => negateSingleton(process(f))
     }
   }
 

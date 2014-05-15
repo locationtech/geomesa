@@ -18,7 +18,7 @@ package geomesa.utils.time
 
 import org.joda.time.Interval
 
-object Interval {
+object Time {
   val noInterval: Interval = null
 
   implicit class RichInterval(self: Interval) {
