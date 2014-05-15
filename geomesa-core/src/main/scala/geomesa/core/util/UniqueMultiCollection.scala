@@ -9,12 +9,10 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
  * Build a unique feature collection based on feature ID
- * @param schema
- * @param collections
  */
 class UniqueMultiCollection(schema: SimpleFeatureType, collections: Iterable[SimpleFeatureCollection]) extends DataFeatureCollection {
 
-  private val map = {
+  private val distinctFeatures = {
     val tmp = collection.mutable.HashMap.empty[String, SimpleFeature]
     collections.map { c =>
       val itr = c.features
@@ -23,14 +21,14 @@ class UniqueMultiCollection(schema: SimpleFeatureType, collections: Iterable[Sim
         tmp.put(sf.getID, sf)
       }
     }
-    tmp.toMap
+    tmp.toMap.values
   }
 
   override def getBounds: ReferencedEnvelope = DataUtilities.bounds(this)
 
   override def getCount: Int = openIterator.size
   
-  override protected def openIterator = map.valuesIterator
+  override protected def openIterator = distinctFeatures.iterator
 
   override def toArray: Array[AnyRef] = openIterator.toArray
 

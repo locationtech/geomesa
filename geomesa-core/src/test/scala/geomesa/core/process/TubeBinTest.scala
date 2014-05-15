@@ -12,13 +12,15 @@ import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.apache.log4j.Logger
 
 
 @RunWith(classOf[JUnitRunner])
 class TubeBinTest extends Specification {
 
-
   sequential
+
+  private val log = Logger.getLogger(classOf[TubeBinTest])
 
   val geotimeAttributes = geomesa.core.index.spec
 
@@ -35,18 +37,16 @@ class TubeBinTest extends Specification {
         sf.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime(f"2011-01-$day%02dT00:00:00Z", DateTimeZone.UTC).toDate)
         sf.setAttribute("type","test")
         sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-        //println("creating feature "+DataUtilities.encodeFeature(sf))
         sf
       }
 
-      println("features: "+list.size)
+      log.debug("features: "+list.size)
       val binnedFeatures = TubeVisitor.timeBinAndUnion(list, 6)
 
       binnedFeatures.foreach { sf =>
-       // println(DataUtilities.encodeFeature(sf))
         if (sf.getDefaultGeometry.isInstanceOf[GeometryCollection])
-          println("size: " + sf.getDefaultGeometry.asInstanceOf[GeometryCollection].getNumGeometries +" "+ sf.getDefaultGeometry)
-        else println("size: 1")
+          log.debug("size: " + sf.getDefaultGeometry.asInstanceOf[GeometryCollection].getNumGeometries +" "+ sf.getDefaultGeometry)
+        else log.debug("size: 1")
       }
 
       TubeVisitor.timeBinAndUnion(list, 1).size should equalTo(1)

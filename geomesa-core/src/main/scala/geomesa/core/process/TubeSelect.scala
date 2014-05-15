@@ -5,7 +5,7 @@ import com.vividsolutions.jts.geom._
 import geomesa.core.index.Constants
 import geomesa.core.util.UniqueMultiCollection
 import geomesa.process.GapFill.GapFill
-import geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
+import geomesa.utils.geotools.Conversions._
 import java.util.Date
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
 import org.geotools.data.{DataUtilities, Query}
@@ -132,7 +132,7 @@ class TubeVisitor(
     val queryResults = new ListBuffer[SimpleFeatureCollection]
 
     binnedTube.foreach { sf =>
-      val sfTime = sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date].getTime
+      val sfTime = TubeVisitor.getStartTime(sf).getTime
       val minDate = new Date(sfTime - maxTime)
       val maxDate = new Date(sfTime + maxTime)
       val dateProperty = ff.property(source.getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])
@@ -155,7 +155,7 @@ class TubeVisitor(
 
   def createTubeNoGap = {
     val buffered = TubeVisitor.bufferAndTransform(tubeFeatures, bufferDistance)
-    val sortedTube = buffered.sortBy { sf => sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date].getTime }
+    val sortedTube = buffered.sortBy { sf => TubeVisitor.getStartTime(sf).getTime }
     TubeVisitor.timeBinAndUnion(sortedTube, maxBins)
   }
 
@@ -166,6 +166,7 @@ object TubeVisitor {
   val calc = new GeodeticCalculator()
   val geoFac = new GeometryFactory
   val tubeType = DataUtilities.createType("tubeType", Constants.TYPE_SPEC)
+  val builder = new SimpleFeatureBuilder(tubeType)
 
   def metersToDegrees(meters: Double, point: Point) = {
     calc.setStartingGeographicPoint(point.getX, point.getY)
@@ -177,17 +178,16 @@ object TubeVisitor {
 
   def bufferGeom(geom: Geometry, meters: Double) = geom.buffer(metersToDegrees(meters, geom.getCentroid))
 
-  def bufferAndTransform(features: SimpleFeatureCollection, meters: Double) = {
-    val builder = new SimpleFeatureBuilder(tubeType)
-    
-    new RichSimpleFeatureIterator(features.features).map { sf =>
+  def bufferAndTransform(sfc: SimpleFeatureCollection, meters: Double) = sfc.features.map { sf =>
+      val bufferedGeom = bufferGeom(getGeom(sf), meters)
       builder.reset()
-      builder.set(Constants.SF_PROPERTY_GEOMETRY, bufferGeom(sf.getDefaultGeometry.asInstanceOf[Geometry], meters))
+      builder.set(Constants.SF_PROPERTY_GEOMETRY, bufferedGeom)
+
+      // warning...may not be a date
       builder.set(Constants.SF_PROPERTY_START_TIME, sf.getAttribute(Constants.SF_PROPERTY_START_TIME))
       builder.set(Constants.SF_PROPERTY_END_TIME, null)
       builder.buildFeature(sf.getID)
     }.toSeq
-  }
 
   // Bin ordered features into maxBins that retain order by date then union by geometry
   def timeBinAndUnion(features: Seq[SimpleFeature], maxBins: Int) = {
@@ -198,18 +198,25 @@ object TubeVisitor {
       else
         numFeatures
 
-    val builder = new SimpleFeatureBuilder(tubeType)
-    features.grouped(binSize).map { bin =>
-      val unionGeom = geoFac.buildGeometry(bin.map { sf => sf.getDefaultGeometry.asInstanceOf[Geometry]}).union
-      val min = bin(0).getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date]
-      val max = bin(bin.size - 1).getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date]
-      builder.reset()
-      builder.set(Constants.SF_PROPERTY_GEOMETRY, unionGeom)
-      builder.set(Constants.SF_PROPERTY_START_TIME, min)
-      builder.set(Constants.SF_PROPERTY_END_TIME, max)
-      builder.buildFeature("fakeid")
-    }
+    features.grouped(binSize).zipWithIndex.map { case(bin, idx) => unionFeatures(bin, idx.toString) }
   }
+
+  // Union features to create a single geometry and single combined time range
+  def unionFeatures(orderedFeatures: Seq[SimpleFeature], id: String) = {
+    val unionGeom = geoFac.buildGeometry(orderedFeatures.map { sf => getGeom(sf)}).union
+    val min = getStartTime(orderedFeatures(0))
+    val max = getStartTime(orderedFeatures(orderedFeatures.size - 1))
+
+    builder.reset()
+    builder.set(Constants.SF_PROPERTY_GEOMETRY, unionGeom)
+    builder.set(Constants.SF_PROPERTY_START_TIME, min)
+    builder.set(Constants.SF_PROPERTY_END_TIME, max)
+    builder.buildFeature(id)
+  }
+
+  def getStartTime(sf:SimpleFeature) = sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date]
+
+  def getGeom(sf:SimpleFeature) = sf.getDefaultGeometry.asInstanceOf[Geometry]
 
 }
 

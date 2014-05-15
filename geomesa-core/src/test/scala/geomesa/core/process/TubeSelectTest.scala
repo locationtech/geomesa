@@ -128,7 +128,6 @@ class TubeSelectTest extends Specification {
       val sftName = "tubetest2"
       val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
 
-
       val ds = createStore
 
       ds.createSchema(sft)
@@ -200,7 +199,6 @@ class TubeSelectTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        println(DataUtilities.encodeFeature(sf))
         sf.getAttribute("type") should equalTo("b")
         val point = sf.getDefaultGeometry.asInstanceOf[Point]
         point.getX should be between(40.0, 41.0)
@@ -258,12 +256,9 @@ class TubeSelectTest extends Specification {
       aLine.setAttribute("type", "a")
       aLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       val tubeFeatures = new ListFeatureCollection(sft, List(aLine))
-      //featureCollection.add(aLine)
 
       // write the feature to the store
       val res = fs.addFeatures(featureCollection)
-
-      //val tubeFeatures = fs.getFeatures(CQL.toFilter("type = 'a'"))
 
       // result set to tube on
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
