@@ -325,11 +325,11 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
 
     // set up the aggregating-combiner and simple-feature filtering iterator,
     // if we expect SimpleFeatures to be present
-    if (theSpatioTemporalIterator != IndexIterator ) {
+    //if (theSpatioTemporalIterator != IndexIterator ) {
       configureAttributeAggregator(bs)
       configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql,
         transformDefs, transformSchema, density, poly, width, height)
-    }
+    //}
     bs.iterator()
   }
 
@@ -355,7 +355,7 @@ case class SpatioTemporalIndexQueryPlanner(keyPlanner: KeyPlanner,
     **/
 
   def configureSpatioTemporalIterator(bs: BatchScanner, poly: Polygon,
-                                                  interval: Interval, iteratorObject: IteratorHelperObject) {
+                                                  interval: Interval, iteratorObject: IteratorHelpers) {
     // get name of the iterator class, **assuming** that the companion object has the same name
     val iteratorClassName= iteratorObject.getClass.getName.split("\\$").last
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,

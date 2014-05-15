@@ -89,9 +89,6 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
       else simpleFeatureType
 
     val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
-    println("Transform info:" + transformString + " " + transformSchema )
-    println("More INFO:" + simpleFeatureTypeSpec + " " + Constants.TYPE_SPEC )
-    println(simpleFeatureType)
 
     transform =
       if(transformString != null) TransformCreator.createTransform(targetFeatureType, featureEncoder, transformString)

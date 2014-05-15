@@ -318,13 +318,13 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
   def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("STII does not support deepCopy.")
 }
 
-object SpatioTemporalIntersectingIterator extends IteratorHelperObject {
+object SpatioTemporalIntersectingIterator extends IteratorHelpers {
 }
 
 /**
  *  This trait contains many methods and values of general use to companion Iterator objects
  */
-trait IteratorHelperObject  {
+trait IteratorHelpers  {
   val initialized = new ThreadLocal[Boolean] {
     override def initialValue(): Boolean = false
   }

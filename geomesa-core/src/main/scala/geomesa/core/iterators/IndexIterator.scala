@@ -63,8 +63,8 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
   import SpatioTemporalIndexEntry._
   import geomesa.core._
-  // This iterator encodes SimpleFeatures to Values
-  protected var featureEncoder: SimpleFeatureEncoder = null
+
+  var featureBuilder: SimpleFeatureBuilder = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
            options: java.util.Map[String, String],
@@ -76,7 +76,9 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
     // default to text if not found for backwards compatibility
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
+    val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
+
+    featureBuilder = new SimpleFeatureBuilder(featureType)
 
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     schema = SpatioTemporalIndexSchema(schemaEncoding, featureType, featureEncoder)
@@ -124,8 +126,8 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
           nextKey = new Key(indexSource.getTopKey)
           // using the already decoded index value, generate a SimpleFeature and set as the Value
           //val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(decodedValue.id, decodedValue.geom, decodedValue.dtgMillis)
-          val nextSimpleFeature = SimpleFeatureBuilder.buildFeature(decodedValue.id)
-          nextValue = featureEncoder.encode(nextSimpleFeature)
+          val nextSimpleFeature = featureBuilder.buildFeature(decodedValue.id)
+          nextValue = schema.featureEncoder.encode(nextSimpleFeature)
         }
       }
       // you MUST advance to the next key
@@ -137,7 +139,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
   override def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("IndexIterator does not support deepCopy.")
 }
 
-object IndexIterator extends IteratorHelperObject {
+object IndexIterator extends IteratorHelpers {
 
   /**
    *  Converts values taken from the Index Value to a SimpleFeature, using the indexSFT schema
