@@ -154,7 +154,8 @@ class TubeVisitor(
   }
 
   def createTubeNoGap = {
-    val buffered = TubeVisitor.bufferAndTransform(tubeFeatures, bufferDistance)
+    val dtgField = geomesa.core.data.extractDtgField(tubeFeatures.getSchema)
+    val buffered = TubeVisitor.bufferAndTransform(tubeFeatures, bufferDistance, dtgField)
     val sortedTube = buffered.sortBy { sf => TubeVisitor.getStartTime(sf).getTime }
     TubeVisitor.timeBinAndUnion(sortedTube, maxBins)
   }
@@ -178,13 +179,13 @@ object TubeVisitor {
 
   def bufferGeom(geom: Geometry, meters: Double) = geom.buffer(metersToDegrees(meters, geom.getCentroid))
 
-  def bufferAndTransform(sfc: SimpleFeatureCollection, meters: Double) = sfc.features.map { sf =>
+  def bufferAndTransform(tubeFeatures: SimpleFeatureCollection, meters: Double, dtgField: String) = tubeFeatures.features.map { sf =>
       val bufferedGeom = bufferGeom(getGeom(sf), meters)
       builder.reset()
       builder.set(Constants.SF_PROPERTY_GEOMETRY, bufferedGeom)
 
       // warning...may not be a date
-      builder.set(Constants.SF_PROPERTY_START_TIME, sf.getAttribute(Constants.SF_PROPERTY_START_TIME))
+      builder.set(Constants.SF_PROPERTY_START_TIME, sf.getAttribute(dtgField))
       builder.set(Constants.SF_PROPERTY_END_TIME, null)
       builder.buildFeature(sf.getID)
     }.toSeq

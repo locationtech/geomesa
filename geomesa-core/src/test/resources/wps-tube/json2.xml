@@ -39,7 +39,6 @@
                                 <ows:Identifier>filter</ows:Identifier>
                                 <wps:Data>
                                     <wps:ComplexData mimeType="text/plain; subtype=cql">
-                                        <!--<![CDATA[(BBOX(geomesa_index_geometry, 44.9,44.9,45.1,45.1) OR BBOX(geomesa_index_geometry, 45.9, 45.9, 46.1, 46.1) OR BBOX(geomesa_index_geometry, 46.9, 46.9, 47.1, 47.1) OR BBOX(geomesa_index_geometry, 47.9, 47.9, 48.1, 48.1)) AND type='a']]></wps:ComplexData>-->
                                         <![CDATA[BBOX(geomesa_index_geometry, 40.0, 40.0, 40.0, 50.0) AND type='a']]></wps:ComplexData>
                                 </wps:Data>
                             </wps:Input>
