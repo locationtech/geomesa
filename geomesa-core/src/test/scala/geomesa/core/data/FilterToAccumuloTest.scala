@@ -38,11 +38,12 @@ import org.opengis.filter.{And, Or, Not, Filter}
 import org.opengis.filter.spatial.DWithin
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.opengis.filter.temporal.During
+import org.opengis.filter.temporal.{Before, After, During}
 import org.joda.time.format.{ISODateTimeFormat, DateTimeFormatter}
 import org.opengis.temporal.Period
 import org.opengis.filter.expression.{Expression, Literal}
 import org.opengis.feature.`type`.AttributeDescriptor
+import org.geotools.filter.LiteralExpression
 
 @RunWith(classOf[JUnitRunner])
 class FilterToAccumuloTest extends Specification {
@@ -203,10 +204,18 @@ class FilterToAccumuloTest extends Specification {
     val dtf = ISODateTimeFormat.dateTime
 
     def prettyInterval(exp: Expression): String = {
-      val interval = exp.asInstanceOf[Literal].evaluate(null) match {
+      val literal = exp.asInstanceOf[Literal].evaluate(null) match {
+        case lit: Literal => lit.getValue
+        case p: org.opengis.temporal.Period => p
+        case i: Interval => i
+        case _ => throw new Exception("Unmatched literal type")
+      }
+
+      val interval = literal match {
         case null => null
         case p: org.opengis.temporal.Period => new Interval(p.getBeginning, p.getEnding)
         case i: Interval => i
+        case _ => throw new Exception("Could not match interval type")
       }
       dtf.print(interval.getStartMillis) + "/" + dtf.print(interval.getEndMillis)
     }
@@ -220,6 +229,10 @@ class FilterToAccumuloTest extends Specification {
         "[ " + terms + " ]"
       case f: During =>
         "[ " + f.getExpression1.toString + " DURING " + prettyInterval(f.getExpression2) + " ]"
+      case f: After =>
+        "[ " + f.getExpression1.toString + " AFTER " + dtf.print(f.getExpression2) + " ]"
+      case f: Before =>
+        "[ " + f.getExpression1.toString + " BEFORE " + dtf.print(f.getExpression2) + " ]"
       case f: Not => "[ NOT " + f.getFilter.toFullerString
       case f         => f.toString
     }
@@ -232,6 +245,13 @@ class FilterToAccumuloTest extends Specification {
     val polygon_a = WKTUtils.read("POLYGON((-80 30,-70 30,-70 38,-80 38,-80 30))")
     val polygon_not_a = wholeWorld.difference(polygon_a)
     val attribute_a = ECQL.toFilter("prop = 'foo'")
+
+    "go round-trip without mangling literals" in {
+      val not_temporal = ECQL.toFilter("not (dtg DURING 2011-01-01T00:00:00Z/2011-01-20T00:00:00Z)")
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(not_temporal)
+      result.toFullerString mustEqual not_temporal.toFullerString
+    }
 
     "handle single geometry" in {
       val filter = ff.not(spatial_a)
@@ -384,5 +404,4 @@ class FilterToAccumuloTest extends Specification {
       f2a.spatialPredicate mustEqual noPolygon
     }
   }
-
 }

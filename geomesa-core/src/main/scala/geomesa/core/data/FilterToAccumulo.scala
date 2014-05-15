@@ -37,7 +37,9 @@ import org.opengis.filter._
 import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
-import org.opengis.temporal.Instant
+import org.opengis.temporal.{Period => OGCPeriod, Instant}
+import scala.util.{Failure, Success, Try}
+import org.geotools.temporal.`object`.{DefaultPeriod, DefaultPosition, DefaultInstant}
 
 object FilterToAccumulo {
   val allTime              = new Interval(0, Long.MaxValue)
@@ -45,6 +47,11 @@ object FilterToAccumulo {
 
   val ff = CommonFactoryFinder.getFilterFactory2
   val geoFactory = JTSFactoryFinder.getGeometryFactory
+
+  val MinTime = new DateTime(0L)
+  val MaxTime = new DateTime(Long.MaxValue)
+
+  val DTF = ISODateTimeFormat.dateTime
 }
 
 import FilterToAccumulo._
@@ -166,6 +173,18 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     result.evaluated
   }
 
+  def dt2lit(dt: DateTime): Expression = {
+    ff.literal(dt.toDate)
+  }
+
+  def dts2lit(start: DateTime, end: DateTime): Expression = {
+    val period = new DefaultPeriod(
+      new DefaultInstant(new DefaultPosition(start.toDate)),
+      new DefaultInstant(new DefaultPosition(end.toDate))
+    )
+    ff.literal(period)
+  }
+
   def negateSingleton(childEval: Filter): Filter = {
     val notAttributes = (spatialPredicate, temporalPredicate, childEval) match {
       case (sp, tp, _) if sp != noPolygon || tp != noInterval => Filter.INCLUDE
@@ -187,7 +206,16 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     val notTemporal = if (temporalPredicate != noInterval) {
       val oldTemporal = temporalPredicate
       temporalPredicate = noInterval
-      ff.not(ff.during(ff.property(dtgField.getLocalName), ff.literal(oldTemporal)))
+      (oldTemporal.getStart, oldTemporal.getEnd) match {
+        case (MinTime, MaxTime)  => Filter.EXCLUDE
+        case (s, MaxTime)        =>
+          ff.not(ff.after(ff.property(dtgField.getLocalName), dt2lit(s)))
+        case (MinTime, e)        =>
+          ff.not(ff.before(ff.property(dtgField.getLocalName), dt2lit(e)))
+        case (s, e)              =>
+          ff.not(ff.during(ff.property(dtgField.getLocalName),
+            ff.literal(dts2lit(s, e))))
+      }
     } else Filter.INCLUDE
     // these three components are joined by an implied AND; build (and simplify) that expression
     Seq[Filter](notSpatial, notTemporal, notAttributes).foldLeft(Filter.INCLUDE.asInstanceOf[Filter])((filterSoFar, subFilter) =>
@@ -300,12 +328,14 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     val attr     = prop.evaluate(sft).asInstanceOf[AttributeDescriptor]
     if(!attr.getLocalName.equals(dtgField.getLocalName)) ff.and(acc, bto)
     else {
-      val period = lit.evaluate(null).asInstanceOf[org.opengis.temporal.Period]
+      val time = lit.evaluate(null)
+      val startTime = getStart(time)
+      val endTime = getEnd(time)
       temporalPredicate = bto match {
-        case op: Before    => new Interval(new DateTime(0L), period.getEnding)
-        case op: After     => new Interval(period.getBeginning, new DateTime(Long.MaxValue))
-        case op: During    => new Interval(period.getBeginning, period.getEnding)
-        case op: TContains => new Interval(period.getBeginning, period.getEnding)
+        case op: Before    => new Interval(MinTime, endTime)
+        case op: After     => new Interval(startTime, MaxTime)
+        case op: During    => new Interval(startTime, endTime)
+        case op: TContains => new Interval(startTime, endTime)
         case _             => throw new IllegalArgumentException("Invalid query")
       }
       acc
@@ -335,4 +365,15 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     case _                          => throw new IllegalArgumentException("Unknown dtg type")
   }
 
+  private def getStart(o: AnyRef): Instant = o match {
+    case p: OGCPeriod => p.getBeginning
+    case _            => new DefaultInstant(
+      new DefaultPosition(extractDTG(o).toDate))
+  }
+
+  private def getEnd(o: AnyRef): Instant = o match {
+    case p: OGCPeriod => p.getEnding
+    case _            => new DefaultInstant(
+      new DefaultPosition(extractDTG(o).toDate))
+  }
 }
