@@ -10,6 +10,7 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.commons.codec.binary.Hex
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
+import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.opengis.filter.Filter
@@ -37,7 +38,7 @@ class TableVersionTest extends Specification {
     "auths"      -> "A,B,C",
     "useMock"    -> "true")
 
-  val geomesaParams = baseParams ++ Map("tableName" -> "geomesaTable")
+  val geomesaParams = baseParams ++ Map("tableName" -> "geomesaTable", "featureEncoding" -> "text")
   val manualParams = baseParams ++ Map("tableName" -> "manualTable")
 
   val sftName = "regressionTestType"
@@ -100,7 +101,9 @@ class TableVersionTest extends Specification {
     builder.set("geomesa_index_start_time", "2012-01-02T05:06:07.000Z")
     builder.set("geomesa_index_end_time", "2012-01-02T05:06:07.000Z")
     builder.set("name",i.toString)
-    builder.buildFeature(i.toString)
+    val sf = builder.buildFeature(i.toString)
+    sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+    sf
   }
 
   def buildTableWithDataStore = {
@@ -121,12 +124,13 @@ class TableVersionTest extends Specification {
       val query = new Query(sftName, Filter.INCLUDE)
 
       // scan the manually build table
-      val geomesaDs = DataStoreFinder.getDataStore(manualParams).asInstanceOf[AccumuloDataStore]
+      val geomesaDs = DataStoreFinder.getDataStore(geomesaParams).asInstanceOf[AccumuloDataStore]
       val geomsaFs = geomesaDs.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
       manualFs.getFeatures(query).features.zip(geomsaFs.getFeatures(query).features).foreach {case (m, g) =>
         m should equalTo(g)
       }
+
     }
   }
 }
