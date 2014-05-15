@@ -204,7 +204,8 @@ object TubeVisitor {
 
   // Union features to create a single geometry and single combined time range
   def unionFeatures(orderedFeatures: Seq[SimpleFeature], id: String) = {
-    val unionGeom = geoFac.buildGeometry(orderedFeatures.map { sf => getGeom(sf)}).union
+    val geoms = orderedFeatures.map { sf => getGeom(sf) }
+    val unionGeom = geoFac.buildGeometry(geoms).union
     val min = getStartTime(orderedFeatures(0))
     val max = getStartTime(orderedFeatures(orderedFeatures.size - 1))
 
@@ -215,9 +216,9 @@ object TubeVisitor {
     builder.buildFeature(id)
   }
 
-  def getStartTime(sf:SimpleFeature) = sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date]
+  def getStartTime(sf: SimpleFeature) = sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date]
 
-  def getGeom(sf:SimpleFeature) = sf.getDefaultGeometry.asInstanceOf[Geometry]
+  def getGeom(sf: SimpleFeature) = sf.getDefaultGeometry.asInstanceOf[Geometry]
 
 }
 
