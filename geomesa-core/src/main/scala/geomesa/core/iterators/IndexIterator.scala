@@ -45,6 +45,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.FilterAttributeExtractor
 import org.geotools.data.transform.Definition
 import org.opengis.filter.expression.ExpressionVisitor
+import java.util
+import com.vividsolutions.jts.geom.util
 
 /**
  * This is an Index Only Iterator, to be used in situations where the data records are
@@ -121,7 +123,8 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
           // now increment the value of nextKey, copy because reusing it is UNSAFE
           nextKey = new Key(indexSource.getTopKey)
           // using the already decoded index value, generate a SimpleFeature and set as the Value
-          val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(decodedValue.id, decodedValue.geom, decodedValue.dtgMillis)
+          //val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(decodedValue.id, decodedValue.geom, decodedValue.dtgMillis)
+          val nextSimpleFeature = SimpleFeatureBuilder.buildFeature(decodedValue.id)
           nextValue = featureEncoder.encode(nextSimpleFeature)
         }
       }
@@ -146,7 +149,8 @@ object IndexIterator extends IteratorHelperObject {
       case Some(t) => List( geom, new DateTime(t,DateTimeZone.forID("UTC")))  // FIXME watch the time zone!
       case _ => List( geom )
     }
-    SimpleFeatureBuilder.build(indexSFT, attributeList, id)
+    val newType =   DataUtilities.createType("geomesaidx", spec)
+    SimpleFeatureBuilder.build(newType, attributeList, id)
   }
 
   /**
@@ -191,19 +195,17 @@ object IndexIterator extends IteratorHelperObject {
    * Tests if the filter is applied to only attributes found in the indexSFT schema
    */
   def filterOnIndexAttributes(ecql_text: String, targetSchema: SimpleFeatureType):Boolean = {
-    ecql_text match {
-      case "INCLUDE" => true // doesn't filter on anything
-      case _ => {
-        // convert the ECQL to a filter, then visit that filter to get the attributes
-        val filterAttributeList = ECQL.toFilter(ecql_text).
-          accept(new FilterAttributeExtractor, null).asInstanceOf[List[String]]
-
+    // convert the ECQL to a filter, then visit that filter to get the attributes
+    Option(ECQL.toFilter(ecql_text)
+            .accept(new FilterAttributeExtractor, null).asInstanceOf[java.util.HashSet[String]]) match {
+      case Some(filterAttributeList) => {
         val schemaAttributeList = targetSchema.getAttributeDescriptors.map(_.getLocalName)
         // now check to see if the filter operates on any attributes NOT in the target schema
         println("schemaAttributes:" + schemaAttributeList)
         println("filterAttributeList:" + filterAttributeList + " " + ecql_text)
         filterAttributeList.forall { attribute: String => schemaAttributeList.contains(attribute)}
       }
+      case _ => true // null filter that doesn't do anything
     }
   }
 }
