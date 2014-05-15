@@ -114,8 +114,8 @@
                 Note that you will also need other JAR files, particularly those
                 pertaining to: accumulo-core; accumulo-trace; accumulo-fate; 
                 zookeeper; libthrift; hadoop-common; hadoop-mapreduce-client-core;
-                and commons-configuration .  These are support services that are 
-                referenced by GeoMesa, yet are part of your base infrastructure.
+                commons-configuration; and commons-vfs2.  These are support services 
+                that are referenced by GeoMesa, yet are part of your base infrastructure.
             </para>
         </section>
 
