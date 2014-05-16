@@ -252,7 +252,19 @@ class TableVersionTest extends Specification {
       hasEncodingMeta should equalTo(false)
     }
 
+    "should default to creating new tables in avro" in {
+      var newGeomesaParams = geomesaParams.updated("tableName", "geomesa3")
+      newGeomesaParams -= "featureEncoding"
 
+      newGeomesaParams.contains("featureEncoding") should be equalTo(false)
+
+      buildTableWithDataStore(newGeomesaParams)
+
+      val geomesaStore = DataStoreFinder.getDataStore(newGeomesaParams).asInstanceOf[AccumuloDataStore]
+
+      geomesaStore.featureEncoding mustEqual FeatureEncoding.AVRO
+      geomesaStore.getFeatureEncoder(sftName) should beAnInstanceOf[AvroFeatureEncoder]
+    }
   }
 
 
