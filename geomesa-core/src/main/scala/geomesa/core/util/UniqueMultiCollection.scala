@@ -6,22 +6,17 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.store.DataFeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import scala.collection.immutable.HashMap
 
 /**
  * Build a unique feature collection based on feature ID
  */
-class UniqueMultiCollection(schema: SimpleFeatureType, collections: Iterable[SimpleFeatureCollection]) extends DataFeatureCollection {
+class UniqueMultiCollection(schema: SimpleFeatureType, collections: Iterator[Iterable[SimpleFeature]]) extends DataFeatureCollection {
 
   private val distinctFeatures = {
-    val tmp = collection.mutable.HashMap.empty[String, SimpleFeature]
-    collections.map { c =>
-      val itr = c.features
-      while (itr.hasNext) {
-        val sf = itr.next
-        tmp.put(sf.getID, sf)
-      }
-    }
-    tmp.toMap.values
+    val uniq = collection.mutable.HashMap.empty[String, SimpleFeature]
+    collections.flatten.foreach { sf => uniq.put(sf.getID, sf)}
+    uniq.values
   }
 
   override def getBounds: ReferencedEnvelope = DataUtilities.bounds(this)
@@ -34,3 +29,4 @@ class UniqueMultiCollection(schema: SimpleFeatureType, collections: Iterable[Sim
 
   override def getSchema: SimpleFeatureType = schema
 }
+

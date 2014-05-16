@@ -123,15 +123,12 @@ class TubeVisitor(
 
   def tubeSelect(source: SimpleFeatureSource, query: Query): SimpleFeatureCollection = {
 
-    val binnedTube = gapFill match {
-      case _ => createTubeNoGap
-    }
+    // Create a time binned set of tube features with no gap filling
+    val binnedTube = createTubeNoGapFill
 
     val geomProperty = ff.property(source.getSchema.getGeometryDescriptor.getName)
 
-    val queryResults = new ListBuffer[SimpleFeatureCollection]
-
-    binnedTube.foreach { sf =>
+    val queryResults = binnedTube.map { sf =>
       val sfTime = TubeVisitor.getStartTime(sf).getTime
       val minDate = new Date(sfTime - maxTime)
       val maxDate = new Date(sfTime + maxTime)
@@ -142,10 +139,11 @@ class TubeVisitor(
 
       // Eventually these can be combined into OR queries and the QueryPlanner can create multiple Accumulo Ranges
       // Buf for now we issue multiple queries
-      (0 until geom.getNumGeometries).map { i =>
-        val geomFilter = ff.intersects(geomProperty, ff.literal(geom.getGeometryN(i)))
+      val geoms = (0 until geom.getNumGeometries).map { i => geom.getGeometryN(i) }
+      geoms.flatMap { g =>
+        val geomFilter = ff.intersects(geomProperty, ff.literal(g))
         val combinedFilter = ff.and(List(query.getFilter, geomFilter, dtgFilter, filter))
-        queryResults += source.getFeatures(combinedFilter)
+        source.getFeatures(combinedFilter).features
       }
     }
 
@@ -153,7 +151,7 @@ class TubeVisitor(
     new UniqueMultiCollection(source.getSchema, queryResults)
   }
 
-  def createTubeNoGap = {
+  def createTubeNoGapFill = {
     val dtgField = geomesa.core.data.extractDtgField(tubeFeatures.getSchema)
     val buffered = TubeVisitor.bufferAndTransform(tubeFeatures, bufferDistance, dtgField)
     val sortedTube = buffered.sortBy { sf => TubeVisitor.getStartTime(sf).getTime }
@@ -210,10 +208,7 @@ object TubeVisitor {
     val max = getStartTime(orderedFeatures(orderedFeatures.size - 1))
 
     builder.reset()
-    builder.set(Constants.SF_PROPERTY_GEOMETRY, unionGeom)
-    builder.set(Constants.SF_PROPERTY_START_TIME, min)
-    builder.set(Constants.SF_PROPERTY_END_TIME, max)
-    builder.buildFeature(id)
+    builder.buildFeature(id, Array(unionGeom, min, max))
   }
 
   def getStartTime(sf: SimpleFeature) = sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date]
