@@ -7,6 +7,7 @@ import org.apache.accumulo.core.client.BatchWriterConfig
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Mutation
+import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
@@ -44,12 +45,12 @@ class TableVersionTest extends Specification {
   val sftName = "regressionTestType"
   val sft = DataUtilities.createType(sftName, s"name:String,$geotimeAttributes")
 
-  def buildManualTable = {
-    val instance = new MockInstance(manualParams("instanceId"))
-    val connector = instance.getConnector(manualParams("user"), new PasswordToken(manualParams("password").getBytes))
-    connector.tableOperations.create(manualParams("tableName"))
+  def buildManualTable(params: Map[String, String]) = {
+    val instance = new MockInstance(params("instanceId"))
+    val connector = instance.getConnector(params("user"), new PasswordToken(params("password").getBytes))
+    connector.tableOperations.create(params("tableName"))
 
-    val bw = connector.createBatchWriter(manualParams("tableName"), new BatchWriterConfig)
+    val bw = connector.createBatchWriter(params("tableName"), new BatchWriterConfig)
 
     // Insert metadata
     val metadataMutation = new Mutation(s"~METADATA_$sftName")
@@ -106,8 +107,8 @@ class TableVersionTest extends Specification {
     sf
   }
 
-  def buildTableWithDataStore = {
-    val ds = DataStoreFinder.getDataStore(geomesaParams).asInstanceOf[AccumuloDataStore]
+  def buildTableWithDataStore(params: Map[String, String]) = {
+    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
     ds.createSchema(sft)
     val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
     fs.addFeatures(new ListFeatureCollection(sft, getFeatures.toList))
@@ -115,22 +116,156 @@ class TableVersionTest extends Specification {
 
   "Geomesa" should {
     "preserve old table format" in {
-      buildTableWithDataStore
-      buildManualTable
+      buildTableWithDataStore(geomesaParams)
+      buildManualTable(manualParams)
 
-      // scan the manually build table
-      val manualDs = DataStoreFinder.getDataStore(manualParams).asInstanceOf[AccumuloDataStore]
-      val manualFs = manualDs.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val manualStore = DataStoreFinder.getDataStore(manualParams).asInstanceOf[AccumuloDataStore]
+      val manualSource = manualStore.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
       val query = new Query(sftName, Filter.INCLUDE)
 
-      // scan the manually build table
-      val geomesaDs = DataStoreFinder.getDataStore(geomesaParams).asInstanceOf[AccumuloDataStore]
-      val geomsaFs = geomesaDs.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val geomesaStore = DataStoreFinder.getDataStore(geomesaParams).asInstanceOf[AccumuloDataStore]
+      val geomesaSource = geomesaStore.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
-      manualFs.getFeatures(query).features.zip(geomsaFs.getFeatures(query).features).foreach {case (m, g) =>
+      val manualFeatures = manualSource.getFeatures(query).features
+      val geomesaFeatures = geomesaSource.getFeatures(query).features
+
+      manualFeatures.zip(geomesaFeatures).foreach {case (m, g) =>
         m should equalTo(g)
       }
 
     }
+
+    "revert to text even when told to use avro if the table isn't avro" in {
+      // bad because the table is text, not avro
+      val badParams = manualParams ++ Map("featureEncoding" -> "avro")
+
+      // scan the manually built table
+      val manualStore = DataStoreFinder.getDataStore(badParams).asInstanceOf[AccumuloDataStore]
+
+      // the user provided avro
+      manualStore.featureEncoding should equalTo(FeatureEncoding.AVRO)
+
+      // Ensure that a table with featureEncoder metadata defaults to TextFeatureEncoder
+      // and verify with a manual scanner
+      manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
+
+      val instance = new MockInstance(badParams("instanceId"))
+      val connector = instance.getConnector(badParams("user"), new PasswordToken(badParams("password").getBytes))
+      val scanner = connector.createScanner(badParams("tableName"), new Authorizations())
+      scanner.iterator.foreach { entry =>
+        entry.getKey.getColumnFamily should not(equalTo(FEATURE_ENCODING_CF))
+      }
+      scanner.close
+
+      // Here we are creating a schema AFTER a table already exists...this mimics upgrading
+      // from 0.10.x to 1.0.0 ...this call to createSchema should insert a row into the table
+      // with the proper feature encoding (effectively upgrading to a "1.0.0" table format)
+      manualStore.createSchema(sft)
+      manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
+      val scanner2 = connector.createScanner(badParams("tableName"), new Authorizations())
+      var hasEncodingMeta = false
+      scanner2.iterator.foreach { entry =>
+        hasEncodingMeta |= entry.getKey.getColumnFamily.equals(FEATURE_ENCODING_CF)
+      }
+      hasEncodingMeta should equalTo(true)
+
+      // compare again to ensure we get the same implementation type (aka SimpleFeatureImpl for text)
+      val manualSource = manualStore.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val query = new Query(sftName, Filter.INCLUDE)
+
+      val geomesaStore = DataStoreFinder.getDataStore(geomesaParams).asInstanceOf[AccumuloDataStore]
+      val geomesaSource = geomesaStore.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      val manualFeatures = manualSource.getFeatures(query).features
+      val geomesaFeatures = geomesaSource.getFeatures(query).features
+
+      manualFeatures.size should equalTo(6)
+      geomesaFeatures.size should equalTo(6)
+
+      manualFeatures.zip(geomesaFeatures).foreach {case (m, g) =>
+        m should equalTo(g)
+      }
+    }
+
+    "properly encode text after having data written with 1.0.0 api" in {
+      val newManualParams = manualParams.updated("tableName", "manual2")
+      val newGeomesaParams = geomesaParams.updated("tableName", "geomesa2")
+
+      buildManualTable(newManualParams)
+      buildTableWithDataStore(newGeomesaParams)
+
+      // scan the manually built table
+      val manualStore = DataStoreFinder.getDataStore(newManualParams).asInstanceOf[AccumuloDataStore]
+
+      // the user provided avro
+      manualStore.featureEncoding should equalTo(FeatureEncoding.AVRO)
+
+      // Ensure that a table with featureEncoder metadata defaults to TextFeatureEncoder
+      // and verify with a manual scanner
+      manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
+
+      val instance = new MockInstance(newManualParams("instanceId"))
+      val connector = instance.getConnector(newManualParams("user"), new PasswordToken(newManualParams("password").getBytes))
+      val scanner = connector.createScanner(newManualParams("tableName"), new Authorizations())
+      scanner.iterator.foreach { entry =>
+        entry.getKey.getColumnFamily should not(equalTo(FEATURE_ENCODING_CF))
+      }
+      scanner.close
+
+      builder.reset
+      builder.set("geomesa_index_geometry", WKTUtils.read("POINT(45.0 45.0)"))
+      builder.set("geomesa_index_start_time", "2012-01-02T05:06:07.000Z")
+      builder.set("geomesa_index_end_time", "2012-01-02T05:06:07.000Z")
+      builder.set("name","random")
+      val sf = builder.buildFeature("bigid")
+      sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+
+      // compare again to ensure we get the same implementation type (aka SimpleFeatureImpl for text)
+      val manualSource = manualStore.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      manualSource.addFeatures(new ListFeatureCollection(sft, List(sf)))
+
+      val geomesaStore = DataStoreFinder.getDataStore(newGeomesaParams).asInstanceOf[AccumuloDataStore]
+      val geomesaSource = geomesaStore.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      geomesaSource.addFeatures(new ListFeatureCollection(sft, List(sf)))
+
+      val query = new Query(sftName, Filter.INCLUDE)
+
+      val manualFeatures = manualSource.getFeatures(query).features
+      val geomesaFeatures = geomesaSource.getFeatures(query).features
+
+      manualFeatures.size should equalTo(7)
+      geomesaFeatures.size should equalTo(7)
+
+      manualFeatures.zip(geomesaFeatures).foreach {case (m, g) =>
+        m should equalTo(g)
+      }
+
+      manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
+      val scanner2 = connector.createScanner(newManualParams("tableName"), new Authorizations())
+      var hasEncodingMeta = false
+      scanner2.iterator.foreach { entry =>
+        hasEncodingMeta |= entry.getKey.getColumnFamily.equals(FEATURE_ENCODING_CF)
+      }
+
+      // because we haven't called createSchema...
+      hasEncodingMeta should equalTo(false)
+    }
+
+    "should default to creating new tables in avro" in {
+      var newGeomesaParams = geomesaParams.updated("tableName", "geomesa3")
+      newGeomesaParams -= "featureEncoding"
+
+      newGeomesaParams.contains("featureEncoding") should be equalTo(false)
+
+      buildTableWithDataStore(newGeomesaParams)
+
+      val geomesaStore = DataStoreFinder.getDataStore(newGeomesaParams).asInstanceOf[AccumuloDataStore]
+
+      geomesaStore.featureEncoding mustEqual FeatureEncoding.AVRO
+      geomesaStore.getFeatureEncoder(sftName) should beAnInstanceOf[AvroFeatureEncoder]
+    }
   }
+
+
 }
