@@ -81,9 +81,9 @@ class TubeSelect extends VectorProcess {
                                       tubeFeatures,
                                       featureCollection,
                                       Option(filter).getOrElse(Filter.INCLUDE),
-                                      Option(maxSpeed).getOrElse(0).asInstanceOf[Long],
-                                      Option(maxTime).getOrElse(0).asInstanceOf[Long],
-                                      Option(bufferSize).getOrElse(0).asInstanceOf[Double],
+                                      Option(maxSpeed).getOrElse(0L).asInstanceOf[Long],
+                                      Option(maxTime).getOrElse(0L).asInstanceOf[Long],
+                                      Option(bufferSize).getOrElse(0.0).asInstanceOf[Double],
                                       Option(maxBins).getOrElse(0).asInstanceOf[Int],
                                       Option(gapFill).map(GapFill.withName(_)).getOrElse(GapFill.NOFILL))
     featureCollection.accepts(tubeVisitor, new NullProgressListener)

@@ -2,11 +2,11 @@ package geomesa.core.process
 
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Point, Coordinate, GeometryFactory}
-import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
+import geomesa.core.data.{AccumuloFeatureCollection, AccumuloFeatureStore, AccumuloDataStore}
 import geomesa.process.{TubeVisitor, TubeSelect}
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.{DataUtilities, DataStoreFinder}
+import org.geotools.data.collection.{CollectionFeatureSource, ListFeatureCollection}
+import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -15,6 +15,7 @@ import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.opengis.filter.Filter
 
 @RunWith(classOf[JUnitRunner])
 class TubeSelectTest extends Specification {
@@ -288,6 +289,33 @@ class TubeSelectTest extends Specification {
         val deg = TubeVisitor.metersToDegrees(110.57*1000, geoFac.createPoint(new Coordinate(0, lat)))
         (1.0-dist) should beLessThan(.0001)
       }
+    }
+  }
+
+  "TubeSelect" should {
+    "properly handle values for execute" in {
+      val sftName = "tubeline"
+      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      val ts = new TubeSelect
+      val ds = createStore
+
+      ds.createSchema(sft)
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      val q = new Query(sftName, Filter.INCLUDE)
+      val res = fs.getFeatures(q)
+
+      // tube features
+      val aLine = SimpleFeatureBuilder.build(sft, List(), "a-line")
+      aLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
+      aLine.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      aLine.setAttribute(geomesa.core.index.SF_PROPERTY_END_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      aLine.setAttribute("type", "a")
+      aLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+      val tubeFeatures = new ListFeatureCollection(sft, List(aLine))
+
+      // ensure null values work and don't throw exceptions
+      ts.execute( tubeFeatures, res, null, null, null, null, null, null) should not(throwAn[ClassCastException])
     }
   }
 }
