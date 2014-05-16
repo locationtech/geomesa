@@ -27,16 +27,17 @@ import org.apache.accumulo.core.Constants
 import org.apache.accumulo.core.client.{IteratorSetting, Connector, BatchWriterConfig, BatchScanner}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.data._
-import org.geotools.data.DataUtilities
+import org.geotools.data.{Query, DataUtilities}
 import org.joda.time.{Interval, DateTimeZone, DateTime}
 import org.junit.runner.RunWith
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scala.util.{Try, Random}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.hadoop.io.Text
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
 
 @RunWith(classOf[JUnitRunner])
 class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
@@ -52,11 +53,11 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
 
     // create the schema, and require de-duplication
-    val schema = SpatioTemporalIndexSchema(TestData.schemaEncoding, TestData.featureType, featureEncoder)
+    val schema = IndexSchema(TestData.schemaEncoding, TestData.featureType, featureEncoder)
 
     // create the query polygon
     val polygon: Polygon = overrideGeometry match {
-      case true => SpatioTemporalIndexSchema.everywhere
+      case true => IndexSchema.everywhere
       case false => WKTUtils.read(TestData.wktQuery).asInstanceOf[Polygon]
     }
 
@@ -64,20 +65,32 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     val c = TestData.setupMockAccumuloTable(entries, numExpectedDataIn)
     val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
 
-    val transform: Option[String] = Some("geomesa_index_geometry=geomesa_index_geometry ; " +
-      "geomesa_index_start_time=geomesa_index_start_time ;" +
-       "geomesa_index_end_time=geomesa_index_end_time ")
-    val transformSchema = Some(indexSFT)
+    val gf = s"WITHIN(geomesa_index_geometry, ${polygon.toText})"
+    val dt: Option[String] = Option(dtFilter).map(int =>
+      s"(geomesa_index_start_time between '${int.getStart}' AND '${int.getEnd}')"
+    )
+    def red(f: String, og: Option[String]) = og match {
+      case Some(g) => s"$f AND $g"
+      case None => f
+    }
+
+    val tfString = red(red(gf, dt), ecqlFilter)
+    val tf = ECQL.toFilter(tfString)
+
+    // select a few attributes to trigger the IndexIterator
+    // Note that since we are re-running all the tests from the IntersectingIteratorTest,
+    // some of the tests may actually use the IntersectingIterator
+    val outputAttributes= Array("name,", "geom")
+    val q = new Query(TestData.featureType.getTypeName, tf, outputAttributes)
     // fetch results from the schema!
-    val itr = schema.query(bs, polygon, dtFilter, UnitTestEntryType.getTypeSpec, ecqlFilter, transform, transformSchema)
-    //val itr = schema.query(bs, polygon, dtFilter, UnitTestEntryType.getTypeSpec, ecqlFilter)
+    val itr = schema.query(q, bs)
+
     // print out the hits
     val retval = if (doPrint) {
-      val results: List[Value] = itr.toList
-      results.map(value => {
-        val simpleFeature = featureEncoder.decode(TestData.featureType, value)
+      val results: List[SimpleFeature] = itr.toList
+      results.map(simpleFeature => {
         val attrs = simpleFeature.getAttributes.map(attr => if (attr == null) "" else attr.toString).mkString("|")
-        println("[II." + label + "] query-hit:  " + simpleFeature.getID + "=" + attrs)
+        println("[SII." + label + "] query-hit:  " + simpleFeature.getID + "=" + attrs)
       })
       results.size
     } else itr.size

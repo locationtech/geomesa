@@ -18,7 +18,7 @@ package geomesa.core.iterators
 
 import collection.JavaConverters._
 import com.vividsolutions.jts.geom._
-import geomesa.core.index.{SpatioTemporalIndexEntry, SpatioTemporalIndexSchema}
+import geomesa.core.index.{IndexEntry, IndexSchema}
 import geomesa.utils.geohash.GeoHash
 import geomesa.utils.text.WKTUtils
 import java.io.{DataInputStream, ByteArrayInputStream, ByteArrayOutputStream, DataOutputStream}
@@ -29,7 +29,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.apache.hadoop.io.Text
 import org.apache.log4j.Logger
-import org.geotools.data.DataUtilities
+import org.geotools.data.{Query, DataUtilities}
 import org.geotools.factory.GeoTools
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -61,10 +61,11 @@ import com.vividsolutions.jts.geom.util
  */
 class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyValueIterator[Key, Value] {
 
-  import SpatioTemporalIndexEntry._
+  import IndexEntry._
   import geomesa.core._
 
   var featureBuilder: SimpleFeatureBuilder = null
+  var featureEncoder: SimpleFeatureEncoder = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
            options: java.util.Map[String, String],
@@ -72,16 +73,18 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     log.debug("Initializing classLoader")
     IndexIterator.initClassLoader(log)
 
-    val featureType = DataUtilities.createType("DummyType", options.get(DEFAULT_FEATURE_TYPE))
+    val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+    val simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
 
     // default to text if not found for backwards compatibility
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
+    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
 
-    featureBuilder = new SimpleFeatureBuilder(featureType)
+    featureBuilder = new SimpleFeatureBuilder(simpleFeatureType)
 
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
-    schema = SpatioTemporalIndexSchema(schemaEncoding, featureType, featureEncoder)
+    decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
+
     if (options.containsKey(DEFAULT_POLY_PROPERTY_NAME)) {
       val polyWKT = options.get(DEFAULT_POLY_PROPERTY_NAME)
       poly = WKTUtils.read(polyWKT)
@@ -91,9 +94,13 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
         options.get(DEFAULT_INTERVAL_PROPERTY_NAME))
     if (options.containsKey(DEFAULT_CACHE_SIZE_NAME))
       maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
-    deduplicate = SpatioTemporalIndexSchema.mayContainDuplicates(featureType)
+    deduplicate = IndexSchema.mayContainDuplicates(simpleFeatureType)
 
     this.indexSource = source.deepCopy(env)
+
+
+
+
   }
 
 
@@ -112,7 +119,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
       decodeKey(indexSource.getTopKey).map { decodedKey =>
         curFeature = decodedKey
         // the value contains the full-resolution geometry and time; use them
-        lazy val decodedValue = SpatioTemporalIndexSchema.decodeIndexValue(indexSource.getTopValue)
+        lazy val decodedValue = IndexSchema.decodeIndexValue(indexSource.getTopValue)
         lazy val isGeomAcceptable: Boolean = wrappedGeomFilter(decodedKey.gh, decodedValue.geom)
         lazy val isDateTimeAcceptable: Boolean = wrappedTimeFilter(decodedValue.dtgMillis)
 
@@ -127,7 +134,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
           // using the already decoded index value, generate a SimpleFeature and set as the Value
           //val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(decodedValue.id, decodedValue.geom, decodedValue.dtgMillis)
           val nextSimpleFeature = featureBuilder.buildFeature(decodedValue.id)
-          nextValue = schema.featureEncoder.encode(nextSimpleFeature)
+          nextValue = featureEncoder.encode(nextSimpleFeature)
         }
       }
       // you MUST advance to the next key
@@ -160,13 +167,16 @@ object IndexIterator extends IteratorHelpers {
    * used/requested, and thus the IndexIterator can be used
    *
    */
-  def useIndexOnlyIterator(ecqlPredicate:Option[String], transformDefs: Option[String], transformSchema: Option[SimpleFeatureType]) = {
+  def useIndexOnlyIterator(ecqlPredicate:Option[String], query: Query) = {
+    val transformDefs = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
+    val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
     (ecqlPredicate, transformDefs, transformSchema) match {
       case (Some(ep), Some(td), Some(ts)) => isTransformToIndexOnly(td, ts) & filterOnIndexAttributes(ep, indexSFT)
       case (None, Some(td), Some(ts)) => isTransformToIndexOnly(td, ts)
       case _ => false
     }
   }
+
 
   /**
    *  Checks the transform for mapping to the index attributes: geometry and optionally time

@@ -99,8 +99,13 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     // set up row ranges and regular expression filter
     planQuery(bs, filter)
 
-    // Configure STII
-    configureSpatioTemporalIntersectingIterator(bs, opoly, oint)
+    // if the IndexIterator can be used instead of the IntersectingIterator, do it
+    val theSpatioTemporalIterator = IndexIterator.useIndexOnlyIterator(ecql, query) match{
+      case true => IndexIterator
+      case false => SpatioTemporalIntersectingIterator
+    }
+    // Configure the SpatioTemporalIterator
+    configureSpatioTemporalIterator(bs,theSpatioTemporalIterator, opoly, oint)
 
     configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql, query, poly)
 
@@ -118,14 +123,16 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     bs.addScanIterator(cfg)
   }
 
-  // returns only the data entries -- no index entries -- for items that either:
+  // returns an iterator over [key,value] pairs where the key is taken from the index row and the value is a SimpleFeature,
+  // which is either read directory from the data row  value or generated from the encoded index row value
+  // -- for items that either:
   // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
-  def configureSpatioTemporalIntersectingIterator(bs: BatchScanner, poly: Option[Polygon], interval: Option[Interval]) {
+  def configureSpatioTemporalIterator(bs: BatchScanner, iteratorObject: IteratorHelpers, poly: Option[Polygon], interval: Option[Interval]) {
+    val iteratorClassName= iteratorObject.getClass.getName.split("\\$").last
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
-      "within-" + randomPrintableString(5),
-      classOf[SpatioTemporalIntersectingIterator])
-    SpatioTemporalIntersectingIterator.setOptions(
+      "within-" + randomPrintableString(5),iteratorClassName)
+    iteratorObject.setOptions(
       cfg, schema, poly, interval, featureType)
     bs.addScanIterator(cfg)
   }
