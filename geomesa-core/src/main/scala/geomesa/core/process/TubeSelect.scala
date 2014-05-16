@@ -19,7 +19,6 @@ import org.geotools.util.NullProgressListener
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
-import scala.collection.mutable.ListBuffer
 
 @DescribeProcess(
   title = "Performs a tube select on one feature collection based on another feature collection",
