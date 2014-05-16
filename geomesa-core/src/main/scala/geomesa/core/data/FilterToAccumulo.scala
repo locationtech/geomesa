@@ -20,6 +20,7 @@ import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
 import geomesa.core.index
 import geomesa.utils.geometry.Geometry._
+import geomesa.utils.filters.Filters._
 import geomesa.utils.time.Time._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.GeometryUtils
@@ -38,14 +39,12 @@ import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 import org.opengis.temporal.{Period => OGCPeriod, Instant}
-import scala.util.{Failure, Success, Try}
-import org.geotools.temporal.`object`.{DefaultPeriod, DefaultPosition, DefaultInstant}
+import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
 
 object FilterToAccumulo {
   val allTime              = new Interval(0, Long.MaxValue)
   val wholeWorld           = new Envelope(-180, 180, -90, 90)
 
-  val ff = CommonFactoryFinder.getFilterFactory2
   val geoFactory = JTSFactoryFinder.getGeometryFactory
 
   val MinTime = new DateTime(0L)
@@ -173,24 +172,12 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     result.evaluated
   }
 
-  def dt2lit(dt: DateTime): Expression = {
-    ff.literal(dt.toDate)
-  }
-
-  def dts2lit(start: DateTime, end: DateTime): Expression = {
-    val period = new DefaultPeriod(
-      new DefaultInstant(new DefaultPosition(start.toDate)),
-      new DefaultInstant(new DefaultPosition(end.toDate))
-    )
-    ff.literal(period)
-  }
-
   def negateSingleton(childEval: Filter): Filter = {
     val notAttributes = (spatialPredicate, temporalPredicate, childEval) match {
       case (sp, tp, _) if sp != noPolygon || tp != noInterval => Filter.INCLUDE
       case (_, _, Filter.INCLUDE)                             => Filter.EXCLUDE
       case (_, _, Filter.EXCLUDE)                             => Filter.INCLUDE
-      case (_, _, f)                                         => ff.not(f)
+      case (_, _, f)                                          => ff.not(f)
     }
     val notSpatial = if (spatialPredicate != noPolygon) {
       JTS.toGeometry(wholeWorld).difference(spatialPredicate) match {
