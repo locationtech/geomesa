@@ -2,12 +2,15 @@ package geomesa.process
 
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
+import geomesa.core.data.AccumuloFeatureCollection
 import geomesa.core.index.Constants
 import geomesa.core.util.UniqueMultiCollection
 import geomesa.process.GapFill.GapFill
 import geomesa.utils.geotools.Conversions._
 import java.util.Date
+import org.apache.log4j.Logger
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
+import org.geotools.data.store.EmptyFeatureCollection
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -25,6 +28,8 @@ import org.opengis.filter.Filter
   description = "Returns a feature collection"
 )
 class TubeSelect extends VectorProcess {
+
+  private val log = Logger.getLogger(classOf[TubeSelect])
 
   @DescribeResult(description = "Output feature collection")
   def execute(
@@ -86,6 +91,11 @@ class TubeSelect extends VectorProcess {
                                       Option(bufferSize).getOrElse(0.0).asInstanceOf[Double],
                                       Option(maxBins).getOrElse(0).asInstanceOf[Int],
                                       Option(gapFill).map(GapFill.withName(_)).getOrElse(GapFill.NOFILL))
+
+    if(!featureCollection.isInstanceOf[AccumuloFeatureCollection]) {
+      log.warn("The provided feature collection type may not support tubing: "+featureCollection.getClass.getName)
+    }
+
     featureCollection.accepts(tubeVisitor, new NullProgressListener)
     tubeVisitor.getResult.asInstanceOf[TubeResult].results
   }
@@ -108,7 +118,7 @@ class TubeVisitor(
                    val gapFill: GapFill = GapFill.NOFILL
                    ) extends FeatureCalc {
 
-  var resultCalc: TubeResult = null
+  var resultCalc: TubeResult = new TubeResult(new EmptyFeatureCollection(featureCollection.getSchema))
 
   def visit(feature: Feature): Unit = {}
 
