@@ -18,7 +18,8 @@ package geomesa.core.iterators
 
 import collection.JavaConverters._
 import com.vividsolutions.jts.geom._
-import geomesa.core.index.{SpatioTemporalIndexEntry, SpatioTemporalIndexSchema}
+import geomesa.core.data.DATA_CQ
+import geomesa.core.index.{IndexEntry, IndexSchema, IndexEntryDecoder}
 import geomesa.utils.geohash.GeoHash
 import geomesa.utils.text.WKTUtils
 import java.io.{DataInputStream, ByteArrayInputStream, ByteArrayOutputStream, DataOutputStream}
@@ -55,14 +56,14 @@ case class Attribute(name: Text, value: Text)
  */
 class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Value] {
 
-  import SpatioTemporalIndexEntry._
+  import IndexEntry._
   import geomesa.core._
 
   protected var indexSource: SortedKeyValueIterator[Key, Value] = null
   protected var dataSource: SortedKeyValueIterator[Key, Value] = null
   protected var interval: Interval = null
   protected var poly: Geometry = null
-  protected var schema: SpatioTemporalIndexSchema = null
+  protected var decoder: IndexEntryDecoder = null
   protected var topKey: Key = null
   protected var topValue: Value = null
   protected var nextKey: Key = null
@@ -88,12 +89,9 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
 
     val featureType = DataUtilities.createType("DummyType", options.get(DEFAULT_FEATURE_TYPE))
 
-    // default to text if not found for backwards compatibility
-    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
-
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
-    schema = SpatioTemporalIndexSchema(schemaEncoding, featureType, featureEncoder)
+    decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
+
     if (options.containsKey(DEFAULT_POLY_PROPERTY_NAME)) {
       val polyWKT = options.get(DEFAULT_POLY_PROPERTY_NAME)
       poly = WKTUtils.read(polyWKT)
@@ -103,7 +101,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
         options.get(DEFAULT_INTERVAL_PROPERTY_NAME))
     if (options.containsKey(DEFAULT_CACHE_SIZE_NAME))
       maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
-    deduplicate = SpatioTemporalIndexSchema.mayContainDuplicates(featureType)
+    deduplicate = IndexSchema.mayContainDuplicates(featureType)
 
     this.indexSource = source.deepCopy(env)
     this.dataSource = source.deepCopy(env)
@@ -147,7 +145,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
    */
   lazy val wrappedTimeFilter =
     // if there is effectively no date/time-search, all records automatically qualify
-    SpatioTemporalIndexSchema.somewhen(interval) match {
+    IndexSchema.somewhen(interval) match {
       case None    => (dtOpt: Option[Long]) => true
       case Some(i) =>
         (dtg: Option[Long]) =>
@@ -161,7 +159,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
    */
   lazy val wrappedGeomFilter =
     // if there is effectively no geographic-search, all records automatically qualify
-    SpatioTemporalIndexSchema.somewhere(poly) match {
+    IndexSchema.somewhere(poly) match {
       case None    => (gh: GeoHash, geom: Geometry) => true
       case Some(p) => (gh: GeoHash, geom: Geometry) =>
         // either the geohash geom is completely contained
@@ -176,7 +174,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
   protected def isKeyValueADataEntry(key: Key, value: Value): Boolean =
     (key != null) &&
     (key.getColumnQualifier != null) &&
-    (key.getColumnQualifier.toString == AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME)
+    (key.getColumnQualifier == DATA_CQ)
 
   // if it's not a data entry, it's an index entry
   // (though we still share some requirements -- non-nulls -- with data entries)
@@ -184,7 +182,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
     (key != null) &&
     (
       (key.getColumnQualifier == null) ||
-      (key.getColumnQualifier.toString != AttributeAggregator.SIMPLE_FEATURE_ATTRIBUTE_NAME)
+      (key.getColumnQualifier != DATA_CQ)
     )
 
   def skipIndexEntries(itr: SortedKeyValueIterator[Key,Value]) {
@@ -201,7 +199,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
    * Attempt to decode the given key.  This should only succeed in the cases
    * where the key corresponds to an index-entry (not a data-entry).
    */
-  def decodeKey(key:Key): Option[SimpleFeature] = Try(schema.decode(key)).toOption
+  def decodeKey(key:Key): Option[SimpleFeature] = Try(decoder.decode(key)).toOption
 
   /**
    * Advances the index-iterator to the next qualifying entry, and then
@@ -220,7 +218,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
       decodeKey(indexSource.getTopKey).map { decodedKey =>
         curFeature = decodedKey
         // the value contains the full-resolution geometry and time; use them
-        lazy val decodedValue = SpatioTemporalIndexSchema.decodeIndexValue(indexSource.getTopValue)
+        lazy val decodedValue = IndexSchema.decodeIndexValue(indexSource.getTopValue)
         lazy val isGeomAcceptable: Boolean = wrappedGeomFilter(decodedKey.gh, decodedValue.geom)
         lazy val isDateTimeAcceptable: Boolean = wrappedTimeFilter(decodedValue.dtgMillis)
 
@@ -268,11 +266,8 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
     if (!dataSource.hasTop || dataSource.getTopKey == null || dataSource.getTopKey.getColumnFamily.toString != nextId)
       log.error(s"Could not find the data key corresponding to index key $indexSourceTopKey and dataId is $nextId.")
     else {
-      val cq = dataSource.getTopKey.getColumnQualifier
-      val valueText = new Text(dataSource.getTopValue.get())
-
       nextKey = new Key(indexSourceTopKey)
-      nextValue = SpatioTemporalIntersectingIterator.encodeAttributeValue(cq, valueText)
+      nextValue = dataSource.getTopValue
     }
   }
 
@@ -404,22 +399,17 @@ trait IteratorHelpers  {
     Attribute(attribute, value)
   }
 
-  def setOptions(cfg: IteratorSetting, schema: String, poly: Polygon, interval: Interval,
+  def setOptions(cfg: IteratorSetting, schema: String, poly: Option[Polygon], interval: Option[Interval],
                  featureType: SimpleFeatureType) {
-
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-    if (SpatioTemporalIndexSchema.somewhere(poly).isDefined)
-      cfg.addOption(DEFAULT_POLY_PROPERTY_NAME, poly.toText)
-    if (SpatioTemporalIndexSchema.somewhen(interval).isDefined)
-      cfg.addOption(DEFAULT_INTERVAL_PROPERTY_NAME, encodeInterval(Option(interval)))
+    poly.foreach { p => cfg.addOption(DEFAULT_POLY_PROPERTY_NAME, p.toText) }
+    interval.foreach { int => cfg.addOption(DEFAULT_INTERVAL_PROPERTY_NAME, encodeInterval(int)) }
     cfg.addOption(DEFAULT_FEATURE_TYPE, DataUtilities.encodeType(featureType))
   }
 
-  def encodeInterval(interval: Option[Interval]): String = {
-    val (start, end) = interval.map(i => (i.getStart.getMillis, i.getEnd.getMillis))
-                               .getOrElse((Long.MinValue, Long.MaxValue))
-    start + "~" + end
-  }
+  protected def encodeInterval(interval: Interval): String =
+    interval.getStart.getMillis + "~" +  interval.getEnd.getMillis
+
 
   def decodeInterval(str: String): Interval =
     str.split("~") match {

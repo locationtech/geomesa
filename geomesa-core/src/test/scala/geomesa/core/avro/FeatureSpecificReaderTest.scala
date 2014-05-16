@@ -146,8 +146,10 @@ class FeatureSpecificReaderTest {
     })
   }
 
-  @Test(expected = classOf[NullPointerException])
-  def testMemberNotInSubsetIsNull(): Unit = getSubsetData(0).getAttribute("f20")
+  @Test
+  def testMemberNotInSubsetIsNull(): Unit = {
+    Assert.assertNull(getSubsetData(0).getAttribute("f20"))
+  }
 
 
   @Test

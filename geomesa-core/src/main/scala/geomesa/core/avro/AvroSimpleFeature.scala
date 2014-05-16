@@ -89,7 +89,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   def getIdentifier = id
   def getID = id.getID
 
-  def getAttribute(name: String) = nameIndex.get(name).map(getAttribute).getOrElse(throw new NullPointerException("Invalid attribute"))
+  def getAttribute(name: String) = nameIndex.get(name).map(getAttribute).getOrElse(null)
   def getAttribute(name: Name) = getAttribute(name.getLocalPart)
   def getAttribute(index: Int) = values(index)
 
