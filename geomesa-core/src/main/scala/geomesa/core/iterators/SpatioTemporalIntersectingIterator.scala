@@ -59,6 +59,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
   import IndexEntry._
   import geomesa.core._
 
+
   protected var indexSource: SortedKeyValueIterator[Key, Value] = null
   protected var dataSource: SortedKeyValueIterator[Key, Value] = null
   protected var interval: Interval = null
@@ -315,7 +316,6 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
 
 object SpatioTemporalIntersectingIterator extends IteratorHelpers {
 }
-
 /**
  *  This trait contains many methods and values of general use to companion Iterator objects
  */
@@ -340,7 +340,6 @@ trait IteratorHelpers  {
         initialized.set(true)
       }
     }
-
 
   implicit def value2text(value: Value): Text = new Text(value.get)
 
@@ -409,7 +408,6 @@ trait IteratorHelpers  {
 
   protected def encodeInterval(interval: Interval): String =
     interval.getStart.getMillis + "~" +  interval.getEnd.getMillis
-
 
   def decodeInterval(str: String): Interval =
     str.split("~") match {
