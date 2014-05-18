@@ -81,6 +81,8 @@ class TubeSelect extends VectorProcess {
 
                ): SimpleFeatureCollection = {
 
+    log.info("Tube selecting on collection type "+featureCollection.getClass.getName)
+
     // assume for now that firstFeatures is a singleton collection
     val tubeVisitor = new TubeVisitor(
                                       tubeFeatures,
@@ -118,6 +120,8 @@ class TubeVisitor(
                    val gapFill: GapFill = GapFill.NOFILL
                    ) extends FeatureCalc {
 
+  private val log = Logger.getLogger(classOf[TubeVisitor])
+
   var resultCalc: TubeResult = new TubeResult(new EmptyFeatureCollection(featureCollection.getSchema))
 
   def visit(feature: Feature): Unit = {}
@@ -131,6 +135,8 @@ class TubeVisitor(
   val bufferDistance =  if(bufferSize > 0) bufferSize else maxSpeed * maxTime
 
   def tubeSelect(source: SimpleFeatureSource, query: Query): SimpleFeatureCollection = {
+
+    log.info("Visting source type: "+source.getClass.getName)
 
     // Create a time binned set of tube features with no gap filling
     val binnedTube = createTubeNoGapFill
