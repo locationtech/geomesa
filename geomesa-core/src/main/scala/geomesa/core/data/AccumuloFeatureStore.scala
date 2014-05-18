@@ -62,6 +62,9 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: St
 class MapReduceAccumuloFeatureStore(dataStore: MapReduceAccumuloDataStore,
                                     featureName: String)
     extends AccumuloFeatureStore(dataStore, featureName) {
+
+  import MapReduceAccumuloFeatureStore._
+
   /** Strategy:
     *    0. (Check the size of the collection if easy, use Local methods if small.)
     *    1. Reduce the collection/reader to an iterable of features.
@@ -186,6 +189,9 @@ class MapReduceAccumuloFeatureStore(dataStore: MapReduceAccumuloDataStore,
     job.getConfiguration.set(DEFAULT_FEATURE_NAME, featureName)
     job.getConfiguration.set(INGEST_TABLE_NAME, tableName)
 
+    // hack around hsqldb version conflicts between gt-epsg-hsql 11.0 & hadoop 0.20.2
+    job.getConfiguration.set(MAPRED_CLASSPATH_USER_PRECEDENCE_KEY, "true")
+
     job.setOutputFormatClass(classOf[AccumuloFileOutputFormat])
     FileOutputFormat.setOutputPath(job, new Path(outputDir, "files"))
 
@@ -243,4 +249,9 @@ object AccumuloFeatureStore {
     }
     sftBuilder.buildFeatureType()
   }
+}
+
+object MapReduceAccumuloFeatureStore {
+
+  val MAPRED_CLASSPATH_USER_PRECEDENCE_KEY = "mapreduce.task.classpath.user.precedence"
 }

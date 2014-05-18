@@ -18,11 +18,13 @@
 package geomesa.core.iterators
 
 import collection.JavaConversions._
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Envelope
 import geomesa.core.data.AccumuloDataStoreFactory
 import geomesa.core.index.{QueryHints, Constants}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.commons.lang.NotImplementedException
 import org.apache.hadoop.io.Text
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{Query, DataUtilities}
@@ -38,7 +40,9 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class DensityIteratorTest extends Specification {
+class DensityIteratorTest
+    extends Specification
+            with Logging {
 
   import geomesa.utils.geotools.Conversions._
 
@@ -50,23 +54,26 @@ class DensityIteratorTest extends Specification {
       val splits = (0 to 99).map {
         s => "%02d".format(s)
       }.map(new Text(_))
-      c.tableOperations().addSplits("test", new java.util.TreeSet[Text](splits))
+
+      try {
+        c.tableOperations().addSplits("test", new java.util.TreeSet[Text](splits))
+      } catch {
+        case nie: NotImplementedException =>
+          logger.warn("Could not add splits on \"test\" for this test because this version of " +
+                      "the Mock Accumulo instance does not support the addSplits operation")
+      }
 
       val dsf = new AccumuloDataStoreFactory
 
       import AccumuloDataStoreFactory.params._
 
-      val ds = dsf.createDataStore(
-        Map(
-          zookeepersParam.key -> "dummy",
-          instanceIdParam.key -> "dummy",
-          userParam.key -> "user",
-          passwordParam.key -> "pass",
-          authsParam.key -> "S,USA",
-          tableNameParam.key -> "test",
-          mockParam.key -> "true"
-        ))
-
+      val ds = dsf.createDataStore(Map(zookeepersParam.key -> "dummy",
+                                       instanceIdParam.key -> "dummy",
+                                       userParam.key -> "user",
+                                       passwordParam.key -> "pass",
+                                       authsParam.key -> "S,USA",
+                                       tableNameParam.key -> "test",
+                                       mockParam.key -> "true"))
 
       val spec = "id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
       val sft = DataUtilities.createType("test", spec)

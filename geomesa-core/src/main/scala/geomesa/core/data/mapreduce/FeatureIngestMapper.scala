@@ -26,8 +26,11 @@ import org.geotools.data.{Base64, DataUtilities, DataStoreFinder, FeatureWriter}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import com.typesafe.scalalogging.slf4j.Logging
 
-object FeatureIngestMapper {
+object FeatureIngestMapper
+    extends Logging {
+
   type Mapper = HMapper[LongWritable,Text,Key,Value]
 
   import geomesa.core._
@@ -66,8 +69,7 @@ object FeatureIngestMapper {
 
         fw.write()
       } catch {
-        //@TODO change this to logging, once CBGEO-34 is complete
-        case e : Exception => println("[WARNING] Problem writing feature; skipping it.")
+        case e : Exception => logger.warn("Problem writing feature; skipping it.", e)
       }
     }
   }

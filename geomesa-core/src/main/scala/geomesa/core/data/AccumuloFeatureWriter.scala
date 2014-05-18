@@ -17,13 +17,13 @@
 
 package geomesa.core.data
 
+import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.index._
 import java.util.UUID
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
 import org.apache.accumulo.core.data.{PartialKey, Mutation, Value, Key}
 import org.apache.hadoop.mapred.{Reporter, RecordWriter}
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
-import org.apache.log4j.Logger
 import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.factory.Hints
@@ -77,9 +77,9 @@ object AccumuloFeatureWriter {
 
 abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
                                      indexer: IndexSchema,
-                                     recordWriter: RecordWriter[Key,Value]) extends SimpleFeatureWriter {
-
-  private val log = Logger.getLogger(classOf[AccumuloFeatureWriter])
+                                     recordWriter: RecordWriter[Key,Value])
+    extends SimpleFeatureWriter
+            with Logging {
 
   def getFeatureType: SimpleFeatureType = featureType
 
@@ -102,7 +102,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
     val kvPairsToWrite =
       if (toWrite.getDefaultGeometry != null) indexer.encode(toWrite)
       else {
-        log.warn("Invalid feature to write:  " + DataUtilities.encodeFeature(toWrite))
+        logger.warn(s"Invalid feature to write: ${DataUtilities.encodeFeature(toWrite)}")
         List()
       }
     kvPairsToWrite.foreach { case (k,v) => recordWriter.write(k,v) }

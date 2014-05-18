@@ -158,12 +158,13 @@ class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
       }
 
     }
-    AggregatingKeyIterator.setupAggregatingKeyIterator(scanner, 1000, classOf[SurfaceAggregatingIterator],
-                                                       Map[String,String](
-                                                                           aggPrefix + "bottomLeft" -> GeoHash(bbox.ll, getGeohashPrecision).hash,
-                                                                           aggPrefix + "topRight" -> GeoHash(bbox.ur,getGeohashPrecision).hash,
-                                                                           aggPrefix + "precision" -> getGeohashPrecision.toString,
-                                                                           aggPrefix + "dims" -> (xDim +","+yDim)))
+    AggregatingKeyIterator.setupAggregatingKeyIterator(scanner,
+                                                       1000,
+                                                       classOf[SurfaceAggregatingIterator],
+                                                       Map[String,String](aggPrefix + "bottomLeft" -> GeoHash(bbox.ll, getGeohashPrecision).hash,
+                                                                          aggPrefix + "topRight" -> GeoHash(bbox.ur,getGeohashPrecision).hash,
+                                                                          aggPrefix + "precision" -> getGeohashPrecision.toString,
+                                                                          aggPrefix + "dims" -> (xDim + "," + yDim)))
 
     new SelfClosingBatchScanner(scanner).iterator
   }

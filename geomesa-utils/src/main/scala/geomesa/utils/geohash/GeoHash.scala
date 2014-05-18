@@ -75,6 +75,7 @@ case class GeoHash private(x: Double,
   override def hashCode: Int = bitset.hashCode + prec
 
   override def compareTo(gh: GeoHash) = this.hash.compareTo(gh.hash)
+
 }
 
 case class Bounds(low: Double,
@@ -85,6 +86,8 @@ case class Bounds(low: Double,
 object GeoHash extends Logging {
 
   val MAX_PRECISION = 63 // our bitset operations assume all bits fit in one Long
+
+  implicit def toGeometry(gh: GeoHash) = gh.bbox.geom
 
   private val boolMap : Map[Boolean,String] = Map(false -> "0", true -> "1")
 

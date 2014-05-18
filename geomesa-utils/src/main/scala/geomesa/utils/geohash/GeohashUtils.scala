@@ -19,6 +19,7 @@ package geomesa.utils.geohash
 import collection.BitSet
 import collection.immutable.Range.Inclusive
 import collection.mutable.{HashSet => MutableHashSet}
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import geomesa.utils.text.WKTUtils
 import scala.util.control.Exception.catching
@@ -30,7 +31,9 @@ import scala.util.control.Exception.catching
  * GeoHashes; enumerating possible sub-strings within subordinate GeoHashes
  * for a given polygon; etc.
  */
-object GeohashUtils extends GeomDistance {
+object GeohashUtils
+    extends GeomDistance
+            with Logging {
   // make sure the implicits related to distance are in-scope
 
   import Distance._
@@ -81,49 +84,21 @@ object GeohashUtils extends GeomDistance {
   implicit def wkt2geom(wkt:String) : Geometry = WKTUtils.read(wkt)
 
   /**
-   * Brute-force way to convert a GeoHash to WKT, typically on the way to reading
-   * this as a geometry, but sometimes used for output (for visualization in
+   * convert a GeoHash to WKT, sometimes used for output (for visualization in
    * Quantum GIS, for example).
    *
    * @param gh the GeoHash -- rectangle -- to convert
    * @return the WKT representation of this GeoHash (cell)
    */
-  def getGeohashWKT(gh:GeoHash) : String = {
-    val bbox = gh.bbox
-    val y0 = bbox.ll.getY
-    val y1 = bbox.ur.getY
-    val x0 = bbox.ll.getX
-    val x1 = bbox.ur.getX
-
-    "POLYGON((" + x0 + " " + y0 + "," + x0 + " " + y1 + "," + x1 + " " + y1 + "," + x1 + " " + y0 + "," + x0 + " " + y0 + "))"
-  }
+  def getGeohashWKT(gh:GeoHash): String = WKTUtils.write(gh)
 
   // default precision model
   val maxRealisticGeoHashPrecision : Int = 45
-  val numDistinctGridPoints : Long = 1L << ((maxRealisticGeoHashPrecision+1)/2).toLong
+  val numDistinctGridPoints: Long = 1L << ((maxRealisticGeoHashPrecision+1)/2).toLong
   val defaultPrecisionModel = new PrecisionModel(numDistinctGridPoints.toDouble)
 
   // default factory for WGS84
-  val defaultGeometryFactory : GeometryFactory = new GeometryFactory(defaultPrecisionModel, 4326)
-
-  /**
-   * Converts a GeoHash to a geometry by way of WKT.
-   *
-   * @param gh the GeoHash -- rectangle -- to convert
-   * @return the Geometry version of this GeoHash
-   */
-  def getGeohashGeom(gh:GeoHash) : Geometry = {
-    val ring : LinearRing = defaultGeometryFactory.createLinearRing(
-      Array(
-        new Coordinate(gh.bbox.ll.getX, gh.bbox.ll.getY),
-        new Coordinate(gh.bbox.ll.getX, gh.bbox.ur.getY),
-        new Coordinate(gh.bbox.ur.getX, gh.bbox.ur.getY),
-        new Coordinate(gh.bbox.ur.getX, gh.bbox.ll.getY),
-        new Coordinate(gh.bbox.ll.getX, gh.bbox.ll.getY)
-      )
-    )
-    defaultGeometryFactory.createPolygon(ring, null)
-  }
+  val defaultGeometryFactory: GeometryFactory = new GeometryFactory(defaultPrecisionModel, 4326)
 
   def getGeohashPoints(gh:GeoHash) : (Point, Point, Point, Point, Point, Point) = {
     // the bounding box is the basis for all of these points
@@ -157,7 +132,7 @@ object GeohashUtils extends GeomDistance {
    */
   def getGeohashAreaSquareMeters(gh:GeoHash) : Double = {
     // extract key points from this GeoHash
-    val (ll, cl, ul, ur, cr, lr) = getGeohashPoints(gh)
+    val (ll, cl, ul, _, cr, _) = getGeohashPoints(gh)
 
     val dx : Double = VincentyModel.getDistanceBetweenTwoPoints(cl, cr)  // measured at the center-latitude of the GeoHash
     val dy : Double = VincentyModel.getDistanceBetweenTwoPoints(ll, ul)  // constant at any longitude within a single GeoHash
@@ -237,12 +212,12 @@ object GeohashUtils extends GeomDistance {
     val (_, ghOpt) = resolutions.foldRight((resolutions.minBitsResolution, Option.empty[GeoHash])){
       case (bits, orig@(res, _)) =>
         val gh = GeoHash(centroid.getX, centroid.getY, bits)
-        if (getGeohashGeom(gh).contains(env) && bits >= res) (bits, Some(gh)) else orig
+        if (gh.contains(env) && bits >= res) (bits, Some(gh)) else orig
     }
 
     // validate that you found a usable result
     val gh = ghOpt.getOrElse(GeoHash(centroid.getX, centroid.getY, resolutions.minBitsResolution))
-    if (!getGeohashGeom(gh).contains(env))
+    if (!gh.contains(env))
       throw new Exception("ERROR:  Could not find a suitable " +
         resolutions.minBitsResolution + "-bit MBR for the target geometry:  " +
         geom)
@@ -338,7 +313,7 @@ object GeohashUtils extends GeomDistance {
       val ghMBR = getMinimumBoundingGeohash(geom, resolutions)
 
       // compute the ratio of the area of the target geometry to its MBR
-      val areaMBR = getGeohashGeom(ghMBR).getArea
+      val areaMBR = ghMBR.getArea
       val areaGeom = geomCatcher.opt { geom.getArea }.getOrElse(0.0)
       val pMBRGeom = areaGeom / areaMBR
 
@@ -383,26 +358,27 @@ object GeohashUtils extends GeomDistance {
    * @param gh the associated GeoHash cell
    * @param targetGeom the geometry being decomposed
    */
-  abstract class DecompositionCandidate(val gh:GeoHash, val targetGeom:Geometry,
-                                        val targetArea:Double, val resolutions:ResolutionRange) {
+  abstract class DecompositionCandidate(val gh: GeoHash,
+                                        val targetGeom: Geometry,
+                                        val targetArea: Double,
+                                        val resolutions: ResolutionRange) {
 
     lazy val geomCatcher = catching(classOf[Exception])
-    lazy val geom : Geometry = getGeohashGeom(gh)
-    lazy val area : Double = geomCatcher.opt{ geom.getArea }.getOrElse(0.0)
-    val areaOutside : Double
-    lazy val areaInside : Double = area - areaOutside
-    lazy val resolution : Int = gh.prec
-    lazy val isResolutionOk : Boolean =
-      resolution >= resolutions.minBitsResolution &&
-        resolution <= resolutions.maxBitsResolution
+    lazy val geom: Geometry = gh
+    lazy val area: Double = geomCatcher.opt{ geom.getArea }.getOrElse(0.0)
+    val areaOutside: Double
+    lazy val areaInside: Double = area - areaOutside
+    lazy val resolution: Int = gh.prec
+    lazy val isResolutionOk: Boolean =
+      resolution >= resolutions.minBitsResolution && resolution <= resolutions.maxBitsResolution
 
-    lazy val intersectsTarget : Boolean =
+    lazy val intersectsTarget: Boolean =
       geomCatcher.opt { geom.intersects(targetGeom) }.getOrElse(false)
-    lazy val intersection : Geometry =
+    lazy val intersection: Geometry =
       geomCatcher.opt { geom.intersection(targetGeom) }.getOrElse(emptyGeometry)
-    lazy val intersectionArea : Double =
+    lazy val intersectionArea: Double =
       geomCatcher.opt { geom.intersection(targetGeom).getArea }.getOrElse(0.0)
-    def isLT(than:DecompositionCandidate) : Boolean = {
+    def isLT(than: DecompositionCandidate): Boolean = {
       if (areaOutside > than.areaOutside) true
       else {
         if (areaOutside == than.areaOutside) area < than.area
@@ -589,14 +565,14 @@ object GeohashUtils extends GeomDistance {
    * @return the most likely GeoHash that is represented by the given geometry
    */
   def reconstructGeohashFromGeometry(geometry: Geometry): GeoHash = geometry match {
-    case null => throw new Exception("Invalid geometry")
+    case null => throw new Exception("Invalid geometry: null")
     case _ if "Point".equals(geometry.getGeometryType) => GeoHash(geometry.asInstanceOf[Point], maxRealisticGeoHashPrecision)
     case _ if geometry.isRectangle => GeoHash(geometry.getCentroid, estimateGeometryGeohashPrecision(geometry))
     case m: MultiPolygon =>
       if(m.getNumGeometries != 1) throw new Exception("Expected simple geometry")
       else if(!m.getGeometryN(0).isRectangle) throw new Exception("Expected rectangular geometry")
       else GeoHash(m.getGeometryN(0).getCentroid, estimateGeometryGeohashPrecision(m.getGeometryN(0)))
-    case _ => throw new Exception("Invalid geometry")
+    case _ => throw new Exception(s"Invalid geometry: $geometry")
   }
 
   /**

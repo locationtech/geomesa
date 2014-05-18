@@ -17,13 +17,15 @@
 
 package geomesa.core.iterators
 
+import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.index.IndexSchema
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
-import org.apache.log4j.Logger
 
-class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] {
+class ConsistencyCheckingIterator
+    extends SortedKeyValueIterator[Key, Value]
+            with Logging {
 
   import collection.JavaConverters._
 
@@ -34,12 +36,11 @@ class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] {
   private val topValue: Value = new Value(Array[Byte]())
   private var nextKey: Key = null
   private var curId: String = null
-  private val log = Logger.getLogger(classOf[ConsistencyCheckingIterator])
 
   def init(source: SortedKeyValueIterator[Key, Value],
            options: java.util.Map[String, String],
            env: IteratorEnvironment) {
-    log.debug("Checking consistency")
+    logger.debug("Checking consistency")
     this.indexSource = source.deepCopy(env)
     this.dataSource = source.deepCopy(env)
   }
@@ -51,7 +52,7 @@ class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] {
   def getTopValue = topValue
 
   def findTop() {
-    log.trace("Finding top")
+    logger.trace("Finding top")
     // clear out the reference to the next entry
     nextKey = null
 
@@ -59,7 +60,7 @@ class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] {
       indexSource.getTopKey.getColumnFamily().toString.startsWith("|data|")
 
     while (nextKey == null && indexSource.hasTop && !isData) {
-      log.trace(s"Checking ${indexSource.getTopKey}")
+      logger.trace(s"Checking ${indexSource.getTopKey}")
       nextKey = indexSource.getTopKey
       curId = IndexSchema.decodeIndexValue(indexSource.getTopValue).id
 
@@ -69,7 +70,7 @@ class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] {
       dataSource.seek(range, colFamilies, true)
 
       if(!dataSource.hasTop || dataSource.getTopKey.getColumnFamily.toString != curId) {
-        log.debug(s"Found an inconsistent entry: ${indexSource.getTopKey}")
+        logger.debug(s"Found an inconsistent entry: ${indexSource.getTopKey}")
         nextKey = indexSource.getTopKey
         indexSource.next()
       } else {
@@ -91,7 +92,7 @@ class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] {
   }
 
   def seek(range: Range, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {
-    log.trace(s"Seeking $range")
+    logger.trace(s"Seeking $range")
     indexSource.seek(range, columnFamilies, inclusive)
     findTop()
 
