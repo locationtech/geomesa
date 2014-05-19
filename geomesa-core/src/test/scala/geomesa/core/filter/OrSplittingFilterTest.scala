@@ -9,6 +9,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 object OrSplittingFilterTest {
+  val ff = CommonFactoryFinder.getFilterFactory2
 
   implicit class RichFilter(val filter: Filter) {
     def &&(that: RichFilter) = ff.and(filter, that.filter)
@@ -20,13 +21,8 @@ object OrSplittingFilterTest {
   }
 
   implicit def stringToFilter(s: String) = ECQL.toFilter(s)
-  def attrI(i: Int): Filter = s"attr$i = val$i"
-  implicit def intToFilter(i: Int): RichFilter = attrI(i)
-  val ff = CommonFactoryFinder.getFilterFactory2
-
-
-  val osf = new OrSplittingFilter
-  def splitFilter(f: Filter) = osf.visit(f, null)
+  def intToAttributeFilter(i: Int): Filter = s"attr$i = val$i"
+  implicit def intToFilter(i: Int): RichFilter = intToAttributeFilter(i)
 
   val geom1: Filter = "INTERSECTS(geomesa_index_geometry, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
   val geom2: Filter = "INTERSECTS(geomesa_index_geometry, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))"
@@ -36,6 +32,8 @@ object OrSplittingFilterTest {
 
 @RunWith(classOf[JUnitRunner])
 class OrSplittingFilterTest extends Specification {
+  val osf = new OrSplittingFilter
+  def splitFilter(f: Filter) = osf.visit(f, null)
 
   "The OrSplittingFilter" should {
 
