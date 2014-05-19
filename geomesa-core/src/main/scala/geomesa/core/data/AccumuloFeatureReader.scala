@@ -28,8 +28,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
   val indexSchema = IndexSchema(indexSchemaFmt, sft, featureEncoder)
-  val bs = dataStore.createBatchScanner
-  val iter = indexSchema.query(query, bs)
+  val iter = indexSchema.query(query, dataStore.createBatchScanner)
 
   override def getFeatureType = sft
 
@@ -37,5 +36,6 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
   override def hasNext = iter.hasNext
 
-  override def close() = bs.close()
+  // We now use 'self-closing' batch scanners, so we only need to exhaust the iterator.
+  override def close() = while(iter.hasNext) { iter.next() }
 }

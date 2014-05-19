@@ -315,7 +315,7 @@ class AccumuloDataStore(val connector: Connector,
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE
 
-  def createBatchScanner = connector.createBatchScanner(tableName, authorizations, 100)
+  def createBatchScanner() = connector.createBatchScanner(tableName, authorizations, 100)
 
   // Accumulo assumes that the failures directory exists.  This function assumes that you have already created it.
   def importDirectory(tableName: String,
