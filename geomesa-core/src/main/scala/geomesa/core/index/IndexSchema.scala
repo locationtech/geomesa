@@ -192,17 +192,11 @@ object IndexEntry {
     lazy val dtgEndField = userData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
 
     lazy val sid = sf.getID
-    lazy val gh: GeoHash = sf.getDefaultGeometry match {
-      case geo: Geometry => GeohashUtils.reconstructGeohashFromGeometry(geo)
-      case gh: GeoHash => gh
-      case other =>
-        throw new Exception(s"Default geometry must be Geometry or Geohash: '$other' of type '${Option(other).map(_.getClass).orNull}'")
-    }
+    lazy val gh: GeoHash = GeohashUtils.reconstructGeohashFromGeometry(geometry)
     lazy val geometry: Geometry = sf.getDefaultGeometry match {
       case geo: Geometry => geo
-      case gh: GeoHash => gh //implicitly converted to Geometry gh.geom
       case other =>
-        throw new Exception(s"Default geometry must be Geometry or Geohash: '$other' of type '${Option(other).map(_.getClass).orNull}'")
+        throw new Exception(s"Default geometry must be Geometry: '$other' of type '${Option(other).map(_.getClass).orNull}'")
     }
 
     private def getTime(attr: String) = sf.getAttribute(attr).asInstanceOf[java.util.Date]
@@ -299,7 +293,7 @@ case class IndexEntryDecoder(ghDecoder: GeohashDecoder,
 
   def decode(key: Key) =
     SimpleFeatureBuilder.build(indexSFT,
-                               List(ghDecoder.decode(key), dtDecoder.map(_.decode(key))),
+                               List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))),
                                "")
 }
 

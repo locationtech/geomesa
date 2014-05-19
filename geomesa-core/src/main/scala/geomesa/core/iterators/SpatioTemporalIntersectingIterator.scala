@@ -162,12 +162,12 @@ class SpatioTemporalIntersectingIterator
   lazy val wrappedGeomFilter =
     // if there is effectively no geographic-search, all records automatically qualify
     IndexSchema.somewhere(poly) match {
-      case None    => (gh: GeoHash, geom: Geometry) => true
+      case None    => (_: GeoHash,  _: Geometry)    => true
       case Some(p) => (gh: GeoHash, geom: Geometry) =>
         // either the geohash geom is completely contained
         // within the search area or the original geometry
         // intersects the search area
-        p.contains(gh.bbox.geom) || p.intersects(geom)
+        p.contains(gh.geom) || p.intersects(geom)
     }
 
   // data rows are the only ones with "SimpleFeatureAttribute" in the ColQ

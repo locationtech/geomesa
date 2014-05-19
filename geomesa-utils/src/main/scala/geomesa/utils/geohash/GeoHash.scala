@@ -44,6 +44,8 @@ case class GeoHash private(x: Double,
    */
   lazy val hash = optHash.getOrElse(toBase32(bitset, prec))
 
+  lazy val geom = bbox.geom
+
   /**
    * Utility method to return the bit-string as a full binary string.
    *
@@ -87,7 +89,7 @@ object GeoHash extends Logging {
 
   val MAX_PRECISION = 63 // our bitset operations assume all bits fit in one Long
 
-  implicit def toGeometry(gh: GeoHash) = gh.bbox.geom
+  implicit def toGeometry(gh: GeoHash) = gh.geom
 
   private val boolMap : Map[Boolean,String] = Map(false -> "0", true -> "1")
 
