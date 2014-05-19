@@ -67,7 +67,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
   // As a pre-processing step, we examine the query/filter and split it into multiple queries.
   // TODO: Work to make the queries non-overlapping.
-  def getIterator(buildBS: () => BatchScanner, query: Query) : Iterator[Entry[Key,Value]] = {
+  def getIterator(buildBatchScanner: () => BatchScanner, query: Query) : Iterator[Entry[Key,Value]] = {
     val ff = CommonFactoryFinder.getFilterFactory2
     val queries: Iterator[Query] =
       if(query.getHints.containsKey(BBOX_KEY)) {
@@ -76,7 +76,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
       } else splitQueryOnOrs(query)
 
-    queries.flatMap(runQuery(buildBS, _))
+    queries.flatMap(runQuery(buildBatchScanner, _))
   }
   
   def splitQueryOnOrs(query: Query): Iterator[Query] = {
@@ -96,8 +96,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // 1. Inspect the query
   // 2. Set up the base iterators/scans.
   // 3. Set up the rest of the iterator stack.
-  private def runQuery(buildBS: () => BatchScanner, query: Query) = {
-    val bs: BatchScanner = buildBS()
+  private def runQuery(buildBatchScanner: () => BatchScanner, query: Query) = {
+    val bs: BatchScanner = buildBatchScanner()
 
     val simpleFeatureType = DataUtilities.encodeType(featureType)
     val filterVisitor = new FilterToAccumulo(featureType)

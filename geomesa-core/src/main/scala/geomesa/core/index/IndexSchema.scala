@@ -90,9 +90,9 @@ case class IndexSchema(encoder: IndexEncoder,
       case _ => 1  // couldn't find a matching partitioner
     }
 
-  def query(query: Query, buildBS: () => BatchScanner): Iterator[SimpleFeature] = {
+  def query(query: Query, buildBatchScanner: () => BatchScanner): Iterator[SimpleFeature] = {
     // Perform the query
-    val accumuloIterator = planner.getIterator(buildBS, query)
+    val accumuloIterator = planner.getIterator(buildBatchScanner, query)
     // Convert Accumulo results to SimpleFeatures.
     adaptIterator(accumuloIterator, query)
   }
