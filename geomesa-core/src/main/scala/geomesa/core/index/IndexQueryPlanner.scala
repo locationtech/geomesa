@@ -1,15 +1,16 @@
 package geomesa.core.index
 
+
 import com.vividsolutions.jts.geom.Polygon
 import geomesa.core.data._
+import geomesa.core.filter.OrSplittingFilter
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.FEATURE_ENCODING
 import geomesa.core.iterators._
+import geomesa.core.util.SelfClosingBatchScanner
 import java.util.Map.Entry
-import java.util.{Iterator => JIterator}
 import org.apache.accumulo.core.client.{IteratorSetting, BatchScanner}
 import org.apache.accumulo.core.data.{Value, Key}
-import org.apache.accumulo.core.iterators.Combiner
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
@@ -18,6 +19,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.Interval
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter._
 import scala.collection.JavaConversions._
 import scala.util.Random
 
@@ -63,23 +65,43 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     case _    => IndexSchema.everywhen.overlap(interval)
   }
 
+  // As a pre-processing step, we examine the query/filter and split it into multiple queries.
+  // TODO: Work to make the queries non-overlapping.
+  def getIterator(buildBS: () => BatchScanner, query: Query) : Iterator[Entry[Key,Value]] = {
+    val ff = CommonFactoryFinder.getFilterFactory2
+    val queries: Iterator[Query] =
+      if(query.getHints.containsKey(BBOX_KEY)) {
+        val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
+        val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
+        Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
+      } else splitQueryOnOrs(query)
+
+    queries.flatMap(runQuery(buildBS, _))
+  }
+  
+  def splitQueryOnOrs(query: Query): Iterator[Query] = {
+    val originalFilter = query.getFilter
+    
+    val orSplitter = new OrSplittingFilter
+    val filters = orSplitter.visit(originalFilter, null).asInstanceOf[Seq[Filter]]
+
+    filters.map { filter =>
+      val q = new Query(query)
+      q.setFilter(filter)
+      q
+    }.toIterator
+  }
+
   // Strategy:
   // 1. Inspect the query
   // 2. Set up the base iterators/scans.
   // 3. Set up the rest of the iterator stack.
-  def getIterator(bs: BatchScanner, query: Query) : JIterator[Entry[Key,Value]] = {
-
-    val ff = CommonFactoryFinder.getFilterFactory2
-    val derivedQuery =
-      if(query.getHints.containsKey(BBOX_KEY)) {
-        val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
-        val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
-        DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
-      } else query
+  private def runQuery(buildBS: () => BatchScanner, query: Query) = {
+    val bs: BatchScanner = buildBS()
 
     val simpleFeatureType = DataUtilities.encodeType(featureType)
     val filterVisitor = new FilterToAccumulo(featureType)
-    val rewrittenCQL = filterVisitor.visit(derivedQuery)
+    val rewrittenCQL = filterVisitor.visit(query)
     val ecql = Option(ECQL.toCQL(rewrittenCQL))
 
     val spatial = filterVisitor.spatialPredicate
@@ -104,7 +126,11 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql, query, poly)
 
-    bs.iterator()
+    // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
+    //  we wrap our calls in a SelfClosingBatchScanner.
+    val scbs = new SelfClosingBatchScanner(bs)
+
+    scbs.iterator
   }
 
   def configureFeatureEncoding(cfg: IteratorSetting) =

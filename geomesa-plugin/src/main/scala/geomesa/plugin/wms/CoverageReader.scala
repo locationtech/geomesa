@@ -18,14 +18,14 @@ package geomesa.plugin.wms
 
 import CoverageReader._
 import geomesa.core.iterators.{TimestampSetIterator, TimestampRangeIterator, SurfaceAggregatingIterator, AggregatingKeyIterator}
+import geomesa.core.util.{SelfClosingBatchScanner, BoundingBoxUtil}
 import geomesa.utils.geohash.{GeoHash, TwoGeoHashBoundingBox, Bounds, BoundingBox}
 import java.awt.image.BufferedImage
 import java.awt.{AlphaComposite, Color, Graphics2D, Rectangle}
 import java.io._
-import java.util.Map.Entry
 import java.util.{List => JList, Date}
-import org.apache.accumulo.core.client.{BatchScanner, Scanner, IteratorSetting, ZooKeeperInstance}
-import org.apache.accumulo.core.data._
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.client.{Scanner, IteratorSetting, ZooKeeperInstance}
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
@@ -41,8 +41,6 @@ import org.opengis.geometry.Envelope
 import org.opengis.parameter.{InvalidParameterValueException, GeneralParameterValue}
 import scala.collection.JavaConversions._
 import util.Random
-import geomesa.core.util.BoundingBoxUtil
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 
 
 object CoverageReader {
@@ -212,21 +210,5 @@ class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
     }
     case HAS_TIME_DOMAIN => "true"
     case  _ => null
-  }
-}
-
-class SelfClosingBatchScanner(bs: BatchScanner) {
-  val bsIter = bs.iterator
-
-  val iterator = {
-    new Iterator[Entry[Key, Value]]{
-      def hasNext: Boolean = {
-        val iterHasNext = bsIter.hasNext
-        if(!iterHasNext) bs.close()
-        iterHasNext
-      }
-
-      def next(): Entry[Key, Value] = bsIter.next
-    }
   }
 }

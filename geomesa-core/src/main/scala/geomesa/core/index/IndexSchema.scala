@@ -90,15 +90,15 @@ case class IndexSchema(encoder: IndexEncoder,
       case _ => 1  // couldn't find a matching partitioner
     }
 
-  def query(query: Query, bs: BatchScanner): Iterator[SimpleFeature] = {
+  def query(query: Query, buildBS: () => BatchScanner): Iterator[SimpleFeature] = {
     // Perform the query
-    val accumuloIterator = planner.getIterator(bs, query)
+    val accumuloIterator = planner.getIterator(buildBS, query)
     // Convert Accumulo results to SimpleFeatures.
     adaptIterator(accumuloIterator, query)
   }
 
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
-  def adaptIterator(accumuloIterator: JIterator[Entry[Key,Value]], query: Query): Iterator[SimpleFeature] = {
+  def adaptIterator(accumuloIterator: Iterator[Entry[Key,Value]], query: Query): Iterator[SimpleFeature] = {
     val returnSFT = getReturnSFT(query)
 
     // the final iterator may need duplicates removed
