@@ -364,8 +364,7 @@ object GeohashUtils
                                         val resolutions: ResolutionRange) {
 
     lazy val geomCatcher = catching(classOf[Exception])
-    lazy val geom: Geometry = gh
-    lazy val area: Double = geomCatcher.opt{ geom.getArea }.getOrElse(0.0)
+    lazy val area: Double = geomCatcher.opt{ gh.getArea }.getOrElse(0.0)
     val areaOutside: Double
     lazy val areaInside: Double = area - areaOutside
     lazy val resolution: Int = gh.prec
@@ -373,11 +372,11 @@ object GeohashUtils
       resolution >= resolutions.minBitsResolution && resolution <= resolutions.maxBitsResolution
 
     lazy val intersectsTarget: Boolean =
-      geomCatcher.opt { geom.intersects(targetGeom) }.getOrElse(false)
+      geomCatcher.opt { gh.intersects(targetGeom) }.getOrElse(false)
     lazy val intersection: Geometry =
-      geomCatcher.opt { geom.intersection(targetGeom) }.getOrElse(emptyGeometry)
+      geomCatcher.opt { gh.intersection(targetGeom) }.getOrElse(emptyGeometry)
     lazy val intersectionArea: Double =
-      geomCatcher.opt { geom.intersection(targetGeom).getArea }.getOrElse(0.0)
+      geomCatcher.opt { gh.intersection(targetGeom).getArea }.getOrElse(0.0)
     def isLT(than: DecompositionCandidate): Boolean = {
       if (areaOutside > than.areaOutside) true
       else {
@@ -387,17 +386,27 @@ object GeohashUtils
     }
   }
 
-  class PointDecompositionCandidate(gh:GeoHash, targetGeom:Point, targetArea:Double, resolutions:ResolutionRange) extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+  class PointDecompositionCandidate(gh: GeoHash,
+                                    targetGeom: Point,
+                                    targetArea: Double,
+                                    resolutions: ResolutionRange)
+      extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+
     /**
      * If the GeoHash does not contain the point, then the entire cell's area is
      * outside of the target.  If the GeoHash does contain the point, then be
      * careful:  Only some fraction of the cell's area should count as overage
      * (otherwise, we can't favor smaller GeoHash cells in the decomposer).
      */
-    override lazy val areaOutside : Double = area * (if (intersectsTarget) 0.75 else 1.0)
+    override lazy val areaOutside: Double = area * (if (intersectsTarget) 0.75 else 1.0)
   }
 
-  class LineDecompositionCandidate(gh:GeoHash, targetGeom:MultiLineString, targetArea:Double, resolutions:ResolutionRange) extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+  class LineDecompositionCandidate(gh: GeoHash,
+                                   targetGeom: MultiLineString,
+                                   targetArea: Double,
+                                   resolutions: ResolutionRange)
+      extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+
     /**
      * If the GeoHash intersects the target lines, then the overlap is the
      * area of the GeoHash cell less the length of the intersection.  Otherwise,
@@ -407,31 +416,29 @@ object GeohashUtils
      * 1.  the longer a segment intersects, the smaller the area outside will be;
      * 2.  the smaller a GeoHash cell, the smaller the area outside will be
      */
-    override lazy val areaOutside : Double = {
-      if (intersectsTarget) {
-        area * (1.0 - intersection.getLength / targetArea)
-      } else {
-        area
-      }
-    }
+    override lazy val areaOutside: Double =
+      if(intersectsTarget) area * (1.0 - intersection.getLength / targetArea)
+      else area
   }
 
-  class PolygonDecompositionCandidate(gh:GeoHash, targetGeom:MultiPolygon, targetArea:Double, resolutions:ResolutionRange) extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+  class PolygonDecompositionCandidate(gh: GeoHash,
+                                      targetGeom: MultiPolygon,
+                                      targetArea: Double,
+                                      resolutions: ResolutionRange)
+      extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+
     /**
      * If the GeoHash intersects the target polygon, then the overlap is the
      * area of the GeoHash cell less the area of the intersection.  Otherwise,
      * they are disjoint, and the overlap is the entire area of the GeoHash cell.
      */
-    override lazy val areaOutside : Double = {
-      if (intersectsTarget) {
-        area - intersection.getArea
-      } else {
-        area
-      }
-    }
+    override lazy val areaOutside: Double =
+      if(intersectsTarget) area - intersection.getArea
+      else area
   }
 
-  def decompositionCandidateSorter(a:DecompositionCandidate, b:DecompositionCandidate) : Boolean = a.isLT(b)
+  def decompositionCandidateSorter(a: DecompositionCandidate,
+                                   b: DecompositionCandidate) : Boolean = a.isLT(b)
 
   /**
    * Decomposes the given polygon into a collection of disjoint GeoHash cells
@@ -457,7 +464,7 @@ object GeohashUtils
     val targetLength : Double = geomCatcher.opt { targetGeom.getLength }.getOrElse(0.0)
 
     // qua factory
-    def createDecompositionCandidate(gh:GeoHash) : DecompositionCandidate = {
+    def createDecompositionCandidate(gh:GeoHash): DecompositionCandidate = {
       // simple switch based on the geometry type
       targetGeom match {
         case multipoly:MultiPolygon => new PolygonDecompositionCandidate(gh, multipoly, targetArea, resolutions)
@@ -467,12 +474,12 @@ object GeohashUtils
           gh, new MultiLineString(Array(line), line.getFactory), targetLength, resolutions)
         case multiLine:MultiLineString => new LineDecompositionCandidate(gh, multiLine, targetLength, resolutions)
         case point:Point => new PointDecompositionCandidate(gh, point, targetArea, resolutions)  // should never be called, but it works
-        case _ => throw new Exception("Unsupported Geometry type for decomposition:  " + targetGeom.getClass.getName)
+        case _ => throw new Exception(s"Unsupported Geometry type for decomposition: ${targetGeom.getClass.getName}")
       }
     }
 
     // recursive routine that will do the actual decomposition
-    def decomposeStep(candidates:List[DecompositionCandidate]) : (List[DecompositionCandidate]) = {
+    def decomposeStep(candidates: List[DecompositionCandidate]): List[DecompositionCandidate] = {
       // complain, if needed
       if (candidates.size > maxSize) throw new Exception("Too many candidates upon entry.")
       else {
@@ -494,8 +501,7 @@ object GeohashUtils
         // recurse, if appropriate
         if ((newCandidates.size <= maxSize) && (childResolution <= resolutions.maxBitsResolution)) {
           decomposeStep(newCandidates)
-        }
-        else candidates
+        } else candidates
       }
     }
 
@@ -540,7 +546,7 @@ object GeohashUtils
    *
    * This method does not account for any specific latitude!
    */
-  def estimateGeometryGeohashPrecision(geometry:Geometry) : Int = {
+  def estimateGeometryGeohashPrecision(geometry: Geometry): Int = {
     if (geometry == null) 0
     else {
       // compute the span (in degrees) of this geometry

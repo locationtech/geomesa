@@ -252,6 +252,5 @@ object AccumuloFeatureStore {
 }
 
 object MapReduceAccumuloFeatureStore {
-
   val MAPRED_CLASSPATH_USER_PRECEDENCE_KEY = "mapreduce.task.classpath.user.precedence"
 }
