@@ -25,7 +25,7 @@ import geomesa.core.data._
 import geomesa.core.iterators.FEATURE_ENCODING
 import geomesa.core.iterators._
 import geomesa.core.index.QueryHints._
-import geomesa.utils.geohash.GeohashUtils
+import geomesa.utils.geohash.{GeoHash, GeohashUtils}
 import geomesa.utils.text.{WKBUtils, WKTUtils}
 import java.nio.ByteBuffer
 import java.util.Map.Entry
@@ -192,10 +192,17 @@ object IndexEntry {
     lazy val dtgEndField = userData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
 
     lazy val sid = sf.getID
-    lazy val gh = GeohashUtils.reconstructGeohashFromGeometry(geometry)
-    def geometry = sf.getDefaultGeometry match {
+    lazy val gh: GeoHash = sf.getDefaultGeometry match {
+      case geo: Geometry => GeohashUtils.reconstructGeohashFromGeometry(geo)
+      case gh: GeoHash => gh
+      case other =>
+        throw new Exception(s"Default geometry must be Geometry or Geohash: '$other' of type '${Option(other).map(_.getClass).orNull}'")
+    }
+    lazy val geometry: Geometry = sf.getDefaultGeometry match {
       case geo: Geometry => geo
-      case geo => throw new Exception(s"Non-geometry or null object for default geometry '$geo' of type '${Option(geo).map(_.getClass).orNull}'")
+      case gh: GeoHash => gh //implicitly converted to Geometry gh.geom
+      case other =>
+        throw new Exception(s"Default geometry must be Geometry or Geohash: '$other' of type '${Option(other).map(_.getClass).orNull}'")
     }
 
     private def getTime(attr: String) = sf.getAttribute(attr).asInstanceOf[java.util.Date]

@@ -221,8 +221,7 @@ class SpatioTemporalIntersectingIterator
         curFeature = decodedKey
         // the value contains the full-resolution geometry and time; use them
         lazy val decodedValue = IndexSchema.decodeIndexValue(indexSource.getTopValue)
-        lazy val isGeomAcceptable: Boolean =
-          wrappedGeomFilter(decodedKey.getDefaultGeometry.asInstanceOf[GeoHash], decodedValue.geom)
+        lazy val isGeomAcceptable: Boolean = wrappedGeomFilter(decodedKey.gh, decodedValue.geom)
         lazy val isDateTimeAcceptable: Boolean = wrappedTimeFilter(decodedValue.dtgMillis)
 
         // see whether this box is acceptable
