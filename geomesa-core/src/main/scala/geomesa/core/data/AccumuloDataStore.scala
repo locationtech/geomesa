@@ -19,6 +19,7 @@ package geomesa.core.data
 
 import geomesa.core
 import geomesa.core.data.AccumuloFeatureWriter.{LocalRecordDeleter, LocalRecordWriter, MapReduceRecordWriter}
+import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.core.index.{Constants, IndexSchema}
 import java.io.Serializable
 import java.util.{Map=>JMap}
@@ -40,7 +41,6 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import geomesa.core.data.FeatureEncoding.FeatureEncoding
 
 /**
  *
@@ -97,12 +97,21 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   override def createSchema(featureType: SimpleFeatureType) {
-    createTableIfNotExists(tableName, featureType, featureEncoding)
-    writeMetadata(featureType)
+    // Attempt to determine the encoding before possibly creating the table
+    val properEncoding = determineProperEncoding(featureType, featureEncoding)
+    createTableIfNotExists(tableName, featureType, properEncoding)
+    writeMetadata(featureType, properEncoding)
   }
 
+  // If the table exists already use the feature encoding stored as metadata instead of
+  // the user provided feature encoding...if table exists but doesn't have metadata for
+  // feature encoding then default to TEXT for backwards compatability
+  def determineProperEncoding(featureType: SimpleFeatureType, providedEncoding: FeatureEncoding) = {
+    if (tableOps.exists(tableName)) getFeatureEncoder(featureType.getTypeName).getEncoding
+    else providedEncoding
+  }
 
-  def writeMetadata(sft: SimpleFeatureType) {
+  def writeMetadata(sft: SimpleFeatureType, fe: FeatureEncoding) {
     val featureName = sft.getName.getLocalPart
     val attributesValue = new Value(DataUtilities.encodeType(sft).getBytes)
     writeMetadataItem(featureName, ATTRIBUTES_CF, attributesValue)
@@ -113,10 +122,8 @@ class AccumuloDataStore(val connector: Connector,
       val dtgField = userData.get(core.index.SF_PROPERTY_START_TIME)
       writeMetadataItem(featureName, DTGFIELD_CF, new Value(dtgField.asInstanceOf[String].getBytes))
     }
-    val fe = SimpleFeatureEncoderFactory.createEncoder(featureEncoding).getName
-    writeMetadataItem(featureName, FEAT_ENCODING_CF, new Value(fe.getBytes()))
+    writeMetadataItem(featureName, FEATURE_ENCODING_CF, new Value(fe.toString.getBytes()))
   }
-
 
   def createIndexSchema(sft: SimpleFeatureType) = indexSchemaFormat match {
     case "DEFAULT" => buildDefaultSchema(sft.getTypeName)
@@ -219,8 +226,11 @@ class AccumuloDataStore(val connector: Connector,
   def getAttributes(featureName: String) =
     readMetadataItem(featureName, ATTRIBUTES_CF).getOrElse(EMPTY_STRING)
 
-  def getFeatureEncoder(featureName: String) =
-    SimpleFeatureEncoderFactory.createEncoder(readMetadataItem(featureName, FEAT_ENCODING_CF).getOrElse("text"))
+  // Default to TEXT if no metadata is found in the table
+  def getFeatureEncoder(featureName: String) = {
+    val encodingString = readMetadataItem(featureName, FEATURE_ENCODING_CF).getOrElse(FeatureEncoding.TEXT.toString)
+    SimpleFeatureEncoderFactory.createEncoder(encodingString)
+  }
 
   // We assume that they want the bounds for everything.
   override def getBounds(query: Query): ReferencedEnvelope = {
