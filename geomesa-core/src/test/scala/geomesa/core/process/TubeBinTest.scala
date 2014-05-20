@@ -2,17 +2,17 @@ package geomesa.core.process
 
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.GeometryCollection
-import geomesa.process.TubeVisitor
+import geomesa.process.NoGapFill
 import geomesa.utils.text.WKTUtils
+import org.apache.log4j.Logger
 import org.geotools.data.DataUtilities
-import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.factory.Hints
+import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.apache.log4j.Logger
 
 
 @RunWith(classOf[JUnitRunner])
@@ -24,13 +24,13 @@ class TubeBinTest extends Specification {
 
   val geotimeAttributes = geomesa.core.index.spec
 
-  "TubeVisitor" should {
+  "NoGapFilll" should {
 
     "correctly time bin features" in {
       val sftName = "tubetest2"
       val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
 
-      val list = for(day <- 1 until 20) yield {
+      val features = for(day <- 1 until 20) yield {
         val sf = SimpleFeatureBuilder.build(sft, List(), day.toString)
         val lat = 40+day
         sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
@@ -40,8 +40,9 @@ class TubeBinTest extends Specification {
         sf
       }
 
-      log.debug("features: "+list.size)
-      val binnedFeatures = TubeVisitor.timeBinAndUnion(list, 6)
+      log.debug("features: "+features.size)
+      val ngf = new NoGapFill(new DefaultFeatureCollection(sftName, sft), 0.0, 6)
+      val binnedFeatures = ngf.timeBinAndUnion(features, 6)
 
       binnedFeatures.foreach { sf =>
         if (sf.getDefaultGeometry.isInstanceOf[GeometryCollection])
@@ -49,9 +50,9 @@ class TubeBinTest extends Specification {
         else log.debug("size: 1")
       }
 
-      TubeVisitor.timeBinAndUnion(list, 1).size should equalTo(1)
+      ngf.timeBinAndUnion(features, 1).size should equalTo(1)
 
-      TubeVisitor.timeBinAndUnion(list, 0).size should equalTo(1)
+      ngf.timeBinAndUnion(features, 0).size should equalTo(1)
     }
 
   }

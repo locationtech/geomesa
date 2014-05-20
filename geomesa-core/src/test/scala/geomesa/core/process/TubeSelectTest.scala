@@ -3,7 +3,7 @@ package geomesa.core.process
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Point, Coordinate, GeometryFactory}
 import geomesa.core.data.{AccumuloFeatureCollection, AccumuloFeatureStore, AccumuloDataStore}
-import geomesa.process.{TubeVisitor, TubeSelect}
+import geomesa.process.{NoGapFill, TubeBuilder, TubeVisitor, TubeSelect}
 import geomesa.utils.text.WKTUtils
 import org.geotools.data.collection.{CollectionFeatureSource, ListFeatureCollection}
 import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
@@ -280,13 +280,16 @@ class TubeSelectTest extends Specification {
     }
   }
 
-  "TubeVistitor" should {
+  "TubeBuilder" should {
     "approximate meters to degrees" in {
       val geoFac = new GeometryFactory
 
+      val sftName = "tubeline"
+      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+
       // calculated km at various latitude by USGS
       List(0, 30, 60, 89).zip(List(110.57, 110.85, 111.41, 111.69)).foreach { case(lat, dist) =>
-        val deg = TubeVisitor.metersToDegrees(110.57*1000, geoFac.createPoint(new Coordinate(0, lat)))
+        val deg = new NoGapFill(new DefaultFeatureCollection(sftName, sft), 0, 0).metersToDegrees(110.57*1000, geoFac.createPoint(new Coordinate(0, lat)))
         (1.0-dist) should beLessThan(.0001)
       }
     }

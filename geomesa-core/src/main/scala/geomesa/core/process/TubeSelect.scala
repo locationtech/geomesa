@@ -22,6 +22,10 @@ import org.geotools.util.NullProgressListener
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
+import org.joda.time.format.DateTimeFormat
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
+import java.util.concurrent.atomic.AtomicInteger
+import geomesa.utils.text.WKTUtils
 
 @DescribeProcess(
   title = "Performs a tube select on one feature collection based on another feature collection",
@@ -107,6 +111,7 @@ class TubeSelect extends VectorProcess {
 object GapFill extends Enumeration{
   type GapFill = Value
   val NOFILL = Value("nofill")
+  val LINE = Value("line")
 }
 
 class TubeVisitor(
@@ -138,17 +143,30 @@ class TubeVisitor(
 
     log.info("Visting source type: "+source.getClass.getName)
 
-    // Create a time binned set of tube features with no gap filling
-    val binnedTube = createTubeNoGapFill
-
     val geomProperty = ff.property(source.getSchema.getGeometryDescriptor.getName)
+    val dateProperty = ff.property(source.getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])
 
-    val queryResults = binnedTube.map { sf =>
-      val sfTime = TubeVisitor.getStartTime(sf).getTime
-      val minDate = new Date(sfTime - maxTime)
-      val maxDate = new Date(sfTime + maxTime)
-      val dateProperty = ff.property(source.getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])
-      val dtgFilter = ff.between(dateProperty, ff.literal(minDate), ff.literal(maxDate))
+    if(log.isDebugEnabled) log.debug("Querying with date property: "+dateProperty)
+    if(log.isDebugEnabled) log.debug("Querying with geometry property: "+geomProperty)
+
+    // Create a time binned set of tube features with no gap filling
+
+    val tubeBuilder = gapFill match {
+      case GapFill.LINE => new LineGapFill(tubeFeatures, bufferDistance, maxBins)
+      case _ => new NoGapFill(tubeFeatures, bufferDistance, maxBins)
+    }
+
+    val tube = tubeBuilder.createTube
+
+    val queryResults = tube.map { sf =>
+      val sfMin = tubeBuilder.getStartTime(sf).getTime
+      val minDate = new Date(sfMin - maxTime*1000)
+
+      val sfMax = tubeBuilder.getEndTime(sf).getTime
+      val maxDate = new Date(sfMax + maxTime*1000)
+
+      val dtg1 = ff.greater(dateProperty, ff.literal(minDate))
+      val dtg2 = ff.less(dateProperty, ff.literal(maxDate))
 
       val geom = sf.getDefaultGeometry.asInstanceOf[Geometry]
 
@@ -157,7 +175,7 @@ class TubeVisitor(
       val geoms = (0 until geom.getNumGeometries).map { i => geom.getGeometryN(i) }
       geoms.flatMap { g =>
         val geomFilter = ff.intersects(geomProperty, ff.literal(g))
-        val combinedFilter = ff.and(List(query.getFilter, geomFilter, dtgFilter, filter))
+        val combinedFilter = ff.and(List(query.getFilter, geomFilter, dtg1, dtg2, filter))
         source.getFeatures(combinedFilter).features
       }
     }
@@ -166,23 +184,34 @@ class TubeVisitor(
     new UniqueMultiCollection(source.getSchema, queryResults)
   }
 
-  def createTubeNoGapFill = {
-    val dtgField = geomesa.core.data.extractDtgField(tubeFeatures.getSchema)
-    val buffered = TubeVisitor.bufferAndTransform(tubeFeatures, bufferDistance, dtgField)
-    val sortedTube = buffered.sortBy { sf => TubeVisitor.getStartTime(sf).getTime }
-    TubeVisitor.timeBinAndUnion(sortedTube, maxBins)
-  }
-
 }
 
-object TubeVisitor {
+abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
+                           val bufferDistance: Double,
+                           val maxBins: Int) {
+
+  private val log = Logger.getLogger(classOf[TubeBuilder])
 
   val calc = new GeodeticCalculator()
+  val dtgField = geomesa.core.data.extractDtgField(tubeFeatures.getSchema)
   val geoFac = new GeometryFactory
   val tubeType = DataUtilities.createType("tubeType", Constants.TYPE_SPEC)
   val builder = new SimpleFeatureBuilder(tubeType)
 
+  // default to ISO 8601 date format
+  val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+
+  def getStartTime(sf: SimpleFeature) = sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date]
+
+  def getEndTime(sf: SimpleFeature) = sf.getAttribute(Constants.SF_PROPERTY_END_TIME).asInstanceOf[Date]
+
+  def getGeom(sf: SimpleFeature) = sf.getDefaultGeometry.asInstanceOf[Geometry]
+
+  def bufferGeom(geom: Geometry, meters: Double) = geom.buffer(metersToDegrees(meters, geom.getCentroid))
+
   def metersToDegrees(meters: Double, point: Point) = {
+    if(log.isDebugEnabled) log.debug("Buffering: "+meters.toString + " "+WKTUtils.write(point))
+
     calc.setStartingGeographicPoint(point.getX, point.getY)
     calc.setDirection(0, meters)
     val dest2D = calc.getDestinationGeographicPoint
@@ -190,21 +219,40 @@ object TubeVisitor {
     point.distance(destPoint)
   }
 
-  def bufferGeom(geom: Geometry, meters: Double) = geom.buffer(metersToDegrees(meters, geom.getCentroid))
+  def buffer(simpleFeatures: Iterator[SimpleFeature], meters:Double) = simpleFeatures.map { sf =>
+    val bufferedGeom = bufferGeom(getGeom(sf), meters)
+    builder.reset()
+    builder.init(sf)
+    builder.set(Constants.SF_PROPERTY_GEOMETRY, bufferedGeom)
+    builder.buildFeature(sf.getID)
+  }
 
-  def bufferAndTransform(tubeFeatures: SimpleFeatureCollection, meters: Double, dtgField: String) = tubeFeatures.features.map { sf =>
-      val bufferedGeom = bufferGeom(getGeom(sf), meters)
-      builder.reset()
-      builder.set(Constants.SF_PROPERTY_GEOMETRY, bufferedGeom)
+  // transform the input tubeFeatures into the intermediate SF used by the
+  // tubing code consisting of three attributes (geom, startTime, endTime)
+  //
+  // handle date parsing from input -> TODO revisit date parsing...
+  def transform(tubeFeatures: SimpleFeatureCollection,
+                dtgField: String): Iterator[SimpleFeature] = tubeFeatures.features().map { sf =>
+    val date =
+      if(sf.getAttribute(dtgField).isInstanceOf[String])
+        df.parseDateTime(sf.getAttribute(dtgField).asInstanceOf[String]).toDate
+      else sf.getAttribute(dtgField)
 
-      // warning...may not be a date
-      builder.set(Constants.SF_PROPERTY_START_TIME, sf.getAttribute(dtgField))
-      builder.set(Constants.SF_PROPERTY_END_TIME, null)
-      builder.buildFeature(sf.getID)
-    }.toSeq
+    builder.reset()
+    builder.buildFeature(sf.getID, Array(sf.getDefaultGeometry, date, null))
+  }
+
+  def createTube: Iterator[SimpleFeature]
+}
+
+class NoGapFill(tubeFeatures: SimpleFeatureCollection,
+                bufferDistance: Double,
+                maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) {
+
+  private val log = Logger.getLogger(classOf[NoGapFill])
 
   // Bin ordered features into maxBins that retain order by date then union by geometry
-  def timeBinAndUnion(features: Seq[SimpleFeature], maxBins: Int) = {
+  def timeBinAndUnion(features: Iterable[SimpleFeature], maxBins: Int) = {
     val numFeatures = features.size
     val binSize =
       if(maxBins > 0 )
@@ -212,7 +260,7 @@ object TubeVisitor {
       else
         numFeatures
 
-    features.grouped(binSize).zipWithIndex.map { case(bin, idx) => unionFeatures(bin, idx.toString) }
+    features.grouped(binSize).zipWithIndex.map { case(bin, idx) => unionFeatures(bin.toSeq, idx.toString) }
   }
 
   // Union features to create a single geometry and single combined time range
@@ -226,9 +274,52 @@ object TubeVisitor {
     builder.buildFeature(id, Array(unionGeom, min, max))
   }
 
-  def getStartTime(sf: SimpleFeature) = sf.getAttribute(Constants.SF_PROPERTY_START_TIME).asInstanceOf[Date]
+  override def createTube = {
+    log.info("Creating tube with no gap filling")
 
-  def getGeom(sf: SimpleFeature) = sf.getDefaultGeometry.asInstanceOf[Geometry]
+    val transformed = transform(tubeFeatures, dtgField)
+    val buffered = buffer(transformed, bufferDistance)
+    val sortedTube = buffered.toSeq.sortBy { sf => getStartTime(sf).getTime }
+    timeBinAndUnion(sortedTube, maxBins)
+  }
+}
+
+class LineGapFill(tubeFeatures: SimpleFeatureCollection,
+                  bufferDistance: Double,
+                  maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) {
+
+  private val log = Logger.getLogger(classOf[LineGapFill])
+
+  val id = new AtomicInteger(0)
+
+  def nextId = id.getAndIncrement.toString
+
+  override def createTube = {
+    log.info("Creating tube with line gap fill")
+
+    val transformed = transform(tubeFeatures, dtgField)
+    val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
+
+    val lineFeatures = sortedTube.sliding(2).map { pair =>
+      val p1 = getGeom(pair(0)).getCentroid
+      val t1 = getStartTime(pair(0))
+      val p2 = getGeom(pair(1)).getCentroid
+      val t2 = getStartTime(pair(1))
+
+      val geo =
+        if(p1.equals(p2)) p1
+        else new LineString(new CoordinateArraySequence(Array(p1.getCoordinate, p2.getCoordinate)), geoFac)
+
+      if(log.isDebugEnabled) log.debug("Created Line-filled Geometry: " + WKTUtils.write(geo) + " from "
+        + WKTUtils.write(getGeom(pair(0))) + " and "
+        + WKTUtils.write(getGeom(pair(1))))
+
+      builder.reset
+      builder.buildFeature(nextId, Array(geo, t1, t2))
+    }
+
+    buffer(lineFeatures, bufferDistance)
+  }
 
 }
 
