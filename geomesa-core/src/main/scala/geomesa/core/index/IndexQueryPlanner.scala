@@ -101,7 +101,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     // if the IndexIterator can be used instead of the IntersectingIterator, do it
     val theSpatioTemporalIterator = IndexIterator.useIndexOnlyIterator(ecql, query) match{
-      case true => IndexIterator
+      case true => println("IndexIterator") ; IndexIterator
       case false => SpatioTemporalIntersectingIterator
     }
     // Configure the SpatioTemporalIterator

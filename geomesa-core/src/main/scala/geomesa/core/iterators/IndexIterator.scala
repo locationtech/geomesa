@@ -47,6 +47,8 @@ import org.geotools.data.transform.Definition
 import org.opengis.filter.expression.ExpressionVisitor
 import java.util
 import com.vividsolutions.jts.geom.util
+import geomesa.core.index
+import org.opengis.feature.`type`.AttributeDescriptor
 
 /**
  * This is an Index Only Iterator, to be used in situations where the data records are
@@ -97,10 +99,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     deduplicate = IndexSchema.mayContainDuplicates(simpleFeatureType)
 
     this.indexSource = source.deepCopy(env)
-
-
-
-
+    println("Setting Up IndexIterator")
   }
 
 
@@ -182,11 +181,26 @@ object IndexIterator extends IteratorHelpers {
    *  Checks the transform for mapping to the index attributes: geometry and optionally time
    */
   def isTransformToIndexOnly(transformDefs: String, transformSchema: SimpleFeatureType ):Boolean = {
-    ((transformSchema == indexSFT)    // target schema matches the idx SimpleFeature
+    (isJustIndexAttributes(transformSchema)  // just index attributes
       | isJustGeo(transformSchema)) &&   // OR, just contains the geometry, AND
           isIdentityTransformation(transformDefs) // the variables for the target schema are taken straight from the index
   }
 
+  /**
+   *
+   */
+  def isJustIndexAttributes(transformSchema:SimpleFeatureType): Boolean = {
+    val theDescriptors = transformSchema.getAttributeDescriptors
+    val dtgField  = dtgInfo(transformSchema)
+    val geomField = transformSchema.getGeometryDescriptor
+    theDescriptors.forall {attribute => dtgField.exists(_ == attribute) | (attribute == geomField)}
+  }
+  /**
+   *  Get the attribute descriptors for the (optional) DTG field
+   */
+  def dtgInfo(sft:SimpleFeatureType): Option[AttributeDescriptor] = {
+    Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map{x => sft.getDescriptor(x.toString)}
+  }
   /**
    *  Checks a schema to see if only the geometry is present. Since the Geometry is not optional, if there is only
    *  one attribute, then only the geometry is present
