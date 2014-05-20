@@ -80,7 +80,7 @@ class TubeSelect extends VectorProcess {
                @DescribeParameter(
                  name = "gapFill",
                  min = 0,
-                 description = "Method of filling gap (nofill, straightLine)")
+                 description = "Method of filling gap (nofill, line)")
                gapFill: String
 
                ): SimpleFeatureCollection = {
