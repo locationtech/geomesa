@@ -87,14 +87,12 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <minimizeJar>true</minimizeJar>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <shadedClassifierName>geoserver-plugin</shadedClassifierName>
                             <artifactSet>
                                 <excludes>
                                     <exclude>org.geotools:*</exclude>
-                                    <exclude>org.apache.*:*</exclude>
-                                    <exclude>org.apache.commons.*:*</exclude>
+                                    <exclude>org.apache.maven.*:*</exclude>
                                     <exclude>com.bbn*:*</exclude>
                                     <exclude>org.geotiff:*</exclude>
                                     <exclude>com.sun.*:*</exclude>
@@ -105,6 +103,8 @@
                                     <exclude>com.google.*:*</exclude>
                                     <exclude>com.sleepycat:*</exclude>
                                     <exclude>javax.*:*</exclude>
+                                    <exclude>it.geosolutions.*:*</exclude>
+                                    <exclude>org.jaitools:*</exclude>
                                     <exclude>com.vividsolutions:*</exclude>
                                     <exclude>commons*:*</exclude>
                                     <exclude>net.java.dev:*</exclude>
