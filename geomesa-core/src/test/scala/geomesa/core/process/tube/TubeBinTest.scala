@@ -1,8 +1,7 @@
-package geomesa.core.process
+package geomesa.core.process.tube
 
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.GeometryCollection
-import geomesa.process.NoGapFill
 import geomesa.utils.text.WKTUtils
 import org.apache.log4j.Logger
 import org.geotools.data.DataUtilities
@@ -13,6 +12,8 @@ import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.geotools.data.collection.ListFeatureCollection
+import geomesa.core.index.Constants
 
 
 @RunWith(classOf[JUnitRunner])
@@ -41,8 +42,8 @@ class TubeBinTest extends Specification {
       }
 
       log.debug("features: "+features.size)
-      val ngf = new NoGapFill(new DefaultFeatureCollection(sftName, sft), 0.0, 6)
-      val binnedFeatures = ngf.timeBinAndUnion(features, 6)
+      val ngf = new NoGapFill(new DefaultFeatureCollection(sftName, sft), 1.0, 6)
+      val binnedFeatures = ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), Constants.SF_PROPERTY_START_TIME).toSeq, 6)
 
       binnedFeatures.foreach { sf =>
         if (sf.getDefaultGeometry.isInstanceOf[GeometryCollection])
@@ -50,9 +51,9 @@ class TubeBinTest extends Specification {
         else log.debug("size: 1")
       }
 
-      ngf.timeBinAndUnion(features, 1).size should equalTo(1)
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), Constants.SF_PROPERTY_START_TIME).toSeq, 1).size should equalTo(1)
 
-      ngf.timeBinAndUnion(features, 0).size should equalTo(1)
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), Constants.SF_PROPERTY_START_TIME).toSeq, 0).size should equalTo(1)
     }
 
   }

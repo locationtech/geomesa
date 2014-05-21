@@ -1,2 +1,2 @@
 geomesa.plugin.process.DensityProcess
-geomesa.process.TubeSelect
+geomesa.core.process.tube.TubeSelect

@@ -1,11 +1,10 @@
-package geomesa.core.process
+package geomesa.core.process.tube
 
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Point, Coordinate, GeometryFactory}
-import geomesa.core.data.{AccumuloFeatureCollection, AccumuloFeatureStore, AccumuloDataStore}
-import geomesa.process.{NoGapFill, TubeBuilder, TubeVisitor, TubeSelect}
+import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.collection.{CollectionFeatureSource, ListFeatureCollection}
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
@@ -13,9 +12,9 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
 import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.opengis.filter.Filter
 
 @RunWith(classOf[JUnitRunner])
 class TubeSelectTest extends Specification {

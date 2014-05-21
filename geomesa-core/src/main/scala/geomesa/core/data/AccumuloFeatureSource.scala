@@ -17,7 +17,6 @@
 package geomesa.core.data
 
 import collection.JavaConversions._
-import geomesa.process.TubeVisitor
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
@@ -27,6 +26,7 @@ import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
+import geomesa.core.process.tube.TubeVisitor
 
 trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
   val dataStore: AccumuloDataStore
