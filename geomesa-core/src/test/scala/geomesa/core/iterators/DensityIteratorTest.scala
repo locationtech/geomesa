@@ -18,7 +18,6 @@
 package geomesa.core.iterators
 
 import collection.JavaConversions._
-import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Envelope
 import geomesa.core.data.AccumuloDataStoreFactory
 import geomesa.core.index.{QueryHints, Constants}
@@ -40,9 +39,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class DensityIteratorTest
-    extends Specification
-            with Logging {
+class DensityIteratorTest extends Specification {
 
   import geomesa.utils.geotools.Conversions._
 
@@ -54,14 +51,7 @@ class DensityIteratorTest
       val splits = (0 to 99).map {
         s => "%02d".format(s)
       }.map(new Text(_))
-
-      try {
-        c.tableOperations().addSplits("test", new java.util.TreeSet[Text](splits))
-      } catch {
-        case nie: NotImplementedException =>
-          logger.warn("Could not add splits on \"test\" for this test because this version of " +
-                      "the Mock Accumulo instance does not support the addSplits operation")
-      }
+      c.tableOperations().addSplits("test", new java.util.TreeSet[Text](splits))
 
       val dsf = new AccumuloDataStoreFactory
 
