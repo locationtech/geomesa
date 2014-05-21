@@ -23,7 +23,6 @@ import geomesa.core.data.AccumuloDataStoreFactory
 import geomesa.core.index.{QueryHints, Constants}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.commons.lang.NotImplementedException
 import org.apache.hadoop.io.Text
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{Query, DataUtilities}
