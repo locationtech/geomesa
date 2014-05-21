@@ -141,24 +141,25 @@ object AccumuloDataStoreFactory {
 
   def configureJob(job: Job, params: JMap[String, Serializable]): Job = {
     val conf = job.getConfiguration
+
     conf.set(ZOOKEEPERS, zookeepersParam.lookUp(params).asInstanceOf[String])
     conf.set(INSTANCE_ID, instanceIdParam.lookUp(params).asInstanceOf[String])
     conf.set(ACCUMULO_USER, userParam.lookUp(params).asInstanceOf[String])
     conf.set(ACCUMULO_PASS, passwordParam.lookUp(params).asInstanceOf[String])
     conf.set(TABLE, tableNameParam.lookUp(params).asInstanceOf[String])
-    conf.set(AUTHS, authsParam.lookUp(params).asInstanceOf[String])
-    conf.set(FEATURE_ENCODING, featureEncParam.lookUp(params).asInstanceOf[String])
+    authsParam.lookupOpt[String](params).foreach(ap => conf.set(AUTHS, ap))
+    featureEncParam.lookupOpt[String](params).foreach(fep => conf.set(FEATURE_ENCODING, fep))
+
     job
   }
 
   def getMRAccumuloConnectionParams(conf: Configuration): JMap[String,AnyRef] =
-    Map(
-      zookeepersParam.key -> conf.get(ZOOKEEPERS),
-      instanceIdParam.key -> conf.get(INSTANCE_ID),
-      userParam.key -> conf.get(ACCUMULO_USER),
-      passwordParam.key -> conf.get(ACCUMULO_PASS),
-      tableNameParam.key -> conf.get(TABLE),
-      authsParam.key -> conf.get(AUTHS),
-      featureEncParam.key -> conf.get(FEATURE_ENCODING),
-      mapReduceParam.key -> "true")
+    Map(zookeepersParam.key -> conf.get(ZOOKEEPERS),
+        instanceIdParam.key -> conf.get(INSTANCE_ID),
+        userParam.key -> conf.get(ACCUMULO_USER),
+        passwordParam.key -> conf.get(ACCUMULO_PASS),
+        tableNameParam.key -> conf.get(TABLE),
+        authsParam.key -> conf.get(AUTHS),
+        featureEncParam.key -> conf.get(FEATURE_ENCODING),
+        mapReduceParam.key -> "true")
 }
