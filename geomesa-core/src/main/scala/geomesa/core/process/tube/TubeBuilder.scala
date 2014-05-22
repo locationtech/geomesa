@@ -2,6 +2,7 @@ package geomesa.core.process.tube
 
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
+import geomesa.core.index.Constants
 import geomesa.utils.text.WKTUtils
 import java.util.Date
 import java.util.concurrent.atomic.AtomicInteger
@@ -11,7 +12,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.format.DateTimeFormat
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 
 /**
  * Build a tube for input to a TubeSelect by buffering and binning the input
@@ -24,7 +25,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   private val log = Logger.getLogger(classOf[TubeBuilder])
 
   val calc = new GeodeticCalculator()
-  val dtgField = geomesa.core.data.extractDtgField(tubeFeatures.getSchema)
+  val dtgField = extractDtgField(tubeFeatures.getSchema)
   val geoFac = new GeometryFactory
 
   val GEOM_PROP = "geom"
@@ -59,6 +60,15 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     builder.buildFeature(sf.getID)
   }
 
+  import collection.JavaConversions._
+
+  def extractDtgField(sft: SimpleFeatureType) =
+    sft.getAttributeDescriptors
+      .filter { _.getUserData.contains(Constants.SF_PROPERTY_START_TIME) }
+      .headOption
+      .map { _.getName.toString }
+      .getOrElse(DEFAULT_DTG_FIELD)
+
   // transform the input tubeFeatures into the intermediate SF used by the
   // tubing code consisting of three attributes (geom, startTime, endTime)
   //
@@ -71,6 +81,11 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
         if(sf.getAttribute(dtgField).isInstanceOf[String])
           df.parseDateTime(sf.getAttribute(dtgField).asInstanceOf[String]).toDate
         else sf.getAttribute(dtgField)
+
+      if(date == null) {
+        log.error("Unable to retrieve date field from input tubeFeatures...ensure there a field named " + dtgField)
+        throw new IllegalArgumentException("Unable to retrieve date field from input tubeFeatures...ensure there a field named \"" + dtgField + "\"")
+      }
 
       builder.reset()
       builder.buildFeature(sf.getID, Array(sf.getDefaultGeometry, date, null))

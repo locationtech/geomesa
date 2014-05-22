@@ -15,13 +15,15 @@ import org.junit.runner.RunWith
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import geomesa.core.index.Constants
 
 @RunWith(classOf[JUnitRunner])
 class TubeSelectTest extends Specification {
 
   sequential
 
-  val geotimeAttributes = geomesa.core.index.spec
+  val dtgField = geomesa.core.process.tube.DEFAULT_DTG_FIELD
+  val geotimeAttributes = s"*geom:Geometry:srid=4326,$dtgField:Date"
 
   def createStore: AccumuloDataStore =
   // the specific parameter values should not matter, as we
@@ -42,6 +44,7 @@ class TubeSelectTest extends Specification {
     "should do a simple tube with geo interpolation" in {
       val sftName = "tubeTestType"
       val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
       val ds = createStore
 
@@ -54,7 +57,7 @@ class TubeSelectTest extends Specification {
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
           val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-          sf.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
           sf.setAttribute("type", name)
           sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
           featureCollection.add(sf)
@@ -86,6 +89,8 @@ class TubeSelectTest extends Specification {
     "should do a simple tube with geo + time interpolation" in {
       val sftName = "tubeTestType"
       val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
+
       val ds = createStore
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
@@ -95,9 +100,10 @@ class TubeSelectTest extends Specification {
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
           val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-          sf.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-02T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-02T00:00:00Z", DateTimeZone.UTC).toDate)
           sf.setAttribute("type", name)
           sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+          sf.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
           featureCollection.add(sf)
         }
       }
@@ -127,6 +133,7 @@ class TubeSelectTest extends Specification {
     "should properly convert speed/time to distance" in {
       val sftName = "tubetest2"
       val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
       val ds = createStore
 
@@ -142,7 +149,7 @@ class TubeSelectTest extends Specification {
           val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
           i += 1
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lon%d $lat%d)"))
-          sf.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-02T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-02T00:00:00Z", DateTimeZone.UTC).toDate)
           sf.setAttribute("type", name)
           sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
           featureCollection.add(sf)
@@ -153,7 +160,7 @@ class TubeSelectTest extends Specification {
       val res = fs.addFeatures(featureCollection)
 
       // tube features
-      val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geomesa_index_geometry, 40, 40, 40, 50) AND type = 'a'"))
+      val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geom, 40, 40, 40, 50) AND type = 'a'"))
 
       // result set to tube on
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
@@ -184,7 +191,7 @@ class TubeSelectTest extends Specification {
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
       // tube features
-      val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geomesa_index_geometry, 40, 40, 40, 50) AND type = 'a'"))
+      val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geom, 40, 40, 40, 50) AND type = 'a'"))
 
       // result set to tube on
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
@@ -213,6 +220,7 @@ class TubeSelectTest extends Specification {
     "should handle all geometries" in {
       val sftName = "tubeline"
       val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
       val ds = createStore
 
@@ -225,7 +233,7 @@ class TubeSelectTest extends Specification {
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
           val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT(40 $lat%d)"))
-          sf.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+          sf.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
           sf.setAttribute("type", name)
           sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
           featureCollection.add(sf)
@@ -234,14 +242,14 @@ class TubeSelectTest extends Specification {
 
       val bLine = SimpleFeatureBuilder.build(sft, List(), "b-line")
       bLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
-      bLine.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      bLine.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
       bLine.setAttribute("type", "b")
       bLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       featureCollection.add(bLine)
 
       val bPoly = SimpleFeatureBuilder.build(sft, List(), "b-poly")
       bPoly.setDefaultGeometry(WKTUtils.read("POLYGON((40 40, 41 40, 41 41, 40 41, 40 40))"))
-      bPoly.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      bPoly.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
       bPoly.setAttribute("type", "b")
       bPoly.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       featureCollection.add(bPoly)
@@ -251,8 +259,8 @@ class TubeSelectTest extends Specification {
       // tube features
       val aLine = SimpleFeatureBuilder.build(sft, List(), "a-line")
       aLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
-      aLine.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
-      aLine.setAttribute(geomesa.core.index.SF_PROPERTY_END_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      aLine.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+//      aLine.setAttribute("end", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
       aLine.setAttribute("type", "a")
       aLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       val tubeFeatures = new ListFeatureCollection(sft, List(aLine))
@@ -310,8 +318,8 @@ class TubeSelectTest extends Specification {
       // tube features
       val aLine = SimpleFeatureBuilder.build(sft, List(), "a-line")
       aLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
-      aLine.setAttribute(geomesa.core.index.SF_PROPERTY_START_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
-      aLine.setAttribute(geomesa.core.index.SF_PROPERTY_END_TIME, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      aLine.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+//      aLine.setAttribute("end", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
       aLine.setAttribute("type", "a")
       aLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       val tubeFeatures = new ListFeatureCollection(sft, List(aLine))

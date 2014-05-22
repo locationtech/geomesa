@@ -39,7 +39,7 @@
                                 <ows:Identifier>filter</ows:Identifier>
                                 <wps:Data>
                                     <wps:ComplexData mimeType="text/plain; subtype=cql">
-                                        <![CDATA[BBOX(geomesa_index_geometry, 40.0, 40.0, 40.0, 50.0) AND type='a']]></wps:ComplexData>
+                                        <![CDATA[BBOX(geom, 40.0, 40.0, 40.0, 50.0) AND type='a']]></wps:ComplexData>
                                 </wps:Data>
                             </wps:Input>
                         </wps:DataInputs>

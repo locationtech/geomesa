@@ -15,29 +15,29 @@
           	<ows:Identifier>tubeFeatures</ows:Identifier>
           	<wps:Data>
            		 <wps:ComplexData mimeType="application/json"><![CDATA[
-{
-   "features" : [
-      {
-         "id" : "fakeid",
-         "geometry" : {
-            "coordinates": [
-                [40, 40], [40, 50]
-                ]
-            "type" : "LineString"
-         },
-         "type" : "Feature",
-         "properties" : {
-            "geomesa_index_start_time" : "2014-01-01T00:00:00.000+0000",
-            "type" : "b",
-            "i" : 200
-         }
-      }
-   ],
-   "type" : "FeatureCollection"
-}
-]]></wps:ComplexData>
+                {
+                   "features" : [
+                      {
+                         "id" : "fakeid",
+                         "geometry" : {
+                            "coordinates": [
+                                [40, 40], [40, 50]
+                                ]
+                            "type" : "LineString"
+                         },
+                         "type" : "Feature",
+                         "properties" : {
+                            "dtg" : "2014-01-01T00:00:00.000+0000",
+                         }
+                      }
+                   ],
+                   "type" : "FeatureCollection"
+                }
+            ]]></wps:ComplexData>
           	</wps:Data>
     	</wps:Input>
+
+
         <wps:Input>
             <ows:Identifier>featureCollection</ows:Identifier>
             <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
@@ -54,8 +54,8 @@
             <ows:Identifier>filter</ows:Identifier>
             <wps:Data>
                 <!-- filter based on some attribute 'type' being equal to 'b' -->
-                <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[type <>'a']]></wps:ComplexData>
-            </wps:Data>
+                 <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[type <> 'a']]></wps:ComplexData>
+           </wps:Data>
         </wps:Input>
 
         <wps:Input>
