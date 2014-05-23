@@ -114,7 +114,7 @@
 
                         </wps:DataInputs>
                         <wps:ResponseForm>
-                            <wps:RawDataOutput mimeType="application/json">
+                            <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
                                 <ows:Identifier>result</ows:Identifier>
                             </wps:RawDataOutput>
                         </wps:ResponseForm>
