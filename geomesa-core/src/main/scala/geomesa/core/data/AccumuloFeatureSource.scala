@@ -26,6 +26,7 @@ import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
+import geomesa.core.process.tube.TubeVisitor
 
 trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
   val dataStore: AccumuloDataStore
@@ -87,20 +88,19 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource,
                                 query: Query)
   extends DefaultFeatureResults(source, query) {
 
+  val ds  = source.getDataStore.asInstanceOf[AccumuloDataStore]
+
   override def getSchema: SimpleFeatureType =
     if(query.getHints.containsKey(TRANSFORMS)) query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
     else super.getSchema
 
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener) = visitor match {
     // TODO: implement min/max iterators
-    case v: MinVisitor =>
-      v.setValue(new DateTime(2000,1,1,0,0).toDate)
-    case v: MaxVisitor =>
-      v.setValue(new DateTime().toDate)
-    case v: BoundsVisitor =>
-      val bounds = source.getDataStore.asInstanceOf[AccumuloDataStore].getBounds(query)
-      v.reset(bounds)
-    case _ => super.accepts(visitor, progress)
+    case v: MinVisitor    => v.setValue(new DateTime(2000,1,1,0,0).toDate)
+    case v: MaxVisitor    => v.setValue(new DateTime().toDate)
+    case v: BoundsVisitor => v.reset(ds.getBounds(query))
+    case v: TubeVisitor   => v.setValue(v.tubeSelect(source, query))
+    case _                => super.accepts(visitor, progress)
   }
 
 }

@@ -241,6 +241,8 @@ object AccumuloFeatureStore {
         }
       sftBuilder.setDefaultGeometry(defaultGeom)
     }
-    sftBuilder.buildFeatureType()
+    val schema = sftBuilder.buildFeatureType()
+    schema.getUserData.putAll(origSFT.getUserData)
+    schema
   }
 }
