@@ -100,12 +100,13 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     planQuery(bs, filter)
 
     // if the IndexIterator can be used instead of the IntersectingIterator, do it
-    val theSpatioTemporalIterator = IndexIterator.useIndexOnlyIterator(ecql, query) match{
-      case true => println("IndexIterator") ; IndexIterator
-      case false => SpatioTemporalIntersectingIterator
+    IndexIterator.useIndexOnlyIterator(ecql, query) match{
+      case true => {
+        configureIndexIterator(bs, opoly, oint, query)
+        println("IndexIterator")
+      }
+      case false => configureSpatioTemporalIntersectingIterator(bs, opoly, oint)
     }
-    // Configure the SpatioTemporalIterator
-    configureSpatioTemporalIterator(bs,theSpatioTemporalIterator, opoly, oint)
 
     configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql, query, poly)
 
@@ -128,15 +129,28 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // -- for items that either:
   // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
-  def configureSpatioTemporalIterator(bs: BatchScanner, iteratorObject: IteratorHelpers, poly: Option[Polygon], interval: Option[Interval]) {
-    val iteratorClassName= iteratorObject.getClass.getName.split("\\$").last
+  def configureIndexIterator(bs: BatchScanner,  poly: Option[Polygon],
+                             interval: Option[Interval], query: Query) {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
-      "within-" + randomPrintableString(5),iteratorClassName)
-    iteratorObject.setOptions(
+      "within-" + randomPrintableString(5),classOf[IndexIterator])
+    IndexIterator.setOptions(
       cfg, schema, poly, interval, featureType)
+    configureFeatureEncoding(cfg)
+    IndexIterator.configureTransforms(query,cfg)
     bs.addScanIterator(cfg)
   }
 
+  // returns only the data entries -- no index entries -- for items that either:
+  // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
+  // 2) the DateTime intersects the query interval; this is a coarse-grained filter
+  def configureSpatioTemporalIntersectingIterator(bs: BatchScanner, poly: Option[Polygon], interval: Option[Interval]) {
+    val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
+      "within-" + randomPrintableString(5),
+      classOf[SpatioTemporalIntersectingIterator])
+    SpatioTemporalIntersectingIterator.setOptions(
+      cfg, schema, poly, interval, featureType)
+    bs.addScanIterator(cfg)
+  }
   // assumes that it receives an iterator over data-only entries, and aggregates
   // the values into a map of attribute, value pairs
   def configureSimpleFeatureFilteringIterator(bs: BatchScanner,

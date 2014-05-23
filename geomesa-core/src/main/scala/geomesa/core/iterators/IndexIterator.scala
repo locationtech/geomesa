@@ -30,7 +30,7 @@ import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.apache.hadoop.io.Text
 import org.apache.log4j.Logger
 import org.geotools.data.{Query, DataUtilities}
-import org.geotools.factory.GeoTools
+import org.geotools.factory.{Hints, GeoTools}
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Try
@@ -49,6 +49,9 @@ import java.util
 import com.vividsolutions.jts.geom.util
 import geomesa.core.index
 import org.opengis.feature.`type`.AttributeDescriptor
+import geomesa.core.index.QueryHints._
+import scala.Some
+import scala.collection.mutable
 
 /**
  * This is an Index Only Iterator, to be used in situations where the data records are
@@ -69,13 +72,18 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
   var featureBuilder: SimpleFeatureBuilder = null
   var featureEncoder: SimpleFeatureEncoder = null
 
+  var skipCounter = 0
+
+  var outputAttributes: List[AttributeDescriptor] = null
+
   override def init(source: SortedKeyValueIterator[Key, Value],
            options: java.util.Map[String, String],
            env: IteratorEnvironment) {
     log.debug("Initializing classLoader")
     IndexIterator.initClassLoader(log)
 
-    val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+    val simpleFeatureTypeSpec = options.get(DEFAULT_FEATURE_TYPE)
+
     val simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
 
     // default to text if not found for backwards compatibility
@@ -94,14 +102,22 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     if (options.containsKey(DEFAULT_INTERVAL_PROPERTY_NAME))
       interval = IndexIterator.decodeInterval(
         options.get(DEFAULT_INTERVAL_PROPERTY_NAME))
+
     if (options.containsKey(DEFAULT_CACHE_SIZE_NAME))
       maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
     deduplicate = IndexSchema.mayContainDuplicates(simpleFeatureType)
 
-    this.indexSource = source.deepCopy(env)
-    println("Setting Up IndexIterator")
-  }
+    outputAttributes = IndexIterator.extractOutputAttributes(options.get(GEOMESA_ITERATORS_TRANSFORM_SCHEMA))
 
+    this.indexSource = source.deepCopy(env)
+    //println("Setting Up IndexIterator")
+  }
+  override def skipDataEntries(itr: SortedKeyValueIterator[Key,Value]) {
+    while (itr != null && itr.hasTop && isKeyValueADataEntry(itr.getTopKey, itr.getTopValue)) {
+      skipCounter+=1
+      itr.next()
+    }
+  }
 
   /**
    * Advances the index-iterator to the next qualifying entry
@@ -114,6 +130,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     skipDataEntries(indexSource)
 
     while (indexSource.hasTop && indexSource.getTopKey != null) {
+
       // only consider this index entry if we could fully decode the key
       decodeKey(indexSource.getTopKey).map { decodedKey =>
         curFeature = decodedKey
@@ -131,15 +148,17 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
           // now increment the value of nextKey, copy because reusing it is UNSAFE
           nextKey = new Key(indexSource.getTopKey)
           // using the already decoded index value, generate a SimpleFeature and set as the Value
-          //val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(decodedValue.id, decodedValue.geom, decodedValue.dtgMillis)
-          val nextSimpleFeature = featureBuilder.buildFeature(decodedValue.id)
+          val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(featureBuilder, decodedValue.id, decodedValue.geom, decodedValue.dtgMillis)
+          println("Encoding Value with ID: " + decodedValue.id + " -- " + nextSimpleFeature )
           nextValue = featureEncoder.encode(nextSimpleFeature)
+
         }
       }
       // you MUST advance to the next key
       indexSource.next()
       // skip over any intervening data entries, should they exist
       skipDataEntries(indexSource)
+
     }
   }
   override def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("IndexIterator does not support deepCopy.")
@@ -152,13 +171,36 @@ object IndexIterator extends IteratorHelpers {
    *  Note that the ID, taken from the index, is preserved
    *
    */
-  def encodeIndexValueToSF(id: String, geom: Geometry, dtgMillis: Option[Long]): SimpleFeature = {
+  def encodeIndexValueToSF(featureBuilder: SimpleFeatureBuilder, id: String, geom: Geometry, dtgMillis: Option[Long]): SimpleFeature = {
+    /** Old shit
     val attributeList = dtgMillis match {
       case Some(t) => List( geom, new DateTime(t,DateTimeZone.forID("UTC")))  // FIXME watch the time zone!
       case _ => List( geom )
     }
+    println("Encoding Index Value")
     val newType =   DataUtilities.createType("geomesaidx", spec)
     SimpleFeatureBuilder.build(newType, attributeList, id)
+      * */
+    //val theDescriptors = query.getHints.get(TRANSFORM_SCHEMA).getAttributeDescriptors
+    val theType = featureBuilder.getFeatureType()
+    val dtgFields = dtgInfo(theType)
+    val geomField = theType.getGeometryDescriptor
+
+    val nextSimpleFeature = featureBuilder.buildFeature(id)
+    nextSimpleFeature.setAttribute(geomField.getLocalName, geom)
+    dtgFields.map { dtg => nextSimpleFeature.setAttribute(dtg.getLocalName, dtgMillis)}
+    nextSimpleFeature
+    //nextSimpleFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    //nextSimpleFeature.getUserData.put(Hints.PROVIDED_FID, nextSimpleFeauture.toString)
+  }
+  def configureTransforms(query: Query, cfg: IteratorSetting) = {
+     val transforms = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
+     val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
+     transforms.foreach(SimpleFeatureFilteringIterator.setTransforms(cfg, _, transformSchema))
+  }
+  def extractOutputAttributes(targetSchema: String) = {
+    val targetSFType = DataUtilities.createType(this.getClass.getCanonicalName, targetSchema)
+    targetSFType.getAttributeDescriptors.toList
   }
 
   /**
@@ -191,15 +233,16 @@ object IndexIterator extends IteratorHelpers {
    */
   def isJustIndexAttributes(transformSchema:SimpleFeatureType): Boolean = {
     val theDescriptors = transformSchema.getAttributeDescriptors
-    val dtgField  = dtgInfo(transformSchema)
+    val dtgFields  = dtgInfo(transformSchema)
     val geomField = transformSchema.getGeometryDescriptor
-    theDescriptors.forall {attribute => dtgField.exists(_ == attribute) | (attribute == geomField)}
+    theDescriptors.forall {attribute => dtgFields.exists(_ == attribute) | (attribute == geomField)}
   }
   /**
-   *  Get the attribute descriptors for the (optional) DTG field
+   *  Get the attribute descriptors for the (optional) DTG fields
    */
-  def dtgInfo(sft:SimpleFeatureType): Option[AttributeDescriptor] = {
-    Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map{x => sft.getDescriptor(x.toString)}
+  def dtgInfo(sft:SimpleFeatureType): Iterable[AttributeDescriptor] = {
+    (Option(sft.getUserData.get(SF_PROPERTY_START_TIME)) ++
+      Option(sft.getUserData.get(SF_PROPERTY_END_TIME))).map{x => sft.getDescriptor(x.toString)}
   }
   /**
    *  Checks a schema to see if only the geometry is present. Since the Geometry is not optional, if there is only
@@ -227,8 +270,8 @@ object IndexIterator extends IteratorHelpers {
       case Some(filterAttributeList) => {
         val schemaAttributeList = targetSchema.getAttributeDescriptors.map(_.getLocalName)
         // now check to see if the filter operates on any attributes NOT in the target schema
-        println("schemaAttributes:" + schemaAttributeList)
-        println("filterAttributeList:" + filterAttributeList + " " + ecql_text)
+        //println("schemaAttributes:" + schemaAttributeList)
+        //println("filterAttributeList:" + filterAttributeList + " " + ecql_text)
         filterAttributeList.forall { attribute: String => schemaAttributeList.contains(attribute)}
       }
       case _ => true // null filter that doesn't do anything
