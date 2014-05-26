@@ -46,7 +46,8 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     def createSimpleFeature(id: String, wkt: String, dt: DateTime = null): SimpleFeature = {
       val geomType: String = wkt.split( """\(""").head
       val geometry: Geometry = WKTUtils.read(wkt)
-      val entry = SimpleFeatureBuilder.build(TestData.featureType, List(null, null, null, null, geometry, dt.toDate, dt.toDate), s"|data|$id")
+      val entry = SimpleFeatureBuilder.build(TestData.featureType,
+        List(null, null, null, null, geometry, dt.toDate, dt.toDate), s"|data|$id")
       entry.setAttribute(geomType, id)
       entry.setAttribute("attr2", "2nd" + id)
       entry.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -55,9 +56,9 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     }
 
 
-    def convertToSimpleFeatures(entries: List[TestData.Entry] = TestData.fullData): List[SimpleFeature]= {
+    def convertToSimpleFeatures(entries: List[TestData.Entry] = TestData.fullData): List[SimpleFeature] = {
       entries.map { entry =>
-          createSimpleFeature(entry.id, entry.wkt, entry.dt)
+        createSimpleFeature(entry.id, entry.wkt, entry.dt)
       }
 
     }
@@ -94,13 +95,14 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
       fs
     }
   }
+
   override def runMockAccumuloTest(label: String,
-                          entries: List[TestData.Entry] = TestData.fullData,
-                          ecqlFilter: Option[String] = None,
-                          numExpectedDataIn: Int = 113,
-                          dtFilter: Interval = null,
-                          overrideGeometry: Boolean = false,
-                          doPrint: Boolean = true): Int = {
+                                   entries: List[TestData.Entry] = TestData.fullData,
+                                   ecqlFilter: Option[String] = None,
+                                   numExpectedDataIn: Int = 113,
+                                   dtFilter: Interval = null,
+                                   overrideGeometry: Boolean = false,
+                                   doPrint: Boolean = true): Int = {
 
     // create the query polygon
     val polygon: Polygon = overrideGeometry match {
@@ -109,7 +111,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     }
 
     //create the Feature Source
-    val fs =  IITest.setupMockFeatureSource(entries)
+    val fs = IITest.setupMockFeatureSource(entries)
 
 
     val gf = s"WITHIN(geomesa_index_geometry, ${polygon.toText})"
@@ -124,15 +126,12 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     val tfString = red(red(gf, dt), ecqlFilter)
     val tf = ECQL.toFilter(tfString)
 
-    println("tfString: " + tfString)
 
     // select a few attributes to trigger the IndexIterator
     // Note that since we are re-running all the tests from the IntersectingIteratorTest,
     // some of the tests may actually use the IntersectingIterator
-    //val outputAttributes= Array("geomesa_index_geometry","geomesa_index_start_time","geomesa_index_end_time")
-    val outputAttributes= Array("geomesa_index_geometry","geomesa_index_start_time","geomesa_index_end_time")
+    val outputAttributes = Array("geomesa_index_geometry", "geomesa_index_start_time", "geomesa_index_end_time")
     val q = new Query(TestData.featureType.getTypeName, tf, outputAttributes)
-    //val q = new Query(TestData.featureType.getTypeName, tf)
     val sfCollection = fs.getFeatures(q)
     sfCollection.features().toList.size
   }

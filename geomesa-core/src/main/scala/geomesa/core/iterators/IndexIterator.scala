@@ -59,8 +59,8 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
   var indexAttributes: List[AttributeDescriptor] = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
-           options: java.util.Map[String, String],
-           env: IteratorEnvironment) {
+                    options: java.util.Map[String, String],
+                    env: IteratorEnvironment) {
     log.debug("Initializing classLoader")
     IndexIterator.initClassLoader(log)
 
@@ -94,7 +94,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     this.indexSource = source.deepCopy(env)
   }
 
-   /**
+  /**
    * Generates from the index value a data value that matches the current
    * (top) reference of the index-iterator.
    *
@@ -102,15 +102,17 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
    * converted index value.  This is *IMPORTANT*, as otherwise we do not emit rows
    * that honor the SortedKeyValueIterator expectation, and Bad Things Happen.
    */
-   override def seekData(decodedValue:IndexSchema.DecodedIndexValue) {
+  override def seekData(decodedValue: IndexSchema.DecodedIndexValue) {
     // now increment the value of nextKey, copy because reusing it is UNSAFE
     nextKey = new Key(indexSource.getTopKey)
     // using the already decoded index value, generate a SimpleFeature and set as the Value
-    val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(featureBuilder, decodedValue.id, decodedValue.geom, decodedValue.dtgMillis)
+    val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(featureBuilder, decodedValue.id,
+      decodedValue.geom, decodedValue.dtgMillis)
     nextValue = featureEncoder.encode(nextSimpleFeature)
-   }
+  }
 
-  override def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("IndexIterator does not support deepCopy.")
+  override def deepCopy(env: IteratorEnvironment) =
+    throw new UnsupportedOperationException("IndexIterator does not support deepCopy.")
 }
 
 object IndexIteratorTrigger {
@@ -119,30 +121,34 @@ object IndexIteratorTrigger {
    * used/requested, and thus the IndexIterator can be used
    *
    */
-  def useIndexOnlyIterator(ecqlPredicate:Option[String], query: Query) = {
+  def useIndexOnlyIterator(ecqlPredicate: Option[String], query: Query) = {
     val transformDefs = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
     val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
     (ecqlPredicate, transformDefs, transformSchema) match {
-      case (Some(ep), Some(td), Some(ts)) => isTransformToIndexOnly(td, ts) & filterOnIndexAttributes(ep,indexSFT)
+      case (Some(ep), Some(td), Some(ts)) => isTransformToIndexOnly(td, ts) & filterOnIndexAttributes(ep, indexSFT)
       case (None, Some(td), Some(ts)) => isTransformToIndexOnly(td, ts)
       case _ => false
     }
   }
 
   /**
-   *  Checks the transform for mapping to the index attributes: geometry and optionally time
+   * Checks the transform for mapping to the index attributes: geometry and optionally time
    */
-  def isTransformToIndexOnly(transformDefs: String, transformSchema: SimpleFeatureType ):Boolean = {
-    isJustIndexAttributes(transformSchema,indexSFT) && // transform contains just index attributes
+  def isTransformToIndexOnly(transformDefs: String, transformSchema: SimpleFeatureType): Boolean = {
+    isJustIndexAttributes(transformSchema, indexSFT) && // transform contains just index attributes
       isIdentityTransformation(transformDefs) // the variables for the target schema are taken straight from the index
   }
 
   /**
-   *  Checks to see if the transform schema references only variables present in the index schema
+   * Checks to see if the transform schema references only variables present in the index schema
    */
-  def isJustIndexAttributes(transformSchema:SimpleFeatureType, indexSchema: SimpleFeatureType): Boolean = {
-    val transformDescriptorNames = transformSchema.getAttributeDescriptors.map{_.getLocalName}
-    val indexDescriptorNames = indexSchema.getAttributeDescriptors.map{_.getLocalName}
+  def isJustIndexAttributes(transformSchema: SimpleFeatureType, indexSchema: SimpleFeatureType): Boolean = {
+    val transformDescriptorNames = transformSchema.getAttributeDescriptors.map {
+      _.getLocalName
+    }
+    val indexDescriptorNames = indexSchema.getAttributeDescriptors.map {
+      _.getLocalName
+    }
     // while matching descriptors themselves are not always equal, their names are
     indexDescriptorNames.containsAll(transformDescriptorNames)
   }
@@ -150,17 +156,17 @@ object IndexIteratorTrigger {
   /**
    * Tests if a transform simply selects attributes, with no scaling or renaming
    */
-  def isIdentityTransformation(transformDefs:String) = {
+  def isIdentityTransformation(transformDefs: String) = {
     // convert to a transform
     val theDefinitions = TransformProcess.toDefinition(transformDefs)
     // check that, for each definition, the name and expression match
-    theDefinitions.forall( aDef => aDef.name == aDef.expression.toString  )
+    theDefinitions.forall(aDef => aDef.name == aDef.expression.toString)
   }
 
   /**
    * Tests if the filter is applied to only attributes found in the target schema
    */
-  def filterOnIndexAttributes(ecql_text: String, targetSchema: SimpleFeatureType):Boolean = {
+  def filterOnIndexAttributes(ecql_text: String, targetSchema: SimpleFeatureType): Boolean = {
     // convert the ECQL to a filter, then visit that filter to get the attributes
     Option(ECQL.toFilter(ecql_text)
       .accept(new FilterAttributeExtractor, null).asInstanceOf[java.util.HashSet[String]]) match {
@@ -173,17 +179,16 @@ object IndexIteratorTrigger {
 }
 
 
-
-
 object IndexIterator extends IteratorHelpers {
 
   /**
-   *  Converts values taken from the Index Value to a SimpleFeature, using the default SimpleFeatureType
-   *  Note that the ID, taken from the index, is preserved
-   *  Also note that the requested attributes are not parsed and are instead left as null;
-   *  the SimpleFeatureFilteringIterator will remove the extraneous attributes later in the Iterator stack
+   * Converts values taken from the Index Value to a SimpleFeature, using the default SimpleFeatureType
+   * Note that the ID, taken from the index, is preserved
+   * Also note that the requested attributes are not parsed and are instead left as null;
+   * the SimpleFeatureFilteringIterator will remove the extraneous attributes later in the Iterator stack
    */
-  def encodeIndexValueToSF(featureBuilder: SimpleFeatureBuilder, id: String, geom: Geometry, dtgMillis: Option[Long]): SimpleFeature = {
+  def encodeIndexValueToSF(featureBuilder: SimpleFeatureBuilder, id: String,
+                           geom: Geometry, dtgMillis: Option[Long]): SimpleFeature = {
     val theType = featureBuilder.getFeatureType
     val theIndexDescriptorNames = indexSFT.getAttributeDescriptors.map(_.getLocalName)
     val geomField = theType.getGeometryDescriptor
@@ -193,7 +198,7 @@ object IndexIterator extends IteratorHelpers {
     // add the geometry field
     nextSimpleFeature.setAttribute(geomField.getLocalName, geom)
     // add the optional time fields.
-    dtgMillis.map{time => dtgFieldNames.map { name => nextSimpleFeature.setAttribute(name, new Date(time))} }
+    dtgMillis.map { time => dtgFieldNames.map { name => nextSimpleFeature.setAttribute(name, new Date(time))}}
     nextSimpleFeature
   }
 
@@ -201,9 +206,9 @@ object IndexIterator extends IteratorHelpers {
    * Given a Query, set the relevant transform parameters in an iterator's configuration
    */
   def configureTransforms(query: Query, cfg: IteratorSetting) = {
-     val transforms = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
-     val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
-     transforms.foreach(SimpleFeatureFilteringIterator.setTransforms(cfg, _, transformSchema))
+    val transforms = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
+    val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
+    transforms.foreach(SimpleFeatureFilteringIterator.setTransforms(cfg, _, transformSchema))
   }
 
   /**
