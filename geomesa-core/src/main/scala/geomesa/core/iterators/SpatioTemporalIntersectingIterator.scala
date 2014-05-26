@@ -231,7 +231,7 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
           rememberId(decodedValue.id)
 
           // advance the data-iterator to its corresponding match
-          seekData(decodedValue.id)
+          seekData(decodedValue)
         }
       }
 
@@ -251,7 +251,8 @@ class SpatioTemporalIntersectingIterator extends SortedKeyValueIterator[Key, Val
    * data-iterator.  This is *IMPORTANT*, as otherwise we do not emit rows
    * that honor the SortedKeyValueIterator expectation, and Bad Things Happen.
    */
-  def seekData(nextId:String) {
+  def seekData(indexValue:IndexSchema.DecodedIndexValue) {
+    val nextId = indexValue.id
     curId = new Text(nextId)
     val indexSourceTopKey = indexSource.getTopKey
 

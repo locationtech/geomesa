@@ -17,24 +17,22 @@
 package geomesa.core.iterators
 
 
+import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
+import geomesa.core.data._
+import geomesa.core.index._
 import geomesa.utils.text.WKTUtils
+import java.util.Date
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-
 import org.geotools.data.{Query, DataUtilities}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import geomesa.core.data._
-import geomesa.core.data.SimpleFeatureEncoder
-import geomesa.core.index._
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import collection.JavaConversions._
-import org.geotools.process.vector.TransformProcess
-import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.FilterAttributeExtractor
-import java.util.Date
+import org.geotools.filter.text.ecql.ECQL
+import org.geotools.process.vector.TransformProcess
 import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.Some
 
 
@@ -51,13 +49,10 @@ import scala.Some
  */
 class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyValueIterator[Key, Value] {
 
-  import IndexEntry._
   import geomesa.core._
 
   var featureBuilder: SimpleFeatureBuilder = null
   var featureEncoder: SimpleFeatureEncoder = null
-
-  var skipCounter = 0
 
   var outputAttributes: List[AttributeDescriptor] = null
 
@@ -98,52 +93,23 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
     this.indexSource = source.deepCopy(env)
   }
-  override def skipDataEntries(itr: SortedKeyValueIterator[Key,Value]) {
-    while (itr != null && itr.hasTop && isKeyValueADataEntry(itr.getTopKey, itr.getTopValue)) {
-      skipCounter+=1
-      itr.next()
-    }
-  }
 
-  /**
-   * Advances the index-iterator to the next qualifying entry
+   /**
+   * Generates from the index value a data value that matches the current
+   * (top) reference of the index-iterator.
+   *
+   * We emit the top-key from the index-iterator, and the top-value from the
+   * converted index value.  This is *IMPORTANT*, as otherwise we do not emit rows
+   * that honor the SortedKeyValueIterator expectation, and Bad Things Happen.
    */
-  override def findTop() {
-    // clear out the reference to the next entry
-    nextKey = null
-    nextValue = null
-    // be sure to start on an index entry
-    skipDataEntries(indexSource)
+   override def seekData(decodedValue:IndexSchema.DecodedIndexValue) {
+    // now increment the value of nextKey, copy because reusing it is UNSAFE
+    nextKey = new Key(indexSource.getTopKey)
+    // using the already decoded index value, generate a SimpleFeature and set as the Value
+    val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(featureBuilder, decodedValue.id, decodedValue.geom, decodedValue.dtgMillis)
+    nextValue = featureEncoder.encode(nextSimpleFeature)
+   }
 
-    while (nextValue == null && indexSource.hasTop && indexSource.getTopKey != null) {
-
-      // only consider this index entry if we could fully decode the key
-      decodeKey(indexSource.getTopKey).map { decodedKey =>
-        curFeature = decodedKey
-        // the value contains the full-resolution geometry and time; use them
-        lazy val decodedValue = IndexSchema.decodeIndexValue(indexSource.getTopValue)
-        lazy val isGeomAcceptable: Boolean = wrappedGeomFilter(decodedKey.gh, decodedValue.geom)
-        lazy val isDateTimeAcceptable: Boolean = wrappedTimeFilter(decodedValue.dtgMillis)
-
-        // see whether this box is acceptable
-        // (the tests are ordered from fastest to slowest to take advantage of
-        // short-circuit evaluation)
-        if (isIdUnique(decodedValue.id) && isDateTimeAcceptable && isGeomAcceptable) {
-          // stash this ID
-          rememberId(decodedValue.id)
-          // now increment the value of nextKey, copy because reusing it is UNSAFE
-          nextKey = new Key(indexSource.getTopKey)
-          // using the already decoded index value, generate a SimpleFeature and set as the Value
-          val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(featureBuilder, decodedValue.id, decodedValue.geom, decodedValue.dtgMillis)
-          nextValue = featureEncoder.encode(nextSimpleFeature)
-        }
-      }
-      // you MUST advance to the next key
-      indexSource.next()
-      // skip over any intervening data entries, should they exist
-      skipDataEntries(indexSource)
-    }
-  }
   override def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("IndexIterator does not support deepCopy.")
 }
 
@@ -163,18 +129,16 @@ object IndexIteratorTrigger {
     }
   }
 
-
   /**
    *  Checks the transform for mapping to the index attributes: geometry and optionally time
    */
   def isTransformToIndexOnly(transformDefs: String, transformSchema: SimpleFeatureType ):Boolean = {
-    (isJustIndexAttributes(transformSchema,indexSFT)  // just index attributes
-      | isJustGeo(transformSchema)) &&   // OR, just contains the geometry, AND
+    isJustIndexAttributes(transformSchema,indexSFT) && // transform contains just index attributes
       isIdentityTransformation(transformDefs) // the variables for the target schema are taken straight from the index
   }
 
   /**
-   *
+   *  Checks to see if the transform schema references only variables present in the index schema
    */
   def isJustIndexAttributes(transformSchema:SimpleFeatureType, indexSchema: SimpleFeatureType): Boolean = {
     val transformDescriptorNames = transformSchema.getAttributeDescriptors.map{_.getLocalName}
@@ -182,18 +146,6 @@ object IndexIteratorTrigger {
     // while matching descriptors themselves are not always equal, their names are
     indexDescriptorNames.containsAll(transformDescriptorNames)
   }
-  /**
-   *  Get the attribute descriptors for the (optional) DTG fields
-   */
-  def dtgInfo(sft:SimpleFeatureType): Iterable[AttributeDescriptor] = {
-    (Option(sft.getUserData.get(SF_PROPERTY_START_TIME)) ++
-      Option(sft.getUserData.get(SF_PROPERTY_END_TIME))).map{x => sft.getDescriptor(x.toString)}
-  }
-  /**
-   *  Checks a schema to see if only the geometry is present. Since the Geometry is not optional, if there is only
-   *  one attribute, then only the geometry is present
-   */
-  def isJustGeo(transformSchema:SimpleFeatureType):Boolean = transformSchema.getAttributeCount == 1
 
   /**
    * Tests if a transform simply selects attributes, with no scaling or renaming
@@ -206,7 +158,7 @@ object IndexIteratorTrigger {
   }
 
   /**
-   * Tests if the filter is applied to only attributes found in the indexSFT schema
+   * Tests if the filter is applied to only attributes found in the target schema
    */
   def filterOnIndexAttributes(ecql_text: String, targetSchema: SimpleFeatureType):Boolean = {
     // convert the ECQL to a filter, then visit that filter to get the attributes
@@ -214,8 +166,7 @@ object IndexIteratorTrigger {
       .accept(new FilterAttributeExtractor, null).asInstanceOf[java.util.HashSet[String]]) match {
       case Some(filterAttributeList) =>
         val schemaAttributeList = targetSchema.getAttributeDescriptors.map(_.getLocalName).toSet
-        filterAttributeList.intersect(schemaAttributeList) == filterAttributeList
-
+        schemaAttributeList.containsAll(filterAttributeList)
       case _ => true // null filter that doesn't do anything
     }
   }
@@ -237,20 +188,17 @@ object IndexIterator extends IteratorHelpers {
     val theIndexDescriptorNames = indexSFT.getAttributeDescriptors.map(_.getLocalName)
     val geomField = theType.getGeometryDescriptor
     val dtgFieldNames = theIndexDescriptorNames.filter(_ != geomField.getLocalName)
-
     // build the feature using the ID extracted from the index
     val nextSimpleFeature = featureBuilder.buildFeature(id)
     // add the geometry field
     nextSimpleFeature.setAttribute(geomField.getLocalName, geom)
     // add the optional time fields.
     dtgMillis.map{time => dtgFieldNames.map { name => nextSimpleFeature.setAttribute(name, new Date(time))} }
-    //nextSimpleFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-    //nextSimpleFeature.getUserData.put(Hints.PROVIDED_FID, nextSimpleFeauture.toString)
     nextSimpleFeature
   }
 
   /**
-   * Given a Query, set the relevent transform parameters in an iterator's configuration
+   * Given a Query, set the relevant transform parameters in an iterator's configuration
    */
   def configureTransforms(query: Query, cfg: IteratorSetting) = {
      val transforms = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])

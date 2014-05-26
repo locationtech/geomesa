@@ -100,11 +100,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     planQuery(bs, filter)
 
     // if the IndexIterator can be used instead of the IntersectingIterator, do it
-    IndexIteratorTrigger.useIndexOnlyIterator(ecql, query) match{
-      case true => {
-        configureIndexIterator(bs, opoly, oint, query)
-        println("IndexIterator")
-      }
+    IndexIteratorTrigger.useIndexOnlyIterator(ecql, query) match {
+      case true  => configureIndexIterator(bs, opoly, oint, query)
       case false => configureSpatioTemporalIntersectingIterator(bs, opoly, oint)
     }
 

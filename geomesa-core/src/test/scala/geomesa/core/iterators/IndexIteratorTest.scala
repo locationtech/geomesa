@@ -18,29 +18,26 @@ package geomesa.core.iterators
 
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Polygon, Geometry}
-
 import geomesa.core.data._
 import geomesa.core.index._
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
-
-import org.geotools.data.{Query, DataUtilities}
-
-import org.joda.time.{Interval, DateTime}
-import org.junit.runner.RunWith
-
-import org.opengis.feature.simple.SimpleFeature
-
-import org.specs2.runner.JUnitRunner
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.geotools.data.simple.SimpleFeatureStore
+import org.geotools.data.{Query, DataUtilities}
+import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.data.simple.SimpleFeatureStore
+import org.joda.time.{Interval, DateTime}
+import org.junit.runner.RunWith
+import org.opengis.feature.simple.SimpleFeature
+import org.specs2.runner.JUnitRunner
 import scala.Some
-import org.geotools.factory.Hints
+
 
 @RunWith(classOf[JUnitRunner])
 class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
+
   import geomesa.utils.geotools.Conversions._
 
   object IITest {
