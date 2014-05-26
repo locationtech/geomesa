@@ -18,6 +18,7 @@ package geomesa.core.iterators
 
 
 import collection.JavaConversions._
+import com.typesafe.scalalogging.slf4j.{Logger, Logging}
 import com.vividsolutions.jts.geom._
 import geomesa.core.data._
 import geomesa.core.index._
@@ -61,8 +62,8 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment) {
-    log.debug("Initializing classLoader")
-    IndexIterator.initClassLoader(log)
+    logger.trace("Initializing classLoader")
+    IndexIterator.initClassLoader(logger)
 
     val simpleFeatureTypeSpec = options.get(DEFAULT_FEATURE_TYPE)
 
