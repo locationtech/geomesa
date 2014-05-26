@@ -19,6 +19,7 @@ package geomesa.utils.geohash
 import collection.BitSet
 import collection.immutable.Range.Inclusive
 import collection.mutable.{HashSet => MutableHashSet}
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import geomesa.utils.text.WKTUtils
 import scala.util.control.Exception.catching
@@ -30,9 +31,11 @@ import scala.util.control.Exception.catching
  * GeoHashes; enumerating possible sub-strings within subordinate GeoHashes
  * for a given polygon; etc.
  */
-object GeohashUtils extends GeomDistance {
-  // make sure the implicits related to distance are in-scope
+object GeohashUtils
+  extends GeomDistance
+  with Logging {
 
+  // make sure the implicits related to distance are in-scope
   import Distance._
 
   // the list of allowable GeoHash characters
@@ -82,25 +85,17 @@ object GeohashUtils extends GeomDistance {
 
   /**
    * Brute-force way to convert a GeoHash to WKT, typically on the way to reading
-   * this as a geometry, but sometimes used for output (for visualization in
+   * convert a GeoHash to WKT, sometimes used for output (for visualization in
    * Quantum GIS, for example).
    *
    * @param gh the GeoHash -- rectangle -- to convert
    * @return the WKT representation of this GeoHash (cell)
    */
-  def getGeohashWKT(gh:GeoHash) : String = {
-    val bbox = gh.bbox
-    val y0 = bbox.ll.getY
-    val y1 = bbox.ur.getY
-    val x0 = bbox.ll.getX
-    val x1 = bbox.ur.getX
-
-    "POLYGON((" + x0 + " " + y0 + "," + x0 + " " + y1 + "," + x1 + " " + y1 + "," + x1 + " " + y0 + "," + x0 + " " + y0 + "))"
-  }
+  def getGeohashWKT(gh:GeoHash): String = WKTUtils.write(gh)
 
   // default precision model
   val maxRealisticGeoHashPrecision : Int = 45
-  val numDistinctGridPoints : Long = 1L << ((maxRealisticGeoHashPrecision+1)/2).toLong
+  val numDistinctGridPoints: Long = 1L << ((maxRealisticGeoHashPrecision+1)/2).toLong
   val defaultPrecisionModel = new PrecisionModel(numDistinctGridPoints.toDouble)
 
   // default factory for WGS84
@@ -157,7 +152,7 @@ object GeohashUtils extends GeomDistance {
    */
   def getGeohashAreaSquareMeters(gh:GeoHash) : Double = {
     // extract key points from this GeoHash
-    val (ll, cl, ul, ur, cr, lr) = getGeohashPoints(gh)
+    val (ll, cl, ul, _, cr, _) = getGeohashPoints(gh)
 
     val dx : Double = VincentyModel.getDistanceBetweenTwoPoints(cl, cr)  // measured at the center-latitude of the GeoHash
     val dy : Double = VincentyModel.getDistanceBetweenTwoPoints(ll, ul)  // constant at any longitude within a single GeoHash
@@ -237,12 +232,12 @@ object GeohashUtils extends GeomDistance {
     val (_, ghOpt) = resolutions.foldRight((resolutions.minBitsResolution, Option.empty[GeoHash])){
       case (bits, orig@(res, _)) =>
         val gh = GeoHash(centroid.getX, centroid.getY, bits)
-        if (getGeohashGeom(gh).contains(env) && bits >= res) (bits, Some(gh)) else orig
+        if (gh.contains(env) && bits >= res) (bits, Some(gh)) else orig
     }
 
     // validate that you found a usable result
     val gh = ghOpt.getOrElse(GeoHash(centroid.getX, centroid.getY, resolutions.minBitsResolution))
-    if (!getGeohashGeom(gh).contains(env))
+    if (!gh.contains(env))
       throw new Exception("ERROR:  Could not find a suitable " +
         resolutions.minBitsResolution + "-bit MBR for the target geometry:  " +
         geom)
@@ -338,7 +333,7 @@ object GeohashUtils extends GeomDistance {
       val ghMBR = getMinimumBoundingGeohash(geom, resolutions)
 
       // compute the ratio of the area of the target geometry to its MBR
-      val areaMBR = getGeohashGeom(ghMBR).getArea
+      val areaMBR = ghMBR.getArea
       val areaGeom = geomCatcher.opt { geom.getArea }.getOrElse(0.0)
       val pMBRGeom = areaGeom / areaMBR
 
@@ -383,26 +378,26 @@ object GeohashUtils extends GeomDistance {
    * @param gh the associated GeoHash cell
    * @param targetGeom the geometry being decomposed
    */
-  abstract class DecompositionCandidate(val gh:GeoHash, val targetGeom:Geometry,
-                                        val targetArea:Double, val resolutions:ResolutionRange) {
+  abstract class DecompositionCandidate(val gh:GeoHash,
+                                        val targetGeom:Geometry,
+                                        val targetArea:Double,
+                                        val resolutions:ResolutionRange) {
 
     lazy val geomCatcher = catching(classOf[Exception])
-    lazy val geom : Geometry = getGeohashGeom(gh)
-    lazy val area : Double = geomCatcher.opt{ geom.getArea }.getOrElse(0.0)
-    val areaOutside : Double
-    lazy val areaInside : Double = area - areaOutside
-    lazy val resolution : Int = gh.prec
-    lazy val isResolutionOk : Boolean =
-      resolution >= resolutions.minBitsResolution &&
-        resolution <= resolutions.maxBitsResolution
+    lazy val area: Double = geomCatcher.opt{ gh.getArea }.getOrElse(0.0)
+    val areaOutside: Double
+    lazy val areaInside: Double = area - areaOutside
+    lazy val resolution: Int = gh.prec
+    lazy val isResolutionOk: Boolean =
+      resolution >= resolutions.minBitsResolution && resolution <= resolutions.maxBitsResolution
 
-    lazy val intersectsTarget : Boolean =
-      geomCatcher.opt { geom.intersects(targetGeom) }.getOrElse(false)
-    lazy val intersection : Geometry =
-      geomCatcher.opt { geom.intersection(targetGeom) }.getOrElse(emptyGeometry)
-    lazy val intersectionArea : Double =
-      geomCatcher.opt { geom.intersection(targetGeom).getArea }.getOrElse(0.0)
-    def isLT(than:DecompositionCandidate) : Boolean = {
+    lazy val intersectsTarget: Boolean =
+      geomCatcher.opt { gh.intersects(targetGeom) }.getOrElse(false)
+    lazy val intersection: Geometry =
+      geomCatcher.opt { gh.intersection(targetGeom) }.getOrElse(emptyGeometry)
+    lazy val intersectionArea: Double =
+      geomCatcher.opt { gh.intersection(targetGeom).getArea }.getOrElse(0.0)
+    def isLT(than:DecompositionCandidate): Boolean = {
       if (areaOutside > than.areaOutside) true
       else {
         if (areaOutside == than.areaOutside) area < than.area
@@ -411,17 +406,27 @@ object GeohashUtils extends GeomDistance {
     }
   }
 
-  class PointDecompositionCandidate(gh:GeoHash, targetGeom:Point, targetArea:Double, resolutions:ResolutionRange) extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+  class PointDecompositionCandidate(gh:GeoHash,
+                                    targetGeom:Point,
+                                    targetArea:Double,
+                                    resolutions:ResolutionRange)
+    extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+
     /**
      * If the GeoHash does not contain the point, then the entire cell's area is
      * outside of the target.  If the GeoHash does contain the point, then be
      * careful:  Only some fraction of the cell's area should count as overage
      * (otherwise, we can't favor smaller GeoHash cells in the decomposer).
      */
-    override lazy val areaOutside : Double = area * (if (intersectsTarget) 0.75 else 1.0)
+    override lazy val areaOutside: Double = area * (if (intersectsTarget) 0.75 else 1.0)
   }
 
-  class LineDecompositionCandidate(gh:GeoHash, targetGeom:MultiLineString, targetArea:Double, resolutions:ResolutionRange) extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+  class LineDecompositionCandidate(gh:GeoHash,
+                                   targetGeom:MultiLineString,
+                                   targetArea:Double,
+                                   resolutions:ResolutionRange)
+    extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+
     /**
      * If the GeoHash intersects the target lines, then the overlap is the
      * area of the GeoHash cell less the length of the intersection.  Otherwise,
@@ -431,31 +436,29 @@ object GeohashUtils extends GeomDistance {
      * 1.  the longer a segment intersects, the smaller the area outside will be;
      * 2.  the smaller a GeoHash cell, the smaller the area outside will be
      */
-    override lazy val areaOutside : Double = {
-      if (intersectsTarget) {
-        area * (1.0 - intersection.getLength / targetArea)
-      } else {
-        area
-      }
-    }
+    override lazy val areaOutside : Double =
+      if (intersectsTarget) area * (1.0 - intersection.getLength / targetArea)
+      else area
   }
 
-  class PolygonDecompositionCandidate(gh:GeoHash, targetGeom:MultiPolygon, targetArea:Double, resolutions:ResolutionRange) extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+  class PolygonDecompositionCandidate(gh:GeoHash,
+                                      targetGeom:MultiPolygon,
+                                      targetArea:Double,
+                                      resolutions:ResolutionRange)
+    extends DecompositionCandidate(gh, targetGeom, targetArea, resolutions) {
+
     /**
      * If the GeoHash intersects the target polygon, then the overlap is the
      * area of the GeoHash cell less the area of the intersection.  Otherwise,
      * they are disjoint, and the overlap is the entire area of the GeoHash cell.
      */
-    override lazy val areaOutside : Double = {
-      if (intersectsTarget) {
-        area - intersection.getArea
-      } else {
-        area
-      }
-    }
+    override lazy val areaOutside : Double =
+      if (intersectsTarget) area - intersection.getArea
+      else area
   }
 
-  def decompositionCandidateSorter(a:DecompositionCandidate, b:DecompositionCandidate) : Boolean = a.isLT(b)
+  def decompositionCandidateSorter(a:DecompositionCandidate,
+                                   b:DecompositionCandidate): Boolean = a.isLT(b)
 
   /**
    * Decomposes the given polygon into a collection of disjoint GeoHash cells
@@ -475,28 +478,34 @@ object GeohashUtils extends GeomDistance {
    */
   private def decomposeGeometry_(targetGeom: Geometry,
                                  maxSize: Int = 100,
-                                 resolutions: ResolutionRange = new ResolutionRange(5,40,5)) : List[GeoHash] = {
+                                 resolutions: ResolutionRange = new ResolutionRange(5,40,5)): List[GeoHash] = {
     lazy val geomCatcher = catching(classOf[Exception])
     val targetArea : Double = geomCatcher.opt { targetGeom.getArea }.getOrElse(0.0)
     val targetLength : Double = geomCatcher.opt { targetGeom.getLength }.getOrElse(0.0)
 
     // qua factory
-    def createDecompositionCandidate(gh:GeoHash) : DecompositionCandidate = {
+    def createDecompositionCandidate(gh: GeoHash): DecompositionCandidate = {
       // simple switch based on the geometry type
       targetGeom match {
-        case multipoly:MultiPolygon => new PolygonDecompositionCandidate(gh, multipoly, targetArea, resolutions)
-        case polygon:Polygon => new PolygonDecompositionCandidate(
-          gh, new MultiPolygon(Array(polygon), polygon.getFactory), targetArea, resolutions)
-        case line:LineString => new LineDecompositionCandidate(  // promote to a multi-line string of one element
-          gh, new MultiLineString(Array(line), line.getFactory), targetLength, resolutions)
-        case multiLine:MultiLineString => new LineDecompositionCandidate(gh, multiLine, targetLength, resolutions)
-        case point:Point => new PointDecompositionCandidate(gh, point, targetArea, resolutions)  // should never be called, but it works
-        case _ => throw new Exception("Unsupported Geometry type for decomposition:  " + targetGeom.getClass.getName)
+        case multipoly: MultiPolygon    =>
+          new PolygonDecompositionCandidate(gh, multipoly, targetArea, resolutions)
+        case polygon: Polygon           =>
+          new PolygonDecompositionCandidate(
+            gh, new MultiPolygon(Array(polygon), polygon.getFactory), targetArea, resolutions)
+        case line: LineString           =>
+          new LineDecompositionCandidate(  // promote to a multi-line string of one element
+            gh, new MultiLineString(Array(line), line.getFactory), targetLength, resolutions)
+        case multiLine: MultiLineString =>
+          new LineDecompositionCandidate(gh, multiLine, targetLength, resolutions)
+        case point: Point               =>
+          new PointDecompositionCandidate(gh, point, targetArea, resolutions)  // should never be called, but it works
+        case _                          =>
+          throw new Exception(s"Unsupported Geometry type for decomposition:  ${targetGeom.getClass.getName}")
       }
     }
 
     // recursive routine that will do the actual decomposition
-    def decomposeStep(candidates:List[DecompositionCandidate]) : (List[DecompositionCandidate]) = {
+    def decomposeStep(candidates: List[DecompositionCandidate]): List[DecompositionCandidate] = {
       // complain, if needed
       if (candidates.size > maxSize) throw new Exception("Too many candidates upon entry.")
       else {
@@ -518,8 +527,7 @@ object GeohashUtils extends GeomDistance {
         // recurse, if appropriate
         if ((newCandidates.size <= maxSize) && (childResolution <= resolutions.maxBitsResolution)) {
           decomposeStep(newCandidates)
-        }
-        else candidates
+        } else candidates
       }
     }
 
@@ -564,7 +572,7 @@ object GeohashUtils extends GeomDistance {
    *
    * This method does not account for any specific latitude!
    */
-  def estimateGeometryGeohashPrecision(geometry:Geometry) : Int = {
+  def estimateGeometryGeohashPrecision(geometry: Geometry): Int = {
     if (geometry == null) 0
     else {
       // compute the span (in degrees) of this geometry
@@ -589,14 +597,14 @@ object GeohashUtils extends GeomDistance {
    * @return the most likely GeoHash that is represented by the given geometry
    */
   def reconstructGeohashFromGeometry(geometry: Geometry): GeoHash = geometry match {
-    case null => throw new Exception("Invalid geometry")
+    case null => throw new Exception("Invalid geometry:  null")
     case _ if "Point".equals(geometry.getGeometryType) => GeoHash(geometry.asInstanceOf[Point], maxRealisticGeoHashPrecision)
     case _ if geometry.isRectangle => GeoHash(geometry.getCentroid, estimateGeometryGeohashPrecision(geometry))
     case m: MultiPolygon =>
       if(m.getNumGeometries != 1) throw new Exception("Expected simple geometry")
       else if(!m.getGeometryN(0).isRectangle) throw new Exception("Expected rectangular geometry")
       else GeoHash(m.getGeometryN(0).getCentroid, estimateGeometryGeohashPrecision(m.getGeometryN(0)))
-    case _ => throw new Exception("Invalid geometry")
+    case _ => throw new Exception(s"Invalid geometry:  $geometry")
   }
 
   /**

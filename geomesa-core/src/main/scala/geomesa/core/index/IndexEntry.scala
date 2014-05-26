@@ -1,11 +1,13 @@
 package geomesa.core.index
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
-import geomesa.core.data.SimpleFeatureEncoder
 import geomesa.core.data.DATA_CQ
-import geomesa.utils.geohash.GeohashUtils
+import geomesa.core.data.SimpleFeatureEncoder
+import geomesa.utils.geohash.{GeoHash, GeohashUtils}
 import org.apache.accumulo.core.data.{Value, Key}
 import org.apache.hadoop.io.Text
+import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.DateTime
 import org.opengis.feature.simple.SimpleFeature
@@ -19,10 +21,11 @@ object IndexEntry {
     lazy val dtgEndField = userData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
 
     lazy val sid = sf.getID
-    lazy val gh = GeohashUtils.reconstructGeohashFromGeometry(geometry)
-    def geometry = sf.getDefaultGeometry.asInstanceOf[Geometry]
-    def setGeometry(geometry: Geometry) {
-      sf.setDefaultGeometry(geometry)
+    lazy val gh: GeoHash = GeohashUtils.reconstructGeohashFromGeometry(geometry)
+    def geometry = sf.getDefaultGeometry match {
+      case geo: Geometry => geo
+      case other =>
+        throw new Exception(s"Default geometry must be Geometry: '$other' of type '${Option(other).map(_.getClass).orNull}'")
     }
 
     private def getTime(attr: String) = sf.getAttribute(attr).asInstanceOf[java.util.Date]
@@ -31,7 +34,7 @@ object IndexEntry {
     lazy val dt   = Option(startTime).map { d => new DateTime(d) }
 
     private def setTime(attr: String, time: DateTime) =
-      sf.setAttribute(attr, if (time == null) null else time.toDate)
+      sf.setAttribute(attr, Option(time).map(_.toDate).orNull)
 
     def setStartTime(time: DateTime) = setTime(dtgStartField, time)
     def setEndTime(time: DateTime)   = setTime(dtgEndField, time)
@@ -42,7 +45,8 @@ object IndexEntry {
 case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
                         cff: TextFormatter[SimpleFeature],
                         cqf: TextFormatter[SimpleFeature],
-                        featureEncoder: SimpleFeatureEncoder) {
+                        featureEncoder: SimpleFeatureEncoder) 
+  extends Logging {
 
   import GeohashUtils._
   import IndexEntry._
@@ -56,18 +60,33 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
   // the maximum number of sub-units into which a geometry may be decomposed
   lazy val maximumDecompositions: Int = 5
 
-  def encode(entryToEncode: SimpleFeature): List[KeyValuePair] = {
+  def encode(featureToEncode: SimpleFeature): List[KeyValuePair] = {
+
+    logger.trace(s"encoding feature: $featureToEncode")
+
     // decompose non-point geometries into multiple index entries
     // (a point will return a single GeoHash at the maximum allowable resolution)
     val geohashes =
-      decomposeGeometry(entryToEncode.geometry, maximumDecompositions, decomposableResolutions)
+      decomposeGeometry(featureToEncode.geometry, maximumDecompositions, decomposableResolutions)
+
+    logger.trace(s"decomposed geohashes: ${geohashes.map(_.hash).mkString(",")})}")
+
+    val origFeatureType = featureToEncode.getType
+    val origFeatureTypeSpec = DataUtilities.encodeType(origFeatureType)
+    val decompFeatureTypeSpec = origFeatureTypeSpec.replaceAll(":(Point|MultiPoint|LineString|MultiLineString|MultiPolygon)",":Geometry")
+    val decompFeatureType = DataUtilities.createType(origFeatureType.getName.toString, decompFeatureTypeSpec)
+    logger.trace(s"decomposed feature type geometry descriptor ${decompFeatureType.getGeometryDescriptor}")
+
+    def setDefaultGeometry(sf: SimpleFeature, geom: Geometry) =
+      sf.setAttribute(decompFeatureType.getGeometryDescriptor.getName, geom)
 
     val entries = geohashes.map { gh =>
-      val copy = SimpleFeatureBuilder.copy(entryToEncode)
-      val geom = getGeohashGeom(gh)
-      copy.setDefaultGeometry(geom)
+      val copy = DataUtilities.reType(decompFeatureType, featureToEncode, true)
+      setDefaultGeometry(copy, gh)
       copy
     }
+
+    logger.trace(s"decomposed features: ${entries.map(e => (e, e.getType.getGeometryDescriptor)).mkString(",")})}")
 
     // remember the resulting index-entries
     val keys = entries.map { entry =>
@@ -75,15 +94,15 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
       new Key(r, cf, cq, entry.dt.map(_.getMillis).getOrElse(DateTime.now().getMillis))
     }
     val rowIDs = keys.map(_.getRow)
-    val id = new Text(entryToEncode.sid)
+    val id = new Text(featureToEncode.sid)
 
-    val indexValue = IndexSchema.encodeIndexValue(entryToEncode)
+    val indexValue = IndexSchema.encodeIndexValue(featureToEncode)
     val iv = new Value(indexValue)
     // the index entries are (key, FID) pairs
     val indexEntries = keys.map { k => (k, iv) }
 
     // the (single) data value is the encoded (serialized-to-string) SimpleFeature
-    val dataValue = featureEncoder.encode(entryToEncode)
+    val dataValue = featureEncoder.encode(featureToEncode)
 
     // data entries are stored separately (and independently) from the index entries;
     // each attribute gets its own data row (though currently, we use only one attribute
@@ -101,11 +120,8 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
 case class IndexEntryDecoder(ghDecoder: GeohashDecoder,
                              dtDecoder: Option[DateDecoder]) {
 
-  import GeohashUtils._
-
-  def decode(key: Key): SimpleFeature = {
-    val gh = getGeohashGeom(ghDecoder.decode(key))
-    val dt = dtDecoder.map(_.decode(key))
-    SimpleFeatureBuilder.build(indexSFT, List(gh, dt), "")
-  }
+  def decode(key: Key) =
+    SimpleFeatureBuilder.build(indexSFT,
+      List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))),
+      "")
 }

@@ -64,7 +64,7 @@ class RowOnlyIteratorTest
     val scanner = conn.createScanner(TEST_TABLE_NAME, new Authorizations)
     scanner.setRange(new Range)
     scanner.asScala.foreach(entry => {
-      System.out.println(entry.getKey + " " + (ByteBuffer.wrap(entry.getValue.get).getDouble))
+      System.out.println(entry.getKey + " " + ByteBuffer.wrap(entry.getValue.get).getDouble)
     })
   }
 }
