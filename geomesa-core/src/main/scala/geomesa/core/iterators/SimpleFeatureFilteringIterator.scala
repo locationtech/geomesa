@@ -16,29 +16,25 @@
 
 package geomesa.core.iterators
 
-import collection.JavaConversions._
+import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.data._
+import geomesa.core.transform.TransformCreator
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.apache.log4j.Logger
 import org.geotools.data.DataUtilities
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.process.vector.TransformProcess
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import scala.util.Try
-import geomesa.core.transform.TransformCreator
 
 class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env: IteratorEnvironment)
-  extends SortedKeyValueIterator[Key, Value] {
-
-  private val log = Logger.getLogger(classOf[SimpleFeatureFilteringIterator])
+  extends SortedKeyValueIterator[Key, Value]
+  with Logging {
 
   import geomesa.core._
 
-  SpatioTemporalIntersectingIterator.initClassLoader(log)
+  SpatioTemporalIntersectingIterator.initClassLoader(logger)
 
   var source: SortedKeyValueIterator[Key,Value] = null
   var topKey: Key = null

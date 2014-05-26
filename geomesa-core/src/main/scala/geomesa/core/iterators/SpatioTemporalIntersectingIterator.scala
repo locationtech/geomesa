@@ -76,6 +76,7 @@ class SpatioTemporalIntersectingIterator
 
   protected var deduplicate: Boolean = false
 
+
   // each batch-scanner thread maintains its own (imperfect!) list of the
   // unique (in-polygon) identifiers it has seen
   protected var maxInMemoryIdCacheEntries = 10000

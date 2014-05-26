@@ -35,6 +35,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.parsing.combinator.RegexParsers
+import org.apache.log4j.Logger
 
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)
@@ -78,6 +79,8 @@ case class IndexSchema(encoder: IndexEncoder,
                        featureType: SimpleFeatureType,
                        featureEncoder: SimpleFeatureEncoder) {
 
+  private val log = Logger.getLogger(classOf[IndexSchema])
+
   def encode(entry: SimpleFeature) = encoder.encode(entry)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
 
@@ -93,6 +96,9 @@ case class IndexSchema(encoder: IndexEncoder,
   def query(query: Query, bs: BatchScanner): Iterator[SimpleFeature] = {
     // Perform the query
     val accumuloIterator = planner.getIterator(bs, query)
+
+    if(log.isDebugEnabled) log.debug("Running Query: "+ query.toString)
+
     // Convert Accumulo results to SimpleFeatures.
     adaptIterator(accumuloIterator, query)
   }

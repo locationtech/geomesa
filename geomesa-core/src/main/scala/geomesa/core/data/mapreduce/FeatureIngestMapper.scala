@@ -16,6 +16,7 @@
 
 package geomesa.core.data.mapreduce
 
+import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.data.{AccumuloDataStoreFactory, MapReduceAccumuloDataStore}
 import geomesa.utils.geotools.FeatureHandler
 import geomesa.utils.text.WKBUtils
@@ -27,7 +28,9 @@ import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-object FeatureIngestMapper {
+object FeatureIngestMapper
+       extends Logging {
+
   type Mapper = HMapper[LongWritable,Text,Key,Value]
 
   import geomesa.core._
@@ -66,8 +69,7 @@ object FeatureIngestMapper {
 
         fw.write()
       } catch {
-        //@TODO change this to logging, once CBGEO-34 is complete
-        case e : Exception => println("[WARNING] Problem writing feature; skipping it.")
+        case e : Exception => logger.warn("[WARNING] Problem writing feature; skipping it.", e)
       }
     }
   }

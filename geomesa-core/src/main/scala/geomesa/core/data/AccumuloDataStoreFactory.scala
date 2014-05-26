@@ -60,23 +60,23 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         .map(FeatureEncoding.withName)
         .getOrElse(FeatureEncoding.AVRO)
 
-    if (mapreduceParam.lookUp(params) != null && mapreduceParam.lookUp(params).asInstanceOf[String] == "true")
+    if (mapReduceParam.lookUp(params) != null && mapReduceParam.lookUp(params).asInstanceOf[String] == "true")
       if(idxSchemaParam.lookUp(params) != null)
         new MapReduceAccumuloDataStore(connector,
-                                       tableName,
-                                       authorizations,
-                                       params,
-                                       idxSchemaParam.lookUp(params).asInstanceOf[String],
-                                       featureEncoding = featureEncoding)
+          tableName,
+          authorizations,
+          params,
+          idxSchemaParam.lookUp(params).asInstanceOf[String],
+          featureEncoding = featureEncoding)
       else
         new MapReduceAccumuloDataStore(connector, tableName, authorizations, params, featureEncoding = featureEncoding)
     else {
       if(idxSchemaParam.lookUp(params) != null)
         new AccumuloDataStore(connector,
-                              tableName,
-                              authorizations,
-                              idxSchemaParam.lookUp(params).asInstanceOf[String],
-                              featureEncoding = featureEncoding)
+          tableName,
+          authorizations,
+          idxSchemaParam.lookUp(params).asInstanceOf[String],
+          featureEncoding = featureEncoding)
       else
         new AccumuloDataStore(connector, tableName, authorizations, featureEncoding = featureEncoding)
     }
@@ -90,10 +90,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val password = passwordParam.lookUp(params).asInstanceOf[String]
     val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
 
-    if (useMock) 
-      new MockInstance(instance).getConnector(user, new PasswordToken(password.getBytes))
-    else 
-      new ZooKeeperInstance(instance, zookeepers).getConnector(user, new PasswordToken(password.getBytes))
+    if(useMock) new MockInstance(instance).getConnector(user, new PasswordToken(password.getBytes))
+    else new ZooKeeperInstance(instance, zookeepers).getConnector(user, new PasswordToken(password.getBytes))
   }
 
   override def getDisplayName = "Accumulo Feature Data Store"
@@ -102,7 +100,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   override def getParametersInfo =
     Array(instanceIdParam, zookeepersParam, userParam, passwordParam,
-          authsParam, tableNameParam, idxSchemaParam)
+      authsParam, tableNameParam, idxSchemaParam)
 
   def canProcess(params: JMap[String,Serializable]) =
     params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
@@ -126,34 +124,42 @@ object AccumuloDataStoreFactory {
     val passwordParam     = new Param("password", classOf[String], "Password", true)
     val authsParam        = new Param("auths", classOf[String], "Accumulo authorizations", false)
     val tableNameParam    = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
-    val idxSchemaParam    = new Param("indexSchemaFormat", classOf[String], "The feature-specific index-schema format", false)
+    val idxSchemaParam    = new Param("indexSchemaFormat",
+      classOf[String],
+      "The feature-specific index-schema format",
+      false)
     val mockParam         = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
-    val mapreduceParam    = new Param("useMapReduce", classOf[String], "Use MapReduce ingest", false)
-    val featureEncParam   = new Param("featureEncoding", classOf[String], "The feature encoding format (text or avro). Default is Avro", false, "avro")
+    val mapReduceParam    = new Param("useMapReduce", classOf[String], "Use MapReduce ingest", false)
+    val featureEncParam   = new Param("featureEncoding",
+      classOf[String],
+      "The feature encoding format (text or avro). Default is Avro",
+      false,
+      "avro")
   }
 
   import params._
 
   def configureJob(job: Job, params: JMap[String, Serializable]): Job = {
     val conf = job.getConfiguration
+
     conf.set(ZOOKEEPERS, zookeepersParam.lookUp(params).asInstanceOf[String])
     conf.set(INSTANCE_ID, instanceIdParam.lookUp(params).asInstanceOf[String])
     conf.set(ACCUMULO_USER, userParam.lookUp(params).asInstanceOf[String])
     conf.set(ACCUMULO_PASS, passwordParam.lookUp(params).asInstanceOf[String])
     conf.set(TABLE, tableNameParam.lookUp(params).asInstanceOf[String])
-    conf.set(AUTHS, authsParam.lookUp(params).asInstanceOf[String])
-    conf.set(FEATURE_ENCODING, featureEncParam.lookUp(params).asInstanceOf[String])
+    authsParam.lookupOpt[String](params).foreach(ap => conf.set(AUTHS, ap))
+    featureEncParam.lookupOpt[String](params).foreach(fep => conf.set(FEATURE_ENCODING, fep))
+
     job
   }
 
   def getMRAccumuloConnectionParams(conf: Configuration): JMap[String,AnyRef] =
-    Map(
-      zookeepersParam.key -> conf.get(ZOOKEEPERS),
+    Map(zookeepersParam.key -> conf.get(ZOOKEEPERS),
       instanceIdParam.key -> conf.get(INSTANCE_ID),
       userParam.key -> conf.get(ACCUMULO_USER),
       passwordParam.key -> conf.get(ACCUMULO_PASS),
       tableNameParam.key -> conf.get(TABLE),
       authsParam.key -> conf.get(AUTHS),
       featureEncParam.key -> conf.get(FEATURE_ENCODING),
-      "useMapReduce" -> "true")
+      mapReduceParam.key -> "true")
 }

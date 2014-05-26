@@ -18,6 +18,7 @@ package geomesa.core.data
 
 import com.google.common.cache.LoadingCache
 import geomesa.core.avro.{FeatureSpecificReader, AvroSimpleFeature}
+import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.utils.text.ObjectPoolFactory
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 import org.apache.accumulo.core.data.Value
@@ -39,7 +40,8 @@ trait SimpleFeatureEncoder {
   def encode(feature:SimpleFeature) : Value
   def decode(simpleFeatureType: SimpleFeatureType, featureValue: Value) : SimpleFeature
   def extractFeatureId(value: Value): String
-  def getName: String
+  def getName = getEncoding.toString
+  def getEncoding: FeatureEncoding
 }
 
 object FeatureEncoding extends Enumeration {
@@ -56,13 +58,13 @@ class TextFeatureEncoder extends SimpleFeatureEncoder{
     ThreadSafeDataUtilities.createFeature(simpleFeatureType, featureValue.toString)
   }
 
-  def getName = FeatureEncoding.TEXT.toString
-
   // This is derived from the knowledge of the GeoTools encoding in DataUtilities
   def extractFeatureId(value: Value): String = {
     val vString = value.toString
     vString.substring(0, vString.indexOf("="))
   }
+
+  override def getEncoding: FeatureEncoding = FeatureEncoding.TEXT
 }
 
 /**
@@ -101,11 +103,11 @@ class AvroFeatureEncoder extends SimpleFeatureEncoder {
     readerCache.get(simpleFeatureType).read(null, decoder)
   }
 
-  def getName = FeatureEncoding.AVRO.toString
-
   def extractFeatureId(value: Value) = FeatureSpecificReader.extractId(new ByteArrayInputStream(value.get()))
 
   val readerCache: LoadingCache[SimpleFeatureType, FeatureSpecificReader] =
     AvroSimpleFeature.loadingCacheBuilder { sft => FeatureSpecificReader(sft) }
+
+  override def getEncoding: FeatureEncoding = FeatureEncoding.AVRO
 }
 
