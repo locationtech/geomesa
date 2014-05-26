@@ -100,7 +100,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     planQuery(bs, filter)
 
     // if the IndexIterator can be used instead of the IntersectingIterator, do it
-    IndexIterator.useIndexOnlyIterator(ecql, query) match{
+    IndexIteratorTrigger.useIndexOnlyIterator(ecql, query) match{
       case true => {
         configureIndexIterator(bs, opoly, oint, query)
         println("IndexIterator")

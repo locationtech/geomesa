@@ -17,32 +17,24 @@
 package geomesa.core.iterators
 
 import collection.JavaConversions._
-import collection.JavaConverters._
 import com.vividsolutions.jts.geom.{Polygon, Geometry}
-import geomesa.core
+
 import geomesa.core.data._
 import geomesa.core.index._
 import geomesa.utils.text.WKTUtils
-import java.util
-import org.apache.accumulo.core.Constants
-import org.apache.accumulo.core.client.{IteratorSetting, Connector, BatchWriterConfig, BatchScanner}
 import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.data._
+
 import org.geotools.data.{Query, DataUtilities}
-import org.joda.time.{Interval, DateTimeZone, DateTime}
+
+import org.joda.time.{Interval, DateTime}
 import org.junit.runner.RunWith
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.specs2.mutable.Specification
+
+import org.opengis.feature.simple.SimpleFeature
+
 import org.specs2.runner.JUnitRunner
-import scala.util.{Try, Random}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.hadoop.io.Text
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.process.vector.TransformProcess
-import geomesa.core.data.AccumuloDataStoreFactory.params._
-import scala.Some
-import scala.Some
 import org.geotools.data.simple.SimpleFeatureStore
 import scala.Some
 import org.geotools.factory.Hints
@@ -134,6 +126,8 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
 
     val tfString = red(red(gf, dt), ecqlFilter)
     val tf = ECQL.toFilter(tfString)
+
+    println("tfString: " + tfString)
 
     // select a few attributes to trigger the IndexIterator
     // Note that since we are re-running all the tests from the IntersectingIteratorTest,
