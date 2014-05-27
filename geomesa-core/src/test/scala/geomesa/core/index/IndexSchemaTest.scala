@@ -17,22 +17,25 @@
 package geomesa.core.index
 
 import com.vividsolutions.jts.geom._
+import geomesa.core.data.SimpleFeatureEncoderFactory
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.data.Key
 import org.geotools.data.DataUtilities
-import org.joda.time.DateTime
+import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scala.util.Try
-import org.geotools.feature.simple.SimpleFeatureBuilder
-import geomesa.core.data.SimpleFeatureEncoderFactory
 
 @RunWith(classOf[JUnitRunner])
 class IndexSchemaTest extends Specification {
 
   import collection.JavaConversions._
+
   val dummyType = DataUtilities.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$SF_PROPERTY_GEOMETRY:Geometry,$SF_PROPERTY_START_TIME:Date,$SF_PROPERTY_END_TIME:Date")
+  val customType = DataUtilities.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,*the_geom:Geometry,dt_start:Date,$SF_PROPERTY_END_TIME:Date")
+  customType.getUserData.put(SF_PROPERTY_START_TIME, "dt_start")
   val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
 
   "SpatioTemporalIndexSchemaTest" should {
@@ -71,6 +74,8 @@ class IndexSchemaTest extends Specification {
 
   val now = new DateTime().toDate
 
+  val Apr_23_2001 = new DateTime(2001, 4, 23, 12, 5, 0, DateTimeZone.forID("UTC")).toDate
+
   val schemaEncoding = "%~#s%feature#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%#id"
   val index = IndexSchema(schemaEncoding, dummyType, featureEncoder)
 
@@ -107,6 +112,47 @@ class IndexSchemaTest extends Specification {
       val key : Key = indexEntries.head._1
       val keyStr : String = key.getColumnFamily + "::" + key.getColumnQualifier
       keyStr must equalTo("dn..::...~TEST_POLYGON")
+    }
+  }
+
+  "index-entry encoded and decoder" should {
+    "encode and decode round-trip properly using a custom date-time field name" in {
+      // inputs
+      val wkt = "POINT (-78.495356 38.075215)"
+      val id = "Feature0123456789"
+      val geom = WKTUtils.read(wkt)
+      val dt = Apr_23_2001
+      val entry = SimpleFeatureBuilder.build(customType, List(id, geom, dt, geom, dt, dt), id)
+      val indexSchema = IndexSchema(s"%~#s%99#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id",
+                                    customType,
+                                    featureEncoder)
+
+      val encodedKVs = indexSchema.encode(entry)
+
+      // requirements
+      encodedKVs must not beNull;
+      encodedKVs.size must be equalTo 2
+
+      // return trip
+      val decoded = encodedKVs.head match {
+        case (key, value) => indexSchema.decode(key)
+      }
+
+      // requirements
+      decoded must not equalTo null
+
+      // the GeoHash decoded must contain the initial point geometry
+      val geomOut = decoded.getDefaultGeometry.asInstanceOf[Geometry]
+      geomOut.contains(geom) must beTrue
+
+      // the decoded date will only be accurate to the (year, month, day)
+      // (but beware time-zone effects for direct comparison!)
+      val dtOut = decoded.getAttribute(SF_PROPERTY_START_TIME).asInstanceOf[Option[DateTime]].getOrElse(
+        throw new Exception("Invalid date field.")).toDate
+      // time should be off by 12 hours and 5 minutes
+      // (the portion beyond "yyyyMMdd")
+      val msDelta = ((12L * 60L) + 5L) * 60L * 1000L
+      (Math.abs(dtOut.getTime - Apr_23_2001.getTime) == msDelta) must beTrue
     }
   }
 
