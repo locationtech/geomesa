@@ -81,7 +81,8 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
           passwordParam.key -> "pass",
           authsParam.key -> "S,USA",
           tableNameParam.key -> "test_table",
-          mockParam.key -> "true"
+          mockParam.key -> "true",
+          idxSchemaParam.key -> TestData.schemaEncoding
         ))
 
       //sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
@@ -131,6 +132,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     // Note that since we are re-running all the tests from the IntersectingIteratorTest,
     // some of the tests may actually use the IntersectingIterator
     val outputAttributes = Array("geomesa_index_geometry", "geomesa_index_start_time", "geomesa_index_end_time")
+    //val q = new Query(TestData.featureType.getTypeName, tf)
     val q = new Query(TestData.featureType.getTypeName, tf, outputAttributes)
     val sfCollection = fs.getFeatures(q)
     sfCollection.features().toList.size

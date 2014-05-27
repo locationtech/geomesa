@@ -321,6 +321,8 @@ object SpatioTemporalIntersectingIterator extends IteratorHelpers {
  *  This trait contains many methods and values of general use to companion Iterator objects
  */
 trait IteratorHelpers  {
+ import geomesa.core._
+
   val initialized = new ThreadLocal[Boolean] {
     override def initialValue(): Boolean = false
   }
