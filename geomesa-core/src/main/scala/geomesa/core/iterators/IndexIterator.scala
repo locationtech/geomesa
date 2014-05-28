@@ -17,8 +17,11 @@
 package geomesa.core.iterators
 
 
-import collection.JavaConversions._
-import com.typesafe.scalalogging.slf4j.{Logger, Logging}
+//import collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.collection.immutable.HashSet
+
+//import com.typesafe.scalalogging.slf4j.{Logger, Logging}
 import com.vividsolutions.jts.geom._
 import geomesa.core.data._
 import geomesa.core.index._
@@ -144,14 +147,14 @@ object IndexIteratorTrigger {
    * Checks to see if the transform schema references only variables present in the index schema
    */
   def isJustIndexAttributes(transformSchema: SimpleFeatureType, indexSchema: SimpleFeatureType): Boolean = {
-    val transformDescriptorNames = transformSchema.getAttributeDescriptors.map {
+    val transformDescriptorNames = transformSchema.getAttributeDescriptors.asScala.map {
       _.getLocalName
     }
-    val indexDescriptorNames = indexSchema.getAttributeDescriptors.map {
+    val indexDescriptorNames = indexSchema.getAttributeDescriptors.asScala.map {
       _.getLocalName
     }
     // while matching descriptors themselves are not always equal, their names are
-    indexDescriptorNames.containsAll(transformDescriptorNames)
+    transformDescriptorNames.forall(indexDescriptorNames contains)
   }
 
   /**
@@ -159,7 +162,7 @@ object IndexIteratorTrigger {
    */
   def isIdentityTransformation(transformDefs: String) = {
     // convert to a transform
-    val theDefinitions = TransformProcess.toDefinition(transformDefs)
+    val theDefinitions = TransformProcess.toDefinition(transformDefs).asScala
     // check that, for each definition, the name and expression match
     theDefinitions.forall(aDef => aDef.name == aDef.expression.toString)
   }
@@ -169,6 +172,7 @@ object IndexIteratorTrigger {
    */
   def filterOnIndexAttributes(ecql_text: String, targetSchema: SimpleFeatureType): Boolean = {
     // convert the ECQL to a filter, then visit that filter to get the attributes
+    /**
     Option(ECQL.toFilter(ecql_text)
       .accept(new FilterAttributeExtractor, null).asInstanceOf[java.util.HashSet[String]]) match {
       case Some(filterAttributeList) =>
@@ -176,11 +180,20 @@ object IndexIteratorTrigger {
         schemaAttributeList.containsAll(filterAttributeList)
       case _ => true // null filter that doesn't do anything
     }
+    **/
+    Option(ECQL.toFilter(ecql_text)
+      .accept(new FilterAttributeExtractor, null).asInstanceOf[java.util.HashSet[String]]) match {
+      case Some(filterAttributeList) =>
+        val schemaAttributeList = targetSchema.getAttributeDescriptors.asScala.map(_.getLocalName)
+        filterAttributeList.asScala.forall {schemaAttributeList.contains}
+      case _ => true // null filter that doesn't do anything
+    }
   }
 }
 
 
 object IndexIterator extends IteratorHelpers {
+
 
   /**
    * Converts values taken from the Index Value to a SimpleFeature, using the default SimpleFeatureType
@@ -191,7 +204,7 @@ object IndexIterator extends IteratorHelpers {
   def encodeIndexValueToSF(featureBuilder: SimpleFeatureBuilder, id: String,
                            geom: Geometry, dtgMillis: Option[Long]): SimpleFeature = {
     val theType = featureBuilder.getFeatureType
-    val theIndexDescriptorNames = indexSFT.getAttributeDescriptors.map(_.getLocalName)
+    val theIndexDescriptorNames = indexSFT.getAttributeDescriptors.asScala.map(_.getLocalName)
     val geomField = theType.getGeometryDescriptor
     val dtgFieldNames = theIndexDescriptorNames.filter(_ != geomField.getLocalName)
     // build the feature using the ID extracted from the index
@@ -215,8 +228,8 @@ object IndexIterator extends IteratorHelpers {
   /**
    * For a given SimpleFeature schema, extract and return a list of the attribute descriptors
    */
-  def extractOutputAttributes(targetSchema: String) = {
+  def extractOutputAttributes(targetSchema: String): List[AttributeDescriptor] = {
     val targetSFType = DataUtilities.createType(this.getClass.getCanonicalName, targetSchema)
-    targetSFType.getAttributeDescriptors.toList
+    targetSFType.getAttributeDescriptors.asScala.toList
   }
 }
