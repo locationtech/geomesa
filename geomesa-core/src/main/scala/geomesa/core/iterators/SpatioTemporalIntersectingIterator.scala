@@ -88,7 +88,7 @@ class SpatioTemporalIntersectingIterator
     logger.trace("Initializing classLoader")
     SpatioTemporalIntersectingIterator.initClassLoader(logger)
 
-    val featureType = DataUtilities.createType("DummyType", options.get(DEFAULT_FEATURE_TYPE))
+    val featureType = DataUtilities.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
 
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
@@ -402,11 +402,11 @@ trait IteratorHelpers  {
   }
 
   def setOptions(cfg: IteratorSetting, schema: String, poly: Option[Polygon], interval: Option[Interval],
-                 featureType: SimpleFeatureType) {
+                 featureType: String) {
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
     poly.foreach { p => cfg.addOption(DEFAULT_POLY_PROPERTY_NAME, p.toText) }
     interval.foreach { int => cfg.addOption(DEFAULT_INTERVAL_PROPERTY_NAME, encodeInterval(int)) }
-    cfg.addOption(DEFAULT_FEATURE_TYPE, DataUtilities.encodeType(featureType))
+    cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, featureType)
   }
 
   protected def encodeInterval(interval: Interval): String =

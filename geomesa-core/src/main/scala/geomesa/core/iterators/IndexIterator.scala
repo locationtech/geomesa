@@ -20,6 +20,8 @@ package geomesa.core.iterators
 //import collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashSet
+import org.joda.time.DateTime
+import scala.util.Try
 
 //import com.typesafe.scalalogging.slf4j.{Logger, Logging}
 import com.vividsolutions.jts.geom._
@@ -65,10 +67,11 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment) {
+    logger.debug("Transform requests index attributes only. Ignoring SimpleFeatures and using index information only.")
     logger.trace("Initializing classLoader")
     IndexIterator.initClassLoader(logger)
 
-    val simpleFeatureTypeSpec = options.get(DEFAULT_FEATURE_TYPE)
+    val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
     val simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
 
@@ -93,17 +96,15 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
       maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
     deduplicate = IndexSchema.mayContainDuplicates(simpleFeatureType)
 
-    outputAttributes = IndexIterator.extractOutputAttributes(options.get(GEOMESA_ITERATORS_TRANSFORM_SCHEMA))
-
     this.indexSource = source.deepCopy(env)
   }
 
   /**
-   * Generates from the index value a data value that matches the current
+   * Generates from the key's value a SimpleFeature that matches the current
    * (top) reference of the index-iterator.
    *
    * We emit the top-key from the index-iterator, and the top-value from the
-   * converted index value.  This is *IMPORTANT*, as otherwise we do not emit rows
+   * converted key value.  This is *IMPORTANT*, as otherwise we do not emit rows
    * that honor the SortedKeyValueIterator expectation, and Bad Things Happen.
    */
   override def seekData(decodedValue: IndexSchema.DecodedIndexValue) {
@@ -129,8 +130,20 @@ object IndexIteratorTrigger {
     val transformDefs = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
     val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
     (ecqlPredicate, transformDefs, transformSchema) match {
-      case (Some(ep), Some(td), Some(ts)) => isTransformToIndexOnly(td, ts) & filterOnIndexAttributes(ep, indexSFT)
+      case (Some(ep), Some(td), Some(ts)) => isTransformToIndexOnly(td, ts) && filterOnIndexAttributes(ep, indexSFT)
       case (None, Some(td), Some(ts)) => isTransformToIndexOnly(td, ts)
+      case _ => false
+    }
+  }
+
+  def useTransformedSimpleFeatureType(ecqlPredicate: Option[String], query: Query) = {
+    val transformDefs = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
+    val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
+    (ecqlPredicate, transformDefs, transformSchema) match {
+      // there is still an ECQL predicate to apply, SimpleFeatureFilteringIterator still needed
+      case (Some(ep), Some(td), Some(ts)) => passThroughFilter(ep) && isIdentityTransformation(td)
+      // there is no ECQL predicate to apply, check if IndexIterator can produce the finalSimpleFeature
+      case (None, Some(td), Some(ts)) => isIdentityTransformation(td)
       case _ => false
     }
   }
@@ -139,8 +152,7 @@ object IndexIteratorTrigger {
    * Checks the transform for mapping to the index attributes: geometry and optionally time
    */
   def isTransformToIndexOnly(transformDefs: String, transformSchema: SimpleFeatureType): Boolean = {
-    isJustIndexAttributes(transformSchema, indexSFT) && // transform contains just index attributes
-      isIdentityTransformation(transformDefs) // the variables for the target schema are taken straight from the index
+    isJustIndexAttributes(transformSchema, indexSFT)
   }
 
   /**
@@ -172,28 +184,30 @@ object IndexIteratorTrigger {
    */
   def filterOnIndexAttributes(ecql_text: String, targetSchema: SimpleFeatureType): Boolean = {
     // convert the ECQL to a filter, then visit that filter to get the attributes
-    /**
-    Option(ECQL.toFilter(ecql_text)
-      .accept(new FilterAttributeExtractor, null).asInstanceOf[java.util.HashSet[String]]) match {
-      case Some(filterAttributeList) =>
-        val schemaAttributeList = targetSchema.getAttributeDescriptors.map(_.getLocalName).toSet
-        schemaAttributeList.containsAll(filterAttributeList)
-      case _ => true // null filter that doesn't do anything
-    }
-    **/
     Option(ECQL.toFilter(ecql_text)
       .accept(new FilterAttributeExtractor, null).asInstanceOf[java.util.HashSet[String]]) match {
       case Some(filterAttributeList) =>
         val schemaAttributeList = targetSchema.getAttributeDescriptors.asScala.map(_.getLocalName)
-        filterAttributeList.asScala.forall {schemaAttributeList.contains}
+        filterAttributeList.asScala.forall {
+          schemaAttributeList.contains
+        }
+      case _ => true // null filter that doesn't do anything
+    }
+  }
+
+  def passThroughFilter(ecql_text: String): Boolean = {
+    // convert the ECQL to a filter, then visit that filter to get the attributes
+    Option(ECQL.toFilter(ecql_text)
+      .accept(new FilterAttributeExtractor, null).asInstanceOf[java.util.HashSet[String]]) match {
+      case Some(filterAttributeList) => false // still a non-trivial filter
       case _ => true // null filter that doesn't do anything
     }
   }
 }
 
-
 object IndexIterator extends IteratorHelpers {
-
+//import geomesa.core._
+import geomesa.core.index.IndexEntry.IndexEntrySFT  // enriched SimpleFeature to access time attributes
 
   /**
    * Converts values taken from the Index Value to a SimpleFeature, using the default SimpleFeatureType
@@ -204,25 +218,20 @@ object IndexIterator extends IteratorHelpers {
   def encodeIndexValueToSF(featureBuilder: SimpleFeatureBuilder, id: String,
                            geom: Geometry, dtgMillis: Option[Long]): SimpleFeature = {
     val theType = featureBuilder.getFeatureType
-    val theIndexDescriptorNames = indexSFT.getAttributeDescriptors.asScala.map(_.getLocalName)
     val geomField = theType.getGeometryDescriptor
-    val dtgFieldNames = theIndexDescriptorNames.filter(_ != geomField.getLocalName)
     // build the feature using the ID extracted from the index
     val nextSimpleFeature = featureBuilder.buildFeature(id)
     // add the geometry field
     nextSimpleFeature.setAttribute(geomField.getLocalName, geom)
-    // add the optional time fields.
-    dtgMillis.map { time => dtgFieldNames.map { name => nextSimpleFeature.setAttribute(name, new Date(time))}}
+    // add the optional time fields, which may not be present in this SimpleFeature
+    dtgMillis.map { time => Try {
+      nextSimpleFeature.setStartTime(new DateTime(time))
+    }
+      Try {
+        nextSimpleFeature.setEndTime(new DateTime(time))
+      }
+    }
     nextSimpleFeature
-  }
-
-  /**
-   * Given a Query, set the relevant transform parameters in an iterator's configuration
-   */
-  def configureTransforms(query: Query, cfg: IteratorSetting) = {
-    val transforms = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
-    val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
-    transforms.foreach(SimpleFeatureFilteringIterator.setTransforms(cfg, _, transformSchema))
   }
 
   /**
