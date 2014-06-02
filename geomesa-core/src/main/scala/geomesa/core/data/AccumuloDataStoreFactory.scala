@@ -23,13 +23,13 @@ import java.util.{Map => JMap}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
-import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import util.Try
 import scala.reflect.ClassTag
+import geomesa.core.security.{DefaultAuthorizationsProvider, AuthorizationsProvider}
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -41,13 +41,21 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   def createDataStore(params: JMap[String, Serializable]) = {
 
-    val authsStr = authsParam.lookUp(params).asInstanceOf[String]
+    val visStr = visibilityParam.lookUp(params).asInstanceOf[String]
 
-    val authorizations =
-      if(authsStr == null || authsStr.size == 0)
-        new Authorizations()
+    val visibility =
+      if (visStr == null)
+        ""
       else
-        new Authorizations(authsStr.split(","): _*)
+        visStr
+
+    val authProviderStr = authsProviderParam.lookUp(params).asInstanceOf[String]
+
+    val authorizationsProvider =
+      if(authProviderStr == null || authProviderStr.isEmpty)
+        new DefaultAuthorizationsProvider
+      else
+        Class.forName(authProviderStr).asInstanceOf[AuthorizationsProvider]
 
     val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
     val connector =
@@ -64,21 +72,23 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       if(idxSchemaParam.lookUp(params) != null)
         new MapReduceAccumuloDataStore(connector,
           tableName,
-          authorizations,
+          authorizationsProvider,
+          visibility,
           params,
           idxSchemaParam.lookUp(params).asInstanceOf[String],
           featureEncoding = featureEncoding)
       else
-        new MapReduceAccumuloDataStore(connector, tableName, authorizations, params, featureEncoding = featureEncoding)
+        new MapReduceAccumuloDataStore(connector, tableName, authorizationsProvider, visibility, params, featureEncoding = featureEncoding)
     else {
       if(idxSchemaParam.lookUp(params) != null)
         new AccumuloDataStore(connector,
           tableName,
-          authorizations,
+          authorizationsProvider,
+          visibility,
           idxSchemaParam.lookUp(params).asInstanceOf[String],
           featureEncoding = featureEncoding)
       else
-        new AccumuloDataStore(connector, tableName, authorizations, featureEncoding = featureEncoding)
+        new AccumuloDataStore(connector, tableName, authorizationsProvider, visibility, featureEncoding = featureEncoding)
     }
 
   }
@@ -100,7 +110,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   override def getParametersInfo =
     Array(instanceIdParam, zookeepersParam, userParam, passwordParam,
-      authsParam, tableNameParam, idxSchemaParam)
+        authsProviderParam, visibilityParam, tableNameParam, idxSchemaParam)
 
   def canProcess(params: JMap[String,Serializable]) =
     params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
@@ -122,7 +132,8 @@ object AccumuloDataStoreFactory {
     val zookeepersParam   = new Param("zookeepers", classOf[String], "Zookeepers", true)
     val userParam         = new Param("user", classOf[String], "Accumulo user", true)
     val passwordParam     = new Param("password", classOf[String], "Password", true)
-    val authsParam        = new Param("auths", classOf[String], "Accumulo authorizations", false)
+    val authsProviderParam  = new Param("authorizationsProvider", classOf[String], "Class name for the Accumulo authorizations provider implementation", false)
+    val visibilityParam   = new Param("visibility", classOf[String], "Accumulo visibility label to apply to all data", false)
     val tableNameParam    = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
     val idxSchemaParam    = new Param("indexSchemaFormat",
       classOf[String],
@@ -147,7 +158,8 @@ object AccumuloDataStoreFactory {
     conf.set(ACCUMULO_USER, userParam.lookUp(params).asInstanceOf[String])
     conf.set(ACCUMULO_PASS, passwordParam.lookUp(params).asInstanceOf[String])
     conf.set(TABLE, tableNameParam.lookUp(params).asInstanceOf[String])
-    authsParam.lookupOpt[String](params).foreach(ap => conf.set(AUTHS, ap))
+    authsProviderParam.lookupOpt[String](params).foreach(ap => conf.set(AUTH_PROVIDER, ap))
+    visibilityParam.lookupOpt[String](params).foreach(vis => conf.set(VISIBILITY, vis))
     featureEncParam.lookupOpt[String](params).foreach(fep => conf.set(FEATURE_ENCODING, fep))
 
     job
@@ -159,7 +171,8 @@ object AccumuloDataStoreFactory {
       userParam.key -> conf.get(ACCUMULO_USER),
       passwordParam.key -> conf.get(ACCUMULO_PASS),
       tableNameParam.key -> conf.get(TABLE),
-      authsParam.key -> conf.get(AUTHS),
+      authsProviderParam.key -> conf.get(AUTH_PROVIDER),
+      visibilityParam.key -> conf.get(VISIBILITY),
       featureEncParam.key -> conf.get(FEATURE_ENCODING),
       mapReduceParam.key -> "true")
 }

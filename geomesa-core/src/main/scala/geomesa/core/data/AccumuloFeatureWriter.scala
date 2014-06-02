@@ -77,7 +77,8 @@ object AccumuloFeatureWriter {
 
 abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
                                      indexer: IndexSchema,
-                                     recordWriter: RecordWriter[Key,Value])
+                                     recordWriter: RecordWriter[Key,Value],
+                                     visibility: String)
   extends SimpleFeatureWriter
           with Logging {
 
@@ -100,7 +101,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
     // require non-null geometry to write to geomesa (can't index null geo yo!)
     val kvPairsToWrite =
-      if (toWrite.getDefaultGeometry != null) indexer.encode(toWrite)
+      if (toWrite.getDefaultGeometry != null) indexer.encode(toWrite, visibility)
       else {
         logger.warn("Invalid feature to write:  " + DataUtilities.encodeFeature(toWrite))
         List()
@@ -119,8 +120,9 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
 class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
                                   indexer: IndexSchema,
-                                  recordWriter: RecordWriter[Key,Value])
-  extends AccumuloFeatureWriter(featureType, indexer, recordWriter) {
+                                  recordWriter: RecordWriter[Key,Value],
+                                  visibility: String)
+  extends AccumuloFeatureWriter(featureType, indexer, recordWriter, visibility) {
 
   var currentFeature: SimpleFeature = null
 
@@ -139,9 +141,10 @@ class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
 class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
                                       indexer: IndexSchema,
                                       recordWriter: RecordWriter[Key,Value],
+                                      visibility: String,
                                       deleter: RecordWriter[Key, Value],
                                       dataStore: AccumuloDataStore)
-  extends AccumuloFeatureWriter(featureType, indexer, recordWriter) {
+  extends AccumuloFeatureWriter(featureType, indexer, recordWriter, visibility) {
 
   val reader = dataStore.getFeatureReader(featureType.getName.toString)
   var live: SimpleFeature = null      /* feature to let user modify   */

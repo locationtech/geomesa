@@ -36,6 +36,7 @@ import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.parsing.combinator.RegexParsers
 import org.apache.log4j.Logger
+import geomesa.core.security.AuthorizationsProvider
 
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)
@@ -81,7 +82,7 @@ case class IndexSchema(encoder: IndexEncoder,
 
   private val log = Logger.getLogger(classOf[IndexSchema])
 
-  def encode(entry: SimpleFeature) = encoder.encode(entry)
+  def encode(entry: SimpleFeature, visibility: String = "") = encoder.encode(entry, visibility)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
 
   import IndexSchema._
