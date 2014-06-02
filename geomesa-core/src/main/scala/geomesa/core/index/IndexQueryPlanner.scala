@@ -103,7 +103,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     // if the IndexIterator can be used instead of the IntersectingIterator, do it
     //    and directly create the final SimpleFeature in the IndexIterator if possible
 
-    (IndexIteratorTrigger.useIndexOnlyIterator(ecql, query),
+    (IndexIteratorTrigger.useIndexOnlyIterator(ecql, query, sourceSimpleFeatureType),
       IndexIteratorTrigger.useTransformedSimpleFeatureType(ecql,query)) match
     {
       case (true,true)  => val sfType = transformedSimpleFeatureType(query).get
@@ -132,7 +132,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def configureTransforms(query:Query,cfg: IteratorSetting) = {
     val transforms = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
     transforms.foreach { transform =>
-      cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform);
+      cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
       transformedSimpleFeatureType(query).foreach { sfType =>
         cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, sfType)
       }
