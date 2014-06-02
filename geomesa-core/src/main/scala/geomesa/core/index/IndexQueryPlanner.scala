@@ -10,7 +10,6 @@ import java.util.Map.Entry
 import java.util.{Iterator => JIterator}
 import org.apache.accumulo.core.client.{IteratorSetting, BatchScanner}
 import org.apache.accumulo.core.data.{Value, Key}
-//import org.apache.accumulo.core.iterators.Combiner
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
@@ -104,7 +103,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     //    and directly create the final SimpleFeature in the IndexIterator if possible
 
     (IndexIteratorTrigger.useIndexOnlyIterator(ecql, query, sourceSimpleFeatureType),
-      IndexIteratorTrigger.useTransformedSimpleFeatureType(ecql,query)) match
+      IndexIteratorTrigger.generateTransformedSimpleFeature(ecql,query,sourceSimpleFeatureType )) match
     {
       case (true,true)  => val sfType = transformedSimpleFeatureType(query).get
                            configureIndexIterator(bs, opoly, oint, query, sfType)
