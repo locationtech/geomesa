@@ -17,10 +17,6 @@
 package geomesa.core.iterators
 
 
-
-import scala.collection.JavaConverters._
-import org.joda.time.DateTime
-import scala.util.Try
 import com.vividsolutions.jts.geom._
 import geomesa.core.data._
 import geomesa.core.index._
@@ -31,9 +27,12 @@ import org.geotools.data.{Query, DataUtilities}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.process.vector.TransformProcess
+import org.joda.time.DateTime
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.Some
+import scala.collection.JavaConverters._
+import scala.util.Try
 
 
 /**
@@ -122,21 +121,25 @@ object IndexIteratorTrigger {
    */
   implicit class IndexAttributeNames(sft: SimpleFeatureType) {
     def geoName = sft.getGeometryDescriptor.getLocalName
-    def startTimeName = Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map{y=>y.toString}
-    def endTimeName = Option(sft.getUserData.get(SF_PROPERTY_END_TIME)).map{y=>y.toString}
+
+    def startTimeName = Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map { y => y.toString}
+
+    def endTimeName = Option(sft.getUserData.get(SF_PROPERTY_END_TIME)).map { y => y.toString}
+
     def indexAttributeNames = List(geoName) ++ startTimeName ++ endTimeName
   }
+
   /**
    * Scans the ECQL predicate and the transform definition in order to determine if only index attributes are
    * used/requested, and thus the IndexIterator can be used
    *
    */
-  def useIndexOnlyIterator(ecqlPredicate: Option[String], query: Query, sourceSFTSpec: String):Boolean = {
+  def useIndexOnlyIterator(ecqlPredicate: Option[String], query: Query, sourceSFTSpec: String): Boolean = {
     val transformDefs = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
-    val sourceSFT= DataUtilities.createType("DUMMY",sourceSFTSpec)
+    val sourceSFT = DataUtilities.createType("DUMMY", sourceSFTSpec)
     (ecqlPredicate, transformDefs) match {
       // transforming on index attributes only? filtering on only the index attributes?
-      case (Some(ep), Some(td)) =>  transformOnIndexAttributes(td, sourceSFT) && filterOnIndexAttributes(ep, sourceSFT)
+      case (Some(ep), Some(td)) => transformOnIndexAttributes(td, sourceSFT) && filterOnIndexAttributes(ep, sourceSFT)
       // transforming on index attributes only? no ECQL filter defined
       case (None, Some(td)) => transformOnIndexAttributes(td, sourceSFT)
       case _ => false
@@ -144,17 +147,17 @@ object IndexIteratorTrigger {
   }
 
   /**
-   *  Scans the ECQL predicate and the transform definition in order to determine if the IndexIterator can
-   *  create the final SimpleFeature, and by extension, the SimpleFeatureFilteringIterator is not needed
+   * Scans the ECQL predicate and the transform definition in order to determine if the IndexIterator can
+   * create the final SimpleFeature, and by extension, the SimpleFeatureFilteringIterator is not needed
    */
-  def generateTransformedSimpleFeature(ecqlPredicate: Option[String], query: Query,sourceSFTSpec: String ):Boolean = {
+  def generateTransformedSimpleFeature(ecqlPredicate: Option[String], query: Query, sourceSFTSpec: String): Boolean = {
     val transformDefs = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
-    val sourceSFT= DataUtilities.createType("DUMMY",sourceSFTSpec)
+    val sourceSFT = DataUtilities.createType("DUMMY", sourceSFTSpec)
     (ecqlPredicate, transformDefs) match {
       // Is the ECQL query trivial? Is the IndexIterator able to generate the finalSimpleFeature?
-      case (Some(ep), Some(td)) => passThroughFilter(ep) && isOneToOneTransformation(td,sourceSFT)
+      case (Some(ep), Some(td)) => passThroughFilter(ep) && isOneToOneTransformation(td, sourceSFT)
       // No ECQL query.  Is the IndexIterator able to generate the finalSimpleFeature?
-      case (None, Some(td)) => isOneToOneTransformation(td,sourceSFT)
+      case (None, Some(td)) => isOneToOneTransformation(td, sourceSFT)
       case _ => false
     }
   }
@@ -163,14 +166,14 @@ object IndexIteratorTrigger {
    * Checks to see if a set of transforms reference ONLY the attributes found in the source's SimpleFeatureType:
    * geometry and optionally time
    */
-  def transformOnIndexAttributes(transform_text:String, sourceSchema:SimpleFeatureType): Boolean = {
+  def transformOnIndexAttributes(transform_text: String, sourceSchema: SimpleFeatureType): Boolean = {
     transformAttributes(transform_text).forall(sourceSchema.indexAttributeNames.contains)
   }
 
   /**
    * Obtain a set of attributes referenced in a string that defines a series of transforms
    */
-  def transformAttributes(transform_text:String) = {
+  def transformAttributes(transform_text: String) = {
     // get a Scala List of all the GeoTools Definitions
     val gtTransformDefs = TransformProcess.toDefinition(transform_text).asScala
     // for each definition, get the expression and then a list of its associated attribute names
@@ -191,12 +194,13 @@ object IndexIteratorTrigger {
    * Tests if the transformation is a one-to-one transform of index attributes:
    * This allows selection and renaming of index attributes only
    */
-   def isOneToOneTransformation(transformDefs:String, schema:SimpleFeatureType):Boolean = {
+  def isOneToOneTransformation(transformDefs: String, schema: SimpleFeatureType): Boolean = {
     // convert to a TransformProcess Defintion
     val theDefinitions = TransformProcess.toDefinition(transformDefs).asScala
     // check that, for each definition, the expression is simply the name of an attribute in the schema
-    theDefinitions.forall{aDef => schema.indexAttributeNames contains aDef.expression.toString }
+    theDefinitions.forall { aDef => schema.indexAttributeNames contains aDef.expression.toString}
   }
+
   /**
    * Tests if the filter is applied to only index attributes found in the schema
    */
@@ -204,19 +208,19 @@ object IndexIteratorTrigger {
     val theFilterAttributes = getFilterAttributes(ecql_text)
     theFilterAttributes.isEmpty match {
       case true => true // null filter that doesn't do anything
-      case false =>  theFilterAttributes.forall(schema.indexAttributeNames.contains)
+      case false => theFilterAttributes.forall(schema.indexAttributeNames.contains)
     }
   }
 
   /**
-   *  Tests if the filter is a trivial filter that does nothing
+   * Tests if the filter is a trivial filter that does nothing
    */
   def passThroughFilter(ecql_text: String): Boolean = getFilterAttributes(ecql_text).isEmpty
 
   /**
    * convert the ECQL to a filter, then obtain a set of its attributes
    */
-  def getFilterAttributes(ecql_text:String) = DataUtilities.attributeNames(ECQL.toFilter(ecql_text)).toSet
+  def getFilterAttributes(ecql_text: String) = DataUtilities.attributeNames(ECQL.toFilter(ecql_text)).toSet
 }
 
 object IndexIterator extends IteratorHelpers {

@@ -131,10 +131,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     // select a few attributes to trigger the IndexIterator
     // Note that since we are re-running all the tests from the IntersectingIteratorTest,
     // some of the tests may actually use the IntersectingIterator
-    //val outputAttributes = Array("newgeo=buffer(geomesa_index_geometry,2)", "geomesa_index_start_time", "geomesa_index_end_time")
-    //val outputAttributes = Array("buffer(geomesa_index_geometry,2)", "geomesa_index_start_time", "newtime=strConcat('hello',geomesa_index_end_time)")
-   // val outputAttributes = Array("newgeo=buffer(geomesa_index_geometry,2)", "geomesa_index_start_time", "geomesa_index_end_time", "newtime=strConcat(geomesa_index_start_time,strConcat('--',geomesa_index_end_time))")
-    val outputAttributes = Array("geomesa_index_geometry","geomesa_index_start_time")
+    val outputAttributes = Array("geomesa_index_geometry")
     //val q = new Query(TestData.featureType.getTypeName, tf)
     val q = new Query(TestData.featureType.getTypeName, tf, outputAttributes)
     val sfCollection = fs.getFeatures(q)
