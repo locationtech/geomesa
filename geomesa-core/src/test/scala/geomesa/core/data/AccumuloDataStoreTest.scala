@@ -30,6 +30,7 @@ import org.junit.runner.RunWith
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import geomesa.core.TestAuthorizationsProvider
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
@@ -279,6 +280,21 @@ class AccumuloDataStoreTest extends Specification {
 
       "name:String,geom:Point:srid=4326" mustEqual DataUtilities.encodeType(results.getSchema)
       "fid-1=testType|POINT (45 49)" mustEqual DataUtilities.encodeFeature(f)
+    }
+
+    "provide ability to load java auth providers from the classpath" in {
+      // create the data store
+      val ds = DataStoreFinder.getDataStore(Map(
+                       "connParam" -> "mycloud",
+                       "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+                       "user"       -> "myuser",
+                       "password"   -> "mypassword",
+                       "authorizationsProvider"  -> "geomesa.core.TestAuthorizationsProvider",
+                       "tableName"  -> "testwrite",
+                       "useMock"    -> "true",
+                       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      ds should not be null
+      ds.authorizationsProvider.isInstanceOf[TestAuthorizationsProvider] should be equalTo(true)
     }
 
   }
