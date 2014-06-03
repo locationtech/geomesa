@@ -31,6 +31,8 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import geomesa.core.TestAuthorizationsProvider
+import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider}
+import org.apache.accumulo.core.security.Authorizations
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
@@ -282,19 +284,36 @@ class AccumuloDataStoreTest extends Specification {
       "fid-1=testType|POINT (45 49)" mustEqual DataUtilities.encodeFeature(f)
     }
 
-    "provide ability to load java auth providers from the classpath" in {
+    "provide ability to configure auth providers by classname" in {
+      val authsProvider = new TestAuthorizationsProvider
       // create the data store
       val ds = DataStoreFinder.getDataStore(Map(
-                       "connParam" -> "mycloud",
-                       "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-                       "user"       -> "myuser",
-                       "password"   -> "mypassword",
-                       "authorizationsProvider"  -> "geomesa.core.TestAuthorizationsProvider",
-                       "tableName"  -> "testwrite",
-                       "useMock"    -> "true",
-                       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+                     "instanceId" -> "mycloud",
+                     "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+                     "user"       -> "myuser",
+                     "password"   -> "mypassword",
+                     "authorizationsProvider"  -> "geomesa.core.TestAuthorizationsProvider",
+                     "tableName"  -> "testwrite",
+                     "useMock"    -> "true",
+                     "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
       ds.authorizationsProvider.isInstanceOf[TestAuthorizationsProvider] should be equalTo(true)
+    }
+
+    "provide ability to configure auth provider by static auths" in {
+      // create the data store
+      val ds = DataStoreFinder.getDataStore(Map(
+                     "instanceId" -> "mycloud",
+                     "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+                     "user"       -> "myuser",
+                     "password"   -> "mypassword",
+                     "auths"      -> "U",
+                     "tableName"  -> "testwrite",
+                     "useMock"    -> "true",
+                     "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      ds should not be null
+      ds.authorizationsProvider.isInstanceOf[DefaultAuthorizationsProvider] should be equalTo(true)
+      ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations should be equalTo(new Authorizations("U"))
     }
 
   }

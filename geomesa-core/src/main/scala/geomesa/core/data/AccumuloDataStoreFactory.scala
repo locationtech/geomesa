@@ -30,6 +30,7 @@ import org.geotools.data.DataStoreFactorySpi
 import util.Try
 import scala.reflect.ClassTag
 import geomesa.core.security.{DefaultAuthorizationsProvider, AuthorizationsProvider}
+import org.apache.accumulo.core.security.Authorizations
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -49,13 +50,17 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       else
         visStr
 
-    val authProviderStr = authsProviderParam.lookUp(params).asInstanceOf[String]
+    val authProvider = authsProviderParam.lookUp(params).asInstanceOf[String]
+    val auths= authsParam.lookUp(params).asInstanceOf[String]
 
     val authorizationsProvider =
-      if(authProviderStr == null || authProviderStr.isEmpty)
-        new DefaultAuthorizationsProvider
+      if (authProvider != null && !authProvider.isEmpty)
+        Class.forName(authProvider).newInstance.asInstanceOf[AuthorizationsProvider]
+      else if (auths != null && !auths.isEmpty)
+        new DefaultAuthorizationsProvider(new Authorizations(auths))
       else
-        Class.forName(authProviderStr).newInstance.asInstanceOf[AuthorizationsProvider]
+        new DefaultAuthorizationsProvider
+
 
     val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
     val connector =
@@ -132,8 +137,9 @@ object AccumuloDataStoreFactory {
     val zookeepersParam   = new Param("zookeepers", classOf[String], "Zookeepers", true)
     val userParam         = new Param("user", classOf[String], "Accumulo user", true)
     val passwordParam     = new Param("password", classOf[String], "Password", true)
-    val authsProviderParam  = new Param("authorizationsProvider", classOf[String], "Class name for the Accumulo authorizations provider implementation", false)
-    val visibilityParam   = new Param("visibilities", classOf[String], "Accumulo visibility label to apply to all data", false)
+    val authsParam        = new Param("auths", classOf[String], "Authorizations to use for queries, if no authorization provider is defined", false)
+    val authsProviderParam  = new Param("authorizationsProvider", classOf[String], "Class name for the Accumulo authorizations provider to use", false)
+    val visibilityParam   = new Param("visibility", classOf[String], "Accumulo visibility label to apply to all data", false)
     val tableNameParam    = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
     val idxSchemaParam    = new Param("indexSchemaFormat",
       classOf[String],
@@ -158,6 +164,7 @@ object AccumuloDataStoreFactory {
     conf.set(ACCUMULO_USER, userParam.lookUp(params).asInstanceOf[String])
     conf.set(ACCUMULO_PASS, passwordParam.lookUp(params).asInstanceOf[String])
     conf.set(TABLE, tableNameParam.lookUp(params).asInstanceOf[String])
+    authsParam.lookupOpt[String](params).foreach(ap => conf.set(AUTHS, ap))
     authsProviderParam.lookupOpt[String](params).foreach(ap => conf.set(AUTH_PROVIDER, ap))
     visibilityParam.lookupOpt[String](params).foreach(vis => conf.set(VISIBILITY, vis))
     featureEncParam.lookupOpt[String](params).foreach(fep => conf.set(FEATURE_ENCODING, fep))
@@ -171,6 +178,7 @@ object AccumuloDataStoreFactory {
       userParam.key -> conf.get(ACCUMULO_USER),
       passwordParam.key -> conf.get(ACCUMULO_PASS),
       tableNameParam.key -> conf.get(TABLE),
+      authsParam.key -> conf.get(AUTHS),
       authsProviderParam.key -> conf.get(AUTH_PROVIDER),
       visibilityParam.key -> conf.get(VISIBILITY),
       featureEncParam.key -> conf.get(FEATURE_ENCODING),
