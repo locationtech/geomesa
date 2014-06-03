@@ -22,7 +22,7 @@ import org.apache.wicket.markup.html.form.validation.IFormValidator
 import org.apache.wicket.markup.html.form.{FormComponent, Form}
 import org.apache.wicket.markup.html.panel.Panel
 import org.apache.wicket.model.{ResourceModel, IModel, PropertyModel}
-import org.geoserver.catalog.DataStoreInfo
+import org.geoserver.catalog.{StoreInfo, DataStoreInfo}
 import org.geoserver.web.data.store.StoreEditPanel
 import org.geoserver.web.data.store.panel.{ParamPanel, PasswordParamPanel, TextParamPanel}
 import org.geoserver.web.util.MapModel
@@ -39,10 +39,10 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
   val zookeepers = addTextPanel(paramsModel, new Param("zookeepers", classOf[String], "Zookeepers", true))
   val user = addTextPanel(paramsModel, new Param("user", classOf[String], "User", true))
   val password = addPasswordPanel(paramsModel, new Param("password", classOf[String], "Password", true))
-  val auths = addTextPanel(paramsModel, new Param("auths", classOf[String], "Authorizations", false))
+  val authProvider = addTextPanel(paramsModel, new Param("authorizationsProvider", classOf[String], "Authorizations Provider", false, "geomesa.plugin.security.SpringSecurityAuthorizationsProvider"))
   val tableName = addTextPanel(paramsModel, new Param("tableName", classOf[String], "The Accumulo Table Name", true))
 
-  val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, tableName)
+  val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, tableName, authProvider)
   dependentFormComponents.map(_.setOutputMarkupId(true))
 
   storeEditForm.add(new IFormValidator() {
