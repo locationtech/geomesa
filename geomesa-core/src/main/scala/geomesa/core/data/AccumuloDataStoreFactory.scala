@@ -55,7 +55,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       if(authProviderStr == null || authProviderStr.isEmpty)
         new DefaultAuthorizationsProvider
       else
-        Class.forName(authProviderStr).asInstanceOf[AuthorizationsProvider]
+        Class.forName(authProviderStr).newInstance.asInstanceOf[AuthorizationsProvider]
 
     val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
     val connector =
@@ -133,7 +133,7 @@ object AccumuloDataStoreFactory {
     val userParam         = new Param("user", classOf[String], "Accumulo user", true)
     val passwordParam     = new Param("password", classOf[String], "Password", true)
     val authsProviderParam  = new Param("authorizationsProvider", classOf[String], "Class name for the Accumulo authorizations provider implementation", false)
-    val visibilityParam   = new Param("visibility", classOf[String], "Accumulo visibility label to apply to all data", false)
+    val visibilityParam   = new Param("visibilities", classOf[String], "Accumulo visibility label to apply to all data", false)
     val tableNameParam    = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
     val idxSchemaParam    = new Param("indexSchemaFormat",
       classOf[String],

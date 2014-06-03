@@ -90,7 +90,7 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
 
     logger.trace(s"decomposed features: ${entries.map(e => (e, e.getType.getGeometryDescriptor)).mkString(",")})}")
 
-    val v = new ColumnVisibility(visibility)
+    val v = new Text(visibility)
 
     // remember the resulting index-entries
     val keys = entries.map { entry =>
@@ -112,7 +112,7 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
     // each attribute gets its own data row (though currently, we use only one attribute
     // that represents the entire, encoded feature)
     val dataEntries = rowIDs.map { rowID =>
-      val key = new Key(rowID, id, DATA_CQ)
+      val key = new Key(rowID, id, DATA_CQ, v)
       (key, dataValue)
     }
 
