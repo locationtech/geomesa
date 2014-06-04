@@ -39,7 +39,7 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
   val zookeepers = addTextPanel(paramsModel, new Param("zookeepers", classOf[String], "Zookeepers", true))
   val user = addTextPanel(paramsModel, new Param("user", classOf[String], "User", true))
   val password = addPasswordPanel(paramsModel, new Param("password", classOf[String], "Password", true))
-  val authProvider = addTextPanel(paramsModel, new Param("authorizationsProvider", classOf[String], "Authorizations Provider", false, "geomesa.plugin.security.SpringSecurityAuthorizationsProvider"))
+  val authProvider = addTextPanel(paramsModel, new Param("authorizationsProvider", classOf[String], "Authorizations Provider", false))
   val tableName = addTextPanel(paramsModel, new Param("tableName", classOf[String], "The Accumulo Table Name", true))
 
   val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, tableName, authProvider)
