@@ -28,7 +28,7 @@ import org.geotools.data.{Query, DataUtilities}
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{Interval, DateTime}
+import org.joda.time.{Duration, Interval, DateTime}
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
@@ -67,7 +67,6 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
       val mockInstance = new MockInstance("dummy")
       val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
       if (c.tableOperations.exists(TEST_TABLE)) c.tableOperations.delete(TEST_TABLE)
-      c.tableOperations.create(TEST_TABLE)
 
       val dsf = new AccumuloDataStoreFactory
 
@@ -82,10 +81,9 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
           authsParam.key -> "S,USA",
           tableNameParam.key -> "test_table",
           mockParam.key -> "true",
+          featureEncParam.key -> "avro",
           idxSchemaParam.key -> TestData.schemaEncoding
         ))
-
-      //sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
       ds.createSchema(TestData.featureType)
       val fs = ds.getFeatureSource(TestData.featureName).asInstanceOf[SimpleFeatureStore]
@@ -135,6 +133,6 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     //val q = new Query(TestData.featureType.getTypeName, tf)
     val q = new Query(TestData.featureType.getTypeName, tf, outputAttributes)
     val sfCollection = fs.getFeatures(q)
-    sfCollection.features().toList.size
+    sfCollection.features().count(x => true)
   }
 }

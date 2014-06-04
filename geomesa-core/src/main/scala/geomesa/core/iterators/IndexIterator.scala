@@ -32,8 +32,6 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.Some
 import scala.collection.JavaConverters._
-import scala.util.Try
-
 
 /**
  * This is an Index Only Iterator, to be used in situations where the data records are
@@ -121,11 +119,23 @@ object IndexIteratorTrigger {
    */
   implicit class IndexAttributeNames(sft: SimpleFeatureType) {
     def geoName = sft.getGeometryDescriptor.getLocalName
+    // can use this logic if the UserData may be present in the SimpleFeatureType
+    //def startTimeName = Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map { y => y.toString}
+    //def endTimeName = Option(sft.getUserData.get(SF_PROPERTY_END_TIME)).map { y => y.toString}
 
-    def startTimeName = Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map { y => y.toString}
+    // must use this logic if the UserData may not be present in the SimpleFeatureType
+    def startTimeName =  attributeNameHandler(SF_PROPERTY_START_TIME)
+    def endTimeName   =  attributeNameHandler(SF_PROPERTY_END_TIME)
 
-    def endTimeName = Option(sft.getUserData.get(SF_PROPERTY_END_TIME)).map { y => y.toString}
-
+    def attributeNameHandler(attributeKey: String): Option[String] = {
+      Option(sft.getUserData.get(attributeKey)).map { y => y.toString} match {
+        case name: Some[String] => name     // the key is set in the UserData
+        case _ => Option(sft.getDescriptor(attributeKey)) match {
+          case desc: Some[AttributeDescriptor] => Some(attributeKey)  // an attribute with this name is actually present in the simple feature
+          case _ => None
+        }
+      }
+    }
     def indexAttributeNames = List(geoName) ++ startTimeName ++ endTimeName
   }
 
@@ -224,40 +234,31 @@ object IndexIteratorTrigger {
 }
 
 object IndexIterator extends IteratorHelpers {
-
-import geomesa.core.index.IndexEntry.IndexEntrySFT  // enriched SimpleFeature to access time attributes
+  import IndexIteratorTrigger.IndexAttributeNames
 
   /**
    * Converts values taken from the Index Value to a SimpleFeature, using the passed SimpleFeatureBuilder
    * Note that the ID, taken from the index, is preserved
-   * Also note that the SimpleFeature's other attributes are not parsed and will thus be left as null;
+   * Also note that the SimpleFeature's other attributes may not be fully parsed and may be left as null;
    * the SimpleFeatureFilteringIterator *may* remove the extraneous attributes later in the Iterator stack
    */
   def encodeIndexValueToSF(featureBuilder: SimpleFeatureBuilder, id: String,
                            geom: Geometry, dtgMillis: Option[Long]): SimpleFeature = {
     val theType = featureBuilder.getFeatureType
-    val geomField = theType.getGeometryDescriptor
-    // build the feature using the ID extracted from the index
-    val nextSimpleFeature = featureBuilder.buildFeature(id)
-    // set the value of the geometry field
-    nextSimpleFeature.setAttribute(geomField.getLocalName, geom)
-    // add the optional time fields, which may not be present in this SimpleFeature
-    // note that if both are present, then both receive the same value
-    dtgMillis.map { time => Try {
-      nextSimpleFeature.setStartTime(new DateTime(time))
-    }
-      Try {
-        nextSimpleFeature.setEndTime(new DateTime(time))
-      }
-    }
-    nextSimpleFeature
+    val dtgDate = dtgMillis.map{time => new DateTime(time).toDate}
+    // Build and fill the Feature. This offers some performance gain over building and then setting the attributes.
+    featureBuilder.buildFeature(id, attributeArray(theType, geom, dtgDate ))
   }
 
   /**
-   * For a given SimpleFeature schema, extract and return a list of the attribute descriptors
+   * Construct and fill an array of the SimpleFeature's attribute values
    */
-  def extractOutputAttributes(targetSchema: String): List[AttributeDescriptor] = {
-    val targetSFType = DataUtilities.createType(this.getClass.getCanonicalName, targetSchema)
-    targetSFType.getAttributeDescriptors.asScala.toList
+  def attributeArray(theType: SimpleFeatureType, geomValue: Geometry, date: Option[java.util.Date]) = {
+    val attrArray = new Array[AnyRef](theType.getAttributeCount)
+    // always set the mandatory geo element
+    attrArray(theType.indexOf(theType.geoName)) = geomValue
+    // if dtgDT exists, attempt to fill the elements corresponding to the start and/or end times
+    date.map{time => (theType.startTimeName ++ theType.endTimeName).map{name =>attrArray(theType.indexOf(name)) = time}}
+    attrArray
   }
 }
