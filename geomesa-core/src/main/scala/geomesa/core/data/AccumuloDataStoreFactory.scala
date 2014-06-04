@@ -57,7 +57,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       if (authProvider != null && !authProvider.isEmpty)
         Class.forName(authProvider).newInstance.asInstanceOf[AuthorizationsProvider]
       else if (auths != null && !auths.isEmpty)
-        new DefaultAuthorizationsProvider(new Authorizations(auths))
+        new DefaultAuthorizationsProvider(new Authorizations(auths.split(","):_*))
       else
         new DefaultAuthorizationsProvider
 

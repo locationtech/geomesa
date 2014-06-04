@@ -332,6 +332,22 @@ class AccumuloDataStoreTest extends Specification {
       ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations should be equalTo(new Authorizations("U"))
     }
 
+    "provide ability to configure auth provider by comma-delimited static auths" in {
+      // create the data store
+      val ds = DataStoreFinder.getDataStore(Map(
+                                                 "instanceId" -> "mycloud",
+                                                 "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+                                                 "user"       -> "myuser",
+                                                 "password"   -> "mypassword",
+                                                 "auths"      -> "U,S,USA",
+                                                 "tableName"  -> "testwrite",
+                                                 "useMock"    -> "true",
+                                                 "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      ds should not be null
+      ds.authorizationsProvider.isInstanceOf[DefaultAuthorizationsProvider] should be equalTo(true)
+      ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations should be equalTo(new Authorizations("U", "S", "USA"))
+    }
+
   }
 
   "AccumuloFeatureStore" should {
