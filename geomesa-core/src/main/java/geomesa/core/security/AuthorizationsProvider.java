@@ -2,6 +2,9 @@ package geomesa.core.security;
 
 import org.apache.accumulo.core.security.Authorizations;
 
+import java.io.Serializable;
+import java.util.Map;
+
 /**
  * An interface to define passing authorizations.
  */
@@ -16,4 +19,10 @@ public interface AuthorizationsProvider {
      */
     public Authorizations getAuthorizations();
 
+    /**
+     * Configures this instance with parameters passed into the DataStoreFinder
+     *
+     * @param params
+     */
+    public void configure(Map<String, Serializable> params);
 }

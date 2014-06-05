@@ -55,7 +55,7 @@ import scala.collection.JavaConverters._
  */
 class AccumuloDataStore(val connector: Connector,
                         val tableName: String,
-                        val auths: Array[String],
+                        val auths: List[String],
                         val authorizationsProvider: AuthorizationsProvider,
                         val visibility: String,
                         val indexSchemaFormat: String = "DEFAULT",
@@ -349,7 +349,7 @@ class AccumuloDataStore(val connector: Connector,
  */
 class MapReduceAccumuloDataStore(connector: Connector,
                                  tableName: String,
-                                 auths: Array[String],
+                                 auths: List[String],
                                  authorizationsProvider: AuthorizationsProvider,
                                  visibility: String,
                                  val params: JMap[String, Serializable],

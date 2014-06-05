@@ -68,11 +68,11 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
     // if no auths are specified we default to the connector auths
     // TODO would it be safer to default to no auths?
-    val auths: Array[String] =
+    val auths: List[String] =
       if (!configuredAuths.isEmpty)
-        configuredAuths
+        configuredAuths.toList
       else
-        masterAuthsStrings.toArray
+        masterAuthsStrings.toList
 
     val authProviderSystemProperty = System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
 
@@ -92,9 +92,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         }
       }
 
-    // set the default auths in the provider
-    if (authorizationsProvider.isInstanceOf[DefaultAuthorizationsProvider])
-      authorizationsProvider.asInstanceOf[DefaultAuthorizationsProvider].authorizations = new Authorizations(auths:_*)
+    // update the authorizations in the parameters and then configure the auth provider
+    params.put(authsParam.key, auths.mkString(","))
+    authorizationsProvider.configure(params)
 
     val featureEncoding =
       featureEncParam.lookupOpt[String](params)
