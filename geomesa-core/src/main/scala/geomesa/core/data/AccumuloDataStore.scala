@@ -21,6 +21,7 @@ import geomesa.core
 import geomesa.core.data.AccumuloFeatureWriter.{LocalRecordDeleter, LocalRecordWriter, MapReduceRecordWriter}
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.core.index.{Constants, IndexSchema}
+import geomesa.core.security.AuthorizationsProvider
 import java.io.Serializable
 import java.util.{Map=>JMap}
 import org.apache.accumulo.core.client.mock.MockConnector
@@ -41,7 +42,6 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import geomesa.core.security.AuthorizationsProvider
 
 /**
  *

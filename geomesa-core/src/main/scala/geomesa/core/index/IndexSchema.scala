@@ -30,13 +30,12 @@ import java.util.{Iterator => JIterator}
 import org.apache.accumulo.core.client.BatchScanner
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.data.Value
+import org.apache.log4j.Logger
 import org.geotools.data.{DataUtilities, Query}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.parsing.combinator.RegexParsers
-import org.apache.log4j.Logger
-import geomesa.core.security.AuthorizationsProvider
 
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)

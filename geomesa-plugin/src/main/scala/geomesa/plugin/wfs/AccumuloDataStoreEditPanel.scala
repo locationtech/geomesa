@@ -22,7 +22,7 @@ import org.apache.wicket.markup.html.form.validation.IFormValidator
 import org.apache.wicket.markup.html.form.{FormComponent, Form}
 import org.apache.wicket.markup.html.panel.Panel
 import org.apache.wicket.model.{ResourceModel, IModel, PropertyModel}
-import org.geoserver.catalog.{StoreInfo, DataStoreInfo}
+import org.geoserver.catalog.DataStoreInfo
 import org.geoserver.web.data.store.StoreEditPanel
 import org.geoserver.web.data.store.panel.{ParamPanel, PasswordParamPanel, TextParamPanel}
 import org.geoserver.web.util.MapModel

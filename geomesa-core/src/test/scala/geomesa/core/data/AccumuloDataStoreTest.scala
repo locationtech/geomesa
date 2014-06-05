@@ -49,7 +49,7 @@ class AccumuloDataStoreTest extends Specification {
       "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
       "user"       -> "myuser",
       "password"   -> "mypassword",
-      "auths"      -> "",
+      "auths"      -> "A,B,C",
       "tableName"  -> "testwrite",
       "useMock"    -> "true",
       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]

@@ -12,7 +12,6 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.DateTime
 import org.opengis.feature.simple.SimpleFeature
 import scala.collection.JavaConversions._
-import org.apache.accumulo.core.security.ColumnVisibility
 
 object IndexEntry {
 

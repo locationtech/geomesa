@@ -2,8 +2,6 @@ package geomesa.core.security;
 
 import org.apache.accumulo.core.security.Authorizations;
 
-import java.io.Serializable;
-
 /**
  * An interface to define passing authorizations.
  */
