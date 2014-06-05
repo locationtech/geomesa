@@ -9,6 +9,8 @@ import java.io.Serializable;
  */
 public interface AuthorizationsProvider {
 
+    public static final String AUTH_PROVIDER_SYS_PROPERTY = "geomesa.auth.provider.impl";
+
     /**
      * Gets the authorizations for the current context. This may change over time (e.g. in a multi-user environment), so the result should not be cached.
      *

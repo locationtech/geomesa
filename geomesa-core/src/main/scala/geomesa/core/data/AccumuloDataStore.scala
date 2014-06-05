@@ -55,6 +55,7 @@ import geomesa.core.security.AuthorizationsProvider
  */
 class AccumuloDataStore(val connector: Connector,
                         val tableName: String,
+                        val auths: Array[String],
                         val authorizationsProvider: AuthorizationsProvider,
                         val visibility: String,
                         val indexSchemaFormat: String = "DEFAULT",
@@ -318,7 +319,11 @@ class AccumuloDataStore(val connector: Connector,
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE
 
-  def createBatchScanner = connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, 100)
+  def createBatchScanner = {
+    // check user auths against the declared list of acceptable auths for this data store
+    val filtered = authorizationsProvider.getAuthorizations.getAuthorizations.map(b => new String(b)).intersect(auths)
+    connector.createBatchScanner(tableName, new Authorizations(filtered:_*), 100)
+  }
 
   // Accumulo assumes that the failures directory exists.  This function assumes that you have already created it.
   def importDirectory(tableName: String,
@@ -344,12 +349,13 @@ class AccumuloDataStore(val connector: Connector,
  */
 class MapReduceAccumuloDataStore(connector: Connector,
                                  tableName: String,
+                                 auths: Array[String],
                                  authorizationsProvider: AuthorizationsProvider,
                                  visibility: String,
                                  val params: JMap[String, Serializable],
                                  indexSchemaFormat: String = "DEFAULT",
                                  featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
-  extends AccumuloDataStore(connector, tableName, authorizationsProvider, visibility, indexSchemaFormat, featureEncoding) {
+  extends AccumuloDataStore(connector, tableName, auths, authorizationsProvider, visibility, indexSchemaFormat, featureEncoding) {
 
   override def createFeatureSource(featureName: String): SimpleFeatureSource =
     new MapReduceAccumuloFeatureStore(this, featureName)
