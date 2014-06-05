@@ -9,5 +9,5 @@ class DefaultAuthorizationsProvider extends AuthorizationsProvider {
 
   var authorizations: Authorizations = new Authorizations
 
-  override def getAuthorizations : Authorizations = { authorizations }
+  override def getAuthorizations : Authorizations = authorizations
 }

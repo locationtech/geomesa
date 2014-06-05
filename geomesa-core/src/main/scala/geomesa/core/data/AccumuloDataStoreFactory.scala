@@ -55,15 +55,16 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       else buildAccumuloConnector(params)
 
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
-    val connectorAuths = connector.securityOperations.getUserAuthorizations(connector.whoami)
-                          .getAuthorizations.map(b => new String(b)).toArray
+    val securityOps = connector.securityOperations
+    val masterAuths = securityOps.getUserAuthorizations(connector.whoami)
+    val masterAuthsStrings = masterAuths.map(b => new String(b))
 
     // get the auth params passed in as a comma-delimited string
     val configuredAuths = authsParam.lookupOpt[String](params).getOrElse("").split(",").filter(s => !s.isEmpty)
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
-    configuredAuths.foreach(a => if(!connectorAuths.contains(a) && !connector.isInstanceOf[MockConnector])
-             throw new IllegalArgumentException("The authorization '" + a + "' is not valid for the Accumulo connector being used"))
+    configuredAuths.foreach(a => if(!masterAuthsStrings.contains(a) && !connector.isInstanceOf[MockConnector])
+             throw new IllegalArgumentException(s"The authorization '$a' is not valid for the Accumulo connector being used"))
 
     // if no auths are specified we default to the connector auths
     // TODO would it be safer to default to no auths?
@@ -71,7 +72,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       if (!configuredAuths.isEmpty)
         configuredAuths
       else
-        connectorAuths
+        masterAuthsStrings.toArray
 
     val authProviderSystemProperty = System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
 
@@ -79,15 +80,13 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
         if (authProviderSystemProperty != null) {
           providers.find(p => authProviderSystemProperty.equals(p.getClass.getName))
-            .getOrElse(throw new IllegalArgumentException("The service provider class specified by " +
-               AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY + " could not be loaded - " + authProviderSystemProperty))
+            .getOrElse(throw new IllegalArgumentException(s"The service provider class $authProviderSystemProperty specified by ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"))
         } else {
-          val nondefault = providers.filterNot(p => p.isInstanceOf[DefaultAuthorizationsProvider])
+          val nondefault = providers.filterNot(_.isInstanceOf[DefaultAuthorizationsProvider])
           if (nondefault.length > 1)
-            throw new IllegalStateException("Found multiple AuthorizationProvider implementations. Please specify the one to use with the system property "
-                                            + AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY + " :: found " + nondefault)
+            throw new IllegalStateException(s"Found multiple AuthorizationProvider implementations. Please specify the one to use with the system property ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} :: found $nondefault")
           nondefault.headOption.getOrElse({
-            providers.find(p => p.isInstanceOf[DefaultAuthorizationsProvider])
+            providers.find(_.isInstanceOf[DefaultAuthorizationsProvider])
               .getOrElse(throw new IllegalStateException("No valid geomesa.core.security.AuthorizationsProvider could be loaded"))
           })
         }
