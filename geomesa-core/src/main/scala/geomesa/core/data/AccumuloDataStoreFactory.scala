@@ -93,8 +93,10 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       }
 
     // update the authorizations in the parameters and then configure the auth provider
-    params.put(authsParam.key, auths.mkString(","))
-    authorizationsProvider.configure(params)
+    // we have to copy the map to be able to update it
+    val updatedParams = collection.mutable.Map(params.toSeq:_*)
+    updatedParams.put(authsParam.key, auths.mkString(","))
+    authorizationsProvider.configure(updatedParams)
 
     val featureEncoding =
       featureEncParam.lookupOpt[String](params)
