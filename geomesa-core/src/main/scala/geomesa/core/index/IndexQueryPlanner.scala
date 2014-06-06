@@ -102,20 +102,21 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     // if the IndexIterator can be used instead of the IntersectingIterator, do it
     //    and directly create the final SimpleFeature in the IndexIterator if possible
 
-    (IndexIteratorTrigger.useIndexOnlyIterator(ecql, query, sourceSimpleFeatureType),
-      IndexIteratorTrigger.generateTransformedSimpleFeature(ecql,query,sourceSimpleFeatureType )) match
-    {
-      case (true,true)  => val sfType = transformedSimpleFeatureType(query).get
-                           configureIndexIterator(bs, opoly, oint, query, sfType)
+    val useIndexOnlyIterator =  IndexIteratorTrigger.useIndexOnlyIterator(ecql, query, sourceSimpleFeatureType)
+    val transformGeneratedByII = IndexIteratorTrigger.generateTransformedSimpleFeature(ecql,query,sourceSimpleFeatureType )
 
-      case (true,false) => val sfType = sourceSimpleFeatureType
-                           configureIndexIterator(bs, opoly, oint, query, sfType)
-                           configureSimpleFeatureFilteringIterator(bs, sfType, ecql, query, poly)
+    val sfType = if (useIndexOnlyIterator && transformGeneratedByII)
+                                transformedSimpleFeatureType(query).getOrElse(sourceSimpleFeatureType)
+                 else           sourceSimpleFeatureType
 
-      case (false, _)   => val sfType = sourceSimpleFeatureType
-                           configureSpatioTemporalIntersectingIterator(bs, opoly, oint, sfType)
-                           configureSimpleFeatureFilteringIterator(bs, sfType, ecql, query, poly)
-    }
+    if ( useIndexOnlyIterator && transformGeneratedByII )
+                                      configureIndexIterator(bs, opoly, oint, query, sfType)
+
+    else if (useIndexOnlyIterator){   configureIndexIterator(bs, opoly, oint, query, sfType)
+                                      configureSimpleFeatureFilteringIterator(bs, sfType, ecql, query, poly)  }
+
+    else  {                           configureSpatioTemporalIntersectingIterator(bs, opoly, oint, sfType)
+                                      configureSimpleFeatureFilteringIterator(bs, sfType, ecql, query, poly)  }
     bs.iterator()
   }
 
@@ -180,8 +181,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                                               ecql: Option[String],
                                               query: Query,
                                               poly: Polygon = null) {
-    //val transforms = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
-    //val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
 
     val density: Boolean = query.getHints.containsKey(DENSITY_KEY)
 
