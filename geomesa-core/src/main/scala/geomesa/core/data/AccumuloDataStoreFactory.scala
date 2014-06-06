@@ -18,9 +18,11 @@
 package geomesa.core.data
 
 import collection.JavaConversions._
+import geomesa.core.security.{DefaultAuthorizationsProvider, AuthorizationsProvider}
 import java.io.Serializable
 import java.util.{Map => JMap}
-import org.apache.accumulo.core.client.mock.MockInstance
+import javax.imageio.spi.ServiceRegistry
+import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.apache.accumulo.core.security.Authorizations
@@ -28,8 +30,6 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
-import util.Try
-import scala.reflect.ClassTag
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -41,19 +41,61 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   def createDataStore(params: JMap[String, Serializable]) = {
 
-    val authsStr = authsParam.lookUp(params).asInstanceOf[String]
+    val visStr = visibilityParam.lookUp(params).asInstanceOf[String]
 
-    val authorizations =
-      if(authsStr == null || authsStr.size == 0)
-        new Authorizations()
+    val visibility =
+      if (visStr == null)
+        ""
       else
-        new Authorizations(authsStr.split(","): _*)
+        visStr
 
     val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
     val connector =
       if(params.containsKey(connParam.key)) connParam.lookUp(params).asInstanceOf[Connector]
       else buildAccumuloConnector(params)
 
+    // convert the connector authorizations into a string array - this is the maximum auths this connector can support
+    val securityOps = connector.securityOperations
+    val masterAuths = securityOps.getUserAuthorizations(connector.whoami)
+    val masterAuthsStrings = masterAuths.map(b => new String(b))
+
+    // get the auth params passed in as a comma-delimited string
+    val configuredAuths = authsParam.lookupOpt[String](params).getOrElse("").split(",").filter(s => !s.isEmpty)
+
+    // verify that the configured auths are valid for the connector we are using (fail-fast)
+    configuredAuths.foreach(a => if(!masterAuthsStrings.contains(a) && !connector.isInstanceOf[MockConnector])
+             throw new IllegalArgumentException(s"The authorization '$a' is not valid for the Accumulo connector being used"))
+
+    // if no auths are specified we default to the connector auths
+    // TODO would it be safer to default to no auths?
+    val auths: List[String] =
+      if (!configuredAuths.isEmpty)
+        configuredAuths.toList
+      else
+        masterAuthsStrings.toList
+
+    val authProviderSystemProperty = System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
+
+    val authorizationsProvider = {
+        val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
+        if (authProviderSystemProperty != null) {
+          providers.find(p => authProviderSystemProperty.equals(p.getClass.getName))
+            .getOrElse(throw new IllegalArgumentException(s"The service provider class $authProviderSystemProperty specified by ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"))
+        } else {
+          val nondefault = providers.filterNot(_.isInstanceOf[DefaultAuthorizationsProvider])
+          if (nondefault.length > 1)
+            throw new IllegalStateException(s"Found multiple AuthorizationProvider implementations. Please specify the one to use with the system property ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} :: found $nondefault")
+          nondefault.headOption.getOrElse({
+            providers.find(_.isInstanceOf[DefaultAuthorizationsProvider])
+              .getOrElse(throw new IllegalStateException("No valid geomesa.core.security.AuthorizationsProvider could be loaded"))
+          })
+        }
+      }
+
+    // update the authorizations in the parameters and then configure the auth provider
+    // we copy the map so as not to modify the original
+    val modifiedParams = params ++ Map(authsParam.key -> auths.mkString(","))
+    authorizationsProvider.configure(modifiedParams)
 
     val featureEncoding =
       featureEncParam.lookupOpt[String](params)
@@ -64,23 +106,26 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       if(idxSchemaParam.lookUp(params) != null)
         new MapReduceAccumuloDataStore(connector,
           tableName,
-          authorizations,
+          auths,
+          authorizationsProvider,
+          visibility,
           params,
           idxSchemaParam.lookUp(params).asInstanceOf[String],
           featureEncoding = featureEncoding)
       else
-        new MapReduceAccumuloDataStore(connector, tableName, authorizations, params, featureEncoding = featureEncoding)
+        new MapReduceAccumuloDataStore(connector, tableName, auths, authorizationsProvider, visibility, params, featureEncoding = featureEncoding)
     else {
       if(idxSchemaParam.lookUp(params) != null)
         new AccumuloDataStore(connector,
           tableName,
-          authorizations,
+          auths,
+          authorizationsProvider,
+          visibility,
           idxSchemaParam.lookUp(params).asInstanceOf[String],
           featureEncoding = featureEncoding)
       else
-        new AccumuloDataStore(connector, tableName, authorizations, featureEncoding = featureEncoding)
+        new AccumuloDataStore(connector, tableName, auths,authorizationsProvider, visibility, featureEncoding = featureEncoding)
     }
-
   }
 
   def buildAccumuloConnector(params: JMap[String,Serializable]): Connector = {
@@ -100,7 +145,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   override def getParametersInfo =
     Array(instanceIdParam, zookeepersParam, userParam, passwordParam,
-      authsParam, tableNameParam, idxSchemaParam)
+        authsParam, visibilityParam, tableNameParam, idxSchemaParam)
 
   def canProcess(params: JMap[String,Serializable]) =
     params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
@@ -122,7 +167,8 @@ object AccumuloDataStoreFactory {
     val zookeepersParam   = new Param("zookeepers", classOf[String], "Zookeepers", true)
     val userParam         = new Param("user", classOf[String], "Accumulo user", true)
     val passwordParam     = new Param("password", classOf[String], "Password", true)
-    val authsParam        = new Param("auths", classOf[String], "Accumulo authorizations", false)
+    val authsParam        = new Param("auths", classOf[String], "Super-set of authorizations that will be used for queries. The actual authorizations might differ, depending on the authorizations provider, but will be outside this set. Comma-delimited.", false)
+    val visibilityParam   = new Param("visibility", classOf[String], "Accumulo visibility label to apply to all written data", false)
     val tableNameParam    = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
     val idxSchemaParam    = new Param("indexSchemaFormat",
       classOf[String],
@@ -148,6 +194,7 @@ object AccumuloDataStoreFactory {
     conf.set(ACCUMULO_PASS, passwordParam.lookUp(params).asInstanceOf[String])
     conf.set(TABLE, tableNameParam.lookUp(params).asInstanceOf[String])
     authsParam.lookupOpt[String](params).foreach(ap => conf.set(AUTHS, ap))
+    visibilityParam.lookupOpt[String](params).foreach(vis => conf.set(VISIBILITY, vis))
     featureEncParam.lookupOpt[String](params).foreach(fep => conf.set(FEATURE_ENCODING, fep))
 
     job
@@ -160,6 +207,7 @@ object AccumuloDataStoreFactory {
       passwordParam.key -> conf.get(ACCUMULO_PASS),
       tableNameParam.key -> conf.get(TABLE),
       authsParam.key -> conf.get(AUTHS),
+      visibilityParam.key -> conf.get(VISIBILITY),
       featureEncParam.key -> conf.get(FEATURE_ENCODING),
       mapReduceParam.key -> "true")
 }

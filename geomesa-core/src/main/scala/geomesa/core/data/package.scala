@@ -33,6 +33,8 @@ package object data {
   val ACCUMULO_USER        = "geomesa.user"
   val ACCUMULO_PASS        = "geomesa.pass"
   val AUTHS                = "geomesa.auths"
+  val AUTH_PROVIDER        = "geomesa.auth.provider"
+  val VISIBILITY           = "geomesa.visibility"
   val TABLE                = "geomesa.table"
   val FEATURE_NAME         = "geomesa.feature.name"
   val FEATURE_ENCODING     = "geomesa.feature.encoding"
