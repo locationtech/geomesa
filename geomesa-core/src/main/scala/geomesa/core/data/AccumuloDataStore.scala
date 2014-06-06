@@ -321,7 +321,7 @@ class AccumuloDataStore(val connector: Connector,
 
   def createBatchScanner = {
     // check user auths against the declared list of acceptable auths for this data store
-    val filtered = authorizationsProvider.getAuthorizations.getAuthorizations.map(b => new String(b)).intersect(auths)
+    val filtered = authorizationsProvider.getAuthorizations.getAuthorizations.map(new String(_)).intersect(auths)
     connector.createBatchScanner(tableName, new Authorizations(filtered:_*), 100)
   }
 
