@@ -144,80 +144,26 @@ object IndexIteratorTrigger {
     // get transforms if they exist
     val transformDefs = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
     val sourceSFT = DataUtilities.createType("DUMMY", sourceSFTSpec)
-    // if the ecql predicate exists, check if it just filters on index attributes
-    val filterIndexOnly: Option[Boolean] = ecqlPredicate.map { ecql => filterOnIndexAttributes(ecql, sourceSFT)}
-    // if the transforms exist, check if they just operate on index attributes
-    // if they don't then the answer is false
-    val transformIndexOnly: Option[Boolean] = transformDefs.map { tDef => transformOnIndexAttributes(tDef, sourceSFT)}
-                                              .orElse(Some(false))
-    // require both to be true
-    (transformIndexOnly ++ filterIndexOnly).forall{_ == true}
-  }
-  /**
-   * Scans the ECQL predicate and the transform definition in order to determine if the IndexIterator can
-   * create the final SimpleFeature, and by extension, the SimpleFeatureFilteringIterator is not needed
-   */
-  def generateTransformedSimpleFeature(ecqlPredicate: Option[String], query: Query, sourceSFTSpec: String): Boolean = {
-    //get transforms if they exist
-    val transformDefs = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
-    val sourceSFT = DataUtilities.createType("DUMMY", sourceSFTSpec)
+
     // if the transforms exist, check if the transform is simple enough to be handled by the IndexIterator
     // if it does not exist, then set this variable to false
-    val oneToOneTransformation = transformDefs.map { tDef => isOneToOneTransformation(tDef, sourceSFT)}
-                                 .orElse(Some(false))
+    val isIndexTransform = transformDefs.map { tDef => isOneToOneIndexTransformation(tDef, sourceSFT)}
+      .orElse(Some(false))
     // if the ecql predicate exists, check that it is a trivial filter that does nothing
     val isPassThroughFilter = ecqlPredicate.map { ecql => passThroughFilter(ecql)}
     // require both to be true
-    (isPassThroughFilter ++ oneToOneTransformation).forall{_ == true}
-  }
-  /**
-   * Checks to see if a set of transforms reference ONLY the attributes found in the source's SimpleFeatureType:
-   * geometry and optionally time
-   */
-  def transformOnIndexAttributes(transform_text: String, sourceSchema: SimpleFeatureType): Boolean = {
-    transformAttributes(transform_text).forall(sourceSchema.indexAttributeNames.contains)
-  }
-
-  /**
-   * Obtain a set of attributes referenced in a string that defines a series of transforms
-   */
-  def transformAttributes(transform_text: String) = {
-    // get a Scala List of all the GeoTools Definitions
-    val gtTransformDefs = TransformProcess.toDefinition(transform_text).asScala
-    // for each definition, get the expression and then a list of its associated attribute names
-    gtTransformDefs.flatMap(aDef => DataUtilities.attributeNames(aDef.expression)).toSet[String]
-  }
-
-  /**
-   * Tests if a transform simply selects attributes, with no scaling or renaming
-   */
-  def isIdentityTransformation(transformDefs: String) = {
-    // convert to a transform
-    val theDefinitions = TransformProcess.toDefinition(transformDefs).asScala
-    // check that, for each definition, the name and expression match
-    theDefinitions.forall(aDef => aDef.name == aDef.expression.toString)
+    (isIndexTransform ++ isPassThroughFilter).forall{_ == true}
   }
 
   /**
    * Tests if the transformation is a one-to-one transform of index attributes:
    * This allows selection and renaming of index attributes only
    */
-  def isOneToOneTransformation(transformDefs: String, schema: SimpleFeatureType): Boolean = {
+  def isOneToOneIndexTransformation(transformDefs: String, schema: SimpleFeatureType): Boolean = {
     // convert to a TransformProcess Definition
     val theDefinitions = TransformProcess.toDefinition(transformDefs).asScala
-    // check that, for each definition, the expression is simply the name of an attribute in the schema
+    // check that, for each definition, the expression is simply the name of an index attribute in the schema
     theDefinitions.forall { aDef => schema.indexAttributeNames contains aDef.expression.toString}
-  }
-
-  /**
-   * Tests if the filter is applied to only index attributes found in the schema
-   */
-  def filterOnIndexAttributes(ecql_text: String, schema: SimpleFeatureType): Boolean = {
-    val theFilterAttributes = getFilterAttributes(ecql_text)
-    theFilterAttributes.isEmpty match {
-      case true => true // null filter that doesn't do anything
-      case false => theFilterAttributes.forall(schema.indexAttributeNames.contains)
-    }
   }
 
   /**

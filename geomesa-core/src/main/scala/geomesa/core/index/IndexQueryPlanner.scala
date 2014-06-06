@@ -100,23 +100,17 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     planQuery(bs, filter)
 
     // if the IndexIterator can be used instead of the IntersectingIterator, do it
-    //    and directly create the final SimpleFeature in the IndexIterator if possible
-
     val useIndexOnlyIterator =  IndexIteratorTrigger.useIndexOnlyIterator(ecql, query, sourceSimpleFeatureType)
-    val transformGeneratedByII = IndexIteratorTrigger.generateTransformedSimpleFeature(ecql,query,sourceSimpleFeatureType )
 
-    val sfType = if (useIndexOnlyIterator && transformGeneratedByII)
-                                transformedSimpleFeatureType(query).getOrElse(sourceSimpleFeatureType)
-                 else           sourceSimpleFeatureType
+    if (useIndexOnlyIterator) {
+      val transformedSFType = transformedSimpleFeatureType(query).getOrElse(sourceSimpleFeatureType)
+      configureIndexIterator(bs, opoly, oint, query, transformedSFType)
+    }
 
-    if ( useIndexOnlyIterator && transformGeneratedByII )
-                                      configureIndexIterator(bs, opoly, oint, query, sfType)
-
-    else if (useIndexOnlyIterator){   configureIndexIterator(bs, opoly, oint, query, sfType)
-                                      configureSimpleFeatureFilteringIterator(bs, sfType, ecql, query, poly)  }
-
-    else  {                           configureSpatioTemporalIntersectingIterator(bs, opoly, oint, sfType)
-                                      configureSimpleFeatureFilteringIterator(bs, sfType, ecql, query, poly)  }
+    else {
+      configureSpatioTemporalIntersectingIterator(bs, opoly, oint, sourceSimpleFeatureType)
+      configureSimpleFeatureFilteringIterator(bs, sourceSimpleFeatureType, ecql, query, poly)
+    }
     bs.iterator()
   }
 
