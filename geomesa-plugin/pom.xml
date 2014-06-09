@@ -24,7 +24,7 @@
     </parent>
 
     <artifactId>geomesa-plugin-accumulo1.5</artifactId>
-    <name>GeoMesa Plugin (WFS/WMS) - [Accumulo 1.5.x]</name>
+    <name>GeoMesa Plugin (WFS/WMS/WPS) - [Accumulo 1.5.x]</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -72,16 +72,11 @@
             <artifactId>slf4j-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- test deps -->
         <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.10</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

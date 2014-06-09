@@ -16,20 +16,19 @@
 
 package geomesa.core.data
 
+import FilterToAccumulo._
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
 import geomesa.core.index
-import geomesa.utils.geometry.Geometry._
 import geomesa.utils.filters.Filters._
-import geomesa.utils.time.Time._
+import geomesa.utils.geometry.Geometry._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.GeometryUtils
+import geomesa.utils.time.Time._
 import org.geotools.data.Query
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.visitor.SimplifyingFilterVisitor
 import org.geotools.geometry.jts.{JTSFactoryFinder, JTS}
-import org.geotools.referencing.GeodeticCalculator
-import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -39,7 +38,6 @@ import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 import org.opengis.temporal.{Period => OGCPeriod, Instant}
-import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
 
 object FilterToAccumulo {
   val allTime              = new Interval(0, Long.MaxValue)
@@ -52,8 +50,6 @@ object FilterToAccumulo {
 
   val DTF = ISODateTimeFormat.dateTime
 }
-
-import FilterToAccumulo._
 
 // FilterToAccumulo extracts the spatial and temporal predicates from the
 // filter while rewriting the filter to optimize for scanning Accumulo
@@ -287,15 +283,9 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
       ff.and(acc, op)
     } else {
-      val geoCalc = new GeodeticCalculator(DefaultGeographicCRS.WGS84)
       val startPoint = e2.evaluate(null, classOf[Point])
       val distance = op.getDistance
-
-      // Convert meters to dec degrees based on widest point in dec degrees of circle
-      geoCalc.setStartingGeographicPoint(startPoint.getX, startPoint.getY)
-      geoCalc.setDirection(90, distance)
-      val right = geoCalc.getDestinationGeographicPoint
-      val distanceDegrees = startPoint.distance(geoFactory.createPoint(new Coordinate(right.getX, right.getY)))
+      val distanceDegrees = GeometryUtils.distanceDegrees(startPoint, distance)
 
       // Walk circle bounds for bounding box
       spatialPredicate = GeometryUtils.bufferPoint(startPoint, distance)
