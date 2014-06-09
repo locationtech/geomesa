@@ -18,7 +18,7 @@ import org.specs2.runner.JUnitRunner
 import geomesa.core.index.Constants
 
 @RunWith(classOf[JUnitRunner])
-class TubeSelectTest extends Specification {
+class TubeSelectProcessTest extends Specification {
 
   sequential
 
@@ -74,7 +74,7 @@ class TubeSelectTest extends Specification {
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
 
       // get back type b from tube
-      val ts = new TubeSelect()
+      val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1, 1, 0, 5, null)
 
       val f = results.features()
@@ -118,7 +118,7 @@ class TubeSelectTest extends Specification {
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
 
       // get back type b from tube
-      val ts = new TubeSelect()
+      val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1, 1, 0, 5, null)
 
       val f = results.features()
@@ -166,7 +166,7 @@ class TubeSelectTest extends Specification {
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
 
       // get back type b from tube
-      val ts = new TubeSelect()
+      val ts = new TubeSelectProcess()
 
       // 110 m/s times 1000 seconds is just 100km which is under 1 degree
       val results = ts.execute(tubeFeatures, features, null, 110, 1000, 0, 5, null)
@@ -197,7 +197,7 @@ class TubeSelectTest extends Specification {
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
 
       // get back type b from tube
-      val ts = new TubeSelect()
+      val ts = new TubeSelectProcess()
 
       // this time we use 112km which is just over 1 degree so we should pick up additional features
       // but with buffer overlap since the features in the collection are 1 degrees apart
@@ -274,7 +274,7 @@ class TubeSelectTest extends Specification {
       features.size should equalTo(6)
 
       // get back type b from tube
-      val ts = new TubeSelect()
+      val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 112, 1, 0, 5, null)
 
       val f = results.features()
@@ -306,7 +306,7 @@ class TubeSelectTest extends Specification {
     "properly handle values for execute" in {
       val sftName = "tubeline"
       val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
-      val ts = new TubeSelect
+      val ts = new TubeSelectProcess
       val ds = createStore
 
       ds.createSchema(sft)

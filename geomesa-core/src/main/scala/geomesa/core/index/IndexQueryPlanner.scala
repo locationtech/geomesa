@@ -1,5 +1,6 @@
 package geomesa.core.index
 
+import IndexQueryPlanner._
 import com.vividsolutions.jts.geom.Polygon
 import geomesa.core.data._
 import geomesa.core.index.QueryHints._
@@ -9,9 +10,9 @@ import java.util.Map.Entry
 import java.util.{Iterator => JIterator}
 import org.apache.accumulo.core.client.{IteratorSetting, BatchScanner}
 import org.apache.accumulo.core.data.{Value, Key}
-import org.apache.accumulo.core.iterators.Combiner
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
+import org.apache.log4j.Logger
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
@@ -28,13 +29,13 @@ object IndexQueryPlanner {
   val iteratorPriority_SimpleFeatureFilteringIterator = 300
 }
 
-import IndexQueryPlanner._
-
 case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              cfPlanner: ColumnFamilyPlanner,
                              schema:String,
                              featureType: SimpleFeatureType,
                              featureEncoder: SimpleFeatureEncoder) {
+
+  private val log = Logger.getLogger(classOf[IndexQueryPlanner])
 
   def buildFilter(poly: Polygon, interval: Interval): KeyPlanningFilter =
     (IndexSchema.somewhere(poly), IndexSchema.somewhen(interval)) match {
@@ -98,6 +99,15 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     // set up row ranges and regular expression filter
     planQuery(bs, filter)
+
+    if(log.isTraceEnabled) {
+      log.trace("Configuring batch scanner: ")
+      log.trace("Poly: "+ opoly.getOrElse("No poly"))
+      log.trace("Interval: " + oint.getOrElse("No interval"))
+      log.trace("Filter: " + Option(filter).getOrElse("No Filter"))
+      log.trace("ECQL: " + Option(ecql).getOrElse("No ecql"))
+      log.trace("Query: " + Option(query).getOrElse("no query"))
+    }
 
     // Configure STII
     configureSpatioTemporalIntersectingIterator(bs, opoly, oint)

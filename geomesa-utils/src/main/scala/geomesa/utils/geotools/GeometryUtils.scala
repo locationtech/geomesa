@@ -67,4 +67,19 @@ object GeometryUtils {
     env.expandToInclude(bottomLeft.getX, bottomLeft.getY)
     JTS.toGeometry(env)
   }
+
+  /** Convert meters to dec degrees based on widest point in dec degrees of circle */
+  def distanceDegrees(startPoint: Point, meters: Double) = {
+    startPoint.distance(farthestPoint(startPoint, meters))
+  }
+
+  /** Farthest point based on widest point in dec degrees of circle */
+  def farthestPoint(startPoint: Point, meters: Double) = {
+    val calc = new GeodeticCalculator()
+    calc.setStartingGeographicPoint(startPoint.getX, startPoint.getY)
+    calc.setDirection(90, meters)
+    val dest2D = calc.getDestinationGeographicPoint
+    geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY))
+  }
+
 }

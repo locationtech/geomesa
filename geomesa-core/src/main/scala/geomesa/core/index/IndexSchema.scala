@@ -97,7 +97,7 @@ case class IndexSchema(encoder: IndexEncoder,
     // Perform the query
     val accumuloIterator = planner.getIterator(bs, query)
 
-    if(log.isDebugEnabled) log.debug("Running Query: "+ query.toString)
+    if(log.isTraceEnabled) log.trace("Running Query: "+ query.toString)
 
     // Convert Accumulo results to SimpleFeatures.
     adaptIterator(accumuloIterator, query)

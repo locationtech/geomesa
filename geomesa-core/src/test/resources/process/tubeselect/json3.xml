@@ -9,7 +9,7 @@
              xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc"
              xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink"
              xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
-    <ows:Identifier>vec:TubeSelect</ows:Identifier>
+    <ows:Identifier>geomesa:TubeSelect</ows:Identifier>
     <wps:DataInputs>
         <wps:Input>
           	<ows:Identifier>tubeFeatures</ows:Identifier>
