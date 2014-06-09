@@ -35,7 +35,7 @@
     </modules>
 
     <properties>
-        <scala.version>2.10.4</scala.version>
+        <scala.version>2.10.3</scala.version>
         <geoserver.version>2.5</geoserver.version>
         <gt.version>11.2</gt.version>
         <jts.version>1.13</jts.version>
@@ -44,7 +44,7 @@
         <!-- environment-dependent versions -->
         <zookeeper.version>3.4.5</zookeeper.version>
         <accumulo.version>1.5.1</accumulo.version>
-        <hadoop.version>2.2.0</hadoop.version>
+        <hadoop.version>2.0.6-alpha</hadoop.version>
 
         <!-- logging properties
              we expect logging jars to be provided -->
@@ -436,7 +436,7 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
-                <artifactId>gt-epsg-hsql</artifactId>
+                <artifactId>gt-epsg-wkt</artifactId>
                 <version>${gt.version}</version>
                 <scope>provided</scope>
             </dependency>
