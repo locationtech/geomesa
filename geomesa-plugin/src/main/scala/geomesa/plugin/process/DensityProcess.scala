@@ -17,17 +17,16 @@
 
 package geomesa.plugin.process
 
-import org.geotools.process.vector.HeatmapProcess
-import org.geotools.process.factory.{DescribeParameter, DescribeProcess}
-import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.data.Query
-import org.opengis.coverage.grid.GridGeometry
-import geomesa.core.data.AccumuloFeatureReader
 import geomesa.core.index.QueryHints
+import org.geotools.data.Query
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.process.factory.{DescribeParameter, DescribeProcess}
+import org.geotools.process.vector.HeatmapProcess
+import org.opengis.coverage.grid.GridGeometry
 
 @DescribeProcess(
-  title = "Heatmap",
-  description = "Computes a heatmap surface over a set of data points and outputs as a single-band raster."
+  title = "Density Map",
+  description = "Computes a density map over a set of features stored in Geomesa"
 )
 class DensityProcess extends HeatmapProcess {
   override def invertQuery(@DescribeParameter(name = "radiusPixels", description = "Radius to use for the kernel", min = 0, max = 1) argRadiusPixels: Integer,

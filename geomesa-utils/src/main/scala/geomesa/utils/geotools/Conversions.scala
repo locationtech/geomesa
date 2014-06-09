@@ -16,7 +16,7 @@
 
 package geomesa.utils.geotools
 
-import com.vividsolutions.jts.geom.Coordinate
+import com.vividsolutions.jts.geom._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
 import org.geotools.geometry.DirectPosition2D
@@ -53,6 +53,22 @@ object Conversions {
   implicit class RichCoord(val c: Coordinate) extends AnyVal {
     def toPoint2D = new DirectPosition2D(c.x, c.y)
   }
+
+  implicit class RichGeometry(val geom: Geometry) extends AnyVal {
+    def bufferMeters(meters: Double): Geometry = geom.buffer(distanceDegrees(meters))
+    def distanceDegrees(meters: Double) = GeometryUtils.distanceDegrees(geom.getCentroid, meters)
+  }
+
+  implicit class RichSimpleFeature(val sf: SimpleFeature) extends AnyVal {
+    def geometry = sf.getDefaultGeometry.asInstanceOf[Geometry]
+    def polygon = sf.getDefaultGeometry.asInstanceOf[Polygon]
+    def point = sf.getDefaultGeometry.asInstanceOf[Point]
+    def lineString = sf.getDefaultGeometry.asInstanceOf[LineString]
+    def multiPolygon = sf.getDefaultGeometry.asInstanceOf[MultiPolygon]
+    def multiPoint = sf.getDefaultGeometry.asInstanceOf[MultiPoint]
+    def multiLineString = sf.getDefaultGeometry.asInstanceOf[MultiLineString]
+  }
+
 }
 
 class JodaConverterFactory extends ConverterFactory {
