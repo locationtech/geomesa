@@ -18,7 +18,9 @@ package geomesa.core.data
 
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.Coordinate
+import geomesa.core.security.{FilteringAuthorizationsProvider, AuthorizationsProvider, DefaultAuthorizationsProvider}
 import geomesa.utils.text.WKTUtils
+import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{Query, DataUtilities, Transaction, DataStoreFinder}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
@@ -30,9 +32,6 @@ import org.junit.runner.RunWith
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import geomesa.core.TestAuthorizationsProvider
-import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider}
-import org.apache.accumulo.core.security.Authorizations
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
@@ -296,7 +295,8 @@ class AccumuloDataStoreTest extends Specification {
                      "useMock"    -> "true",
                      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
-      ds.authorizationsProvider.isInstanceOf[DefaultAuthorizationsProvider] should be equalTo(true)
+      ds.authorizationsProvider.isInstanceOf[FilteringAuthorizationsProvider] should be equalTo(true)
+      ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider.isInstanceOf[DefaultAuthorizationsProvider] should be equalTo(true)
       ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations should be equalTo(new Authorizations("U"))
     }
 
@@ -312,7 +312,8 @@ class AccumuloDataStoreTest extends Specification {
                                                  "useMock"    -> "true",
                                                  "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
-      ds.authorizationsProvider.isInstanceOf[DefaultAuthorizationsProvider] should be equalTo(true)
+      ds.authorizationsProvider.isInstanceOf[FilteringAuthorizationsProvider] should be equalTo(true)
+      ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider.isInstanceOf[DefaultAuthorizationsProvider] should be equalTo(true)
       ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations should be equalTo(new Authorizations("U", "S", "USA"))
     }
 

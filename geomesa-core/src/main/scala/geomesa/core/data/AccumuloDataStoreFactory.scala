@@ -18,7 +18,7 @@
 package geomesa.core.data
 
 import collection.JavaConversions._
-import geomesa.core.security.{DefaultAuthorizationsProvider, AuthorizationsProvider}
+import geomesa.core.security.{FilteringAuthorizationsProvider, DefaultAuthorizationsProvider, AuthorizationsProvider}
 import java.io.Serializable
 import java.util.{Map => JMap}
 import javax.imageio.spi.ServiceRegistry
@@ -76,7 +76,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
     val authProviderSystemProperty = System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
 
-    val authorizationsProvider = {
+    // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
+    val authorizationsProvider = new FilteringAuthorizationsProvider ({
         val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
         if (authProviderSystemProperty != null) {
           providers.find(p => authProviderSystemProperty.equals(p.getClass.getName))
@@ -90,7 +91,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
               .getOrElse(throw new IllegalStateException("No valid geomesa.core.security.AuthorizationsProvider could be loaded"))
           })
         }
-      }
+      })
 
     // update the authorizations in the parameters and then configure the auth provider
     // we copy the map so as not to modify the original
@@ -106,25 +107,23 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       if(idxSchemaParam.lookUp(params) != null)
         new MapReduceAccumuloDataStore(connector,
           tableName,
-          auths,
           authorizationsProvider,
           visibility,
           params,
           idxSchemaParam.lookUp(params).asInstanceOf[String],
           featureEncoding = featureEncoding)
       else
-        new MapReduceAccumuloDataStore(connector, tableName, auths, authorizationsProvider, visibility, params, featureEncoding = featureEncoding)
+        new MapReduceAccumuloDataStore(connector, tableName, authorizationsProvider, visibility, params, featureEncoding = featureEncoding)
     else {
       if(idxSchemaParam.lookUp(params) != null)
         new AccumuloDataStore(connector,
           tableName,
-          auths,
           authorizationsProvider,
           visibility,
           idxSchemaParam.lookUp(params).asInstanceOf[String],
           featureEncoding = featureEncoding)
       else
-        new AccumuloDataStore(connector, tableName, auths,authorizationsProvider, visibility, featureEncoding = featureEncoding)
+        new AccumuloDataStore(connector, tableName, authorizationsProvider, visibility, featureEncoding = featureEncoding)
     }
   }
 
