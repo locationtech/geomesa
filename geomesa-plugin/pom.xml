@@ -19,11 +19,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>geomesa</groupId>
-        <artifactId>geomesa-acc1.4</artifactId>
+        <artifactId>geomesa-accumulo1.4</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-plugin-acc1.4</artifactId>
+    <artifactId>geomesa-plugin-accumulo1.4</artifactId>
     <name>GeoMesa Plugin (WFS/WMS)</name>
 
     <properties>
@@ -33,11 +33,11 @@
     <dependencies>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-core-acc1.4</artifactId>
+            <artifactId>geomesa-core-accumulo1.4</artifactId>
         </dependency>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-utils-acc1.4</artifactId>
+            <artifactId>geomesa-utils-accumulo1.4</artifactId>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
