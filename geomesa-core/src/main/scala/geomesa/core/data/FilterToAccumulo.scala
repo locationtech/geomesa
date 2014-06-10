@@ -58,8 +58,9 @@ import FilterToAccumulo._
 // FilterToAccumulo extracts the spatial and temporal predicates from the
 // filter while rewriting the filter to optimize for scanning Accumulo
 class FilterToAccumulo(sft: SimpleFeatureType) {
-  val dtgField  = index.getDtgDescriptor(sft)
-  val geomField = sft.getGeometryDescriptor
+  // if the dtg attribute doesn't exist, set the name to an empty string
+  val dtgFieldName  = index.getDtgDescriptor(sft).map{_.getLocalName}.getOrElse("")
+  val geomFieldName = sft.getGeometryDescriptor.getLocalName
 
   var spatialPredicate:  Polygon  = noPolygon
   var temporalPredicate: Interval = noInterval
@@ -82,13 +83,13 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     def intersects: Filter = raw match {
       case f: SpatialOperator => f
       case _                  =>
-        ff.intersects(ff.property(geomField.getLocalName), ff.literal(polygon))
+        ff.intersects(ff.property(geomFieldName), ff.literal(polygon))
     }
 
     def during: Filter = raw match {
       case f: BinaryTemporalOperator => f
       case _                         =>
-        ff.during(ff.property(dtgField.getLocalName), ff.literal(interval))
+        ff.during(ff.property(dtgFieldName), ff.literal(interval))
     }
   }
 
@@ -187,7 +188,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
         case _          =>
           val oldSpace = spatialPredicate
           spatialPredicate = noPolygon
-          ff.not(ff.intersects(ff.property(geomField.getLocalName), ff.literal(oldSpace)))
+          ff.not(ff.intersects(ff.property(geomFieldName), ff.literal(oldSpace)))
       }
     } else Filter.INCLUDE
     val notTemporal = if (temporalPredicate != noInterval) {
@@ -196,11 +197,11 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
       (oldTemporal.getStart, oldTemporal.getEnd) match {
         case (MinTime, MaxTime)  => Filter.EXCLUDE
         case (s, MaxTime)        =>
-          ff.not(ff.after(ff.property(dtgField.getLocalName), dt2lit(s)))
+          ff.not(ff.after(ff.property(dtgFieldName), dt2lit(s)))
         case (MinTime, e)        =>
-          ff.not(ff.before(ff.property(dtgField.getLocalName), dt2lit(e)))
+          ff.not(ff.before(ff.property(dtgFieldName), dt2lit(e)))
         case (s, e)              =>
-          ff.not(ff.during(ff.property(dtgField.getLocalName),
+          ff.not(ff.during(ff.property(dtgFieldName),
             ff.literal(dts2lit(s, e))))
       }
     } else Filter.INCLUDE
@@ -313,7 +314,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     val prop     = bto.getExpression1.asInstanceOf[PropertyName]
     val lit      = bto.getExpression2.asInstanceOf[Literal]
     val attr     = prop.evaluate(sft).asInstanceOf[AttributeDescriptor]
-    if(!attr.getLocalName.equals(dtgField.getLocalName)) ff.and(acc, bto)
+    if(!attr.getLocalName.equals(dtgFieldName)) ff.and(acc, bto)
     else {
       val time = lit.evaluate(null)
       val startTime = getStart(time)
@@ -332,7 +333,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
   def visitPropertyIsBetween(op: PropertyIsBetween, acc: Filter): Filter = {
     val prop = op.getExpression.asInstanceOf[PropertyName]
     val attr = prop.evaluate(sft).asInstanceOf[AttributeDescriptor]
-    if(!attr.getLocalName.equals(dtgField.getLocalName)) ff.and(acc, op)
+    if(!attr.getLocalName.equals(dtgFieldName)) ff.and(acc, op)
     else {
       val start = extractDTG(op.getLowerBoundary.evaluate(null))
       val end   = extractDTG(op.getUpperBoundary.evaluate(null))
