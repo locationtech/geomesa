@@ -122,17 +122,17 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
     transformSchema.map{ schema => DataUtilities.encodeType(schema)}
   }
+
   // store transform information into an Iterator's settings
   def configureTransforms(query:Query,cfg: IteratorSetting) = {
-    val transforms = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
-    transforms.foreach { transform =>
-      cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
-      transformedSimpleFeatureType(query).foreach { sfType =>
-        cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, sfType)
-      }
-    }
+    for {
+      transformOpt <- Option(query.getHints.get(TRANSFORMS))
+      transform    = transformOpt.asInstanceOf[String]
+      _            = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
+      sfType       <- transformedSimpleFeatureType(query)
+      _            = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA,sfType)
+    } yield Unit
   }
-
   // establishes the regular expression that defines (minimally) acceptable rows
   def configureRowRegexIterator(bs: BatchScanner, regex: String) {
     val name = "regexRow-" + randomPrintableString(5)
