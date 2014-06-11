@@ -31,31 +31,33 @@ class FilteringAuthorizationsProviderTest extends Specification {
 
   val wrapped = new AuthorizationsProvider {
     override def configure(params: util.Map[String, Serializable]): Unit = { }
-    override def getAuthorizations: Authorizations = new Authorizations("U", "S", "TS")
+    override def getAuthorizations: Authorizations = new Authorizations("user", "admin", "test")
   }
 
   "FilteringAuthorizationsProvider" should {
     "filter wrapped authorizations" in {
       val filter = new FilteringAuthorizationsProvider(wrapped)
-      filter.configure(Map[String, Serializable]("auths" -> "S"))
+      filter.configure(Map[String, Serializable]("auths" -> "admin"))
       val auths = filter.getAuthorizations
 
       auths should not be null
       auths.getAuthorizations.length should be equalTo(1)
 
-      new java.lang.String(auths.getAuthorizations.get(0)) mustEqual "S"
+      val strings = auths.getAuthorizations.map(new String(_))
+      strings.contains("admin") mustEqual true
     }
 
     "filter multiple authorizations" in {
       val filter = new FilteringAuthorizationsProvider(wrapped)
-      filter.configure(Map[String, Serializable]("auths" -> "S,U"))
+      filter.configure(Map[String, Serializable]("auths" -> "user,test"))
       val auths = filter.getAuthorizations
 
       auths should not be null
       auths.getAuthorizations.length should be equalTo(2)
 
-      new java.lang.String(auths.getAuthorizations.get(0)) mustEqual "U"
-      new java.lang.String(auths.getAuthorizations.get(1)) mustEqual "S"
+      val strings = auths.getAuthorizations.map(new String(_))
+      strings.contains("user") mustEqual true
+      strings.contains("test") mustEqual true
     }
 
     "not filter if no filter is specified" in {
@@ -64,9 +66,11 @@ class FilteringAuthorizationsProviderTest extends Specification {
       val auths = filter.getAuthorizations
       auths should not be null
       auths.getAuthorizations.length should be equalTo(3)
-      new String(auths.getAuthorizations.get(0)) mustEqual "U"
-      new String(auths.getAuthorizations.get(1)) mustEqual "S"
-      new String(auths.getAuthorizations.get(2)) mustEqual "TS"
+
+      val strings = auths.getAuthorizations.map(new String(_))
+      strings.contains("user") mustEqual true
+      strings.contains("admin") mustEqual true
+      strings.contains("test") mustEqual true
     }
   }
 }
