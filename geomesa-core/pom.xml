@@ -19,12 +19,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>geomesa</groupId>
-        <artifactId>geomesa</artifactId>
+        <artifactId>geomesa-accumulo1.5</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-core</artifactId>
-    <name>GeoMesa Core</name>
+    <artifactId>geomesa-core-accumulo1.5</artifactId>
+    <name>GeoMesa Core - [Accumulo 1.5.x]</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,11 +33,11 @@
     <dependencies>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-utils</artifactId>
+            <artifactId>geomesa-utils-accumulo1.5</artifactId>
         </dependency>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-filter</artifactId>
+            <artifactId>geomesa-filter-accumulo1.5</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -132,6 +132,10 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
