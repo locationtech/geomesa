@@ -75,6 +75,7 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
     val origFeatureTypeSpec = DataUtilities.encodeType(origFeatureType)
     val decompFeatureTypeSpec = origFeatureTypeSpec.replaceAll(":(Point|MultiPoint|LineString|MultiLineString|MultiPolygon)",":Geometry")
     val decompFeatureType = DataUtilities.createType(origFeatureType.getName.toString, decompFeatureTypeSpec)
+    decompFeatureType.getUserData.putAll(origFeatureType.getUserData)  // for field annotations
     logger.trace(s"decomposed feature type geometry descriptor ${decompFeatureType.getGeometryDescriptor}")
 
     def setDefaultGeometry(sf: SimpleFeature, geom: Geometry) =
