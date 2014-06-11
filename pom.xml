@@ -18,7 +18,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>geomesa</groupId>
-    <artifactId>geomesa-accumulo1.5</artifactId>
+    <artifactId>geomesa-accumulo1.4</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>GeoMesa - [Accumulo 1.5.x]</name>
@@ -41,8 +41,8 @@
 
         <!-- environment-dependent versions -->
         <zookeeper.version>3.3.6</zookeeper.version>
-        <accumulo.version>1.5.1</accumulo.version>
-        <hadoop.version>2.2.0</hadoop.version>
+        <accumulo.version>1.4.3</accumulo.version>
+        <hadoop.version>0.20.2-cdh3u6</hadoop.version>
 
         <!-- logging properties
              we expect logging jars to be provided -->
@@ -63,15 +63,6 @@
         <fork.mode>once</fork.mode>
         <avro.version>1.7.5</avro.version>
     </properties>
-
-    <profiles>
-        <profile>
-            <id>debug-tests</id>
-            <properties>
-                <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xrunjdwp:transport=dt_socket,address=5000,server=y,suspend=y</maven.test.jvmargs>
-            </properties>
-        </profile>
-    </profiles>
 
     <dependencyManagement>
         <dependencies>
@@ -227,34 +218,39 @@
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-core-accumulo1.5</artifactId>
+                <artifactId>geomesa-core-accumulo1.4</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-utils-accumulo1.5</artifactId>
+                <artifactId>geomesa-utils-accumulo1.4</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-filter-accumulo1.5</artifactId>
+                <artifactId>geomesa-filter-accumulo1.4</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-plugin-accumulo1.5</artifactId>
+                <artifactId>geomesa-plugin-accumulo1.4</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
+                <artifactId>geomesa-distributed-runtime-accumulo1.4</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
-                <artifactId>geomesa-plugin-accumulo1.5</artifactId>
+                <artifactId>geomesa-plugin-accumulo1.4</artifactId>
                 <classifier>geoserver-plugin</classifier>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>11.0.1</version>
             </dependency>
 
             <!-- logging -->
@@ -365,6 +361,10 @@
                         <groupId>com.sun.jdmk</groupId>
                         <artifactId>jmxtools</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>log4j</groupId>
+                        <artifactId>log4j</artifactId>
+                    </exclusion>
                 </exclusions>
                 <scope>provided</scope>
             </dependency>
@@ -403,7 +403,7 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
-                <artifactId>gt-epsg-hsql</artifactId>
+                <artifactId>gt-epsg-wkt</artifactId>
                 <version>${gt.version}</version>
                 <scope>provided</scope>
             </dependency>
@@ -429,12 +429,7 @@
                 <version>4.5</version>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>11.0.1</version>
-                <scope>provided</scope>
-            </dependency>
+
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>findbugs</artifactId>
@@ -567,6 +562,10 @@
         <repository>
             <id>opengeo</id>
             <url>http://repo.opengeo.org</url>
+        </repository>
+        <repository>
+            <id>cloudera</id>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
         </repository>
     </repositories>
 

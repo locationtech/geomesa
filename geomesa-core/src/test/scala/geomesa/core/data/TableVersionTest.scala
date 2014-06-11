@@ -3,10 +3,8 @@ package geomesa.core.data
 import collection.JavaConversions._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text.WKTUtils
-import org.apache.accumulo.core.client.BatchWriterConfig
 import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.data.Mutation
+import org.apache.accumulo.core.data.{Value, Mutation}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.geotools.data.collection.ListFeatureCollection
@@ -17,6 +15,7 @@ import org.junit.runner.RunWith
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.apache.hadoop.io.Text
 
 
 /**
@@ -47,10 +46,10 @@ class TableVersionTest extends Specification {
 
   def buildManualTable(params: Map[String, String]) = {
     val instance = new MockInstance(params("instanceId"))
-    val connector = instance.getConnector(params("user"), new PasswordToken(params("password").getBytes))
+    val connector = instance.getConnector(params("user"), params("password").getBytes)
     connector.tableOperations.create(params("tableName"))
 
-    val bw = connector.createBatchWriter(params("tableName"), new BatchWriterConfig)
+    val bw = connector.createBatchWriter(params("tableName"), 1024L, 10L, 10)
 
     // Insert metadata
     val metadataMutation = new Mutation(s"~METADATA_$sftName")
@@ -63,7 +62,7 @@ class TableVersionTest extends Specification {
     getFeatures.zipWithIndex.foreach { case(sf, idx) =>
       val encoded = DataUtilities.encodeFeature(sf)
       val index = new Mutation(rowIds(idx))
-      index.put("00".getBytes,sf.getID.getBytes, indexValues(idx))
+      index.put(new Text("00"), new Text(sf.getID), new Value(indexValues(idx)))
       bw.addMutation(index)
 
       val data = new Mutation(rowIds(idx))
@@ -150,12 +149,11 @@ class TableVersionTest extends Specification {
       manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
 
       val instance = new MockInstance(badParams("instanceId"))
-      val connector = instance.getConnector(badParams("user"), new PasswordToken(badParams("password").getBytes))
+      val connector = instance.getConnector(badParams("user"), badParams("password").getBytes)
       val scanner = connector.createScanner(badParams("tableName"), new Authorizations())
       scanner.iterator.foreach { entry =>
         entry.getKey.getColumnFamily should not(equalTo(FEATURE_ENCODING_CF))
       }
-      scanner.close
 
       // Here we are creating a schema AFTER a table already exists...this mimics upgrading
       // from 0.10.x to 1.0.0 ...this call to createSchema should insert a row into the table
@@ -205,12 +203,11 @@ class TableVersionTest extends Specification {
       manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
 
       val instance = new MockInstance(newManualParams("instanceId"))
-      val connector = instance.getConnector(newManualParams("user"), new PasswordToken(newManualParams("password").getBytes))
+      val connector = instance.getConnector(newManualParams("user"), newManualParams("password").getBytes)
       val scanner = connector.createScanner(newManualParams("tableName"), new Authorizations())
       scanner.iterator.foreach { entry =>
         entry.getKey.getColumnFamily should not(equalTo(FEATURE_ENCODING_CF))
       }
-      scanner.close
 
       builder.reset
       builder.set("geomesa_index_geometry", WKTUtils.read("POINT(45.0 45.0)"))

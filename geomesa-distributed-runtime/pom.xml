@@ -19,12 +19,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>geomesa</groupId>
-        <artifactId>geomesa-accumulo1.5</artifactId>
+        <artifactId>geomesa-accumulo1.4</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
-    <name>GeoMesa Distributed Runtime - [Accumulo 1.5.x]</name>
+    <artifactId>geomesa-distributed-runtime-accumulo1.4</artifactId>
+    <name>GeoMesa Distributed Runtime</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,7 +33,7 @@
     <dependencies>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-core-accumulo1.5</artifactId>
+            <artifactId>geomesa-core-accumulo1.4</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -41,22 +41,11 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-epsg-hsql</artifactId>
+            <artifactId>gt-epsg-wkt</artifactId>
             <scope>compile</scope>
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>accumulo1.5.1</id>
-            <dependencies>
-                <dependency>
-                    <groupId>geomesa</groupId>
-                    <artifactId>geomesa-shell</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
     <build>
         <plugins>
             <plugin>

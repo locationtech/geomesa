@@ -34,8 +34,6 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
 
   import geomesa.core._
 
-  SpatioTemporalIntersectingIterator.initClassLoader(logger)
-
   var source: SortedKeyValueIterator[Key,Value] = null
   var topKey: Key = null
   var topValue: Value = null

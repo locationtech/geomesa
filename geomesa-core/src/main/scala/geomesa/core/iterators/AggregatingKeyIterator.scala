@@ -22,7 +22,6 @@ import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators._
 import org.apache.accumulo.start.classloader.AccumuloClassLoader
 import scala.collection.JavaConversions._
-import org.apache.accumulo.start.classloader.vfs.AccumuloVFSClassLoader
 
 object AggregatingKeyIterator {
   val aggClass = "aggClass"
@@ -129,7 +128,7 @@ class AggregatingKeyIterator extends SortedKeyValueIterator[Key, Value] with Opt
     this.iterator = source
     try {
       val clazz = options(AggregatingKeyIterator.aggClass)
-      val aggClazz = AccumuloVFSClassLoader.loadClass(clazz)
+      val aggClazz = AccumuloClassLoader.loadClass(clazz, classOf[SurfaceAggregatingIterator])
       this.aggregator = aggClazz.newInstance.asInstanceOf[KeyAggregator]
     } catch {
       case e: Throwable => throw new IOException(e)

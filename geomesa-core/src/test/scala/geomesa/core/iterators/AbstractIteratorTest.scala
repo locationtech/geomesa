@@ -21,7 +21,6 @@ import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.data.Value
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 
 object AbstractIteratorTest {
   val TEST_TABLE_NAME: String = "query_test"
@@ -29,7 +28,7 @@ object AbstractIteratorTest {
 
 
 abstract class AbstractIteratorTest {
-  protected val conn = new MockInstance().getConnector("mockuser", new PasswordToken(Array[Byte]()))
+  protected val conn = new MockInstance().getConnector("mockuser", "mockpass".getBytes)
 
   def setup(data: Map[Key, Value]) {
     resetTestTable(conn, TEST_TABLE_NAME)
@@ -46,7 +45,7 @@ abstract class AbstractIteratorTest {
   }
 
   protected def initializeTables(data: Map[Key, Value]) {
-    val writer = conn.createBatchWriter(TEST_TABLE_NAME, new BatchWriterConfig())
+    val writer = conn.createBatchWriter(TEST_TABLE_NAME, 90L, 90L, 1)
     data.foreach({case (key, value) => {
       val m1 = new Mutation(key.getRow)
       m1.put(key.getColumnFamily, key.getColumnQualifier, value)

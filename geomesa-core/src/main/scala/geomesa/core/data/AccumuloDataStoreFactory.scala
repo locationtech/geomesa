@@ -21,15 +21,12 @@ import collection.JavaConversions._
 import java.io.Serializable
 import java.util.{Map => JMap}
 import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
-import util.Try
-import scala.reflect.ClassTag
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -90,8 +87,10 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val password = passwordParam.lookUp(params).asInstanceOf[String]
     val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
 
-    if(useMock) new MockInstance(instance).getConnector(user, new PasswordToken(password.getBytes))
-    else new ZooKeeperInstance(instance, zookeepers).getConnector(user, new PasswordToken(password.getBytes))
+    if (useMock)
+      new MockInstance(instance).getConnector(user, password.getBytes)
+    else 
+      new ZooKeeperInstance(instance, zookeepers).getConnector(user, password.getBytes)
   }
 
   override def getDisplayName = "Accumulo Feature Data Store"
@@ -155,11 +154,11 @@ object AccumuloDataStoreFactory {
 
   def getMRAccumuloConnectionParams(conf: Configuration): JMap[String,AnyRef] =
     Map(zookeepersParam.key -> conf.get(ZOOKEEPERS),
-      instanceIdParam.key -> conf.get(INSTANCE_ID),
-      userParam.key -> conf.get(ACCUMULO_USER),
-      passwordParam.key -> conf.get(ACCUMULO_PASS),
-      tableNameParam.key -> conf.get(TABLE),
-      authsParam.key -> conf.get(AUTHS),
-      featureEncParam.key -> conf.get(FEATURE_ENCODING),
-      mapReduceParam.key -> "true")
+        instanceIdParam.key -> conf.get(INSTANCE_ID),
+        userParam.key       -> conf.get(ACCUMULO_USER),
+        passwordParam.key   -> conf.get(ACCUMULO_PASS),
+        tableNameParam.key  -> conf.get(TABLE),
+        authsParam.key      -> conf.get(AUTHS),
+        featureEncParam.key -> conf.get(FEATURE_ENCODING),
+        mapReduceParam.key  -> "true")
 }

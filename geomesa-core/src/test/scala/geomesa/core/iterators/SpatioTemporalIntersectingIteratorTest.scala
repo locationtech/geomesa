@@ -24,9 +24,9 @@ import geomesa.core.index._
 import geomesa.utils.text.WKTUtils
 import java.util
 import org.apache.accumulo.core.Constants
+import org.apache.accumulo.core.client.{IteratorSetting, Connector, BatchScanner}
 import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{IteratorSetting, Connector, BatchWriterConfig}
+import org.apache.accumulo.core.client.{IteratorSetting, Connector}
 import org.apache.accumulo.core.data._
 import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
@@ -38,6 +38,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scala.util.{Try, Random}
+import org.apache.hadoop.io.Text
+import org.geotools.feature.simple.SimpleFeatureBuilder
 
 @RunWith(classOf[JUnitRunner])
 class SpatioTemporalIntersectingIteratorTest extends Specification {
@@ -195,9 +197,9 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
     def setupMockAccumuloTable(entries: List[Entry], numExpected: Int): Connector = {
       val mockInstance = new MockInstance()
-      val c = mockInstance.getConnector(TEST_USER, new PasswordToken(Array[Byte]()))
+      val c = mockInstance.getConnector(TEST_USER, TEST_AUTHORIZATIONS.getAuthorizationsArray)
       c.tableOperations.create(TEST_TABLE)
-      val bw = c.createBatchWriter(TEST_TABLE, new BatchWriterConfig)
+      val bw = c.createBatchWriter(TEST_TABLE, 1000L, 1000L, 1)
 
       // populate the mock table
       val dataList: util.Collection[(Key, Value)] = TestData.encodeDataList(entries)
@@ -414,7 +416,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
   "Consistency Iterator" should {
     "verify inconsistency of table" in {
       val c = TestData.setupMockAccumuloTable(TestData.shortListOfPoints, TestData.shortListOfPoints.length)
-      val bd = c.createBatchDeleter(TEST_TABLE, TEST_AUTHORIZATIONS, 8, new BatchWriterConfig)
+      val bd = c.createBatchDeleter(TEST_TABLE, TEST_AUTHORIZATIONS, 8, 1000L, 1000L, 1)
       bd.setRanges(List(new org.apache.accumulo.core.data.Range()))
       bd.fetchColumnFamily(new Text("|data|1".getBytes()))
       bd.delete()

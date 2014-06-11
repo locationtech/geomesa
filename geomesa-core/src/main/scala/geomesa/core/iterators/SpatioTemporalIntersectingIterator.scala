@@ -20,7 +20,7 @@ import collection.JavaConverters._
 import com.typesafe.scalalogging.slf4j.{Logger, Logging}
 import com.vividsolutions.jts.geom._
 import geomesa.core.data._
-import geomesa.core.index.{IndexEntry, IndexSchema, IndexEntryDecoder}
+import geomesa.core.index.{IndexEntryDecoder, IndexEntry, IndexSchema}
 import geomesa.utils.geohash.GeoHash
 import geomesa.utils.text.WKTUtils
 import java.io.{DataInputStream, ByteArrayInputStream, ByteArrayOutputStream, DataOutputStream}
@@ -28,10 +28,8 @@ import java.util.{HashSet => JHashSet}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ArrayByteSequence, ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.apache.hadoop.io.Text
 import org.geotools.data.DataUtilities
-import org.geotools.factory.GeoTools
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Try
@@ -83,8 +81,6 @@ class SpatioTemporalIntersectingIterator
   def init(source: SortedKeyValueIterator[Key, Value],
            options: java.util.Map[String, String],
            env: IteratorEnvironment) {
-    logger.trace("Initializing classLoader")
-    SpatioTemporalIntersectingIterator.initClassLoader(logger)
 
     val featureType = DataUtilities.createType("DummyType", options.get(DEFAULT_FEATURE_TYPE))
 
@@ -315,27 +311,6 @@ class SpatioTemporalIntersectingIterator
 object SpatioTemporalIntersectingIterator {
 
   import geomesa.core._
-
-  val initialized = new ThreadLocal[Boolean] {
-    override def initialValue(): Boolean = false
-  }
-
-  def initClassLoader(log: Logger) =
-    if(!initialized.get()) {
-      try {
-        // locate the geomesa-distributed-runtime jar
-        val cl = classOf[SpatioTemporalIntersectingIterator].getClassLoader.asInstanceOf[VFSClassLoader]
-        val url = cl.getFileObjects.map(_.getURL).filter { _.toString.contains("geomesa-distributed-runtime") }.head
-        if(log != null) log.debug(s"Found geomesa-distributed-runtime at $url")
-        val u = java.net.URLClassLoader.newInstance(Array(url), cl)
-        GeoTools.addClassLoader(u)
-      } catch {
-        case t: Throwable =>
-          if(log != null) log.error("Failed to initialize GeoTools' ClassLoader ", t)
-      } finally {
-        initialized.set(true)
-      }
-    }
 
   implicit def value2text(value: Value): Text = new Text(value.get)
 

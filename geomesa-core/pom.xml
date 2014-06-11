@@ -19,12 +19,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>geomesa</groupId>
-        <artifactId>geomesa-accumulo1.5</artifactId>
+        <artifactId>geomesa-accumulo1.4</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-core-accumulo1.5</artifactId>
-    <name>GeoMesa Core - [Accumulo 1.5.x]</name>
+    <artifactId>geomesa-core-accumulo1.4</artifactId>
+    <name>GeoMesa Core</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,11 +33,11 @@
     <dependencies>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-utils-accumulo1.5</artifactId>
+            <artifactId>geomesa-utils-accumulo1.4</artifactId>
         </dependency>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-filter-accumulo1.5</artifactId>
+            <artifactId>geomesa-filter-accumulo1.4</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -91,6 +91,10 @@
             <groupId>net.sf.ehcache</groupId>
             <artifactId>ehcache-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
         <!-- jta is required so scalac can compile ehcache-core which
              uses jta annotations -->
         <dependency>
@@ -127,16 +131,9 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-epsg-hsql</artifactId>
+            <artifactId>gt-epsg-wkt</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>findbugs</artifactId>

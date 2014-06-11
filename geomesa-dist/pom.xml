@@ -19,12 +19,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>geomesa</groupId>
-        <artifactId>geomesa-accumulo1.5</artifactId>
+        <artifactId>geomesa-accumulo1.4</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-dist-accumulo1.5</artifactId>
-    <name>GeoMesa Distribution tar.gz - [Accumulo 1.5.x]</name>
+    <artifactId>geomesa-dist-accumulo1.4</artifactId>
+    <name>GeoMesa Distribution tar.gz</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,15 +33,15 @@
     <dependencies>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
+            <artifactId>geomesa-distributed-runtime-accumulo1.4</artifactId>
         </dependency>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-utils-accumulo1.5</artifactId>
+            <artifactId>geomesa-utils-accumulo1.4</artifactId>
         </dependency>
         <dependency>
             <groupId>geomesa</groupId>
-            <artifactId>geomesa-plugin-accumulo1.5</artifactId>
+            <artifactId>geomesa-plugin-accumulo1.4</artifactId>
             <classifier>geoserver-plugin</classifier>
         </dependency>
         <dependency>
@@ -56,7 +56,7 @@
         <!-- dist.dev dependencies -->
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-epsg-hsql</artifactId>
+            <artifactId>gt-epsg-wkt</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
