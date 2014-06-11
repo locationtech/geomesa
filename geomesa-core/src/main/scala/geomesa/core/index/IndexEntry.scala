@@ -60,7 +60,7 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
   // the maximum number of sub-units into which a geometry may be decomposed
   lazy val maximumDecompositions: Int = 5
 
-  def encode(featureToEncode: SimpleFeature): List[KeyValuePair] = {
+  def encode(featureToEncode: SimpleFeature, visibility: String = ""): List[KeyValuePair] = {
 
     logger.trace(s"encoding feature: $featureToEncode")
 
@@ -89,10 +89,12 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
 
     logger.trace(s"decomposed features: ${entries.map(e => (e, e.getType.getGeometryDescriptor)).mkString(",")})}")
 
+    val v = new Text(visibility)
+
     // remember the resulting index-entries
     val keys = entries.map { entry =>
       val Array(r, cf, cq) = formats.map { _.format(entry) }
-      new Key(r, cf, cq, entry.dt.map(_.getMillis).getOrElse(DateTime.now().getMillis))
+      new Key(r, cf, cq, v, entry.dt.map(_.getMillis).getOrElse(DateTime.now().getMillis))
     }
     val rowIDs = keys.map(_.getRow)
     val id = new Text(featureToEncode.sid)
@@ -109,7 +111,7 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
     // each attribute gets its own data row (though currently, we use only one attribute
     // that represents the entire, encoded feature)
     val dataEntries = rowIDs.map { rowID =>
-      val key = new Key(rowID, id, DATA_CQ)
+      val key = new Key(rowID, id, DATA_CQ, v)
       (key, dataValue)
     }
 
