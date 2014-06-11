@@ -18,7 +18,9 @@ package geomesa.core.data
 
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.Coordinate
+import geomesa.core.security.{FilteringAuthorizationsProvider, AuthorizationsProvider, DefaultAuthorizationsProvider}
 import geomesa.utils.text.WKTUtils
+import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{Query, DataUtilities, Transaction, DataStoreFinder}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
@@ -279,6 +281,40 @@ class AccumuloDataStoreTest extends Specification {
 
       "name:String,geom:Point:srid=4326" mustEqual DataUtilities.encodeType(results.getSchema)
       "fid-1=testType|POINT (45 49)" mustEqual DataUtilities.encodeFeature(f)
+    }
+
+    "provide ability to configure auth provider by static auths" in {
+      // create the data store
+      val ds = DataStoreFinder.getDataStore(Map(
+                     "instanceId" -> "mycloud",
+                     "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+                     "user"       -> "myuser",
+                     "password"   -> "mypassword",
+                     "auths"      -> "U",
+                     "tableName"  -> "testwrite",
+                     "useMock"    -> "true",
+                     "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      ds should not be null
+      ds.authorizationsProvider.isInstanceOf[FilteringAuthorizationsProvider] should be equalTo(true)
+      ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider.isInstanceOf[DefaultAuthorizationsProvider] should be equalTo(true)
+      ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations should be equalTo(new Authorizations("U"))
+    }
+
+    "provide ability to configure auth provider by comma-delimited static auths" in {
+      // create the data store
+      val ds = DataStoreFinder.getDataStore(Map(
+                                                 "instanceId" -> "mycloud",
+                                                 "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+                                                 "user"       -> "myuser",
+                                                 "password"   -> "mypassword",
+                                                 "auths"      -> "U,S,USA",
+                                                 "tableName"  -> "testwrite",
+                                                 "useMock"    -> "true",
+                                                 "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      ds should not be null
+      ds.authorizationsProvider.isInstanceOf[FilteringAuthorizationsProvider] should be equalTo(true)
+      ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider.isInstanceOf[DefaultAuthorizationsProvider] should be equalTo(true)
+      ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations should be equalTo(new Authorizations("U", "S", "USA"))
     }
 
   }

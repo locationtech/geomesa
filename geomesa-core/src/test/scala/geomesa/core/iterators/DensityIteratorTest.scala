@@ -57,7 +57,6 @@ class DensityIteratorTest extends Specification {
           instanceIdParam.key -> "dummy",
           userParam.key -> "user",
           passwordParam.key -> "pass",
-          authsParam.key -> "S,USA",
           tableNameParam.key -> "test",
           mockParam.key -> "true"
         ))

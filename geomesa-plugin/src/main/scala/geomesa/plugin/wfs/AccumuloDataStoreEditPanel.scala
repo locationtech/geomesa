@@ -39,10 +39,11 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
   val zookeepers = addTextPanel(paramsModel, new Param("zookeepers", classOf[String], "Zookeepers", true))
   val user = addTextPanel(paramsModel, new Param("user", classOf[String], "User", true))
   val password = addPasswordPanel(paramsModel, new Param("password", classOf[String], "Password", true))
-  val auths = addTextPanel(paramsModel, new Param("auths", classOf[String], "Authorizations", false))
+  val auths = addTextPanel(paramsModel, new Param("auths", classOf[String], "DataStore-level Authorizations", false))
+  val visibility = addTextPanel(paramsModel, new Param("visibility", classOf[String], "Accumulo visibility label that will be applied to data written by this DataStore", false))
   val tableName = addTextPanel(paramsModel, new Param("tableName", classOf[String], "The Accumulo Table Name", true))
 
-  val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, tableName)
+  val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, tableName, auths, visibility)
   dependentFormComponents.map(_.setOutputMarkupId(true))
 
   storeEditForm.add(new IFormValidator() {

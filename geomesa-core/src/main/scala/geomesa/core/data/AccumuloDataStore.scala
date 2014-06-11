@@ -21,6 +21,7 @@ import geomesa.core
 import geomesa.core.data.AccumuloFeatureWriter.{LocalRecordDeleter, LocalRecordWriter, MapReduceRecordWriter}
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.core.index.{Constants, IndexSchema}
+import geomesa.core.security.AuthorizationsProvider
 import java.io.Serializable
 import java.util.{Map=>JMap}
 import org.apache.accumulo.core.client.mock.MockConnector
@@ -28,7 +29,6 @@ import org.apache.accumulo.core.client.{IteratorSetting, Connector}
 import org.apache.accumulo.core.data.{Key, Mutation, Value, Range}
 import org.apache.accumulo.core.file.keyfunctor.ColumnFamilyFunctor
 import org.apache.accumulo.core.iterators.user.VersioningIterator
-import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
@@ -46,14 +46,16 @@ import scala.collection.JavaConverters._
  *
  * @param connector        Accumulo connector
  * @param tableName        The name of the Accumulo table contains the various features
- * @param authorizations   The authorizations used to access data
+ * @param authorizationsProvider   Provides the authorizations used to access data
+ * @param writeVisibilities   Visibilities applied to any data written by this store
  *
  * This class handles DataStores which are stored in Accumulo Tables.  To be clear, one table may contain multiple
  * features addressed by their featureName.
  */
 class AccumuloDataStore(val connector: Connector,
                         val tableName: String,
-                        val authorizations: Authorizations,
+                        val authorizationsProvider: AuthorizationsProvider,
+                        val writeVisibilities: String,
                         val indexSchemaFormat: String = "DEFAULT",
                         val featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
   extends AbstractDataStore(true) {
@@ -295,7 +297,7 @@ class AccumuloDataStore(val connector: Connector,
     val schema = IndexSchema(indexSchemaFmt, featureType, fe)
     val writer = new LocalRecordWriter(tableName, connector)
     val deleter = new LocalRecordDeleter(tableName, connector)
-    new ModifyAccumuloFeatureWriter(featureType, schema, writer, deleter, this)
+    new ModifyAccumuloFeatureWriter(featureType, schema, writer, writeVisibilities, deleter, this)
   }
 
   /* optimized for GeoTools API to return writer ONLY for appending (aka don't scan table) */
@@ -305,12 +307,14 @@ class AccumuloDataStore(val connector: Connector,
     val fe = getFeatureEncoder(typeName)
     val schema = IndexSchema(indexSchemaFmt, featureType, fe)
     val writer = new LocalRecordWriter(tableName, connector)
-    new AppendAccumuloFeatureWriter(featureType, schema, writer)
+    new AppendAccumuloFeatureWriter(featureType, schema, writer, writeVisibilities)
   }
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE
 
-  def createBatchScanner = connector.createBatchScanner(tableName, authorizations, 100)
+  def createBatchScanner = {
+    connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, 100)
+  }
 
   // Accumulo assumes that the failures directory exists.  This function assumes that you have already created it.
   def importDirectory(tableName: String,
@@ -325,7 +329,8 @@ class AccumuloDataStore(val connector: Connector,
  *
  * @param connector        Accumulo connector
  * @param tableName        The name of the Accumulo table contains the various features
- * @param authorizations   The authorizations used to access data
+ * @param authorizationsProvider   Provides the authorizations used to access data
+ * @param writeVisibilities visibilities to be applied to any data written by this store
  * @param params           The parameters used to create this datastore.
  *
  * This class provides an additional writer which can be accessed by
@@ -336,11 +341,12 @@ class AccumuloDataStore(val connector: Connector,
  */
 class MapReduceAccumuloDataStore(connector: Connector,
                                  tableName: String,
-                                 authorizations: Authorizations,
+                                 authorizationsProvider: AuthorizationsProvider,
+                                 writeVisibilities: String,
                                  val params: JMap[String, Serializable],
                                  indexSchemaFormat: String = "DEFAULT",
                                  featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
-  extends AccumuloDataStore(connector, tableName, authorizations, indexSchemaFormat, featureEncoding) {
+  extends AccumuloDataStore(connector, tableName, authorizationsProvider, writeVisibilities, indexSchemaFormat, featureEncoding) {
 
   override def createFeatureSource(featureName: String): SimpleFeatureSource =
     new MapReduceAccumuloFeatureStore(this, featureName)
@@ -355,7 +361,7 @@ class MapReduceAccumuloDataStore(connector: Connector,
     val idx = IndexSchema(idxFmt, featureType, fe)
     val writer = new MapReduceRecordWriter(context)
     // TODO allow deletes? modifications?
-    new AppendAccumuloFeatureWriter(featureType, idx, writer)
+    new AppendAccumuloFeatureWriter(featureType, idx, writer, writeVisibilities)
   }
 
 }
