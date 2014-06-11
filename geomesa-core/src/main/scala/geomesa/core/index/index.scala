@@ -36,6 +36,8 @@ package object index {
   val SF_PROPERTY_START_TIME = "geomesa_index_start_time"
   val SF_PROPERTY_END_TIME   = "geomesa_index_end_time"
 
+  def getGeomFieldName(sft: SimpleFeatureType) =
+    sft.getUserData.get(SF_PROPERTY_GEOMETRY).toString
   def getDtgFieldName(sft: SimpleFeatureType) =
     sft.getUserData.get(SF_PROPERTY_START_TIME).toString
   def getDtgDescriptor(sft: SimpleFeatureType) = sft.getDescriptor(getDtgFieldName(sft))
