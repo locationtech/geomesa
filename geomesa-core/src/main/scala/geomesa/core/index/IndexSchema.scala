@@ -30,12 +30,12 @@ import java.util.{Iterator => JIterator}
 import org.apache.accumulo.core.client.BatchScanner
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.data.Value
+import org.apache.log4j.Logger
 import org.geotools.data.{DataUtilities, Query}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.parsing.combinator.RegexParsers
-import org.apache.log4j.Logger
 
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)
@@ -81,7 +81,7 @@ case class IndexSchema(encoder: IndexEncoder,
 
   private val log = Logger.getLogger(classOf[IndexSchema])
 
-  def encode(entry: SimpleFeature) = encoder.encode(entry)
+  def encode(entry: SimpleFeature, visibility: String = "") = encoder.encode(entry, visibility)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
 
   import IndexSchema._
