@@ -2,6 +2,7 @@ package geomesa.core.index
 
 import IndexQueryPlanner._
 import com.vividsolutions.jts.geom.Polygon
+import geomesa.core._
 import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.FEATURE_ENCODING
@@ -78,7 +79,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
       } else query
 
-    val simpleFeatureType = DataUtilities.encodeType(featureType)
     val filterVisitor = new FilterToAccumulo(featureType)
     val rewrittenCQL = filterVisitor.visit(derivedQuery)
     val ecql = Option(ECQL.toCQL(rewrittenCQL))
@@ -112,13 +112,19 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     // Configure STII
     configureSpatioTemporalIntersectingIterator(bs, opoly, oint)
 
-    configureSimpleFeatureFilteringIterator(bs, simpleFeatureType, ecql, query, poly)
+    configureSimpleFeatureFilteringIterator(bs, ecql, query, poly)
 
     bs.iterator()
   }
 
   def configureFeatureEncoding(cfg: IteratorSetting) =
     cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
+
+  def configureFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) {
+    val encodedSimpleFeatureType = DataUtilities.encodeType(featureType)
+    cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, encodedSimpleFeatureType)
+    cfg.encodeUserData(featureType.getUserData,GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+  }
 
   // establishes the regular expression that defines (minimally) acceptable rows
   def configureRowRegexIterator(bs: BatchScanner, regex: String) {
@@ -143,7 +149,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // assumes that it receives an iterator over data-only entries, and aggregates
   // the values into a map of attribute, value pairs
   def configureSimpleFeatureFilteringIterator(bs: BatchScanner,
-                                              simpleFeatureType: String,
                                               ecql: Option[String],
                                               query: Query,
                                               poly: Polygon = null) {
@@ -161,7 +166,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       clazz)
 
     configureFeatureEncoding(cfg)
-    SimpleFeatureFilteringIterator.setFeatureType(cfg, simpleFeatureType)
+    SimpleFeatureFilteringIterator.setFeatureType(cfg, featureType)
     ecql.foreach(SimpleFeatureFilteringIterator.setECQLFilter(cfg, _))
     transforms.foreach(SimpleFeatureFilteringIterator.setTransforms(cfg, _, transformSchema))
 

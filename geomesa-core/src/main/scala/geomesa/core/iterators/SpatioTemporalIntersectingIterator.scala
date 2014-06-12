@@ -87,6 +87,7 @@ class SpatioTemporalIntersectingIterator
     SpatioTemporalIntersectingIterator.initClassLoader(logger)
 
     val featureType = DataUtilities.createType("DummyType", options.get(DEFAULT_FEATURE_TYPE))
+    featureType.decodeUserData(options,DEFAULT_FEATURE_TYPE)
 
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
@@ -400,6 +401,7 @@ object SpatioTemporalIntersectingIterator {
     poly.foreach { p => cfg.addOption(DEFAULT_POLY_PROPERTY_NAME, p.toText) }
     interval.foreach { int => cfg.addOption(DEFAULT_INTERVAL_PROPERTY_NAME, encodeInterval(int)) }
     cfg.addOption(DEFAULT_FEATURE_TYPE, DataUtilities.encodeType(featureType))
+    cfg.encodeUserData(featureType.getUserData,DEFAULT_FEATURE_TYPE)
   }
 
   private def encodeInterval(interval: Interval): String =
