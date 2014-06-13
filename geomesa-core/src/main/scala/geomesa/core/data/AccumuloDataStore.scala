@@ -20,7 +20,7 @@ package geomesa.core.data
 import geomesa.core
 import geomesa.core.data.AccumuloFeatureWriter.{LocalRecordDeleter, LocalRecordWriter, MapReduceRecordWriter}
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
-import geomesa.core.index.{Constants, IndexSchema}
+import geomesa.core.index.{TemporalIndexCheck, Constants, IndexSchema}
 import geomesa.core.security.AuthorizationsProvider
 import java.io.Serializable
 import java.util.{Map=>JMap}
@@ -119,6 +119,7 @@ class AccumuloDataStore(val connector: Connector,
     writeMetadataItem(featureName, ATTRIBUTES_CF, attributesValue)
     val schemaValue = createIndexSchema(sft)
     writeMetadataItem(featureName, SCHEMA_CF, new Value(schemaValue.getBytes))
+    TemporalIndexCheck.checkForValidDtgField(sft)
     val userData = sft.getUserData
     if(userData.containsKey(core.index.SF_PROPERTY_START_TIME)) {
       val dtgField = userData.get(core.index.SF_PROPERTY_START_TIME)
