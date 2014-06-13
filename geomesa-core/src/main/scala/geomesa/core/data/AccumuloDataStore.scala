@@ -50,8 +50,8 @@ import scala.collection.JavaConverters._
  * @param authorizationsProvider   Provides the authorizations used to access data
  * @param writeVisibilities   Visibilities applied to any data written by this store
  *
- *                            This class handles DataStores which are stored in Accumulo Tables.  To be clear, one table may contain multiple
- *                            features addressed by their featureName.
+ *  This class handles DataStores which are stored in Accumulo Tables.  To be clear, one table may
+ *  contain multiple features addressed by their featureName.
  */
 class AccumuloDataStore(val connector: Connector, val tableName: String,
                         val authorizationsProvider: AuthorizationsProvider,
