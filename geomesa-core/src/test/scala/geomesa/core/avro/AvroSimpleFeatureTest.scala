@@ -39,6 +39,24 @@ class AvroSimpleFeatureTest extends Specification {
       f.validate must not(throwA [org.opengis.feature.IllegalAttributeException])
     }
 
+    "properly validate multiple AvroSimpleFeature Objects with odd names and unicode characters, including colons" in {
+      val typeList = List("tower_u1234", "tower:type", "☕你好:世界♓", "tower_‽", "‽_‽:‽", "_‽")
+
+      for(typeName <- typeList) {
+        val sft = DataUtilities.createType(typeName, "a⬨_⬨b:Integer,☕☄crazy☄☕_☕name&such➿:Date,*geom:Point:srid=4326")
+        val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+        f.setAttribute(0,"1")
+        f.setAttribute(1,"2013-01-02T00:00:00.000Z") // this date format should be converted
+        f.setAttribute(2,"POINT(45.0 49.0)")
+        f.validate must not(throwA[org.opengis.feature.IllegalAttributeException])
+      }
+    }
+
+    "fail to validate an incorrectly named object" in {
+      val sft = DataUtilities.createType("0_1", "a:Integer,b:Date,*geom:Point:srid=4326")
+      val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft) must throwA [com.google.common.util.concurrent.UncheckedExecutionException]  //should throw it
+    }
+
     "fail to validate a correct object" in {
       val sft = DataUtilities.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 

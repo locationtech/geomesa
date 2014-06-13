@@ -194,7 +194,7 @@ object AvroSimpleFeature {
   val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Class[_]]] =
     loadingCacheBuilder { sft =>
       sft.getAttributeDescriptors.map { ad =>
-        val name = ad.getLocalName
+        val name = encodeAttributeName(ad.getLocalName)
         val clazz = ad.getType.getBinding
         (name, clazz)
       }.toMap
@@ -204,7 +204,7 @@ object AvroSimpleFeature {
     loadingCacheBuilder { sft => generateSchema(sft) }
 
   val nameCache: LoadingCache[SimpleFeatureType, Array[String]] =
-    loadingCacheBuilder { sft => DataUtilities.attributeNames(sft) }
+    loadingCacheBuilder { sft => DataUtilities.attributeNames(sft).map(encodeAttributeName) }
 
   val nameIndexCache: LoadingCache[SimpleFeatureType, Map[String, Int]] =
     loadingCacheBuilder { sft =>
@@ -222,9 +222,27 @@ object AvroSimpleFeature {
   final val VERSION: Int = 1
   final val AVRO_NAMESPACE: String = "org.geomesa"
 
+  val validAvro = "([A-Za-z0-9_]*)".r
+  val invalidAvro = "(.*)([^A-Za-z0-9_])(.*)".r
+
+  def encodeAttributeName(s: String): String = s match {
+    case validAvro(s) => s.replaceAll("_", "__")
+    case invalidAvro(start, s, end) => encodeAttributeName(start) +
+      "_u%04X".format(s(0).toInt) + encodeAttributeName(end)
+  }
+
+  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
+
+  def decodeAttributeName(s: String): String = s match {
+    case validUnicode(start, s, end) => decodeAttributeName(start) +
+      Integer.parseInt(s, 16).toChar.toString +
+      decodeAttributeName(end).replaceAll("__","_")
+    case _ => s
+  }
+
   def generateSchema(sft: SimpleFeatureType): Schema = {
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
-      SchemaBuilder.record(sft.getTypeName)
+      SchemaBuilder.record(encodeAttributeName(sft.getTypeName))
         .namespace(AVRO_NAMESPACE)
         .fields
         .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
@@ -232,7 +250,7 @@ object AvroSimpleFeature {
 
     val result =
       sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
-        val name    = ad.getLocalName
+        val name    = encodeAttributeName(ad.getLocalName)
         val binding = ad.getType.getBinding
         val nillable = ad.isNillable
         addField(assembler, name, binding, nillable)
