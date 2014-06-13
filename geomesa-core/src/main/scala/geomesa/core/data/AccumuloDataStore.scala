@@ -60,7 +60,7 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
     extends AbstractDataStore(true) with Logging {
 
   private def buildDefaultSchema(name: String) =
-    s"%~#s%99#r%${name }#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
+    s"%~#s%99#r%${name}#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
@@ -169,10 +169,11 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
     val featureEncodingValue = fe.toString
 
     // store each metadata in the associated column family
-    val attributeMap = Map(ATTRIBUTES_CF -> attributesValue, SCHEMA_CF -> schemaValue,
-                            DTGFIELD_CF -> dtgValue.getOrElse(Constants.SF_PROPERTY_START_TIME),
-                            FEATURE_ENCODING_CF -> featureEncodingValue,
-                            VISIBILITIES_CF -> writeVisibilities)
+    val attributeMap = Map(ATTRIBUTES_CF          -> attributesValue,
+                            SCHEMA_CF             -> schemaValue,
+                            DTGFIELD_CF           -> dtgValue.getOrElse(Constants.SF_PROPERTY_START_TIME),
+                            FEATURE_ENCODING_CF   -> featureEncodingValue,
+                            VISIBILITIES_CF       -> writeVisibilities)
 
     attributeMap.foreach { case (cf, value) =>
       putMetadata(featureName, mutation, cf, value)
@@ -195,9 +196,7 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
    * @param featureName
    * @return
    */
-  private def getMetadataMutation(featureName: String): Mutation = {
-    new Mutation(getMetadataRowKey(featureName))
-  }
+  private def getMetadataMutation(featureName: String) = new Mutation(getMetadataRowKey(featureName))
 
   /**
    * Handles encoding metadata into a mutation.
@@ -253,17 +252,35 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
     .getOrElse(throw new RuntimeException(s"Feature '$featureName' has not been initialized. Please call 'createSchema' first."))
 
     val ok = validated.get(featureName).getOrElse({
-      // validate that visibilities and schema have not changed
-      Map(SCHEMA_CF -> getIndexSchemaString(featureName), VISIBILITIES_CF -> writeVisibilities)
-      .foreach { case (cf, expectedValue) =>
-        val existing = readMetadataItem(featureName, cf).getOrElse("")
-        if (existing != expectedValue) {
-          val error = s"Configuration of this DataStore does not match the schema values: $cf = '$expectedValue', should be '$existing'"
-          validated.put(featureName, error)
-          throw new RuntimeException(error)
-        }
-      }
+      val errors = checkMetadata(featureName)
+      validated.put(featureName, errors)
+      errors
+    })
 
+    if (!ok.isEmpty)
+      throw new RuntimeException("Configuration of this DataStore does not match the schema values: " + ok)
+  }
+
+  /**
+   * Wraps the functionality of checking the metadata against this config
+   *
+   * @param featureName
+   * @return string with errors, or empty string
+   */
+  private def checkMetadata(featureName: String) = {
+    // validate that visibilities and schema have not changed
+    val errors = Map(SCHEMA_CF         -> getIndexSchemaString(featureName),
+                     VISIBILITIES_CF   -> writeVisibilities).map[Option[String]] {
+      case (cf, expectedValue) =>
+        val existing = readMetadataItem(featureName, cf).getOrElse("")
+        if (existing != expectedValue)
+          Some(s"$cf = '$expectedValue', should be '$existing'")
+        else
+           None
+    }.mkString(", ")
+
+    // if no errors, check the feature encoding and update if needed
+    if (errors.isEmpty) {
       // for feature encoding, we are more lenient - we will use whatever is stored in the table,
       // or default to 'text' for backwards compatibility
       if (readMetadataItem(featureName, FEATURE_ENCODING_CF).getOrElse("").isEmpty) {
@@ -272,13 +289,9 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
         putMetadata(featureName, mutation, FEATURE_ENCODING_CF, FeatureEncoding.TEXT.toString)
         writeMutations(mutation)
       }
+    }
 
-      validated.put(featureName, "")
-      ""
-    })
-
-    if (!ok.isEmpty)
-      throw new RuntimeException(ok)
+    errors
   }
 
   /**
@@ -293,20 +306,30 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
     if (!visibilities.isEmpty) {
       // create a key for the user's auths that we will use to check the cache
       val authKey = authorizationsProvider.getAuthorizations.getAuthorizations
-                    .map(a => new String(a)).sorted.mkString(",")
-      // if cache contains an entry, use that
-      val canWrite = visibilityCheckCache.get((featureName, authKey)).getOrElse({
-        // check the 'visibillities check' metadata - it has visibilities applied, so if the user
-        // can read that row, then they can read any data in the data store
-        val visCheck = readMetadataItemNoCache(featureName, VISIBILITIES_CHECK_CF)
-                       .isInstanceOf[Some[String]]
-        visibilityCheckCache.put((featureName, authKey), visCheck)
-        visCheck
-      })
-      if (!canWrite) {
+                      .map(a => new String(a)).sorted.mkString(",")
+      if (!checkWritePermissions(featureName, authKey)) {
         throw new RuntimeException(s"The current user does not have the required authorizations to write $featureName features. Required authorizations: '$visibilities', actual authorizations: '$authKey'")
       }
     }
+  }
+
+  /**
+   * Wraps logic for checking write permissions for a given set of auths
+   *
+   * @param featureName
+   * @param authString
+   * @return
+   */
+  private def checkWritePermissions(featureName: String, authString: String) = {
+    // if cache contains an entry, use that
+    visibilityCheckCache.getOrElse((featureName, authKey), {
+      // check the 'visibilities check' metadata - it has visibilities applied, so if the user
+      // can read that row, then they can read any data in the data store
+      val visCheck = readMetadataItemNoCache(featureName, VISIBILITIES_CHECK_CF)
+                      .isInstanceOf[Some[String]]
+      visibilityCheckCache.put((featureName, authKey), visCheck)
+      visCheck
+    })
   }
 
   /**
@@ -364,12 +387,9 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
    *
    * @return
    */
-  override def getTypeNames: Array[String] = {
-    if (tableOps.exists(tableName))
-      readTypesFromMetadata
-    else
-      Array()
-  }
+  override def getTypeNames: Array[String] =
+    if (tableOps.exists(tableName)) readTypesFromMetadata
+    else Array()
 
   /**
    * Scans metadata rows and pulls out the different feature types in the table
@@ -580,8 +600,7 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
    * @param featureType
    * @return
    */
-  private def getFeatureName(featureType: SimpleFeatureType): String = featureType.getName
-                                                                       .getLocalPart
+  private def getFeatureName(featureType: SimpleFeatureType) = featureType.getName.getLocalPart
 
 }
 

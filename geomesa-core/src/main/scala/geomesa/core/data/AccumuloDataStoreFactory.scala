@@ -25,7 +25,6 @@ import javax.imageio.spi.ServiceRegistry
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
-import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
@@ -200,13 +199,13 @@ object AccumuloDataStoreFactory {
   }
 
   def getMRAccumuloConnectionParams(conf: Configuration): JMap[String,AnyRef] =
-    Map(zookeepersParam.key -> conf.get(ZOOKEEPERS),
-      instanceIdParam.key -> conf.get(INSTANCE_ID),
-      userParam.key -> conf.get(ACCUMULO_USER),
-      passwordParam.key -> conf.get(ACCUMULO_PASS),
-      tableNameParam.key -> conf.get(TABLE),
-      authsParam.key -> conf.get(AUTHS),
-      visibilityParam.key -> conf.get(VISIBILITY),
-      featureEncParam.key -> conf.get(FEATURE_ENCODING),
-      mapReduceParam.key -> "true")
+    Map(zookeepersParam.key   -> conf.get(ZOOKEEPERS),
+      instanceIdParam.key     -> conf.get(INSTANCE_ID),
+      userParam.key           -> conf.get(ACCUMULO_USER),
+      passwordParam.key       -> conf.get(ACCUMULO_PASS),
+      tableNameParam.key      -> conf.get(TABLE),
+      authsParam.key          -> conf.get(AUTHS),
+      visibilityParam.key     -> conf.get(VISIBILITY),
+      featureEncParam.key     -> conf.get(FEATURE_ENCODING),
+      mapReduceParam.key      -> "true")
 }
