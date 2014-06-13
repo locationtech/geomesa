@@ -266,15 +266,15 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
    */
   private def checkMetadata(featureName: String) = {
     // validate that visibilities and schema have not changed
-    val errors = Map(SCHEMA_CF         -> getIndexSchemaString(featureName),
-                     VISIBILITIES_CF   -> writeVisibilities).map[Option[String]] {
+    val errors = List((SCHEMA_CF,         getIndexSchemaString(featureName)),
+                      (VISIBILITIES_CF,   writeVisibilities)).map {
       case (cf, expectedValue) =>
         val existing = readMetadataItem(featureName, cf).getOrElse("")
         if (existing != expectedValue)
           Some(s"$cf = '$expectedValue', should be '$existing'")
         else
            None
-    }.mkString(", ")
+    }.flatten.mkString(", ")
 
     // if no errors, check the feature encoding and update if needed
     if (errors.isEmpty) {
@@ -302,10 +302,10 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
     // if no visibilities set, no need to check
     if (!visibilities.isEmpty) {
       // create a key for the user's auths that we will use to check the cache
-      val authKey = authorizationsProvider.getAuthorizations.getAuthorizations
+      val authString = authorizationsProvider.getAuthorizations.getAuthorizations
                       .map(a => new String(a)).sorted.mkString(",")
-      if (!checkWritePermissions(featureName, authKey)) {
-        throw new RuntimeException(s"The current user does not have the required authorizations to write $featureName features. Required authorizations: '$visibilities', actual authorizations: '$authKey'")
+      if (!checkWritePermissions(featureName, authString)) {
+        throw new RuntimeException(s"The current user does not have the required authorizations to write $featureName features. Required authorizations: '$visibilities', actual authorizations: '$authString'")
       }
     }
   }
@@ -319,12 +319,12 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
    */
   private def checkWritePermissions(featureName: String, authString: String) = {
     // if cache contains an entry, use that
-    visibilityCheckCache.getOrElse((featureName, authKey), {
+    visibilityCheckCache.getOrElse((featureName, authString), {
       // check the 'visibilities check' metadata - it has visibilities applied, so if the user
       // can read that row, then they can read any data in the data store
       val visCheck = readMetadataItemNoCache(featureName, VISIBILITIES_CHECK_CF)
                       .isInstanceOf[Some[String]]
-      visibilityCheckCache.put((featureName, authKey), visCheck)
+      visibilityCheckCache.put((featureName, authString), visCheck)
       visCheck
     })
   }
