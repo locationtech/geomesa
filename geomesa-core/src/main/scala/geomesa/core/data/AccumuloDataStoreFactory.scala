@@ -24,7 +24,6 @@ import java.util.{Map => JMap}
 import javax.imageio.spi.ServiceRegistry
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
-import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
@@ -133,10 +132,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val password = passwordParam.lookUp(params).asInstanceOf[String]
     val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
 
-    if (useMock)
-      new MockInstance(instance).getConnector(user, password.getBytes)
-    else 
-      new ZooKeeperInstance(instance, zookeepers).getConnector(user, password.getBytes)
+    if(useMock) new MockInstance(instance).getConnector(user, password.getBytes)
+    else new ZooKeeperInstance(instance, zookeepers).getConnector(user, password.getBytes)
   }
 
   override def getDisplayName = "Accumulo Feature Data Store"
@@ -168,7 +165,7 @@ object AccumuloDataStoreFactory {
     val userParam         = new Param("user", classOf[String], "Accumulo user", true)
     val passwordParam     = new Param("password", classOf[String], "Password", true)
     val authsParam        = new Param("auths", classOf[String], "Super-set of authorizations that will be used for queries. The actual authorizations might differ, depending on the authorizations provider, but will be outside this set. Comma-delimited.", false)
-    val visibilityParam   = new Param("visibility", classOf[String], "Accumulo visibility label to apply to all written data", false)
+    val visibilityParam   = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
     val tableNameParam    = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
     val idxSchemaParam    = new Param("indexSchemaFormat",
       classOf[String],
@@ -202,12 +199,12 @@ object AccumuloDataStoreFactory {
 
   def getMRAccumuloConnectionParams(conf: Configuration): JMap[String,AnyRef] =
     Map(zookeepersParam.key -> conf.get(ZOOKEEPERS),
-        instanceIdParam.key -> conf.get(INSTANCE_ID),
-        userParam.key       -> conf.get(ACCUMULO_USER),
-        passwordParam.key   -> conf.get(ACCUMULO_PASS),
-        tableNameParam.key  -> conf.get(TABLE),
-        authsParam.key      -> conf.get(AUTHS),
-        visibilityParam.key -> conf.get(VISIBILITY),
-        featureEncParam.key -> conf.get(FEATURE_ENCODING),
-        mapReduceParam.key  -> "true")
+      instanceIdParam.key -> conf.get(INSTANCE_ID),
+      userParam.key -> conf.get(ACCUMULO_USER),
+      passwordParam.key -> conf.get(ACCUMULO_PASS),
+      tableNameParam.key -> conf.get(TABLE),
+      authsParam.key -> conf.get(AUTHS),
+      visibilityParam.key -> conf.get(VISIBILITY),
+      featureEncParam.key -> conf.get(FEATURE_ENCODING),
+      mapReduceParam.key -> "true")
 }
