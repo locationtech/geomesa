@@ -198,13 +198,13 @@ object AccumuloDataStoreFactory {
   }
 
   def getMRAccumuloConnectionParams(conf: Configuration): JMap[String,AnyRef] =
-    Map(zookeepersParam.key -> conf.get(ZOOKEEPERS),
-      instanceIdParam.key -> conf.get(INSTANCE_ID),
-      userParam.key -> conf.get(ACCUMULO_USER),
-      passwordParam.key -> conf.get(ACCUMULO_PASS),
-      tableNameParam.key -> conf.get(TABLE),
-      authsParam.key -> conf.get(AUTHS),
-      visibilityParam.key -> conf.get(VISIBILITY),
-      featureEncParam.key -> conf.get(FEATURE_ENCODING),
-      mapReduceParam.key -> "true")
+    Map(zookeepersParam.key   -> conf.get(ZOOKEEPERS),
+      instanceIdParam.key     -> conf.get(INSTANCE_ID),
+      userParam.key           -> conf.get(ACCUMULO_USER),
+      passwordParam.key       -> conf.get(ACCUMULO_PASS),
+      tableNameParam.key      -> conf.get(TABLE),
+      authsParam.key          -> conf.get(AUTHS),
+      visibilityParam.key     -> conf.get(VISIBILITY),
+      featureEncParam.key     -> conf.get(FEATURE_ENCODING),
+      mapReduceParam.key      -> "true")
 }
