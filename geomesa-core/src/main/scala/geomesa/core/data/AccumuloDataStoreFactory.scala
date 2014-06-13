@@ -167,7 +167,7 @@ object AccumuloDataStoreFactory {
     val userParam         = new Param("user", classOf[String], "Accumulo user", true)
     val passwordParam     = new Param("password", classOf[String], "Password", true)
     val authsParam        = new Param("auths", classOf[String], "Super-set of authorizations that will be used for queries. The actual authorizations might differ, depending on the authorizations provider, but will be outside this set. Comma-delimited.", false)
-    val visibilityParam   = new Param("visibility", classOf[String], "Accumulo visibility label to apply to all written data", false)
+    val visibilityParam   = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
     val tableNameParam    = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
     val idxSchemaParam    = new Param("indexSchemaFormat",
       classOf[String],
