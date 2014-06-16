@@ -33,7 +33,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IndexIteratorTriggerTest extends Specification {
+class IteratorTriggerTest extends Specification {
   sequential
 
 
@@ -101,7 +101,7 @@ class IndexIteratorTriggerTest extends Specification {
     def extractReWrittenCQL(query: Query, featureType: SimpleFeatureType): Option[String] = {
       val ff = CommonFactoryFinder.getFilterFactory2
       val derivedQuery =
-        if(query.getHints.containsKey(BBOX_KEY)) {
+        if (query.getHints.containsKey(BBOX_KEY)) {
           val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
           val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
           DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
@@ -115,18 +115,18 @@ class IndexIteratorTriggerTest extends Specification {
   object TriggerTest {
     // filters for testing
 
-    val trivialFilterString =  "true = true"
+    val trivialFilterString = "true = true"
 
     val anotherTrivialFilterString = "(INCLUDE)"
 
     val extraAttributeFilterString =
-     "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (attr2 like '2nd___')"
+      "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (attr2 like '2nd___')"
 
     val nonReducibleFilterString =
-    "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (geomesa_index_start_time before 2010-08-08T23:59:59Z) AND (geomesa_index_end_time after 2010-08-08T00:00:00Z)"
+      "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (geomesa_index_start_time before 2010-08-08T23:59:59Z) AND (geomesa_index_end_time after 2010-08-08T00:00:00Z)"
 
     val reducibleFilterString =
-    "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (geomesa_index_start_time between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')"
+      "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (geomesa_index_start_time between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')"
 
     // transforms for testing
     val simpleTransformToIndex = {
@@ -146,13 +146,21 @@ class IndexIteratorTriggerTest extends Specification {
     /**
      * Function for use in testing useIndexOnlyIterator
      */
-    def useIndexOnlyIteratorTest(ecqlPred: String, transformText: Array[String]):Boolean = {
+    def useIndexOnlyIteratorTest(ecqlPred: String, transformText: Array[String]): Boolean = {
       val aQuery = TestTable.sampleQuery(ECQL.toFilter(ecqlPred), transformText)
       val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType)
-      IndexIteratorTrigger.useIndexOnlyIterator(modECQLPred, aQuery, TestTable.testFeatureTypeSpec)
+      IteratorTrigger.useIndexOnlyIterator(modECQLPred, aQuery, TestTable.testFeatureTypeSpec)
+    }
+
+    /**
+     * Function for use in testing useSimpleFeatureFilteringIterator
+     */
+    def useSimpleFeatureFilteringIteratorTest(ecqlPred: String, transformText: Array[String]): Boolean = {
+      val aQuery = TestTable.sampleQuery(ECQL.toFilter(ecqlPred), transformText)
+      val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType)
+      IteratorTrigger.useSimpleFeatureFilteringIterator(modECQLPred, aQuery)
     }
   }
-
     "useIndexOnlyIterator" should {
       "be run when requesting only index attributes" in {
         val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.simpleTransformToIndex)
@@ -202,4 +210,24 @@ class IndexIteratorTriggerTest extends Specification {
         isTriggered must beTrue
       }
     }
+
+
+  "SimpleFeatureFilteringIterator" should {
+    "be run when requesting a transform" in {
+       val isTriggered = TriggerTest.useSimpleFeatureFilteringIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.complexTransformToIndex)
+       isTriggered must beTrue
+    }
+    "be run when passed a non-trivial ECQL filter and a simple transform" in {
+      val isTriggered = TriggerTest.useSimpleFeatureFilteringIteratorTest(TriggerTest.extraAttributeFilterString, TriggerTest.simpleTransformToIndex)
+      isTriggered must beTrue
+    }
+    "be run when passed a non-trivial ECQL filter and a null transform" in {
+      val isTriggered = TriggerTest.useSimpleFeatureFilteringIteratorTest(TriggerTest.extraAttributeFilterString, TriggerTest.nullTransform)
+      isTriggered must beTrue
+    }
+    "not be run when passed a trivial ECQL filter and a null transform" in {
+      val isTriggered = TriggerTest.useSimpleFeatureFilteringIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.nullTransform)
+      isTriggered must beFalse
+   }
+  }
 }

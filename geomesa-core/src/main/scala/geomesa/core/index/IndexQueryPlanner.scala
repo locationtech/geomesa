@@ -100,16 +100,18 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     planQuery(bs, filter)
 
     // if the IndexIterator can be used instead of the IntersectingIterator, do it
-    val useIndexOnlyIterator =  IndexIteratorTrigger.useIndexOnlyIterator(ecql, query, sourceSimpleFeatureType)
+    val useIndexOnlyIterator =  IteratorTrigger.useIndexOnlyIterator(ecql, query, sourceSimpleFeatureType)
+    // if the SimpleFeatureFilteringIterator is not needed, don't run it
+    val useSimpleFeatureFilteringIterator =  IteratorTrigger.useSimpleFeatureFilteringIterator(ecql, query)
 
     if (useIndexOnlyIterator) {
       val transformedSFType = transformedSimpleFeatureType(query).getOrElse(sourceSimpleFeatureType)
       configureIndexIterator(bs, opoly, oint, query, transformedSFType)
     }
-
     else {
       configureSpatioTemporalIntersectingIterator(bs, opoly, oint, sourceSimpleFeatureType)
-      configureSimpleFeatureFilteringIterator(bs, sourceSimpleFeatureType, ecql, query, poly)
+      if (useSimpleFeatureFilteringIterator)
+        configureSimpleFeatureFilteringIterator(bs, sourceSimpleFeatureType, ecql, query, poly)
     }
     bs.iterator()
   }
@@ -120,7 +122,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // returns the encoded SimpleFeatureType for the query's transform
   def transformedSimpleFeatureType(query: Query): Option[String] = {
     val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
-    transformSchema.map{ schema => DataUtilities.encodeType(schema)}
+    transformSchema.map { schema => DataUtilities.encodeType(schema)}
   }
 
   // store transform information into an Iterator's settings
@@ -146,12 +148,14 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // -- for items that either:
   // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
-  def configureIndexIterator(bs: BatchScanner,  poly: Option[Polygon],
-                             interval: Option[Interval], query: Query, featureType: String) {
+  def configureIndexIterator(bs: BatchScanner,
+                             poly: Option[Polygon],
+                             interval: Option[Interval],
+                             query: Query,
+                             featureType: String) {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),classOf[IndexIterator])
-    IndexIterator.setOptions(
-      cfg, schema, poly, interval, featureType)
+    IndexIterator.setOptions(cfg, schema, poly, interval, featureType)
     configureFeatureEncoding(cfg)
     bs.addScanIterator(cfg)
   }
@@ -159,13 +163,14 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // returns only the data entries -- no index entries -- for items that either:
   // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
-  def configureSpatioTemporalIntersectingIterator(bs: BatchScanner, poly: Option[Polygon],
-                                                  interval: Option[Interval], featureType: String) {
+  def configureSpatioTemporalIntersectingIterator(bs: BatchScanner,
+                                                  poly: Option[Polygon],
+                                                  interval: Option[Interval],
+                                                  featureType: String) {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),
       classOf[SpatioTemporalIntersectingIterator])
-    SpatioTemporalIntersectingIterator.setOptions(
-      cfg, schema, poly, interval, featureType)
+    SpatioTemporalIntersectingIterator.setOptions(cfg, schema, poly, interval, featureType)
     bs.addScanIterator(cfg)
   }
   // assumes that it receives an iterator over data-only entries, and aggregates
