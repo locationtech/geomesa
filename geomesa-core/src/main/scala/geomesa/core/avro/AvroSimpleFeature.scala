@@ -192,34 +192,7 @@ object AvroSimpleFeature {
   val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Class[_]]] =
     loadingCacheBuilder { sft =>
       sft.getAttributeDescriptors.map { ad =>
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         (encodeAttributeName(ad.getLocalName), ad.getType.getBinding)
-=======
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-        val name = encodeAttributeName(ad.getLocalName)
-        val clazz = ad.getType.getBinding
-        (name, clazz)
->>>>>>> f_utf
       }.toMap
     }
 
@@ -249,113 +222,17 @@ object AvroSimpleFeature {
   val invalidAvro = "(.*)([^A-Za-z0-9_])(.*)".r
 
   def encodeAttributeName(s: String): String = s match {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     case validAvro(s) => s
-=======
-    case validAvro(s) => s.replaceAll("_", "__")
->>>>>>> f_utf
-=======
-    case validAvro(s) => s.replaceAll("_", "__")
->>>>>>> f_utf
-=======
-    case validAvro(s) => s.replaceAll("_", "__")
->>>>>>> f_utf
-=======
-    case validAvro(s) => s.replaceAll("_", "__")
->>>>>>> f_utf
-=======
-    case validAvro(s) => s.replaceAll("_", "__")
->>>>>>> f_utf
-=======
-    case validAvro(s) => s.replaceAll("_", "__")
->>>>>>> f_utf
-=======
-    case validAvro(s) => s.replaceAll("_", "__")
->>>>>>> f_utf
-=======
-    case validAvro(s) => s.replaceAll("_", "__")
->>>>>>> f_utf
     case invalidAvro(start, s, end) => encodeAttributeName(start) +
       "_u%04X".format(s(0).toInt) + encodeAttributeName(end)
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   val validUnicode = "(.*)_u([A-F0-9]{4})(.*)".r
-=======
-  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
->>>>>>> f_utf
-=======
-  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
->>>>>>> f_utf
-=======
-  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
->>>>>>> f_utf
-=======
-  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
->>>>>>> f_utf
-=======
-  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
->>>>>>> f_utf
-=======
-  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
->>>>>>> f_utf
-=======
-  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
->>>>>>> f_utf
-=======
-  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
->>>>>>> f_utf
 
   def decodeAttributeName(s: String): String = s match {
     case validUnicode(start, s, end) => decodeAttributeName(start) +
       Integer.parseInt(s, 16).toChar.toString +
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
       decodeAttributeName(end)
-=======
-      decodeAttributeName(end).replaceAll("__","_")
->>>>>>> f_utf
-=======
-      decodeAttributeName(end).replaceAll("__","_")
->>>>>>> f_utf
-=======
-      decodeAttributeName(end).replaceAll("__","_")
->>>>>>> f_utf
-=======
-      decodeAttributeName(end).replaceAll("__","_")
->>>>>>> f_utf
-=======
-      decodeAttributeName(end).replaceAll("__","_")
->>>>>>> f_utf
-=======
-      decodeAttributeName(end).replaceAll("__","_")
->>>>>>> f_utf
-=======
-      decodeAttributeName(end).replaceAll("__","_")
->>>>>>> f_utf
-=======
-      decodeAttributeName(end).replaceAll("__","_")
->>>>>>> f_utf
     case _ => s
   }
 
@@ -369,35 +246,7 @@ object AvroSimpleFeature {
 
     val result =
       sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
-=======
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-=======
->>>>>>> f_utf
-        val name    = encodeAttributeName(ad.getLocalName)
-        val binding = ad.getType.getBinding
-        val nillable = ad.isNillable
-        addField(assembler, name, binding, nillable)
->>>>>>> f_utf
       }
 
     result.endRecord
