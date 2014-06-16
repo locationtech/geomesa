@@ -43,6 +43,8 @@ package object data {
   val SCHEMA_CF            = new Text("schema")
   val DTGFIELD_CF          = new Text("dtgfield")
   val FEATURE_ENCODING_CF  = new Text("featureEncoding")
+  val VISIBILITIES_CF      = new Text("visibilities")
+  val VISIBILITIES_CHECK_CF = new Text("visibilitiesCheck")
   val DATA_CQ              = new Text("SimpleFeatureAttribute")
   val METADATA_TAG         = "~METADATA"
   val METADATA_TAG_END     = s"$METADATA_TAG~~"
