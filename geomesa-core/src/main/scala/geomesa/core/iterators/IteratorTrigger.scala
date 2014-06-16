@@ -51,8 +51,13 @@ import org.opengis.feature.simple.SimpleFeatureType
         .orElse(Some(false))
       // if the ecql predicate exists, check that it is a trivial filter that does nothing
       val isPassThroughFilter = ecqlPredicate.map { ecql => passThroughFilter(ecql)}
+
+      // the Density Iterator is run in place of the SFFI. If it is requested we keep the SFFI config in the stack,
+      // and do NOT run the IndexIterator. Wrap in an Option to keep clean logic below
+      val notDensity = Some(!useDensityIterator(query: Query))
+
       // require both to be true
-      (isIndexTransform ++ isPassThroughFilter).forall {_ == true}
+      (isIndexTransform ++ isPassThroughFilter ++ notDensity).forall {_ == true}
     }
 
     /**
