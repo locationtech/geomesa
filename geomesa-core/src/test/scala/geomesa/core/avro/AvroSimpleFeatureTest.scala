@@ -40,7 +40,7 @@ class AvroSimpleFeatureTest extends Specification {
     }
 
     "properly validate multiple AvroSimpleFeature Objects with odd names and unicode characters, including colons" in {
-      val typeList = List("tower_u1234", "tower:type", "☕你好:世界♓", "tower_‽", "‽_‽:‽", "_‽")
+      val typeList = List("tower_u1234", "tower:type", "☕你好:世界♓", "tower_‽", "‽_‽:‽", "_‽", "a__u1234")
 
       for(typeName <- typeList) {
         val sft = DataUtilities.createType(typeName, "a⬨_⬨b:Integer,☕☄crazy☄☕_☕name&such➿:Date,*geom:Point:srid=4326")
@@ -53,7 +53,7 @@ class AvroSimpleFeatureTest extends Specification {
     }
 
     "fail to validate an incorrectly named object" in {
-      val sft = DataUtilities.createType("0_1", "a:Integer,b:Date,*geom:Point:srid=4326")
+      val sft = DataUtilities.createType("0_1", "geom_feature_test:Integer,b:Date,*geom:Point:srid=4326")
       val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft) must throwA [com.google.common.util.concurrent.UncheckedExecutionException]  //should throw it
     }
 

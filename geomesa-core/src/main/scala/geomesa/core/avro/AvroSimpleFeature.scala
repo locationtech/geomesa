@@ -79,9 +79,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   }
 
   def write(os: OutputStream) {
-    val encoder = EncoderFactory.get.binaryEncoder(os, null)
-    val datumWriter = new GenericDatumWriter[GenericRecord](schema)
-    write(datumWriter, encoder)
+    write(new GenericDatumWriter[GenericRecord](schema), EncoderFactory.get.binaryEncoder(os, null))
   }
 
   def getFeatureType = sft
@@ -194,9 +192,7 @@ object AvroSimpleFeature {
   val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Class[_]]] =
     loadingCacheBuilder { sft =>
       sft.getAttributeDescriptors.map { ad =>
-        val name = encodeAttributeName(ad.getLocalName)
-        val clazz = ad.getType.getBinding
-        (name, clazz)
+        (encodeAttributeName(ad.getLocalName), ad.getType.getBinding)
       }.toMap
     }
 
@@ -226,17 +222,17 @@ object AvroSimpleFeature {
   val invalidAvro = "(.*)([^A-Za-z0-9_])(.*)".r
 
   def encodeAttributeName(s: String): String = s match {
-    case validAvro(s) => s.replaceAll("_", "__")
+    case validAvro(s) => s
     case invalidAvro(start, s, end) => encodeAttributeName(start) +
       "_u%04X".format(s(0).toInt) + encodeAttributeName(end)
   }
 
-  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
+  val validUnicode = "(.*)_u([A-F0-9]{4})(.*)".r
 
   def decodeAttributeName(s: String): String = s match {
     case validUnicode(start, s, end) => decodeAttributeName(start) +
       Integer.parseInt(s, 16).toChar.toString +
-      decodeAttributeName(end).replaceAll("__","_")
+      decodeAttributeName(end)
     case _ => s
   }
 
@@ -250,10 +246,7 @@ object AvroSimpleFeature {
 
     val result =
       sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
-        val name    = encodeAttributeName(ad.getLocalName)
-        val binding = ad.getType.getBinding
-        val nillable = ad.isNillable
-        addField(assembler, name, binding, nillable)
+        addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
       }
 
     result.endRecord
