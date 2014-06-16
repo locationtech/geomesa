@@ -21,6 +21,7 @@ object TemporalIndexCheck extends Logging {
     dtgDescriptor getOrElse {
       val matches = scanForTemporalAttribute(sft)
       if (matches.nonEmpty) {
+        /*
         val theWarning = "\n" +
           "__________Possible problem detected in the SimpleFeatureType_____________ \n " +
           "SF_PROPERTY_START_TIME points to no existing SimpleFeature attribute, or isn't defined. " +
@@ -29,6 +30,22 @@ object TemporalIndexCheck extends Logging {
           "Please note that while queries on a temporal attribute will still work, " +
           "queries will be faster if SF_PROPERTY_START_TIME, located in the SimpleFeatureType's UserData, " +
           "points to the attribute's name" + "\n"
+        */
+        val theWarning =
+          """
+            |__________Possible problem detected in the SimpleFeatureType_____________
+            |SF_PROPERTY_START_TIME points to no existing SimpleFeature attribute, or isn't defined.
+            |However, the following attribute(s) could be used in GeoMesa's temporal index:
+          """.stripMargin +
+          matches.mkString("\n", "\n", "\n") +
+          """
+            |Please note that while queries on a temporal attribute will still work,
+            |queries will be faster if SF_PROPERTY_START_TIME, located in the SimpleFeatureType's UserData,
+            |points to the attribute's name
+          """.stripMargin
+
+
+
         logger.warn(theWarning)
       }
     }
