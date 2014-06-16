@@ -194,8 +194,11 @@ object AvroSimpleFeature {
       sft.getAttributeDescriptors.map { ad =>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         (encodeAttributeName(ad.getLocalName), ad.getType.getBinding)
 =======
+=======
+>>>>>>> f_utf
 =======
 >>>>>>> f_utf
         val name = encodeAttributeName(ad.getLocalName)
@@ -233,7 +236,11 @@ object AvroSimpleFeature {
   def encodeAttributeName(s: String): String = s match {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     case validAvro(s) => s
+=======
+    case validAvro(s) => s.replaceAll("_", "__")
+>>>>>>> f_utf
 =======
     case validAvro(s) => s.replaceAll("_", "__")
 >>>>>>> f_utf
@@ -246,7 +253,11 @@ object AvroSimpleFeature {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   val validUnicode = "(.*)_u([A-F0-9]{4})(.*)".r
+=======
+  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
+>>>>>>> f_utf
 =======
   val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
 >>>>>>> f_utf
@@ -259,7 +270,11 @@ object AvroSimpleFeature {
       Integer.parseInt(s, 16).toChar.toString +
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       decodeAttributeName(end)
+=======
+      decodeAttributeName(end).replaceAll("__","_")
+>>>>>>> f_utf
 =======
       decodeAttributeName(end).replaceAll("__","_")
 >>>>>>> f_utf
@@ -281,8 +296,11 @@ object AvroSimpleFeature {
       sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
 =======
+=======
+>>>>>>> f_utf
 =======
 >>>>>>> f_utf
         val name    = encodeAttributeName(ad.getLocalName)

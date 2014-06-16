@@ -42,7 +42,11 @@ class AvroSimpleFeatureTest extends Specification {
     "properly validate multiple AvroSimpleFeature Objects with odd names and unicode characters, including colons" in {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       val typeList = List("tower_u1234", "tower:type", "☕你好:世界♓", "tower_‽", "‽_‽:‽", "_‽", "a__u1234")
+=======
+      val typeList = List("tower_u1234", "tower:type", "☕你好:世界♓", "tower_‽", "‽_‽:‽", "_‽")
+>>>>>>> f_utf
 =======
       val typeList = List("tower_u1234", "tower:type", "☕你好:世界♓", "tower_‽", "‽_‽:‽", "_‽")
 >>>>>>> f_utf
@@ -63,7 +67,11 @@ class AvroSimpleFeatureTest extends Specification {
     "fail to validate an incorrectly named object" in {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       val sft = DataUtilities.createType("0_1", "geom_feature_test:Integer,b:Date,*geom:Point:srid=4326")
+=======
+      val sft = DataUtilities.createType("0_1", "a:Integer,b:Date,*geom:Point:srid=4326")
+>>>>>>> f_utf
 =======
       val sft = DataUtilities.createType("0_1", "a:Integer,b:Date,*geom:Point:srid=4326")
 >>>>>>> f_utf
