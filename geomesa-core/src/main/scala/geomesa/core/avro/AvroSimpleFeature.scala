@@ -199,8 +199,11 @@ object AvroSimpleFeature {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         (encodeAttributeName(ad.getLocalName), ad.getType.getBinding)
 =======
+=======
+>>>>>>> f_utf
 =======
 >>>>>>> f_utf
 =======
@@ -253,7 +256,11 @@ object AvroSimpleFeature {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     case validAvro(s) => s
+=======
+    case validAvro(s) => s.replaceAll("_", "__")
+>>>>>>> f_utf
 =======
     case validAvro(s) => s.replaceAll("_", "__")
 >>>>>>> f_utf
@@ -286,7 +293,11 @@ object AvroSimpleFeature {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   val validUnicode = "(.*)_u([A-F0-9]{4})(.*)".r
+=======
+  val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
+>>>>>>> f_utf
 =======
   val validUnicode = "(.*[^_])_u([A-F0-9]{4})(.*)".r
 >>>>>>> f_utf
@@ -319,7 +330,11 @@ object AvroSimpleFeature {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       decodeAttributeName(end)
+=======
+      decodeAttributeName(end).replaceAll("__","_")
+>>>>>>> f_utf
 =======
       decodeAttributeName(end).replaceAll("__","_")
 >>>>>>> f_utf
@@ -361,8 +376,11 @@ object AvroSimpleFeature {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
 =======
+=======
+>>>>>>> f_utf
 =======
 >>>>>>> f_utf
 =======

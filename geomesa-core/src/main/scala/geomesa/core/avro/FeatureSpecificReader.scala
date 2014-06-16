@@ -53,6 +53,7 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if(checkNull(f.name, in)) in.readNull()
         else setOrConsume(sf, decodeAttributeName(f.name), in, typeMap.get(f.name).get)
       }
@@ -60,6 +61,17 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
       dataFields.foreach { f =>
         if(checkNull(f.name, in)) in.readNull()
         else set(sf, decodeAttributeName(f.name), in, typeMap.get(f.name).get)
+=======
+        val decodedName = decodeAttributeName(f.name)
+        if(checkNull(f.name, in)) in.readNull()
+        else setOrConsume(sf, decodedName, in, typeMap.get(f.name).get)
+      }
+    else
+      dataFields.foreach { f =>
+        val decodedName = decodeAttributeName(f.name)
+        if(checkNull(f.name, in)) in.readNull()
+        else set(sf, decodedName, in, typeMap.get(f.name).get)
+>>>>>>> f_utf
 =======
         val decodedName = decodeAttributeName(f.name)
         if(checkNull(f.name, in)) in.readNull()
