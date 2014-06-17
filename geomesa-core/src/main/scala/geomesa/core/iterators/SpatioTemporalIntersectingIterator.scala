@@ -57,32 +57,34 @@ class SpatioTemporalIntersectingIterator
   import IndexEntry._
   import geomesa.core._
 
-  private var indexSource: SortedKeyValueIterator[Key, Value] = null
-  private var dataSource: SortedKeyValueIterator[Key, Value] = null
-  private var interval: Interval = null
-  private var poly: Geometry = null
-  private var decoder: IndexEntryDecoder = null
-  private var topKey: Key = null
-  private var topValue: Value = null
-  private var nextKey: Key = null
-  private var nextValue: Value = null
-  private var curId: Text = null
+
+  protected var indexSource: SortedKeyValueIterator[Key, Value] = null
+  protected var dataSource: SortedKeyValueIterator[Key, Value] = null
+  protected var interval: Interval = null
+  protected var poly: Geometry = null
+  protected var decoder: IndexEntryDecoder = null
+  protected var topKey: Key = null
+  protected var topValue: Value = null
+  protected var nextKey: Key = null
+  protected var nextValue: Value = null
+  protected var curId: Text = null
 
   // Used by aggregators that extend STII
   protected var curFeature: SimpleFeature = null
 
-  private var deduplicate: Boolean = false
+  protected var deduplicate: Boolean = false
+
 
   // each batch-scanner thread maintains its own (imperfect!) list of the
   // unique (in-polygon) identifiers it has seen
-  private var maxInMemoryIdCacheEntries = 10000
-  private val inMemoryIdCache = new JHashSet[String]()
+  protected var maxInMemoryIdCacheEntries = 10000
+  protected val inMemoryIdCache = new JHashSet[String]()
 
   def init(source: SortedKeyValueIterator[Key, Value],
            options: java.util.Map[String, String],
            env: IteratorEnvironment) {
 
-    val featureType = DataUtilities.createType("DummyType", options.get(DEFAULT_FEATURE_TYPE))
+    val featureType = DataUtilities.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
 
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
@@ -166,14 +168,14 @@ class SpatioTemporalIntersectingIterator
   // data rows are the only ones with "SimpleFeatureAttribute" in the ColQ
   // (if we expand on the idea of separating out attributes more, we will need
   // to revisit this function)
-  private def isKeyValueADataEntry(key: Key, value: Value): Boolean =
+  protected def isKeyValueADataEntry(key: Key, value: Value): Boolean =
     (key != null) &&
     (key.getColumnQualifier != null) &&
     (key.getColumnQualifier == DATA_CQ)
 
   // if it's not a data entry, it's an index entry
   // (though we still share some requirements -- non-nulls -- with data entries)
-  private def isKeyValueAnIndexEntry(key: Key, value: Value): Boolean =
+  protected def isKeyValueAnIndexEntry(key: Key, value: Value): Boolean =
     (key != null) &&
     (
       (key.getColumnQualifier == null) ||
@@ -225,7 +227,7 @@ class SpatioTemporalIntersectingIterator
           rememberId(decodedValue.id)
 
           // advance the data-iterator to its corresponding match
-          seekData(decodedValue.id)
+          seekData(decodedValue)
         }
       }
 
@@ -245,7 +247,8 @@ class SpatioTemporalIntersectingIterator
    * data-iterator.  This is *IMPORTANT*, as otherwise we do not emit rows
    * that honor the SortedKeyValueIterator expectation, and Bad Things Happen.
    */
-  def seekData(nextId:String) {
+  def seekData(indexValue:IndexSchema.DecodedIndexValue) {
+    val nextId = indexValue.id
     curId = new Text(nextId)
     val indexSourceTopKey = indexSource.getTopKey
 
@@ -308,9 +311,13 @@ class SpatioTemporalIntersectingIterator
   def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("STII does not support deepCopy.")
 }
 
-object SpatioTemporalIntersectingIterator {
-
-  import geomesa.core._
+object SpatioTemporalIntersectingIterator extends IteratorHelpers {
+}
+/**
+ *  This trait contains many methods and values of general use to companion Iterator objects
+ */
+trait IteratorHelpers  {
+ import geomesa.core._
 
   implicit def value2text(value: Value): Text = new Text(value.get)
 
@@ -370,17 +377,17 @@ object SpatioTemporalIntersectingIterator {
   }
 
   def setOptions(cfg: IteratorSetting, schema: String, poly: Option[Polygon], interval: Option[Interval],
-                 featureType: SimpleFeatureType) {
+                 featureType: String) {
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
     poly.foreach { p => cfg.addOption(DEFAULT_POLY_PROPERTY_NAME, p.toText) }
     interval.foreach { int => cfg.addOption(DEFAULT_INTERVAL_PROPERTY_NAME, encodeInterval(int)) }
-    cfg.addOption(DEFAULT_FEATURE_TYPE, DataUtilities.encodeType(featureType))
+    cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, featureType)
   }
 
-  private def encodeInterval(interval: Interval): String =
+  protected def encodeInterval(interval: Interval): String =
     interval.getStart.getMillis + "~" +  interval.getEnd.getMillis
 
-  private def decodeInterval(str: String): Interval =
+  def decodeInterval(str: String): Interval =
     str.split("~") match {
       case Array(s, e) =>
         new Interval(new DateTime(s.toLong, DateTimeZone.forID("UTC")),
