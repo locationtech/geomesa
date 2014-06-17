@@ -126,7 +126,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   }
 
   // store transform information into an Iterator's settings
-  def configureTransforms(query:Query,cfg: IteratorSetting) = {
+  def configureTransforms(query:Query,cfg: IteratorSetting) =
     for {
       transformOpt <- Option(query.getHints.get(TRANSFORMS))
       transform    = transformOpt.asInstanceOf[String]
@@ -134,7 +134,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       sfType       <- transformedSimpleFeatureType(query)
       _            = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA,sfType)
     } yield Unit
-  }
+
   // establishes the regular expression that defines (minimally) acceptable rows
   def configureRowRegexIterator(bs: BatchScanner, regex: String) {
     val name = "regexRow-" + randomPrintableString(5)
