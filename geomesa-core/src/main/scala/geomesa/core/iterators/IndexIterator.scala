@@ -45,9 +45,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
   var featureBuilder: SimpleFeatureBuilder = null
   var featureEncoder: SimpleFeatureEncoder = null
-
   var outputAttributes: List[AttributeDescriptor] = null
-
   var indexAttributes: List[AttributeDescriptor] = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
