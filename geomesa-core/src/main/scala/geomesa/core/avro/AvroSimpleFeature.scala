@@ -197,14 +197,14 @@ object AvroSimpleFeature {
     }
 
   val avroSchemaCache: LoadingCache[SimpleFeatureType, Schema] =
-    loadingCacheBuilder { sft => generateSchema(sft) }
+    loadingCacheBuilder { sft => generateSchema(sft)}
 
   val nameCache: LoadingCache[SimpleFeatureType, Array[String]] =
-    loadingCacheBuilder { sft => DataUtilities.attributeNames(sft).map(encodeAttributeName) }
+    loadingCacheBuilder { sft => DataUtilities.attributeNames(sft).map(encodeAttributeName)}
 
   val nameIndexCache: LoadingCache[SimpleFeatureType, Map[String, Int]] =
     loadingCacheBuilder { sft =>
-      DataUtilities.attributeNames(sft).map { name => (name, sft.indexOf(name)) }.toMap
+      DataUtilities.attributeNames(sft).map { name => (name, sft.indexOf(name))}.toMap
     }
 
   val datumWriterCache: LoadingCache[SimpleFeatureType, GenericDatumWriter[GenericRecord]] =
@@ -212,29 +212,33 @@ object AvroSimpleFeature {
       new GenericDatumWriter[GenericRecord](avroSchemaCache.get(sft))
     }
 
+  val attributeNameLookUp = scala.collection.mutable.Map.empty[String, String]
 
   final val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   final val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
   final val VERSION: Int = 1
   final val AVRO_NAMESPACE: String = "org.geomesa"
 
-  val validAvro = "([A-Za-z0-9_]*)".r
-  val invalidAvro = "(.*)([^A-Za-z0-9_])(.*)".r
+  def encode(s: String): String = "_" + org.apache.commons.codec.binary.Hex.encodeHexString(s.getBytes("UTF8"))
 
-  def encodeAttributeName(s: String): String = s match {
-    case validAvro(s) => s
-    case invalidAvro(start, s, end) => encodeAttributeName(start) +
-      "_u%04X".format(s(0).toInt) + encodeAttributeName(end)
-  }
+//  def encodeAttributeName(s: String): String = s match {
+//    case isIn if attributeNameLookUp.contains(s) => attributeNameLookUp(s)
+//    case _ => attributeNameLookUp.put(s, encode(s))
+//      attributeNameLookUp.put(encode(s), s)
+//      encodeAttributeName(s)
+//  }
 
-  val validUnicode = "(.*)_u([A-F0-9]{4})(.*)".r
+  def decode(s: String): String = new String(org.apache.commons.codec.binary.Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
 
-  def decodeAttributeName(s: String): String = s match {
-    case validUnicode(start, s, end) => decodeAttributeName(start) +
-      Integer.parseInt(s, 16).toChar.toString +
-      decodeAttributeName(end)
-    case _ => s
-  }
+//  def decodeAttributeName(s: String): String = s match {
+//    case isIn if attributeNameLookUp.contains(s) => attributeNameLookUp(s)
+//    case _ => attributeNameLookUp.put(s, decode(s))
+//      decodeAttributeName(s)
+//  }
+
+  def encodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, encode(s))
+
+  def decodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, decode(s))
 
   def generateSchema(sft: SimpleFeatureType): Schema = {
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =

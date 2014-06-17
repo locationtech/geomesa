@@ -52,11 +52,6 @@ class AvroSimpleFeatureTest extends Specification {
       }
     }
 
-    "fail to validate an incorrectly named object" in {
-      val sft = DataUtilities.createType("0_1", "geom_feature_test:Integer,b:Date,*geom:Point:srid=4326")
-      val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft) must throwA [com.google.common.util.concurrent.UncheckedExecutionException]  //should throw it
-    }
-
     "fail to validate a correct object" in {
       val sft = DataUtilities.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 
