@@ -402,6 +402,22 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>org.geoserver.extension</groupId>
+                <artifactId>gs-wps-core</artifactId>
+                <version>${geoserver.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-log4j12</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>log4j</groupId>
+                        <artifactId>log4j</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-epsg-hsql</artifactId>
                 <version>${gt.version}</version>
