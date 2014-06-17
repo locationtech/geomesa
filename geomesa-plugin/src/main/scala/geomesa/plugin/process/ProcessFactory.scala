@@ -17,6 +17,9 @@
 
 package geomesa.plugin.process
 
+import geomesa.core.process.proximity.ProximitySearchProcess
+import geomesa.core.process.query.QueryProcess
+import geomesa.core.process.tube.TubeSelectProcess
 import org.geotools.process.factory.AnnotatedBeanProcessFactory
 import org.geotools.text.Text
 import geomesa.core.process.tube.TubeSelectProcess
