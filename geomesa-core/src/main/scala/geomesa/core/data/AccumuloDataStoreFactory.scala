@@ -81,7 +81,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
         authProviderSystemProperty match {
           case Some(prop) =>
-            if (classOf[AuthorizationsProvider].getName == prop)
+            if (classOf[DefaultAuthorizationsProvider].getName == prop)
               new DefaultAuthorizationsProvider
             else
               providers.find(p => prop == p.getClass.getName)
