@@ -153,14 +153,18 @@ class TableVersionTest extends Specification {
       val connector = instance.getConnector(badParams("user"), new PasswordToken(badParams("password").getBytes))
       val scanner = connector.createScanner(badParams("tableName"), new Authorizations())
       scanner.iterator.foreach { entry =>
-        entry.getKey.getColumnFamily should not(equalTo(FEATURE_ENCODING_CF))
+        if (entry.getKey.getColumnFamily == FEATURE_ENCODING_CF)
+          entry.getValue.toString mustEqual FeatureEncoding.TEXT.toString
       }
       scanner.close
 
       // Here we are creating a schema AFTER a table already exists...this mimics upgrading
       // from 0.10.x to 1.0.0 ...this call to createSchema should insert a row into the table
       // with the proper feature encoding (effectively upgrading to a "1.0.0" table format)
-      manualStore.createSchema(sft)
+
+      // calling createSchema is invalid once the schema has been created - but the store will
+      // validate itself upon operation
+      // manualStore.createSchema(sft)
       manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
       val scanner2 = connector.createScanner(badParams("tableName"), new Authorizations())
       var hasEncodingMeta = false
@@ -246,10 +250,13 @@ class TableVersionTest extends Specification {
       var hasEncodingMeta = false
       scanner2.iterator.foreach { entry =>
         hasEncodingMeta |= entry.getKey.getColumnFamily.equals(FEATURE_ENCODING_CF)
+        if (entry.getKey.getColumnFamily == FEATURE_ENCODING_CF) {
+          entry.getValue.toString mustEqual FeatureEncoding.TEXT.toString
+        }
       }
 
-      // because we haven't called createSchema...
-      hasEncodingMeta should equalTo(false)
+      // the store will validate and update itself upon operation
+      hasEncodingMeta should equalTo(true)
     }
 
     "should default to creating new tables in avro" in {
