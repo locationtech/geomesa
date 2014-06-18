@@ -157,68 +157,68 @@ class IteratorTriggerTest extends Specification {
       IteratorTrigger.useSimpleFeatureFilteringIterator(modECQLPred, aQuery)
     }
   }
-    "useIndexOnlyIterator" should {
-      "be run when requesting only index attributes" in {
-        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.simpleTransformToIndex)
-        isTriggered must beTrue
-      }
-
-      "be run when renaming only index attributes" in {
-        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.renameTransformToIndex)
-        isTriggered must beTrue
-      }
-
-      "not be run when transforming an index attribute" in {
-        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.complexTransformToIndex)
-        isTriggered must beFalse
-      }
-
-      "not be run when requesting a non-index attribute" in {
-        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.simpleTransformToIndexPlusAnother)
-        isTriggered must beFalse
-      }
-
-      "not be run when requesting all attributes via a null transform" in {
-        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.nullTransform)
-        isTriggered must beFalse
-      }
-
-      "be run when requesting index attributes and using a trivial filter" in {
-        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.trivialFilterString, TriggerTest.simpleTransformToIndex)
-        isTriggered must beTrue
-      }
-
-      "be run when requesting index attributes and using another trivial filter" in {
-        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.simpleTransformToIndex)
-        isTriggered must beTrue
-      }
-
-      "not be run when requesting index attributes and filtering on a non-index attribute" in {
-        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.extraAttributeFilterString, TriggerTest.simpleTransformToIndex)
-        isTriggered must beFalse
-      }
-
-      "not be run when requesting index attributes and filtering on a non-index attribute" in {
-        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.extraAttributeFilterString, TriggerTest.simpleTransformToIndex)
-        isTriggered must beFalse
-      }
-
-      "not be run when requesting index attributes and dealing with a filter that can not be fully reduced" in {
-        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.nonReducibleFilterString, TriggerTest.simpleTransformToIndex)
-        isTriggered must beFalse
-      }
-
-      "be run when requesting index attributes and dealing with a filter that can be fully reduced" in {
-        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.reducibleFilterString, TriggerTest.simpleTransformToIndex)
-        isTriggered must beTrue
-      }
+  "useIndexOnlyIterator" should {
+    "be run when requesting only index attributes" in {
+      val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.simpleTransformToIndex)
+      isTriggered must beTrue
     }
+
+    "be run when renaming only index attributes" in {
+      val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.renameTransformToIndex)
+      isTriggered must beTrue
+    }
+
+    "not be run when transforming an index attribute" in {
+      val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.complexTransformToIndex)
+      isTriggered must beFalse
+    }
+
+    "not be run when requesting a non-index attribute" in {
+      val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.simpleTransformToIndexPlusAnother)
+      isTriggered must beFalse
+    }
+
+    "not be run when requesting all attributes via a null transform" in {
+      val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.nullTransform)
+      isTriggered must beFalse
+    }
+
+    "be run when requesting index attributes and using a trivial filter" in {
+      val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.trivialFilterString, TriggerTest.simpleTransformToIndex)
+      isTriggered must beTrue
+    }
+
+    "be run when requesting index attributes and using another trivial filter" in {
+      val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.simpleTransformToIndex)
+      isTriggered must beTrue
+    }
+
+    "not be run when requesting index attributes and filtering on a non-index attribute" in {
+      val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.extraAttributeFilterString, TriggerTest.simpleTransformToIndex)
+      isTriggered must beFalse
+    }
+
+    "not be run when requesting index attributes and filtering on a non-index attribute" in {
+      val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.extraAttributeFilterString, TriggerTest.simpleTransformToIndex)
+      isTriggered must beFalse
+    }
+
+    "not be run when requesting index attributes and dealing with a filter that can not be fully reduced" in {
+      val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.nonReducibleFilterString, TriggerTest.simpleTransformToIndex)
+      isTriggered must beFalse
+    }
+
+    "be run when requesting index attributes and dealing with a filter that can be fully reduced" in {
+      val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.reducibleFilterString, TriggerTest.simpleTransformToIndex)
+      isTriggered must beTrue
+    }
+  }
 
 
   "SimpleFeatureFilteringIterator" should {
     "be run when requesting a transform" in {
-       val isTriggered = TriggerTest.useSimpleFeatureFilteringIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.complexTransformToIndex)
-       isTriggered must beTrue
+      val isTriggered = TriggerTest.useSimpleFeatureFilteringIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.complexTransformToIndex)
+      isTriggered must beTrue
     }
 
     "be run when passed a non-trivial ECQL filter and a simple transform" in {
@@ -234,6 +234,6 @@ class IteratorTriggerTest extends Specification {
     "not be run when passed a trivial ECQL filter and a null transform" in {
       val isTriggered = TriggerTest.useSimpleFeatureFilteringIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.nullTransform)
       isTriggered must beFalse
-   }
+    }
   }
 }
