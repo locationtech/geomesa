@@ -84,7 +84,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
             if (classOf[DefaultAuthorizationsProvider].getName == prop)
               new DefaultAuthorizationsProvider
             else
-              providers.find(p => prop == p.getClass.getName)
+              providers.find(_.getClass.getName == prop)
                 .getOrElse {
                   val message =
                     s"The service provider class '$prop' specified by " +
