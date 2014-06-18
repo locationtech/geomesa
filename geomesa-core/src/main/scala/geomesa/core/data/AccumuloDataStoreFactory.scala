@@ -93,8 +93,10 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
               new DefaultAuthorizationsProvider
             else if (providers.length == 1)
               providers.head
-            else
-              throw new IllegalStateException(s"Found multiple AuthorizationProvider implementations. Please specify the one to use with the system property ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} :: found $providers")
+            else {
+              val providerString = providers.map(p => p.getClass.getName).mkString(", ")
+              throw new IllegalStateException(s"Found multiple AuthorizationsProvider implementations. Please specify the one to use with the system property '${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: ${providerString}")
+            }
         }
       })
 
