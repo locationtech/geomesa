@@ -11,7 +11,7 @@ import java.util.Date
 import org.apache.log4j.Logger
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
-import org.geotools.data.store.EmptyFeatureCollection
+import org.geotools.data.store.{ReTypingFeatureCollection, EmptyFeatureCollection}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeResult, DescribeParameter, DescribeProcess}
@@ -21,12 +21,12 @@ import org.opengis.feature.Feature
 import org.opengis.filter.Filter
 
 @DescribeProcess(
-  title = "Performs a tube select on one feature collection based on another feature collection",
-  description = "Returns a feature collection"
+  title = "Tube Select",
+  description = "Performs a tube select on a Geomesa feature collection based on another feature collection"
 )
-class TubeSelect extends VectorProcess {
+class TubeSelectProcess {
 
-  private val log = Logger.getLogger(classOf[TubeSelect])
+  private val log = Logger.getLogger(classOf[TubeSelectProcess])
 
   @DescribeResult(description = "Output feature collection")
   def execute(
@@ -93,6 +93,10 @@ class TubeSelect extends VectorProcess {
 
     if(!featureCollection.isInstanceOf[AccumuloFeatureCollection]) {
       log.warn("The provided feature collection type may not support tubing: "+featureCollection.getClass.getName)
+    }
+
+    if(featureCollection.isInstanceOf[ReTypingFeatureCollection]) {
+      log.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
 
     featureCollection.accepts(tubeVisitor, new NullProgressListener)

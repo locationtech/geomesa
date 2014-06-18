@@ -17,7 +17,7 @@
                 <wps:Body>
 
                     <wps:Execute version="1.0.0" service="WPS">
-                        <ows:Identifier>vec:TubeSelect</ows:Identifier>
+                        <ows:Identifier>geomesa:TubeSelect</ows:Identifier>
                         <wps:DataInputs>
                             <wps:Input>
                                 <ows:Identifier>tubeFeatures</ows:Identifier>

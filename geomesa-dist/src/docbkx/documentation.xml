@@ -105,17 +105,28 @@
             <para>Copy everything from the unpacked
                 <code>geoserver/lib</code>
                 directory to the
-                <code>${GEOSERVER_HOME}/WEB-INF/lib directory</code>
+                <code>${GEOSERVER_HOME}/webapps/geoserver/WEB-INF/lib</code> directory
                 on the web-server that is hosting GeoServer. We have confirmed
                 that this works with version 2.5.X of GeoServer.
             </para>
 
             <para>
                 Note that you will also need other JAR files, particularly those
-                pertaining to: accumulo-core; accumulo-trace; accumulo-fate; 
-                zookeeper; libthrift; hadoop-common; hadoop-mapreduce-client-core;
-                commons-configuration; and commons-vfs2.  These are support services 
+                pertaining to: <code>accumulo-core</code>, <code>accumulo-trace</code>, <code>accumulo-fate</code>,
+                <code>zookeeper</code>, <code>libthrift</code>, <code>hadoop-common</code>, <code>hadoop-mapreduce-client-core</code>,
+                <code>commons-configuration</code>, and <code>commons-vfs2</code>.  These are support services 
                 that are referenced by GeoMesa, yet are part of your base infrastructure.
+            </para>
+
+            <para>
+                Upgrading logger libraries - You'll need to upgrade the logger libraries
+                installed in the <code>${GEOSERVER_HOME}/lib</code> directory. We recommend
+                backing up and removing <code>slf4j-simple-1.0.1.jar</code> and 
+                <code>commons-logging-1.0.jar</code> and replacing them with 
+                <code>commons-logging-1.1.1.jar</code> from the <code>dev/lib/</code> directory
+                of the geomesa distribution tarball. Note that whenever you upgrade libraries you 
+                should keep a backup copy since upgrading logging frameworks can cause other
+                plugins or the geoserver webapp to fail.
             </para>
         </section>
 

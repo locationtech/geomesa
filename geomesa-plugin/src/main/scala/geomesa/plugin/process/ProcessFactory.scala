@@ -19,10 +19,16 @@ package geomesa.plugin.process
 
 import org.geotools.process.factory.AnnotatedBeanProcessFactory
 import org.geotools.text.Text
+import geomesa.core.process.tube.TubeSelectProcess
+import geomesa.core.process.proximity.ProximitySearchProcess
+import geomesa.core.process.query.QueryProcess
 
 class ProcessFactory
   extends AnnotatedBeanProcessFactory(
     Text.text("GeoMesa Process Factory"),
     "geomesa",
-    classOf[DensityProcess])
+    classOf[DensityProcess],
+    classOf[TubeSelectProcess],
+    classOf[ProximitySearchProcess],
+    classOf[QueryProcess])
 
