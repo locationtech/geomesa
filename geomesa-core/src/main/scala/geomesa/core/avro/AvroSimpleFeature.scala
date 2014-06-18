@@ -219,22 +219,11 @@ object AvroSimpleFeature {
   final val VERSION: Int = 1
   final val AVRO_NAMESPACE: String = "org.geomesa"
 
-  def encode(s: String): String = "_" + org.apache.commons.codec.binary.Hex.encodeHexString(s.getBytes("UTF8"))
+  def encode(s: String): String = "_" + org.apache.commons.codec.
+    binary.Hex.encodeHexString(s.getBytes("UTF8"))
 
-//  def encodeAttributeName(s: String): String = s match {
-//    case isIn if attributeNameLookUp.contains(s) => attributeNameLookUp(s)
-//    case _ => attributeNameLookUp.put(s, encode(s))
-//      attributeNameLookUp.put(encode(s), s)
-//      encodeAttributeName(s)
-//  }
-
-  def decode(s: String): String = new String(org.apache.commons.codec.binary.Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
-
-//  def decodeAttributeName(s: String): String = s match {
-//    case isIn if attributeNameLookUp.contains(s) => attributeNameLookUp(s)
-//    case _ => attributeNameLookUp.put(s, decode(s))
-//      decodeAttributeName(s)
-//  }
+  def decode(s: String): String = new String(org.apache.commons.codec.
+    binary.Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
 
   def encodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, encode(s))
 
