@@ -73,22 +73,25 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       else
         masterAuthsStrings.toList
 
-    val authProviderSystemProperty = System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
+    // if the user specifies an auth provider to use, try to use that impl
+    val authProviderSystemProperty = Option(System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY))
 
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val authorizationsProvider = new FilteringAuthorizationsProvider ({
         val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
-        if (authProviderSystemProperty != null) {
-          providers.find(p => authProviderSystemProperty.equals(p.getClass.getName))
-            .getOrElse(throw new IllegalArgumentException(s"The service provider class $authProviderSystemProperty specified by ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"))
-        } else {
-          val nondefault = providers.filterNot(_.isInstanceOf[DefaultAuthorizationsProvider])
-          if (nondefault.length > 1)
-            throw new IllegalStateException(s"Found multiple AuthorizationProvider implementations. Please specify the one to use with the system property ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} :: found $nondefault")
-          nondefault.headOption.getOrElse({
-            providers.find(_.isInstanceOf[DefaultAuthorizationsProvider])
-              .getOrElse(throw new IllegalStateException("No valid geomesa.core.security.AuthorizationsProvider could be loaded"))
-          })
+        authProviderSystemProperty match {
+          case Some(prop) =>
+            providers.find(p => prop == p.getClass.getName)
+              .getOrElse {
+                throw new IllegalArgumentException(s"The service provider class '$prop' specified by ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded")
+            }
+          case None =>
+            if (providers.isEmpty)
+              new DefaultAuthorizationsProvider
+            else if (providers.length == 1)
+              providers.head
+            else
+              throw new IllegalStateException(s"Found multiple AuthorizationProvider implementations. Please specify the one to use with the system property ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} :: found $providers")
         }
       })
 
