@@ -86,16 +86,22 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
             else
               providers.find(p => prop == p.getClass.getName)
                 .getOrElse {
-                  throw new IllegalArgumentException(s"The service provider class '$prop' specified by ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded")
+                  val message =
+                    s"The service provider class '$prop' specified by " +
+                    s"${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"
+                  throw new IllegalArgumentException(message)
               }
           case None =>
-            if (providers.isEmpty)
-              new DefaultAuthorizationsProvider
-            else if (providers.length == 1)
-              providers.head
-            else {
-              val providerString = providers.map(p => p.getClass.getName).mkString(", ")
-              throw new IllegalStateException(s"Found multiple AuthorizationsProvider implementations. Please specify the one to use with the system property '${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: ${providerString}")
+            providers.length match {
+              case 0 => new DefaultAuthorizationsProvider
+              case 1 => providers.head
+              case _ =>
+                val message =
+                  "Found multiple AuthorizationsProvider implementations. Please specify the one " +
+                  "to use with the system property " +
+                  s"'${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: " +
+                  s"${providers.map(_.getClass.getName).mkString(", ")}"
+                throw new IllegalStateException(message)
             }
         }
       })
