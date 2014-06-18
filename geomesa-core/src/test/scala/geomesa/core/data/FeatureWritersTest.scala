@@ -273,22 +273,22 @@ class FeatureWritersTest extends Specification {
         writer.close
 
         // Verify old geo bbox doesn't return them
-        val map45 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 44.9,48.9,45.1,49.1)"),"name", "age")
+        val map45 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 44.9,48.9,45.1,49.1)"),"name", "age")
         map45.keySet.size should equalTo(3)
         map45.keySet should containAllOf(List("will", "george", "sue"))
 
         // Verify that new geometries are written with a bbox query that uses the index
-        val map50 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 49.9,49.9,50.1,50.1)"),"name", "age")
+        val map50 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 49.9,49.9,50.1,50.1)"),"name", "age")
         map50.keySet.size should equalTo(2)
         map50.keySet should containAllOf(List("bob", "karen"))
 
         // get them all
-        val mapLarge = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 44.0,44.0,51.0,51.0)"),"name", "age")
+        val mapLarge = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 44.0,44.0,51.0,51.0)"),"name", "age")
         mapLarge.keySet.size should equalTo(5)
         mapLarge.keySet should containAllOf(List("will", "george", "sue", "bob", "karen"))
 
         // get none
-        val mapNone = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 30.0,30.0,31.0,31.0)"),"name", "age")
+        val mapNone = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 30.0,30.0,31.0,31.0)"),"name", "age")
         mapNone.keySet.size should equalTo(0)
       }
 

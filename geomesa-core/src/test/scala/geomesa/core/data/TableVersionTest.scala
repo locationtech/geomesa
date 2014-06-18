@@ -54,7 +54,7 @@ class TableVersionTest extends Specification {
 
     // Insert metadata
     val metadataMutation = new Mutation(s"~METADATA_$sftName")
-    metadataMutation.put("attributes", "", s"name:String,geomesa_index_geometry:Geometry:srid=4326,geomesa_index_start_time:Date,geomesa_index_end_time:Date")
+    metadataMutation.put("attributes", "", s"name:String,geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date")
     metadataMutation.put("bounds", "", "45.0:45.0:49.0:49.0")
     metadataMutation.put("schema", "", s"%~#s%99#r%$sftName#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id")
     bw.addMutation(metadataMutation)
@@ -98,9 +98,9 @@ class TableVersionTest extends Specification {
 
   def getFeatures = (0 until 6).map { i =>
     builder.reset
-    builder.set("geomesa_index_geometry", WKTUtils.read("POINT(45.0 45.0)"))
-    builder.set("geomesa_index_start_time", "2012-01-02T05:06:07.000Z")
-    builder.set("geomesa_index_end_time", "2012-01-02T05:06:07.000Z")
+    builder.set("geom", WKTUtils.read("POINT(45.0 45.0)"))
+    builder.set("dtg", "2012-01-02T05:06:07.000Z")
+    builder.set("dtg_end_time", "2012-01-02T05:06:07.000Z")
     builder.set("name",i.toString)
     val sf = builder.buildFeature(i.toString)
     sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
@@ -217,9 +217,9 @@ class TableVersionTest extends Specification {
       scanner.close
 
       builder.reset
-      builder.set("geomesa_index_geometry", WKTUtils.read("POINT(45.0 45.0)"))
-      builder.set("geomesa_index_start_time", "2012-01-02T05:06:07.000Z")
-      builder.set("geomesa_index_end_time", "2012-01-02T05:06:07.000Z")
+      builder.set("geom", WKTUtils.read("POINT(45.0 45.0)"))
+      builder.set("dtg", "2012-01-02T05:06:07.000Z")
+      builder.set("dtg_end_time", "2012-01-02T05:06:07.000Z")
       builder.set("name","random")
       val sf = builder.buildFeature("bigid")
       sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE

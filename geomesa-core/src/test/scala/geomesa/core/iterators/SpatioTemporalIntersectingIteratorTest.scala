@@ -71,7 +71,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val featureName = "feature"
     val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
     val featureType: SimpleFeatureType = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
-    featureType.getUserData.put(SF_PROPERTY_START_TIME, "geomesa_index_start_time")
+    featureType.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
     val index = IndexSchema(schemaEncoding, featureType, featureEncoder)
 
@@ -245,9 +245,9 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
     val c = TestData.setupMockAccumuloTable(entries, numExpectedDataIn)
     val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
 
-    val gf = s"WITHIN(geomesa_index_geometry, ${polygon.toText})"
+    val gf = s"WITHIN(geom, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
-      s"(geomesa_index_start_time between '${int.getStart}' AND '${int.getEnd}')"
+      s"(dtg between '${int.getStart}' AND '${int.getEnd}')"
     )
 
     def red(f: String, og: Option[String]) = og match {
