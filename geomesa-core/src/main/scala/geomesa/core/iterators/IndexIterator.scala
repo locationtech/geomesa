@@ -51,7 +51,6 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment) {
-    logger.debug("Transform requests index attributes only. Ignoring SimpleFeatures and using index information only.")
     logger.trace("Initializing classLoader")
     IndexIterator.initClassLoader(logger)
 

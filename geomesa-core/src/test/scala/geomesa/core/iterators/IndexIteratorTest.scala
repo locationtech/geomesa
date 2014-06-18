@@ -32,8 +32,6 @@ import org.joda.time.{Duration, Interval, DateTime}
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
-import scala.Some
-
 
 @RunWith(classOf[JUnitRunner])
 class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
@@ -55,12 +53,10 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
       entry
     }
 
-
     def convertToSimpleFeatures(entries: List[TestData.Entry] = TestData.fullData): List[SimpleFeature] = {
       entries.map { entry =>
         createSimpleFeature(entry.id, entry.wkt, entry.dt)
       }
-
     }
 
     def setupMockFeatureSource(entries: List[TestData.Entry]): SimpleFeatureStore = {
@@ -111,7 +107,6 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
 
     //create the Feature Source
     val fs = IITest.setupMockFeatureSource(entries)
-
 
     val gf = s"WITHIN(geomesa_index_geometry, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
