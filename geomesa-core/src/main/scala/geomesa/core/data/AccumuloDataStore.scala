@@ -119,8 +119,10 @@ class AccumuloDataStore(val connector: Connector,
     writeMetadataItem(featureName, ATTRIBUTES_CF, attributesValue)
     val schemaValue = createIndexSchema(sft)
     writeMetadataItem(featureName, SCHEMA_CF, new Value(schemaValue.getBytes))
-    TemporalIndexCheck.checkForValidDtgField(sft)
     val userData = sft.getUserData
+    val dtgInfo = TemporalIndexCheck(sft)
+    if (dtgInfo.dtgShouldBeSet)
+      dtgInfo.firstDtgCandidate.map { name => userData.put(core.index.SF_PROPERTY_START_TIME, name) }
     if(userData.containsKey(core.index.SF_PROPERTY_START_TIME)) {
       val dtgField = userData.get(core.index.SF_PROPERTY_START_TIME)
       writeMetadataItem(featureName, DTGFIELD_CF, new Value(dtgField.asInstanceOf[String].getBytes))
