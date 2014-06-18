@@ -51,10 +51,6 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment) {
-    logger.debug("Transform requests index attributes only. Ignoring SimpleFeatures and using index information only.")
-
-
-
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
     val simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
@@ -73,8 +69,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
       poly = WKTUtils.read(polyWKT)
     }
     if (options.containsKey(DEFAULT_INTERVAL_PROPERTY_NAME))
-      interval = IndexIterator.decodeInterval(
-        options.get(DEFAULT_INTERVAL_PROPERTY_NAME))
+      interval = IndexIterator.decodeInterval(options.get(DEFAULT_INTERVAL_PROPERTY_NAME))
 
     if (options.containsKey(DEFAULT_CACHE_SIZE_NAME))
       maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
