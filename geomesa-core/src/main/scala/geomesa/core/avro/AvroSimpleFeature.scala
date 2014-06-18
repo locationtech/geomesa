@@ -12,6 +12,7 @@ import java.util.{Date, UUID, List => JList}
 import org.apache.avro.generic.{GenericDatumWriter, GenericData, GenericRecord}
 import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
 import org.apache.avro.{SchemaBuilder, Schema}
+import org.apache.commons.codec.binary.Hex
 import org.geotools.data.DataUtilities
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.feature.`type`.AttributeDescriptorImpl
@@ -197,10 +198,10 @@ object AvroSimpleFeature {
     }
 
   val avroSchemaCache: LoadingCache[SimpleFeatureType, Schema] =
-    loadingCacheBuilder { sft => generateSchema(sft)}
+    loadingCacheBuilder { sft => generateSchema(sft) }
 
   val nameCache: LoadingCache[SimpleFeatureType, Array[String]] =
-    loadingCacheBuilder { sft => DataUtilities.attributeNames(sft).map(encodeAttributeName)}
+    loadingCacheBuilder { sft => DataUtilities.attributeNames(sft).map(encodeAttributeName) }
 
   val nameIndexCache: LoadingCache[SimpleFeatureType, Map[String, Int]] =
     loadingCacheBuilder { sft =>
@@ -212,18 +213,16 @@ object AvroSimpleFeature {
       new GenericDatumWriter[GenericRecord](avroSchemaCache.get(sft))
     }
 
-  val attributeNameLookUp = scala.collection.mutable.Map.empty[String, String]
+  val attributeNameLookUp = scala.collection.mutable.Map[String, String]()
 
   final val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   final val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
   final val VERSION: Int = 1
   final val AVRO_NAMESPACE: String = "org.geomesa"
 
-  def encode(s: String): String = "_" + org.apache.commons.codec.
-    binary.Hex.encodeHexString(s.getBytes("UTF8"))
+  def encode(s: String): String = "_" + Hex.encodeHexString(s.getBytes("UTF8"))
 
-  def decode(s: String): String = new String(org.apache.commons.codec.
-    binary.Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
+  def decode(s: String): String = new String(Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
 
   def encodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, encode(s))
 
