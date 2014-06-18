@@ -18,7 +18,7 @@
 package geomesa.core.data
 
 import collection.JavaConversions._
-import geomesa.core.security.{FilteringAuthorizationsProvider, DefaultAuthorizationsProvider, AuthorizationsProvider}
+import geomesa.core.security.{DefaultAuthorizationsProvider, FilteringAuthorizationsProvider, AuthorizationsProvider}
 import java.io.Serializable
 import java.util.{Map => JMap}
 import javax.imageio.spi.ServiceRegistry
@@ -81,10 +81,13 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
         authProviderSystemProperty match {
           case Some(prop) =>
-            providers.find(p => prop == p.getClass.getName)
-              .getOrElse {
-                throw new IllegalArgumentException(s"The service provider class '$prop' specified by ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded")
-            }
+            if (classOf[AuthorizationsProvider].getName == prop)
+              new DefaultAuthorizationsProvider
+            else
+              providers.find(p => prop == p.getClass.getName)
+                .getOrElse {
+                  throw new IllegalArgumentException(s"The service provider class '$prop' specified by ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded")
+              }
           case None =>
             if (providers.isEmpty)
               new DefaultAuthorizationsProvider
