@@ -171,7 +171,7 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
     // store each metadata in the associated column family
     val attributeMap = Map(ATTRIBUTES_CF          -> attributesValue,
                             SCHEMA_CF             -> schemaValue,
-                            DTGFIELD_CF           -> dtgValue.getOrElse(Constants.SF_PROPERTY_START_TIME),
+                            DTGFIELD_CF           -> dtgValue.getOrElse(core.DEFAULT_DTG_PROPERTY_NAME),
                             FEATURE_ENCODING_CF   -> featureEncodingValue,
                             VISIBILITIES_CF       -> writeVisibilities)
 
@@ -558,7 +558,7 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
   override def getSchema(featureName: String): SimpleFeatureType = {
     val sft = DataUtilities.createType(featureName, getAttributes(featureName))
     val dtgField = readMetadataItem(featureName, DTGFIELD_CF)
-                   .getOrElse(Constants.SF_PROPERTY_START_TIME)
+                   .getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
     sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
     sft.getUserData.put(core.index.SF_PROPERTY_END_TIME, dtgField)
     sft

@@ -23,9 +23,9 @@ object OrSplittingFilterTest {
   def intToAttributeFilter(i: Int): Filter = s"attr$i = val$i"
   implicit def intToFilter(i: Int): RichFilter = intToAttributeFilter(i)
 
-  val geom1: Filter = "INTERSECTS(geomesa_index_geometry, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
-  val geom2: Filter = "INTERSECTS(geomesa_index_geometry, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))"
-  val date1: Filter = "(geomesa_index_start_time between '0000-01-01T00:00:00.000Z' AND '9999-12-31T23:59:59.000Z')"
+  val geom1: Filter = "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+  val geom2: Filter = "INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))"
+  val date1: Filter = "(dtg between '0000-01-01T00:00:00.000Z' AND '9999-12-31T23:59:59.000Z')"
 }
 
 import OrSplittingFilterTest._

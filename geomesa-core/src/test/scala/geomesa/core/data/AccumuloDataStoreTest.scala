@@ -108,7 +108,7 @@ class AccumuloDataStoreTest extends Specification {
       val res = fs.addFeatures(featureCollection)
 
       // compose a CQL query that uses a reasonably-sized polygon for searching
-      val cqlFilter = CQL.toFilter(s"BBOX(geomesa_index_geometry, 44.9,48.9,45.1,49.1)")
+      val cqlFilter = CQL.toFilter(s"BBOX(geom, 44.9,48.9,45.1,49.1)")
       val query = new Query(sftName, cqlFilter)
 
       // Let's read out what we wrote.
@@ -149,7 +149,7 @@ class AccumuloDataStoreTest extends Specification {
       val res = fs.addFeatures(featureCollection)
 
       // compose a CQL query that uses a polygon that is disjoint with the feature bounds
-      val cqlFilter = CQL.toFilter(s"BBOX(geomesa_index_geometry, 64.9,68.9,65.1,69.1)")
+      val cqlFilter = CQL.toFilter(s"BBOX(geom, 64.9,68.9,65.1,69.1)")
       val query = new Query(sftName, cqlFilter)
 
       // Let's read out what we wrote.
