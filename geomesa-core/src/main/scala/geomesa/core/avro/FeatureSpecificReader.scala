@@ -28,10 +28,10 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   val dataFields = oldSchema.getFields.filter { isDataField }
 
   val typeMap: Map[String, Class[_]] =
-    oldType.getAttributeDescriptors.map { ad => ad.getLocalName -> ad.getType.getBinding }.toMap
+    oldType.getAttributeDescriptors.map { ad => encodeAttributeName(ad.getLocalName) -> ad.getType.getBinding }.toMap
 
   val nullMap: Map[String, Boolean] =
-    oldType.getAttributeDescriptors.map { ad => ad.getLocalName -> ad.isNillable }.toMap
+    oldType.getAttributeDescriptors.map { ad => encodeAttributeName(ad.getLocalName) -> ad.isNillable }.toMap
 
   def setSchema(schema:Schema) = oldSchema = schema
 
@@ -46,13 +46,13 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     val sf = new AvroSimpleFeature(id, newType)
     if(dataFields.size != fieldsDesired.size)
       dataFields.foreach { f =>
-        if(checkNull(f.name(), in)) in.readNull()
-        else setOrConsume(sf, f.name, in, typeMap.get(f.name).get)
+        if(checkNull(f.name, in)) in.readNull()
+        else setOrConsume(sf, decodeAttributeName(f.name), in, typeMap.get(f.name).get)
       }
     else
       dataFields.foreach { f =>
-        if(checkNull(f.name(), in)) in.readNull()
-        else set(sf, f.name, in, typeMap.get(f.name).get)
+        if(checkNull(f.name, in)) in.readNull()
+        else set(sf, decodeAttributeName(f.name), in, typeMap.get(f.name).get)
       }
     sf
   }
