@@ -12,6 +12,7 @@ import java.util.{Date, UUID, List => JList}
 import org.apache.avro.generic.{GenericDatumWriter, GenericData, GenericRecord}
 import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
 import org.apache.avro.{SchemaBuilder, Schema}
+import org.apache.commons.codec.binary.Hex
 import org.geotools.data.DataUtilities
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.feature.`type`.AttributeDescriptorImpl
@@ -79,9 +80,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   }
 
   def write(os: OutputStream) {
-    val encoder = EncoderFactory.get.binaryEncoder(os, null)
-    val datumWriter = new GenericDatumWriter[GenericRecord](schema)
-    write(datumWriter, encoder)
+    write(new GenericDatumWriter[GenericRecord](schema), EncoderFactory.get.binaryEncoder(os, null))
   }
 
   def getFeatureType = sft
@@ -194,9 +193,7 @@ object AvroSimpleFeature {
   val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Class[_]]] =
     loadingCacheBuilder { sft =>
       sft.getAttributeDescriptors.map { ad =>
-        val name = ad.getLocalName
-        val clazz = ad.getType.getBinding
-        (name, clazz)
+        (encodeAttributeName(ad.getLocalName), ad.getType.getBinding)
       }.toMap
     }
 
@@ -204,7 +201,7 @@ object AvroSimpleFeature {
     loadingCacheBuilder { sft => generateSchema(sft) }
 
   val nameCache: LoadingCache[SimpleFeatureType, Array[String]] =
-    loadingCacheBuilder { sft => DataUtilities.attributeNames(sft) }
+    loadingCacheBuilder { sft => DataUtilities.attributeNames(sft).map(encodeAttributeName) }
 
   val nameIndexCache: LoadingCache[SimpleFeatureType, Map[String, Int]] =
     loadingCacheBuilder { sft =>
@@ -216,15 +213,24 @@ object AvroSimpleFeature {
       new GenericDatumWriter[GenericRecord](avroSchemaCache.get(sft))
     }
 
+  val attributeNameLookUp = scala.collection.mutable.Map[String, String]()
 
   final val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   final val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
   final val VERSION: Int = 1
   final val AVRO_NAMESPACE: String = "org.geomesa"
 
+  def encode(s: String): String = "_" + Hex.encodeHexString(s.getBytes("UTF8"))
+
+  def decode(s: String): String = new String(Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
+
+  def encodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, encode(s))
+
+  def decodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, decode(s))
+
   def generateSchema(sft: SimpleFeatureType): Schema = {
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
-      SchemaBuilder.record(sft.getTypeName)
+      SchemaBuilder.record(encodeAttributeName(sft.getTypeName))
         .namespace(AVRO_NAMESPACE)
         .fields
         .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
@@ -232,10 +238,7 @@ object AvroSimpleFeature {
 
     val result =
       sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
-        val name    = ad.getLocalName
-        val binding = ad.getType.getBinding
-        val nillable = ad.isNillable
-        addField(assembler, name, binding, nillable)
+        addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
       }
 
     result.endRecord
