@@ -1,0 +1,62 @@
+<!--
+  ~ Copyright 2013 Commonwealth Computer Research, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org/">
+  <body>
+    <wicket:panel>
+      <hr style="margin:20px 0"/>
+      <h3><span wicket:id="dataStoreName" id="dataStoreName"/></h3>
+      <fieldset>
+        <legend><wicket:message key="DataStoreInfoPanel.metadata.label.main"/></legend>
+        <table>
+          <tr>
+            <th><wicket:message key="DataStoreInfoPanel.metadata.label.tablets"/></th>
+            <th><wicket:message key="DataStoreInfoPanel.metadata.label.splits"/></th>
+            <th><wicket:message key="DataStoreInfoPanel.metadata.label.entries"/></th>
+            <th><wicket:message key="DataStoreInfoPanel.metadata.label.size"/></th>
+          </tr>
+          <tr>
+            <td>
+              <span wicket:id="metadataNumTablets"/>
+            </td>
+            <td>
+              <span wicket:id="metadataNumSplits"/>
+            </td>
+            <td>
+              <span wicket:id="metadataNumEntries"/>
+            </td>
+            <td>
+              <span wicket:id="metadataFileSize"/>
+            </td>
+          </tr>
+        </table>
+      </fieldset>
+      <fieldset>
+        <legend><wicket:message key="DataStoreInfoPanel.features.label.main"/></legend>
+        <table>
+          <tr>
+            <th><wicket:message key="DataStoreInfoPanel.features.label.feature"/></th>
+            <th><wicket:message key="DataStoreInfoPanel.features.label.bounds"/></th>
+          </tr>
+          <tr wicket:id="featureRows">
+            <td><span wicket:id="name" style="display: table-cell;"/></td>
+            <td><span wicket:id="bounds" style="display: table-cell;"/></td>
+          </tr>
+        </table>
+      </fieldset>
+    </wicket:panel>
+  </body>
+</html>

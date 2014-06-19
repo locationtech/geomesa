@@ -94,6 +94,10 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+          <groupId>org.apache.accumulo</groupId>
+          <artifactId>accumulo-test</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
