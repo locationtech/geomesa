@@ -72,24 +72,38 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       else
         masterAuthsStrings.toList
 
-    val authProviderSystemProperty = System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
+    // if the user specifies an auth provider to use, try to use that impl
+    val authProviderSystemProperty = Option(System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY))
 
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val authorizationsProvider = new FilteringAuthorizationsProvider ({
-        val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
-        if (authProviderSystemProperty != null) {
-          providers.find(p => authProviderSystemProperty.equals(p.getClass.getName))
-            .getOrElse(throw new IllegalArgumentException(s"The service provider class $authProviderSystemProperty specified by ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"))
-        } else {
-          val nondefault = providers.filterNot(_.isInstanceOf[DefaultAuthorizationsProvider])
-          if (nondefault.length > 1)
-            throw new IllegalStateException(s"Found multiple AuthorizationProvider implementations. Please specify the one to use with the system property ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} :: found $nondefault")
-          nondefault.headOption.getOrElse({
-            providers.find(_.isInstanceOf[DefaultAuthorizationsProvider])
-              .getOrElse(throw new IllegalStateException("No valid geomesa.core.security.AuthorizationsProvider could be loaded"))
-          })
-        }
-      })
+      val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
+      authProviderSystemProperty match {
+        case Some(prop) =>
+          if (classOf[DefaultAuthorizationsProvider].getName == prop)
+            new DefaultAuthorizationsProvider
+          else
+            providers.find(_.getClass.getName == prop)
+            .getOrElse {
+              val message =
+                s"The service provider class '$prop' specified by " +
+                s"${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"
+              throw new IllegalArgumentException(message)
+            }
+        case None =>
+          providers.length match {
+            case 0 => new DefaultAuthorizationsProvider
+            case 1 => providers.head
+            case _ =>
+              val message =
+                "Found multiple AuthorizationsProvider implementations. Please specify the one " +
+                "to use with the system property " +
+                s"'${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: " +
+                s"${providers.map(_.getClass.getName).mkString(", ")}"
+              throw new IllegalStateException(message)
+          }
+      }
+    })
 
     // update the authorizations in the parameters and then configure the auth provider
     // we copy the map so as not to modify the original
