@@ -25,6 +25,7 @@ import scala.util.Random
 
 object IndexQueryPlanner {
   val iteratorPriority_RowRegex                       = 0
+  val iteratorPriority_ColQRegex                      = 50
   val iteratorPriority_ColFRegex                      = 100
   val iteratorPriority_SpatioTemporalIterator         = 200
   val iteratorPriority_SimpleFeatureFilteringIterator = 300
@@ -112,6 +113,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, sourceSimpleFeatureType)
 
+    if (iteratorConfig.idRegex.nonEmpty) configureColumnQualifierRegexIterator(bs, iteratorConfig.idRegex.get)
+
     iteratorConfig.iterator match {
       case IndexOnlyIterator  =>
         val transformedSFType = transformedSimpleFeatureType(query).getOrElse(sourceSimpleFeatureType)
@@ -151,6 +154,13 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val name = "regexRow-" + randomPrintableString(5)
     val cfg = new IteratorSetting(iteratorPriority_RowRegex, name, classOf[RegExFilter])
     RegExFilter.setRegexs(cfg, regex, null, null, null, false)
+    bs.addScanIterator(cfg)
+  }
+
+  def configureColumnQualifierRegexIterator(bs: BatchScanner, regex: String) {
+    val name = "regexCQ-" + randomPrintableString(5)
+    val cfg = new IteratorSetting(iteratorPriority_ColQRegex, name, classOf[RegExFilter])
+    RegExFilter.setRegexs(cfg, null, null, regex, null, false)
     bs.addScanIterator(cfg)
   }
 
