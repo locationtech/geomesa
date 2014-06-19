@@ -445,7 +445,6 @@
                 <version>4.5</version>
                 <scope>test</scope>
             </dependency>
-
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>findbugs</artifactId>
