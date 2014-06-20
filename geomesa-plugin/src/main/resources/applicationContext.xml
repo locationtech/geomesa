@@ -37,5 +37,7 @@
                   value="geomesa.plugin.wms.CoverageStoreEditPanel"/>
     </bean>
 
+    <bean id="routeRankProcessResultPPIO" class="geomesa.plugin.process.RouteRankProcessPPIO" />
+    <bean id="routeRankProcessResultJsonPPIO" class="geomesa.plugin.process.RouteRankProcessJsonPPIO" />
 
 </beans>

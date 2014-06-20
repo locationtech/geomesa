@@ -68,6 +68,10 @@
             <artifactId>gs-web-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.geoserver.extension</groupId>
+            <artifactId>wps-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <scope>provided</scope>
