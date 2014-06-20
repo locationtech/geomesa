@@ -4,10 +4,13 @@ import collection.JavaConversions._
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureImpl
+import org.geotools.feature.NameImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import java.util
+import org.opengis.feature.Property
 
 @RunWith(classOf[JUnitRunner])
 class AvroSimpleFeatureTest extends Specification {
@@ -24,6 +27,37 @@ class AvroSimpleFeatureTest extends Specification {
       f.getAttribute(0) must beAnInstanceOf[java.lang.Integer]
       f.getAttribute(1) must beAnInstanceOf[java.util.Date]
       f.getAttribute(2) must beAnInstanceOf[Geometry]
+    }
+
+    "properly return all requested properties" in {
+      val sft = DataUtilities.createType("testType", "a:Integer,*geom:Point:srid=4326,d:Double,e:Boolean,f:String")
+      val valueList = List("1", "POINT (45 49)", "1.01", "true", "Test String")
+      val nameStringList = List("a", "geom", "d", "e", "f")
+      val nameList = nameStringList.map(new NameImpl(_))
+      val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+
+      //Setup sft
+      for((tempV, index) <- valueList.view.zipWithIndex) {
+        f.setAttribute(index, tempV)
+      }
+
+      //Test getProperties(name: String)
+      for((name, value) <- nameStringList.view.zip(valueList)) {
+        val tempProperty = f.getProperties(name)
+        tempProperty.head.getName.toString must beEqualTo(name)
+        tempProperty.head.getValue.toString must beEqualTo(value)
+      }
+
+      //Test getProperties(name: Name)
+      for((name, value) <- nameList.view.zip(valueList)) {
+        val tempProperty = f.getProperties(name)
+        tempProperty.head.getName must beEqualTo(name)
+        tempProperty.head.getValue.toString must beEqualTo(value)
+      }
+
+      f.getProperties must beAnInstanceOf[util.Collection[Property]]
+      f.getProperties("a") must beAnInstanceOf[util.Collection[Property]]
+      f.getProperties("a").head.getValue must not(throwA [org.opengis.feature.IllegalAttributeException])
     }
   }
 
