@@ -576,7 +576,7 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
    *
    * @return
    */
-  def createBatchScanner: BatchScanner = {
+  def createBatchScanner(): BatchScanner = {
     connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, 100)
   }
 
