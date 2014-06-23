@@ -16,10 +16,7 @@
 
 package geomesa.core.index
 
-import annotation.tailrec
-import collection.JavaConversions._
-import com.vividsolutions.jts.geom.Point
-import com.vividsolutions.jts.geom.{Geometry,Polygon}
+import com.vividsolutions.jts.geom.{Geometry, Point, Polygon}
 import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators._
@@ -29,12 +26,12 @@ import java.nio.ByteBuffer
 import java.util.Map.Entry
 import java.util.{Iterator => JIterator}
 import org.apache.accumulo.core.client.BatchScanner
-import org.apache.accumulo.core.data.Key
-import org.apache.accumulo.core.data.Value
+import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.{DataUtilities, Query}
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTimeZone, DateTime, Interval}
+import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import scala.annotation.tailrec
 import scala.util.parsing.combinator.RegexParsers
 
 // A secondary index consists of interleaved elements of a composite key stored in
@@ -82,7 +79,7 @@ case class IndexSchema(encoder: IndexEncoder,
   def encode(entry: SimpleFeature) = encoder.encode(entry)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
 
-  import IndexSchema._
+  import geomesa.core.index.IndexSchema._
 
   // utility method to ask for the maximum allowable shard number
   def maxShard: Int =
@@ -363,7 +360,7 @@ object IndexSchema extends RegexParsers {
   // 2.  WKB-encoded geometry
   // 3.  start-date/time
   def encodeIndexValue(entry: SimpleFeature): Value = {
-    import IndexEntry._
+    import geomesa.core.index.IndexEntry._
     val encodedId = entry.sid.getBytes
     val encodedGeom = WKBUtils.write(entry.geometry)
     val encodedDtg = entry.dt.map(dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array()).getOrElse(Array[Byte]())

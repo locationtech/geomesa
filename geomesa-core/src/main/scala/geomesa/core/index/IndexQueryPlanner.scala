@@ -1,12 +1,11 @@
 package geomesa.core.index
 
-
 import com.vividsolutions.jts.geom.Polygon
 import geomesa.core.data._
 import geomesa.core.filter.OrSplittingFilter
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
-import geomesa.core.util.{CloseableIterator, SelfClosingBatchScanner}
+import geomesa.core.util.{SelfClosingIterator, CloseableIterator, SelfClosingBatchScanner}
 import java.util.Map.Entry
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value}
