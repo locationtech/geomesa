@@ -157,7 +157,8 @@ class RouteRankProcess {
         TfIdf(rv.idf, rv.tfIdf, rv.scaledTfIdf),
         EvidenceOfMotion(rv.motionEvidence.total, rv.motionEvidence.max, rv.motionEvidence.stddev),
         Combined(rv.combinedScoreNoMotion, rv.combinedScore))
-    }.toList.sortBy(_.combined.score * -1.0).slice(skip, skip + max).asJava))
+    }.toList.sortBy(_.combined.score * -1.0).slice(skip, skip + max).asJava),
+      rankingValues.maxBy(_._2.combinedScore)._2.combinedScore)
 }
 
 case class Counts(@BeanProperty route: Int, @BeanProperty box: Int)
@@ -171,5 +172,5 @@ case class RankingValuesBean(@BeanProperty key: String, @BeanProperty counts: Co
                              @BeanProperty cellsCovered: CellsCovered,
                              @BeanProperty routeCellDeviation: RouteCellDeviation, @BeanProperty tfIdf: TfIdf,
                              @BeanProperty motionEvidence: EvidenceOfMotion, @BeanProperty combined: Combined)
-case class ResultBean(@BeanProperty results: java.util.List[RankingValuesBean])
+case class ResultBean(@BeanProperty results: java.util.List[RankingValuesBean], @BeanProperty maxScore: Double)
 
