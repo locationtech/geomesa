@@ -101,33 +101,64 @@
 
         <section>
             <title>Enabling GeoMesa support within GeoServer</title>
-
-            <para>Copy everything from the unpacked
-                <code>geoserver/lib</code>
-                directory to the
-                <code>${GEOSERVER_HOME}/webapps/geoserver/WEB-INF/lib</code> directory
-                on the web-server that is hosting GeoServer. We have confirmed
-                that this works with version 2.5.X of GeoServer.
+            
+            <para>GeoMesa includes a plugin for GeoServer that is compatible and tested
+                  with the 2.5.x GeoServer line. Follow the steps below to enable GeoMesa support within GeoServer:
             </para>
 
-            <para>
-                Note that you will also need other JAR files, particularly those
-                pertaining to: <code>accumulo-core</code>, <code>accumulo-trace</code>, <code>accumulo-fate</code>,
-                <code>zookeeper</code>, <code>libthrift</code>, <code>hadoop-common</code>, <code>hadoop-mapreduce-client-core</code>,
-                <code>commons-configuration</code>, and <code>commons-vfs2</code>.  These are support services 
-                that are referenced by GeoMesa, yet are part of your base infrastructure.
-            </para>
+            <formalpara><title>Step 1: Unpackage the GeoMesa tarball</title>
+                <para>After building GeoMesa locate the distribution tarball and decompress it to a temporary directory:
+                    <programlisting language="bash"><![CDATA[tar xvf geomesa-dist-accumulo1.5-1.0.0-SNAPSHOT-distribution.tar.gz]]></programlisting>
+                </para>
+            </formalpara>
 
-            <para>
-                Upgrading logger libraries - You'll need to upgrade the logger libraries
-                installed in the <code>${GEOSERVER_HOME}/lib</code> directory. We recommend
-                backing up and removing <code>slf4j-simple-1.0.1.jar</code> and 
-                <code>commons-logging-1.0.jar</code> and replacing them with 
-                <code>commons-logging-1.1.1.jar</code> from the <code>dev/lib/</code> directory
-                of the geomesa distribution tarball. Note that whenever you upgrade libraries you 
-                should keep a backup copy since upgrading logging frameworks can cause other
-                plugins or the geoserver webapp to fail.
-            </para>
+            <formalpara><title>Step 2: Deploy the GeoMesa plugin</title>
+                <para>Copy the GeoMesa plugin from the lib directory to the GeoServer lib directory:
+                    <programlisting language="bash"><![CDATA[cp geoserver/WEB-INF/lib/geomesa-plugin-accumulo1.5-1.0.0-SNAPSHOT-geoserver-plugin.jar \
+    ${GEOSERVER_HOME}/webapps/geoserver/WEB-INF/lib]]></programlisting>
+                </para>
+            </formalpara>
+
+            <formalpara><title>Step 3: Deploy dependencies</title>
+                <para>
+                    GeoMesa needs several dependencies at runtime within GeoServer:
+                    <programlisting language="bash"><![CDATA[accumulo-core
+accumulo-trace
+accumulo-fate
+zookeeper
+libthrift
+hadoop-common
+hadoop-mapreduce-client-core
+commons-configuration
+commons-vfs2]]></programlisting>
+                        These are support services that are referenced by GeoMesa, yet are part of your 
+                        base infrastructure. Use the most recent versions found in the distribution tarball.
+                        To deploy them simply copy them into your lib directory for the GeoServer webapp:
+                    <programlisting language="bash"><![CDATA[cp dev/lib/<jar-name> ${GEOSERVER_HOME}/webapps/geoserver/WEB-INF/lib]]]></programlisting>
+                </para>
+            </formalpara>
+
+            <formalpara><title>Step 4: Upgrade shared dependencies</title>
+                <para>
+                    GeoMesa currently shares logging and codec libraries with GeoServer but uses newer versions:
+<programlisting language="bash"><![CDATA[commons-logging
+commons-codec
+slf4j*]]></programlisting>
+                    Previous versions of these libraries need to be removed from the GeoServer classpath and new versions
+                    should be deployed: Whenever upgrading libraries, always keep a backup copy and then deploy
+                    new dependencies (example for GeoServer 2.5.1):
+                    <programlisting language="bash"><![CDATA[# backup old libraries
+cd ${GEOSERVER_HOME}
+cp lib/slf4j-simple-1.0.1.jar /tmp/backup/
+cp lib/commons-logging-1.0.jar /tmp/backup/
+cp webapps/geoserver/WEB-INF/lib/commons-codec-1.2.jar /tmp/backup/
+
+# deploy new libraries
+cd ${GEOMESA_DIST}
+cp dev/lib/commons-logging-1.1.1.jar ${GEOSERVER_HOME}/lib/
+cp dev/lib/commons-codec-1.8.jar ${GEOSERVER_HOME}/webapps/geoserver/WEB-INF/lib/]]></programlisting>
+                    </para>
+            </formalpara>
         </section>
 
         <section>

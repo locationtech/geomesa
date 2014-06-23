@@ -64,6 +64,7 @@
                 <include>org.scala-lang:scala-reflect</include>
                 <include>org.scala-lang:jline</include>
                 <include>org.slf4j:*</include>
+                <include>commons-codec:commons-codec</include>
                 <include>commons-httpclient:commons-httpclient</include>
                 <include>commons-lang:commons-lang</include>
                 <include>commons-logging:commons-logging</include>
