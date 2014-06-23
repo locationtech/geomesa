@@ -13,8 +13,10 @@ object CloseableIterator {
 
   val empty: CloseableIterator[Nothing] = apply(Iterator.empty)
 
+  val noop: () => Unit = () => {}
+
   // This apply method provides us with a simple interface for creating new CloseableIterators.
-  def apply[A](iter: Iterator[A], closeIter: () => Unit = () => {}) = new CloseableIterator[A] {
+  def apply[A](iter: Iterator[A], closeIter: () => Unit = noop) = new CloseableIterator[A] {
     def hasNext = iter.hasNext
     def next()  = iter.next()
     def close() = closeIter()
