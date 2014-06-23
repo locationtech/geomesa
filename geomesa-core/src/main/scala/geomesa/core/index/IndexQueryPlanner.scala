@@ -79,6 +79,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
       } else query
 
+    //val sourceSimpleFeatureType = DataUtilities.encodeType(featureType)
     val filterVisitor = new FilterToAccumulo(featureType)
     val rewrittenCQL = filterVisitor.visit(derivedQuery)
     val ecql = Option(ECQL.toCQL(rewrittenCQL))
@@ -109,10 +110,19 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       log.trace("Query: " + Option(query).getOrElse("no query"))
     }
 
-    // Configure STII
-    configureSpatioTemporalIntersectingIterator(bs, opoly, oint)
+    val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
-    configureSimpleFeatureFilteringIterator(bs, ecql, query, poly)
+    iteratorConfig.iterator match {
+      case IndexOnlyIterator  =>
+        val transformedSFType = transformedSimpleFeatureType(query).getOrElse(featureType)
+        configureIndexIterator(bs, opoly, oint, query, transformedSFType)
+      case SpatioTemporalIterator =>
+        configureSpatioTemporalIntersectingIterator(bs, opoly, oint, featureType)
+    }
+
+    if (iteratorConfig.useSFFI) {
+      configureSimpleFeatureFilteringIterator(bs, featureType, ecql, query, poly)
+    }
 
     bs.iterator()
   }
@@ -126,6 +136,22 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     cfg.encodeUserData(featureType.getUserData,GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
   }
 
+  // returns the encoded SimpleFeatureType for the query's transform
+  def transformedSimpleFeatureType(query: Query): Option[SimpleFeatureType] = {
+    Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
+  }
+
+  // store transform information into an Iterator's settings
+  def configureTransforms(query:Query,cfg: IteratorSetting) =
+    for {
+      transformOpt  <- Option(query.getHints.get(TRANSFORMS))
+      transform     = transformOpt.asInstanceOf[String]
+      _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
+      sfType        <- transformedSimpleFeatureType(query)
+      encodedSFType = DataUtilities.encodeType(sfType)
+      _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, encodedSFType)
+    } yield Unit
+
   // establishes the regular expression that defines (minimally) acceptable rows
   def configureRowRegexIterator(bs: BatchScanner, regex: String) {
     val name = "regexRow-" + randomPrintableString(5)
@@ -134,26 +160,45 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     bs.addScanIterator(cfg)
   }
 
-  // returns only the data entries -- no index entries -- for items that either:
+  // returns an iterator over [key,value] pairs where the key is taken from the index row and the value is a SimpleFeature,
+  // which is either read directory from the data row  value or generated from the encoded index row value
+  // -- for items that either:
   // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
-  def configureSpatioTemporalIntersectingIterator(bs: BatchScanner, poly: Option[Polygon], interval: Option[Interval]) {
+  def configureIndexIterator(bs: BatchScanner,
+                             poly: Option[Polygon],
+                             interval: Option[Interval],
+                             query: Query,
+                             featureType: SimpleFeatureType) {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
-      "within-" + randomPrintableString(5),
-      classOf[SpatioTemporalIntersectingIterator])
-    SpatioTemporalIntersectingIterator.setOptions(
-      cfg, schema, poly, interval, featureType)
+      "within-" + randomPrintableString(5),classOf[IndexIterator])
+    IndexIterator.setOptions(cfg, schema, poly, interval)
+    configureFeatureType(cfg, featureType)
+    configureFeatureEncoding(cfg)
     bs.addScanIterator(cfg)
   }
 
+  // returns only the data entries -- no index entries -- for items that either:
+  // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
+  // 2) the DateTime intersects the query interval; this is a coarse-grained filter
+  def configureSpatioTemporalIntersectingIterator(bs: BatchScanner,
+                                                  poly: Option[Polygon],
+                                                  interval: Option[Interval],
+                                                  featureType: SimpleFeatureType) {
+    val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
+      "within-" + randomPrintableString(5),
+      classOf[SpatioTemporalIntersectingIterator])
+    SpatioTemporalIntersectingIterator.setOptions(cfg, schema, poly, interval)
+    configureFeatureType(cfg, featureType)
+    bs.addScanIterator(cfg)
+  }
   // assumes that it receives an iterator over data-only entries, and aggregates
   // the values into a map of attribute, value pairs
   def configureSimpleFeatureFilteringIterator(bs: BatchScanner,
+                                              simpleFeatureType: SimpleFeatureType,
                                               ecql: Option[String],
                                               query: Query,
                                               poly: Polygon = null) {
-    val transforms = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
-    val transformSchema = Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
 
     val density: Boolean = query.getHints.containsKey(DENSITY_KEY)
 
@@ -166,9 +211,9 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       clazz)
 
     configureFeatureEncoding(cfg)
-    SimpleFeatureFilteringIterator.setFeatureType(cfg, featureType)
+    configureTransforms(query,cfg)
+    configureFeatureType(cfg, simpleFeatureType)
     ecql.foreach(SimpleFeatureFilteringIterator.setECQLFilter(cfg, _))
-    transforms.foreach(SimpleFeatureFilteringIterator.setTransforms(cfg, _, transformSchema))
 
     if(density) {
       val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Integer]

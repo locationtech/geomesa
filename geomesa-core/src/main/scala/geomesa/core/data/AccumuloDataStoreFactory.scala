@@ -18,14 +18,13 @@
 package geomesa.core.data
 
 import collection.JavaConversions._
-import geomesa.core.security.{FilteringAuthorizationsProvider, DefaultAuthorizationsProvider, AuthorizationsProvider}
+import geomesa.core.security.{DefaultAuthorizationsProvider, FilteringAuthorizationsProvider, AuthorizationsProvider}
 import java.io.Serializable
 import java.util.{Map => JMap}
 import javax.imageio.spi.ServiceRegistry
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
-import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
@@ -74,22 +73,36 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       else
         masterAuthsStrings.toList
 
-    val authProviderSystemProperty = System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
+    // if the user specifies an auth provider to use, try to use that impl
+    val authProviderSystemProperty = Option(System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY))
 
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val authorizationsProvider = new FilteringAuthorizationsProvider ({
         val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
-        if (authProviderSystemProperty != null) {
-          providers.find(p => authProviderSystemProperty.equals(p.getClass.getName))
-            .getOrElse(throw new IllegalArgumentException(s"The service provider class $authProviderSystemProperty specified by ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"))
-        } else {
-          val nondefault = providers.filterNot(_.isInstanceOf[DefaultAuthorizationsProvider])
-          if (nondefault.length > 1)
-            throw new IllegalStateException(s"Found multiple AuthorizationProvider implementations. Please specify the one to use with the system property ${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} :: found $nondefault")
-          nondefault.headOption.getOrElse({
-            providers.find(_.isInstanceOf[DefaultAuthorizationsProvider])
-              .getOrElse(throw new IllegalStateException("No valid geomesa.core.security.AuthorizationsProvider could be loaded"))
-          })
+        authProviderSystemProperty match {
+          case Some(prop) =>
+            if (classOf[DefaultAuthorizationsProvider].getName == prop)
+              new DefaultAuthorizationsProvider
+            else
+              providers.find(_.getClass.getName == prop)
+                .getOrElse {
+                  val message =
+                    s"The service provider class '$prop' specified by " +
+                    s"${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"
+                  throw new IllegalArgumentException(message)
+              }
+          case None =>
+            providers.length match {
+              case 0 => new DefaultAuthorizationsProvider
+              case 1 => providers.head
+              case _ =>
+                val message =
+                  "Found multiple AuthorizationsProvider implementations. Please specify the one " +
+                  "to use with the system property " +
+                  s"'${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: " +
+                  s"${providers.map(_.getClass.getName).mkString(", ")}"
+                throw new IllegalStateException(message)
+            }
         }
       })
 
@@ -167,7 +180,7 @@ object AccumuloDataStoreFactory {
     val userParam         = new Param("user", classOf[String], "Accumulo user", true)
     val passwordParam     = new Param("password", classOf[String], "Password", true)
     val authsParam        = new Param("auths", classOf[String], "Super-set of authorizations that will be used for queries. The actual authorizations might differ, depending on the authorizations provider, but will be outside this set. Comma-delimited.", false)
-    val visibilityParam   = new Param("visibility", classOf[String], "Accumulo visibility label to apply to all written data", false)
+    val visibilityParam   = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
     val tableNameParam    = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
     val idxSchemaParam    = new Param("indexSchemaFormat",
       classOf[String],
@@ -200,13 +213,13 @@ object AccumuloDataStoreFactory {
   }
 
   def getMRAccumuloConnectionParams(conf: Configuration): JMap[String,AnyRef] =
-    Map(zookeepersParam.key -> conf.get(ZOOKEEPERS),
-      instanceIdParam.key -> conf.get(INSTANCE_ID),
-      userParam.key -> conf.get(ACCUMULO_USER),
-      passwordParam.key -> conf.get(ACCUMULO_PASS),
-      tableNameParam.key -> conf.get(TABLE),
-      authsParam.key -> conf.get(AUTHS),
-      visibilityParam.key -> conf.get(VISIBILITY),
-      featureEncParam.key -> conf.get(FEATURE_ENCODING),
-      mapReduceParam.key -> "true")
+    Map(zookeepersParam.key   -> conf.get(ZOOKEEPERS),
+      instanceIdParam.key     -> conf.get(INSTANCE_ID),
+      userParam.key           -> conf.get(ACCUMULO_USER),
+      passwordParam.key       -> conf.get(ACCUMULO_PASS),
+      tableNameParam.key      -> conf.get(TABLE),
+      authsParam.key          -> conf.get(AUTHS),
+      visibilityParam.key     -> conf.get(VISIBILITY),
+      featureEncParam.key     -> conf.get(FEATURE_ENCODING),
+      mapReduceParam.key      -> "true")
 }

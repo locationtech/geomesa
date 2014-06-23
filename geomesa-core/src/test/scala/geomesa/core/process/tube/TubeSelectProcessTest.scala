@@ -3,6 +3,7 @@ package geomesa.core.process.tube
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Point, Coordinate, GeometryFactory}
 import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
+import geomesa.core.index.Constants
 import geomesa.utils.text.WKTUtils
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
@@ -15,7 +16,6 @@ import org.junit.runner.RunWith
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import geomesa.core.index.Constants
 
 @RunWith(classOf[JUnitRunner])
 class TubeSelectProcessTest extends Specification {
@@ -309,7 +309,6 @@ class TubeSelectProcessTest extends Specification {
       val ts = new TubeSelectProcess
       val ds = createStore
 
-      ds.createSchema(sft)
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
       val q = new Query(sftName, Filter.INCLUDE)

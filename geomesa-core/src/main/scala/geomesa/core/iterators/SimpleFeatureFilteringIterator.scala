@@ -156,12 +156,6 @@ object SimpleFeatureFilteringIterator {
 
   import geomesa.core._
 
-  def setFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) {
-    val encodedSimpleFeatureType = DataUtilities.encodeType(featureType)
-    cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, encodedSimpleFeatureType)
-    cfg.encodeUserData(featureType.getUserData,GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
-  }
-
   def setECQLFilter(cfg: IteratorSetting, ecql: String) {
     cfg.addOption(GEOMESA_ITERATORS_ECQL_FILTER, ecql)
   }
