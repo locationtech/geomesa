@@ -133,7 +133,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def configureFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) {
     val encodedSimpleFeatureType = DataUtilities.encodeType(featureType)
     cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, encodedSimpleFeatureType)
-    cfg.encodeUserData(featureType.getUserData,GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+    cfg.encodeUserData(featureType.getUserData, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
   }
 
   // returns the encoded SimpleFeatureType for the query's transform

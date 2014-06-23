@@ -1,8 +1,9 @@
 package geomesa.core
 
-import org.apache.accumulo.core.client.IteratorSetting
 import collection.JavaConversions._
+import org.apache.accumulo.core.client.IteratorSetting
 import org.opengis.feature.simple.SimpleFeatureType
+
 
 package object iterators {
   val FEATURE_ENCODING   = "geomesa.feature.encoding"
@@ -17,9 +18,8 @@ package object iterators {
      *
      */
     def encodeUserData(userData: java.util.Map[AnyRef,AnyRef], keyPrefix: String)  {
-      val fullPrefix = keyPrefix+USER_DATA
-      val userDataMap = userData.map { case (k, v) => (fullPrefix + k.toString, v.toString) }
-      cfg.addOptions(userDataMap)
+      val fullPrefix = keyPrefix + USER_DATA
+      userData.foreach { case (k, v) => cfg.addOption(fullPrefix + k.toString, v.toString)}
     }
   }
   implicit class RichIteratorSimpleFeatureType(sft: SimpleFeatureType) {
@@ -31,12 +31,10 @@ package object iterators {
      *
      */
     def decodeUserData(options: java.util.Map[String,String], keyPrefix:String)  {
-      val fullPrefix=keyPrefix+USER_DATA
-      val userDataMap =
-        options
-          .filter {  case (k, _) => k.startsWith(fullPrefix) }
-          .map {  case (k, v) => (k.stripPrefix(fullPrefix), v) }
-      sft.getUserData.putAll(userDataMap)
+      val fullPrefix = keyPrefix + USER_DATA
+      options
+        .filter {  case (k, _) => k.startsWith(fullPrefix) }
+        .foreach { case (k, v) => sft.getUserData.put(k.stripPrefix(fullPrefix), v) }
     }
   }
 }

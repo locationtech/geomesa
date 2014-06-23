@@ -24,21 +24,19 @@ object IteratorTrigger {
    */
   implicit class IndexAttributeNames(sft: SimpleFeatureType) {
     def geoName = sft.getGeometryDescriptor.getLocalName
-    // can use this logic if the UserData may be present in the SimpleFeatureType
-    //def startTimeName = Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map { y => y.toString}
-    //def endTimeName = Option(sft.getUserData.get(SF_PROPERTY_END_TIME)).map { y => y.toString}
 
-    // must use this logic if the UserData may not be present in the SimpleFeatureType
     def startTimeName =  attributeNameHandler(SF_PROPERTY_START_TIME)
     def endTimeName   =  attributeNameHandler(SF_PROPERTY_END_TIME)
 
     def attributeNameHandler(attributeKey: String): Option[String] = {
-      // try to get the name from the user data, which may not exist
-      val nameFromUserData = Option(sft.getUserData.get(attributeKey)).map { y => y.toString}
-      // check if an attribute with this name(which is the default) exists. If so, use the name and ignore the descriptor
-      val nameFromDefault = Option(sft.getDescriptor(attributeKey)).map {y => attributeKey}
+      // try to get the name from the user data, which may not exist, then check if the attribute exists
+      val nameFromUserData = Option(sft.getUserData.get(attributeKey)).map {_.toString}.filter {attributePresent}
+      // check if an attribute with this name(which is the default) exists.
+      val nameFromDefault = Some(attributeKey).filter {attributePresent}
       nameFromUserData orElse nameFromDefault
     }
+
+    def attributePresent(attributeKey: String): Boolean = Option(sft.getDescriptor(attributeKey)).isDefined
 
     def indexAttributeNames = List(geoName) ++ startTimeName ++ endTimeName
   }

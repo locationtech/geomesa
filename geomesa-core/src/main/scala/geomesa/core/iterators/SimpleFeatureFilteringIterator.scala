@@ -84,7 +84,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
       if (transformSchema != null) DataUtilities.createType(this.getClass.getCanonicalName, transformSchema)
       else simpleFeatureType
     // if the targetFeatureType comes from a transform, also insert the UserData
-    if (transformSchema != null) targetFeatureType.decodeUserData(options,GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
+    if (transformSchema != null) targetFeatureType.decodeUserData(options, GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
 
     val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
     transform =
@@ -159,11 +159,4 @@ object SimpleFeatureFilteringIterator {
   def setECQLFilter(cfg: IteratorSetting, ecql: String) {
     cfg.addOption(GEOMESA_ITERATORS_ECQL_FILTER, ecql)
   }
-
-  def setTransforms(cfg: IteratorSetting, transform: String, schema: Option[SimpleFeatureType]) {
-    cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
-    schema.map(sft => cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, DataUtilities.encodeType(sft)))
-    schema.map(sft => cfg.encodeUserData(sft.getUserData,GEOMESA_ITERATORS_TRANSFORM_SCHEMA) )
-  }
-
 }
