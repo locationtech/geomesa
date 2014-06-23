@@ -127,7 +127,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
     //  we wrap our calls in a SelfClosingBatchScanner.
-    new SelfClosingBatchScanner(bs)
+    SelfClosingBatchScanner(bs)
   }
 
   def configureFeatureEncoding(cfg: IteratorSetting) =

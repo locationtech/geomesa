@@ -163,7 +163,7 @@ class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
                                                                            aggPrefix + "precision" -> getGeohashPrecision.toString,
                                                                            aggPrefix + "dims" -> (xDim +","+yDim)))
 
-    new SelfClosingBatchScanner(scanner)
+    SelfClosingBatchScanner(scanner)
   }
 
   def getEmptyImage = {

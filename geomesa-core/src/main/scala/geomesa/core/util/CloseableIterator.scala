@@ -4,14 +4,20 @@ import java.util.Map.Entry
 import org.apache.accumulo.core.client.BatchScanner
 import org.apache.accumulo.core.data.{Key, Value}
 import scala.collection.Iterator
+import scala.collection.JavaConversions._
 
+// A CloseableIterator is one which involves some kind of close function which should be called at the end of use.
 object CloseableIterator {
-  implicit def iteratorToCloseable[A](iter: Iterator[A]) = new RichCloseableIterator(iter)
+  // In order to use 'map' and 'flatMap', we provide an implicit promoting wrapper.
+  implicit def iteratorToCloseable[A](iter: Iterator[A]) = apply(iter)
 
-  val empty: CloseableIterator[Nothing] = new CloseableIterator[Nothing] {
-    def hasNext: Boolean = false
-    def next(): Nothing = throw new NoSuchElementException("next on empty iterator")
-    def close(): Unit = {}
+  val empty: CloseableIterator[Nothing] = apply(Iterator.empty)
+
+  // This apply method provides us with a simple interface for creating new CloseableIterators.
+  def apply[A](iter: Iterator[A], closeIter: () => Unit = () => {}) = new CloseableIterator[A] {
+    def hasNext = iter.hasNext
+    def next()  = iter.next()
+    def close() = closeIter()
   }
 }
 
@@ -22,15 +28,13 @@ trait CloseableIterator[+A] extends Iterator[A] {
 
   def close(): Unit
 
-  override def map[B](f: A => B): CloseableIterator[B] = new CloseableIterator[B] {
-    def hasNext = self.hasNext
-    def next() = f(self.next())
-    def close() = self.close()
-  }
+  override def map[B](f: A => B): CloseableIterator[B] = CloseableIterator(super.map(f), self.close)
 
-  def flatMap[B](f: A => CloseableIterator[B]): CloseableIterator[B] = new CloseableIterator[B] {
+  // NB: Since we wish to be able to close the iterator currently in use, we can't call out to super.flatMap.
+  def flatMap[B](f: A => CloseableIterator[B]): CloseableIterator[B] = new SelfClosingIterator[B] {
     private var cur: CloseableIterator[B] = empty
 
+    // Add in the 'SelfClosing' behavior.
     def hasNext: Boolean = {
       val iterHasNext = innerHasNext
       if(!innerHasNext) close()
@@ -51,23 +55,22 @@ trait CloseableIterator[+A] extends Iterator[A] {
   }
 }
 
-class SelfClosingBatchScanner(bs: BatchScanner) extends CloseableIterator[Entry[Key, Value]]  {
-  val bsIter = bs.iterator
+// By 'self-closing', we mean that the iterator will automatically call close once it is completely exhausted.
+trait SelfClosingIterator[+A] extends CloseableIterator[A]
 
-  def hasNext: Boolean = {
-    val iterHasNext = bsIter.hasNext
-    if(!iterHasNext) bs.close()
-    iterHasNext
+object SelfClosingIterator {
+  def apply[A](iter: Iterator[A], closeIter: () => Unit) = new SelfClosingIterator[A] {
+    def hasNext: Boolean = {
+      val iterHasNext = iter.hasNext
+      if(!iterHasNext) close()
+      iterHasNext
+    }
+    def next(): A = iter.next()
+    def close() = closeIter()
   }
-
-  def next(): Entry[Key, Value] = bsIter.next
-
-  def close() = bs.close()
 }
 
-class RichCloseableIterator[A](iter: Iterator[A]) extends CloseableIterator[A] {
-  override def hasNext: Boolean = iter.hasNext
-  override def next(): A = iter.next()
-  def close(): Unit = {}
+// This object provides a standard way to wrap BatchScanners in a self-closing and closeable iterator.
+object SelfClosingBatchScanner {
+  def apply(bs: BatchScanner): SelfClosingIterator[Entry[Key, Value]] = SelfClosingIterator(bs.iterator, () => bs.close())
 }
-
