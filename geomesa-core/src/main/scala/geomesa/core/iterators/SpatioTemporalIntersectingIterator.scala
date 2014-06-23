@@ -88,7 +88,6 @@ class SpatioTemporalIntersectingIterator
     logger.trace("Initializing classLoader")
     SpatioTemporalIntersectingIterator.initClassLoader(logger)
 
-
     val featureType = DataUtilities.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
     featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 

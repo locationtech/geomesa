@@ -30,9 +30,9 @@ object IteratorTrigger {
 
     def attributeNameHandler(attributeKey: String): Option[String] = {
       // try to get the name from the user data, which may not exist, then check if the attribute exists
-      val nameFromUserData = Option(sft.getUserData.get(attributeKey)).map {_.toString}.filter {attributePresent}
+      val nameFromUserData = Option(sft.getUserData.get(attributeKey)).map { _.toString }.filter { attributePresent }
       // check if an attribute with this name(which is the default) exists.
-      val nameFromDefault = Some(attributeKey).filter {attributePresent}
+      val nameFromDefault = Some(attributeKey).filter { attributePresent }
       nameFromUserData orElse nameFromDefault
     }
 

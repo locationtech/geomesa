@@ -79,7 +79,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
       } else query
 
-    //val sourceSimpleFeatureType = DataUtilities.encodeType(featureType)
     val filterVisitor = new FilterToAccumulo(featureType)
     val rewrittenCQL = filterVisitor.visit(derivedQuery)
     val ecql = Option(ECQL.toCQL(rewrittenCQL))
@@ -136,9 +135,9 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     cfg.encodeUserData(featureType.getUserData, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
   }
 
-  // returns the encoded SimpleFeatureType for the query's transform
+  // returns the SimpleFeatureType for the query's transform
   def transformedSimpleFeatureType(query: Query): Option[SimpleFeatureType] = {
-    Option(query.getHints.get(TRANSFORM_SCHEMA)).map(_.asInstanceOf[SimpleFeatureType])
+    Option(query.getHints.get(TRANSFORM_SCHEMA)).map {_.asInstanceOf[SimpleFeatureType]}
   }
 
   // store transform information into an Iterator's settings

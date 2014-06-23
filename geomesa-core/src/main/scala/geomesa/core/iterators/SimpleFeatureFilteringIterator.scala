@@ -77,7 +77,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
 
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
     simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
-    simpleFeatureType.decodeUserData(options,GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+    simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
     val transformSchema = options.get(GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
     targetFeatureType =
