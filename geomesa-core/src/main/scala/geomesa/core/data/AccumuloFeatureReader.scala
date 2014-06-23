@@ -17,6 +17,7 @@
 package geomesa.core.data
 
 import geomesa.core.index._
+import geomesa.core.util.CloseableIterator
 import org.geotools.data.{Query, FeatureReader}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -28,7 +29,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
   val indexSchema = IndexSchema(indexSchemaFmt, sft, featureEncoder)
-  val iter = indexSchema.query(query, dataStore.createBatchScanner)
+  val iter: CloseableIterator[SimpleFeature] = indexSchema.query(query, dataStore.createBatchScanner)
 
   override def getFeatureType = sft
 
@@ -36,6 +37,5 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
   override def hasNext = iter.hasNext
 
-  // We now use 'self-closing' batch scanners, so we only need to exhaust the iterator.
-  override def close() = while(iter.hasNext) { iter.next() }
+  override def close() = iter.close()
 }

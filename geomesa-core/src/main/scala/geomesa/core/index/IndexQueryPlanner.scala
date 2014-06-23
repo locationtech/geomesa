@@ -5,12 +5,11 @@ import com.vividsolutions.jts.geom.Polygon
 import geomesa.core.data._
 import geomesa.core.filter.OrSplittingFilter
 import geomesa.core.index.QueryHints._
-import geomesa.core.iterators.FEATURE_ENCODING
-import geomesa.core.iterators._
-import geomesa.core.util.SelfClosingBatchScanner
+import geomesa.core.iterators.{FEATURE_ENCODING, _}
+import geomesa.core.util.{CloseableIterator, SelfClosingBatchScanner}
 import java.util.Map.Entry
-import org.apache.accumulo.core.client.{IteratorSetting, BatchScanner}
-import org.apache.accumulo.core.data.{Value, Key}
+import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
+import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
@@ -30,7 +29,7 @@ object IndexQueryPlanner {
   val iteratorPriority_SimpleFeatureFilteringIterator = 300
 }
 
-import IndexQueryPlanner._
+import geomesa.core.index.IndexQueryPlanner._
 
 case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              cfPlanner: ColumnFamilyPlanner,
@@ -67,7 +66,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
   // As a pre-processing step, we examine the query/filter and split it into multiple queries.
   // TODO: Work to make the queries non-overlapping.
-  def getIterator(buildBatchScanner: () => BatchScanner, query: Query) : Iterator[Entry[Key,Value]] = {
+  def getIterator(buildBatchScanner: () => BatchScanner, query: Query) : CloseableIterator[Entry[Key,Value]] = {
     val ff = CommonFactoryFinder.getFilterFactory2
     val queries: Iterator[Query] =
       if(query.getHints.containsKey(BBOX_KEY)) {
@@ -128,9 +127,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
     //  we wrap our calls in a SelfClosingBatchScanner.
-    val scbs = new SelfClosingBatchScanner(bs)
-
-    scbs.iterator
+    new SelfClosingBatchScanner(bs)
   }
 
   def configureFeatureEncoding(cfg: IteratorSetting) =

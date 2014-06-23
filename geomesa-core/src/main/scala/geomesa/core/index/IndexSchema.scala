@@ -23,6 +23,7 @@ import com.vividsolutions.jts.geom.{Geometry,Polygon}
 import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators._
+import geomesa.core.util._
 import geomesa.utils.text.{WKBUtils, WKTUtils}
 import java.nio.ByteBuffer
 import java.util.Map.Entry
@@ -90,19 +91,19 @@ case class IndexSchema(encoder: IndexEncoder,
       case _ => 1  // couldn't find a matching partitioner
     }
 
-  def query(query: Query, buildBatchScanner: () => BatchScanner): Iterator[SimpleFeature] = {
+  def query(query: Query, buildBatchScanner: () => BatchScanner): CloseableIterator[SimpleFeature] = {
     // Perform the query
-    val accumuloIterator = planner.getIterator(buildBatchScanner, query)
+    val accumuloIterator: CloseableIterator[Entry[Key, Value]] = planner.getIterator(buildBatchScanner, query)
     // Convert Accumulo results to SimpleFeatures.
     adaptIterator(accumuloIterator, query)
   }
 
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
-  def adaptIterator(accumuloIterator: Iterator[Entry[Key,Value]], query: Query): Iterator[SimpleFeature] = {
+  def adaptIterator(accumuloIterator: CloseableIterator[Entry[Key,Value]], query: Query): CloseableIterator[SimpleFeature] = {
     val returnSFT = getReturnSFT(query)
 
     // the final iterator may need duplicates removed
-    val uniqKVIter: Iterator[Entry[Key,Value]] =
+    val uniqKVIter: CloseableIterator[Entry[Key,Value]] =
       if (mayContainDuplicates(featureType))
         new DeDuplicatingIterator(accumuloIterator, (key: Key, value: Value) => featureEncoder.extractFeatureId(value))
       else accumuloIterator
