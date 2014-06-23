@@ -120,11 +120,19 @@ class IteratorTriggerTest extends Specification {
     val extraAttributeFilterString =
       "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (attr2 like '2nd___')"
 
-    val nonReducibleFilterString =
+    val nonReducibleFilterString =                                                               extractReWrittenCQL
       "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (geomesa_index_start_time before 2010-08-08T23:59:59Z) AND (geomesa_index_end_time after 2010-08-08T00:00:00Z)"
 
     val reducibleFilterString =
       "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (geomesa_index_start_time between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')"
+
+    val oneIDFilterString = "IN ('id1')"
+
+    val reducibleFilterStringWithOneIDString =
+      "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND ((geomesa_index_start_time between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z') AND IN ('id1'))"
+
+    val reducibleFilterStringWithTwoIDsString =
+      "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND ((geomesa_index_start_time between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z') AND IN ('id1', 'id2'))"
 
     // transforms for testing
     val simpleTransformToIndex = {
@@ -157,6 +165,15 @@ class IteratorTriggerTest extends Specification {
       val aQuery = TestTable.sampleQuery(ECQL.toFilter(ecqlPred), transformText)
       val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType)
       IteratorTrigger.useSimpleFeatureFilteringIterator(modECQLPred, aQuery)
+    }
+
+    /**
+     * Function for use in testing getIdRegex
+     */
+    def getIdRegexIteratorTest(ecqlPred: String, transformText: Array[String]): Option[String] = {
+      val aQuery = TestTable.sampleQuery(ECQL.toFilter(ecqlPred), transformText)
+      val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType)
+      IteratorTrigger.getIDRegex(modECQLPred)
     }
   }
     "useIndexOnlyIterator" should {
@@ -237,5 +254,19 @@ class IteratorTriggerTest extends Specification {
       val isTriggered = TriggerTest.useSimpleFeatureFilteringIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.nullTransform)
       isTriggered must beFalse
    }
+  }
+
+  "IdRegexIterator" should {
+    "be run when there is a filter containing only one ID filter and nothing else" in {
+      val idRegex = TriggerTest.getIdRegexIteratorTest(TriggerTest.oneIDFilterString, TriggerTest.simpleTransformToIndex)
+      idRegex.nonEmpty must beTrue
+    }
+
+    "be run when there is a filter containing one ID and also only index attributes" in {
+      val idRegex = TriggerTest.getIdRegexIteratorTest(TriggerTest.reducibleFilterStringWithOneIDString, TriggerTest.simpleTransformToIndex)
+      val indexIsTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.reducibleFilterStringWithOneIDString, TriggerTest.simpleTransformToIndex)
+      idRegex.nonEmpty must beTrue
+      indexIsTriggered must beTrue
+    }
   }
 }

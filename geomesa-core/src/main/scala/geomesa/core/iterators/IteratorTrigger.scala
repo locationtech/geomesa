@@ -55,21 +55,21 @@ object IteratorTrigger {
     val filter = ecqlPredicate.map { ecql => ECQL.toFilter(ecql) }
 
     def getIDs(filter: org.opengis.filter.Filter, ids: Set[String]): Set[String] = {
-      if (filter.isInstanceOf[org.opengis.filter.Id]) Set(ids, filter.asInstanceOf[org.opengis.filter.Id].getIDs.asScala.asInstanceOf[Set[String]]).flatten
-      else if (filter.isInstanceOf[org.opengis.filter.And]) {
-        val children = filter.asInstanceOf[org.opengis.filter.And].getChildren.asScala
-        getIDs(children(0), getIDs(children(1), ids))
-      } else ids
-    }
-
-    filter match {
-      case Some(f) => {
-        val ids = getIDs(f, Set[String]())
-        if (ids.size > 0) Option(ids.head) else None
+      filter match {
+        case f: org.opengis.filter.Id => Set(ids, f.getIDs.asScala.asInstanceOf[Set[String]]).flatten
+        case a: org.opengis.filter.And => {
+          val children = a.getChildren.asScala
+          getIDs(children(0), getIDs(children(1), ids))
+        }
+        case _ => ids
       }
-      case _ => None
     }
 
+    for {
+      f <- filter
+      ids = getIDs(f, Set[String]())
+      if (ids.size > 0)
+    } yield { ids.mkString("|") }
   }
 
   /**
