@@ -21,4 +21,7 @@ object MathUtil {
   def nthTriangularNumber(n: Int) = {
     (0 to (n - 1)).sum
   }
+
+  // only when independent
+  def combineStddev(d1: Double, d2: Double) = Math.sqrt(d1 * d1 + d2 * d2)
 }

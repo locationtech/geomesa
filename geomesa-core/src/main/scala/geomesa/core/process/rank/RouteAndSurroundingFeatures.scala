@@ -28,6 +28,18 @@ case class RankingValues(tubeCount: Int, boxCount: Int, boxCellsCovered: Int, tu
   def combinedScoreNoMotion = Math.pow(scaledTfIdf * percentageOfTubeCellsCovered * tubeCellDeviationScore, 1.0 / 3.0)
   def combinedScore = if (motionEvidence.total > 0.0)
     Math.pow(combinedScoreNoMotion * Math.log(motionEvidence.total + 1.0) * motionEvidence.max, 1.0 / 3.0) else 0.0
+
+  def merge(other: RankingValues) = RankingValues(tubeCount + other.tubeCount, boxCount + other.boxCount,
+    boxCellsCovered + other.boxCellsCovered, tubeCellsCovered + other.tubeCellsCovered,
+    MathUtil.combineStddev(tubeCellsStddev, other.tubeCellsStddev),
+    EvidenceOfMotion(motionEvidence.total + other.motionEvidence.total,
+      Math.max(motionEvidence.max, other.motionEvidence.max),
+      MathUtil.combineStddev(motionEvidence.stddev, other.motionEvidence.stddev)), gridDivisions, nTubeCells)
+}
+
+object RankingValues {
+  def emptyOne(gridDivisions: Int, nTubeCells: Int) = RankingValues(0, 0, 0, 0, 0,
+    EvidenceOfMotion(0, 0, 0), gridDivisions, nTubeCells)
 }
 
 object RankingDefaults {
