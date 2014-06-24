@@ -46,10 +46,10 @@ case class TemporalIndexCheck(sft:SimpleFeatureType) extends Logging {
 
   def emitDtgNotification(temporalAttributeName: String) {
     lazy val theNotification =
-      """
-        | There is just one temporal attribute detected in the SimpleFeatureType.
-        | SF_PROPERTY_START_TIME will be set to point to:
-        | ${temporalAttributeName}
+      s"""
+        |There is just one temporal attribute detected in the SimpleFeatureType.
+        |SF_PROPERTY_START_TIME will be set to point to:
+        |${temporalAttributeName}
       """.stripMargin
     logger.warn(theNotification)
   }
