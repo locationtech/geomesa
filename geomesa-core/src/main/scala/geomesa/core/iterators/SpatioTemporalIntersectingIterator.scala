@@ -331,11 +331,17 @@ trait IteratorHelpers  {
     if(!initialized.get()) {
       try {
         // locate the geomesa-distributed-runtime jar
-        val cl = this.getClass.getClassLoader.asInstanceOf[VFSClassLoader]
-        val url = cl.getFileObjects.map(_.getURL).filter {_.toString.contains("geomesa-distributed-runtime")}.head
-        if(log != null) log.debug(s"Found geomesa-distributed-runtime at $url")
-        val u = java.net.URLClassLoader.newInstance(Array(url), cl)
-        GeoTools.addClassLoader(u)
+        val cl = this.getClass.getClassLoader
+        cl match {
+          case vfsCl: VFSClassLoader =>
+            val url = vfsCl.getFileObjects.map(_.getURL).filter {
+              _.toString.contains("geomesa-distributed-runtime")
+            }.head
+            if (log != null) log.debug(s"Found geomesa-distributed-runtime at $url")
+            val u = java.net.URLClassLoader.newInstance(Array(url), vfsCl)
+            GeoTools.addClassLoader(u)
+          case _ =>
+        }
       } catch {
         case t: Throwable =>
           if(log != null) log.error("Failed to initialize GeoTools' ClassLoader ", t)

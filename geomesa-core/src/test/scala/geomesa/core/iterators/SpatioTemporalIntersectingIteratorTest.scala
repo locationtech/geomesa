@@ -243,7 +243,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
     // create the batch scanner
     val c = TestData.setupMockAccumuloTable(entries, numExpectedDataIn)
-    val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
+    val bs = () => c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
 
     val gf = s"WITHIN(geomesa_index_geometry, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
@@ -272,9 +272,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
       results.size
     } else itr.size
 
-    // close the scanner
-    bs.close()
-
+    itr.close()
     retval
   }
 
