@@ -16,30 +16,27 @@
 
 package geomesa.core.iterators
 
-import collection.JavaConversions._
-import collection.JavaConverters._
-import com.vividsolutions.jts.geom.{Polygon, Geometry}
+import com.vividsolutions.jts.geom.{Geometry, Polygon}
 import geomesa.core.data.SimpleFeatureEncoderFactory
 import geomesa.core.index._
 import geomesa.utils.text.WKTUtils
 import java.util
 import org.apache.accumulo.core.Constants
-import org.apache.accumulo.core.client.{IteratorSetting, Connector, BatchScanner}
 import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.{IteratorSetting, Connector}
+import org.apache.accumulo.core.client.{Connector, IteratorSetting}
 import org.apache.accumulo.core.data._
 import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{Interval, DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import scala.util.{Try, Random}
-import org.apache.hadoop.io.Text
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.util.{Random, Try}
 
 @RunWith(classOf[JUnitRunner])
 class SpatioTemporalIntersectingIteratorTest extends Specification {
@@ -245,7 +242,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
     // create the batch scanner
     val c = TestData.setupMockAccumuloTable(entries, numExpectedDataIn)
-    val bs = c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
+    val bs = () => c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
 
     val gf = s"WITHIN(geomesa_index_geometry, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
@@ -274,9 +271,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
       results.size
     } else itr.size
 
-    // close the scanner
-    bs.close()
-
+    itr.close()
     retval
   }
 

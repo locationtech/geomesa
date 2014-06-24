@@ -31,7 +31,6 @@ import org.joda.time.{Duration, Interval, DateTime}
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
-import scala.Some
 
 @RunWith(classOf[JUnitRunner])
 class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {

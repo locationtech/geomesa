@@ -17,8 +17,7 @@
 
 package geomesa.core.data
 
-import collection.JavaConversions._
-import geomesa.core.security.{FilteringAuthorizationsProvider, DefaultAuthorizationsProvider, AuthorizationsProvider}
+import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import java.io.Serializable
 import java.util.{Map => JMap}
 import javax.imageio.spi.ServiceRegistry
@@ -28,11 +27,12 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
+import scala.collection.JavaConversions._
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
-  import AccumuloDataStoreFactory._
-  import params._
+  import geomesa.core.data.AccumuloDataStoreFactory._
+  import geomesa.core.data.AccumuloDataStoreFactory.params._
 
   // this is a pass-through required of the ancestor interface
   def createNewDataStore(params: JMap[String, Serializable]) = createDataStore(params)
@@ -194,7 +194,7 @@ object AccumuloDataStoreFactory {
       "avro")
   }
 
-  import params._
+  import geomesa.core.data.AccumuloDataStoreFactory.params._
 
   def configureJob(job: Job, params: JMap[String, Serializable]): Job = {
     val conf = job.getConfiguration

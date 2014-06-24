@@ -16,32 +16,29 @@
 
 package geomesa.plugin.wms
 
-import CoverageReader._
-import geomesa.core.iterators.{TimestampSetIterator, TimestampRangeIterator, SurfaceAggregatingIterator, AggregatingKeyIterator}
-import geomesa.utils.geohash.{GeoHash, TwoGeoHashBoundingBox, Bounds, BoundingBox}
+import geomesa.core.iterators.{AggregatingKeyIterator, SurfaceAggregatingIterator, TimestampRangeIterator, TimestampSetIterator}
+import geomesa.core.util.{BoundingBoxUtil, SelfClosingBatchScanner}
+import geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, TwoGeoHashBoundingBox}
 import java.awt.image.BufferedImage
 import java.awt.{AlphaComposite, Color, Graphics2D, Rectangle}
 import java.io._
-import java.util.Map.Entry
-import java.util.{List => JList, Date}
-import org.apache.accumulo.core.client.{BatchScanner, Scanner, IteratorSetting, ZooKeeperInstance}
-import org.apache.accumulo.core.data._
+import java.util.{Date, List => JList}
+import org.apache.accumulo.core.client.{IteratorSetting, Scanner, ZooKeeperInstance}
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.geotools.coverage.CoverageFactoryFinder
-import org.geotools.coverage.grid.io.{AbstractGridFormat, AbstractGridCoverage2DReader}
-import org.geotools.coverage.grid.{GridGeometry2D, GridCoverage2D, GridEnvelope2D}
+import org.geotools.coverage.grid.io.{AbstractGridCoverage2DReader, AbstractGridFormat}
+import org.geotools.coverage.grid.{GridCoverage2D, GridEnvelope2D, GridGeometry2D}
 import org.geotools.geometry.GeneralEnvelope
 import org.geotools.parameter.Parameter
 import org.geotools.util.DateRange
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.opengis.geometry.Envelope
-import org.opengis.parameter.{InvalidParameterValueException, GeneralParameterValue}
+import org.opengis.parameter.{GeneralParameterValue, InvalidParameterValueException}
 import scala.collection.JavaConversions._
-import util.Random
-import geomesa.core.util.BoundingBoxUtil
+import scala.util.Random
 
 
 object CoverageReader {
@@ -51,6 +48,7 @@ object CoverageReader {
     GeoServerDateFormat.print(new DateTime(DateTimeZone.forID("UTC")))
 }
 
+import geomesa.plugin.wms.CoverageReader._
 
 class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
 
@@ -165,7 +163,7 @@ class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
                                                                           aggPrefix + "precision" -> getGeohashPrecision.toString,
                                                                           aggPrefix + "dims" -> (xDim +","+yDim)))
 
-    new SelfClosingBatchScanner(scanner).iterator
+    SelfClosingBatchScanner(scanner)
   }
 
   def getEmptyImage = {
@@ -212,21 +210,5 @@ class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
     }
     case HAS_TIME_DOMAIN => "true"
     case  _ => null
-  }
-}
-
-class SelfClosingBatchScanner(bs: BatchScanner) {
-  val bsIter = bs.iterator
-
-  val iterator = {
-    new Iterator[Entry[Key, Value]]{
-      def hasNext: Boolean = {
-        val iterHasNext = bsIter.hasNext
-        if(!iterHasNext) bs.close()
-        iterHasNext
-      }
-
-      def next(): Entry[Key, Value] = bsIter.next
-    }
   }
 }
