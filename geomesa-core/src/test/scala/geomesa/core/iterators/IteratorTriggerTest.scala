@@ -120,7 +120,7 @@ class IteratorTriggerTest extends Specification {
     val extraAttributeFilterString =
       "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (attr2 like '2nd___')"
 
-    val nonReducibleFilterString =                                                               extractReWrittenCQL
+    val nonReducibleFilterString =
       "WITHIN(geomesa_index_geometry, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (geomesa_index_start_time before 2010-08-08T23:59:59Z) AND (geomesa_index_end_time after 2010-08-08T00:00:00Z)"
 
     val reducibleFilterString =
