@@ -35,7 +35,7 @@
     <properties>
         <scala.version>2.10.3</scala.version>
         <geoserver.version>2.5</geoserver.version>
-        <gt.version>11.0</gt.version>
+        <gt.version>11.1</gt.version>
         <jts.version>1.13</jts.version>
         <ehcache.version>2.6.2</ehcache.version>
 

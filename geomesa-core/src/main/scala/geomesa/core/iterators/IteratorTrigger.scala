@@ -14,7 +14,7 @@ sealed trait IteratorChoice
 case object IndexOnlyIterator  extends IteratorChoice
 case object SpatioTemporalIterator extends IteratorChoice
 
-case class IteratorConfig(iterator: IteratorChoice, useSFFI: Boolean)
+case class IteratorConfig(iterator: IteratorChoice, useSFFI: Boolean, idRegex: Option[String])
 
 object IteratorTrigger {
 
@@ -47,10 +47,31 @@ object IteratorTrigger {
    * Scans the ECQL, query, and sourceSFTspec and determines which Iterators should be configured.
    */
   def chooseIterator(ecqlPredicate: Option[String], query: Query, sourceSFTSpec: String): IteratorConfig = {
-    if(useIndexOnlyIterator(ecqlPredicate, query, sourceSFTSpec)) IteratorConfig(IndexOnlyIterator, false)
-    else IteratorConfig(SpatioTemporalIterator, useSimpleFeatureFilteringIterator(ecqlPredicate, query))    
+    if(useIndexOnlyIterator(ecqlPredicate, query, sourceSFTSpec)) IteratorConfig(IndexOnlyIterator, false, getIDRegex(ecqlPredicate))
+    else IteratorConfig(SpatioTemporalIterator, useSimpleFeatureFilteringIterator(ecqlPredicate, query), getIDRegex(ecqlPredicate))
   } 
-  
+
+  def getIDRegex(ecqlPredicate: Option[String]): Option[String] = {
+    val filter = ecqlPredicate.map { ecql => ECQL.toFilter(ecql) }
+
+    def getIDs(filter: org.opengis.filter.Filter, ids: Set[String]): Set[String] = {
+      filter match {
+        case f: org.opengis.filter.Id => Set(ids, f.getIDs.asScala.asInstanceOf[Set[String]]).flatten
+        case a: org.opengis.filter.And => {
+          val children = a.getChildren.asScala
+          getIDs(children(0), getIDs(children(1), ids))
+        }
+        case _ => ids
+      }
+    }
+
+    for {
+      f <- filter
+      ids = getIDs(f, Set[String]())
+      if (ids.size > 0)
+    } yield { ids.mkString("|") }
+  }
+
   /**
    * Scans the ECQL predicate and the transform definition in order to determine if only index attributes are
    * used/requested, and thus the IndexIterator can be used
