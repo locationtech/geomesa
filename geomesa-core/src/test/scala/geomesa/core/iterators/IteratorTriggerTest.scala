@@ -157,6 +157,7 @@ class IteratorTriggerTest extends Specification {
       IteratorTrigger.useSimpleFeatureFilteringIterator(modECQLPred, aQuery)
     }
   }
+
   "useIndexOnlyIterator" should {
     "be run when requesting only index attributes" in {
       val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.simpleTransformToIndex)

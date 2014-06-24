@@ -27,7 +27,7 @@ import java.io.{IOException, Serializable}
 import java.util.{Map => JMap}
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.mock.MockConnector
-import org.apache.accumulo.core.data.{Mutation, Value, Range}
+import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.ColumnFamilyFunctor
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.ColumnVisibility
@@ -39,7 +39,6 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
-import scala.Some
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
@@ -573,7 +572,7 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
    *
    * @return
    */
-  def createBatchScanner: BatchScanner = {
+  def createBatchScanner(): BatchScanner = {
     connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, 100)
   }
 

@@ -247,7 +247,7 @@ class SpatioTemporalIntersectingIterator
    * data-iterator.  This is *IMPORTANT*, as otherwise we do not emit rows
    * that honor the SortedKeyValueIterator expectation, and Bad Things Happen.
    */
-  def seekData(indexValue:IndexSchema.DecodedIndexValue) {
+  def seekData(indexValue: IndexSchema.DecodedIndexValue) {
     val nextId = indexValue.id
     curId = new Text(nextId)
     val indexSourceTopKey = indexSource.getTopKey
@@ -311,8 +311,8 @@ class SpatioTemporalIntersectingIterator
   def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("STII does not support deepCopy.")
 }
 
-object SpatioTemporalIntersectingIterator extends IteratorHelpers {
-}
+object SpatioTemporalIntersectingIterator extends IteratorHelpers
+
 /**
  *  This trait contains many methods and values of general use to companion Iterator objects
  */

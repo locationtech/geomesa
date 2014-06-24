@@ -205,7 +205,7 @@ object AvroSimpleFeature {
 
   val nameIndexCache: LoadingCache[SimpleFeatureType, Map[String, Int]] =
     loadingCacheBuilder { sft =>
-      DataUtilities.attributeNames(sft).map { name => (name, sft.indexOf(name)) }.toMap
+      DataUtilities.attributeNames(sft).map { name => (name, sft.indexOf(name))}.toMap
     }
 
   val datumWriterCache: LoadingCache[SimpleFeatureType, GenericDatumWriter[GenericRecord]] =

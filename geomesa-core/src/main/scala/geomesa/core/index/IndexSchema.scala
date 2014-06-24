@@ -16,25 +16,22 @@
 
 package geomesa.core.index
 
-import annotation.tailrec
-import collection.JavaConversions._
-import com.vividsolutions.jts.geom.Point
-import com.vividsolutions.jts.geom.{Geometry,Polygon}
+import com.vividsolutions.jts.geom.{Geometry, Point, Polygon}
 import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators._
+import geomesa.core.util._
 import geomesa.utils.text.{WKBUtils, WKTUtils}
 import java.nio.ByteBuffer
 import java.util.Map.Entry
-import java.util.{Iterator => JIterator}
 import org.apache.accumulo.core.client.BatchScanner
-import org.apache.accumulo.core.data.Key
-import org.apache.accumulo.core.data.Value
+import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.log4j.Logger
 import org.geotools.data.{DataUtilities, Query}
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTimeZone, DateTime, Interval}
+import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import scala.annotation.tailrec
 import scala.util.parsing.combinator.RegexParsers
 
 // A secondary index consists of interleaved elements of a composite key stored in
@@ -84,7 +81,7 @@ case class IndexSchema(encoder: IndexEncoder,
   def encode(entry: SimpleFeature, visibility: String = "") = encoder.encode(entry, visibility)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
 
-  import IndexSchema._
+  import geomesa.core.index.IndexSchema._
 
   // utility method to ask for the maximum allowable shard number
   def maxShard: Int =
@@ -92,23 +89,21 @@ case class IndexSchema(encoder: IndexEncoder,
       case CompositeTextFormatter(Seq(PartitionTextFormatter(numPartitions), xs@_*), sep) => numPartitions
       case _ => 1  // couldn't find a matching partitioner
     }
-
-  def query(query: Query, bs: BatchScanner): Iterator[SimpleFeature] = {
-    // Perform the query
-    val accumuloIterator = planner.getIterator(bs, query)
-
+  def query(query: Query, buildBatchScanner: () => BatchScanner): CloseableIterator[SimpleFeature] = {
+    // Log and perform the query
     if(log.isTraceEnabled) log.trace("Running Query: "+ query.toString)
 
+    val accumuloIterator: CloseableIterator[Entry[Key, Value]] = planner.getIterator(buildBatchScanner, query)
     // Convert Accumulo results to SimpleFeatures.
     adaptIterator(accumuloIterator, query)
   }
 
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
-  def adaptIterator(accumuloIterator: JIterator[Entry[Key,Value]], query: Query): Iterator[SimpleFeature] = {
+  def adaptIterator(accumuloIterator: CloseableIterator[Entry[Key,Value]], query: Query): CloseableIterator[SimpleFeature] = {
     val returnSFT = getReturnSFT(query)
 
     // the final iterator may need duplicates removed
-    val uniqKVIter: Iterator[Entry[Key,Value]] =
+    val uniqKVIter: CloseableIterator[Entry[Key,Value]] =
       if (mayContainDuplicates(featureType))
         new DeDuplicatingIterator(accumuloIterator, (key: Key, value: Value) => featureEncoder.extractFeatureId(value))
       else accumuloIterator
@@ -368,7 +363,7 @@ object IndexSchema extends RegexParsers {
   // 2.  WKB-encoded geometry
   // 3.  start-date/time
   def encodeIndexValue(entry: SimpleFeature): Value = {
-    import IndexEntry._
+    import geomesa.core.index.IndexEntry._
     val encodedId = entry.sid.getBytes
     val encodedGeom = WKBUtils.write(entry.geometry)
     val encodedDtg = entry.dt.map(dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array()).getOrElse(Array[Byte]())

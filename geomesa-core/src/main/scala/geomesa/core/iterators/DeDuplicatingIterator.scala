@@ -19,7 +19,7 @@ package geomesa.core.iterators
 import DeDuplicator._
 import java.util.Map.Entry
 import java.util.UUID
-import java.util.{Iterator=>JIterator}
+import geomesa.core.util.CloseableIterator
 import net.sf.ehcache.{Element, CacheManager}
 import org.apache.accumulo.core.data.{Key, Value}
 
@@ -42,9 +42,9 @@ class KVEntry(akey: Key, avalue: Value) extends Entry[Key, Value] {
  * @param source the original iterator that may contain duplicate ID-rows
  * @param idFetcher the way to extract an ID from any one of the keys
  */
-class DeDuplicatingIterator(source: JIterator[Entry[Key, Value]],
+class DeDuplicatingIterator(source: CloseableIterator[Entry[Key, Value]],
                             idFetcher:(Key, Value) => String)
-  extends Iterator[Entry[Key, Value]] {
+  extends CloseableIterator[Entry[Key, Value]] {
 
   val deduper = new DeDuplicator(idFetcher)
   private[this] def findTop = {
@@ -63,6 +63,8 @@ class DeDuplicatingIterator(source: JIterator[Entry[Key, Value]],
   }
 
   override def hasNext = nextEntry != null
+
+  override def close(): Unit = source.close()
 }
 
 class DeDuplicator(idFetcher: (Key, Value) => String) {
