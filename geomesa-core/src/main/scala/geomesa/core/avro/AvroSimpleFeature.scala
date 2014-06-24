@@ -134,9 +134,13 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
       setDefaultGeometry(null)
   }
 
-  def getProperties: util.Collection[Property] = ???
-  def getProperties(name: Name): util.Collection[Property] = ???
-  def getProperties(name: String): util.Collection[Property] = ???
+  def getProperties: util.Collection[Property] =
+    getAttributes.zip(sft.getAttributeDescriptors).map{
+    case (attribute, attributeDescriptor) =>
+      new AttributeImpl(attribute, attributeDescriptor, id)
+    }
+  def getProperties(name: Name): util.Collection[Property] = getProperties(name.getLocalPart)
+  def getProperties(name: String): util.Collection[Property] = getProperties.filter(_.getName.toString == name)
   def getProperty(name: Name): Property = getProperty(name.getLocalPart)
   def getProperty(name: String): Property = new AttributeImpl(getAttribute(name), sft.getDescriptor(name), id)
 
