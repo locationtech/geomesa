@@ -302,9 +302,9 @@ class AccumuloDataStoreTest extends Specification {
                      "useMock"    -> "true",
                      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
-      ds.authorizationsProvider.isInstanceOf[FilteringAuthorizationsProvider] should be equalTo(true)
-      ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider.isInstanceOf[DefaultAuthorizationsProvider] should be equalTo(true)
-      ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations should be equalTo(new Authorizations("user"))
+      ds.authorizationsProvider should beAnInstanceOf[FilteringAuthorizationsProvider]
+      ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider should beAnInstanceOf[DefaultAuthorizationsProvider]
+      ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations should be equalTo new Authorizations("user")
     }
 
     "provide ability to configure auth provider by comma-delimited static auths" in {
@@ -319,9 +319,25 @@ class AccumuloDataStoreTest extends Specification {
                                                  "useMock"    -> "true",
                                                  "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
-      ds.authorizationsProvider.isInstanceOf[FilteringAuthorizationsProvider] should be equalTo(true)
-      ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider.isInstanceOf[DefaultAuthorizationsProvider] should be equalTo(true)
-      ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations should be equalTo(new Authorizations("user", "admin", "test"))
+      ds.authorizationsProvider should beAnInstanceOf[FilteringAuthorizationsProvider]
+      ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider should beAnInstanceOf[DefaultAuthorizationsProvider]
+      ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations should be equalTo new Authorizations("user", "admin", "test")
+    }
+
+    "fail when auth provider system property does not match an actual class" in {
+      System.setProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY, "my.fake.Clas")
+      try {
+      // create the data store
+      DataStoreFinder.getDataStore(Map(
+                                       "instanceId" -> "mycloud",
+                                       "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+                                       "user"       -> "myuser",
+                                       "password"   -> "mypassword",
+                                       "auths"      -> "user,admin,test",
+                                       "tableName"  -> "testwrite",
+                                       "useMock"    -> "true",
+                                       "featureEncoding" -> "avro")) should throwA[IllegalArgumentException]
+      } finally System.clearProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
     }
 
     "allow users with sufficient auths to write data" in {
