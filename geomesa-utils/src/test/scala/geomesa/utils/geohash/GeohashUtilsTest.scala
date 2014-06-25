@@ -49,11 +49,13 @@ class GeohashUtilsTest extends Specification {
     "[MULTIPOLYGON] span" -> ("MULTIPOLYGON(((-170 80, -190 80, -190 70, -170 70, -170 80)),((30 30, 30 40, 40 40, 40 30, 30 30)))", "POINT(175 75)", "POINT(30 25)"),
     "[MULTIPOINT] span" -> ("MULTIPOINT(-200 50, 40 20)", "POINT(160 50)", "POINT(159 60)"),
     "[MULTIPOINT] no span" -> ("MULTIPOINT(80 50, 40 20)", "POINT(80 50)", "POINT(159 60)"),
+    "[MULTIPOINT] no span2" -> ("MULTIPOINT(80 50, 40 20)", "POINT(40 20)", "POINT(159 60)"),
     "[POLYGON] pole crossing" -> ("POLYGON((40 -80, 45 -80, 43 -100, 40 -80))", "POINT(-137 -81)", "POINT(-139 -81)"),
     "[MULTIPOLYGON] pole crossing and span am" -> ("MULTIPOLYGON(((40 -80, 45 -80, 43 -100, 40 -80)),((-170 80, -190 80, -190 70, -170 70, -170 80)))", "POINT(-137 -81)", "POINT(-139 -81)"),
     "[MULTIPOLYGON] pole crossing and span am2" -> ("MULTIPOLYGON(((40 -80, 45 -80, 43 -100, 40 -80)),((-170 80, -190 80, -190 70, -170 70, -170 80)))", "POINT(175 75)", "POINT(-139 -81)"),
     "[POLYGON] pole crossing and span am" -> ("POLYGON((-170 -80, -190 -80, -180 -100, -170 -80))", "POINT(0 -89)", "POINT(-170 -81)"),
-    "[POLYGON] pole crossing and span am2" -> ("POLYGON((-170 -80, -190 -80, -180 -100, -170 -80))", "POINT(175 -81)", "POINT(-170 -81)")
+    "[POLYGON] pole crossing and span am2" -> ("POLYGON((-170 -80, -190 -80, -180 -100, -170 -80))", "POINT(175 -81)", "POINT(-170 -81)"),
+    "[POINT] point no span" -> ("POINT(-190 40)", "POINT(170 40)", "POINT(40 40)")
   )
 
   // (reasonable) odd GeoHash resolutions
