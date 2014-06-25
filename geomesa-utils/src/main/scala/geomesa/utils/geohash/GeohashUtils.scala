@@ -565,11 +565,14 @@ object GeohashUtils
   }
 
   /**
-   * Translate possible antimeridian-spanning geometry east until minimum lon [-180, 180]
+   * Transforms a geometry with lon in (-inf, inf) and lat in [-180,180] to a geometry in whole earth BBOX.
+   * Geometries with lon < -180 or lon > 180 wrap around.
+   * Geometries with lat < -90 or lat > 90 cross poles (translated 180 degrees lon and lat is reflected about pole)
+   * Geometries outside lat [-180, 180] are ignored.
+   *
+   * How it works: Translates geometry east until minimum lon [-180, 180]
    * (so that when you difference with whole earth BBOX you are guaranteed to not have any part west of whole earth)
    * Recursively translate left 360 and union with intersection of itself and wholeEarthBBox until no part left outside
-   *
-   * Also flips-translates pole-crossing geometries to be within whole earth BBOX
    */
   def getAntimeridianAntipodeanSafeGeometry(targetGeom: Geometry): Geometry = {
 
@@ -577,7 +580,7 @@ object GeohashUtils
       val wholeEarthPart = wholeEarthBBox.intersection(geometryThatMayExceed180Lon)
       val poleCrossingPart = wholeEarthCrossingPolesBBOX.intersection(geometryThatMayExceed180Lon).difference(wholeEarthBBox)
       val outsidePart = geometryThatMayExceed180Lon.difference(wholeEarthCrossingPolesBBOX)
-      (outsidePart.isEmpty, poleCrossingPart.isEmpty) match {
+      (outsidePart.isEmpty || outsidePart.getEnvelopeInternal.getMaxX < 180, poleCrossingPart.isEmpty) match {
         case (true, true) => wholeEarthPart
         case (true, false) => wholeEarthPart
           .union(transformGeometry(poleCrossingPart, flipCoord()))
