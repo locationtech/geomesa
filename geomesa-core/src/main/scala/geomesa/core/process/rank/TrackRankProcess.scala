@@ -150,10 +150,11 @@ class LineStringTubeBuilder(tubeFeatures: SimpleFeatureCollection, bufferDistanc
     val transformed = transform(tubeFeatures, dtgField)
     val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
     val coords = sortedTube.map { getGeom(_).getCentroid.getCoordinate }
-    val ls = new CoordinateArraySequence(coords.toArray)
+    val cas = new CoordinateArraySequence(coords.toArray)
     val times = sortedTube.map(getStartTime(_))
     val t1 = times.min
     val t2 = times.max
+    val ls = new LineString(cas, geoFac)
     builder.reset
     Iterator(builder.buildFeature("0", Array(ls, t1, t2)))
   }

@@ -99,8 +99,8 @@ class TubeSelectProcess {
 }
 
 case class TubeSelectProcessInputs(tubeFeatures: SimpleFeatureCollection, featureCollection: SimpleFeatureCollection,
-                                   filter: Filter, maxSpeed: Long, maxTime: Long, bufferSize: Double,maxBins: Int,
-                                   gapFill: String) {
+                                   filter: Filter, maxSpeed: java.lang.Long, maxTime: java.lang.Long,
+                                   bufferSize: java.lang.Double, maxBins: java.lang.Integer, gapFill: String) {
   def toParameters = new TubeSelectParameters(this)
 }
 
@@ -108,13 +108,13 @@ class TubeSelectParameters(processInputs: TubeSelectProcessInputs) {
   val tubeFeatures = processInputs.tubeFeatures
   val featureCollection = processInputs.featureCollection
   val filter = Option(processInputs.filter).getOrElse(Filter.INCLUDE)
-  val maxSpeed = Option(processInputs.maxSpeed).getOrElse(0L)
-  val maxTime = Option(processInputs.maxTime).getOrElse(0L)
-  val bufferSize = Option(processInputs.bufferSize).getOrElse(0.0)
-  val maxBins = Option(processInputs.maxBins).getOrElse(0)
+  val maxSpeed = Option(processInputs.maxSpeed).getOrElse(0L).asInstanceOf[Long]
+  val maxTime = Option(processInputs.maxTime).getOrElse(0L).asInstanceOf[Long]
+  val bufferSize = Option(processInputs.bufferSize).getOrElse(0.0).asInstanceOf[Double]
+  val maxBins = Option(processInputs.maxBins).getOrElse(0).asInstanceOf[Int]
   val gapFill = Option(processInputs.gapFill).map(GapFill.withName).getOrElse(GapFill.NOFILL)
 
-  val bufferDistance =  if(bufferSize > 0) bufferSize else maxSpeed * maxTime
+  val bufferDistance =  if (bufferSize > 0) bufferSize else maxSpeed * maxTime
 }
 
 object GapFill extends Enumeration{
