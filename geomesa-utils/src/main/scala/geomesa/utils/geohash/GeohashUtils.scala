@@ -41,6 +41,34 @@ object GeohashUtils
   // the list of allowable GeoHash characters
   val base32seq = GeoHash.base32.toSeq
 
+  lazy val wholeEarthBBox = defaultGeometryFactory.createPolygon(List[Coordinate] (
+    new Coordinate(-180, 90),
+    new Coordinate(-180, -90),
+    new Coordinate(180, -90),
+    new Coordinate(180, 90),
+    new Coordinate(-180, 90)).toArray)
+
+  lazy val acrossNorthPoleBBOX = defaultGeometryFactory.createPolygon(List[Coordinate] (
+    new Coordinate(-180, 180),
+    new Coordinate(-180, 90),
+    new Coordinate(180, 90),
+    new Coordinate(180, 180),
+    new Coordinate(-180, 180)).toArray)
+
+  lazy val acrossSouthPoleBBOX = defaultGeometryFactory.createPolygon(List[Coordinate] (
+    new Coordinate(-180, -90),
+    new Coordinate(-180, -180),
+    new Coordinate(180, -180),
+    new Coordinate(180, -90),
+    new Coordinate(-180, -90)).toArray)
+
+  lazy val wholeEarthCrossingPolesBBOX = defaultGeometryFactory.createPolygon(List[Coordinate] (
+    new Coordinate(-180, 180),
+    new Coordinate(-180, -180),
+    new Coordinate(180, -180),
+    new Coordinate(180, 180),
+    new Coordinate(-180, 180)).toArray)
+
   /**
    * Simple place-holder for a pair of resolutions, minimum and maximum, along
    * with an increment.
@@ -550,47 +578,95 @@ object GeohashUtils
     case _                                                   => targetGeom.convexHull
   }
 
+  def translateCoord(degreesLonTranslation: Int): Coordinate => Coordinate =
+    (coord: Coordinate) => new Coordinate(coord.x + degreesLonTranslation, coord.y)
+
+  def flipCoord(): Coordinate => Coordinate =
+    (coord: Coordinate) => new Coordinate(translateLonForLatFlip(coord.x), flipLat(coord.y))
+
+  def flipLat(lat: Double): Double = Math.signum(lat) * 180 - lat
+
+  def translateLonForLatFlip(lon: Double): Double = lon - Math.signum(lon) * 180
+
+  def transformPolygon(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
+    defaultGeometryFactory.createPolygon(geometry.getCoordinates.map(c => transform(c)))
+  }
+
+  def transformLineString(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
+    defaultGeometryFactory.createLineString(geometry.getCoordinates.map(c => transform(c)))
+  }
+
+  def transformMultiLineString(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
+    val coords = (0 until geometry.getNumGeometries).map { i => geometry.getGeometryN(i) }
+    val translated = coords.map { c => transformLineString(c, transform).asInstanceOf[LineString] }
+    defaultGeometryFactory.createMultiLineString(translated.toArray)
+  }
+
+  def transformMultiPolygon(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
+    val coords = (0 until geometry.getNumGeometries).map { i => geometry.getGeometryN(i) }
+    val translated = coords.map { c => transformPolygon(c, transform).asInstanceOf[Polygon] }
+    defaultGeometryFactory.createMultiPolygon(translated.toArray)
+  }
+
+  def transformMultiPoint(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
+    defaultGeometryFactory.createMultiPoint(geometry.getCoordinates.map(c => transform(c)))
+  }
+
+  def transformPoint(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
+    defaultGeometryFactory.createPoint(transform(geometry.getCoordinate))
+  }
+
   /**
-   * Translate possible antemeridian-spanning geometry east until minimum lon [180, 540]
-   * (so that when you translate it 360 to the left and difference with whole earth BBOX you are guaranteed to not have any part west of whole earth)
+   * Translate possible antimeridian-spanning geometry east until minimum lon [-180, 180]
+   * (so that when you difference with whole earth BBOX you are guaranteed to not have any part west of whole earth)
    * Recursively translate left 360 and union with intersection of itself and wholeEarthBBox until no part left outside
+   *
+   * Also flips-translates pole-crossing geometries to be within whole earth BBOX
    */
-  def getAntemeridianSafeDecomposition(targetGeom: Geometry): Geometry = {
-    val wholeEarthBBox = defaultGeometryFactory.createPolygon(List[Coordinate](new Coordinate(-180, 90), new Coordinate(-180, -90), new Coordinate(180, -90), new Coordinate(180, 90), new Coordinate(-180, 90)).toArray)
+  def getAntimeridianAntipodeanSafeGeometry(targetGeom: Geometry): Geometry = {
 
-    def recurseRight(geometryOutsideEarth: Geometry): Geometry = {
-      val translatedLeft = translateGeometry(geometryOutsideEarth, -360)
-      val wholeEarthPart = wholeEarthBBox.intersection(translatedLeft)
-      val outsidePart = translatedLeft.difference(wholeEarthBBox)
-      outsidePart.isEmpty match {
-        case true => { wholeEarthPart }
-        case false => { wholeEarthPart.union(recurseRight(outsidePart)) }
+    def recurseRight(geometryThatMayExceed180Lon: Geometry): Geometry = {
+      val wholeEarthPart = wholeEarthBBox.intersection(geometryThatMayExceed180Lon)
+      val northPolePart = acrossNorthPoleBBOX.intersection(geometryThatMayExceed180Lon)
+      val southPolePart = acrossSouthPoleBBOX.intersection(geometryThatMayExceed180Lon)
+      val outsidePart = geometryThatMayExceed180Lon.difference(wholeEarthCrossingPolesBBOX)
+      (outsidePart.isEmpty, northPolePart.isEmpty, southPolePart.isEmpty) match {
+        case (true, true, true) => wholeEarthPart
+        case (true, true, false) => wholeEarthPart
+          .union(transformGeometry(southPolePart, flipCoord()))
+        case (true, false, true) => wholeEarthPart
+          .union(transformGeometry(northPolePart, flipCoord()))
+        case (true, false, false) => wholeEarthPart
+          .union(transformGeometry(northPolePart, flipCoord()))
+          .union(transformGeometry(southPolePart, flipCoord()))
+        case (false, true, true) => wholeEarthPart
+          .union(recurseRight(transformGeometry(outsidePart, translateCoord(-360))))
+        case (false, true, false) => wholeEarthPart
+          .union(recurseRight(transformGeometry(outsidePart, translateCoord(-360))))
+          .union(transformGeometry(southPolePart, flipCoord()))
+        case (false, false, true) => wholeEarthPart
+          .union(recurseRight(transformGeometry(outsidePart, translateCoord(-360))))
+          .union(transformGeometry(northPolePart, flipCoord()))
+        case (false, false, false) => wholeEarthPart
+          .union(recurseRight(transformGeometry(outsidePart, translateCoord(-360))))
+          .union(transformGeometry(northPolePart, flipCoord()))
+          .union(transformGeometry(southPolePart, flipCoord()))
       }
     }
 
-    def translateCoords(coords: Array[Coordinate], degreesLonTranslation: Int): Array[Coordinate] = coords.map(c => new Coordinate(c.x + degreesLonTranslation, c.y))
-
-    def translateGeometry(geometry: Geometry, degreesLonTranslation: Int): Geometry = {
+    def transformGeometry(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
       geometry match {
-        case p: Polygon => defaultGeometryFactory.createPolygon(translateCoords(geometry.getCoordinates, degreesLonTranslation))
-        case l: LineString => defaultGeometryFactory.createLineString(translateCoords(geometry.getCoordinates, degreesLonTranslation))
-        case m: MultiLineString => defaultGeometryFactory.createMultiLineString(
-          (for (i <- 0 until geometry.getNumGeometries) yield {
-            translateGeometry(geometry.getGeometryN(i), degreesLonTranslation)
-          }).toArray.map(f => f.asInstanceOf[LineString])
-        )
-        case m: MultiPolygon => defaultGeometryFactory.createMultiPolygon(
-          (for (i <- 0 until geometry.getNumGeometries) yield {
-            translateGeometry(geometry.getGeometryN(i), degreesLonTranslation)
-          }).toArray.map(f => f.asInstanceOf[Polygon])
-        )
-        case m: MultiPoint => defaultGeometryFactory.createMultiPoint(translateCoords(geometry.getCoordinates, degreesLonTranslation))
-        case p: Point => defaultGeometryFactory.createPoint(translateCoords(geometry.getCoordinates, degreesLonTranslation)(0))
+        case p: Polygon => transformPolygon(geometry, transform)
+        case l: LineString => transformLineString(geometry, transform)
+        case m: MultiLineString => transformMultiLineString(geometry, transform)
+        case m: MultiPolygon => transformMultiPolygon(geometry, transform)
+        case m: MultiPoint => transformMultiPoint(geometry, transform)
+        case p: Point => transformPoint(geometry, transform)
       }
     }
 
-    val degreesLonTranslation = (((targetGeom.getEnvelopeInternal.getMinX + 180) / 360.0).floor * -360).toInt + 360
-    recurseRight(translateGeometry(targetGeom, degreesLonTranslation))
+    val degreesLonTranslation = (((targetGeom.getEnvelopeInternal.getMinX + 180) / 360.0).floor * -360).toInt
+    recurseRight(transformGeometry(targetGeom, translateCoord(degreesLonTranslation)))
   }
 
   /**
@@ -604,9 +680,11 @@ object GeohashUtils
     // quick hit to avoid wasting time for single points
     targetGeom match {
       case point: Point => List(GeoHash(point.getX, point.getY, resolutions.maxBitsResolution))
-      case _ => decomposeGeometry_(
-        if (relaxFit) getDecomposableGeometry(targetGeom)
-        else getAntemeridianSafeDecomposition(targetGeom), maxSize, resolutions)
+      case _ =>
+        val safeGeom = getAntimeridianAntipodeanSafeGeometry(targetGeom)
+        decomposeGeometry_(
+          if (relaxFit) getDecomposableGeometry(safeGeom)
+          else safeGeom, maxSize, resolutions)
     }
 
   /**
