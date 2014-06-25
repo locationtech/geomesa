@@ -17,7 +17,7 @@
 
 package geomesa.plugin.process
 
-import geomesa.core.process.rank.RouteRankProcess
+import geomesa.core.process.rank.{TrackRankProcess, RouteRankProcess}
 import org.geotools.process.factory.AnnotatedBeanProcessFactory
 import org.geotools.text.Text
 import geomesa.core.process.tube.TubeSelectProcess
@@ -32,5 +32,6 @@ class ProcessFactory
     classOf[TubeSelectProcess],
     classOf[ProximitySearchProcess],
     classOf[QueryProcess],
-    classOf[RouteRankProcess])
+    classOf[RouteRankProcess],
+    classOf[TrackRankProcess])
 
