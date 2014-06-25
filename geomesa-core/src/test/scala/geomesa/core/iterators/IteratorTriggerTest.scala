@@ -80,12 +80,7 @@ class IteratorTriggerTest extends Specification {
         ))
 
       ds.createSchema(testFeatureType)
-      val fs = ds.getFeatureSource(featureName).asInstanceOf[SimpleFeatureStore]
-      //val dataFeatures = convertToSimpleFeatures(entries)
-      //val featureCollection = DataUtilities.collection(dataFeatures)
-      //fs.addFeatures(featureCollection)
-      //fs.getTransaction.commit()
-      fs
+      ds.getFeatureSource(featureName).asInstanceOf[SimpleFeatureStore]
     }
 
     /**
