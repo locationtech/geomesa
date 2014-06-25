@@ -296,7 +296,7 @@ class FeatureWritersTest extends Specification {
         val ds = createStore
         val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
-        val attr = index.SF_PROPERTY_START_TIME
+        val attr = "dtg"
 
         val filter = CQL.toFilter("name = 'will' or name='george'")
         val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
@@ -304,7 +304,7 @@ class FeatureWritersTest extends Specification {
         val newDate = sdf.parse("20140202")
         while(writer.hasNext){
           val sf = writer.next
-          sf.setAttribute(index.SF_PROPERTY_START_TIME, newDate)
+          sf.setAttribute(attr, newDate)
           writer.write
         }
         writer.close
@@ -346,11 +346,11 @@ class FeatureWritersTest extends Specification {
 
         val filter = CQL.toFilter("include")
         val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
-
+        val attr = "dtg"
         val newDate = sdf.parse("20120102")
         while(writer.hasNext){
           val sf = writer.next
-          sf.setAttribute(index.SF_PROPERTY_START_TIME, newDate)
+          sf.setAttribute(attr, newDate)
           sf.setDefaultGeometry(WKTUtils.read("POINT(10.0 10.0)"))
           writer.write
         }
@@ -373,7 +373,7 @@ class FeatureWritersTest extends Specification {
 
           o.getID must be equalTo(n.getID)
           o.getDefaultGeometry must not be equalTo(n.getDefaultGeometry)
-          o.getAttribute(index.SF_PROPERTY_START_TIME) must not be equalTo(n.getAttribute(index.SF_PROPERTY_START_TIME))
+          o.getAttribute(attr) must not be equalTo(n.getAttribute(attr))
         }
       }
 

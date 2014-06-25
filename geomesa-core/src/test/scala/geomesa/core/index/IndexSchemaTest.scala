@@ -17,6 +17,7 @@
 package geomesa.core.index
 
 import com.vividsolutions.jts.geom._
+import geomesa.core._
 import geomesa.core.data.SimpleFeatureEncoderFactory
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.data.Key
@@ -33,8 +34,8 @@ class IndexSchemaTest extends Specification {
 
   import collection.JavaConversions._
 
-  val dummyType = DataUtilities.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$SF_PROPERTY_GEOMETRY:Geometry,$SF_PROPERTY_START_TIME:Date,$SF_PROPERTY_END_TIME:Date")
-  val customType = DataUtilities.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,*the_geom:Geometry,dt_start:Date,$SF_PROPERTY_END_TIME:Date")
+  val dummyType = DataUtilities.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
+  val customType = DataUtilities.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,*the_geom:Geometry,dt_start:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
   customType.getUserData.put(SF_PROPERTY_START_TIME, "dt_start")
   val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
 
@@ -147,7 +148,7 @@ class IndexSchemaTest extends Specification {
 
       // the decoded date will only be accurate to the (year, month, day)
       // (but beware time-zone effects for direct comparison!)
-      val dtOut = decoded.getAttribute(SF_PROPERTY_START_TIME).asInstanceOf[Option[DateTime]].getOrElse(
+      val dtOut = decoded.getAttribute(DEFAULT_DTG_PROPERTY_NAME).asInstanceOf[Option[DateTime]].getOrElse(
         throw new Exception("Invalid date field.")).toDate
       // time should be off by 12 hours and 5 minutes
       // (the portion beyond "yyyyMMdd")

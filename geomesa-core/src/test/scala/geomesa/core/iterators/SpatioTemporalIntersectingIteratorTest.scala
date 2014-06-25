@@ -19,6 +19,7 @@ package geomesa.core.iterators
 import collection.JavaConversions._
 import collection.JavaConverters._
 import com.vividsolutions.jts.geom.{Polygon, Geometry}
+import geomesa.core._
 import geomesa.core.data.SimpleFeatureEncoderFactory
 import geomesa.core.index._
 import geomesa.utils.text.WKTUtils
@@ -339,10 +340,10 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
 
   "Large Mock Accumulo with a meaningful attribute-filter" should {
     "return a partial results-set" in {
-      val ecqlFilter = "(not " + SF_PROPERTY_START_TIME +
-        " after 2010-08-08T23:59:59Z) and (not " + SF_PROPERTY_END_TIME +
+      val ecqlFilter = "(not " + DEFAULT_DTG_PROPERTY_NAME +
+        " after 2010-08-08T23:59:59Z) and (not " + DEFAULT_DTG_END_PROPERTY_NAME +
         " before 2010-08-08T00:00:00Z)"
-
+      println(ecqlFilter)
       // run this query on regular data
       val numHits: Int = runMockAccumuloTest("mock-huge",
         TestData.hugeData, Some(ecqlFilter), TestData.hugeData.size)
