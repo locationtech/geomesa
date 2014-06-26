@@ -217,7 +217,8 @@ object AvroSimpleFeature {
       new GenericDatumWriter[GenericRecord](avroSchemaCache.get(sft))
     }
 
-  val attributeNameLookUp = scala.collection.mutable.Map[String, String]()
+  private val attributeNameLookUp = new scala.collection.mutable.HashMap[String, String]()
+    with scala.collection.mutable.SynchronizedMap[String, String]
 
   final val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   final val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
