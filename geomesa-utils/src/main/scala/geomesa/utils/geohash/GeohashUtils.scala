@@ -48,13 +48,6 @@ object GeohashUtils
     new Coordinate(180, 90),
     new Coordinate(-180, 90)).toArray)
 
-  lazy val wholeEarthCrossingPolesBBOX = defaultGeometryFactory.createPolygon(List[Coordinate] (
-    new Coordinate(-180, 180),
-    new Coordinate(-180, -180),
-    new Coordinate(180, -180),
-    new Coordinate(180, 180),
-    new Coordinate(-180, 180)).toArray)
-
   /**
    * Simple place-holder for a pair of resolutions, minimum and maximum, along
    * with an increment.
@@ -567,40 +560,26 @@ object GeohashUtils
   /**
    * Transforms a geometry with lon in (-inf, inf) and lat in [-180,180] to a geometry in whole earth BBOX.
    * Geometries with lon < -180 or lon > 180 wrap around.
-   * Geometries with lat < -90 or lat > 90 cross poles (translated 180 degrees lon and lat is reflected about pole)
-   * Geometries outside lat [-180, 180] are ignored.
+   * Parts of geometries with lat outside [-90,90] are ignored.
    *
    * How it works: Translates geometry east until minimum lon [-180, 180]
    * (so that when you difference with whole earth BBOX you are guaranteed to not have any part west of whole earth)
    * Recursively translate left 360 and union with intersection of itself and wholeEarthBBox until no part left outside
    */
-  def getAntimeridianAntipodeanSafeGeometry(targetGeom: Geometry): Geometry = {
+  def getAntimeridianSafeGeometry(targetGeom: Geometry): Geometry = {
 
     def recurseRight(geometryThatMayExceed180Lon: Geometry): Geometry = {
       val wholeEarthPart = wholeEarthBBox.intersection(geometryThatMayExceed180Lon)
-      val poleCrossingPart = wholeEarthCrossingPolesBBOX.intersection(geometryThatMayExceed180Lon).difference(wholeEarthBBox)
-      val outsidePart = geometryThatMayExceed180Lon.difference(wholeEarthCrossingPolesBBOX)
-      (outsidePart.isEmpty || outsidePart.getEnvelopeInternal.getMaxX < 180, poleCrossingPart.isEmpty) match {
-        case (true, true) => wholeEarthPart
-        case (true, false) => wholeEarthPart
-          .union(transformGeometry(poleCrossingPart, flipCoord()))
-        case (false, true) => wholeEarthPart
+      val outsidePart = geometryThatMayExceed180Lon.difference(wholeEarthBBox)
+      (outsidePart.isEmpty || outsidePart.getEnvelopeInternal.getMaxX < 180) match {
+        case (true) => wholeEarthPart
+        case (false) => wholeEarthPart
           .union(recurseRight(transformGeometry(outsidePart, translateCoord(-360))))
-        case (false, false) => wholeEarthPart
-          .union(recurseRight(transformGeometry(outsidePart, translateCoord(-360))))
-          .union(transformGeometry(poleCrossingPart, flipCoord()))
       }
     }
 
     def translateCoord(degreesLonTranslation: Int): Coordinate => Coordinate =
       (coord: Coordinate) => new Coordinate(coord.x + degreesLonTranslation, coord.y)
-
-    def flipCoord(): Coordinate => Coordinate =
-      (coord: Coordinate) => new Coordinate(translateLonForLatFlip(coord.x), flipLat(coord.y))
-
-    def flipLat(lat: Double): Double = Math.signum(lat) * 180 - lat
-
-    def translateLonForLatFlip(lon: Double): Double = lon - Math.signum(lon) * 180
 
     def transformPolygon(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
       defaultGeometryFactory.createPolygon(geometry.getCoordinates.map(c => transform(c)))
@@ -657,7 +636,7 @@ object GeohashUtils
     targetGeom match {
       case point: Point => List(GeoHash(point.getX, point.getY, resolutions.maxBitsResolution))
       case _ =>
-        val safeGeom = getAntimeridianAntipodeanSafeGeometry(targetGeom)
+        val safeGeom = getAntimeridianSafeGeometry(targetGeom)
         decomposeGeometry_(
           if (relaxFit) getDecomposableGeometry(safeGeom)
           else safeGeom, maxSize, resolutions)
