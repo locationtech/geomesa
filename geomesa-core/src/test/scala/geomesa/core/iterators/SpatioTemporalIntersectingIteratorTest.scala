@@ -341,7 +341,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification {
       val ecqlFilter = "(not " + DEFAULT_DTG_PROPERTY_NAME +
         " after 2010-08-08T23:59:59Z) and (not " + DEFAULT_DTG_END_PROPERTY_NAME +
         " before 2010-08-08T00:00:00Z)"
-      println(ecqlFilter)
+
       // run this query on regular data
       val numHits: Int = runMockAccumuloTest("mock-huge",
         TestData.hugeData, Some(ecqlFilter), TestData.hugeData.size)
