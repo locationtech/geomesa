@@ -14,9 +14,9 @@ import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
 import org.apache.avro.{SchemaBuilder, Schema}
 import org.apache.commons.codec.binary.Hex
 import org.geotools.data.DataUtilities
-import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.feature.`type`.AttributeDescriptorImpl
 import org.geotools.feature.`type`.Types
+import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -25,6 +25,7 @@ import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 import org.opengis.feature.{Property, GeometryAttribute}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
+import scala.collection.mutable.{SynchronizedMap, HashMap}
 import scala.util.Try
 
 
@@ -217,7 +218,8 @@ object AvroSimpleFeature {
       new GenericDatumWriter[GenericRecord](avroSchemaCache.get(sft))
     }
 
-  val attributeNameLookUp = scala.collection.mutable.Map[String, String]()
+  private val attributeNameLookUp = new scala.collection.mutable.HashMap[String, String]()
+    with scala.collection.mutable.SynchronizedMap[String, String]
 
   final val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   final val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
