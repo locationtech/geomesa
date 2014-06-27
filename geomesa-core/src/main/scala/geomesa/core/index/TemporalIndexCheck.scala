@@ -24,7 +24,7 @@ case class TemporalIndexCheck(sft:SimpleFeatureType) extends Logging {
   val firstDtgCandidate = dtgCandidates.headOption
   val hasValidDtgCandidate = dtgCandidates.nonEmpty
   // if there is just one valid dtg candidate, then we can safely use it
-  val dtgShouldBeSet =  !hasValidDtgField  && dtgCandidates.length == 1
+  val dtgShouldBeSet =  !hasValidDtgField && hasValidDtgCandidate
   // emit a warning to the user
   if (!hasValidDtgField && hasValidDtgCandidate) emitDtgWarning(dtgCandidates)
   // if we are going to mutate UserData, notify the user
