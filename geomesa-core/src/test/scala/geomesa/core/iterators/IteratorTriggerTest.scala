@@ -147,7 +147,7 @@ class IteratorTriggerTest extends Specification {
     def useIndexOnlyIteratorTest(ecqlPred: String, transformText: Array[String]): Boolean = {
       val aQuery = TestTable.sampleQuery(ECQL.toFilter(ecqlPred), transformText)
       val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType)
-      IteratorTrigger.useIndexOnlyIterator(modECQLPred, aQuery, TestTable.testFeatureTypeSpec)
+      IteratorTrigger.useIndexOnlyIterator(modECQLPred, aQuery, TestTable.testFeatureType)
     }
 
     /**
