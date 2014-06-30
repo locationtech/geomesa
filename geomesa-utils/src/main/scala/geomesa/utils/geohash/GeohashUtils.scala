@@ -558,7 +558,7 @@ object GeohashUtils
   }
 
   /**
-   * Transforms a geometry with lon in (-inf, inf) and lat in [-180,180] to a geometry in whole earth BBOX.
+   * Transforms a geometry with lon in (-inf, inf) and lat in [-90,90] to a geometry in whole earth BBOX.
    * Geometries with lon < -180 or lon > 180 wrap around.
    * Parts of geometries with lat outside [-90,90] are ignored.
    *
@@ -566,62 +566,58 @@ object GeohashUtils
    * (so that when you difference with whole earth BBOX you are guaranteed to not have any part west of whole earth)
    * Recursively translate left 360 and union with intersection of itself and wholeEarthBBox until no part left outside
    */
-  def getAntimeridianSafeGeometry(targetGeom: Geometry): Geometry = {
+  def getInternationalDateLineSafeGeometry(targetGeom: Geometry): Geometry = {
 
     def recurseRight(geometryThatMayExceed180Lon: Geometry): Geometry = {
       val wholeEarthPart = wholeEarthBBox.intersection(geometryThatMayExceed180Lon)
       val outsidePart = geometryThatMayExceed180Lon.difference(wholeEarthBBox)
-      (outsidePart.isEmpty || outsidePart.getEnvelopeInternal.getMaxX < 180) match {
-        case (true) => wholeEarthPart
-        case (false) => wholeEarthPart
-          .union(recurseRight(transformGeometry(outsidePart, translateCoord(-360))))
-      }
+      if (outsidePart.isEmpty || outsidePart.getEnvelopeInternal.getMaxX < 180)
+        wholeEarthPart
+      else
+        wholeEarthPart.union(recurseRight(translateGeometry(outsidePart, -360)))
     }
 
-    def translateCoord(degreesLonTranslation: Int): Coordinate => Coordinate =
-      (coord: Coordinate) => new Coordinate(coord.x + degreesLonTranslation, coord.y)
+    def translateCoord(coord: Coordinate, degreesLonTranslation: Int): Coordinate =
+      new Coordinate(coord.x + degreesLonTranslation, coord.y)
 
-    def transformPolygon(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
-      defaultGeometryFactory.createPolygon(geometry.getCoordinates.map(c => transform(c)))
-    }
+    def translatePolygon(geometry: Geometry, degreesLonTranslation: Int): Geometry =
+      defaultGeometryFactory.createPolygon(geometry.getCoordinates.map(c => translateCoord(c, degreesLonTranslation)))
 
-    def transformLineString(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
-      defaultGeometryFactory.createLineString(geometry.getCoordinates.map(c => transform(c)))
-    }
+    def translateLineString(geometry: Geometry, degreesLonTranslation: Int): Geometry =
+      defaultGeometryFactory.createLineString(geometry.getCoordinates.map(c => translateCoord(c, degreesLonTranslation)))
 
-    def transformMultiLineString(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
+    def translateMultiLineString(geometry: Geometry, degreesLonTranslation: Int): Geometry = {
       val coords = (0 until geometry.getNumGeometries).map { i => geometry.getGeometryN(i) }
-      val translated = coords.map { c => transformLineString(c, transform).asInstanceOf[LineString] }
+      val translated = coords.map { c => translateLineString(c, degreesLonTranslation).asInstanceOf[LineString] }
       defaultGeometryFactory.createMultiLineString(translated.toArray)
     }
 
-    def transformMultiPolygon(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
+    def translateMultiPolygon(geometry: Geometry, degreesLonTranslation: Int): Geometry = {
       val coords = (0 until geometry.getNumGeometries).map { i => geometry.getGeometryN(i) }
-      val translated = coords.map { c => transformPolygon(c, transform).asInstanceOf[Polygon] }
+      val translated = coords.map { c => translatePolygon(c, degreesLonTranslation).asInstanceOf[Polygon] }
       defaultGeometryFactory.createMultiPolygon(translated.toArray)
     }
 
-    def transformMultiPoint(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
-      defaultGeometryFactory.createMultiPoint(geometry.getCoordinates.map(c => transform(c)))
+    def translateMultiPoint(geometry: Geometry, degreesLonTranslation: Int): Geometry =
+      defaultGeometryFactory.createMultiPoint(geometry.getCoordinates.map(c => translateCoord(c, degreesLonTranslation)))
+
+    def translatePoint(geometry: Geometry, degreesLonTranslation: Int): Geometry = {
+      defaultGeometryFactory.createPoint(translateCoord(geometry.getCoordinate, degreesLonTranslation))
     }
 
-    def transformPoint(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
-      defaultGeometryFactory.createPoint(transform(geometry.getCoordinate))
-    }
-
-    def transformGeometry(geometry: Geometry, transform: Coordinate => Coordinate): Geometry = {
+    def translateGeometry(geometry: Geometry, degreesLonTranslation: Int): Geometry = {
       geometry match {
-        case p: Polygon => transformPolygon(geometry, transform)
-        case l: LineString => transformLineString(geometry, transform)
-        case m: MultiLineString => transformMultiLineString(geometry, transform)
-        case m: MultiPolygon => transformMultiPolygon(geometry, transform)
-        case m: MultiPoint => transformMultiPoint(geometry, transform)
-        case p: Point => transformPoint(geometry, transform)
+        case p: Polygon =>          translatePolygon(geometry, degreesLonTranslation)
+        case l: LineString =>       translateLineString(geometry, degreesLonTranslation)
+        case m: MultiLineString =>  translateMultiLineString(geometry, degreesLonTranslation)
+        case m: MultiPolygon =>     translateMultiPolygon(geometry, degreesLonTranslation)
+        case m: MultiPoint =>       translateMultiPoint(geometry, degreesLonTranslation)
+        case p: Point =>            translatePoint(geometry, degreesLonTranslation)
       }
     }
 
     val degreesLonTranslation = (((targetGeom.getEnvelopeInternal.getMinX + 180) / 360.0).floor * -360).toInt
-    recurseRight(transformGeometry(targetGeom, translateCoord(degreesLonTranslation)))
+    recurseRight(translateGeometry(targetGeom, degreesLonTranslation))
   }
 
   /**
@@ -636,7 +632,7 @@ object GeohashUtils
     targetGeom match {
       case point: Point => List(GeoHash(point.getX, point.getY, resolutions.maxBitsResolution))
       case _ =>
-        val safeGeom = getAntimeridianSafeGeometry(targetGeom)
+        val safeGeom = getInternationalDateLineSafeGeometry(targetGeom)
         decomposeGeometry_(
           if (relaxFit) getDecomposableGeometry(safeGeom)
           else safeGeom, maxSize, resolutions)
