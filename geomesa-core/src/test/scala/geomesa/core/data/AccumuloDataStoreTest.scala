@@ -340,6 +340,55 @@ class AccumuloDataStoreTest extends Specification {
       } finally System.clearProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
     }
 
+    "fail when schema does not match metadata" in {
+      val sftName = "schematest"
+      // slight tweak from default - add '-fr' to name
+      val schema = s"%~#s%99#r%${sftName}-fr#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
+      val ds = DataStoreFinder.getDataStore(Map(
+                                                 "instanceId" -> "mycloud",
+                                                 "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+                                                 "user"       -> "myuser",
+                                                 "password"   -> "mypassword",
+                                                 "auths"      -> "A,B,C",
+                                                 "tableName"  -> "schematest",
+                                                 "useMock"    -> "true",
+                                                 "indexSchemaFormat"    -> schema,
+                                                 "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+
+      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val ds2 = DataStoreFinder.getDataStore(Map(
+                                                  "instanceId" -> "mycloud",
+                                                  "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+                                                  "user"       -> "myuser",
+                                                  "password"   -> "mypassword",
+                                                  "auths"      -> "A,B,C",
+                                                  "tableName"  -> "schematest",
+                                                  "useMock"    -> "true",
+                                                  "indexSchemaFormat"    -> "xyz",
+                                                  "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+
+      ds2.getFeatureReader(sftName) should throwA[RuntimeException]
+    }
+
+    "allow custom schema metadata if not specified" in {
+      // relies on data store created in previous test
+      val ds = DataStoreFinder.getDataStore(Map(
+                                                 "instanceId" -> "mycloud",
+                                                 "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+                                                 "user"       -> "myuser",
+                                                 "password"   -> "mypassword",
+                                                 "auths"      -> "A,B,C",
+                                                 "tableName"  -> "schematest",
+                                                 "useMock"    -> "true",
+                                                 "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      val sftName = "schematest"
+
+      val fr = ds.getFeatureReader(sftName)
+      fr should not be null
+    }
+
     "allow users with sufficient auths to write data" in {
       // create the data store
       val ds = DataStoreFinder.getDataStore(Map(
