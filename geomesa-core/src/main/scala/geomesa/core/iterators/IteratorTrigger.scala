@@ -37,7 +37,7 @@ object IteratorTrigger {
       // check if an attribute with the default name exists
       val nameFromCurrentDefault = Some(attributeDefault).filter { attributePresent }
 
-      nameFromUserData orElse nameFromOldDefault orElse  nameFromCurrentDefault
+      nameFromUserData orElse nameFromOldDefault orElse nameFromCurrentDefault
     }
 
     def attributePresent(attributeKey: String): Boolean = Option(sft.getDescriptor(attributeKey)).isDefined
