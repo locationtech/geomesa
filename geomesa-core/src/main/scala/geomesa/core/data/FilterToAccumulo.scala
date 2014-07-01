@@ -21,6 +21,7 @@ import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
 import geomesa.core.index
 import geomesa.utils.filters.Filters._
+import geomesa.utils.geotools.GeometryUtils.getAntimeridianSafeGeometry
 import geomesa.utils.geometry.Geometry._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.GeometryUtils
@@ -38,6 +39,7 @@ import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 import org.opengis.temporal.{Period => OGCPeriod, Instant}
+import geomesa.utils.geohash.BoundingBox
 
 object FilterToAccumulo {
   val allTime              = new Interval(0, Long.MaxValue)
@@ -254,12 +256,27 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
 
   private def visitBBOX(op: BBOX, acc: Filter): Filter = {
     val e1 = op.getExpression1.asInstanceOf[PropertyName]
+    val e2 = op.getExpression2.asInstanceOf[Literal]
     val attr = e1.evaluate(sft).asInstanceOf[AttributeDescriptor]
     if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
       ff.and(acc, op)
     } else {
-      spatialPredicate = JTS.toGeometry(op.getBounds)
-      acc
+      val geom = e2.evaluate(null, classOf[Geometry])
+      val safeGeometry = getAntimeridianSafeGeometry(geom)
+      safeGeometry match {
+        case p: Polygon =>
+          spatialPredicate = JTS.toGeometry(op.getBounds)
+          
+          acc
+        case mp: MultiPolygon =>
+          spatialPredicate = safeGeometry.getEnvelope.asInstanceOf[Polygon]
+          val polygonList = getGeometryListOf(safeGeometry)
+          val filterList = polygonList.map(
+            p => doCorrectSpatialCall(op, sft.getGeometryDescriptor.getLocalName, p)
+          )
+          val alteredFilter = ff.or(filterList)
+          ff.and(acc, alteredFilter)
+      }
     }
   }
 
@@ -271,9 +288,20 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
       ff.and(acc, op)
     } else {
       val geom = e2.evaluate(null, classOf[Geometry])
-      spatialPredicate = geom.asInstanceOf[Polygon]
-      if(!geom.isRectangle) ff.and(acc, op)
-      else acc
+      val safeGeometry = getAntimeridianSafeGeometry(geom)
+      spatialPredicate = safeGeometry.getEnvelope.asInstanceOf[Polygon]
+      safeGeometry match {
+        case p: Polygon =>
+          if(!safeGeometry.isRectangle) ff.and(acc, op)
+          else acc
+        case mp: MultiPolygon =>
+          val polygonList = getGeometryListOf(safeGeometry)
+          val filterList = polygonList.map(
+            p => doCorrectSpatialCall(op, sft.getGeometryDescriptor.getLocalName, p)
+          )
+          val alteredFilter = ff.or(filterList)
+          ff.and(acc, alteredFilter)
+      }
     }
   }
 
@@ -332,6 +360,19 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
       acc
     }
   }
+
+  def doCorrectSpatialCall(op: BinarySpatialOperator, property: String, geom: Geometry): Filter = op match {
+    case op: Within => ff.within( ff.property(property), ff.literal(geom) )
+    case op: Intersects => ff.intersects( ff.property(property), ff.literal(geom) )
+    case op: Overlaps => ff.overlaps( ff.property(property), ff.literal(geom) )
+    case op: BBOX =>
+      val envelope = geom.getEnvelopeInternal
+      ff.bbox( ff.property(property), envelope.getMinX, envelope.getMinY,
+        envelope.getMaxX, envelope.getMaxY, op.getSRS )
+  }
+
+  def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
+    for( i <- 0 until inMP.getNumGeometries) yield inMP.getGeometryN(i)
 
   private def extractDTG(o: AnyRef) = parseDTG(o).withZone(DateTimeZone.UTC)
 
