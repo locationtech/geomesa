@@ -23,29 +23,30 @@ import scala.collection.JavaConverters._
 
 
 /**
- * Utility class for emitting a warning to the user if a SimpleFeatureType contains a temporal attribute, but
+ * Utility object for emitting a warning to the user if a SimpleFeatureType contains a temporal attribute, but
  * none is used in the index.
  *
- * Furthermore, this class presents a candidate to be used in this case.
+ * Furthermore, this object presents a candidate to be used in this case.
  *
  * This is useful since the only symptom of this mistake is slower than normal queries on temporal ranges.
  */
-
-case class TemporalIndexCheck(sft:SimpleFeatureType) extends Logging {
-  // check if the attribute is actually present
-  val hasValidDtgField = index.getDtgDescriptor(sft).isDefined
-  // get all attributes which may be used
-  val dtgCandidates = scanForTemporalAttributes(sft)
-  // we may wish to use the first acceptable attribute found, although we currently require just one match
-  val firstDtgCandidate = dtgCandidates.headOption
-  val hasValidDtgCandidate = dtgCandidates.nonEmpty
-  // if there is just one valid dtg candidate, then we can safely use it
-  val dtgShouldBeSet =  !hasValidDtgField && hasValidDtgCandidate
-  // emit a warning to the user
-  if (!hasValidDtgField && hasValidDtgCandidate) emitDtgWarning(dtgCandidates)
-  // if we are going to mutate UserData, notify the user
-  if (dtgShouldBeSet) firstDtgCandidate.map { text =>emitDtgNotification(text) }
-
+object TemporalIndexCheck extends Logging {
+  def extractNewDTGFieldCandidate(sft:SimpleFeatureType): Option[String] = {
+    // check if the attribute is actually present
+    val hasValidDtgField = index.getDtgDescriptor(sft).isDefined
+    // get all attributes which may be used
+    val dtgCandidates = scanForTemporalAttributes(sft)
+    // we may wish to use the first acceptable attribute found, although we currently require just one match
+    val firstDtgCandidate = dtgCandidates.headOption
+    val hasValidDtgCandidate = dtgCandidates.nonEmpty
+    // if there is just one valid dtg candidate, then we can safely use it
+    val dtgShouldBeSet = !hasValidDtgField && hasValidDtgCandidate
+    // emit a warning to the user
+    if (!hasValidDtgField && hasValidDtgCandidate) emitDtgWarning(dtgCandidates)
+    // if we are going to mutate UserData, notify the user
+    if (dtgShouldBeSet) firstDtgCandidate.map { text => emitDtgNotification(text)}
+    firstDtgCandidate
+  }
   def emitDtgWarning(matches: List[String]) {
     lazy val theWarning =
                 s"""

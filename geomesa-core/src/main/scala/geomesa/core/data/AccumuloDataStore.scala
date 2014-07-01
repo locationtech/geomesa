@@ -39,7 +39,6 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
-import scala.Some
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
@@ -162,9 +161,8 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
     val dtgValue: Option[String] = {
       val userData = sft.getUserData
       // inspect, warn and set SF_PROPERTY_START_TIME if appropriate
-      val dtgInfo = TemporalIndexCheck(sft)
-      if (dtgInfo.dtgShouldBeSet)
-        dtgInfo.firstDtgCandidate.map { name => userData.put(core.index.SF_PROPERTY_START_TIME, name) }
+      TemporalIndexCheck.extractNewDTGFieldCandidate(sft)
+        .map { name => userData.put(core.index.SF_PROPERTY_START_TIME, name) }
       if (userData.containsKey(core.index.SF_PROPERTY_START_TIME))
         Option(userData.get(core.index.SF_PROPERTY_START_TIME).asInstanceOf[String])
       else
