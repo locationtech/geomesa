@@ -1,10 +1,26 @@
+/*
+* Copyright 2013 Commonwealth Computer Research, Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 package geomesa.core.index
 
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.index
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConverters._
+
 
 /**
  * Utility class for emitting a warning to the user if a SimpleFeatureType contains a temporal attribute, but
@@ -49,16 +65,13 @@ case class TemporalIndexCheck(sft:SimpleFeatureType) extends Logging {
       s"""
         |There is just one temporal attribute detected in the SimpleFeatureType.
         |SF_PROPERTY_START_TIME will be set to point to:
-        |${temporalAttributeName}
+        |$temporalAttributeName
       """.stripMargin
     logger.warn(theNotification)
   }
 
-  def scanForTemporalAttributes(sft: SimpleFeatureType): List[String] =
-    for {
-      descriptor: AttributeDescriptor <- sft.getAttributeDescriptors.asScala.toList
-        theType = descriptor.getType.getBinding.getCanonicalName
-        if theType == "java.util.Date"
-          temporalCandidateName = descriptor.getLocalName
-    } yield temporalCandidateName
+  def scanForTemporalAttributes(sft: SimpleFeatureType) =
+   sft.getAttributeDescriptors.asScala.toList
+     .withFilter{_.getType.getBinding == classOf[java.util.Date] }
+     .map {_.getLocalName}
 }
