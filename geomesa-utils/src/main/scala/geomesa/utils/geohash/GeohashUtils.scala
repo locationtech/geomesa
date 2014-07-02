@@ -23,6 +23,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import geomesa.utils.text.WKTUtils
 import scala.util.control.Exception.catching
+import com.spatial4j.core.shape.jts.JtsGeometry
+import com.spatial4j.core.context.jts.JtsSpatialContext
 
 /**
  * The following bits of code are related to common operations involving
@@ -558,66 +560,63 @@ object GeohashUtils
   }
 
   /**
-   * Transforms a geometry with lon in (-inf, inf) and lat in [-90,90] to a geometry in whole earth BBOX.
-   * Geometries with lon < -180 or lon > 180 wrap around.
+   * Transforms a geometry with lon in (-inf, inf) and lat in [-90,90] to a geometry in whole earth BBOX
+   * 1) any coords of geometry outside lon [-180,180] are transformed to be within [-180,180]
+   *    (to avoid spatial4j validation errors)
+   * 2) use spatial4j to create a geometry with inferred international dateline crossings
+   *    (if successive coordinates longitudinal difference is greater than 180)
    * Parts of geometries with lat outside [-90,90] are ignored.
-   *
-   * How it works: Translates geometry east until minimum lon [-180, 180]
-   * (so that when you difference with whole earth BBOX you are guaranteed to not have any part west of whole earth)
-   * Recursively translate left 360 and union with intersection of itself and wholeEarthBBox until no part left outside
    */
   def getInternationalDateLineSafeGeometry(targetGeom: Geometry): Geometry = {
 
-    def recurseRight(geometryThatMayExceed180Lon: Geometry): Geometry = {
-      val wholeEarthPart = wholeEarthBBox.intersection(geometryThatMayExceed180Lon)
-      val outsidePart = geometryThatMayExceed180Lon.difference(wholeEarthBBox)
-      if (outsidePart.isEmpty || outsidePart.getEnvelopeInternal.getMaxX < 180)
-        wholeEarthPart
-      else
-        wholeEarthPart.union(recurseRight(translateGeometry(outsidePart, -360)))
+    def degreesLonTranslation(lon: Double): Double = (((lon + 180) / 360.0).floor * -360).toInt
+
+    def translateCoord(coord: Coordinate): Coordinate = {
+      new Coordinate(coord.x + degreesLonTranslation(coord.x), coord.y)
     }
 
-    def translateCoord(coord: Coordinate, degreesLonTranslation: Int): Coordinate =
-      new Coordinate(coord.x + degreesLonTranslation, coord.y)
+    def translatePolygon(geometry: Geometry): Geometry =
+      defaultGeometryFactory.createPolygon(geometry.getCoordinates.map(c => translateCoord(c)))
 
-    def translatePolygon(geometry: Geometry, degreesLonTranslation: Int): Geometry =
-      defaultGeometryFactory.createPolygon(geometry.getCoordinates.map(c => translateCoord(c, degreesLonTranslation)))
+    def translateLineString(geometry: Geometry): Geometry =
+      defaultGeometryFactory.createLineString(geometry.getCoordinates.map(c => translateCoord(c)))
 
-    def translateLineString(geometry: Geometry, degreesLonTranslation: Int): Geometry =
-      defaultGeometryFactory.createLineString(geometry.getCoordinates.map(c => translateCoord(c, degreesLonTranslation)))
-
-    def translateMultiLineString(geometry: Geometry, degreesLonTranslation: Int): Geometry = {
+    def translateMultiLineString(geometry: Geometry): Geometry = {
       val coords = (0 until geometry.getNumGeometries).map { i => geometry.getGeometryN(i) }
-      val translated = coords.map { c => translateLineString(c, degreesLonTranslation).asInstanceOf[LineString] }
+      val translated = coords.map { c => translateLineString(c).asInstanceOf[LineString] }
       defaultGeometryFactory.createMultiLineString(translated.toArray)
     }
 
-    def translateMultiPolygon(geometry: Geometry, degreesLonTranslation: Int): Geometry = {
+    def translateMultiPolygon(geometry: Geometry): Geometry = {
       val coords = (0 until geometry.getNumGeometries).map { i => geometry.getGeometryN(i) }
-      val translated = coords.map { c => translatePolygon(c, degreesLonTranslation).asInstanceOf[Polygon] }
+      val translated = coords.map { c => translatePolygon(c).asInstanceOf[Polygon] }
       defaultGeometryFactory.createMultiPolygon(translated.toArray)
     }
 
-    def translateMultiPoint(geometry: Geometry, degreesLonTranslation: Int): Geometry =
-      defaultGeometryFactory.createMultiPoint(geometry.getCoordinates.map(c => translateCoord(c, degreesLonTranslation)))
+    def translateMultiPoint(geometry: Geometry): Geometry =
+      defaultGeometryFactory.createMultiPoint(geometry.getCoordinates.map(c => translateCoord(c)))
 
-    def translatePoint(geometry: Geometry, degreesLonTranslation: Int): Geometry = {
-      defaultGeometryFactory.createPoint(translateCoord(geometry.getCoordinate, degreesLonTranslation))
+    def translatePoint(geometry: Geometry): Geometry = {
+      defaultGeometryFactory.createPoint(translateCoord(geometry.getCoordinate))
     }
 
-    def translateGeometry(geometry: Geometry, degreesLonTranslation: Int): Geometry = {
+    def translateGeometry(geometry: Geometry): Geometry = {
       geometry match {
-        case p: Polygon =>          translatePolygon(geometry, degreesLonTranslation)
-        case l: LineString =>       translateLineString(geometry, degreesLonTranslation)
-        case m: MultiLineString =>  translateMultiLineString(geometry, degreesLonTranslation)
-        case m: MultiPolygon =>     translateMultiPolygon(geometry, degreesLonTranslation)
-        case m: MultiPoint =>       translateMultiPoint(geometry, degreesLonTranslation)
-        case p: Point =>            translatePoint(geometry, degreesLonTranslation)
+        case p: Polygon =>          translatePolygon(geometry)
+        case l: LineString =>       translateLineString(geometry)
+        case m: MultiLineString =>  translateMultiLineString(geometry)
+        case m: MultiPolygon =>     translateMultiPolygon(geometry)
+        case m: MultiPoint =>       translateMultiPoint(geometry)
+        case p: Point =>            translatePoint(geometry)
       }
     }
 
-    val degreesLonTranslation = (((targetGeom.getEnvelopeInternal.getMinX + 180) / 360.0).floor * -360).toInt
-    recurseRight(translateGeometry(targetGeom, degreesLonTranslation))
+    val withinBoundsGeom = if (targetGeom.getEnvelopeInternal.getMinX < -180 | targetGeom.getEnvelopeInternal.getMaxX > 180) {
+      translateGeometry(targetGeom)
+    } else targetGeom
+
+    val shape = JtsSpatialContext.GEO.makeShape(withinBoundsGeom, true, true)
+    shape.getGeom
   }
 
   /**
