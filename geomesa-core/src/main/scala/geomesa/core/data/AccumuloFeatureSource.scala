@@ -16,6 +16,8 @@
 
 package geomesa.core.data
 
+import geomesa.core.process.knn.KNNVisitor
+
 import collection.JavaConversions._
 import geomesa.core.process.proximity.ProximityVisitor
 import geomesa.core.process.query.QueryVisitor
@@ -104,6 +106,7 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource,
     case v: TubeVisitor      => v.setValue(v.tubeSelect(source, query))
     case v: ProximityVisitor => v.setValue(v.proximitySearch(source, query))
     case v: QueryVisitor     => v.setValue(v.query(source, query))
+    case v: KNNVisitor       => v.setValue(v.kNNSearch(source,query))
     case _                   => super.accepts(visitor, progress)
   }
 
