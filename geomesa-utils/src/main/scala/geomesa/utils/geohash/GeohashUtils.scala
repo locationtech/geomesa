@@ -563,9 +563,11 @@ object GeohashUtils
    * Transforms a geometry with lon in (-inf, inf) and lat in [-90,90] to a geometry in whole earth BBOX
    * 1) any coords of geometry outside lon [-180,180] are transformed to be within [-180,180]
    *    (to avoid spatial4j validation errors)
-   * 2) use spatial4j to create a geometry with inferred international dateline crossings
+   * 2) use spatial4j to create a geometry with inferred International Date Line crossings
    *    (if successive coordinates longitudinal difference is greater than 180)
    * Parts of geometries with lat outside [-90,90] are ignored.
+   * To represent a geometry with successive coordinates having lon diff > 180 and not wrapping
+   * the IDL, you must insert a waypoint such that the difference is less than 180
    */
   def getInternationalDateLineSafeGeometry(targetGeom: Geometry): Geometry = {
 
