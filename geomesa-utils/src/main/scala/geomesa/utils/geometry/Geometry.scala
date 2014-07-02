@@ -45,7 +45,10 @@ object Geometry {
       else if (self.intersects(other)) {
         val p = self.intersection(other)
         p.normalize()
-        p.asInstanceOf[Polygon]
+        p match {
+          case poly: Polygon => poly
+          case _ => noPolygon
+        }
       } else noPolygon
   }
 }
