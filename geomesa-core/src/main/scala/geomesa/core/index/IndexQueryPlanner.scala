@@ -3,12 +3,11 @@ package geomesa.core.index
 import com.vividsolutions.jts.geom.Polygon
 import geomesa.core._
 import geomesa.core.data._
-import geomesa.core.filter.OrSplittingFilter
+import geomesa.core.filter._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
 import geomesa.core.util.{CloseableIterator, SelfClosingBatchScanner}
 import java.util.Map.Entry
-import java.util.{Iterator => JIterator}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RegExFilter
@@ -20,7 +19,6 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.Interval
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter._
 import scala.collection.JavaConversions._
 import scala.util.Random
 
@@ -84,9 +82,14 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   
   def splitQueryOnOrs(query: Query): Iterator[Query] = {
     val originalFilter = query.getFilter
+
+    val rewrittenFilter = rewriteFilter(originalFilter)
     
     val orSplitter = new OrSplittingFilter
-    val filters = orSplitter.visit(originalFilter, null).asInstanceOf[Seq[Filter]]
+    val splitFilters = orSplitter.visit(rewrittenFilter, null)
+
+    // Let's just check quickly to see if we can eliminate any duplicates.
+    val filters = splitFilters.distinct
 
     filters.map { filter =>
       val q = new Query(query)

@@ -20,7 +20,7 @@
         <!-- encoders are assigned the type
              ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
         <encoder>
-            <pattern>%-5level %logger{10}: %msg%n</pattern>
+            <pattern>%date %-5level %logger{10}: %msg%n</pattern>
         </encoder>
     </appender>
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">

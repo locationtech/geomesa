@@ -457,6 +457,12 @@
                 <version>2.0.3</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>org.scalacheck</groupId>
+                <artifactId>scalacheck_2.10</artifactId>
+                <version>1.11.4</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
