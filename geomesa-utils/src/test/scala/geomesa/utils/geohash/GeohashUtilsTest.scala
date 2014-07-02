@@ -116,23 +116,14 @@ class GeohashUtilsTest extends Specification {
         val includedPoint = wkt2geom(data._2).asInstanceOf[Point]
         val excludedPoint = wkt2geom(data._3).asInstanceOf[Point]
         val decomposed = getInternationalDateLineSafeGeometry(geom)
+        println("International Date Line test geom: " + geom.toText)
         decomposed match {
           case g: GeometryCollection => {
             val coords = (0 until g.getNumGeometries).map { i => g.getGeometryN(i) }
-            var oneShouldBeTrue = false
-            coords.foreach{ c => {
-              oneShouldBeTrue = oneShouldBeTrue | c.contains(includedPoint)
-              c.contains(excludedPoint) must equalTo(false)
-            }}
-            if (oneShouldBeTrue != true) {
-              println("failed")
-            }
-            oneShouldBeTrue must equalTo(true)
+            coords.find(_.contains(includedPoint)).size must beGreaterThan(0)
+            coords.find(_.contains(excludedPoint)).size must equalTo(0)
           }
           case _ => {
-              if (!decomposed.contains(includedPoint)) {
-                println("failed " + decomposed.toString)
-              }
               decomposed.contains(includedPoint) must equalTo(true)
               decomposed.contains(excludedPoint) must equalTo(false)
             }

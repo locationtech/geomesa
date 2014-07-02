@@ -19,12 +19,11 @@ package geomesa.utils.geohash
 import collection.BitSet
 import collection.immutable.Range.Inclusive
 import collection.mutable.{HashSet => MutableHashSet}
+import com.spatial4j.core.context.jts.JtsSpatialContext
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import geomesa.utils.text.WKTUtils
 import scala.util.control.Exception.catching
-import com.spatial4j.core.shape.jts.JtsGeometry
-import com.spatial4j.core.context.jts.JtsSpatialContext
 
 /**
  * The following bits of code are related to common operations involving
