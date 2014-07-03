@@ -110,12 +110,16 @@ object TestData extends Logging {
 
   val fullData = points ::: lines ::: polygons
 
-  val hugeData: Seq[Entry] = {
+  val hugeData: Seq[Entry] = generateTestData(50000)
+
+  val mediumData: Seq[Entry] = generateTestData(1000)
+
+  def generateTestData(num: Int) = {
     val rng = new Random(0)
     val minTime = new DateTime(2010, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).getMillis
     val maxTime = new DateTime(2010, 8, 31, 23, 59, 59, DateTimeZone.forID("UTC")).getMillis
 
-    val pts = (1 to 50000).map(i => {
+    val pts = (1 to num).map(i => {
       val wkt = "POINT(" +
         (40.0 + 10.0 * rng.nextDouble()).toString + " " +
         (20.0 + 10.0 * rng.nextDouble()).toString + " " +
@@ -129,7 +133,7 @@ object TestData extends Logging {
 
     val gf = new GeometryFactory()
 
-    val linesPolys = pts.grouped(3).take(1000).flatMap { threeEntries =>
+    val linesPolys = pts.grouped(3).take(num/50).flatMap { threeEntries =>
       val headEntry = threeEntries.head
 
       val threeCoords = threeEntries.map(e => WKTUtils.read(e.wkt).getCoordinate)

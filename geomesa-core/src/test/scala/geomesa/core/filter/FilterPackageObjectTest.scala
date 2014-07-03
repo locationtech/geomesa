@@ -4,6 +4,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.filter.FilterGenerator._
 import geomesa.core.filter.FilterUtils._
 import geomesa.core.iterators.TestData._
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.opengis.filter._
 import org.specs2.mutable.Specification
@@ -56,7 +57,6 @@ class FilterPackageObjectTest extends Specification with Logging {
     "split a top-level OR into a List of single-element Lists each containing a filter" in {
       runSamples(genOneLevelOr) { or =>
         val ll = logicDistribution(or)
-        logger.debug(s"\n****Or: $or\n****LL: $ll")
         ll.foreach { l => l.size mustEqual 1}
       }
     }
@@ -65,12 +65,10 @@ class FilterPackageObjectTest extends Specification with Logging {
 
       runSamples(genOneLevelAnd) { and =>
         val ll = logicDistribution(and)
-        logger.debug(s"\n****And: $and\n****LL: $ll")
         ll.size mustEqual 1
 
         and.getChildren.size mustEqual ll(0).size
       }
-
     }
 
     "not return filters with ANDs or ORs explicitly stated" in {
@@ -90,11 +88,11 @@ class FilterPackageObjectTest extends Specification with Logging {
     }
   }
 
-  val hugeDataFeatures = hugeData.map(createSF)
+  val mediumDataFeatures = mediumData.map(createSF)
 
   // Function defining rewriteFilter Properties.
   def testRewriteProps(filter: Filter) = {
-    logger.debug(s"Filter: $filter")
+    logger.debug(s"Filter: ${ECQL.toCQL(filter)}")
 
     "The function rewriteFilter" should {
       val rewrittenFilter: Filter = rewriteFilter(filter)
@@ -119,9 +117,9 @@ class FilterPackageObjectTest extends Specification with Logging {
       }
 
       "return a Filter which is 'equivalent' to the original filter" in {
-        val originalCount = hugeDataFeatures.count(filter.evaluate)
-        val rewriteCount = hugeDataFeatures.count(rewrittenFilter.evaluate)
-        logger.debug(s"\nFilter: $filter\nFullData size: ${hugeDataFeatures.size}: filter hits: $originalCount rewrite hits: $rewriteCount")
+        val originalCount = mediumDataFeatures.count(filter.evaluate)
+        val rewriteCount = mediumDataFeatures.count(rewrittenFilter.evaluate)
+        logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: filter hits: $originalCount rewrite hits: $rewriteCount")
         rewriteCount mustEqual originalCount
       }
     }
