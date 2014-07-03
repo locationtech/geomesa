@@ -21,10 +21,10 @@ import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
 import geomesa.core.index
 import geomesa.utils.filters.Filters._
+import geomesa.utils.geohash.GeohashUtils.{getInternationalDateLineSafeGeometry}
 import geomesa.utils.geometry.Geometry._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.GeometryUtils
-import geomesa.utils.geotools.GeometryUtils._
 import geomesa.utils.time.Time._
 import org.geotools.data.Query
 import org.geotools.filter.visitor.SimplifyingFilterVisitor
@@ -266,7 +266,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
   def updateToAntiMeridianSafeFilter(op: BinarySpatialOperator, acc:Filter) = {
     val e2 = op.getExpression2.asInstanceOf[Literal]
     val geom = e2.evaluate(null, classOf[Geometry])
-    val safeGeometry = getAntimeridianSafeGeometry(geom)
+    val safeGeometry = getInternationalDateLineSafeGeometry(geom)
     safeGeometry match {
       case p: Polygon =>
         spatialPredicate = geom.asInstanceOf[Polygon]

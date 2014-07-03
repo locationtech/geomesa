@@ -66,8 +66,8 @@ class FilterToAccumuloTest extends Specification {
       val q = ff.bbox("geom", -190.0, -10, -170, 10, CRS.toSRS(WGS84))
       val f2a = new FilterToAccumulo(sft)
       val result = f2a.visit(q)
-      result.toString mustEqual "[[ geom bbox POLYGON ((170 -10, 170 10, 180 10, 180 -10, 170 -10)) ]" +
-        " OR [ geom bbox POLYGON ((-180 -10, -180 10, -170 10, -170 -10, -180 -10)) ]]"
+      result.toString mustEqual "[[ geom bbox POLYGON ((-180 -10, -180 10, -170 10, -170 -10, -180 -10)) ]" +
+        " OR [ geom bbox POLYGON ((170 -10, 170 10, 180 10, 180 -10, 170 -10)) ]]"
     }
 
     "set the spatial predicate and remove from the subsequent query" in {
@@ -126,8 +126,8 @@ class FilterToAccumuloTest extends Specification {
           ff.literal(WKTUtils.read("POLYGON((-190 -10,-190 10,-170 10,-170 -10,-190 -10))")))
       val f2a = new FilterToAccumulo(sft)
       val result = f2a.visit(rectWithin)
-      result.toString mustEqual "[[ geom within POLYGON ((180 10, 180 -10, 170 -10, 170 10, 180 10)) ]" +
-        " OR [ geom within POLYGON ((-180 -10, -180 10, -170 10, -170 -10, -180 -10)) ]]"
+      result.toString mustEqual "[[ geom within POLYGON ((-180 -10, -180 10, -170 10, -170 -10, -180 -10)) ]" +
+        " OR [ geom within POLYGON ((180 10, 180 -10, 170 -10, 170 10, 180 10)) ]]"
     }
 
     "make odder geometry" in {
@@ -137,8 +137,8 @@ class FilterToAccumuloTest extends Specification {
           ff.literal(WKTUtils.read("POLYGON((-190 -10,-190 10,-170 10,-170 -10,-180 -30,-190 -10))")))
       val f2a = new FilterToAccumulo(sft)
       val result = f2a.visit(rectWithin)
-      result.toString mustEqual "[[ geom within POLYGON ((180 10, 180 -30, 170 -10, 170 10, 180 10)) ]" +
-        " OR [ geom within POLYGON ((-180 -30, -180 10, -170 10, -170 -10, -180 -30)) ]]"
+      result.toString mustEqual "[[ geom within POLYGON ((-180 -30, -180 10, -170 10, -170 -10, -180 -30)) ]" +
+        " OR [ geom within POLYGON ((180 10, 180 -30, 170 -10, 170 10, 180 10)) ]]"
     }
   }
 
