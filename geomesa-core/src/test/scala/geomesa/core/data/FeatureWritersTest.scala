@@ -17,6 +17,7 @@
 package geomesa.core.data
 
 import geomesa.core.index
+import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.text.WKTUtils
 import java.text.SimpleDateFormat
 import java.util.TimeZone
@@ -24,7 +25,6 @@ import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
@@ -69,7 +69,7 @@ class FeatureWritersTest extends Specification {
         val featureCollection = new DefaultFeatureCollection(sftName, sft)
 
         /* create a feature */
-        val originalFeature1 = SimpleFeatureBuilder.build(sft, List(), "id1")
+        val originalFeature1 = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id1")
         val geom = WKTUtils.read("POINT(45.0 49.0)")
         originalFeature1.setDefaultGeometry(geom)
         originalFeature1.setAttribute("name","fred")
@@ -80,7 +80,7 @@ class FeatureWritersTest extends Specification {
         featureCollection.add(originalFeature1)
 
         /* create a second feature */
-        val originalFeature2 = SimpleFeatureBuilder.build(sft, List(), "id2")
+        val originalFeature2 = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id2")
         originalFeature2.setDefaultGeometry(geom)
         originalFeature2.setAttribute("name","tom")
         originalFeature2.setAttribute("age",60.asInstanceOf[Any])
@@ -90,7 +90,7 @@ class FeatureWritersTest extends Specification {
         featureCollection.add(originalFeature2)
 
         /* create a third feature */
-        val originalFeature3 = SimpleFeatureBuilder.build(sft, List(), "id3")
+        val originalFeature3 = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id3")
         originalFeature3.setDefaultGeometry(geom)
         originalFeature3.setAttribute("name","kyle")
         originalFeature3.setAttribute("age",2.asInstanceOf[Any])
@@ -147,11 +147,11 @@ class FeatureWritersTest extends Specification {
         val sftType = ds.getSchema(sftName)
         val geom = WKTUtils.read("POINT(45.0 49.0)")
         val c = new DefaultFeatureCollection
-        c.add(SimpleFeatureBuilder.build(sftType, Array("will", 56.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid1"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("george", 33.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid2"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("sue", 99.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid3"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("karen", 50.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid4"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("bob", 56.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid5"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("will", 56.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid1"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("george", 33.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid2"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("sue", 99.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid3"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("karen", 50.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid4"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("bob", 56.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid5"))
 
         val ids = c.map { f => f.getID}
         try {
@@ -203,9 +203,9 @@ class FeatureWritersTest extends Specification {
         val sftType = ds.getSchema(sftName)
         val geom = WKTUtils.read("POINT(45.0 49.0)")
         val c = new DefaultFeatureCollection
-        c.add(SimpleFeatureBuilder.build(sftType, Array("dude1", 15.asInstanceOf[AnyRef], geom, null, null), "fid10"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("dude2", 16.asInstanceOf[AnyRef], geom, null, null), "fid11"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("dude3", 17.asInstanceOf[AnyRef], geom, null, null), "fid12"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("dude1", 15.asInstanceOf[AnyRef], geom, null, null), "fid10"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("dude2", 16.asInstanceOf[AnyRef], geom, null, null), "fid11"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("dude3", 17.asInstanceOf[AnyRef], geom, null, null), "fid12"))
 
         val trans = new DefaultTransaction("trans1")
         fs.setTransaction(trans)

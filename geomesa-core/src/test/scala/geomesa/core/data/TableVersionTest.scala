@@ -1,5 +1,7 @@
 package geomesa.core.data
 
+import geomesa.feature.AvroSimpleFeatureFactory
+
 import collection.JavaConversions._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text.WKTUtils
@@ -11,7 +13,7 @@ import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
-import org.geotools.factory.Hints
+import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.opengis.filter.Filter
@@ -94,7 +96,9 @@ class TableVersionTest extends Specification {
     "000000013500000015000000000140468000000000004046800000000000000001349ccf6e18").map {v =>
     hex.decode(v.getBytes)}
 
-  val builder = new SimpleFeatureBuilder(sft)
+  val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
+  val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
+  val builder = new SimpleFeatureBuilder(sft, featureFactory)
 
   def getFeatures = (0 until 6).map { i =>
     builder.reset

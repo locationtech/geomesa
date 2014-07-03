@@ -17,6 +17,8 @@
 
 package geomesa.core.iterators
 
+import geomesa.feature.AvroSimpleFeatureFactory
+
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.Envelope
 import geomesa.core.data.AccumuloDataStoreFactory
@@ -78,7 +80,7 @@ class DensityIteratorTest extends Specification {
           Array(s"$i", "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
       }
 
-      val builder = new SimpleFeatureBuilder(sft)
+      val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
       val features = encodedFeatures.map {
         e =>
           val f = builder.buildFeature(e(0).toString, e.asInstanceOf[Array[AnyRef]])
