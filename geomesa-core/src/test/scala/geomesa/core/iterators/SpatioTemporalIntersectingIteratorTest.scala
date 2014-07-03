@@ -112,7 +112,6 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     }
 
     val tfString = red(red(gf, dt), ecqlFilter)
-    println(s"Tfstring is $tfString")
     val tf = ECQL.toFilter(tfString)
 
     val q = new Query(TestData.featureType.getTypeName, tf)
@@ -211,7 +210,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
         TestData.hugeData, Some(ecqlFilter))
 
       // validate the total number of query-hits
-      numHits must be equalTo 205
+      numHits must be equalTo 81
     }
   }
 
@@ -228,7 +227,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
         TestData.hugeData, Some(ecqlFilter), dtFilter)
 
       // validate the total number of query-hits
-      numHits must be equalTo 205
+      numHits must be equalTo 81
     }
   }
 
@@ -243,7 +242,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
         doPrint = false)
 
       // validate the total number of query-hits
-      numHits must be equalTo 20542
+      numHits must be equalTo 7434
     }
   }
 
@@ -256,7 +255,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
         overrideGeometry = true, doPrint = false)
 
       // validate the total number of query-hits
-      numHits must be equalTo 70000
+      numHits must be equalTo 52000
     }
   }
 

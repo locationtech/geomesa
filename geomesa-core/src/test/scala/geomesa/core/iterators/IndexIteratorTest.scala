@@ -20,6 +20,7 @@ import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Polygon, Geometry}
 import geomesa.core.data._
 import geomesa.core.index._
+import geomesa.core.iterators.TestData._
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
@@ -40,25 +41,6 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
   import geomesa.utils.geotools.Conversions._
 
   object IITest {
-
-    // utility function that can encode multiple types of geometry
-    def createSimpleFeature(id: String, wkt: String, dt: DateTime = null): SimpleFeature = {
-      val geomType: String = wkt.split( """\(""").head
-      val geometry: Geometry = WKTUtils.read(wkt)
-      val entry = SimpleFeatureBuilder.build(TestData.featureType,
-        List(null, null, null, null, geometry, dt.toDate, dt.toDate), s"|data|$id")
-      entry.setAttribute(geomType, id)
-      entry.setAttribute("attr2", "2nd" + id)
-      entry.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      entry.getUserData.put(Hints.PROVIDED_FID, entry.toString)
-      entry
-    }
-
-    def convertToSimpleFeatures(entries: GenSeq[TestData.Entry] = TestData.fullData): GenSeq[SimpleFeature] = {
-      entries.map { entry =>
-        createSimpleFeature(entry.id, entry.wkt, entry.dt)
-      }
-    }
 
     def setupMockFeatureSource(entries: GenSeq[TestData.Entry]): SimpleFeatureStore = {
       val TEST_TABLE = "test_table"
@@ -86,7 +68,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
 
       ds.createSchema(TestData.featureType)
       val fs = ds.getFeatureSource(TestData.featureName).asInstanceOf[SimpleFeatureStore]
-      val dataFeatures = convertToSimpleFeatures(entries)
+      val dataFeatures = entries.map(createSF)
       val featureCollection = DataUtilities.collection(dataFeatures.toArray)
       fs.addFeatures(featureCollection)
       fs.getTransaction.commit()

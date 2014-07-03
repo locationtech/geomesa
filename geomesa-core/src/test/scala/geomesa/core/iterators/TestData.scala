@@ -129,13 +129,12 @@ object TestData extends Logging {
 
     val gf = new GeometryFactory()
 
-    val linesPolys = pts.grouped(3).take(10000).flatMap { threeEntries =>
+    val linesPolys = pts.grouped(3).take(1000).flatMap { threeEntries =>
       val headEntry = threeEntries.head
 
       val threeCoords = threeEntries.map(e => WKTUtils.read(e.wkt).getCoordinate)
 
       val lineString = gf.createLineString(threeCoords.toArray)
-      //println(s"LineString: $lineString")
       val poly = gf.createPolygon((threeCoords :+ threeCoords.head).toArray)
 
       val lsEntry = Entry(lineString.toString, headEntry.id+1000000, headEntry.dt)
