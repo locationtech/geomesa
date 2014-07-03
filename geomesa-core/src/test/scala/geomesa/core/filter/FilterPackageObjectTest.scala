@@ -3,6 +3,7 @@ package geomesa.core.filter
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.filter.FilterGenerator._
 import geomesa.core.filter.FilterUtils._
+import geomesa.core.filter.SmallFilters._
 import geomesa.core.iterators.TestData._
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -125,5 +126,5 @@ class FilterPackageObjectTest extends Specification with Logging {
     }
   }
 
-  runSamples(genFreq)(testRewriteProps)
+  runSamples(oneGeomTrees)(testRewriteProps)
 }
