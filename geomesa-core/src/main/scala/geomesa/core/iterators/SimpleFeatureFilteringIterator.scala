@@ -59,7 +59,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
         curFeature = feature
         filter.evaluate(curFeature)
       case Failure(e) =>
-        logger.error("Error decoding value to simple feature: ", e)
+        logger.error(s"Error decoding value to simple feature for key '${source.getTopKey}': ", e)
         curFeature = null
         false
     }
