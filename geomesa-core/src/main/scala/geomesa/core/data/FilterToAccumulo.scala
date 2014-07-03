@@ -28,7 +28,7 @@ import geomesa.utils.geotools.GeometryUtils._
 import geomesa.utils.time.Time._
 import org.geotools.data.Query
 import org.geotools.filter.visitor.SimplifyingFilterVisitor
-import org.geotools.geometry.jts.{ReferencedEnvelope, JTSFactoryFinder, JTS}
+import org.geotools.geometry.jts.{JTSFactoryFinder, JTS}
 import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime, Interval}
@@ -39,7 +39,6 @@ import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 import org.opengis.temporal.{Period => OGCPeriod, Instant}
-import geomesa.utils.geohash.BoundingBox
 
 object FilterToAccumulo {
   val allTime              = new Interval(0, Long.MaxValue)
