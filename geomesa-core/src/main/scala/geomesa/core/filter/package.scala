@@ -5,7 +5,7 @@ import org.opengis.filter._
 import scala.collection.JavaConversions._
 
 package object filter {
-  // Claim: FilterFactory implementations seem to thread-safe away from
+  // Claim: FilterFactory implementations seem to be thread-safe away from
   //  'namespace' and 'function' calls.
   // As such, we can get away with using a shared Filter Factory.
   implicit val ff = CommonFactoryFinder.getFilterFactory2
@@ -39,7 +39,7 @@ package object filter {
   /**
    *
    * @param x: An arbitrary @org.opengis.filter.Filter
-   * @return   A List[List[Filter]\] where the inner List of Filters are to be joined by
+   * @return   A List[List[Filter]] where the inner List of Filters are to be joined by
    *           Ands and the outer list combined by Ors.
    */
   private[core] def logicDistribution(x: Filter): List[List[Filter]] = x match {
