@@ -129,6 +129,17 @@ class FilterToAccumuloTest extends Specification {
       result.toString mustEqual "[[ geom within POLYGON ((180 10, 180 -10, 170 -10, 170 10, 180 10)) ]" +
         " OR [ geom within POLYGON ((-180 -10, -180 10, -170 10, -170 -10, -180 -10)) ]]"
     }
+
+    "make odder geometry" in {
+      val rectWithin =
+        ff.within(
+          ff.property("geom"),
+          ff.literal(WKTUtils.read("POLYGON((-190 -10,-190 10,-170 10,-170 -10,-180 -30,-190 -10))")))
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(rectWithin)
+      result.toString mustEqual "[[ geom within POLYGON ((180 10, 180 -30, 170 -10, 170 10, 180 10)) ]" +
+        " OR [ geom within POLYGON ((-180 -30, -180 10, -170 10, -170 -10, -180 -30)) ]]"
+    }
   }
 
   "Temporal queries" should {

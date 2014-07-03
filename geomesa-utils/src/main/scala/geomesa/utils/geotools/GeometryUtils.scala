@@ -82,7 +82,7 @@ object GeometryUtils {
     geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY))
   }
 
-  // Hunter's early anti meridian stuff, modified for aannex's needs
+  // Hunter's early anti meridian stuff
 
   // default precision model
   val maxRealisticGeoHashPrecision : Int = 45
