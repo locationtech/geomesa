@@ -150,6 +150,10 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.scalacheck</groupId>
+            <artifactId>scalacheck_2.10</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
