@@ -21,6 +21,7 @@ import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
 import geomesa.core.index
 import geomesa.utils.filters.Filters._
+import geomesa.utils.geohash.GeohashUtils.{getInternationalDateLineSafeGeometry}
 import geomesa.utils.geometry.Geometry._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.GeometryUtils
@@ -236,7 +237,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     case op: Not   => processNot(op)
 
     // Spatial filters
-    case op: BBOX       => visitBBOX(op, acc)
+    case op: BBOX       => visitBinarySpatialOp(op, acc)
     case op: DWithin    => visitDWithin(op, acc)
     case op: Within     => visitBinarySpatialOp(op, acc)
     case op: Intersects => visitBinarySpatialOp(op, acc)
@@ -252,38 +253,42 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     case f: Filter => ff.and(acc, f)
   }
 
-  private def visitBBOX(op: BBOX, acc: Filter): Filter = {
+  private def visitBinarySpatialOp(op: BinarySpatialOperator, acc: Filter): Filter = {
     val e1 = op.getExpression1.asInstanceOf[PropertyName]
     val attr = e1.evaluate(sft).asInstanceOf[AttributeDescriptor]
     if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
       ff.and(acc, op)
     } else {
-      spatialPredicate = JTS.toGeometry(op.getBounds)
-      acc
+      updateToAntiMeridianSafeFilter(op, acc)
     }
   }
 
-  private def visitBinarySpatialOp(op: BinarySpatialOperator, acc: Filter): Filter = {
-    val e1 = op.getExpression1.asInstanceOf[PropertyName]
+  def updateToAntiMeridianSafeFilter(op: BinarySpatialOperator, acc:Filter) = {
     val e2 = op.getExpression2.asInstanceOf[Literal]
-    val attr = e1.evaluate(sft).asInstanceOf[AttributeDescriptor]
-    if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
-      ff.and(acc, op)
-    } else {
-      val geom = e2.evaluate(null, classOf[Geometry])
-      spatialPredicate = geom.asInstanceOf[Polygon]
-      if(!geom.isRectangle) ff.and(acc, op)
-      else acc
+    val geom = e2.evaluate(null, classOf[Geometry])
+    val safeGeometry = getInternationalDateLineSafeGeometry(geom)
+    safeGeometry match {
+      case p: Polygon =>
+        spatialPredicate = geom.asInstanceOf[Polygon]
+        if (!geom.isRectangle) ff.and(acc, op)
+        else acc
+      case mp: MultiPolygon =>
+        spatialPredicate = safeGeometry.getEnvelope.asInstanceOf[Polygon]
+        val polygonList = getGeometryListOf(safeGeometry)
+        val filterList = polygonList.map(
+          p => doCorrectSpatialCall(op, sft.getGeometryDescriptor.getLocalName, p)
+        )
+        ff.and(acc, ff.or(filterList))
     }
   }
 
   def visitDWithin(op: DWithin, acc: Filter): Filter = {
     val e1 = op.getExpression1.asInstanceOf[PropertyName]
-    val e2 = op.getExpression2.asInstanceOf[Literal]
     val attr = e1.evaluate(sft).asInstanceOf[AttributeDescriptor]
     if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
       ff.and(acc, op)
     } else {
+      val e2 = op.getExpression2.asInstanceOf[Literal]
       val startPoint = e2.evaluate(null, classOf[Point])
       val distance = op.getDistance
       val distanceDegrees = GeometryUtils.distanceDegrees(startPoint, distance)
@@ -332,6 +337,18 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
       acc
     }
   }
+
+  def doCorrectSpatialCall(op: BinarySpatialOperator, property: String, geom: Geometry): Filter = op match {
+    case op: Within     => ff.within( ff.property(property), ff.literal(geom) )
+    case op: Intersects => ff.intersects( ff.property(property), ff.literal(geom) )
+    case op: Overlaps   => ff.overlaps( ff.property(property), ff.literal(geom) )
+    case op: BBOX       => val envelope = geom.getEnvelopeInternal
+                           ff.bbox( ff.property(property), envelope.getMinX, envelope.getMinY,
+                           envelope.getMaxX, envelope.getMaxY, op.getSRS )
+  }
+
+  def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
+    for( i <- 0 until inMP.getNumGeometries) yield inMP.getGeometryN(i)
 
   private def extractDTG(o: AnyRef) = parseDTG(o).withZone(DateTimeZone.UTC)
 
