@@ -42,12 +42,12 @@ object GeohashUtils
   // the list of allowable GeoHash characters
   val base32seq = GeoHash.base32.toSeq
 
-  lazy val wholeEarthBBox = defaultGeometryFactory.createPolygon(List[Coordinate] (
+  lazy val wholeEarthBBox = defaultGeometryFactory.createPolygon(Array[Coordinate] (
     new Coordinate(-180, 90),
     new Coordinate(-180, -90),
     new Coordinate(180, -90),
     new Coordinate(180, 90),
-    new Coordinate(-180, 90)).toArray)
+    new Coordinate(-180, 90)))
 
   /**
    * Simple place-holder for a pair of resolutions, minimum and maximum, along
@@ -612,7 +612,7 @@ object GeohashUtils
       }
     }
 
-    val withinBoundsGeom = if (targetGeom.getEnvelopeInternal.getMinX < -180 | targetGeom.getEnvelopeInternal.getMaxX > 180) {
+    val withinBoundsGeom = if (targetGeom.getEnvelopeInternal.getMinX < -180 || targetGeom.getEnvelopeInternal.getMaxX > 180) {
       translateGeometry(targetGeom)
     } else targetGeom
 

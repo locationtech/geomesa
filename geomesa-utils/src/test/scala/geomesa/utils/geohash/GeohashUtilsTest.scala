@@ -108,13 +108,12 @@ class GeohashUtilsTest extends Specification {
     }
   }
 
-  "getInternationalDateLineSafeGeometry" should {
-    "work" in {
-      internationalDateLineSafeGeometryTestData.foreach { f => {
-        val data = f._2
-        val geom = wkt2geom(data._1)
-        val includedPoint = wkt2geom(data._2).asInstanceOf[Point]
-        val excludedPoint = wkt2geom(data._3).asInstanceOf[Point]
+
+    internationalDateLineSafeGeometryTestData.map { case (name, (geomString, incl, excl)) =>
+      "getInternationalDateLineSafeGeometry" should { s"work for $name" in {
+        val geom = wkt2geom(geomString)
+        val includedPoint = wkt2geom(incl).asInstanceOf[Point]
+        val excludedPoint = wkt2geom(excl).asInstanceOf[Point]
         val decomposed = getInternationalDateLineSafeGeometry(geom)
         println("International Date Line test geom: " + geom.toText)
         decomposed match {
@@ -124,9 +123,8 @@ class GeohashUtilsTest extends Specification {
             coords.find(_.contains(excludedPoint)).size must equalTo(0)
           }
           case _ => {
-              decomposed.contains(includedPoint) must equalTo(true)
-              decomposed.contains(excludedPoint) must equalTo(false)
-            }
+            decomposed.contains(includedPoint) must equalTo(true)
+            decomposed.contains(excludedPoint) must equalTo(false)
           }
         }
       }
