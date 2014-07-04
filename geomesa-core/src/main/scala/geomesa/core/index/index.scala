@@ -39,7 +39,7 @@ package object index {
   def getDtgFieldName(sft: SimpleFeatureType) = Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map{_.toString}
   // wrapping function in option to protect against incorrect values in SF_PROPERTY_START_TIME
   def getDtgDescriptor(sft: SimpleFeatureType) = getDtgFieldName(sft).flatMap{name => Option(sft.getDescriptor(name))}
-  val spec = "geomesa_index_geometry:Geometry:srid=4326,geomesa_index_start_time:Date,geomesa_index_end_time:Date"
+  val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = DataUtilities.createType("geomesa-idx", spec)
 
   implicit def string2id(s: String): FeatureId = new FeatureIdImpl(s)

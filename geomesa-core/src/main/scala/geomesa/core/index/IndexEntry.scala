@@ -2,6 +2,7 @@ package geomesa.core.index
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
+import geomesa.core._
 import geomesa.core.data.DATA_CQ
 import geomesa.core.data.SimpleFeatureEncoder
 import geomesa.utils.geohash.{GeoHash, GeohashUtils}
@@ -17,8 +18,8 @@ object IndexEntry {
 
   implicit class IndexEntrySFT(sf: SimpleFeature) {
     lazy val userData = sf.getFeatureType.getUserData
-    lazy val dtgStartField = userData.getOrElse(SF_PROPERTY_START_TIME, SF_PROPERTY_START_TIME).asInstanceOf[String]
-    lazy val dtgEndField = userData.getOrElse(SF_PROPERTY_END_TIME, SF_PROPERTY_END_TIME).asInstanceOf[String]
+    lazy val dtgStartField = userData.getOrElse(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME).asInstanceOf[String]
+    lazy val dtgEndField = userData.getOrElse(SF_PROPERTY_END_TIME, DEFAULT_DTG_END_PROPERTY_NAME).asInstanceOf[String]
 
     lazy val sid = sf.getID
     lazy val gh: GeoHash = GeohashUtils.reconstructGeohashFromGeometry(geometry)
