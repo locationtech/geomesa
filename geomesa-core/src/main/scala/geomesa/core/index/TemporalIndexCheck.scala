@@ -58,7 +58,7 @@ object TemporalIndexCheck extends Logging {
                     |queries will be faster if SF_PROPERTY_START_TIME, located in the SimpleFeatureType's UserData,
                     |points to the attribute's name
                 """.stripMargin
-        logger.warn(theWarning)
+    logger.warn(theWarning)
   }
 
   def emitDtgNotification(temporalAttributeName: String) {
@@ -72,7 +72,7 @@ object TemporalIndexCheck extends Logging {
   }
 
   def scanForTemporalAttributes(sft: SimpleFeatureType) =
-   sft.getAttributeDescriptors.asScala.toList
+    sft.getAttributeDescriptors.asScala.toList
      .withFilter{_.getType.getBinding == classOf[java.util.Date] }
      .map {_.getLocalName}
 }
