@@ -612,9 +612,11 @@ object GeohashUtils
       }
     }
 
-    val withinBoundsGeom = if (targetGeom.getEnvelopeInternal.getMinX < -180 || targetGeom.getEnvelopeInternal.getMaxX > 180) {
-      translateGeometry(targetGeom)
-    } else targetGeom
+    val withinBoundsGeom =
+      if (targetGeom.getEnvelopeInternal.getMinX < -180 || targetGeom.getEnvelopeInternal.getMaxX > 180)
+        translateGeometry(targetGeom)
+      else
+        targetGeom
 
     val shape = JtsSpatialContext.GEO.makeShape(withinBoundsGeom, true, true)
     shape.getGeom

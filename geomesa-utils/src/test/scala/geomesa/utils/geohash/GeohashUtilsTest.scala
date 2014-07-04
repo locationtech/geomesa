@@ -21,9 +21,10 @@ import geomesa.utils.text.WKTUtils
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import com.typesafe.scalalogging.slf4j.Logging
 
 @RunWith(classOf[JUnitRunner])
-class GeohashUtilsTest extends Specification {
+class GeohashUtilsTest extends Specification with Logging {
 
   import GeohashUtils._
 
@@ -87,7 +88,7 @@ class GeohashUtilsTest extends Specification {
         // all geometry types should test decomposition
         "decompose into " + numDecompositions + " GeoHashes, the first of which should be '" + firstDecompositionHash + "'" in {
           val decomposedGHs = decomposeGeometry(geom, 100, indexResolutions)
-          decomposedGHs.map(gh => println(name + "\t" + gh.hash + "\t" + getGeohashWKT(gh)))
+          decomposedGHs.map(gh => logger.debug(name + "\t" + gh.hash + "\t" + getGeohashWKT(gh)))
           decomposedGHs.size must equalTo(numDecompositions)
           decomposedGHs(0).hash must equalTo(firstDecompositionHash)
         }
@@ -102,30 +103,27 @@ class GeohashUtilsTest extends Specification {
       val ghSubstrings = getUniqueGeohashSubstringsInPolygon(
         polygonCharlottesville, 2, 3, 1<<15)
 
-      ghSubstrings.foreach { gh => println("[unique Charlottesville gh(2,3)] " + gh)}
+      ghSubstrings.foreach { gh => logger.debug("[unique Charlottesville gh(2,3)] " + gh)}
 
       ghSubstrings.size must be equalTo(9)
     }
   }
 
-
-    internationalDateLineSafeGeometryTestData.map { case (name, (geomString, incl, excl)) =>
+  internationalDateLineSafeGeometryTestData.map { case (name, (geomString, incl, excl)) =>
       "getInternationalDateLineSafeGeometry" should { s"work for $name" in {
         val geom = wkt2geom(geomString)
         val includedPoint = wkt2geom(incl).asInstanceOf[Point]
         val excludedPoint = wkt2geom(excl).asInstanceOf[Point]
         val decomposed = getInternationalDateLineSafeGeometry(geom)
-        println("International Date Line test geom: " + geom.toText)
+        logger.debug("International Date Line test geom: " + geom.toText)
         decomposed match {
-          case g: GeometryCollection => {
+          case g: GeometryCollection =>
             val coords = (0 until g.getNumGeometries).map { i => g.getGeometryN(i) }
             coords.find(_.contains(includedPoint)).size must beGreaterThan(0)
             coords.find(_.contains(excludedPoint)).size must equalTo(0)
-          }
-          case _ => {
+          case _ =>
             decomposed.contains(includedPoint) must equalTo(true)
             decomposed.contains(excludedPoint) must equalTo(false)
-          }
         }
       }
     }
