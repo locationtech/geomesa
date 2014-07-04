@@ -19,6 +19,7 @@ package geomesa.utils.geohash
 import collection.BitSet
 import collection.immutable.Range.Inclusive
 import collection.mutable.{HashSet => MutableHashSet}
+import com.spatial4j.core.context.jts.JtsSpatialContext
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import geomesa.utils.text.WKTUtils
@@ -40,6 +41,13 @@ object GeohashUtils
 
   // the list of allowable GeoHash characters
   val base32seq = GeoHash.base32.toSeq
+
+  lazy val wholeEarthBBox = defaultGeometryFactory.createPolygon(Array[Coordinate] (
+    new Coordinate(-180, 90),
+    new Coordinate(-180, -90),
+    new Coordinate(180, -90),
+    new Coordinate(180, 90),
+    new Coordinate(-180, 90)))
 
   /**
    * Simple place-holder for a pair of resolutions, minimum and maximum, along
@@ -551,6 +559,70 @@ object GeohashUtils
   }
 
   /**
+   * Transforms a geometry with lon in (-inf, inf) and lat in [-90,90] to a geometry in whole earth BBOX
+   * 1) any coords of geometry outside lon [-180,180] are transformed to be within [-180,180]
+   *    (to avoid spatial4j validation errors)
+   * 2) use spatial4j to create a geometry with inferred International Date Line crossings
+   *    (if successive coordinates longitudinal difference is greater than 180)
+   * Parts of geometries with lat outside [-90,90] are ignored.
+   * To represent a geometry with successive coordinates having lon diff > 180 and not wrapping
+   * the IDL, you must insert a waypoint such that the difference is less than 180
+   */
+  def getInternationalDateLineSafeGeometry(targetGeom: Geometry): Geometry = {
+
+    def degreesLonTranslation(lon: Double): Double = (((lon + 180) / 360.0).floor * -360).toInt
+
+    def translateCoord(coord: Coordinate): Coordinate = {
+      new Coordinate(coord.x + degreesLonTranslation(coord.x), coord.y)
+    }
+
+    def translatePolygon(geometry: Geometry): Geometry =
+      defaultGeometryFactory.createPolygon(geometry.getCoordinates.map(c => translateCoord(c)))
+
+    def translateLineString(geometry: Geometry): Geometry =
+      defaultGeometryFactory.createLineString(geometry.getCoordinates.map(c => translateCoord(c)))
+
+    def translateMultiLineString(geometry: Geometry): Geometry = {
+      val coords = (0 until geometry.getNumGeometries).map { i => geometry.getGeometryN(i) }
+      val translated = coords.map { c => translateLineString(c).asInstanceOf[LineString] }
+      defaultGeometryFactory.createMultiLineString(translated.toArray)
+    }
+
+    def translateMultiPolygon(geometry: Geometry): Geometry = {
+      val coords = (0 until geometry.getNumGeometries).map { i => geometry.getGeometryN(i) }
+      val translated = coords.map { c => translatePolygon(c).asInstanceOf[Polygon] }
+      defaultGeometryFactory.createMultiPolygon(translated.toArray)
+    }
+
+    def translateMultiPoint(geometry: Geometry): Geometry =
+      defaultGeometryFactory.createMultiPoint(geometry.getCoordinates.map(c => translateCoord(c)))
+
+    def translatePoint(geometry: Geometry): Geometry = {
+      defaultGeometryFactory.createPoint(translateCoord(geometry.getCoordinate))
+    }
+
+    def translateGeometry(geometry: Geometry): Geometry = {
+      geometry match {
+        case p: Polygon =>          translatePolygon(geometry)
+        case l: LineString =>       translateLineString(geometry)
+        case m: MultiLineString =>  translateMultiLineString(geometry)
+        case m: MultiPolygon =>     translateMultiPolygon(geometry)
+        case m: MultiPoint =>       translateMultiPoint(geometry)
+        case p: Point =>            translatePoint(geometry)
+      }
+    }
+
+    val withinBoundsGeom =
+      if (targetGeom.getEnvelopeInternal.getMinX < -180 || targetGeom.getEnvelopeInternal.getMaxX > 180)
+        translateGeometry(targetGeom)
+      else
+        targetGeom
+
+    val shape = JtsSpatialContext.GEO.makeShape(withinBoundsGeom, true, true)
+    shape.getGeom
+  }
+
+  /**
    * Quick-and-dirty sieve that ensures that we don't waste time decomposing
    * single points.
    */
@@ -561,9 +633,11 @@ object GeohashUtils
     // quick hit to avoid wasting time for single points
     targetGeom match {
       case point: Point => List(GeoHash(point.getX, point.getY, resolutions.maxBitsResolution))
-      case _ => decomposeGeometry_(
-        if (relaxFit) getDecomposableGeometry(targetGeom)
-        else targetGeom, maxSize, resolutions)
+      case _ =>
+        val safeGeom = getInternationalDateLineSafeGeometry(targetGeom)
+        decomposeGeometry_(
+          if (relaxFit) getDecomposableGeometry(safeGeom)
+          else safeGeom, maxSize, resolutions)
     }
 
   /**
