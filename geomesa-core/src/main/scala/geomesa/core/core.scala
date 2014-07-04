@@ -21,6 +21,8 @@ package object core {
   // This first string is used as a SimpleFeature attribute name.
   //  Since we would like to be able to use ECQL filters, we are restricted to letters, numbers, and _'s.
   val DEFAULT_GEOMETRY_PROPERTY_NAME = "SF_PROPERTY_GEOMETRY"
+  val DEFAULT_DTG_PROPERTY_NAME = "dtg"
+  val DEFAULT_DTG_END_PROPERTY_NAME = "dtg_end_time"
 
   val DEFAULT_FEATURE_TYPE = "geomesa.feature.type"
   val DEFAULT_SCHEMA_NAME  = "geomesa.index.schema"

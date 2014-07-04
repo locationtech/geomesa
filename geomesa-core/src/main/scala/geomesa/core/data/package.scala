@@ -16,6 +16,7 @@
 
 package geomesa.core
 
+import geomesa.core._
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
@@ -63,6 +64,6 @@ package object data {
       .filter { _.getUserData.contains(SF_PROPERTY_START_TIME) }
       .headOption
       .map { _.getName.toString }
-      .getOrElse(SF_PROPERTY_START_TIME)
+      .getOrElse(DEFAULT_DTG_PROPERTY_NAME)
 
 }

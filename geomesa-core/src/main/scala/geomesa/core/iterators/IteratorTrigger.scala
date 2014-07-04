@@ -1,6 +1,7 @@
 package geomesa.core.iterators
 
 import collection.JavaConverters._
+import geomesa.core._
 import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.index._
@@ -25,15 +26,18 @@ object IteratorTrigger {
   implicit class IndexAttributeNames(sft: SimpleFeatureType) {
     def geoName = sft.getGeometryDescriptor.getLocalName
 
-    def startTimeName =  attributeNameHandler(SF_PROPERTY_START_TIME)
-    def endTimeName   =  attributeNameHandler(SF_PROPERTY_END_TIME)
+    def startTimeName =  attributeNameHandler(SF_PROPERTY_START_TIME,DEFAULT_DTG_PROPERTY_NAME)
+    def endTimeName   =  attributeNameHandler(SF_PROPERTY_END_TIME,DEFAULT_DTG_END_PROPERTY_NAME)
 
-    def attributeNameHandler(attributeKey: String): Option[String] = {
+    def attributeNameHandler(attributeKey: String, attributeDefault:String): Option[String] = {
       // try to get the name from the user data, which may not exist, then check if the attribute exists
       val nameFromUserData = Option(sft.getUserData.get(attributeKey)).map { _.toString }.filter { attributePresent }
-      // check if an attribute with this name(which is the default) exists.
-      val nameFromDefault = Some(attributeKey).filter { attributePresent }
-      nameFromUserData orElse nameFromDefault
+      // check if an attribute with this name(which was sometimes used) exists.
+      val nameFromOldDefault = Some(attributeKey).filter { attributePresent }
+      // check if an attribute with the default name exists
+      val nameFromCurrentDefault = Some(attributeDefault).filter { attributePresent }
+
+      nameFromUserData orElse nameFromOldDefault orElse nameFromCurrentDefault
     }
 
     def attributePresent(attributeKey: String): Boolean = Option(sft.getDescriptor(attributeKey)).isDefined

@@ -16,10 +16,10 @@
 
 package geomesa.utils.filters
 
-import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant, DefaultPeriod}
-import org.joda.time.DateTime
-import org.opengis.filter.expression.Expression
 import org.geotools.factory.CommonFactoryFinder
+import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
+import org.joda.time.{DateTime, Interval}
+import org.opengis.filter.expression.Expression
 
 object Filters {
   val ff = CommonFactoryFinder.getFilterFactory2
@@ -31,4 +31,6 @@ object Filters {
       new DefaultInstant(new DefaultPosition(start.toDate)),
       new DefaultInstant(new DefaultPosition(end.toDate))
     ))
+
+  def interval2lit(int: Interval): Expression = dts2lit(int.getStart, int.getEnd)
 }

@@ -273,22 +273,22 @@ class FeatureWritersTest extends Specification {
         writer.close
 
         // Verify old geo bbox doesn't return them
-        val map45 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 44.9,48.9,45.1,49.1)"),"name", "age")
+        val map45 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 44.9,48.9,45.1,49.1)"),"name", "age")
         map45.keySet.size should equalTo(3)
         map45.keySet should containAllOf(List("will", "george", "sue"))
 
         // Verify that new geometries are written with a bbox query that uses the index
-        val map50 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 49.9,49.9,50.1,50.1)"),"name", "age")
+        val map50 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 49.9,49.9,50.1,50.1)"),"name", "age")
         map50.keySet.size should equalTo(2)
         map50.keySet should containAllOf(List("bob", "karen"))
 
         // get them all
-        val mapLarge = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 44.0,44.0,51.0,51.0)"),"name", "age")
+        val mapLarge = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 44.0,44.0,51.0,51.0)"),"name", "age")
         mapLarge.keySet.size should equalTo(5)
         mapLarge.keySet should containAllOf(List("will", "george", "sue", "bob", "karen"))
 
         // get none
-        val mapNone = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 30.0,30.0,31.0,31.0)"),"name", "age")
+        val mapNone = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 30.0,30.0,31.0,31.0)"),"name", "age")
         mapNone.keySet.size should equalTo(0)
       }
 
@@ -296,7 +296,7 @@ class FeatureWritersTest extends Specification {
         val ds = createStore
         val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
-        val attr = index.SF_PROPERTY_START_TIME
+        val attr = "dtg"
 
         val filter = CQL.toFilter("name = 'will' or name='george'")
         val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
@@ -304,7 +304,7 @@ class FeatureWritersTest extends Specification {
         val newDate = sdf.parse("20140202")
         while(writer.hasNext){
           val sf = writer.next
-          sf.setAttribute(index.SF_PROPERTY_START_TIME, newDate)
+          sf.setAttribute(attr, newDate)
           writer.write
         }
         writer.close
@@ -346,11 +346,11 @@ class FeatureWritersTest extends Specification {
 
         val filter = CQL.toFilter("include")
         val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
-
+        val attr = "dtg"
         val newDate = sdf.parse("20120102")
         while(writer.hasNext){
           val sf = writer.next
-          sf.setAttribute(index.SF_PROPERTY_START_TIME, newDate)
+          sf.setAttribute(attr, newDate)
           sf.setDefaultGeometry(WKTUtils.read("POINT(10.0 10.0)"))
           writer.write
         }
@@ -373,7 +373,7 @@ class FeatureWritersTest extends Specification {
 
           o.getID must be equalTo(n.getID)
           o.getDefaultGeometry must not be equalTo(n.getDefaultGeometry)
-          o.getAttribute(index.SF_PROPERTY_START_TIME) must not be equalTo(n.getAttribute(index.SF_PROPERTY_START_TIME))
+          o.getAttribute(attr) must not be equalTo(n.getAttribute(attr))
         }
       }
 

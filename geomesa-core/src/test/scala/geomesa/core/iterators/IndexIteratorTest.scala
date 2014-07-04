@@ -108,9 +108,9 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     //create the Feature Source
     val fs = IITest.setupMockFeatureSource(entries)
 
-    val gf = s"WITHIN(geomesa_index_geometry, ${polygon.toText})"
+    val gf = s"WITHIN(geom, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
-      s"(geomesa_index_start_time between '${int.getStart}' AND '${int.getEnd}')"
+      s"(dtg between '${int.getStart}' AND '${int.getEnd}')"
     )
     def red(f: String, og: Option[String]) = og match {
       case Some(g) => s"$f AND $g"
@@ -124,7 +124,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     // select a few attributes to trigger the IndexIterator
     // Note that since we are re-running all the tests from the IntersectingIteratorTest,
     // some of the tests may actually use the IntersectingIterator
-    val outputAttributes = Array("geomesa_index_geometry")
+    val outputAttributes = Array("geom")
     //val q = new Query(TestData.featureType.getTypeName, tf)
     val q = new Query(TestData.featureType.getTypeName, tf, outputAttributes)
     val sfCollection = fs.getFeatures(q)

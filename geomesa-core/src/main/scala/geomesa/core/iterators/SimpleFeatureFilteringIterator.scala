@@ -26,7 +26,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env: IteratorEnvironment)
   extends SortedKeyValueIterator[Key, Value]
@@ -54,8 +54,15 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var transform: (SimpleFeature => Value) = (_: SimpleFeature) => source.getTopValue
 
   def evalFilter(v: Value) = {
-    curFeature = featureEncoder.decode(simpleFeatureType, v)
-    filter.evaluate(curFeature)
+    Try(featureEncoder.decode(simpleFeatureType, v)) match {
+      case Success(feature) =>
+        curFeature = feature
+        filter.evaluate(curFeature)
+      case Failure(e) =>
+        logger.error(s"Error decoding value to simple feature for key '${source.getTopKey}': ", e)
+        curFeature = null
+        false
+    }
   }
 
   if (other != null && env != null) {
