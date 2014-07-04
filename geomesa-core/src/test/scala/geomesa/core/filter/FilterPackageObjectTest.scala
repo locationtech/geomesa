@@ -1,15 +1,15 @@
 package geomesa.core.filter
 
 import com.typesafe.scalalogging.slf4j.Logging
-import geomesa.core.filter.FilterGenerator._
 import geomesa.core.filter.FilterUtils._
-import geomesa.core.filter.SmallFilters._
+import geomesa.core.filter.TestFilters._
 import geomesa.core.iterators.TestData._
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.Fragments
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
@@ -18,7 +18,7 @@ class FilterPackageObjectTest extends Specification with Logging {
   "The deMorgan function" should {
 
     "change ANDs to ORs" in {
-      runSamples(genOneLevelAnd) { f =>
+      oneLevelAndFilters.flatMap { case (f: And) =>
         val dm = deMorgan(f)
         dm.isInstanceOf[Or] mustEqual true
         val dmChildren = dm.asInstanceOf[Or].getChildren
@@ -32,7 +32,7 @@ class FilterPackageObjectTest extends Specification with Logging {
     }
 
     "change ORs to ANDs" in {
-      runSamples(genOneLevelOr) { f =>
+      oneLevelOrFilters.flatMap { case (f: Or) =>
         val dm = deMorgan(f)
         dm.isInstanceOf[And] mustEqual true
         val dmChildren = dm.asInstanceOf[And].getChildren
@@ -46,7 +46,7 @@ class FilterPackageObjectTest extends Specification with Logging {
     }
 
     "remove stacked NOTs" in {
-      runSamples(genNot) { f =>
+      simpleNotFilters.map { case (f: Not) =>
         deMorgan(f) mustEqual f.getFilter
       }
     }
@@ -56,15 +56,15 @@ class FilterPackageObjectTest extends Specification with Logging {
   "The function 'logicDistribution'" should {
 
     "split a top-level OR into a List of single-element Lists each containing a filter" in {
-      runSamples(genOneLevelOr) { or =>
+      oneLevelOrFilters.flatMap { or =>
         val ll = logicDistribution(or)
-        ll.foreach { l => l.size mustEqual 1}
+        ll.map { l => l.size mustEqual 1}
       }
     }
 
     "split a top-level AND into a a singleton List which contains a List of the ANDed filters" in {
 
-      runSamples(genOneLevelAnd) { and =>
+      oneLevelAndFilters.map { case (and: And) =>
         val ll = logicDistribution(and)
         ll.size mustEqual 1
 
@@ -74,14 +74,14 @@ class FilterPackageObjectTest extends Specification with Logging {
 
     "not return filters with ANDs or ORs explicitly stated" in {
       // NB: The nested lists imply ANDs and ORs.
-      runSamples(genFreq) { filter: Filter =>
+      andsOrsFilters.flatMap { filter: Filter =>
         val ll = logicDistribution(filter)
-        ll.flatten.foreach { l => l.isInstanceOf[BinaryLogicOperator] mustEqual false}
+        ll.flatten.map { l => l.isInstanceOf[BinaryLogicOperator] mustEqual false}
       }
     }
 
     "take a 'simple' filter and return List(List(filter))" in {
-      runSamples(genBaseFilter) { f =>
+      baseFilters.map { f =>
         val ll = logicDistribution(f)
         ll.size mustEqual 1
         ll(0).size mustEqual 1
@@ -92,7 +92,7 @@ class FilterPackageObjectTest extends Specification with Logging {
   val mediumDataFeatures = mediumData.map(createSF)
 
   // Function defining rewriteFilter Properties.
-  def testRewriteProps(filter: Filter) = {
+  def testRewriteProps(filter: Filter): Fragments = {
     logger.debug(s"Filter: ${ECQL.toCQL(filter)}")
 
     "The function rewriteFilter" should {
@@ -126,5 +126,5 @@ class FilterPackageObjectTest extends Specification with Logging {
     }
   }
 
-  runSamples(oneGeomTrees)(testRewriteProps)
+  oneGeomFilters.map(testRewriteProps)
 }

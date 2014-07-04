@@ -28,12 +28,15 @@ package object filter {
       if(ll(0).size == 1) ll(0)(0)
       else ff.and(ll(0))
     }
-    else  ff.or(ll.map { l =>
-      l.size match {
-        case 1 => l(0)
-        case _ => ff.and(l)
+    else  {
+      val children = ll.map { l =>
+        l.size match {
+          case 1 => l(0)
+          case _ => ff.and(l)
+        }
       }
-    })
+      ff.or(children)
+    }
   }
 
   /**
