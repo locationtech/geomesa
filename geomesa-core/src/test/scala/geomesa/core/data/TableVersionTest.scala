@@ -1,8 +1,6 @@
 package geomesa.core.data
 
 import geomesa.feature.AvroSimpleFeatureFactory
-
-import collection.JavaConversions._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -10,14 +8,15 @@ import org.apache.accumulo.core.data.{Value, Mutation}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
-import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
+import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.apache.hadoop.io.Text
+
+import scala.collection.JavaConversions._
 
 
 /**
@@ -95,9 +94,7 @@ class TableVersionTest extends Specification {
     "000000013500000015000000000140468000000000004046800000000000000001349ccf6e18").map {v =>
     hex.decode(v.getBytes)}
 
-  val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
-  val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
-  val builder = new SimpleFeatureBuilder(sft, featureFactory)
+  val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
 
   def getFeatures = (0 until 6).map { i =>
     builder.reset

@@ -96,9 +96,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   /* Return a String representing nextId - use UUID.random for universal uniqueness across multiple ingest nodes */
   protected def nextFeatureId = UUID.randomUUID().toString
 
-  protected val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
-  protected val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
-  protected val builder = new SimpleFeatureBuilder(featureType, featureFactory)
+  protected val builder = AvroSimpleFeatureFactory.featureBuilder(featureType)
 
   protected def writeToAccumulo(feature: SimpleFeature) = {
     // see if there's a suggested ID to use for this feature
