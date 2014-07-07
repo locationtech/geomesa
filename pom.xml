@@ -40,7 +40,7 @@
 
         <!-- environment-dependent versions -->
         <zookeeper.version>3.3.6</zookeeper.version>
-        <accumulo.version>1.4.3</accumulo.version>
+        <accumulo.version>1.4.4</accumulo.version>
         <hadoop.version>0.20.2-cdh3u6</hadoop.version>
 
         <!-- logging properties
@@ -449,6 +449,12 @@
                 <artifactId>junit</artifactId>
                 <version>4.5</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+              <groupId>org.apache.accumulo</groupId>
+              <artifactId>accumulo-minicluster</artifactId>
+              <version>${accumulo.version}</version>
+              <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
