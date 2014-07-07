@@ -87,9 +87,7 @@ class LiveAccumuloDataStoreTest extends Specification {
   }
 
   def getFeatures(sft: SimpleFeatureType) = {
-    val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
-    val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
-    val builder = new SimpleFeatureBuilder(sft, featureFactory)
+    val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
     (0 until 6).map { i =>
       builder.reset()
       builder.set("geom", WKTUtils.read("POINT(45.0 45.0)"))
