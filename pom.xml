@@ -429,6 +429,12 @@
                 <version>${gt.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
+                <artifactId>gt-epsg-hsql</artifactId>
+                <version>${gt.version}</version>
+                <scope>test</scope>
+            </dependency>
             <!-- needed to make everything compile because accumulo & hadoop have
                  source level references to log4j classes which scala compiler needs -->
             <dependency>
