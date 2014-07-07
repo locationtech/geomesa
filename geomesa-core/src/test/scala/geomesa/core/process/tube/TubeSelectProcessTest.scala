@@ -160,7 +160,7 @@ class TubeSelectProcessTest extends Specification {
       val res = fs.addFeatures(featureCollection)
 
       // tube features
-      val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geom, 40, 40, 40, 50) AND type = 'a'"))
+      val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geom, 39.999999999,39.999999999, 40.00000000001, 50.000000001) AND type = 'a'"))
 
       // result set to tube on
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
@@ -191,7 +191,7 @@ class TubeSelectProcessTest extends Specification {
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
       // tube features
-      val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geom, 40, 40, 40, 50) AND type = 'a'"))
+      val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geom, 39.999999999,39.999999999, 40.00000000001, 50.000000001) AND type = 'a'"))
 
       // result set to tube on
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))

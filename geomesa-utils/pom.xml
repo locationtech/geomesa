@@ -76,6 +76,11 @@
             <artifactId>joda-convert</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.spatial4j</groupId>
+            <artifactId>spatial4j</artifactId>
+        </dependency>
+
         <!-- logging -->
         <dependency>
             <groupId>com.typesafe</groupId>
