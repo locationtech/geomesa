@@ -319,7 +319,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     }
   }
 
-  def updateToAntiMeridianSafeFilter(op: BinarySpatialOperator, acc:Filter) = {
+  def updateToAntiMeridianSafeFilter(op: BinarySpatialOperator, acc: Filter) = {
     val e2 = op.getExpression2.asInstanceOf[Literal]
     val geom = e2.evaluate(null, classOf[Geometry])
     val safeGeometry = getInternationalDateLineSafeGeometry(geom)
@@ -331,9 +331,9 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
       case mp: MultiPolygon =>
         spatialPredicate = safeGeometry.getEnvelope.asInstanceOf[Polygon]
         val polygonList = getGeometryListOf(safeGeometry)
-        val filterList = polygonList.map(
+        val filterList = polygonList.map {
           p => doCorrectSpatialCall(op, sft.getGeometryDescriptor.getLocalName, p)
-        )
+        }
         ff.and(acc, ff.or(filterList))
     }
   }
@@ -348,7 +348,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
   }
 
   def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
-    for( i <- 0 until inMP.getNumGeometries) yield inMP.getGeometryN(i)
+    for( i <- 0 until inMP.getNumGeometries ) yield inMP.getGeometryN(i)
 
   private def extractDTG(o: AnyRef) = parseDTG(o).withZone(DateTimeZone.UTC)
 
