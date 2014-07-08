@@ -33,7 +33,7 @@ object AvroSimpleFeatureFactory {
     Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
   }
 
-  private val sftCache =
+  private val builderCache =
     CacheBuilder
       .newBuilder()
       .build(
@@ -47,10 +47,10 @@ object AvroSimpleFeatureFactory {
   private val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
 
   def buildAvroFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String) =
-    featureBuilder(sft).withResource { builder =>
+    builderCache(sft).withResource { builder =>
       builder.addAll(attrs)
       builder.buildFeature(id)
     }
 
-  def featureBuilder(sft: SimpleFeatureType) = sftCache.get(sft)
+  def featureBuilder(sft: SimpleFeatureType): SimpleFeatureBuilder = new SimpleFeatureBuilder(sft, featureFactory)
 }
