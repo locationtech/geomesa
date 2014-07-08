@@ -39,13 +39,13 @@ object TemporalIndexCheck extends Logging {
     // we may wish to use the first acceptable attribute found, although we currently require just one match
     val firstDtgCandidate = dtgCandidates.headOption
     val hasValidDtgCandidate = dtgCandidates.nonEmpty
-    // if there is just one valid dtg candidate, then we can safely use it
+    // if there is a valid dtg candidate, then we can safely use it
     val dtgShouldBeSet = !hasValidDtgField && hasValidDtgCandidate
     // emit a warning to the user
     if (!hasValidDtgField && hasValidDtgCandidate) emitDtgWarning(dtgCandidates)
     // if we are going to mutate UserData, notify the user
     if (dtgShouldBeSet) firstDtgCandidate.map { text => emitDtgNotification(text)}
-    firstDtgCandidate
+    if (dtgShouldBeSet) firstDtgCandidate else None
   }
   def emitDtgWarning(matches: List[String]) {
     lazy val theWarning =
