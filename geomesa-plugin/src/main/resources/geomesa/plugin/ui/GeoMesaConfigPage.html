@@ -1,0 +1,101 @@
+<!--
+  ~ Copyright 2014 Commonwealth Computer Research, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html>
+  <body>
+    <wicket:extend>
+      <div class="selfclear" style="padding-top:20px"/>
+      <style>
+        table.geomesa-config {
+          width: auto;
+        }
+        table.geomesa-config td {
+          padding: 4px 5px;
+        }
+        table.geomesa-config input {
+          padding-left: 2px;
+        }
+        table.geomesa-config .geomesa-prop {
+          font-size: 10px;
+          font-weight: bold;
+          padding: 0 10px 10px 10px
+        }
+        .padded {
+          padding: 10px;
+        }
+      </style>
+      <script type="text/javascript">
+        Wicket.Window.unloadConfirmation = false;
+      </script>
+      <div wicket:id="modalForm"/>
+      <div wicket:id="modalFailure"/>
+      <fieldset>
+        <legend>
+          <span><wicket:message key="GeoMesaConfigPage.hdfs.config"/></span>
+        </legend>
+        <form wicket:id="hdfsForm">
+          <table class="geomesa-config">
+            <tr>
+              <td>YARN Resource Manager:</td>
+              <td>
+                <input wicket:id="resourceManagerField" type="text" id="resourceManagerField"
+                       size="50" maxlength="100"/>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" class="geomesa-prop">yarn.resourcemanager.address</td>
+            </tr>
+            <tr>
+              <td>YARN Scheduler:</td>
+              <td>
+                <input wicket:id="schedulerField" type="text" id="schedulerField"
+                       size="50" maxlength="100"/>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" class="geomesa-prop">yarn.resourcemanager.scheduler.address</td>
+            </tr>
+            <tr>
+              <td>Hadoop NameNode:</td>
+              <td>
+                <input wicket:id="nameNodeField" type="text" id="nameNodeField"
+                       size="50" maxlength="100"/>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" class="geomesa-prop">fs.defaultFS</td>
+            </tr>
+            <tr>
+              <td>MapReduce Framework:</td>
+              <td>
+                <input wicket:id="frameworkField" type="text" id="frameworkField"
+                       size="50" maxlength="100"/>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" class="geomesa-prop">mapreduce.framework.name</td>
+            </tr>
+          </table>
+          <div class="button-group selfclear">
+            <a href="#" wicket:id="save"><wicket:message key="save">Save</wicket:message></a>
+            <a href="#" wicket:id="openModalForm"><wicket:message key="GeoMesaConfigPage.button.modal">Upload</wicket:message></a>
+            <a href="#" wicket:id="cancel"><wicket:message key="cancel">Cancel</wicket:message></a>
+          </div>
+        </form>
+      </fieldset>
+    </wicket:extend>
+  </body>
+</html>

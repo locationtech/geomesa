@@ -428,6 +428,12 @@
                 <version>${gt.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>11.0.1</version>
+                <scope>provided</scope>
+            </dependency>
             <!-- needed to make everything compile because accumulo & hadoop have
                  source level references to log4j classes which scala compiler needs -->
             <dependency>
@@ -451,16 +457,16 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>11.0.1</version>
-                <scope>provided</scope>
+              <groupId>org.apache.accumulo</groupId>
+              <artifactId>accumulo-test</artifactId>
+              <version>${accumulo.version}</version>
+              <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>findbugs</artifactId>
                 <version>2.0.3</version>
-                <scope>provided</scope>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
