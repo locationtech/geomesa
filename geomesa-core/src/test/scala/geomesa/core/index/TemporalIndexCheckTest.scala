@@ -16,7 +16,6 @@
 
 package geomesa.core.index
 
-
 import geomesa.core._
 import org.geotools.data.DataUtilities
 import org.junit.runner.RunWith
@@ -26,9 +25,9 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class TemporalIndexCheckTest extends Specification {
   // setup the basic types
-  val noDTGType = DataUtilities.createType("noDTGType",s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry")
-  val oneDTGType = DataUtilities.createType("oneDTGType",s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date")
-  val twoDTGType = DataUtilities.createType("twoDTGType",s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
+  val noDTGType = DataUtilities.createType("noDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry")
+  val oneDTGType = DataUtilities.createType("oneDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date")
+  val twoDTGType = DataUtilities.createType("twoDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
 
   "TemporalIndexCheck" should {
     "detect no valid DTG" in {
@@ -36,36 +35,42 @@ class TemporalIndexCheckTest extends Specification {
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
       dtgCandidate.isDefined must beFalse
     }
+
     "detect no valid DTG even if SF_PROPERTY_START_TIME is set incorrectly" in {
       val testType = noDTGType
       testType.getUserData.put(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME)
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
       dtgCandidate.isDefined must beFalse
     }
-    "detect a valid DTG if one is not already specified with SF_PROPERTY_START_TIME" in {
+
+    "detect a valid DTG if SF_PROPERTY_START_TIME is not set" in {
       val testType = oneDTGType
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
       dtgCandidate.get must be equalTo DEFAULT_DTG_PROPERTY_NAME
     }
-     "detect a valid DTG if one is set improperly SF_PROPERTY_START_TIME" in {
+
+    "detect a valid DTG if SF_PROPERTY_START_TIME is not properly set" in {
       val testType = oneDTGType
       testType.getUserData.put(SF_PROPERTY_START_TIME, "no_such_dtg")
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
       dtgCandidate.get must be equalTo DEFAULT_DTG_PROPERTY_NAME
     }
-     "present no DTG candidate if one is set properly SF_PROPERTY_START_TIME" in {
+
+    "present no DTG candidate if SF_PROPERTY_START_TIME is set properly" in {
       val testType = oneDTGType
       testType.getUserData.put(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME)
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
       dtgCandidate.isDefined must beFalse
     }
-     "detect valid DTG candidates and select the first if SF_PROPERTY_START_TIME is not set correctly" in {
+
+    "detect valid DTG candidates and select the first if SF_PROPERTY_START_TIME is not set correctly" in {
       val testType = twoDTGType
       testType.getUserData.put(SF_PROPERTY_START_TIME, "no_such_dtg")
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
       dtgCandidate.get must be equalTo DEFAULT_DTG_PROPERTY_NAME
     }
-     "present no DTG candidate if one is set properly SF_PROPERTY_START_TIME and there are multiple Date attributes" in {
+
+    "present no DTG candidate if SF_PROPERTY_START_TIME is set properly and there are multiple Date attributes" in {
       val testType = twoDTGType
       testType.getUserData.put(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME)
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
