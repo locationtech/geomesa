@@ -1,15 +1,17 @@
-package geomesa.core.avro
+package geomesa.feature
 
-import com.vividsolutions.jts.geom.{LineString, Polygon, Point}
-import geomesa.utils.geohash.GeohashUtils
 import java.io._
 import java.text.SimpleDateFormat
 import java.util.UUID
+
+import com.vividsolutions.jts.geom.{LineString, Point, Polygon}
+import geomesa.utils.geohash.GeohashUtils
 import org.apache.avro.io.DecoderFactory
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.{Assert, Test}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Source

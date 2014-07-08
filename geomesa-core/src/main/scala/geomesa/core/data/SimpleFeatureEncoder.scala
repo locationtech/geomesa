@@ -16,15 +16,16 @@
 
 package geomesa.core.data
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+
 import com.google.common.cache.LoadingCache
-import geomesa.core.avro.{FeatureSpecificReader, AvroSimpleFeature}
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
+import geomesa.feature.{AvroSimpleFeature, FeatureSpecificReader}
 import geomesa.utils.text.ObjectPoolFactory
-import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 import org.apache.accumulo.core.data.Value
 import org.apache.avro.io.DecoderFactory
 import org.geotools.data.DataUtilities
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 
 /**

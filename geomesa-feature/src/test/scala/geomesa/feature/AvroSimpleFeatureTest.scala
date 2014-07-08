@@ -1,6 +1,5 @@
-package geomesa.core.avro
+package geomesa.feature
 
-import collection.JavaConversions._
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureImpl
@@ -11,6 +10,8 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import java.util
 import org.opengis.feature.Property
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class AvroSimpleFeatureTest extends Specification {

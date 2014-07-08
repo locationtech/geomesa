@@ -1,0 +1,101 @@
+<!--
+  ~ Copyright 2014 Commonwealth Computer Research, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html>
+  <body>
+    <wicket:extend>
+      <style>
+        .bar {
+          fill: steelblue;
+        }
+        .axis text {
+          font: 10px sans-serif;
+        }
+        .axis path,
+        .axis line {
+          fill: none;
+          stroke: #000;
+          shape-rendering: crispEdges;
+        }
+        .geomesa-status fieldset {
+          border-width: 1px;
+          padding: 10px;
+        }
+      </style>
+      <div wicket:id="storeTable"></div>
+      <div class="geomesa-status">
+        <hr style="margin:20px 0">
+        <fieldset>
+          <legend><wicket:message key="GeoMesaDataStoresPage.graphs.label.main"/></legend>
+          <svg class="chart"/>
+          <script>
+            var margin = { top: 20, right: 30, bottom: 30, left: 120 },
+                width = 810 - margin.left - margin.right,
+                barHeight = 20,
+                height = barHeight * data.length;
+
+            var x = d3.scale.linear()
+                      .range([1, width])
+                      .domain([1, d3.max(data, function(d) { return d.value + 1; })]);
+            var y = d3.scale.ordinal()
+                      .rangeRoundBands([height, 0], .1)
+                      .domain(data.map(function(d) { return d.name; }));
+
+            var chart = d3.select(".chart")
+                          .attr("width", width + margin.left + margin.right)
+                          .attr("height", height + margin.top + margin.bottom)
+                          .append("g")
+                          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var xAxis = d3.svg.axis()
+                          .scale(x)
+                          .orient("bottom");
+            var yAxis = d3.svg.axis()
+                          .scale(y)
+                          .orient("left");
+
+            chart.append("g")
+                   .attr("class", "x axis")
+                   .attr("transform", "translate(0," + height + ")")
+                   .call(xAxis)
+                   .append("text")
+                   .attr("x", width / 2)
+                   .attr("y", 30)
+                   .attr("dx", ".71em")
+                   .style("text-anchor", "end")
+                   .text("Number of Entries");
+            chart.append("g")
+                   .attr("class", "y axis")
+                   .call(yAxis);
+
+            chart.selectAll(".bar")
+                        .data(data)
+                        .enter()
+                        .append("rect")
+                        .attr("class", "bar")
+                        .attr("x", 1)
+                        .attr("y", function(d) { return y(d.name); })
+                        .attr("height", barHeight - 2)
+                        .attr("width", function(d) { return x(d.value + 1); });
+          </script>
+        </fieldset>
+        <div wicket:id="storeDetails">
+          <div wicket:id="storeMetadata" />
+        </div>
+      </div>
+    </wicket:extend>
+  </body>
+</html>

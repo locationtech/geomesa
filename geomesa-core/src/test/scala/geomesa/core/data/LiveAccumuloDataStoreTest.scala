@@ -16,6 +16,8 @@
 
 package geomesa.core.data
 
+import geomesa.feature.AvroSimpleFeatureFactory
+
 import scala.collection.JavaConversions._
 import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.security.{FilteringAuthorizationsProvider, AuthorizationsProvider, DefaultAuthorizationsProvider}
@@ -84,14 +86,17 @@ class LiveAccumuloDataStoreTest extends Specification {
     val written = fs.addFeatures(new ListFeatureCollection(sft, getFeatures(sft).toList))
   }
 
-  def getFeatures(sft: SimpleFeatureType) = (0 until 6).map { i =>
-    val builder = new SimpleFeatureBuilder(sft)
-    builder.set("geom", WKTUtils.read("POINT(45.0 45.0)"))
-    builder.set("dtg", "2012-01-02T05:06:07.000Z")
-    builder.set("name",i.toString)
-    val sf = builder.buildFeature(i.toString)
-    sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-    sf
+  def getFeatures(sft: SimpleFeatureType) = {
+    val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+    (0 until 6).map { i =>
+      builder.reset()
+      builder.set("geom", WKTUtils.read("POINT(45.0 45.0)"))
+      builder.set("dtg", "2012-01-02T05:06:07.000Z")
+      builder.set("name",i.toString)
+      val sf = builder.buildFeature(i.toString)
+      sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+      sf
+    }
   }
 
   def printFeatures(features: SimpleFeatureIterator): Unit = {

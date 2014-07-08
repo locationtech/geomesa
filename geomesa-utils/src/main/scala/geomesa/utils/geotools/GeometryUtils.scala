@@ -16,7 +16,7 @@
 
 package geomesa.utils.geotools
 
-import com.vividsolutions.jts.geom.{Coordinate, Envelope, Point, Polygon}
+import com.vividsolutions.jts.geom._
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
