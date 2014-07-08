@@ -1,0 +1,76 @@
+<!--
+  ~ Copyright 2014 Commonwealth Computer Research, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html>
+  <body>
+    <wicket:extend>
+      <style>
+        .geomesa-status fieldset {
+          border-width: 1px;
+          padding: 10px;
+        }
+        .small {
+          font-size: 10px;
+        }
+        .error-message {
+          background-color: rgb(248, 53, 53);
+          font-weight: bold;
+          margin: 10px;
+          padding: 10px;
+        }
+        .error-message a {
+          color: white;
+        }
+      </style>
+
+      <div class="geomesa-status">
+        <hr style="margin:20px 0">
+        <div wicket:id="error" class="error-message">
+          <div wicket:id="errorMessage"/>
+          <div style="padding-top:10px;">
+            Please check your <wicket:link><a href="GeoMesaConfigPage.html">configuration</a></wicket:link>.
+          </div>
+        </div>
+
+        <fieldset>
+          <legend><wicket:message key="HadoopStatusPage.label.main"/></legend>
+          <table>
+            <tr>
+              <th>JobTracker Status</th>
+              <td><span wicket:id="jobTrackerStatus"/></td>
+            </tr>
+            <tr>
+              <th>Nodes <span class="small">( active / inactive )</span></th>
+              <td><span wicket:id="nodes"/></td>
+            </tr>
+            <tr>
+              <th>Map Slots <span class="small">( in-use / total )</span></th>
+              <td><span wicket:id="mapSlots"/></td>
+            </tr>
+            <tr>
+              <th>Reduce Slots <span class="small">( in-use / total )</span></th>
+              <td><span wicket:id="reduceSlots"/></td>
+            </tr>
+            <tr>
+              <th style="vertical-align:top;">Currently Running Jobs</th>
+              <td><span wicket:id="activeJobs"/></td>
+            </tr>
+          </table>
+        </fieldset>
+      </div>
+    </wicket:extend>
+  </body>
+</html>
