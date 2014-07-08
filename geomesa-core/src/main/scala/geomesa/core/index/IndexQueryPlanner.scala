@@ -1,5 +1,6 @@
 package geomesa.core.index
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Polygon
 import geomesa.core._
 import geomesa.core.data._
@@ -12,7 +13,6 @@ import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
-import org.apache.log4j.Logger
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
@@ -35,10 +35,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              cfPlanner: ColumnFamilyPlanner,
                              schema:String,
                              featureType: SimpleFeatureType,
-                             featureEncoder: SimpleFeatureEncoder) {
-
-  private val log = Logger.getLogger(classOf[IndexQueryPlanner])
-
+                             featureEncoder: SimpleFeatureEncoder) extends Logging {
   def buildFilter(poly: Polygon, interval: Interval): KeyPlanningFilter =
     (IndexSchema.somewhere(poly), IndexSchema.somewhen(interval)) match {
       case (None, None)       =>    AcceptEverythingFilter
@@ -66,31 +63,37 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     case _    => IndexSchema.everywhen.overlap(interval)
   }
 
+  def log(s: String) = logger.trace(s)
+
   // As a pre-processing step, we examine the query/filter and split it into multiple queries.
   // TODO: Work to make the queries non-overlapping.
-  def getIterator(buildBatchScanner: () => BatchScanner, query: Query) : CloseableIterator[Entry[Key,Value]] = {
+  def getIterator(buildBatchScanner: () => BatchScanner,
+                  query: Query,
+                  output: String => Unit = log): CloseableIterator[Entry[Key,Value]] = {
     val ff = CommonFactoryFinder.getFilterFactory2
     val queries: Iterator[Query] =
       if(query.getHints.containsKey(BBOX_KEY)) {
         val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
         val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
         Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
-      } else splitQueryOnOrs(query)
+      } else splitQueryOnOrs(query, output)
 
-    queries.flatMap(runQuery(buildBatchScanner, _))
+    queries.flatMap(runQuery(buildBatchScanner, _, output))
   }
   
-  def splitQueryOnOrs(query: Query): Iterator[Query] = {
+  def splitQueryOnOrs(query: Query, output: String => Unit): Iterator[Query] = {
     val originalFilter = query.getFilter
+    output(s"Originalfilter is $originalFilter")
 
     val rewrittenFilter = rewriteFilter(originalFilter)
-    
+    output(s"Filter is rewritten as $rewrittenFilter")
+
     val orSplitter = new OrSplittingFilter
     val splitFilters = orSplitter.visit(rewrittenFilter, null)
 
     // Let's just check quickly to see if we can eliminate any duplicates.
     val filters = splitFilters.distinct
-
+                                                                                                                            println
     filters.map { filter =>
       val q = new Query(query)
       q.setFilter(filter)
@@ -102,7 +105,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // 1. Inspect the query
   // 2. Set up the base iterators/scans.
   // 3. Set up the rest of the iterator stack.
-  private def runQuery(buildBatchScanner: () => BatchScanner, query: Query) = {
+  private def runQuery(buildBatchScanner: () => BatchScanner, query: Query, output: String => Unit) = {
     val bs: BatchScanner = buildBatchScanner()
 
     val filterVisitor = new FilterToAccumulo(featureType)
@@ -124,16 +127,15 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val oint  = IndexSchema.somewhen(interval)
 
     // set up row ranges and regular expression filter
-    planQuery(bs, filter)
+    planQuery(bs, filter, output)
 
-    if(log.isTraceEnabled) {
-      log.trace("Configuring batch scanner: ")
-      log.trace("Poly: "+ opoly.getOrElse("No poly"))
-      log.trace("Interval: " + oint.getOrElse("No interval"))
-      log.trace("Filter: " + Option(filter).getOrElse("No Filter"))
-      log.trace("ECQL: " + Option(ecql).getOrElse("No ecql"))
-      log.trace("Query: " + Option(query).getOrElse("no query"))
-    }
+    output("Configuring batch scanner: \n" +
+      s"  Filter ${query.getFilter}\n" +
+      s"  Poly: ${opoly.getOrElse("No poly")}\n" +
+      s"  Interval:  ${oint.getOrElse("No interval")}\n" +
+      s"  Filter: ${Option(filter).getOrElse("No Filter")}\n" +
+      s"  ECQL: ${Option(ecql).getOrElse("No ecql")}\n" +
+      s"Query: ${Option(query).getOrElse("no query")}.")
 
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
@@ -254,8 +256,9 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def randomPrintableString(length:Int=5) : String = (1 to length).
     map(i => Random.nextPrintableChar()).mkString
 
-  def planQuery(bs: BatchScanner, filter: KeyPlanningFilter): BatchScanner = {
-    val keyPlan = keyPlanner.getKeyPlan(filter)
+  def planQuery(bs: BatchScanner, filter: KeyPlanningFilter, output: String => Unit): BatchScanner = {
+    output(s"Planning query/configurating batch scanner: $bs")
+    val keyPlan = keyPlanner.getKeyPlan(filter, output)
     val columnFamilies = cfPlanner.getColumnFamiliesToFetch(filter)
 
     // always try to use range(s) to remove easy false-positives
@@ -274,7 +277,12 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     // if you have a list of distinct column-family entries, fetch them
     columnFamilies match {
-      case KeyList(keys) => keys.foreach(cf => bs.fetchColumnFamily(new Text(cf)))
+      case KeyList(keys) => {
+        output(s"Settings ${keys.size} col fams: $keys.")
+        keys.foreach { cf =>
+          bs.fetchColumnFamily(new Text(cf))
+        }
+      }
       case _ => // do nothing
     }
 
