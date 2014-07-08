@@ -30,6 +30,7 @@
         <module>geomesa-plugin</module>
         <module>geomesa-dist</module>
         <module>geomesa-filter</module>
+        <module>geomesa-feature</module>
     </modules>
 
     <properties>
@@ -261,6 +262,12 @@
                 <classifier>geoserver-plugin</classifier>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>geomesa</groupId>
+                <artifactId>geomesa-feature-accumulo1.5</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
 
             <!-- logging -->
             <dependency>
@@ -468,6 +475,11 @@
                 <version>2.0.3</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
+                <artifactId>gt-geometry</artifactId>
+                <version>${gt.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -480,7 +492,6 @@
     </dependencies>
 
     <build>
-
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -533,13 +544,14 @@
                         </goals>
                     </execution>
                 </executions>
-
                 <configuration>
                     <jvmArgs>
                         <jvmArg>-Xms64m</jvmArg>
                         <jvmArg>-Xmx1024m</jvmArg>
                     </jvmArgs>
+                    <recompileMode>incremental</recompileMode>
                     <args>
+                        <arg>-nowarn</arg>
                         <arg>-unchecked</arg>
                         <arg>-deprecation</arg>
                     </args>

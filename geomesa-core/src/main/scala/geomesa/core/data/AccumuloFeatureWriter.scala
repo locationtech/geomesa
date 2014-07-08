@@ -14,21 +14,29 @@
  * limitations under the License.
  */
 
-
 package geomesa.core.data
+
+import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.index._
-import java.util.UUID
+import geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
-import org.apache.accumulo.core.data.{PartialKey, Mutation, Value, Key}
-import org.apache.hadoop.mapred.{Reporter, RecordWriter}
+import org.apache.accumulo.core.data.{Range => ARange, PartialKey, Key, Mutation, Value}
+import org.apache.accumulo.core.security.ColumnVisibility
+import org.apache.hadoop.io.Text
+import org.apache.hadoop.mapred.{RecordWriter, Reporter}
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureWriter
-import org.geotools.factory.Hints
+import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object AccumuloFeatureWriter {
 
@@ -87,7 +95,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   /* Return a String representing nextId - use UUID.random for universal uniqueness across multiple ingest nodes */
   protected def nextFeatureId = UUID.randomUUID().toString
 
-  val builder = new SimpleFeatureBuilder(featureType)
+  protected val builder = AvroSimpleFeatureFactory.featureBuilder(featureType)
 
   protected def writeToAccumulo(feature: SimpleFeature) = {
     // see if there's a suggested ID to use for this feature
@@ -116,8 +124,6 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   def hasNext: Boolean = false
 }
 
-
-
 class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
                                   indexer: IndexSchema,
                                   recordWriter: RecordWriter[Key,Value],
@@ -126,13 +132,14 @@ class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
 
   var currentFeature: SimpleFeature = null
 
+
   def write() {
     if (currentFeature != null) writeToAccumulo(currentFeature)
     currentFeature = null
   }
 
   def next(): SimpleFeature = {
-    currentFeature = SimpleFeatureBuilder.template(featureType, nextFeatureId)
+    currentFeature = new AvroSimpleFeature(new FeatureIdImpl(nextFeatureId), featureType)
     currentFeature
   }
 
@@ -165,11 +172,11 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
   /* Delete keys from original index and data entries that are different from new keys */
   /* Return list of old keys that should be deleted */
   def keysToDelete = {
-    val oldKeys = indexer.encode(original).map { case (k,v) => k }
-    val newKeys = indexer.encode(live).map { case (k,v) => k }
+    val oldKeys = indexer.encode(original).map { case (k, v) => k }
+    val newKeys = indexer.encode(live).map { case (k, v) => k }
     oldKeys.zip(newKeys).filter { case(o, n) =>
-      !o.equals(n, PartialKey.ROW_COLFAM_COLQUAL_COLVIS) }.map{ case (k1, k2) => k1
-    }
+      !o.equals(n, PartialKey.ROW_COLFAM_COLQUAL_COLVIS)
+    }.map { case (k1, _) => k1 }
   }
 
   override def next: SimpleFeature = {
@@ -180,7 +187,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
         builder.init(original)
         builder.buildFeature(original.getID)
       } else {
-        SimpleFeatureBuilder.template(featureType, nextFeatureId)
+        builder.buildFeature(nextFeatureId)
       }
     live
   }

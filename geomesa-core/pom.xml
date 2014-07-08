@@ -40,6 +40,10 @@
             <artifactId>geomesa-filter-accumulo1.5</artifactId>
         </dependency>
         <dependency>
+            <groupId>geomesa</groupId>
+            <artifactId>geomesa-feature-accumulo1.5</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-main</artifactId>
         </dependency>
