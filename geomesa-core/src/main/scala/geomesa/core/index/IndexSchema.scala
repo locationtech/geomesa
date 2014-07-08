@@ -131,7 +131,7 @@ object IndexSchema extends RegexParsers {
   val minDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.forID("UTC"))
   val maxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.forID("UTC"))
   val everywhen = new Interval(minDateTime, maxDateTime)
-  val everywhere = WKTUtils.read("POLYGON((-180 -90,180 -90,180 90,-180 90,-180 -90))").asInstanceOf[Polygon]
+  val everywhere = WKTUtils.read("POLYGON((-180 -90, 0 -90, 180 -90, 180 90, 0 90, -180 90, -180 -90))").asInstanceOf[Polygon]
 
   def somewhen(interval: Interval): Option[Interval] =
     interval match {
