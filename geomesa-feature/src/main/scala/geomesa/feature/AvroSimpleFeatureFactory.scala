@@ -1,5 +1,6 @@
 package geomesa.feature
 
+import com.google.common.cache.{CacheLoader, CacheBuilder}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -31,15 +32,24 @@ object AvroSimpleFeatureFactory {
     Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
   }
 
+  private val sftCache =
+    CacheBuilder
+      .newBuilder()
+      .build(
+        new CacheLoader[SimpleFeatureType, SimpleFeatureBuilder] {
+          override def load(sft: SimpleFeatureType): SimpleFeatureBuilder = new SimpleFeatureBuilder(sft, featureFactory)
+        }
+      )
+
   private val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
   private val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
 
   def buildAvroFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String) = {
-    val builder = new SimpleFeatureBuilder(sft, featureFactory)
+    val builder = featureBuilder(sft)
     builder.addAll(attrs)
     builder.buildFeature(id)
   }
 
-  def featureBuilder(sft: SimpleFeatureType) = new SimpleFeatureBuilder(sft, featureFactory)
+  def featureBuilder(sft: SimpleFeatureType) = sftCache.get(sft)
 
 }
