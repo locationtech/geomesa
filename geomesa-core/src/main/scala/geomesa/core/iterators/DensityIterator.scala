@@ -17,26 +17,29 @@
 
 package geomesa.core.iterators
 
-import collection.JavaConversions._
-import com.google.common.collect._
-import com.vividsolutions.jts.geom.{Coordinate, Polygon, Point}
-import geomesa.utils.text.WKTUtils
-import java.io.{ByteArrayInputStream, DataInputStream, DataOutputStream, ByteArrayOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 import java.{util => ju}
+
+import com.google.common.collect._
+import com.vividsolutions.jts.geom.{Coordinate, Point, Polygon}
+import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.GridSnap
+import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{Range => ARange, PartialKey, ByteSequence, Value, Key}
+import org.apache.accumulo.core.data.{ByteSequence, Key, PartialKey, Value, Range => ARange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.commons.codec.binary.Base64
-import org.geotools.data.{Query, DataUtilities}
+import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.geotools.geometry.jts.{JTSFactoryFinder, JTS, ReferencedEnvelope}
+import org.geotools.geometry.jts.{JTS, JTSFactoryFinder, ReferencedEnvelope}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.collection.JavaConversions._
 import scala.util.Random
-import geomesa.utils.geotools.GridSnap
 
 class DensityIterator extends SimpleFeatureFilteringIterator {
 
-  import DensityIterator.SparseMatrix
+  import geomesa.core.iterators.DensityIterator.SparseMatrix
 
   var bbox: ReferencedEnvelope = null
   var curRange: ARange = null
@@ -55,7 +58,7 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
     snap = new GridSnap(bbox, w, h)
     projectedSFT =
       DataUtilities.createType(simpleFeatureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
-    featureBuilder = new SimpleFeatureBuilder(projectedSFT)
+    featureBuilder = AvroSimpleFeatureFactory.featureBuilder(projectedSFT)
   }
 
   override def next() = {
@@ -118,7 +121,7 @@ object DensityIterator {
 
 
   def expandFeature(sf: SimpleFeature): Iterable[SimpleFeature] = {
-    val builder = new SimpleFeatureBuilder(densitySFT)
+    val builder =  AvroSimpleFeatureFactory.featureBuilder(densitySFT)
     val m = decodeSparseMatrix(sf.getAttribute("encodedraster").toString)
     m.rowMap().flatMap { case (lonIdx, col) =>
       col.map { case (latIdx, count) =>

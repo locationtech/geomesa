@@ -1,18 +1,19 @@
 package geomesa.core.process.tube
 
+import java.util.Date
+import java.util.concurrent.atomic.AtomicInteger
+
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
 import geomesa.core.index.Constants
+import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.text.WKTUtils
-import java.util.Date
-import java.util.concurrent.atomic.AtomicInteger
 import org.apache.log4j.Logger
 import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.format.DateTimeFormat
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
  * Build a tube for input to a TubeSelect by buffering and binning the input
@@ -31,7 +32,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   val GEOM_PROP = "geom"
 
   val tubeType = DataUtilities.createType("tubeType", s"$GEOM_PROP:Geometry:srid=4326,start:Date,end:Date")
-  val builder = new SimpleFeatureBuilder(tubeType)
+  val builder = AvroSimpleFeatureFactory.featureBuilder(tubeType)
 
   // default to ISO 8601 date format
   val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
@@ -60,7 +61,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     builder.buildFeature(sf.getID)
   }
 
-  import collection.JavaConversions._
+  import scala.collection.JavaConversions._
 
   def extractDtgField(sft: SimpleFeatureType) =
     sft.getAttributeDescriptors
@@ -118,7 +119,7 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
 
   // Union features to create a single geometry and single combined time range
   def unionFeatures(orderedFeatures: Seq[SimpleFeature], id: String) = {
-    import collection.JavaConversions._
+    import scala.collection.JavaConversions._
     val geoms = orderedFeatures.map { sf => getGeom(sf) }
     val unionGeom = geoFac.buildGeometry(geoms).union
     val min = getStartTime(orderedFeatures(0))

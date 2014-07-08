@@ -1,20 +1,21 @@
 package geomesa.core.process.proximity
 
-import collection.JavaConversions._
 import com.vividsolutions.jts.geom.Coordinate
-import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
+import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import geomesa.core.index.Constants
+import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.GeometryUtils
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.{DataUtilities, DataStoreFinder}
+import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class ProximitySearchProcessTest extends Specification {
@@ -50,7 +51,7 @@ class ProximitySearchProcessTest extends Specification {
 
     List("a", "b").foreach { name =>
       List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-        val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
+        val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
         sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
         sf.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
         sf.setAttribute("type", name)
@@ -80,7 +81,7 @@ class ProximitySearchProcessTest extends Specification {
 
        val inputFeatures = new DefaultFeatureCollection(sftName, sft)
        List(1,2,3).zip(List(p1, p2, p3)).foreach  { case (i, p) =>
-         val sf = SimpleFeatureBuilder.build(sft, List(), i.toString)
+         val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), i.toString)
          sf.setDefaultGeometry(p)
          sf.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
          sf.setAttribute("type", "fake")
@@ -113,7 +114,7 @@ class ProximitySearchProcessTest extends Specification {
 
       val inputFeatures = new DefaultFeatureCollection(sftName, sft)
       List(1,2,3).zip(List(p1,p2,p3)).foreach  { case (i, p) =>
-        val sf = SimpleFeatureBuilder.build(sft, List(), i.toString)
+        val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), i.toString)
         sf.setDefaultGeometry(p)
         sf.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
         sf.setAttribute("type", "fake")
@@ -125,7 +126,7 @@ class ProximitySearchProcessTest extends Specification {
 
       List("a", "b").foreach { name =>
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-          val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
+          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
           sf.setAttribute(geomesa.core.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
           sf.setAttribute("type", name)
