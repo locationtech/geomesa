@@ -43,20 +43,20 @@ class TemporalIndexCheckTest extends Specification {
       dtgCandidate.isDefined must beFalse
     }
 
-    "detect a valid DTG if one is not already specified with SF_PROPERTY_START_TIME" in {
+    "detect a valid DTG if SF_PROPERTY_START_TIME is not set" in {
       val testType = oneDTGType
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
       dtgCandidate.get must be equalTo DEFAULT_DTG_PROPERTY_NAME
     }
 
-    "detect a valid DTG if one is set improperly SF_PROPERTY_START_TIME" in {
+    "detect a valid DTG if SF_PROPERTY_START_TIME is not properly set" in {
       val testType = oneDTGType
       testType.getUserData.put(SF_PROPERTY_START_TIME, "no_such_dtg")
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
       dtgCandidate.get must be equalTo DEFAULT_DTG_PROPERTY_NAME
     }
 
-    "present no DTG candidate if one is set properly SF_PROPERTY_START_TIME" in {
+    "present no DTG candidate if SF_PROPERTY_START_TIME is set properly" in {
       val testType = oneDTGType
       testType.getUserData.put(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME)
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
@@ -70,7 +70,7 @@ class TemporalIndexCheckTest extends Specification {
       dtgCandidate.get must be equalTo DEFAULT_DTG_PROPERTY_NAME
     }
 
-    "present no DTG candidate if one is set properly SF_PROPERTY_START_TIME and there are multiple Date attributes" in {
+    "present no DTG candidate if SF_PROPERTY_START_TIME is set properly and there are multiple Date attributes" in {
       val testType = twoDTGType
       testType.getUserData.put(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME)
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
