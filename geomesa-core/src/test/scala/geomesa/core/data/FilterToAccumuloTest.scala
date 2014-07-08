@@ -62,7 +62,7 @@ class FilterToAccumuloTest extends Specification {
       result mustEqual Filter.INCLUDE
     }
 
-    "set the odd spatial predicate" in {
+    "set the spatial predicate to something that spans across the IDL" in {
       val q = ff.bbox("geom", -190.0, -10, -170, 10, CRS.toSRS(WGS84))
       val f2a = new FilterToAccumulo(sft)
       val result = f2a.visit(q)
@@ -119,7 +119,7 @@ class FilterToAccumuloTest extends Specification {
       result mustNotEqual Filter.INCLUDE
     }
 
-    "make odd geometry" in {
+    "make a rectangular within filter that spans across the IDL" in {
       val rectWithin =
         ff.within(
           ff.property("geom"),
@@ -130,7 +130,7 @@ class FilterToAccumuloTest extends Specification {
         " OR [ geom within POLYGON ((180 10, 180 -10, 170 -10, 170 10, 180 10)) ]]"
     }
 
-    "make odder geometry" in {
+    "make a non-square polygon within filter that spans across the IDL" in {
       val rectWithin =
         ff.within(
           ff.property("geom"),
