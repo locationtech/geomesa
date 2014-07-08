@@ -1,12 +1,12 @@
 package geomesa.core.transform
 
-import collection.JavaConversions._
-import geomesa.core.avro.AvroSimpleFeature
 import geomesa.core.data.{FeatureEncoding, SimpleFeatureEncoder}
+import geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
 import org.apache.accumulo.core.data.Value
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.process.vector.TransformProcess
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.collection.JavaConversions._
 
 object TransformCreator {
 
@@ -24,7 +24,7 @@ object TransformCreator {
 
       case FeatureEncoding.TEXT =>
         val defs = TransformProcess.toDefinition(transformString)
-        val builder = new SimpleFeatureBuilder(targetFeatureType)
+        val builder = AvroSimpleFeatureFactory.featureBuilder(targetFeatureType)
         (feature: SimpleFeature) => {
           builder.reset()
           defs.map { t => builder.set(t.name, t.expression.evaluate(feature)) }

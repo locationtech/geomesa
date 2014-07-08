@@ -16,13 +16,13 @@
 
 package geomesa.core.data
 
-import collection.JavaConversions._
 import com.vividsolutions.jts.geom.Coordinate
-import geomesa.core.security.{FilteringAuthorizationsProvider, AuthorizationsProvider, DefaultAuthorizationsProvider}
+import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
+import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.{Query, DataUtilities, Transaction, DataStoreFinder}
+import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -35,14 +35,17 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.JavaConversions._
+
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
 
   sequential
 
   val geotimeAttributes = geomesa.core.index.spec
-
   var id = 0
+  val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
+  val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
 
   def createStore: AccumuloDataStore = {
     // need to add a unique ID, otherwise create schema will throw an exception
@@ -93,7 +96,8 @@ class AccumuloDataStoreTest extends Specification {
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
       // create a feature
-      val liveFeature = SimpleFeatureBuilder.build(sft, List(), "fid-1")
+      val builder = new SimpleFeatureBuilder(sft, featureFactory)
+      val liveFeature = builder.buildFeature("fid-1")
       val geom = WKTUtils.read("POINT(45.0 49.0)")
       liveFeature.setDefaultGeometry(geom)
 
@@ -135,8 +139,9 @@ class AccumuloDataStoreTest extends Specification {
 
       // create a feature
       val geom = WKTUtils.read("POINT(45.0 49.0)")
-      val liveFeature = SimpleFeatureBuilder.build(sft, List("testType", geom, null), "fid-1")
-      liveFeature.setDefaultGeometry(geom)
+      val builder = new SimpleFeatureBuilder(sft, featureFactory)
+      builder.addAll(List("testType", geom, null))
+      val liveFeature = builder.buildFeature("fid-1")
 
       // make sure we ask the system to re-use the provided feature-ID
       liveFeature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
@@ -171,8 +176,9 @@ class AccumuloDataStoreTest extends Specification {
 
       // create a feature
       val geom = WKTUtils.read("POINT(45.0 49.0)")
-      val liveFeature = SimpleFeatureBuilder.build(sft, List("testType", null, geom), "fid-1")
-      liveFeature.setDefaultGeometry(geom)
+      val builder = new SimpleFeatureBuilder(sft, featureFactory)
+      builder.addAll(List("testType", null, geom))
+      val liveFeature = builder.buildFeature("fid-1")
 
       // make sure we ask the system to re-use the provided feature-ID
       liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -205,8 +211,9 @@ class AccumuloDataStoreTest extends Specification {
 
       // create a feature
       val geom = WKTUtils.read("POINT(45.0 49.0)")
-      val liveFeature = SimpleFeatureBuilder.build(sft, List("testType", null, geom), "fid-1")
-      liveFeature.setDefaultGeometry(geom)
+      val builder = new SimpleFeatureBuilder(sft, featureFactory)
+      builder.addAll(List("testType", null, geom))
+      val liveFeature = builder.buildFeature("fid-1")
 
       // make sure we ask the system to re-use the provided feature-ID
       liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -237,8 +244,9 @@ class AccumuloDataStoreTest extends Specification {
 
       // create a feature
       val geom = WKTUtils.read("POINT(45.0 49.0)")
-      val liveFeature = SimpleFeatureBuilder.build(sft, List("testType", "v1", null, geom), "fid-1")
-      liveFeature.setDefaultGeometry(geom)
+      val builder = new SimpleFeatureBuilder(sft, featureFactory)
+      builder.addAll(List("testType", "v1", null, geom))
+      val liveFeature = builder.buildFeature("fid-1")
 
       // make sure we ask the system to re-use the provided feature-ID
       liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -269,8 +277,9 @@ class AccumuloDataStoreTest extends Specification {
 
       // create a feature
       val geom = WKTUtils.read("POINT(45.0 49.0)")
-      val liveFeature = SimpleFeatureBuilder.build(sft, List("testType", "v1", null, geom), "fid-1")
-      liveFeature.setDefaultGeometry(geom)
+      val builder = new SimpleFeatureBuilder(sft, featureFactory)
+      builder.addAll(List("testType", "v1", null, geom))
+      val liveFeature = builder.buildFeature("fid-1")
 
       // make sure we ask the system to re-use the provided feature-ID
       liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -449,7 +458,7 @@ class AccumuloDataStoreTest extends Specification {
   }
 
   def getFeatures(sft: SimpleFeatureType) = (0 until 6).map { i =>
-    val builder = new SimpleFeatureBuilder(sft)
+    val builder = new SimpleFeatureBuilder(sft, featureFactory)
     builder.set("geom", WKTUtils.read("POINT(45.0 45.0)"))
     builder.set("dtg", "2012-01-02T05:06:07.000Z")
     builder.set("name",i.toString)
