@@ -16,6 +16,8 @@
 
 package geomesa.core.iterators
 
+import geomesa.feature.AvroSimpleFeatureFactory
+
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Polygon, Geometry}
 import geomesa.core.data._
@@ -44,8 +46,12 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     def createSimpleFeature(id: String, wkt: String, dt: DateTime = null): SimpleFeature = {
       val geomType: String = wkt.split( """\(""").head
       val geometry: Geometry = WKTUtils.read(wkt)
-      val entry = SimpleFeatureBuilder.build(TestData.featureType,
-        List(null, null, null, null, geometry, dt.toDate, dt.toDate), s"|data|$id")
+      val entry =
+        AvroSimpleFeatureFactory.buildAvroFeature(
+          TestData.featureType,
+          List(null, null, null, null, geometry, dt.toDate, dt.toDate),
+          s"|data|$id")
+
       entry.setAttribute(geomType, id)
       entry.setAttribute("attr2", "2nd" + id)
       entry.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)

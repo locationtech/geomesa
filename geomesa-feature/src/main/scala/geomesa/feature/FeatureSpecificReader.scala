@@ -1,22 +1,25 @@
-package geomesa.core.avro
+package geomesa.feature
 
-import com.vividsolutions.jts.geom.Geometry
 import java.io.InputStream
 import java.util.{Date, UUID}
+
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.avro.Schema
-import org.apache.avro.io.{DecoderFactory, Decoder, DatumReader}
+import org.apache.avro.io.{DatumReader, Decoder, DecoderFactory}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.util.Converters
 import org.opengis.feature.simple.SimpleFeatureType
+
 import scala.collection.immutable.HashSet
 
 
 class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType)
   extends DatumReader[AvroSimpleFeature] {
 
-  import AvroSimpleFeature._
-  import scala.collection.JavaConversions._
+  import geomesa.feature.AvroSimpleFeature._
+
+import scala.collection.JavaConversions._
 
   var oldSchema = AvroSimpleFeature.generateSchema(oldType)
   val newSchema = AvroSimpleFeature.generateSchema(newType)
@@ -100,7 +103,7 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   }
 }
 
-object FeatureSpecificReader{
+object FeatureSpecificReader {
 
   // use when you want the entire feature back, not a subset
   def apply(sftType: SimpleFeatureType) = new FeatureSpecificReader(sftType, sftType)
