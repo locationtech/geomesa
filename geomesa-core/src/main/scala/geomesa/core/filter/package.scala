@@ -1,0 +1,80 @@
+package geomesa.core
+
+import org.geotools.factory.CommonFactoryFinder
+import org.opengis.filter._
+import scala.collection.JavaConversions._
+
+package object filter {
+  // Claim: FilterFactory implementations seem to be thread-safe away from
+  //  'namespace' and 'function' calls.
+  // As such, we can get away with using a shared Filter Factory.
+  implicit val ff = CommonFactoryFinder.getFilterFactory2
+
+  /**
+   * This function rewrites a org.opengis.filter.Filter in terms of a top-level OR with children filters which
+   * 1) do not contain further ORs, (i.e., ORs bubble up)
+   * 2) only contain at most one AND which is at the top of their 'tree'
+   *
+   * Note that this further implies that NOTs have been 'pushed down' and do have not have ANDs nor ORs as children.
+   *
+   * In boolean logic, this form is called disjunctive normal form (DNF).
+   *
+   * @param filter An arbitrary filter.
+   * @return       A filter in DNF (described above).
+   */
+  def rewriteFilter(filter: Filter)(implicit ff: FilterFactory): Filter = {
+    val ll =  logicDistribution(filter)
+    if(ll.size == 1) {
+      if(ll(0).size == 1) ll(0)(0)
+      else ff.and(ll(0))
+    }
+    else  {
+      val children = ll.map { l =>
+        l.size match {
+          case 1 => l(0)
+          case _ => ff.and(l)
+        }
+      }
+      ff.or(children)
+    }
+  }
+
+  /**
+   *
+   * @param x: An arbitrary @org.opengis.filter.Filter
+   * @return   A List[List[Filter]] where the inner List of Filters are to be joined by
+   *           Ands and the outer list combined by Ors.
+   */
+  private[core] def logicDistribution(x: Filter): List[List[Filter]] = x match {
+    case or: Or  => or.getChildren.toList.flatMap(logicDistribution)
+
+    case and: And => and.getChildren.foldRight (List(List.empty[Filter])) {
+      (f, dnf) => for {
+        a <- logicDistribution (f)
+        b <- dnf
+      } yield a ++ b
+    }
+
+    case not: Not =>
+      not.getFilter match {
+        case and: And => logicDistribution(deMorgan(and))
+        case or:  Or => logicDistribution(deMorgan(or))
+        case f: Filter => List(List(not))
+      }
+
+    case f: Filter => List(List(f))
+  }
+
+  /**
+   *  The input is a filter which had a Not applied to it.
+   *  This function uses deMorgan's law to 'push the Not down'
+   *   as well as cancel adjacent Nots.
+   */
+  private[core] def deMorgan(f: Filter)(implicit ff: FilterFactory): Filter = f match {
+    case and: And => ff.or(and.getChildren.map(a => ff.not(a)))
+    case or:  Or  => ff.and(or.getChildren.map(a => ff.not(a)))
+    case not: Not => not.getFilter
+  }
+
+
+}
