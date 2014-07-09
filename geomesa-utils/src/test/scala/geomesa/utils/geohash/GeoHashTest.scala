@@ -29,6 +29,9 @@ import scala.math._
 class GeoHashTest extends Specification
                           with Logging {
 
+  // set to true to see test output
+  val DEBUG_OUPUT = false
+
   // compute tolerance based on precision
   val precToleranceMap = (0 to 63).map(i => (i, 360.0 * pow(0.5, floor(i/2)))).toMap
   def xTolerance(prec: Int) = precToleranceMap(prec)
@@ -126,7 +129,7 @@ class GeoHashTest extends Specification
       val x : Double = -78.0
       val y : Double = 38.0
       for (precision <- 20 to 63) yield {
-        logger.debug(s"precision: $precision")
+        if(DEBUG_OUPUT) logger.debug(s"precision: $precision")
 
         // encode this value
         val ghEncoded : GeoHash = GeoHash(x, y, precision)
@@ -146,7 +149,7 @@ class GeoHashTest extends Specification
         ghEncoded.bitset must equalTo(ghDecoded.bitset)
         ghEncoded.prec must equalTo(ghDecoded.prec)
 
-        logger.debug(s"decoded: ${ghDecoded.y}, ${ghDecoded.x}; encoded: ${ghEncoded.y}, ${ghEncoded.x}")
+        if(DEBUG_OUPUT) logger.debug(s"decoded: ${ghDecoded.y}, ${ghDecoded.x}; encoded: ${ghEncoded.y}, ${ghEncoded.x}")
 
         // the round-trip geometry must be within tolerance of the original
         ghDecoded.x must beCloseTo(x, xTolerance(precision))

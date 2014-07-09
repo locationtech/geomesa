@@ -121,7 +121,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     runQuery(q, bs)
   }
 
-  def runQuery(q: Query, bs: () => BatchScanner, doPrint: Boolean = true, label: String = "test") = {
+  def runQuery(q: Query, bs: () => BatchScanner, doPrint: Boolean = false, label: String = "test") = {
     val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
     // create the schema, and require de-duplication
     val schema = IndexSchema(TestData.schemaEncoding, TestData.featureType, featureEncoder)
@@ -134,11 +134,12 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
       val results: List[SimpleFeature] = itr.toList
       results.map(simpleFeature => {
         val attrs = simpleFeature.getAttributes.map(attr => if (attr == null) "" else attr.toString).mkString("|")
-        println("[SII." + label + "] query-hit:  " + simpleFeature.getID + "=" + attrs)
+        println(s"[SII.$label] query-hit: ${simpleFeature.getID} = + $attrs")
       })
       results.size
     } else itr.size
 
+    println(s"[SII.$label] total query hits:$retval")
     itr.close()
     retval
   }
