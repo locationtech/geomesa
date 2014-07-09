@@ -92,7 +92,7 @@ class AccumuloDataStore(val connector: Connector,
 
   private val tableOps = connector.tableOperations()
 
-  if(!tableOps.exists(catalogTable)) tableOps.create(catalogTable)
+  if (!tableOps.exists(catalogTable)) tableOps.create(catalogTable)
   /**
    * Computes and writes the metadata for this feature type
    *
@@ -102,7 +102,7 @@ class AccumuloDataStore(val connector: Connector,
   private def writeMetadata(sft: SimpleFeatureType,
                             fe: FeatureEncoding,
                             schemaValue: String,
-                            maxShard: Int): Unit = {
+                            maxShard: Int) {
 
     val featureName = getFeatureName(sft)
 
@@ -156,16 +156,14 @@ class AccumuloDataStore(val connector: Connector,
    * Read Record table name from store metadata
    */
   def getRecordTableForType(featureType: SimpleFeatureType) =
-    readMetadataItem(featureType.getTypeName, RECORD_TABLE_CF)
-      .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for $RECORD_TABLE_CF"))
+    readRequiredMetadataItem(featureType, RECORD_TABLE_CF)
 
   /**
    * Read SpatioTemporal Index table name from store metadata
    */
   def getSTIdxTableForType(featureType: SimpleFeatureType) =
     if(catalogTableFormat(featureType))
-      readMetadataItem(featureType.getTypeName, ST_IDX_TABLE_CF)
-        .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for $ST_IDX_TABLE_CF"))
+      readRequiredMetadataItem(featureType, ST_IDX_TABLE_CF)
     else
       catalogTable
 
@@ -173,8 +171,7 @@ class AccumuloDataStore(val connector: Connector,
    * Read Attribute Index table name from store metadata
    */
   def getAttrIdxTableForType(featureType: SimpleFeatureType) =
-    readMetadataItem(featureType.getTypeName, ATTR_IDX_TABLE_CF)
-      .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for $ATTR_IDX_TABLE_CF"))
+    readRequiredMetadataItem(featureType, ATTR_IDX_TABLE_CF)
 
   /**
    * Read SpatioTemporal Index table name from store metadata
@@ -277,7 +274,7 @@ class AccumuloDataStore(val connector: Connector,
   private def putMetadata(featureName: String,
                           mutation: Mutation,
                           columnFamily: Text,
-                          value: String): Unit = {
+                          value: String) {
     mutation.put(columnFamily, EMPTY_COLQ, System.currentTimeMillis(), new Value(value.getBytes))
     // also pre-fetch into the cache
     if (!value.isEmpty)
@@ -446,6 +443,13 @@ class AccumuloDataStore(val connector: Connector,
       metaDataCache.put((featureName, colFam), result)
       result
     })
+
+  private def readRequiredMetadataItem(featureName: String, colFam: Text): String =
+    readMetadataItem(featureName, colFam)
+      .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for $colFam"))
+
+  private def readRequiredMetadataItem(featureType: SimpleFeatureType, colFam: Text): String =
+    readRequiredMetadataItem(featureType.getTypeName, colFam)
 
   /**
    * Create an Accumulo Scanner to the Catalog table to query Metadata for this store
