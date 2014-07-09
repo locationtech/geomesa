@@ -21,7 +21,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core
 import geomesa.core.data.AccumuloFeatureWriter.{LocalRecordDeleter, LocalRecordWriter, MapReduceRecordWriter}
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
-import geomesa.core.index.{Constants, IndexSchema}
+import geomesa.core.index.{TemporalIndexCheck, Constants, IndexSchema}
 import geomesa.core.security.AuthorizationsProvider
 import java.io.{IOException, Serializable}
 import java.util.{Map => JMap}
@@ -39,7 +39,6 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
-import scala.Some
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
@@ -161,6 +160,9 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
     val schemaValue = indexSchemaString
     val dtgValue: Option[String] = {
       val userData = sft.getUserData
+      // inspect, warn and set SF_PROPERTY_START_TIME if appropriate
+      TemporalIndexCheck.extractNewDTGFieldCandidate(sft)
+        .foreach { name => userData.put(core.index.SF_PROPERTY_START_TIME, name) }
       if (userData.containsKey(core.index.SF_PROPERTY_START_TIME))
         Option(userData.get(core.index.SF_PROPERTY_START_TIME).asInstanceOf[String])
       else
