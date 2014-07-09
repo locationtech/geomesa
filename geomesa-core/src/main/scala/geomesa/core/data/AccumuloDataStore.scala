@@ -226,13 +226,6 @@ class AccumuloDataStore(val connector: Connector,
     // enable the column-family functor
     tableOps.setProperty(tableName, "table.bloom.key.functor", classOf[ColumnFamilyFunctor].getCanonicalName)
     tableOps.setProperty(tableName, "table.bloom.enabled", "true")
-
-    // isolate various metadata elements in locality groups
-    tableOps.setLocalityGroups(tableName,
-      Map(
-        ATTRIBUTES_CF.toString -> Set(ATTRIBUTES_CF).asJava,
-        SCHEMA_CF.toString     -> Set(SCHEMA_CF).asJava,
-        BOUNDS_CF.toString     -> Set(BOUNDS_CF).asJava))
   }
 
   // Computes the schema, checking for the "DEFAULT" flag
