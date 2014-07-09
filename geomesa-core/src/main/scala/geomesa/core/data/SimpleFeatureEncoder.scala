@@ -22,7 +22,7 @@ import com.google.common.cache.LoadingCache
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.feature.{AvroSimpleFeature, FeatureSpecificReader}
 import geomesa.utils.text.ObjectPoolFactory
-import org.apache.accumulo.core.data.Value
+import org.apache.accumulo.core.data.{ Value => AValue }
 import org.apache.avro.io.DecoderFactory
 import org.geotools.data.DataUtilities
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -38,30 +38,29 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  */
 
 trait SimpleFeatureEncoder {
-  def encode(feature:SimpleFeature) : Value
-  def decode(simpleFeatureType: SimpleFeatureType, featureValue: Value) : SimpleFeature
-  def extractFeatureId(value: Value): String
+  def encode(feature:SimpleFeature) : AValue
+  def decode(simpleFeatureType: SimpleFeatureType, featureAValue: AValue) : SimpleFeature
+  def extractFeatureId(AValue: AValue): String
   def getName = getEncoding.toString
   def getEncoding: FeatureEncoding
 }
 
 object FeatureEncoding extends Enumeration {
   type FeatureEncoding = Value
-  val AVRO = Value("avro")
-  val TEXT = Value("text")
+  val AVRO, TEXT = Value
 }
 
 class TextFeatureEncoder extends SimpleFeatureEncoder{
-  def encode(feature:SimpleFeature) : Value =
-    new Value(ThreadSafeDataUtilities.encodeFeature(feature).getBytes)
+  def encode(feature:SimpleFeature) : AValue =
+    new AValue(ThreadSafeDataUtilities.encodeFeature(feature).getBytes)
 
-  def decode(simpleFeatureType: SimpleFeatureType, featureValue: Value) = {
-    ThreadSafeDataUtilities.createFeature(simpleFeatureType, featureValue.toString)
+  def decode(simpleFeatureType: SimpleFeatureType, featureAValue: AValue) = {
+    ThreadSafeDataUtilities.createFeature(simpleFeatureType, featureAValue.toString)
   }
 
   // This is derived from the knowledge of the GeoTools encoding in DataUtilities
-  def extractFeatureId(value: Value): String = {
-    val vString = value.toString
+  def extractFeatureId(AValue: AValue): String = {
+    val vString = AValue.toString
     vString.substring(0, vString.indexOf("="))
   }
 
@@ -88,23 +87,23 @@ object ThreadSafeDataUtilities {
 // TODO the AvroFeatureEncoder may not be threadsafe...evaluate.
 class AvroFeatureEncoder extends SimpleFeatureEncoder {
 
-  def encode(feature: SimpleFeature): Value = {
+  def encode(feature: SimpleFeature): AValue = {
     val asf = feature.getClass match {
       case c if classOf[AvroSimpleFeature].isAssignableFrom(c) => feature.asInstanceOf[AvroSimpleFeature]
       case _ =>  AvroSimpleFeature(feature)
     }
     val baos = new ByteArrayOutputStream()
     asf.write(baos)
-    new Value(baos.toByteArray)
+    new AValue(baos.toByteArray)
   }
 
-  def decode(simpleFeatureType: SimpleFeatureType, featureValue: Value) = {
-    val bais = new ByteArrayInputStream(featureValue.get())
+  def decode(simpleFeatureType: SimpleFeatureType, featureAValue: AValue) = {
+    val bais = new ByteArrayInputStream(featureAValue.get())
     val decoder = DecoderFactory.get().binaryDecoder(bais, null)
     readerCache.get(simpleFeatureType).read(null, decoder)
   }
 
-  def extractFeatureId(value: Value) = FeatureSpecificReader.extractId(new ByteArrayInputStream(value.get()))
+  def extractFeatureId(AValue: AValue) = FeatureSpecificReader.extractId(new ByteArrayInputStream(AValue.get()))
 
   val readerCache: LoadingCache[SimpleFeatureType, FeatureSpecificReader] =
     AvroSimpleFeature.loadingCacheBuilder { sft => FeatureSpecificReader(sft) }
