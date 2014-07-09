@@ -23,15 +23,14 @@ import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.index._
 import geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
-import org.apache.accumulo.core.data.{Range => ARange, PartialKey, Key, Mutation, Value}
+import org.apache.accumulo.core.data.{Key, Mutation, PartialKey, Value, Range => ARange}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred.{RecordWriter, Reporter}
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureWriter
-import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -40,31 +39,16 @@ import scala.collection.JavaConverters._
 
 object AccumuloFeatureWriter {
 
-  type AccumuloRecordWriter = RecordWriter[Key,Value]
+  type AccumuloRecordWriter = RecordWriter[Key, Value]
 
   val EMPTY_VALUE = new Value()
-
-  class LocalRecordWriter(tableName: String, connector: Connector) extends AccumuloRecordWriter {
-    private val bw = connector.createBatchWriter(tableName, new BatchWriterConfig())
-
-    def write(key: Key, value: Value) {
-      val m = new Mutation(key.getRow)
-      m.put(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed, key.getTimestamp, value)
-      bw.addMutation(m)
-    }
-
-    def close(reporter: Reporter) {
-      bw.flush()
-      bw.close()
-    }
-  }
 
   class LocalRecordDeleter(tableName: String, connector: Connector) extends AccumuloRecordWriter {
     private val bw = connector.createBatchWriter(tableName, new BatchWriterConfig())
 
     def write(key: Key, value: Value) {
       val m = new Mutation(key.getRow)
-      m.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed, key.getTimestamp)
+      m.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed)
       bw.addMutation(m)
     }
 
@@ -85,10 +69,30 @@ object AccumuloFeatureWriter {
 
 abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
                                      indexer: IndexSchema,
-                                     recordWriter: RecordWriter[Key,Value],
+                                     encoder: SimpleFeatureEncoder,
+                                     ds: AccumuloDataStore,
                                      visibility: String)
   extends SimpleFeatureWriter
           with Logging {
+
+  val NULLBYTE = Array[Byte](0.toByte)
+  val connector = ds.connector
+
+  /* multiIndex means catalog table + stidx + attrix + record table versus only st table */
+  protected val multiIndex = ds.catalogTableFormat(featureType)
+  protected val multiBWWriter = connector.createMultiTableBatchWriter(new BatchWriterConfig)
+
+  protected val recordWriter  =
+    if(multiIndex)
+      multiBWWriter.getBatchWriter(ds.getRecordTableForType(featureType))
+    else null
+
+  protected val attrIdxWriter =
+    if(multiIndex)
+      multiBWWriter.getBatchWriter(ds.getAttrIdxTableForType(featureType))
+    else null
+
+  protected val stIdxWriter = multiBWWriter.getBatchWriter(ds.getSTIdxTableForType(featureType))
 
   def getFeatureType: SimpleFeatureType = featureType
 
@@ -108,16 +112,63 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
       else feature
 
     // require non-null geometry to write to geomesa (can't index null geo yo!)
-    val kvPairsToWrite =
-      if (toWrite.getDefaultGeometry != null) indexer.encode(toWrite, visibility)
-      else {
-        logger.warn("Invalid feature to write:  " + DataUtilities.encodeFeature(toWrite))
-        List()
+    if (toWrite.getDefaultGeometry != null) {
+      if(multiIndex) {
+        writeRecord(toWrite)
+        writeAttrIdx(toWrite)
       }
-    kvPairsToWrite.foreach { case (k,v) => recordWriter.write(k,v) }
+      writeSTIdx(toWrite)
+    } else {
+      logger.warn("Invalid feature to write:  " + DataUtilities.encodeFeature(toWrite))
+      List()
+    }
   }
 
-  def close = recordWriter.close(null)
+  private def writeRecord(feature: SimpleFeature): Unit = {
+    val m = new Mutation(feature.getID)
+    m.put(SFT_CF, EMPTY_COLQ, new ColumnVisibility(visibility), encoder.encode(feature))
+    recordWriter.addMutation(m)
+  }
+
+  private def writeSTIdx(feature: SimpleFeature): Unit = {
+    val KVs = indexer.encode(feature)
+    val m = KVs.groupBy { case (k, _) => k.getRow }.map { case (row, kvs) => kvsToMutations(row, kvs) }
+    stIdxWriter.addMutations(m.asJava)
+  }
+
+  private def writeAttrIdx(feature: SimpleFeature): Unit = {
+    val muts = getAttrIdxMutations(feature, new Text(feature.getID)).map {
+      case PutOrDeleteMutation(row, cf, cq, v) =>
+        val m = new Mutation(row)
+        m.put(cf, cq, new ColumnVisibility(visibility), v)
+        m
+    }
+    attrIdxWriter.addMutations(muts)
+  }
+
+  case class PutOrDeleteMutation(row: Array[Byte], cf: Text, cq: Text, v: Value)
+
+  def getAttrIdxMutations(feature: SimpleFeature, cf: Text) =
+    featureType.getAttributeDescriptors.map { attr =>
+      val attrName = attr.getLocalName.getBytes(StandardCharsets.UTF_8)
+      val attrValue = valOrNull(feature.getAttribute(attr.getName)).getBytes(StandardCharsets.UTF_8)
+      val row = attrName ++ NULLBYTE ++ attrValue
+      val value = IndexSchema.encodeIndexValue(feature)
+      PutOrDeleteMutation(row, cf, EMPTY_COLQ, value)
+    }
+
+  private val nullString = "<null>"
+  private def valOrNull(o: AnyRef) = if(o == null) nullString else o.toString
+
+  private def kvsToMutations(row: Text, kvs: Seq[(Key, Value)]): Mutation = {
+    val m = new Mutation(row)
+    kvs.foreach { case (k, v) =>
+      m.put(k.getColumnFamily, k.getColumnQualifier, k.getColumnVisibilityParsed, v)
+    }
+    m
+  }
+
+  def close() = multiBWWriter.close()
 
   def remove() {}
 
@@ -126,9 +177,11 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
 class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
                                   indexer: IndexSchema,
-                                  recordWriter: RecordWriter[Key,Value],
-                                  visibility: String)
-  extends AccumuloFeatureWriter(featureType, indexer, recordWriter, visibility) {
+                                  connector: Connector,
+                                  encoder: SimpleFeatureEncoder,
+                                  visibility: String,
+                                  ds: AccumuloDataStore)
+  extends AccumuloFeatureWriter(featureType, indexer, encoder, ds, visibility) {
 
   var currentFeature: SimpleFeature = null
 
@@ -146,26 +199,63 @@ class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
 }
 
 class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
-                                      indexer: IndexSchema,
-                                      recordWriter: RecordWriter[Key,Value],
-                                      visibility: String,
-                                      deleter: RecordWriter[Key, Value],
-                                      dataStore: AccumuloDataStore)
-  extends AccumuloFeatureWriter(featureType, indexer, recordWriter, visibility) {
+                                  indexer: IndexSchema,
+                                  connector: Connector,
+                                  encoder: SimpleFeatureEncoder,
+                                  visibility: String,
+                                  dataStore: AccumuloDataStore)
+  extends AccumuloFeatureWriter(featureType, indexer, encoder, dataStore, visibility) {
 
   val reader = dataStore.getFeatureReader(featureType.getName.toString)
   var live: SimpleFeature = null      /* feature to let user modify   */
   var original: SimpleFeature = null  /* feature returned from reader */
 
-  override def remove = if (original != null) indexer.encode(original).foreach { case (k,v) => deleter.write(k,v) }
+  override def remove() =
+    if (original != null) {
+      if(multiIndex) {
+        removeRecord(original)
+        removeAttrIdx(original)
+      }
+      removeSTIdx(original)
+    }
+
+  private def removeRecord(feature: SimpleFeature) = {
+    val row = new Text(feature.getID)
+    val mutation = new Mutation(row)
+
+    val scanner = dataStore.createRecordScanner(featureType)
+    scanner.setRanges(List(new ARange(row, true, row, true)))
+    scanner.iterator().foreach { entry =>
+      val key = entry.getKey
+      mutation.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed)
+    }
+    recordWriter.addMutation(mutation)
+    recordWriter.flush()
+  }
+
+  private def removeSTIdx(feature: SimpleFeature) =
+    indexer.encode(original).foreach { case (key, _) =>
+      val m = new Mutation(key.getRow)
+      m.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed)
+      stIdxWriter.addMutation(m)
+    }
+
+  val emptyVis = new ColumnVisibility()
+  private def removeAttrIdx(feature: SimpleFeature) =
+    getAttrIdxMutations(feature, new Text(feature.getID)).map {
+      case PutOrDeleteMutation(row, cf, cq, _) =>
+        val m = new Mutation(row)
+        m.putDelete(cf, cq, emptyVis)
+        attrIdxWriter.addMutation(m)
+    }
 
   override def hasNext = reader.hasNext
 
   /* only write if non null and it hasn't changed...*/
   /* original should be null only when reader runs out */
-  override def write =
+  override def write() =
     if(!live.equals(original)) {  // This depends on having the same SimpleFeature concrete class
-      if(original != null) keysToDelete.foreach { k => deleter.write(k, EMPTY_VALUE)}
+      if(original != null) remove()
       writeToAccumulo(live)
     }
 
@@ -183,7 +273,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
     original = null
     live =
       if(hasNext) {
-        original = reader.next
+        original = reader.next()
         builder.init(original)
         builder.buildFeature(original.getID)
       } else {
@@ -192,10 +282,9 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
     live
   }
 
-  override def close = {
+  override def close() = {
     super.close() //closes writer
-    deleter.close(null)
-    reader.close
+    reader.close()
   }
 
 }

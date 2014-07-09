@@ -16,6 +16,8 @@
 
 package geomesa.core.iterators
 
+import geomesa.feature.AvroSimpleFeatureFactory
+
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Polygon, Geometry}
 import geomesa.core.data._
@@ -47,7 +49,14 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
 
       val mockInstance = new MockInstance("dummy")
       val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
-      if (c.tableOperations.exists(TEST_TABLE)) c.tableOperations.delete(TEST_TABLE)
+
+      // Remember we need to delete all 4 tables now
+      List(
+        TEST_TABLE,
+        formatAttrIdxTableName(TestData.featureType),
+        formatRecordTableName(TestData.featureType),
+        formatStIdxTableName(TestData.featureType)
+      ).foreach { t => if (c.tableOperations.exists(t)) c.tableOperations.delete(t) }
 
       val dsf = new AccumuloDataStoreFactory
 

@@ -16,26 +16,25 @@
 
 package geomesa.core.index
 
+import java.nio.ByteBuffer
+import java.util.Map.Entry
+
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, Point, Polygon}
 import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators._
 import geomesa.core.util._
 import geomesa.utils.text.{WKBUtils, WKTUtils}
-import java.nio.ByteBuffer
-import java.util.Map.Entry
-import java.util.{Iterator => JIterator}
-import org.apache.accumulo.core.client.BatchScanner
-import org.apache.accumulo.core.data.Key
-import org.apache.accumulo.core.data.Value
-import org.apache.log4j.Logger
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.{DataUtilities, Query}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
 import scala.annotation.tailrec
 import scala.util.parsing.combinator.RegexParsers
+
 
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)
@@ -77,9 +76,7 @@ case class IndexSchema(encoder: IndexEncoder,
                        decoder: IndexEntryDecoder,
                        planner: IndexQueryPlanner,
                        featureType: SimpleFeatureType,
-                       featureEncoder: SimpleFeatureEncoder) {
-
-  private val log = Logger.getLogger(classOf[IndexSchema])
+                       featureEncoder: SimpleFeatureEncoder) extends Logging {
 
   def encode(entry: SimpleFeature, visibility: String = "") = encoder.encode(entry, visibility)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
@@ -93,12 +90,20 @@ case class IndexSchema(encoder: IndexEncoder,
       case _ => 1  // couldn't find a matching partitioner
     }
 
-  def query(query: Query, buildBatchScanner: () => BatchScanner): CloseableIterator[SimpleFeature] = {
-    // Log and perform the query
-    if(log.isTraceEnabled) log.trace("Running Query: "+ query.toString)
 
-    val accumuloIterator: CloseableIterator[Entry[Key, Value]] = planner.getIterator(buildBatchScanner, query)
+  def query(query: Query, ds: AccumuloDataStore): CloseableIterator[SimpleFeature] = {
+    // Perform the query
+    logger.trace(s"Running ${query.toString}")
+
+    val accumuloIterator = planner.getIterator(ds, query)
+
     // Convert Accumulo results to SimpleFeatures.
+//    new CloseableIterator[SimpleFeature] {
+//      val iter = adaptIterator(accumuloIterator, query)
+//      override def close(): Unit = accumuloIterator.close()
+//      override def next(): SimpleFeature = iter.next()
+//      override def hasNext: Boolean = iter.hasNext
+//    }
     adaptIterator(accumuloIterator, query)
   }
 
@@ -113,14 +118,21 @@ case class IndexSchema(encoder: IndexEncoder,
       else accumuloIterator
 
     // Decode according to the SFT return type.
-    uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue) }
+
+    // if this is a density query, expand the map
+    if (query.getHints.containsKey(DENSITY_KEY))
+      uniqKVIter.flatMap { kv:Entry[Key,Value] =>
+        DensityIterator.expandFeature(featureEncoder.decode(returnSFT, kv.getValue))
+      }
+    else
+      uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue) }
   }
 
   // This function calculates the SimpleFeatureType of the returned SFs.
   private def getReturnSFT(query: Query): SimpleFeatureType =
     query match {
       case _: Query if query.getHints.containsKey(DENSITY_KEY)  =>
-        DataUtilities.createType(featureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
+        DataUtilities.createType(featureType.getTypeName, DensityIterator.DENSITY_FEATURE_STRING)
       case _: Query if query.getHints.get(TRANSFORM_SCHEMA) != null =>
         query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
       case _ => featureType

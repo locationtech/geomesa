@@ -480,6 +480,11 @@
                 <artifactId>gt-geometry</artifactId>
                 <version>${gt.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
+                <artifactId>gt-geometry</artifactId>
+                <version>${gt.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

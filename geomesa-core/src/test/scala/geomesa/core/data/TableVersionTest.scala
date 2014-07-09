@@ -21,10 +21,10 @@ import scala.collection.JavaConversions._
 
 
 /**
- * The purpose of this test is to ensure that the table version is backwards compatible with
- * older versions (e.g. 0.10.x). The table format should not be changed without some sort of
- * transition map/reduce job to convert table formats.
- */
+* The purpose of this test is to ensure that the table version is backwards compatible with
+* older versions (e.g. 0.10.x). The table format should not be changed without some sort of
+* transition map/reduce job to convert table formats.
+*/
 @RunWith(classOf[JUnitRunner])
 class TableVersionTest extends Specification {
 
@@ -127,8 +127,8 @@ class TableVersionTest extends Specification {
       val geomesaStore = DataStoreFinder.getDataStore(geomesaParams).asInstanceOf[AccumuloDataStore]
       val geomesaSource = geomesaStore.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
-      val manualFeatures = manualSource.getFeatures(query).features
-      val geomesaFeatures = geomesaSource.getFeatures(query).features
+      val manualFeatures = manualSource.getFeatures(query).features.toList.sortBy(_.getID.toInt)
+      val geomesaFeatures = geomesaSource.getFeatures(query).features.toList.sortBy(_.getID.toInt)
 
       manualFeatures.zip(geomesaFeatures).foreach {case (m, g) =>
         m should equalTo(g)

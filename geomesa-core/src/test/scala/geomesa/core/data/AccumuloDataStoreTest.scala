@@ -124,9 +124,9 @@ class AccumuloDataStoreTest extends Specification {
         containsGeometry = containsGeometry | features.next.getDefaultGeometry.equals(geom)
       }
 
-      results.getSchema should be equalTo(sft)
-      containsGeometry should be equalTo(true)
-      res.length should be equalTo(1)
+      results.getSchema should be equalTo sft
+      containsGeometry should be equalTo true
+      res.length should be equalTo 1
     }
 
     "return an empty iterator correctly" in {
@@ -160,9 +160,9 @@ class AccumuloDataStoreTest extends Specification {
       // Let's read out what we wrote.
       val results = fs.getFeatures(query)
       val features = results.features
-      results.getSchema should be equalTo(sft)
-      res.length should be equalTo(1)
-      features.hasNext should be equalTo(false)
+      results.getSchema should be equalTo sft
+      res.length should be equalTo 1
+      features.hasNext should be equalTo false
     }
 
     "process a DWithin query correctly" in {
@@ -184,7 +184,7 @@ class AccumuloDataStoreTest extends Specification {
       liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       val featureCollection = new DefaultFeatureCollection(sftName, sft)
       featureCollection.add(liveFeature)
-      val res = fs.addFeatures(featureCollection)
+      fs.addFeatures(featureCollection)
 
       // compose a CQL query that uses a polygon that is disjoint with the feature bounds
       val ff = CommonFactoryFinder.getFilterFactory2

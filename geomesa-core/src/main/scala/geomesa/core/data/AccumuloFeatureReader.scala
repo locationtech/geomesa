@@ -29,7 +29,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
   val indexSchema = IndexSchema(indexSchemaFmt, sft, featureEncoder)
-  val iter: CloseableIterator[SimpleFeature] = indexSchema.query(query, dataStore.createBatchScanner)
+  val iter = indexSchema.query(query, dataStore)
 
   override def getFeatureType = sft
 
