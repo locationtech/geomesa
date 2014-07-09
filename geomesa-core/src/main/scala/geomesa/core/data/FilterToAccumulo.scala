@@ -352,19 +352,19 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
   def checkBBOX(g: Geometry):Geometry = {
     val gf = g.getFactory
     val geomArray = g.getCoordinates
-    val correctedGeom = addWayPoints(geomArray)
+    val correctedGeom = addWayPointsToBBOX(geomArray)
     gf.createPolygon(correctedGeom)
   }
 
-  def addWayPoints(coords: Array[Coordinate]): Array[Coordinate] = coords match {
-      case endCase if coords.length == 1 => coords
-      case great if coords(0).x - coords(1).x > 120 =>
-        val first = coords(0)
-        Array[Coordinate](first) ++ addWayPoints( coords.drop(1).+:( new Coordinate(first.x - 120, first.y) ) )
-      case less if coords(0).x - coords(1).x < -120 =>
-        val first = coords(0)
-        Array[Coordinate](first) ++ addWayPoints( coords.drop(1).+:( new Coordinate(first.x + 120, first.y) ) )
-      case _ => Array[Coordinate]( coords(0) ) ++ addWayPoints( coords.drop(1) )
+  def addWayPointsToBBOX(coords: Array[Coordinate]): Array[Coordinate] = coords match {
+    case endCase if coords.length == 1 => coords
+    case great if coords(0).x - coords(1).x > 120 =>
+      val first = coords(0)
+      Array[Coordinate](first) ++ addWayPointsToBBOX(new Coordinate(first.x - 120, first.y) +: coords.drop(1))
+    case less if coords(0).x - coords(1).x < -120 =>
+      val first = coords(0)
+      Array[Coordinate](first) ++ addWayPointsToBBOX(new Coordinate(first.x + 120, first.y) +: coords.drop(1))
+    case _ => Array[Coordinate](coords(0)) ++ addWayPointsToBBOX(coords.drop(1))
   }
 
   def doCorrectSpatialCall(op: BinarySpatialOperator, property: String, geom: Geometry): Filter = op match {
