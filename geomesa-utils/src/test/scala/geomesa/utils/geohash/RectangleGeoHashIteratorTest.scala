@@ -23,6 +23,10 @@ import org.junit.Test
 
 
 class RectangleGeoHashIteratorTest {
+
+  // enable to debug output for tests
+  val DEBUG_OUTPUT = false
+
   @Test
   def testCorners() {
     val bitsPrecision = 35
@@ -37,7 +41,7 @@ class RectangleGeoHashIteratorTest {
 
     val length = rghi.foldLeft(0)({case (count, gh) => {
       Assert.assertNotNull("Fetched a NULL GeoHash.", gh)
-      System.out.println("RectangleGHI " + count + ".  " + gh)
+      if (DEBUG_OUTPUT) println("RectangleGHI " + count + ".  " + gh)
       val pt = geometryFactory.createPoint(new Coordinate(gh.x, gh.y))
       val s = s"${gh.toString} == (${pt.getY},${pt.getX}) <-> (${bbox.ll.getY},${bbox.ll.getX}::${bbox.ur.getY},${bbox.ur.getX})"
       Assert.assertEquals("Latitude too low " + s, false, pt.getY < bbox.ll.getY)
@@ -58,7 +62,7 @@ class RectangleGeoHashIteratorTest {
     val ptCenter = geometryFactory.createPoint(new Coordinate(longitude, latitude))
     val ptLL = VincentyModel.moveWithBearingAndDistance(ptCenter, -135.0, radiusMeters * 707.0 / 500.0)
     val ptUR = VincentyModel.moveWithBearingAndDistance(ptCenter,   45.0, radiusMeters * 707.0 / 500.0)
-    System.out.println(s"[RectangleGeoHashIterator]  On circle test-bed from $ptLL to $ptUR...")
+    if(DEBUG_OUTPUT) println(s"[RectangleGeoHashIterator]  On circle test-bed from $ptLL to $ptUR...")
     val rghi = new RectangleGeoHashIterator(ptLL.getY, ptLL.getX,
                                             ptUR.getY, ptUR.getX,
                                             bitsPrecision)
@@ -77,7 +81,7 @@ class RectangleGeoHashIteratorTest {
                         urgh.toBinaryString)
     val length = rghi.foldLeft(0)({case (count, gh) => {
       Assert.assertNotNull("Fetched a NULL GeoHash.", gh)
-      System.out.println("RectangleGHI " + count + ".  " + gh)
+      if (DEBUG_OUTPUT) println("RectangleGHI " + count + ".  " + gh)
       count + 1
     }})
     Assert.assertEquals("Wrong number of RGHI iterations found", 80, length)
