@@ -44,7 +44,6 @@ import org.opengis.temporal.Period
 import org.opengis.filter.expression.{Expression, Literal}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.geotools.filter.LiteralExpression
-import org.geotools.renderer.lite.{FastBBOX}
 
 @RunWith(classOf[JUnitRunner])
 class FilterToAccumuloTest extends Specification {
