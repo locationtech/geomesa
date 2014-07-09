@@ -30,6 +30,9 @@ class GeohashUtilsTest extends Specification with Logging {
 
   val NO_VALUE : Int = -1
 
+  // Turn this on for debugging purposes
+  val DEBUG_OUTPUT = false
+
   // collection of WKT polygons
   val testData : Map[String,(Int,Int,String,String)] = Map(
     "[POINT] CCRi" -> (NO_VALUE, 1, "dqb0tg3k", "POINT(-78.4953560 38.0752150)"),
@@ -88,7 +91,8 @@ class GeohashUtilsTest extends Specification with Logging {
         // all geometry types should test decomposition
         "decompose into " + numDecompositions + " GeoHashes, the first of which should be '" + firstDecompositionHash + "'" in {
           val decomposedGHs = decomposeGeometry(geom, 100, indexResolutions)
-          decomposedGHs.map(gh => logger.debug(name + "\t" + gh.hash + "\t" + getGeohashWKT(gh)))
+          if(DEBUG_OUTPUT)
+            decomposedGHs.map(gh => logger.debug(name + "\t" + gh.hash + "\t" + getGeohashWKT(gh)))
           decomposedGHs.size must equalTo(numDecompositions)
           decomposedGHs(0).hash must equalTo(firstDecompositionHash)
         }
@@ -103,7 +107,8 @@ class GeohashUtilsTest extends Specification with Logging {
       val ghSubstrings = getUniqueGeohashSubstringsInPolygon(
         polygonCharlottesville, 2, 3, 1<<15)
 
-      ghSubstrings.foreach { gh => logger.debug("[unique Charlottesville gh(2,3)] " + gh)}
+      if(DEBUG_OUTPUT)
+        ghSubstrings.foreach { gh => logger.debug("[unique Charlottesville gh(2,3)] " + gh)}
 
       ghSubstrings.size must be equalTo(9)
     }
