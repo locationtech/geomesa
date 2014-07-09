@@ -162,7 +162,7 @@ class AccumuloDataStore(val connector: Connector, val tableName: String,
       val userData = sft.getUserData
       // inspect, warn and set SF_PROPERTY_START_TIME if appropriate
       TemporalIndexCheck.extractNewDTGFieldCandidate(sft)
-        .map { name => userData.put(core.index.SF_PROPERTY_START_TIME, name) }
+        .foreach { name => userData.put(core.index.SF_PROPERTY_START_TIME, name) }
       if (userData.containsKey(core.index.SF_PROPERTY_START_TIME))
         Option(userData.get(core.index.SF_PROPERTY_START_TIME).asInstanceOf[String])
       else
