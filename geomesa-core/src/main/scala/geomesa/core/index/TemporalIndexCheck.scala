@@ -38,7 +38,7 @@ object TemporalIndexCheck extends Logging {
       emitDtgWarning(dtgCandidates)                           // emits a warning if candidates were found
       dtgCandidates.headOption                                // emits the first candidate or None
     }
-    else  None
+    else None
   }
 
   def emitDtgWarning(matches: List[String]) {
