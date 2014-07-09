@@ -259,7 +259,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
       ff.and(acc, op)
     } else {
-      updateToAntiMeridianSafeFilter(op, acc)
+      updateToIDLSafeFilter(op, acc)
     }
   }
 
@@ -319,23 +319,44 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     }
   }
 
-  def updateToAntiMeridianSafeFilter(op: BinarySpatialOperator, acc: Filter) = {
+  def updateToIDLSafeFilter(op: BinarySpatialOperator, acc: Filter) = {
     val e2 = op.getExpression2.asInstanceOf[Literal]
-    val geom = e2.evaluate(null, classOf[Geometry])
+    val tempGeom = e2.evaluate(null, classOf[Geometry])
+    val geom = tempGeom match {
+      case probablyIsBBox if tempGeom.isRectangle => checkBBOX(tempGeom)
+      case _ => tempGeom
+    }
     val safeGeometry = getInternationalDateLineSafeGeometry(geom)
+    spatialPredicate = safeGeometry.getEnvelope.asInstanceOf[Polygon]
     safeGeometry match {
       case p: Polygon =>
-        spatialPredicate = geom.asInstanceOf[Polygon]
         if (!geom.isRectangle) ff.and(acc, op)
         else acc
       case mp: MultiPolygon =>
-        spatialPredicate = safeGeometry.getEnvelope.asInstanceOf[Polygon]
         val polygonList = getGeometryListOf(safeGeometry)
         val filterList = polygonList.map {
           p => doCorrectSpatialCall(op, sft.getGeometryDescriptor.getLocalName, p)
         }
         ff.and(acc, ff.or(filterList))
     }
+  }
+
+  def checkBBOX(g: Geometry):Geometry = {
+    val gf = g.getFactory
+    val geomArray = g.getCoordinates
+    val correctedGeom = addWayPoints(geomArray)
+    gf.createPolygon(correctedGeom)
+  }
+
+  def addWayPoints(coords: Array[Coordinate]): Array[Coordinate] = coords match {
+      case endCase if coords.length == 1 => coords
+      case great if coords(0).x - coords(1).x > 120 =>
+        val first = coords(0)
+        Array[Coordinate](first) ++ addWayPoints( coords.drop(1).+:( new Coordinate(first.x - 120, first.y) ) )
+      case less if coords(0).x - coords(1).x < -120 =>
+        val first = coords(0)
+        Array[Coordinate](first) ++ addWayPoints( coords.drop(1).+:( new Coordinate(first.x + 120, first.y) ) )
+      case _ => Array[Coordinate]( coords(0) ) ++ addWayPoints( coords.drop(1) )
   }
 
   def doCorrectSpatialCall(op: BinarySpatialOperator, property: String, geom: Geometry): Filter = op match {
