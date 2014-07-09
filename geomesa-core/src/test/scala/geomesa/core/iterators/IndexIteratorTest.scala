@@ -55,7 +55,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
         TEST_TABLE,
         formatAttrIdxTableName(TestData.featureType),
         formatRecordTableName(TestData.featureType),
-        formatStIdxTableName(TestData.featureType)
+        formatSpatioTemporalIdxTableName(TestData.featureType)
       ).foreach { t => if (c.tableOperations.exists(t)) c.tableOperations.delete(t) }
 
       val dsf = new AccumuloDataStoreFactory

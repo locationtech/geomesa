@@ -70,7 +70,12 @@ import scala.collection.JavaConversions._
       .map { _.getName.toString }
       .getOrElse(DEFAULT_DTG_PROPERTY_NAME)
 
-  def formatRecordTableName(featureType: SimpleFeatureType)  = s"${featureType.getTypeName}_records"
-  def formatStIdxTableName(featureType: SimpleFeatureType)   = s"${featureType.getTypeName}_st_idx"
-  def formatAttrIdxTableName(featureType: SimpleFeatureType) = s"${featureType.getTypeName}_attr_idx"
+  def formatRecordTableName(featureType: SimpleFeatureType)=
+    s"${featureType.getTypeName}_records"
+
+  def formatSpatioTemporalIdxTableName(featureType: SimpleFeatureType) =
+    s"${featureType.getTypeName}_st_idx"
+
+  def formatAttrIdxTableName(featureType: SimpleFeatureType) =
+    s"${featureType.getTypeName}_attr_idx"
 }
