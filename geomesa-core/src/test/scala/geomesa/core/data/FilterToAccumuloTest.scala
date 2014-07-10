@@ -44,6 +44,7 @@ import org.opengis.temporal.Period
 import org.opengis.filter.expression.{Expression, Literal}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.geotools.filter.LiteralExpression
+import geomesa.core.iterators.TestData
 
 @RunWith(classOf[JUnitRunner])
 class FilterToAccumuloTest extends Specification {
@@ -440,6 +441,74 @@ class FilterToAccumuloTest extends Specification {
 
       f2a.temporalPredicate mustEqual noInterval
       f2a.spatialPredicate mustEqual noPolygon
+    }
+  }
+
+  "FilterToAccumulo" should {
+    "handle default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
+      val spatial = ff.bbox("geom", -230, -110, 230, 110, CRS.toSRS(WGS84))
+      val originalSpatial = ff.bbox("geom", -230, -110, 230, 110, CRS.toSRS(WGS84))
+      val features = TestData.allThePoints.map(e => TestData.createSF(e))
+      val f2a = new FilterToAccumulo(sft)
+      val updatedFilter = f2a.visit(spatial)
+      features.foreach(f => originalSpatial.evaluate(f) mustEqual true)
+      //features.foreach(f => updatedFilter.evaluate(f) mustEqual true)
+    }
+
+    "handle >180 lon diff non-IDL-wrapping geoserver BBOX" in {
+      val spatial = ff.bbox("geom", -100, -90, 100, 90, CRS.toSRS(WGS84))
+      val originalSpatial = ff.bbox("geom", -100, -90, 100, 90, CRS.toSRS(WGS84))
+      val features = TestData.allThePoints.map(e => TestData.createSF(e))
+      val f2a = new FilterToAccumulo(sft)
+      val updatedFilter = f2a.visit(spatial)
+      var includedFeatures = 0
+      features.foreach(f => {
+        if (originalSpatial.evaluate(f)) includedFeatures = includedFeatures + 1
+      })
+      includedFeatures mustEqual 201
+      includedFeatures = 0
+      features.foreach(f => {
+        if (updatedFilter.evaluate(f)) includedFeatures = includedFeatures + 1
+      })
+      //includedFeatures mustEqual 201
+    }
+
+    "handle small IDL-wrapping geoserver BBOXes" in {
+      val spatial1 = ff.bbox("geom", -181.1, -90, -175.1, 90, CRS.toSRS(WGS84))
+      val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
+      val binarySpatial = ff.or(spatial1, spatial2)
+      val features = TestData.allThePoints.map(e => TestData.createSF(e))
+      val f2a = new FilterToAccumulo(sft)
+      val updatedFilter = f2a.visit(binarySpatial)
+      var includedFeatures = 0
+      features.foreach(f => {
+        if (binarySpatial.evaluate(f)) includedFeatures = includedFeatures + 1
+      })
+      includedFeatures mustEqual 10
+      includedFeatures = 0
+      features.foreach(f => {
+        if (updatedFilter.evaluate(f)) includedFeatures = includedFeatures + 1
+      })
+      includedFeatures mustEqual 10
+    }
+
+    "handle large IDL-wrapping geoserver BBOXes" in {
+      val spatial1 = ff.bbox("geom", -181.1, -90, 40.1, 90, CRS.toSRS(WGS84))
+      val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
+      val binarySpatial = ff.or(spatial1, spatial2)
+      val features = TestData.allThePoints.map(e => TestData.createSF(e))
+      val f2a = new FilterToAccumulo(sft)
+      val updatedFilter = f2a.visit(binarySpatial)
+      var includedFeatures = 0
+      features.foreach(f => {
+        if (binarySpatial.evaluate(f)) includedFeatures = includedFeatures + 1
+      })
+      includedFeatures mustEqual 226
+      includedFeatures = 0
+      features.foreach(f => {
+        if (updatedFilter.evaluate(f)) includedFeatures = includedFeatures + 1
+      })
+      includedFeatures mustEqual 226
     }
   }
 }
