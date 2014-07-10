@@ -24,9 +24,6 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class TemporalIndexCheckTest extends Specification {
-
-  sequential
-
   // setup the basic types
   def noDTGType = DataUtilities.createType("noDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry")
   def oneDTGType = DataUtilities.createType("oneDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date")
