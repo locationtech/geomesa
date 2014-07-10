@@ -41,21 +41,22 @@ import scala.collection.GenSeq
 class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
 
   import geomesa.utils.geotools.Conversions._
+  import AccumuloDataStore._
 
   object IITest {
 
     def setupMockFeatureSource(entries: GenSeq[TestData.Entry]): SimpleFeatureStore = {
-      val TEST_TABLE = "test_table"
+      val CATALOG_TABLE = "test_table"
 
       val mockInstance = new MockInstance("dummy")
       val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
 
       // Remember we need to delete all 4 tables now
       List(
-        TEST_TABLE,
-        formatAttrIdxTableName(TestData.featureType),
-        formatRecordTableName(TestData.featureType),
-        formatSpatioTemporalIdxTableName(TestData.featureType)
+        CATALOG_TABLE,
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_st_idx",
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_records",
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_attr_idx"
       ).foreach { t => if (c.tableOperations.exists(t)) c.tableOperations.delete(t) }
 
       val dsf = new AccumuloDataStoreFactory

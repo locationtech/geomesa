@@ -18,10 +18,12 @@
 package geomesa.core.data
 
 import java.io.Serializable
+import java.util.regex.Pattern
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core
+import geomesa.core.data.AccumuloDataStore._
 import geomesa.core.data.AccumuloFeatureWriter.MapReduceRecordWriter
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.core.index.IndexSchema
@@ -33,6 +35,7 @@ import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.ColumnFamilyFunctor
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.ColumnVisibility
+import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
@@ -43,7 +46,6 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 
 /**
  *
@@ -123,9 +125,9 @@ class AccumuloDataStore(val connector: Connector,
       }
     }
     val featureEncodingValue        = fe.toString
-    val spatioTemporalIdxTableValue = formatSpatioTemporalIdxTableName(sft)
-    val attrIdxTableValue           = formatAttrIdxTableName(sft)
-    val recordTableValue            = formatRecordTableName(sft)
+    val spatioTemporalIdxTableValue = formatSpatioTemporalIdxTableName(catalogTable, sft)
+    val attrIdxTableValue           = formatAttrIdxTableName(catalogTable, sft)
+    val recordTableValue            = formatRecordTableName(catalogTable, sft)
     val maxShardValue               = maxShard.toString
     val dtgFieldValue               = dtgValue.getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
 
@@ -201,9 +203,9 @@ class AccumuloDataStore(val connector: Connector,
     readMetadataItem(featureType.getTypeName, ST_IDX_TABLE_CF).nonEmpty
 
   def createTablesForType(featureType: SimpleFeatureType, maxShard: Int) {
-    val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(featureType)
-    val attributeIndexTable    = formatAttrIdxTableName(featureType)
-    val recordTable            = formatRecordTableName(featureType)
+    val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(catalogTable, featureType)
+    val attributeIndexTable    = formatAttrIdxTableName(catalogTable, featureType)
+    val recordTable            = formatRecordTableName(catalogTable, featureType)
     
     List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach { t =>
       if (!tableOps.exists(t)) {
@@ -748,6 +750,42 @@ class AccumuloDataStore(val connector: Connector,
    */
   private def getFeatureName(featureType: SimpleFeatureType) = featureType.getName.getLocalPart
 
+}
+
+object AccumuloDataStore {
+
+  // Private to hide implementation...table name is stored in metadata for other usage
+  // and provide compatibility moving forward if table names change
+  private def formatRecordTableName(catalogTable: String, featureType: SimpleFeatureType) =
+    formatTableName(catalogTable, featureType, "records")
+
+  // Private to hide implementation...table name is stored in metadata for other usage
+  // and provide compatibility moving forward if table names change
+  private def formatSpatioTemporalIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
+    formatTableName(catalogTable, featureType, "st_idx")
+
+  // Private to hide implementation...table name is stored in metadata for other usage
+  // and provide compatibility moving forward if table names change
+  private def formatAttrIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
+    formatTableName(catalogTable, featureType, "attr_idx")
+
+  // cannot start with underscore and is then composed of alphanum + underscore
+  val SAFE_FEATURE_NAME_PATTERN = "^\\w+$"
+
+  /**
+   * Format a table name with a namespace
+   */
+  private def formatTableName(catalogTable: String, featureType: SimpleFeatureType, suffix: String) = {
+    val typeName = featureType.getTypeName
+    val safeTypeName: String =
+      if(typeName.matches(SAFE_FEATURE_NAME_PATTERN)){
+        typeName
+      } else {
+        Hex.encodeHexString(typeName.getBytes("UTF8"))
+      }
+
+    List(catalogTable, safeTypeName, suffix).mkString("_")
+  }
 }
 
 /**
