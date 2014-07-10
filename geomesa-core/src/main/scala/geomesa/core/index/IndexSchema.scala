@@ -113,14 +113,19 @@ case class IndexSchema(encoder: IndexEncoder,
       else accumuloIterator
 
     // Decode according to the SFT return type.
-    uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue) }
+
+    // if this is a density query, expand the map
+    if (query.getHints.containsKey(DENSITY_KEY))
+      uniqKVIter.flatMap { kv:Entry[Key,Value] => DensityIterator.expandFeature(featureEncoder.decode(returnSFT, kv.getValue)) }
+    else
+      uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue) }
   }
 
   // This function calculates the SimpleFeatureType of the returned SFs.
   private def getReturnSFT(query: Query): SimpleFeatureType =
     query match {
       case _: Query if query.getHints.containsKey(DENSITY_KEY)  =>
-        DataUtilities.createType(featureType.getTypeName, "encodedraster:String,geom:Point:srid=4326")
+        DataUtilities.createType(featureType.getTypeName, DensityIterator.DENSITY_FEATURE_STRING)
       case _: Query if query.getHints.get(TRANSFORM_SCHEMA) != null =>
         query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
       case _ => featureType

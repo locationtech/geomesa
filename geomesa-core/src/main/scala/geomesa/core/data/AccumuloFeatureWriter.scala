@@ -16,27 +16,20 @@
 
 package geomesa.core.data
 
-import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.index._
 import geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
-import org.apache.accumulo.core.data.{Range => ARange, PartialKey, Key, Mutation, Value}
-import org.apache.accumulo.core.security.ColumnVisibility
-import org.apache.hadoop.io.Text
+import org.apache.accumulo.core.data.{Key, Mutation, PartialKey, Value, Range => ARange}
 import org.apache.hadoop.mapred.{RecordWriter, Reporter}
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureWriter
-import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 
 object AccumuloFeatureWriter {
 
