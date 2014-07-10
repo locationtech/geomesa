@@ -99,7 +99,11 @@ object TestData extends Logging {
     Entry("POINT(50.2 30.6)", "119")
   )
 
-  val allThePoints = (-180 to 180).map(l => Entry("POINT(" + l + " " + (l / 2) + ")", l.toString))
+  val allThePoints = (-180 to 180).map(l => {
+    val x = l.toString
+    val y = (l / 2).toString
+    Entry(s"POINT($x $y)", x)
+  })
 
   // add some lines to this query, both qualifying and non-qualifying
   val lines = List(

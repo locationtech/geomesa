@@ -19,8 +19,8 @@ package geomesa.core.data
 
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Polygon, Coordinate}
-import geomesa.core.data.FilterToAccumulo._
 import geomesa.core.index.Constants
+import geomesa.core.iterators.TestData
 import geomesa.utils.geometry.Geometry._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text.WKTUtils
@@ -32,19 +32,15 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
+import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.junit.runner.RunWith
-import org.opengis.filter.{And, Or, Not, Filter}
+import org.opengis.filter.expression.{Expression, Literal}
 import org.opengis.filter.spatial.DWithin
+import org.opengis.filter.temporal.{Before, After, During}
+import org.opengis.filter.{And, Or, Not, Filter}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.opengis.filter.temporal.{Before, After, During}
-import org.joda.time.format.{ISODateTimeFormat, DateTimeFormatter}
-import org.opengis.temporal.Period
-import org.opengis.filter.expression.{Expression, Literal}
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.geotools.filter.LiteralExpression
-import geomesa.core.iterators.TestData
 
 @RunWith(classOf[JUnitRunner])
 class FilterToAccumuloTest extends Specification {
@@ -452,7 +448,7 @@ class FilterToAccumuloTest extends Specification {
       val f2a = new FilterToAccumulo(sft)
       val updatedFilter = f2a.visit(spatial)
       features.foreach(f => originalSpatial.evaluate(f) mustEqual true)
-      //features.foreach(f => updatedFilter.evaluate(f) mustEqual true)
+      features.foreach(f => updatedFilter.evaluate(f) mustEqual true)
     }
 
     "handle >180 lon diff non-IDL-wrapping geoserver BBOX" in {
@@ -461,16 +457,8 @@ class FilterToAccumuloTest extends Specification {
       val features = TestData.allThePoints.map(e => TestData.createSF(e))
       val f2a = new FilterToAccumulo(sft)
       val updatedFilter = f2a.visit(spatial)
-      var includedFeatures = 0
-      features.foreach(f => {
-        if (originalSpatial.evaluate(f)) includedFeatures = includedFeatures + 1
-      })
-      includedFeatures mustEqual 201
-      includedFeatures = 0
-      features.foreach(f => {
-        if (updatedFilter.evaluate(f)) includedFeatures = includedFeatures + 1
-      })
-      //includedFeatures mustEqual 201
+      features.count(f => originalSpatial.evaluate(f)) mustEqual 201
+      features.count(f => updatedFilter.evaluate(f)) mustEqual 201
     }
 
     "handle small IDL-wrapping geoserver BBOXes" in {
@@ -480,16 +468,8 @@ class FilterToAccumuloTest extends Specification {
       val features = TestData.allThePoints.map(e => TestData.createSF(e))
       val f2a = new FilterToAccumulo(sft)
       val updatedFilter = f2a.visit(binarySpatial)
-      var includedFeatures = 0
-      features.foreach(f => {
-        if (binarySpatial.evaluate(f)) includedFeatures = includedFeatures + 1
-      })
-      includedFeatures mustEqual 10
-      includedFeatures = 0
-      features.foreach(f => {
-        if (updatedFilter.evaluate(f)) includedFeatures = includedFeatures + 1
-      })
-      includedFeatures mustEqual 10
+      features.count(f => binarySpatial.evaluate(f)) mustEqual 10
+      features.count(f => updatedFilter.evaluate(f)) mustEqual 10
     }
 
     "handle large IDL-wrapping geoserver BBOXes" in {
@@ -499,16 +479,8 @@ class FilterToAccumuloTest extends Specification {
       val features = TestData.allThePoints.map(e => TestData.createSF(e))
       val f2a = new FilterToAccumulo(sft)
       val updatedFilter = f2a.visit(binarySpatial)
-      var includedFeatures = 0
-      features.foreach(f => {
-        if (binarySpatial.evaluate(f)) includedFeatures = includedFeatures + 1
-      })
-      includedFeatures mustEqual 226
-      includedFeatures = 0
-      features.foreach(f => {
-        if (updatedFilter.evaluate(f)) includedFeatures = includedFeatures + 1
-      })
-      includedFeatures mustEqual 226
+      features.count(f => binarySpatial.evaluate(f)) mustEqual 226
+      features.count(f => updatedFilter.evaluate(f)) mustEqual 226
     }
   }
 }
