@@ -1,6 +1,6 @@
 package geomesa.core.index
 
-import com.vividsolutions.jts.geom.Polygon
+import com.vividsolutions.jts.geom.{PrecisionModel, GeometryFactory, LineString, Polygon}
 import geomesa.core._
 import geomesa.core.data._
 import geomesa.core.filter._
@@ -57,8 +57,16 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     case p if p.covers(IndexSchema.everywhere) =>
       IndexSchema.everywhere
     case p if IndexSchema.everywhere.covers(p) => p
-    case _ => poly.intersection(IndexSchema.everywhere).
-      asInstanceOf[Polygon]
+    case _ => {
+      val intersect = poly.intersection(IndexSchema.everywhere)
+      if (intersect.isInstanceOf[Polygon])
+        intersect.asInstanceOf[Polygon]
+      else {
+        val factory = new GeometryFactory()
+        val coords = intersect.asInstanceOf[LineString].getCoordinates
+        factory.createPolygon(coords :+ coords(0))
+      }
+    }
   }
 
   def netInterval(interval: Interval): Interval = interval match {
