@@ -1,6 +1,6 @@
 package geomesa.core.index
 
-import com.vividsolutions.jts.geom.{PrecisionModel, GeometryFactory, LineString, Polygon}
+import com.vividsolutions.jts.geom.{GeometryFactory, LineString, Polygon}
 import geomesa.core._
 import geomesa.core.data._
 import geomesa.core.filter._
