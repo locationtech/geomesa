@@ -16,20 +16,18 @@
 
 package geomesa.core
 
-import geomesa.core._
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.FeatureWriter
 import org.geotools.factory.Hints.ClassKey
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
-import com.vividsolutions.jts.geom.Envelope
-import org.geotools.geometry.jts.JTS
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 package object data {
 
-  import collection.JavaConversions._
   import geomesa.core.index._
+
+import scala.collection.JavaConversions._
 
   val INSTANCE_ID          = "geomesa.instance.id"
   val ZOOKEEPERS           = "geomesa.zookeepers"
@@ -72,7 +70,4 @@ package object data {
       .map { _.getName.toString }
       .getOrElse(DEFAULT_DTG_PROPERTY_NAME)
 
-  def formatRecordTableName(featureType: SimpleFeatureType)  = s"${featureType.getTypeName}_records"
-  def formatStIdxTableName(featureType: SimpleFeatureType)   = s"${featureType.getTypeName}_st_idx"
-  def formatAttrIdxTableName(featureType: SimpleFeatureType) = s"${featureType.getTypeName}_attr_idx"
 }

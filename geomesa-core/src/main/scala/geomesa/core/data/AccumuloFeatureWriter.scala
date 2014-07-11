@@ -89,10 +89,10 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
   protected val attrIdxWriter =
     if(multiIndex)
-      multiBWWriter.getBatchWriter(ds.getAttrIdxTableForType(featureType))
+      multiBWWriter.getBatchWriter(ds.getAttrIdxTableName(featureType))
     else null
 
-  protected val stIdxWriter = multiBWWriter.getBatchWriter(ds.getSTIdxTableForType(featureType))
+  protected val stIdxWriter = multiBWWriter.getBatchWriter(ds.getSpatioTemporalIdxTableName(featureType))
 
   def getFeatureType: SimpleFeatureType = featureType
 

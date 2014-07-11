@@ -97,13 +97,7 @@ case class IndexSchema(encoder: IndexEncoder,
 
     val accumuloIterator = planner.getIterator(ds, query)
 
-    // Convert Accumulo results to SimpleFeatures.
-//    new CloseableIterator[SimpleFeature] {
-//      val iter = adaptIterator(accumuloIterator, query)
-//      override def close(): Unit = accumuloIterator.close()
-//      override def next(): SimpleFeature = iter.next()
-//      override def hasNext: Boolean = iter.hasNext
-//    }
+    // Convert Accumulo results to SimpleFeatures
     adaptIterator(accumuloIterator, query)
   }
 
@@ -118,7 +112,6 @@ case class IndexSchema(encoder: IndexEncoder,
       else accumuloIterator
 
     // Decode according to the SFT return type.
-
     // if this is a density query, expand the map
     if (query.getHints.containsKey(DENSITY_KEY))
       uniqKVIter.flatMap { kv:Entry[Key,Value] =>

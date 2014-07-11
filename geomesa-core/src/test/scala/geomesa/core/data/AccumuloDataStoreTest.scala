@@ -17,10 +17,14 @@
 package geomesa.core.data
 
 import com.vividsolutions.jts.geom.Coordinate
+import geomesa.core.iterators.TestData._
 import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.text.WKTUtils
+import org.apache.accumulo.core.client.mock.{MockInstance, MockConnector}
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
+import org.apache.commons.codec.binary.Hex
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
@@ -453,6 +457,63 @@ class AccumuloDataStoreTest extends Specification {
       } catch {
         case e: RuntimeException => success
       }
+    }
+
+    "create proper tables for secondary indexing" in {
+      val table = "testing_secondary_index"
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId" -> "mycloud",
+        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"       -> "myuser",
+        "password"   -> "mypassword",
+        "tableName"  -> table,
+        "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
+
+      ds should not be null
+
+      // accumulo supports only alphanum + underscore aka ^\\w+$
+      // this should be OK
+      val sftName = "_something_saf3_"
+      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val mockInstance = new MockInstance("mycloud")
+      val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
+
+      c.tableOperations().exists(table) must beTrue
+      c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName}_records") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName}_attr_idx") must beTrue
+    }
+
+    "hex encode non accumulo table name safe feature type names" in {
+
+      val table = "testing_bad_features"
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId" -> "mycloud",
+        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"       -> "myuser",
+        "password"   -> "mypassword",
+        "tableName"  -> table,
+        "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
+
+      ds should not be null
+
+      // accumulo supports only alphanum + underscore aka ^\\w+$
+      // this should end up hex encoded
+      val sftName = "something:bad!"
+      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val mockInstance = new MockInstance("mycloud")
+      val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
+
+      val hexSft = Hex.encodeHexString(sftName.getBytes("UTF8"))
+
+      c.tableOperations().exists(table) must beTrue
+      c.tableOperations().exists(s"${table}_${hexSft}_st_idx") must beTrue
+      c.tableOperations().exists(s"${table}_${hexSft}_records") must beTrue
+      c.tableOperations().exists(s"${table}_${hexSft}_attr_idx") must beTrue
     }
 
   }
