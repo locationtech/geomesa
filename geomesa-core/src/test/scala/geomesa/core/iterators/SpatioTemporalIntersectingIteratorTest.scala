@@ -17,7 +17,7 @@
 package geomesa.core.iterators
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Geometry, Polygon}
+import com.vividsolutions.jts.geom.Polygon
 import geomesa.core._
 import geomesa.core.data.SimpleFeatureEncoderFactory
 import geomesa.core.index._
@@ -35,10 +35,8 @@ import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
 import scala.collection.GenSeq
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 import scala.util.{Random, Try}
 
 object UnitTestEntryType  {

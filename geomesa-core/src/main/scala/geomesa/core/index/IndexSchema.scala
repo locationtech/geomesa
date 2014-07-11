@@ -102,6 +102,11 @@ case class IndexSchema(encoder: IndexEncoder,
     adaptIterator(accumuloIterator, query)
   }
 
+  // Writes out an explanation of how a query would be run.
+  def explainQuery(q: Query, output: (String => Unit) = println) = {
+     planner.getIterator(() => new ExplainingBatchScanner(output), q, output)
+  }
+
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
   def adaptIterator(accumuloIterator: CloseableIterator[Entry[Key,Value]], query: Query): CloseableIterator[SimpleFeature] = {
     val returnSFT = getReturnSFT(query)
