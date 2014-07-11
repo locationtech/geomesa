@@ -64,7 +64,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       else {
         val factory = new GeometryFactory()
         val coords = intersect.asInstanceOf[LineString].getCoordinates
-        factory.createPolygon(coords :+ coords(0))
+        factory.createPolygon(coords :+ coords(1) :+ coords(0))
       }
     }
   }
