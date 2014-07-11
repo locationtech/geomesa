@@ -20,25 +20,20 @@ import java.text.SimpleDateFormat
 import java.util.TimeZone
 
 import com.vividsolutions.jts.geom.Geometry
-import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
+import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
+import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.{Query, DataUtilities, DataStoreFinder}
+import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-
-import geomesa.utils.geotools.Conversions._
-
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexFilteringIteratorTest extends Specification {
@@ -88,13 +83,24 @@ class AttributeIndexFilteringIteratorTest extends Specification {
 
   "AttributeIndexFilteringIterator" should {
     "handle like queries" in {
+      // Try out wildcard queries using the % wildcard syntax.
+      // Test single wildcard, trailing, leading, and both trailing & leading wildcards
+
+      // % should return 4 "a" and 4 "b" features
       fs.getFeatures(ff.like(ff.property("name"),"%")).features.size should equalTo(8)
+
+      // %a should return the 4 "a" features
       fs.getFeatures(ff.like(ff.property("name"),"%a")).features.size should equalTo(4)
+
+      // %a% should return the 4 "a" features
       fs.getFeatures(ff.like(ff.property("name"),"%a%")).features.size should equalTo(4)
+
+      // a% should return the 4 "a" features
       fs.getFeatures(ff.like(ff.property("name"),"a%")).features.size should equalTo(4)
     }
 
     "handle transforms" in {
+      // transform to only return the attribute geom - dropping dtg and name
       val query = new Query(sftName, ECQL.toFilter("name <> 'a'"), Array("geom"))
       val features = fs.getFeatures(query)
 
@@ -104,10 +110,6 @@ class AttributeIndexFilteringIteratorTest extends Specification {
         sf.getAttribute(0) should beAnInstanceOf[Geometry]
       }
     }
-
-
   }
-
-
 
 }
