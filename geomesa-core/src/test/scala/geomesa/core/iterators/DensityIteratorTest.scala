@@ -19,9 +19,11 @@ package geomesa.core.iterators
 
 import java.util.Date
 
+import com.google.common.collect.HashBasedTable
 import com.vividsolutions.jts.geom.{Envelope, Point}
 import geomesa.core.data.AccumuloDataStoreFactory
 import geomesa.core.index.{Constants, QueryHints}
+import geomesa.feature.AvroSimpleFeatureFactory
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.hadoop.io.Text
@@ -44,26 +46,20 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class DensityIteratorTest extends Specification {
 
-  sequential
-
   import geomesa.utils.geotools.Conversions._
 
-  val sftName = "DensityIteratorTest"
   val spec = "id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
-  val sft = DataUtilities.createType(sftName, spec)
+  val sft = DataUtilities.createType("test", spec)
   sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
 
   def createDataStore(i: Int = 0): DataStore = {
-    val mockInstance = new MockInstance("dummy")
+    val mockInstance = new MockInstance("dummy" + i)
     val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
-    if(c.tableOperations().exists(sftName)){
-      c.tableOperations().delete(sftName)
-    }
-    c.tableOperations.create(sftName)
+    c.tableOperations.create("test")
     val splits = (0 to 99).map {
       s => "%02d".format(s)
     }.map(new Text(_))
-    c.tableOperations().addSplits(sftName, new java.util.TreeSet[Text](splits))
+    c.tableOperations().addSplits("test", new java.util.TreeSet[Text](splits))
 
     val dsf = new AccumuloDataStoreFactory
 
@@ -75,7 +71,7 @@ class DensityIteratorTest extends Specification {
                      instanceIdParam.key -> ("dummy" + i),
                      userParam.key -> "user",
                      passwordParam.key -> "pass",
-                     tableNameParam.key -> sftName,
+                     tableNameParam.key -> "test",
                      mockParam.key -> "true"
                    ))
     ds.createSchema(sft)
@@ -83,7 +79,7 @@ class DensityIteratorTest extends Specification {
   }
 
   def loadFeatures(ds: DataStore, encodedFeatures: Array[_<:Array[_]]): SimpleFeatureStore = {
-    val builder = new SimpleFeatureBuilder(sft)
+    val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
     val features = encodedFeatures.map {
       e =>
         val f = builder.buildFeature(e(0).toString, e.asInstanceOf[Array[AnyRef]])
@@ -92,14 +88,14 @@ class DensityIteratorTest extends Specification {
         f
     }
 
-    val fs = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
+    val fs = ds.getFeatureSource("test").asInstanceOf[SimpleFeatureStore]
     fs.addFeatures(DataUtilities.collection(features))
     fs.getTransaction.commit()
     fs
   }
 
   def getQuery(query: String): Query = {
-    val q = new Query(sftName, ECQL.toFilter(query))
+    val q = new Query("test", ECQL.toFilter(query))
     val geom = q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope]
     q.getHints.put(QueryHints.DENSITY_KEY, java.lang.Boolean.TRUE)
     q.getHints.put(QueryHints.BBOX_KEY, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
@@ -185,7 +181,7 @@ class DensityIteratorTest extends Specification {
         i =>
           val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate
           // space out the points very slightly around 5 primary latitudes 1 degree apart
-          val lat = (i/30).toInt + (Random.nextDouble() - 0.5) / 1000.0
+          val lat = (i/30).toInt + 1 + (Random.nextDouble() - 0.5) / 1000.0
           Array(s"$i", "1.0", new Date(date.getTime + i * 60000), s"POINT($lat 37)")
       }
 
@@ -208,6 +204,21 @@ class DensityIteratorTest extends Specification {
       // should be 5 bins of 30
       compiled.size should be equalTo 5
       compiled.forall(entry => entry._2 == 30) should be equalTo true
+    }
+
+    "encode and decode features" in {
+
+      var matrix = HashBasedTable.create[Double, Double, Long]()
+      matrix.put(1.0, 2.0, 3)
+      matrix.put(2.0, 3.0, 5)
+
+      val encoded = DensityIterator.encodeSparseMatrix(matrix)
+
+      val decoded = DensityIterator.decodeSparseMatrix(encoded)
+
+      matrix should be equalTo decoded
+
+      println()
     }
   }
 

@@ -18,7 +18,6 @@
 package geomesa.core.data
 
 import java.io.Serializable
-import java.util.regex.Pattern
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -26,7 +25,7 @@ import geomesa.core
 import geomesa.core.data.AccumuloDataStore._
 import geomesa.core.data.AccumuloFeatureWriter.MapReduceRecordWriter
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
-import geomesa.core.index.IndexSchema
+import geomesa.core.index.{IndexSchema, TemporalIndexCheck}
 import geomesa.core.security.AuthorizationsProvider
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
@@ -118,6 +117,9 @@ class AccumuloDataStore(val connector: Connector,
     val attributesValue = DataUtilities.encodeType(sft)
     val dtgValue: Option[String] = {
       val userData = sft.getUserData
+      // inspect, warn and set SF_PROPERTY_START_TIME if appropriate
+      TemporalIndexCheck.extractNewDTGFieldCandidate(sft)
+        .foreach { name => userData.put(core.index.SF_PROPERTY_START_TIME, name) }
       if (userData.containsKey(core.index.SF_PROPERTY_START_TIME)) {
         Option(userData.get(core.index.SF_PROPERTY_START_TIME).asInstanceOf[String])
       } else {

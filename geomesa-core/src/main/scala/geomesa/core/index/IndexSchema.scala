@@ -113,12 +113,13 @@ case class IndexSchema(encoder: IndexEncoder,
 
     // Decode according to the SFT return type.
     // if this is a density query, expand the map
-    if (query.getHints.containsKey(DENSITY_KEY))
-      uniqKVIter.flatMap { kv:Entry[Key,Value] =>
+    if (query.getHints.containsKey(DENSITY_KEY)) {
+      uniqKVIter.flatMap { kv: Entry[Key, Value] =>
         DensityIterator.expandFeature(featureEncoder.decode(returnSFT, kv.getValue))
       }
-    else
-      uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue) }
+    } else {
+      uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue)}
+    }
   }
 
   // This function calculates the SimpleFeatureType of the returned SFs.

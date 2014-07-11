@@ -82,4 +82,23 @@ object GeometryUtils {
     geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY))
   }
 
+  def unfoldRight[A, B](seed: B)(f: B => Option[(A, B)]): List[A] = f(seed) match {
+    case None => Nil
+    case Some((a, b)) => a :: unfoldRight(b)(f)
+  }
+
+  /** Adds way points to Seq[Coordinates] so that they remain valid with Spatial4j, useful for BBOX */
+  def addWayPoints(coords: Seq[Coordinate]): List[Coordinate] =
+    unfoldRight(coords) {
+      case Seq() => None
+      case Seq(pt) => Some((pt, Seq()))
+      case Seq(first, second, rest @ _*) => second.x - first.x match {
+        case dx if dx > 120 =>
+          Some((first, new Coordinate(first.x + 120, first.y) +: second +: rest))
+        case dx if dx < -120 =>
+          Some((first, new Coordinate(first.x - 120, first.y) +: second +: rest))
+        case _ => Some((first, second +: rest))
+      }
+    }
+
 }

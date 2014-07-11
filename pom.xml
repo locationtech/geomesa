@@ -60,7 +60,7 @@
         <dist.dev>dev</dist.dev>
 
         <!-- testing properties -->
-        <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit</maven.test.jvmargs>
+        <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit</maven.test.jvmargs>
         <fork.mode>once</fork.mode>
         <avro.version>1.7.5</avro.version>
     </properties>
@@ -69,7 +69,7 @@
         <profile>
             <id>debug-tests</id>
             <properties>
-                <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xrunjdwp:transport=dt_socket,address=5000,server=y,suspend=y</maven.test.jvmargs>
+                <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit -Xrunjdwp:transport=dt_socket,address=5000,server=y,suspend=y</maven.test.jvmargs>
             </properties>
         </profile>
     </profiles>
@@ -546,10 +546,10 @@
                 </executions>
                 <configuration>
                     <jvmArgs>
-                        <jvmArg>-Xms64m</jvmArg>
-                        <jvmArg>-Xmx1024m</jvmArg>
+                        <jvmArg>-Xms1024m</jvmArg>
+                        <jvmArg>-Xmx4096m</jvmArg>
+                        <jvmArg>-XX:MaxPermSize=1024m</jvmArg>
                     </jvmArgs>
-                    <recompileMode>incremental</recompileMode>
                     <args>
                         <arg>-nowarn</arg>
                         <arg>-unchecked</arg>

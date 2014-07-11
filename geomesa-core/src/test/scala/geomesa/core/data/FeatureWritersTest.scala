@@ -19,6 +19,7 @@ package geomesa.core.data
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 
+import geomesa.core.index.SF_PROPERTY_START_TIME
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.text.WKTUtils
 import org.geotools.data._
@@ -42,7 +43,7 @@ class FeatureWritersTest extends Specification {
   val geotimeAttributes = geomesa.core.index.spec
   val sftName = "mutableType"
   val sft = DataUtilities.createType(sftName, s"name:String,age:Integer,$geotimeAttributes")
-
+  sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
   val sdf = new SimpleDateFormat("yyyyMMdd")
   sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))
   val dateToIndex = sdf.parse("20140102")
