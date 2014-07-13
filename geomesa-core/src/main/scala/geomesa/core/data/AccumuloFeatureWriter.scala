@@ -81,7 +81,9 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   protected val multiBWWriter = connector.createMultiTableBatchWriter(new BatchWriterConfig)
 
   // A "writer" is a function that takes a simple feature and writes
-  // it to an index or table
+  // it to an index or table. This list is configured to match the
+  // version of the datastore (i.e. single table vs catalog
+  // table + index tables)
   protected val writers: List[SimpleFeature => Unit] = {
     val stTable = ds.getSpatioTemporalIdxTableName(featureType)
     val stWriter = List(spatioTemporalWriter(multiBWWriter.getBatchWriter(stTable)))
@@ -99,8 +101,6 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
     stWriter ::: attrWriters
   }
-
-  protected val stIdxWriter = multiBWWriter.getBatchWriter(ds.getSpatioTemporalIdxTableName(featureType))
 
   def getFeatureType: SimpleFeatureType = featureType
 
@@ -219,7 +219,11 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
   var live: SimpleFeature = null      /* feature to let user modify   */
   var original: SimpleFeature = null  /* feature returned from reader */
 
-  val removeFunctions: List[SimpleFeature => Unit] = {
+  // A remover is a function that removes a feature from an
+  // index or table. This list is configured to match the
+  // version of the datastore (i.e. single table vs catalog
+  // table + index tables)
+  val removers: List[SimpleFeature => Unit] = {
     val stTable = dataStore.getSpatioTemporalIdxTableName(featureType)
     val stWriter = List(removeSpatioTemporalIdx(multiBWWriter.getBatchWriter(stTable)))
 
@@ -278,7 +282,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
 
   override def remove() =
     if (original != null) {
-      removeFunctions.foreach { f => f(original)}
+      removers.foreach { r => r(original)}
     }
 
   override def hasNext = reader.hasNext
