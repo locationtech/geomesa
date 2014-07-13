@@ -83,12 +83,12 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   protected val multiBWWriter = connector.createMultiTableBatchWriter(new BatchWriterConfig)
 
   protected val recordWriter  =
-    if(multiIndex)
+    if (multiIndex)
       multiBWWriter.getBatchWriter(ds.getRecordTableForType(featureType))
     else null
 
   protected val attrIdxWriter =
-    if(multiIndex)
+    if (multiIndex)
       multiBWWriter.getBatchWriter(ds.getAttrIdxTableName(featureType))
     else null
 
@@ -113,7 +113,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
     // require non-null geometry to write to geomesa (can't index null geo yo!)
     if (toWrite.getDefaultGeometry != null) {
-      if(multiIndex) {
+      if (multiIndex) {
         writeRecord(toWrite)
         writeAttrIdx(toWrite)
       }
@@ -212,7 +212,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
 
   override def remove() =
     if (original != null) {
-      if(multiIndex) {
+      if (multiIndex) {
         removeRecord(original)
         removeAttrIdx(original)
       }
@@ -272,7 +272,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
   override def next: SimpleFeature = {
     original = null
     live =
-      if(hasNext) {
+      if (hasNext) {
         original = reader.next()
         builder.init(original)
         builder.buildFeature(original.getID)
