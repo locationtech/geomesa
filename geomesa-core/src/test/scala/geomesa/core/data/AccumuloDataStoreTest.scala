@@ -483,7 +483,7 @@ class AccumuloDataStoreTest extends Specification {
 
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should be OK
-      val sftName = "_something_saf3_"
+      val sftName = "somethingsaf3"
       val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
 
@@ -511,19 +511,65 @@ class AccumuloDataStoreTest extends Specification {
 
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should end up hex encoded
-      val sftName = "something:bad!"
+      val sftName = "some_thing:bad!"
       val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
 
       val mockInstance = new MockInstance("mycloud")
       val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
 
-      val hexSft = Hex.encodeHexString(sftName.getBytes("UTF8"))
+      def enc(s: String) = "_" + Hex.encodeHexString(s.getBytes("UTF8")).toLowerCase
+
+      val hexSft = "some" + enc("_") + "thing" + enc(":") + "bad" + enc("!")
 
       c.tableOperations().exists(table) must beTrue
       c.tableOperations().exists(s"${table}_${hexSft}_st_idx") must beTrue
       c.tableOperations().exists(s"${table}_${hexSft}_records") must beTrue
       c.tableOperations().exists(s"${table}_${hexSft}_attr_idx") must beTrue
+    }
+
+    "hex encode multibyte chars as multiple underscore + hex" in {
+      val table = "testing_chinese_features"
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId" -> "mycloud",
+        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"       -> "myuser",
+        "password"   -> "mypassword",
+        "tableName"  -> table,
+        "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
+
+      ds should not be null
+
+      // accumulo supports only alphanum + underscore aka ^\\w+$
+      // this should end up hex encoded
+      val sftName = "nihao你好"
+      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val mockInstance = new MockInstance("mycloud")
+      val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
+
+      // encode groups of 2 hex chars since we are doing multibyte chars
+      def enc(s: String): String = Hex.encodeHex(s.getBytes("UTF8")).grouped(2)
+        .map{ c => "_" + c(0) + c(1) }.mkString.toLowerCase
+
+      // three byte UTF8 chars result in 9 char string
+      enc("你").length mustEqual 9
+      enc("好").length mustEqual 9
+
+      val encodedSFT = "nihao" + enc("你") + enc("好")
+      encodedSFT mustEqual AccumuloDataStore.hexEncodeNonAlphaNumeric(sftName)
+
+      AccumuloDataStore.formatSpatioTemporalIdxTableName(table, sft) mustEqual s"${table}_${encodedSFT}_st_idx"
+      AccumuloDataStore.formatRecordTableName(table, sft) mustEqual s"${table}_${encodedSFT}_records"
+      AccumuloDataStore.formatAttrIdxTableName(table, sft) mustEqual s"${table}_${encodedSFT}_attr_idx"
+
+      c.tableOperations().exists(table) must beTrue
+      c.tableOperations().exists(s"${table}_${encodedSFT}_st_idx") must beTrue
+      c.tableOperations().exists(s"${table}_${encodedSFT}_records") must beTrue
+      c.tableOperations().exists(s"${table}_${encodedSFT}_attr_idx") must beTrue
+
+
     }
 
   }

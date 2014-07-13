@@ -758,36 +758,61 @@ object AccumuloDataStore {
 
   // Private to hide implementation...table name is stored in metadata for other usage
   // and provide compatibility moving forward if table names change
-  private def formatRecordTableName(catalogTable: String, featureType: SimpleFeatureType) =
+  def formatRecordTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "records")
 
   // Private to hide implementation...table name is stored in metadata for other usage
   // and provide compatibility moving forward if table names change
-  private def formatSpatioTemporalIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
+  def formatSpatioTemporalIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "st_idx")
 
   // Private to hide implementation...table name is stored in metadata for other usage
   // and provide compatibility moving forward if table names change
-  private def formatAttrIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
+  def formatAttrIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "attr_idx")
 
-  // cannot start with underscore and is then composed of alphanum + underscore
-  val SAFE_FEATURE_NAME_PATTERN = "^\\w+$"
+  // only alphanumeric is safe
+  val SAFE_FEATURE_NAME_PATTERN = "^[a-zA-Z0-9]+$"
 
   /**
    * Format a table name with a namespace
    */
-  private def formatTableName(catalogTable: String, featureType: SimpleFeatureType, suffix: String) = {
+  def formatTableName(catalogTable: String, featureType: SimpleFeatureType, suffix: String) = {
     val typeName = featureType.getTypeName
     val safeTypeName: String =
       if(typeName.matches(SAFE_FEATURE_NAME_PATTERN)){
         typeName
       } else {
-        Hex.encodeHexString(typeName.getBytes("UTF8"))
+        hexEncodeNonAlphaNumeric(typeName)
       }
 
     List(catalogTable, safeTypeName, suffix).mkString("_")
   }
+
+  val alphaNumeric = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
+
+  /**
+   * Encode non-alphanumeric characters in a string with
+   * underscore plus hex digits representing the bytes. Note
+   * that multibyte characters will be represented with multiple
+   * underscores and bytes...e.g. _8a_2f_3b
+   */
+  def hexEncodeNonAlphaNumeric(input: String): String = {
+    val sb = new StringBuilder
+    input.toCharArray.foreach { c =>
+      if (alphaNumeric.contains(c)) {
+        sb.append(c)
+      } else {
+        val encoded =
+          Hex.encodeHex(c.toString.getBytes("UTF8")).grouped(2)
+            .map{ arr => "_" + arr(0) + arr(1) }.mkString.toLowerCase
+        sb.append(encoded)
+      }
+    }
+    sb.toString
+  }
+
+
 }
 
 /**
