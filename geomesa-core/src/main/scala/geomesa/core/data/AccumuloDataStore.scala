@@ -724,7 +724,8 @@ class AccumuloDataStore(val connector: Connector,
     if (catalogTableFormat(sft)) {
       connector.createScanner(getAttrIdxTableName(sft), authorizationsProvider.getAuthorizations)
     } else {
-      throw new RuntimeException("Cannot create Attribute Index Scanner for old table format")
+      throw new RuntimeException("Cannot create Attribute Index Scanner - " +
+        "attribute index table does not exist for this version of the data store")
     }
 
   /**
@@ -735,7 +736,8 @@ class AccumuloDataStore(val connector: Connector,
     if (catalogTableFormat(sft)) {
       connector.createBatchScanner(getRecordTableForType(sft), authorizationsProvider.getAuthorizations, numThreads)
     } else {
-      throw new RuntimeException("Cannot create Attribute Index Scanner for old table format")
+      throw new RuntimeException("Cannot create Record Scanner - record table does not exist for this version" +
+        "of the datastore")
     }
   }
 
