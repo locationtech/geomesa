@@ -756,17 +756,17 @@ class AccumuloDataStore(val connector: Connector,
 
 object AccumuloDataStore {
 
-  // Private to hide implementation...table name is stored in metadata for other usage
+  // Format record table name for Accumulo...table name is stored in metadata for other usage
   // and provide compatibility moving forward if table names change
   def formatRecordTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "records")
 
-  // Private to hide implementation...table name is stored in metadata for other usage
+  // Format record table name for Accumulo...table name is stored in metadata for other usage
   // and provide compatibility moving forward if table names change
   def formatSpatioTemporalIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "st_idx")
 
-  // Private to hide implementation...table name is stored in metadata for other usage
+  // Format record table name for Accumulo...table name is stored in metadata for other usage
   // and provide compatibility moving forward if table names change
   def formatAttrIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "attr_idx")
