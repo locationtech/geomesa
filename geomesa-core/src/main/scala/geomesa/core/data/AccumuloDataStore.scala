@@ -775,7 +775,10 @@ object AccumuloDataStore {
   val SAFE_FEATURE_NAME_PATTERN = "^[a-zA-Z0-9]+$"
 
   /**
-   * Format a table name with a namespace
+   * Format a table name with a namespace. Non alpha-numeric characters present in
+   * featureType names will be underscore hex encoded (e.g. _2a) including multibyte
+   * UTF8 characters (e.g. _2a_f3_8c) to make them safe for accumulo table names
+   * but still human readable.
    */
   def formatTableName(catalogTable: String, featureType: SimpleFeatureType, suffix: String) = {
     val typeName = featureType.getTypeName
