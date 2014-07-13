@@ -568,8 +568,6 @@ class AccumuloDataStoreTest extends Specification {
       c.tableOperations().exists(s"${table}_${encodedSFT}_st_idx") must beTrue
       c.tableOperations().exists(s"${table}_${encodedSFT}_records") must beTrue
       c.tableOperations().exists(s"${table}_${encodedSFT}_attr_idx") must beTrue
-
-
     }
 
   }
