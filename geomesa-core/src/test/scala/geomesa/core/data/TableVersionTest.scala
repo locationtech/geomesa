@@ -1,5 +1,6 @@
 package geomesa.core.data
 
+import geomesa.core.index.SF_PROPERTY_START_TIME
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text.WKTUtils
@@ -45,6 +46,7 @@ class TableVersionTest extends Specification {
 
   val sftName = "regressionTestType"
   val sft = DataUtilities.createType(sftName, s"name:String,$geotimeAttributes")
+  sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
   def buildManualTable(params: Map[String, String]) = {
     val instance = new MockInstance(params("instanceId"))

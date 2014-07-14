@@ -18,7 +18,6 @@
 package geomesa.core.data
 
 import java.io.Serializable
-import java.util.regex.Pattern
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -26,7 +25,7 @@ import geomesa.core
 import geomesa.core.data.AccumuloDataStore._
 import geomesa.core.data.AccumuloFeatureWriter.MapReduceRecordWriter
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
-import geomesa.core.index.IndexSchema
+import geomesa.core.index.{IndexSchema, TemporalIndexCheck}
 import geomesa.core.security.AuthorizationsProvider
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
@@ -118,6 +117,9 @@ class AccumuloDataStore(val connector: Connector,
     val attributesValue = DataUtilities.encodeType(sft)
     val dtgValue: Option[String] = {
       val userData = sft.getUserData
+      // inspect, warn and set SF_PROPERTY_START_TIME if appropriate
+      TemporalIndexCheck.extractNewDTGFieldCandidate(sft)
+        .foreach { name => userData.put(core.index.SF_PROPERTY_START_TIME, name) }
       if (userData.containsKey(core.index.SF_PROPERTY_START_TIME)) {
         Option(userData.get(core.index.SF_PROPERTY_START_TIME).asInstanceOf[String])
       } else {
@@ -722,7 +724,8 @@ class AccumuloDataStore(val connector: Connector,
     if (catalogTableFormat(sft)) {
       connector.createScanner(getAttrIdxTableName(sft), authorizationsProvider.getAuthorizations)
     } else {
-      throw new RuntimeException("Cannot create Attribute Index Scanner for old table format")
+      throw new RuntimeException("Cannot create Attribute Index Scanner - " +
+        "attribute index table does not exist for this version of the data store")
     }
 
   /**
@@ -733,7 +736,8 @@ class AccumuloDataStore(val connector: Connector,
     if (catalogTableFormat(sft)) {
       connector.createBatchScanner(getRecordTableForType(sft), authorizationsProvider.getAuthorizations, numThreads)
     } else {
-      throw new RuntimeException("Cannot create Attribute Index Scanner for old table format")
+      throw new RuntimeException("Cannot create Record Scanner - record table does not exist for this version" +
+        "of the datastore")
     }
   }
 
@@ -754,38 +758,66 @@ class AccumuloDataStore(val connector: Connector,
 
 object AccumuloDataStore {
 
-  // Private to hide implementation...table name is stored in metadata for other usage
+  // Format record table name for Accumulo...table name is stored in metadata for other usage
   // and provide compatibility moving forward if table names change
-  private def formatRecordTableName(catalogTable: String, featureType: SimpleFeatureType) =
+  def formatRecordTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "records")
 
-  // Private to hide implementation...table name is stored in metadata for other usage
+  // Format record table name for Accumulo...table name is stored in metadata for other usage
   // and provide compatibility moving forward if table names change
-  private def formatSpatioTemporalIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
+  def formatSpatioTemporalIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "st_idx")
 
-  // Private to hide implementation...table name is stored in metadata for other usage
+  // Format record table name for Accumulo...table name is stored in metadata for other usage
   // and provide compatibility moving forward if table names change
-  private def formatAttrIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
+  def formatAttrIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "attr_idx")
 
-  // cannot start with underscore and is then composed of alphanum + underscore
-  val SAFE_FEATURE_NAME_PATTERN = "^\\w+$"
+  // only alphanumeric is safe
+  val SAFE_FEATURE_NAME_PATTERN = "^[a-zA-Z0-9]+$"
 
   /**
-   * Format a table name with a namespace
+   * Format a table name with a namespace. Non alpha-numeric characters present in
+   * featureType names will be underscore hex encoded (e.g. _2a) including multibyte
+   * UTF8 characters (e.g. _2a_f3_8c) to make them safe for accumulo table names
+   * but still human readable.
    */
-  private def formatTableName(catalogTable: String, featureType: SimpleFeatureType, suffix: String) = {
+  def formatTableName(catalogTable: String, featureType: SimpleFeatureType, suffix: String) = {
     val typeName = featureType.getTypeName
     val safeTypeName: String =
       if(typeName.matches(SAFE_FEATURE_NAME_PATTERN)){
         typeName
       } else {
-        Hex.encodeHexString(typeName.getBytes("UTF8"))
+        hexEncodeNonAlphaNumeric(typeName)
       }
 
     List(catalogTable, safeTypeName, suffix).mkString("_")
   }
+
+  val alphaNumeric = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
+
+  /**
+   * Encode non-alphanumeric characters in a string with
+   * underscore plus hex digits representing the bytes. Note
+   * that multibyte characters will be represented with multiple
+   * underscores and bytes...e.g. _8a_2f_3b
+   */
+  def hexEncodeNonAlphaNumeric(input: String): String = {
+    val sb = new StringBuilder
+    input.toCharArray.foreach { c =>
+      if (alphaNumeric.contains(c)) {
+        sb.append(c)
+      } else {
+        val encoded =
+          Hex.encodeHex(c.toString.getBytes("UTF8")).grouped(2)
+            .map{ arr => "_" + arr(0) + arr(1) }.mkString.toLowerCase
+        sb.append(encoded)
+      }
+    }
+    sb.toString
+  }
+
+
 }
 
 /**

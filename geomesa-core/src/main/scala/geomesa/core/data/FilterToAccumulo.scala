@@ -237,7 +237,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     case op: Not   => processNot(op)
 
     // Spatial filters
-    case op: BBOX       => visitBinarySpatialOp(op, acc)
+    case op: BBOX       => visitBBOX(op, acc)
     case op: DWithin    => visitDWithin(op, acc)
     case op: Within     => visitBinarySpatialOp(op, acc)
     case op: Intersects => visitBinarySpatialOp(op, acc)
@@ -253,13 +253,31 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     case f: Filter => ff.and(acc, f)
   }
 
+  private def visitBBOX(op: BBOX, acc: Filter): Filter = {
+    val e1 = op.getExpression1.asInstanceOf[PropertyName]
+    val attr = e1.evaluate(sft).asInstanceOf[AttributeDescriptor]
+    if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
+      ff.and(acc, op)
+    } else {
+      val e2 = op.getExpression2.asInstanceOf[Literal]
+      val geom = addWayPointsToBBOX( e2.evaluate(null, classOf[Geometry]) )
+      val safeGeometry = getInternationalDateLineSafeGeometry(geom)
+      spatialPredicate = safeGeometry.getEnvelope.asInstanceOf[Polygon]
+      updateToIDLSafeFilter(op, acc, safeGeometry)
+    }
+  }
+
   private def visitBinarySpatialOp(op: BinarySpatialOperator, acc: Filter): Filter = {
     val e1 = op.getExpression1.asInstanceOf[PropertyName]
     val attr = e1.evaluate(sft).asInstanceOf[AttributeDescriptor]
     if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
       ff.and(acc, op)
     } else {
-      updateToAntiMeridianSafeFilter(op, acc)
+      val e2 = op.getExpression2.asInstanceOf[Literal]
+      val geom = e2.evaluate(null, classOf[Geometry])
+      val safeGeometry = getInternationalDateLineSafeGeometry(geom)
+      spatialPredicate = safeGeometry.getEnvelope.asInstanceOf[Polygon]
+      updateToIDLSafeFilter(op, acc, safeGeometry)
     }
   }
 
@@ -319,23 +337,23 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     }
   }
 
-  def updateToAntiMeridianSafeFilter(op: BinarySpatialOperator, acc: Filter) = {
-    val e2 = op.getExpression2.asInstanceOf[Literal]
-    val geom = e2.evaluate(null, classOf[Geometry])
-    val safeGeometry = getInternationalDateLineSafeGeometry(geom)
-    safeGeometry match {
-      case p: Polygon =>
-        spatialPredicate = geom.asInstanceOf[Polygon]
-        if (!geom.isRectangle) ff.and(acc, op)
-        else acc
-      case mp: MultiPolygon =>
-        spatialPredicate = safeGeometry.getEnvelope.asInstanceOf[Polygon]
-        val polygonList = getGeometryListOf(safeGeometry)
-        val filterList = polygonList.map {
-          p => doCorrectSpatialCall(op, sft.getGeometryDescriptor.getLocalName, p)
-        }
-        ff.and(acc, ff.or(filterList))
-    }
+  def updateToIDLSafeFilter(op: BinarySpatialOperator, acc: Filter, geom: Geometry) = geom match {
+    case p: Polygon =>
+      if (!geom.isRectangle) ff.and(acc, op)
+      else acc
+    case mp: MultiPolygon =>
+      val polygonList = getGeometryListOf(geom)
+      val filterList = polygonList.map {
+        p => doCorrectSpatialCall(op, sft.getGeometryDescriptor.getLocalName, p)
+      }
+      ff.and(acc, ff.or(filterList))
+  }
+
+  def addWayPointsToBBOX(g: Geometry):Geometry = {
+    val gf = g.getFactory
+    val geomArray = g.getCoordinates
+    val correctedGeom = GeometryUtils.addWayPoints(geomArray).toArray
+    gf.createPolygon(correctedGeom)
   }
 
   def doCorrectSpatialCall(op: BinarySpatialOperator, property: String, geom: Geometry): Filter = op match {

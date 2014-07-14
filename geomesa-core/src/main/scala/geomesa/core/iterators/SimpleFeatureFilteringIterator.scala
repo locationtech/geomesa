@@ -41,7 +41,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var topValue: Value = null
   var nextKey: Key = null
   var nextValue: Value = null
-  var curFeature: SimpleFeature = null
+  var nextFeature: SimpleFeature = null
 
   var simpleFeatureType: SimpleFeatureType = null
   var targetFeatureType: SimpleFeatureType = null
@@ -56,11 +56,11 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   def evalFilter(v: Value) = {
     Try(featureEncoder.decode(simpleFeatureType, v)) match {
       case Success(feature) =>
-        curFeature = feature
-        filter.evaluate(curFeature)
+        nextFeature = feature
+        filter.evaluate(nextFeature)
       case Failure(e) =>
         logger.error(s"Error decoding value to simple feature for key '${source.getTopKey}': ", e)
-        curFeature = null
+        nextFeature = null
         false
     }
   }
@@ -126,7 +126,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
       if (evalFilter(source.getTopValue)) {
         // if accepted, copy the value, because reusing them is UNSAFE
         nextKey = new Key(source.getTopKey)
-        nextValue = new Value(transform(curFeature))
+        nextValue = new Value(transform(nextFeature))
       }
 
       // you MUST advance to the next key

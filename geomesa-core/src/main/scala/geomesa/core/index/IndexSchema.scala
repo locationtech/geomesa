@@ -95,7 +95,7 @@ case class IndexSchema(encoder: IndexEncoder,
     // Perform the query
     logger.trace(s"Running ${query.toString}")
 
-    val accumuloIterator = planner.getIterator(ds, query)
+    val accumuloIterator = planner.getIterator(ds, featureType, query)
 
     // Convert Accumulo results to SimpleFeatures
     adaptIterator(accumuloIterator, query)
@@ -113,12 +113,13 @@ case class IndexSchema(encoder: IndexEncoder,
 
     // Decode according to the SFT return type.
     // if this is a density query, expand the map
-    if (query.getHints.containsKey(DENSITY_KEY))
-      uniqKVIter.flatMap { kv:Entry[Key,Value] =>
+    if (query.getHints.containsKey(DENSITY_KEY)) {
+      uniqKVIter.flatMap { kv: Entry[Key, Value] =>
         DensityIterator.expandFeature(featureEncoder.decode(returnSFT, kv.getValue))
       }
-    else
-      uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue) }
+    } else {
+      uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue)}
+    }
   }
 
   // This function calculates the SimpleFeatureType of the returned SFs.

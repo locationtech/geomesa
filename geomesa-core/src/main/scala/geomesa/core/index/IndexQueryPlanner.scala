@@ -74,7 +74,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
   // As a pre-processing step, we examine the query/filter and split it into multiple queries.
   // TODO: Work to make the queries non-overlapping.
-  def getIterator(ds: AccumuloDataStore, query: Query) : CloseableIterator[Entry[Key,Value]] = {
+  def getIterator(ds: AccumuloDataStore, sft: SimpleFeatureType, query: Query): CloseableIterator[Entry[Key,Value]] = {
     val ff = CommonFactoryFinder.getFilterFactory2
     val isDensity = query.getHints.containsKey(BBOX_KEY)
     val queries: Iterator[Query] =
@@ -84,7 +84,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
       } else splitQueryOnOrs(query)
 
-    queries.flatMap(runQuery(ds, _, isDensity))
+    queries.flatMap(runQuery(ds, sft, _, isDensity))
   }
   
   def splitQueryOnOrs(query: Query): Iterator[Query] = {
@@ -114,9 +114,29 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
    *
    * If the query is a density query use the spatio-temporal index table only
    */
-  private def runQuery(ds: AccumuloDataStore, derivedQuery: Query, isDensity: Boolean) = {
+  private def runQuery(ds: AccumuloDataStore, sft: SimpleFeatureType, derivedQuery: Query, isDensity: Boolean) = {
     val filterVisitor = new FilterToAccumulo(featureType)
-    filterVisitor.visit(derivedQuery) match {
+    val rewrittenFilter = filterVisitor.visit(derivedQuery)
+    if(ds.catalogTableFormat(sft)){
+      // If we have attr index table try it
+      runAttrIdxQuery(ds, derivedQuery, rewrittenFilter, filterVisitor, isDensity)
+    } else {
+      // datastore doesn't support attr index use spatiotemporal only
+      stIdxQuery(ds, derivedQuery, rewrittenFilter, filterVisitor)
+    }
+  }
+
+  /**
+   * Attempt to run a query against the attribute index if it can be satisfied 
+   * there...if not run against the SpatioTemporal
+   */
+  def runAttrIdxQuery(ds: AccumuloDataStore,
+                      derivedQuery: Query,
+                      rewrittenFilter: Filter,
+                      filterVisitor: FilterToAccumulo,
+                      isDensity: Boolean) = {
+
+    rewrittenFilter match {
       case isEqualTo: PropertyIsEqualTo if !isDensity =>
         attrIdxEqualToQuery(ds, derivedQuery, isEqualTo, filterVisitor)
 
@@ -194,6 +214,12 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val (prop, lit) = (one, two) match {
       case (p: PropertyName, l: Literal) => (p.getPropertyName, l.getValue.toString)
       case (l: Literal, p: PropertyName) => (p.getPropertyName, l.getValue.toString)
+      case _ =>
+        val msg =
+          s"""Unhandled equalTo Query (expr1 type: ${one.getClass.getName}, expr2 type: ${two.getClass.getName}
+            |Supported types are literal = propertyName and propertyName = literal
+          """.stripMargin
+        throw new RuntimeException(msg)
     }
 
     val range = new AccRange(formatAttrIdxRow(prop, lit))
@@ -207,52 +233,50 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def attrIdxQuery(dataStore: AccumuloDataStore,
                    derivedQuery: Query,
                    filterVisitor: FilterToAccumulo,
-                   range: AccRange) =
-    new CloseableIterator[Entry[Key, Value]] {
+                   range: AccRange) = {
 
-      logger.trace(s"Scanning attribute table for feature type ${featureType.getTypeName}")
-      val attrScanner = dataStore.createAttrIdxScanner(featureType)
+    logger.trace(s"Scanning attribute table for feature type ${featureType.getTypeName}")
+    val attrScanner = dataStore.createAttrIdxScanner(featureType)
 
-      val spatialOpt =
-        for {
-            sp    <- Option(filterVisitor.spatialPredicate)
-            env  = sp.getEnvelopeInternal
-            bbox = List(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY).mkString(",")
-        } yield AttributeIndexFilteringIterator.BBOX_KEY -> bbox
+    val spatialOpt =
+      for {
+          sp    <- Option(filterVisitor.spatialPredicate)
+          env  = sp.getEnvelopeInternal
+          bbox = List(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY).mkString(",")
+      } yield AttributeIndexFilteringIterator.BBOX_KEY -> bbox
 
-      val dtgOpt = Option(filterVisitor.temporalPredicate).map(AttributeIndexFilteringIterator.INTERVAL_KEY -> _.toString)
-      val opts = List(spatialOpt, dtgOpt).flatten.toMap
-      if(!opts.isEmpty) {
-        val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
-          "attrIndexFilter",
-          classOf[AttributeIndexFilteringIterator].getCanonicalName, opts)
-        attrScanner.addScanIterator(cfg)
-      }
-
-      logger.trace(s"Attribute Scan Range: ${range.toString}")
-      attrScanner.setRange(range)
-
-      import scala.collection.JavaConversions._
-      val ranges = attrScanner.iterator.map(_.getKey.getColumnFamily).map(new AccRange(_))
-
-      val recScanner = if(ranges.hasNext) {
-        val recordScanner = dataStore.createRecordScanner(featureType)
-        recordScanner.setRanges(ranges.toList)
-        configureSimpleFeatureFilteringIterator(recordScanner, featureType, None, derivedQuery)
-        Some(recordScanner)
-      } else None
-
-      val iter = recScanner.map(_.iterator()).getOrElse(Iterators.emptyIterator[Entry[Key, Value]])
-
-      override def close: Unit = {
-        recScanner.foreach(_.close)
-        attrScanner.close
-      }
-
-      override def next: Entry[Key, Value] = iter.next
-
-      override def hasNext: Boolean = iter.hasNext
+    val dtgOpt = Option(filterVisitor.temporalPredicate).map(AttributeIndexFilteringIterator.INTERVAL_KEY -> _.toString)
+    val opts = List(spatialOpt, dtgOpt).flatten.toMap
+    if(!opts.isEmpty) {
+      val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
+        "attrIndexFilter",
+        classOf[AttributeIndexFilteringIterator].getCanonicalName,
+        opts)
+      attrScanner.addScanIterator(cfg)
     }
+
+    logger.trace(s"Attribute Scan Range: ${range.toString}")
+    attrScanner.setRange(range)
+
+    import scala.collection.JavaConversions._
+    val ranges = attrScanner.iterator.map(_.getKey.getColumnFamily).map(new AccRange(_))
+
+    val recScanner = if(ranges.hasNext) {
+      val recordScanner = dataStore.createRecordScanner(featureType)
+      recordScanner.setRanges(ranges.toList)
+      configureSimpleFeatureFilteringIterator(recordScanner, featureType, None, derivedQuery)
+      Some(recordScanner)
+    } else None
+
+    val iter = recScanner.map(_.iterator()).getOrElse(Iterators.emptyIterator[Entry[Key, Value]])
+
+    def close(): Unit = {
+      recScanner.foreach(_.close)
+      attrScanner.close
+    }
+
+    CloseableIterator(iter, close)
+  }
 
   def stIdxQuery(ds: AccumuloDataStore, query: Query, rewrittenCQL: Filter, filterVisitor: FilterToAccumulo) = {
     logger.trace(s"Scanning ST index table for feature type ${featureType.getTypeName}")

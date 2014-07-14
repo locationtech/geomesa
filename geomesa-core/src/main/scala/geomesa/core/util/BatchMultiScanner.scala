@@ -26,6 +26,7 @@ import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 
 import scala.collection.JavaConversions._
 
+// Unused for now.
 class BatchMultiScanner(in: Scanner,
                         out: BatchScanner,
                         joinFn: java.util.Map.Entry[Key, Value] => AccRange)
@@ -49,12 +50,12 @@ class BatchMultiScanner(in: Scanner,
     }
   })
 
-  def notDone = !inDone.get
+  def moreInQ = !(inDone.get && inQ.isEmpty)
 
   outExecutor.submit(new Runnable {
     override def run(): Unit = {
       try {
-        while (notDone) {
+        while(moreInQ) {
           val entry = inQ.take()
           if(entry != null) {
             val entries = new collection.mutable.ListBuffer[E]()
@@ -67,7 +68,6 @@ class BatchMultiScanner(in: Scanner,
           }
         }
         outDone.set(true)
-        out.close()
       } catch {
         case _: InterruptedException =>
       } finally {
@@ -78,7 +78,7 @@ class BatchMultiScanner(in: Scanner,
 
   override def iterator: Iterator[java.util.Map.Entry[Key, Value]] = new Iterator[E] {
     override def hasNext: Boolean = {
-      val ret = !(outQ.peek() == null && inDone.get() && outDone.get())
+      val ret = !(outQ.isEmpty && inDone.get() && outDone.get())
       if(!ret) {
         inExecutor.shutdownNow()
         outExecutor.shutdownNow()
