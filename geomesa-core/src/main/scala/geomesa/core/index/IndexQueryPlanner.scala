@@ -126,6 +126,10 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     }
   }
 
+  /**
+   * Attempt to run a query against the attribute index if it can be satisfied 
+   * there...if not run against the SpatioTemporal
+   */
   def runAttrIdxQuery(ds: AccumuloDataStore,
                       derivedQuery: Query,
                       rewrittenFilter: Filter,
