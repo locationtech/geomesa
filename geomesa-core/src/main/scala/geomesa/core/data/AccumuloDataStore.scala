@@ -20,6 +20,7 @@ package geomesa.core.data
 import java.io.Serializable
 import java.util.{Map => JMap}
 
+import com.google.common.collect.ImmutableSortedSet
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core
 import geomesa.core.data.AccumuloDataStore._
@@ -216,8 +217,24 @@ class AccumuloDataStore(val connector: Connector,
     }
 
     if (!connector.isInstanceOf[MockConnector]) {
+      configureRecordTable(featureType, recordTable)
+      configureAttrIdxTable(featureType, attributeIndexTable)
       configureSpatioTemporalIdxTable(maxShard, featureType, spatioTemporalIdxTable)
     }
+  }
+
+  // if using UUID as FeatureID, configure splits with hex characters
+  private val HEX_SPLITS = "0,1,2,3,4,5,6,7,8,9,A,a,B,b,C,c,D,d,E,e,F,f".split(",").map(s => new Text(s))
+  private val RECORDS_SPLITS = ImmutableSortedSet.copyOf(HEX_SPLITS)
+  def configureRecordTable(featureType: SimpleFeatureType, recordTable: String): Unit = {
+    tableOps.addSplits(recordTable, RECORDS_SPLITS)
+  }
+
+  // configure splits for each of the attribute names
+  def configureAttrIdxTable(featureType: SimpleFeatureType, attributeIndexTable: String): Unit = {
+    val names = featureType.getAttributeDescriptors.map(_.getLocalName).map(new Text(_)).toArray
+    val splits = ImmutableSortedSet.copyOf(names)
+    tableOps.addSplits(attributeIndexTable, splits)
   }
 
   def configureSpatioTemporalIdxTable(maxShard: Int,
@@ -533,7 +550,7 @@ class AccumuloDataStore(val connector: Connector,
 
       def next() = src.next().getKey.getRow.toString
     }
-    resultItr.toArray.map(getFeatureNameFromMetadataRowKey(_))
+    resultItr.toArray.map(getFeatureNameFromMetadataRowKey)
   }
 
   /**
