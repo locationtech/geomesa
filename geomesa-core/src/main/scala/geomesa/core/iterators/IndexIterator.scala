@@ -19,6 +19,7 @@ package geomesa.core.iterators
 import com.vividsolutions.jts.geom._
 import geomesa.core.data._
 import geomesa.core.index._
+import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -57,12 +58,13 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
     val simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
+    simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
     // default to text if not found for backwards compatibility
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
     featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
 
-    featureBuilder = new SimpleFeatureBuilder(simpleFeatureType)
+    featureBuilder = AvroSimpleFeatureFactory.featureBuilder(simpleFeatureType)
 
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)

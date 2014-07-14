@@ -16,28 +16,29 @@
 
 package geomesa.core.data
 
-import FilterToAccumulo._
-import collection.JavaConversions._
 import com.vividsolutions.jts.geom._
+import geomesa.core.data.FilterToAccumulo._
 import geomesa.core.index
 import geomesa.utils.filters.Filters._
+import geomesa.utils.geohash.GeohashUtils.getInternationalDateLineSafeGeometry
 import geomesa.utils.geometry.Geometry._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.GeometryUtils
 import geomesa.utils.time.Time._
 import org.geotools.data.Query
 import org.geotools.filter.visitor.SimplifyingFilterVisitor
-import org.geotools.geometry.jts.{JTSFactoryFinder, JTS}
-import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
+import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
+import org.geotools.temporal.`object`.{DefaultInstant, DefaultPosition}
 import org.joda.time.format.ISODateTimeFormat
-import org.joda.time.{DateTimeZone, DateTime, Interval}
+import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
-import org.opengis.temporal.{Period => OGCPeriod, Instant}
+import org.opengis.temporal.{Instant, Period => OGCPeriod}
+import scala.collection.JavaConversions._
 
 object FilterToAccumulo {
   val allTime              = new Interval(0, Long.MaxValue)
@@ -85,7 +86,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     def during: Filter = raw match {
       case f: BinaryTemporalOperator => f
       case _                         =>
-        ff.during(ff.property(dtgFieldName), ff.literal(interval))
+        ff.during(ff.property(dtgFieldName), interval2lit(interval))
     }
   }
 
@@ -187,6 +188,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
           ff.not(ff.intersects(ff.property(geomFieldName), ff.literal(oldSpace)))
       }
     } else Filter.INCLUDE
+
     val notTemporal = if (temporalPredicate != noInterval) {
       val oldTemporal = temporalPredicate
       temporalPredicate = noInterval
@@ -197,10 +199,10 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
         case (MinTime, e)        =>
           ff.not(ff.before(ff.property(dtgFieldName), dt2lit(e)))
         case (s, e)              =>
-          ff.not(ff.during(ff.property(dtgFieldName),
-            ff.literal(dts2lit(s, e))))
+          ff.not(ff.during(ff.property(dtgFieldName), dts2lit(s, e)))
       }
     } else Filter.INCLUDE
+
     // these three components are joined by an implied AND; build (and simplify) that expression
     Seq[Filter](notSpatial, notTemporal, notAttributes).foldLeft(Filter.INCLUDE.asInstanceOf[Filter])((filterSoFar, subFilter) =>
       (filterSoFar, subFilter) match {
@@ -257,32 +259,35 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
       ff.and(acc, op)
     } else {
-      spatialPredicate = JTS.toGeometry(op.getBounds)
-      acc
+      val e2 = op.getExpression2.asInstanceOf[Literal]
+      val geom = addWayPointsToBBOX( e2.evaluate(null, classOf[Geometry]) )
+      val safeGeometry = getInternationalDateLineSafeGeometry(geom)
+      spatialPredicate = safeGeometry.getEnvelope.asInstanceOf[Polygon]
+      updateToIDLSafeFilter(op, acc, safeGeometry)
     }
   }
 
   private def visitBinarySpatialOp(op: BinarySpatialOperator, acc: Filter): Filter = {
     val e1 = op.getExpression1.asInstanceOf[PropertyName]
-    val e2 = op.getExpression2.asInstanceOf[Literal]
     val attr = e1.evaluate(sft).asInstanceOf[AttributeDescriptor]
     if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
       ff.and(acc, op)
     } else {
+      val e2 = op.getExpression2.asInstanceOf[Literal]
       val geom = e2.evaluate(null, classOf[Geometry])
-      spatialPredicate = geom.asInstanceOf[Polygon]
-      if(!geom.isRectangle) ff.and(acc, op)
-      else acc
+      val safeGeometry = getInternationalDateLineSafeGeometry(geom)
+      spatialPredicate = safeGeometry.getEnvelope.asInstanceOf[Polygon]
+      updateToIDLSafeFilter(op, acc, safeGeometry)
     }
   }
 
   def visitDWithin(op: DWithin, acc: Filter): Filter = {
     val e1 = op.getExpression1.asInstanceOf[PropertyName]
-    val e2 = op.getExpression2.asInstanceOf[Literal]
     val attr = e1.evaluate(sft).asInstanceOf[AttributeDescriptor]
     if(!attr.getLocalName.equals(sft.getGeometryDescriptor.getLocalName)) {
       ff.and(acc, op)
     } else {
+      val e2 = op.getExpression2.asInstanceOf[Literal]
       val startPoint = e2.evaluate(null, classOf[Point])
       val distance = op.getDistance
       val distanceDegrees = GeometryUtils.distanceDegrees(startPoint, distance)
@@ -331,6 +336,37 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
       acc
     }
   }
+
+  def updateToIDLSafeFilter(op: BinarySpatialOperator, acc: Filter, geom: Geometry) = geom match {
+    case p: Polygon =>
+      if (!geom.isRectangle) ff.and(acc, op)
+      else acc
+    case mp: MultiPolygon =>
+      val polygonList = getGeometryListOf(geom)
+      val filterList = polygonList.map {
+        p => doCorrectSpatialCall(op, sft.getGeometryDescriptor.getLocalName, p)
+      }
+      ff.and(acc, ff.or(filterList))
+  }
+
+  def addWayPointsToBBOX(g: Geometry):Geometry = {
+    val gf = g.getFactory
+    val geomArray = g.getCoordinates
+    val correctedGeom = GeometryUtils.addWayPoints(geomArray).toArray
+    gf.createPolygon(correctedGeom)
+  }
+
+  def doCorrectSpatialCall(op: BinarySpatialOperator, property: String, geom: Geometry): Filter = op match {
+    case op: Within     => ff.within( ff.property(property), ff.literal(geom) )
+    case op: Intersects => ff.intersects( ff.property(property), ff.literal(geom) )
+    case op: Overlaps   => ff.overlaps( ff.property(property), ff.literal(geom) )
+    case op: BBOX       => val envelope = geom.getEnvelopeInternal
+                           ff.bbox( ff.property(property), envelope.getMinX, envelope.getMinY,
+                           envelope.getMaxX, envelope.getMaxY, op.getSRS )
+  }
+
+  def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
+    for( i <- 0 until inMP.getNumGeometries ) yield inMP.getGeometryN(i)
 
   private def extractDTG(o: AnyRef) = parseDTG(o).withZone(DateTimeZone.UTC)
 

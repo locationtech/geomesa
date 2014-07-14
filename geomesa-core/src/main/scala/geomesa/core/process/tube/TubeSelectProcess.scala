@@ -140,7 +140,7 @@ class TubeVisitor(processInputs: TubeSelectProcessInputs)
 
   def tubeSelect(source: SimpleFeatureSource, query: Query): SimpleFeatureCollection = {
 
-    log.info("Visting source type: "+source.getClass.getName)
+    log.info("Visiting source type: "+source.getClass.getName)
 
     val geomProperty = ff.property(source.getSchema.getGeometryDescriptor.getName)
     val dateProperty = ff.property(source.getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])

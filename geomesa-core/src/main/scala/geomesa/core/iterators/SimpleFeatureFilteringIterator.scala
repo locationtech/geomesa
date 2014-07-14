@@ -26,7 +26,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env: IteratorEnvironment)
   extends SortedKeyValueIterator[Key, Value]
@@ -41,7 +41,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var topValue: Value = null
   var nextKey: Key = null
   var nextValue: Value = null
-  var curFeature: SimpleFeature = null
+  var nextFeature: SimpleFeature = null
 
   var simpleFeatureType: SimpleFeatureType = null
   var targetFeatureType: SimpleFeatureType = null
@@ -54,8 +54,15 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var transform: (SimpleFeature => Value) = (_: SimpleFeature) => source.getTopValue
 
   def evalFilter(v: Value) = {
-    curFeature = featureEncoder.decode(simpleFeatureType, v)
-    filter.evaluate(curFeature)
+    Try(featureEncoder.decode(simpleFeatureType, v)) match {
+      case Success(feature) =>
+        nextFeature = feature
+        filter.evaluate(nextFeature)
+      case Failure(e) =>
+        logger.error(s"Error decoding value to simple feature for key '${source.getTopKey}': ", e)
+        nextFeature = null
+        false
+    }
   }
 
   if (other != null && env != null) {
@@ -77,11 +84,14 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
 
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
     simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
+    simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
     val transformSchema = options.get(GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
     targetFeatureType =
       if (transformSchema != null) DataUtilities.createType(this.getClass.getCanonicalName, transformSchema)
       else simpleFeatureType
+    // if the targetFeatureType comes from a transform, also insert the UserData
+    if (transformSchema != null) targetFeatureType.decodeUserData(options, GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
 
     val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
     transform =
@@ -116,7 +126,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
       if (evalFilter(source.getTopValue)) {
         // if accepted, copy the value, because reusing them is UNSAFE
         nextKey = new Key(source.getTopKey)
-        nextValue = new Value(transform(curFeature))
+        nextValue = new Value(transform(nextFeature))
       }
 
       // you MUST advance to the next key
@@ -153,17 +163,7 @@ object SimpleFeatureFilteringIterator {
 
   import geomesa.core._
 
-  def setFeatureType(cfg: IteratorSetting, featureType: String) {
-    cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, featureType)
-  }
-
   def setECQLFilter(cfg: IteratorSetting, ecql: String) {
     cfg.addOption(GEOMESA_ITERATORS_ECQL_FILTER, ecql)
   }
-
-  def setTransforms(cfg: IteratorSetting, transform: String, schema: Option[SimpleFeatureType]) {
-    cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
-    schema.map(sft => cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, DataUtilities.encodeType(sft)))
-  }
-
 }

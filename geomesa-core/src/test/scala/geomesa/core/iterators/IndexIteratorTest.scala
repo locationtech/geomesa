@@ -16,10 +16,13 @@
 
 package geomesa.core.iterators
 
+import geomesa.feature.AvroSimpleFeatureFactory
+
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Polygon, Geometry}
 import geomesa.core.data._
 import geomesa.core.index._
+import geomesa.core.iterators.TestData._
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
@@ -32,37 +35,29 @@ import org.joda.time.{Duration, Interval, DateTime}
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
+import scala.collection.GenSeq
 
 @RunWith(classOf[JUnitRunner])
 class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
 
   import geomesa.utils.geotools.Conversions._
+  import AccumuloDataStore._
 
   object IITest {
 
-    // utility function that can encode multiple types of geometry
-    def createSimpleFeature(id: String, wkt: String, dt: DateTime = null): SimpleFeature = {
-      val geomType: String = wkt.split( """\(""").head
-      val geometry: Geometry = WKTUtils.read(wkt)
-      val entry = SimpleFeatureBuilder.build(TestData.featureType,
-        List(null, null, null, null, geometry, dt.toDate, dt.toDate), s"|data|$id")
-      entry.setAttribute(geomType, id)
-      entry.setAttribute("attr2", "2nd" + id)
-      entry.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      entry.getUserData.put(Hints.PROVIDED_FID, entry.toString)
-      entry
-    }
+    def setupMockFeatureSource(entries: GenSeq[TestData.Entry]): SimpleFeatureStore = {
+      val CATALOG_TABLE = "test_table"
 
-    def convertToSimpleFeatures(entries: List[TestData.Entry] = TestData.fullData): List[SimpleFeature] = {
-      entries.map { entry =>
-        createSimpleFeature(entry.id, entry.wkt, entry.dt)
-      }
-    }
-
-    def setupMockFeatureSource(entries: List[TestData.Entry]): SimpleFeatureStore = {
       val mockInstance = new MockInstance("dummy")
       val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
-      if (c.tableOperations.exists(TEST_TABLE)) c.tableOperations.delete(TEST_TABLE)
+
+      // Remember we need to delete all 4 tables now
+      List(
+        CATALOG_TABLE,
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_st_idx",
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_records",
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_attr_idx"
+      ).foreach { t => if (c.tableOperations.exists(t)) c.tableOperations.delete(t) }
 
       val dsf = new AccumuloDataStoreFactory
 
@@ -75,7 +70,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
           userParam.key -> "user",
           passwordParam.key -> "pass",
           authsParam.key -> "S,USA",
-          tableNameParam.key -> "test_table",
+          tableNameParam.key -> TEST_TABLE,
           mockParam.key -> "true",
           featureEncParam.key -> "avro",
           idxSchemaParam.key -> TestData.schemaEncoding
@@ -83,8 +78,8 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
 
       ds.createSchema(TestData.featureType)
       val fs = ds.getFeatureSource(TestData.featureName).asInstanceOf[SimpleFeatureStore]
-      val dataFeatures = convertToSimpleFeatures(entries)
-      val featureCollection = DataUtilities.collection(dataFeatures)
+      val dataFeatures = entries.map(createSF)
+      val featureCollection = DataUtilities.collection(dataFeatures.toArray)
       fs.addFeatures(featureCollection)
       fs.getTransaction.commit()
       fs
@@ -92,9 +87,8 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
   }
 
   override def runMockAccumuloTest(label: String,
-                                   entries: List[TestData.Entry] = TestData.fullData,
+                                   entries: GenSeq[TestData.Entry] = TestData.fullData,
                                    ecqlFilter: Option[String] = None,
-                                   numExpectedDataIn: Int = 113,
                                    dtFilter: Interval = null,
                                    overrideGeometry: Boolean = false,
                                    doPrint: Boolean = true): Int = {
@@ -108,9 +102,9 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     //create the Feature Source
     val fs = IITest.setupMockFeatureSource(entries)
 
-    val gf = s"WITHIN(geomesa_index_geometry, ${polygon.toText})"
+    val gf = s"WITHIN(geom, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
-      s"(geomesa_index_start_time between '${int.getStart}' AND '${int.getEnd}')"
+      s"(dtg between '${int.getStart}' AND '${int.getEnd}')"
     )
     def red(f: String, og: Option[String]) = og match {
       case Some(g) => s"$f AND $g"
@@ -124,7 +118,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     // select a few attributes to trigger the IndexIterator
     // Note that since we are re-running all the tests from the IntersectingIteratorTest,
     // some of the tests may actually use the IntersectingIterator
-    val outputAttributes = Array("geomesa_index_geometry")
+    val outputAttributes = Array("geom")
     //val q = new Query(TestData.featureType.getTypeName, tf)
     val q = new Query(TestData.featureType.getTypeName, tf, outputAttributes)
     val sfCollection = fs.getFeatures(q)

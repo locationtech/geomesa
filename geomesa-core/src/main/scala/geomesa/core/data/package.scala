@@ -21,12 +21,13 @@ import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.FeatureWriter
 import org.geotools.factory.Hints.ClassKey
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 package object data {
 
-  import collection.JavaConversions._
   import geomesa.core.index._
+
+import scala.collection.JavaConversions._
 
   val INSTANCE_ID          = "geomesa.instance.id"
   val ZOOKEEPERS           = "geomesa.zookeepers"
@@ -46,6 +47,10 @@ package object data {
   val VISIBILITIES_CF      = new Text("visibilities")
   val VISIBILITIES_CHECK_CF = new Text("visibilitiesCheck")
   val DATA_CQ              = new Text("SimpleFeatureAttribute")
+  val SFT_CF               = new Text("SFT")
+  val ST_IDX_TABLE_CF      = new Text("tables.idx.st.name")
+  val ATTR_IDX_TABLE_CF    = new Text("tables.idx.attr.name")
+  val RECORD_TABLE_CF      = new Text("tables.record.name")
   val METADATA_TAG         = "~METADATA"
   val METADATA_TAG_END     = s"$METADATA_TAG~~"
   val EMPTY_STRING         = ""
@@ -63,6 +68,6 @@ package object data {
       .filter { _.getUserData.contains(SF_PROPERTY_START_TIME) }
       .headOption
       .map { _.getName.toString }
-      .getOrElse(SF_PROPERTY_START_TIME)
+      .getOrElse(DEFAULT_DTG_PROPERTY_NAME)
 
 }

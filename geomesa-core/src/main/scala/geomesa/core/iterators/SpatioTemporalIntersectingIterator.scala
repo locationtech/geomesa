@@ -33,7 +33,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.DataUtilities
 import org.geotools.factory.GeoTools
 import org.joda.time.{DateTimeZone, DateTime, Interval}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 import scala.util.Try
 
 case class Attribute(name: Text, value: Text)
@@ -89,6 +89,7 @@ class SpatioTemporalIntersectingIterator
     SpatioTemporalIntersectingIterator.initClassLoader(logger)
 
     val featureType = DataUtilities.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
+    featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
@@ -331,11 +332,17 @@ trait IteratorHelpers  {
     if(!initialized.get()) {
       try {
         // locate the geomesa-distributed-runtime jar
-        val cl = this.getClass.getClassLoader.asInstanceOf[VFSClassLoader]
-        val url = cl.getFileObjects.map(_.getURL).filter {_.toString.contains("geomesa-distributed-runtime")}.head
-        if(log != null) log.debug(s"Found geomesa-distributed-runtime at $url")
-        val u = java.net.URLClassLoader.newInstance(Array(url), cl)
-        GeoTools.addClassLoader(u)
+        val cl = this.getClass.getClassLoader
+        cl match {
+          case vfsCl: VFSClassLoader =>
+            val url = vfsCl.getFileObjects.map(_.getURL).filter {
+              _.toString.contains("geomesa-distributed-runtime")
+            }.head
+            if (log != null) log.debug(s"Found geomesa-distributed-runtime at $url")
+            val u = java.net.URLClassLoader.newInstance(Array(url), vfsCl)
+            GeoTools.addClassLoader(u)
+          case _ =>
+        }
       } catch {
         case t: Throwable =>
           if(log != null) log.error("Failed to initialize GeoTools' ClassLoader ", t)
@@ -401,12 +408,10 @@ trait IteratorHelpers  {
     Attribute(attribute, value)
   }
 
-  def setOptions(cfg: IteratorSetting, schema: String, poly: Option[Polygon], interval: Option[Interval],
-                 featureType: String) {
+  def setOptions(cfg: IteratorSetting, schema: String, poly: Option[Polygon], interval: Option[Interval]) {
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
     poly.foreach { p => cfg.addOption(DEFAULT_POLY_PROPERTY_NAME, p.toText) }
     interval.foreach { int => cfg.addOption(DEFAULT_INTERVAL_PROPERTY_NAME, encodeInterval(int)) }
-    cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, featureType)
   }
 
   protected def encodeInterval(interval: Interval): String =

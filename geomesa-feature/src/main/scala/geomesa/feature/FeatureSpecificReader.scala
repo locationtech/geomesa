@@ -1,22 +1,25 @@
-package geomesa.core.avro
+package geomesa.feature
 
-import com.vividsolutions.jts.geom.Geometry
 import java.io.InputStream
 import java.util.{Date, UUID}
+
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.avro.Schema
-import org.apache.avro.io.{DecoderFactory, Decoder, DatumReader}
+import org.apache.avro.io.{DatumReader, Decoder, DecoderFactory}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.util.Converters
 import org.opengis.feature.simple.SimpleFeatureType
+
 import scala.collection.immutable.HashSet
 
 
 class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType)
   extends DatumReader[AvroSimpleFeature] {
 
-  import AvroSimpleFeature._
-  import scala.collection.JavaConversions._
+  import geomesa.feature.AvroSimpleFeature._
+
+import scala.collection.JavaConversions._
 
   var oldSchema = AvroSimpleFeature.generateSchema(oldType)
   val newSchema = AvroSimpleFeature.generateSchema(newType)
@@ -28,10 +31,10 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   val dataFields = oldSchema.getFields.filter { isDataField }
 
   val typeMap: Map[String, Class[_]] =
-    oldType.getAttributeDescriptors.map { ad => ad.getLocalName -> ad.getType.getBinding }.toMap
+    oldType.getAttributeDescriptors.map { ad => encodeAttributeName(ad.getLocalName) -> ad.getType.getBinding }.toMap
 
   val nullMap: Map[String, Boolean] =
-    oldType.getAttributeDescriptors.map { ad => ad.getLocalName -> ad.isNillable }.toMap
+    oldType.getAttributeDescriptors.map { ad => encodeAttributeName(ad.getLocalName) -> ad.isNillable }.toMap
 
   def setSchema(schema:Schema) = oldSchema = schema
 
@@ -46,13 +49,13 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     val sf = new AvroSimpleFeature(id, newType)
     if(dataFields.size != fieldsDesired.size)
       dataFields.foreach { f =>
-        if(checkNull(f.name(), in)) in.readNull()
-        else setOrConsume(sf, f.name, in, typeMap.get(f.name).get)
+        if(checkNull(f.name, in)) in.readNull()
+        else setOrConsume(sf, decodeAttributeName(f.name), in, typeMap.get(f.name).get)
       }
     else
       dataFields.foreach { f =>
-        if(checkNull(f.name(), in)) in.readNull()
-        else set(sf, f.name, in, typeMap.get(f.name).get)
+        if(checkNull(f.name, in)) in.readNull()
+        else set(sf, decodeAttributeName(f.name), in, typeMap.get(f.name).get)
       }
     sf
   }
@@ -100,7 +103,7 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   }
 }
 
-object FeatureSpecificReader{
+object FeatureSpecificReader {
 
   // use when you want the entire feature back, not a subset
   def apply(sftType: SimpleFeatureType) = new FeatureSpecificReader(sftType, sftType)

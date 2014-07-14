@@ -74,12 +74,9 @@ public class DocumentationTest {
       dataStore.getFeatureSource(featureName);
 
     // construct a filter that uses both geography and time
-    String bbox = "BBOX(" +
-      Constants.SF_PROPERTY_GEOMETRY + ", -78.0, 38.2, -77.3, 39.1)";
-    String period = "( NOT (" + Constants.SF_PROPERTY_START_TIME +
-      " AFTER 2012-12-31T23:59:59Z))" +
-      " AND ( NOT (" + Constants.SF_PROPERTY_END_TIME +
-      " BEFORE 2012-01-01T00:00:00Z))";
+    String bbox = "BBOX(geom, -78.0, 38.2, -77.3, 39.1)";
+    String period = "( NOT ( dtg AFTER 2012-12-31T23:59:59Z))" +
+                    "AND ( NOT ( dtg BEFORE 2012-01-01T00:00:00Z))";
     Filter cqlFilter = ECQL.toFilter(bbox + " AND " + period);
     Query query = new Query(featureName, cqlFilter);
 
@@ -94,10 +91,12 @@ public class DocumentationTest {
     String featureName = "Product";
 
     // create the feature-type (a "schema" in GeoTools parlance)
-    String featureSchema = "NAME:String,SKU:Long,COST:Double,SELL_BY:Date," +
+    String featureSchema =
+      "NAME:String,SKU:Long,COST:Double,SELL_BY:Date," +
       Constants.TYPE_SPEC;  // built-in geomesa attributes
     SimpleFeatureType featureType = DataUtilities.createType(featureName,
       featureSchema);
+    featureType.getUserData().put(Constants.SF_PROPERTY_START_TIME, "dtg");
     dataStore.createSchema(featureType);
 
     return featureType;
@@ -115,13 +114,14 @@ public class DocumentationTest {
       noValues, "SomeNewProductID");
 
     // initialize a few fields
-    newFeature.setDefaultGeometry((new WKTReader()).read("POINT(45.0 49.0)"));
+    // the first three attributes' names are taken from Constants.TYPE_SPEC
+    newFeature.setDefaultGeometry((new WKTReader()).read("POINT(45.0 49.0)"));  // name of attribute is geom
+    newFeature.setAttribute("dtg", new Date());
+    newFeature.setAttribute("dtg_end_time", new Date());
     newFeature.setAttribute("NAME", "New Product Name");
     newFeature.setAttribute("SKU", "011235813");
     newFeature.setAttribute("COST", 1.23);
     newFeature.setAttribute("SELL_BY", new Date());
-    newFeature.setAttribute(Constants.SF_PROPERTY_START_TIME, new Date());
-    newFeature.setAttribute(Constants.SF_PROPERTY_END_TIME, new Date());
 
     return newFeature;
   }

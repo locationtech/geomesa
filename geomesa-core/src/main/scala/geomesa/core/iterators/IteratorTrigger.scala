@@ -1,6 +1,7 @@
 package geomesa.core.iterators
 
 import collection.JavaConverters._
+import geomesa.core._
 import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.index._
@@ -24,21 +25,22 @@ object IteratorTrigger {
    */
   implicit class IndexAttributeNames(sft: SimpleFeatureType) {
     def geoName = sft.getGeometryDescriptor.getLocalName
-    // can use this logic if the UserData may be present in the SimpleFeatureType
-    //def startTimeName = Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map { y => y.toString}
-    //def endTimeName = Option(sft.getUserData.get(SF_PROPERTY_END_TIME)).map { y => y.toString}
 
-    // must use this logic if the UserData may not be present in the SimpleFeatureType
-    def startTimeName =  attributeNameHandler(SF_PROPERTY_START_TIME)
-    def endTimeName   =  attributeNameHandler(SF_PROPERTY_END_TIME)
+    def startTimeName =  attributeNameHandler(SF_PROPERTY_START_TIME,DEFAULT_DTG_PROPERTY_NAME)
+    def endTimeName   =  attributeNameHandler(SF_PROPERTY_END_TIME,DEFAULT_DTG_END_PROPERTY_NAME)
 
-    def attributeNameHandler(attributeKey: String): Option[String] = {
-      // try to get the name from the user data, which may not exist
-      val nameFromUserData = Option(sft.getUserData.get(attributeKey)).map { y => y.toString}
-      // check if an attribute with this name(which is the default) exists. If so, use the name and ignore the descriptor
-      val nameFromDefault = Option(sft.getDescriptor(attributeKey)).map {y => attributeKey}
-      nameFromUserData orElse nameFromDefault
+    def attributeNameHandler(attributeKey: String, attributeDefault:String): Option[String] = {
+      // try to get the name from the user data, which may not exist, then check if the attribute exists
+      val nameFromUserData = Option(sft.getUserData.get(attributeKey)).map { _.toString }.filter { attributePresent }
+      // check if an attribute with this name(which was sometimes used) exists.
+      val nameFromOldDefault = Some(attributeKey).filter { attributePresent }
+      // check if an attribute with the default name exists
+      val nameFromCurrentDefault = Some(attributeDefault).filter { attributePresent }
+
+      nameFromUserData orElse nameFromOldDefault orElse nameFromCurrentDefault
     }
+
+    def attributePresent(attributeKey: String): Boolean = Option(sft.getDescriptor(attributeKey)).isDefined
 
     def indexAttributeNames = List(geoName) ++ startTimeName ++ endTimeName
   }
@@ -46,8 +48,8 @@ object IteratorTrigger {
   /**
    * Scans the ECQL, query, and sourceSFTspec and determines which Iterators should be configured.
    */
-  def chooseIterator(ecqlPredicate: Option[String], query: Query, sourceSFTSpec: String): IteratorConfig = {
-    if(useIndexOnlyIterator(ecqlPredicate, query, sourceSFTSpec)) IteratorConfig(IndexOnlyIterator, false)
+  def chooseIterator(ecqlPredicate: Option[String], query: Query, sourceSFT: SimpleFeatureType): IteratorConfig = {
+    if(useIndexOnlyIterator(ecqlPredicate, query, sourceSFT)) IteratorConfig(IndexOnlyIterator, false)
     else IteratorConfig(SpatioTemporalIterator, useSimpleFeatureFilteringIterator(ecqlPredicate, query))    
   } 
   
@@ -56,10 +58,9 @@ object IteratorTrigger {
    * used/requested, and thus the IndexIterator can be used
    *
    */
-  def useIndexOnlyIterator(ecqlPredicate: Option[String], query: Query, sourceSFTSpec: String): Boolean = {
+  def useIndexOnlyIterator(ecqlPredicate: Option[String], query: Query, sourceSFT: SimpleFeatureType): Boolean = {
     // get transforms if they exist
     val transformDefs = Option(query.getHints.get(TRANSFORMS)).map (_.asInstanceOf[String])
-    val sourceSFT = DataUtilities.createType("DUMMY", sourceSFTSpec)
 
     // if the transforms exist, check if the transform is simple enough to be handled by the IndexIterator
     // if it does not exist, then set this variable to false

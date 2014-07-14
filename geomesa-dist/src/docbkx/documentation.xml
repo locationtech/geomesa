@@ -101,33 +101,64 @@
 
         <section>
             <title>Enabling GeoMesa support within GeoServer</title>
-
-            <para>Copy everything from the unpacked
-                <code>geoserver/lib</code>
-                directory to the
-                <code>${GEOSERVER_HOME}/webapps/geoserver/WEB-INF/lib</code> directory
-                on the web-server that is hosting GeoServer. We have confirmed
-                that this works with version 2.5.X of GeoServer.
+            
+            <para>GeoMesa includes a plugin for GeoServer that is compatible and tested
+                  with the 2.5.x GeoServer line. Follow the steps below to enable GeoMesa support within GeoServer:
             </para>
 
-            <para>
-                Note that you will also need other JAR files, particularly those
-                pertaining to: <code>accumulo-core</code>, <code>accumulo-trace</code>, <code>accumulo-fate</code>,
-                <code>zookeeper</code>, <code>libthrift</code>, <code>hadoop-common</code>, <code>hadoop-mapreduce-client-core</code>,
-                <code>commons-configuration</code>, and <code>commons-vfs2</code>.  These are support services 
-                that are referenced by GeoMesa, yet are part of your base infrastructure.
-            </para>
+            <formalpara><title>Step 1: Unpackage the GeoMesa tarball</title>
+                <para>After building GeoMesa locate the distribution tarball and decompress it to a temporary directory:
+                    <programlisting language="bash"><![CDATA[tar xvf geomesa-dist-accumulo1.5-1.0.0-SNAPSHOT-distribution.tar.gz]]></programlisting>
+                </para>
+            </formalpara>
 
-            <para>
-                Upgrading logger libraries - You'll need to upgrade the logger libraries
-                installed in the <code>${GEOSERVER_HOME}/lib</code> directory. We recommend
-                backing up and removing <code>slf4j-simple-1.0.1.jar</code> and 
-                <code>commons-logging-1.0.jar</code> and replacing them with 
-                <code>commons-logging-1.1.1.jar</code> from the <code>dev/lib/</code> directory
-                of the geomesa distribution tarball. Note that whenever you upgrade libraries you 
-                should keep a backup copy since upgrading logging frameworks can cause other
-                plugins or the geoserver webapp to fail.
-            </para>
+            <formalpara><title>Step 2: Deploy the GeoMesa plugin</title>
+                <para>Copy the GeoMesa plugin from the lib directory to the GeoServer lib directory:
+                    <programlisting language="bash"><![CDATA[cp geoserver/WEB-INF/lib/geomesa-plugin-accumulo1.5-1.0.0-SNAPSHOT-geoserver-plugin.jar \
+    ${GEOSERVER_HOME}/webapps/geoserver/WEB-INF/lib]]></programlisting>
+                </para>
+            </formalpara>
+
+            <formalpara><title>Step 3: Deploy dependencies</title>
+                <para>
+                    GeoMesa needs several dependencies at runtime within GeoServer:
+                    <programlisting language="bash"><![CDATA[accumulo-core
+accumulo-trace
+accumulo-fate
+zookeeper
+libthrift
+hadoop-common
+hadoop-mapreduce-client-core
+commons-configuration
+commons-vfs2]]></programlisting>
+                        These are support services that are referenced by GeoMesa, yet are part of your 
+                        base infrastructure. Use the most recent versions found in the distribution tarball.
+                        To deploy them simply copy them into your lib directory for the GeoServer webapp:
+                    <programlisting language="bash"><![CDATA[cp dev/lib/<jar-name> ${GEOSERVER_HOME}/webapps/geoserver/WEB-INF/lib]]]></programlisting>
+                </para>
+            </formalpara>
+
+            <formalpara><title>Step 4: Upgrade shared dependencies</title>
+                <para>
+                    GeoMesa currently shares logging and codec libraries with GeoServer but uses newer versions:
+<programlisting language="bash"><![CDATA[commons-logging
+commons-codec
+slf4j*]]></programlisting>
+                    Previous versions of these libraries need to be removed from the GeoServer classpath and new versions
+                    should be deployed: Whenever upgrading libraries, always keep a backup copy and then deploy
+                    new dependencies (example for GeoServer 2.5.1):
+                    <programlisting language="bash"><![CDATA[# backup old libraries
+cd ${GEOSERVER_HOME}
+cp lib/slf4j-simple-1.0.1.jar /tmp/backup/
+cp lib/commons-logging-1.0.jar /tmp/backup/
+cp webapps/geoserver/WEB-INF/lib/commons-codec-1.2.jar /tmp/backup/
+
+# deploy new libraries
+cd ${GEOMESA_DIST}
+cp dev/lib/commons-logging-1.1.1.jar ${GEOSERVER_HOME}/lib/
+cp dev/lib/commons-codec-1.8.jar ${GEOSERVER_HOME}/webapps/geoserver/WEB-INF/lib/]]></programlisting>
+                    </para>
+            </formalpara>
         </section>
 
         <section>
@@ -308,12 +339,9 @@ DataStore dataStore = createDataStore();
     dataStore.getFeatureSource(featureName);
 
   // construct a filter that uses both geography and time
-  String bbox = "BBOX(" +
-    Constants.SF_PROPERTY_GEOMETRY + ", -78.0, 38.2, -77.3, 39.1)";
-  String period = "(" + Constants.SF_PROPERTY_START_TIME +
-    " BEFORE 2012-12-31T23:59:59Z)" +
-    " AND (" + Constants.SF_PROPERTY_END_TIME +
-    " AFTER 2012-01-01T00:00:00Z)";
+  String bbox = "BBOX(geom, -78.0, 38.2, -77.3, 39.1)";
+  String period = "( NOT ( dtg AFTER 2012-12-31T23:59:59Z))" +
+                  " AND ( NOT ( dtg BEFORE 2012-01-01T00:00:00Z))";
   Filter cqlFilter = ECQL.toFilter(bbox + " AND " + period);
   Query query = new Query(featureName, cqlFilter);
 
@@ -322,35 +350,30 @@ DataStore dataStore = createDataStore();
 }]]></programlisting>
 
         <para>Note that fields such as
-            <code>Constants.SF_PROPERTY_GEOMETRY</code>
-            are place-holders for the built-in fields available to all simple
-            features handled by GeoMesa:
-        </para>
-
-        <itemizedlist>
+            <code>geom</code> and <code>dtg</code> are used in GeoMesa's spatio-temporal index scheme, in addition
+            to being simple feature attributes in their own right. The selection of the fields for the indexing is done in this fashion:
+         <itemizedlist>
             <listitem>
                 <para>
-                    <code>Constants.SF_PROPERTY_GEOMETRY</code>:
-                    the geometry for this feature; this field must always
+                    Geometry: Select a field whose name is
+                    preceded by an asterisk, or failing that, the first geometry field described in the <code>SimpleFeatureType</code>,
+                    as the default geometry field. This field must always
                     have a non-<code>NULL</code> value expressed in terms
                     of SRID 4326
                 </para>
             </listitem>
             <listitem>
                 <para>
-                    <code>Constants.SF_PROPERTY_START_TIME</code>:
-                    the earliest time associated with this feature;
-                    this field may contain a <code>NULL</code> value
+                    Time (Optional): Select a field whose name is taken from the map obtained using the method
+                    <code>getUserData()</code> on the <code>SimpleFeatureType</code>. In this map,
+                    the key <code>Constants.SF_PROPERTY_START_TIME </code> points to the
+                    relevant name. If no value is found, the first <code>Date</code> field found in the
+                    <code>SimpleFeatureType</code> itself is selected.
                 </para>
             </listitem>
-            <listitem>
-                <para>
-                    <code>Constants.SF_PROPERTY_END_TIME</code>:
-                    the latest time associated with this feature;
-                    this field must always have a non-<code>NULL</code> value
-                </para>
-            </listitem>
-        </itemizedlist>
+         </itemizedlist>
+        </para>
+
 
     </section>
 
@@ -391,10 +414,12 @@ DataStore dataStore = createDataStore();
 
   // create the feature-type (a "schema" in GeoTools parlance)
   // (will also create the Accumulo table, if it does not already exist)
-  String featureSchema = "NAME:String,SKU:java.lang.Long,COST:Double,SELL_BY:Date," +
+  String featureSchema =
+    "NAME:String,SKU:java.lang.Long,COST:Double,SELL_BY:Date," +
     IndexEntryType.getTypeSpec();  // built-in GeoMesa attributes
   SimpleFeatureType featureType = DataUtilities.createType(featureName,
     featureSchema);
+  featureType.getUserData().put(Constants.SF_PROPERTY_START_TIME, "dtg");
   dataStore.createSchema(featureType);
 
   return featureType;
@@ -405,7 +430,7 @@ DataStore dataStore = createDataStore();
         </para>
 
         <para>A word on identifiers: GeoTools presupposes that
-            there is a unique field per<code>FeatureType</code>.
+            there is a unique field per <code>FeatureType</code>.
             Though the system can generate a surrogate ID, it is
             typically more useful to take advantage of the domain
             to suggest a naturally identifying field.  Though it
@@ -428,14 +453,14 @@ DataStore dataStore = createDataStore();
     noValues, "SomeNewProductID");
 
   // initialize a few fields
+  // the first three attributes' names are taken from Constants.TYPE_SPEC
   newFeature.setDefaultGeometry((new WKTReader()).read("POINT(45.0 49.0)"));
+  newFeature.setAttribute("dtg", new Date());
+  newFeature.setAttribute("dtg_end_time", new Date());
   newFeature.setAttribute("NAME", "New Product Name");
   newFeature.setAttribute("SKU", "011235813");
   newFeature.setAttribute("COST", 1.23);
   newFeature.setAttribute("SELL_BY", new Date());
-  // start-date can be NULL, but end-date must not be
-  newFeature.setAttribute(Constants.SF_PROPERTY_START_TIME, new Date());
-  newFeature.setAttribute(Constants.SF_PROPERTY_END_TIME, new Date());
 
   return newFeature;
 }]]></programlisting>

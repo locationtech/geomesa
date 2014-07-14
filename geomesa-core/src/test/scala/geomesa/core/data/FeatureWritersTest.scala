@@ -16,20 +16,22 @@
 
 package geomesa.core.data
 
-import geomesa.core.index
-import geomesa.utils.text.WKTUtils
 import java.text.SimpleDateFormat
 import java.util.TimeZone
+
+import geomesa.core.index.SF_PROPERTY_START_TIME
+import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.text.WKTUtils
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
 import scala.collection
 import scala.collection.JavaConversions._
 
@@ -41,7 +43,7 @@ class FeatureWritersTest extends Specification {
   val geotimeAttributes = geomesa.core.index.spec
   val sftName = "mutableType"
   val sft = DataUtilities.createType(sftName, s"name:String,age:Integer,$geotimeAttributes")
-
+  sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
   val sdf = new SimpleDateFormat("yyyyMMdd")
   sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))
   val dateToIndex = sdf.parse("20140102")
@@ -69,7 +71,7 @@ class FeatureWritersTest extends Specification {
         val featureCollection = new DefaultFeatureCollection(sftName, sft)
 
         /* create a feature */
-        val originalFeature1 = SimpleFeatureBuilder.build(sft, List(), "id1")
+        val originalFeature1 = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id1")
         val geom = WKTUtils.read("POINT(45.0 49.0)")
         originalFeature1.setDefaultGeometry(geom)
         originalFeature1.setAttribute("name","fred")
@@ -80,7 +82,7 @@ class FeatureWritersTest extends Specification {
         featureCollection.add(originalFeature1)
 
         /* create a second feature */
-        val originalFeature2 = SimpleFeatureBuilder.build(sft, List(), "id2")
+        val originalFeature2 = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id2")
         originalFeature2.setDefaultGeometry(geom)
         originalFeature2.setAttribute("name","tom")
         originalFeature2.setAttribute("age",60.asInstanceOf[Any])
@@ -90,7 +92,7 @@ class FeatureWritersTest extends Specification {
         featureCollection.add(originalFeature2)
 
         /* create a third feature */
-        val originalFeature3 = SimpleFeatureBuilder.build(sft, List(), "id3")
+        val originalFeature3 = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id3")
         originalFeature3.setDefaultGeometry(geom)
         originalFeature3.setAttribute("name","kyle")
         originalFeature3.setAttribute("age",2.asInstanceOf[Any])
@@ -101,11 +103,12 @@ class FeatureWritersTest extends Specification {
 
         /* write the feature to the store */
         fs.addFeatures(featureCollection)
+        fs.flush()
 
         val store = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
         /* turn fred into billy */
-        val filter = CQL.toFilter("name = 'fred'");
+        val filter = CQL.toFilter("name = 'fred'")
         store.modifyFeatures(Array("name", "age"), Array("billy", 25.asInstanceOf[AnyRef]), filter)
 
         /* delete kyle */
@@ -114,7 +117,6 @@ class FeatureWritersTest extends Specification {
 
         /* query everything */
         val cqlFilter = CQL.toFilter("include")
-        val query = new Query(sftName, cqlFilter)
 
         /* Let's read out what we wrote...we should only get tom and billy back out */
         val nameAgeMap = getMap[String, Int](getFeatures(sftName, fs, "include"), "name", "age")
@@ -138,7 +140,7 @@ class FeatureWritersTest extends Specification {
 
         while(writer.hasNext){
           writer.next
-          writer.remove
+          writer.remove()
         }
 
         // cannot do anything here until the writer is closed.
@@ -147,21 +149,22 @@ class FeatureWritersTest extends Specification {
         val sftType = ds.getSchema(sftName)
         val geom = WKTUtils.read("POINT(45.0 49.0)")
         val c = new DefaultFeatureCollection
-        c.add(SimpleFeatureBuilder.build(sftType, Array("will", 56.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid1"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("george", 33.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid2"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("sue", 99.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid3"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("karen", 50.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid4"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("bob", 56.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid5"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("will", 56.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid1"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("george", 33.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid2"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("sue", 99.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid3"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("karen", 50.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid4"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("bob", 56.asInstanceOf[AnyRef], geom, dateToIndex, null), "fid5"))
 
         val ids = c.map { f => f.getID}
         try {
           c.zip(ids).foreach { case (feature, id) =>
             val writerCreatedFeature = writer.next()
             writerCreatedFeature.setAttributes(feature.getAttributes)
-            writerCreatedFeature.getUserData()(Hints.PROVIDED_FID) = id
-            writer.write
+            writerCreatedFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            writerCreatedFeature.getUserData.put(Hints.PROVIDED_FID, id)
+            writer.write()
           }
-        } finally { writer.close }
+        } finally { writer.close() }
 
         countFeatures(fs, sftName) should equalTo(5)
 
@@ -203,9 +206,9 @@ class FeatureWritersTest extends Specification {
         val sftType = ds.getSchema(sftName)
         val geom = WKTUtils.read("POINT(45.0 49.0)")
         val c = new DefaultFeatureCollection
-        c.add(SimpleFeatureBuilder.build(sftType, Array("dude1", 15.asInstanceOf[AnyRef], geom, null, null), "fid10"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("dude2", 16.asInstanceOf[AnyRef], geom, null, null), "fid11"))
-        c.add(SimpleFeatureBuilder.build(sftType, Array("dude3", 17.asInstanceOf[AnyRef], geom, null, null), "fid12"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("dude1", 15.asInstanceOf[AnyRef], geom, null, null), "fid10"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("dude2", 16.asInstanceOf[AnyRef], geom, null, null), "fid11"))
+        c.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("dude3", 17.asInstanceOf[AnyRef], geom, null, null), "fid12"))
 
         val trans = new DefaultTransaction("trans1")
         fs.setTransaction(trans)
@@ -273,22 +276,22 @@ class FeatureWritersTest extends Specification {
         writer.close
 
         // Verify old geo bbox doesn't return them
-        val map45 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 44.9,48.9,45.1,49.1)"),"name", "age")
+        val map45 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 44.9,48.9,45.1,49.1)"),"name", "age")
         map45.keySet.size should equalTo(3)
         map45.keySet should containAllOf(List("will", "george", "sue"))
 
         // Verify that new geometries are written with a bbox query that uses the index
-        val map50 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 49.9,49.9,50.1,50.1)"),"name", "age")
+        val map50 = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 49.9,49.9,50.1,50.1)"),"name", "age")
         map50.keySet.size should equalTo(2)
         map50.keySet should containAllOf(List("bob", "karen"))
 
         // get them all
-        val mapLarge = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 44.0,44.0,51.0,51.0)"),"name", "age")
+        val mapLarge = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 44.0,44.0,51.0,51.0)"),"name", "age")
         mapLarge.keySet.size should equalTo(5)
         mapLarge.keySet should containAllOf(List("will", "george", "sue", "bob", "karen"))
 
         // get none
-        val mapNone = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geomesa_index_geometry, 30.0,30.0,31.0,31.0)"),"name", "age")
+        val mapNone = getMap[String,Int](getFeatures(sftName, fs, "BBOX(geom, 30.0,30.0,31.0,31.0)"),"name", "age")
         mapNone.keySet.size should equalTo(0)
       }
 
@@ -296,7 +299,7 @@ class FeatureWritersTest extends Specification {
         val ds = createStore
         val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
-        val attr = index.SF_PROPERTY_START_TIME
+        val attr = "dtg"
 
         val filter = CQL.toFilter("name = 'will' or name='george'")
         val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
@@ -304,7 +307,7 @@ class FeatureWritersTest extends Specification {
         val newDate = sdf.parse("20140202")
         while(writer.hasNext){
           val sf = writer.next
-          sf.setAttribute(index.SF_PROPERTY_START_TIME, newDate)
+          sf.setAttribute(attr, newDate)
           writer.write
         }
         writer.close
@@ -346,11 +349,11 @@ class FeatureWritersTest extends Specification {
 
         val filter = CQL.toFilter("include")
         val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
-
+        val attr = "dtg"
         val newDate = sdf.parse("20120102")
         while(writer.hasNext){
           val sf = writer.next
-          sf.setAttribute(index.SF_PROPERTY_START_TIME, newDate)
+          sf.setAttribute(attr, newDate)
           sf.setDefaultGeometry(WKTUtils.read("POINT(10.0 10.0)"))
           writer.write
         }
@@ -373,7 +376,7 @@ class FeatureWritersTest extends Specification {
 
           o.getID must be equalTo(n.getID)
           o.getDefaultGeometry must not be equalTo(n.getDefaultGeometry)
-          o.getAttribute(index.SF_PROPERTY_START_TIME) must not be equalTo(n.getAttribute(index.SF_PROPERTY_START_TIME))
+          o.getAttribute(attr) must not be equalTo(n.getAttribute(attr))
         }
       }
 
