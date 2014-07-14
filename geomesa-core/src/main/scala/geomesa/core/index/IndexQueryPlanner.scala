@@ -1,6 +1,5 @@
 package geomesa.core.index
 
-
 import java.nio.charset.StandardCharsets
 import java.util.Map.Entry
 
@@ -44,7 +43,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              schema:String,
                              featureType: SimpleFeatureType,
                              featureEncoder: SimpleFeatureEncoder) extends Logging {
-
   def buildFilter(poly: Polygon, interval: Interval): KeyPlanningFilter =
     (IndexSchema.somewhere(poly), IndexSchema.somewhen(interval)) match {
       case (None, None)       =>    AcceptEverythingFilter
@@ -72,9 +70,14 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     case _    => IndexSchema.everywhen.overlap(interval)
   }
 
+  def log(s: String) = logger.trace(s)
+
   // As a pre-processing step, we examine the query/filter and split it into multiple queries.
   // TODO: Work to make the queries non-overlapping.
-  def getIterator(ds: AccumuloDataStore, sft: SimpleFeatureType, query: Query): CloseableIterator[Entry[Key,Value]] = {
+  def getIterator(ds: AccumuloDataStore,
+                  sft: SimpleFeatureType,
+                  query: Query,
+                  output: String => Unit = log): CloseableIterator[Entry[Key,Value]] = {
     val ff = CommonFactoryFinder.getFilterFactory2
     val isDensity = query.getHints.containsKey(BBOX_KEY)
     val queries: Iterator[Query] =
@@ -82,22 +85,24 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
         val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
         Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
-      } else splitQueryOnOrs(query)
+      } else splitQueryOnOrs(query, output)
 
-    queries.flatMap(runQuery(ds, sft, _, isDensity))
+    queries.flatMap(runQuery(ds, sft, _, isDensity, output))
   }
   
-  def splitQueryOnOrs(query: Query): Iterator[Query] = {
+  def splitQueryOnOrs(query: Query, output: String => Unit): Iterator[Query] = {
     val originalFilter = query.getFilter
+    output(s"Originalfilter is $originalFilter")
 
     val rewrittenFilter = rewriteFilter(originalFilter)
-    
+    output(s"Filter is rewritten as $rewrittenFilter")
+
     val orSplitter = new OrSplittingFilter
     val splitFilters = orSplitter.visit(rewrittenFilter, null)
 
     // Let's just check quickly to see if we can eliminate any duplicates.
     val filters = splitFilters.distinct
-
+                                                                                                                            println
     filters.map { filter =>
       val q = new Query(query)
       q.setFilter(filter)
@@ -114,15 +119,15 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
    *
    * If the query is a density query use the spatio-temporal index table only
    */
-  private def runQuery(ds: AccumuloDataStore, sft: SimpleFeatureType, derivedQuery: Query, isDensity: Boolean) = {
+  private def runQuery(ds: AccumuloDataStore, sft: SimpleFeatureType, derivedQuery: Query, isDensity: Boolean, output: String => Unit) = {
     val filterVisitor = new FilterToAccumulo(featureType)
     val rewrittenFilter = filterVisitor.visit(derivedQuery)
     if(ds.catalogTableFormat(sft)){
       // If we have attr index table try it
-      runAttrIdxQuery(ds, derivedQuery, rewrittenFilter, filterVisitor, isDensity)
+      runAttrIdxQuery(ds, derivedQuery, rewrittenFilter, filterVisitor, isDensity, output)
     } else {
       // datastore doesn't support attr index use spatiotemporal only
-      stIdxQuery(ds, derivedQuery, rewrittenFilter, filterVisitor)
+      stIdxQuery(ds, derivedQuery, rewrittenFilter, filterVisitor, output)
     }
   }
 
@@ -134,7 +139,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                       derivedQuery: Query,
                       rewrittenFilter: Filter,
                       filterVisitor: FilterToAccumulo,
-                      isDensity: Boolean) = {
+                      isDensity: Boolean,
+                      output: String => Unit) = {
 
     rewrittenFilter match {
       case isEqualTo: PropertyIsEqualTo if !isDensity =>
@@ -144,10 +150,10 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         if(likeEligible(like))
           attrIdxLikeQuery(ds, derivedQuery, like, filterVisitor)
         else
-          stIdxQuery(ds, derivedQuery, like, filterVisitor)
+          stIdxQuery(ds, derivedQuery, like, filterVisitor, output)
 
       case cql =>
-        stIdxQuery(ds, derivedQuery, cql, filterVisitor)
+        stIdxQuery(ds, derivedQuery, cql, filterVisitor, output)
     }
   }
 
@@ -278,7 +284,11 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     CloseableIterator(iter, close)
   }
 
-  def stIdxQuery(ds: AccumuloDataStore, query: Query, rewrittenCQL: Filter, filterVisitor: FilterToAccumulo) = {
+  def stIdxQuery(ds: AccumuloDataStore,
+                 query: Query,
+                 rewrittenCQL: Filter,
+                 filterVisitor: FilterToAccumulo,
+                 output: String => Unit) = {
     logger.trace(s"Scanning ST index table for feature type ${featureType.getTypeName}")
     val ecql = Option(ECQL.toCQL(rewrittenCQL))
 
@@ -298,14 +308,15 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     // set up row ranges and regular expression filter
     val bs = ds.createSTIdxScanner(featureType)
-    planQuery(bs, filter)
+    planQuery(bs, filter, output)
 
-    logger.trace("Configuring batch scanner for ST table: " +
-                 "Poly: "+ opoly.getOrElse("No poly")+
-                 "Interval: " + oint.getOrElse("No interval")+
-                 "Filter: " + Option(filter).getOrElse("No Filter")+
-                 "ECQL: " + Option(ecql).getOrElse("No ecql")+
-                 "Query: " + Option(query).getOrElse("no query"))
+    output("Configuring batch scanner for ST table: \n" +
+      s"  Filter ${query.getFilter}\n" +
+      s"  Poly: ${opoly.getOrElse("No poly")}\n" +
+      s"  Interval:  ${oint.getOrElse("No interval")}\n" +
+      s"  Filter: ${Option(filter).getOrElse("No Filter")}\n" +
+      s"  ECQL: ${Option(ecql).getOrElse("No ecql")}\n" +
+      s"Query: ${Option(query).getOrElse("no query")}.")
 
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
@@ -426,8 +437,9 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def randomPrintableString(length:Int=5) : String = (1 to length).
     map(i => Random.nextPrintableChar()).mkString
 
-  def planQuery(bs: BatchScanner, filter: KeyPlanningFilter): BatchScanner = {
-    val keyPlan = keyPlanner.getKeyPlan(filter)
+  def planQuery(bs: BatchScanner, filter: KeyPlanningFilter, output: String => Unit): BatchScanner = {
+    output(s"Planning query/configurating batch scanner: $bs")
+    val keyPlan = keyPlanner.getKeyPlan(filter, output)
     val columnFamilies = cfPlanner.getColumnFamiliesToFetch(filter)
 
     // always try to use range(s) to remove easy false-positives
@@ -446,7 +458,12 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     // if you have a list of distinct column-family entries, fetch them
     columnFamilies match {
-      case KeyList(keys) => keys.foreach(cf => bs.fetchColumnFamily(new Text(cf)))
+      case KeyList(keys) => {
+        output(s"Settings ${keys.size} col fams: $keys.")
+        keys.foreach { cf =>
+          bs.fetchColumnFamily(new Text(cf))
+        }
+      }
       case _ => // do nothing
     }
 
