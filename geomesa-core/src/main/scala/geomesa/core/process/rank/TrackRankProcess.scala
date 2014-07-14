@@ -1,36 +1,38 @@
+/*
+ * Copyright 2013 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package geomesa.core.process.rank
 
-import java.util.concurrent.atomic.AtomicInteger
-
+import com.vividsolutions.jts.geom.LineString
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
-import com.vividsolutions.jts.geom.{Geometry, LineString}
-import geomesa.core.data.AccumuloFeatureCollection
-import geomesa.core.index
-import geomesa.core.process.query.QueryProcess
-import geomesa.core.process.tube.{TubeBuilder, TubeSelectProcessInputs, TubeSelectProcess}
-import geomesa.utils.text.WKTUtils
+import geomesa.core.process.tube.{TubeBuilder, TubeSelectProcess, TubeSelectProcessInputs}
 import org.apache.log4j.Logger
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.data.store.ReTypingFeatureCollection
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.geometry.jts.{ReferencedEnvelope, JTS}
-import org.geotools.process.factory.{DescribeParameter, DescribeResult, DescribeProcess}
-import org.geotools.referencing.CRS
-import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.opengis.filter.Filter
 
 import scala.util.Try
 
 /**
- * Created with IntelliJ IDEA.
- * User: kevin
- * Date: 6/23/14
- * Time: 3:25 PM
+ * Delegates a search to the TubeSelectProcess and then ranks the results of the query
  */
 @DescribeProcess(
   title = "Rank Features along Track", // "Geomesa-enabled Ranking of Feature Groups in Proximity to Track",
   description = "Performs a proximity search on a Geomesa feature collection using another feature collection as " +
-    "input. Then groups the features according to a key and computes ranking metrics thats measures the prominence of" +
+    "input. Then groups the features according to a key and computes ranking metrics that measure the prominence of" +
     " each key within the search region. The computed metrics measure the frequency of each feature group within the " +
     "search region, relative frequency in the surrounding area, the spatial diversity of the feature within the " +
     "region, and evidence of motion through the search region. Unlike RouteRank, incorporates the time of the track."
@@ -39,7 +41,22 @@ class TrackRankProcess {
 
   private val log = Logger.getLogger(classOf[RouteRankProcess])
 
-  //@DescribeResult(description = "Ranking metrics for each key value")
+  /**
+   * Many of these parameters are duplicated from TubeSelectProcess. Look there for documentation.
+   * @param tubeFeatures
+   * @param featureCollection
+   * @param keyField The key field to group the matching observations by
+   * @param filter
+   * @param maxSpeed
+   * @param maxTime
+   * @param bufferSize
+   * @param maxBins
+   * @param gapFill
+   * @param skip The number of results to skip (for paging of results)
+   * @param max The maximum number of results to return
+   * @param sortBy The field to sort the results by (combined.score by default)
+   * @return
+   */
   @DescribeResult(description = "Output ranking scores")
   def execute(
                @DescribeParameter(
@@ -143,6 +160,12 @@ class TrackFeatureGroupRanker(tubeSelectInputs: TubeSelectProcessInputs,
   }
 }
 
+/**
+ * Creates a LineString from the tube features, used to create a Route object for ranking
+ * @param tubeFeatures
+ * @param bufferDistance
+ * @param maxBins
+ */
 class LineStringTubeBuilder(tubeFeatures: SimpleFeatureCollection, bufferDistance: Double, maxBins: Int)
   extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) {
 

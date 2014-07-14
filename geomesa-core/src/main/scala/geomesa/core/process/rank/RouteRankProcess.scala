@@ -1,35 +1,41 @@
+/*
+ * Copyright 2013 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package geomesa.core.process.rank
 
-import java.util
-
-import com.vividsolutions.jts.geom.{Geometry, LineString}
-import geomesa.core.data.AccumuloFeatureCollection
-import geomesa.core.index
+import com.vividsolutions.jts.geom.LineString
 import geomesa.core.process.query.QueryProcess
 import geomesa.utils.geotools.Conversions._
 import org.apache.log4j.Logger
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
+import org.geotools.geometry.jts.JTS
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import scala.beans.BeanProperty
-import scala.collection.JavaConverters._
-import scala.collection.mutable
+
 import scala.util.Try
 
 /**
- * Created with IntelliJ IDEA.
- * User: kevin
- * Date: 6/18/14
- * Time: 5:37 PM
+ * This delegates the proximity search for a route to the QueryProcess class, then applies the ranking algorithm .
  */
 @DescribeProcess(
 title = "Rank Features along Route", // "Geomesa-enabled Ranking of Feature Groups in Proximity to Route",
 description = "Performs a proximity search on a Geomesa feature collection using another feature collection as input." +
-  " Then groups the features according to a key and computes ranking metrics thats measures the prominence of " +
+  " Then groups the features according to a key and computes ranking metrics that measure the prominence of " +
   "each key within the search region. The computed metrics measure the frequency of each feature group within the " +
   "search region, relative frequency in the surrounding area, the spatial diversity of the feature within the " +
   "region, and evidence of motion through the search region."
@@ -38,7 +44,17 @@ class RouteRankProcess {
 
   private val log = Logger.getLogger(classOf[RouteRankProcess])
 
-  //@DescribeResult(description = "Ranking metrics for each key value")
+  /**
+   *
+   * @param inputFeatures The features that define the query route.
+   * @param dataFeatures The feature layer to query along the route/
+   * @param bufferDistance The distance in meters to buffer the route for the query
+   * @param keyField The key field to group the matching observations by
+   * @param skip The number of results to skip (for paging of results)
+   * @param max The maximum number of results to return
+   * @param sortBy The field to sort the results by (combined.score by default)
+   * @return A list of entity IDs and ranking scores computed for each one
+   */
   @DescribeResult(description = "Output ranking scores")
   def execute(
                @DescribeParameter(
@@ -87,7 +103,6 @@ class RouteRankProcess {
   }
 }
 
-
 class RouteFeatureGroupRanker(inputFeatures: SimpleFeatureCollection,
                               override val dataFeatures: SimpleFeatureCollection,
                               override val bufferMeters: Double,
@@ -105,6 +120,7 @@ class RouteFeatureGroupRanker(inputFeatures: SimpleFeatureCollection,
   }
 
   override def extractRoute = {
+    // Currently only works for a single line string
     if (inputFeatures.size() == 1) {
       val routeTry = for {
         ls <- Try(inputFeatures.features().take(1).next().getDefaultGeometry.asInstanceOf[LineString])

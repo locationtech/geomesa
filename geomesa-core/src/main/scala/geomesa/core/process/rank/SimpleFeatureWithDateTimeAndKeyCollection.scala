@@ -1,26 +1,32 @@
+/*
+ * Copyright 2013 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package geomesa.core.process.rank
 
-import java.io.File
 import java.util.Date
 
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
-import org.geotools.data.Transaction
-import org.geotools.data.shapefile.ShapefileDataStore
+import geomesa.utils.geotools.Conversions._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.opengis.feature.simple.SimpleFeature
-import geomesa.utils.geotools.Conversions._
-import scala.collection.JavaConversions._
 
 import scala.util.Try
 
-/**
- * Created with IntelliJ IDEA.
- * User: kevin
- * Date: 6/18/14
- * Time: 10:39 AM
- */
 class GridAxis(val min: Double, val max: Double, val nDivisions: Int) {
   def getRange = {
     val delta = (max - min) / nDivisions.toDouble
@@ -84,6 +90,12 @@ class SimpleFeatureWithDateTimeAndKeyCollection(override val sfc: SimpleFeatureC
   }
 }
 
+/**
+ * Defines a key field and time field for a SimpleFeatureCollection
+ * @param keyAttr
+ * @param timeAttr
+ * @param dateTimeFormat
+ */
 case class SfSpec(keyAttr: String, timeAttr: String, dateTimeFormat: DateTimeFormatter =
   DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))
 

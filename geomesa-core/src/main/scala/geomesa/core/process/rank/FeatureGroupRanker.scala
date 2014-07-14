@@ -1,42 +1,48 @@
+/*
+ * Copyright 2013 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package geomesa.core.process.rank
 
-import com.vividsolutions.jts.geom.{Geometry, LineString}
+import com.vividsolutions.jts.geom.Geometry
 import geomesa.core.data.AccumuloFeatureCollection
 import geomesa.core.index
 import geomesa.core.process.query.QueryProcess
-import geomesa.core.process.tube.TubeSelectProcess
+import geomesa.utils.geotools.Conversions._
 import org.apache.log4j.Logger
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.geometry.jts.{ReferencedEnvelope, JTS}
-import org.geotools.process.factory.{DescribeParameter, DescribeResult, DescribeProcess}
-import org.geotools.referencing.CRS
+import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.opengis.filter.Filter
-import geomesa.utils.geotools.Conversions._
-
-
-import scala.util.Try
 
 /**
- * Created with IntelliJ IDEA.
- * User: kevin
- * Date: 6/23/14
- * Time: 3:37 PM
+ * Provides the basic functionality to rank data used by both WPS processes: RouteRank and TrackRank
  */
 trait FeatureGroupRanker {
 
   private val log = Logger.getLogger(classOf[RouteRankProcess])
 
-  def dataFeatures: SimpleFeatureCollection
-  def extractRoute: Option[Route]
-  def keyField: String
-  def bufferMeters: Double
-  def queryRoute(route: Route): SimpleFeatureCollection
-  def skip: Int
-  def max: Int
-  def sortBy: String
+  def dataFeatures: SimpleFeatureCollection // features to rank
+  def extractRoute: Option[Route] // A method that defines the route to rank along
+  def keyField: String // the field from dataFeatures to group data by
+  def bufferMeters: Double // how far to buffer the route (in meters) for the search
+  def queryRoute(route: Route): SimpleFeatureCollection // method that uses the route to find nearby feature instances
+  def skip: Int // Used for paging of search results: once results are sorted by rank, how many to skip
+  def max: Int // Used to limit the number of search results returned
+  def sortBy: String // Which field in ResultsBean.results to sort the output by, before applying skip and max
 
   def groupAndRank: ResultBean = {
 
@@ -56,6 +62,12 @@ trait FeatureGroupRanker {
           index.getDtgDescriptor(sfc.getSchema).map{_.getLocalName}.getOrElse("geomesa_index_start_time")
         val spec = new SfSpec(keyField, getTimeAttrName(dataFeatures))
         val routeShape = r.route.bufferMeters(bufferMeters)
+        // Find a square box that surrounds the route
+        // We search:
+        // 1. Along the route
+        // 2. Within the box
+        // This is so that features that occur frequently in the whole box can be assigned a lower ranking than features
+        // that occur only along the route (e.g. for a wider context)
         val boxShape = boundingSquare(routeShape)
         val ff = CommonFactoryFinder.getFilterFactory2
         val boxFilter = ff.intersects(ff.property(dataFeatures.getSchema.getGeometryDescriptor.getLocalName),
@@ -74,6 +86,12 @@ trait FeatureGroupRanker {
     ResultBean.fromRankingValues(rv, sortBy, skip, max)
   }
 
+  /**
+   * Given a route geometry, computes a square box around it. Used for ranking context. See previous comment within the
+   * group and rank method
+   * @param bufferedRouteGeometry
+   * @return geometry
+   */
   private def boundingSquare(bufferedRouteGeometry: Geometry) = {
     val env1 = bufferedRouteGeometry.getEnvelopeInternal
     val diffLat = env1.getMaxY - env1.getMinY
