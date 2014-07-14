@@ -16,23 +16,21 @@
 
 package geomesa.core.iterators
 
-import collection.JavaConversions._
-import com.vividsolutions.jts.geom.{Polygon, Geometry}
+import com.vividsolutions.jts.geom.Polygon
 import geomesa.core.data._
 import geomesa.core.index._
 import geomesa.core.iterators.TestData._
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{Query, DataUtilities}
-import org.geotools.factory.Hints
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.data.{DataUtilities, Query}
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{Duration, Interval, DateTime}
+import org.joda.time.Interval
 import org.junit.runner.RunWith
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
+
 import scala.collection.GenSeq
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
@@ -42,15 +40,22 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
   object IITest {
 
     def setupMockFeatureSource(entries: GenSeq[TestData.Entry]): SimpleFeatureStore = {
-      val TEST_TABLE = "test_table"
+      val CATALOG_TABLE = "test_table"
 
       val mockInstance = new MockInstance("dummy")
       val c = mockInstance.getConnector("user", "pass".getBytes)
-      if (c.tableOperations.exists(TEST_TABLE)) c.tableOperations.delete(TEST_TABLE)
+
+      // Remember we need to delete all 4 tables now
+      List(
+        CATALOG_TABLE,
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_st_idx",
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_records",
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_attr_idx"
+      ).foreach { t => if (c.tableOperations.exists(t)) c.tableOperations.delete(t) }
 
       val dsf = new AccumuloDataStoreFactory
 
-      import AccumuloDataStoreFactory.params._
+      import geomesa.core.data.AccumuloDataStoreFactory.params._
 
       val ds = dsf.createDataStore(
         Map(

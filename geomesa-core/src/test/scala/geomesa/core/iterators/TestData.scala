@@ -55,7 +55,11 @@ object TestData extends Logging {
 
   def createSF(e: Entry): SimpleFeature = {
     val geometry: Geometry = WKTUtils.read(e.wkt)
-    val entry = SimpleFeatureBuilder.build(featureType, List(null, null, null, null, geometry, e.dt.toDate, e.dt.toDate), s"|data|${e.id}")
+    val entry =
+      AvroSimpleFeatureFactory.buildAvroFeature(
+        featureType,
+        List(null, null, null, null, geometry, e.dt.toDate, e.dt.toDate),
+        s"|data|${e.id}")
     entry.setAttribute("attr2", "2nd" + e.id)
     entry
   }

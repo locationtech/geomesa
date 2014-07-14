@@ -95,7 +95,7 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
     // remember the resulting index-entries
     val keys = entries.map { entry =>
       val Array(r, cf, cq) = formats.map { _.format(entry) }
-      new Key(r, cf, cq, v, entry.dt.map(_.getMillis).getOrElse(DateTime.now().getMillis))
+      new Key(r, cf, cq, v)
     }
     val rowIDs = keys.map(_.getRow)
     val id = new Text(featureToEncode.sid)
