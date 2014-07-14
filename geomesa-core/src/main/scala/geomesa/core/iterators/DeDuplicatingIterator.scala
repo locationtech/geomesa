@@ -16,11 +16,9 @@
 
 package geomesa.core.iterators
 
-import DeDuplicator._
 import java.util.Map.Entry
-import java.util.UUID
 import geomesa.core.util.CloseableIterator
-import net.sf.ehcache.{Element, CacheManager}
+import com.google.common.cache.{Cache, CacheBuilder}
 import org.apache.accumulo.core.data.{Key, Value}
 
 class KVEntry(akey: Key, avalue: Value) extends Entry[Key, Value] {
@@ -68,18 +66,18 @@ class DeDuplicatingIterator(source: CloseableIterator[Entry[Key, Value]],
 }
 
 class DeDuplicator(idFetcher: (Key, Value) => String) {
-  val cacheName = UUID.randomUUID().toString
-
-  cacheManager.addCache(cacheName)
-  val cache = cacheManager.getCache(cacheName)
+  val cache: Cache[String, Integer] = CacheBuilder.newBuilder().build()
 
   val dummyConstant = 0
 
-  def isUnique(key:Key, value:Value) = {
+  def isUnique(key:Key, value:Value): Boolean = {
     val id = idFetcher(key, value)
-    val result = !cache.isKeyInCache(id)
-    cache.put(new Element(id, dummyConstant))
-    result
+    val entry = cache.getIfPresent(id)
+    if (entry == null) true
+    else {
+      cache.put(id, dummyConstant)
+      false
+    }
   }
 
   def isDuplicate(key: Key, value: Value): Boolean = !isUnique(key, value)
@@ -90,10 +88,6 @@ class DeDuplicator(idFetcher: (Key, Value) => String) {
 
   // safe to call repeatedly
   def close() {
-    if (cacheManager.cacheExists(cacheName)) cacheManager.removeCache(cacheName)
+    cache.invalidateAll()
   }
-}
-
-object DeDuplicator {
-  val cacheManager = CacheManager.create()
 }

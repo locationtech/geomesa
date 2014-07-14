@@ -38,7 +38,6 @@
         <geoserver.version>2.5</geoserver.version>
         <gt.version>11.0</gt.version>
         <jts.version>1.13</jts.version>
-        <ehcache.version>2.6.2</ehcache.version>
 
         <!-- environment-dependent versions -->
         <zookeeper.version>3.3.6</zookeeper.version>
@@ -210,11 +209,6 @@
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
                 <version>2.10.0</version>
-            </dependency>
-            <dependency>
-                <groupId>net.sf.ehcache</groupId>
-                <artifactId>ehcache-core</artifactId>
-                <version>${ehcache.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
