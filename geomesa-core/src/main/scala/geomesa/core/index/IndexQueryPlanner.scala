@@ -119,7 +119,11 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
    *
    * If the query is a density query use the spatio-temporal index table only
    */
-  private def runQuery(acc: AccumuloConnectorCreator, sft: SimpleFeatureType, derivedQuery: Query, isDensity: Boolean, output: String => Unit) = {
+  private def runQuery(acc: AccumuloConnectorCreator,
+                       sft: SimpleFeatureType,
+                       derivedQuery: Query,
+                       isDensity: Boolean,
+                       output: String => Unit) = {
     val filterVisitor = new FilterToAccumulo(featureType)
     val rewrittenFilter = filterVisitor.visit(derivedQuery)
     if(acc.catalogTableFormat(sft)){
