@@ -121,7 +121,7 @@ class MapReduceAccumuloFeatureStore(dataStore: MapReduceAccumuloDataStore,
     val mapredCSVFilePath = new Path(outputDir, featureName + ".csv")
     fs.copyFromLocalFile(new Path(geomesaDir + Path.SEPARATOR + featureName + ".csv"), mapredCSVFilePath)
 
-    val tableName = dataStore.tableName
+    val tableName = dataStore.catalogTable
 
     runMapReduceJob(
                      tableName,
