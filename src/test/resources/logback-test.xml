@@ -30,8 +30,6 @@
         </encoder>
     </appender>
 
-    <logger name="net.sf.ehcache" level="INFO" />
-
     <root level="DEBUG">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="FILE" />
