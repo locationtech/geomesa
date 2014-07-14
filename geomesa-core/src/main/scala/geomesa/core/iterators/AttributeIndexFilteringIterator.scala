@@ -16,29 +16,27 @@
 
 package geomesa.core.iterators
 
-import java.util.{Collection => JCollection, Map => JMap}
+import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, Polygon}
 import geomesa.core.index.IndexSchema
 import geomesa.core.index.IndexSchema.DecodedIndexValue
-import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
-import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
+import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.iterators.{Filter, IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.Interval
 
-class AttributeIndexFilteringIterator extends SortedKeyValueIterator[Key, Value] with Logging {
+class AttributeIndexFilteringIterator extends Filter with Logging {
 
-  var sourceIter: SortedKeyValueIterator[Key, Value] = null
-  var topKey: Key = null
-  var topValue: Value = null
-  var bbox: Polygon = null
-  var interval: Interval = null
+  protected var bbox: Polygon = null
+  protected var interval: Interval = null
 
-  def init(source: SortedKeyValueIterator[Key, Value],
-           options: JMap[String, String],
-           env: IteratorEnvironment) {
+  override def init(source: SortedKeyValueIterator[Key, Value],
+                    options: JMap[String, String],
+                    env: IteratorEnvironment) {
+    super.init(source, options, env)
     if(options.containsKey(AttributeIndexFilteringIterator.BBOX_KEY)) {
       // TODO validate bbox option
       val Array(minx, miny, maxx, maxy) = options.get(AttributeIndexFilteringIterator.BBOX_KEY).split(",").map(_.toDouble)
@@ -51,42 +49,27 @@ class AttributeIndexFilteringIterator extends SortedKeyValueIterator[Key, Value]
       interval = Interval.parse(options.get(AttributeIndexFilteringIterator.INTERVAL_KEY))
       logger.info(s"Set interval to ${interval.toString}")
     }
-    sourceIter = source.deepCopy(env)
   }
 
-  override def hasTop: Boolean = topKey != null
+  override def deepCopy(env: IteratorEnvironment) = {
+    val copy = super.deepCopy(env).asInstanceOf[AttributeIndexFilteringIterator]
+    copy.bbox = bbox.clone.asInstanceOf[Polygon]
+    copy.interval = interval //interval is immutable - no need to deep copy
+    copy
+  }
 
-  override def deepCopy(env: IteratorEnvironment) = throw new IllegalArgumentException("not supported")
+  override def accept(k: Key, v: Value): Boolean = {
+    val DecodedIndexValue(_, geom, dtgOpt) = IndexSchema.decodeIndexValue(v)
 
-  override def next(): Unit = {
-    topKey = null
-    topValue = null
-    while(sourceIter.hasTop && topKey == null && topValue == null) {
-      val DecodedIndexValue(_, geom, dtgOpt) = IndexSchema.decodeIndexValue(sourceIter.getTopValue)
-
-      // TODO This might be made more efficient
-      if (filterBbox(geom) && dtgOpt.map(dtg => filterInterval(dtg)).getOrElse(true)) {
-        topKey = new Key(sourceIter.getTopKey)
-        topValue = new Value(sourceIter.getTopValue)
-      } else {
-        sourceIter.next()
-      }
-    }
+    // TODO This might be made more efficient
+    filterBbox(geom) && dtgOpt.map(dtg => filterInterval(dtg)).getOrElse(true)
   }
 
   // Intersect, not contains for geometry that hits this bbox
-  def filterBbox(geom: Geometry) = Option(bbox).map(b => b.intersects(geom)).getOrElse(true)
+  protected def filterBbox(geom: Geometry) = Option(bbox).map(b => b.intersects(geom)).getOrElse(true)
 
-  def filterInterval(dtg: Long) = Option(interval).map(i => i.contains(dtg)).getOrElse(true)
+  protected def filterInterval(dtg: Long) = Option(interval).map(i => i.contains(dtg)).getOrElse(true)
 
-  override def getTopValue: Value = topValue
-
-  override def getTopKey: Key = topKey
-
-  override def seek(range: Range, columnFamilies: JCollection[ByteSequence], inclusive: Boolean): Unit = {
-    sourceIter.seek(range, columnFamilies, inclusive)
-    next()
-  }
 }
 
 object AttributeIndexFilteringIterator {
