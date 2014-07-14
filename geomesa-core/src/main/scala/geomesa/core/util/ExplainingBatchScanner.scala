@@ -13,8 +13,6 @@ class ExplainingBatchScanner(output: String => Unit = println) extends Explainin
 
 class ExplainingScanner(output: String => Unit = println) extends Scanner {
 
-//  override def setRanges(ranges: util.Collection[Range]): Unit = {}
-
   override def setTimeout(timeout: Long, timeUnit: TimeUnit): Unit = output(s"setTimeout($timeout, $timeUnit)")
 
   override def close(): Unit = {}

@@ -22,8 +22,9 @@ import geomesa.core.data.SimpleFeatureEncoderFactory
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.data.Key
-import org.geotools.data.DataUtilities
+import org.geotools.data.{Query, DataUtilities}
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -209,4 +210,23 @@ class IndexSchemaTest extends Specification {
     }
 
   }
+
+  "IndexSchema " should {
+    "be able to run explainQuery" in {
+
+      val schema = IndexSchema("%~#s%foo#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%15#id",
+        dummyType, featureEncoder)
+      val q = new Query()
+      val fs = "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+      val f = ECQL.toFilter(fs)
+      q.setFilter(f)
+
+      val queue = scala.collection.mutable.Queue[String]()
+      schema.explainQuery(q, s => queue.enqueue(Seq(s) : _*))
+
+      val explanation = queue.mkString(",\n")
+      explanation must not be null
+    }
+  }
+
 }

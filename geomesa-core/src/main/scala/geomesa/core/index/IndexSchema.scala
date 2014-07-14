@@ -91,11 +91,11 @@ case class IndexSchema(encoder: IndexEncoder,
     }
 
 
-  def query(query: Query, ds: AccumuloDataStore): CloseableIterator[SimpleFeature] = {
+  def query(query: Query, acc: AccumuloConnectorCreator): CloseableIterator[SimpleFeature] = {
     // Perform the query
     logger.trace(s"Running ${query.toString}")
 
-    val accumuloIterator = planner.getIterator(ds, featureType, query)
+    val accumuloIterator = planner.getIterator(acc, featureType, query)
 
     // Convert Accumulo results to SimpleFeatures
     adaptIterator(accumuloIterator, query)
@@ -103,7 +103,7 @@ case class IndexSchema(encoder: IndexEncoder,
 
   // Writes out an explanation of how a query would be run.
   def explainQuery(q: Query, output: (String => Unit) = println) = {
-     planner.getIterator(new ExplainingDataStore(output), featureType, q, output)
+     planner.getIterator(new ExplainingConnectorCreator(output), featureType, q, output)
   }
 
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.

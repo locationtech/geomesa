@@ -74,7 +74,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
   // As a pre-processing step, we examine the query/filter and split it into multiple queries.
   // TODO: Work to make the queries non-overlapping.
-  def getIterator(ds: AccumuloDataStore,
+  def getIterator(acc: AccumuloConnectorCreator,
                   sft: SimpleFeatureType,
                   query: Query,
                   output: String => Unit = log): CloseableIterator[Entry[Key,Value]] = {
@@ -87,7 +87,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
       } else splitQueryOnOrs(query, output)
 
-    queries.flatMap(runQuery(ds, sft, _, isDensity, output))
+    queries.flatMap(runQuery(acc, sft, _, isDensity, output))
   }
   
   def splitQueryOnOrs(query: Query, output: String => Unit): Iterator[Query] = {
@@ -102,7 +102,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     // Let's just check quickly to see if we can eliminate any duplicates.
     val filters = splitFilters.distinct
-                                                                                                                            println
+
     filters.map { filter =>
       val q = new Query(query)
       q.setFilter(filter)
@@ -119,15 +119,15 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
    *
    * If the query is a density query use the spatio-temporal index table only
    */
-  private def runQuery(ds: AccumuloDataStore, sft: SimpleFeatureType, derivedQuery: Query, isDensity: Boolean, output: String => Unit) = {
+  private def runQuery(acc: AccumuloConnectorCreator, sft: SimpleFeatureType, derivedQuery: Query, isDensity: Boolean, output: String => Unit) = {
     val filterVisitor = new FilterToAccumulo(featureType)
     val rewrittenFilter = filterVisitor.visit(derivedQuery)
-    if(ds.catalogTableFormat(sft)){
+    if(acc.catalogTableFormat(sft)){
       // If we have attr index table try it
-      runAttrIdxQuery(ds, derivedQuery, rewrittenFilter, filterVisitor, isDensity, output)
+      runAttrIdxQuery(acc, derivedQuery, rewrittenFilter, filterVisitor, isDensity, output)
     } else {
       // datastore doesn't support attr index use spatiotemporal only
-      stIdxQuery(ds, derivedQuery, rewrittenFilter, filterVisitor, output)
+      stIdxQuery(acc, derivedQuery, rewrittenFilter, filterVisitor, output)
     }
   }
 
@@ -135,7 +135,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
    * Attempt to run a query against the attribute index if it can be satisfied 
    * there...if not run against the SpatioTemporal
    */
-  def runAttrIdxQuery(ds: AccumuloDataStore,
+  def runAttrIdxQuery(acc: AccumuloConnectorCreator,
                       derivedQuery: Query,
                       rewrittenFilter: Filter,
                       filterVisitor: FilterToAccumulo,
@@ -144,16 +144,16 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     rewrittenFilter match {
       case isEqualTo: PropertyIsEqualTo if !isDensity =>
-        attrIdxEqualToQuery(ds, derivedQuery, isEqualTo, filterVisitor)
+        attrIdxEqualToQuery(acc, derivedQuery, isEqualTo, filterVisitor)
 
       case like: PropertyIsLike if !isDensity =>
         if(likeEligible(like))
-          attrIdxLikeQuery(ds, derivedQuery, like, filterVisitor)
+          attrIdxLikeQuery(acc, derivedQuery, like, filterVisitor)
         else
-          stIdxQuery(ds, derivedQuery, like, filterVisitor, output)
+          stIdxQuery(acc, derivedQuery, like, filterVisitor, output)
 
       case cql =>
-        stIdxQuery(ds, derivedQuery, cql, filterVisitor, output)
+        stIdxQuery(acc, derivedQuery, cql, filterVisitor, output)
     }
   }
 
@@ -181,7 +181,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   /**
    * Get an iterator that performs an eligible LIKE query against the Attribute Index Table
    */
-  def attrIdxLikeQuery(dataStore: AccumuloDataStore,
+  def attrIdxLikeQuery(acc: AccumuloConnectorCreator,
                        derivedQuery: Query,
                        filter: PropertyIsLike,
                        filterVisitor: FilterToAccumulo) = {
@@ -201,7 +201,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     val range = AccRange.prefix(formatAttrIdxRow(prop, value))
 
-    attrIdxQuery(dataStore, derivedQuery, filterVisitor, range)
+    attrIdxQuery(acc, derivedQuery, filterVisitor, range)
   }
 
   def formatAttrIdxRow(prop: String, lit: String) =
@@ -210,7 +210,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   /**
    * Get an iterator that performs an EqualTo query against the Attribute Index Table
    */
-  def attrIdxEqualToQuery(dataStore: AccumuloDataStore,
+  def attrIdxEqualToQuery(acc: AccumuloConnectorCreator,
                           derivedQuery: Query,
                           filter: PropertyIsEqualTo,
                           filterVisitor: FilterToAccumulo) = {
@@ -230,19 +230,19 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     val range = new AccRange(formatAttrIdxRow(prop, lit))
 
-    attrIdxQuery(dataStore, derivedQuery, filterVisitor, range)
+    attrIdxQuery(acc, derivedQuery, filterVisitor, range)
   }
 
   /**
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
    */
-  def attrIdxQuery(dataStore: AccumuloDataStore,
+  def attrIdxQuery(acc: AccumuloConnectorCreator,
                    derivedQuery: Query,
                    filterVisitor: FilterToAccumulo,
                    range: AccRange) = {
 
     logger.trace(s"Scanning attribute table for feature type ${featureType.getTypeName}")
-    val attrScanner = dataStore.createAttrIdxScanner(featureType)
+    val attrScanner = acc.createAttrIdxScanner(featureType)
 
     val spatialOpt =
       for {
@@ -268,7 +268,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val ranges = attrScanner.iterator.map(_.getKey.getColumnFamily).map(new AccRange(_))
 
     val recScanner = if(ranges.hasNext) {
-      val recordScanner = dataStore.createRecordScanner(featureType)
+      val recordScanner = acc.createRecordScanner(featureType)
       recordScanner.setRanges(ranges.toList)
       configureSimpleFeatureFilteringIterator(recordScanner, featureType, None, derivedQuery)
       Some(recordScanner)
@@ -284,7 +284,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     CloseableIterator(iter, close)
   }
 
-  def stIdxQuery(ds: AccumuloDataStore,
+  def stIdxQuery(acc: AccumuloConnectorCreator,
                  query: Query,
                  rewrittenCQL: Filter,
                  filterVisitor: FilterToAccumulo,
@@ -307,7 +307,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val oint  = IndexSchema.somewhen(interval)
 
     // set up row ranges and regular expression filter
-    val bs = ds.createSTIdxScanner(featureType)
+    val bs = acc.createSTIdxScanner(featureType)
+
     planQuery(bs, filter, output)
 
     output("Configuring batch scanner for ST table: \n" +
