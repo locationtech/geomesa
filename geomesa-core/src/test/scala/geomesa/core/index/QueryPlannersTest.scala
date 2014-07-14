@@ -33,9 +33,9 @@ class QueryPlannersTest extends Specification {
         case p: Polygon => p
         case _ => throw new Exception("geohash c23j should have a polygon bounding box")
       }
-      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(SpatialFilter(ghPoly)) must be equalTo(KeyRange("01", "12"))
-      DatePlanner(DateTimeFormat.forPattern("ss")).getKeyPlan(SpatialFilter(ghPoly)) must be equalTo(KeyRange("00", "59"))
-      DatePlanner(DateTimeFormat.forPattern("MM-dd")).getKeyPlan(SpatialFilter(ghPoly)) must be equalTo(KeyRange("01-01", "12-31"))
+      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(SpatialFilter(ghPoly), println) must be equalTo(KeyRange("01", "12"))
+      DatePlanner(DateTimeFormat.forPattern("ss")).getKeyPlan(SpatialFilter(ghPoly), println) must be equalTo(KeyRange("00", "59"))
+      DatePlanner(DateTimeFormat.forPattern("MM-dd")).getKeyPlan(SpatialFilter(ghPoly), println) must be equalTo(KeyRange("01-01", "12-31"))
     }
     "return apprpriate ranges for date ranges" in {
       val dt1 = new DateTime(2005, 3, 3, 5, 7, DateTimeZone.forID("UTC"))
@@ -43,16 +43,16 @@ class QueryPlannersTest extends Specification {
       val dt3 = new DateTime(2001, 3, 3, 5, 7, DateTimeZone.forID("UTC"))
       val dt4 = new DateTime(2005, 3, 9, 5, 7, DateTimeZone.forID("UTC"))
       val dt5 = new DateTime(2005, 9, 9, 5, 7, DateTimeZone.forID("UTC"))
-      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(DateRangeFilter(dt1, dt2)) must be equalTo(KeyRangeTiered("03", "10"))
-      DatePlanner(DateTimeFormat.forPattern("ss")).getKeyPlan(DateRangeFilter(dt1, dt2)) must be equalTo(KeyRangeTiered("00", "59"))
-      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(DateRangeFilter(dt3, dt1)) must be equalTo(KeyRangeTiered("01", "12"))
-      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(DateRangeFilter(dt1, dt4)) must be equalTo(KeyRangeTiered("03", "03"))
-      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(DateRangeFilter(dt4, dt5)) must be equalTo(KeyRangeTiered("03", "09"))
+      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(DateRangeFilter(dt1, dt2), println) must be equalTo(KeyRangeTiered("03", "10"))
+      DatePlanner(DateTimeFormat.forPattern("ss")).getKeyPlan(DateRangeFilter(dt1, dt2), println) must be equalTo(KeyRangeTiered("00", "59"))
+      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(DateRangeFilter(dt3, dt1), println) must be equalTo(KeyRangeTiered("01", "12"))
+      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(DateRangeFilter(dt1, dt4), println) must be equalTo(KeyRangeTiered("03", "03"))
+      DatePlanner(DateTimeFormat.forPattern("MM")).getKeyPlan(DateRangeFilter(dt4, dt5), println) must be equalTo(KeyRangeTiered("03", "09"))
     }
     "return appropriate regexes for regex" in {
       val planners = List(ConstStringPlanner("foo"), RandomPartitionPlanner(2), GeoHashKeyPlanner(0,1))
       val cp = CompositePlanner(planners, "~")
-      val kp = cp.getKeyPlan(SpatialFilter(WKTUtils.read("POLYGON((-109 31, -115 31, -115 37,-109 37,-109 31))").asInstanceOf[Polygon]))
+      val kp = cp.getKeyPlan(SpatialFilter(WKTUtils.read("POLYGON((-109 31, -115 31, -115 37,-109 37,-109 31))").asInstanceOf[Polygon]), println)
       val expectedKP = KeyRanges(List(
         KeyRange("foo~0~.","foo~0~."),
         KeyRange("foo~0~9","foo~0~9"),

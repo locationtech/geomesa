@@ -64,7 +64,7 @@ class AccumuloDataStore(val connector: Connector,
                         val writeVisibilities: String,
                         val spatioTemporalIdxSchemaFmt: String = "DEFAULT",
                         val featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
-    extends AbstractDataStore(true) with Logging {
+    extends AbstractDataStore(true) with AccumuloConnectorCreator with Logging {
 
   // TODO default to zero shards (needs testing)
   private val DEFAULT_MAX_SHARD = 99
@@ -712,8 +712,8 @@ class AccumuloDataStore(val connector: Connector,
   def createSpatioTemporalIdxScanner(sft: SimpleFeatureType, numThreads: Int): BatchScanner = {
     logger.trace(s"Creating ST batch scanner with $numThreads threads")
     if (catalogTableFormat(sft)) {
-      connector.createBatchScanner(getSpatioTemporalIdxTableName(sft), 
-                                   authorizationsProvider.getAuthorizations, 
+      connector.createBatchScanner(getSpatioTemporalIdxTableName(sft),
+                                   authorizationsProvider.getAuthorizations,
                                    numThreads)
     } else {
       connector.createBatchScanner(catalogTable, authorizationsProvider.getAuthorizations, numThreads)
