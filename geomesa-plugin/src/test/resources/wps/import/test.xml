@@ -63,6 +63,12 @@
                 <wps:LiteralData>LAYER_NAME_HERE</wps:LiteralData>
             </wps:Data>
         </wps:Input>
+        <wps:Input>
+            <ows:Identifier>numShards</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>8</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
     </wps:DataInputs>
     <wps:ResponseForm>
         <wps:RawDataOutput>

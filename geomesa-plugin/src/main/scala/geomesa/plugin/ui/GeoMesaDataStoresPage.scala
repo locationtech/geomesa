@@ -79,8 +79,8 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
   dataStores.foreach {
     d =>
       val id = d.toString
-      dataStoreNames.put(id, s"${d.connector.getInstance.getInstanceName}: ${d.tableName}")
-      val table = d.tableName
+      dataStoreNames.put(id, s"${d.connector.getInstance.getInstanceName}: ${d.catalogTable}")
+      val table = d.catalogTable
       tables.put(id, table)
       metadata.put(id, getTableMetadata(d.connector, table))
       val typeNames = d.getTypeNames.toList
