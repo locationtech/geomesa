@@ -9,13 +9,15 @@ import org.apache.hadoop.io.Text
 
 class ExplainingBatchScanner(output: String => Unit = println) extends ExplainingScanner with BatchScanner {
   override def setRanges(ranges: util.Collection[Range]): Unit = {}
+
+  override def close(): Unit = {}
 }
 
 class ExplainingScanner(output: String => Unit = println) extends Scanner {
 
-  override def setTimeout(timeout: Long, timeUnit: TimeUnit): Unit = output(s"setTimeout($timeout, $timeUnit)")
+  //override def setTimeout(timeout: Long, timeUnit: TimeUnit): Unit = output(s"setTimeout($timeout, $timeUnit)")
 
-  override def close(): Unit = {}
+  //override def close(): Unit = {}
 
   override def updateScanIteratorOption(iteratorName: String, key: String, value: String): Unit =
     output(s"updateScanIterator($iteratorName, $key, $value")
@@ -24,7 +26,7 @@ class ExplainingScanner(output: String => Unit = println) extends Scanner {
 
   override def fetchColumnFamily(col: Text): Unit = {}
 
-  override def getTimeout(timeUnit: TimeUnit): Long = { output(s"getTimeout($timeUnit)"); 0 }
+  //override def getTimeout(timeUnit: TimeUnit): Long = { output(s"getTimeout($timeUnit)"); 0 }
 
   override def iterator(): util.Iterator[Entry[Key, Value]] = {
     new util.Iterator[Entry[Key, Value]] {
@@ -57,4 +59,18 @@ class ExplainingScanner(output: String => Unit = println) extends Scanner {
   override def enableIsolation(): Unit = {}
 
   override def disableIsolation(): Unit = {}
+
+  override def setScanIterators(p1: Int, p2: String, p3: String): Unit = ???
+
+  override def setupRegex(p1: String, p2: Int): Unit = ???
+
+  override def setColumnQualifierRegex(p1: String): Unit = ???
+
+  override def setColumnFamilyRegex(p1: String): Unit = ???
+
+  override def setScanIteratorOption(p1: String, p2: String, p3: String): Unit = ???
+
+  override def setValueRegex(p1: String): Unit = ???
+
+  override def setRowRegex(p1: String): Unit = ???
 }
