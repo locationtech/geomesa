@@ -25,6 +25,7 @@ import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -69,10 +70,17 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
 
-    if (options.containsKey(DEFAULT_POLY_PROPERTY_NAME)) {
-      val polyWKT = options.get(DEFAULT_POLY_PROPERTY_NAME)
-      poly = WKTUtils.read(polyWKT)
+    if (options.containsKey(DEFAULT_FILTER_PROPERTY_NAME)) {
+      val filterString  = options.get(DEFAULT_FILTER_PROPERTY_NAME)
+      filter = ECQL.toFilter(filterString)
+
+      val featureType = DataUtilities.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
+      featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+
+      val sfb = new SimpleFeatureBuilder(featureType)
+      geomTestSF = sfb.buildFeature("test")
     }
+
     if (options.containsKey(DEFAULT_INTERVAL_PROPERTY_NAME))
       interval = IndexIterator.decodeInterval(
         options.get(DEFAULT_INTERVAL_PROPERTY_NAME))

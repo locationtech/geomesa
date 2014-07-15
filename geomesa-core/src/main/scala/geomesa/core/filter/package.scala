@@ -2,6 +2,7 @@ package geomesa.core
 
 import org.geotools.factory.CommonFactoryFinder
 import org.opengis.filter._
+import org.opengis.filter.spatial._
 import scala.collection.JavaConversions._
 
 package object filter {
@@ -76,5 +77,29 @@ package object filter {
     case not: Not => not.getFilter
   }
 
+  // Takes a filter and returns a Seq of Geometric/Topological filters under it.
+  //  As a note, currently, only 'good' filters are considered.
+  //  The list of acceptable filters is defined by 'spatialFilters'
+  //  The notion of 'good' here means *good* to handle to the STII.
+  //  Of particular note, we should not give negations to the STII.
+  def partitionGeom(filter: Filter): (Seq[Filter], Seq[Filter]) = {
+    filter match {
+      case a: And => a.getChildren.partition(spatialFilters)
+      case _ => Seq(filter).partition(spatialFilters)
+    }
+  }
+
+  // Defines the topological predicates we like for use in the STII.
+  def spatialFilters(f: Filter): Boolean = {
+    f match {
+      case _: BBOX => true
+      case _: Contains => true
+      case _: Crosses => true
+      case _: Intersects => true
+      case _: Overlaps => true
+      case _: Within => true
+      case _ => false        // Beyond, Disjoint, DWithin, Equals, Touches
+    }
+  }
 
 }
