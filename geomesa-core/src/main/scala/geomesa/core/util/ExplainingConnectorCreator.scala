@@ -1,9 +1,7 @@
 package geomesa.core.util
 
-import geomesa.core.data.{AccumuloConnectorCreator, AccumuloDataStore}
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{Scanner, BatchScanner}
+import geomesa.core.data.AccumuloConnectorCreator
+import org.apache.accumulo.core.client.{BatchScanner, Scanner}
 import org.opengis.feature.simple.SimpleFeatureType
 
 
