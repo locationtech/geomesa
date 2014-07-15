@@ -94,8 +94,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
     nodes.map(_.evaluated).filter(_ != Filter.INCLUDE) match {
       case children if children.size == 0 => Filter.INCLUDE
       case children if children.size == 1 => children.head
-      case children =>
-        children.reduce { (left, right) => ff.or(left, right) }
+      case children =>  ff.or(children)
     }
   }
 

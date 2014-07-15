@@ -32,8 +32,11 @@ import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.apache.hadoop.io.Text
 import org.geotools.data.DataUtilities
 import org.geotools.factory.GeoTools
+import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.opengis.feature.simple.SimpleFeature
+import org.opengis.filter._
 import scala.util.Try
 
 case class Attribute(name: Text, value: Text)
@@ -56,20 +59,21 @@ class SpatioTemporalIntersectingIterator
   extends SortedKeyValueIterator[Key, Value]
   with Logging {
 
-  import IndexEntry._
   import geomesa.core._
 
 
   protected var indexSource: SortedKeyValueIterator[Key, Value] = null
   protected var dataSource: SortedKeyValueIterator[Key, Value] = null
   protected var interval: Interval = null
-  protected var poly: Geometry = null
+  protected var filter: Filter = null
   protected var decoder: IndexEntryDecoder = null
   protected var topKey: Key = null
   protected var topValue: Value = null
   protected var nextKey: Key = null
   protected var nextValue: Value = null
   protected var curId: Text = null
+
+  protected var geomTestSF: SimpleFeature = null
 
   // Used by aggregators that extend STII
   protected var curFeature: SimpleFeature = null
@@ -94,9 +98,12 @@ class SpatioTemporalIntersectingIterator
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
 
-    if (options.containsKey(DEFAULT_POLY_PROPERTY_NAME)) {
-      val polyWKT = options.get(DEFAULT_POLY_PROPERTY_NAME)
-      poly = WKTUtils.read(polyWKT)
+    if (options.containsKey(DEFAULT_FILTER_PROPERTY_NAME)) {
+      val filterString  = options.get(DEFAULT_FILTER_PROPERTY_NAME)
+      filter = ECQL.toFilter(filterString)
+
+      val sfb = new SimpleFeatureBuilder(featureType)
+      geomTestSF = sfb.buildFeature("test")
     }
     if (options.containsKey(DEFAULT_INTERVAL_PROPERTY_NAME))
       interval = SpatioTemporalIntersectingIterator.decodeInterval(
@@ -159,16 +166,16 @@ class SpatioTemporalIntersectingIterator
    * every time, but should establish once (when first requested) the fastest
    * version of validating an entry's geometry.
    */
-  lazy val wrappedGeomFilter =
-    // if there is effectively no geographic-search, all records automatically qualify
-    IndexSchema.somewhere(poly) match {
-      case None    => (_: GeoHash, _: Geometry) => true
-      case Some(p) => (gh: GeoHash, geom: Geometry) =>
-        // either the geohash geom is completely contained
-        // within the search area or the original geometry
-        // intersects the search area
-        p.contains(gh.geom) || p.intersects(geom)
+  lazy val wrappedGeomFilter: Geometry => Boolean = {
+    if (geomTestSF != null) {
+      geom => {
+        geomTestSF.setDefaultGeometry(geom)
+        filter.evaluate(geomTestSF)
+      }
+    } else {
+      _ => true
     }
+  }
 
   // data rows are the only ones with "SimpleFeatureAttribute" in the ColQ
   // (if we expand on the idea of separating out attributes more, we will need
@@ -221,7 +228,7 @@ class SpatioTemporalIntersectingIterator
         curFeature = decodedKey
         // the value contains the full-resolution geometry and time; use them
         lazy val decodedValue = IndexSchema.decodeIndexValue(indexSource.getTopValue)
-        lazy val isGeomAcceptable: Boolean = wrappedGeomFilter(decodedKey.gh, decodedValue.geom)
+        lazy val isGeomAcceptable: Boolean = wrappedGeomFilter(decodedValue.geom)
         lazy val isDateTimeAcceptable: Boolean = wrappedTimeFilter(decodedValue.dtgMillis)
 
         // see whether this box is acceptable
@@ -408,9 +415,9 @@ trait IteratorHelpers  {
     Attribute(attribute, value)
   }
 
-  def setOptions(cfg: IteratorSetting, schema: String, poly: Option[Polygon], interval: Option[Interval]) {
+  def setOptions(cfg: IteratorSetting, schema: String, filter: Option[Filter], interval: Option[Interval]) {
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-    poly.foreach { p => cfg.addOption(DEFAULT_POLY_PROPERTY_NAME, p.toText) }
+    filter.foreach { f => cfg.addOption(DEFAULT_FILTER_PROPERTY_NAME, ECQL.toCQL(f)) }
     interval.foreach { int => cfg.addOption(DEFAULT_INTERVAL_PROPERTY_NAME, encodeInterval(int)) }
   }
 

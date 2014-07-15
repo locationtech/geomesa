@@ -104,7 +104,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     val c = setupMockAccumuloTable(entries)
     val ds = new AccumuloDataStore(c, TEST_TABLE, new DefaultAuthorizationsProvider, "")
 
-    val gf = s"WITHIN(geom, ${polygon.toText})"
+    val gf = s"INTERSECTS(geom, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
       s"(dtg between '${int.getStart}' AND '${int.getEnd}')"
     )
