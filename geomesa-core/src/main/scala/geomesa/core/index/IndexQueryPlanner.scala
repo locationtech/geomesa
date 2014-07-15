@@ -24,7 +24,6 @@ import org.joda.time.Interval
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.{Literal, PropertyName}
-import org.opengis.filter.spatial._
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -289,34 +288,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     }
 
     CloseableIterator(iter, close)
-  }
-
-  // TODO: Find a better home for these functions.
-  def getGeomFilters(filter: Filter): Seq[Filter] = {
-    filter match {
-      case a: And => a.getChildren.filter(_.isInstanceOf[BinarySpatialOperator])
-      case so: BinarySpatialOperator => Seq(so)
-      case _ => Seq[Filter]()
-    }
-  }
-
-  def partitionGeom(filter: Filter): (Seq[Filter], Seq[Filter]) = {
-    filter match {
-      case a: And => a.getChildren.partition(stFilters)
-      case _ => Seq(filter).partition(stFilters)
-    }
-  }
-
-  def stFilters(f: Filter): Boolean = {
-    f match {
-      case _: BBOX => true
-      case _: Contains => true
-      case _: Crosses => true
-      case _: Intersects => true
-      case _: Overlaps => true
-      case _: Within => true
-      case _ => false        // Beyond, Disjoint, DWithin, Equals, Touches
-    }
   }
 
   def stIdxQuery(acc: AccumuloConnectorCreator,

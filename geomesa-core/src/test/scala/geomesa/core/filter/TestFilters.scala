@@ -104,7 +104,7 @@ object TestFilters {
       "CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
     )
 
-  val allPreds =
+  val goodSpatialPredicates =
     Seq(
       "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
       "OVERLAPS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
@@ -113,7 +113,7 @@ object TestFilters {
       "CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
     )
 
-  val andGeoms = Seq(
+  val andedSpatialPredicates = Seq(
     "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND OVERLAPS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))",
     "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND WITHIN(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))",
     "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND DISJOINT(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))",
@@ -136,7 +136,7 @@ object TestFilters {
     "CROSSES(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND DISJOINT(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))"
   )
 
-  val orGeoms = Seq(
+  val oredSpatialPredicates = Seq(
     "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) OR OVERLAPS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))",
     "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) OR WITHIN(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))",
     "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) OR DISJOINT(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))",

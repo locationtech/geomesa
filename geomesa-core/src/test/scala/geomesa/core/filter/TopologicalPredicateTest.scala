@@ -17,23 +17,21 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import geomesa.core.filter.FilterUtils._
 
-
 @RunWith(classOf[JUnitRunner])
 class AllPredicateTest extends Specification with FilterTester {
-  sequential
-  val filters = allPreds
+  val filters = goodSpatialPredicates
   runTest
 }
 
 @RunWith(classOf[JUnitRunner])
 class AndGeomsPredicateTest extends FilterTester {
-  val filters = andGeoms
+  val filters = andedSpatialPredicates
   runTest
 }
 
 @RunWith(classOf[JUnitRunner])
 class OrGeomsPredicateTest extends FilterTester {
-  val filters = orGeoms
+  val filters = oredSpatialPredicates
   runTest
 }
 
@@ -42,7 +40,6 @@ object FilterTester extends AccumuloDataStoreTest with Logging {
   val sft = mediumDataFeatures.head.getFeatureType
 
   val ds = createStore
-
 
   def getFeatureStore: SimpleFeatureSource = {
     val names = ds.getNames
