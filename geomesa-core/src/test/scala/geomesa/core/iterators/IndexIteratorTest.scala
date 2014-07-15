@@ -72,7 +72,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
 
       ds.createSchema(TestData.featureType)
       val fs = ds.getFeatureSource(TestData.featureName).asInstanceOf[SimpleFeatureStore]
-      val dataFeatures = entries.map(createSF)
+      val dataFeatures = entries.par.map(createSF)
       val featureCollection = DataUtilities.collection(dataFeatures.toArray)
       fs.addFeatures(featureCollection)
       fs.getTransaction.commit()
@@ -86,6 +86,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
                                    dtFilter: Interval = null,
                                    overrideGeometry: Boolean = false,
                                    doPrint: Boolean = true): Int = {
+    logger.debug(s"Running test: $label")
 
     // create the query polygon
     val polygon: Polygon = overrideGeometry match {
@@ -96,7 +97,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     //create the Feature Source
     val fs = IITest.setupMockFeatureSource(entries)
 
-    val gf = s"WITHIN(geom, ${polygon.toText})"
+    val gf = s"INTERSECTS(geom, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
       s"(dtg between '${int.getStart}' AND '${int.getEnd}')"
     )

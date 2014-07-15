@@ -29,7 +29,7 @@ package object core {
   val DEFAULT_FEATURE_NAME = "geomesa.index.feature"
 
   val INGEST_TABLE_NAME                      = "geomesa.ingest.table"
-  val DEFAULT_POLY_PROPERTY_NAME             = "geomesa.index.poly"
+  val DEFAULT_FILTER_PROPERTY_NAME           = "geomesa.index.filter"
   val DEFAULT_INTERVAL_PROPERTY_NAME         = "geomesa.index.interval"
   val DEFAULT_ATTRIBUTE_NAMES                = "geomesa.index.shapefile.attribute-names"
   val DEFAULT_CACHE_SIZE_NAME                = "geomesa.index.cache-size"
