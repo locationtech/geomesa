@@ -263,7 +263,7 @@ object KeyUtils {
 }
 
 trait KeyPlanner {
-  def getKeyPlan(filter:KeyPlanningFilter): KeyPlan
+  def getKeyPlan(filter:KeyPlanningFilter, output: String => Unit): KeyPlan
 }
 
 trait ColumnFamilyPlanner {
@@ -306,8 +306,11 @@ trait GeoHashPlanner {
 }
 
 case class GeoHashKeyPlanner(offset: Int, bits: Int) extends KeyPlanner with GeoHashPlanner {
-  def getKeyPlan(filter: KeyPlanningFilter) = getKeyPlan(filter, offset, bits) match {
-    case KeyList(keys) => KeyListTiered(keys)
+  def getKeyPlan(filter: KeyPlanningFilter, output: String => Unit) = getKeyPlan(filter, offset, bits) match {
+    case KeyList(keys) => {
+      output(s"GeoHashKeyPlanner: $keys")
+      KeyListTiered(keys)
+    }
     case KeyAccept => KeyAccept
     case _ => KeyInvalid
   }
@@ -319,46 +322,57 @@ case class GeoHashColumnFamilyPlanner(offset: Int, bits: Int) extends ColumnFami
 
 case class RandomPartitionPlanner(numPartitions: Int) extends KeyPlanner {
   val numBits: Int = numPartitions.toString.length
-  def getKeyPlan(filter: KeyPlanningFilter) = KeyListTiered((0 to numPartitions).map(_.toString.reverse.padTo(numBits,"0").reverse.mkString))
+  def getKeyPlan(filter: KeyPlanningFilter, output: String => Unit) = {
+    val keys = (0 to numPartitions).map(_.toString.reverse.padTo(numBits,"0").reverse.mkString)
+    output(s"Random Partition Planner $keys")
+    KeyListTiered(keys)
+  }
 }
 
 case class ConstStringPlanner(cstr: String) extends KeyPlanner {
-  def getKeyPlan(filter:KeyPlanningFilter) = KeyListTiered(List(cstr))
+  def getKeyPlan(filter:KeyPlanningFilter, output: String => Unit) = KeyListTiered(List(cstr))
 }
 
 case class DatePlanner(formatter: DateTimeFormatter) extends KeyPlanner {
   val endDates = List(9999,12,31,23,59,59,999)
   val startDates = List(0,1,1,0,0,0,0)
-  def getKeyPlan(filter:KeyPlanningFilter) = filter match {
-    case DateFilter(dt) => KeyRange(formatter.print(dt),formatter.print(dt))
-    case SpatialDateFilter(_,dt) => KeyRange(formatter.print(dt),formatter.print(dt))
-    case DateRangeFilter(start,end) => {// @todo - add better ranges for wrap-around case
-      if (formatter.print(start).take(4).toInt == start.getYear && formatter.print(end).take(4).toInt == end.getYear) {
-        // ***ASSUME*** that time components have been provided in order (if they start with the year)!
-        KeyRangeTiered(formatter.print(start), formatter.print(end))
-      } else {
-        val matchedTime = getTimeComponents(start).zip(getTimeComponents(end)).takeWhile(tup => tup._1 == tup._2).map(_._1)
-        val zeroTimeHead: List[Int] = bufferMatchedTime(matchedTime, startDates, start)
-        val zeroTime = extractRelevantTimeUnits(zeroTimeHead, startDates)
-        val endTimeHead = bufferMatchedTime(matchedTime, endDates, end)
-        val endTime = extractRelevantTimeUnits(endTimeHead, endDates)
-        KeyRangeTiered(formatter.print(createDate(zeroTime)),formatter.print(createDate(endTime)))
+  def getKeyPlan(filter:KeyPlanningFilter, output: String => Unit) = {
+    val plan = filter match {
+      case DateFilter(dt) => KeyRange(formatter.print(dt), formatter.print(dt))
+      case SpatialDateFilter(_, dt) => KeyRange(formatter.print(dt), formatter.print(dt))
+      case DateRangeFilter(start,end) => {// @todo - add better ranges for wrap-around case
+        if (formatter.print(start).take(4).toInt == start.getYear && formatter.print(end).take(4).toInt == end.getYear) {
+          // ***ASSUME*** that time components have been provided in order (if they start with the year)!
+          KeyRangeTiered(formatter.print(start), formatter.print(end))
+        } else {
+          val matchedTime = getTimeComponents(start).zip(getTimeComponents(end)).takeWhile(tup => tup._1 == tup._2).map(_._1)
+          val zeroTimeHead: List[Int] = bufferMatchedTime(matchedTime, startDates, start)
+          val zeroTime = extractRelevantTimeUnits(zeroTimeHead, startDates)
+          val endTimeHead = bufferMatchedTime(matchedTime, endDates, end)
+          val endTime = extractRelevantTimeUnits(endTimeHead, endDates)
+          KeyRangeTiered(formatter.print(createDate(zeroTime)),formatter.print(createDate(endTime)))
+        }
       }
-    }
-    case SpatialDateRangeFilter(_,start,end) => {// @todo - add better ranges for wrap-around case
-      if (formatter.print(start).take(4).toInt == start.getYear && formatter.print(end).take(4).toInt == end.getYear) {
-        // ***ASSUME*** that time components have been provided in order (if they start with the year)!
-        KeyRangeTiered(formatter.print(start), formatter.print(end))
-      } else {
-        val matchedTime = getTimeComponents(start).zip(getTimeComponents(end)).takeWhile(tup => tup._1 == tup._2).map(_._1)
-        val zeroTimeHead: List[Int] = bufferMatchedTime(matchedTime, startDates, start)
-        val zeroTime = extractRelevantTimeUnits(zeroTimeHead, startDates)
-        val endTimeHead = bufferMatchedTime(matchedTime, endDates, end)
-        val endTime = extractRelevantTimeUnits(endTimeHead, endDates)
-        KeyRangeTiered(formatter.print(createDate(zeroTime)),formatter.print(createDate(endTime)))
+      case SpatialDateRangeFilter(_, start, end) => {// @todo - add better ranges for wrap-around case
+        if (formatter.print(start).take(4).toInt == start.getYear && formatter.print(end).take(4).toInt == end.getYear) {
+          // ***ASSUME*** that time components have been provided in order (if they start with the year)!
+          KeyRangeTiered(formatter.print(start), formatter.print(end))
+        } else {
+          val matchedTime = getTimeComponents(start).zip(getTimeComponents(end)).takeWhile(tup => tup._1 == tup._2).map(_._1)
+          val zeroTimeHead: List[Int] = bufferMatchedTime(matchedTime, startDates, start)
+          val zeroTime = extractRelevantTimeUnits(zeroTimeHead, startDates)
+          val endTimeHead = bufferMatchedTime(matchedTime, endDates, end)
+          val endTime = extractRelevantTimeUnits(endTimeHead, endDates)
+          KeyRangeTiered(formatter.print(createDate(zeroTime)),formatter.print(createDate(endTime)))
+        }
       }
+      case _ => defaultKeyRange
     }
-    case _ => defaultKeyRange
+    plan match {
+      case KeyRange(start, end) =>          output(s"DatePlanner: start: $start end: $end")
+      case KeyRangeTiered(start, end, _) => output(s"DatePlanner: start: $start end: $end")
+    }
+    plan
   }
 
   def bufferMatchedTime(matchedTime: List[Int], dates: List[Int], time: DateTime): List[Int] =
@@ -392,8 +406,8 @@ case class DatePlanner(formatter: DateTimeFormatter) extends KeyPlanner {
 }
 
 case class CompositePlanner(seq: Seq[KeyPlanner], sep: String) extends KeyPlanner {
-  def getKeyPlan(filter:KeyPlanningFilter): KeyPlan = {
-    val joined = seq.map(_.getKeyPlan(filter)).reduce(_.join(_, sep))
+  def getKeyPlan(filter: KeyPlanningFilter, output: String => Unit): KeyPlan = {
+    val joined = seq.map(_.getKeyPlan(filter, output)).reduce(_.join(_, sep))
     joined match {
       case kt:KeyTiered    => KeyRanges(kt.toRanges(sep))
       case KeyRegex(regex) => joined.join(KeyRegex(".*"), "")

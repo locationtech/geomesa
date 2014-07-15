@@ -64,7 +64,7 @@ class AccumuloDataStore(val connector: Connector,
                         val writeVisibilities: String,
                         val spatioTemporalIdxSchemaFmt: String = "DEFAULT",
                         val featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
-    extends AbstractDataStore(true) with Logging {
+    extends AbstractDataStore(true) with AccumuloConnectorCreator with Logging {
 
   // TODO default to zero shards (needs testing)
   private val DEFAULT_MAX_SHARD = 99
