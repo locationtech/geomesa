@@ -15,6 +15,8 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 )
 class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
 
+  val DEFAULT_MAX_SHARD = 3 // 4 shards
+
   @DescribeResult(name = "layerName", description = "Name of the new featuretype, with workspace")
   def execute(
                @DescribeParameter(
@@ -35,7 +37,14 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
                @DescribeParameter(
                  name = "name",
                  description = "Name of the new featureType or layer name")
-               name: String
+               name: String,
+
+               @DescribeParameter(
+                 name = "numShards",
+                 min = 0,
+                 max= 1,
+                 description = "Number of shards to store for this table (defaults to 4)")
+               numShards: Integer
               ) = {
 
     val workspaceInfo = Option(catalog.getWorkspaceByName(workspace)).getOrElse {
@@ -49,7 +58,9 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
       throw new ProcessException(s"Unable to find store $store in workspace $workspace")
     }
 
-    val targetType = importIntoStore(features, name, storeInfo)
+    val maxShard = Option(numShards).map { n => if(n > 1) n-1 else DEFAULT_MAX_SHARD }.getOrElse(DEFAULT_MAX_SHARD)
+
+    val targetType = importIntoStore(features, name, storeInfo, maxShard)
 
     // import the layer into geoserver
     catalogBuilder.setStore(storeInfo)
@@ -65,7 +76,7 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
     layerInfo.prefixedName
   }
 
-  def importIntoStore(features: SimpleFeatureCollection, name: String, storeInfo: DataStoreInfo) = {
+  def importIntoStore(features: SimpleFeatureCollection, name: String, storeInfo: DataStoreInfo, maxShard: Int) = {
     val ds = storeInfo.getDataStore(null)
     if(!ds.isInstanceOf[AccumuloDataStore]) {
       throw new ProcessException(s"Cannot import into non-AccumuloDataStore of type ${ds.getClass.getName}")
@@ -76,7 +87,7 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
     sftBuilder.init(features.getSchema)
     sftBuilder.setName(name)
     val sft = sftBuilder.buildFeatureType
-    accumuloDS.createSchema(sft)
+    accumuloDS.createSchema(sft, maxShard)
 
     // query the actual SFT stored by the source
     val storedSft = accumuloDS.getSchema(sft.getName)
