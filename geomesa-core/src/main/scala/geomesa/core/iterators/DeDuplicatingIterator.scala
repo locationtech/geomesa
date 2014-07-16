@@ -17,8 +17,9 @@
 package geomesa.core.iterators
 
 import java.util.Map.Entry
-import geomesa.core.util.CloseableIterator
+
 import com.google.common.cache.{Cache, CacheBuilder}
+import geomesa.core.util.CloseableIterator
 import org.apache.accumulo.core.data.{Key, Value}
 
 class KVEntry(akey: Key, avalue: Value) extends Entry[Key, Value] {
@@ -73,11 +74,11 @@ class DeDuplicator(idFetcher: (Key, Value) => String) {
   def isUnique(key:Key, value:Value): Boolean = {
     val id = idFetcher(key, value)
     val entry = cache.getIfPresent(id)
-    if (entry == null) true
-    else {
+    if (entry == null) {
       cache.put(id, dummyConstant)
-      false
+      true
     }
+    else false
   }
 
   def isDuplicate(key: Key, value: Value): Boolean = !isUnique(key, value)
@@ -86,7 +87,6 @@ class DeDuplicator(idFetcher: (Key, Value) => String) {
     if (entry == null || entry.getKey == null) true
     else !isUnique(entry.getKey, entry.getValue)
 
-  // safe to call repeatedly
   def close() {
     cache.invalidateAll()
   }
