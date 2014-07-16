@@ -749,7 +749,7 @@ class AccumuloDataStore(val connector: Connector,
    * Create a BatchScanner to retrieve only Records (SimpleFeatures)
    */
   def createRecordScanner(sft: SimpleFeatureType, numThreads: Int = DEFAULT_RECORD_SCAN_THREADS) = {
-    logger.trace(s"Creating record scanne with $numThreads threads")
+    logger.trace(s"Creating record scanner with $numThreads threads")
     if (catalogTableFormat(sft)) {
       connector.createBatchScanner(getRecordTableForType(sft), authorizationsProvider.getAuthorizations, numThreads)
     } else {

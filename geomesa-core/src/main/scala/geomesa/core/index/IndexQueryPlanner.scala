@@ -3,7 +3,6 @@ package geomesa.core.index
 import java.nio.charset.StandardCharsets
 import java.util.Map.Entry
 
-import com.google.common.collect.Iterators
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Polygon
 import geomesa.core._
@@ -11,8 +10,8 @@ import geomesa.core.data._
 import geomesa.core.filter._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
-import geomesa.core.util.{CloseableIterator, SelfClosingBatchScanner}
-import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
+import geomesa.core.util.{BatchMultiScanner, CloseableIterator, SelfClosingBatchScanner}
+import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
@@ -249,16 +248,35 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     logger.trace(s"Scanning attribute table for feature type ${featureType.getTypeName}")
     val attrScanner = acc.createAttrIdxScanner(featureType)
+    configureAttrScanner(attrScanner, filterVisitor, range)
 
+    val recordScanner = acc.createRecordScanner(featureType)
+    configureSimpleFeatureFilteringIterator(recordScanner, featureType, None, derivedQuery)
+
+    // function to join the attribute index scan results to the record table
+    // since the row id of the record table is in the CF just grab that
+    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(kv.getKey.getColumnFamily)
+    val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
+
+    CloseableIterator(bms.iterator, () => bms.close())
+  }
+
+  /**
+   * Configure an Accumulo scanner, outfitting it with an AttributeIndexFilteringIterator
+   * if necessary and setting the range.
+   */
+  def configureAttrScanner(attrScanner: Scanner, filterVisitor: FilterToAccumulo, range: AccRange) = {
     val spatialOpt =
       for {
-          sp    <- Option(filterVisitor.spatialPredicate)
-          env  = sp.getEnvelopeInternal
-          bbox = List(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY).mkString(",")
+        sp   <- Option(filterVisitor.spatialPredicate)
+        env  = sp.getEnvelopeInternal
+        bbox = List(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY).mkString(",")
       } yield AttributeIndexFilteringIterator.BBOX_KEY -> bbox
 
     val dtgOpt = Option(filterVisitor.temporalPredicate).map(AttributeIndexFilteringIterator.INTERVAL_KEY -> _.toString)
     val opts = List(spatialOpt, dtgOpt).flatten.toMap
+
+    // Set only if there is a spatial or temporal predicate...else the range finds everything we need
     if(!opts.isEmpty) {
       val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
         "attrIndexFilter",
@@ -269,25 +287,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     logger.trace(s"Attribute Scan Range: ${range.toString}")
     attrScanner.setRange(range)
-
-    import scala.collection.JavaConversions._
-    val ranges = attrScanner.iterator.map(_.getKey.getColumnFamily).map(new AccRange(_))
-
-    val recScanner = if(ranges.hasNext) {
-      val recordScanner = acc.createRecordScanner(featureType)
-      recordScanner.setRanges(ranges.toList)
-      configureSimpleFeatureFilteringIterator(recordScanner, featureType, None, derivedQuery)
-      Some(recordScanner)
-    } else None
-
-    val iter = recScanner.map(_.iterator()).getOrElse(Iterators.emptyIterator[Entry[Key, Value]])
-
-    def close(): Unit = {
-      recScanner.foreach(_.close)
-      attrScanner.close
-    }
-
-    CloseableIterator(iter, close)
   }
 
   def stIdxQuery(acc: AccumuloConnectorCreator,
@@ -455,7 +454,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     map(i => Random.nextPrintableChar()).mkString
 
   def planQuery(bs: BatchScanner, filter: KeyPlanningFilter, output: String => Unit): BatchScanner = {
-    output(s"Planning query/configurating batch scanner: $bs")
+    output(s"Planning query/configuring batch scanner: $bs")
     val keyPlan = keyPlanner.getKeyPlan(filter, output)
     val columnFamilies = cfPlanner.getColumnFamiliesToFetch(filter)
 
