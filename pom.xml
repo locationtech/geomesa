@@ -74,6 +74,14 @@
         </profile>
     </profiles>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>repo.eclipse.org</id>
+            <name>GeoMesa Repository - Snapshots</name>
+            <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
