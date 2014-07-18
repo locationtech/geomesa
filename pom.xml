@@ -28,7 +28,6 @@
         <module>geomesa-core</module>
         <module>geomesa-distributed-runtime</module>
         <module>geomesa-plugin</module>
-        <module>geomesa-dist</module>
         <module>geomesa-filter</module>
         <module>geomesa-feature</module>
     </modules>
