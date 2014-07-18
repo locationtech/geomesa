@@ -23,6 +23,8 @@ import java.{util => ju}
 import com.google.common.collect._
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
+import geomesa.core._
+import geomesa.core.index.{IndexEntryDecoder, IndexSchema, GeohashDecoder}
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.Conversions.{RichSimpleFeatureIterator, RichSimpleFeature}
 import geomesa.utils.geotools.GridSnap
@@ -52,6 +54,8 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
   var snap: GridSnap = null
   var topDensityKey: Option[Key] = None
   var topDensityValue: Option[Value] = None
+  protected var decoder: IndexEntryDecoder = null
+  var prevSeq: Set[Coordinate] = Set[Coordinate]()
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: ju.Map[String, String],
@@ -62,6 +66,9 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
     snap = new GridSnap(bbox, w, h)
     projectedSFT = DataUtilities.createType(simpleFeatureType.getTypeName, DENSITY_FEATURE_STRING)
     featureBuilder = AvroSimpleFeatureFactory.featureBuilder(projectedSFT)
+    val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
+    decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
+    var prevSeq: Set[Coordinate] = Set[Coordinate]()
   }
 
   /**
@@ -79,7 +86,12 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
     super.next()
     while(super.hasTop && !curRange.afterEndKey(topKey)) {
       topDensityKey = Some(topKey)
+
       val feature = featureOption.getOrElse(featureEncoder.decode(simpleFeatureType, topValue))
+      // if point leave as is, else intersect the geom with the geohash
+      // actually I may want to intersect all geoms, what about points in various geohashes...
+      val geoHashGeom = decoder.decode(topKey).getDefaultGeometry.asInstanceOf[Geometry]
+
       geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
       geometry match {
         case point: Point =>
@@ -87,23 +99,23 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
 
         case multiPoint: MultiPoint =>
           (0 until multiPoint.getNumGeometries).foreach {
-            i => addResultPoint(multiPoint.getGeometryN(i).asInstanceOf[Point])
+            i => addResultPoint(multiPoint.getGeometryN(i).intersection(geoHashGeom).asInstanceOf[Point])
           }
 
         case line: LineString =>
-          handleLineString(line)
+          handleLineString(line.intersection(geoHashGeom).asInstanceOf[LineString])
 
         case multiLineString: MultiLineString =>
           (0 until multiLineString.getNumGeometries).foreach {
-           i => handleLineString(multiLineString.getGeometryN(i).asInstanceOf[LineString])
+           i => handleLineString(multiLineString.getGeometryN(i).intersection(geoHashGeom).asInstanceOf[LineString])
           }
 
         case polygon: Polygon =>
-          handlePolygon(polygon)
+          handlePolygon(polygon.intersection(geoHashGeom).asInstanceOf[Polygon])
 
         case multiPolygon: MultiPolygon =>
           (0 until multiPolygon.getNumGeometries).foreach {
-            i => handlePolygon(multiPolygon.getGeometryN(i).asInstanceOf[Polygon])
+            i => handlePolygon(multiPolygon.getGeometryN(i).intersection(geoHashGeom).asInstanceOf[Polygon])
           }
 
       }

@@ -101,16 +101,18 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
 
   /** Generate a Sequence of Coordinates between two given Snap Coordinates which includes both start and end points*/
   def generateLineCoordSeq(coordOne: Coordinate, coordTwo: Coordinate): Seq[Coordinate] ={
-    bresenhamCoordSeq(i(coordOne.x), j(coordOne.y), i(coordTwo.x), j(coordTwo.y)) .+: (coordOne)
-    //add back the first coord
+    val s = bresenhamCoordSeq(i(coordOne.x), j(coordOne.y), i(coordTwo.x), j(coordTwo.y)) :+
+    (new Coordinate(coordOne.x, coordOne.y)) :+ (new Coordinate(coordTwo.x, coordTwo.y))
+    //add back the start and end coordinates, finally assure we have no duplicate points
+    s.toSeq
   }
 
   /** return a SimpleFeatureSource grid the same size and extent as the bbox */
   def generateCoverageGrid():SimpleFeatureSource = {
     val dxt = env.getWidth / (xSize)
     val dyt = env.getHeight / (ySize)
-    val tempBounds = new ReferencedEnvelope(env.getMinX, env.getMaxX, env.getMinY, env.getMaxY, DefaultGeographicCRS.WGS84)
-    val gridBounds = Envelopes.expandToInclude(tempBounds, max(dxt, dyt))
+    val gridBounds = new ReferencedEnvelope(env.getMinX, env.getMaxX, env.getMinY, env.getMaxY, DefaultGeographicCRS.WGS84)
+    //= Envelopes.expandToInclude(tempBounds, max(dxt, dyt))
     val gridBuilder = new DefaultGridFeatureBuilder()
     val grid = Oblongs.createGrid(gridBounds, dxt, dyt, gridBuilder)
     grid
