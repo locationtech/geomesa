@@ -24,7 +24,7 @@ import com.google.common.collect._
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import geomesa.feature.AvroSimpleFeatureFactory
-import geomesa.utils.geotools.Conversions.RichSimpleFeature
+import geomesa.utils.geotools.Conversions.{RichSimpleFeatureIterator, RichSimpleFeature}
 import geomesa.utils.geotools.GridSnap
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.IteratorSetting
@@ -73,34 +73,39 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
     result.clear()
     topDensityKey = None
     topDensityValue = None
-    var geometry: AnyRef = None
+    var geometry:Geometry = null
     var featureOption: Option[SimpleFeature] = Option(nextFeature)
 
     super.next()
     while(super.hasTop && !curRange.afterEndKey(topKey)) {
       topDensityKey = Some(topKey)
       val feature = featureOption.getOrElse(featureEncoder.decode(simpleFeatureType, topValue))
-      geometry = feature.getDefaultGeometry
+      geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
       geometry match {
         case point: Point =>
           addResultPoint(point)
+
         case multiPoint: MultiPoint =>
           (0 until multiPoint.getNumGeometries).foreach {
             i => addResultPoint(multiPoint.getGeometryN(i).asInstanceOf[Point])
           }
+
         case line: LineString =>
           handleLineString(line)
-        // MultiLineString how about overlapping line components of a given MultiLineString?
+
         case multiLineString: MultiLineString =>
           (0 until multiLineString.getNumGeometries).foreach {
            i => handleLineString(multiLineString.getGeometryN(i).asInstanceOf[LineString])
           }
+
         case polygon: Polygon =>
           handlePolygon(polygon)
+
         case multiPolygon: MultiPolygon =>
           (0 until multiPolygon.getNumGeometries).foreach {
             i => handlePolygon(multiPolygon.getGeometryN(i).asInstanceOf[Polygon])
           }
+
       }
       // get the next feature that will be returned before calling super.next(), for the next loop
       // iteration, where it will the the feature corresponding to topValue
@@ -126,7 +131,7 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
   def handleLineString(inLine: LineString) = {
     val lineCoordSet = inLine.getCoordinates.sliding(2).flatMap {
       case Array(p0, p1) =>
-        snap.generateLineCoordSeq(p0.asInstanceOf[Coordinate], p1.asInstanceOf[Coordinate])
+        snap.generateLineCoordSeq(p0, p1)
     }.toSet
     lineCoordSet.foreach(c => addResultCoordinate(c))
   }
@@ -134,15 +139,15 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
   /** for a given polygon, take the centroid of each polygon from the BBOX coverage grid
     * if the given polygon contains the centroid then it is passed on to addResultPoint */
   def handlePolygon(inPolygon: Polygon) = {
-    val grid = snap.generateCoverageGrid()
+    val grid = snap.generateCoverageGrid
     val gridFeatures = grid.getFeatures
     val featureIterator = gridFeatures.features
     while(featureIterator.hasNext) {
       val thisFeature = featureIterator.next
       val thisGeom = thisFeature.getDefaultGeometry.asInstanceOf[Polygon]
-      if (inPolygon.intersects(thisGeom)){ addResultPoint(thisGeom.getCentroid) }
+      if (inPolygon.intersects(thisGeom)) addResultPoint(thisGeom.getCentroid)
     }
-    featureIterator.close()
+    featureIterator.close
   }
 
   /** calls addResultCoordinate on a given Point's coordinate */
