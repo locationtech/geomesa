@@ -16,6 +16,8 @@
 
 package geomesa.utils.geohash
 
+import geomesa.utils.CartesianProductIterable
+
 import collection.BitSet
 import collection.immutable.Range.Inclusive
 import collection.mutable.{HashSet => MutableHashSet}
@@ -23,6 +25,7 @@ import com.spatial4j.core.context.jts.JtsSpatialContext
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import geomesa.utils.text.WKTUtils
+import scala.collection.immutable.HashSet
 import scala.util.control.Exception.catching
 
 /**
@@ -108,25 +111,6 @@ object GeohashUtils
 
   // default factory for WGS84
   val defaultGeometryFactory : GeometryFactory = new GeometryFactory(defaultPrecisionModel, 4326)
-
-  /**
-   * Converts a GeoHash to a geometry by way of WKT.
-   *
-   * @param gh the GeoHash -- rectangle -- to convert
-   * @return the Geometry version of this GeoHash
-   */
-  def getGeohashGeom(gh:GeoHash) : Geometry = {
-    val ring : LinearRing = defaultGeometryFactory.createLinearRing(
-      Array(
-        new Coordinate(gh.bbox.ll.getX, gh.bbox.ll.getY),
-        new Coordinate(gh.bbox.ll.getX, gh.bbox.ur.getY),
-        new Coordinate(gh.bbox.ur.getX, gh.bbox.ur.getY),
-        new Coordinate(gh.bbox.ur.getX, gh.bbox.ll.getY),
-        new Coordinate(gh.bbox.ll.getX, gh.bbox.ll.getY)
-      )
-    )
-    defaultGeometryFactory.createPolygon(ring, null)
-  }
 
   def getGeohashPoints(gh:GeoHash) : (Point, Point, Point, Point, Point, Point) = {
     // the bounding box is the basis for all of these points
@@ -245,7 +229,7 @@ object GeohashUtils
 
     // validate that you found a usable result
     val gh = ghOpt.getOrElse(GeoHash(centroid.getX, centroid.getY, resolutions.minBitsResolution))
-    if (!gh.contains(env))
+    if (!(gh.contains(env) || gh.geom.equals(env)))
       throw new Exception("ERROR:  Could not find a suitable " +
         resolutions.minBitsResolution + "-bit MBR for the target geometry:  " +
         geom)
@@ -719,12 +703,34 @@ object GeohashUtils
    * The full GeoHashes from which the sub-strings are extracted are computed
    * at 35 bits.
    *
-   * NB:  If the query-polygon crosses one of the principal mid-points (0
-   * latitude or longitude), you may end up with a 0-bit GeoHash being the
-   * best choice for minimum-bounding GeoHash, and computing the "%3,2#gh"
-   * with that covering can be prohibitively slow.  To combat that problem,
-   * we first decompose the polygon into its four (or fewer) best covering
-   * GeoHash rectangles, and build up the list from those patches.
+   * Computing all of the 35-bit GeoHashes that intersect with the target
+   * geometry can take too long.  Instead, we start with the minimum-bounding
+   * GeoHash (which might be 0 bits), and recursively dividing it in two
+   * while remembering those GeoHashes that are completely contained in the
+   * target geometry.  This has a few advantages:
+   *
+   * 1.  we can stop recursing into GeoHashes at the coarsest
+   *     level (largest geometry) possible when they stop intersecting
+   *     the target geometry;
+   * 2.  instead of enumerating all of the GeoHashes that intersect, we
+   *     can stop as soon as we know that all possible children are known
+   *     to be inside the target geometry; that is, if a 13-bit GeoHash
+   *     is covered by the target, then we know that all 15-bit GeoHashes
+  *     that are its children will also be covered by the target
+   * 3.  if we ever find a GeoHash that is entirely covered by the target
+   *     geometry whose precision is no more than 5 times the "offset"
+   *     parameter's number of bits, then we can stop, because all possible
+   *     combinations are known to be used
+   *
+   * As an example, consider trying to enumerate the (3, 2) sub-strings of
+   * GeoHashes in a polygon that is only slightly inset within the
+   * Southern hemisphere.  This implicates a large number of 25-bit
+   * GeoHashes, but as soon as one of the GeoHashes that has 15 or fewer
+   * bits is found that is covered by the target, the search can stop
+   * for unique prefixes, because all of its 25-bit children will be
+   * distinct and will also be covered by the target.
+   *
+   * This is easier to explain with pictures.
    *
    * @param poly the query-polygon that must intersect candidate GeoHashes
    * @param offset how many of the left-most GeoHash characters to skip
@@ -741,56 +747,109 @@ object GeohashUtils
                                           bits: Int,
                                           MAX_KEYS_IN_LIST: Int = Int.MaxValue): Seq[String] = {
 
-    // decompose the polygon (to avoid median-crossing polygons
-    // that can require a HUGE amount of unnecessary work)
-    val coverings = decomposeGeometry(
-      poly, 4, ResolutionRange(0, Math.min(35, 5 * (offset + bits)), 5))
-
-    // mutable!
-    val memoized = MutableHashSet.empty[String]
-
+    val allResolutions = ResolutionRange(0, Math.min(35, 5 * (offset + bits)), 1)
     val maxKeys = Math.min(1 << (bits * 5), MAX_KEYS_IN_LIST)
+    val maxBits = (offset + bits) * 5
+    val minBits = offset * 5
 
-    // utility class only needed within this method
-    case class GH(gh: GeoHash) {
-      def hash = gh.hash
-      def bbox = gh.bbox
-      lazy val subHash: Option[String] = {
-        if (gh.hash.length >= (offset+bits))
-          Option(gh.hash.drop(offset).take(bits))
-        else None
+    // find the smallest GeoHash you can that covers the target geometry
+    val ghMBR = getMinimumBoundingGeohash(poly, allResolutions)
+
+    // mutable state containing the set of unique bit-string prefixes
+    // that are wholly contained in the target geometry
+    object BitPrefixes {
+      // mutable state
+      val prefixes = collection.mutable.HashSet[String]()
+      var entailedSize: Int = 0
+      var usesAll = false
+
+      // pre-compute a few items that can be re-used later
+      val base32Padding = (0 to 7).map(i => List.fill(i)(base32seq))
+      val binaryPadding = (0 to 4).map(i => List.fill(i)(Seq('0', '1')))
+
+      def add(prefix: String) =
+        if (prefix.length <= maxBits) {
+          prefixes.add(prefix)
+          if (prefix.length <= minBits) usesAll = true
+          entailedSize = entailedSize + (1 << (maxBits - prefix.length))
+        }
+
+      // the number of (compatible) prefixes stored
+      def size: Int = prefixes.size
+
+      // the loose inequality is so that we can detect overflow
+      def hasRoom = entailedSize <= maxKeys
+
+      def notDone = !usesAll && hasRoom
+
+      def overflowed =
+        if (usesAll) {
+          (1 << maxBits) > maxKeys
+        } else {
+          entailedSize > maxKeys
+        }
+
+      // generate all combinations of GeoHash strings of
+      // the desired length
+      def generateAll(prefix: String): Seq[String] = {
+        val prefixHash = GeoHash.fromBinaryString(prefix).hash
+        if (prefixHash.length < bits) {
+          val charSeqs = base32Padding(bits - prefixHash.length)
+          CartesianProductIterable(charSeqs).toList.map(prefixHash + _.mkString)
+        } else Seq(prefixHash)
       }
-      def canProceed = !subHash.isDefined ||
-        (memoized.size < maxKeys && !memoized.contains(subHash.get) && poly.intersects(bbox.geom))
+
+      def generateSome: Seq[String] = {
+        prefixes.foldLeft(HashSet[String]())((ghsSoFar, prefix) => {
+          // fill out this prefix to the next 5-bit boundaries
+          val bitsToBoundary = (65 - prefix.length) % 5
+          val bases =
+            if (bitsToBoundary == 0) Seq(prefix)
+            else {
+              val fillers = binaryPadding(bitsToBoundary)
+              val result = CartesianProductIterable(fillers).toList.map(prefix + _.mkString)
+              result
+            }
+          bases.foldLeft(ghsSoFar)((ghs, base) => {
+            val baseTrimmed = base.drop(minBits)
+            val newSubs = generateAll(baseTrimmed)
+            ghs ++ newSubs
+          })
+        }).toSeq
+      }
+
+      def toSeq: Seq[String] =
+        if (usesAll) generateAll("")
+        else generateSome
     }
 
-    def consider(gh: GH, charsLeft: Int) {
-      if (memoized.size < maxKeys) {
-        if (charsLeft > 0) {
-          for {
-            newChar <- base32seq
-            newGH = GH(GeoHash(gh.hash + newChar)) if newGH.canProceed
-          } yield consider(newGH, charsLeft - 1)
-        } else {
-          memoized.add(gh.subHash.get)
+    // assume that this method is never called on a GeoHash
+    // whose binary-string encoding is too long
+    def considerCandidate(candidate: GeoHash) {
+      val bitString = candidate.toBinaryString
+
+      if (!poly.intersects(candidate.geom)) return;
+
+      if (poly.covers(candidate.geom) || (bitString.size == maxBits)) {
+        BitPrefixes.add(bitString)
+      } else {
+        if (bitString.size < maxBits) {
+          // recurse into both children of this GeoHash
+          if (BitPrefixes.notDone) considerCandidate(GeoHash.fromBinaryString(bitString + "0"))
+          if (BitPrefixes.notDone) considerCandidate(GeoHash.fromBinaryString(bitString + "1"))
         }
       }
     }
 
-    // find the qualifying GeoHashes within these covering rectangles
-    coverings.foreach { coveringPatch =>
-      // how many characters total are left within this patch?
-      val numCharsLeft = offset + bits - coveringPatch.hash.length
-      consider(GH(coveringPatch), numCharsLeft)
-    }
+    // compute the list of acceptable prefixes
+    if (ghMBR.prec <= maxBits) considerCandidate(ghMBR)
+    else BitPrefixes.add(ghMBR.toBinaryString.drop(minBits).take(bits * 5))
 
-    // add dotted versions, if appropriate (to match decomposed GeoHashes that
-    // may be encoded at less than a full 35-bits precision)
-    if (memoized.size < maxKeys) {
-      // STOP as soon as you've exceeded the maximum allowable entries
-      val keepers = getGeohashStringDottingIterator(
-        memoized, MAX_KEYS_IN_LIST).toSet
-      if (keepers.size <= MAX_KEYS_IN_LIST) keepers.toSeq else Seq()
-    } else Seq()
+    // detect overflow
+    if (BitPrefixes.overflowed) return Seq()
+
+    // not having overflowed, turn the collection of disjoint prefixes
+    // into a list of full geohash substrings
+    BitPrefixes.toSeq
   }
 }
