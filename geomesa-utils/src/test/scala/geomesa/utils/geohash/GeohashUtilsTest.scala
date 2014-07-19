@@ -100,17 +100,64 @@ class GeohashUtilsTest extends Specification with Logging {
     }
   })
 
-  "getUniqueGeohashSubstringsInPolygon" should {
-    "do something useful" in {
-      val polygonCharlottesville = wkt2geom(testData(
-        "[POLYGON] Charlottesville")._4).asInstanceOf[Polygon]
-      val ghSubstrings = getUniqueGeohashSubstringsInPolygon(
-        polygonCharlottesville, 2, 3, 1<<15)
+  def validateGeohashSubstrings(geom: Geometry, offset: Int, bits: Int, subs: Seq[String]) {
+    import java.io._
+    val file = File.createTempFile("subhashes_", ".txt", new File("/tmp"))
+    val pw = new PrintWriter(new BufferedWriter(new FileWriter(file)))
+    pw.println(s"wkt\tweight")
 
-      if(DEBUG_OUTPUT)
+    // write out the target geometry
+    pw.println(WKTUtils.write(geom) + "\t1")
+
+    // write out the covering GeoHashes at this precision,
+    val rghi = RectangleGeoHashIterator(geom, (offset + bits) * 5)
+    val iteratedSubs = rghi.map { gh =>
+      pw.println(WKTUtils.write(gh.geom) + "\t2")
+      gh.hash.drop(offset).take(bits)
+    }.toSet
+
+    logger.debug("\n[VALIDATE GEOHASH SUBS]")
+    logger.debug(s"  Geometry:  " + WKTUtils.write(geom))
+    logger.debug(s"  Range sought:  ($offset, $bits)")
+    logger.debug(s"  Iterated:  " + iteratedSubs.size + " unique sub-strings")
+    logger.debug(s"  Computed:  " + subs.size + " unique sub-strings")
+    logger.debug(s"  Mismatches")
+    logger.debug(s"    i - c:  " + (iteratedSubs -- subs.toSet).size)
+    logger.debug(s"    c - i:  " + (subs.toSet -- iteratedSubs).size)
+
+    pw.close()
+  }
+
+  "getUniqueGeohashSubstringsInPolygon" should {
+    val polygonCharlottesville = wkt2geom(testData(
+      "[POLYGON] Charlottesville")._4).asInstanceOf[Polygon]
+
+    def testGeohashSubstringsInCharlottesville(offset: Int, bits: Int): Int = {
+      val ghSubstrings = getUniqueGeohashSubstringsInPolygon(
+        polygonCharlottesville, offset, bits, 1<<15)
+
+      if (DEBUG_OUTPUT)
         ghSubstrings.foreach { gh => logger.debug("[unique Charlottesville gh(2,3)] " + gh)}
 
-      ghSubstrings.size must be equalTo(9)
+      validateGeohashSubstrings(polygonCharlottesville, offset, bits, ghSubstrings)
+
+      ghSubstrings.size
+    }
+
+    "compute (0,2) correctly for Charlottesville" in {
+      testGeohashSubstringsInCharlottesville(0, 2) must be equalTo 1
+    }
+
+    "compute (2,3) correctly for Charlottesville" in {
+      testGeohashSubstringsInCharlottesville(2, 3) must be equalTo 6
+    }
+
+    "compute (0,3) correctly for Charlottesville" in {
+      testGeohashSubstringsInCharlottesville(0, 3) must be equalTo 1
+    }
+
+    "compute (3,2) correctly for Charlottesville" in {
+      testGeohashSubstringsInCharlottesville(3, 2) must be equalTo 6
     }
   }
 
@@ -131,6 +178,38 @@ class GeohashUtilsTest extends Specification with Logging {
             decomposed.contains(excludedPoint) must equalTo(false)
         }
       }
+    }
+  }
+
+  "performance test for getUniqueGeohashSubstringsInPolygon" should {
+    "collect timing data" in {
+      val poly = wkt2geom("POLYGON((-170 -80, -170 0, -170 80, 0 80, 170 80, 170 0, 170 -80, 0 -80, -170 -80))").asInstanceOf[Polygon]
+      val burnInTrials = 10
+      val collectTrials = 100
+      val expectedResults = 27588
+
+      logger.debug(s"[TIMING POLYGON] $poly")
+
+      def runTest(label: String, count: Int, maxCount: Int) = {
+        val ghs = getUniqueGeohashSubstringsInPolygon(poly, 0, 3, 1 << 15)
+        if (ghs.size != expectedResults)
+          throw new Exception(s"Wrong number of GeoHash sub-string results:  ${ghs.size} (expected $expectedResults)")
+      }
+
+      // perform a few trials to get everything warmed up
+      (0 until burnInTrials).foreach(i => runTest("BURN-IN", i, burnInTrials))
+
+      // perform the trials you want to time
+      val msStart = System.currentTimeMillis()
+      (0 until collectTrials).foreach(i => runTest("COLLECT", i, collectTrials))
+      val msStop = System.currentTimeMillis()
+      val msElapsed = msStop - msStart
+
+      // output results
+      logger.debug(s"\n[TIMING SUBSTRINGS] $collectTrials invocations over " +
+        (msElapsed / 1000.0) + " seconds" +
+        " -> " + (msElapsed / collectTrials) + " ms/invocation\n\n"
+      )
     }
   }
 }
