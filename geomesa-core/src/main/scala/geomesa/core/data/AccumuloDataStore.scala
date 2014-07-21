@@ -17,16 +17,14 @@
 
 package geomesa.core.data
 
-import java.io.Serializable
 import java.util.{Map => JMap}
 
 import com.google.common.collect.ImmutableSortedSet
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core
 import geomesa.core.data.AccumuloDataStore._
-import geomesa.core.data.AccumuloFeatureWriter.MapReduceRecordWriter
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
-import geomesa.core.index.{IndexSchema, TemporalIndexCheck}
+import geomesa.core.index.{IndexSchema, IndexSchemaBuilder, TemporalIndexCheck}
 import geomesa.core.security.AuthorizationsProvider
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
@@ -62,21 +60,40 @@ class AccumuloDataStore(val connector: Connector,
                         val catalogTable: String,
                         val authorizationsProvider: AuthorizationsProvider,
                         val writeVisibilities: String,
-                        val spatioTemporalIdxSchemaFmt: String = "DEFAULT",
+                        val spatioTemporalIdxSchemaFmt: Option[String] = None,
+                        val queryThreadsConfig: Option[Int] = None,
+                        val recordThreadsConfig: Option[Int] = None,
+                        val writeThreadsConfig: Option[Int] = None,
                         val featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
     extends AbstractDataStore(true) with AccumuloConnectorCreator with Logging {
 
-  // TODO default to zero shards (needs testing)
-  private val DEFAULT_MAX_SHARD = 99
+  // having at least as many shards as tservers provides optimal parallelism in queries
+  private val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
 
-  // TODO configurable and lower default
-  private val DEFAULT_SPATIO_TEMPORAL_IDX_SCAN_THREADS = 100
+  // record scans are single-row ranges - increasing the threads too much actually causes performance to decrease
+  private val recordScanThreads = recordThreadsConfig.getOrElse(10)
 
-  // TODO configurable and lower default
-  private val DEFAULT_RECORD_SCAN_THREADS = 20
+  private val writeThreads = writeThreadsConfig.getOrElse(10)
 
+  // cap on the number of threads for any one query
+  // if we let threads get too high, performance will suffer for simultaneous clients
+  private val MAX_QUERY_THREADS = 15
+
+  // floor on the number of query threads, even if the number of shards is 1
+  private val MIN_QUERY_THREADS = 5
+
+  // equivalent to: s"%~#s%$maxShard#r%${name}#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
   private def buildDefaultSpatioTemporalSchema(name: String, maxShard: Int) =
-    s"%~#s%$maxShard#r%${name}#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
+    new IndexSchemaBuilder("~")
+      .randomNumber(maxShard)
+      .constant(name)
+      .geoHash(0, 3)
+      .date("yyyyMMdd")
+      .nextPart()
+      .geoHash(3, 2)
+      .nextPart()
+      .id()
+      .build()
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
@@ -91,7 +108,7 @@ class AccumuloDataStore(val connector: Connector,
   private val tableOps = connector.tableOperations()
 
   if (!tableOps.exists(catalogTable)) {
-    tableOps.create(catalogTable)
+    tableOps.create(catalogTable, true, TimeType.LOGICAL)
   }
 
   /**
@@ -123,7 +140,7 @@ class AccumuloDataStore(val connector: Connector,
         None
       }
     }
-    val featureEncodingValue        = fe.toString
+    val featureEncodingValue        = /*_*/fe.toString/*_*/
     val spatioTemporalIdxTableValue = formatSpatioTemporalIdxTableName(catalogTable, sft)
     val attrIdxTableValue           = formatAttrIdxTableName(catalogTable, sft)
     val recordTableValue            = formatRecordTableName(catalogTable, sft)
@@ -245,12 +262,12 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   // Computes the schema, checking for the "DEFAULT" flag
-  def computeSpatioTemporalSchema(featureName: String, maxShard: Int): String =
-    if (spatioTemporalIdxSchemaFmt.equalsIgnoreCase("DEFAULT")) {
-      buildDefaultSpatioTemporalSchema(featureName, maxShard)
-    } else {
-      spatioTemporalIdxSchemaFmt
+  def computeSpatioTemporalSchema(featureName: String, maxShard: Int): String = {
+    spatioTemporalIdxSchemaFmt match {
+      case None => buildDefaultSpatioTemporalSchema(featureName, maxShard)
+      case Some(schema) => schema
     }
+  }
 
   /**
    * Compute the GeoMesa SpatioTemporal Schema, create tables, and write metadata to catalog
@@ -259,6 +276,10 @@ class AccumuloDataStore(val connector: Connector,
    * @param maxShard numerical id of the max shard (creates maxShard + 1 splits)
    */
   def createSchema(featureType: SimpleFeatureType, maxShard: Int) {
+    if (maxShard != DEFAULT_MAX_SHARD && spatioTemporalIdxSchemaFmt.isDefined) {
+      logger.warn("Calling create schema with a custom index format AND a custom shard number. " +
+                  "The custom index format will take precedence.")
+    }
     val spatioTemporalSchema = computeSpatioTemporalSchema(getFeatureName(featureType), maxShard)
     createTablesForType(featureType, maxShard)
     writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
@@ -266,8 +287,8 @@ class AccumuloDataStore(val connector: Connector,
 
   /**
    * GeoTools API createSchema() method for a featureType...creates tables with
-   * DEFAULT_MAX_SHARD + 1 splits. To control the number of splits use the
-   * createSchema(featureType, maxShard) method
+   * ${numTabletServers} splits. To control the number of splits use the
+   * createSchema(featureType, maxShard) method or a custom index schema format.
    *
    * @param featureType
    */
@@ -306,8 +327,8 @@ class AccumuloDataStore(val connector: Connector,
    * @param mutations
    */
   private def writeMutations(mutations: Mutation*): Unit = {
-    // TODO config should be configurable...
-    val writer = connector.createBatchWriter(catalogTable,  10000L, 300, 10)
+	// TODO memory should be configurable
+    val writer = connector.createBatchWriter(catalogTable, 10000L, 300, writeThreads)
     for (mutation <- mutations) {
       writer.addMutation(mutation)
     }
@@ -381,7 +402,7 @@ class AccumuloDataStore(val connector: Connector,
     val storedSchema = readMetadataItem(featureName, SCHEMA_CF).getOrElse("")
     // if they did not specify a custom schema (e.g. indexSchemaFormat == DEFAULT), just use the
     // stored metadata
-    if (storedSchema != configuredSchema && spatioTemporalIdxSchemaFmt != "DEFAULT") {
+    if (storedSchema != configuredSchema && spatioTemporalIdxSchemaFmt.isDefined) {
       Some(s"$SCHEMA_CF = '$configuredSchema', should be '$storedSchema'")
     } else {
       None
@@ -725,13 +746,9 @@ class AccumuloDataStore(val connector: Connector,
    * Create a BatchScanner for the SpatioTemporal Index Table
    */
   def createSTIdxScanner(sft: SimpleFeatureType): BatchScanner = {
-    val numThreads =
-      if (catalogTableFormat(sft)) {
-        getSpatioTemporalMaxShard(sft) + 1 // num splits is maxShard + 1
-      } else {
-        DEFAULT_SPATIO_TEMPORAL_IDX_SCAN_THREADS
-      }
-
+    // use provided thread count, or the number of shards (with min/max checks)
+    val numThreads = queryThreadsConfig.getOrElse(Math.min(MAX_QUERY_THREADS,
+                       Math.max(MIN_QUERY_THREADS, getSpatioTemporalMaxShard(sft))))
     createSpatioTemporalIdxScanner(sft, numThreads)
   }
 
@@ -749,7 +766,7 @@ class AccumuloDataStore(val connector: Connector,
   /**
    * Create a BatchScanner to retrieve only Records (SimpleFeatures)
    */
-  def createRecordScanner(sft: SimpleFeatureType, numThreads: Int = DEFAULT_RECORD_SCAN_THREADS) = {
+  def createRecordScanner(sft: SimpleFeatureType, numThreads: Int = recordScanThreads) = {
     logger.trace(s"Creating record scanne with $numThreads threads")
     if (catalogTableFormat(sft)) {
       connector.createBatchScanner(getRecordTableForType(sft), authorizationsProvider.getAuthorizations, numThreads)
@@ -838,46 +855,3 @@ object AccumuloDataStore {
 
 }
 
-/**
- *
- * @param connector        Accumulo connector
- * @param tableName        The name of the Accumulo table contains the various features
- * @param authorizationsProvider   Provides the authorizations used to access data
- * @param writeVisibilities visibilities to be applied to any data written by this store
- * @param params           The parameters used to create this datastore.
- *
- *                         This class provides an additional writer which can be accessed by
- *                         createMapReduceFeatureWriter(featureName, context)
- *
- *                         This writer is appropriate for use inside a MapReduce job.  We explicitly do not override the default
- *                         createFeatureWriter so that we have both available.
- */
-class MapReduceAccumuloDataStore(connector: Connector,
-                                 tableName: String,
-                                 authorizationsProvider: AuthorizationsProvider,
-                                 writeVisibilities: String,
-                                 val params: JMap[String, Serializable],
-                                 indexSchemaFormat: String = "DEFAULT",
-                                 featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
-    extends AccumuloDataStore(connector, tableName, authorizationsProvider, writeVisibilities,
-                               indexSchemaFormat, featureEncoding) {
-
-  override def getFeatureSource(featureName: String): SimpleFeatureSource = {
-    validateMetadata(featureName)
-    checkWritePermissions(featureName)
-    new MapReduceAccumuloFeatureStore(this, featureName)
-  }
-
-  def createMapReduceFeatureWriter(featureName: String, context: TASKIOCTX): SFFeatureWriter = {
-    validateMetadata(featureName)
-    checkWritePermissions(featureName)
-    val featureType = getSchema(featureName)
-    val idxFmt = getIndexSchemaFmt(featureName)
-    val fe = getFeatureEncoder(featureName)
-    val idx = IndexSchema(idxFmt, featureType, fe)
-    val writer = new MapReduceRecordWriter(context)
-    // TODO allow deletes? modifications?
-    new AppendAccumuloFeatureWriter(featureType, idx, connector, fe, writeVisibilities, this)
-  }
-
-}
