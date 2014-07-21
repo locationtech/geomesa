@@ -36,5 +36,12 @@
     </root>
 
     <logger name="org.apache.zookeeper" level="INFO" />
+
+    <!-- un-comment this next line to expose the TRACE-level text output
+         from the IndexQueryPlanner concerning filters, transformations,
+         rewriting, etc. that can be extremely useful for query debugging -->
+    <!--
+    <logger name="geomesa.core.index.IndexQueryPlanner" level="TRACE" />
+    -->
 </configuration>
 

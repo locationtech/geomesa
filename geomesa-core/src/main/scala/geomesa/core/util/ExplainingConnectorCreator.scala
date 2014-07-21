@@ -1,13 +1,14 @@
 package geomesa.core.util
 
 import geomesa.core.data.{AccumuloConnectorCreator, AccumuloDataStore}
+import geomesa.core.index.ExplainerOutputType
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Scanner, BatchScanner}
 import org.opengis.feature.simple.SimpleFeatureType
 
 
-class ExplainingConnectorCreator(output: String => Unit = println) extends AccumuloConnectorCreator {
+class ExplainingConnectorCreator(output: ExplainerOutputType) extends AccumuloConnectorCreator {
   /**
    * Create a BatchScanner for the SpatioTemporal Index Table
    *

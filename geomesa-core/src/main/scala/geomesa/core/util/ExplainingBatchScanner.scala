@@ -3,15 +3,16 @@ package geomesa.core.util
 import java.util
 import java.util.Map.Entry
 import java.util.concurrent.TimeUnit
+import geomesa.core.index.ExplainerOutputType
 import org.apache.accumulo.core.client.{IteratorSetting, BatchScanner, Scanner}
 import org.apache.accumulo.core.data.{Range, Value, Key}
 import org.apache.hadoop.io.Text
 
-class ExplainingBatchScanner(output: String => Unit = println) extends ExplainingScanner with BatchScanner {
+class ExplainingBatchScanner(output: ExplainerOutputType) extends ExplainingScanner(output) with BatchScanner {
   override def setRanges(ranges: util.Collection[Range]): Unit = {}
 }
 
-class ExplainingScanner(output: String => Unit = println) extends Scanner {
+class ExplainingScanner(output: ExplainerOutputType) extends Scanner {
 
   override def setTimeout(timeout: Long, timeUnit: TimeUnit): Unit = output(s"setTimeout($timeout, $timeUnit)")
 
