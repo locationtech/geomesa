@@ -697,7 +697,7 @@ class AccumuloDataStoreTest extends Specification {
       val scannerResults = getScannerResults(ds, sftName)
       scannerResults should beSome
 
-      ds.deleteSchema(sftName, 10)
+      ds.deleteSchema(sftName)
 
       //tables should be deleted now
       c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beFalse
@@ -711,7 +711,7 @@ class AccumuloDataStoreTest extends Specification {
 
       val query = new Query(sftName, Filter.INCLUDE)
       val results = fs.getFeatures(query)
-      results.size() should beEqualTo(0)
+      results.size() should throwA[RuntimeException]
     }
 
     "delete 0.10.x records appropriately" in {
@@ -733,9 +733,8 @@ class AccumuloDataStoreTest extends Specification {
 
       val manualFeaturesSize = manualSource.getFeatures(query).features.toList.sortBy(_.getID.toInt).size
       manualFeaturesSize must beGreaterThan(0)
-      manualStore.deleteSchema(sftName, 10)
-      val manualFeaturesSizeAfterDeletion = manualSource.getFeatures(query).features.toList.sortBy(_.getID.toInt).size
-      manualFeaturesSizeAfterDeletion must beEqualTo(0)
+      manualStore.deleteSchema(sftName)
+      manualSource.getFeatures(query).features.toList.sortBy(_.getID.toInt).size should throwA[RuntimeException]
     }
 
     "keep other tables when a separate schema is deleted" in {
@@ -778,7 +777,7 @@ class AccumuloDataStoreTest extends Specification {
       scannerResults should beSome
       scannerResults2 should beSome
 
-      ds.deleteSchema(sftName, 10)
+      ds.deleteSchema(sftName)
 
       //these tables should be deleted now
       c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beFalse
@@ -801,7 +800,7 @@ class AccumuloDataStoreTest extends Specification {
       val query2 = new Query(sftName2, Filter.INCLUDE)
       val results = fs.getFeatures(query)
       val results2 = fs2.getFeatures(query2)
-      results.size() should beEqualTo(0)
+      results.size() should throwA[RuntimeException]
       results2.size() should beGreaterThan(0)
     }
   }
