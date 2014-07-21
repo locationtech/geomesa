@@ -12,7 +12,7 @@ import geomesa.core.filter._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
 import geomesa.core.util.{CloseableIterator, SelfClosingBatchScanner}
-import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
+import org.apache.accumulo.core.client.{Scanner, BatchScanner, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
@@ -30,10 +30,11 @@ import scala.util.Random
 
 
 object IndexQueryPlanner {
-  val iteratorPriority_RowRegex                       = 0
-  val iteratorPriority_ColFRegex                      = 100
-  val iteratorPriority_SpatioTemporalIterator         = 200
-  val iteratorPriority_SimpleFeatureFilteringIterator = 300
+  val iteratorPriority_RowRegex                        = 0
+  val iteratorPriority_AttributeIndexFilteringIterator = 10
+  val iteratorPriority_ColFRegex                       = 100
+  val iteratorPriority_SpatioTemporalIterator          = 200
+  val iteratorPriority_SimpleFeatureFilteringIterator  = 300
 }
 
 import geomesa.core.index.IndexQueryPlanner._
@@ -150,11 +151,11 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     rewrittenFilter match {
       case isEqualTo: PropertyIsEqualTo if !isDensity =>
-        attrIdxEqualToQuery(acc, derivedQuery, isEqualTo, filterVisitor)
+        attrIdxEqualToQuery(acc, derivedQuery, isEqualTo, filterVisitor, output)
 
       case like: PropertyIsLike if !isDensity =>
         if(likeEligible(like))
-          attrIdxLikeQuery(acc, derivedQuery, like, filterVisitor)
+          attrIdxLikeQuery(acc, derivedQuery, like, filterVisitor, output)
         else
           stIdxQuery(acc, derivedQuery, like, filterVisitor, output)
 
@@ -162,8 +163,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         stIdxQuery(acc, derivedQuery, cql, filterVisitor, output)
     }
   }
-
-  val iteratorPriority_AttributeIndexFilteringIterator = 10
 
   // TODO try to use wildcard values from the Filter itself
   // Currently pulling the wildcard values from the filter
@@ -190,7 +189,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def attrIdxLikeQuery(acc: AccumuloConnectorCreator,
                        derivedQuery: Query,
                        filter: PropertyIsLike,
-                       filterVisitor: FilterToAccumulo) = {
+                       filterVisitor: FilterToAccumulo,
+                       output: String => Unit) = {
 
     val expr = filter.getExpression
     val prop = expr match {
@@ -207,7 +207,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     val range = AccRange.prefix(formatAttrIdxRow(prop, value))
 
-    attrIdxQuery(acc, derivedQuery, filterVisitor, range)
+    attrIdxQuery(acc, derivedQuery, filterVisitor, range, output)
   }
 
   def formatAttrIdxRow(prop: String, lit: String) =
@@ -219,7 +219,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def attrIdxEqualToQuery(acc: AccumuloConnectorCreator,
                           derivedQuery: Query,
                           filter: PropertyIsEqualTo,
-                          filterVisitor: FilterToAccumulo) = {
+                          filterVisitor: FilterToAccumulo,
+                          output: String => Unit) = {
 
     val one = filter.getExpression1
     val two = filter.getExpression2
@@ -236,7 +237,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     val range = new AccRange(formatAttrIdxRow(prop, lit))
 
-    attrIdxQuery(acc, derivedQuery, filterVisitor, range)
+    attrIdxQuery(acc, derivedQuery, filterVisitor, range, output)
   }
 
   /**
@@ -245,30 +246,18 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def attrIdxQuery(acc: AccumuloConnectorCreator,
                    derivedQuery: Query,
                    filterVisitor: FilterToAccumulo,
-                   range: AccRange) = {
+                   range: AccRange,
+                   output: String => Unit) = {
 
     logger.trace(s"Scanning attribute table for feature type ${featureType.getTypeName}")
-    val attrScanner = acc.createAttrIdxScanner(featureType)
+    val attrScanner: Scanner = acc.createAttrIdxScanner(featureType)
 
-    val spatialOpt =
-      for {
-          sp    <- Option(filterVisitor.spatialPredicate)
-          env  = sp.getEnvelopeInternal
-          bbox = List(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY).mkString(",")
-      } yield AttributeIndexFilteringIterator.BBOX_KEY -> bbox
+    val (geomFilters, otherFilters) = partitionGeom(derivedQuery.getFilter)
 
-    val dtgOpt = Option(filterVisitor.temporalPredicate).map(AttributeIndexFilteringIterator.INTERVAL_KEY -> _.toString)
-    val opts = List(spatialOpt, dtgOpt).flatten.toMap
-    if(!opts.isEmpty) {
-      val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
-        "attrIndexFilter",
-        classOf[AttributeIndexFilteringIterator].getCanonicalName,
-        opts)
-      attrScanner.addScanIterator(cfg)
-    }
+    output(s"The geom filters are $geomFilters.")
+    val ofilter: Option[Filter] = filterListAsAnd(geomFilters)
 
-    logger.trace(s"Attribute Scan Range: ${range.toString}")
-    attrScanner.setRange(range)
+    configureAttributeIndexIterator(attrScanner, ofilter, filterVisitor, range)
 
     import scala.collection.JavaConversions._
     val ranges = attrScanner.iterator.map(_.getKey.getColumnFamily).map(new AccRange(_))
@@ -288,6 +277,33 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     }
 
     CloseableIterator(iter, close)
+  }
+
+  def configureAttributeIndexIterator(scanner: Scanner,
+                                      ofilter: Option[Filter],
+                                      filterVisitor: FilterToAccumulo,
+                                      range: AccRange) {
+    val filterOpt = ofilter.map { f => DEFAULT_FILTER_PROPERTY_NAME -> ECQL.toCQL(f)}
+    val dtgOpt = Option(filterVisitor.temporalPredicate).map(AttributeIndexFilteringIterator.INTERVAL_KEY -> _.toString)
+    val opts = List(filterOpt, dtgOpt).flatten.toMap
+
+    if(opts.nonEmpty) {
+      val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
+        "attrIndexFilter",
+        classOf[AttributeIndexFilteringIterator].getCanonicalName,
+        opts)
+
+      configureFeatureType(cfg, featureType)
+      scanner.addScanIterator(cfg)
+    }
+
+    logger.trace(s"Attribute Scan Range: ${range.toString}")
+    scanner.setRange(range)
+  }
+
+  def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = filters match {
+    case Nil => None
+    case _ => Some(ff.and(filters))
   }
 
   def stIdxQuery(acc: AccumuloConnectorCreator,
@@ -315,10 +331,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     // based on the arguments passed in
     val filter = buildFilter(poly, interval)
 
-    val opoly: Option[Filter] = geomFilters match {
-      case Nil => None
-      case _ => Some(ff.and(geomFilters))
-    }
+    val opoly: Option[Filter] = filterListAsAnd(geomFilters)
 
     val oint  = IndexSchema.somewhen(interval)
 
