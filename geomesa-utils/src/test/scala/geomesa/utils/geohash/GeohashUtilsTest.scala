@@ -145,19 +145,19 @@ class GeohashUtilsTest extends Specification with Logging {
     }
 
     "compute (0,2) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(0, 2) must be equalTo 1
+      testGeohashSubstringsInCharlottesville(0, 2) must be equalTo 3
     }
 
     "compute (2,3) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(2, 3) must be equalTo 6
+      testGeohashSubstringsInCharlottesville(2, 3) must be equalTo 9
     }
 
     "compute (0,3) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(0, 3) must be equalTo 1
+      testGeohashSubstringsInCharlottesville(0, 3) must be equalTo 4
     }
 
     "compute (3,2) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(3, 2) must be equalTo 6
+      testGeohashSubstringsInCharlottesville(3, 2) must be equalTo 8
     }
   }
 
@@ -182,34 +182,99 @@ class GeohashUtilsTest extends Specification with Logging {
   }
 
   "performance test for getUniqueGeohashSubstringsInPolygon" should {
-    "collect timing data" in {
-      val poly = wkt2geom("POLYGON((-170 -80, -170 0, -170 80, 0 80, 170 80, 170 0, 170 -80, 0 -80, -170 -80))").asInstanceOf[Polygon]
-      val burnInTrials = 10
-      val collectTrials = 100
-      val expectedResults = 27588
+    val poly = wkt2geom("POLYGON((-170 -80, -170 0, -170 80, 0 80, 170 80, 170 0, 170 -80, 0 -80, -170 -80))").asInstanceOf[Polygon]
+    val burnInTrials = 100
+    val collectTrials = 100
 
-      logger.debug(s"[TIMING POLYGON] $poly")
+    def getTime(burnInTrials: Int,
+                collectTrials: Int,
+                label: String,
+                expectedCount: Int,
+                fnx: () => Seq[String],
+                useDotted: Boolean = true): Long = {
 
-      def runTest(label: String, count: Int, maxCount: Int) = {
-        val ghs = getUniqueGeohashSubstringsInPolygon(poly, 0, 3, 1 << 15)
-        if (ghs.size != expectedResults)
-          throw new Exception(s"Wrong number of GeoHash sub-string results:  ${ghs.size} (expected $expectedResults)")
+      logger.debug(s"[TIMING POLYGON $label] $poly")
+
+      def runTest() {
+        val substrings = fnx()
+        val runCount = substrings.size
+        if (runCount != expectedCount)
+          throw new Exception("Wrong number of GeoHash sub-string results " +
+            s"$label:  $runCount (expected $expectedCount)")
+        if (useDotted) {
+          for (i <- 1 until substrings.headOption.map(_.length).getOrElse(0)) {
+            val rightDotted = "." * i
+            if (substrings.find(_.takeRight(i) == rightDotted).isEmpty)
+              throw new Exception(s"Missing '$rightDotted' among GeoHash sub-string results " +
+                s"$label:  $runCount (expected $expectedCount)")
+          }
+        }
       }
 
       // perform a few trials to get everything warmed up
-      (0 until burnInTrials).foreach(i => runTest("BURN-IN", i, burnInTrials))
+      (0 until burnInTrials).foreach(i => runTest())
 
       // perform the trials you want to time
       val msStart = System.currentTimeMillis()
-      (0 until collectTrials).foreach(i => runTest("COLLECT", i, collectTrials))
+      (0 until collectTrials).foreach(i => runTest())
       val msStop = System.currentTimeMillis()
       val msElapsed = msStop - msStart
 
       // output results
-      logger.debug(s"\n[TIMING SUBSTRINGS] $collectTrials invocations over " +
+      logger.debug(s"\n[TIMING SUBSTRINGS $label] $collectTrials invocations over " +
         (msElapsed / 1000.0) + " seconds" +
         " -> " + (msElapsed / collectTrials) + " ms/invocation\n\n"
       )
+
+      msElapsed / collectTrials
+    }
+
+    def timeTest(offset: Int,
+                 bits: Int,
+                 expectedCount: Int,
+                 useFoil: Boolean = false,
+                 useDotted: Boolean = false) {
+
+      val fnxRGHI: () => Seq[String] = () => {
+        val rghi = RectangleGeoHashIterator(poly, (offset + bits) * 5)
+        val iteratedSubs = collection.mutable.HashSet[String]()
+        while (rghi.hasNext && iteratedSubs.size < (1 << (bits * 5))) {
+          iteratedSubs.add(rghi.next().hash.drop(offset).take(bits))
+        }
+        iteratedSubs.toSeq
+      }
+
+      val fnxCandidate: () => Seq[String] = () =>
+        getUniqueGeohashSubstringsInPolygon(poly, offset, bits, 2 << (bits * 5), useDotted)
+
+      if (useFoil)
+        getTime(burnInTrials,
+                collectTrials,
+                s"RGHI ($offset, $bits)",
+                expectedCount,
+                fnxRGHI,
+                useDotted)
+      getTime(burnInTrials,
+              collectTrials,
+              s"getUniqueGeohashSubstringsInPolygon ($offset, $bits)",
+              expectedCount,
+              fnxCandidate,
+              useDotted)
+    }
+
+    "collect timing data" in {
+      //                                        RGHI   current   old version
+      timeTest(0, 3, 27588, false, false)  //    50     48         83
+      timeTest(0, 3, 28581, false, true)   //     -     78        118
+      timeTest(3, 2, 1024, false, false)   //   777      2        545
+      timeTest(3, 2, 1057, false, true)    //   777      5        -
+      timeTest(3, 3, 32768, false, false)  //   N/A*    29        N/A*
+      timeTest(3, 3, 33825, false, true)   //     -     51          -
+      timeTest(5, 2, 1024, false, false)   //   N/A*     2        N/A*
+      timeTest(5, 2, 1057, false, true)    //     -      3          -
+
+      // *"N/A" simply means that the test took more than 5 minutes without
+      // finishing.
     }
   }
 }
