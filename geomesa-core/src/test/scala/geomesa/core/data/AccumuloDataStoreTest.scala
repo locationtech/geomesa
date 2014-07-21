@@ -602,7 +602,7 @@ class AccumuloDataStoreTest extends Specification {
       result
     }
 
-    def buildManualTable(params: Map[String, String], sftName: String) = {
+    def buildPreSecondaryIndexTable(params: Map[String, String], sftName: String) = {
       val rowIds = List(
         "09~regressionTestType~v00~20120102",
         "95~regressionTestType~v00~20120102",
@@ -630,7 +630,7 @@ class AccumuloDataStoreTest extends Specification {
 
       // Insert metadata
       val metadataMutation = new Mutation(s"~METADATA_$sftName")
-      metadataMutation.put("attributes", "", s"name:String,geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date")
+      metadataMutation.put("attributes", "", "name:String,geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date")
       metadataMutation.put("bounds", "", "45.0:45.0:49.0:49.0")
       metadataMutation.put("schema", "", s"%~#s%99#r%$sftName#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id")
       bw.addMutation(metadataMutation)
@@ -725,7 +725,7 @@ class AccumuloDataStoreTest extends Specification {
         "tableName"  -> "manualTableForDeletion")
       val sftName = "regressionTestType"
 
-      buildManualTable(manualParams, sftName)
+      buildPreSecondaryIndexTable(manualParams, sftName)
 
       val manualStore = DataStoreFinder.getDataStore(manualParams).asInstanceOf[AccumuloDataStore]
       val manualSource = manualStore.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
