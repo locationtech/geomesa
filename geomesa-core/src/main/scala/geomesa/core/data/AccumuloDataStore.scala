@@ -270,6 +270,46 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   /**
+   * Deletes the tables from Accumulo created from the Geomesa SpatioTemporal Schema, and deletes
+   * metadata from the catalog. If the table is an older 0.10.x table, we delete features using
+   * AccumuloFeatureWriter's remove() instead.
+   *
+   * @param featureName the name of the feature
+   * @param numThreads the number of concurrent threads to spawn for querying during metadata deletion
+   */
+  def deleteSchema(featureName: String, numThreads: Int) = {
+    deleteMetadata(featureName, numThreads)
+    if (readMetadataItem(featureName, ST_IDX_TABLE_CF).nonEmpty) {
+      removeSchema(featureName)
+    } else {
+      val featureWriter = createFeatureWriter(featureName, Transaction.AUTO_COMMIT)
+      while (featureWriter.hasNext) {
+        featureWriter.next()
+        featureWriter.remove()
+      }
+      featureWriter.close()
+    }
+  }
+
+  /**
+   * Retrieves the Geotools SpatioTemporal Schema and deletes the three previously created tables
+   *
+   * @param featureName the name of the table to query and delete from
+   */
+  override def removeSchema(featureName: String) = {
+    val featureType            = getSchema(featureName)
+    val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(catalogTable, featureType)
+    val attributeIndexTable    = formatAttrIdxTableName(catalogTable, featureType)
+    val recordTable            = formatRecordTableName(catalogTable, featureType)
+
+    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach { t =>
+      if (tableOps.exists(t)) {
+        tableOps.delete(t)
+      }
+    }
+  }
+
+  /**
    * GeoTools API createSchema() method for a featureType...creates tables with
    * DEFAULT_MAX_SHARD + 1 splits. To control the number of splits use the
    * createSchema(featureType, maxShard) method
@@ -317,6 +357,21 @@ class AccumuloDataStore(val connector: Connector,
     }
     writer.flush()
     writer.close()
+  }
+
+  /**
+   * Handles deleting metadata from the catalog by using the Range obtained from the METADATA_TAG and featureName
+   * and setting that as the Range to be handled and deleted by Accumulo's BatchDeleter
+   *
+   * @param featureName the name of the table to query and delete from
+   * @param numThreads the number of concurrent threads to spawn for querying
+   */
+  private def deleteMetadata(featureName: String, numThreads: Int): Unit = {
+    val range = new Range(s"${METADATA_TAG }_$featureName")
+    val deleter = connector.createBatchDeleter(catalogTable, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+    deleter.setRanges(List(range))
+    deleter.delete()
+    deleter.close()
   }
 
   /**
