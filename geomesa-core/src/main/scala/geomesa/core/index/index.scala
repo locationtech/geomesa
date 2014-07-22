@@ -56,9 +56,7 @@ package object index {
 
   type ExplainerOutputType = ( => String) => Unit
 
-  trait ExplainingLog {
-    this: Logging =>
-
+  trait ExplainingLogging extends Logging {
     def log(stringFnx: => String) = {
       lazy val s: String = stringFnx
       logger.trace(s)

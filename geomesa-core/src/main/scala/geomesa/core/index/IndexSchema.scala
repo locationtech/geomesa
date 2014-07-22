@@ -76,7 +76,7 @@ case class IndexSchema(encoder: IndexEncoder,
                        decoder: IndexEntryDecoder,
                        planner: IndexQueryPlanner,
                        featureType: SimpleFeatureType,
-                       featureEncoder: SimpleFeatureEncoder) extends Logging with ExplainingLog {
+                       featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
 
   def encode(entry: SimpleFeature, visibility: String = "") = encoder.encode(entry, visibility)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
