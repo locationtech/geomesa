@@ -75,7 +75,7 @@ class AttributeIndexFilteringIterator extends Filter with Logging {
 
   override def deepCopy(env: IteratorEnvironment) = {
     val copy = super.deepCopy(env).asInstanceOf[AttributeIndexFilteringIterator]
-    copy.filter = filter //.clone.asInstanceOf[Polygon]
+    copy.filter = filter
     copy.testSimpleFeature = testSimpleFeature
     copy
   }
