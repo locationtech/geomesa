@@ -254,7 +254,6 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
         mutation.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed)
       }
       bw.addMutation(mutation)
-      bw.flush()
     }
 
   /** Creates a function to remove spatio temporal index entries for a feature **/
@@ -283,6 +282,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
   override def remove() =
     if (original != null) {
       removers.foreach { r => r(original)}
+      multiBWWriter.flush()
     }
 
   override def hasNext = reader.hasNext
