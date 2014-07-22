@@ -53,33 +53,13 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
     encoder.flush()
   }
 
+  def convertValue(idx: Int, v: AnyRef) = typeMap(names(idx)).conv.apply(v)
 
-  def convertValue(idx: Int, v: AnyRef) = {
-    typeMap(names(idx)) match {
-      case t if primitiveTypes.contains(t) =>
-        v
-
-      case t if classOf[UUID].isAssignableFrom(t) =>
-        val uuid = v.asInstanceOf[UUID]
-        val bb = ByteBuffer.allocate(16)
-        bb.putLong(uuid.getMostSignificantBits)
-        bb.putLong(uuid.getLeastSignificantBits)
-        bb.flip
-        bb
-
-      case t if classOf[Date].isAssignableFrom(t) =>
-        v.asInstanceOf[Date].getTime
-
-      case t if classOf[Geometry].isAssignableFrom(t) =>
-        v.asInstanceOf[Geometry].toText
-
-      case _ =>
-        Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
-    }
-  }
-
+  val gdw = new GenericDatumWriter[GenericRecord](schema)
+  var encoder: BinaryEncoder = null
   def write(os: OutputStream) {
-    write(new GenericDatumWriter[GenericRecord](schema), EncoderFactory.get.binaryEncoder(os, null))
+    encoder = EncoderFactory.get.binaryEncoder(os, null)
+    write(gdw, encoder)
   }
 
   def getFeatureType = sft
@@ -158,7 +138,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
 
   def setValue(newValue: Object) = setValue (newValue.asInstanceOf[JCollection[Property]])
 
-  def validate = values.zipWithIndex.foreach { case (v, idx) => Types.validate(getType.getDescriptor(idx), v) }
+  def validate() = values.zipWithIndex.foreach { case (v, idx) => Types.validate(getType.getDescriptor(idx), v) }
 }
 
 object AvroSimpleFeature {
@@ -198,10 +178,35 @@ object AvroSimpleFeature {
         }
       )
 
-  val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Class[_]]] =
+  case class Binding(clazz: Class[_], conv: AnyRef => Any)
+  val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Binding]] =
     loadingCacheBuilder { sft =>
       sft.getAttributeDescriptors.map { ad =>
-        (encodeAttributeName(ad.getLocalName), ad.getType.getBinding)
+        val conv =
+          ad.getType.getBinding match {
+            case t if primitiveTypes.contains(t) => (v: AnyRef) => v
+            case t if classOf[UUID].isAssignableFrom(t) =>
+              (v: AnyRef) => {
+                val uuid = v.asInstanceOf[UUID]
+                val bb = ByteBuffer.allocate(16)
+                bb.putLong(uuid.getMostSignificantBits)
+                bb.putLong(uuid.getLeastSignificantBits)
+                bb.flip
+                bb
+              }
+
+            case t if classOf[Date].isAssignableFrom(t) =>
+              (v: AnyRef) => v.asInstanceOf[Date].getTime
+
+            case t if classOf[Geometry].isAssignableFrom(t) =>
+              (v: AnyRef) => v.asInstanceOf[Geometry].toText
+
+            case _ =>
+              (v: AnyRef) =>
+                Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
+          }
+
+        (encodeAttributeName(ad.getLocalName), Binding(ad.getType.getBinding, conv))
       }.toMap
     }
 
