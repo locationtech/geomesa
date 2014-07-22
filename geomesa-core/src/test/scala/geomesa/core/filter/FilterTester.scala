@@ -35,6 +35,18 @@ class OrGeomsPredicateTest extends FilterTester {
   runTest
 }
 
+@RunWith(classOf[JUnitRunner])
+class AttributePredicateTest extends FilterTester {
+  val filters = attributePredicates
+  runTest
+}
+
+@RunWith(classOf[JUnitRunner])
+class AttributeGeoPredicateTest extends FilterTester {
+  val filters = attributeAndGeometricPredicates
+  runTest
+}
+
 object FilterTester extends AccumuloDataStoreTest with Logging {
   val mediumDataFeatures: Seq[SimpleFeature] = mediumData.map(createSF)
   val sft = mediumDataFeatures.head.getFeatureType

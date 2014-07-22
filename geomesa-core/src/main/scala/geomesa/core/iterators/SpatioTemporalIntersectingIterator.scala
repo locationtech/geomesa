@@ -167,7 +167,7 @@ class SpatioTemporalIntersectingIterator
    * version of validating an entry's geometry.
    */
   lazy val wrappedGeomFilter: Geometry => Boolean = {
-    if (geomTestSF != null) {
+    if (filter != null && geomTestSF != null) {
       geom => {
         geomTestSF.setDefaultGeometry(geom)
         filter.evaluate(geomTestSF)
