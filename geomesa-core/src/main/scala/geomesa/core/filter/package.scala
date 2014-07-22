@@ -92,7 +92,7 @@ package object filter {
 
   def partitionGeom(filter: Filter) = partitionSubFilters(filter, spatialFilters)
 
-  def partitionTemporal(filters: Seq[Filter]) = filters.filter(temporalFilters)
+  def partitionTemporal(filters: Seq[Filter]): (Seq[Filter], Seq[Filter]) = filters.partition(temporalFilters)
 
   // Defines the topological predicates we like for use in the STII.
   def spatialFilters(f: Filter): Boolean = {
