@@ -75,7 +75,6 @@ class AttributeIndexFilteringIterator extends Filter with Logging {
 
   override def deepCopy(env: IteratorEnvironment) = {
     val copy = super.deepCopy(env).asInstanceOf[AttributeIndexFilteringIterator]
-
     copy.interval = interval //interval is immutable - no need to deep copy
     copy.filter = filter
     copy.geomTestSF = geomTestSF
@@ -91,5 +90,6 @@ class AttributeIndexFilteringIterator extends Filter with Logging {
 }
 
 object AttributeIndexFilteringIterator {
+  val BBOX_KEY = "geomesa.bbox"
   val INTERVAL_KEY = "geomesa.interval"
 }
