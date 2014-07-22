@@ -32,7 +32,7 @@ object TestData extends Logging {
   val featureName = "feature"
   val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
   val featureType: SimpleFeatureType = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
-  featureType.getUserData.put(SF_PROPERTY_START_TIME, "geomesa_index_start_time")
+  featureType.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
   val index = IndexSchema(schemaEncoding, featureType, featureEncoder)
 
@@ -45,7 +45,7 @@ object TestData extends Logging {
     val entry =
       AvroSimpleFeatureFactory.buildAvroFeature(
         featureType,
-        List(null, null, null, null, geometry, dt.toDate, dt.toDate),
+        List(null, null, null, id, geometry, dt.toDate, dt.toDate),
         s"|data|$id")
 
     //entry.setAttribute(geomType, id)
@@ -55,7 +55,11 @@ object TestData extends Logging {
 
   def createSF(e: Entry): SimpleFeature = {
     val geometry: Geometry = WKTUtils.read(e.wkt)
-    val entry = SimpleFeatureBuilder.build(featureType, List(null, null, null, null, geometry, e.dt.toDate, e.dt.toDate), s"|data|${e.id}")
+    val entry =
+      AvroSimpleFeatureFactory.buildAvroFeature(
+        featureType,
+        List(null, null, null, null, geometry, e.dt.toDate, e.dt.toDate),
+        s"|data|${e.id}")
     entry.setAttribute("attr2", "2nd" + e.id)
     entry
   }

@@ -17,15 +17,16 @@
 package geomesa.core.iterators
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Geometry, Polygon}
+import com.vividsolutions.jts.geom.Polygon
 import geomesa.core._
-import geomesa.core.data.SimpleFeatureEncoderFactory
+import geomesa.core.data.{AccumuloDataStore, SimpleFeatureEncoderFactory}
 import geomesa.core.index._
 import geomesa.core.iterators.TestData._
+import geomesa.core.security.DefaultAuthorizationsProvider
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{BatchScanner, BatchWriterConfig, Connector, IteratorSetting}
+import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, IteratorSetting}
 import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
@@ -38,7 +39,6 @@ import org.specs2.runner.JUnitRunner
 
 import scala.collection.GenSeq
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 import scala.util.{Random, Try}
 
 object UnitTestEntryType  {
@@ -102,9 +102,9 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
 
     // create the batch scanner
     val c = setupMockAccumuloTable(entries)
-    val bs = () => c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
+    val ds = new AccumuloDataStore(c, TEST_TABLE, new DefaultAuthorizationsProvider, "")
 
-    val gf = s"WITHIN(geom, ${polygon.toText})"
+    val gf = s"INTERSECTS(geom, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
       s"(dtg between '${int.getStart}' AND '${int.getEnd}')"
     )
@@ -118,16 +118,16 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     val tf = ECQL.toFilter(tfString)
 
     val q = new Query(TestData.featureType.getTypeName, tf)
-    runQuery(q, bs)
+    runQuery(q, ds)
   }
 
-  def runQuery(q: Query, bs: () => BatchScanner, doPrint: Boolean = false, label: String = "test") = {
+  def runQuery(q: Query, ds: AccumuloDataStore, doPrint: Boolean = false, label: String = "test") = {
     val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
     // create the schema, and require de-duplication
     val schema = IndexSchema(TestData.schemaEncoding, TestData.featureType, featureEncoder)
 
     // fetch results from the schema!
-    val itr = schema.query(q, bs)
+    val itr = schema.query(q, ds)
 
     // print out the hits
     val retval = if (doPrint) {

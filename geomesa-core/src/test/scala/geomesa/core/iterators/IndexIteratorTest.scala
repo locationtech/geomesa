@@ -16,6 +16,8 @@
 
 package geomesa.core.iterators
 
+import geomesa.feature.AvroSimpleFeatureFactory
+
 import collection.JavaConversions._
 import com.vividsolutions.jts.geom.{Polygon, Geometry}
 import geomesa.core.data._
@@ -39,15 +41,23 @@ import scala.collection.GenSeq
 class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
 
   import geomesa.utils.geotools.Conversions._
+  import AccumuloDataStore._
 
   object IITest {
 
     def setupMockFeatureSource(entries: GenSeq[TestData.Entry]): SimpleFeatureStore = {
-      val TEST_TABLE = "test_table"
+      val CATALOG_TABLE = "test_table"
 
       val mockInstance = new MockInstance("dummy")
       val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
-      if (c.tableOperations.exists(TEST_TABLE)) c.tableOperations.delete(TEST_TABLE)
+
+      // Remember we need to delete all 4 tables now
+      List(
+        CATALOG_TABLE,
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_st_idx",
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_records",
+        s"${CATALOG_TABLE}_${TestData.featureType.getTypeName}_attr_idx"
+      ).foreach { t => if (c.tableOperations.exists(t)) c.tableOperations.delete(t) }
 
       val dsf = new AccumuloDataStoreFactory
 
@@ -68,7 +78,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
 
       ds.createSchema(TestData.featureType)
       val fs = ds.getFeatureSource(TestData.featureName).asInstanceOf[SimpleFeatureStore]
-      val dataFeatures = entries.map(createSF)
+      val dataFeatures = entries.par.map(createSF)
       val featureCollection = DataUtilities.collection(dataFeatures.toArray)
       fs.addFeatures(featureCollection)
       fs.getTransaction.commit()
@@ -82,6 +92,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
                                    dtFilter: Interval = null,
                                    overrideGeometry: Boolean = false,
                                    doPrint: Boolean = true): Int = {
+    logger.debug(s"Running test: $label")
 
     // create the query polygon
     val polygon: Polygon = overrideGeometry match {
@@ -92,7 +103,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     //create the Feature Source
     val fs = IITest.setupMockFeatureSource(entries)
 
-    val gf = s"WITHIN(geom, ${polygon.toText})"
+    val gf = s"INTERSECTS(geom, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
       s"(dtg between '${int.getStart}' AND '${int.getEnd}')"
     )

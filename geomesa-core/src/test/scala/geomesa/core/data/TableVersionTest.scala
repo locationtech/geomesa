@@ -1,5 +1,6 @@
 package geomesa.core.data
 
+import geomesa.core.index.SF_PROPERTY_START_TIME
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.text.WKTUtils
@@ -21,10 +22,10 @@ import scala.collection.JavaConversions._
 
 
 /**
- * The purpose of this test is to ensure that the table version is backwards compatible with
- * older versions (e.g. 0.10.x). The table format should not be changed without some sort of
- * transition map/reduce job to convert table formats.
- */
+* The purpose of this test is to ensure that the table version is backwards compatible with
+* older versions (e.g. 0.10.x). The table format should not be changed without some sort of
+* transition map/reduce job to convert table formats.
+*/
 @RunWith(classOf[JUnitRunner])
 class TableVersionTest extends Specification {
 
@@ -45,6 +46,7 @@ class TableVersionTest extends Specification {
 
   val sftName = "regressionTestType"
   val sft = DataUtilities.createType(sftName, s"name:String,$geotimeAttributes")
+  sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
   def buildManualTable(params: Map[String, String]) = {
     val instance = new MockInstance(params("instanceId"))
@@ -127,8 +129,8 @@ class TableVersionTest extends Specification {
       val geomesaStore = DataStoreFinder.getDataStore(geomesaParams).asInstanceOf[AccumuloDataStore]
       val geomesaSource = geomesaStore.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
-      val manualFeatures = manualSource.getFeatures(query).features
-      val geomesaFeatures = geomesaSource.getFeatures(query).features
+      val manualFeatures = manualSource.getFeatures(query).features.toList.sortBy(_.getID.toInt)
+      val geomesaFeatures = geomesaSource.getFeatures(query).features.toList.sortBy(_.getID.toInt)
 
       manualFeatures.zip(geomesaFeatures).foreach {case (m, g) =>
         m should equalTo(g)
