@@ -131,7 +131,6 @@ class AccumuloDataStore(val connector: Connector,
     val spatioTemporalIdxTableValue = formatSpatioTemporalIdxTableName(catalogTable, sft)
     val attrIdxTableValue           = formatAttrIdxTableName(catalogTable, sft)
     val recordTableValue            = formatRecordTableName(catalogTable, sft)
-    val maxShardValue               = maxShard.toString
     val dtgFieldValue               = dtgValue.getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
 
     // store each metadata in the associated column family
