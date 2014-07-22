@@ -444,7 +444,7 @@ class FilterToAccumuloTest extends Specification {
     "handle default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
       val spatial = ff.bbox("geom", -230, -110, 230, 110, CRS.toSRS(WGS84))
       val originalSpatial = ff.bbox("geom", -230, -110, 230, 110, CRS.toSRS(WGS84))
-      val features = TestData.allThePoints.map(e => TestData.createSF(e))
+      val features = TestData.allThePoints.map(TestData.createSF)
       val f2a = new FilterToAccumulo(sft)
       val updatedFilter = f2a.visit(spatial)
       features.foreach(f => originalSpatial.evaluate(f) mustEqual true)
@@ -454,7 +454,7 @@ class FilterToAccumuloTest extends Specification {
     "handle >180 lon diff non-IDL-wrapping geoserver BBOX" in {
       val spatial = ff.bbox("geom", -100, -90, 100, 90, CRS.toSRS(WGS84))
       val originalSpatial = ff.bbox("geom", -100, -90, 100, 90, CRS.toSRS(WGS84))
-      val features = TestData.allThePoints.map(e => TestData.createSF(e))
+      val features = TestData.allThePoints.map(TestData.createSF)
       val f2a = new FilterToAccumulo(sft)
       val updatedFilter = f2a.visit(spatial)
       features.count(f => originalSpatial.evaluate(f)) mustEqual 201
@@ -465,7 +465,7 @@ class FilterToAccumuloTest extends Specification {
       val spatial1 = ff.bbox("geom", -181.1, -90, -175.1, 90, CRS.toSRS(WGS84))
       val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
       val binarySpatial = ff.or(spatial1, spatial2)
-      val features = TestData.allThePoints.map(e => TestData.createSF(e))
+      val features = TestData.allThePoints.map(TestData.createSF)
       val f2a = new FilterToAccumulo(sft)
       val updatedFilter = f2a.visit(binarySpatial)
       features.count(f => binarySpatial.evaluate(f)) mustEqual 10
@@ -476,7 +476,7 @@ class FilterToAccumuloTest extends Specification {
       val spatial1 = ff.bbox("geom", -181.1, -90, 40.1, 90, CRS.toSRS(WGS84))
       val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
       val binarySpatial = ff.or(spatial1, spatial2)
-      val features = TestData.allThePoints.map(e => TestData.createSF(e))
+      val features = TestData.allThePoints.map(TestData.createSF)
       val f2a = new FilterToAccumulo(sft)
       val updatedFilter = f2a.visit(binarySpatial)
       features.count(f => binarySpatial.evaluate(f)) mustEqual 226
