@@ -3,16 +3,16 @@ package geomesa.core.index
 import java.nio.charset.StandardCharsets
 import java.util.Map.Entry
 
+import geomesa.utils.geotools.GeometryUtils
 import com.google.common.collect.Iterators
-import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Polygon
+import com.vividsolutions.jts.geom.{Point, Polygon}
 import geomesa.core._
 import geomesa.core.data._
-import geomesa.core.filter._
+import geomesa.core.filter.{ff, _}
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
 import geomesa.core.util.{CloseableIterator, SelfClosingBatchScanner}
-import org.apache.accumulo.core.client.{Scanner, BatchScanner, IteratorSetting}
+import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
@@ -24,6 +24,8 @@ import org.joda.time.Interval
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.{Literal, PropertyName}
+import org.opengis.filter.spatial.DWithin
+
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -132,7 +134,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       runAttrIdxQuery(acc, derivedQuery, rewrittenFilter, filterVisitor, isDensity, output)
     } else {
       // datastore doesn't support attr index use spatiotemporal only
-      stIdxQuery(acc, derivedQuery, rewrittenFilter, filterVisitor, output)
+      stIdxQuery(acc, derivedQuery, filterVisitor, output)
     }
   }
 
@@ -155,10 +157,10 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         if(likeEligible(like))
           attrIdxLikeQuery(acc, derivedQuery, like, filterVisitor, output)
         else
-          stIdxQuery(acc, derivedQuery, like, filterVisitor, output)
+          stIdxQuery(acc, derivedQuery, filterVisitor, output)
 
       case cql =>
-        stIdxQuery(acc, derivedQuery, cql, filterVisitor, output)
+        stIdxQuery(acc, derivedQuery, filterVisitor, output)
     }
   }
 
@@ -246,16 +248,19 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                    filterVisitor: FilterToAccumulo,
                    range: AccRange,
                    output: ExplainerOutputType) = {
-
     logger.trace(s"Scanning attribute table for feature type ${featureType.getTypeName}")
     val attrScanner = acc.createAttrIdxScanner(featureType)
 
     val (geomFilters, otherFilters) = partitionGeom(derivedQuery.getFilter)
+    val (temporalFilters, nonSTFilters) = partitionTemporal(derivedQuery.getFilter)
 
-    output(s"The geom filters are $geomFilters.")
-    val ofilter = filterListAsAnd(geomFilters)
+    // NB: Added check to see if the nonSTFilters is empty.
+    //  If it is, we needn't configure the SFFI
 
-    configureAttributeIndexIterator(attrScanner, ofilter, filterVisitor, range)
+    output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
+    val ofilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters)
+
+    configureAttributeIndexIterator(attrScanner, ofilter, range)
 
     import scala.collection.JavaConversions._
     val ranges = attrScanner.iterator.map(_.getKey.getColumnFamily).map(new AccRange(_))
@@ -279,11 +284,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
   def configureAttributeIndexIterator(scanner: Scanner,
                                       ofilter: Option[Filter],
-                                      filterVisitor: FilterToAccumulo,
                                       range: AccRange) {
-    val filterOpt = ofilter.map { f => DEFAULT_FILTER_PROPERTY_NAME -> ECQL.toCQL(f)}
-    val dtgOpt = Option(filterVisitor.temporalPredicate).map(AttributeIndexFilteringIterator.INTERVAL_KEY -> _.toString)
-    val opts = List(filterOpt, dtgOpt).flatten.toMap
+    val opts = ofilter.map { f => DEFAULT_FILTER_PROPERTY_NAME -> ECQL.toCQL(f)}.toMap
 
     if(opts.nonEmpty) {
       val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
@@ -306,20 +308,24 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
   def stIdxQuery(acc: AccumuloConnectorCreator,
                  query: Query,
-                 rewrittenCQL: Filter,
                  filterVisitor: FilterToAccumulo,
                  output: ExplainerOutputType) = {
     output(s"Scanning ST index table for feature type ${featureType.getTypeName}")
-    val ecql = Option(ECQL.toCQL(rewrittenCQL))
 
     val spatial = filterVisitor.spatialPredicate
     val temporal = filterVisitor.temporalPredicate
 
     // TODO: Select only the geometry filters which involve the indexed geometry type.
     // https://geomesa.atlassian.net/browse/GEOMESA-200
+    // Simiarly, we should only extract temporal filters for the index date field.
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
+    val (temporalFilters, ecqlFilters: Seq[Filter]) = partitionTemporal(query.getFilter)
 
-    output(s"The geom filters are $geomFilters.")
+    val tweakedEcqlFilters = ecqlFilters.map(tweakFilter)
+
+    val ecql = filterListAsAnd(tweakedEcqlFilters).map(ECQL.toCQL)
+
+    output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
 
     // standardize the two key query arguments:  polygon and date-range
     val poly = netPolygon(spatial)
@@ -329,7 +335,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     // based on the arguments passed in
     val filter = buildFilter(poly, interval)
 
-    val opoly = filterListAsAnd(geomFilters)
+    val ofilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters)
+    if(ofilter.isEmpty) logger.warn(s"Querying Accumulo without ST filter.")
 
     val oint  = IndexSchema.somewhen(interval)
 
@@ -340,7 +347,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     output("Configuring batch scanner for ST table: \n" +
       s"  Filter ${query.getFilter}\n" +
-      s"  Poly: ${opoly.getOrElse("No poly")}\n" +
+      s"  STII Filter: ${ofilter.getOrElse("No STII Filter")}\n" +
       s"  Interval:  ${oint.getOrElse("No interval")}\n" +
       s"  Filter: ${Option(filter).getOrElse("No Filter")}\n" +
       s"  ECQL: ${Option(ecql).getOrElse("No ecql")}\n" +
@@ -351,9 +358,9 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     iteratorConfig.iterator match {
       case IndexOnlyIterator  =>
         val transformedSFType = transformedSimpleFeatureType(query).getOrElse(featureType)
-        configureIndexIterator(bs, opoly, oint, query, transformedSFType)
+        configureIndexIterator(bs, ofilter, query, transformedSFType)
       case SpatioTemporalIterator =>
-        configureSpatioTemporalIntersectingIterator(bs, opoly, oint, featureType)
+        configureSpatioTemporalIntersectingIterator(bs, ofilter, featureType)
     }
 
     if (iteratorConfig.useSFFI) {
@@ -363,6 +370,28 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
     //  we wrap our calls in a SelfClosingBatchScanner.
     SelfClosingBatchScanner(bs)
+  }
+
+  // Let's handle special cases.
+  def tweakFilter(filter: Filter) = {
+    filter match {
+      case dw: DWithin => rewriteDwithin(dw)
+      case _ => filter
+    }
+  }
+
+  // Rewrites a Dwithin (assumed to express distance in meters) in degrees.
+  def rewriteDwithin(op: DWithin): Filter = {
+    val e2 = op.getExpression2.asInstanceOf[Literal]
+    val startPoint = e2.evaluate(null, classOf[Point])
+    val distance = op.getDistance
+    val distanceDegrees = GeometryUtils.distanceDegrees(startPoint, distance)
+
+    ff.dwithin(
+      op.getExpression1,
+      ff.literal(startPoint),
+      distanceDegrees,
+      "meters")
   }
 
   def configureFeatureEncoding(cfg: IteratorSetting) =
@@ -405,12 +434,11 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
   def configureIndexIterator(bs: BatchScanner,
                              filter: Option[Filter],
-                             interval: Option[Interval],
                              query: Query,
                              featureType: SimpleFeatureType) {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),classOf[IndexIterator])
-    IndexIterator.setOptions(cfg, schema, filter, interval)
+    IndexIterator.setOptions(cfg, schema, filter)
     configureFeatureType(cfg, featureType)
     configureFeatureEncoding(cfg)
     bs.addScanIterator(cfg)
@@ -421,12 +449,11 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
   def configureSpatioTemporalIntersectingIterator(bs: BatchScanner,
                                                   filter: Option[Filter],
-                                                  interval: Option[Interval],
                                                   featureType: SimpleFeatureType) {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),
       classOf[SpatioTemporalIntersectingIterator])
-    SpatioTemporalIntersectingIterator.setOptions(cfg, schema, filter, interval)
+    SpatioTemporalIntersectingIterator.setOptions(cfg, schema, filter)
     configureFeatureType(cfg, featureType)
     bs.addScanIterator(cfg)
   }
