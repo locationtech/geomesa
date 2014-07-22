@@ -137,7 +137,6 @@
                                     <exclude>java3d:*</exclude>
                                     <exclude>net.jcip:*</exclude>
                                     <exclude>c3p0:*</exclude>
-                                    <exclude>net.sf.ehcache:*</exclude>
                                     <exclude>jdom:*</exclude>
                                     <exclude>net.java.dev.jsr-275:*</exclude>
                                 </excludes>
