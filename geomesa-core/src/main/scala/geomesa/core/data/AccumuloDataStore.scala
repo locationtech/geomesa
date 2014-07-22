@@ -271,8 +271,7 @@ class AccumuloDataStore(val connector: Connector,
 
   /**
    * Deletes the tables from Accumulo created from the Geomesa SpatioTemporal Schema, and deletes
-   * metadata from the catalog. If the table is an older 0.10.x table, we delete features using
-   * AccumuloFeatureWriter's remove() instead.
+   * metadata from the catalog. If the table is an older 0.10.x table, we throw an exception.
    *
    * @param featureName the name of the feature
    * @param numThreads the number of concurrent threads to spawn for querying during metadata deletion
@@ -280,15 +279,10 @@ class AccumuloDataStore(val connector: Connector,
   def deleteSchema(featureName: String, numThreads: Int = 1) = {
     if (readMetadataItem(featureName, ST_IDX_TABLE_CF).nonEmpty) {
       removeSchema(featureName)
+      deleteMetadata(featureName, numThreads)
     } else {
-      val featureWriter = createFeatureWriter(featureName, Transaction.AUTO_COMMIT)
-      while (featureWriter.hasNext) {
-        featureWriter.next()
-        featureWriter.remove()
-      }
-      featureWriter.close()
+      throw new RuntimeException("Cannot delete schema for this version of the data store")
     }
-    deleteMetadata(featureName, numThreads)
   }
 
   /**
@@ -302,11 +296,7 @@ class AccumuloDataStore(val connector: Connector,
     val attributeIndexTable    = formatAttrIdxTableName(catalogTable, featureType)
     val recordTable            = formatRecordTableName(catalogTable, featureType)
 
-    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach { t =>
-      if (tableOps.exists(t)) {
-        tableOps.delete(t)
-      }
-    }
+    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach { t => if (tableOps.exists(t)) tableOps.delete(t) }
   }
 
   /**
@@ -370,7 +360,7 @@ class AccumuloDataStore(val connector: Connector,
     val cf_list = List(ATTRIBUTES_CF, BOUNDS_CF, SCHEMA_CF, DTGFIELD_CF, FEATURE_ENCODING_CF,
       VISIBILITIES_CF, VISIBILITIES_CHECK_CF, DATA_CQ, SFT_CF, ST_IDX_TABLE_CF,
       ATTR_IDX_TABLE_CF, RECORD_TABLE_CF)
-    val range = new Range(s"${METADATA_TAG }_$featureName")
+    val range = new Range(s"${METADATA_TAG}_$featureName")
     val deleter = connector.createBatchDeleter(catalogTable, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
     deleter.setRanges(List(range))
     deleter.delete()
@@ -555,7 +545,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   private def readMetadataItemNoCache(featureName: String, colFam: Text): Option[String] = {
     val scanner = createCatalogScanner
-    scanner.setRange(new Range(s"${METADATA_TAG }_$featureName"))
+    scanner.setRange(new Range(s"${METADATA_TAG}_$featureName"))
     scanner.fetchColumn(colFam, EMPTY_COLQ)
 
     val name = "version-" + featureName + "-" + colFam.toString
