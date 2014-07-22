@@ -332,6 +332,18 @@ class FeatureWritersTest extends Specification {
         map2013.keySet.size should equalTo(0)
       }
 
+      "verify that start end times are excluded in filter" in {
+        val ds = createStore
+        val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+        val attr = "dtg"
+
+        val afterFilter = getMap[String,Int](getFeatures(sftName, fs, s"$attr AFTER 2014-02-02T00:00:00Z"), "name", "age")
+        afterFilter.keySet.size should equalTo(0)
+
+        val beforeFilter = getMap[String,Int](getFeatures(sftName, fs, s"$attr BEFORE 2014-01-02T00:00:00Z"), "name", "age")
+        beforeFilter.keySet.size should equalTo(0)
+      }
+
       "ensure that feature IDs are not changed when spatiotemporal indexes change" in {
         val ds = createStore
         val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
@@ -380,6 +392,27 @@ class FeatureWritersTest extends Specification {
         }
       }
 
+      "verify delete and add same key works" in {
+        val ds = createStore
+        val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+        val deleteFilter = CQL.toFilter("name = 'will'")
+        fs.removeFeatures(deleteFilter)
+
+        val featuresAfterDelete = getMap[String,Int](getFeatures(sftName, fs, "name = 'will'"), "name", "age")
+        featuresAfterDelete.keySet.size should equalTo(0)
+
+        val featureCollection = new DefaultFeatureCollection(sftName, sft)
+        val sftType = ds.getSchema(sftName)
+        val geom = WKTUtils.read("POINT(10.0 10.0)")
+        val date = sdf.parse("20120102")
+        /* create a feature */
+        featureCollection.add(AvroSimpleFeatureFactory.buildAvroFeature(sftType, Array("will", 56.asInstanceOf[AnyRef], geom, date, null), "fid1"))
+        fs.addFeatures(featureCollection)
+
+        val features = getMap[String,Int](getFeatures(sftName, fs, "name = 'will'"), "name", "age")
+        features.keySet.size should equalTo(1)
+      }
     }
 
   def getFeatures(sftName: String, store: AccumuloFeatureStore, cql: String): SimpleFeatureIterator = {
