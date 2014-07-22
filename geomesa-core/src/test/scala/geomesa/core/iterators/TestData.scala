@@ -44,8 +44,8 @@ object TestData extends Logging {
     val geometry: Geometry = WKTUtils.read(wkt)
     val entry =
       AvroSimpleFeatureFactory.buildAvroFeature(
-        TestData.featureType,
-        List(null, null, null, null, geometry, dt.toDate, dt.toDate),
+        featureType,
+        List(null, null, null, id, geometry, dt.toDate, dt.toDate),
         s"|data|$id")
 
     //entry.setAttribute(geomType, id)

@@ -1,10 +1,11 @@
 package geomesa.core.util
 
 import geomesa.core.data.AccumuloDataStore
+import geomesa.core.index.ExplainerOutputType
 import org.apache.accumulo.core.client.{Scanner, BatchScanner}
 import org.opengis.feature.simple.SimpleFeatureType
 
-class ExplainingDataStore(output: String => Unit = println) extends AccumuloDataStore(null, null, null, null) {
+class ExplainingDataStore(output: ExplainerOutputType) extends AccumuloDataStore(null, null, null, null) {
   /**
    * Create a BatchScanner for the SpatioTemporal Index Table
    *
