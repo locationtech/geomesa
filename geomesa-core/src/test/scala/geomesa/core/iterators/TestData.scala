@@ -45,7 +45,7 @@ object TestData extends Logging {
     val entry =
       AvroSimpleFeatureFactory.buildAvroFeature(
         featureType,
-        List(null, null, null, null, geometry, dt.toDate, dt.toDate),
+        List(null, null, null, id, geometry, dt.toDate, dt.toDate),
         s"|data|$id")
 
     //entry.setAttribute(geomType, id)

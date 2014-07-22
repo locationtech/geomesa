@@ -81,7 +81,7 @@ object TestFilters {
       "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
       "OVERLAPS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
       "WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
-      "DISJOINT(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+      "CONTAINS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
       "CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
     )
 
@@ -130,4 +130,27 @@ object TestFilters {
     "CROSSES(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) OR WITHIN(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))",
     "CROSSES(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) OR DISJOINT(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))"
   )
+
+  val attributePredicates = Seq(
+    "attr2 = '2nd100001'",
+    "attr2 ILIKE '%1'",
+    "attr2 ILIKE '2nd1%'",
+    "attr2 ILIKE '1%'"      // Returns 0 since medium data features start with "2nd"
+  )
+
+  val attributeAndGeometricPredicates = Seq(
+    "attr2 = '2nd100001' AND DISJOINT(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    // For mediumData, this next filter will hit and the one after will not.
+    "attr2 = '2nd100001' AND INTERSECTS(geom, POLYGON ((45 20, 48 20, 48 27, 45 27, 45 20)))",
+    "attr2 = '2nd100001' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "attr2 ILIKE '%1' AND CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '%1' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '%1' AND OVERLAPS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "attr2 ILIKE '%1' AND WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '2nd1%' AND CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '2nd1%' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '2nd1%' AND OVERLAPS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "attr2 ILIKE '2nd1%' AND WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
+  )
+
 }
