@@ -252,7 +252,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val attrScanner = acc.createAttrIdxScanner(featureType)
 
     val (geomFilters, otherFilters) = partitionGeom(derivedQuery.getFilter)
-    val (temporalFilters, nonSTFilters) = partitionTemporal(derivedQuery.getFilter)
+    val (temporalFilters, nonSTFilters) = partitionTemporal(otherFilters)
 
     // NB: Added check to see if the nonSTFilters is empty.
     //  If it is, we needn't configure the SFFI
@@ -319,7 +319,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     // https://geomesa.atlassian.net/browse/GEOMESA-200
     // Simiarly, we should only extract temporal filters for the index date field.
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
-    val (temporalFilters, ecqlFilters: Seq[Filter]) = partitionTemporal(query.getFilter)
+    val (temporalFilters, ecqlFilters: Seq[Filter]) = partitionTemporal(otherFilters)
 
     val tweakedEcqlFilters = ecqlFilters.map(tweakFilter)
 
