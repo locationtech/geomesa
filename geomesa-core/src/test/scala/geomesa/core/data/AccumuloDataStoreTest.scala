@@ -40,6 +40,9 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
+import org.geotools.referencing.CRS
+import geomesa.core.iterators.TestData
+import org.geotools.referencing.crs.DefaultGeographicCRS
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
@@ -50,6 +53,7 @@ class AccumuloDataStoreTest extends Specification {
   var id = 0
   val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
   val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
+  val WGS84       = DefaultGeographicCRS.WGS84
 
   def createStore: AccumuloDataStore = {
     // need to add a unique ID, otherwise create schema will throw an exception
@@ -63,6 +67,20 @@ class AccumuloDataStoreTest extends Specification {
       "password"   -> "mypassword",
       "auths"      -> "A,B,C",
       "tableName"  -> ("testwrite" + id),
+      "useMock"    -> "true",
+      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+  }
+
+  def createStore(tableName: String): AccumuloDataStore = {
+    // the specific parameter values should not matter, as we
+    // are requesting a mock data store connection to Accumulo
+    DataStoreFinder.getDataStore(Map(
+      "instanceId" -> "mycloud",
+      "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      "user"       -> "myuser",
+      "password"   -> "mypassword",
+      "auths"      -> "A,B,C",
+      "tableName"  -> tableName,
       "useMock"    -> "true",
       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
   }
@@ -224,6 +242,68 @@ class AccumuloDataStoreTest extends Specification {
       val f = features.next()
       f.getID mustEqual "fid-1"
       features.hasNext must beFalse
+    }
+
+    "handle default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
+      val ds = createStore("IDL")
+      val sftName = TestData.featureName
+      val sft = TestData.featureType
+      sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+      ds.createSchema(sft)
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      val featureCollection = new DefaultFeatureCollection()
+      featureCollection.addAll(TestData.allThePoints.map(TestData.createSF))
+      fs.addFeatures(featureCollection)
+
+      val ff = CommonFactoryFinder.getFilterFactory2
+      val spatial = ff.bbox("geom", -230, -110, 230, 110, CRS.toSRS(WGS84))
+
+      val query = new Query(sftName, spatial)
+      val results = fs.getFeatures(query)
+      results.size() mustEqual 361
+    }
+
+    "handle >180 lon diff non-IDL-wrapping geoserver BBOX" in {
+      val ds = createStore("IDL")
+      val sftName = TestData.featureName
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      val ff = CommonFactoryFinder.getFilterFactory2
+      val spatial = ff.bbox("geom", -100, -90, 100, 90, CRS.toSRS(WGS84))
+      val query = new Query(sftName, spatial)
+      val results = fs.getFeatures(query)
+      results.size() mustEqual 201
+    }
+
+    "handle small IDL-wrapping geoserver BBOXes" in {
+      val ds = createStore("IDL")
+      val sftName = TestData.featureName
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      val ff = CommonFactoryFinder.getFilterFactory2
+      val spatial1 = ff.bbox("geom", -181.1, -90, -175.1, 90, CRS.toSRS(WGS84))
+      val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
+      val binarySpatial = ff.or(spatial1, spatial2)
+
+      val query = new Query(sftName, binarySpatial)
+      val results = fs.getFeatures(query)
+      results.size() mustEqual 10
+    }
+
+    "handle large IDL-wrapping geoserver BBOXes" in {
+      val ds = createStore("IDL")
+      val sftName = TestData.featureName
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+      val ff = CommonFactoryFinder.getFilterFactory2
+      val spatial1 = ff.bbox("geom", -181.1, -90, 40.1, 90, CRS.toSRS(WGS84))
+      val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
+      val binarySpatial = ff.or(spatial1, spatial2)
+
+      val query = new Query(sftName, binarySpatial)
+      val results = fs.getFeatures(query)
+      results.size() mustEqual 226
     }
 
     "handle transformations" in {
