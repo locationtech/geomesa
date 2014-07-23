@@ -35,6 +35,9 @@
         <appender-ref ref="FILE" />
     </root>
 
+    <logger name="org.apache.zookeeper" level="warn"/>
+    <logger name="hsqldb.db" level="warn"/>
+
     <!-- un-comment the following line to enable verbose log messages
          from the index query-planner; this can be helpful in debugging
          query plans -->
