@@ -372,12 +372,14 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
+    //access to query is up here.
     iteratorConfig.iterator match {
       case IndexOnlyIterator  =>
         val transformedSFType = transformedSimpleFeatureType(query).getOrElse(featureType)
         configureIndexIterator(bs, ofilter, query, transformedSFType)
       case SpatioTemporalIterator =>
-        configureSpatioTemporalIntersectingIterator(bs, ofilter, featureType)
+        val isDensity = query.getHints.containsKey(DENSITY_KEY)
+        configureSpatioTemporalIntersectingIterator(bs, ofilter, featureType, isDensity)
     }
 
     if (iteratorConfig.useSFFI) {
@@ -466,12 +468,14 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
   def configureSpatioTemporalIntersectingIterator(bs: BatchScanner,
                                                   filter: Option[Filter],
-                                                  featureType: SimpleFeatureType) {
+                                                  featureType: SimpleFeatureType,
+                                                  isDensity: Boolean) {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),
       classOf[SpatioTemporalIntersectingIterator])
     SpatioTemporalIntersectingIterator.setOptions(cfg, schema, filter)
     configureFeatureType(cfg, featureType)
+    if (isDensity) cfg.addOption(GEOMESA_ITERATORS_IS_DENSITY_TYPE, "isDensity")
     bs.addScanIterator(cfg)
   }
   // assumes that it receives an iterator over data-only entries, and aggregates
@@ -492,6 +496,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       "sffilter-" + randomPrintableString(5),
       clazz)
 
+    cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
+    if (density) cfg.addOption(GEOMESA_ITERATORS_IS_DENSITY_TYPE, "isDensity")
     configureFeatureEncoding(cfg)
     configureTransforms(query,cfg)
     configureFeatureType(cfg, simpleFeatureType)
