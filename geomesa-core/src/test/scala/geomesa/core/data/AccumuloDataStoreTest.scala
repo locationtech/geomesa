@@ -19,6 +19,7 @@ package geomesa.core.data
 import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.index.{IndexSchemaBuilder, SF_PROPERTY_START_TIME}
 import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
+import geomesa.core.util.CloseableIterator
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
@@ -520,7 +521,7 @@ class AccumuloDataStoreTest extends Specification {
       "query indexed attribute" >> {
         val q1 = ff.equals(ff.property("name"), ff.literal("one"))
         val fr = ds.getFeatureReader(sftName, new Query(sftName, q1))
-        val results = fr.iter.toList
+        val results = CloseableIterator(fr).toList
         results must haveLength(1)
         results.head.getAttribute("name") mustEqual "one"
       }
@@ -528,7 +529,7 @@ class AccumuloDataStoreTest extends Specification {
       "query non-indexed attributes" >> {
         val q2 = ff.equals(ff.property("numattr"), ff.literal(2))
         val fr = ds.getFeatureReader(sftName, new Query(sftName, q2))
-        val results = fr.iter.toList
+        val results = CloseableIterator(fr).toList
         results must haveLength(1)
         results.head.getAttribute("numattr") mustEqual 2
       }

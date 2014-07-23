@@ -17,8 +17,8 @@
 package geomesa.core.data
 
 import geomesa.core.index._
-import geomesa.core.util.CloseableIterator
-import org.geotools.data.{Query, FeatureReader}
+import geomesa.core.stats.{MethodProfiling, QueryStat, QueryStatTransform, StatWriter}
+import org.geotools.data.{FeatureReader, Query}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
@@ -26,16 +26,43 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             indexSchemaFmt: String,
                             sft: SimpleFeatureType,
                             featureEncoder: SimpleFeatureEncoder)
-  extends FeatureReader[SimpleFeatureType, SimpleFeature] {
+  extends FeatureReader[SimpleFeatureType, SimpleFeature] with MethodProfiling {
 
-  val indexSchema = IndexSchema(indexSchemaFmt, sft, featureEncoder)
-  val iter = indexSchema.query(query, dataStore)
+  private var scanTime = 0L
+  private var hitsSeen = 0
+
+  private val (iter, planningTime) = profile {
+    val indexSchema = IndexSchema(indexSchemaFmt, sft, featureEncoder)
+    indexSchema.query(query, dataStore)
+  }
 
   override def getFeatureType = sft
 
-  override def next() = iter.next()
+  override def next() = {
+    val (result, time) = profile(iter.next())
+    scanTime += time
+    hitsSeen += 1
+    result
+  }
 
-  override def hasNext = iter.hasNext
+  override def hasNext = {
+    val (result, time) = profile(iter.hasNext)
+    scanTime += time
+    result
+  }
 
-  override def close() = iter.close()
+  override def close() = {
+    iter.close()
+    if (dataStore.isInstanceOf[StatWriter]) {
+      val stat = QueryStat(dataStore.catalogTable,
+                            sft.getTypeName,
+                            System.currentTimeMillis(),
+                            QueryStatTransform.filterToString(query.getFilter),
+                            QueryStatTransform.hintsToString(query.getHints),
+                            planningTime,
+                            scanTime,
+                            hitsSeen)
+      dataStore.asInstanceOf[StatWriter].writeStat(stat)
+    }
+  }
 }
