@@ -20,11 +20,11 @@ package geomesa.utils.geotools
 import com.vividsolutions.jts.geom.{Coordinate, Envelope}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.data.simple.SimpleFeatureSource
-import org.geotools.grid.Envelopes
 import org.geotools.grid.oblong.Oblongs
 import org.geotools.grid.{DefaultGridFeatureBuilder}
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import scala.math.{abs, max}
+import scala.annotation.tailrec
+import scala.math.abs
 
 class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
 
@@ -78,41 +78,38 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
   }
 
   /** Generate a Sequence of Coordinates between two given Snap Coordinates using Bresenham's Line Algorithm */
-  def bresenhamCoordSeq(x0: Int, y0: Int, x1: Int, y1: Int): Seq[Coordinate] = {
+  def bresenhamCoordSeq(x0: Int, y0: Int, x1: Int, y1: Int): Set[Coordinate] = {
     val deltaX = abs(x1 - x0)
     val deltaY = abs(y1 - y0)
-    if ((deltaX == 0) && (deltaY == 0)) return Seq(new Coordinate(x(x0), y(y0)))
-    val stepX = if(x0 < x1) 1 else -1
-    val stepY = if(y0 < y1) 1 else -1
-    def iter = new Iterator[Coordinate] {
-      var (xT, yT) = (x0, y0)
-      var error = ( if(deltaX > deltaY) deltaX else -deltaY ) / 2
-      def next = {
-        val errorT = error
-        if(errorT > -deltaX){ error -= deltaY; xT += stepX }
-        if(errorT < deltaY){ error += deltaX; yT += stepY }
-        new Coordinate(x(xT), y(yT))
+    if ((deltaX == 0) && (deltaY == 0)) Set[Coordinate](new Coordinate(x(x0), y(y0)))
+    else {
+      val stepX = if (x0 < x1) 1 else -1
+      val stepY = if (y0 < y1) 1 else -1
+      def iter = new Iterator[Coordinate] {
+        var (xT, yT) = (x0, y0)
+        var error = (if (deltaX > deltaY) deltaX else -deltaY) / 2
+        def next = {
+          val errorT = error
+          if(errorT > -deltaX){ error -= deltaY; xT += stepX }
+          if(errorT < deltaY){ error += deltaX; yT += stepY }
+          new Coordinate(x(xT), y(yT))
+        }
+        def hasNext = stepX * xT <= stepX * x1 && stepY * yT <= stepY * y1
       }
-      def hasNext = (stepX * xT <= stepX * x1 && stepY * yT <= stepY * y1)
+      iter.toList.dropRight(1).toSet
     }
-    // output has the input 2nd point at end, plus an additional point dropped using dropRight
-    iter.toList.toSeq.dropRight(1)
   }
 
-  /** Generate a Sequence of Coordinates between two given Snap Coordinates which includes both start and end points*/
-  def generateLineCoordSeq(coordOne: Coordinate, coordTwo: Coordinate): Seq[Coordinate] ={
-    val s = bresenhamCoordSeq(i(coordOne.x), j(coordOne.y), i(coordTwo.x), j(coordTwo.y)) :+
-    (new Coordinate(coordOne.x, coordOne.y)) :+ (new Coordinate(coordTwo.x, coordTwo.y))
-    //add back the start and end coordinates, finally assure we have no duplicate points
-    s.toSeq
+  /** Generate a Set of Coordinates between two given Snap Coordinates which includes both start and end points*/
+  def generateLineCoordSet(coordOne: Coordinate, coordTwo: Coordinate): Set[Coordinate] ={
+    bresenhamCoordSeq(i(coordOne.x), j(coordOne.y), i(coordTwo.x), j(coordTwo.y)) + coordOne + coordTwo
   }
 
   /** return a SimpleFeatureSource grid the same size and extent as the bbox */
   def generateCoverageGrid():SimpleFeatureSource = {
-    val dxt = env.getWidth / (xSize)
-    val dyt = env.getHeight / (ySize)
+    val dxt = env.getWidth / xSize
+    val dyt = env.getHeight / ySize
     val gridBounds = new ReferencedEnvelope(env.getMinX, env.getMaxX, env.getMinY, env.getMaxY, DefaultGeographicCRS.WGS84)
-    //= Envelopes.expandToInclude(tempBounds, max(dxt, dyt))
     val gridBuilder = new DefaultGridFeatureBuilder()
     val grid = Oblongs.createGrid(gridBounds, dxt, dyt, gridBuilder)
     grid

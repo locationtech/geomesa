@@ -442,7 +442,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       clazz)
 
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-    if (density) cfg.addOption(GEOMESA_ITERATORS_IS_DENSITY_TYPE, "True")
+    if (density) cfg.addOption(GEOMESA_ITERATORS_IS_DENSITY_TYPE, "isDensity")
     configureFeatureEncoding(cfg)
     configureTransforms(query,cfg)
     configureFeatureType(cfg, simpleFeatureType)

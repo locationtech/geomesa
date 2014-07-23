@@ -26,13 +26,14 @@ import com.vividsolutions.jts.geom._
 import geomesa.core._
 import geomesa.core.index.{IndexEntryDecoder, IndexSchema, GeohashDecoder}
 import geomesa.feature.AvroSimpleFeatureFactory
-import geomesa.utils.geotools.Conversions.{RichSimpleFeatureIterator, RichSimpleFeature}
+import geomesa.utils.geotools.Conversions.{toRichSimpleFeatureIterator, RichSimpleFeature}
 import geomesa.utils.geotools.GridSnap
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => ARange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.commons.codec.binary.Base64
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder, ReferencedEnvelope}
@@ -55,7 +56,6 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
   var topDensityKey: Option[Key] = None
   var topDensityValue: Option[Value] = None
   protected var decoder: IndexEntryDecoder = null
-  var prevSeq: Set[Coordinate] = Set[Coordinate]()
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: ju.Map[String, String],
@@ -68,7 +68,6 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
     featureBuilder = AvroSimpleFeatureFactory.featureBuilder(projectedSFT)
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
-    var prevSeq: Set[Coordinate] = Set[Coordinate]()
   }
 
   /**
@@ -88,8 +87,6 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
       topDensityKey = Some(topKey)
 
       val feature = featureOption.getOrElse(featureEncoder.decode(simpleFeatureType, topValue))
-      // if point leave as is, else intersect the geom with the geohash
-      // actually I may want to intersect all geoms, what about points in various geohashes...
       val geoHashGeom = decoder.decode(topKey).getDefaultGeometry.asInstanceOf[Geometry]
 
       geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
@@ -118,6 +115,11 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
             i => handlePolygon(multiPolygon.getGeometryN(i).intersection(geoHashGeom).asInstanceOf[Polygon])
           }
 
+        case someGeometry: Geometry =>
+          addResultPoint(someGeometry.getCentroid)
+
+        case _ => Nil
+
       }
       // get the next feature that will be returned before calling super.next(), for the next loop
       // iteration, where it will the the feature corresponding to topValue
@@ -138,34 +140,27 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
     }
   }
 
-  /** take in a line string and generate a series of points between each pair of points
-    * take a set of the resulting flatMap, which "should" resolve overlapping lines */
+    /** take in a line string and seed in points between each window of two points
+      * take the set of the resulting points to remove duplicate endpoints */
   def handleLineString(inLine: LineString) = {
-    val lineCoordSet = inLine.getCoordinates.sliding(2).flatMap {
+    inLine.getCoordinates.sliding(2).flatMap {
       case Array(p0, p1) =>
-        snap.generateLineCoordSeq(p0, p1)
-    }.toSet
-    lineCoordSet.foreach(c => addResultCoordinate(c))
+        snap.generateLineCoordSet(p0, p1)
+    }.toSet[Coordinate].foreach(c => addResultCoordinate(c))
   }
 
   /** for a given polygon, take the centroid of each polygon from the BBOX coverage grid
     * if the given polygon contains the centroid then it is passed on to addResultPoint */
   def handlePolygon(inPolygon: Polygon) = {
     val grid = snap.generateCoverageGrid
-    val gridFeatures = grid.getFeatures
-    val featureIterator = gridFeatures.features
-    while(featureIterator.hasNext) {
-      val thisFeature = featureIterator.next
-      val thisGeom = thisFeature.getDefaultGeometry.asInstanceOf[Polygon]
-      if (inPolygon.intersects(thisGeom)) addResultPoint(thisGeom.getCentroid)
-    }
-    featureIterator.close
+    val featureIterator = grid.getFeatures.features
+    featureIterator
+      .filter{ f => inPolygon.intersects(f.polygon) }
+      .foreach{ f=> addResultPoint(f.polygon.getCentroid) }
   }
 
   /** calls addResultCoordinate on a given Point's coordinate */
-  def addResultPoint(inPoint: Point) = {
-    addResultCoordinate(inPoint.getCoordinate)
-  }
+  def addResultPoint(inPoint: Point) = addResultCoordinate(inPoint.getCoordinate)
 
   /** take a given Coordinate and add 1 to the result coordinate that it corresponds to via the snap grid */
   def addResultCoordinate(coord: Coordinate) = {
@@ -195,9 +190,9 @@ object DensityIterator extends Logging {
   val BBOX_KEY = "geomesa.density.bbox"
   val BOUNDS_KEY = "geomesa.density.bounds"
   val ENCODED_RASTER_ATTRIBUTE = "encodedraster"
-  val DENSITY_FEATURE_STRING = s"$ENCODED_RASTER_ATTRIBUTE:String,geom:Geometry:srid=4326"
+  val DENSITY_FEATURE_STRING = s"$ENCODED_RASTER_ATTRIBUTE:String,geom:Point:srid=4326"
   type SparseMatrix = HashBasedTable[Double, Double, Long]
-  val densitySFT = DataUtilities.createType("geomesadensity", "weight:Double,geom:Geometry:srid=4326")
+  val densitySFT = DataUtilities.createType("geomesadensity", "weight:Double,geom:Point:srid=4326")
   val geomFactory = JTSFactoryFinder.getGeometryFactory
 
   def configure(cfg: IteratorSetting, polygon: Polygon, w: Int, h: Int) = {
