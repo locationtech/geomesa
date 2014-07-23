@@ -46,6 +46,8 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class DensityIteratorTest extends Specification {
 
+  sequential
+
   import geomesa.utils.geotools.Conversions._
 
   val spec = "id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
