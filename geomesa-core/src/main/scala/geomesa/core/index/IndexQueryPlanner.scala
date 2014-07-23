@@ -12,6 +12,7 @@ import geomesa.core.filter.{ff, _}
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
 import geomesa.core.util.{CloseableIterator, SelfClosingBatchScanner}
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.user.RegExFilter
@@ -398,7 +399,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
 
   def configureFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) {
-    val encodedSimpleFeatureType = DataUtilities.encodeType(featureType)
+    val encodedSimpleFeatureType = SimpleFeatureTypes.encodeType(featureType)
     cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, encodedSimpleFeatureType)
     cfg.encodeUserData(featureType.getUserData, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
   }
@@ -415,7 +416,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       transform     = transformOpt.asInstanceOf[String]
       _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
       sfType        <- transformedSimpleFeatureType(query)
-      encodedSFType = DataUtilities.encodeType(sfType)
+      encodedSFType = SimpleFeatureTypes.encodeType(sfType)
       _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, encodedSFType)
     } yield Unit
 

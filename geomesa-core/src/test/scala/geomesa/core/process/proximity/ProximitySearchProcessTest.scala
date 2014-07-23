@@ -4,9 +4,9 @@ import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import geomesa.core.index.Constants
 import geomesa.feature.AvroSimpleFeatureFactory
-import geomesa.utils.geotools.GeometryUtils
+import geomesa.utils.geotools.{SimpleFeatureTypes, GeometryUtils}
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.{DataStoreFinder, DataUtilities}
+import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -39,7 +39,7 @@ class ProximitySearchProcessTest extends Specification {
        "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
 
      val sftName = "geomesaProximityTestType"
-     val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+     val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
      sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
      val ds = createStore

@@ -16,14 +16,14 @@
 
 package geomesa.core.iterators
 
-import collection.JavaConversions._
 import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.index._
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{Query, DataUtilities}
+import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -31,6 +31,8 @@ import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class IteratorTriggerTest extends Specification {
@@ -46,7 +48,7 @@ class IteratorTriggerTest extends Specification {
     }
 
     def testFeatureType: SimpleFeatureType = {
-      val featureType: SimpleFeatureType = DataUtilities.createType(featureName, testFeatureTypeSpec)
+      val featureType: SimpleFeatureType = SimpleFeatureTypes.createType(featureName, testFeatureTypeSpec)
       featureType.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       featureType
     }
@@ -66,7 +68,7 @@ class IteratorTriggerTest extends Specification {
 
       val dsf = new AccumuloDataStoreFactory
 
-      import AccumuloDataStoreFactory.params._
+      import geomesa.core.data.AccumuloDataStoreFactory.params._
 
       val ds = dsf.createDataStore(
         Map(

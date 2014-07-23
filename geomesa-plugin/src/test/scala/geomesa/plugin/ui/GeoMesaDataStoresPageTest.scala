@@ -22,18 +22,14 @@ package geomesa.plugin.ui
 import java.io.File
 
 import com.google.common.io.Files
-import org.apache.accumulo.core.Constants
-import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance, BatchWriterConfig}
-import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, ZooKeeperInstance}
 import org.apache.accumulo.core.data.Mutation
-import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.minicluster.MiniAccumuloCluster
 import org.apache.hadoop.io.Text
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.Step
 
 import scala.collection.JavaConverters._
 

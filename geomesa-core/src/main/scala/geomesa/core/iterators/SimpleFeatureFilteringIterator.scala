@@ -19,6 +19,7 @@ package geomesa.core.iterators
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.data._
 import geomesa.core.transform.TransformCreator
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -26,6 +27,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
 import scala.util.{Failure, Success, Try}
 
 class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env: IteratorEnvironment)
@@ -83,12 +85,12 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
     featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
 
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
-    simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
+    simpleFeatureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
     simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
     val transformSchema = options.get(GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
     targetFeatureType =
-      if (transformSchema != null) DataUtilities.createType(this.getClass.getCanonicalName, transformSchema)
+      if (transformSchema != null) SimpleFeatureTypes.createType(this.getClass.getCanonicalName, transformSchema)
       else simpleFeatureType
     // if the targetFeatureType comes from a transform, also insert the UserData
     if (transformSchema != null) targetFeatureType.decodeUserData(options, GEOMESA_ITERATORS_TRANSFORM_SCHEMA)

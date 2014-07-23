@@ -17,9 +17,9 @@
 package geomesa.core
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.data.{Value, Key}
-import org.geotools.data.DataUtilities
-import org.geotools.factory.Hints.{IntegerKey, ClassKey}
+import geomesa.utils.geotools.SimpleFeatureTypes
+import org.apache.accumulo.core.data.{Key, Value}
+import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.DateTime
@@ -41,7 +41,7 @@ package object index {
   // wrapping function in option to protect against incorrect values in SF_PROPERTY_START_TIME
   def getDtgDescriptor(sft: SimpleFeatureType) = getDtgFieldName(sft).flatMap{name => Option(sft.getDescriptor(name))}
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
-  val indexSFT = DataUtilities.createType("geomesa-idx", spec)
+  val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)
 
   implicit def string2id(s: String): FeatureId = new FeatureIdImpl(s)
 

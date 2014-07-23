@@ -20,6 +20,7 @@ import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.index.SF_PROPERTY_START_TIME
 import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
@@ -77,7 +78,7 @@ class AccumuloDataStoreTest extends Specification {
   "AccumuloDataStore" should {
     "provide ability to create a new store" in {
       val ds = createStore
-      val sft = DataUtilities.createType("testType",
+      val sft = SimpleFeatureTypes.createType("testType",
         s"NAME:String,$geotimeAttributes")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
@@ -87,6 +88,8 @@ class AccumuloDataStoreTest extends Specification {
       liveFeature.setDefaultGeometry(WKTUtils.read("POINT(45.0 49.0)"))
       fw.write()
       tx.commit()
+
+      ds must not beNull
     }
   }
 
@@ -94,7 +97,7 @@ class AccumuloDataStoreTest extends Specification {
     "return non-NULL when a feature name does exist" in {
       val ds = createStore
       val sftName = "testTypeThatDoesExist"
-      val sft = DataUtilities.createType(sftName,
+      val sft = SimpleFeatureTypes.createType(sftName,
         s"NAME:String,$geotimeAttributes")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
@@ -113,7 +116,7 @@ class AccumuloDataStoreTest extends Specification {
       // create the data store
       val ds = createStore
       val sftName = "testType"
-      val sft = DataUtilities.createType(sftName,
+      val sft = SimpleFeatureTypes.createType(sftName,
         s"NAME:String,$geotimeAttributes")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
@@ -157,7 +160,7 @@ class AccumuloDataStoreTest extends Specification {
       // create the data store
       val ds = createStore
       val sftName = "testType"
-      val sft = DataUtilities.createType(sftName, s"NAME:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"NAME:String,$geotimeAttributes")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
@@ -194,7 +197,7 @@ class AccumuloDataStoreTest extends Specification {
       // create the data store
       val ds = createStore
       val sftName = "dwithintest"
-      val sft = DataUtilities.createType(sftName, s"NAME:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"NAME:String,dtg:Date,*geom:Point:srid=4326")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
 
@@ -230,7 +233,7 @@ class AccumuloDataStoreTest extends Specification {
       // create the data store
       val ds = createStore
       val sftName = "transformtest"
-      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
 
@@ -256,7 +259,7 @@ class AccumuloDataStoreTest extends Specification {
       val features = results.features
       val f = features.next()
 
-      "name:String,geom:Point:srid=4326,derived:String" mustEqual DataUtilities.encodeType(results.getSchema)
+      "name:String:index=false,*geom:Point:srid=4326:index=false,derived:String:index=false" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
       "fid-1=testType|POINT (45 49)|hellotestType" mustEqual DataUtilities.encodeFeature(f)
     }
 
@@ -264,7 +267,7 @@ class AccumuloDataStoreTest extends Specification {
       // create the data store
       val ds = createStore
       val sftName = "transformtest"
-      val sft = DataUtilities.createType(sftName, s"name:String,attr:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,attr:String,dtg:Date,*geom:Point:srid=4326")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
 
@@ -290,7 +293,7 @@ class AccumuloDataStoreTest extends Specification {
       val features = results.features
       val f = features.next()
 
-      "name:String,geom:Point:srid=4326,derived:String" mustEqual DataUtilities.encodeType(results.getSchema)
+      "name:String:index=false,*geom:Point:srid=4326:index=false,derived:String:index=false" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
       "fid-1=testType|POINT (45 49)|v1testType" mustEqual DataUtilities.encodeFeature(f)
     }
 
@@ -298,7 +301,7 @@ class AccumuloDataStoreTest extends Specification {
       // create the data store
       val ds = createStore
       val sftName = "transformtest"
-      val sft = DataUtilities.createType(sftName, s"name:String,attr:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,attr:String,dtg:Date,*geom:Point:srid=4326")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
 
@@ -324,7 +327,7 @@ class AccumuloDataStoreTest extends Specification {
       val features = results.features
       val f = features.next()
 
-      "name:String,geom:Point:srid=4326" mustEqual DataUtilities.encodeType(results.getSchema)
+      "name:String:index=false,*geom:Point:srid=4326:index=false" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
       "fid-1=testType|POINT (45 49)" mustEqual DataUtilities.encodeFeature(f)
     }
 
@@ -393,7 +396,7 @@ class AccumuloDataStoreTest extends Specification {
                                                  "indexSchemaFormat"    -> schema,
                                                  "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
 
-      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
 
@@ -444,7 +447,7 @@ class AccumuloDataStoreTest extends Specification {
 
       // create the schema - the auths for this user are sufficient to write data
       val sftName = "authwritetest1"
-      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
        sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
 
@@ -472,7 +475,7 @@ class AccumuloDataStoreTest extends Specification {
 
       // create the schema - the auths for this user are less than the visibility used to write data
       val sftName = "authwritetest2"
-      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
 
@@ -502,7 +505,7 @@ class AccumuloDataStoreTest extends Specification {
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should be OK
       val sftName = "somethingsaf3"
-      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
 
       val mockInstance = new MockInstance("mycloud")
@@ -512,38 +515,6 @@ class AccumuloDataStoreTest extends Specification {
       c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beTrue
       c.tableOperations().exists(s"${table}_${sftName}_records") must beTrue
       c.tableOperations().exists(s"${table}_${sftName}_attr_idx") must beTrue
-    }
-
-    "hex encode non accumulo table name safe feature type names" in {
-
-      val table = "testing_bad_features"
-      val ds = DataStoreFinder.getDataStore(Map(
-        "instanceId" -> "mycloud",
-        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-        "user"       -> "myuser",
-        "password"   -> "mypassword",
-        "tableName"  -> table,
-        "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
-
-      ds should not be null
-
-      // accumulo supports only alphanum + underscore aka ^\\w+$
-      // this should end up hex encoded
-      val sftName = "some_thing:bad!"
-      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
-      ds.createSchema(sft)
-
-      val mockInstance = new MockInstance("mycloud")
-      val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
-
-      def enc(s: String) = "_" + Hex.encodeHexString(s.getBytes("UTF8")).toLowerCase
-
-      val hexSft = "some" + enc("_") + "thing" + enc(":") + "bad" + enc("!")
-
-      c.tableOperations().exists(table) must beTrue
-      c.tableOperations().exists(s"${table}_${hexSft}_st_idx") must beTrue
-      c.tableOperations().exists(s"${table}_${hexSft}_records") must beTrue
-      c.tableOperations().exists(s"${table}_${hexSft}_attr_idx") must beTrue
     }
 
     "hex encode multibyte chars as multiple underscore + hex" in {
@@ -561,7 +532,7 @@ class AccumuloDataStoreTest extends Specification {
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should end up hex encoded
       val sftName = "nihao你好"
-      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
 
       val mockInstance = new MockInstance("mycloud")
@@ -602,13 +573,13 @@ class AccumuloDataStoreTest extends Specification {
 
   "AccumuloFeatureStore" should {
     "compute target schemas from transformation expressions" in {
-      val origSFT = DataUtilities.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
+      val origSFT = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
       origSFT.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       val definitions =
         TransformProcess.toDefinition("name=name;helloName=strConcat('hello', name);geom=geom")
 
       val result = AccumuloFeatureStore.computeSchema(origSFT, definitions.toSeq)
-      println(DataUtilities.encodeType(result))
+      println(SimpleFeatureTypes.encodeType(result))
 
       (result must not).beNull
     }

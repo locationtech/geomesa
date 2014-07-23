@@ -28,6 +28,7 @@ import geomesa.core.data.AccumuloFeatureWriter.MapReduceRecordWriter
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.core.index.{IndexSchema, TemporalIndexCheck}
 import geomesa.core.security.AuthorizationsProvider
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
@@ -115,7 +116,7 @@ class AccumuloDataStore(val connector: Connector,
     val mutation = getMetadataMutation(featureName)
 
     // compute the metadata values
-    val attributesValue = DataUtilities.encodeType(sft)
+    val attributesValue = SimpleFeatureTypes.encodeType(sft)
     val dtgValue: Option[String] = {
       val userData = sft.getUserData
       // inspect, warn and set SF_PROPERTY_START_TIME if appropriate
@@ -662,7 +663,7 @@ class AccumuloDataStore(val connector: Connector,
       case attributes if attributes.isEmpty =>
         null
       case attributes                       =>
-        val sft = DataUtilities.createType(featureName, attributes)
+        val sft = SimpleFeatureTypes.createType(featureName, attributes)
         val dtgField = readMetadataItem(featureName, DTGFIELD_CF)
           .getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
         sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)

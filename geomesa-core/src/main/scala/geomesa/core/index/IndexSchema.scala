@@ -25,6 +25,7 @@ import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators._
 import geomesa.core.util._
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.{DataUtilities, Query}
@@ -131,7 +132,7 @@ case class IndexSchema(encoder: IndexEncoder,
   private def getReturnSFT(query: Query): SimpleFeatureType =
     query match {
       case _: Query if query.getHints.containsKey(DENSITY_KEY)  =>
-        DataUtilities.createType(featureType.getTypeName, DensityIterator.DENSITY_FEATURE_STRING)
+        SimpleFeatureTypes.createType(featureType.getTypeName, DensityIterator.DENSITY_FEATURE_STRING)
       case _: Query if query.getHints.get(TRANSFORM_SCHEMA) != null =>
         query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
       case _ => featureType

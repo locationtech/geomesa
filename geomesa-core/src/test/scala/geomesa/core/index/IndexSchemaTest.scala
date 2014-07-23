@@ -20,24 +20,23 @@ import com.vividsolutions.jts.geom._
 import geomesa.core._
 import geomesa.core.data.SimpleFeatureEncoderFactory
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.data.Key
-import org.geotools.data.{Query, DataUtilities}
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
 import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class IndexSchemaTest extends Specification {
 
-  import collection.JavaConversions._
-
-  val dummyType = DataUtilities.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
-  val customType = DataUtilities.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,*the_geom:Geometry,dt_start:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
+  val dummyType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
+  val customType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,*the_geom:Geometry,dt_start:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
   customType.getUserData.put(SF_PROPERTY_START_TIME, "dt_start")
   val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
 
