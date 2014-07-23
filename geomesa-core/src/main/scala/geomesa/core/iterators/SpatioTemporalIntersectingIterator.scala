@@ -105,12 +105,18 @@ class SpatioTemporalIntersectingIterator
       val sfb = new SimpleFeatureBuilder(featureType)
       geomTestSF = sfb.buildFeature("test")
     }
+
     if (options.containsKey(DEFAULT_INTERVAL_PROPERTY_NAME))
       interval = SpatioTemporalIntersectingIterator.decodeInterval(
         options.get(DEFAULT_INTERVAL_PROPERTY_NAME))
+
     if (options.containsKey(DEFAULT_CACHE_SIZE_NAME))
       maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
-    deduplicate = IndexSchema.mayContainDuplicates(featureType)
+
+    if (!options.containsKey(GEOMESA_ITERATORS_IS_DENSITY_TYPE))
+      deduplicate = IndexSchema.mayContainDuplicates(featureType)
+    else
+      deduplicate = false
 
     this.indexSource = source.deepCopy(env)
     this.dataSource = source.deepCopy(env)
