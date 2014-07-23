@@ -91,6 +91,24 @@ class AccumuloDataStoreTest extends Specification {
   }
 
   "AccumuloDataStore" should {
+    "return non-NULL when a feature name does exist" in {
+      val ds = createStore
+      val sftName = "testTypeThatDoesExist"
+      val sft = DataUtilities.createType(sftName,
+        s"NAME:String,$geotimeAttributes")
+      sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+      ds.createSchema(sft)
+      ds.getSchema(sftName) must not be null
+    }
+
+    "return NULL when a feature name does not exist" in {
+      val ds = createStore
+      val sftName = "testTypeThatDoesNotExist"
+      ds.getSchema(sftName) must beNull
+    }
+  }
+
+  "AccumuloDataStore" should {
     "provide ability to write using the feature source and read what it wrote" in {
       // create the data store
       val ds = createStore

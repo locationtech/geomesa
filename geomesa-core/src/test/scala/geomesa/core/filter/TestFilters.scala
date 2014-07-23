@@ -1,12 +1,7 @@
 package geomesa.core.filter
 
 import geomesa.core.filter.FilterUtils._
-import geomesa.core.index.IndexSchema
-import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, Interval}
-import org.opengis.filter.Filter
 import org.opengis.filter._
-import scala.collection.JavaConversions._
 
 object TestFilters {
 
@@ -81,7 +76,7 @@ object TestFilters {
       "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
       "OVERLAPS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
       "WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
-      "DISJOINT(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+      "CONTAINS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
       "CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
     )
 
@@ -129,5 +124,32 @@ object TestFilters {
     "CROSSES(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) OR OVERLAPS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))",
     "CROSSES(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) OR WITHIN(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))",
     "CROSSES(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) OR DISJOINT(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))"
+  )
+
+  val attributePredicates = Seq(
+    "attr2 = '2nd100001'",
+    "attr2 ILIKE '%1'",
+    "attr2 ILIKE '2nd1%'",
+    "attr2 ILIKE '1%'"      // Returns 0 since medium data features start with "2nd"
+  )
+
+  val attributeAndGeometricPredicates = Seq(
+    "attr2 = '2nd100001' AND DISJOINT(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    // For mediumData, this next filter will hit and the one after will not.
+    "attr2 = '2nd100001' AND INTERSECTS(geom, POLYGON ((45 20, 48 20, 48 27, 45 27, 45 20)))",
+    "attr2 = '2nd100001' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "attr2 ILIKE '%1' AND CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '%1' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '%1' AND OVERLAPS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "attr2 ILIKE '%1' AND WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '2nd1%' AND CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '2nd1%' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '2nd1%' AND OVERLAPS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "attr2 ILIKE '2nd1%' AND WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
+  )
+
+  val temporalPredicates = Seq(
+  "(not dtg after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)",
+  "(dtg between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')"
   )
 }

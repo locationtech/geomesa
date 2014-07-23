@@ -16,63 +16,73 @@
 
 package geomesa.core.iterators
 
-import java.util.{Map => JMap}
+import java.util.{Date, Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Geometry, Polygon}
-import geomesa.core.index.IndexSchema
+import com.vividsolutions.jts.geom.Geometry
+import geomesa.core._
+import geomesa.core.index._
 import geomesa.core.index.IndexSchema.DecodedIndexValue
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{Filter, IteratorEnvironment, SortedKeyValueIterator}
-import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
-import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.Interval
+import org.geotools.data.DataUtilities
+import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
+import org.opengis.feature.simple.SimpleFeature
 
 class AttributeIndexFilteringIterator extends Filter with Logging {
 
-  protected var bbox: Polygon = null
-  protected var interval: Interval = null
+  protected var filter: org.opengis.filter.Filter = null
+  protected var testSimpleFeature: SimpleFeature = null
+  protected var dateAttributeName: Option[String] = None
+
+  // NB: This is duplicated code from the STII.  Consider refactoring.
+  lazy val wrappedSTFilter: (Geometry, Option[Long]) => Boolean = {
+    if (filter != null && testSimpleFeature != null) {
+      (geom: Geometry, olong: Option[Long]) => {
+        testSimpleFeature.setDefaultGeometry(geom)
+        for {
+          dateAttribute <- dateAttributeName
+          long <- olong
+        } {
+          testSimpleFeature.setAttribute(dateAttribute, new Date(long))
+        }
+        filter.evaluate(testSimpleFeature)
+      }
+    } else {
+      (_, _) => true
+    }
+  }
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: JMap[String, String],
                     env: IteratorEnvironment) {
     super.init(source, options, env)
-    if(options.containsKey(AttributeIndexFilteringIterator.BBOX_KEY)) {
-      // TODO validate bbox option
-      val Array(minx, miny, maxx, maxy) = options.get(AttributeIndexFilteringIterator.BBOX_KEY).split(",").map(_.toDouble)
-      val re = new ReferencedEnvelope(minx, maxx, miny, maxy, DefaultGeographicCRS.WGS84)
-      bbox = JTS.toGeometry(re)
-      logger.info(s"Set bounding box for values ${bbox.toString}")
-    }
-    if(options.containsKey(AttributeIndexFilteringIterator.INTERVAL_KEY)) {
-      // TODO validate interval option
-      interval = Interval.parse(options.get(AttributeIndexFilteringIterator.INTERVAL_KEY))
-      logger.info(s"Set interval to ${interval.toString}")
+    // NB: This is copied code from the STII.  Consider refactoring.
+    if (options.containsKey(DEFAULT_FILTER_PROPERTY_NAME) && options.containsKey(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)) {
+      val featureType = DataUtilities.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
+      featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+      dateAttributeName = getDtgFieldName(featureType)
+
+      val filterString  = options.get(DEFAULT_FILTER_PROPERTY_NAME)
+      filter = ECQL.toFilter(filterString)
+      println(s"In AIFI with $filter")
+      val sfb = new SimpleFeatureBuilder(featureType)
+
+      testSimpleFeature = sfb.buildFeature("test")
     }
   }
 
   override def deepCopy(env: IteratorEnvironment) = {
     val copy = super.deepCopy(env).asInstanceOf[AttributeIndexFilteringIterator]
-    copy.bbox = bbox.clone.asInstanceOf[Polygon]
-    copy.interval = interval //interval is immutable - no need to deep copy
+    copy.filter = filter
+    copy.testSimpleFeature = testSimpleFeature
     copy
   }
 
   override def accept(k: Key, v: Value): Boolean = {
     val DecodedIndexValue(_, geom, dtgOpt) = IndexSchema.decodeIndexValue(v)
-
-    // TODO This might be made more efficient
-    filterBbox(geom) && dtgOpt.map(dtg => filterInterval(dtg)).getOrElse(true)
+    wrappedSTFilter(geom, dtgOpt)
   }
-
-  // Intersect, not contains for geometry that hits this bbox
-  protected def filterBbox(geom: Geometry) = Option(bbox).map(b => b.intersects(geom)).getOrElse(true)
-
-  protected def filterInterval(dtg: Long) = Option(interval).map(i => i.contains(dtg)).getOrElse(true)
-
 }
 
-object AttributeIndexFilteringIterator {
-  val BBOX_KEY = "geomesa.bbox"
-  val INTERVAL_KEY = "geomesa.interval"
-}

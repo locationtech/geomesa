@@ -16,6 +16,7 @@
 
 package geomesa.core
 
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data.{Value, Key}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints.{IntegerKey, ClassKey}
@@ -51,6 +52,19 @@ package object index {
     val WIDTH_KEY   = new IntegerKey(256)
     val HEIGHT_KEY  = new IntegerKey(256)
     val BBOX_KEY    = new ClassKey(classOf[ReferencedEnvelope])
+  }
+
+  type ExplainerOutputType = ( => String) => Unit
+
+  object ExplainPrintln extends ExplainerOutputType {
+    override def apply(v1: => String): Unit = println(v1)
+  }
+
+  trait ExplainingLogging extends Logging {
+    def log(stringFnx: => String) = {
+      lazy val s: String = stringFnx
+      logger.trace(s)
+    }
   }
 }
 

@@ -131,7 +131,6 @@ class AccumuloDataStore(val connector: Connector,
     val spatioTemporalIdxTableValue = formatSpatioTemporalIdxTableName(catalogTable, sft)
     val attrIdxTableValue           = formatAttrIdxTableName(catalogTable, sft)
     val recordTableValue            = formatRecordTableName(catalogTable, sft)
-    val maxShardValue               = maxShard.toString
     val dtgFieldValue               = dtgValue.getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
 
     // store each metadata in the associated column family
@@ -655,16 +654,21 @@ class AccumuloDataStore(val connector: Connector,
    * Implementation of abstract method
    *
    * @param featureName
-   * @return
+   * @return the corresponding feature type (schema) for this feature name,
+   *         or NULL if this feature name does not appear to exist
    */
-  override def getSchema(featureName: String): SimpleFeatureType = {
-    val sft = DataUtilities.createType(featureName, getAttributes(featureName))
-    val dtgField = readMetadataItem(featureName, DTGFIELD_CF)
-                   .getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
-    sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
-    sft.getUserData.put(core.index.SF_PROPERTY_END_TIME, dtgField)
-    sft
-  }
+  override def getSchema(featureName: String): SimpleFeatureType =
+    getAttributes(featureName) match {
+      case attributes if attributes.isEmpty =>
+        null
+      case attributes                       =>
+        val sft = DataUtilities.createType(featureName, attributes)
+        val dtgField = readMetadataItem(featureName, DTGFIELD_CF)
+          .getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
+        sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
+        sft.getUserData.put(core.index.SF_PROPERTY_END_TIME, dtgField)
+        sft
+    }
 
   // Implementation of Abstract method
   def getFeatureReader(featureName: String): AccumuloFeatureReader = getFeatureReader(featureName,

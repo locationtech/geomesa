@@ -22,6 +22,7 @@ package object iterators {
       userData.foreach { case (k, v) => cfg.addOption(fullPrefix + k.toString, v.toString)}
     }
   }
+
   implicit class RichIteratorSimpleFeatureType(sft: SimpleFeatureType) {
     /**
      *  Copy UserData entries taken from an IteratorSetting/Options back into

@@ -10,7 +10,6 @@ import java.util
 import org.apache.accumulo.core.Constants
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.DataUtilities
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
@@ -31,8 +30,15 @@ object TestData extends Logging {
   val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
   val featureName = "feature"
   val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
-  val featureType: SimpleFeatureType = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
-  featureType.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+
+  def getFeatureType = {
+    val ft = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
+    ft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+    ft
+  }
+
+  // This is a quick trick to make sure that the userData is set.
+  lazy val featureType: SimpleFeatureType = getFeatureType
 
   val index = IndexSchema(schemaEncoding, featureType, featureEncoder)
 
@@ -45,7 +51,7 @@ object TestData extends Logging {
     val entry =
       AvroSimpleFeatureFactory.buildAvroFeature(
         featureType,
-        List(null, null, null, null, geometry, dt.toDate, dt.toDate),
+        List(null, null, null, id, geometry, dt.toDate, dt.toDate),
         s"|data|$id")
 
     //entry.setAttribute(geomType, id)

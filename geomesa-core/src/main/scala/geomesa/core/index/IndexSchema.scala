@@ -76,7 +76,7 @@ case class IndexSchema(encoder: IndexEncoder,
                        decoder: IndexEntryDecoder,
                        planner: IndexQueryPlanner,
                        featureType: SimpleFeatureType,
-                       featureEncoder: SimpleFeatureEncoder) extends Logging {
+                       featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
 
   def encode(entry: SimpleFeature, visibility: String = "") = encoder.encode(entry, visibility)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
@@ -102,7 +102,7 @@ case class IndexSchema(encoder: IndexEncoder,
   }
 
   // Writes out an explanation of how a query would be run.
-  def explainQuery(q: Query, output: (String => Unit) = println) = {
+  def explainQuery(q: Query, output: ExplainerOutputType = log) = {
      planner.getIterator(new ExplainingConnectorCreator(output), featureType, q, output)
   }
 

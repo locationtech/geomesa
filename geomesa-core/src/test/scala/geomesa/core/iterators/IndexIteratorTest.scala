@@ -119,7 +119,7 @@ class IndexIteratorTest extends SpatioTemporalIntersectingIteratorTest {
     // select a few attributes to trigger the IndexIterator
     // Note that since we are re-running all the tests from the IntersectingIteratorTest,
     // some of the tests may actually use the IntersectingIterator
-    val outputAttributes = Array("geom")
+    val outputAttributes = Array("geom", "dtg")
     //val q = new Query(TestData.featureType.getTypeName, tf)
     val q = new Query(TestData.featureType.getTypeName, tf, outputAttributes)
     val sfCollection = fs.getFeatures(q)
