@@ -56,6 +56,10 @@ package object index {
 
   type ExplainerOutputType = ( => String) => Unit
 
+  object ExplainPrintln extends ExplainerOutputType {
+    override def apply(v1: => String): Unit = println(v1)
+  }
+
   trait ExplainingLogging extends Logging {
     def log(stringFnx: => String) = {
       lazy val s: String = stringFnx
