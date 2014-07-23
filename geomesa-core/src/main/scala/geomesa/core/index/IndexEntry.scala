@@ -70,7 +70,9 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
     val geohashes =
       decomposeGeometry(featureToEncode.geometry, maximumDecompositions, decomposableResolutions)
 
-    logger.trace(s"decomposed geohashes: ${geohashes.map(_.hash).mkString(",")})}")
+    if (logger.underlying.isTraceEnabled()) {
+      logger.trace(s"decomposed geohashes: ${geohashes.map(_.hash).mkString(",")})}")
+    }
 
     val origFeatureType = featureToEncode.getType
     val origFeatureTypeSpec = DataUtilities.encodeType(origFeatureType)
@@ -88,7 +90,9 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
       copy
     }
 
-    logger.trace(s"decomposed features: ${entries.map(e => (e, e.getType.getGeometryDescriptor)).mkString(",")})}")
+    if (logger.underlying.isTraceEnabled()) {
+      logger.trace(s"decomposed features: ${entries.map(e => (e, e.getType.getGeometryDescriptor)).mkString(",")})}")
+    }
 
     val v = new Text(visibility)
 

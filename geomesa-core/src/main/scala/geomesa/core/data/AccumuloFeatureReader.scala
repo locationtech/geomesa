@@ -17,6 +17,7 @@
 package geomesa.core.data
 
 import geomesa.core.index._
+import geomesa.core.stats.QueryStat
 import geomesa.core.util.CloseableIterator
 import org.geotools.data.{Query, FeatureReader}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -28,14 +29,40 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             featureEncoder: SimpleFeatureEncoder)
   extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
+  private val planningStartTime = System.currentTimeMillis()
   val indexSchema = IndexSchema(indexSchemaFmt, sft, featureEncoder)
   val iter = indexSchema.query(query, dataStore)
+  private val planningTime = (System.currentTimeMillis() - planningStartTime)
+
+  private var scanTime = 0L
+  private var hitsSeen = 0
 
   override def getFeatureType = sft
 
-  override def next() = iter.next()
+  override def next() = {
+    val time = System.currentTimeMillis()
+    val tmp = iter.next()
+    scanTime += (System.currentTimeMillis() - time)
+    hitsSeen += 1
+    tmp
+  }
 
-  override def hasNext = iter.hasNext
+  override def hasNext = {
+    val time = System.currentTimeMillis()
+    val tmp = iter.hasNext
+    scanTime += (System.currentTimeMillis() - time)
+    tmp
+  }
 
-  override def close() = iter.close()
+  override def close() = {
+    iter.close()
+    val stat = QueryStat(dataStore.catalogTable,
+                            sft.getTypeName,
+                            System.currentTimeMillis(),
+                            query.getFilter,
+                            planningTime,
+                            scanTime,
+                            hitsSeen)
+    dataStore.writeStat(stat)
+  }
 }
