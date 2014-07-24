@@ -1,6 +1,7 @@
 package geomesa.utils.geotools
 
 import java.lang
+import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom._
@@ -39,6 +40,9 @@ object SimpleFeatureTypes {
       case gd: GeometryDescriptor => encodeGeometryDescriptor(sft, gd)
       case attr                   => encodeNonGeomDescriptor(attr)
     }.mkString(",")
+
+  def getIndexedAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] =
+      sft.getAttributeDescriptors.filter(_.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean])
 
   private def encodeNonGeomDescriptor(attr: AttributeDescriptor): String = {
     val name = attr.getLocalName

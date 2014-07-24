@@ -24,7 +24,8 @@ import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant, DefaultP
 import org.geotools.util.{Converter, ConverterFactory}
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 import org.opengis.temporal.Instant
 
 object Conversions {
@@ -69,6 +70,10 @@ object Conversions {
     def multiLineString = sf.getDefaultGeometry.asInstanceOf[MultiLineString]
   }
 
+  import collection.JavaConversions._
+  implicit class RichAttributeDescriptor(val attr: AttributeDescriptor) extends AnyVal {
+    def isIndexed = attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]
+  }
 }
 
 class JodaConverterFactory extends ConverterFactory {

@@ -3,7 +3,6 @@ package geomesa.core.index
 import java.nio.charset.StandardCharsets
 import java.util.Map.Entry
 
-import geomesa.utils.geotools.GeometryUtils
 import com.google.common.collect.Iterators
 import com.vividsolutions.jts.geom.{Point, Polygon}
 import geomesa.core._
@@ -12,7 +11,7 @@ import geomesa.core.filter.{ff, _}
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
 import geomesa.core.util.{CloseableIterator, SelfClosingBatchScanner}
-import geomesa.utils.geotools.SimpleFeatureTypes
+import geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.user.RegExFilter
@@ -27,7 +26,6 @@ import org.opengis.filter._
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial.DWithin
 
-
 import scala.collection.JavaConversions._
 import scala.util.Random
 
@@ -41,12 +39,14 @@ object IndexQueryPlanner {
 }
 
 import geomesa.core.index.IndexQueryPlanner._
+import geomesa.utils.geotools.Conversions._
 
 case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              cfPlanner: ColumnFamilyPlanner,
                              schema: String,
                              featureType: SimpleFeatureType,
                              featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
+
   def buildFilter(poly: Polygon, interval: Interval): KeyPlanningFilter =
     (IndexSchema.somewhere(poly), IndexSchema.somewhen(interval)) match {
       case (None, None)       =>    AcceptEverythingFilter
@@ -151,11 +151,11 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                       output: ExplainerOutputType) = {
 
     rewrittenFilter match {
-      case isEqualTo: PropertyIsEqualTo if !isDensity =>
+      case isEqualTo: PropertyIsEqualTo if !isDensity && attrIdxQueryEligible(isEqualTo) =>
         attrIdxEqualToQuery(acc, derivedQuery, isEqualTo, filterVisitor, output)
 
       case like: PropertyIsLike if !isDensity =>
-        if(likeEligible(like))
+        if(attrIdxQueryEligible(like) && likeEligible(like))
           attrIdxLikeQuery(acc, derivedQuery, like, filterVisitor, output)
         else
           stIdxQuery(acc, derivedQuery, filterVisitor, output)
@@ -165,7 +165,23 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     }
   }
 
-  // TODO try to use wildcard values from the Filter itself
+  def attrIdxQueryEligible(filt: Filter) = filt match {
+    case filter: PropertyIsEqualTo =>
+      val one = filter.getExpression1
+      val two = filter.getExpression2
+      val prop = (one, two) match {
+        case (p: PropertyName, _) => p.getPropertyName
+        case (_, p: PropertyName) => p.getPropertyName
+      }
+      featureType.getDescriptor(prop).isIndexed
+
+    case filter: PropertyIsLike =>
+      val prop = filter.getExpression.asInstanceOf[PropertyName].getPropertyName
+      featureType.getDescriptor(prop).isIndexed
+  }
+
+
+      // TODO try to use wildcard values from the Filter itself
   // Currently pulling the wildcard values from the filter
   // leads to inconsistent results...so use % as wildcard
   val MULTICHAR_WILDCARD = "%"

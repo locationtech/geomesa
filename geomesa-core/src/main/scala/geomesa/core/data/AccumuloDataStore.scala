@@ -232,7 +232,8 @@ class AccumuloDataStore(val connector: Connector,
 
   // configure splits for each of the attribute names
   def configureAttrIdxTable(featureType: SimpleFeatureType, attributeIndexTable: String): Unit = {
-    val names = featureType.getAttributeDescriptors.map(_.getLocalName).map(new Text(_)).toArray
+    val indexedAttrs = SimpleFeatureTypes.getIndexedAttributes(featureType)
+    val names = indexedAttrs.map(_.getLocalName).map(new Text(_)).toArray
     val splits = ImmutableSortedSet.copyOf(names)
     tableOps.addSplits(attributeIndexTable, splits)
   }
