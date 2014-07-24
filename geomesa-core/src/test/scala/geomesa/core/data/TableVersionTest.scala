@@ -134,11 +134,9 @@ class TableVersionTest extends Specification {
       val manualFeatures = manualSource.getFeatures(query).features.toList.sortBy(_.getID.toInt)
       val geomesaFeatures = geomesaSource.getFeatures(query).features.toList.sortBy(_.getID.toInt)
 
-      manualFeatures must forall { m: SimpleFeature =>
-        m must not beNull
-      }
+      manualFeatures must forall { m: SimpleFeature => (m must not).beNull }
 
-      forallWhen(manualFeatures.zip(geomesaFeatures)) { case (m: SimpleFeature, g: SimpleFeature) => m must be equalTo g }
+      manualFeatures must containTheSameElementsAs(geomesaFeatures)
     }
 
     "revert to text even when told to use avro if the table isn't avro" in {
@@ -162,7 +160,7 @@ class TableVersionTest extends Specification {
         if (entry.getKey.getColumnFamily == FEATURE_ENCODING_CF)
           entry.getValue.toString mustEqual FeatureEncoding.TEXT.toString
       }
-      scanner.close
+      scanner.close()
 
       // Here we are creating a schema AFTER a table already exists...this mimics upgrading
       // from 0.10.x to 1.0.0 ...this call to createSchema should insert a row into the table
@@ -192,9 +190,7 @@ class TableVersionTest extends Specification {
       manualFeatures.size should equalTo(6)
       geomesaFeatures.size should equalTo(6)
 
-      forallWhen(manualFeatures.toList.zip(geomesaFeatures.toList)) {
-        case (m: SimpleFeature, g: SimpleFeature) => m must be equalTo g
-      }
+      manualFeatures.toList must containTheSameElementsAs(geomesaFeatures.toList)
     }
 
     "properly encode text after having data written with 1.0.0 api" in {
