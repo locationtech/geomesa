@@ -66,6 +66,7 @@ class AttributeIndexFilteringIteratorTest extends Specification {
         "password"   -> "mypassword",
         "auths"      -> "A,B,C",
         "tableName"  -> "AttributeIndexFilteringIteratorTest",
+        "indexSchemaFormat" -> "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id",
         "useMock"    -> "true")
     ).asInstanceOf[AccumuloDataStore]
 
@@ -139,17 +140,17 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       // Test single wildcard, trailing, leading, and both trailing & leading wildcards
 
       // % should return all features
-      fs.getFeatures(ff.like(ff.property("name"),"%")).features.size should equalTo(16)
+      fs.getFeatures(ff.like(ff.property("name"),"%")).features.size should beEqualTo(16)
 
       List("a", "b", "c", "d").foreach { letter =>
         // 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"%$letter")).features.size should equalTo(4)
+        fs.getFeatures(ff.like(ff.property("name"),s"%$letter")).features.size should beEqualTo(4)
 
         // should return the 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"%$letter%")).features.size should equalTo(4)
+        fs.getFeatures(ff.like(ff.property("name"),s"%$letter%")).features.size should beEqualTo(4)
 
         // should return the 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"$letter%")).features.size should equalTo(4)
+        fs.getFeatures(ff.like(ff.property("name"),s"$letter%")).features.size should beEqualTo(4)
       }
 
     }
@@ -160,9 +161,9 @@ class AttributeIndexFilteringIteratorTest extends Specification {
         val query = new Query(sftName, ECQL.toFilter(s"name <> '$letter'"), Array("geom"))
         val features = fs.getFeatures(query)
 
-        features.size should equalTo(12)
+        features.size should beEqualTo(12)
         features.features.foreach { sf =>
-          sf.getAttributeCount should equalTo(1)
+          sf.getAttributeCount should beEqualTo(1)
           sf.getAttribute(0) should beAnInstanceOf[Geometry]
         }
       }

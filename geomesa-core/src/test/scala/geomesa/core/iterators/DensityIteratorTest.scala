@@ -30,7 +30,6 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataUtilities, Query}
 import org.geotools.factory.Hints
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -72,7 +71,8 @@ class DensityIteratorTest extends Specification {
                      userParam.key -> "user",
                      passwordParam.key -> "pass",
                      tableNameParam.key -> "test",
-                     mockParam.key -> "true"
+                     mockParam.key -> "true",
+                     idxSchemaParam.key -> "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
                    ))
     ds.createSchema(sft)
     ds
@@ -105,17 +105,14 @@ class DensityIteratorTest extends Specification {
   }
 
   "DensityIterator" should {
+    val ds = createDataStore(0)
+    val encodedFeatures = (0 until 150).toArray.map {
+      i =>
+        Array(s"$i", "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
+    }
+    val fs = loadFeatures(ds, encodedFeatures)
+
     "reduce total features returned" in {
-
-      val ds = createDataStore(0)
-
-      val encodedFeatures = (0 until 150).toArray.map {
-        i =>
-          Array(s"$i", "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
-      }
-
-      val fs = loadFeatures(ds, encodedFeatures)
-
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
@@ -127,16 +124,6 @@ class DensityIteratorTest extends Specification {
     }
 
     "maintain total weight of points" in {
-
-      val ds = createDataStore(1)
-
-      val encodedFeatures = (0 until 150).toArray.map {
-        i =>
-          Array(s"$i", "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
-      }
-
-      val fs = loadFeatures(ds, encodedFeatures)
-
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
@@ -151,7 +138,7 @@ class DensityIteratorTest extends Specification {
 
     "maintain weights irrespective of dates" in {
 
-      val ds = createDataStore(2)
+      val ds = createDataStore(1)
 
       val encodedFeatures = (0 until 150).toArray.map {
         i =>
@@ -175,13 +162,13 @@ class DensityIteratorTest extends Specification {
 
     "correctly bin points" in {
 
-      val ds = createDataStore(3)
+      val ds = createDataStore(2)
 
       val encodedFeatures = (0 until 150).toArray.map {
         i =>
           val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate
           // space out the points very slightly around 5 primary latitudes 1 degree apart
-          val lat = (i/30).toInt + 1 + (Random.nextDouble() - 0.5) / 1000.0
+          val lat = (i/30) + 1 + (Random.nextDouble() - 0.5) / 1000.0
           Array(s"$i", "1.0", new Date(date.getTime + i * 60000), s"POINT($lat 37)")
       }
 
@@ -203,12 +190,12 @@ class DensityIteratorTest extends Specification {
 
       // should be 5 bins of 30
       compiled.size should be equalTo 5
-      compiled.forall(entry => entry._2 == 30) should be equalTo true
+      compiled.forall(entry => entry._2 == 30) should beTrue
     }
 
     "encode and decode features" in {
 
-      var matrix = HashBasedTable.create[Double, Double, Long]()
+      val matrix = HashBasedTable.create[Double, Double, Long]()
       matrix.put(1.0, 2.0, 3)
       matrix.put(2.0, 3.0, 5)
 

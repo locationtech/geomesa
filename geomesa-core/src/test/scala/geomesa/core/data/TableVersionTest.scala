@@ -133,7 +133,7 @@ class TableVersionTest extends Specification {
       val geomesaFeatures = geomesaSource.getFeatures(query).features.toList.sortBy(_.getID.toInt)
 
       manualFeatures.zip(geomesaFeatures).foreach {case (m, g) =>
-        m should equalTo(g)
+        m should beEqualTo(g)
       }
 
     }
@@ -146,7 +146,7 @@ class TableVersionTest extends Specification {
       val manualStore = DataStoreFinder.getDataStore(badParams).asInstanceOf[AccumuloDataStore]
 
       // the user provided avro
-      manualStore.featureEncoding should equalTo(FeatureEncoding.AVRO)
+      manualStore.featureEncoding should beEqualTo(FeatureEncoding.AVRO)
 
       // Ensure that a table with featureEncoder metadata defaults to TextFeatureEncoder
       // and verify with a manual scanner
@@ -174,7 +174,7 @@ class TableVersionTest extends Specification {
       scanner2.iterator.foreach { entry =>
         hasEncodingMeta |= entry.getKey.getColumnFamily.equals(FEATURE_ENCODING_CF)
       }
-      hasEncodingMeta should equalTo(true)
+      hasEncodingMeta should beEqualTo(true)
 
       // compare again to ensure we get the same implementation type (aka SimpleFeatureImpl for text)
       val manualSource = manualStore.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
@@ -186,11 +186,11 @@ class TableVersionTest extends Specification {
       val manualFeatures = manualSource.getFeatures(query).features
       val geomesaFeatures = geomesaSource.getFeatures(query).features
 
-      manualFeatures.size should equalTo(6)
-      geomesaFeatures.size should equalTo(6)
+      manualFeatures.size should beEqualTo(6)
+      geomesaFeatures.size should beEqualTo(6)
 
       manualFeatures.zip(geomesaFeatures).foreach {case (m, g) =>
-        m should equalTo(g)
+        m should beEqualTo(g)
       }
     }
 
@@ -205,7 +205,7 @@ class TableVersionTest extends Specification {
       val manualStore = DataStoreFinder.getDataStore(newManualParams).asInstanceOf[AccumuloDataStore]
 
       // the user provided avro
-      manualStore.featureEncoding should equalTo(FeatureEncoding.AVRO)
+      manualStore.featureEncoding should beEqualTo(FeatureEncoding.AVRO)
 
       // Ensure that a table with featureEncoder metadata defaults to TextFeatureEncoder
       // and verify with a manual scanner
@@ -241,11 +241,11 @@ class TableVersionTest extends Specification {
       val manualFeatures = manualSource.getFeatures(query).features
       val geomesaFeatures = geomesaSource.getFeatures(query).features
 
-      manualFeatures.size should equalTo(7)
-      geomesaFeatures.size should equalTo(7)
+      manualFeatures.size should beEqualTo(7)
+      geomesaFeatures.size should beEqualTo(7)
 
       manualFeatures.zip(geomesaFeatures).foreach {case (m, g) =>
-        m should equalTo(g)
+        m should beEqualTo(g)
       }
 
       manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
@@ -259,14 +259,14 @@ class TableVersionTest extends Specification {
       }
 
       // the store will validate and update itself upon operation
-      hasEncodingMeta should equalTo(true)
+      hasEncodingMeta should beEqualTo(true)
     }
 
     "should default to creating new tables in avro" in {
       var newGeomesaParams = geomesaParams.updated("tableName", "geomesa3")
       newGeomesaParams -= "featureEncoding"
 
-      newGeomesaParams.contains("featureEncoding") should be equalTo(false)
+      newGeomesaParams.contains("featureEncoding") should beFalse
 
       buildTableWithDataStore(newGeomesaParams)
 

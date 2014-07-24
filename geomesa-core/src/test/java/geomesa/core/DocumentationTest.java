@@ -47,6 +47,7 @@ public class DocumentationTest {
     params.put("password","yourpwd");
     params.put("auths","A,B,C");
     params.put("tableName","testwrite");
+    params.put("indexSchemaFormat","%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id");
 
     // fetch the data store from the finder
     return DataStoreFinder.getDataStore(params);
