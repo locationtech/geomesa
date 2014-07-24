@@ -35,6 +35,7 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -124,7 +125,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
     // TODO create the data store 'with StatWriter' if param is set
     // not doing this yet due to pending PR that updates this code
-    val collectStats = statsParam.lookupOpt[String](params).getOrElse("").equalsIgnoreCase("true")
+    val collectStats = Try(statsParam.lookUp(params).asInstanceOf[String].toBoolean).getOrElse(true)
 
     new AccumuloDataStore(connector,
       tableName,
