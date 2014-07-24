@@ -1,12 +1,7 @@
 package geomesa.core.filter
 
 import geomesa.core.filter.FilterUtils._
-import geomesa.core.index.IndexSchema
-import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, Interval}
-import org.opengis.filter.Filter
 import org.opengis.filter._
-import scala.collection.JavaConversions._
 
 object TestFilters {
 
@@ -153,4 +148,8 @@ object TestFilters {
     "attr2 ILIKE '2nd1%' AND WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
   )
 
+  val temporalPredicates = Seq(
+  "(not dtg after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)",
+  "(dtg between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')"
+  )
 }

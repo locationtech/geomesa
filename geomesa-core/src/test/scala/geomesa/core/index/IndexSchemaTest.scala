@@ -229,4 +229,24 @@ class IndexSchemaTest extends Specification {
     }
   }
 
+  "IndexSchemaBuilder" should {
+    "be able to create index schemas" in {
+      val maxShard = 31
+      val name = "test"
+      val oldSchema = s"%~#s%$maxShard#r%${name}#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
+
+      val schema = new IndexSchemaBuilder("~")
+                   .randomNumber(maxShard)
+                   .constant(name)
+                   .geoHash(0, 3)
+                   .date("yyyyMMdd")
+                   .nextPart()
+                   .geoHash(3, 2)
+                   .nextPart()
+                   .id()
+                   .build()
+
+      schema must be equalTo oldSchema
+    }
+  }
 }

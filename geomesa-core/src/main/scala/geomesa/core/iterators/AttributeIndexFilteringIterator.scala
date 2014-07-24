@@ -16,37 +16,41 @@
 
 package geomesa.core.iterators
 
-import java.util.{Map => JMap}
+import java.util.{Date, Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import geomesa.core._
-import geomesa.core.index.IndexSchema
+import geomesa.core.index._
 import geomesa.core.index.IndexSchema.DecodedIndexValue
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{Filter, IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.Interval
 import org.opengis.feature.simple.SimpleFeature
 
 class AttributeIndexFilteringIterator extends Filter with Logging {
 
-  protected var interval: Interval = null
-  // At the minute, this filter only checks geometry.
   protected var filter: org.opengis.filter.Filter = null
-  protected var geomTestSF: SimpleFeature = null
+  protected var testSimpleFeature: SimpleFeature = null
+  protected var dateAttributeName: Option[String] = None
 
   // NB: This is duplicated code from the STII.  Consider refactoring.
-  lazy val wrappedGeomFilter: Geometry => Boolean = {
-    if (filter != null && geomTestSF != null) {
-      geom => {
-        geomTestSF.setDefaultGeometry(geom)
-        filter.evaluate(geomTestSF)
+  lazy val wrappedSTFilter: (Geometry, Option[Long]) => Boolean = {
+    if (filter != null && testSimpleFeature != null) {
+      (geom: Geometry, olong: Option[Long]) => {
+        testSimpleFeature.setDefaultGeometry(geom)
+        for {
+          dateAttribute <- dateAttributeName
+          long <- olong
+        } {
+          testSimpleFeature.setAttribute(dateAttribute, new Date(long))
+        }
+        filter.evaluate(testSimpleFeature)
       }
     } else {
-      _ => true
+      (_, _) => true
     }
   }
 
@@ -58,38 +62,27 @@ class AttributeIndexFilteringIterator extends Filter with Logging {
     if (options.containsKey(DEFAULT_FILTER_PROPERTY_NAME) && options.containsKey(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)) {
       val featureType = DataUtilities.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
       featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+      dateAttributeName = getDtgFieldName(featureType)
 
       val filterString  = options.get(DEFAULT_FILTER_PROPERTY_NAME)
       filter = ECQL.toFilter(filterString)
       println(s"In AIFI with $filter")
       val sfb = new SimpleFeatureBuilder(featureType)
-      geomTestSF = sfb.buildFeature("test")
-    }
 
-    if(options.containsKey(AttributeIndexFilteringIterator.INTERVAL_KEY)) {
-      // TODO validate interval option
-      interval = Interval.parse(options.get(AttributeIndexFilteringIterator.INTERVAL_KEY))
-      logger.info(s"Set interval to ${interval.toString}")
+      testSimpleFeature = sfb.buildFeature("test")
     }
   }
 
   override def deepCopy(env: IteratorEnvironment) = {
     val copy = super.deepCopy(env).asInstanceOf[AttributeIndexFilteringIterator]
-
-    copy.interval = interval //interval is immutable - no need to deep copy
     copy.filter = filter
-    copy.geomTestSF = geomTestSF
+    copy.testSimpleFeature = testSimpleFeature
     copy
   }
 
   override def accept(k: Key, v: Value): Boolean = {
     val DecodedIndexValue(_, geom, dtgOpt) = IndexSchema.decodeIndexValue(v)
-    wrappedGeomFilter(geom) && dtgOpt.map(dtg => filterInterval(dtg)).getOrElse(true)
+    wrappedSTFilter(geom, dtgOpt)
   }
-
-  protected def filterInterval(dtg: Long) = Option(interval).map(i => i.contains(dtg)).getOrElse(true)
 }
 
-object AttributeIndexFilteringIterator {
-  val INTERVAL_KEY = "geomesa.interval"
-}

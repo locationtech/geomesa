@@ -58,14 +58,16 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
-    val simpleFeatureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
-    simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+    val featureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
+    featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+
+    dateAttributeName = getDtgFieldName(featureType)
 
     // default to text if not found for backwards compatibility
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
     featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
 
-    featureBuilder = AvroSimpleFeatureFactory.featureBuilder(simpleFeatureType)
+    featureBuilder = AvroSimpleFeatureFactory.featureBuilder(featureType)
 
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
@@ -73,21 +75,13 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     if (options.containsKey(DEFAULT_FILTER_PROPERTY_NAME)) {
       val filterString  = options.get(DEFAULT_FILTER_PROPERTY_NAME)
       filter = ECQL.toFilter(filterString)
-
-      val featureType = DataUtilities.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
-      featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
-
       val sfb = new SimpleFeatureBuilder(featureType)
-      geomTestSF = sfb.buildFeature("test")
+      testSimpleFeature = sfb.buildFeature("test")
     }
-
-    if (options.containsKey(DEFAULT_INTERVAL_PROPERTY_NAME))
-      interval = IndexIterator.decodeInterval(
-        options.get(DEFAULT_INTERVAL_PROPERTY_NAME))
 
     if (options.containsKey(DEFAULT_CACHE_SIZE_NAME))
       maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
-    deduplicate = IndexSchema.mayContainDuplicates(simpleFeatureType)
+    deduplicate = IndexSchema.mayContainDuplicates(featureType)
 
     this.indexSource = source.deepCopy(env)
   }

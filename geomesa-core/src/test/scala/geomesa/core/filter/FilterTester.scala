@@ -36,6 +36,12 @@ class OrGeomsPredicateTest extends FilterTester {
 }
 
 @RunWith(classOf[JUnitRunner])
+class BasicTemporalPredicateTest extends FilterTester {
+  val filters = temporalPredicates
+  runTest
+}
+
+@RunWith(classOf[JUnitRunner])
 class AttributePredicateTest extends FilterTester {
   val filters = attributePredicates
   runTest
