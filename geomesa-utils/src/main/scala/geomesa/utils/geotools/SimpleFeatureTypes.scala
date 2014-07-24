@@ -1,7 +1,6 @@
 package geomesa.utils.geotools
 
 import java.lang
-import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom._
@@ -113,6 +112,7 @@ object SimpleFeatureTypes {
     classOf[java.lang.String]   -> "String",
     classOf[java.lang.Integer]  -> "Integer",
     classOf[java.lang.Double]   -> "Double",
+    classOf[java.lang.Long]     -> "Long",
     classOf[java.lang.Float]    -> "Float",
     classOf[java.lang.Boolean]  -> "Boolean",
     classOf[UUID]               -> "UUID",
@@ -135,6 +135,9 @@ object SimpleFeatureTypes {
     "java.lang.Integer"   -> classOf[java.lang.Integer],
     "int"                 -> classOf[java.lang.Integer],
     "0"                   -> classOf[java.lang.Integer],
+    "Long"                -> classOf[java.lang.Long],
+    "java.lang.Long"      -> classOf[java.lang.Long],
+    "long"                -> classOf[java.lang.Long],
     "Double"              -> classOf[java.lang.Double],
     "java.lang.Double"    -> classOf[java.lang.Double],
     "double"              -> classOf[java.lang.Double],
