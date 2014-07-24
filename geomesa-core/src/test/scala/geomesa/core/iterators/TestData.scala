@@ -45,7 +45,7 @@ object TestData extends Logging {
   val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
 
   // utility function that can encode multiple types of geometry
-  def createObject(id: String, wkt: String, dt: DateTime = null): List[(Key, Value)] = {
+  def createObject(id: String, wkt: String, dt: DateTime = new DateTime(defaultDateTime)): List[(Key, Value)] = {
     val geomType: String = wkt.split( """\(""").head
     val geometry: Geometry = WKTUtils.read(wkt)
     val entry =
@@ -108,6 +108,12 @@ object TestData extends Logging {
     Entry("POINT(50.2 30.6)", "118"),
     Entry("POINT(50.2 30.6)", "119")
   )
+
+  val allThePoints = (-180 to 180).map(lon => {
+    val x = lon.toString
+    val y = (lon / 2).toString
+    Entry(s"POINT($x $y)", x)
+  })
 
   // add some lines to this query, both qualifying and non-qualifying
   val lines = List(
