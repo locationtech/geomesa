@@ -92,18 +92,8 @@
             <artifactId>joda-convert</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-        </dependency>
-        <!-- jta is required so scalac can compile ehcache-core which
-             uses jta annotations -->
-        <dependency>
-            <groupId>javax.transaction</groupId>
-            <artifactId>jta</artifactId>
         </dependency>
 
         <!-- logging -->

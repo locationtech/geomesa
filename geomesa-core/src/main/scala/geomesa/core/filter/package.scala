@@ -2,6 +2,8 @@ package geomesa.core
 
 import org.geotools.factory.CommonFactoryFinder
 import org.opengis.filter._
+import org.opengis.filter.spatial._
+import org.opengis.filter.temporal.BinaryTemporalOperator
 import scala.collection.JavaConversions._
 
 package object filter {
@@ -76,5 +78,37 @@ package object filter {
     case not: Not => not.getFilter
   }
 
+  // Takes a filter and returns a Seq of Geometric/Topological filters under it.
+  //  As a note, currently, only 'good' filters are considered.
+  //  The list of acceptable filters is defined by 'spatialFilters'
+  //  The notion of 'good' here means *good* to handle to the STII.
+  //  Of particular note, we should not give negations to the STII.
+  def partitionSubFilters(filter: Filter, filterFilter: Filter => Boolean): (Seq[Filter], Seq[Filter]) = {
+    filter match {
+      case a: And => a.getChildren.partition(filterFilter)
+      case _ => Seq(filter).partition(filterFilter)
+    }
+  }
+
+  def partitionGeom(filter: Filter) = partitionSubFilters(filter, spatialFilters)
+
+  def partitionTemporal(filters: Seq[Filter]): (Seq[Filter], Seq[Filter]) = filters.partition(temporalFilters)
+
+  // Defines the topological predicates we like for use in the STII.
+  def spatialFilters(f: Filter): Boolean = {
+    f match {
+      case _: BBOX => true
+      case _: Contains => true
+      case _: Crosses => true
+      case _: Intersects => true
+      case _: Overlaps => true
+      case _: Within => true
+      case _ => false        // Beyond, Disjoint, DWithin, Equals, Touches
+    }
+  }
+
+  // Notes: This may need to be 'smaller' as we may wish to handle the various temporal predicates more carefully.
+  //  Also, this needs to cover 'BETWEEN' with the indexed date field.
+  def temporalFilters(f: Filter): Boolean = f.isInstanceOf[BinaryTemporalOperator]
 
 }

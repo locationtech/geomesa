@@ -16,23 +16,25 @@
 
 package geomesa.core.index
 
+import java.nio.ByteBuffer
+import java.util.Map.Entry
+
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, Point, Polygon}
 import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators._
 import geomesa.core.util._
 import geomesa.utils.text.{WKBUtils, WKTUtils}
-import java.nio.ByteBuffer
-import java.util.Map.Entry
-import org.apache.accumulo.core.client.BatchScanner
 import org.apache.accumulo.core.data.{Key, Value}
-import org.apache.log4j.Logger
 import org.geotools.data.{DataUtilities, Query}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
 import scala.annotation.tailrec
 import scala.util.parsing.combinator.RegexParsers
+
 
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)
@@ -74,9 +76,7 @@ case class IndexSchema(encoder: IndexEncoder,
                        decoder: IndexEntryDecoder,
                        planner: IndexQueryPlanner,
                        featureType: SimpleFeatureType,
-                       featureEncoder: SimpleFeatureEncoder) {
-
-  private val log = Logger.getLogger(classOf[IndexSchema])
+                       featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
 
   def encode(entry: SimpleFeature, visibility: String = "") = encoder.encode(entry, visibility)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
@@ -89,13 +89,20 @@ case class IndexSchema(encoder: IndexEncoder,
       case CompositeTextFormatter(Seq(PartitionTextFormatter(numPartitions), xs@_*), sep) => numPartitions
       case _ => 1  // couldn't find a matching partitioner
     }
-  def query(query: Query, buildBatchScanner: () => BatchScanner): CloseableIterator[SimpleFeature] = {
-    // Log and perform the query
-    if(log.isTraceEnabled) log.trace("Running Query: "+ query.toString)
 
-    val accumuloIterator: CloseableIterator[Entry[Key, Value]] = planner.getIterator(buildBatchScanner, query)
-    // Convert Accumulo results to SimpleFeatures.
+  def query(query: Query, acc: AccumuloConnectorCreator): CloseableIterator[SimpleFeature] = {
+    // Perform the query
+    logger.trace(s"Running ${query.toString}")
+
+    val accumuloIterator = planner.getIterator(acc, featureType, query)
+
+    // Convert Accumulo results to SimpleFeatures
     adaptIterator(accumuloIterator, query)
+  }
+
+  // Writes out an explanation of how a query would be run.
+  def explainQuery(q: Query, output: ExplainerOutputType = log) = {
+     planner.getIterator(new ExplainingConnectorCreator(output), featureType, q, output)
   }
 
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
@@ -109,12 +116,14 @@ case class IndexSchema(encoder: IndexEncoder,
       else accumuloIterator
 
     // Decode according to the SFT return type.
-
     // if this is a density query, expand the map
-    if (query.getHints.containsKey(DENSITY_KEY))
-      uniqKVIter.flatMap { kv:Entry[Key,Value] => DensityIterator.expandFeature(featureEncoder.decode(returnSFT, kv.getValue)) }
-    else
-      uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue) }
+    if (query.getHints.containsKey(DENSITY_KEY)) {
+      uniqKVIter.flatMap { kv: Entry[Key, Value] =>
+        DensityIterator.expandFeature(featureEncoder.decode(returnSFT, kv.getValue))
+      }
+    } else {
+      uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue)}
+    }
   }
 
   // This function calculates the SimpleFeatureType of the returned SFs.
@@ -151,16 +160,24 @@ object IndexSchema extends RegexParsers {
 
   val DEFAULT_TIME = new DateTime(0, DateTimeZone.forID("UTC"))
 
-  val emptyBytes = new Value(Array[Byte]())
+  val CODE_START = "%"
+  val CODE_END = "#"
+  val GEO_HASH_CODE = "gh"
+  val DATE_CODE = "d"
+  val CONSTANT_CODE = "cstr"
+  val RANDOM_CODE = "r"
+  val SEPARATOR_CODE = "s"
+  val ID_CODE = "id"
+  val PART_DELIMITER = "::"
 
-  def pattern[T](p: => Parser[T], code: String): Parser[T] = "%" ~> p <~ ("#" + code)
+  def pattern[T](p: => Parser[T], code: String): Parser[T] = CODE_START ~> p <~ (CODE_END + code)
 
   // A separator character, typically '%~#s' would indicate that elements are to be separated
   // with a '~'
-  def sep = pattern("\\W".r, "s")
+  def sep = pattern("\\W".r, SEPARATOR_CODE)
 
   // A random partitioner.  '%999#r' would write a random value between 000 and 999 inclusive
-  def randPartitionPattern = pattern("\\d+".r,"r")
+  def randPartitionPattern = pattern("\\d+".r,RANDOM_CODE)
   def randEncoder: Parser[PartitionTextFormatter[SimpleFeature]] = randPartitionPattern ^^ {
     case d => PartitionTextFormatter(d.toInt)
   }
@@ -170,20 +187,20 @@ object IndexSchema extends RegexParsers {
 
   // A geohash encoder.  '%2,4#gh' indicates that two characters starting at character 4 should
   // be extracted from the geohash and written to the field
-  def geohashPattern = pattern((offset <~ ",") ~ bits, "gh")
+  def geohashPattern = pattern((offset <~ ",") ~ bits, GEO_HASH_CODE)
   def geohashEncoder: Parser[GeoHashTextFormatter] = geohashPattern ^^ {
     case o ~ b => GeoHashTextFormatter(o, b)
   }
 
   // A date encoder. '%YYYY#d' would pull out the year from the date and write it to the key
-  def datePattern = pattern("\\w+".r,"d")
+  def datePattern = pattern("\\w+".r, DATE_CODE)
   def dateEncoder: Parser[DateTextFormatter] = datePattern ^^ {
     case t => DateTextFormatter(t)
   }
 
   // A constant string encoder. '%fname#cstr' would yield fname
   //  We match any string other that does *not* contain % or # since we use those for delimiters
-  def constStringPattern = pattern("[^%#]+".r, "cstr")
+  def constStringPattern = pattern("[^%#]+".r, CONSTANT_CODE)
   def constantStringEncoder: Parser[ConstantTextFormatter[SimpleFeature]] = constStringPattern ^^ {
     case str => ConstantTextFormatter(str)
   }
@@ -201,8 +218,8 @@ object IndexSchema extends RegexParsers {
     }
 
   // An index key is three keyparts, one for row, colf, and colq
-  def formatter = keypart ~ "::" ~ keypart ~ "::" ~ cqpart ^^ {
-    case rowf ~ "::" ~ cff ~ "::" ~ cqf => (rowf, cff, cqf)
+  def formatter = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
+    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => (rowf, cff, cqf)
   }
 
   // builds the encoder from a string representation
@@ -221,8 +238,8 @@ object IndexSchema extends RegexParsers {
     }
 
   // builds the date decoder to deserialize the entire date from the parts of the index key
-  def dateDecoderParser = keypart ~ "::" ~ keypart ~ "::" ~ cqpart ^^ {
-    case rowf ~ "::" ~ cff ~ "::" ~ cqf => {
+  def dateDecoderParser = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
+    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => {
       // extract the per-key-portion date encoders; each is optional
       val rowVals: Option[(String,Int)] = extractDateEncoder(rowf.lf, 0, rowf.sep.length)
       val cfVals: Option[(String,Int)] = extractDateEncoder(cff.lf, 0, cff.sep.length)
@@ -261,8 +278,8 @@ object IndexSchema extends RegexParsers {
     }
 
   // builds a geohash decoder to extract the entire geohash from the parts of the index key
-  def ghDecoderParser = keypart ~ "::" ~ keypart ~ "::" ~ cqpart ^^ {
-    case rowf ~ "::" ~ cff ~ "::" ~ cqf => {
+  def ghDecoderParser = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
+    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => {
       val (roffset, (ghoffset, rbits)) = extractGeohashEncoder(rowf.lf, 0, rowf.sep.length)
       val (cfoffset, (ghoffset2, cfbits)) = extractGeohashEncoder(cff.lf, 0, cff.sep.length)
       val (cqoffset, (ghoffset3, cqbits)) = extractGeohashEncoder(cqf.lf, 0, cqf.sep.length)
@@ -282,13 +299,13 @@ object IndexSchema extends RegexParsers {
     }
 
   // An id encoder. '%15#id' would pad the id out to 15 characters
-  def idEncoder: Parser[IdFormatter] = pattern("[0-9]*".r, "id") ^^ {
+  def idEncoder: Parser[IdFormatter] = pattern("[0-9]*".r, ID_CODE) ^^ {
     case len if len.length > 0 => IdFormatter(len.toInt)
     case _                     => IdFormatter(0)
   }
 
-  def idDecoderParser = keypart ~ "::" ~ keypart ~ "::" ~ cqpart ^^ {
-    case rowf ~ "::" ~ cff ~ "::" ~ cqf => {
+  def idDecoderParser = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
+    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => {
       val bits = extractIdEncoder(cqf.lf, 0, cqf.sep.length)
       IdDecoder(Seq(ColumnQualifierExtractor(0, bits)))
     }
@@ -323,7 +340,7 @@ object IndexSchema extends RegexParsers {
   }
 
 
-  def geohashColumnFamilyPlanner: Parser[GeoHashColumnFamilyPlanner] = (keypart ~ "::") ~> (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) <~ ("::" ~ keypart) ^^ {
+  def geohashColumnFamilyPlanner: Parser[GeoHashColumnFamilyPlanner] = (keypart ~ PART_DELIMITER) ~> (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) <~ (PART_DELIMITER ~ keypart) ^^ {
     case sep ~ xs => xs.find(tf => tf match {
       case gh: GeoHashTextFormatter => true
       case _ => false
@@ -393,6 +410,123 @@ object IndexSchema extends RegexParsers {
     } else {
       DecodedIndexValue(id, WKBUtils.read(geomDatePortion.drop(4)), None)
     }
+  }
+
+}
+
+/**
+ * Class to facilitate the building of custom index schemas.
+ *
+ * @param separator
+ */
+class IndexSchemaBuilder(separator: String) {
+
+  import IndexSchema._
+
+  var newPart = true
+  val schema = new StringBuilder()
+
+  /**
+   * Adds a random number, useful for sharding.
+   *
+   * @param maxValue
+   * @return the schema builder instance
+   */
+  def randomNumber(maxValue: Int): IndexSchemaBuilder = append(RANDOM_CODE, maxValue)
+
+  /**
+   * Adds a constant value.
+   *
+   * @param constant
+   * @return the schema builder instance
+   */
+  def constant(constant: String): IndexSchemaBuilder = append(CONSTANT_CODE, constant)
+
+  /**
+   * Adds a date value.
+   *
+   * @param format format to apply to the date, equivalent to SimpleDateFormat
+   * @return the schema builder instance
+   */
+  def date(format: String): IndexSchemaBuilder = append(DATE_CODE, format)
+
+  /**
+   * Adds a geohash value.
+   *
+   * @param offset
+   * @param length
+   * @return the schema builder instance
+   */
+  def geoHash(offset: Int, length: Int): IndexSchemaBuilder = append(GEO_HASH_CODE, offset, ',', length)
+
+  /**
+   * Add an ID value.
+   *
+   * @return the schema builder instance
+   */
+  def id(): IndexSchemaBuilder = id(-1)
+
+  /**
+   * Add an ID value.
+   *
+   * @param length ID will be padded to this length
+   * @return the schema builder instance
+   */
+  def id(length: Int): IndexSchemaBuilder = {
+    if (length > 0) {
+      append(ID_CODE, length)
+    } else {
+      append(ID_CODE)
+    }
+  }
+
+  /**
+   * End the current part of the schema format. Schemas consist of (in order) key part, column
+   * family part and column qualifier part. The schema builder starts on the key part.
+   *
+   * The schema builder does not validate parts. This method should be called exactly two times to
+   * build a typical schema.
+   *
+   * @return the schema builder instance
+   */
+  def nextPart(): IndexSchemaBuilder = {
+    schema.append(PART_DELIMITER)
+    newPart = true
+    this
+  }
+
+  /**
+   *
+   * @return the formatted schema string
+   */
+  def build(): String = schema.toString()
+
+  override def toString(): String = build
+
+  /**
+   * Clears internal state
+   */
+  def reset(): Unit = {
+    schema.clear()
+    newPart = true
+  }
+
+  /**
+   * Wraps the code in the appropriate delimiters and adds the provided values
+   *
+   * @param code
+   * @param values
+   * @return
+   */
+  private def append(code: String, values: Any*): IndexSchemaBuilder = {
+    if (newPart) {
+      schema.append(CODE_START).append(separator).append(CODE_END).append(SEPARATOR_CODE)
+      newPart = false
+    }
+    schema.append(CODE_START)
+    values.foreach(schema.append(_))
+    schema.append(CODE_END).append(code)
+    this
   }
 
 }

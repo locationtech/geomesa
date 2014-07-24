@@ -21,7 +21,9 @@ import geomesa.core.index.SF_PROPERTY_START_TIME
 import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.text.WKTUtils
+import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.security.Authorizations
+import org.apache.commons.codec.binary.Hex
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
@@ -106,6 +108,24 @@ class AccumuloDataStoreTest extends Specification {
   }
 
   "AccumuloDataStore" should {
+    "return non-NULL when a feature name does exist" in {
+      val ds = createStore
+      val sftName = "testTypeThatDoesExist"
+      val sft = DataUtilities.createType(sftName,
+        s"NAME:String,$geotimeAttributes")
+      sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+      ds.createSchema(sft)
+      ds.getSchema(sftName) must not be null
+    }
+
+    "return NULL when a feature name does not exist" in {
+      val ds = createStore
+      val sftName = "testTypeThatDoesNotExist"
+      ds.getSchema(sftName) must beNull
+    }
+  }
+
+  "AccumuloDataStore" should {
     "provide ability to write using the feature source and read what it wrote" in {
       // create the data store
       val ds = createStore
@@ -145,9 +165,9 @@ class AccumuloDataStoreTest extends Specification {
         containsGeometry = containsGeometry | features.next.getDefaultGeometry.equals(geom)
       }
 
-      results.getSchema should be equalTo(sft)
-      containsGeometry should be equalTo(true)
-      res.length should be equalTo(1)
+      results.getSchema should be equalTo sft
+      containsGeometry should be equalTo true
+      res.length should be equalTo 1
     }
 
     "return an empty iterator correctly" in {
@@ -182,9 +202,9 @@ class AccumuloDataStoreTest extends Specification {
       // Let's read out what we wrote.
       val results = fs.getFeatures(query)
       val features = results.features
-      results.getSchema should be equalTo(sft)
-      res.length should be equalTo(1)
-      features.hasNext should be equalTo(false)
+      results.getSchema should be equalTo sft
+      res.length should be equalTo 1
+      features.hasNext should be equalTo false
     }
 
     "process a DWithin query correctly" in {
@@ -207,7 +227,7 @@ class AccumuloDataStoreTest extends Specification {
       liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       val featureCollection = new DefaultFeatureCollection(sftName, sft)
       featureCollection.add(liveFeature)
-      val res = fs.addFeatures(featureCollection)
+      fs.addFeatures(featureCollection)
 
       // compose a CQL query that uses a polygon that is disjoint with the feature bounds
       val ff = CommonFactoryFinder.getFilterFactory2
@@ -545,6 +565,107 @@ class AccumuloDataStoreTest extends Specification {
       } catch {
         case e: RuntimeException => success
       }
+    }
+
+    "create proper tables for secondary indexing" in {
+      val table = "testing_secondary_index"
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId" -> "mycloud",
+        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"       -> "myuser",
+        "password"   -> "mypassword",
+        "tableName"  -> table,
+        "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
+
+      ds should not be null
+
+      // accumulo supports only alphanum + underscore aka ^\\w+$
+      // this should be OK
+      val sftName = "somethingsaf3"
+      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val mockInstance = new MockInstance("mycloud")
+      val c = mockInstance.getConnector("myuser", "mypassword".getBytes("UTF8"))
+
+      c.tableOperations().exists(table) must beTrue
+      c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName}_records") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName}_attr_idx") must beTrue
+    }
+
+    "hex encode non accumulo table name safe feature type names" in {
+
+      val table = "testing_bad_features"
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId" -> "mycloud",
+        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"       -> "myuser",
+        "password"   -> "mypassword",
+        "tableName"  -> table,
+        "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
+
+      ds should not be null
+
+      // accumulo supports only alphanum + underscore aka ^\\w+$
+      // this should end up hex encoded
+      val sftName = "some_thing:bad!"
+      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val mockInstance = new MockInstance("mycloud")
+      val c = mockInstance.getConnector("myuser", "mypassword".getBytes("UTF8"))
+
+      def enc(s: String) = "_" + Hex.encodeHexString(s.getBytes("UTF8")).toLowerCase
+
+      val hexSft = "some" + enc("_") + "thing" + enc(":") + "bad" + enc("!")
+
+      c.tableOperations().exists(table) must beTrue
+      c.tableOperations().exists(s"${table}_${hexSft}_st_idx") must beTrue
+      c.tableOperations().exists(s"${table}_${hexSft}_records") must beTrue
+      c.tableOperations().exists(s"${table}_${hexSft}_attr_idx") must beTrue
+    }
+
+    "hex encode multibyte chars as multiple underscore + hex" in {
+      val table = "testing_chinese_features"
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId" -> "mycloud",
+        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"       -> "myuser",
+        "password"   -> "mypassword",
+        "tableName"  -> table,
+        "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
+
+      ds should not be null
+
+      // accumulo supports only alphanum + underscore aka ^\\w+$
+      // this should end up hex encoded
+      val sftName = "nihao你好"
+      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val mockInstance = new MockInstance("mycloud")
+      val c = mockInstance.getConnector("myuser", "mypassword".getBytes("UTF8"))
+
+      // encode groups of 2 hex chars since we are doing multibyte chars
+      def enc(s: String): String = Hex.encodeHex(s.getBytes("UTF8")).grouped(2)
+        .map{ c => "_" + c(0) + c(1) }.mkString.toLowerCase
+
+      // three byte UTF8 chars result in 9 char string
+      enc("你").length mustEqual 9
+      enc("好").length mustEqual 9
+
+      val encodedSFT = "nihao" + enc("你") + enc("好")
+      encodedSFT mustEqual AccumuloDataStore.hexEncodeNonAlphaNumeric(sftName)
+
+      AccumuloDataStore.formatSpatioTemporalIdxTableName(table, sft) mustEqual s"${table}_${encodedSFT}_st_idx"
+      AccumuloDataStore.formatRecordTableName(table, sft) mustEqual s"${table}_${encodedSFT}_records"
+      AccumuloDataStore.formatAttrIdxTableName(table, sft) mustEqual s"${table}_${encodedSFT}_attr_idx"
+
+      c.tableOperations().exists(table) must beTrue
+      c.tableOperations().exists(s"${table}_${encodedSFT}_st_idx") must beTrue
+      c.tableOperations().exists(s"${table}_${encodedSFT}_records") must beTrue
+      c.tableOperations().exists(s"${table}_${encodedSFT}_attr_idx") must beTrue
     }
 
   }

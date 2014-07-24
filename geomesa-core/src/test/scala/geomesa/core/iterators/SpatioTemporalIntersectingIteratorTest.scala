@@ -19,13 +19,15 @@ package geomesa.core.iterators
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Polygon
 import geomesa.core._
-import geomesa.core.data.SimpleFeatureEncoderFactory
+import geomesa.core.data.{AccumuloDataStore, METADATA_TAG, SimpleFeatureEncoderFactory}
 import geomesa.core.index._
 import geomesa.core.iterators.TestData._
+import geomesa.core.security.DefaultAuthorizationsProvider
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.{BatchScanner, Connector, IteratorSetting}
-import org.apache.accumulo.core.data._
+import org.apache.accumulo.core.client.{Connector, IteratorSetting}
+import org.apache.accumulo.core.data.Mutation
+
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
@@ -73,13 +75,13 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     logger.debug(s"Done adding mutations to table $tableName.")
 
     // add the schema description
-    val mutSchema = new Mutation(s"~META_$featureName")
-    mutSchema.put("schema", schemaEncoding, emptyBytes)
+    val mutSchema = new Mutation(s"${METADATA_TAG}_$featureName")
+    mutSchema.put("schema", "", schemaEncoding)
     bw.addMutation(mutSchema)
 
     // add the attributes description
-    val mutAttributes = new Mutation(s"~META_$featureName")
-    mutAttributes.put("attributes", UnitTestEntryType.getTypeSpec, emptyBytes)
+    val mutAttributes = new Mutation(s"${METADATA_TAG}_$featureName")
+    mutAttributes.put("attributes", "", UnitTestEntryType.getTypeSpec)
     bw.addMutation(mutAttributes)
     bw.flush()
     c
@@ -99,9 +101,9 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
 
     // create the batch scanner
     val c = setupMockAccumuloTable(entries)
-    val bs = () => c.createBatchScanner(TEST_TABLE, TEST_AUTHORIZATIONS, 5)
+    val ds = new AccumuloDataStore(c, TEST_TABLE, new DefaultAuthorizationsProvider, "")
 
-    val gf = s"WITHIN(geom, ${polygon.toText})"
+    val gf = s"INTERSECTS(geom, ${polygon.toText})"
     val dt: Option[String] = Option(dtFilter).map(int =>
       s"(dtg between '${int.getStart}' AND '${int.getEnd}')"
     )
@@ -115,16 +117,16 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     val tf = ECQL.toFilter(tfString)
 
     val q = new Query(TestData.featureType.getTypeName, tf)
-    runQuery(q, bs)
+    runQuery(q, ds)
   }
 
-  def runQuery(q: Query, bs: () => BatchScanner, doPrint: Boolean = false, label: String = "test") = {
+  def runQuery(q: Query, ds: AccumuloDataStore, doPrint: Boolean = false, label: String = "test") = {
     val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
     // create the schema, and require de-duplication
     val schema = IndexSchema(TestData.schemaEncoding, TestData.featureType, featureEncoder)
 
     // fetch results from the schema!
-    val itr = schema.query(q, bs)
+    val itr = schema.query(q, ds)
 
     // print out the hits
     val retval = if (doPrint) {

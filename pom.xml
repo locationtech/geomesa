@@ -28,7 +28,6 @@
         <module>geomesa-core</module>
         <module>geomesa-distributed-runtime</module>
         <module>geomesa-plugin</module>
-        <module>geomesa-dist</module>
         <module>geomesa-filter</module>
         <module>geomesa-feature</module>
     </modules>
@@ -38,11 +37,10 @@
         <geoserver.version>2.5</geoserver.version>
         <gt.version>11.0</gt.version>
         <jts.version>1.13</jts.version>
-        <ehcache.version>2.6.2</ehcache.version>
 
         <!-- environment-dependent versions -->
         <zookeeper.version>3.3.6</zookeeper.version>
-        <accumulo.version>1.4.3</accumulo.version>
+        <accumulo.version>1.4.4</accumulo.version>
         <hadoop.version>0.20.2-cdh3u6</hadoop.version>
 
         <!-- logging properties
@@ -90,12 +88,12 @@
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
-                <version>2.1</version>
+                <version>2.3</version>
             </dependency>
             <dependency>
                 <groupId>org.joda</groupId>
                 <artifactId>joda-convert</artifactId>
-                <version>1.2</version>
+                <version>1.6</version>
             </dependency>
             <dependency>
                 <groupId>com.vividsolutions</groupId>
@@ -203,19 +201,9 @@
                 <version>2.10.0</version>
             </dependency>
             <dependency>
-                <groupId>net.sf.ehcache</groupId>
-                <artifactId>ehcache-core</artifactId>
-                <version>${ehcache.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-mapper-asl</artifactId>
                 <version>1.9.3</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.transaction</groupId>
-                <artifactId>jta</artifactId>
-                <version>1.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -461,6 +449,12 @@
                 <artifactId>junit</artifactId>
                 <version>4.5</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+              <groupId>org.apache.accumulo</groupId>
+              <artifactId>accumulo-minicluster</artifactId>
+              <version>${accumulo.version}</version>
+              <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
