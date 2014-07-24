@@ -49,9 +49,7 @@ trait StatWriter {
    *
    * @param stat
    */
-  def writeStat(stat: Stat): Unit = {
-    StatWriter.queueStat(stat)
-  }
+  def writeStat(stat: Stat): Unit = StatWriter.queueStat(stat)
 }
 
 object StatWriter extends Runnable with Logging {
@@ -110,9 +108,7 @@ object StatWriter extends Runnable with Logging {
    * @param stat
    * @return
    */
-  private def createMutation(stat: Stat): Mutation = {
-    new Mutation(dateFormat.print(stat.date))
-  }
+  private def createMutation(stat: Stat): Mutation = new Mutation(dateFormat.print(stat.date))
 
   /**
    * Translates a query stat into an accumulo row
