@@ -17,7 +17,7 @@
 package geomesa.core.data
 
 import geomesa.core.index._
-import geomesa.core.stats.QueryStat
+import geomesa.core.stats.{StatWriter, QueryStat}
 import geomesa.core.util.CloseableIterator
 import org.geotools.data.{Query, FeatureReader}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -56,13 +56,15 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
   override def close() = {
     iter.close()
-    val stat = QueryStat(dataStore.catalogTable,
-                            sft.getTypeName,
-                            System.currentTimeMillis(),
-                            query.getFilter,
-                            planningTime,
-                            scanTime,
-                            hitsSeen)
-    dataStore.writeStat(stat)
+    if (dataStore.isInstanceOf[StatWriter]) {
+      val stat = QueryStat(dataStore.catalogTable,
+                              sft.getTypeName,
+                              System.currentTimeMillis(),
+                              query.getFilter,
+                              planningTime,
+                              scanTime,
+                              hitsSeen)
+      dataStore.asInstanceOf[StatWriter].writeStat(stat)
+    }
   }
 }

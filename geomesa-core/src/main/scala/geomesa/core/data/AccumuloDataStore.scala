@@ -26,7 +26,6 @@ import geomesa.core.data.AccumuloDataStore._
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.core.index.{IndexSchema, IndexSchemaBuilder, TemporalIndexCheck}
 import geomesa.core.security.AuthorizationsProvider
-import geomesa.core.stats.StatWriter
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
@@ -66,7 +65,7 @@ class AccumuloDataStore(val connector: Connector,
                         val recordThreadsConfig: Option[Int] = None,
                         val writeThreadsConfig: Option[Int] = None,
                         val featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
-    extends AbstractDataStore(true) with AccumuloConnectorCreator with StatWriter with Logging {
+    extends AbstractDataStore(true) with AccumuloConnectorCreator with Logging {
 
   // having at least as many shards as tservers provides optimal parallelism in queries
   private val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
