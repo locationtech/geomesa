@@ -17,27 +17,18 @@
 package geomesa.core.data
 
 import geomesa.feature.AvroSimpleFeatureFactory
-
-import scala.collection.JavaConversions._
-import com.vividsolutions.jts.geom.Coordinate
-import geomesa.core.security.{FilteringAuthorizationsProvider, AuthorizationsProvider, DefaultAuthorizationsProvider}
 import geomesa.utils.text.WKTUtils
-import org.apache.accumulo.core.security.Authorizations
-import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data._
-import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.{FeatureIterator, FeatureCollection, DefaultFeatureCollection}
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.data.collection.ListFeatureCollection
+import org.geotools.data.simple.SimpleFeatureIterator
+import org.geotools.factory.Hints
 import org.geotools.filter.text.cql2.CQL
-import org.geotools.geometry.jts.JTSFactoryFinder
-import org.geotools.process.vector.TransformProcess
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import scala.collection
-import org.geotools.data.simple.SimpleFeatureIterator
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class LiveAccumuloDataStoreTest extends Specification {
@@ -57,6 +48,7 @@ class LiveAccumuloDataStoreTest extends Specification {
                     "visibilities" -> "user&admin",
                     "tableName"  -> "test_auths",
                     "useMock"    -> "false",
+                    "indexSchemaFormat" -> "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id",
                     "featureEncoding" -> "avro")
 
   val sftName = "authwritetest"

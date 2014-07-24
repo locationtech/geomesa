@@ -110,7 +110,7 @@ class GeohashUtilsTest extends Specification with Logging {
       if(DEBUG_OUTPUT)
         ghSubstrings.foreach { gh => logger.debug("[unique Charlottesville gh(2,3)] " + gh)}
 
-      ghSubstrings.size must be equalTo(9)
+      ghSubstrings.size must beEqualTo(9)
     }
   }
 
