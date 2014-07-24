@@ -76,7 +76,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def getIterator(acc: AccumuloConnectorCreator,
                   sft: SimpleFeatureType,
                   query: Query,
-                  output: ExplainerOutputType = log): CloseableIterator[Entry[Key,Value]] = {
+                  output: ExplainerOutputType = ExplainPrintln): CloseableIterator[Entry[Key,Value]] = {
     val ff = CommonFactoryFinder.getFilterFactory2
     val isDensity = query.getHints.containsKey(BBOX_KEY)
     val queries: Iterator[Query] =
