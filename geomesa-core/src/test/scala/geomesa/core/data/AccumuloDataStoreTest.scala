@@ -271,12 +271,12 @@ class AccumuloDataStoreTest extends Specification {
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
       val ff = CommonFactoryFinder.getFilterFactory2
-      val spatial = ff.bbox("geom", -100, 1, 100, 4, CRS.toSRS(WGS84))
+      val spatial = ff.bbox("geom", -100, 1.1, 100, 4.1, CRS.toSRS(WGS84))
       val query = new Query(sftName, spatial)
       val results = fs.getFeatures(query)
-      results.size() mustEqual 7
+      results.size() mustEqual 6
     }
-                                /*
+
     "handle small IDL-wrapping geoserver BBOXes" in {
       val ds = createStore("IDL")
       val sftName = TestData.featureName
@@ -305,7 +305,7 @@ class AccumuloDataStoreTest extends Specification {
       val query = new Query(sftName, binarySpatial)
       val results = fs.getFeatures(query)
       results.size() mustEqual 226
-    }                             */
+    }
 
     "handle transformations" in {
       // create the data store
