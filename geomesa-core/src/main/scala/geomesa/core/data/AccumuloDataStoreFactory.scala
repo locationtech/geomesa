@@ -17,15 +17,12 @@
 
 package geomesa.core.data
 
-import geomesa.core.stats.StatWriter
-
-import collection.JavaConversions._
-import geomesa.core.security.{DefaultAuthorizationsProvider, FilteringAuthorizationsProvider, AuthorizationsProvider}
 import java.io.Serializable
 import java.util.{Map => JMap}
 import javax.imageio.spi.ServiceRegistry
 
 import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
+import geomesa.core.stats.StatWriter
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
@@ -123,19 +120,29 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         .map(FeatureEncoding.withName)
         .getOrElse(FeatureEncoding.AVRO)
 
-    // TODO create the data store 'with StatWriter' if param is set
-    // not doing this yet due to pending PR that updates this code
     val collectStats = Try(statsParam.lookUp(params).asInstanceOf[String].toBoolean).getOrElse(true)
 
-    new AccumuloDataStore(connector,
-      tableName,
-      authorizationsProvider,
-      visibility,
-      idxSchemaParam.lookupOpt(params),
-      queryThreadsParam.lookupOpt(params),
-      recordThreadsParam.lookupOpt(params),
-      writeThreadsParam.lookupOpt(params),
-      featureEncoding)
+    if (collectStats) {
+      new AccumuloDataStore(connector,
+        tableName,
+        authorizationsProvider,
+        visibility,
+        idxSchemaParam.lookupOpt(params),
+        queryThreadsParam.lookupOpt(params),
+        recordThreadsParam.lookupOpt(params),
+        writeThreadsParam.lookupOpt(params),
+        featureEncoding) with StatWriter
+    } else {
+      new AccumuloDataStore(connector,
+        tableName,
+        authorizationsProvider,
+        visibility,
+        idxSchemaParam.lookupOpt(params),
+        queryThreadsParam.lookupOpt(params),
+        recordThreadsParam.lookupOpt(params),
+        writeThreadsParam.lookupOpt(params),
+        featureEncoding)
+    }
   }
 
   def buildAccumuloConnector(params: JMap[String,Serializable]): Connector = {
@@ -184,7 +191,7 @@ object AccumuloDataStoreFactory {
     val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false)
     val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false)
     val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false)
-    val statsParam        = new Param("collectStats", classOf[String], "Toggle collection of statistics", false)
+    val statsParam          = new Param("collectStats", classOf[String], "Toggle collection of statistics", false)
     val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
     val featureEncParam     = new Param("featureEncoding", classOf[String], "The feature encoding format (text or avro). Default is Avro", false, "avro")
   }
