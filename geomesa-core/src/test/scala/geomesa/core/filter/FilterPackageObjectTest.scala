@@ -112,9 +112,7 @@ class FilterPackageObjectTest extends Specification with Logging {
       }
 
       "return a Filter where NOTs do not have ANDs or ORs as children" in {
-        children.filter(_.isInstanceOf[Not]).foreach { f =>
-          f.isInstanceOf[BinaryLogicOperator] mustEqual false
-        }
+        foreachWhen(children) { case f if f.isInstanceOf[Not] => f.isInstanceOf[BinaryLogicOperator] mustEqual false }
       }
 
       "return a Filter which is 'equivalent' to the original filter" in {

@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
 import geomesa.core.data.SimpleFeatureEncoderFactory
 import geomesa.core.index._
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import java.util
 import org.apache.accumulo.core.Constants
@@ -32,7 +33,7 @@ object TestData extends Logging {
   val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
 
   def getFeatureType = {
-    val ft = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
+    val ft: SimpleFeatureType = SimpleFeatureTypes.createType(featureName, UnitTestEntryType.getTypeSpec)
     ft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
     ft
   }

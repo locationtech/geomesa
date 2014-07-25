@@ -24,22 +24,20 @@ class OrSplittingFilterTest extends Specification {
     "not do anything to filters without a top-level OR" in {
       val filterStrings = Seq(geom1, geom1 && date1, 1 && 2, (3 && 4).!, (1 || 3).!)
 
-      filterStrings.foreach { f =>
-        Seq(f) mustEqual splitFilter(f)
-      }
+      forall(filterStrings) { f => Seq(f) mustEqual splitFilter(f) }
     }
 
     "split an OR into two pieces" in {
       val orStrings = Seq(geom1 || geom2, geom2 || date1, 1 || 2, geom1 || 3)
 
-      orStrings.foreach { f =>
+      forall(orStrings) { f =>
         splitFilter(f).size mustEqual 2
       }
     }
 
     "recursively split nested ORs" in {
       val nested = Seq((geom1 || date1) || geom2, 1 || 2 || 3, 1 || (2 && 3) || 4, 1 || (geom2 || date1))
-      nested.foreach { f =>
+      forall(nested) { f =>
         splitFilter(f).size mustEqual 3
       }
     }
