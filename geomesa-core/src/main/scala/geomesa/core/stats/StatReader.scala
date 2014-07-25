@@ -18,24 +18,62 @@ package geomesa.core.stats
 
 import java.util.Date
 
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.{Connector, Scanner}
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.accumulo.core.security.Authorizations
 
-import scala.reflect._
+/**
+ * Abstract class for querying stats
+ *
+ * @param connector
+ * @param catalogTable
+ * @tparam S
+ */
+abstract class StatReader[S <: Stat](connector: Connector, catalogTable: String) {
 
-class StatReader[S <: Stat: ClassTag](connector: Connector, catalogTable: String) {
+  protected def statTransform: StatTransform[S]
 
-  private val statTransform = StatTransform.getTransform[S]
-
+  /**
+   * Main query method based on date range. Subclasses can add additional query capability (on
+   * attributes, for instance).
+   *
+   * @param featureName
+   * @param start
+   * @param end
+   * @param authorizations
+   * @return
+   */
   def query(featureName: String, start: Date, end: Date, authorizations: Authorizations): Iterator[S] = {
-    val table = StatTransform.getStatTable[S](catalogTable, featureName)
+    val table = statTransform.getStatTable(catalogTable, featureName)
 
     val scanner = connector.createScanner(table, authorizations)
     val rangeStart = StatTransform.dateFormat.print(start.getTime)
     val rangeEnd = StatTransform.dateFormat.print(end.getTime)
     scanner.setRange(new AccRange(rangeStart, rangeEnd))
 
+    configureScanner(scanner)
+
     statTransform.iterator(scanner)
   }
+
+  /**
+   * Can be implemented by subclasses to configure scans beyond a simple date range
+   *
+   * @param scanner
+   */
+  protected def configureScanner(scanner: Scanner)
+}
+
+/**
+ * Class for querying query stats
+ *
+ * @param connector
+ * @param catalogTable
+ */
+class QueryStatReader(connector: Connector, catalogTable: String)
+    extends StatReader[QueryStat](connector, catalogTable) {
+
+  override protected val statTransform = QueryStatTransform
+
+  override protected def configureScanner(scanner: Scanner) = {}
 }

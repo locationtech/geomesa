@@ -29,7 +29,6 @@ import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
 
 import scala.collection.JavaConverters._
-import scala.reflect.ClassTag
 
 trait StatWriter {
 
@@ -106,15 +105,14 @@ object StatWriter extends Runnable with Logging {
    */
   private def write(stats: Iterable[Stat], connector: Connector): Unit = {
     stats.groupBy(s => s.getClass).foreach { case (clas, clasIter) =>
-      // get the appropriate transform for this class of stats
-      val (transform: StatTransform[Stat], partialTableFunction) = clas match {
-        case c if c == classOf[QueryStat] =>
-          (StatTransform.getTransform[QueryStat], StatTransform.getStatTable[QueryStat](_: String, _: String))
-        case _ => (StatTransform.getTransform[Stat], StatTransform.getStatTable[Stat](_: String, _: String))
+      // get the appropriate transform for this type of stat
+      val transform = clas match {
+        case c if c == classOf[QueryStat] => QueryStatTransform.asInstanceOf[StatTransform[Stat]]
+        case _ => throw new RuntimeException("Not implemented")
       }
       // group stats by catalog and feature name
       clasIter.groupBy(s => (s.catalogTable, s.featureName)).foreach { case ((catalogTable, featureName), iter) =>
-        val table = partialTableFunction(catalogTable, featureName)
+        val table = transform.getStatTable(catalogTable, featureName)
         checkTable(table)
         val writer = connector.createBatchWriter(table, batchWriterConfig)
         val mutations = iter.map(s => transform.statToMutation(s))
@@ -149,6 +147,7 @@ object StatWriter extends Runnable with Logging {
       write(stats, connector)
     } catch {
       case e: InterruptedException => // thread has been terminated
+      case e: Exception => logger.error("Error in stat writing thread:", e)
     }
   }
 }
