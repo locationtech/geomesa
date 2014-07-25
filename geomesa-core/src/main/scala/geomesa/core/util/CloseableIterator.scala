@@ -1,7 +1,7 @@
 package geomesa.core.util
 
 import java.util.Map.Entry
-import org.apache.accumulo.core.client.BatchScanner
+import org.apache.accumulo.core.client.{Scanner, BatchScanner}
 import org.apache.accumulo.core.data.{Key, Value}
 import scala.collection.Iterator
 import scala.collection.JavaConversions._
@@ -70,6 +70,10 @@ object SelfClosingIterator {
     def next(): A = iter.next()
     def close() = closeIter()
   }
+
+  def apply[A](iter: CloseableIterator[A]): SelfClosingIterator[A] = apply(iter, iter.close)
+
+  def apply(s: Scanner): SelfClosingIterator[Entry[Key, Value]] = apply(s.iterator(), s.close)
 }
 
 // This object provides a standard way to wrap BatchScanners in a self-closing and closeable iterator.
