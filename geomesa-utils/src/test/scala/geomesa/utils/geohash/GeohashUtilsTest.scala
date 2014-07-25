@@ -275,6 +275,6 @@ class GeohashUtilsTest extends Specification with Logging {
 
       // *"N/A" simply means that the test took more than 5 minutes without
       // finishing.
-    }
+    }.pendingUntilFixed("This timing test is not meant to be run by default.")
   }
 }

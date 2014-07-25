@@ -124,7 +124,6 @@ object GeoHash extends Logging {
   // create a new GeoHash from a binary string in MSB -> LSB format
   // (analogous to what is output by the "toBinaryString" method)
   def fromBinaryString(bitsString: String): GeoHash = {
-    //  (0 until prec).map((bitIndex) => boolMap(bitset(bitIndex))).mkString
     val numBits = bitsString.length
     val bitSet: BitSet = bitsString.zipWithIndex.foldLeft(BitSet())((bsSoFar, bitPosTuple) => bitPosTuple match {
       case (bitChar, pos) if bitChar == '1' => bsSoFar + pos

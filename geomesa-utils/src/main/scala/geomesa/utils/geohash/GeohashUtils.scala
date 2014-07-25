@@ -233,7 +233,7 @@ object GeohashUtils
 
     // validate that you found a usable result
     val gh = ghOpt.getOrElse(GeoHash(centroid.getX, centroid.getY, resolutions.minBitsResolution))
-    if (!(gh.contains(env) || gh.geom.equals(env)))
+    if (!gh.contains(env) && !gh.geom.equals(env))
       throw new Exception("ERROR:  Could not find a suitable " +
         resolutions.minBitsResolution + "-bit MBR for the target geometry:  " +
         geom)
@@ -752,7 +752,6 @@ object GeohashUtils
                                           MAX_KEYS_IN_LIST: Int = Int.MaxValue,
                                           includeDots: Boolean = true): Seq[String] = {
 
-    // bounds
     val maxBits = (offset + bits) * 5
     val minBits = offset * 5
     val usedBits = bits * 5
@@ -783,9 +782,6 @@ object GeohashUtils
       val usesAll = prefixes.exists(prefix => prefix.length <= minBits) ||
         entailedSize == maxKeys
 
-      // the number of (compatible) prefixes stored
-      def size: Int = prefixes.size
-
       // the loose inequality is so that we can detect overflow
       def hasRoom = entailedSize <= maxKeys
 
@@ -808,9 +804,18 @@ object GeohashUtils
         } else Seq(prefixHash)
       }
 
+      // generate all of the combinations entailed by the prefixes identified,
+      // all of which will have bits that overlap with the requested substring
+      // (that is, if we want (3,2), then all of the prefixes we identified have
+      // somewhere between 15 and 25 bits in them)
+      //
+      // each prefix, then, needs to be expanded to a list of all combinations
+      // of bits that reach the next 5-bit boundary, and then those prefixes
+      // can be expanded to use all combinations of base-32 characters that
+      // allow them to fill out the requisite range
       def generateSome: Seq[String] = {
         prefixes.foldLeft(HashSet[String]())((ghsSoFar, prefix) => {
-          // fill out this prefix to the next 5-bit boundaries
+          // fill out this prefix to the next 5-bit boundary
           val bitsToBoundary = (65 - prefix.length) % 5
           val bases =
             if (bitsToBoundary == 0) Seq(prefix)
