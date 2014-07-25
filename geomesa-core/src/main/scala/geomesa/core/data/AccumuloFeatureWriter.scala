@@ -253,7 +253,9 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
         val key = entry.getKey
         mutation.putDelete(key.getColumnFamily, key.getColumnQualifier, new ColumnVisibility(key.getColumnVisibility))
       }
-      bw.addMutation(mutation)
+      if (mutation.size() > 0) {
+        bw.addMutation(mutation)
+      }
     }
 
   /** Creates a function to remove spatio temporal index entries for a feature **/
