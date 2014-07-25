@@ -26,6 +26,7 @@ import geomesa.core.data.AccumuloDataStore._
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.core.index.{IndexSchema, IndexSchemaBuilder, TemporalIndexCheck}
 import geomesa.core.security.AuthorizationsProvider
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
@@ -128,7 +129,7 @@ class AccumuloDataStore(val connector: Connector,
     val mutation = getMetadataMutation(featureName)
 
     // compute the metadata values
-    val attributesValue = DataUtilities.encodeType(sft)
+    val attributesValue = SimpleFeatureTypes.encodeType(sft)
     val dtgValue: Option[String] = {
       val userData = sft.getUserData
       // inspect, warn and set SF_PROPERTY_START_TIME if appropriate
@@ -244,7 +245,8 @@ class AccumuloDataStore(val connector: Connector,
 
   // configure splits for each of the attribute names
   def configureAttrIdxTable(featureType: SimpleFeatureType, attributeIndexTable: String): Unit = {
-    val names = featureType.getAttributeDescriptors.map(_.getLocalName).map(new Text(_)).toArray
+    val indexedAttrs = SimpleFeatureTypes.getIndexedAttributes(featureType)
+    val names = indexedAttrs.map(_.getLocalName).map(new Text(_)).toArray
     val splits = ImmutableSortedSet.copyOf(names)
     tableOps.addSplits(attributeIndexTable, splits)
   }
@@ -680,7 +682,7 @@ class AccumuloDataStore(val connector: Connector,
       case attributes if attributes.isEmpty =>
         null
       case attributes                       =>
-        val sft = DataUtilities.createType(featureName, attributes)
+        val sft = SimpleFeatureTypes.createType(featureName, attributes)
         val dtgField = readMetadataItem(featureName, DTGFIELD_CF)
           .getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
         sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)

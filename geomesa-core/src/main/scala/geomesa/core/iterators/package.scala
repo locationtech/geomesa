@@ -14,7 +14,7 @@ package object iterators {
      *  Copy UserData entries taken from a SimpleFeatureType into an IteratorSetting for later transfer back into
      *  a SimpleFeatureType
      *
-     *  This works around the fact that DataUtilities.encodeType ignores the UserData
+     *  This works around the fact that SimpleFeatureTypes.encodeType ignores the UserData
      *
      */
     def encodeUserData(userData: java.util.Map[AnyRef,AnyRef], keyPrefix: String)  {
@@ -28,7 +28,7 @@ package object iterators {
      *  Copy UserData entries taken from an IteratorSetting/Options back into
      *  a SimpleFeatureType
      *
-     *  This works around the fact that DataUtilities.encodeType ignores the UserData
+     *  This works around the fact that SimpleFeatureTypes.encodeType ignores the UserData
      *
      */
     def decodeUserData(options: java.util.Map[String,String], keyPrefix:String)  {

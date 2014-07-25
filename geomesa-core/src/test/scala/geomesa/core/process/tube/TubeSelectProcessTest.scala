@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import geomesa.core.index.Constants
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
@@ -44,7 +45,7 @@ class TubeSelectProcessTest extends Specification {
   "TubeSelect" should {
     "should do a simple tube with geo interpolation" in {
       val sftName = "tubeTestType"
-      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
       sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
       val ds = createStore
@@ -89,7 +90,7 @@ class TubeSelectProcessTest extends Specification {
 
     "should do a simple tube with geo + time interpolation" in {
       val sftName = "tubeTestType"
-      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
       sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
       val ds = createStore
@@ -133,7 +134,7 @@ class TubeSelectProcessTest extends Specification {
 
     "should properly convert speed/time to distance" in {
       val sftName = "tubetest2"
-      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
       sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
       val ds = createStore
@@ -220,7 +221,7 @@ class TubeSelectProcessTest extends Specification {
   "TubeSelect" should {
     "should handle all geometries" in {
       val sftName = "tubeline"
-      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
       sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
       val ds = createStore
@@ -293,10 +294,10 @@ class TubeSelectProcessTest extends Specification {
       val geoFac = new GeometryFactory
 
       val sftName = "tubeline"
-      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
 
       // calculated km at various latitude by USGS
-      List(0, 30, 60, 89).zip(List(110.57, 110.85, 111.41, 111.69)).foreach { case(lat, dist) =>
+      forall(List(0, 30, 60, 89).zip(List(110.57, 110.85, 111.41, 111.69))) { case(lat, dist) =>
         val deg = new NoGapFill(new DefaultFeatureCollection(sftName, sft), 0, 0).metersToDegrees(110.57*1000, geoFac.createPoint(new Coordinate(0, lat)))
         (1.0-dist) should beLessThan(.0001)
       }
@@ -306,7 +307,7 @@ class TubeSelectProcessTest extends Specification {
   "TubeSelect" should {
     "properly handle values for execute" in {
       val sftName = "tubeline"
-      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
       val ts = new TubeSelectProcess
       val ds = createStore
 

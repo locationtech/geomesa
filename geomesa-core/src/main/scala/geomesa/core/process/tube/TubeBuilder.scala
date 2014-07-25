@@ -7,9 +7,9 @@ import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
 import geomesa.core.index.Constants
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import org.apache.log4j.Logger
-import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.format.DateTimeFormat
@@ -31,7 +31,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
 
   val GEOM_PROP = "geom"
 
-  val tubeType = DataUtilities.createType("tubeType", s"$GEOM_PROP:Geometry:srid=4326,start:Date,end:Date")
+  val tubeType = SimpleFeatureTypes.createType("tubeType", s"$GEOM_PROP:Geometry:srid=4326,start:Date,end:Date")
   val builder = AvroSimpleFeatureFactory.featureBuilder(tubeType)
 
   // default to ISO 8601 date format

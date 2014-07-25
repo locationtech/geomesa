@@ -24,17 +24,18 @@ import com.vividsolutions.jts.geom.{Envelope, Point}
 import geomesa.core.data.AccumuloDataStoreFactory
 import geomesa.core.index.{Constants, QueryHints}
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataUtilities, Query}
 import org.geotools.factory.Hints
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
+import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -46,11 +47,7 @@ class DensityIteratorTest extends Specification {
 
   import geomesa.utils.geotools.Conversions._
 
-  val spec = "id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
-  val sft = DataUtilities.createType("test", spec)
-  sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
-
-  def createDataStore(i: Int = 0): DataStore = {
+  def createDataStore(sft: SimpleFeatureType, i: Int = 0): DataStore = {
     val mockInstance = new MockInstance("dummy" + i)
     val c = mockInstance.getConnector("user", "pass".getBytes)
     c.tableOperations.create("test")
@@ -72,7 +69,7 @@ class DensityIteratorTest extends Specification {
     ds
   }
 
-  def loadFeatures(ds: DataStore, encodedFeatures: Array[_<:Array[_]]): SimpleFeatureStore = {
+  def loadFeatures(ds: DataStore, sft: SimpleFeatureType, encodedFeatures: Array[_<:Array[_]]): SimpleFeatureStore = {
     val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
     val features = encodedFeatures.map {
       e =>
@@ -99,44 +96,49 @@ class DensityIteratorTest extends Specification {
   }
 
   "DensityIterator" should {
+    val spec = "id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
+    val sft = SimpleFeatureTypes.createType("test", spec)
+    sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
+
+
     "reduce total features returned" in {
 
-      val ds = createDataStore(0)
+      val ds = createDataStore(sft, 0)
 
       val encodedFeatures = (0 until 150).toArray.map {
         i =>
           Array(s"$i", "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
       }
 
-      val fs = loadFeatures(ds, encodedFeatures)
+      val fs = loadFeatures(ds, sft, encodedFeatures)
 
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
 
       val iter = results.features().toList
-      iter must not beNull
+      (iter must not).beNull
 
       iter.length should be lessThan 150
     }
 
     "maintain total weight of points" in {
 
-      val ds = createDataStore(1)
+      val ds = createDataStore(sft, 1)
 
       val encodedFeatures = (0 until 150).toArray.map {
         i =>
           Array(s"$i", "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
       }
 
-      val fs = loadFeatures(ds, encodedFeatures)
+      val fs = loadFeatures(ds, sft, encodedFeatures)
 
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
 
       val iter = results.features().toList
-      iter must not beNull
+      (iter must not).beNull
 
       val total = iter.map(_.getAttribute("weight").asInstanceOf[Double]).sum
 
@@ -145,7 +147,7 @@ class DensityIteratorTest extends Specification {
 
     "maintain weights irrespective of dates" in {
 
-      val ds = createDataStore(2)
+      val ds = createDataStore(sft, 2)
 
       val encodedFeatures = (0 until 150).toArray.map {
         i =>
@@ -153,14 +155,14 @@ class DensityIteratorTest extends Specification {
           Array(s"$i", "1.0", new Date(date.getTime + i * 60000), "POINT(-77 38)")
       }
 
-      val fs = loadFeatures(ds, encodedFeatures)
+      val fs = loadFeatures(ds, sft, encodedFeatures)
 
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
 
       val iter = results.features().toList
-      iter must not beNull
+      (iter must not).beNull
 
       val total = iter.map(_.getAttribute("weight").asInstanceOf[Double]).sum
 
@@ -169,7 +171,7 @@ class DensityIteratorTest extends Specification {
 
     "correctly bin points" in {
 
-      val ds = createDataStore(3)
+      val ds = createDataStore(sft, 3)
 
       val encodedFeatures = (0 until 150).toArray.map {
         i =>
@@ -179,14 +181,14 @@ class DensityIteratorTest extends Specification {
           Array(s"$i", "1.0", new Date(date.getTime + i * 60000), s"POINT($lat 37)")
       }
 
-      val fs = loadFeatures(ds, encodedFeatures)
+      val fs = loadFeatures(ds, sft, encodedFeatures)
 
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -1, 33, 6, 40)")
 
       val results = fs.getFeatures(q)
 
       val iter = results.features().toList
-      iter must not beNull
+      (iter must not).beNull
 
       val total = iter.map(_.getAttribute("weight").asInstanceOf[Double]).sum
 
@@ -202,7 +204,7 @@ class DensityIteratorTest extends Specification {
 
     "encode and decode features" in {
 
-      var matrix = HashBasedTable.create[Double, Double, Long]()
+      val matrix = HashBasedTable.create[Double, Double, Long]()
       matrix.put(1.0, 2.0, 3)
       matrix.put(2.0, 3.0, 5)
 
@@ -211,8 +213,6 @@ class DensityIteratorTest extends Specification {
       val decoded = DensityIterator.decodeSparseMatrix(encoded)
 
       matrix should be equalTo decoded
-
-      println()
     }
   }
 

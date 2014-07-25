@@ -17,33 +17,30 @@
 
 package geomesa.core.data
 
-import collection.JavaConversions._
-import com.vividsolutions.jts.geom.{Polygon, Coordinate}
-import geomesa.core.data.FilterToAccumulo._
+import com.vividsolutions.jts.geom.{Coordinate, Polygon}
 import geomesa.core.index.Constants
 import geomesa.utils.geometry.Geometry._
 import geomesa.utils.geotools.Conversions._
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import geomesa.utils.time.Time._
-import org.geotools.data.DataUtilities
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant}
-import org.joda.time.{DateTimeZone, DateTime, Interval}
+import org.geotools.temporal.`object`.{DefaultInstant, DefaultPosition}
+import org.joda.time.format.ISODateTimeFormat
+import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
-import org.opengis.filter.{And, Or, Not, Filter}
+import org.opengis.filter.expression.{Expression, Literal}
 import org.opengis.filter.spatial.DWithin
+import org.opengis.filter.temporal.{After, Before, During}
+import org.opengis.filter.{And, Filter, Not, Or}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.opengis.filter.temporal.{Before, After, During}
-import org.joda.time.format.{ISODateTimeFormat, DateTimeFormatter}
-import org.opengis.temporal.Period
-import org.opengis.filter.expression.{Expression, Literal}
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.geotools.filter.LiteralExpression
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class FilterToAccumuloTest extends Specification {
@@ -51,7 +48,7 @@ class FilterToAccumuloTest extends Specification {
   val WGS84       = DefaultGeographicCRS.WGS84
   val ff          = CommonFactoryFinder.getFilterFactory2
   val geomFactory = JTSFactoryFinder.getGeometryFactory
-  val sft         = DataUtilities.createType("test", "id:Integer,prop:String,dtg:Date,otherGeom:Geometry:srid=4326,*geom:Point:srid=4326")
+  val sft         = SimpleFeatureTypes.createType("test", "id:Integer,prop:String,dtg:Date,otherGeom:Geometry:srid=4326,*geom:Point:srid=4326")
   sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
 
   "BBOX queries" should {

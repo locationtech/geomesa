@@ -22,8 +22,10 @@ import java.util.TimeZone
 import com.vividsolutions.jts.geom.Geometry
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import geomesa.utils.geotools.Conversions._
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
+import org.apache.accumulo.core.data.{Range => ARange}
+import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -39,7 +41,7 @@ import scala.collection.JavaConversions._
 class AttributeIndexFilteringIteratorTest extends Specification {
 
   val sftName = "AttributeIndexFilteringIteratorTest"
-  val sft = DataUtilities.createType(sftName, s"name:String,age:Integer,dtg:Date,*geom:Geometry:srid=4326")
+  val sft = SimpleFeatureTypes.createType(sftName, s"name:String,age:Integer,dtg:Date,*geom:Geometry:srid=4326")
 
   val sdf = new SimpleDateFormat("yyyyMMdd")
   sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))
@@ -89,7 +91,7 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       // % should return all features
       fs.getFeatures(ff.like(ff.property("name"),"%")).features.size should equalTo(16)
 
-      List("a", "b", "c", "d").foreach { letter =>
+      forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter
         fs.getFeatures(ff.like(ff.property("name"),s"%$letter")).features.size should equalTo(4)
 
@@ -104,14 +106,17 @@ class AttributeIndexFilteringIteratorTest extends Specification {
 
     "handle transforms" in {
       // transform to only return the attribute geom - dropping dtg and name
-      List("a", "b", "c", "d").foreach { letter =>
+      forall(List("a", "b", "c", "d")) { letter =>
         val query = new Query(sftName, ECQL.toFilter(s"name <> '$letter'"), Array("geom"))
         val features = fs.getFeatures(query)
 
         features.size should equalTo(12)
-        features.features.foreach { sf =>
-          sf.getAttributeCount should equalTo(1)
-          sf.getAttribute(0) should beAnInstanceOf[Geometry]
+        forall(features.features) { sf =>
+          sf.getAttribute(0) must beAnInstanceOf[Geometry]
+        }
+
+        forall(features.features) { sf =>
+          sf.getAttributeCount must equalTo(1)
         }
       }
     }
