@@ -705,7 +705,7 @@ class AccumuloDataStoreTest extends Specification {
 
       val query = new Query(sftName, Filter.INCLUDE)
       val results = fs.getFeatures(query)
-      results.size() should throwA[RuntimeException]
+      results.size() should beEqualTo(0)
     }
 
     "throw a RuntimeException when calling deleteSchema on 0.10.x records" in {
@@ -788,7 +788,7 @@ class AccumuloDataStoreTest extends Specification {
       val query2 = new Query(sftName2, Filter.INCLUDE)
       val results = fs.getFeatures(query)
       val results2 = fs2.getFeatures(query2)
-      results.size() should throwA[RuntimeException]
+      results.size() should beEqualTo(0)
       results2.size() should beGreaterThan(0)
     }
   }

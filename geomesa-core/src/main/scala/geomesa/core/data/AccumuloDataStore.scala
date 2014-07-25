@@ -379,17 +379,11 @@ class AccumuloDataStore(val connector: Connector,
    * @param numThreads the number of concurrent threads to spawn for querying
    */
   private def deleteMetadata(featureName: String, numThreads: Int): Unit = {
-    val cf_list = List(ATTRIBUTES_CF, BOUNDS_CF, SCHEMA_CF, DTGFIELD_CF, FEATURE_ENCODING_CF,
-      VISIBILITIES_CF, VISIBILITIES_CHECK_CF, DATA_CQ, SFT_CF, ST_IDX_TABLE_CF,
-      ATTR_IDX_TABLE_CF, RECORD_TABLE_CF)
     val range = new Range(s"${METADATA_TAG}_$featureName")
     val deleter = connector.createBatchDeleter(catalogTable, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
     deleter.setRanges(List(range))
     deleter.delete()
     deleter.close()
-    cf_list.foreach(cf => {
-      metaDataCache.remove((featureName, cf))
-    })
   }
 
   /**
