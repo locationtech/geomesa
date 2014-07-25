@@ -23,9 +23,9 @@ import com.vividsolutions.jts.geom.Geometry
 import geomesa.core._
 import geomesa.core.index._
 import geomesa.core.index.IndexSchema.DecodedIndexValue
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{Filter, IteratorEnvironment, SortedKeyValueIterator}
-import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.opengis.feature.simple.SimpleFeature
@@ -60,7 +60,7 @@ class AttributeIndexFilteringIterator extends Filter with Logging {
     super.init(source, options, env)
     // NB: This is copied code from the STII.  Consider refactoring.
     if (options.containsKey(DEFAULT_FILTER_PROPERTY_NAME) && options.containsKey(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)) {
-      val featureType = DataUtilities.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
+      val featureType = SimpleFeatureTypes.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
       featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
       dateAttributeName = getDtgFieldName(featureType)
 

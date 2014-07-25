@@ -4,8 +4,9 @@ import com.vividsolutions.jts.geom.Geometry
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import geomesa.core.index.Constants
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.{DataStoreFinder, DataUtilities}
+import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
@@ -38,7 +39,7 @@ class QueryProcessTest extends Specification {
       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
 
   val sftName = "geomesaQueryTestType"
-  val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+  val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
   sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
   val ds = createStore

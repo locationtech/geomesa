@@ -27,7 +27,7 @@ import geomesa.core._
 import geomesa.core.index.{IndexEntryDecoder, IndexSchema, GeohashDecoder}
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.Conversions.{toRichSimpleFeatureIterator, RichSimpleFeature}
-import geomesa.utils.geotools.GridSnap
+import geomesa.utils.geotools.{SimpleFeatureTypes, GridSnap}
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => ARange}
@@ -64,7 +64,7 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
     bbox = JTS.toEnvelope(WKTUtils.read(options.get(DensityIterator.BBOX_KEY)))
     val (w, h) = DensityIterator.getBounds(options)
     snap = new GridSnap(bbox, w, h)
-    projectedSFT = DataUtilities.createType(simpleFeatureType.getTypeName, DENSITY_FEATURE_STRING)
+    projectedSFT = SimpleFeatureTypes.createType(simpleFeatureType.getTypeName, DENSITY_FEATURE_STRING)
     featureBuilder = AvroSimpleFeatureFactory.featureBuilder(projectedSFT)
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
@@ -190,7 +190,7 @@ object DensityIterator extends Logging {
   val ENCODED_RASTER_ATTRIBUTE = "encodedraster"
   val DENSITY_FEATURE_STRING = s"$ENCODED_RASTER_ATTRIBUTE:String,geom:Point:srid=4326"
   type SparseMatrix = HashBasedTable[Double, Double, Long]
-  val densitySFT = DataUtilities.createType("geomesadensity", "weight:Double,geom:Point:srid=4326")
+  val densitySFT = SimpleFeatureTypes.createType("geomesadensity", "weight:Double,geom:Point:srid=4326")
   val geomFactory = JTSFactoryFinder.getGeometryFactory
 
   def configure(cfg: IteratorSetting, polygon: Polygon, w: Int, h: Int) = {

@@ -382,7 +382,7 @@ class FeatureWritersTest extends Specification {
         }
         newFeatures.size should be equalTo(origFeatures.size)
 
-        newFeatures.keys.foreach { k =>
+        forallWhen(newFeatures.keys) { case k: String  =>
           val o = origFeatures(k)
           val n = newFeatures(k)
 

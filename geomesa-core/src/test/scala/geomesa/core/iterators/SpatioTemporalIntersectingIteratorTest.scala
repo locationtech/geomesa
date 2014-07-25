@@ -19,7 +19,7 @@ package geomesa.core.iterators
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Polygon
 import geomesa.core._
-import geomesa.core.data.{AccumuloDataStore, SimpleFeatureEncoderFactory}
+import geomesa.core.data.{AccumuloDataStore, METADATA_TAG, SimpleFeatureEncoderFactory}
 import geomesa.core.index._
 import geomesa.core.iterators.TestData._
 import geomesa.core.security.DefaultAuthorizationsProvider
@@ -75,13 +75,13 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     logger.debug(s"Done adding mutations to table $tableName.")
 
     // add the schema description
-    val mutSchema = new Mutation(s"~META_$featureName")
-    mutSchema.put("schema", schemaEncoding, emptyBytes)
+    val mutSchema = new Mutation(s"${METADATA_TAG}_$featureName")
+    mutSchema.put("schema", "", schemaEncoding)
     bw.addMutation(mutSchema)
 
     // add the attributes description
-    val mutAttributes = new Mutation(s"~META_$featureName")
-    mutAttributes.put("attributes", UnitTestEntryType.getTypeSpec, emptyBytes)
+    val mutAttributes = new Mutation(s"${METADATA_TAG}_$featureName")
+    mutAttributes.put("attributes", "", UnitTestEntryType.getTypeSpec)
     bw.addMutation(mutAttributes)
 
     bw.flush()

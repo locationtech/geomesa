@@ -6,6 +6,7 @@ import geomesa.core._
 import geomesa.core.data.DATA_CQ
 import geomesa.core.data.SimpleFeatureEncoder
 import geomesa.utils.geohash.{GeoHash, GeohashUtils}
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.data.{Value, Key}
 import org.apache.hadoop.io.Text
 import org.geotools.data.DataUtilities
@@ -73,9 +74,9 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
     logger.trace(s"decomposed geohashes: ${geohashes.map(_.hash).mkString(",")})}")
 
     val origFeatureType = featureToEncode.getType
-    val origFeatureTypeSpec = DataUtilities.encodeType(origFeatureType)
+    val origFeatureTypeSpec = SimpleFeatureTypes.encodeType(origFeatureType)
     val decompFeatureTypeSpec = origFeatureTypeSpec.replaceAll(":(Point|MultiPoint|LineString|MultiLineString|MultiPolygon)",":Geometry")
-    val decompFeatureType = DataUtilities.createType(origFeatureType.getName.toString, decompFeatureTypeSpec)
+    val decompFeatureType = SimpleFeatureTypes.createType(origFeatureType.getName.toString, decompFeatureTypeSpec)
     decompFeatureType.getUserData.putAll(origFeatureType.getUserData)  // for field annotations
     logger.trace(s"decomposed feature type geometry descriptor ${decompFeatureType.getGeometryDescriptor}")
 
