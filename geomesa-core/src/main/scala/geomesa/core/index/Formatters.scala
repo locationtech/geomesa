@@ -16,13 +16,12 @@
 
 package geomesa.core.index
 
-import IndexEntry._
+import geomesa.core.index.IndexEntry._
 import org.apache.hadoop.io.Text
 import org.joda.time.{DateTime, DateTimeZone}
 import org.opengis.feature.simple.SimpleFeature
-import scala.util.Try
+
 import scala.util.hashing.MurmurHash3
-import org.geotools.data.DataUtilities
 
 trait TextFormatter[E] {
   def format(entry: E): Text
@@ -92,12 +91,13 @@ case class PartitionTextFormatter[E <: SimpleFeature](numPartitions: Int) extend
   val numBits: Int = numPartitions.toString.length
   val fmt = ("%0" + numBits + "d").format(_: Int)
 
+
   def getIdHashPartition(entry: E): Int = {
     val toHash = entry.getID match {
-      case null => DataUtilities.encodeFeature(entry)
-      case id   => id
+      case null => entry.getAttributes.toArray
+      case id   => Array(id)
     }
-    Math.abs(MurmurHash3.stringHash(toHash) % (numPartitions + 1))
+    Math.abs(MurmurHash3.arrayHash(toHash) % (numPartitions + 1))
   }
 
   def format(entry: E): Text = new Text(fmt(getIdHashPartition(entry)))

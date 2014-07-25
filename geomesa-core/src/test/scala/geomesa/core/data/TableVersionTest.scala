@@ -3,6 +3,7 @@ package geomesa.core.data
 import geomesa.core.index.SF_PROPERTY_START_TIME
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.Conversions._
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.BatchWriterConfig
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -14,6 +15,7 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
+import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -45,7 +47,7 @@ class TableVersionTest extends Specification {
   val manualParams = baseParams ++ Map("tableName" -> "manualTable")
 
   val sftName = "regressionTestType"
-  val sft = DataUtilities.createType(sftName, s"name:String,$geotimeAttributes")
+  val sft = SimpleFeatureTypes.createType(sftName, s"name:String,$geotimeAttributes")
   sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
   def buildManualTable(params: Map[String, String]) = {
@@ -132,10 +134,9 @@ class TableVersionTest extends Specification {
       val manualFeatures = manualSource.getFeatures(query).features.toList.sortBy(_.getID.toInt)
       val geomesaFeatures = geomesaSource.getFeatures(query).features.toList.sortBy(_.getID.toInt)
 
-      manualFeatures.zip(geomesaFeatures).foreach {case (m, g) =>
-        m should equalTo(g)
-      }
+      manualFeatures must forall { m: SimpleFeature => (m must not).beNull }
 
+      manualFeatures must containTheSameElementsAs(geomesaFeatures)
     }
 
     "revert to text even when told to use avro if the table isn't avro" in {
@@ -159,7 +160,7 @@ class TableVersionTest extends Specification {
         if (entry.getKey.getColumnFamily == FEATURE_ENCODING_CF)
           entry.getValue.toString mustEqual FeatureEncoding.TEXT.toString
       }
-      scanner.close
+      scanner.close()
 
       // Here we are creating a schema AFTER a table already exists...this mimics upgrading
       // from 0.10.x to 1.0.0 ...this call to createSchema should insert a row into the table
@@ -189,9 +190,7 @@ class TableVersionTest extends Specification {
       manualFeatures.size should equalTo(6)
       geomesaFeatures.size should equalTo(6)
 
-      manualFeatures.zip(geomesaFeatures).foreach {case (m, g) =>
-        m should equalTo(g)
-      }
+      manualFeatures.toList must containTheSameElementsAs(geomesaFeatures.toList)
     }
 
     "properly encode text after having data written with 1.0.0 api" in {
