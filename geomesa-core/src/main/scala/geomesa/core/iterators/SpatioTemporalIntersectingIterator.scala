@@ -105,9 +105,13 @@ class SpatioTemporalIntersectingIterator
       testSimpleFeature = sfb.buildFeature("test")
     }
 
-    if (options.containsKey(DEFAULT_CACHE_SIZE_NAME))
+   if (options.containsKey(DEFAULT_CACHE_SIZE_NAME))
       maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
-    deduplicate = IndexSchema.mayContainDuplicates(featureType)
+
+    if (!options.containsKey(GEOMESA_ITERATORS_IS_DENSITY_TYPE))
+      deduplicate = IndexSchema.mayContainDuplicates(featureType)
+    else
+      deduplicate = false
 
     this.indexSource = source.deepCopy(env)
     this.dataSource = source.deepCopy(env)
