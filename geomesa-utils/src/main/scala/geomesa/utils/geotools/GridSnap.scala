@@ -104,7 +104,7 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
   }
 
   /** return a SimpleFeatureSource grid the same size and extent as the bbox */
-  def generateCoverageGrid():SimpleFeatureSource = {
+  lazy val generateCoverageGrid:SimpleFeatureSource = {
     val dxt = env.getWidth / xSize
     val dyt = env.getHeight / ySize
     val gridBounds = new ReferencedEnvelope(env.getMinX, env.getMaxX, env.getMinY, env.getMaxY, DefaultGeographicCRS.WGS84)

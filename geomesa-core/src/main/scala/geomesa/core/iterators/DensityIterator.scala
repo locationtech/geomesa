@@ -86,7 +86,7 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
     while(super.hasTop && !curRange.afterEndKey(topKey)) {
       topDensityKey = Some(topKey)
       val feature = featureOption.getOrElse(featureEncoder.decode(simpleFeatureType, topValue))
-      val geoHashGeom = decoder.decode(topKey).getDefaultGeometry.asInstanceOf[Geometry]
+      lazy val geoHashGeom = decoder.decode(topKey).getDefaultGeometry.asInstanceOf[Geometry]
       geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
       geometry match {
         case point: Point =>

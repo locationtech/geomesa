@@ -39,7 +39,7 @@ class GridSnapTest extends Specification with Logging {
       val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
       val gridSnap = new GridSnap(bbox, 10, 10)
 
-      val grid = gridSnap.generateCoverageGrid()
+      val grid = gridSnap.generateCoverageGrid
 
       grid must not beNull
 
