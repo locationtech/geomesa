@@ -25,9 +25,8 @@ object KNNQuery {
                      maxDistance: Double,
                      aFeatureForSearch: SimpleFeature): mutable.PriorityQueue[(SimpleFeature, Double)] = {
 
-    // setup the GH iterator -- it requires the search point and the searchRadius
-    // use the horrible implementation first
-    val geoHashPQ = SomeGeoHashes(aFeatureForSearch, searchDistance, maxDistance)
+    // setup the GHSpiral -- it requires the search point and the searchRadius
+    val geoHashPQ = GeoHashSpiral(aFeatureForSearch, searchDistance, maxDistance)
 
     // setup the stateful object for record keeping
     //val searchStatus = KNNSearchStatus(numDesired, maxDistance)
@@ -45,14 +44,14 @@ object KNNQuery {
   @tailrec
   def runKNNQuery(source: SimpleFeatureSource,
                    query: Query,
-                   ghPQ: SomeGeoHashes,
+                   ghPQ: GeoHashSpiral,
                    sfPQ: NearestNeighbors[(SimpleFeature,Double)]) : NearestNeighbors[(SimpleFeature,Double)] = {
     import geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
     // add a filter to the ghPQ if we've already found kNN
     //val newghPQ = if (numDesired <= numFound) ghPQ.withFilter(thing(kNN.maxDistance)) else ghPQ
-    ghPQ.next match {
-      case None => sfPQ
-      case Some(newGH) =>
+    if (!ghPQ.hasNext) sfPQ
+    else {
+        val newGH = ghPQ.next()
         // copy the query in order to pass the original to the next recursion
         val newQuery = generateKNNQuery(newGH, query, source)
 
@@ -62,8 +61,8 @@ object KNNQuery {
         newFeatures.foreach{ sf:SimpleFeature => sfPQ.enqueue( (sf,sfPQ.distance(sf)) ) }
 
         // apply filter to ghPQ if we've found k neighbors
-        if (sfPQ.isFull) sfPQ.maxDistance.foreach { x: Double => ghPQ.updateDistance(x)}
-
+        if (sfPQ.isFull) sfPQ.maxDistance.foreach { x: Double => ghPQ.mutateFilterDistance(x)}
+        //println ("KNN Status:" + newGH.hash + " " + sfPQ.maxDistance.getOrElse(0.0) +" " + sfPQ.length )
         runKNNQuery(source, query, ghPQ, sfPQ)
     }
   }

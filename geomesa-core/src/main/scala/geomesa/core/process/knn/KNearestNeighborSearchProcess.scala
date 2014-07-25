@@ -124,6 +124,7 @@ class KNNVisitor( inputFeatures: SimpleFeatureCollection,
       for {
         aFeatureForSearch <- inputFeatures.features
         knnResults = KNNQuery.runNewKNNQuery(source, query, numDesired, estimatedDistance, maxSearchDistance, aFeatureForSearch)
+        // extract the SimpleFeatures and convert to a Collection. Note that the ordering may not be preserved .
         list = knnResults.map{_._1}.asJavaCollection  // the map extracts the SimpleFeature from the tuple
         _ = addAll(list)
       } {}

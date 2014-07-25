@@ -42,7 +42,7 @@ object SomeGeoHashes {
     // also, the units are degrees, while meters are used elsewhere. So this won't even work.
     // see GEOMESA-226
 
-    def distanceCalc(gh: GeoHash) = centerPoint.point.distance(GeohashUtils.getGeohashGeom(gh))
+    def distanceCalc(gh: GeoHash) = centerPoint.point.distance(gh.geom)
     def orderedGH: Ordering[GeoHash] = Ordering.by { gh: GeoHash => distanceCalc(gh)}
 
     // Create a new GeoHash PriorityQueue and enqueue the first GH from the iterator as a seed.
