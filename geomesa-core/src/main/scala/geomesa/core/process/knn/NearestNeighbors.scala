@@ -31,8 +31,8 @@ object NearestNeighbors {
     new mutable.PriorityQueue[(SimpleFeature, Double)]()(orderedSF) with NearestNeighbors[(SimpleFeature, Double)] {
 
       val maxSize = numDesired
-
-      override val ord = orderedSF
+      // needed to make IDEA happy, but scalac is fine without this.
+      //override val ord = orderedSF
 
       def distance(sf: SimpleFeature) = distanceCalc(sf)
 
