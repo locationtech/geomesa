@@ -8,7 +8,7 @@ import scala.collection.mutable
 trait BoundedPriorityQueue[T] extends mutable.PriorityQueue[T] {
   def maxSize: Int
 
-  def isFull:Boolean = !(length < maxSize)
+  def isFull: Boolean = !(length < maxSize)
 
   def getLast = take(maxSize).lastOption
 }

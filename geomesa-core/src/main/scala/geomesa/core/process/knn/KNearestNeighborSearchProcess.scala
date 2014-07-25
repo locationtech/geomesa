@@ -111,7 +111,7 @@ class KNNVisitor( inputFeatures: SimpleFeatureCollection,
     // approach #1
     /**
     new DefaultFeatureCollection {
-      inputFeatures.features.map {
+      inputFeatures.features.foreach {
         aFeatureForSearch => addAll(
           KNNQuery.runNewKNNQuery(source, query, numDesired, estimatedDistance, maxSearchDistance, aFeatureForSearch).map{_._1 }.asJavaCollection
 
@@ -119,14 +119,14 @@ class KNNVisitor( inputFeatures: SimpleFeatureCollection,
       }
     }
     **/
-    //approach #2 using a for loop. More readable but the yield is ugly.......
+    //approach #2 using a for loop. More readable .......
     new DefaultFeatureCollection {
       for {
         aFeatureForSearch <- inputFeatures.features
         knnResults = KNNQuery.runNewKNNQuery(source, query, numDesired, estimatedDistance, maxSearchDistance, aFeatureForSearch)
         list = knnResults.map{_._1}.asJavaCollection  // the map extracts the SimpleFeature from the tuple
         _ = addAll(list)
-      } yield Unit
+      } {}
     }
   }
 }

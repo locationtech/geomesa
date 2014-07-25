@@ -15,24 +15,24 @@ class SomeGeoHashesTest extends Specification {
 
   sequential
 
-  def generateCCRiSF = {
+  def generateCvilleSF = {
     val sftName = "geomesaKNNTestQueryFeature"
     val sft = DataUtilities.createType(sftName, index.spec)
 
-    val ccriSF = SimpleFeatureBuilder.build(sft, List(), "equator")
-    ccriSF.setDefaultGeometry(WKTUtils.read(f"POINT(-78.4953560 38.0752150 )"))
-    ccriSF.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-    ccriSF
+    val cvilleSF = SimpleFeatureBuilder.build(sft, List(), "equator")
+    cvilleSF.setDefaultGeometry(WKTUtils.read(f"POINT(-78.4953560 38.0752150 )"))
+    cvilleSF.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+    cvilleSF
   }
 
   "Geomesa SomeGeoHashes PriorityQueue" should {
 
-    "order GeoHashes correctly around CCRi" in {
-      val ccriSF = generateCCRiSF
-      val ccriPQ = SomeGeoHashes(ccriSF, 1000.0, 1000.0)
-      ccriPQ.exhaustIterator() // call this so that the PriorityQueue can order ALL geohashes
-      val ccriPQ2List = ccriPQ.toList()
-      val nearest9ByCalculation = ccriPQ2List.take(9).map{_.hash}
+    "order GeoHashes correctly around Charlottesville" in {
+      val cvilleSF = generateCvilleSF
+      val cvillePQ = SomeGeoHashes(cvilleSF, 1000.0, 1000.0)
+      cvillePQ.exhaustIterator() // call this so that the PriorityQueue can order ALL geohashes
+      val cvillePQ2List = cvillePQ.toList()
+      val nearest9ByCalculation = cvillePQ2List.take(9).map{_.hash}
 
       // the below are ordered by the cartesian distances, NOT the geodetic distances
       val nearest9ByVisualInspection = List (
@@ -49,22 +49,22 @@ class SomeGeoHashesTest extends Specification {
     }
 
 
-    "use the statefulDistanceFilter around CCRi correctly" in {
-      val ccriSF = generateCCRiSF
-      val ccriPQ = SomeGeoHashes(ccriSF, 1000.0, 1000.0)
-      ccriPQ.updateDistance(0.004)  // units are degrees, so distance is cartesian
-      ccriPQ.exhaustIterator() // call this so that the PriorityQueue can order ALL geohashes
-      val numHashesAfterFilter = ccriPQ.toList().length
+    "use the statefulDistanceFilter around Charlottesville correctly" in {
+      val cvilleSF = generateCvilleSF
+      val cvillePQ = SomeGeoHashes(cvilleSF, 1000.0, 1000.0)
+      cvillePQ.updateDistance(0.004)  // units are degrees, so distance is cartesian
+      cvillePQ.exhaustIterator() // call this so that the PriorityQueue can order ALL geohashes
+      val numHashesAfterFilter = cvillePQ.toList().length
       numHashesAfterFilter must equalTo(6)
     }
 
 
-    "use the statefulDistanceFilter around CCRi correctly when the PriorityQueue is fully loaded" in {
-      val ccriSF = generateCCRiSF
-      val ccriPQ = SomeGeoHashes(ccriSF, 1000.0, 1000.0)
-      ccriPQ.exhaustIterator() // call this so that the PriorityQueue can order ALL geohashes
-      ccriPQ.updateDistance(0.004)  // units are degrees, so distance is cartesian
-      val numHashesAfterFilter = ccriPQ.toList().length
+    "use the statefulDistanceFilter around Charlottesville correctly when the PriorityQueue is fully loaded" in {
+      val cvilleSF = generateCvilleSF
+      val cvillePQ = SomeGeoHashes(cvilleSF, 1000.0, 1000.0)
+      cvillePQ.exhaustIterator() // call this so that the PriorityQueue can order ALL geohashes
+      cvillePQ.updateDistance(0.004)  // units are degrees, so distance is cartesian
+      val numHashesAfterFilter = cvillePQ.toList().length
       numHashesAfterFilter must equalTo(6)
 
     }
