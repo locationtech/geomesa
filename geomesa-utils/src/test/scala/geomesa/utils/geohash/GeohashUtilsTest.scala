@@ -144,19 +144,19 @@ class GeohashUtilsTest extends Specification with Logging {
     }
 
     "compute (0,2) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(0, 2) must be equalTo 3
+      testGeohashSubstringsInCharlottesville(0, 2) mustEqual 3
     }
 
     "compute (2,3) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(2, 3) must be equalTo 9
+      testGeohashSubstringsInCharlottesville(2, 3) mustEqual 9
     }
 
     "compute (0,3) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(0, 3) must be equalTo 4
+      testGeohashSubstringsInCharlottesville(0, 3) mustEqual 4
     }
 
     "compute (3,2) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(3, 2) must be equalTo 8
+      testGeohashSubstringsInCharlottesville(3, 2) mustEqual 8
     }
   }
 

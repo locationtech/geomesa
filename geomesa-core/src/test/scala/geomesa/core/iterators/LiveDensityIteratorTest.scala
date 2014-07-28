@@ -24,7 +24,7 @@ import com.google.common.collect.HashBasedTable
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Envelope
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import geomesa.core.index.QueryHints
+import geomesa.core.index.{IndexSchemaBuilder, QueryHints}
 import geomesa.utils.geotools.Conversions.RichSimpleFeature
 import geomesa.utils.geotools.GridSnap
 import org.geotools.data._
@@ -50,14 +50,15 @@ class LiveDensityIteratorTest extends Specification with Logging {
    */
 
   val params = Map(
-                    "instanceId"      -> "mycloud",
-                    "zookeepers"      -> "zoo1,zoo2,zoo3",
-                    "user"            -> "myuser",
-                    "password"        -> "mypass",
-                    "auths"           -> "user,admin",
-                    "visibilities"    -> "",
-                    "tableName"       -> "mytable",
-                    "featureEncoding" -> "avro")
+    "instanceId"        -> "mycloud",
+    "zookeepers"        -> "zoo1,zoo2,zoo3",
+    "user"              -> "myuser",
+    "password"          -> "mypass",
+    "auths"             -> "user,admin",
+    "visibilities"      -> "",
+    "tableName"         -> "mytable",
+    "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
+    "featureEncoding"   -> "avro")
 
   val sftName = "fr"
 
