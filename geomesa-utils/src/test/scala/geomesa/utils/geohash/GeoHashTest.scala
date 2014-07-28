@@ -238,4 +238,20 @@ class GeoHashTest extends Specification
       (3,1) must equalTo(GeoHash.getLatitudeLongitudeSpanCount(GeoHash("du"), GeoHash("dy"), 10))
     }
   }
+
+  "binary-string encoding" should {
+    "go round-trip from string to string" in {
+      val binaryStringIn = "01100101100101000000"
+      val gh = GeoHash.fromBinaryString(binaryStringIn)
+      gh.hash must be equalTo "dqb0"
+      gh.toBinaryString must be equalTo binaryStringIn
+    }
+
+    "go round trip from GH to GH" in {
+      val hashIn = "dqb0"
+      val gh = GeoHash(hashIn)
+      val ghOut = GeoHash.fromBinaryString(gh.toBinaryString)
+      ghOut.hash must be equalTo hashIn
+    }
+  }
 }
