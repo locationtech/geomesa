@@ -73,9 +73,9 @@ class ProximitySearchProcessTest extends Specification {
      "find things close by" in {
        import geomesa.utils.geotools.Conversions._
        val p1 = getPoint(45, 45, 99)
-       WKTUtils.read("POINT(45 45)").bufferMeters(99.1).intersects(p1) should beTrue
-       WKTUtils.read("POINT(45 45)").bufferMeters(100).intersects(p1) should beTrue
-       WKTUtils.read("POINT(45 45)").bufferMeters(98).intersects(p1) should beFalse
+       WKTUtils.read("POINT(45 45)").bufferMeters(99.1).intersects(p1) must beTrue
+       WKTUtils.read("POINT(45 45)").bufferMeters(100).intersects(p1) must beTrue
+       WKTUtils.read("POINT(45 45)").bufferMeters(98).intersects(p1) must beFalse
        val p2 = getPoint(46, 46, 99)
        val p3 = getPoint(47, 47, 99)
 
@@ -106,9 +106,9 @@ class ProximitySearchProcessTest extends Specification {
     "work on non-accumulo feature sources" in {
       import geomesa.utils.geotools.Conversions._
       val p1 = getPoint(45, 45, 99)
-      WKTUtils.read("POINT(45 45)").bufferMeters(99.1).intersects(p1) should beTrue
-      WKTUtils.read("POINT(45 45)").bufferMeters(100).intersects(p1) should beTrue
-      WKTUtils.read("POINT(45 45)").bufferMeters(98).intersects(p1) should beFalse
+      WKTUtils.read("POINT(45 45)").bufferMeters(99.1).intersects(p1) must beTrue
+      WKTUtils.read("POINT(45 45)").bufferMeters(100).intersects(p1) must beTrue
+      WKTUtils.read("POINT(45 45)").bufferMeters(98).intersects(p1) must beFalse
       val p2 = getPoint(46, 46, 99)
       val p3 = getPoint(47, 47, 99)
 

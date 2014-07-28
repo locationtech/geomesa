@@ -81,10 +81,10 @@ class TubeSelectProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should beEqualTo("b")
+        sf.getAttribute("type") mustEqual "b"
       }
 
-      results.size should beEqualTo(4)
+      results.size mustEqual 4
     }
 
     "should do a simple tube with geo + time interpolation" in {
@@ -125,10 +125,10 @@ class TubeSelectProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should beEqualTo("b")
+        sf.getAttribute("type") mustEqual "b"
       }
 
-      results.size should beEqualTo(4)
+      results.size mustEqual 4
     }
 
     "should properly convert speed/time to distance" in {
@@ -175,13 +175,13 @@ class TubeSelectProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should beEqualTo("b")
+        sf.getAttribute("type") mustEqual "b"
         val point = sf.getDefaultGeometry.asInstanceOf[Point]
-        point.getX should beEqualTo(40.0)
+        point.getX mustEqual 40.0
         point.getY should be between(40.0, 50.0)
       }
 
-      results.size should beEqualTo(10)
+      results.size mustEqual 10
     }
 
     "should properly dedup overlapping results based on buffer size " in {
@@ -207,13 +207,13 @@ class TubeSelectProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should beEqualTo("b")
+        sf.getAttribute("type") mustEqual "b"
         val point = sf.getDefaultGeometry.asInstanceOf[Point]
         point.getX should be between(40.0, 41.0)
         point.getY should be between(40.0, 50.0)
       }
 
-      results.size should beEqualTo(20)
+      results.size mustEqual 20
     }
   }
 
@@ -272,7 +272,7 @@ class TubeSelectProcessTest extends Specification {
       // result set to tube on
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
 
-      features.size should beEqualTo(6)
+      features.size mustEqual 6
 
       // get back type b from tube
       val ts = new TubeSelectProcess()
@@ -281,10 +281,10 @@ class TubeSelectProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should beEqualTo("b")
+        sf.getAttribute("type") mustEqual "b"
       }
 
-      results.size should beEqualTo(6)
+      results.size mustEqual 6
     }
   }
 

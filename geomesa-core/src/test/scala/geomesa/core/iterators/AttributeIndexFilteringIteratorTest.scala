@@ -139,17 +139,17 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       // Test single wildcard, trailing, leading, and both trailing & leading wildcards
 
       // % should return all features
-      fs.getFeatures(ff.like(ff.property("name"),"%")).features.size should beEqualTo(16)
+      fs.getFeatures(ff.like(ff.property("name"),"%")).features.size mustEqual 16
 
       forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"%$letter")).features.size should beEqualTo(4)
+        fs.getFeatures(ff.like(ff.property("name"),s"%$letter")).features.size mustEqual 4
 
         // should return the 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"%$letter%")).features.size should beEqualTo(4)
+        fs.getFeatures(ff.like(ff.property("name"),s"%$letter%")).features.size mustEqual 4
 
         // should return the 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"$letter%")).features.size should beEqualTo(4)
+        fs.getFeatures(ff.like(ff.property("name"),s"$letter%")).features.size mustEqual 4
       }
 
     }
@@ -160,13 +160,13 @@ class AttributeIndexFilteringIteratorTest extends Specification {
         val query = new Query(sftName, ECQL.toFilter(s"name <> '$letter'"), Array("geom"))
         val features = fs.getFeatures(query)
 
-        features.size should beEqualTo(12)
+        features.size mustEqual 12
         forall(features.features) { sf =>
           sf.getAttribute(0) must beAnInstanceOf[Geometry]
         }
 
         forall(features.features) { sf =>
-          sf.getAttributeCount must beEqualTo(1)
+          sf.getAttributeCount mustEqual 1
         }
       }
     }

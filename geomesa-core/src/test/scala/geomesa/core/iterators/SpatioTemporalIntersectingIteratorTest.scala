@@ -90,7 +90,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
       bs.addScanIterator(cfg)
 
       // validate the total number of query-hits
-      bs.iterator().size must beEqualTo(0)
+      bs.iterator().size mustEqual 0
     }
   }
 
@@ -109,7 +109,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
       bs.addScanIterator(cfg)
 
       // validate the total number of query-hits
-      bs.iterator().size must beEqualTo(1)
+      bs.iterator().size mustEqual 1
     }
   }
 

@@ -78,7 +78,7 @@ class QueryProcessTest extends Specification {
         sf.getAttribute("type") should beOneOf("a", "b")
       }
 
-      results.size should beEqualTo(8)
+      results.size mustEqual 8
     }
 
     "respect a parent filter" in {
@@ -90,10 +90,10 @@ class QueryProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should beEqualTo("b")
+        sf.getAttribute("type") mustEqual "b"
       }
 
-      results.size should beEqualTo(4)
+      results.size mustEqual 4
     }
 
     "be able to use its own filter" in {
@@ -105,10 +105,10 @@ class QueryProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should beEqualTo("a")
+        sf.getAttribute("type") mustEqual "a"
       }
 
-      results.size should beEqualTo(4)
+      results.size mustEqual 4
     }
 
     "properly query geometry" in {
@@ -122,10 +122,10 @@ class QueryProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        poly.intersects(sf.getDefaultGeometry.asInstanceOf[Geometry]) should beTrue
+        poly.intersects(sf.getDefaultGeometry.asInstanceOf[Geometry]) must beTrue
       }
 
-      results.size should beEqualTo(4)
+      results.size mustEqual 4
     }
   }
 

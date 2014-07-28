@@ -41,7 +41,7 @@ class FilteringAuthorizationsProviderTest extends Specification {
       val auths = filter.getAuthorizations
 
       auths should not be null
-      auths.getAuthorizations.length should beEqualTo(1)
+      auths.getAuthorizations.length mustEqual 1
 
       val strings = auths.getAuthorizations.map(new String(_))
       strings.contains("admin") must beTrue
@@ -53,7 +53,7 @@ class FilteringAuthorizationsProviderTest extends Specification {
       val auths = filter.getAuthorizations
 
       auths should not be null
-      auths.getAuthorizations.length should beEqualTo(2)
+      auths.getAuthorizations.length mustEqual 2
 
       val strings = auths.getAuthorizations.map(new String(_))
       strings.contains("user") must beTrue
@@ -65,7 +65,7 @@ class FilteringAuthorizationsProviderTest extends Specification {
       filter.configure(Map[String, Serializable]())
       val auths = filter.getAuthorizations
       auths should not be null
-      auths.getAuthorizations.length should beEqualTo(3)
+      auths.getAuthorizations.length mustEqual 3
 
       val strings = auths.getAuthorizations.map(new String(_))
       strings.contains("user") must beTrue

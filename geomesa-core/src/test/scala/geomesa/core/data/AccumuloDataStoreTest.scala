@@ -522,7 +522,7 @@ class AccumuloDataStoreTest extends Specification {
         val fr = ds.getFeatureReader(sftName, new Query(sftName, q1))
         val results = fr.iter.toList
         results must haveLength(1)
-        results.head.getAttribute("name") must beEqualTo("one")
+        results.head.getAttribute("name") mustEqual "one"
       }
 
       "query non-indexed attributes" >> {
@@ -530,7 +530,7 @@ class AccumuloDataStoreTest extends Specification {
         val fr = ds.getFeatureReader(sftName, new Query(sftName, q2))
         val results = fr.iter.toList
         results must haveLength(1)
-        results.head.getAttribute("numattr") must beEqualTo(2)
+        results.head.getAttribute("numattr") mustEqual 2
       }
     }
 
@@ -715,7 +715,7 @@ class AccumuloDataStoreTest extends Specification {
 
       val query = new Query(sftName, Filter.INCLUDE)
       val results = fs.getFeatures(query)
-      results.size() should beEqualTo(0)
+      results.size() mustEqual 0
     }
 
     "throw a RuntimeException when calling deleteSchema on 0.10.x records" in {
@@ -799,7 +799,7 @@ class AccumuloDataStoreTest extends Specification {
       val query2 = new Query(sftName2, Filter.INCLUDE)
       val results = fs.getFeatures(query)
       val results2 = fs2.getFeatures(query2)
-      results.size() should beEqualTo(0)
+      results.size() mustEqual 0
       results2.size() should beGreaterThan(0)
     }
   }
