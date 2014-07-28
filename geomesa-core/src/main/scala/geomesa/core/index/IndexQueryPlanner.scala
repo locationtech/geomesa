@@ -3,14 +3,13 @@ package geomesa.core.index
 import java.nio.charset.StandardCharsets
 import java.util.Map.Entry
 
-import com.google.common.collect.Iterators
 import com.vividsolutions.jts.geom.{Point, Polygon}
 import geomesa.core._
 import geomesa.core.data._
 import geomesa.core.filter.{ff, _}
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
-import geomesa.core.util.{CloseableIterator, SelfClosingBatchScanner}
+import geomesa.core.util.{BatchMultiScanner, CloseableIterator, SelfClosingBatchScanner}
 import geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
@@ -279,24 +278,15 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     configureAttributeIndexIterator(attrScanner, ofilter, range)
 
-    import scala.collection.JavaConversions._
-    val ranges = attrScanner.iterator.map(_.getKey.getColumnFamily).map(new AccRange(_))
+    val recordScanner = acc.createRecordScanner(featureType)
+    configureSimpleFeatureFilteringIterator(recordScanner, featureType, None, derivedQuery)
 
-    val recScanner = if(ranges.hasNext) {
-      val recordScanner = acc.createRecordScanner(featureType)
-      recordScanner.setRanges(ranges.toList)
-      configureSimpleFeatureFilteringIterator(recordScanner, featureType, None, derivedQuery)
-      Some(recordScanner)
-    } else None
+    // function to join the attribute index scan results to the record table
+    // since the row id of the record table is in the CF just grab that
+    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(kv.getKey.getColumnFamily)
+    val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
 
-    val iter = recScanner.map(_.iterator()).getOrElse(Iterators.emptyIterator[Entry[Key, Value]])
-
-    def close(): Unit = {
-      recScanner.foreach(_.close)
-      attrScanner.clearScanIterators()
-    }
-
-    CloseableIterator(iter, close)
+    CloseableIterator(bms.iterator, () => bms.close())
   }
 
   def configureAttributeIndexIterator(scanner: Scanner,
