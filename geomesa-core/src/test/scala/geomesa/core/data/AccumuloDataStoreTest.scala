@@ -51,6 +51,7 @@ import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
+
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
 
