@@ -92,6 +92,7 @@ class AccumuloDataStoreTest extends Specification {
       "auths"             -> "A,B,C",
       "tableName"         -> tableName,
       "useMock"           -> "true",
+      "indexSchemaFormat" -> testIndexSchemaFormat,
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
   }
 
@@ -347,21 +348,21 @@ class AccumuloDataStoreTest extends Specification {
       fs.addFeatures(featureCollection)
       val ff = CommonFactoryFinder.getFilterFactory2
 
-      "handle default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
+      "default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
         val spatial = ff.bbox("geom", -230, -110, 230, 110, CRS.toSRS(WGS84))
         val query = new Query(sftName, spatial)
         val results = fs.getFeatures(query)
         results.size() mustEqual 361
       }
 
-      "handle >180 lon diff non-IDL-wrapping geoserver BBOX" in {
+      ">180 lon diff non-IDL-wrapping geoserver BBOX" in {
         val spatial = ff.bbox("geom", -100, 1.1, 100, 4.1, CRS.toSRS(WGS84))
         val query = new Query(sftName, spatial)
         val results = fs.getFeatures(query)
         results.size() mustEqual 6
       }
 
-      "handle small IDL-wrapping geoserver BBOXes" in {
+      "small IDL-wrapping geoserver BBOXes" in {
         val spatial1 = ff.bbox("geom", -181.1, -90, -175.1, 90, CRS.toSRS(WGS84))
         val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
         val binarySpatial = ff.or(spatial1, spatial2)
@@ -370,7 +371,7 @@ class AccumuloDataStoreTest extends Specification {
         results.size() mustEqual 10
       }
 
-      "handle large IDL-wrapping geoserver BBOXes" in {
+      "large IDL-wrapping geoserver BBOXes" in {
         val spatial1 = ff.bbox("geom", -181.1, -90, 40.1, 90, CRS.toSRS(WGS84))
         val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
         val binarySpatial = ff.or(spatial1, spatial2)
