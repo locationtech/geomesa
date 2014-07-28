@@ -28,7 +28,7 @@ import org.geotools.filter.text.cql2.CQL
 case class QueryStat(catalogTable:  String,
                      featureName:   String,
                      date:          Long,
-                     query:         Query,
+                     query:         String,
                      planningTime:  Long,
                      scanTime:      Long,
                      numResults:    Int) extends Stat
@@ -49,7 +49,7 @@ object QueryStatTransform extends StatTransform[QueryStat] {
   def statToMutation(stat: QueryStat): Mutation = {
     val mutation = createMutation(stat)
     val cf = createRandomColumnFamily
-    mutation.put(cf, CQ_QUERY, stat.query.toString)
+    mutation.put(cf, CQ_QUERY, stat.query)
     mutation.put(cf, CQ_PLANTIME, stat.planningTime + "ms")
     mutation.put(cf, CQ_SCANTIME, stat.scanTime + "ms")
     mutation.put(cf, CQ_TIME, (stat.scanTime + stat.planningTime) + "ms")
@@ -76,8 +76,7 @@ object QueryStatTransform extends StatTransform[QueryStat] {
       }
     }
 
-    //TODO reconstitute query
-    val query = new Query("test", CQL.toFilter("INCLUDE"))
+    val query = values.getOrElse(CQ_QUERY, "").asInstanceOf[String]
     val planTime = values.getOrElse(CQ_PLANTIME, 0L).asInstanceOf[Long]
     val scanTime = values.getOrElse(CQ_SCANTIME, 0L).asInstanceOf[Long]
     val hits = values.getOrElse(CQ_HITS, 0).asInstanceOf[Int]

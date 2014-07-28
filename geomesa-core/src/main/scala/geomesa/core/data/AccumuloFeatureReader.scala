@@ -58,7 +58,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
       val stat = QueryStat(dataStore.catalogTable,
                             sft.getTypeName,
                             System.currentTimeMillis(),
-                            query,
+                            query.toString,
                             planningTime,
                             scanTime,
                             hitsSeen)

@@ -42,7 +42,7 @@ class LiveStatReaderTest extends Specification {
 
       skipped("Meant for integration")
 
-      val reader = new StatReader[QueryStat](connector, table)
+      val reader = new QueryStatReader(connector, table)
 
       val results = reader.query(feature, new Date(0), new Date(), new Authorizations())
 
