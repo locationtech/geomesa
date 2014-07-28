@@ -1,24 +1,24 @@
 package geomesa.core.process.tube
 
-import collection.JavaConversions._
+import java.util.Date
+
 import com.vividsolutions.jts.geom._
 import geomesa.core.data.AccumuloFeatureCollection
 import geomesa.core.index.Constants
-import geomesa.core.process.tube.GapFill.GapFill
 import geomesa.core.util.UniqueMultiCollection
 import geomesa.utils.geotools.Conversions._
-import java.util.Date
 import org.apache.log4j.Logger
 import org.geotools.data.Query
-import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
-import org.geotools.data.store.{ReTypingFeatureCollection, EmptyFeatureCollection}
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.data.store.{EmptyFeatureCollection, ReTypingFeatureCollection}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.visitor._
-import org.geotools.process.factory.{DescribeResult, DescribeParameter, DescribeProcess}
-import org.geotools.process.vector.VectorProcess
+import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.opengis.feature.Feature
 import org.opengis.filter.Filter
+
+import scala.collection.JavaConversions._
 
 @DescribeProcess(
   title = "Tube Select",
@@ -81,15 +81,8 @@ class TubeSelectProcess {
     log.info("Tube selecting on collection type "+featureCollection.getClass.getName)
 
     // assume for now that firstFeatures is a singleton collection
-    val tubeVisitor = new TubeVisitor(
-                                      tubeFeatures,
-                                      featureCollection,
-                                      Option(filter).getOrElse(Filter.INCLUDE),
-                                      Option(maxSpeed).getOrElse(0L).asInstanceOf[Long],
-                                      Option(maxTime).getOrElse(0L).asInstanceOf[Long],
-                                      Option(bufferSize).getOrElse(0.0).asInstanceOf[Double],
-                                      Option(maxBins).getOrElse(0).asInstanceOf[Int],
-                                      Option(gapFill).map(GapFill.withName(_)).getOrElse(GapFill.NOFILL))
+    val tubeVisitor = new TubeVisitor(TubeSelectProcessInputs(tubeFeatures, featureCollection, filter, maxSpeed, maxTime,
+      bufferSize, maxBins, gapFill))
 
     if(!featureCollection.isInstanceOf[AccumuloFeatureCollection]) {
       log.warn("The provided feature collection type may not support tubing: "+featureCollection.getClass.getName)
@@ -105,22 +98,33 @@ class TubeSelectProcess {
 
 }
 
+case class TubeSelectProcessInputs(tubeFeatures: SimpleFeatureCollection, featureCollection: SimpleFeatureCollection,
+                                   filter: Filter, maxSpeed: java.lang.Long, maxTime: java.lang.Long,
+                                   bufferSize: java.lang.Double, maxBins: java.lang.Integer, gapFill: String) {
+  def toParameters = new TubeSelectParameters(this)
+}
+
+class TubeSelectParameters(processInputs: TubeSelectProcessInputs) {
+  val tubeFeatures = processInputs.tubeFeatures
+  val featureCollection = processInputs.featureCollection
+  val filter = Option(processInputs.filter).getOrElse(Filter.INCLUDE)
+  val maxSpeed = Option(processInputs.maxSpeed).getOrElse(0L).asInstanceOf[Long]
+  val maxTime = Option(processInputs.maxTime).getOrElse(0L).asInstanceOf[Long]
+  val bufferSize = Option(processInputs.bufferSize).getOrElse(0.0).asInstanceOf[Double]
+  val maxBins = Option(processInputs.maxBins).getOrElse(0).asInstanceOf[Int]
+  val gapFill = Option(processInputs.gapFill).map(GapFill.withName).getOrElse(GapFill.NOFILL)
+
+  val bufferDistance =  if (bufferSize > 0) bufferSize else maxSpeed * maxTime
+}
+
 object GapFill extends Enumeration{
   type GapFill = Value
   val NOFILL = Value("nofill")
   val LINE = Value("line")
 }
 
-class TubeVisitor(
-                   val tubeFeatures: SimpleFeatureCollection,
-                   val featureCollection: SimpleFeatureCollection,
-                   val filter: Filter = Filter.INCLUDE,
-                   val maxSpeed: Long,
-                   val maxTime: Long,
-                   val bufferSize: Double,
-                   val maxBins: Int,
-                   val gapFill: GapFill = GapFill.NOFILL
-                   ) extends FeatureCalc {
+class TubeVisitor(processInputs: TubeSelectProcessInputs)
+  extends TubeSelectParameters(processInputs) with FeatureCalc {
 
   private val log = Logger.getLogger(classOf[TubeVisitor])
 
@@ -133,8 +137,6 @@ class TubeVisitor(
   def setValue(r: SimpleFeatureCollection) = resultCalc = TubeResult(r)
 
   val ff  = CommonFactoryFinder.getFilterFactory2
-
-  val bufferDistance =  if(bufferSize > 0) bufferSize else maxSpeed * maxTime
 
   def tubeSelect(source: SimpleFeatureSource, query: Query): SimpleFeatureCollection = {
 
