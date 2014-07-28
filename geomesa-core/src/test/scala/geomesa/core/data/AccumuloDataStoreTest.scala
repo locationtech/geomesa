@@ -16,7 +16,7 @@
 
 package geomesa.core.data
 
-import com.vividsolutions.jts.geom.{PrecisionModel, Point, Coordinate}
+import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.index.SF_PROPERTY_START_TIME
 import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import geomesa.feature.AvroSimpleFeatureFactory
@@ -29,8 +29,8 @@ import org.apache.accumulo.core.data.{Mutation, Range}
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
-import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data._
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
@@ -57,6 +57,7 @@ class AccumuloDataStoreTest extends Specification {
   val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
   val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
   val gf = JTSFactoryFinder.getGeometryFactory
+  val testIndexSchemaFormat = "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
 
   def createStore: AccumuloDataStore = {
     // need to add a unique ID, otherwise create schema will throw an exception
@@ -71,6 +72,7 @@ class AccumuloDataStoreTest extends Specification {
       "auths"      -> "A,B,C",
       "tableName"  -> ("testwrite" + id),
       "useMock"    -> "true",
+      "indexSchemaFormat" -> testIndexSchemaFormat,
       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
   }
 
@@ -324,6 +326,7 @@ class AccumuloDataStoreTest extends Specification {
         "auths"      -> "user",
         "tableName"  -> "testwrite",
         "useMock"    -> "true",
+        "indexSchemaFormat" -> testIndexSchemaFormat,
         "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
       ds.authorizationsProvider should beAnInstanceOf[FilteringAuthorizationsProvider]
@@ -341,6 +344,7 @@ class AccumuloDataStoreTest extends Specification {
         "auths"      -> "user,admin,test",
         "tableName"  -> "testwrite",
         "useMock"    -> "true",
+        "indexSchemaFormat" -> testIndexSchemaFormat,
         "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
       ds.authorizationsProvider should beAnInstanceOf[FilteringAuthorizationsProvider]
@@ -360,6 +364,7 @@ class AccumuloDataStoreTest extends Specification {
           "auths"      -> "user,admin,test",
           "tableName"  -> "testwrite",
           "useMock"    -> "true",
+          "indexSchemaFormat" -> testIndexSchemaFormat,
           "featureEncoding" -> "avro")) should throwA[IllegalArgumentException]
       } finally System.clearProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
     }
@@ -367,7 +372,7 @@ class AccumuloDataStoreTest extends Specification {
     "fail when schema does not match metadata" in {
       val sftName = "schematest"
       // slight tweak from default - add '-fr' to name
-      val schema = s"%~#s%99#r%${sftName}-fr#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
+      val schema = s"%~#s%99#r%$sftName-fr#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
       val ds = DataStoreFinder.getDataStore(Map(
         "instanceId" -> "mycloud",
         "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
@@ -425,6 +430,7 @@ class AccumuloDataStoreTest extends Specification {
         "visibilities" -> "user&admin",
         "tableName"  -> "testwrite",
         "useMock"    -> "true",
+        "indexSchemaFormat" -> testIndexSchemaFormat,
         "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
 
@@ -439,7 +445,7 @@ class AccumuloDataStoreTest extends Specification {
       val written = fs.addFeatures(new ListFeatureCollection(sft, getFeatures(sft).toList))
 
       written should not be null
-      written.length mustEqual(6)
+      written.length mustEqual 6
     }
 
     "restrict users with insufficient auths from writing data" in {
@@ -453,6 +459,7 @@ class AccumuloDataStoreTest extends Specification {
         "visibilities" -> "user&admin",
         "tableName"  -> "testwrite",
         "useMock"    -> "true",
+        "indexSchemaFormat" -> testIndexSchemaFormat,
         "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
 
@@ -481,6 +488,7 @@ class AccumuloDataStoreTest extends Specification {
         "user"       -> "myuser",
         "password"   -> "mypassword",
         "tableName"  -> table,
+        "indexSchemaFormat" -> testIndexSchemaFormat,
         "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
 
       // accumulo supports only alphanum + underscore aka ^\\w+$
@@ -534,6 +542,7 @@ class AccumuloDataStoreTest extends Specification {
         "user"       -> "myuser",
         "password"   -> "mypassword",
         "tableName"  -> table,
+        "indexSchemaFormat" -> testIndexSchemaFormat,
         "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
 
       ds should not be null
