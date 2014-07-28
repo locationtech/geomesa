@@ -47,6 +47,8 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class DensityIteratorTest extends Specification {
 
+  sequential
+
   import geomesa.utils.geotools.Conversions._
 
   def createDataStore(sft: SimpleFeatureType, i: Int = 0): DataStore = {

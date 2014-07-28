@@ -121,6 +121,17 @@ object GeoHash extends Logging {
   private val characterMap: Map[Char, BitSet] =
     base32.zipWithIndex.map { case (c, i) => c -> bitSetFromBase32Character(i) }.toMap
 
+  // create a new GeoHash from a binary string in MSB -> LSB format
+  // (analogous to what is output by the "toBinaryString" method)
+  def fromBinaryString(bitsString: String): GeoHash = {
+    val numBits = bitsString.length
+    val bitSet: BitSet = bitsString.zipWithIndex.foldLeft(BitSet())((bsSoFar, bitPosTuple) => bitPosTuple match {
+      case (bitChar, pos) if bitChar == '1' => bsSoFar + pos
+      case _                                => bsSoFar
+    })
+    apply(bitSet, numBits)
+  }
+
   def apply(string: String): GeoHash = decode(string) // precision checked in decode
   def apply(string: String, precision:Int): GeoHash = decode(string, Some[Int](precision)) // precision checked in decode
 
