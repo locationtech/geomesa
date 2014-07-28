@@ -16,6 +16,7 @@
 
 package geomesa.core.data
 
+import geomesa.core.index.IndexSchemaBuilder
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
@@ -41,15 +42,16 @@ class LiveAccumuloDataStoreTest extends Specification {
    */
 
   val params = Map(
-                    "instanceId" -> "mycloud",
-                    "zookeepers" -> "zoo1,zoo2,zoo3",
-                    "user"       -> "user",
-                    "password"   -> "password",
-                    "auths"      -> "user,admin",
-                    "visibilities" -> "user&admin",
-                    "tableName"  -> "test_auths",
-                    "useMock"    -> "false",
-                    "featureEncoding" -> "avro")
+    "instanceId"        -> "mycloud",
+    "zookeepers"        -> "zoo1,zoo2,zoo3",
+    "user"              -> "user",
+    "password"          -> "password",
+    "auths"             -> "user,admin",
+    "visibilities"      -> "user&admin",
+    "tableName"         -> "test_auths",
+    "useMock"           -> "false",
+    "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
+    "featureEncoding"   -> "avro")
 
   val sftName = "authwritetest"
 
