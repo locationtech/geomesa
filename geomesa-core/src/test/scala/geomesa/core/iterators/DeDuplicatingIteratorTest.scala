@@ -22,8 +22,7 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-// TODO: re-enable before merging
-//@RunWith(classOf[JUnitRunner])
+@RunWith(classOf[JUnitRunner])
 class DeDuplicatingIteratorTest extends Specification {
 
   val key = new Key("test")
