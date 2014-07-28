@@ -24,6 +24,9 @@ import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.client.{BatchWriterConfig, IteratorSetting}
+import org.apache.accumulo.core.data.{Mutation, Range}
+import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.geotools.data.collection.ListFeatureCollection
@@ -565,6 +568,229 @@ class AccumuloDataStoreTest extends Specification {
       c.tableOperations().exists(s"${table}_${encodedSFT}_attr_idx") must beTrue
     }
 
+    /**
+     * Executes a scan for metadata information in the catalog
+     *
+     * @param ds the Accumulo datastore
+     * @param sftName the name of the SimpleFeatureType
+     */
+    def getScannerResults(ds: AccumuloDataStore, sftName: String): Option[String] = {
+      val scanner = ds.createCatalogScanner
+      scanner.setRange(new Range(s"${METADATA_TAG }_$sftName"))
+
+      val name = "version-" + sftName
+      val cfg = new IteratorSetting(1, name, classOf[VersioningIterator])
+      VersioningIterator.setMaxVersions(cfg, 1)
+      scanner.addScanIterator(cfg)
+
+      val iter = scanner.iterator
+      val result =
+        if (iter.hasNext) {
+          Some(iter.next.getValue.toString)
+        } else {
+          None
+        }
+
+      scanner.close()
+      scanner.removeScanIterator(name)
+      result
+    }
+
+    def buildPreSecondaryIndexTable(params: Map[String, String], sftName: String) = {
+      val rowIds = List(
+        "09~regressionTestType~v00~20120102",
+        "95~regressionTestType~v00~20120102",
+        "53~regressionTestType~v00~20120102",
+        "77~regressionTestType~v00~20120102",
+        "36~regressionTestType~v00~20120102",
+        "91~regressionTestType~v00~20120102")
+      val hex = new Hex
+      val indexValues = List(
+        "000000013000000015000000000140468000000000004046800000000000000001349ccf6e18",
+        "000000013100000015000000000140468000000000004046800000000000000001349ccf6e18",
+        "000000013200000015000000000140468000000000004046800000000000000001349ccf6e18",
+        "000000013300000015000000000140468000000000004046800000000000000001349ccf6e18",
+        "000000013400000015000000000140468000000000004046800000000000000001349ccf6e18",
+        "000000013500000015000000000140468000000000004046800000000000000001349ccf6e18").map {v =>
+        hex.decode(v.getBytes)}
+      val sft = DataUtilities.createType(sftName, s"name:String,$geotimeAttributes")
+      sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+
+      val instance = new MockInstance(params("instanceId"))
+      val connector = instance.getConnector(params("user"), new PasswordToken(params("password").getBytes))
+      connector.tableOperations.create(params("tableName"))
+
+      val bw = connector.createBatchWriter(params("tableName"), new BatchWriterConfig)
+
+      // Insert metadata
+      val metadataMutation = new Mutation(s"~METADATA_$sftName")
+      metadataMutation.put("attributes", "", "name:String,geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date")
+      metadataMutation.put("bounds", "", "45.0:45.0:49.0:49.0")
+      metadataMutation.put("schema", "", s"%~#s%99#r%$sftName#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id")
+      bw.addMutation(metadataMutation)
+
+      // Insert features
+      getFeatures(sft).zipWithIndex.foreach { case(sf, idx) =>
+        val encoded = DataUtilities.encodeFeature(sf)
+        val index = new Mutation(rowIds(idx))
+        index.put("00".getBytes,sf.getID.getBytes, indexValues(idx))
+        bw.addMutation(index)
+
+        val data = new Mutation(rowIds(idx))
+        data.put(sf.getID, "SimpleFeatureAttribute", encoded)
+        bw.addMutation(data)
+      }
+
+      bw.flush
+      bw.close
+    }
+
+    def getFeatureStore(table: String, sftName: String, ds: AccumuloDataStore): AccumuloFeatureStore = {
+      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val geom = WKTUtils.read("POINT(45.0 49.0)")
+      val builder = new SimpleFeatureBuilder(sft, featureFactory)
+      builder.addAll(List(sftName, null, geom))
+      val liveFeature = builder.buildFeature("fid-1")
+
+      liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      val featureCollection = new DefaultFeatureCollection(sftName, sft)
+      featureCollection.add(liveFeature)
+      fs.addFeatures(featureCollection)
+      fs
+    }
+
+    "delete the schema completely" in {
+      val table = "testing_delete_schema"
+      val sftName = "test"
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId" -> "mycloud",
+        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"       -> "myuser",
+        "password"   -> "mypassword",
+        "tableName"  -> table,
+        "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
+
+      ds should not be null
+
+      val fs = getFeatureStore(table, sftName, ds)
+
+      val mockInstance = new MockInstance("mycloud")
+      val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
+
+      //tests that tables exist before being deleted
+      c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName}_records") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName}_attr_idx") must beTrue
+
+      val fr = ds.getFeatureReader(sftName)
+      //tests that metadata exists in the catalog before being deleted
+      fr should not be null
+
+      val scannerResults = getScannerResults(ds, sftName)
+      scannerResults should beSome
+
+      ds.deleteSchema(sftName)
+
+      //tables should be deleted now
+      c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beFalse
+      c.tableOperations().exists(s"${table}_${sftName}_records") must beFalse
+      c.tableOperations().exists(s"${table}_${sftName}_attr_idx") must beFalse
+
+      val scannerResultsAfterDeletion = getScannerResults(ds, sftName)
+
+      //metadata should be deleted from the catalog now
+      scannerResultsAfterDeletion should beNone
+
+      val query = new Query(sftName, Filter.INCLUDE)
+      val results = fs.getFeatures(query)
+      results.size() should beEqualTo(0)
+    }
+
+    "throw a RuntimeException when calling deleteSchema on 0.10.x records" in {
+      val manualParams = Map(
+        "instanceId" -> "mycloud",
+        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"       -> "myuser",
+        "password"   -> "mypassword",
+        "auths"      -> "A,B,C",
+        "useMock"    -> "true",
+        "tableName"  -> "manualTableForDeletion")
+      val sftName = "regressionTestType"
+
+      buildPreSecondaryIndexTable(manualParams, sftName)
+
+      val manualStore = DataStoreFinder.getDataStore(manualParams).asInstanceOf[AccumuloDataStore]
+      manualStore.deleteSchema(sftName) should throwA[RuntimeException]
+    }
+
+    "keep other tables when a separate schema is deleted" in {
+      val table = "testing_delete_schema"
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId" -> "mycloud",
+        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"       -> "myuser",
+        "password"   -> "mypassword",
+        "tableName"  -> table,
+        "useMock"    -> "true")).asInstanceOf[AccumuloDataStore]
+
+      ds should not be null
+
+      val sftName = "test"
+      val sftName2 = "test2"
+
+      val fs = getFeatureStore(table, sftName, ds)
+      val fs2 = getFeatureStore(table, sftName2, ds)
+
+      val mockInstance = new MockInstance("mycloud")
+      val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
+
+      //tests that tables exist before being deleted
+      c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName}_records") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName}_attr_idx") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName2}_st_idx") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName2}_records") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName2}_attr_idx") must beTrue
+
+      val fr = ds.getFeatureReader(sftName)
+      val fr2 = ds.getFeatureReader(sftName2)
+      //tests that metadata exists in the catalog before being deleted
+      fr should not be null
+      fr2 should not be null
+
+      val scannerResults = getScannerResults(ds, sftName)
+      val scannerResults2 = getScannerResults(ds, sftName2)
+      scannerResults should beSome
+      scannerResults2 should beSome
+
+      ds.deleteSchema(sftName)
+
+      //these tables should be deleted now
+      c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beFalse
+      c.tableOperations().exists(s"${table}_${sftName}_records") must beFalse
+      c.tableOperations().exists(s"${table}_${sftName}_attr_idx") must beFalse
+      //but these tables should still exist since sftName2 wasn't deleted
+      c.tableOperations().exists(s"${table}_${sftName2}_st_idx") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName2}_records") must beTrue
+      c.tableOperations().exists(s"${table}_${sftName2}_attr_idx") must beTrue
+
+      val scannerResultsAfterDeletion = getScannerResults(ds, sftName)
+      val scannerResultsAfterDeletion2 = getScannerResults(ds, sftName2)
+
+      //metadata should be deleted from the catalog now for sftName
+      scannerResultsAfterDeletion should beNone
+      //metadata should still exist for sftName2
+      scannerResultsAfterDeletion2 should beSome
+
+      val query = new Query(sftName, Filter.INCLUDE)
+      val query2 = new Query(sftName2, Filter.INCLUDE)
+      val results = fs.getFeatures(query)
+      val results2 = fs2.getFeatures(query2)
+      results.size() should beEqualTo(0)
+      results2.size() should beGreaterThan(0)
+    }
   }
 
   def getFeatures(sft: SimpleFeatureType) = (0 until 6).map { i =>
