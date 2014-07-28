@@ -80,21 +80,6 @@ class AccumuloDataStoreTest extends Specification {
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
   }
 
-  def createStore(tableName: String): AccumuloDataStore = {
-    // the specific parameter values should not matter, as we
-    // are requesting a mock data store connection to Accumulo
-    DataStoreFinder.getDataStore(Map(
-      "instanceId"      -> "mycloud",
-      "zookeepers"      -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"            -> "myuser",
-      "password"        -> "mypassword",
-      "auths"           -> "A,B,C",
-      "tableName"       -> tableName,
-      "useMock"         -> "true",
-      "indexSchemaFormat" -> testIndexSchemaFormat,
-      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
-  }
-
   "AccumuloDataStore" should {
     "create a data store" >> {
       val ds = createStore
@@ -336,7 +321,7 @@ class AccumuloDataStoreTest extends Specification {
     }
 
     "handle IDL correctly" in {
-      val ds = createStore("IDL")
+      val ds = createStore
       val sftName = TestData.featureName
       val sft = TestData.featureType
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
