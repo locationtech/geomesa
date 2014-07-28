@@ -36,6 +36,7 @@ class QueryProcessTest extends Specification {
       "auths"      -> "A,B,C",
       "tableName"  -> "testwrite",
       "useMock"    -> "true",
+      "indexSchemaFormat" -> "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id",
       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
 
   val sftName = "geomesaQueryTestType"
@@ -77,7 +78,7 @@ class QueryProcessTest extends Specification {
         sf.getAttribute("type") should beOneOf("a", "b")
       }
 
-      results.size should equalTo(8)
+      results.size should beEqualTo(8)
     }
 
     "respect a parent filter" in {
@@ -89,10 +90,10 @@ class QueryProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should be equalTo "b"
+        sf.getAttribute("type") should beEqualTo("b")
       }
 
-      results.size should equalTo(4)
+      results.size should beEqualTo(4)
     }
 
     "be able to use its own filter" in {
@@ -104,10 +105,10 @@ class QueryProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should be equalTo "a"
+        sf.getAttribute("type") should beEqualTo("a")
       }
 
-      results.size should equalTo(4)
+      results.size should beEqualTo(4)
     }
 
     "properly query geometry" in {
@@ -121,10 +122,10 @@ class QueryProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        poly.intersects(sf.getDefaultGeometry.asInstanceOf[Geometry]) should equalTo(true)
+        poly.intersects(sf.getDefaultGeometry.asInstanceOf[Geometry]) should beTrue
       }
 
-      results.size should equalTo(4)
+      results.size should beEqualTo(4)
     }
   }
 

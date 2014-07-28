@@ -7,7 +7,7 @@ import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
+import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
@@ -38,9 +38,8 @@ class TubeSelectProcessTest extends Specification {
       "auths"      -> "A,B,C",
       "tableName"  -> "testwrite",
       "useMock"    -> "true",
+      "indexSchemaFormat" -> "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id",
       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
-
-
 
   "TubeSelect" should {
     "should do a simple tube with geo interpolation" in {
@@ -82,10 +81,10 @@ class TubeSelectProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should equalTo("b")
+        sf.getAttribute("type") should beEqualTo("b")
       }
 
-      results.size should equalTo(4)
+      results.size should beEqualTo(4)
     }
 
     "should do a simple tube with geo + time interpolation" in {
@@ -126,10 +125,10 @@ class TubeSelectProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should equalTo("b")
+        sf.getAttribute("type") should beEqualTo("b")
       }
 
-      results.size should equalTo(4)
+      results.size should beEqualTo(4)
     }
 
     "should properly convert speed/time to distance" in {
@@ -176,13 +175,13 @@ class TubeSelectProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should equalTo("b")
+        sf.getAttribute("type") should beEqualTo("b")
         val point = sf.getDefaultGeometry.asInstanceOf[Point]
-        point.getX should be equalTo (40.0)
+        point.getX should beEqualTo(40.0)
         point.getY should be between(40.0, 50.0)
       }
 
-      results.size should equalTo(10)
+      results.size should beEqualTo(10)
     }
 
     "should properly dedup overlapping results based on buffer size " in {
@@ -208,13 +207,13 @@ class TubeSelectProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should equalTo("b")
+        sf.getAttribute("type") should beEqualTo("b")
         val point = sf.getDefaultGeometry.asInstanceOf[Point]
         point.getX should be between(40.0, 41.0)
         point.getY should be between(40.0, 50.0)
       }
 
-      results.size should equalTo(20)
+      results.size should beEqualTo(20)
     }
   }
 
@@ -273,7 +272,7 @@ class TubeSelectProcessTest extends Specification {
       // result set to tube on
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
 
-      features.size should equalTo(6)
+      features.size should beEqualTo(6)
 
       // get back type b from tube
       val ts = new TubeSelectProcess()
@@ -282,10 +281,10 @@ class TubeSelectProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should equalTo("b")
+        sf.getAttribute("type") should beEqualTo("b")
       }
 
-      results.size should equalTo(6)
+      results.size should beEqualTo(6)
     }
   }
 

@@ -49,6 +49,7 @@ class LiveAccumuloDataStoreTest extends Specification {
                     "visibilities" -> "user&admin",
                     "tableName"  -> "test_auths",
                     "useMock"    -> "false",
+                    "indexSchemaFormat" -> "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id",
                     "featureEncoding" -> "avro")
 
   val sftName = "authwritetest"
