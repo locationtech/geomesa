@@ -110,9 +110,9 @@ object TestData extends Logging {
     Entry("POINT(50.2 30.6)", "119")
   )
 
-  val allThePoints = (-180 to 180).map(l => {
-    val x = l.toString
-    val y = (l / 2).toString
+  val allThePoints = (-180 to 180).map(lon => {
+    val x = lon.toString
+    val y = (lon / 2).toString
     Entry(s"POINT($x $y)", x)
   })
 
