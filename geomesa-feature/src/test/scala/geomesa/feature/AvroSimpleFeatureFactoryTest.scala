@@ -1,5 +1,6 @@
 package geomesa.feature
 
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data.DataUtilities
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -24,7 +25,7 @@ class AvroSimpleFeatureFactoryTest extends Specification {
     AvroSimpleFeatureFactory.init
     val geomBuilder = new GeometryBuilder(DefaultGeographicCRS.WGS84)
     val featureFactory = CommonFactoryFinder.getFeatureFactory(null)
-    val sft = DataUtilities.createType("testavro", "name:String,geom:Point:srid=4326")
+    val sft = SimpleFeatureTypes.createType("testavro", "name:String,geom:Point:srid=4326")
     val builder = new SimpleFeatureBuilder(sft, featureFactory)
     builder.reset()
     builder.add("Hello")

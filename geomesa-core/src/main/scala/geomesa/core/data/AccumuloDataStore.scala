@@ -26,6 +26,7 @@ import geomesa.core.data.AccumuloDataStore._
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.core.index.{IndexSchema, IndexSchemaBuilder, TemporalIndexCheck}
 import geomesa.core.security.AuthorizationsProvider
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
@@ -128,7 +129,7 @@ class AccumuloDataStore(val connector: Connector,
     val mutation = getMetadataMutation(featureName)
 
     // compute the metadata values
-    val attributesValue = DataUtilities.encodeType(sft)
+    val attributesValue = SimpleFeatureTypes.encodeType(sft)
     val dtgValue: Option[String] = {
       val userData = sft.getUserData
       // inspect, warn and set SF_PROPERTY_START_TIME if appropriate
@@ -244,7 +245,8 @@ class AccumuloDataStore(val connector: Connector,
 
   // configure splits for each of the attribute names
   def configureAttrIdxTable(featureType: SimpleFeatureType, attributeIndexTable: String): Unit = {
-    val names = featureType.getAttributeDescriptors.map(_.getLocalName).map(new Text(_)).toArray
+    val indexedAttrs = SimpleFeatureTypes.getIndexedAttributes(featureType)
+    val names = indexedAttrs.map(_.getLocalName).map(new Text(_)).toArray
     val splits = ImmutableSortedSet.copyOf(names)
     tableOps.addSplits(attributeIndexTable, splits)
   }
@@ -283,6 +285,36 @@ class AccumuloDataStore(val connector: Connector,
     val spatioTemporalSchema = computeSpatioTemporalSchema(getFeatureName(featureType), maxShard)
     createTablesForType(featureType, maxShard)
     writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
+  }
+
+  /**
+   * Deletes the tables from Accumulo created from the Geomesa SpatioTemporal Schema, and deletes
+   * metadata from the catalog. If the table is an older 0.10.x table, we throw an exception.
+   *
+   * @param featureName the name of the feature
+   * @param numThreads the number of concurrent threads to spawn for querying during metadata deletion
+   */
+  def deleteSchema(featureName: String, numThreads: Int = 1) = {
+    if (readMetadataItem(featureName, ST_IDX_TABLE_CF).nonEmpty) {
+      removeSchema(featureName)
+      deleteMetadata(featureName, numThreads)
+    } else {
+      throw new RuntimeException("Cannot delete schema for this version of the data store")
+    }
+  }
+
+  /**
+   * Retrieves the Geotools SpatioTemporal Schema and deletes the three previously created tables
+   *
+   * @param featureName the name of the table to query and delete from
+   */
+  override def removeSchema(featureName: String) = {
+    val featureType            = getSchema(featureName)
+    val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(catalogTable, featureType)
+    val attributeIndexTable    = formatAttrIdxTableName(catalogTable, featureType)
+    val recordTable            = formatRecordTableName(catalogTable, featureType)
+
+    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach { t => if (tableOps.exists(t)) tableOps.delete(t) }
   }
 
   /**
@@ -334,6 +366,21 @@ class AccumuloDataStore(val connector: Connector,
     }
     writer.flush()
     writer.close()
+  }
+
+  /**
+   * Handles deleting metadata from the catalog by using the Range obtained from the METADATA_TAG and featureName
+   * and setting that as the Range to be handled and deleted by Accumulo's BatchDeleter
+   *
+   * @param featureName the name of the table to query and delete from
+   * @param numThreads the number of concurrent threads to spawn for querying
+   */
+  private def deleteMetadata(featureName: String, numThreads: Int): Unit = {
+    val range = new Range(s"${METADATA_TAG}_$featureName")
+    val deleter = connector.createBatchDeleter(catalogTable, authorizationsProvider.getAuthorizations, numThreads, 1000L, 1000L, 1)
+    deleter.setRanges(List(range))
+    deleter.delete()
+    deleter.close()
   }
 
   /**
@@ -511,7 +558,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   private def readMetadataItemNoCache(featureName: String, colFam: Text): Option[String] = {
     val scanner = createCatalogScanner
-    scanner.setRange(new Range(s"${METADATA_TAG }_$featureName"))
+    scanner.setRange(new Range(s"${METADATA_TAG}_$featureName"))
     scanner.fetchColumn(colFam, EMPTY_COLQ)
 
     val name = "version-" + featureName + "-" + colFam.toString
@@ -680,7 +727,7 @@ class AccumuloDataStore(val connector: Connector,
       case attributes if attributes.isEmpty =>
         null
       case attributes                       =>
-        val sft = DataUtilities.createType(featureName, attributes)
+        val sft = SimpleFeatureTypes.createType(featureName, attributes)
         val dtgField = readMetadataItem(featureName, DTGFIELD_CF)
           .getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
         sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)

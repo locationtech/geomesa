@@ -17,7 +17,7 @@
 package geomesa.core.index
 
 import geomesa.core._
-import org.geotools.data.DataUtilities
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -25,9 +25,9 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class TemporalIndexCheckTest extends Specification {
   // setup the basic types
-  def noDTGType = DataUtilities.createType("noDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry")
-  def oneDTGType = DataUtilities.createType("oneDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date")
-  def twoDTGType = DataUtilities.createType("twoDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
+  def noDTGType = SimpleFeatureTypes.createType("noDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry")
+  def oneDTGType = SimpleFeatureTypes.createType("oneDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date")
+  def twoDTGType = SimpleFeatureTypes.createType("twoDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
 
   "TemporalIndexCheck" should {
     "detect no valid DTG" in {

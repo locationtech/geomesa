@@ -17,37 +17,37 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import geomesa.core.filter.FilterUtils._
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class AllPredicateTest extends Specification with FilterTester {
   val filters = goodSpatialPredicates
   runTest
 }
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class AndGeomsPredicateTest extends FilterTester {
   val filters = andedSpatialPredicates
   runTest
 }
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class OrGeomsPredicateTest extends FilterTester {
   val filters = oredSpatialPredicates
   runTest
 }
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class BasicTemporalPredicateTest extends FilterTester {
   val filters = temporalPredicates
   runTest
 }
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class AttributePredicateTest extends FilterTester {
   val filters = attributePredicates
   runTest
 }
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class AttributeGeoPredicateTest extends FilterTester {
   val filters = attributeAndGeometricPredicates
   runTest
@@ -94,7 +94,7 @@ trait FilterTester extends Specification with Logging {
   def compareFilter(filter: Filter): Fragments = {
     logger.debug(s"Filter: ${ECQL.toCQL(filter)}")
 
-    s"The filter $filter" should {t
+    s"The filter $filter" should {
       "return the same number of results from filtering and querying" in {
         val filterCount = mediumDataFeatures.count(filter.evaluate)
         val queryCount = fs.getFeatures(filter).size
