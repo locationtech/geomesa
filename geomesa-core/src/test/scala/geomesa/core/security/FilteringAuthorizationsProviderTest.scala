@@ -41,10 +41,10 @@ class FilteringAuthorizationsProviderTest extends Specification {
       val auths = filter.getAuthorizations
 
       auths should not be null
-      auths.getAuthorizations.length should be equalTo(1)
+      auths.getAuthorizations.length mustEqual 1
 
       val strings = auths.getAuthorizations.map(new String(_))
-      strings.contains("admin") mustEqual true
+      strings.contains("admin") must beTrue
     }
 
     "filter multiple authorizations" in {
@@ -53,11 +53,11 @@ class FilteringAuthorizationsProviderTest extends Specification {
       val auths = filter.getAuthorizations
 
       auths should not be null
-      auths.getAuthorizations.length should be equalTo(2)
+      auths.getAuthorizations.length mustEqual 2
 
       val strings = auths.getAuthorizations.map(new String(_))
-      strings.contains("user") mustEqual true
-      strings.contains("test") mustEqual true
+      strings.contains("user") must beTrue
+      strings.contains("test") must beTrue
     }
 
     "not filter if no filter is specified" in {
@@ -65,12 +65,12 @@ class FilteringAuthorizationsProviderTest extends Specification {
       filter.configure(Map[String, Serializable]())
       val auths = filter.getAuthorizations
       auths should not be null
-      auths.getAuthorizations.length should be equalTo(3)
+      auths.getAuthorizations.length mustEqual 3
 
       val strings = auths.getAuthorizations.map(new String(_))
-      strings.contains("user") mustEqual true
-      strings.contains("admin") mustEqual true
-      strings.contains("test") mustEqual true
+      strings.contains("user") must beTrue
+      strings.contains("admin") must beTrue
+      strings.contains("test") must beTrue
     }
   }
 }

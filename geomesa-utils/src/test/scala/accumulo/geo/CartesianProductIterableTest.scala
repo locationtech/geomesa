@@ -35,16 +35,16 @@ class CartesianProductIterableTest extends Specification {
       val itr = combinator.iterator
       itr.foldLeft(0)((i,combinationSeq) => {
         i match {
-          case 0 => combinationSeq must be equalTo(Seq('A', '0', 'x'))
-          case 1 => combinationSeq must be equalTo(Seq('B', '0', 'x'))
-          case 42 => combinationSeq must be equalTo(Seq('A', '1', 'y'))
-          case 107 => combinationSeq must be equalTo(Seq('F', '5', 'z'))
+          case 0 => combinationSeq mustEqual Seq('A', '0', 'x')
+          case 1 => combinationSeq mustEqual Seq('B', '0', 'x')
+          case 42 => combinationSeq mustEqual Seq('A', '1', 'y')
+          case 107 => combinationSeq mustEqual Seq('F', '5', 'z')
           case _ => // don't know; don't care
         }
         i + 1
       })
 
-      combinator.expectedSize must be equalTo(108)
+      combinator.expectedSize mustEqual 108
     }
   }
 }

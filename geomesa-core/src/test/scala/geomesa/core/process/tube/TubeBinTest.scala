@@ -52,9 +52,9 @@ class TubeBinTest extends Specification {
         else log.debug("size: 1")
       }
 
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DEFAULT_DTG_PROPERTY_NAME).toSeq, 1).size should equalTo(1)
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DEFAULT_DTG_PROPERTY_NAME).toSeq, 1).size mustEqual 1
 
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DEFAULT_DTG_PROPERTY_NAME).toSeq, 0).size should equalTo(1)
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DEFAULT_DTG_PROPERTY_NAME).toSeq, 0).size mustEqual 1
     }
 
   }
