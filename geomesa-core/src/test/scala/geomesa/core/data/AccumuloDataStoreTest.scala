@@ -18,6 +18,7 @@ package geomesa.core.data
 
 import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.index.{IndexSchemaBuilder, SF_PROPERTY_START_TIME}
+import geomesa.core.iterators.TestData
 import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.SimpleFeatureTypes
@@ -38,6 +39,8 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.process.vector.TransformProcess
+import org.geotools.referencing.CRS
+import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -46,9 +49,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
-import org.geotools.referencing.crs.DefaultGeographicCRS
-import geomesa.core.iterators.TestData
-import org.geotools.referencing.CRS
+
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
@@ -84,14 +85,14 @@ class AccumuloDataStoreTest extends Specification {
     // the specific parameter values should not matter, as we
     // are requesting a mock data store connection to Accumulo
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> "mycloud",
-      "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user" -> "myuser",
-      "password" -> "mypassword",
-      "auths" -> "A,B,C",
-      "tableName" -> tableName,
-      "useMock" -> "true",
-      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      "instanceId"        -> "mycloud",
+      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      "user"              -> "myuser",
+      "password"          -> "mypassword",
+      "auths"             -> "A,B,C",
+      "tableName"         -> tableName,
+      "useMock"           -> "true",
+      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
   }
 
   "AccumuloDataStore" should {
