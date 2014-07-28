@@ -57,6 +57,7 @@ class LiveDensityIteratorTest extends Specification with Logging {
                     "auths"           -> "user,admin",
                     "visibilities"    -> "",
                     "tableName"       -> "mytable",
+                    "indexSchemaFormat" -> "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id",
                     "featureEncoding" -> "avro")
 
   val sftName = "fr"

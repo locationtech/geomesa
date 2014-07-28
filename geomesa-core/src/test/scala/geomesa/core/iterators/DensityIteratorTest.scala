@@ -107,18 +107,14 @@ class DensityIteratorTest extends Specification {
     val spec = "id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
     val sft = SimpleFeatureTypes.createType("test", spec)
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
-
+    val ds = createDataStore(sft, 0)
+    val encodedFeatures = (0 until 150).toArray.map {
+      i =>
+        Array(s"$i", "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
+    }
+    val fs = loadFeatures(ds, sft, encodedFeatures)
 
     "reduce total features returned" in {
-
-      val ds = createDataStore(sft, 0)
-
-      val encodedFeatures = (0 until 150).toArray.map {
-        i =>
-          Array(s"$i", "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
-      }
-
-      val fs = loadFeatures(ds, sft, encodedFeatures)
 
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
 
@@ -131,15 +127,6 @@ class DensityIteratorTest extends Specification {
     }
 
     "maintain total weight of points" in {
-
-      val ds = createDataStore(sft, 1)
-
-      val encodedFeatures = (0 until 150).toArray.map {
-        i =>
-          Array(s"$i", "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
-      }
-
-      val fs = loadFeatures(ds, sft, encodedFeatures)
 
       val q = getQuery("(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
 
