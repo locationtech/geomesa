@@ -55,7 +55,7 @@ object StatWriter extends Runnable with Logging {
 
   private val writeDelayMillis = 1000
 
-  private val batchWriterConfig = new BatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(10)
+  private val batchWriterConfig = new BatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(5)
 
   // use the guava exiting executor so that this thread doesn't hold up the jvm shutdown
   private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(1))
@@ -78,10 +78,12 @@ object StatWriter extends Runnable with Logging {
    * @param connector
    */
   private def startIfNeeded(connector: Connector) {
-    if (!connector.isInstanceOf[MockConnector] && running.compareAndSet(false, true)) {
+    if (running.compareAndSet(false, true)) {
       this.connector = connector
-      // we want to wait between invocations to give more stats a chance to queue up
-      executor.scheduleWithFixedDelay(this, writeDelayMillis, writeDelayMillis, TimeUnit.MILLISECONDS)
+      if(!connector.isInstanceOf[MockConnector]) {
+        // we want to wait between invocations to give more stats a chance to queue up
+        executor.scheduleWithFixedDelay(this, writeDelayMillis, writeDelayMillis, TimeUnit.MILLISECONDS)
+      }
     }
   }
 
@@ -103,7 +105,7 @@ object StatWriter extends Runnable with Logging {
    * @param stats
    * @param connector
    */
-  private def write(stats: Iterable[Stat], connector: Connector): Unit = {
+  def write(stats: Iterable[Stat], connector: Connector): Unit = {
     stats.groupBy(s => s.getClass).foreach { case (clas, clasIter) =>
       // get the appropriate transform for this type of stat
       val transform = clas match {
@@ -113,7 +115,7 @@ object StatWriter extends Runnable with Logging {
       // group stats by catalog and feature name
       clasIter.groupBy(s => (s.catalogTable, s.featureName)).foreach { case ((catalogTable, featureName), iter) =>
         val table = transform.getStatTable(catalogTable, featureName)
-        checkTable(table)
+        checkTable(table, connector)
         val writer = connector.createBatchWriter(table, batchWriterConfig)
         val mutations = iter.map(s => transform.statToMutation(s))
         writer.addMutations(mutations.asJava)
@@ -128,7 +130,7 @@ object StatWriter extends Runnable with Logging {
    * @param table
    * @return
    */
-  private def checkTable(table: String) =
+  private def checkTable(table: String, connector: Connector) =
     tableCache.getOrElseUpdate(table, {
       val tableOps = connector.tableOperations()
       if (!tableOps.exists(table)) {

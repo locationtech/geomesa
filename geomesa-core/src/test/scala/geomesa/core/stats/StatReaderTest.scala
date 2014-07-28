@@ -16,6 +16,12 @@
 
 package geomesa.core.stats
 
+import java.util.Date
+
+import org.apache.accumulo.core.client.mock.MockInstance
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.security.Authorizations
+import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -23,14 +29,88 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class StatReaderTest extends Specification {
 
-  "StatReader" should {
+  val df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss")
 
-    "query accumulo" in {
+  val catalogTable = "geomesa_catalog"
+  val featureName = "stat-reader-test"
 
-      skipped("Meant for integration testing")
+  val auths = new Authorizations()
 
-      success
+  "QueryStatReader" should {
+
+    val writer = new MockStatWriter
+
+    writer.writeStat(QueryStat(catalogTable,
+                                featureName,
+                                df.parseMillis("2014.07.26 13:20:01"),
+                                "query1",
+                                101L,
+                                201L,
+                                11))
+    writer.writeStat(QueryStat(catalogTable,
+                                featureName,
+                                df.parseMillis("2014.07.26 14:20:01"),
+                                "query2",
+                                102L,
+                                202L,
+                                12))
+    writer.writeStat(QueryStat(catalogTable,
+                                featureName,
+                                df.parseMillis("2014.07.27 13:20:01"),
+                                "query3",
+                                102L,
+                                202L,
+                                12))
+
+    val reader = new QueryStatReader(writer.connector, catalogTable)
+
+    "query all stats in order" in {
+      val queries = reader.query(featureName, new Date(0), new Date(), auths)
+
+      queries must not beNull
+
+      val list = queries.toList
+
+      list.size must beEqualTo(3)
+      list(0).query must beEqualTo("query1")
+      list(1).query must beEqualTo("query2")
+      list(2).query must beEqualTo("query3")
     }
+
+    "query by day" in {
+      val queries = reader.query(featureName,
+                                  df.parseDateTime("2014.07.26 00:00:00").toDate,
+                                  df.parseDateTime("2014.07.26 23:59:59").toDate,
+                                  auths)
+
+      queries must not beNull
+
+      val list = queries.toList
+
+      list.size must beEqualTo(2)
+      list(0).query must beEqualTo("query1")
+      list(1).query must beEqualTo("query2")
+    }
+
+    "query by hour" in {
+      val queries = reader.query(featureName,
+                                  df.parseDateTime("2014.07.26 13:00:00").toDate,
+                                  df.parseDateTime("2014.07.26 13:59:59").toDate,
+                                  auths)
+
+      queries must not beNull
+
+      val list = queries.toList
+
+      list.size must beEqualTo(1)
+      list(0).query must beEqualTo("query1")
+    }
+
   }
 
+}
+
+class MockStatWriter extends StatWriter {
+  val connector = new MockInstance().getConnector("user", new PasswordToken("password"))
+  override def writeStat(stat: Stat): Unit = StatWriter.write(List(stat), connector)
 }

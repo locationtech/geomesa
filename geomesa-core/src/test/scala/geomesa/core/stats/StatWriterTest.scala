@@ -16,6 +16,13 @@
 
 package geomesa.core.stats
 
+import java.util.Date
+
+import org.apache.accumulo.core.client.{Connector, TableNotFoundException}
+import org.apache.accumulo.core.client.mock.MockInstance
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.security.Authorizations
+import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -23,14 +30,64 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class StatWriterTest extends Specification {
 
+  val df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss")
+
+  val catalogTable = "geomesa_catalog"
+  val featureName = "stat-writer-test"
+
+  val auths = new Authorizations()
+
+  val connector = new MockInstance().getConnector("user", new PasswordToken("password"))
+
+  val statReader = new QueryStatReader(connector, catalogTable)
+
+  // mock class we can extend with statwriter
+  class MockWriter(c: Connector) {
+    val connector = c
+  }
 
   "StatWriter" should {
 
-    "query accumulo" in {
+    "write query stats asynchronously" in {
+      val writer = new MockWriter(connector) with StatWriter
 
-      skipped("Meant for integration testing")
+      writer.writeStat(QueryStat(catalogTable,
+                                  featureName,
+                                  df.parseMillis("2014.07.26 13:20:01"),
+                                  "query1",
+                                  101L,
+                                  201L,
+                                  11))
+      writer.writeStat(QueryStat(catalogTable,
+                                  featureName,
+                                  df.parseMillis("2014.07.26 14:20:01"),
+                                  "query2",
+                                  102L,
+                                  202L,
+                                  12))
+      writer.writeStat(QueryStat(catalogTable,
+                                  featureName,
+                                  df.parseMillis("2014.07.27 13:20:01"),
+                                  "query3",
+                                  102L,
+                                  202L,
+                                  12))
 
-      success
+      try {
+        val unwritten = statReader.query(featureName, new Date(0), new Date(), auths).toList
+        unwritten must not beNull;
+        unwritten.size must beEqualTo(0)
+      } catch {
+        case e: TableNotFoundException => // table doesn't exist yet, since no stats are written
+      }
+
+      // this should write the queued stats
+      StatWriter.run()
+
+      val written = statReader.query(featureName, new Date(0), new Date(), auths).toList
+
+      written must not beNull;
+      written.size must beEqualTo(3)
     }
   }
 }
