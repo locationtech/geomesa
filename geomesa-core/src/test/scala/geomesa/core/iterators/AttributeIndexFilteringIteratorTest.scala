@@ -22,7 +22,7 @@ import java.util.TimeZone
 
 import com.vividsolutions.jts.geom.Geometry
 import geomesa.core.data._
-import geomesa.core.index.IndexSchema
+import geomesa.core.index.{IndexSchema, IndexSchemaBuilder}
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
@@ -59,17 +59,15 @@ class AttributeIndexFilteringIteratorTest extends Specification {
   def createStore: AccumuloDataStore =
   // the specific parameter values should not matter, as we
   // are requesting a mock data store connection to Accumulo
-    DataStoreFinder.getDataStore(
-      Map(
-        "instanceId" -> "mycloud",
-        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-        "user"       -> "myuser",
-        "password"   -> "mypassword",
-        "auths"      -> "A,B,C",
-        "tableName"  -> "AttributeIndexFilteringIteratorTest",
-        "indexSchemaFormat" -> "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id",
-        "useMock"    -> "true")
-    ).asInstanceOf[AccumuloDataStore]
+    DataStoreFinder.getDataStore(Map(
+      "instanceId"        -> "mycloud",
+      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      "user"              -> "myuser",
+      "password"          -> "mypassword",
+      "auths"             -> "A,B,C",
+      "tableName"         -> "AttributeIndexFilteringIteratorTest",
+      "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
+      "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
   val ds = createStore
 

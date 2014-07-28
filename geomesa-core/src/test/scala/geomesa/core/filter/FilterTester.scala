@@ -61,15 +61,15 @@ object FilterTester extends AccumuloDataStoreTest with Logging {
 
   val ds = {
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> "mycloud",
-      "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"       -> "myuser",
-      "password"   -> "mypassword",
-      "auths"      -> "A,B,C",
-      "tableName"  -> "filtertester",
-      "useMock"    -> "true",
+      "instanceId"        -> "mycloud",
+      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      "user"              -> "myuser",
+      "password"          -> "mypassword",
+      "auths"             -> "A,B,C",
+      "tableName"         -> "filtertester",
+      "useMock"           -> "true",
       "indexSchemaFormat" -> testIndexSchemaFormat,
-      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
   }
 
   def getFeatureStore: SimpleFeatureSource = {

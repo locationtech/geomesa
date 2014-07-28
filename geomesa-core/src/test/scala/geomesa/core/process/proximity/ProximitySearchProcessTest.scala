@@ -2,9 +2,9 @@ package geomesa.core.process.proximity
 
 import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import geomesa.core.index.Constants
+import geomesa.core.index.{Constants, IndexSchemaBuilder}
 import geomesa.feature.AvroSimpleFeatureFactory
-import geomesa.utils.geotools.{SimpleFeatureTypes, GeometryUtils}
+import geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import geomesa.utils.text.WKTUtils
 import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
@@ -29,15 +29,15 @@ class ProximitySearchProcessTest extends Specification {
    // the specific parameter values should not matter, as we
    // are requesting a mock data store connection to Accumulo
      DataStoreFinder.getDataStore(Map(
-       "instanceId" -> "mycloud",
-       "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-       "user"       -> "myuser",
-       "password"   -> "mypassword",
-       "auths"      -> "A,B,C",
-       "tableName"  -> "testwrite",
-       "useMock"    -> "true",
-       "indexSchemaFormat" -> "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id",
-       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+       "instanceId"        -> "mycloud",
+       "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+       "user"              -> "myuser",
+       "password"          -> "mypassword",
+       "auths"             -> "A,B,C",
+       "tableName"         -> "testwrite",
+       "useMock"           -> "true",
+       "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
+       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
      val sftName = "geomesaProximityTestType"
      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")

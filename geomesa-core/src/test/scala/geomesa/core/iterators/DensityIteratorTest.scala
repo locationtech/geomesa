@@ -22,7 +22,7 @@ import java.util.Date
 import com.google.common.collect.HashBasedTable
 import com.vividsolutions.jts.geom.{Envelope, Point}
 import geomesa.core.data.AccumuloDataStoreFactory
-import geomesa.core.index.{Constants, QueryHints}
+import geomesa.core.index.{Constants, IndexSchemaBuilder, QueryHints}
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -64,15 +64,14 @@ class DensityIteratorTest extends Specification {
 
     import geomesa.core.data.AccumuloDataStoreFactory.params._
 
-    val ds = dsf.createDataStore(
-                Map(
-                     zookeepersParam.key -> "dummy",
-                     instanceIdParam.key -> ("dummy" + i),
-                     userParam.key -> "user",
-                     passwordParam.key -> "pass",
-                     tableNameParam.key -> "test",
-                     mockParam.key -> "true"
-                   ))
+    val ds = dsf.createDataStore(Map(
+      zookeepersParam.key -> "dummy",
+      instanceIdParam.key -> f"dummy$i%d",
+      userParam.key       -> "user",
+      passwordParam.key   -> "pass",
+      tableNameParam.key  -> "test",
+      idxSchemaParam.key  -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
+      mockParam.key       -> "true"))
     ds.createSchema(sft)
     ds
   }
@@ -110,7 +109,7 @@ class DensityIteratorTest extends Specification {
     val ds = createDataStore(sft, 0)
     val encodedFeatures = (0 until 150).toArray.map {
       i =>
-        Array(s"$i", "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
+        Array(i.toString, "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
     }
     val fs = loadFeatures(ds, sft, encodedFeatures)
 

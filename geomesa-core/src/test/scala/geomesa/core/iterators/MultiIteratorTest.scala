@@ -1,10 +1,26 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package geomesa.core.iterators
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Polygon
 import geomesa.core._
 import geomesa.core.data.AccumuloDataStoreFactory
-import geomesa.core.index.IndexSchema
+import geomesa.core.index.{IndexSchema, IndexSchemaBuilder}
 import geomesa.core.iterators.TestData._
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -40,18 +56,16 @@ class MultiIteratorTest extends Specification with Logging {
 
       import geomesa.core.data.AccumuloDataStoreFactory.params._
 
-      val ds = dsf.createDataStore(
-        Map(
-          zookeepersParam.key -> "dummy",
-          instanceIdParam.key -> "dummy",
-          userParam.key -> "user",
-          passwordParam.key -> "pass",
-          authsParam.key -> "S,USA",
-          tableNameParam.key -> tableName,
-          mockParam.key -> "true",
-          featureEncParam.key -> "avro",
-          idxSchemaParam.key -> "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
-        ))
+      val ds = dsf.createDataStore(Map(
+        zookeepersParam.key -> "dummy",
+        instanceIdParam.key -> "dummy",
+        userParam.key       -> "user",
+        passwordParam.key   -> "pass",
+        authsParam.key      -> "S,USA",
+        tableNameParam.key  -> tableName,
+        mockParam.key       -> "true",
+        featureEncParam.key -> "avro",
+        idxSchemaParam.key  -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build()))
 
       ds.createSchema(TestData.featureType)
       val fs = ds.getFeatureSource(TestData.featureName).asInstanceOf[SimpleFeatureStore]
@@ -88,11 +102,9 @@ class MultiIteratorTest extends Specification with Logging {
     if (indexIterator) {
       // select a few attributes to trigger the IndexIterator
       val outputAttributes = Array("geom", "dtg")
-      val q = new Query(TestData.featureType.getTypeName, tf, outputAttributes)
-      q
+      new Query(TestData.featureType.getTypeName, tf, outputAttributes)
     } else {
-      val q = new Query(TestData.featureType.getTypeName, tf)
-      q
+      new Query(TestData.featureType.getTypeName, tf)
     }
   }
 

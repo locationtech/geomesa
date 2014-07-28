@@ -19,7 +19,7 @@ package geomesa.core.data
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 
-import geomesa.core.index.SF_PROPERTY_START_TIME
+import geomesa.core.index.{IndexSchemaBuilder, SF_PROPERTY_START_TIME}
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.text.WKTUtils
 import org.geotools.data._
@@ -51,17 +51,15 @@ class FeatureWritersTest extends Specification {
   def createStore: AccumuloDataStore =
     // the specific parameter values should not matter, as we
     // are requesting a mock data store connection to Accumulo
-    DataStoreFinder.getDataStore(
-      Map(
-      "instanceId" -> "mycloud",
-      "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"       -> "myuser",
-      "password"   -> "mypassword",
-      "auths"      -> "A,B,C",
-      "tableName"  -> "differentTableFromOtherTests", //note the table needs to be different to prevent testing errors,
-      "indexSchemaFormat" -> "%~#s%3#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id",
-      "useMock"    -> "true")
-    ).asInstanceOf[AccumuloDataStore]
+    DataStoreFinder.getDataStore(Map(
+      "instanceId"        -> "mycloud",
+      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      "user"              -> "myuser",
+      "password"          -> "mypassword",
+      "auths"             -> "A,B,C",
+      "tableName"         -> "differentTableFromOtherTests", //note the table needs to be different to prevent testing errors,
+      "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
+      "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
     "AccumuloFeatureWriter" should {
       "provide ability to update a single feature that it wrote and preserve feature IDs" in {
@@ -165,7 +163,9 @@ class FeatureWritersTest extends Specification {
             writerCreatedFeature.getUserData.put(Hints.PROVIDED_FID, id)
             writer.write()
           }
-        } finally writer.close()
+        } finally {
+          writer.close()
+        }
 
         countFeatures(fs, sftName) should beEqualTo(5)
 
