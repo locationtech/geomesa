@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package geomesa.core.util.shell
+package geomesa.tools
 
-import java.net.{URLDecoder, URLEncoder}
+import java.io.File
+import java.net.{URLClassLoader, URLDecoder, URLEncoder}
 import java.nio.charset.Charset
 import java.util.Date
 import com.google.common.hash.Hashing
 import com.twitter.scalding._
 import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.AccumuloDataStore
-import geomesa.core.index.Constants
+import geomesa.core.index.{Constants, IndexSchema}
 import geomesa.core.iterators.SpatioTemporalIntersectingIterator
 import geomesa.feature.AvroSimpleFeatureFactory
+import org.apache.accumulo.core.util.shell.Shell.Command
 import org.apache.commons.cli.{Option => Opt}
+import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.apache.hadoop.mapred.JobConf
 import org.apache.hadoop.util.ToolRunner
 import org.geotools.data._
@@ -36,122 +39,104 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import scala.collection.JavaConversions._
 
-
-class IngestFeature {
-
-}
 
 object IngestFeature extends App {
-  val dir = args
-
-  val parser = new scopt.OptionParser[Config]("ingest-feature") {
-    head("Ingest Feature Command", "1.0")
-
-    opt[String]('i', "instanceId").action { (s, conf) =>
-      conf.copy(instOpt = s)
-    }.text("accumulo connection parameter instanceId") required()
-    opt[String]('z', "zookeepers").action { (s, conf) =>
-      conf.copy(zooOpt = s)
-    }.text("accumulo connection parameter zookeepers") required()
-    opt[String]('u', "user").action { (s, conf) =>
-      conf.copy(userOpt = s)
-    }.text("accumulo connection parameter user") required()
-    opt[String]('p', "password").action { (s, conf) =>
-      conf.copy(pwOpt = s)
-    }.text("accumulo connection parameter password") required()
-    opt[String]("auths").action { (s, conf) =>
-      conf.copy(authOpt = s)
-    }.text("accumulo connection parameter auths") optional()
-    opt[String]('t', "typeName").action { (s, conf) =>
-      conf.copy(typeNameOpt = s)
-    }.text("Name of the feature type") required()
-    opt[String]('c', "catalog").action { (s, conf) =>
-      conf.copy(catalogOpt = s)
-    }.text("Catalog table name")
-    opt[String]('p', "path").action { (s, conf) =>
-      conf.copy(pathOpt = s)
-    }.text("HDFS path of file to ingest")
-    opt[String]("lat").action { (s, conf) =>
-      conf.copy(latOpt = s)
-    }.text("Name of latitude field")
-    opt[String]("lon").action { (s, conf) =>
-      conf.copy(lonOpt = s)
-    }.text("Name of longitude field")
-    opt[String]("dtg").action { (s, conf) =>
-      conf.copy(dtgOpt = s)
-    }.text("Name of datetime field")
-    opt[String]("dtgfmt").action { (s, conf) =>
-      conf.copy(dtgFmtOpt = s)
-    }.text("Format of datetime field")
-    opt[String]("idfields").action { (s, conf) =>
-      conf.copy(idOpt = s)
-    }.text("Comma separated list of id fields")
-    opt[String]("format").action { (s, conf) =>
-      conf.copy(frmOpt = s)
-    }.text("Data is in CSV or TSV")
-
-    help("help").text("show help command")
-  }
-
-  /* Work with the parser values */
-  parser.parse(args, Config()) map { config =>
+  override def main(args: Array[String]) = {
     SpatioTemporalIntersectingIterator.initClassLoader(null)
+    val parser = new scopt.OptionParser[Config]("ingest-feature") {
+      head("Ingest Feature Command", "1.0")
+      opt[String]('i', "instanceId").action { (s, conf) =>
+        conf.copy(instOpt = s)
+      }.text("accumulo connection parameter instanceId") required()
 
-    val params = Map("instanceId" -> config.instOpt, "zookeepers" -> config.zooOpt, "user" -> config.userOpt,
-      "password" -> config.pwOpt, "auths" -> config.authOpt)
+      opt[String]('z', "zookeepers").action { (s, conf) =>
+        conf.copy(zooOpt = s)
+      }.text("accumulo connection parameter zookeepers") required()
 
-    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
-    val sft = ds.getSchema(config.typeNameOpt)
-    val dtgTargetField = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
-    val spec = DataUtilities.encodeType(sft)
+      opt[String]('u', "user").action { (s, conf) =>
+        conf.copy(userOpt = s)
+      }.text("accumulo connection parameter user") required()
 
-    val libJars = buildLibJars // how does this work?
+      opt[String]('p', "password").action { (s, conf) =>
+        conf.copy(pwOpt = s)
+      }.text("accumulo connection parameter password") required()
 
-    try {
-      runInjestJob(
-        libJars,
-        config.catalogOpt,
-        config.pathOpt,
-        config.typeNameOpt,
-        spec,
-        config.idOpt,
-        config.latOpt, config.lonOpt,
-        config.dtgOpt, config.dtgFmtOpt, dtgTargetField,
-        config.frmOpt,
-        config.instOpt,
-        config.zooOpt,
-        config.userOpt,
-        config.pwOpt,
-        config.authOpt
-        )
-    } catch {
-      case t: Throwable => t.printStackTrace()
+      opt[String]("auths").action { (s, conf) =>
+        conf.copy(authOpt = s)
+      }.text("accumulo connection parameter auths") optional()
+
+      opt[String]('t', "typeName").action { (s, conf) =>
+        conf.copy(typeNameOpt = s)
+      }.text("Name of the feature type") required()
+
+      opt[String]('c', "catalog").action { (s, conf) =>
+        conf.copy(catalogOpt = s)
+      }.text("Catalog table name")
+
+      opt[String]('p', "path").action { (s, conf) =>
+        conf.copy(pathOpt = s)
+      }.text("HDFS path of file to ingest")
+
+      opt[String]("lat").action { (s, conf) =>
+        conf.copy(latOpt = s)
+      }.text("Name of latitude field")
+
+      opt[String]("lon").action { (s, conf) =>
+        conf.copy(lonOpt = s)
+      }.text("Name of longitude field")
+
+      opt[String]("dtg").action { (s, conf) =>
+        conf.copy(dtgOpt = s)
+      }.text("Name of datetime field")
+
+      opt[String]("dtgfmt").action { (s, conf) =>
+        conf.copy(dtgFmtOpt = s)
+      }.text("Format of datetime field")
+
+      opt[String]("idfields").action { (s, conf) =>
+        conf.copy(idOpt = s)
+      }.text("Comma separated list of id fields")
+
+      opt[String]("format").action { (s, conf) =>
+        conf.copy(frmOpt = s)
+      }.text("Data is in CSV or TSV")
+
+      help("help").text("show help command")
     }
 
+    /* Work with the parser values */
+    parser.parse(args, Config()) map { config =>
+      val params = Map("instanceId" -> config.instOpt, "zookeepers" -> config.zooOpt, "user" -> config.userOpt,
+        "password" -> config.pwOpt, "auths" -> config.authOpt)
+      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val sft = ds.getSchema(config.typeNameOpt)
+      val dtgTargetField = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
+      val spec = DataUtilities.encodeType(sft)
+      val libJars = buildLibJars
+      val delim = config.frmOpt // must be "CSV" or "TSV"
 
-
-  } getOrElse {
-
+      try {
+        runInjestJob(
+          libJars, config.catalogOpt, config.pathOpt, config.typeNameOpt,
+          spec, config.idOpt,
+          config.latOpt, config.lonOpt,
+          config.dtgOpt, config.dtgFmtOpt, dtgTargetField,
+          delim,
+          config.instOpt, config.zooOpt, config.userOpt, config.pwOpt, config.authOpt
+        )
+      } catch {
+        case t: Throwable => t.printStackTrace()
+      }
+    } getOrElse {
+      // BAD things, like milk-no wait---popular_energy_drink
+    }
   }
 
-  def runInjestJob(libJars: String,
-                   catalog: String,
-                   path: String,
-                   typeName: String,
-                   spec: String,
-                   idFields: String,
-                   latField: String,
-                   lonField: String,
-                   dtgField: String,
-                   dtgFmt: String,
-                   dtgTargetField: String,
-                   delim: String,
-                   instId: String,
-                   zooKeep: String,
-                   user: String,
-                   password: String,
-                   auths: String) {
+  def runInjestJob(libJars: String, catalog: String, path: String, typeName: String, spec: String, idFields: String,
+                   latField: String, lonField: String, dtgField: String, dtgFmt: String, dtgTargetField: String,
+                   delim: String, instId: String, zooKeep: String, user: String, password: String, auths: String) {
     val jobConf = new JobConf
     jobConf.setSpeculativeExecution(false)
 
@@ -160,28 +145,61 @@ object IngestFeature extends App {
         "-libjars", libJars,
         classOf[SFTIngest].getCanonicalName,
         "--hdfs",
-        "--geomesa.ingest.catalog",          catalog,
-        "--geomesa.ingest.path",             path,
-        "--geomesa.ingest.typename",         typeName,
-        "--geomesa.ingest.idfeatures",       idFields,
-        "--geomesa.ingest.sftspec",          URLEncoder.encode(spec, "UTF-8"),
-        "--geomesa.ingest.latfield",         latField,
-        "--geomesa.ingest.lonfield",         lonField,
-        "--geomesa.ingest.dtgfield",         dtgField,
-        "--geomesa.ingest.dtgfmt",           dtgFmt,
-        "--geomesa.ingest.dtgtargetfield",   dtgTargetField,
-        "--geomesa.ingest.instance",         instId,
-        "--geomesa.ingest.zookeepers",       zooKeep,
-        "--geomesa.ingest.user",             user,
-        "--geomesa.ingest.password",         password,
-        "--geomesa.ingest.auths",            auths,
-        "--geomesa.ingest.delim",            delim)
+        "--geomesa.ingest.catalog", catalog,
+        "--geomesa.ingest.path", path,
+        "--geomesa.ingest.typename", typeName,
+        "--geomesa.ingest.idfeatures", idFields,
+        "--geomesa.ingest.sftspec", URLEncoder.encode(spec, "UTF-8"),
+        "--geomesa.ingest.latfield", latField,
+        "--geomesa.ingest.lonfield", lonField,
+        "--geomesa.ingest.dtgfield", dtgField,
+        "--geomesa.ingest.dtgfmt", dtgFmt,
+        "--geomesa.ingest.dtgtargetfield", dtgTargetField,
+        "--geomesa.ingest.instance", instId,
+        "--geomesa.ingest.zookeepers", zooKeep,
+        "--geomesa.ingest.user", user,
+        "--geomesa.ingest.password", password,
+        "--geomesa.ingest.auths", auths,
+        "--geomesa.ingest.delim", delim)
     )
   }
 
+  def buildLibJars: String = {
+    val accumuloJars = classOf[Command].getClassLoader.asInstanceOf[URLClassLoader]
+      .getURLs
+      .filter {
+      _.toString.contains("accumulo")
+    }
+      .map(u => classPathUrlToAbsolutePath(u.getFile))
+
+    val geomesaJars = classOf[IndexSchema].getClassLoader match {
+      case cl: VFSClassLoader =>
+        cl.getFileObjects.map(u => classPathUrlToAbsolutePath(u.getURL.getFile))
+
+      case cl: URLClassLoader =>
+        cl.getURLs.filter {
+          _.toString.contains("geomesa")
+        }.map { u => classPathUrlToAbsolutePath(u.getFile)}
+    }
+
+    val ret = (accumuloJars ++ geomesaJars).mkString(",")
+    println(ret)
+    ret
+  }
+
+  def cleanClassPathURL(url: String): String =
+    URLDecoder.decode(url, "UTF-8")
+      .replace("file:", "")
+      .replace("!", "")
+
+  def classPathUrlToAbsolutePath(url: String) =
+    new File(cleanClassPathURL(url)).getAbsolutePath
+
+  IngestFeature.main(args)
+}
 
 
-  class SFTIngest(args: Args) extends Job(args) {
+class SFTIngest(args: Args) extends Job(args) {
 
     import scala.collection.JavaConversions._
 
@@ -325,20 +343,8 @@ object IngestFeature extends App {
 
   }
 
+case class Config(instOpt: String = null, zooOpt: String = null, userOpt: String = null, pwOpt: String = null,
+                  typeNameOpt: String = null, catalogOpt: String = null, pathOpt: String = null, latOpt: String = null,
+                  lonOpt: String = null, dtgOpt: String = null, dtgFmtOpt: String = "EPOCHMILLIS",
+                  authOpt: String = null, idOpt: String = "HASH", frmOpt: String = "CSV")
 
-  case class Config(instOpt: String = null,
-                    zooOpt: String = null,
-                    userOpt: String = null,
-                    pwOpt: String = null,
-                    typeNameOpt: String = null,
-                    catalogOpt: String = null,
-                    pathOpt: String = null,
-                    latOpt: String = null,
-                    lonOpt: String = null,
-                    dtgOpt: String = null,
-                    dtgFmtOpt: String = "EPOCHMILLIS",
-                    authOpt: String = null,
-                    idOpt: String = "HASH",
-                    frmOpt: String = "CSV")
-
-}
