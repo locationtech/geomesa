@@ -51,13 +51,13 @@ import CoverageReader._
 
 class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() with Logging {
 
-  logger.debug(s"""creating coverage reader for url "$url""")
+  logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
 
   val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)/(.*)/(.*)#resolution=([0-9]*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
   val FORMAT(user, password, instanceId, table, columnFamily, columnQualifier, resolutionStr, zookeepers, authtokens) = url
 
-  logger.debug(s"extracted user $user, password $password, instance id $instanceId, table $table, column family $columnFamily," +
-               s"column qualifier $columnQualifier, resolution $resolutionStr, zookeepers $zookeepers, auths $authtokens")
+  logger.debug(s"extracted user $user, password ********, instance id $instanceId, table $table, column family $columnFamily, " +
+               s"column qualifier $columnQualifier, resolution $resolutionStr, zookeepers $zookeepers, auths ********")
 
   coverageName = table + ":" + columnFamily + ":" + columnQualifier
   val metaRow = new Text("~" + columnFamily + "~" + columnQualifier)
