@@ -16,17 +16,15 @@
 
 package geomesa.plugin.wms
 
-import org.apache.wicket.behavior.SimpleAttributeModifier
+import geomesa.plugin.GeoMesaStoreEditPanel
 import org.apache.wicket.markup.html.form.validation.IFormValidator
 import org.apache.wicket.markup.html.form.{Form, FormComponent}
-import org.apache.wicket.model.{ResourceModel, IModel, PropertyModel}
+import org.apache.wicket.model.PropertyModel
 import org.geoserver.catalog.CoverageStoreInfo
-import org.geoserver.web.data.store.StoreEditPanel
-import org.geoserver.web.data.store.panel.TextParamPanel
-import org.geoserver.web.util.MapModel
 import org.geotools.data.DataAccessFactory.Param
 
-class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_]) extends StoreEditPanel(componentId, storeEditForm) {
+class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
+    extends GeoMesaStoreEditPanel(componentId, storeEditForm) {
 
   val model = storeEditForm.getModel
   setDefaultModel(model)
@@ -35,7 +33,7 @@ class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_]) extend
   val instanceId = addTextPanel(paramsModel, new Param("instanceId", classOf[String], "The Accumulo Instance ID", false))
   val zookeepers = addTextPanel(paramsModel, new Param("zookeepers", classOf[String], "Zookeepers", false))
   val user = addTextPanel(paramsModel, new Param("user", classOf[String], "User", false))
-  val password = addTextPanel(paramsModel, new Param("password", classOf[String], "Password", false))
+  val password = addPasswordPanel(paramsModel, new Param("password", classOf[String], "Password", false))
   val authTokens = addTextPanel(paramsModel, new Param("authTokens", classOf[String], "Authorizations", false))
   val tableName = addTextPanel(paramsModel, new Param("tableName", classOf[String], "The Accumulo Table Name", false))
   val columnFamily = addTextPanel(paramsModel, new Param("columnFamily", classOf[String], "The Accumulo Column Family", false))
@@ -64,19 +62,4 @@ class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_]) extend
       storeInfo.setURL(sb.toString())
     }
   })
-
-  def addTextPanel(paramsModel: IModel[_], param: Param): FormComponent[_] = {
-    val paramName = param.key
-    val resourceKey = getClass.getSimpleName + "." + paramName
-    val required = param.required
-    val textParamPanel = new TextParamPanel(paramName, new MapModel(paramsModel, paramName).asInstanceOf[IModel[_]], new ResourceModel(resourceKey, paramName), required)
-    textParamPanel.getFormComponent.setType(classOf[String])
-    val defaultTitle = String.valueOf(param.title)
-    val titleModel = new ResourceModel(resourceKey + ".title", defaultTitle)
-    val title = String.valueOf(titleModel.getObject)
-    textParamPanel.add(new SimpleAttributeModifier("title", title))
-    add(textParamPanel)
-    textParamPanel.getFormComponent
-  }
-
 }
