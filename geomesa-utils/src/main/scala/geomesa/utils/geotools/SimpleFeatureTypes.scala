@@ -11,6 +11,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.collection.{GenTraversable, GenTraversableOnce}
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -23,7 +24,7 @@ object SimpleFeatureTypes {
         case ns :: n :: Nil => (ns, n)
         case _ => throw new IllegalArgumentException(s"Invalid feature name: $nameSpec")
       }
-    val attributeSpecs = spec.split(",").map(AttributeSpec(_))
+    val attributeSpecs = AttributeSpec.toAttributes(spec)
     val geomAttributes = attributeSpecs.collect { case g: GeomAttributeSpec => g }
     val defaultGeom = geomAttributes.find(_.default).orElse(geomAttributes.headOption)
     val b = new SimpleFeatureTypeBuilder()
@@ -59,29 +60,37 @@ object SimpleFeatureTypes {
     s"$default$name:$binding:srid=$epsg:index=$indexed"
   }
 
-  private trait AttributeSpec {
+  trait AttributeSpec {
     def name: String
     def clazz: Class[_]
     def index: Boolean
     def toAttribute: AttributeDescriptor
+    def toSpec: String
   }
 
-  private case class NonGeomAttributeSpec(name: String, clazz: Class[_], index: Boolean) extends AttributeSpec {
+  case class NonGeomAttributeSpec(name: String, clazz: Class[_], index: Boolean) extends AttributeSpec {
     override def toAttribute: AttributeDescriptor = {
       val b = new AttributeTypeBuilder()
       b.binding(clazz).userData("index", index).buildDescriptor(name)
     }
+
+    override def toSpec = s"$name:${typeEncode(clazz)}:index=$index"
   }
 
-  private case class GeomAttributeSpec(name: String, clazz: Class[_], index: Boolean, srid: Int, default: Boolean) extends AttributeSpec {
+  case class GeomAttributeSpec(name: String, clazz: Class[_], index: Boolean, srid: Int, default: Boolean) extends AttributeSpec {
     override def toAttribute: AttributeDescriptor = {
       val b = new AttributeTypeBuilder()
       val crs = Try(CRS.decode(s"EPSG:$srid")).getOrElse(DefaultGeographicCRS.WGS84)
       b.binding(clazz).userData("index", index).crs(crs).buildDescriptor(name)
     }
+
+    override def toSpec = {
+      val star = if (default) "*" else ""
+      s"$star$name:${typeEncode(clazz)}:srid=$srid:index=$index"
+    }
   }
 
-  private object AttributeSpec {
+  object AttributeSpec {
     private def parseKV(s: String): (String, String) =
       s.split("=") match { case Array(k, v) => k -> v }
 
@@ -106,6 +115,10 @@ object SimpleFeatureTypes {
         case c => buildNonGeomSpec(name, c, opts)
       }
     }
+
+    def toAttributes(spec: String): Array[AttributeSpec] = spec.split(",").map(AttributeSpec(_))
+
+    def toString(spec: GenTraversable[AttributeSpec]) = spec.map(_.toSpec).mkString(",")
   }
 
   private val typeEncode: Map[Class[_], String] = Map(
