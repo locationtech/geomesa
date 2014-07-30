@@ -39,9 +39,22 @@ object Tools extends App {
     } text ("features is a command") children(
       )
     cmd("ingest") action { (_, c) =>
-      c.copy(mode = "ingest") } text ("Ingest is a command") children (
+      c.copy(mode = "ingest") } text "Ingest is a command" children (
+      opt[String]("instanceId").action { (s, c) =>
+        c.copy(instanceId = s) } text "the ID (name) of the Accumulo instance, e.g:  mycloud" required(),
+      opt[String]("zookeepers").action { (s, c) =>
+        c.copy(zookeepers = s) } text "the comma-separated list of Zookeeper nodes that support your Accumulo instance, e.g.:  zoo1:2181,zoo2:2181,zoo3:2181" required(),
+      opt[String]("user").action { (s, c) =>
+        c.copy(user = s) } text "the Accumulo user that will own the connection, e.g.:  root" required(),
+      opt[String]("password").action { (s, c) =>
+        c.copy(password = s) } text "the password for the Accumulo user that will own the connection, e.g.:  guest" required(),
+      arg[String]("<authorizations>").action { (s, c) =>
+        c.copy(authorizations = s) } text "the (optional) list of comma-separated Accumulo authorizations that" +
+        " should be applied to all data written or read by this Accumulo user; note that this is NOT the list of" +
+        " low-level database permissions such as 'Table.READ', but more a series of text tokens that decorate cell" +
+        " data, e.g.:  Accounting,Purchasing,Testing" optional(),
       opt[String]("format").action { (s, c) =>
-        c.copy(format = s) } text ("format of ingest file")
+        c.copy(format = s) } text "format of ingest file"
      )
   }
 
