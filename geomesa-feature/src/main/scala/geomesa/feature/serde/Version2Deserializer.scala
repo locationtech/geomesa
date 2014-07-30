@@ -16,6 +16,8 @@
 
 package geomesa.feature.serde
 
+import java.util.{Date, UUID}
+
 import com.vividsolutions.jts.geom.Geometry
 import geomesa.feature.AvroSimpleFeature
 import geomesa.utils.text.WKBUtils
@@ -24,23 +26,54 @@ import org.apache.avro.io.Decoder
 /**
  * AvroSimpleFeature version 2 changes serialization of Geometry types from
  * WKT (Well Known Text) to WKB (Well Known Binary)
- *
- * Implemented as an object to be a singleton with static method calls
- * so that we don't create one on each instantiation of a FeatureSpecificReader
  */
 object Version2Deserializer extends ASFDeserializer {
 
-  def readGeometry: Decoder => Geometry =
-    (in: Decoder) => {
-      val bb = in.readBytes(null)
-      val bytes = new Array[Byte](bb.remaining)
-      bb.get(bytes)
-      WKBUtils.read(bytes)
+  override def set(sf: AvroSimpleFeature, field: String, in:Decoder, cls: Class[_]): Unit = {
+    val obj = cls match {
+      case c if classOf[String].isAssignableFrom(cls)            => in.readString()
+      case c if classOf[java.lang.Integer].isAssignableFrom(cls) => in.readInt().asInstanceOf[Object]
+      case c if classOf[java.lang.Long].isAssignableFrom(cls)    => in.readLong().asInstanceOf[Object]
+      case c if classOf[java.lang.Double].isAssignableFrom(cls)  => in.readDouble().asInstanceOf[Object]
+      case c if classOf[java.lang.Float].isAssignableFrom(cls)   => in.readFloat().asInstanceOf[Object]
+      case c if classOf[java.lang.Boolean].isAssignableFrom(cls) => in.readBoolean().asInstanceOf[Object]
+
+      case c if classOf[UUID].isAssignableFrom(cls) =>
+        val bb = in.readBytes(null)
+        new UUID(bb.getLong, bb.getLong)
+
+      case c if classOf[Date].isAssignableFrom(cls) =>
+        new Date(in.readLong())
+
+      case c if classOf[Geometry].isAssignableFrom(cls) =>
+        val bb = in.readBytes(null)
+        val bytes = new Array[Byte](bb.remaining)
+        bb.get(bytes)
+        WKBUtils.read(bytes)
     }
+    sf.setAttributeNoConvert(field, obj)
+  }
 
-  override def setValue(sf: AvroSimpleFeature, field: String, in: Decoder, cls: Class[_]) =
-    Version1Deserializer. setValue(sf, field, in, cls, readGeometry)
+  def setGeometry(sf: AvroSimpleFeature, field: String, in:Decoder): Unit = {
+    val bb = in.readBytes(null)
+    val bytes = new Array[Byte](bb.remaining)
+    bb.get(bytes)
+    val geom = WKBUtils.read(bytes)
+    sf.setAttributeNoConvert(field, geom)
+  }
 
-  override def consumeValue(cls: Class[_], in: Decoder) =
-    Version1Deserializer.consumeValue(cls, in, (in: Decoder) => in.skipBytes())
+  override def consume(cls: Class[_], in: Decoder) = cls match {
+    case c if classOf[java.lang.String].isAssignableFrom(cls)  => in.skipString()
+    case c if classOf[java.lang.Integer].isAssignableFrom(cls) => in.readInt()
+    case c if classOf[java.lang.Long].isAssignableFrom(cls)    => in.readLong()
+    case c if classOf[java.lang.Double].isAssignableFrom(cls)  => in.readDouble()
+    case c if classOf[java.lang.Float].isAssignableFrom(cls)   => in.readFloat()
+    case c if classOf[java.lang.Boolean].isAssignableFrom(cls) => in.readBoolean()
+    case c if classOf[UUID].isAssignableFrom(cls)              => in.skipBytes()
+    case c if classOf[Date].isAssignableFrom(cls)              => in.readLong()
+    case c if classOf[Geometry].isAssignableFrom(cls)          => in.skipBytes()
+  }
+
+
 }
+

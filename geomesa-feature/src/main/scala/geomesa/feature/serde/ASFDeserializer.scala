@@ -16,6 +16,9 @@
 
 package geomesa.feature.serde
 
+import java.util.{Date, UUID}
+
+import com.vividsolutions.jts.geom.Geometry
 import geomesa.feature.AvroSimpleFeature
 import org.apache.avro.io.Decoder
 
@@ -24,6 +27,33 @@ import org.apache.avro.io.Decoder
  * an AvroSimpleFeature
  */
 trait ASFDeserializer {
-  def setValue(sf: AvroSimpleFeature, field: String, in: Decoder, cls: Class[_])
-  def consumeValue(cls: Class[_], in: Decoder)
+  def set(sf: AvroSimpleFeature, field: String, in:Decoder, cls: Class[_])
+  def consume(cls: Class[_], in:Decoder)
+
+  def setString(sf: AvroSimpleFeature, field: String, in:Decoder): Unit = sf.setAttributeNoConvert(field, in.readString())
+  def setInt(sf: AvroSimpleFeature, field: String, in:Decoder): Unit    = sf.setAttributeNoConvert(field, in.readInt().asInstanceOf[Object])
+  def setDouble(sf: AvroSimpleFeature, field: String, in:Decoder): Unit = sf.setAttributeNoConvert(field, in.readDouble().asInstanceOf[Object])
+  def setLong(sf: AvroSimpleFeature, field: String, in:Decoder): Unit   = sf.setAttributeNoConvert(field, in.readLong().asInstanceOf[Object])
+  def setFloat(sf: AvroSimpleFeature, field: String, in:Decoder): Unit  = sf.setAttributeNoConvert(field, in.readFloat().asInstanceOf[Object])
+  def setBool(sf: AvroSimpleFeature, field: String, in:Decoder): Unit   = sf.setAttributeNoConvert(field, in.readBoolean().asInstanceOf[Object])
+  def setUUID(sf: AvroSimpleFeature, field: String, in:Decoder): Unit = {
+    val bb = in.readBytes(null)
+    sf.setAttributeNoConvert(field, new UUID(bb.getLong, bb.getLong))
+  }
+
+  def setDate(sf: AvroSimpleFeature, field: String, in:Decoder): Unit = sf.setAttributeNoConvert(field, new Date(in.readLong()))
+  def setGeometry(sf: AvroSimpleFeature, field: String, in:Decoder): Unit
+
+  def buildConsumeFunction(cls: Class[_]) = cls match {
+    case c if classOf[java.lang.String].isAssignableFrom(cls)  => (in: Decoder) => in.skipString()
+    case c if classOf[java.lang.Integer].isAssignableFrom(cls) => (in: Decoder) => in.readInt()
+    case c if classOf[java.lang.Long].isAssignableFrom(cls)    => (in: Decoder) => in.readLong()
+    case c if classOf[java.lang.Double].isAssignableFrom(cls)  => (in: Decoder) => in.readDouble()
+    case c if classOf[java.lang.Float].isAssignableFrom(cls)   => (in: Decoder) => in.readFloat()
+    case c if classOf[java.lang.Boolean].isAssignableFrom(cls) => (in: Decoder) => in.readBoolean()
+    case c if classOf[UUID].isAssignableFrom(cls)              => (in: Decoder) => in.skipBytes()
+    case c if classOf[Date].isAssignableFrom(cls)              => (in: Decoder) => in.readLong()
+    case c if classOf[Geometry].isAssignableFrom(cls)          => (in: Decoder) => in.skipBytes()
+  }
+
 }

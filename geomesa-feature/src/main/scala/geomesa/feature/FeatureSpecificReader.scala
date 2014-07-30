@@ -18,12 +18,13 @@ package geomesa.feature
 
 import java.io.InputStream
 
+import com.vividsolutions.jts.geom.Geometry
 import geomesa.feature.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
 import org.apache.avro.Schema
 import org.apache.avro.io.{DatumReader, Decoder, DecoderFactory}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.HashSet
 
@@ -37,7 +38,7 @@ import scala.collection.JavaConversions._
 
   var oldSchema = AvroSimpleFeature.generateSchema(oldType)
   val newSchema = AvroSimpleFeature.generateSchema(newType)
-  val fieldsDesired = new HashSet() ++ DataUtilities.attributeNames(newType)
+  val fieldsDesired = DataUtilities.attributeNames(newType).map(encodeAttributeName)
 
   def isDataField(f: Schema.Field) =
     !f.name.equals(FEATURE_ID_AVRO_FIELD_NAME) && !f.name.equals(AVRO_SIMPLE_FEATURE_VERSION)
@@ -52,12 +53,53 @@ import scala.collection.JavaConversions._
 
   def setSchema(schema:Schema) = oldSchema = schema
 
+  def buildFieldReaders(deserializer: ASFDeserializer) =
+    oldType.getAttributeDescriptors.map { ad =>
+      val name = encodeAttributeName(ad.getLocalName)
+      buildSetOrConsume(name, typeMap(name), deserializer) }
+
+  def buildSetOrConsume(name: String, cls: Class[_], deserializer: ASFDeserializer) = {
+    val f =
+      if (!fieldsDesired.contains(name)) buildConsume(cls, name, deserializer)
+      else buildSet(cls, name, deserializer)
+
+    if (nullMap.contains(name))
+      (sf: AvroSimpleFeature, in: Decoder) =>
+        if (in.readIndex() == 1) in.readNull()
+        else f(sf, in)
+    else
+      f
+  }
+          
+  def buildSet(clazz: Class[_], name: String, deserializer: ASFDeserializer) = {
+    val f: (AvroSimpleFeature, Decoder) => Unit = clazz match {
+      case cls if classOf[java.lang.String].isAssignableFrom(cls)  => deserializer.setString(_, decodeAttributeName(name), _)
+      case cls if classOf[java.lang.Integer].isAssignableFrom(cls) => deserializer.setInt(_, decodeAttributeName(name), _)
+      case cls if classOf[java.lang.Long].isAssignableFrom(cls)    => deserializer.setLong(_, decodeAttributeName(name), _)
+      case cls if classOf[java.lang.Double].isAssignableFrom(cls)  => deserializer.setDouble(_, decodeAttributeName(name), _)
+      case cls if classOf[java.lang.Float].isAssignableFrom(cls)   => deserializer.setFloat(_, decodeAttributeName(name), _)
+      case cls if classOf[java.lang.Boolean].isAssignableFrom(cls) => deserializer.setBool(_, decodeAttributeName(name), _)
+      case cls if classOf[UUID].isAssignableFrom(cls)              => deserializer.setUUID(_, decodeAttributeName(name), _)
+      case cls if classOf[Date].isAssignableFrom(cls)              => deserializer.setDate(_, decodeAttributeName(name), _)
+      case cls if classOf[Geometry].isAssignableFrom(cls)          => deserializer.setGeometry(_, decodeAttributeName(name), _)
+    }
+    f
+  }
+
+  def buildConsume(clazz: Class[_], name: String, deserializer: ASFDeserializer) = {
+    val f = deserializer.buildConsumeFunction(clazz)
+    (sf: SimpleFeature, in: Decoder) => f(in)
+  }
+
+  val v1fieldreaders = buildFieldReaders(Version1Deserializer)
+  val v2fieldreaders = buildFieldReaders(Version2Deserializer)
+
   def read(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
     // Read the version first and choose the proper deserializer
     val serializationVersion = in.readInt()
     val deserializer = serializationVersion match {
-      case 1 => Version1Deserializer
-      case 2 => Version2Deserializer
+      case 1 => v1fieldreaders
+      case 2 => v2fieldreaders
     }
 
     // Read the id
@@ -65,33 +107,9 @@ import scala.collection.JavaConversions._
 
     // Followed by the data fields
     val sf = new AvroSimpleFeature(id, newType)
-    if(dataFields.size != fieldsDesired.size)
-      dataFields.foreach { f =>
-        if(checkNull(f.name, in)) in.readNull()
-        else setOrConsume(sf, decodeAttributeName(f.name), in, typeMap.get(f.name).get, deserializer)
-      }
-    else
-      dataFields.foreach { f =>
-        if(checkNull(f.name, in)) in.readNull()
-        else deserializer.setValue(sf, decodeAttributeName(f.name), in, typeMap.get(f.name).get)
-      }
+    deserializer.foreach { f => f(sf, in) }
     sf
   }
-
-  // null at index 1 according to schema builder...beware 1.7.5 is avro version...might change with later versions
-  // look at the json schema to verify the position that the null is in
-  protected def checkNull(field:String, in:Decoder) = nullMap.get(field).get && in.readIndex() == 1
-
-  protected def setOrConsume(sf: AvroSimpleFeature,
-                             field: String,
-                             in:Decoder,
-                             cls: Class[_],
-                             deserializer: ASFDeserializer) =
-    if (fieldsDesired.contains(field)) {
-      deserializer.setValue(sf,field, in, cls)
-    } else {
-      deserializer.consumeValue(cls, in)
-    }
 
 }
 
