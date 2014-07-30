@@ -63,6 +63,14 @@
         <avro.version>1.7.5</avro.version>
     </properties>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>repo.locationtech.org</id>
+            <name>GeoMesa Repository - Snapshots</name>
+            <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
