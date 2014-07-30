@@ -16,7 +16,6 @@
 package geomesa.tools
 import org.apache.commons.cli.{Option => Opt}
 
-
 /**
  * To run from IntelliJ with command line arguments, hit the following key sequence:
  *
@@ -53,9 +52,9 @@ object Tools extends App {
         " should be applied to all data written or read by this Accumulo user; note that this is NOT the list of" +
         " low-level database permissions such as 'Table.READ', but more a series of text tokens that decorate cell" +
         " data, e.g.:  Accounting,Purchasing,Testing" optional(),
-      arg[String]("table").action { (s, c) =>
-        c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
-        "if it does not already exist -- to contain the new data" optional(),
+      opt[String]('t', "table").action { (s, c) =>
+        c.copy(table = s) } text "the name of the Accumulo table to use, or create, " +
+        "if it does not already exist -- to contain the new data",
       arg[String]("<hdfs path>").action { (s, c) =>
         c.copy(pathHDFS = s) } text "HDFS path of file to ingest" optional(),
       opt[String]('s', "spec").action { (s, c) =>
@@ -85,8 +84,7 @@ object Tools extends App {
         println("feature-ing")
       case "ingest" =>
         println("Ingesting...")
-        println(parser.showUsage)
-        println(config.toString)
+        Ingest.defineIngestJob(config)
     }
   } getOrElse {
     Console.printf("I don't know what you're trying to do right now.")
@@ -101,6 +99,4 @@ case class Config(mode: String = null, instanceId: String = null,
                   dtField: String = null, dtFormat: String = null,
                   method: String = null, file: String = null,
                   format: String = null)
-
-
 
