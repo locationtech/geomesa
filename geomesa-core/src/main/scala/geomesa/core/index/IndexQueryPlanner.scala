@@ -164,15 +164,16 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     }
   }
 
-  def attrIdxQueryEligible(filt: Filter) = filt match {
+  def attrIdxQueryEligible(filt: Filter): Boolean = filt match {
     case filter: PropertyIsEqualTo =>
       val one = filter.getExpression1
       val two = filter.getExpression2
       val prop = (one, two) match {
-        case (p: PropertyName, _) => p.getPropertyName
-        case (_, p: PropertyName) => p.getPropertyName
+        case (p: PropertyName, _) => Some(p.getPropertyName)
+        case (_, p: PropertyName) => Some(p.getPropertyName)
+        case (_, _)               => None
       }
-      featureType.getDescriptor(prop).isIndexed
+      prop.exists(featureType.getDescriptor(_).isIndexed)
 
     case filter: PropertyIsLike =>
       val prop = filter.getExpression.asInstanceOf[PropertyName].getPropertyName

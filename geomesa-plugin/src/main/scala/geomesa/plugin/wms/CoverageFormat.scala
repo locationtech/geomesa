@@ -50,7 +50,11 @@ class CoverageFormat extends AbstractGridFormat {
 
   override def getReadParameters: ParameterGroup = coverageFormatReadParameters
   override def getReader(source: AnyRef) = getReader(source, null)
-  override def getReader(source: AnyRef, hints: Hints) = new CoverageReader(source.asInstanceOf[File])
+  override def getReader(source: AnyRef, hints: Hints) = source match {
+    case file: File => new CoverageReader(file.getPath)
+    case path: String => new CoverageReader(path)
+    case unk => throw new Exception(s"unexpected data type for reader source: ${Option(unk).map(_.getClass.getName).getOrElse("null")}")
+  }
   override def accepts(input: AnyRef) = true
   override def accepts(source: AnyRef, hints: Hints) = true
   override def getWriter(destination: AnyRef) = throw new UnsupportedOperationException("Unsupported")
