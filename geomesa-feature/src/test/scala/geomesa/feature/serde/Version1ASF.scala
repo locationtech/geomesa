@@ -1,19 +1,3 @@
-/*
- * Copyright 2014 Commonwealth Computer Research, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package geomesa.feature
 
 import java.io.OutputStream
@@ -24,7 +8,6 @@ import java.util.{Date, UUID, Collection => JCollection, List => JList}
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 import com.google.common.collect.Maps
 import com.vividsolutions.jts.geom.Geometry
-import geomesa.utils.text.WKBUtils
 import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
 import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
 import org.apache.avro.{Schema, SchemaBuilder}
@@ -43,10 +26,9 @@ import org.opengis.geometry.BoundingBox
 import scala.collection.JavaConversions._
 import scala.util.Try
 
+class Version1ASF(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
 
-class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
-
-  import geomesa.feature.AvroSimpleFeature._
+  import geomesa.feature.Version1ASF._
 
   val values    = Array.ofDim[AnyRef](sft.getAttributeCount)
   val userData  = collection.mutable.HashMap.empty[AnyRef, AnyRef]
@@ -57,18 +39,15 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
 
   def write(datumWriter: GenericDatumWriter[GenericRecord], encoder: BinaryEncoder){
     val record = new GenericData.Record(schema)
-    record.put(AvroSimpleFeature.AVRO_SIMPLE_FEATURE_VERSION, AvroSimpleFeature.VERSION)
-    record.put(AvroSimpleFeature.FEATURE_ID_AVRO_FIELD_NAME, getID)
+    record.put(Version1ASF.AVRO_SIMPLE_FEATURE_VERSION, Version1ASF.VERSION)
+    record.put(Version1ASF.FEATURE_ID_AVRO_FIELD_NAME, getID)
 
-    // We've tried to optimize this.
-    for (i <- 0 until sft.getAttributeCount) {
-      if( values(i) == null) {
-        record.put(i+2, null)
-      } else {
-        record.put(i+2, convertValue(i, values(i)))
-      }
+    val converted = values.zipWithIndex.map {
+      case t@(null, _) => t
+      case (v, idx)    => (convertValue(idx, v), idx)
     }
 
+    converted.foreach { case (x, idx) => record.put(names(idx), x) }
     datumWriter.write(record, encoder)
     encoder.flush()
   }
@@ -136,8 +115,8 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   def getProperties: JCollection[Property] =
     getAttributes.zip(sft.getAttributeDescriptors).map {
       case(attribute, attributeDescriptor) =>
-         new AttributeImpl(attribute, attributeDescriptor, id)
-      }
+        new AttributeImpl(attribute, attributeDescriptor, id)
+    }
   def getProperties(name: Name): JCollection[Property] = getProperties(name.getLocalPart)
   def getProperties(name: String): JCollection[Property] = getProperties.filter(_.getName.toString == name)
   def getProperty(name: Name): Property = getProperty(name.getLocalPart)
@@ -161,10 +140,10 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   def validate() = values.zipWithIndex.foreach { case (v, idx) => Types.validate(getType.getDescriptor(idx), v) }
 }
 
-object AvroSimpleFeature {
+object Version1ASF {
 
   def apply(sf: SimpleFeature) = {
-    val asf = new AvroSimpleFeature(sf.getIdentifier, sf.getFeatureType)
+    val asf = new Version1ASF(sf.getIdentifier, sf.getFeatureType)
     for (i <- 0 until sf.getAttributeCount) asf.setAttribute(i, sf.getAttribute(i))
 
     asf
@@ -219,7 +198,7 @@ object AvroSimpleFeature {
               (v: AnyRef) => v.asInstanceOf[Date].getTime
 
             case t if classOf[Geometry].isAssignableFrom(t) =>
-              (v: AnyRef) => ByteBuffer.wrap(WKBUtils.write(v.asInstanceOf[Geometry]))
+              (v: AnyRef) => v.asInstanceOf[Geometry].toText
 
             case _ =>
               (v: AnyRef) =>
@@ -250,7 +229,7 @@ object AvroSimpleFeature {
 
   final val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   final val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
-  final val VERSION: Int = 2
+  final val VERSION: Int = 1
   final val AVRO_NAMESPACE: String = "org.geomesa"
 
   def encode(s: String): String = "_" + Hex.encodeHexString(s.getBytes("UTF8"))
@@ -283,7 +262,7 @@ object AvroSimpleFeature {
                nillable: Boolean): SchemaBuilder.FieldAssembler[Schema] = {
     val baseType = if (nillable) assembler.name(name).`type`.nullable() else assembler.name(name).`type`
     ct match {
-      case c if classOf[String].isAssignableFrom(c)             => baseType.stringType.noDefault
+      case c if classOf[String].isAssignableFrom(c)             => baseType.stringType().noDefault()
       case c if classOf[java.lang.Integer].isAssignableFrom(c)  => baseType.intType.noDefault
       case c if classOf[java.lang.Long].isAssignableFrom(c)     => baseType.longType.noDefault
       case c if classOf[java.lang.Double].isAssignableFrom(c)   => baseType.doubleType.noDefault
@@ -291,7 +270,7 @@ object AvroSimpleFeature {
       case c if classOf[java.lang.Boolean].isAssignableFrom(c)  => baseType.booleanType.noDefault
       case c if classOf[UUID].isAssignableFrom(c)               => baseType.bytesType.noDefault
       case c if classOf[Date].isAssignableFrom(c)               => baseType.longType.noDefault
-      case c if classOf[Geometry].isAssignableFrom(c)           => baseType.bytesType.noDefault
+      case c if classOf[Geometry].isAssignableFrom(c)           => baseType.stringType.noDefault
     }
   }
 

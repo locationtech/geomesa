@@ -20,7 +20,7 @@
                                     outputFormat="GML2"
                                     xmlns:accumulo="http://locationtech.org/geomesa">
                         <!-- type name set up in geoserver named "testType" -->
-                        <wfs:Query typeName="accumulo:testType"/>
+                        <wfs:Query typeName="acc:twitter"/>
                     </wfs:GetFeature>
                 </wps:Body>
             </wps:Reference>
@@ -29,7 +29,7 @@
             <ows:Identifier>filter</ows:Identifier>
             <wps:Data>
                 <wps:ComplexData mimeType="text/plain; subtype=cql">
-                    <![CDATA[BBOX(geom, 40.0, 40.0, 40.0, 50.0) AND type='a']]></wps:ComplexData>
+                    <![CDATA[tweet_id = 429702934591705088]]></wps:ComplexData>
             </wps:Data>
         </wps:Input>
     </wps:DataInputs>
