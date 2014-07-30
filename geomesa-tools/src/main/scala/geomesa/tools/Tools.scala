@@ -15,6 +15,10 @@
  */
 package geomesa.tools
 
+import geomesa.core.data.AccumuloDataStore
+import org.geotools.data._
+
+import scala.collection.JavaConversions._
 
 /**
  * To run from IntelliJ with command line arguments, hit the following key sequence:
@@ -34,6 +38,19 @@ object Tools extends App {
     cmd("features") action { (_, c) =>
       c.copy(mode = "features")
     } text ("features is a command") children(
+      opt[String]('i', "instanceId").action { (s, c) =>
+        c.copy(instanceId = s) } text "the ID (name) of the Accumulo instance, e.g:  mycloud" required(),
+      opt[String]('z', "zookeepers").action { (s, c) =>
+        c.copy(zookeepers = s) } text "the comma-separated list of Zookeeper nodes that" +
+        " support your Accumulo instance, e.g.:  zoo1:2181,zoo2:2181,zoo3:2181" required(),
+      opt[String]('u', "user").action { (s, c) =>
+        c.copy(user = s) } text "the Accumulo user that will own the connection, e.g.:  root" required(),
+      opt[String]('p', "password").action { (s, c) =>
+        c.copy(password = s) } text "the password for the Accumulo user that will own the connection," +
+        " e.g.:  guest" required(),
+      arg[String]("table").action { (s, c) =>
+        c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
+        "if it does not already exist -- to contain the new data" optional()
       )
     cmd("ingest") action { (_, c) =>
       c.copy(mode = "ingest") } text "Ingest a feature into GeoMesa" children (
@@ -52,9 +69,9 @@ object Tools extends App {
         " should be applied to all data written or read by this Accumulo user; note that this is NOT the list of" +
         " low-level database permissions such as 'Table.READ', but more a series of text tokens that decorate cell" +
         " data, e.g.:  Accounting,Purchasing,Testing" optional(),
-      opt[String]('t', "table").action { (s, c) =>
-        c.copy(table = s) } text "the name of the Accumulo table to use, or create, " +
-        "if it does not already exist -- to contain the new data",
+      arg[String]("table").action { (s, c) =>
+        c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
+        "if it does not already exist -- to contain the new data" optional(),
       arg[String]("<hdfs path>").action { (s, c) =>
         c.copy(pathHDFS = s) } text "HDFS path of file to ingest" optional(),
       opt[String]('s', "spec").action { (s, c) =>
@@ -76,15 +93,32 @@ object Tools extends App {
      )
   }
 
+  def createStore(table: String): AccumuloDataStore = {
+    // the specific parameter values should not matter, as we
+    // are requesting a mock data store connection to Accumulo
+    DataStoreFinder.getDataStore(Map(
+      "instanceId" -> "mycloud",
+      "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      "user"       -> "root",
+      "password"   -> "secret",
+      "auths"      -> "A,B,C",
+      "tableName"  -> table,
+      "useMock"    -> "true",
+      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+  }
+
   parser.parse(args, Config()) map { config =>
     config.mode match {
       case "export" =>
         println("exporting")
-      case "feature" =>
-        println("feature-ing")
+      case "features" => {
+        val ft = new FeaturesTool(config.instanceId, config.zookeepers, config.user, config.password, config.table)
+        ft.listFeatures()
+      }
       case "ingest" =>
         println("Ingesting...")
-        Ingest.defineIngestJob(config)
+        println(parser.showUsage)
+        println(config.toString)
     }
   } getOrElse {
     Console.printf("I don't know what you're trying to do right now.")
@@ -99,4 +133,6 @@ case class Config(mode: String = null, instanceId: String = null,
                   dtField: String = null, dtFormat: String = null,
                   method: String = null, file: String = null,
                   format: String = null)
+
+
 
