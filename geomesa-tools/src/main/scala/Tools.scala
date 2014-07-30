@@ -40,30 +40,43 @@ object Tools extends App {
       )
     cmd("ingest") action { (_, c) =>
       c.copy(mode = "ingest") } text "Ingest is a command" children (
-      opt[String]("instanceId").action { (s, c) =>
+      opt[String]('i', "instanceId").action { (s, c) =>
         c.copy(instanceId = s) } text "the ID (name) of the Accumulo instance, e.g:  mycloud" required(),
-      opt[String]("zookeepers").action { (s, c) =>
+      opt[String]('z', "zookeepers").action { (s, c) =>
         c.copy(zookeepers = s) } text "the comma-separated list of Zookeeper nodes that support your Accumulo instance, e.g.:  zoo1:2181,zoo2:2181,zoo3:2181" required(),
-      opt[String]("user").action { (s, c) =>
+      opt[String]('u', "user").action { (s, c) =>
         c.copy(user = s) } text "the Accumulo user that will own the connection, e.g.:  root" required(),
-      opt[String]("password").action { (s, c) =>
+      opt[String]('p', "password").action { (s, c) =>
         c.copy(password = s) } text "the password for the Accumulo user that will own the connection, e.g.:  guest" required(),
       arg[String]("<authorizations>").action { (s, c) =>
         c.copy(authorizations = s) } text "the (optional) list of comma-separated Accumulo authorizations that" +
         " should be applied to all data written or read by this Accumulo user; note that this is NOT the list of" +
         " low-level database permissions such as 'Table.READ', but more a series of text tokens that decorate cell" +
         " data, e.g.:  Accounting,Purchasing,Testing" optional(),
-      opt[String]("format").action { (s, c) =>
-        c.copy(format = s) } text "format of ingest file"
+      opt[String]('f', "format").action { (s, c) =>
+        c.copy(format = s) } text "format of ingest file" required(),
+      opt[String]('s', "spec").action { (s, c) =>
+        c.copy(spec = s) } text "the specification for the file" required(),
+      opt[String]('m', "method").action { (s, c) =>
+        c.copy(method = s) } text "the method used to ingest, e.g.: mapreduce" required(),
+      opt[String]("file").action { (s, c) =>
+        c.copy(file = s) } text "the file you wish to ingest, e.g.: ~/capelookout.csv" required()
      )
   }
 
   parser.parse(args, Config()) map { config =>
-    println(config.mode match {
-      case "export" => "exporting"
-      case "feature" => "feature-ing"
-      case "ingest" => "ingesting"
-    })
+    config.mode match {
+      case "export" =>
+        println("exporting")
+      case "feature" => 
+        println("feature-ing")
+      case "ingest" =>
+        println("Ingesting...")
+        println(config.instanceId)
+        println(config.zookeepers)
+        println(config.user)
+        println(config.toString)
+    }
   } getOrElse {
     Console.printf("I don't know what you're trying to do right now.")
   }
@@ -75,7 +88,10 @@ case class Config(mode: String = null,
                   user: String = null,
                   password: String = null,
                   authorizations: String = null,
-                  format: String = null)
+                  format: String = null,
+                  spec: String = null,
+                  method: String = null,
+                  file: String = null)
 
 
 
