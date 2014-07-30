@@ -54,6 +54,14 @@ object Version2Deserializer extends ASFDeserializer {
     sf.setAttributeNoConvert(field, obj)
   }
 
+  def setGeometry(sf: AvroSimpleFeature, field: String, in:Decoder): Unit = {
+    val bb = in.readBytes(null)
+    val bytes = new Array[Byte](bb.remaining)
+    bb.get(bytes)
+    val geom = WKBUtils.read(bytes)
+    sf.setAttributeNoConvert(field, geom)
+  }
+
   override def consume(cls: Class[_], in: Decoder) = cls match {
     case c if classOf[java.lang.String].isAssignableFrom(cls)  => in.skipString()
     case c if classOf[java.lang.Integer].isAssignableFrom(cls) => in.readInt()
@@ -65,6 +73,7 @@ object Version2Deserializer extends ASFDeserializer {
     case c if classOf[Date].isAssignableFrom(cls)              => in.readLong()
     case c if classOf[Geometry].isAssignableFrom(cls)          => in.skipBytes()
   }
+
 
 }
 

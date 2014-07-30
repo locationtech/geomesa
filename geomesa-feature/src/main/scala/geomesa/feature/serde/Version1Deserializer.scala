@@ -50,6 +50,12 @@ object Version1Deserializer extends ASFDeserializer {
     sf.setAttributeNoConvert(field, obj)
   }
 
+
+  override def setGeometry(sf: AvroSimpleFeature, field: String, in: Decoder): Unit = {
+    val geom = Converters.convert(in.readString(), classOf[Geometry])
+    sf.setAttributeNoConvert(field, geom)
+  }
+
   override def consume(cls: Class[_], in:Decoder) = cls match {
     case c if classOf[java.lang.String].isAssignableFrom(cls)  => in.skipString()
     case c if classOf[java.lang.Integer].isAssignableFrom(cls) => in.readInt()
