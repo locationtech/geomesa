@@ -127,7 +127,8 @@
                                     <exclude>it.geosolutions.*:*</exclude>
                                     <exclude>org.jaitools:*</exclude>
                                     <exclude>com.vividsolutions:*</exclude>
-                                    <exclude>commons*:*</exclude>
+                                    <exclude>commons-pool:*</exclude>
+                                    <exclude>commons-codec:*</exclude>
                                     <exclude>net.java.dev:*</exclude>
                                     <exclude>java3d:*</exclude>
                                     <exclude>net.jcip:*</exclude>

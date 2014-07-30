@@ -34,38 +34,40 @@ class StatReaderTest extends Specification {
   val catalogTable = "geomesa_catalog"
   val featureName = "stat-reader-test"
 
+  val connector = new MockInstance().getConnector("user", new PasswordToken("password"))
+
   val auths = new Authorizations()
+
+  def writeStat(stat: Stat) = StatWriter.write(List(stat), connector)
 
   "QueryStatReader" should {
 
-    val writer = new MockStatWriter
+    writeStat(QueryStat(catalogTable,
+                          featureName,
+                          df.parseMillis("2014.07.26 13:20:01"),
+                          "query1",
+                          "hint1=true",
+                          101L,
+                          201L,
+                          11))
+    writeStat(QueryStat(catalogTable,
+                          featureName,
+                          df.parseMillis("2014.07.26 14:20:01"),
+                          "query2",
+                          "hint2=true",
+                          102L,
+                          202L,
+                          12))
+    writeStat(QueryStat(catalogTable,
+                          featureName,
+                          df.parseMillis("2014.07.27 13:20:01"),
+                          "query3",
+                          "hint3=true",
+                          102L,
+                          202L,
+                          12))
 
-    writer.writeStat(QueryStat(catalogTable,
-                                featureName,
-                                df.parseMillis("2014.07.26 13:20:01"),
-                                "query1",
-                                "hint1=true",
-                                101L,
-                                201L,
-                                11))
-    writer.writeStat(QueryStat(catalogTable,
-                                featureName,
-                                df.parseMillis("2014.07.26 14:20:01"),
-                                "query2",
-                                "hint2=true",
-                                102L,
-                                202L,
-                                12))
-    writer.writeStat(QueryStat(catalogTable,
-                                featureName,
-                                df.parseMillis("2014.07.27 13:20:01"),
-                                "query3",
-                                "hint3=true",
-                                102L,
-                                202L,
-                                12))
-
-    val reader = new QueryStatReader(writer.connector, catalogTable)
+    val reader = new QueryStatReader(connector, catalogTable)
 
     "query all stats in order" in {
       val queries = reader.query(featureName, new Date(0), new Date(), auths)
@@ -111,9 +113,4 @@ class StatReaderTest extends Specification {
 
   }
 
-}
-
-class MockStatWriter extends StatWriter {
-  val connector = new MockInstance().getConnector("user", new PasswordToken("password"))
-  override def writeStat(stat: Stat): Unit = StatWriter.write(List(stat), connector)
 }
