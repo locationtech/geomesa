@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package geomesa.tools
-import org.apache.commons.cli.{Option => Opt}
+
 
 /**
  * To run from IntelliJ with command line arguments, hit the following key sequence:

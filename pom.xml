@@ -30,6 +30,7 @@
         <module>geomesa-plugin</module>
         <module>geomesa-filter</module>
         <module>geomesa-feature</module>
+        <module>geomesa-tools</module>
     </modules>
 
     <properties>
