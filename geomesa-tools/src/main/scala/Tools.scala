@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package geomesa.tools
+import org.apache.commons.cli.{Option => Opt}
 
 class Tools {
 
@@ -24,14 +25,18 @@ object Tools extends App {
     head("GeoMesa Tools", "1.0")
     help("help").text("show help command")
     cmd("export") action { (_, c) =>
-      c.copy(mode = "export") } text("export is a command") children(
+      c.copy(mode = "export")
+    } text ("export is a command") children(
       )
     cmd("features") action { (_, c) =>
-      c.copy(mode = "features") } text("features is a command") children(
+      c.copy(mode = "features")
+    } text ("features is a command") children(
       )
     cmd("ingest") action { (_, c) =>
-      c.copy(mode = "ingest") } text("Ingest is a command") children(
-      )
+      c.copy(mode = "ingest") } text ("Ingest is a command") children (
+      opt[String]("format").action { (s, c) =>
+        c.copy(format = s) } text ("format of injest file")
+     )
   }
 
   parser.parse(args, Config()) map { config =>
@@ -41,7 +46,7 @@ object Tools extends App {
   }
 }
 
-case class Config(mode: String = null)
+case class Config(mode: String = null, format: String = null)
 
 
 
