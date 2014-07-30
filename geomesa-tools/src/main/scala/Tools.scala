@@ -41,7 +41,7 @@ object Tools extends App {
     cmd("ingest") action { (_, c) =>
       c.copy(mode = "ingest") } text ("Ingest is a command") children (
       opt[String]("format").action { (s, c) =>
-        c.copy(format = s) } text ("format of injest file")
+        c.copy(format = s) } text ("format of ingest file")
      )
   }
 
@@ -58,7 +58,13 @@ object Tools extends App {
   }
 }
 
-case class Config(mode: String = null, format: String = null)
+case class Config(mode: String = null,
+                  instanceId: String = null,
+                  zookeepers: String = null,
+                  user: String = null,
+                  password: String = null,
+                  authorizations: String = null,
+                  format: String = null)
 
 
 
