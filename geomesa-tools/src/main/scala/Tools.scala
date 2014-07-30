@@ -15,6 +15,12 @@
  */
 package geomesa.tools
 
+
+/**
+ * To run from IntelliJ with command line arguments, hit the following key sequence:
+ *
+ * ALT+SHIFT+F10, Right, E, Enter, Tab, enter your command line parameters, Enter.
+ */
 class Tools {
 
 }
@@ -35,7 +41,13 @@ object Tools extends App {
   }
 
   parser.parse(args, Config()) map { config =>
-    Console.printf(s"$config")
+    if (config.mode == "export") {
+      Console.print("you made an export happen")
+    } else if (config.mode == "features") {
+      Console.printf("you're trying to do something with features")
+    } else if (config.mode == "ingest") {
+      Console.printf("you're trying to ingest new data")
+    }
   } getOrElse {
     Console.printf("I don't know what you're trying to do right now.")
   }
