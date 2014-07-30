@@ -74,6 +74,5 @@ object Version2Deserializer extends ASFDeserializer {
     case c if classOf[Geometry].isAssignableFrom(cls)          => in.skipBytes()
   }
 
-
 }
 

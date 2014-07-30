@@ -65,6 +65,6 @@ object Version1Deserializer extends ASFDeserializer {
     case c if classOf[java.lang.Boolean].isAssignableFrom(cls) => in.readBoolean()
     case c if classOf[UUID].isAssignableFrom(cls)              => in.skipBytes()
     case c if classOf[Date].isAssignableFrom(cls)              => in.readLong()
-    case c if classOf[Geometry].isAssignableFrom(cls)          => skipGeometry(in)
+    case c if classOf[Geometry].isAssignableFrom(cls)          => in.skipString()
   }
 }

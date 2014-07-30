@@ -17,6 +17,7 @@
 package geomesa.feature
 
 import java.io.InputStream
+import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom.Geometry
 import geomesa.feature.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
@@ -25,8 +26,6 @@ import org.apache.avro.io.{DatumReader, Decoder, DecoderFactory}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.collection.immutable.HashSet
 
 
 class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType)
