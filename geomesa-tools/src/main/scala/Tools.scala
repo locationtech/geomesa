@@ -29,9 +29,15 @@ object Tools extends App {
     cmd("features") action { (_, c) =>
       c.copy(mode = "features") } text("features is a command") children(
       )
-    cmd("injest") action { (_, c) =>
-      c.copy(mode = "injest") } text("Injest is a command") children(
+    cmd("ingest") action { (_, c) =>
+      c.copy(mode = "ingest") } text("Ingest is a command") children(
       )
+  }
+
+  parser.parse(args, Config()) map { config =>
+    Console.printf(s"$config")
+  } getOrElse {
+    Console.printf("I don't know what you're trying to do right now.")
   }
 }
 
