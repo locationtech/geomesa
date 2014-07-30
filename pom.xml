@@ -39,7 +39,7 @@
         <jts.version>1.13</jts.version>
 
         <!-- environment-dependent versions -->
-        <zookeeper.version>3.3.6</zookeeper.version>
+        <zookeeper.version>3.4.5</zookeeper.version>
         <accumulo.version>1.4.4</accumulo.version>
         <hadoop.version>0.20.2-cdh3u6</hadoop.version>
 
@@ -252,7 +252,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>11.0.1</version>
+                <version>11.0.2</version>
             </dependency>
             <dependency>
                 <groupId>geomesa</groupId>
@@ -463,12 +463,6 @@
               <artifactId>accumulo-minicluster</artifactId>
               <version>${accumulo.version}</version>
               <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.google.code.findbugs</groupId>
-                <artifactId>findbugs</artifactId>
-                <version>2.0.3</version>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
