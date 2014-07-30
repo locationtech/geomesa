@@ -39,7 +39,7 @@
         <jts.version>1.13</jts.version>
 
         <!-- environment-dependent versions -->
-        <zookeeper.version>3.3.6</zookeeper.version>
+        <zookeeper.version>3.4.5</zookeeper.version>
         <accumulo.version>1.5.1</accumulo.version>
         <hadoop.version>2.2.0</hadoop.version>
 
@@ -464,12 +464,6 @@
               <artifactId>accumulo-test</artifactId>
               <version>${accumulo.version}</version>
               <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.google.code.findbugs</groupId>
-                <artifactId>findbugs</artifactId>
-                <version>2.0.3</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>

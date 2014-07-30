@@ -131,10 +131,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>findbugs</artifactId>
-        </dependency>
         <!-- test dependencies -->
         <dependency>
             <groupId>org.specs2</groupId>
