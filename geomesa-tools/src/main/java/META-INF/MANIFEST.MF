@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: geomesa.tools.Tools
+Class-Path: scala-library.jar
+
