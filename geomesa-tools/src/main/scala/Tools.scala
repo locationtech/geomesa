@@ -46,13 +46,11 @@ object Tools extends App {
   }
 
   parser.parse(args, Config()) map { config =>
-    if (config.mode == "export") {
-      Console.print("you made an export happen")
-    } else if (config.mode == "features") {
-      Console.printf("you're trying to do something with features")
-    } else if (config.mode == "ingest") {
-      Console.printf("you're trying to ingest new data")
-    }
+    println(config.mode match {
+      case "export" => "exporting"
+      case "feature" => "feature-ing"
+      case "ingest" => "ingesting"
+    })
   } getOrElse {
     Console.printf("I don't know what you're trying to do right now.")
   }
