@@ -34,9 +34,9 @@
     </modules>
 
     <properties>
-        <scala.version>2.10.3</scala.version>
+        <scala.version>2.10.4</scala.version>
         <geoserver.version>2.5</geoserver.version>
-        <gt.version>11.0</gt.version>
+        <gt.version>11.2</gt.version>
         <jts.version>1.13</jts.version>
 
         <!-- environment-dependent versions -->
@@ -72,6 +72,14 @@
             </properties>
         </profile>
     </profiles>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>repo.locationtech.org</id>
+            <name>GeoMesa Repository - Snapshots</name>
+            <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <dependencyManagement>
         <dependencies>
