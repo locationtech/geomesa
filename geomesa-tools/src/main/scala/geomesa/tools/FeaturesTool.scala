@@ -1,9 +1,11 @@
 package geomesa.tools
 
 import com.typesafe.config.ConfigFactory
-import geomesa.core.data.AccumuloDataStore
+import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader}
+//import geomesa.core.integration.data.{DataExporter, LoadAttributes}
 import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data._
+import org.geotools.filter.text.ecql.ECQL
 
 import scala.collection.JavaConversions._
 
@@ -39,13 +41,16 @@ class FeaturesTool(catalogTable: String) {
     } else false
   }
 
-  def exportFeatures() {
-//    val instance = new ZooKeeperInstance(instanceId, zookeepers)
-//    val connector = instance.getConnector(user, new PasswordToken(password))
-//    val batchWriter = connector.createBatchWriter(table, new BatchWriterConfig())
-//    val mutation = new Mutation("row")
-//    mutation.put("CF", "CQ", new Value("1".getBytes()))
-//    batchWriter.addMutation(mutation)
+  def exportFeatures(feature: String, attributes: String, idAttribute: String, latAttribute: Option[String], lonAttribute: Option[String], dateAttribute: Option[String], query: String) {
+//    val loadAttributes = new LoadAttributes(feature, table, attributes, idAttribute, latAttribute, lonAttribute, dateAttribute, query)
+//    val de = new DataExporter(loadAttributes, Map(
+//      "instanceId" -> instanceId,
+//      "zookeepers" -> zookeepers,
+//      "user"       -> user,
+//      "password"   -> password,
+//      "tableName"  -> table,
+//      "featureEncoding" -> "avro"))
+//    de.writeFeatures(de.queryFeatures())
   }
 
   def deleteFeature(sftName: String): Boolean = {
@@ -53,6 +58,19 @@ class FeaturesTool(catalogTable: String) {
     if (!ds.getNames.contains(sftName)) {
       true
     } else false
+  }
+
+  def explainQuery(featureName: String, filterString: String) = {
+    val q = new Query()
+    val t = Transaction.AUTO_COMMIT
+    q.setTypeName(featureName)
+
+    val f = ECQL.toFilter(filterString)
+    q.setFilter(f)
+
+    val afr = ds.getFeatureReader(q, t).asInstanceOf[AccumuloFeatureReader]
+
+    afr.explainQuery(q)
   }
 }
 
