@@ -1,13 +1,9 @@
 package geomesa.tools
 
+
 import com.typesafe.config.ConfigFactory
-import geomesa.core.data.AccumuloDataStore
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.geotools.data.{DataStoreFinder, DataUtilities}
-
-
-import scala.collection.JavaConversions._
 import scala.collection.mutable.HashMap
 
 class Ingest() {}
@@ -43,35 +39,14 @@ object Ingest  {
     val connector = instance.getConnector(user, new PasswordToken(password))
     dsConfig.put("connector", connector)
     val method = config.method
-    val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
+    //val ds = DataStoreFinder.getDataStore(dsConfig)
     method match {
       case "mapreduce" => println("go go mapreduce!")
-        try {
-          //val sft = ds.getSchema(config.spec)
-          //val spec = DataUtilities.encodeType(sft)
           println("Success")
-        } catch {
-          case t: Throwable => t.printStackTrace()
-        }
       case "naive" =>
-        try{
           println("go go naive!")
-          // get the deliminator for provided type
-          lazy val delim = config.format match {
-            case "TSV" => "\t"
-            case "CSV" => ","
-          }
-
-
-
-
-
-        } catch {
-          case t: Throwable => t.printStackTrace()
-        }
       case _ => println("Error, no such method exists, no changes made")
     }
   }
 }
-
 
