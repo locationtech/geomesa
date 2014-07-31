@@ -60,12 +60,15 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
     record.put(AvroSimpleFeature.AVRO_SIMPLE_FEATURE_VERSION, AvroSimpleFeature.VERSION)
     record.put(AvroSimpleFeature.FEATURE_ID_AVRO_FIELD_NAME, getID)
 
-    val converted = values.zipWithIndex.map {
-      case t@(null, _) => t
-      case (v, idx)    => (convertValue(idx, v), idx)
+    // We've tried to optimize this.
+    for (i <- 0 until sft.getAttributeCount) {
+      if(values(i) == null) {
+        record.put(i+2, null)
+      } else {
+        record.put(i+2, convertValue(i, values(i)))
+      }
     }
 
-    converted.foreach { case (x, idx) => record.put(names(idx), x) }
     datumWriter.write(record, encoder)
     encoder.flush()
   }
@@ -196,6 +199,7 @@ object AvroSimpleFeature {
       )
 
   case class Binding(clazz: Class[_], conv: AnyRef => Any)
+
   val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Binding]] =
     loadingCacheBuilder { sft =>
       sft.getAttributeDescriptors.map { ad =>
