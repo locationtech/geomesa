@@ -69,12 +69,12 @@ object Tools extends App {
       opt[String]("table").action { (s, c) =>
         c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
         "if it does not already exist -- to contain the new data" optional(),
-      arg[String]("<hdfs path>").action { (s, c) =>
-        c.copy(pathHDFS = s) } text "HDFS path of file to ingest" optional(),
       opt[String]("typeName").action { (s, c) =>
         c.copy(typeName = s) } text "Name of the feature type to be ingested" required(),
       opt[String]('s', "spec").action { (s, c) =>
         c.copy(spec = s) } text "the specification for the file" required(),
+      opt[String]("idFields").action { (s, c) =>
+        c.copy(idFields = s) } text "the comma seperated id header of the csv/tsv, or HASH" required(),
       opt[String]("latitude").action { (s, c) =>
         c.copy(latField = s) } text "Name of latitude field" required(),
       opt[String]("longitude").action { (s, c) =>
@@ -130,11 +130,8 @@ object Tools extends App {
   }
 }
 
-case class Config(mode: String = null, instanceId: String = null,
-                  zookeepers: String = null, user: String = null,
-                  password: String = null, authorizations: String = null, visibilities: String = null,
-                  table: String = null, pathHDFS: String = null, spec: String = null,
-                  latField: String = null, lonField: String = null,
+case class Config(mode: String = null, table: String = null, spec: String = null,
+                  idFields: String = null, latField: String = null, lonField: String = null,
                   dtField: String = null, dtFormat: String = null,
                   method: String = null, file: String = null, typeName: String = null,
                   format: String = null, catalog: String = null,
