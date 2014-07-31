@@ -88,9 +88,9 @@ class SFTIngest(config: Config, dsConfig: HashMap[String, Any]) {
   lazy val dtgField         = config.dtField
   lazy val dtgFmt           = config.dtFormat
   lazy val dtgTargetField   = Constants.SF_PROPERTY_START_TIME
-  lazy val zookeepers       = config.zookeepers
-  lazy val user             = config.user
-  lazy val password         = config.password
+  lazy val zookeepers       = dsConfig.get("zookeepers")
+  lazy val user             = dsConfig.get("user")
+  lazy val password         = dsConfig.get("password")
   lazy val auths            = dsConfig.get("auths")
 
   lazy val delim  = config.format match {
