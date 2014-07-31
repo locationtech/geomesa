@@ -53,12 +53,11 @@ class FeatureSpecificReaderTest {
     f
   }
 
-  def readAvroWithFsr(f: File, oldType: SimpleFeatureType): List[AvroSimpleFeature] = readAvroWithFsr(f, oldType, oldType)
+  def readAvroWithFsr(f: File, oldType: SimpleFeatureType): List[AvroSimpleFeature] = readAvroWithFsr(new FeatureSpecificReader(oldType, oldType), f)
 
-  def readAvroWithFsr(f: File, oldType: SimpleFeatureType, newType: SimpleFeatureType): List[AvroSimpleFeature] = {
+  def readAvroWithFsr(fsr: FeatureSpecificReader, f: File): List[AvroSimpleFeature] = {
     val fis = new FileInputStream(f)
     val decoder = DecoderFactory.get().binaryDecoder(fis, null)
-    val fsr = new FeatureSpecificReader(oldType, newType)
 
     val sfList = new ListBuffer[AvroSimpleFeature]()
 
@@ -122,7 +121,7 @@ class FeatureSpecificReaderTest {
 
     val f = writeAvroFile(sfList)
     val subsetType = SimpleFeatureTypes.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
-    val subsetList = readAvroWithFsr(f, oldType, subsetType)
+    val subsetList = readAvroWithFsr(new FeatureSpecificReader(oldType, subsetType), f)
 
     subsetList
   }
@@ -159,7 +158,7 @@ class FeatureSpecificReaderTest {
   def testGeoTypes() = {
     val orig = createTypeWithGeo
     val f = writeAvroFile(List(orig))
-    val fsrList = readAvroWithFsr(f, orig.getType, orig.getType)
+    val fsrList = readAvroWithFsr(new FeatureSpecificReader(orig.getType, orig.getType), f)
 
     Assert.assertEquals(1, fsrList.size)
     val sf = fsrList(0)
@@ -194,7 +193,7 @@ class FeatureSpecificReaderTest {
     val pipeFile = writePipeFile(sfList)
 
     val subsetType = SimpleFeatureTypes.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
-    val fsrList = readAvroWithFsr(avroFile, oldType, subsetType)
+    val fsrList = readAvroWithFsr(new FeatureSpecificReader(oldType, subsetType), avroFile)
     val pipeList = readPipeFile(pipeFile, oldType)
 
     Assert.assertEquals(sfList.size, pipeList.size)
@@ -260,7 +259,7 @@ class FeatureSpecificReaderTest {
 
     val pipeList = readPipeFile(pipeFile, oldType)
 
-    val avroList = readAvroWithFsr(avroFile, oldType, subsetType)
+    val avroList = readAvroWithFsr(new FeatureSpecificReader(oldType, subsetType), avroFile)
 
     Assert.assertEquals(pipeList.size, avroList.size)
     Assert.assertEquals(numRecords, avroList.size)
@@ -299,8 +298,9 @@ class FeatureSpecificReaderTest {
     val pipeTime = System.currentTimeMillis() - pipeStart
     println(f"Text Read time $pipeTime%dms")
 
+    val fsr = new FeatureSpecificReader(oldType, subsetType)
     val avroStart = System.currentTimeMillis()
-    readAvroWithFsr(avroFile, oldType, subsetType)
+    readAvroWithFsr(fsr, avroFile)
     val avroTime = System.currentTimeMillis() - avroStart
     println(f"Avro Subset Read time $avroTime%dms")
 
