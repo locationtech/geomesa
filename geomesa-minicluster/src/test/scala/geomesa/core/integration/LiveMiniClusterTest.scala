@@ -71,6 +71,8 @@ class LiveMiniClusterTest extends Specification with Logging {
       connector.createScanner(recordsTable, new Authorizations).asScala.take(10).foreach { e =>
         logger.info(e.getKey.getRow + " " + e.getKey.getColumnFamily + " " + e.getKey.getColumnQualifier() + " " + e.getValue)
       }
+
+      success
     }
 
     "query the data through geotools" in {

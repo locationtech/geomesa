@@ -1,8 +1,12 @@
 package geomesa.core.util
 
 import java.util.Map.Entry
-import org.apache.accumulo.core.client.BatchScanner
+import org.apache.accumulo.core.client.{Scanner, BatchScanner}
 import org.apache.accumulo.core.data.{Key, Value}
+import org.geotools.data.FeatureReader
+import org.opengis.feature.Feature
+import org.opengis.feature.`type`.FeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.Iterator
 import scala.collection.JavaConversions._
 
@@ -20,6 +24,13 @@ object CloseableIterator {
     def hasNext = iter.hasNext
     def next()  = iter.next()
     def close() = closeIter()
+  }
+
+  // This apply method provides us with a simple interface for creating new CloseableIterators.
+  def apply[A <: Feature, B <: FeatureType](iter: FeatureReader[B, A]) = new CloseableIterator[A] {
+    def hasNext = iter.hasNext
+    def next()  = iter.next()
+    def close() = iter.close()
   }
 }
 
@@ -70,6 +81,10 @@ object SelfClosingIterator {
     def next(): A = iter.next()
     def close() = closeIter()
   }
+
+  def apply[A](iter: CloseableIterator[A]): SelfClosingIterator[A] = apply(iter, iter.close)
+
+  def apply(s: Scanner): SelfClosingIterator[Entry[Key, Value]] = apply(s.iterator(), s.close)
 }
 
 // This object provides a standard way to wrap BatchScanners in a self-closing and closeable iterator.

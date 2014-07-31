@@ -838,7 +838,6 @@ class AccumuloDataStore(val connector: Connector,
    * @return
    */
   private def getFeatureName(featureType: SimpleFeatureType) = featureType.getName.getLocalPart
-
 }
 
 object AccumuloDataStore {
@@ -867,8 +866,16 @@ object AccumuloDataStore {
    * UTF8 characters (e.g. _2a_f3_8c) to make them safe for accumulo table names
    * but still human readable.
    */
-  def formatTableName(catalogTable: String, featureType: SimpleFeatureType, suffix: String) = {
-    val typeName = featureType.getTypeName
+  def formatTableName(catalogTable: String, featureType: SimpleFeatureType, suffix: String): String =
+    formatTableName(catalogTable, featureType.getTypeName, suffix)
+
+  /**
+   * Format a table name with a namespace. Non alpha-numeric characters present in
+   * featureType names will be underscore hex encoded (e.g. _2a) including multibyte
+   * UTF8 characters (e.g. _2a_f3_8c) to make them safe for accumulo table names
+   * but still human readable.
+   */
+  def formatTableName(catalogTable: String, typeName: String, suffix: String): String = {
     val safeTypeName: String =
       if(typeName.matches(SAFE_FEATURE_NAME_PATTERN)){
         typeName

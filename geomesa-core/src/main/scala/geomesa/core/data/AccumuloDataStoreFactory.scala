@@ -22,6 +22,7 @@ import java.util.{Map => JMap}
 import javax.imageio.spi.ServiceRegistry
 
 import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
+import geomesa.core.stats.StatWriter
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
@@ -31,6 +32,7 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -51,9 +53,10 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         visStr
 
     val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
+    val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
     val connector =
       if(params.containsKey(connParam.key)) connParam.lookUp(params).asInstanceOf[Connector]
-      else buildAccumuloConnector(params)
+      else buildAccumuloConnector(params, useMock)
 
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
     val securityOps = connector.securityOperations
@@ -118,23 +121,36 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         .map(FeatureEncoding.withName)
         .getOrElse(FeatureEncoding.AVRO)
 
-    new AccumuloDataStore(connector,
-      tableName,
-      authorizationsProvider,
-      visibility,
-      idxSchemaParam.lookupOpt(params),
-      queryThreadsParam.lookupOpt(params),
-      recordThreadsParam.lookupOpt(params),
-      writeThreadsParam.lookupOpt(params),
-      featureEncoding)
+    val collectStats = !useMock && Try(statsParam.lookUp(params).asInstanceOf[String].toBoolean).getOrElse(true)
+
+    if (collectStats) {
+      new AccumuloDataStore(connector,
+        tableName,
+        authorizationsProvider,
+        visibility,
+        idxSchemaParam.lookupOpt(params),
+        queryThreadsParam.lookupOpt(params),
+        recordThreadsParam.lookupOpt(params),
+        writeThreadsParam.lookupOpt(params),
+        featureEncoding) with StatWriter
+    } else {
+      new AccumuloDataStore(connector,
+        tableName,
+        authorizationsProvider,
+        visibility,
+        idxSchemaParam.lookupOpt(params),
+        queryThreadsParam.lookupOpt(params),
+        recordThreadsParam.lookupOpt(params),
+        writeThreadsParam.lookupOpt(params),
+        featureEncoding)
+    }
   }
 
-  def buildAccumuloConnector(params: JMap[String,Serializable]): Connector = {
+  def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): Connector = {
     val zookeepers = zookeepersParam.lookUp(params).asInstanceOf[String]
     val instance = instanceIdParam.lookUp(params).asInstanceOf[String]
     val user = userParam.lookUp(params).asInstanceOf[String]
     val password = passwordParam.lookUp(params).asInstanceOf[String]
-    val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
 
     if(useMock) new MockInstance(instance).getConnector(user, new PasswordToken(password.getBytes))
     else new ZooKeeperInstance(instance, zookeepers).getConnector(user, new PasswordToken(password.getBytes))
@@ -175,6 +191,7 @@ object AccumuloDataStoreFactory {
     val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false)
     val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false)
     val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false)
+    val statsParam          = new Param("collectStats", classOf[String], "Toggle collection of statistics", false)
     val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
     val featureEncParam     = new Param("featureEncoding", classOf[String], "The feature encoding format (text or avro). Default is Avro", false, "avro")
   }

@@ -54,21 +54,21 @@ class IndexSchemaTest extends Specification {
         case CompositePlanner(List(ConstStringPlanner("foo"), GeoHashKeyPlanner(0,1), RandomPartitionPlanner(99)),"~") => true
         case _ => false
       }
-      matched must be equalTo true
+      matched must beTrue
     }
 
     "allow extra elements inside the column qualifier" in {
       val schema = Try(IndexSchema(
         "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%9#r%ColQ#cstr%15#id%5,2#gh",
         dummyType, featureEncoder))
-      schema.isFailure must be equalTo true
+      schema.isFailure must beTrue
     }
 
     "complain when there are extra elements at the end" in {
       val schema = Try(IndexSchema(
         "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%15#id%5,2#gh",
         dummyType, featureEncoder))
-      schema.isFailure must be equalTo true
+      schema.isFailure must beTrue
     }
   }
 
@@ -205,7 +205,7 @@ class IndexSchemaTest extends Specification {
       decoded must not equalTo null
       decoded.id must be equalTo id
       WKTUtils.write(decoded.geom) must be equalTo wkt
-      dt.isDefined must be equalTo false
+      dt.isDefined must beFalse
     }
 
   }
@@ -232,7 +232,7 @@ class IndexSchemaTest extends Specification {
     "be able to create index schemas" in {
       val maxShard = 31
       val name = "test"
-      val oldSchema = s"%~#s%$maxShard#r%${name}#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
+      val oldSchema = s"%~#s%$maxShard#r%$name#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
 
       val schema = new IndexSchemaBuilder("~")
                    .randomNumber(maxShard)

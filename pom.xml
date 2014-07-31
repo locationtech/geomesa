@@ -34,13 +34,13 @@
     </modules>
 
     <properties>
-        <scala.version>2.10.3</scala.version>
+        <scala.version>2.10.4</scala.version>
         <geoserver.version>2.5</geoserver.version>
-        <gt.version>11.0</gt.version>
+        <gt.version>11.2</gt.version>
         <jts.version>1.13</jts.version>
 
         <!-- environment-dependent versions -->
-        <zookeeper.version>3.3.6</zookeeper.version>
+        <zookeeper.version>3.4.5</zookeeper.version>
         <accumulo.version>1.5.1</accumulo.version>
         <hadoop.version>2.2.0</hadoop.version>
 
@@ -72,6 +72,14 @@
             </properties>
         </profile>
     </profiles>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>repo.locationtech.org</id>
+            <name>GeoMesa Repository - Snapshots</name>
+            <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <dependencyManagement>
         <dependencies>
@@ -427,7 +435,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>11.0.1</version>
+                <version>11.0.2</version>
                 <scope>provided</scope>
             </dependency>
             <!-- needed to make everything compile because accumulo & hadoop have
@@ -457,12 +465,6 @@
               <artifactId>accumulo-test</artifactId>
               <version>${accumulo.version}</version>
               <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.google.code.findbugs</groupId>
-                <artifactId>findbugs</artifactId>
-                <version>2.0.3</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>

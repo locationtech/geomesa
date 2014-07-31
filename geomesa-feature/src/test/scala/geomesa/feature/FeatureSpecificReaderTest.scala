@@ -22,7 +22,7 @@ class FeatureSpecificReaderTest {
 
 
   def createTypeWithGeo: AvroSimpleFeature = {
-    val sft = SimpleFeatureTypes.createType("test","f0:Point,f1:Polygon,f2:LineString");
+    val sft = SimpleFeatureTypes.createType("test","f0:Point,f1:Polygon,f2:LineString")
     val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
 
     sf.setAttribute("f0", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])

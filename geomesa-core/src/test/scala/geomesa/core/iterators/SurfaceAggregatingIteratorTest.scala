@@ -42,8 +42,8 @@ class SurfaceAggregatingIteratorTest extends Specification with IteratorTest {
       val gh2 = "dq0000z"
       val precision = 35
       val iter = getIterator(gh1, gh2, precision)
-      iter.bbox.ll.getX mustEqual(GeoHash(gh1, precision).x)
-      iter.bbox.ur.getY mustEqual(GeoHash(gh2, precision).y)
+      iter.bbox.ll.getX mustEqual GeoHash(gh1, precision).x
+      iter.bbox.ur.getY mustEqual GeoHash(gh2, precision).y
     }
   }
 
@@ -56,8 +56,8 @@ class SurfaceAggregatingIteratorTest extends Specification with IteratorTest {
 
       iter.collect(new Key(gh1), new Value(ByteBuffer.allocate(8).putDouble(.4).array()))
       iter.collect(new Key(gh2), new Value(ByteBuffer.allocate(8).putDouble(.6).array()))
-      iter.aggregate.get()(15) & 0xff mustEqual(153)
-      iter.aggregate.get()(240) & 0xff mustEqual(102)
+      iter.aggregate.get()(15) & 0xff mustEqual 153
+      iter.aggregate.get()(240) & 0xff mustEqual 102
     }
   }
 
@@ -70,8 +70,8 @@ class SurfaceAggregatingIteratorTest extends Specification with IteratorTest {
 
       iter.collect(new Key(gh1), new Value(ByteBuffer.allocate(8).putDouble(.4).array()))
       iter.collect(new Key(gh2), new Value(ByteBuffer.allocate(8).putDouble(.6).array()))
-      iter.aggregate.get()(15) &0xff mustEqual(153)
-      iter.aggregate.get()(240) &0xff mustEqual(102)
+      iter.aggregate.get()(15) & 0xff mustEqual 153
+      iter.aggregate.get()(240) & 0xff mustEqual 102
     }
   }
 }
