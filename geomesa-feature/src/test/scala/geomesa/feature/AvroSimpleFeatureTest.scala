@@ -46,15 +46,15 @@ class AvroSimpleFeatureTest extends Specification {
       //Test getProperties(name: String)
       for((name, value) <- nameStringList.view.zip(valueList)) {
         val tempProperty = f.getProperties(name)
-        tempProperty.head.getName.toString must beEqualTo(name)
-        tempProperty.head.getValue.toString must beEqualTo(value)
+        tempProperty.head.getName.toString mustEqual name
+        tempProperty.head.getValue.toString mustEqual value
       }
 
       //Test getProperties(name: Name)
       for((name, value) <- nameList.view.zip(valueList)) {
         val tempProperty = f.getProperties(name)
-        tempProperty.head.getName must beEqualTo(name)
-        tempProperty.head.getValue.toString must beEqualTo(value)
+        tempProperty.head.getName mustEqual name
+        tempProperty.head.getValue.toString mustEqual value
       }
 
       f.getProperties must beAnInstanceOf[util.Collection[Property]]

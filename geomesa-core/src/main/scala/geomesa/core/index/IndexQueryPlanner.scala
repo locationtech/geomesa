@@ -3,14 +3,13 @@ package geomesa.core.index
 import java.nio.charset.StandardCharsets
 import java.util.Map.Entry
 
-import com.google.common.collect.Iterators
 import com.vividsolutions.jts.geom.{Point, Polygon}
 import geomesa.core._
 import geomesa.core.data._
 import geomesa.core.filter.{ff, _}
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
-import geomesa.core.util.{CloseableIterator, SelfClosingBatchScanner}
+import geomesa.core.util.{BatchMultiScanner, CloseableIterator, SelfClosingBatchScanner}
 import geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
@@ -165,15 +164,16 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     }
   }
 
-  def attrIdxQueryEligible(filt: Filter) = filt match {
+  def attrIdxQueryEligible(filt: Filter): Boolean = filt match {
     case filter: PropertyIsEqualTo =>
       val one = filter.getExpression1
       val two = filter.getExpression2
       val prop = (one, two) match {
-        case (p: PropertyName, _) => p.getPropertyName
-        case (_, p: PropertyName) => p.getPropertyName
+        case (p: PropertyName, _) => Some(p.getPropertyName)
+        case (_, p: PropertyName) => Some(p.getPropertyName)
+        case (_, _)               => None
       }
-      featureType.getDescriptor(prop).isIndexed
+      prop.exists(featureType.getDescriptor(_).isIndexed)
 
     case filter: PropertyIsLike =>
       val prop = filter.getExpression.asInstanceOf[PropertyName].getPropertyName
@@ -279,24 +279,15 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     configureAttributeIndexIterator(attrScanner, ofilter, range)
 
-    import scala.collection.JavaConversions._
-    val ranges = attrScanner.iterator.map(_.getKey.getColumnFamily).map(new AccRange(_))
+    val recordScanner = acc.createRecordScanner(featureType)
+    configureSimpleFeatureFilteringIterator(recordScanner, featureType, None, derivedQuery)
 
-    val recScanner = if(ranges.hasNext) {
-      val recordScanner = acc.createRecordScanner(featureType)
-      recordScanner.setRanges(ranges.toList)
-      configureSimpleFeatureFilteringIterator(recordScanner, featureType, None, derivedQuery)
-      Some(recordScanner)
-    } else None
+    // function to join the attribute index scan results to the record table
+    // since the row id of the record table is in the CF just grab that
+    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(kv.getKey.getColumnFamily)
+    val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
 
-    val iter = recScanner.map(_.iterator()).getOrElse(Iterators.emptyIterator[Entry[Key, Value]])
-
-    def close(): Unit = {
-      recScanner.foreach(_.close)
-      attrScanner.close
-    }
-
-    CloseableIterator(iter, close)
+    CloseableIterator(bms.iterator, () => bms.close())
   }
 
   def configureAttributeIndexIterator(scanner: Scanner,
@@ -372,12 +363,14 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
+    //access to query is up here.
     iteratorConfig.iterator match {
       case IndexOnlyIterator  =>
         val transformedSFType = transformedSimpleFeatureType(query).getOrElse(featureType)
         configureIndexIterator(bs, ofilter, query, transformedSFType)
       case SpatioTemporalIterator =>
-        configureSpatioTemporalIntersectingIterator(bs, ofilter, featureType)
+        val isDensity = query.getHints.containsKey(DENSITY_KEY)
+        configureSpatioTemporalIntersectingIterator(bs, ofilter, featureType, isDensity)
     }
 
     if (iteratorConfig.useSFFI) {
@@ -466,12 +459,14 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
   def configureSpatioTemporalIntersectingIterator(bs: BatchScanner,
                                                   filter: Option[Filter],
-                                                  featureType: SimpleFeatureType) {
+                                                  featureType: SimpleFeatureType,
+                                                  isDensity: Boolean) {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),
       classOf[SpatioTemporalIntersectingIterator])
     SpatioTemporalIntersectingIterator.setOptions(cfg, schema, filter)
     configureFeatureType(cfg, featureType)
+    if (isDensity) cfg.addOption(GEOMESA_ITERATORS_IS_DENSITY_TYPE, "isDensity")
     bs.addScanIterator(cfg)
   }
   // assumes that it receives an iterator over data-only entries, and aggregates
@@ -492,6 +487,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       "sffilter-" + randomPrintableString(5),
       clazz)
 
+    cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
     configureFeatureEncoding(cfg)
     configureTransforms(query,cfg)
     configureFeatureType(cfg, simpleFeatureType)

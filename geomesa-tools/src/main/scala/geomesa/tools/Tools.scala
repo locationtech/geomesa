@@ -36,6 +36,16 @@ object Tools extends App {
         c.copy(feature = s) } text "the name of the feature to export" required(),
       opt[String]("format").action { (s, c) =>
         c.copy(format = s) } text "the format to export to (e.g. csv, tsv)" required()
+//      opt[String]("attributes").action { (s, c) =>
+//        c.copy(attributes = s) } text "the name of the feature to export" required(),
+//      opt[String]("idAttribute").action { (s, c) =>
+//        c.copy(idAttribute = s) } text "the name of the feature to export" required(),
+//      opt[String]("latAttribute").action { (s, c) =>
+//        c.copy(latAttribute = s) } text "the name of the feature to export" required(),
+//    opt[String]("latAttribute").action { (s, c) =>
+//      c.copy(lonAttribute = s) } text "the name of the feature to export" required(),
+//    opt[String]("dateAttribute").action { (s, c) =>
+//      c.copy(dateAttribute = s) } text "the name of the feature to export" required(),
       )
     cmd("list") action { (_, c) =>
       c.copy(mode = "list")
@@ -43,6 +53,17 @@ object Tools extends App {
       opt[String]("catalog").action { (s, c) =>
         c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
         "if it does not already exist -- to contain the new data" required()
+      )
+    cmd("explain") action { (_, c) =>
+      c.copy(mode = "explain")
+    } text ("explain is a command") children(
+      opt[String]("catalog").action { (s, c) =>
+        c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
+        "if it does not already exist -- to contain the new data" required(),
+      opt[String]("feature").action { (s, c) =>
+        c.copy(feature = s) } text "the name of the new feature to be create" required(),
+      opt[String]("filter").action { (s, c) =>
+        c.copy(filterString = s) } text "the filter string" required()
       )
     cmd("delete") action { (_, c) =>
       c.copy(mode = "delete")
@@ -95,29 +116,49 @@ object Tools extends App {
   parser.parse(args, Config()) map { config =>
     config.mode match {
       case "export" => {
-        val ft = new FeaturesTool(config.table)
-        ft.exportFeatures()
+//        val ft = new FeaturesTool(config.table)
+//        ft.exportFeatures(
+//          config.feature,
+//          config.attributes,
+//          config.idAttribute,
+//          config.latAttribute,
+//          config.lonAttribute,
+//          config.dateAttribute,
+//          config.query)
       }
       case "list" => {
+        //example command
+        //list --catalog test_jdk2pq_create --feature test --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
         val ft = new FeaturesTool(config.catalog)
         ft.listFeatures()
       }
-      case "delete" => {
+      case "explain" => {
+        //example command
+        //explain --catalog test_jdk2pq_create --feature test --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
         val ft = new FeaturesTool(config.catalog)
+        ft.explainQuery(config.feature, config.filterString)
+      }
+      case "delete" => {
+        //example command
+        //delete --catalog test_jdk2pq_create --feature test
+        val ft = new FeaturesTool(config.catalog)
+        println(s"Deleting '${config.feature}.' Just a few moments...")
         if (ft.deleteFeature(config.feature)) {
-          println(s"Feature \'${config.feature}\' successfully deleted.")
+          println(s"Feature '${config.feature}' successfully deleted.")
         } else {
-          println(s"There was an error deleting feature \'${config.feature}\'." +
+          println(s"There was an error deleting feature '${config.feature}'." +
             " Please check that your configuration settings are correct and try again.")
         }
       }
       case "create" => {
+        //example command
         //create --catalog test_jdk2pq_create --feature testing --sft id:String:indexed=true,dtg:Date,geom:Point:srid=4326
         val ft = new FeaturesTool(config.catalog)
+        println(s"Creating '${config.feature}'. Just a few moments...}")
         if (ft.createFeatureType(config.feature, config.sft)) {
-          println(s"Feature \'${config.feature}\' with featureType \'${config.sft}\' successfully created.")
+          println(s"Feature '${config.feature}' with featureType '${config.sft}' successfully created.")
         } else {
-          println(s"There was an error creating feature \'${config.feature}\' with featureType \'${config.sft}\'." +
+          println(s"There was an error creating feature '${config.feature}' with featureType '${config.sft}'." +
             " Please check that your configuration settings are correct and try again.")
         }
       }
@@ -138,7 +179,8 @@ case class Config(mode: String = null, table: String = null, spec: String = null
                   dtField: String = null, dtFormat: String = null,
                   method: String = null, file: String = null, typeName: String = null,
                   format: String = null, catalog: String = null,
-                  feature: String = null, sft: String = null)
+                  feature: String = null, sft: String = null,
+                  filterString: String = null)
 
 
 

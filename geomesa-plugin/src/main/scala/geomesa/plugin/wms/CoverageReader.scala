@@ -16,12 +16,12 @@
 
 package geomesa.plugin.wms
 
+import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.iterators.{TimestampSetIterator, TimestampRangeIterator, SurfaceAggregatingIterator, AggregatingKeyIterator}
 import geomesa.core.util.{SelfClosingBatchScanner, BoundingBoxUtil}
 import geomesa.utils.geohash.{GeoHash, TwoGeoHashBoundingBox, Bounds, BoundingBox}
 import java.awt.image.BufferedImage
 import java.awt.{AlphaComposite, Color, Graphics2D, Rectangle}
-import java.io._
 import java.util.{List => JList, Date}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Scanner, IteratorSetting, ZooKeeperInstance}
@@ -33,7 +33,7 @@ import org.geotools.coverage.grid.io.{AbstractGridFormat, AbstractGridCoverage2D
 import org.geotools.coverage.grid.{GridGeometry2D, GridCoverage2D, GridEnvelope2D}
 import org.geotools.geometry.GeneralEnvelope
 import org.geotools.parameter.Parameter
-import org.geotools.util.DateRange
+import org.geotools.util.{Utilities, DateRange}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime}
 import org.opengis.geometry.Envelope
@@ -43,20 +43,23 @@ import util.Random
 
 
 object CoverageReader {
-  val GeoServerDateFormat =
-    DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-  val DefaultDateString =
-    GeoServerDateFormat.print(new DateTime(DateTimeZone.forID("UTC")))
+  val GeoServerDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  val DefaultDateString = GeoServerDateFormat.print(new DateTime(DateTimeZone.forID("UTC")))
 }
 
 import CoverageReader._
 
-class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
+class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() with Logging {
 
-  val FORMAT = """accumulo:/(.*):(.*)@(.*)/(.*)/(.*)/(.*)#resolution=([0-9]*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
-  val FORMAT(user, password, instanceId, table, columnFamily, columnQualifier, resolutionStr, zookeepers, authtokens) = url.getPath
+  logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
 
-  val name = table + ":" + columnFamily + ":" + columnQualifier
+  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)/(.*)/(.*)#resolution=([0-9]*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
+  val FORMAT(user, password, instanceId, table, columnFamily, columnQualifier, resolutionStr, zookeepers, authtokens) = url
+
+  logger.debug(s"extracted user $user, password ********, instance id $instanceId, table $table, column family $columnFamily, " +
+               s"column qualifier $columnQualifier, resolution $resolutionStr, zookeepers $zookeepers, auths ********")
+
+  coverageName = table + ":" + columnFamily + ":" + columnQualifier
   val metaRow = new Text("~" + columnFamily + "~" + columnQualifier)
 
   this.crs = AbstractGridFormat.getDefaultCRS
@@ -79,6 +82,16 @@ class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
     scanner.iterator()
     .map(entry => (entry.getKey.getColumnFamily.toString, entry.getKey.getColumnQualifier.toString))
     .toMap
+  }
+
+  /**
+   * Default implementation does not allow a non-default coverage name
+   * @param coverageName
+   * @return
+   */
+  override protected def checkName(coverageName: String) = {
+    Utilities.ensureNonNull("coverageName", coverageName)
+    true
   }
 
   override def getFormat = new CoverageFormat
@@ -105,7 +118,7 @@ class CoverageReader(val url: File) extends AbstractGridCoverage2DReader {
     )
 
     val tile = getImage(timeParam, env, gg.getGridRange2D.getSpan(0), gg.getGridRange2D.getSpan(1))
-    this.coverageFactory.create(name, tile, env)
+    this.coverageFactory.create(coverageName, tile, env)
   }
 
 
