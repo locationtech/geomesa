@@ -122,8 +122,11 @@ object Tools extends App {
         }
       }
       case "ingest" =>
-        println("Ingesting...")
-        Ingest.defineIngestJob(config)
+        val ingest = new Ingest(config.table)
+        ingest.defineIngestJob(config) match {
+          case true => println(s"Successful ingest of file: \'${config.file}\'")
+          case false => println(s"Error: could not successfully ingest file: \'${config.file}\'")
+        }
     }
   } getOrElse {
     Console.printf(s"Error: command not recognized.")

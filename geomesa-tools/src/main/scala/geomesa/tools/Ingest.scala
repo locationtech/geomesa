@@ -12,18 +12,17 @@ import geomesa.core.index.Constants
 import geomesa.feature.AvroSimpleFeatureFactory
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.geotools.data.{DataStoreFinder, DataUtilities, Transaction}
+import org.geotools.data.{FeatureWriter, DataStoreFinder, DataUtilities, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.mutable.HashMap
 import scala.io.Source
 
-class Ingest() {}
-
-object Ingest  {
+class Ingest(catalogTable: String) {
   val conf = ConfigFactory.load()
   val user = conf.getString("tools.user")
   val password = conf.getString("tools.password")
@@ -47,16 +46,20 @@ object Ingest  {
     dsConfig
   }
 
-  def defineIngestJob(config: Config) = {
+  def defineIngestJob(config: Config): Boolean = {
     val dsConfig = getAccumuloDataStoreConf(config)
     println(dsConfig)
     config.method match {
       case "mapreduce" => println("go go mapreduce!")
-          println("Success")
+        println("Success")
+        true
       case "naive" =>
-          println("go go naive!")
-          new SFTIngest(config, dsConfig)
-      case _ => println("Error, no such method exists, no changes made")
+        println("go go naive!")
+        new SFTIngest(config, dsConfig)
+        true
+      case _ =>
+        println("Error, no such method exists, no changes made")
+        false
     }
   }
 }
@@ -64,7 +67,6 @@ object Ingest  {
 class SFTIngest(config: Config, dsConfig: HashMap[String, Any]) {
 
   import scala.collection.JavaConversions._
-
   import scala.reflect.runtime.universe._
   def getConverter[T](clazz: Class[T])(implicit ct: TypeTag[T]): String => AnyRef =
     typeOf[T] match {
@@ -87,7 +89,7 @@ class SFTIngest(config: Config, dsConfig: HashMap[String, Any]) {
   lazy val lonField         = config.lonField
   lazy val dtgField         = config.dtField
   lazy val dtgFmt           = config.dtFormat
-  lazy val dtgTargetField   = Constants.SF_PROPERTY_START_TIME
+  lazy val dtgTargetField   = Constants.SF_PROPERTY_START_TIME // sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
   lazy val zookeepers       = dsConfig.get("zookeepers")
   lazy val user             = dsConfig.get("user")
   lazy val password         = dsConfig.get("password")
@@ -104,7 +106,7 @@ class SFTIngest(config: Config, dsConfig: HashMap[String, Any]) {
     ret
   }
 
-  ds.createSchema(sft)
+  ds.createSchema(sft) // this will need to be removed eventually
 
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
   lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt)
@@ -158,13 +160,12 @@ class SFTIngest(config: Config, dsConfig: HashMap[String, Any]) {
     def release(): Unit = { fw.close() }
   }
 
+  val cfw = new CloseableFeatureWriter
   //do the work
-  Source.fromFile(path).getLines().foreach { line => parseFeature(line) }
+  Source.fromFile(path).getLines().foreach { line => parseFeature(cfw.fw, line) }
 
-  def parseFeature(line: String): Unit = {
+  def parseFeature(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String): Unit = {
     try {
-      val cfw = new CloseableFeatureWriter
-      val fw = cfw.fw
       val fields = line.toString.split(delim)
       val id = idBuilder(fields)
 
