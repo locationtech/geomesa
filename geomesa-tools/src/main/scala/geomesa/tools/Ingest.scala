@@ -1,10 +1,9 @@
 package geomesa.tools
 
 import geomesa.core.data.AccumuloDataStore
-import geomesa.core.index.Constants
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.geotools.data.{DataStoreFinder, DataUtilities}
+import org.geotools.data.DataStoreFinder
 import scala.collection.JavaConversions._
 import scala.collection.mutable.HashMap
 
@@ -18,31 +17,45 @@ object Ingest  {
     dsConfig.put("zookeepers", config.zookeepers)
     dsConfig.put("user", config.user)
     dsConfig.put("password", config.password)
-    if (config.authorizations == null) { dsConfig.put("auths", "")
-    } else { dsConfig.put("auths", config.authorizations) }
+    if (config.authorizations != null)  dsConfig.put("auths", config.authorizations)
+    if (config.visibilities != null) dsConfig.put("visibilities", config.visibilities)
     dsConfig.put("tableName", config.table)
+    val instance = new ZooKeeperInstance(config.instanceId, config.zookeepers)
+    val connector = instance.getConnector(config.user, new PasswordToken(config.password))
+    dsConfig.put("connector", connector)
     dsConfig
   }
 
   def defineIngestJob(config: Config) = {
     val dsConfig = getAccumuloDataStoreConf(config)
     println(dsConfig)
-    val instance = new ZooKeeperInstance(config.instanceId, config.zookeepers)
-    val connector = instance.getConnector(config.user, new PasswordToken(config.password))
-    dsConfig.put("connector", connector)
     val method = config.method
+    val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
     method match {
       case "mapreduce" => println("go go mapreduce!")
         try {
-          val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore] //what about connector, or is it not needed?
-          //if (ds == null) throw new IllegalArgumentException(" Data Store was not found. Ending ")
-          val sft = ds.getSchema(config.spec)
-          val dtgTargetField = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
-          val spec = DataUtilities.encodeType(sft)
+          //val sft = ds.getSchema(config.spec)
+          //val spec = DataUtilities.encodeType(sft)
+          println("Success")
         } catch {
           case t: Throwable => t.printStackTrace()
         }
-      case "naive" => println("go go naive!")
+      case "naive" =>
+        try{
+          println("go go naive!")
+          // get the deliminator for provided type
+          lazy val delim = config.format match {
+            case "TSV" => "\t"
+            case "CSV" => ","
+          }
+
+
+
+
+
+        } catch {
+          case t: Throwable => t.printStackTrace()
+        }
       case _ => println("Error, no such method exists, no changes made")
     }
   }

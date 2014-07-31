@@ -69,11 +69,15 @@ object Tools extends App {
         " should be applied to all data written or read by this Accumulo user; note that this is NOT the list of" +
         " low-level database permissions such as 'Table.READ', but more a series of text tokens that decorate cell" +
         " data, e.g.:  Accounting,Purchasing,Testing" optional(),
+      arg[String]("<visibilities>").action { (s, c) =>
+        c.copy(visibilities = s) } text "the (optional) visibilities for Accumulo" optional(),
       opt[String]("table").action { (s, c) =>
         c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
         "if it does not already exist -- to contain the new data" optional(),
       arg[String]("<hdfs path>").action { (s, c) =>
         c.copy(pathHDFS = s) } text "HDFS path of file to ingest" optional(),
+      opt[String]("typeName").action { (s, c) =>
+        c.copy(typeName = s) } text "Name of the feature type to be ingested" required(),
       opt[String]('s', "spec").action { (s, c) =>
         c.copy(spec = s) } text "the specification for the file" required(),
       opt[String]("latitude").action { (s, c) =>
@@ -89,7 +93,7 @@ object Tools extends App {
       opt[String]("file").action { (s, c) =>
         c.copy(file = s) } text "the file you wish to ingest, e.g.: ~/capelookout.csv" required(),
       opt[String]("format").action { (s, c) =>
-        c.copy(format = s) } text "format of ingest file" required()
+        c.copy(format = s.toUpperCase) } text "format of ingest file" required()
      )
   }
 
@@ -126,12 +130,12 @@ object Tools extends App {
 
 case class Config(mode: String = null, instanceId: String = null,
                   zookeepers: String = null, user: String = null,
-                  password: String = null, authorizations: String = null,
+                  password: String = null, authorizations: String = null, visibilities: String = null,
                   table: String = null, pathHDFS: String = null, spec: String = null,
                   latField: String = null, lonField: String = null,
                   dtField: String = null, dtFormat: String = null,
                   method: String = null, file: String = null,
-                  format: String = null)
+                  format: String = null, typeName: String = null)
 
 
 
