@@ -2,21 +2,18 @@ package geomesa.tools
 
 import com.typesafe.config.ConfigFactory
 import geomesa.core.data.AccumuloDataStore
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{BatchWriterConfig, ZooKeeperInstance}
-import org.apache.accumulo.core.data.{Mutation, Value}
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data._
 
 import scala.collection.JavaConversions._
 
-class FeaturesTool(table: String) {
+class FeaturesTool(catalogTable: String) {
   val conf = ConfigFactory.load()
   val user = conf.getString("tools.user")
   val password = conf.getString("tools.password")
   val instanceId = conf.getString("tools.instanceId")
   val zookeepers = conf.getString("tools.zookeepers")
-  val auths = conf.getString("auths")
-  val visibilities = conf.getString("visibilities")
+  val table = catalogTable
 
   val ds: AccumuloDataStore = {
     DataStoreFinder.getDataStore(Map(
@@ -28,32 +25,34 @@ class FeaturesTool(table: String) {
       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
   }
 
-//  def writeToAccumulo() {
-//    val instance = new ZooKeeperInstance(instanceId, zookeepers)
-//    val connector = instance.getConnector("root", new PasswordToken("root"))
-//    val batchWriter = connector.createBatchWriter("test", new BatchWriterConfig())
-//    val mutation = new Mutation("row")
-//    mutation.put("CF", "CQ", new Value("1".getBytes()))
-//    batchWriter.addMutation(mutation)
-//    batchWriter.flush()
-//    batchWriter.close()
-//  }
-
   def listFeatures() {
-    println(ds.getNames)
+    ds.getTypeNames foreach {name =>
+      println(s"$name: ${ds.getSchema(name).getAttributeDescriptors}")
+    }
   }
 
-  def createFeatures() {
-    val instance = new ZooKeeperInstance(instanceId, zookeepers)
-    val connector = instance.getConnector("root", new PasswordToken("root"))
-    val batchWriter = connector.createBatchWriter("test", new BatchWriterConfig())
-    val mutation = new Mutation("row")
-    mutation.put("CF", "CQ", new Value("1".getBytes()))
-    batchWriter.addMutation(mutation)
+  def createFeatureType(sftName: String, sftString: String): Boolean = {
+    val sft = SimpleFeatureTypes.createType(sftName, sftString)
+    ds.createSchema(sft)
+    if (ds.getSchema(sftName) != null) {
+      true
+    } else false
   }
 
   def exportFeatures() {
+//    val instance = new ZooKeeperInstance(instanceId, zookeepers)
+//    val connector = instance.getConnector(user, new PasswordToken(password))
+//    val batchWriter = connector.createBatchWriter(table, new BatchWriterConfig())
+//    val mutation = new Mutation("row")
+//    mutation.put("CF", "CQ", new Value("1".getBytes()))
+//    batchWriter.addMutation(mutation)
+  }
 
+  def deleteFeature(sftName: String): Boolean = {
+    ds.deleteSchema(sftName)
+    if (!ds.getNames.contains(sftName)) {
+      true
+    } else false
   }
 }
 
