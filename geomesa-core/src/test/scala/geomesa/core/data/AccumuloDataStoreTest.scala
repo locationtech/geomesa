@@ -532,6 +532,24 @@ class AccumuloDataStoreTest extends Specification {
       }
     }
 
+    "allow users to call explainQuery" >> {
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId"      -> "mycloud",
+        "zookeepers"      -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"            -> "myuser",
+        "password"        -> "mypassword",
+        "auths"           -> "A,B,C",
+        "tableName"       -> "schematest",
+        "useMock"         -> "true",
+        "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      val sftName = "schematest"
+
+      val query = new Query(sftName, Filter.INCLUDE)
+      val fr = ds.getFeatureReader(sftName)
+      fr.explainQuery(query)
+      fr should not be null
+    }
+
     "allow secondary attribute indexes" >> {
       val table = "testing_secondary_index"
       val ds = DataStoreFinder.getDataStore(Map(
