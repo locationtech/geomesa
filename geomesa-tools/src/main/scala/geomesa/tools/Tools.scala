@@ -69,7 +69,7 @@ object Tools extends App {
         " should be applied to all data written or read by this Accumulo user; note that this is NOT the list of" +
         " low-level database permissions such as 'Table.READ', but more a series of text tokens that decorate cell" +
         " data, e.g.:  Accounting,Purchasing,Testing" optional(),
-      arg[String]("table").action { (s, c) =>
+      opt[String]("table").action { (s, c) =>
         c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
         "if it does not already exist -- to contain the new data" optional(),
       arg[String]("<hdfs path>").action { (s, c) =>
@@ -117,8 +117,7 @@ object Tools extends App {
       }
       case "ingest" =>
         println("Ingesting...")
-        println(parser.showUsage)
-        println(config.toString)
+        Ingest.defineIngestJob(config)
     }
   } getOrElse {
     Console.printf("I don't know what you're trying to do right now.")
