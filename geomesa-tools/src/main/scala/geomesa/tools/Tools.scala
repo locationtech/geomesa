@@ -15,11 +15,6 @@
  */
 package geomesa.tools
 
-import geomesa.core.data.AccumuloDataStore
-import org.geotools.data._
-
-import scala.collection.JavaConversions._
-
 /**
  * To run from IntelliJ with command line arguments, hit the following key sequence:
  *
@@ -34,43 +29,34 @@ object Tools extends App {
     cmd("export") action { (_, c) =>
       c.copy(mode = "export")
     } text ("export is a command") children(
+      opt[String]("catalog").action { (s, c) =>
+        c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
+        "if it does not already exist -- to contain the new data" required(),
+      opt[String]("feature").action { (s, c) =>
+        c.copy(feature = s) } text "the name of the feature to export" required(),
+      opt[String]("format").action { (s, c) =>
+        c.copy(format = s) } text "the format to export to (e.g. csv, tsv)" required()
       )
-    cmd("features") action { (_, c) =>
-      c.copy(mode = "features")
-    } text ("features is a command") children(
-      opt[String]('i', "instanceId").action { (s, c) =>
-        c.copy(instanceId = s) } text "the ID (name) of the Accumulo instance, e.g:  mycloud" required(),
-      opt[String]('z', "zookeepers").action { (s, c) =>
-        c.copy(zookeepers = s) } text "the comma-separated list of Zookeeper nodes that" +
-        " support your Accumulo instance, e.g.:  zoo1:2181,zoo2:2181,zoo3:2181" required(),
-      opt[String]('u', "user").action { (s, c) =>
-        c.copy(user = s) } text "the Accumulo user that will own the connection, e.g.:  root" required(),
-      opt[String]('p', "password").action { (s, c) =>
-        c.copy(password = s) } text "the password for the Accumulo user that will own the connection," +
-        " e.g.:  guest" required(),
-      arg[String]("table").action { (s, c) =>
-        c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
-        "if it does not already exist -- to contain the new data" optional()
+    cmd("list") action { (_, c) =>
+      c.copy(mode = "list")
+    } text ("list is a command") children(
+      opt[String]("catalog").action { (s, c) =>
+        c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
+        "if it does not already exist -- to contain the new data" required()
+      )
+    cmd("create") action { (_, c) =>
+      c.copy(mode = "create")
+    } text ("create is a command") children(
+      opt[String]("catalog").action { (s, c) =>
+        c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
+        "if it does not already exist -- to contain the new data" required(),
+      opt[String]("feature").action { (s, c) =>
+        c.copy(feature = s) } text "the name of the new feature to be create" required(),
+      opt[String]("sft").action { (s, c) =>
+        c.copy(sft = s) } text "the string representation of the SimpleFeatureType encoding" required()
       )
     cmd("ingest") action { (_, c) =>
       c.copy(mode = "ingest") } text "Ingest a feature into GeoMesa" children (
-      opt[String]('i', "instanceId").action { (s, c) =>
-        c.copy(instanceId = s) } text "the ID (name) of the Accumulo instance, e.g:  mycloud" required(),
-      opt[String]('z', "zookeepers").action { (s, c) =>
-        c.copy(zookeepers = s) } text "the comma-separated list of Zookeeper nodes that" +
-        " support your Accumulo instance, e.g.:  zoo1:2181,zoo2:2181,zoo3:2181" required(),
-      opt[String]('u', "user").action { (s, c) =>
-        c.copy(user = s) } text "the Accumulo user that will own the connection, e.g.:  root" required(),
-      opt[String]('p', "password").action { (s, c) =>
-        c.copy(password = s) } text "the password for the Accumulo user that will own the connection," +
-        " e.g.:  guest" required(),
-      arg[String]("<authorizations>").action { (s, c) =>
-        c.copy(authorizations = s) } text "the (optional) list of comma-separated Accumulo authorizations that" +
-        " should be applied to all data written or read by this Accumulo user; note that this is NOT the list of" +
-        " low-level database permissions such as 'Table.READ', but more a series of text tokens that decorate cell" +
-        " data, e.g.:  Accounting,Purchasing,Testing" optional(),
-      arg[String]("<visibilities>").action { (s, c) =>
-        c.copy(visibilities = s) } text "the (optional) visibilities for Accumulo" optional(),
       opt[String]("table").action { (s, c) =>
         c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
         "if it does not already exist -- to contain the new data" optional(),
@@ -93,38 +79,30 @@ object Tools extends App {
       opt[String]("file").action { (s, c) =>
         c.copy(file = s) } text "the file you wish to ingest, e.g.: ~/capelookout.csv" required(),
       opt[String]("format").action { (s, c) =>
-        c.copy(format = s.toUpperCase) } text "format of ingest file" required()
-     )
-  }
-
-  def createStore(table: String): AccumuloDataStore = {
-    // the specific parameter values should not matter, as we
-    // are requesting a mock data store connection to Accumulo
-    DataStoreFinder.getDataStore(Map(
-      "instanceId" -> "mycloud",
-      "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"       -> "root",
-      "password"   -> "secret",
-      "auths"      -> "A,B,C",
-      "tableName"  -> table,
-      "useMock"    -> "true",
-      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+        c.copy(format = s) } text "format of ingest file" required()
+      )
   }
 
   parser.parse(args, Config()) map { config =>
     config.mode match {
-      case "export" =>
-        println("exporting")
-      case "features" => {
-        val ft = new FeaturesTool(config.instanceId, config.zookeepers, config.user, config.password, config.table)
+      case "export" => {
+        val ft = new FeaturesTool(config.table)
+        ft.exportFeatures()
+      }
+      case "list" => {
+        val ft = new FeaturesTool(config.table)
         ft.listFeatures()
+      }
+      case "create" => {
+        val ft = new FeaturesTool(config.table)
+        ft.createFeatures()
       }
       case "ingest" =>
         println("Ingesting...")
         Ingest.defineIngestJob(config)
     }
   } getOrElse {
-    Console.printf("I don't know what you're trying to do right now.")
+    Console.printf(s"Error: command not recognized.")
   }
 }
 
@@ -134,8 +112,9 @@ case class Config(mode: String = null, instanceId: String = null,
                   table: String = null, pathHDFS: String = null, spec: String = null,
                   latField: String = null, lonField: String = null,
                   dtField: String = null, dtFormat: String = null,
-                  method: String = null, file: String = null,
-                  format: String = null, typeName: String = null)
+                  method: String = null, file: String = null, typeName: String = null,
+                  format: String = null, catalog: String = null,
+                  feature: String = null, sft: String = null)
 
 
 

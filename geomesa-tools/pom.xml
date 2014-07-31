@@ -75,6 +75,12 @@
             <artifactId>scopt_2.10</artifactId>
             <version>3.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>0.4.0</version>
+        </dependency>
+
 
         <!-- test deps -->
         <dependency>
