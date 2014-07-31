@@ -44,6 +44,15 @@ object Tools extends App {
         c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
         "if it does not already exist -- to contain the new data" required()
       )
+    cmd("delete") action { (_, c) =>
+      c.copy(mode = "delete")
+    } text ("delete is a command") children(
+      opt[String]("catalog").action { (s, c) =>
+        c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
+        "if it does not already exist -- to contain the new data" required(),
+      opt[String]("feature").action { (s, c) =>
+        c.copy(feature = s) } text "the name of the new feature to be create" required()
+      )
     cmd("create") action { (_, c) =>
       c.copy(mode = "create")
     } text ("create is a command") children(
@@ -53,7 +62,7 @@ object Tools extends App {
       opt[String]("feature").action { (s, c) =>
         c.copy(feature = s) } text "the name of the new feature to be create" required(),
       opt[String]("sft").action { (s, c) =>
-        c.copy(sft = s) } text "the string representation of the SimpleFeatureType encoding" required()
+        c.copy(sft = s) } text "the string representation of the SimpleFeatureType" required()
       )
     cmd("ingest") action { (_, c) =>
       c.copy(mode = "ingest") } text "Ingest a feature into GeoMesa" children (
@@ -90,12 +99,27 @@ object Tools extends App {
         ft.exportFeatures()
       }
       case "list" => {
-        val ft = new FeaturesTool(config.table)
+        val ft = new FeaturesTool(config.catalog)
         ft.listFeatures()
       }
+      case "delete" => {
+        val ft = new FeaturesTool(config.catalog)
+        if (ft.deleteFeature(config.feature)) {
+          println(s"Feature \'${config.feature}\' successfully deleted.")
+        } else {
+          println(s"There was an error deleting feature \'${config.feature}\'." +
+            " Please check that your configuration settings are correct and try again.")
+        }
+      }
       case "create" => {
-        val ft = new FeaturesTool(config.table)
-        ft.createFeatures()
+        //create --catalog test_jdk2pq_create --feature testing --sft id:String:indexed=true,dtg:Date,geom:Point:srid=4326
+        val ft = new FeaturesTool(config.catalog)
+        if (ft.createFeatureType(config.feature, config.sft)) {
+          println(s"Feature \'${config.feature}\' with featureType \'${config.sft}\' successfully created.")
+        } else {
+          println(s"There was an error creating feature \'${config.feature}\' with featureType \'${config.sft}\'." +
+            " Please check that your configuration settings are correct and try again.")
+        }
       }
       case "ingest" =>
         println("Ingesting...")
