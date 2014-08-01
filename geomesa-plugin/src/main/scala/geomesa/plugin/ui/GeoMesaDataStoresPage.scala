@@ -110,20 +110,24 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
     super.renderHead(container)
 
     // filter out the main record tables to display in the chart
-    val values =
-      for {
-        map <- metadata.values
-        (_, metadataList) <- map
-        metadata <- metadataList
-        if (metadata.tableName.contains("Record"))
-      } yield {
-        s"{name: '${metadata.featureName}', value: ${metadata.numEntries}}"
-      }
+    val entries = mutable.ListBuffer.empty[String]
+    val tables = mutable.ListBuffer.empty[String]
+    for {
+      map <- metadata.values
+      (feature, metadataList) <- map
+      metadata <- metadataList
+      if (metadata.displayName.contains("Record"))
+    } {
+      entries.append(s"""{name:"${metadata.feature}",value:${metadata.numEntries}}""")
+      tables.append(s"""{name:"${metadata.feature}",table:"${metadata.table}"}""")
+    }
 
-    // sort reverse so that they show up alphabetically on the UI
-    val data = values.toList.sorted(Ordering[String].reverse).mkString(",")
+    // sort entries reverse so that they show up alphabetically on the UI
+    val entriesJson = entries.sorted(Ordering[String].reverse).mkString(",")
+    // table order doesn't matter
+    val tableJson = tables.mkString(",")
 
-    val string = s"var data = [ $data ]"
+    val string = s"var entries = [ $entriesJson ]; var tables = [ $tableJson ];"
     container.getHeaderResponse.renderJavascript(string, "rawData")
   }
 
@@ -196,8 +200,8 @@ object GeoMesaDataStoresPage {
     tables.map { case (displayName, table) =>
       val tableId = Option(connector.tableOperations.tableIdMap.get(table))
       tableId match {
-        case Some(id) => getTableMetadata(connector, featureName, displayName, id)
-        case None => TableMetadata(featureName, displayName, 0, 0, 0, 0)
+        case Some(id) => getTableMetadata(connector, featureName, table, id, displayName)
+        case None => TableMetadata(featureName, table, displayName, 0, 0, 0, 0)
       }
     }
   }
@@ -215,7 +219,7 @@ object GeoMesaDataStoresPage {
    * @param tableId
    * @return (tableName, number of tablets, number of splits, total number of entries, total file size)
    */
-  def getTableMetadata(connector: Connector, featureName: String, tableName: String, tableId: String): TableMetadata = {
+  def getTableMetadata(connector: Connector, featureName: String, tableName: String, tableId: String, displayName: String): TableMetadata = {
     // TODO move this to core utility class where it can be re-used
 
     val scanner = new IsolatedScanner(connector.createScanner(Constants.METADATA_TABLE_NAME, Constants.NO_AUTHS))
@@ -245,7 +249,7 @@ object GeoMesaDataStoresPage {
         numSplits = numSplits + 1
     }
 
-    TableMetadata(featureName, tableName, numTablets, numSplits, numEntries, fileSize / 1048576.0)
+    TableMetadata(featureName, tableName, displayName, numTablets, numSplits, numEntries, fileSize / 1048576.0)
   }
 }
 
@@ -256,8 +260,9 @@ case class AccumuloConnectionInfo(name: String,
                                   password: String,
                                   table: String)
 
-case class TableMetadata(featureName: String,
-                         tableName: String,
+case class TableMetadata(feature: String,
+                         table: String,
+                         displayName: String,
                          numTablets: Long,
                          numSplits: Long,
                          numEntries: Long,
@@ -265,6 +270,6 @@ case class TableMetadata(featureName: String,
 
 case class FeatureData(workspace: String,
                        dataStore: String,
-                       featureName: String,
+                       feature: String,
                        metadata: List[TableMetadata],
                        bounds: String)
