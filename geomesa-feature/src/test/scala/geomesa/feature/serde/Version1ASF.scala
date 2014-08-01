@@ -26,7 +26,6 @@ import org.opengis.geometry.BoundingBox
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-
 class Version1ASF(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
 
   import geomesa.feature.Version1ASF._
