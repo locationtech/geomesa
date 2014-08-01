@@ -73,9 +73,9 @@ import scala.collection.JavaConversions._
       f
   }
           
-  def buildSet(clazz: Class[_], name: String, deserializer: ASFDeserializer) = {
+  def buildSet(clazz: Class[_], name: String, deserializer: ASFDeserializer): (AvroSimpleFeature, Decoder) => Unit = {
     val decoded = decodeAttributeName(name)
-    val f: (AvroSimpleFeature, Decoder) => Unit = clazz match {
+    clazz match {
       case cls if classOf[java.lang.String].isAssignableFrom(cls)  => deserializer.setString(_, decoded, _)
       case cls if classOf[java.lang.Integer].isAssignableFrom(cls) => deserializer.setInt(_, decoded, _)
       case cls if classOf[java.lang.Long].isAssignableFrom(cls)    => deserializer.setLong(_, decoded, _)
@@ -86,7 +86,6 @@ import scala.collection.JavaConversions._
       case cls if classOf[Date].isAssignableFrom(cls)              => deserializer.setDate(_, decoded, _)
       case cls if classOf[Geometry].isAssignableFrom(cls)          => deserializer.setGeometry(_, decoded, _)
     }
-    f
   }
 
   def buildConsume(clazz: Class[_], name: String, deserializer: ASFDeserializer) = {
@@ -94,8 +93,8 @@ import scala.collection.JavaConversions._
     (sf: SimpleFeature, in: Decoder) => f(in)
   }
 
-  val v1fieldreaders = buildFieldReaders(Version1Deserializer)
-  val v2fieldreaders = buildFieldReaders(Version2Deserializer)
+  lazy val v1fieldreaders = buildFieldReaders(Version1Deserializer)
+  lazy val v2fieldreaders = buildFieldReaders(Version2Deserializer)
 
   def read(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
     // Read the version first and choose the proper deserializer
