@@ -119,7 +119,8 @@ object Tools extends App {
     config.mode match {
       case "export" => {
         //example command
-        //export --catalog test_jdk2pq_create --feature testing --attributes geom --idAttribute "" --query "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+        //export --catalog geomesa_catalog --feature twittersmall --attributes geom --format csv --idAttribute "" --query "include"
+        //NOTE: will export about 100,000 features
         val ft = new FeaturesTool(config.catalog)
         ft.exportFeatures(
           config.feature,
@@ -183,7 +184,7 @@ case class Config(mode: String = null, table: String = null, spec: String = null
                   file: String = null, typeName: String = null, format: String = null,
                   catalog: String = null, feature: String = null, sft: String = null,
                   filterString: String = null, attributes: String = null, idAttribute: String = null,
-                  lonAttribute: Option[String] = null, latAttribute: Option[String] = null, dateAttribute: Option[String] = null,
+                  lonAttribute: Option[String] = None, latAttribute: Option[String] = None, dateAttribute: Option[String] = None,
                   query: String = null)
 
 
