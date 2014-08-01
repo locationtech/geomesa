@@ -5,7 +5,6 @@ import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.util.Date
 import com.google.common.hash.Hashing
-import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.AccumuloDataStore
 import geomesa.core.index.Constants
@@ -24,13 +23,12 @@ import scala.io.Source
 class Ingest() {}
 
 object Ingest  {
-  val conf = ConfigFactory.load()
-  val user = conf.getString("tools.user")
-  val password = conf.getString("tools.password")
-  val instanceId = conf.getString("tools.instanceId")
-  val zookeepers = conf.getString("tools.zookeepers")
-  val auths = conf.getString("tools.auths")
-  val visibilities = conf.getString("tools.visibilities")
+  val user = sys.env.getOrElse("GEOMESA_USER", "admin")
+  val password = sys.env.getOrElse("GEOMESA_PASSWORD", "admin")
+  val instanceId = sys.env.getOrElse("GEOMESA_INSTANCEID", "instanceId")
+  val zookeepers = sys.env.getOrElse("GEOMESA_ZOOKEEPERS", "zoo1:2181,zoo2:2181,zoo3:2181")
+  val auths = sys.env.getOrElse("GEOMESA_AUTHS", "")
+  val visibilities = sys.env.getOrElse("GEOMESA_VISIBILITIES", "")
 
   def getAccumuloDataStoreConf(config: Config): HashMap[String, Any] = {
     val dsConfig = HashMap[String, Any]()
