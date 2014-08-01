@@ -38,28 +38,29 @@ object DataExporter extends App with Logging {
 
   // replace this with your load specification
   val load: LoadAttributes = null
+  val format = "tsv"
 
   val params = Map("instanceId"    -> "mycloud",
-                    "zookeepers"   -> "zoo1,zoo2,zoo3",
-                    "user"         -> "user",
-                    "password"     -> "password",
-                    "auths"        -> "",
-                    "visibilities" -> "",
-                    "tableName"    -> load.table)
+    "zookeepers"   -> "zoo1,zoo2,zoo3",
+    "user"         -> "user",
+    "password"     -> "password",
+    "auths"        -> "",
+    "visibilities" -> "",
+    "tableName"    -> load.table)
 
-  val extractor = new DataExporter(load, params)
+  val extractor = new DataExporter(load, params, format)
   val features = extractor.queryFeatures()
   extractor.writeFeatures(features)
 }
 
-class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
+class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) extends Logging {
 
   lazy val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
   lazy val geometryFactory = JTSFactoryFinder.getGeometryFactory
 
   /**
-   * Writes features to a tmp file in tsv format
+   * Writes features to a tmp file in specified format
    *
    * @param features
    */
@@ -69,10 +70,23 @@ class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
 
     val attributes = attributeTypes.map(_.split(":")(0))
 
-    val fr = new PrintWriter(new FileWriter(s"/tmp/${load.name}.tsv"))
+    val fr = format match {
+      case "tsv" => {
+        new PrintWriter(new FileWriter(s"/tmp/${load.name}.tsv"))
+      }
+      case "csv" => {
+        new PrintWriter(new FileWriter(s"/tmp/${load.name}.csv"))
+      }
+    }
 
-    // header
-    fr.println(attributeTypes.mkString("\t"))
+    format match {
+      case "tsv" => {
+        fr.println(attributeTypes.mkString("\t"))
+      }
+      case "csv" => {
+        fr.println(attributeTypes.mkString(","))
+      }
+    }
 
     var count = 0
 
@@ -120,9 +134,16 @@ class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
         }
       }
 
-      val tabSeparatedString = attributeValues.mkString("\t")
+      val separatedString = format match {
+        case "tsv" => {
+          attributeValues.mkString("\t")
+        }
+        case "csv" => {
+          attributeValues.mkString(",")
+        }
+      }
 
-      fr.println(tabSeparatedString)
+      fr.println(separatedString)
 
       fr.flush()
       count = count + 1
@@ -133,7 +154,7 @@ class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
     }
     fr.close()
 
-    logger.info(s"wrote $count features to '/tmp/${load.name}.tsv'")
+    logger.info(s"wrote $count features to '/tmp/${load.name}.$format'")
   }
 
   /**

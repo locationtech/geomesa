@@ -1,8 +1,7 @@
 package geomesa.tools
 
-import com.typesafe.config.ConfigFactory
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader}
-//import geomesa.core.integration.data.{DataExporter, LoadAttributes}
+import geomesa.core.integration.data.{DataExporter, LoadAttributes}
 import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data._
 import org.geotools.filter.text.ecql.ECQL
@@ -10,11 +9,10 @@ import org.geotools.filter.text.ecql.ECQL
 import scala.collection.JavaConversions._
 
 class FeaturesTool(catalogTable: String) {
-  val conf = ConfigFactory.load()
-  val user = conf.getString("tools.user")
-  val password = conf.getString("tools.password")
-  val instanceId = conf.getString("tools.instanceId")
-  val zookeepers = conf.getString("tools.zookeepers")
+  val user = sys.env.getOrElse("GEOMESA_USER", "admin")
+  val password = sys.env.getOrElse("GEOMESA_PASSWORD", "admin")
+  val instanceId = sys.env.getOrElse("GEOMESA_INSTANCEID", "instanceId")
+  val zookeepers = sys.env.getOrElse("GEOMESA_ZOOKEEPERS", "zoo1:2181,zoo2:2181,zoo3:2181")
   val table = catalogTable
 
   val ds: AccumuloDataStore = {
@@ -41,16 +39,23 @@ class FeaturesTool(catalogTable: String) {
     } else false
   }
 
-  def exportFeatures(feature: String, attributes: String, idAttribute: String, latAttribute: Option[String], lonAttribute: Option[String], dateAttribute: Option[String], query: String) {
-//    val loadAttributes = new LoadAttributes(feature, table, attributes, idAttribute, latAttribute, lonAttribute, dateAttribute, query)
-//    val de = new DataExporter(loadAttributes, Map(
-//      "instanceId" -> instanceId,
-//      "zookeepers" -> zookeepers,
-//      "user"       -> user,
-//      "password"   -> password,
-//      "tableName"  -> table,
-//      "featureEncoding" -> "avro"))
-//    de.writeFeatures(de.queryFeatures())
+  def exportFeatures(feature: String,
+                     attributes: String,
+                     idAttribute: String,
+                     latAttribute: Option[String],
+                     lonAttribute: Option[String],
+                     dateAttribute: Option[String],
+                     format: String,
+                     query: String) {
+    val loadAttributes = new LoadAttributes(feature, table, attributes, idAttribute, latAttribute, lonAttribute, dateAttribute, query)
+    val de = new DataExporter(loadAttributes, Map(
+      "instanceId" -> instanceId,
+      "zookeepers" -> zookeepers,
+      "user"       -> user,
+      "password"   -> password,
+      "tableName"  -> table,
+      "featureEncoding" -> "avro"), format)
+    de.writeFeatures(de.queryFeatures())
   }
 
   def deleteFeature(sftName: String): Boolean = {
@@ -73,5 +78,3 @@ class FeaturesTool(catalogTable: String) {
     afr.explainQuery(q)
   }
 }
-
-object FeaturesTool {}

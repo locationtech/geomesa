@@ -40,6 +40,10 @@
             <artifactId>geomesa-utils-accumulo1.5</artifactId>
         </dependency>
         <dependency>
+            <groupId>geomesa</groupId>
+            <artifactId>geomesa-minicluster-accumulo1.5</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
         </dependency>
@@ -80,11 +84,6 @@
             <groupId>com.github.scopt</groupId>
             <artifactId>scopt_2.10</artifactId>
             <version>3.2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe</groupId>
-            <artifactId>config</artifactId>
-            <version>0.4.0</version>
         </dependency>
 
 

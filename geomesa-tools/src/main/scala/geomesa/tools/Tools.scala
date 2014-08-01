@@ -35,17 +35,19 @@ object Tools extends App {
       opt[String]("feature").action { (s, c) =>
         c.copy(feature = s) } text "the name of the feature to export" required(),
       opt[String]("format").action { (s, c) =>
-        c.copy(format = s) } text "the format to export to (e.g. csv, tsv)" required()
-//      opt[String]("attributes").action { (s, c) =>
-//        c.copy(attributes = s) } text "the name of the feature to export" required(),
-//      opt[String]("idAttribute").action { (s, c) =>
-//        c.copy(idAttribute = s) } text "the name of the feature to export" required(),
-//      opt[String]("latAttribute").action { (s, c) =>
-//        c.copy(latAttribute = s) } text "the name of the feature to export" required(),
-//    opt[String]("latAttribute").action { (s, c) =>
-//      c.copy(lonAttribute = s) } text "the name of the feature to export" required(),
-//    opt[String]("dateAttribute").action { (s, c) =>
-//      c.copy(dateAttribute = s) } text "the name of the feature to export" required(),
+        c.copy(format = s) } text "the format to export to (e.g. csv, tsv)" required(),
+      opt[String]("attributes").action { (s, c) =>
+        c.copy(attributes = s) } text "the name of the feature to export" optional(),
+      opt[String]("idAttribute").action { (s, c) =>
+        c.copy(idAttribute = s) } text "the name of the feature to export" optional(),
+      opt[String]("latAttribute").action { (s, c) =>
+        c.copy(latAttribute = Option(s)) } text "the name of the feature to export" optional(),
+      opt[String]("latAttribute").action { (s, c) =>
+        c.copy(lonAttribute = Option(s)) } text "the name of the feature to export" optional(),
+      opt[String]("dateAttribute").action { (s, c) =>
+        c.copy(dateAttribute = Option(s)) } text "the name of the feature to export" optional(),
+      opt[String]("query").action { (s, c) =>
+        c.copy(query = s )} text "the query" optional()
       )
     cmd("list") action { (_, c) =>
       c.copy(mode = "list")
@@ -130,31 +132,36 @@ object Tools extends App {
   parser.parse(args, Config()) map { config =>
     config.mode match {
       case "export" => {
-//        val ft = new FeaturesTool(config.table)
-//        ft.exportFeatures(
-//          config.feature,
-//          config.attributes,
-//          config.idAttribute,
-//          config.latAttribute,
-//          config.lonAttribute,
-//          config.dateAttribute,
-//          config.query)
+        //example command
+        //export --catalog geomesa_catalog --feature twittersmall --attributes geom --format csv --idAttribute "" --query "include"
+        //NOTE: will export about 100,000 features
+        val ft = new FeaturesTool(config.catalog)
+        ft.exportFeatures(
+          config.feature,
+          config.attributes,
+          config.idAttribute,
+          config.latAttribute,
+          config.lonAttribute,
+          config.dateAttribute,
+          config.format,
+          config.query)
       }
       case "list" => {
         //example command
-        //list --catalog test_jdk2pq_create --feature test --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+        //list --catalog test_jdk2pq_create
+        println(s"Listing features on '${config.catalog}'. Just a few moments...")
         val ft = new FeaturesTool(config.catalog)
         ft.listFeatures()
       }
       case "explain" => {
         //example command
-        //explain --catalog test_jdk2pq_create --feature test --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+        //explain --catalog test_jdk2pq_create --feature testing --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
         val ft = new FeaturesTool(config.catalog)
         ft.explainQuery(config.feature, config.filterString)
       }
       case "delete" => {
         //example command
-        //delete --catalog test_jdk2pq_create --feature test
+        //delete --catalog test_jdk2pq_create --feature testing
         val ft = new FeaturesTool(config.catalog)
         println(s"Deleting '${config.feature}.' Just a few moments...")
         if (ft.deleteFeature(config.feature)) {
@@ -168,7 +175,7 @@ object Tools extends App {
         //example command
         //create --catalog test_jdk2pq_create --feature testing --sft id:String:indexed=true,dtg:Date,geom:Point:srid=4326
         val ft = new FeaturesTool(config.catalog)
-        println(s"Creating '${config.feature}'. Just a few moments...}")
+        println(s"Creating '${config.feature}'. Just a few moments...")
         if (ft.createFeatureType(config.feature, config.sft)) {
           println(s"Feature '${config.feature}' with featureType '${config.sft}' successfully created.")
         } else {
@@ -190,11 +197,12 @@ object Tools extends App {
 
 case class Config(mode: String = null, table: String = null, spec: String = null,
                   idFields: String = null, latField: String = null, lonField: String = null,
-                  dtField: String = null, dtFormat: String = null,
-                  method: String = null, file: String = null, typeName: String = null,
-                  format: String = null, catalog: String = null,
-                  feature: String = null, sft: String = null,
-                  filterString: String = null)
+                  dtField: String = null, dtFormat: String = null, method: String = null,
+                  file: String = null, typeName: String = null, format: String = null,
+                  catalog: String = null, feature: String = null, sft: String = null,
+                  filterString: String = null, attributes: String = null, idAttribute: String = null,
+                  lonAttribute: Option[String] = None, latAttribute: Option[String] = None, dateAttribute: Option[String] = None,
+                  query: String = null)
 
 
 
