@@ -2,16 +2,9 @@ package geomesa.tools
 
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader}
 import geomesa.core.integration.data.{DataExporter, LoadAttributes}
-import geomesa.core.index.{IndexSchemaBuilder, SF_PROPERTY_START_TIME}
-import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.SimpleFeatureTypes
-import geomesa.utils.text.WKTUtils
 import org.geotools.data._
-import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
@@ -47,13 +40,13 @@ class FeaturesTool(catalogTable: String) {
   }
 
   def exportFeatures(feature: String,
-                      attributes: String,
-                      idAttribute: String,
-                      latAttribute: Option[String],
-                      lonAttribute: Option[String],
-                      dateAttribute: Option[String],
-                      format: String,
-                      query: String) {
+                     attributes: String,
+                     idAttribute: String,
+                     latAttribute: Option[String],
+                     lonAttribute: Option[String],
+                     dateAttribute: Option[String],
+                     format: String,
+                     query: String) {
     val loadAttributes = new LoadAttributes(feature, table, attributes, idAttribute, latAttribute, lonAttribute, dateAttribute, query)
     val de = new DataExporter(loadAttributes, Map(
       "instanceId" -> instanceId,
