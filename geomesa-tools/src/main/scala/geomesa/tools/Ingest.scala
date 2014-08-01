@@ -22,10 +22,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.mutable.HashMap
 import scala.io.Source
 
-
-class Ingest() {}
-
-object Ingest  {
+class Ingest() {
   val user = sys.env.getOrElse("GEOMESA_USER", "admin")
   val password = sys.env.getOrElse("GEOMESA_PASSWORD", "admin")
   val instanceId = sys.env.getOrElse("GEOMESA_INSTANCEID", "instanceId")

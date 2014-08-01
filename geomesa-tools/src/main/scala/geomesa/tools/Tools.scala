@@ -184,7 +184,7 @@ object Tools extends App {
         }
       }
       case "ingest" =>
-        val ingest = new Ingest(config.table)
+        val ingest = new Ingest()
         ingest.defineIngestJob(config) match {
           case true => println(s"Successful ingest of file: \'${config.file}\'")
           case false => println(s"Error: could not successfully ingest file: \'${config.file}\'")
