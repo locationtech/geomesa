@@ -61,7 +61,7 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>geotools</artifactId>
+            <artifactId>gt-geojson</artifactId>
             <version>11.0</version>
             <scope>compile</scope>
         </dependency>
