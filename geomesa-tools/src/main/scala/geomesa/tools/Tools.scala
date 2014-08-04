@@ -131,7 +131,7 @@ object Tools extends App {
 
   parser.parse(args, Config()) map { config =>
     config.mode match {
-      case "export" => {
+      case "export" =>
         //example command
         //export --catalog geomesa_catalog --feature twittersmall --attributes geom --format csv --idAttribute "" --query "include"
         //NOTE: will export about 100,000 features
@@ -145,21 +145,18 @@ object Tools extends App {
           config.dateAttribute,
           config.format,
           config.query)
-      }
-      case "list" => {
+      case "list" =>
         //example command
         //list --catalog test_jdk2pq_create
         println(s"Listing features on '${config.catalog}'. Just a few moments...")
         val ft = new FeaturesTool(config.catalog)
         ft.listFeatures()
-      }
-      case "explain" => {
+      case "explain" =>
         //example command
         //explain --catalog test_jdk2pq_create --feature testing --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
         val ft = new FeaturesTool(config.catalog)
         ft.explainQuery(config.feature, config.filterString)
-      }
-      case "delete" => {
+      case "delete" =>
         //example command
         //delete --catalog test_jdk2pq_create --feature testing
         val ft = new FeaturesTool(config.catalog)
@@ -170,8 +167,7 @@ object Tools extends App {
           println(s"There was an error deleting feature '${config.feature}'." +
             " Please check that your configuration settings are correct and try again.")
         }
-      }
-      case "create" => {
+      case "create" =>
         //example command
         //create --catalog test_jdk2pq_create --feature testing --sft id:String:indexed=true,dtg:Date,geom:Point:srid=4326
         val ft = new FeaturesTool(config.catalog)
@@ -182,7 +178,6 @@ object Tools extends App {
           println(s"There was an error creating feature '${config.feature}' with featureType '${config.sft}'." +
             " Please check that your configuration settings are correct and try again.")
         }
-      }
       case "ingest" =>
         val ingest = new Ingest()
         ingest.defineIngestJob(config) match {

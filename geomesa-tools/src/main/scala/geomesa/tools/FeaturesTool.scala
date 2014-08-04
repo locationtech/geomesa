@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package geomesa.tools
 
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader}
@@ -17,11 +33,11 @@ class FeaturesTool(catalogTable: String) {
 
   val ds: AccumuloDataStore = {
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> instanceId,
-      "zookeepers" -> zookeepers,
-      "user"       -> user,
-      "password"   -> password,
-      "tableName"  -> table,
+      "instanceId"      -> instanceId,
+      "zookeepers"      -> zookeepers,
+      "user"            -> user,
+      "password"        -> password,
+      "tableName"       -> table,
       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
   }
 
@@ -34,9 +50,7 @@ class FeaturesTool(catalogTable: String) {
   def createFeatureType(sftName: String, sftString: String): Boolean = {
     val sft = SimpleFeatureTypes.createType(sftName, sftString)
     ds.createSchema(sft)
-    if (ds.getSchema(sftName) != null) {
-      true
-    } else false
+    ds.getSchema(sftName) != null
   }
 
   def exportFeatures(feature: String,
@@ -49,20 +63,18 @@ class FeaturesTool(catalogTable: String) {
                      query: String) {
     val loadAttributes = new LoadAttributes(feature, table, attributes, idAttribute, latAttribute, lonAttribute, dateAttribute, query)
     val de = new DataExporter(loadAttributes, Map(
-      "instanceId" -> instanceId,
-      "zookeepers" -> zookeepers,
-      "user"       -> user,
-      "password"   -> password,
-      "tableName"  -> table,
+      "instanceId"      -> instanceId,
+      "zookeepers"      -> zookeepers,
+      "user"            -> user,
+      "password"        -> password,
+      "tableName"       -> table,
       "featureEncoding" -> "avro"), format)
     de.writeFeatures(de.queryFeatures())
   }
 
   def deleteFeature(sftName: String): Boolean = {
     ds.deleteSchema(sftName)
-    if (!ds.getNames.contains(sftName)) {
-      true
-    } else false
+    !ds.getNames.contains(sftName)
   }
 
   def explainQuery(featureName: String, filterString: String) = {

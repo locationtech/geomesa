@@ -71,21 +71,17 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
     val attributes = attributeTypes.map(_.split(":")(0))
 
     val fr = format match {
-      case "tsv" => {
+      case "tsv" =>
         new PrintWriter(new FileWriter(s"/tmp/${load.name}.tsv"))
-      }
-      case "csv" => {
+      case "csv" =>
         new PrintWriter(new FileWriter(s"/tmp/${load.name}.csv"))
-      }
     }
 
     format match {
-      case "tsv" => {
+      case "tsv" =>
         fr.println(attributeTypes.mkString("\t"))
-      }
-      case "csv" => {
+      case "csv" =>
         fr.println(attributeTypes.mkString(","))
-      }
     }
 
     var count = 0
@@ -135,12 +131,10 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
       }
 
       val separatedString = format match {
-        case "tsv" => {
+        case "tsv" =>
           attributeValues.mkString("\t")
-        }
-        case "csv" => {
+        case "csv" =>
           attributeValues.mkString(",")
-        }
       }
 
       fr.println(separatedString)
