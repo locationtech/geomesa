@@ -58,6 +58,7 @@ import scala.collection.JavaConversions._
  *  contain multiple features addressed by their featureName.
  */
 class AccumuloDataStore(val connector: Connector,
+                        val authToken: Array[Byte],
                         val catalogTable: String,
                         val authorizationsProvider: AuthorizationsProvider,
                         val writeVisibilities: String,
@@ -641,7 +642,7 @@ class AccumuloDataStore(val connector: Connector,
    * @param featureName
    * @return
    */
-  protected def getIndexSchemaFmt(featureName: String) =
+  def getIndexSchemaFmt(featureName: String) =
     readMetadataItem(featureName, SCHEMA_CF).getOrElse(EMPTY_STRING)
 
   /**
