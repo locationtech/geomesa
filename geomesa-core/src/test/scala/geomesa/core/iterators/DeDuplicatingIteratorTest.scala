@@ -42,15 +42,15 @@ class DeDuplicatingIteratorTest extends Specification {
       bool must beTrue
     }
 
-//    "return true for a duplicate element" in {
-//      val unique = dedup.isDuplicate(key, value)
-//
-//      val duplicate = dedup.isDuplicate(key, value)
-//
-//      dedup.close()
-//
-//      unique must beFalse
-//      duplicate must beTrue
-//    }
+    "return true for a duplicate element" in {
+      val unique = dedup.isDuplicate(key, value)
+
+      val duplicate = dedup.isDuplicate(key, value)
+
+      dedup.close()
+
+      unique must beFalse
+      duplicate must beTrue
+    }
   }
 }
