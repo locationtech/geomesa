@@ -55,7 +55,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
     val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
     val (connector, token) =
-      if(params.containsKey(connParam.key)) (connParam.lookUp(params).asInstanceOf[Connector], null)
+      if (params.containsKey(connParam.key)) (connParam.lookUp(params).asInstanceOf[Connector], null)
       else buildAccumuloConnector(params, useMock)
 
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support

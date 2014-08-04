@@ -8,7 +8,7 @@ call ```GeoMesaSpark.init(sparkConf, ds)``` on one of your data stores.
 Then, request a ```RDD``` using a CQL filter as follows:
 
 ```scala
-geomesa.compute.spark.GeoMesaSpark.rdd(hadoopConf, sparkConf, ds, query)
+geomesa.compute.spark.GeoMesaSpark.rdd(hadoopConf, sparkContext, ds, query)
 ```
 
 The following example demonstrates computing a time series across
@@ -26,7 +26,7 @@ object CountByDay {
       "auths"      -> "USER,ADMIN",
       "tableName"  -> "geomesa_catalog")
 
-    val ds = DataStoreFinder.getDataStore(params)
+    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
     // Construct a CQL query to filter by bounding box
     val ff = CommonFactoryFinder.getFilterFactory2
@@ -39,7 +39,7 @@ object CountByDay {
     val sc = new SparkContext(sconf)
 
     // Create an RDD from a query
-    val queryRDD = geomesa.compute.spark.GeoMesaSpark.rdd(conf, sconf, ds, query)
+    val queryRDD = geomesa.compute.spark.GeoMesaSpark.rdd(conf, sc, ds, query)
     
     // Convert RDD[SimpleFeature] to RDD[(String, SimpleFeature)] where the first
     // element of the tuple is the date to the day resolution

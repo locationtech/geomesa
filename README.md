@@ -61,3 +61,7 @@ This sub-project stores our GeoHash implementation and other general library fun
 
 This sub-project contains the distribution-ready TAR-ball as well as the documentation (in DocBook form, rendered to PDF).
 
+#### geomesa-compute
+
+This sub-project contains utilities for working with distributed computing environments.  Currently, there are methods for instantiating an Apache Spark Resilient Distributed Dataset from a CQL query against data stored in GeoMesa.  Eventually, this project will contain bindings for traditional map-reduce processing, Scalding, and other environments.
+

@@ -65,7 +65,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
 
     // We've tried to optimize this.
     for (i <- 0 until sft.getAttributeCount) {
-      if(values(i) == null) {
+      if (values(i) == null) {
         record.put(i+2, null)
       } else {
         record.put(i+2, convertValue(i, values(i)))
