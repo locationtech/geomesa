@@ -24,7 +24,7 @@ import javax.imageio.spi.ServiceRegistry
 import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import geomesa.core.stats.StatWriter
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, PasswordToken}
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
@@ -36,8 +36,8 @@ import scala.util.Try
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
-  import AccumuloDataStoreFactory._
-  import params._
+  import geomesa.core.data.AccumuloDataStoreFactory._
+  import geomesa.core.data.AccumuloDataStoreFactory.params._
 
   // this is a pass-through required of the ancestor interface
   def createNewDataStore(params: JMap[String, Serializable]) = createDataStore(params)
@@ -54,8 +54,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
     val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
     val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
-    val connector =
-      if(params.containsKey(connParam.key)) connParam.lookUp(params).asInstanceOf[Connector]
+    val (connector, token) =
+      if (params.containsKey(connParam.key)) (connParam.lookUp(params).asInstanceOf[Connector], null)
       else buildAccumuloConnector(params, useMock)
 
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
@@ -125,6 +125,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
     if (collectStats) {
       new AccumuloDataStore(connector,
+        token,
         tableName,
         authorizationsProvider,
         visibility,
@@ -135,6 +136,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         featureEncoding) with StatWriter
     } else {
       new AccumuloDataStore(connector,
+        token,
         tableName,
         authorizationsProvider,
         visibility,
@@ -146,14 +148,15 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     }
   }
 
-  def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): Connector = {
+  def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): (Connector, AuthenticationToken) = {
     val zookeepers = zookeepersParam.lookUp(params).asInstanceOf[String]
     val instance = instanceIdParam.lookUp(params).asInstanceOf[String]
     val user = userParam.lookUp(params).asInstanceOf[String]
     val password = passwordParam.lookUp(params).asInstanceOf[String]
 
-    if(useMock) new MockInstance(instance).getConnector(user, new PasswordToken(password.getBytes))
-    else new ZooKeeperInstance(instance, zookeepers).getConnector(user, new PasswordToken(password.getBytes))
+    val authToken = new PasswordToken(password.getBytes)
+    if(useMock) (new MockInstance(instance).getConnector(user, authToken), authToken)
+    else (new ZooKeeperInstance(instance, zookeepers).getConnector(user, authToken), authToken)
   }
 
   override def getDisplayName = "Accumulo Feature Data Store"
@@ -196,7 +199,7 @@ object AccumuloDataStoreFactory {
     val featureEncParam     = new Param("featureEncoding", classOf[String], "The feature encoding format (text or avro). Default is Avro", false, "avro")
   }
 
-  import params._
+  import geomesa.core.data.AccumuloDataStoreFactory.params._
 
   def configureJob(job: Job, params: JMap[String, Serializable]): Job = {
     val conf = job.getConfiguration

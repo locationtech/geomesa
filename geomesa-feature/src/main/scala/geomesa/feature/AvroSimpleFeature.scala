@@ -16,8 +16,9 @@
 
 package geomesa.feature
 
-import java.io.OutputStream
+import java.io.{ObjectInputStream, ObjectOutputStream, IOException, OutputStream}
 import java.nio._
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 import java.util.{Date, UUID, Collection => JCollection, List => JList}
 
@@ -44,25 +45,27 @@ import scala.collection.JavaConversions._
 import scala.util.Try
 
 
-class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
+class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
+  extends SimpleFeature
+  with Serializable {
 
   import geomesa.feature.AvroSimpleFeature._
 
-  val values    = Array.ofDim[AnyRef](sft.getAttributeCount)
-  val userData  = collection.mutable.HashMap.empty[AnyRef, AnyRef]
-  val typeMap   = typeMapCache.get(sft)
-  val names     = nameCache.get(sft)
-  val nameIndex = nameIndexCache.get(sft)
-  val schema    = avroSchemaCache.get(sft)
+  val values  = Array.ofDim[AnyRef](sft.getAttributeCount)
+  @transient val userData  = collection.mutable.HashMap.empty[AnyRef, AnyRef]
+  @transient val typeMap   = typeMapCache.get(sft)
+  @transient val names     = nameCache.get(sft)
+  @transient val nameIndex = nameIndexCache.get(sft)
+  @transient val schema    = avroSchemaCache.get(sft)
 
-  def write(datumWriter: GenericDatumWriter[GenericRecord], encoder: BinaryEncoder){
+  def write(datumWriter: GenericDatumWriter[GenericRecord], encoder: BinaryEncoder) {
     val record = new GenericData.Record(schema)
     record.put(AvroSimpleFeature.AVRO_SIMPLE_FEATURE_VERSION, AvroSimpleFeature.VERSION)
     record.put(AvroSimpleFeature.FEATURE_ID_AVRO_FIELD_NAME, getID)
 
     // We've tried to optimize this.
     for (i <- 0 until sft.getAttributeCount) {
-      if( values(i) == null) {
+      if (values(i) == null) {
         record.put(i+2, null)
       } else {
         record.put(i+2, convertValue(i, values(i)))
@@ -159,6 +162,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType) extends SimpleFea
   def setValue(newValue: Object) = setValue (newValue.asInstanceOf[JCollection[Property]])
 
   def validate() = values.zipWithIndex.foreach { case (v, idx) => Types.validate(getType.getDescriptor(idx), v) }
+
 }
 
 object AvroSimpleFeature {
@@ -199,6 +203,7 @@ object AvroSimpleFeature {
       )
 
   case class Binding(clazz: Class[_], conv: AnyRef => Any)
+
   val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Binding]] =
     loadingCacheBuilder { sft =>
       sft.getAttributeDescriptors.map { ad =>

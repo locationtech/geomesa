@@ -16,7 +16,7 @@
 
 package geomesa.core.data
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.{InputStream, ByteArrayInputStream, ByteArrayOutputStream}
 
 import com.google.common.cache.LoadingCache
 import geomesa.core.data.FeatureEncoding.FeatureEncoding
@@ -98,9 +98,11 @@ class AvroFeatureEncoder extends SimpleFeatureEncoder {
     new AValue(baos.toByteArray)
   }
 
-  def decode(simpleFeatureType: SimpleFeatureType, featureAValue: AValue) = {
-    val bais = new ByteArrayInputStream(featureAValue.get())
-    val decoder = DecoderFactory.get().binaryDecoder(bais, null)
+  def decode(simpleFeatureType: SimpleFeatureType, featureAValue: AValue) =
+    decode(simpleFeatureType, new ByteArrayInputStream(featureAValue.get()))
+
+  def decode(simpleFeatureType: SimpleFeatureType, is: InputStream) = {
+    val decoder = DecoderFactory.get().binaryDecoder(is, null)
     readerCache.get(simpleFeatureType).read(null, decoder)
   }
 

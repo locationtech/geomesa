@@ -32,6 +32,7 @@
         <module>geomesa-feature</module>
         <module>geomesa-tools</module>
         <module>geomesa-minicluster</module>
+        <module>geomesa-compute</module>
     </modules>
 
     <properties>
@@ -476,6 +477,11 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-geometry</artifactId>
                 <version>${gt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-core_2.10</artifactId>
+                <version>1.0.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
