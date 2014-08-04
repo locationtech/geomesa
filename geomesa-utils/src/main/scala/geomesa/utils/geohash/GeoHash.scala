@@ -35,6 +35,8 @@ case class GeoHash private(x: Double,
                            bitset: BitSet,
                            prec: Int, // checked in factory methods in companion object
                            private val optHash: Option[String]) extends Comparable[GeoHash] {
+  require(x >= -180.0 && x <= 180.0)
+  require(y >= -90.0  && y <= 90.0)
 
   import GeoHash._
 
@@ -141,12 +143,14 @@ object GeoHash extends Logging {
 
   // We expect points x,y i.e., lon-lat
   def apply(lon: Double, lat: Double, prec: Int = 25): GeoHash = {
+    require(lon >= -180.0 && lon <= 180.0)
+    require(lat >= -90.0  && lat <= 90.0)
     checkPrecision(prec)
 
     val lonDelta = lonDeltaMap(prec)
     val latDelta = latDeltaMap(prec)
-    val lonIndex = ((lon - lonBounds.low) / lonDelta).toLong
-    val latIndex = ((lat - latBounds.low) / latDelta).toLong
+    val lonIndex = if(lon == 180.0) (359.999 / lonDelta).toLong else ((lon - lonBounds.low) / lonDelta).toLong
+    val latIndex = if(lat == 90.0)  (179.999 / latDelta).toLong  else ((lat - latBounds.low) / latDelta).toLong
 
     encode(lonIndex, latIndex, lonDelta, latDelta, prec)
   }
