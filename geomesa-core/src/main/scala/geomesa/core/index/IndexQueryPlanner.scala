@@ -19,7 +19,7 @@ package geomesa.core.index
 import java.nio.charset.StandardCharsets
 import java.util.Map.Entry
 
-import com.vividsolutions.jts.geom.{Point, Polygon}
+import com.vividsolutions.jts.geom._
 import geomesa.core._
 import geomesa.core.data._
 import geomesa.core.filter.{ff, _}
@@ -27,6 +27,8 @@ import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
 import geomesa.core.util.{BatchMultiScanner, CloseableIterator, SelfClosingBatchScanner}
 import geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import geomesa.utils.geohash.GeohashUtils
+import geomesa.utils.geohash.GeohashUtils._
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.user.RegExFilter
@@ -39,7 +41,7 @@ import org.joda.time.Interval
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.{Literal, PropertyName}
-import org.opengis.filter.spatial.DWithin
+import org.opengis.filter.spatial._
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -60,20 +62,18 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              cfPlanner: ColumnFamilyPlanner,
                              schema: String,
                              featureType: SimpleFeatureType,
-                             featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
-
-  def buildFilter(poly: Polygon, interval: Interval): KeyPlanningFilter =
-    (IndexSchema.somewhere(poly), IndexSchema.somewhen(interval)) match {
+                             featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging with FilterHelper {
+  def buildFilter(geom: Geometry, interval: Interval): KeyPlanningFilter =
+    (IndexSchema.somewhere(geom), IndexSchema.somewhen(interval)) match {
       case (None, None)       =>    AcceptEverythingFilter
       case (None, Some(i))    =>
         if (i.getStart == i.getEnd) DateFilter(i.getStart)
         else                        DateRangeFilter(i.getStart, i.getEnd)
-      case (Some(p), None)    =>    SpatialFilter(poly)
+      case (Some(p), None)    =>    SpatialFilter(p)
       case (Some(p), Some(i)) =>
         if (i.getStart == i.getEnd) SpatialDateFilter(p, i.getStart)
         else                        SpatialDateRangeFilter(p, i.getStart, i.getEnd)
     }
-
 
   def netPolygon(poly: Polygon): Polygon = poly match {
     case null => null
@@ -84,6 +84,15 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       asInstanceOf[Polygon]
   }
 
+  def netGeom(geom: Geometry): Geometry = geom match {
+    case null => null
+    //case gc: GeometryCollection => netGeom(gc.buffer(0))
+//    case p if p.covers(IndexSchema.everywhere) =>
+//      IndexSchema.everywhere
+//    //case p if IndexSchema.everywhere.covers(p) => p
+    case _ => geom.intersection(IndexSchema.everywhere) //.asInstanceOf[Polygon]
+  }
+  
   def netInterval(interval: Interval): Interval = interval match {
     case null => null
     case _    => IndexSchema.everywhen.overlap(interval)
@@ -94,7 +103,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def getIterator(acc: AccumuloConnectorCreator,
                   sft: SimpleFeatureType,
                   query: Query,
-                  output: ExplainerOutputType = log): CloseableIterator[Entry[Key,Value]] = {
+                  output: ExplainerOutputType = ExplainPrintln): CloseableIterator[Entry[Key,Value]] = {
     val ff = CommonFactoryFinder.getFilterFactory2
     val isDensity = query.getHints.containsKey(BBOX_KEY)
     val queries: Iterator[Query] =
@@ -351,13 +360,41 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
 
-    // standardize the two key query arguments:  polygon and date-range
-    val poly = netPolygon(spatial)
-    val interval = netInterval(temporal)
+    val tweakedGeoms = geomFilters.map(tweakFilter)
 
-    // figure out which of our various filters we intend to use
-    // based on the arguments passed in
+    output(s"Tweaked geom filters are $tweakedGeoms")
+
+    // standardize the two key query arguments:  polygon and date-range
+    //val poly = netPolygon(spatial)
+    // JNH: I don't like this; I don't like this....
+    val geomsToCover: Seq[Geometry] = tweakedGeoms.flatMap {
+      case bbox: BBOX =>
+        val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
+        Seq(getInternationalDateLineSafeGeometry(addWayPointsToBBOX(bboxPoly)))
+        //Seq(bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry]))
+      case gf: BinarySpatialOperator =>
+        gf.getExpression1 match {
+          case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
+          case _           =>
+            gf.getExpression2 match {
+              case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
+              case l: Literal  => Seq(l.evaluate(null, classOf[Geometry]))
+            }
+        }
+      case _                 => Seq()
+    }
+
+    val collectionToCover: Geometry = geomsToCover match {
+      case Nil => null // IndexSchema.everywhere
+      //case seq: Seq[Geometry] if seq.size == 1 => seq.head          // Is this line magic?
+      case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
+    }
+
+    val interval = netInterval(temporal)
+    val poly = netGeom(collectionToCover)
     val filter = buildFilter(poly, interval)
+
+    output(s"GeomsToCover $geomsToCover\nBounding poly: $poly")
 
     val ofilter = filterListAsAnd(geomFilters ++ temporalFilters)
     if(ofilter.isEmpty) logger.warn(s"Querying Accumulo without ST filter.")
@@ -387,9 +424,11 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
           configureSpatioTemporalIntersectingIterator(ofilter, featureType, isDensity)
       }
 
+    val goodPoly = if(poly == null) null else poly.getEnvelope.asInstanceOf[Polygon]
+
     val sffiIterCfg =
       if (iteratorConfig.useSFFI) {
-        Some(configureSimpleFeatureFilteringIterator(featureType, ecql, query, poly))
+        Some(configureSimpleFeatureFilteringIterator(featureType, ecql, query, goodPoly))
       } else None
 
     qp.copy(iterators = qp.iterators ++ List(Some(stIdxIterCfg), sffiIterCfg).flatten)
@@ -418,22 +457,12 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def tweakFilter(filter: Filter) = {
     filter match {
       case dw: DWithin => rewriteDwithin(dw)
+      case op: BBOX       => visitBBOX(op)
+      case op: Within     => visitBinarySpatialOp(op)
+      case op: Intersects => visitBinarySpatialOp(op)
+      case op: Overlaps   => visitBinarySpatialOp(op)
       case _ => filter
     }
-  }
-
-  // Rewrites a Dwithin (assumed to express distance in meters) in degrees.
-  def rewriteDwithin(op: DWithin): Filter = {
-    val e2 = op.getExpression2.asInstanceOf[Literal]
-    val startPoint = e2.evaluate(null, classOf[Point])
-    val distance = op.getDistance
-    val distanceDegrees = GeometryUtils.distanceDegrees(startPoint, distance)
-
-    ff.dwithin(
-      op.getExpression1,
-      ff.literal(startPoint),
-      distanceDegrees,
-      "meters")
   }
 
   def configureFeatureEncoding(cfg: IteratorSetting) =
@@ -538,13 +567,19 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def planQuery(filter: KeyPlanningFilter, output: ExplainerOutputType): QueryPlan = {
     output(s"Planning query")
     val keyPlan = keyPlanner.getKeyPlan(filter, output)
+    output(s"Got keyplan ${keyPlan.toString.take(1000)}")
+
+    output("Enumerating column families")
     val columnFamilies = cfPlanner.getColumnFamiliesToFetch(filter)
 
+    output(s"Starting to get ranges")
     // always try to use range(s) to remove easy false-positives
     val accRanges: Seq[org.apache.accumulo.core.data.Range] = keyPlan match {
       case KeyRanges(ranges) => ranges.map(r => new org.apache.accumulo.core.data.Range(r.start, r.end))
       case _ => Seq(new org.apache.accumulo.core.data.Range())
     }
+
+    output(s"Set ${accRanges.size} ranges.")
 
     // always try to set a RowID regular expression
     //@TODO this is broken/disabled as a result of the KeyTier
