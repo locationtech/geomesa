@@ -125,7 +125,7 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
   def getImage(timeParam: Any, env: Envelope, xDim:Int, yDim:Int) = {
     val min = Array(env.getMinimum(0)+.00000001, env.getMinimum(1)+.00000001)
     val max = Array(env.getMaximum(0)-.00000001, env.getMaximum(1)-.00000001)
-    val bbox = BoundingBox(Bounds(min(0), max(0)),Bounds(min(1), max(1)))
+    val bbox = BoundingBox(Bounds(Math.max(min(0),-180), Math.min(max(0),180)),Bounds(Math.max(min(1),-90), Math.min(max(1),90)))
     val ghBbox = TwoGeoHashBoundingBox(bbox,getGeohashPrecision)
     val xdim = math.max(1, math.min(xDim, math.round(ghBbox.bbox.longitudeSize /
                                                      ghBbox.ur.bbox.longitudeSize - 1)
