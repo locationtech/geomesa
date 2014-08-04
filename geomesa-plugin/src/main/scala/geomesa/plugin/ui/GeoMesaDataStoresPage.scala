@@ -49,15 +49,7 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
 
   private val connections = getStoreConnections
 
-  @transient
-  private val dataStores = for {
-    connection <- connections
-    params = getDataStoreParams(connection)
-  } yield {
-    (connection.name, DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore], params)
-  }
-
-  private val dataStoreNames = dataStores.map(_._1.toString)
+  private val dataStoreNames = mutable.ListBuffer.empty[String]
 
   private val features = mutable.HashMap.empty[String, List[String]]
 
@@ -68,7 +60,14 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
   private val connectionParams = mutable.HashMap.empty[String, Map[String, String]]
 
   // compile data store info
-  dataStores.foreach { case (name, dataStore, params) =>
+  for {
+    connection <- connections
+    params = getDataStoreParams(connection)
+  } {
+    val name = connection.name
+    val dataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
+    dataStoreNames.append(name)
+
     val featureNames = dataStore.getTypeNames.toList
     features.put(name, featureNames)
 
@@ -91,7 +90,7 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
       val dataStore = item.getModelObject
       val featureData = features.get(dataStore).get.map { feature =>
         // data store name is workspace:name
-        val name = dataStore.split((":"))
+        val name = dataStore.split(":")
         FeatureData(name(0),
                     name(1),
                     feature,
@@ -121,7 +120,8 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
         s"{name: '${metadata.featureName}', value: ${metadata.numEntries}}"
       }
 
-    val data = values.toList.sortWith(_ > _).mkString(",")
+    // sort reverse so that they show up alphabetically on the UI
+    val data = values.toList.sorted(Ordering[String].reverse).mkString(",")
 
     val string = s"var data = [ $data ]"
     container.getHeaderResponse.renderJavascript(string, "rawData")
