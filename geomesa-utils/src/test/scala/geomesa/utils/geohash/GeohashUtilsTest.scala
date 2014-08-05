@@ -68,9 +68,10 @@ class GeohashUtilsTest extends Specification with Logging {
   val recommendedBitsTestPolygons = Seq(
     ("POLYGON((33 -14, 82 -14, 82 24, 33 24, 33 -14))", 23, 241044),
     ("POLYGON((36 23, 36 18, 43 9, 50 10, 38 -4, 40 -14, 60 -14, 78 7, 76 8, 73 21, 71 23, 58 23, 57 19, 45 13, 40 20, 39 23, 36 23))", 23, 132496),
-    ("POLYGON((0 0, 0 10, -5 25, -15 35, -25 35, -40 10, -20 0, -30 15, -20 25, -10 20, -10 10, -15 0, -25 -5, -35 -15, -40 -35, -25 -35, -15 -25, -5 -35, 0 -25, -10 -10, -25 -25, -20 -10, 0 0))", 23, 184472)
-    // area bigger than ~2310 failing on Exception("Could not satisfy constraints, resolutions... ln 361
-    // crossing prime merridian and int'l date line failing on Could not find a suitable 1-bit MBR for the target geometry
+    ("POLYGON((0 0, 0 10, -5 25, -15 35, -25 35, -40 10, -20 0, -30 15, -20 25, -10 20, -10 10, -15 0, -25 -5, -35 -15, -40 -35, -25 -35, -15 -25, -5 -35, 0 -25, -10 -10, -25 -25, -20 -10, 0 0))", 23, 184472),
+    ("POLYGON((-10 10, 0 30, 10 10, -10 10))", 25, 103564),
+    ("POLYGON((-10 -10, -10 10, 10 10, 10 -10, -10 -10))", 25, 207127)
+    // area bigger than ~2310 failing on Exception("Could not satisfy constraints, resolutions..." ln 361
   )
 
   // (reasonable) odd GeoHash resolutions
