@@ -121,13 +121,9 @@ object Tools extends App {
         val ft = new FeaturesTool(config.catalog)
         ft.listFeatures()
       case "explain" =>
-        //example command
-        //explain --catalog geomesa_catalog --typeName twittersmall --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
         val ft = new FeaturesTool(config.catalog)
         ft.explainQuery(config.typeName, config.filterString)
       case "delete" =>
-        //example command
-        //delete --catalog test_jdk2pq_create --typeName testing
         val ft = new FeaturesTool(config.catalog)
         println(s"Deleting '${config.typeName}.' Just a few moments...")
         if (ft.deleteFeature(config.typeName)) {
@@ -137,12 +133,10 @@ object Tools extends App {
             " Please check that your configuration settings are correct and try again.")
         }
       case "create" =>
-        //example command
-        //create --catalog test_jdk2pq_create --typeName testing --sft id:String:indexed=true,dtg:Date,geom:Point:srid=4326
         val ft = new FeaturesTool(config.catalog)
-        println(s"Creating '${config.typeName}'. Just a few moments...")
+        println(s"Creating '${config.typeName}' with schema '${config.sft}'. Just a few moments...")
         if (ft.createFeatureType(config.typeName, config.sft)) {
-          println(s"Feature '${config.typeName}' with featureType '${config.sft}' successfully created.")
+          println(s"Feature '${config.typeName}' with schema '${config.sft}' successfully created.")
         } else {
           println(s"There was an error creating feature '${config.typeName}' with featureType '${config.sft}'." +
             " Please check that your configuration settings are correct and try again.")
