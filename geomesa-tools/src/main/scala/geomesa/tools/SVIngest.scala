@@ -2,8 +2,8 @@ package geomesa.tools
 
 import java.net.URLDecoder
 import java.nio.charset.Charset
-import java.util.Date
 import com.google.common.hash.Hashing
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.AccumuloDataStore
 import geomesa.core.index.Constants
@@ -17,22 +17,9 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import scala.io.Source
 
-
-class SVIngest(config: Config, dsConfig: Map[String, _]) {
+class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
 
   import scala.collection.JavaConversions._
-  import scala.reflect.runtime.universe._
-  def getConverter[T](clazz: Class[T])(implicit ct: TypeTag[T]): String => AnyRef =
-    typeOf[T] match {
-      case t if t =:= typeOf[java.lang.Float]   => s => java.lang.Float.valueOf(s)
-      case t if t =:= typeOf[java.lang.Integer] => s => java.lang.Integer.valueOf(s)
-      case t if t =:= typeOf[java.lang.Long]    => s => java.lang.Long.valueOf(s)
-      case t if t =:= typeOf[java.lang.Double]  => s => java.lang.Double.valueOf(s)
-      case t if t =:= typeOf[java.lang.Boolean] => s => java.lang.Boolean.valueOf(s)
-      case t if t =:= typeOf[String]            => s => s
-      case t if t =:= typeOf[Date]              => s => new DateTime(s)
-      case _                                    => identity
-    }
 
   lazy val table            = config.table
   lazy val path             = config.file
@@ -43,7 +30,7 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) {
   lazy val lonField         = config.lonField
   lazy val dtgField         = config.dtField
   lazy val dtgFmt           = config.dtFormat
-  lazy val dtgTargetField   = Constants.SF_PROPERTY_START_TIME // sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
+  //lazy val dtgTargetField   = Constants.SF_PROPERTY_START_TIME // sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
   lazy val zookeepers       = dsConfig.get("zookeepers")
   lazy val user             = dsConfig.get("user")
   lazy val password         = dsConfig.get("password")
@@ -54,35 +41,42 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) {
     case "CSV" => ","
   }
 
-  lazy val sft = SimpleFeatureTypes.createType(typeName, sftSpec)
-  //ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgTargetField)
+  lazy val sft = {
+    val ret = SimpleFeatureTypes.createType(typeName, sftSpec)
+    ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, Constants.SF_PROPERTY_START_TIME)
+    ret
+  }
+
+  lazy val dtgTargetField = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
 
   val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
   lazy val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
-  ds.createSchema(sft) // this will need to be removed eventually
+
+  if (ds.getSchema(typeName) == null) ds.createSchema(sft)
 
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
   lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt)
 
-  // NOTE: we assume that geom and dtg are the last elements of the sft and are computed from the data
-  lazy val converters =
-    sft.getAttributeDescriptors
-      .take(sft.getAttributeDescriptors.length - 2)
-      .map { desc => getConverter(desc.getType.getBinding) }
-
   lazy val attributes = sft.getAttributeDescriptors
   lazy val dtBuilder = buildDtBuilder
   lazy val idBuilder = buildIDBuilder
+
+  lazy val idFieldMap: Map[String, Int] = {
+    val tempSplit = idFields.split(delim)
+    val tempIndexs = tempSplit.map { f => tempSplit.indexOf(f) }
+    (tempSplit zip tempIndexs).toMap
+  }
 
   val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
   Source.fromFile(path).getLines.foreach { line => parseFeature(line) }
   def parseFeature(line: String) = {
     try {
       val fields = line.toString.split(delim)
-      builder.reset()
+      val finalFields = fields.toList.updated(idFieldMap(dtgField), dtBuilder(fields(idFieldMap(dtgField))).toDate)
       val id = idBuilder(fields)
 
-      builder.addAll(convertAttributes(fields))
+      builder.reset()
+      builder.addAll(finalFields)
       val feature = builder.buildFeature(id)
 
       val lat = feature.getAttribute(latField).asInstanceOf[Double]
@@ -91,21 +85,18 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) {
       val dtg = dtBuilder(feature.getAttribute(dtgField))
 
       feature.setDefaultGeometry(geom)
-      feature.setAttribute(dtgTargetField, dtg.toDate)
+      //feature.setAttribute(dtgTargetField, dtg.toDate)
       val toWrite = fw.next()
-      sft.getAttributeDescriptors.foreach { ad =>
+      toWrite.getFeatureType.getAttributeDescriptors.foreach { ad =>
         toWrite.setAttribute(ad.getName, feature.getAttribute(ad.getName))
       }
       toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
       toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       fw.write()
     } catch {
-      case t: Throwable => Nil //beware this hides the arrayindex out of bounds exception
+      case t: Throwable => t.printStackTrace()//logger.error(t.getStackTraceString)
     }
   }
-
-  def convertAttributes(attrs: Array[String]): Seq[AnyRef] =
-    converters.zip(attrs).map { case (conv, attr) => conv.apply(attr) }
 
   def buildIDBuilder: (Array[String]) => String = {
     idFields match {
@@ -114,7 +105,7 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) {
         attrs => hashFn.newHasher().putString(attrs.mkString("|"), Charset.defaultCharset()).hash().toString
 
       case s: String =>
-        val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
+        val idSplit = idFields.split(",").map { f => sft.indexOf(f) }.filter(_ >= 0)
         attrs => idSplit.map { idx => attrs(idx) }.mkString("_")
     }
   }

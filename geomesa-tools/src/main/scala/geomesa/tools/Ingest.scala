@@ -54,7 +54,7 @@ class Ingest() extends Logging {
             false
         }
       case _ =>
-        logger.error(s"Error, format: \'${config.format}\'")
+        logger.error(s"Error, format: \'${config.format}\' not supported. Supported formats include: CSV, TSV, GEOJSON, JSON, GML, KML, SHAPEFILE ")
         false
     }
   }

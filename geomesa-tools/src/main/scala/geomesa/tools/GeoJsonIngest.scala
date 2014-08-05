@@ -8,7 +8,6 @@ import org.geotools.data.{DataStoreFinder, FeatureWriter, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geojson.feature.FeatureJSON
-import org.geotools.geometry.jts.JTSFactoryFinder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 
@@ -27,7 +26,6 @@ class GeoJsonIngest(config: Config, dsConfig: Map[String, _]) {
 
   val io = new FeatureJSON()
   val jsonIterator =  io.streamFeatureCollection(path)
-  lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
 
   val sft = io.readFeatureCollectionSchema(path, false)
 
