@@ -30,6 +30,8 @@
         <module>geomesa-plugin</module>
         <module>geomesa-filter</module>
         <module>geomesa-feature</module>
+        <module>geomesa-tools</module>
+        <module>geomesa-minicluster</module>
         <module>geomesa-compute</module>
     </modules>
 
@@ -262,6 +264,11 @@
             <dependency>
                 <groupId>geomesa</groupId>
                 <artifactId>geomesa-feature-accumulo1.5</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>geomesa</groupId>
+                <artifactId>geomesa-minicluster-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
