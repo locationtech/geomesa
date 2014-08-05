@@ -16,36 +16,23 @@
 
 package geomesa.plugin.ui.components
 
-import java.text.DecimalFormat
-
-import geomesa.plugin.ui.{FeatureModel, TableMetadata}
+import geomesa.plugin.ui.FeatureData
 import org.apache.wicket.markup.html.basic.Label
 import org.apache.wicket.markup.html.list.{ListItem, ListView}
 import org.apache.wicket.markup.html.panel.Panel
-import org.apache.wicket.model.{Model, PropertyModel}
+import org.apache.wicket.model.Model
 
 import scala.collection.JavaConverters._
 
 class DataStoreInfoPanel(id: String,
                          name: String,
-                         metadata: TableMetadata,
-                         features: List[String],
-                         bounds: Map[String, FeatureModel]) extends Panel(id) {
+                         features: List[FeatureData]) extends Panel(id) {
 
   add(new Label("dataStoreName", Model.of(s"Data Store - $name")))
 
-  val numberFormat = new DecimalFormat("#,###")
-  val doubleFormat = new DecimalFormat("#,###.##")
-
-  add(new Label("metadataNumTablets", Model.of(numberFormat.format(metadata.numTablets))))
-  add(new Label("metadataNumSplits", Model.of(numberFormat.format(metadata.numSplits))))
-  add(new Label("metadataNumEntries", Model.of(numberFormat.format(metadata.numEntries))))
-  add(new Label("metadataFileSize", Model.of(doubleFormat.format(metadata.fileSize))))
-
-  add(new ListView[FeatureModel]("featureRows", bounds.values.toList.asJava) {
-    override def populateItem(item: ListItem[FeatureModel]) = {
-      item.add(new Label("name", new PropertyModel(item.getModel, "name")))
-      item.add(new Label("bounds", new PropertyModel(item.getModel, "bounds")))
+  add(new ListView[FeatureData]("featureRows", features.asJava) {
+    override def populateItem(item: ListItem[FeatureData]) = {
+      item.add(new FeatureInfoPanel("feature", item.getModel.getObject))
     }
   })
 }
