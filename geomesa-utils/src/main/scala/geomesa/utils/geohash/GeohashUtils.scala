@@ -749,14 +749,14 @@ object GeohashUtils
   def getUniqueGeohashSubstringsInPolygon(poly: Polygon,
                                           offset: Int,
                                           bits: Int,
-                                          MAX_KEYS_IN_LIST: Int = Int.MaxValue,
+                                          MAX_KEYS_IN_LIST: Int = Int.MaxValue - 1,
                                           includeDots: Boolean = true): Seq[String] = {
 
     val maxBits = (offset + bits) * 5
     val minBits = offset * 5
     val usedBits = bits * 5
     val allResolutions = ResolutionRange(0, Math.min(35, maxBits), 1)
-    val maxKeys = Math.min(2 << usedBits, MAX_KEYS_IN_LIST)
+    val maxKeys = Math.min(2 << usedBits, Math.min(MAX_KEYS_IN_LIST, Int.MaxValue - 1))
     val polyCentroid = poly.getCentroid
 
     // find the smallest GeoHash you can that covers the target geometry
