@@ -27,6 +27,7 @@ import geomesa.core.data.FeatureEncoding.FeatureEncoding
 import geomesa.core.index.{IndexSchema, IndexSchemaBuilder, TemporalIndexCheck}
 import geomesa.core.security.AuthorizationsProvider
 import geomesa.utils.geotools.SimpleFeatureTypes
+import geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, NonGeomAttributeSpec}
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
@@ -178,20 +179,56 @@ class AccumuloDataStore(val connector: Connector,
     writeMutations(mutation)
   }
 
+  /**
+   * Used to update the attributes that are marked as indexed
+   *
+   * @param featureName
+   * @param attributes
+   */
+  def updateIndexedAttributes(featureName: String, attributes: String): Unit = {
+    val existing = AttributeSpec.toAttributes(getAttributes(featureName))
+    val updated = AttributeSpec.toAttributes(attributes)
+    // check that the only changes are to non-geometry index flags
+    val ok = existing.length == updated.length &&
+      existing.zip(updated).forall { case (e, u) => e == u ||
+        (e.isInstanceOf[NonGeomAttributeSpec] &&
+         u.isInstanceOf[NonGeomAttributeSpec] &&
+         e.clazz == u.clazz &&
+         e.name == u.name) }
+    if (!ok) {
+      throw new IllegalArgumentException("Attribute spec is not consistent with existing spec")
+    }
+    val mutation = getMetadataMutation(featureName)
+    putMetadata(featureName, mutation, ATTRIBUTES_CF, attributes)
+    writeMutations(mutation)
+  }
+
   type KVEntry = JMap.Entry[Key,Value]
 
   /**
    * Read Record table name from store metadata
    */
-  def getRecordTableForType(featureType: SimpleFeatureType) =
-    readRequiredMetadataItem(featureType, RECORD_TABLE_CF)
+  def getRecordTableForType(featureType: SimpleFeatureType): String =
+    getRecordTableForType(featureType.getTypeName)
+
+  /**
+   * Read Record table name from store metadata
+   */
+  def getRecordTableForType(featureName: String): String =
+    readRequiredMetadataItem(featureName, RECORD_TABLE_CF)
 
   /**
    * Read SpatioTemporal Index table name from store metadata
    */
-  def getSpatioTemporalIdxTableName(featureType: SimpleFeatureType) =
-    if (catalogTableFormat(featureType)) {
-      readRequiredMetadataItem(featureType, ST_IDX_TABLE_CF)
+  def getSpatioTemporalIdxTableName(featureType: SimpleFeatureType): String =
+    getSpatioTemporalIdxTableName(featureType.getTypeName)
+
+  /**
+   * Read SpatioTemporal Index table name from store metadata
+   */
+  def getSpatioTemporalIdxTableName(featureName: String): String =
+    if (catalogTableFormat(featureName)) {
+      readRequiredMetadataItem(featureName, ST_IDX_TABLE_CF)
     } else {
       catalogTable
     }
@@ -199,8 +236,14 @@ class AccumuloDataStore(val connector: Connector,
   /**
    * Read Attribute Index table name from store metadata
    */
-  def getAttrIdxTableName(featureType: SimpleFeatureType) =
-    readRequiredMetadataItem(featureType, ATTR_IDX_TABLE_CF)
+  def getAttrIdxTableName(featureType: SimpleFeatureType): String =
+    getAttrIdxTableName(featureType.getTypeName)
+
+  /**
+   * Read Attribute Index table name from store metadata
+   */
+  def getAttrIdxTableName(featureName: String): String =
+    readRequiredMetadataItem(featureName, ATTR_IDX_TABLE_CF)
 
   /**
    * Read SpatioTemporal Index table name from store metadata
@@ -222,7 +265,10 @@ class AccumuloDataStore(val connector: Connector,
    * @return true if the storage is catalog-style, false if spatiotemporal table only
    */
   def catalogTableFormat(featureType: SimpleFeatureType): Boolean =
-    readMetadataItem(featureType.getTypeName, ST_IDX_TABLE_CF).nonEmpty
+    catalogTableFormat(featureType.getTypeName)
+
+  def catalogTableFormat(featureName: String): Boolean =
+    readMetadataItem(featureName, ST_IDX_TABLE_CF).nonEmpty
 
   def createTablesForType(featureType: SimpleFeatureType, maxShard: Int) {
     val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(catalogTable, featureType)
