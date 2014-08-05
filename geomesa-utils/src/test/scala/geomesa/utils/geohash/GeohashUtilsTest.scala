@@ -65,9 +65,10 @@ class GeohashUtilsTest extends Specification with Logging {
   )
 
   //first tuple is the point, second tuple is the BoundingBox of GH, the double is degrees of min great circle arc from point to GH
-  val geodeticMinDistToGeohashTestData: Map[String, ((Int, Int), ((Int, Int), (Int, Int)), Double)] = Map(
-    "pole wrapper" -> ((-30, -89), ((149, -89), (151, -87)), 2.0),
-    "IDL wrapper" -> ((179, 0), ((-180, -1), (-178, 1)), 1.0)
+  val geodeticMinDistToGeohashTestData: Map[String, ((Double, Double), ((Int, Int), (Int, Int)), Double)] = Map(
+    "pole wrapper" -> ((-30.0, -89.000001), ((149, -89), (151, -87)), 2.0),
+    "tricksy pole wrapper" -> ((-30.0, -88.999999), ((149, -89), (151, -87)), 2.0),
+    "IDL wrapper" -> ((179.0, 0.0), ((-180, -1), (-178, 1)), 1.0)
   )
 
   // (reasonable) odd GeoHash resolutions
@@ -195,6 +196,7 @@ class GeohashUtilsTest extends Specification with Logging {
         val ur = defaultGeometryFactory.createPoint(new Coordinate(maxLon.asInstanceOf[Double], maxLat.asInstanceOf[Double]))
         val bbox = new BoundingBox(ll, ur)
         val chordLength = GeohashUtils.getMinimumGreatCircleChordLength(bbox, point)
+        println(s"chord length for $name = " + chordLength)
         chordLength must beLessThan(Math.PI / 180 * degrees)
       }
     }

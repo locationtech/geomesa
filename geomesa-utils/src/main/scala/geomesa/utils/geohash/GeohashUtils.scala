@@ -243,7 +243,7 @@ object GeohashUtils
 
   def getMinimumGreatCircleChordLength(bbox: BoundingBox, point: Point): Double = {
     def getLocalMinimumAlongLongitude(lat1: Double, lon1: Double, lon2: Double): Double = {
-      Math.atan(Math.tan(lat1) / (Math.cos(lon2) * Math.cos(lon1) + Math.sin(lon2) + Math.sin(lon1)))
+      Math.atan(Math.tan(lat1) / (Math.cos(lon2) * Math.cos(lon1) + Math.sin(lon2) * Math.sin(lon1)))
     }
     def getLocalMinimaAlongLatitude(lon1: Double): Seq[Double] = {
       Seq[Double](lon1, if (lon1 > 0) lon1 - Math.PI else lon1 + Math.PI)
@@ -256,7 +256,7 @@ object GeohashUtils
     }
     def degreesToRadians(degrees: Double): Double = Math.PI / 180 * degrees
     def getPointsToTryIfAboveOrBelowLat(pointX: Double, minX: Double, maxX: Double, latY: Double): Seq[Point] = {
-      val minima = getLocalMinimaAlongLatitude(pointX).withFilter(m => m > minX && m < maxX).map(m =>
+      val minima = getLocalMinimaAlongLatitude(pointX).withFilter(m => m >= minX && m <= maxX).map(m =>
         defaultGeometryFactory.createPoint(new Coordinate(m, latY))
       )
       if (minima.size == 0) {
@@ -267,7 +267,7 @@ object GeohashUtils
     }
     def getPointsToTryAlongLongitude(x: Double, y: Double, minY: Double, maxY: Double, longX: Double): Seq[Point] = {
       val localMin = getLocalMinimumAlongLongitude(y, x, longX)
-      if (localMin > minY && localMin < maxY) {
+      if (localMin >= minY && localMin <= maxY) {
         Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(longX, localMin)))
       } else {
         Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(longX, minY)),
