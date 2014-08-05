@@ -19,7 +19,6 @@ import java.net.URLDecoder
 import java.nio.charset.Charset
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.AccumuloDataStore
 import geomesa.core.index.Constants
 import geomesa.feature.AvroSimpleFeatureFactory
@@ -36,7 +35,17 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
 
   import scala.collection.JavaConversions._
 
+  lazy val table            = config.table
+  lazy val path             = config.file
+  lazy val typeName         = config.typeName
+  lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
+  lazy val dtgField         = config.dtField
+  lazy val dtgFmt           = config.dtFormat
+  lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
+
   lazy val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
+
+  ds.createSchema(sft)
 
   lazy val sft = {
     val ret = SimpleFeatureTypes.createType(typeName, sftSpec)
@@ -44,29 +53,12 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
     ret
   }
 
-  ds.createSchema(sft)
-
-  lazy val table            = config.table
-  lazy val path             = config.file
-  lazy val typeName         = config.typeName
-  lazy val idFields         = config.idFields
-  lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
-  lazy val latField         = config.latField
-  lazy val lonField         = config.lonField
-  lazy val dtgField         = config.dtField
-  lazy val dtgFmt           = config.dtFormat
-  lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
-  lazy val zookeepers       = dsConfig.get("zookeepers")
-  lazy val user             = dsConfig.get("user")
-  lazy val password         = dsConfig.get("password")
-  lazy val auths            = dsConfig.get("auths")
-
   lazy val delim  = config.format match {
-    case "TSV" => "\t"
-    case "CSV" => ","
+    case "TSV" => "\"\t\""
+    case "CSV" => "\",\""
   }
 
-  val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+  lazy val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
 
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
   lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt)
@@ -75,30 +67,20 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
   lazy val dtBuilder = buildDtBuilder
   lazy val idBuilder = buildIDBuilder
 
-  lazy val idFieldMap: Map[String, Int] = {
-    val tempSplit = idFields.split(delim)
-    val tempIndexs = tempSplit.map { f => tempSplit.indexOf(f) }
-    (tempSplit zip tempIndexs).toMap
-  }
+  lazy val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
 
-  val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
   Source.fromFile(path).getLines.foreach { line => parseFeature(line) }
+
   def parseFeature(line: String) = {
     try {
-      val fields = line.toString.split(delim)
-      val finalFields = fields.toList.updated(idFieldMap(dtgField), dtBuilder(fields(idFieldMap(dtgField))).toDate)
+      val fields = line.toString.split(delim).map(s => s.replaceAll("\"", "")) // remove extra quote marks if present
       val id = idBuilder(fields)
-
       builder.reset()
-      builder.addAll(finalFields)
+      builder.addAll(fields.asInstanceOf[Array[AnyRef]])
       val feature = builder.buildFeature(id)
-
-      val lat = feature.getAttribute(latField).asInstanceOf[Double]
-      val lon = feature.getAttribute(lonField).asInstanceOf[Double]
-      val geom = geomFactory.createPoint(new Coordinate(lon, lat))
+      // assume last field is the WKT geom, however it is a valid property of feature...
+      feature.setDefaultGeometry(feature.getAttribute(feature.getAttributeCount-1))
       val dtg = dtBuilder(feature.getAttribute(dtgField))
-
-      feature.setDefaultGeometry(geom)
       feature.setAttribute(dtgTargetField, dtg.toDate)
       val toWrite = fw.next()
       sft.getAttributeDescriptors.foreach { ad =>
@@ -113,15 +95,8 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
   }
 
   def buildIDBuilder: (Array[String]) => String = {
-    idFields match {
-      case s if "HASH".equals(s) =>
-        val hashFn = Hashing.md5()
-        attrs => hashFn.newHasher().putString(attrs.mkString("|"), Charset.defaultCharset()).hash().toString
-
-      case s: String =>
-        val idSplit = idFields.split(",").map { f => sft.indexOf(f) }.filter(_ >= 0)
-        attrs => idSplit.map { idx => attrs(idx) }.mkString("_")
-    }
+     val hashFn = Hashing.md5()
+     attrs => hashFn.newHasher().putString(attrs.mkString("|"), Charset.defaultCharset()).hash().toString
   }
 
   def buildDtBuilder: (AnyRef) => DateTime =
@@ -139,5 +114,7 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
         (obj: AnyRef) => dtFormat.parseDateTime(obj.asInstanceOf[String])
 
     }.getOrElse(throw new RuntimeException("Cannot parse date"))
+
+  // make sure we close the feature writer
   fw.close()
 }

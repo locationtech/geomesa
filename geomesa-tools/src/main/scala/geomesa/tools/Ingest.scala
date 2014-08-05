@@ -43,33 +43,8 @@ class Ingest() extends Logging {
             logger.error("Error, no such ingest method for CSV or TSV found, no data ingested")
             false
         }
-      case "GEOJSON" | "JSON" =>
-        config.method.toLowerCase match {
-          case "naive" =>
-            new GeoJsonIngest(config, dsConfig)
-            true
-          case _ =>
-            logger.error("Error, no such ingest method for GEOJSON or JSON found, no data ingested")
-            false
-        }
-      case "GML" | "KML" =>
-        config.method.toLowerCase match {
-          case "naive" =>
-            true
-          case _ =>
-            logger.error("Error, no such ingest method for GML or KML found, no data ingested")
-            false
-        }
-      case "SHAPEFILE" | "SHP" =>
-        config.method.toLowerCase match {
-          case "naive" =>
-            true
-          case _ =>
-            logger.error("Error, no such ingest method for Shapefiles found, no data ingested")
-            false
-        }
       case _ =>
-        logger.error(s"Error, format: \'${config.format}\' not supported. Supported formats include: CSV, TSV, GEOJSON, JSON, GML, KML, SHAPEFILE ")
+        logger.error(s"Error, format: \'${config.format}\' not supported. Supported formats include: CSV, TSV")
         false
     }
   }

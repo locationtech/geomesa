@@ -100,34 +100,16 @@ object Tools extends App {
             c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
             "if it does not already exist -- to contain the new data" required(),
           opt[String]("typeName").action { (s, c) =>
-            c.copy(typeName = s) } text "Name of the feature type to be ingested" required(),
+            c.copy(typeName = s) } text "the name of the feature type to be ingested" required(),
           opt[String]('s', "spec").action { (s, c) =>
-            c.copy(spec = s) } text "the specification for the file" required(),
-          opt[String]("idFields").action { (s, c) =>
-            c.copy(idFields = s) } text "the comma seperated id header of the csv/tsv, or HASH" required(),
-          opt[String]("latitude").action { (s, c) =>
-            c.copy(latField = s) } text "Name of latitude field" required(),
-          opt[String]("longitude").action { (s, c) =>
-            c.copy(lonField = s) } text "Name of longitude field" required(),
+            c.copy(spec = s) } text "the sft specification for the file" required(),
           opt[String]("datetime").action { (s, c) =>
-            c.copy(dtField = s) } text "Name of the datetime field" required(),
+            c.copy(dtField = s) } text "the name of the datetime field in the sft" required(),
           opt[String]("dtformat").action { (s, c) =>
-            c.copy(dtFormat = s) } text "Format of the datetime field" required(),
+            c.copy(dtFormat = s) } text "the format of the datetime field" required(),
           opt[String]('m', "method").action { (s, c) =>
-            c.copy(method = s) } text "the method used to ingest, e.g.: mapreduce" required()
-        ),
-        cmd("GEOJSON") action { (_, c) =>
-          c.copy(format = "GEOJSON") } text "Ingest a GeoJson feature into GeoMesa" children (
-          opt[String]("file").action { (s, c) =>
-            c.copy(file = s) } text "the file you wish to ingest, e.g.: ~/capelookout.csv" required(),
-          opt[String]("table").action { (s, c) =>
-            c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
-            "if it does not already exist -- to contain the new data" required(),
-          opt[String]("typeName").action { (s, c) =>
-            c.copy(typeName = s) } text "Name of the feature type to be ingested" required(),
-          opt[String]('m', "method").action { (s, c) =>
-            c.copy(method = s) } text "the method used to ingest, e.g.: mapreduce" required()
-          )
+            c.copy(method = s) } text "the method used to ingest, e.g.: mapreduce, naive" required()
+        )
       )
   }
 
