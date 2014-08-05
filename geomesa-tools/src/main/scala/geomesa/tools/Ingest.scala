@@ -20,10 +20,10 @@ import com.typesafe.scalalogging.slf4j.Logging
 class Ingest() extends Logging {
 
   def getAccumuloDataStoreConf(config: Config) = Map (
-    "instanceId"   ->  sys.env.getOrElse("GEOMESA_INSTANCEID", "instanceId"),
-    "zookeepers"   ->  sys.env.getOrElse("GEOMESA_ZOOKEEPERS", "zoo1:2181,zoo2:2181,zoo3:2181"),
-    "user"         ->  sys.env.getOrElse("GEOMESA_USER", "admin"),
-    "password"     ->  sys.env.getOrElse("GEOMESA_PASSWORD", "admin"),
+    "instanceId"   ->  sys.env.getOrElse("GEOMESA_INSTANCEID", "dcloud"),
+    "zookeepers"   ->  sys.env.getOrElse("GEOMESA_ZOOKEEPERS", "dzoo1:2181,dzoo2:2181,dzoo3:2181"),
+    "user"         ->  sys.env.getOrElse("GEOMESA_USER", "root"),
+    "password"     ->  sys.env.getOrElse("GEOMESA_PASSWORD", "secret"),
     "auths"        ->  sys.env.getOrElse("GEOMESA_AUTHS", ""),
     "visibilities" ->  sys.env.getOrElse("GEOMESA_VISIBILITIES", ""),
     "tableName"    ->  config.table

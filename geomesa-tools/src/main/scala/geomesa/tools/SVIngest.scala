@@ -36,6 +36,16 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
 
   import scala.collection.JavaConversions._
 
+  lazy val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
+
+  lazy val sft = {
+    val ret = SimpleFeatureTypes.createType(typeName, sftSpec)
+    ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField)
+    ret
+  }
+
+  ds.createSchema(sft)
+
   lazy val table            = config.table
   lazy val path             = config.file
   lazy val typeName         = config.typeName
@@ -45,7 +55,7 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
   lazy val lonField         = config.lonField
   lazy val dtgField         = config.dtField
   lazy val dtgFmt           = config.dtFormat
-  //lazy val dtgTargetField   = Constants.SF_PROPERTY_START_TIME // sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
+  lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
   lazy val zookeepers       = dsConfig.get("zookeepers")
   lazy val user             = dsConfig.get("user")
   lazy val password         = dsConfig.get("password")
@@ -56,18 +66,7 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
     case "CSV" => ","
   }
 
-  lazy val sft = {
-    val ret = SimpleFeatureTypes.createType(typeName, sftSpec)
-    ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, Constants.SF_PROPERTY_START_TIME)
-    ret
-  }
-
-  lazy val dtgTargetField = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
-
   val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
-  lazy val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
-
-  if (ds.getSchema(typeName) == null) ds.createSchema(sft)
 
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
   lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt)
@@ -100,16 +99,16 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
       val dtg = dtBuilder(feature.getAttribute(dtgField))
 
       feature.setDefaultGeometry(geom)
-      //feature.setAttribute(dtgTargetField, dtg.toDate)
+      feature.setAttribute(dtgTargetField, dtg.toDate)
       val toWrite = fw.next()
-      toWrite.getFeatureType.getAttributeDescriptors.foreach { ad =>
+      sft.getAttributeDescriptors.foreach { ad =>
         toWrite.setAttribute(ad.getName, feature.getAttribute(ad.getName))
       }
       toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
       toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       fw.write()
     } catch {
-      case t: Throwable => t.printStackTrace()//logger.error(t.getStackTraceString)
+      case t: Throwable => logger.error(t.getStackTraceString)
     }
   }
 
