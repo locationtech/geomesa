@@ -24,17 +24,16 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 class ShapefileExport {
 
-  //I don't really know if this works yet...
   def write(file: String, feature: String, collection: SimpleFeatureCollection, schema: SimpleFeatureType) {
 
-    val url = DataUtilities.fileToURL( new File(file) )
+    val url = DataUtilities.fileToURL(new File(file))
 
     // create a new shapfile data store
     val factory = new ShapefileDataStoreFactory()
-    val newShapeFile = factory.createDataStore( url ).asInstanceOf[ShapefileDataStore]
+    val newShapeFile = factory.createDataStore(url).asInstanceOf[ShapefileDataStore]
 
     // create a schema in the new datastore
-    newShapeFile.createSchema( schema )
+    newShapeFile.createSchema(schema)
 
     val store = newShapeFile.getFeatureSource.asInstanceOf[SimpleFeatureStore]
 

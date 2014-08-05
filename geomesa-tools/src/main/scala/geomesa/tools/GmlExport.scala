@@ -23,10 +23,10 @@ import org.geotools.data.simple.SimpleFeatureCollection
 
 class GmlExport {
 
-  val encode2 = new GML(Version.WFS1_0)
-  encode2.setNamespace("location", "location.xsd")
+  val encode = new GML(Version.WFS1_0)
+  encode.setNamespace("location", "location.xsd")
 
   def write(features: SimpleFeatureCollection, output: OutputStream) {
-    encode2.encode(output, features)
+    encode.encode(output, features)
   }
 }
