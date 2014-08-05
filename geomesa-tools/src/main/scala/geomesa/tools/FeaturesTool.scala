@@ -114,8 +114,13 @@ class FeaturesTool(catalogTable: String) {
   }
 
   def getFeatureCollection(feature: String, query: String, attributes: String, maxFeatures: Int): SimpleFeatureCollection = {
-    val q = if (maxFeatures > 0) new Query(feature, CQL.toFilter(query), maxFeatures, attributes.split(","), feature)
-    else new Query(feature, CQL.toFilter(query), attributes.split(","))
+    val filter = if (query != null) CQL.toFilter(query) else CQL.toFilter("include")
+    val q = new Query(feature, filter)
+
+    if (maxFeatures > 0) q.setMaxFeatures(maxFeatures)
+    if (attributes != null) q.setPropertyNames(attributes.split(','))
+    println(q)
+
     // get the feature store used to query the GeoMesa data
     val featureStore = ds.getFeatureSource(feature).asInstanceOf[AccumuloFeatureStore]
     // execute the query
