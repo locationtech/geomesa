@@ -33,7 +33,7 @@ import org.joda.time.format.DateTimeFormat
 
 import scala.io.Source
 
-class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
+class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging {
 
   import scala.collection.JavaConversions._
 

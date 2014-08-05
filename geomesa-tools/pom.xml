@@ -43,10 +43,6 @@
             <artifactId>geomesa-utils-accumulo1.5</artifactId>
         </dependency>
         <dependency>
-            <groupId>geomesa</groupId>
-            <artifactId>geomesa-minicluster-accumulo1.5</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
         </dependency>

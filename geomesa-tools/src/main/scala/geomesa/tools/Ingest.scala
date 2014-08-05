@@ -19,7 +19,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 class Ingest() extends Logging {
 
-  def getAccumuloDataStoreConf(config: Config) = Map (
+  def getAccumuloDataStoreConf(config: ScoptArguments) = Map (
     "instanceId"   ->  sys.env.getOrElse("GEOMESA_INSTANCEID", "instanceId"),
     "zookeepers"   ->  sys.env.getOrElse("GEOMESA_ZOOKEEPERS", "zoo1:2181,zoo2:2181,zoo3:2181"),
     "user"         ->  sys.env.getOrElse("GEOMESA_USER", "admin"),
@@ -29,7 +29,7 @@ class Ingest() extends Logging {
     "tableName"    ->  config.table
   )
 
-  def defineIngestJob(config: Config): Boolean = {
+  def defineIngestJob(config: ScoptArguments): Boolean = {
     val dsConfig = getAccumuloDataStoreConf(config)
     config.format.toUpperCase match {
       case "CSV" | "TSV" =>

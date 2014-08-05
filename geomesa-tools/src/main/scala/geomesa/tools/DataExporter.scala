@@ -16,7 +16,7 @@
  *
  */
 
-package geomesa.core.integration.data
+package geomesa.tools
 
 import java.io.{FileWriter, PrintWriter}
 import java.text.SimpleDateFormat
@@ -24,7 +24,7 @@ import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
+import geomesa.core.data.AccumuloDataStore
 import geomesa.utils.geotools.Conversions._
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
@@ -41,12 +41,12 @@ object DataExporter extends App with Logging {
   val format = "tsv"
 
   val params = Map("instanceId"    -> "mycloud",
-    "zookeepers"   -> "zoo1,zoo2,zoo3",
-    "user"         -> "user",
-    "password"     -> "password",
-    "auths"        -> "",
-    "visibilities" -> "",
-    "tableName"    -> load.table)
+                    "zookeepers"   -> "zoo1,zoo2,zoo3",
+                    "user"         -> "user",
+                    "password"     -> "password",
+                    "auths"        -> "",
+                    "visibilities" -> "",
+                    "tableName"    -> load.table)
 
   val extractor = new DataExporter(load, params, format)
   val features = extractor.queryFeatures()
@@ -66,8 +66,8 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
    */
   def writeFeatures(features: SimpleFeatureIterator): Unit = {
 
-    val attributesArray = if (load.attributes == null){ Array[String]("") } else { load.attributes.split(',') }
-    val idAttributeArray = if (load.idAttribute == null){ List() } else { List(load.idAttribute) }
+    val attributesArray = if (load.attributes == null) { Array[String]() } else { load.attributes.split(',') }
+    val idAttributeArray = if (load.idAttribute == null) { List() } else { List(load.idAttribute) }
 
     val attributeTypes = idAttributeArray ++ attributesArray
     val attributes = attributeTypes.map(_.split(":")(0))
@@ -91,13 +91,17 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
     features.foreach { sf =>
       val map = scala.collection.mutable.Map.empty[String, Object]
 
+      val attrs = if (attributes.size > 0) attributes else { sf.getProperties.map(property => property.getName.toString) }
+
       // copy attributes into map where we can manipulate them
-      attributes.foreach(a => Try(map.put(a, sf.getAttribute(a))))
+      attrs.foreach(a => Try(map.put(a, sf.getAttribute(a))))
 
       // check that ID is set in the map
-      val id = map.getOrElse(attributes(0), null)
-      if (id == null || id.toString.isEmpty) {
-        map.put(attributes(0), sf.getID)
+      if (attributes.size > 0) {
+        val id = map.getOrElse(attributes(0), null)
+        if (id == null || id.toString.isEmpty) {
+          map.put(attributes(0), sf.getID)
+        }
       }
 
       // calculate geom and dtg
@@ -121,7 +125,7 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
       }
 
       // put the values into a checked list
-      val attributeValues = attributes.map { a =>
+      val attributeValues = attrs.map { a =>
         val value = map.getOrElse(a, null)
         if (value == null) {
           ""

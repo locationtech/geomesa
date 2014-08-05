@@ -15,19 +15,14 @@
  */
 package geomesa.tools
 
-/**
- * To run from IntelliJ with command line arguments, hit the following key sequence:
- *
- * ALT+SHIFT+F10, Right, E, Enter, Tab, enter your command line parameters, Enter.
- */
 
 object Tools extends App {
-  val parser = new scopt.OptionParser[Config]("geomesa-tools") {
+  val parser = new scopt.OptionParser[ScoptArguments]("geomesa-tools") {
     head("GeoMesa Tools", "1.0")
     help("help").text("show help command")
 
     cmd("export") action { (_, c) =>
-      c.copy(mode = "export") } text ("export is a command") children(
+      c.copy(mode = "export") } text "Export all or a set of features in csv, geojson, gml, or shp format" children(
       opt[String]("catalog").action { (s, c) =>
         c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
         "if it does not already exist -- to contain the new data" required(),
@@ -66,6 +61,7 @@ object Tools extends App {
       opt[String]("filter").action { (s, c) =>
         c.copy(filterString = s) } text "the filter string" required()
       )
+
     cmd("delete") action { (_, c) =>
       c.copy(mode = "delete") } text "Delete a feature from the specified Catalog Table in Geomesa" children(
       opt[String]("catalog").action { (s, c) =>
@@ -73,6 +69,7 @@ object Tools extends App {
       opt[String]("typeName").action { (s, c) =>
         c.copy(typeName = s) } text "the name of the new feature to be create" required()
       )
+
     cmd("create") action { (_, c) =>
       c.copy(mode = "create") } text "Create a feature in Geomesa" children(
       opt[String]("catalog").action { (s, c) =>
@@ -104,12 +101,9 @@ object Tools extends App {
       )
   }
 
-  parser.parse(args, Config()) map { config =>
+  parser.parse(args, ScoptArguments()).map(config =>
     config.mode match {
       case "export" =>
-        //example commands
-        //export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format csv --query "include" --maxFeatures 1000
-        //export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format gml --query "user_name='Meghan Ho'"
         println(s"Exporting '${config.typeName}' from '${config.catalog}'. Just a few moments...")
         val ft = new FeaturesTool(config.catalog)
         ft.exportFeatures(
@@ -123,8 +117,6 @@ object Tools extends App {
           config.query,
           config.maxFeatures)
       case "list" =>
-        //example command
-        //list --catalog test_jdk2pq_create
         println(s"Listing features on '${config.catalog}'. Just a few moments...")
         val ft = new FeaturesTool(config.catalog)
         ft.listFeatures()
@@ -162,13 +154,13 @@ object Tools extends App {
           case false => println(s"Error: could not successfully ingest file: \'${config.file}\'")
         }
     }
-  } getOrElse {
-    Console.printf(s"Error: command not recognized.")
-  }
+  ).getOrElse(
+    Console.printf("Error: command not recognized.")
+  )
 }
 
-/*  Config is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
-case class Config(mode: String = null, table: String = null, spec: String = null,
+/*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
+case class ScoptArguments(mode: String = null, table: String = null, spec: String = null,
                   idFields: String = null, latField: String = null, lonField: String = null,
                   dtField: String = null, dtFormat: String = null, method: String = "local",
                   file: String = null, typeName: String = null, format: String = null,

@@ -16,7 +16,7 @@ To set a maximum number of features to return, use ```--maxFeatures``` followed 
 To run an ECQL query, use ```--query``` followed by the query filter string.  
 ###Example commands:
 ```export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format csv --query "include" --maxFeatures 1000```  
-```export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format gml --query "user_name='Meghan Ho'"```
+```export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format gml --query "user_name='JohnSmith'"```
         
 ## list
 To list the features on a specified catalog table, use the ```list``` command.  
@@ -32,7 +32,7 @@ Specify the catalog table to use with ```--catalog```. This can be a previously 
 Specify the feature to create with the ```--typeName```.  
 Specify the SimpleFeatureType schema with ```--sft```.  
 ###Example command:
-```create --catalog test_jdk2pq_create --typeName testing --sft id:String:indexed=true,dtg:Date,geom:Point:srid=4326```
+```create --catalog test_create --typeName testing --sft id:String:indexed=true,dtg:Date,geom:Point:srid=4326```
         
 ## delete
 To delete a feature on a specified catalog table, use the ```delete``` command.  
@@ -40,7 +40,7 @@ To delete a feature on a specified catalog table, use the ```delete``` command.
 Specify the catalog table to use with ```--catalog```. NOTE: Catalog tables will not be deleted when using the ```delete``` command, only the tables related to the given feature.  
 Specify the feature to delete with ```--typeName```.  
 ###Example command:
-```delete --catalog test_jdk2pq_create --typeName testing```
+```delete --catalog test_delete --typeName testing```
   
 ## ingest
 
@@ -66,3 +66,13 @@ with the following parameters:
 `--datetime` The name of the field in the SFT spec above that corresponds to the the *time* column in the data being ingested.
 
 `--dtformat` The Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss"
+
+
+## explain
+To plan and explain a query, use the ```explain``` command.
+###Required flags: 
+Specify the catalog table to use with ```--catalog```. This can be a previously created catalog table, or a new catalog table.  
+Specify the feature to create with the ```--typeName```.  
+Specify the filter string with ```--filter```.
+###Example command:
+```explain --catalog geomesa_catalog --typeName twittersmall --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"```

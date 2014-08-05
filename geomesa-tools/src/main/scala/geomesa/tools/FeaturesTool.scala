@@ -19,7 +19,7 @@ package geomesa.tools
 import java.io.FileOutputStream
 
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
-import geomesa.core.integration.data.{DataExporter, LoadAttributes}
+import geomesa.core.integration.data.LoadAttributes
 import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
@@ -37,18 +37,17 @@ class FeaturesTool(catalogTable: String) {
 
   val ds: AccumuloDataStore = {
     DataStoreFinder.getDataStore(Map(
-      "instanceId"      -> instanceId,
-      "zookeepers"      -> zookeepers,
-      "user"            -> user,
-      "password"        -> password,
-      "tableName"       -> table,
-      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      "instanceId" -> instanceId,
+      "zookeepers" -> zookeepers,
+      "user"       -> user,
+      "password"   -> password,
+      "tableName"  -> table)).asInstanceOf[AccumuloDataStore]
   }
 
   def listFeatures() {
-    ds.getTypeNames foreach {name =>
+    ds.getTypeNames.foreach(name =>
       println(s"$name: ${ds.getSchema(name).getAttributeDescriptors}")
-    }
+    )
   }
 
   def createFeatureType(sftName: String, sftString: String): Boolean = {
@@ -66,32 +65,30 @@ class FeaturesTool(catalogTable: String) {
                      format: String,
                      query: String,
                      maxFeatures: Int) {
+    val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
     format.toLowerCase match {
       case "csv" =>
-        val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
         val loadAttributes = new LoadAttributes(feature, table, attributes, idAttribute, latAttribute, lonAttribute, dateAttribute, query)
         val de = new DataExporter(loadAttributes, Map(
-          "instanceId"      -> instanceId,
-          "zookeepers"      -> zookeepers,
-          "user"            -> user,
-          "password"        -> password,
-          "tableName"       -> table,
-          "featureEncoding" -> "avro"), format)
+          "instanceId" -> instanceId,
+          "zookeepers" -> zookeepers,
+          "user"       -> user,
+          "password"   -> password,
+          "tableName"  -> table), format)
         de.writeFeatures(sftCollection.features())
       case "shp" =>
-        val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
         val shapeFileExporter = new ShapefileExport
         shapeFileExporter.write("/tmp/export.shp", feature, sftCollection, ds.getSchema(feature))
       case "geojson" =>
-        val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
         val os = new FileOutputStream("/tmp/export.geojson")
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
       case "gml" =>
-        val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
         val os = new FileOutputStream("/tmp/export.gml")
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
+      case _ =>
+        println("Unsupported export format. Supported formats are shp, geojson, csv, and gml.")
     }
   }
 
