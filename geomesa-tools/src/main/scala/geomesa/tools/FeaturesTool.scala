@@ -16,10 +16,14 @@
 
 package geomesa.tools
 
-import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader}
+import java.io.FileOutputStream
+
+import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
 import geomesa.core.integration.data.{DataExporter, LoadAttributes}
 import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data._
+import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 
 import scala.collection.JavaConversions._
@@ -60,16 +64,35 @@ class FeaturesTool(catalogTable: String) {
                      lonAttribute: Option[String],
                      dateAttribute: Option[String],
                      format: String,
-                     query: String) {
-    val loadAttributes = new LoadAttributes(feature, table, attributes, idAttribute, latAttribute, lonAttribute, dateAttribute, query)
-    val de = new DataExporter(loadAttributes, Map(
-      "instanceId"      -> instanceId,
-      "zookeepers"      -> zookeepers,
-      "user"            -> user,
-      "password"        -> password,
-      "tableName"       -> table,
-      "featureEncoding" -> "avro"), format)
-    de.writeFeatures(de.queryFeatures())
+                     query: String,
+                     maxFeatures: Int) {
+    format.toLowerCase match {
+      case "csv" =>
+        val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
+        val loadAttributes = new LoadAttributes(feature, table, attributes, idAttribute, latAttribute, lonAttribute, dateAttribute, query)
+        val de = new DataExporter(loadAttributes, Map(
+          "instanceId"      -> instanceId,
+          "zookeepers"      -> zookeepers,
+          "user"            -> user,
+          "password"        -> password,
+          "tableName"       -> table,
+          "featureEncoding" -> "avro"), format)
+        de.writeFeatures(sftCollection.features())
+      case "shp" =>
+        val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
+        val shapeFileExporter = new ShapefileExport
+        shapeFileExporter.write("/tmp/export.shp", feature, sftCollection, ds.getSchema(feature))
+      case "geojson" =>
+        val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
+        val os = new FileOutputStream("/tmp/export.geojson")
+        val geojsonExporter = new GeoJsonExport
+        geojsonExporter.write(sftCollection, os)
+      case "gml" =>
+        val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
+        val os = new FileOutputStream("/tmp/export.gml")
+        val gmlExporter = new GmlExport
+        gmlExporter.write(sftCollection, os)
+    }
   }
 
   def deleteFeature(sftName: String): Boolean = {
@@ -88,5 +111,14 @@ class FeaturesTool(catalogTable: String) {
     val afr = ds.getFeatureReader(q, t).asInstanceOf[AccumuloFeatureReader]
 
     afr.explainQuery(q)
+  }
+
+  def getFeatureCollection(feature: String, query: String, attributes: String, maxFeatures: Int): SimpleFeatureCollection = {
+    val q = if (maxFeatures > 0) new Query(feature, CQL.toFilter(query), maxFeatures, attributes.split(","), feature)
+    else new Query(feature, CQL.toFilter(query), attributes.split(","))
+    // get the feature store used to query the GeoMesa data
+    val featureStore = ds.getFeatureSource(feature).asInstanceOf[AccumuloFeatureStore]
+    // execute the query
+    featureStore.getFeatures(q)
   }
 }

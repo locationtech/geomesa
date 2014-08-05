@@ -70,14 +70,14 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
 
     val attributes = attributeTypes.map(_.split(":")(0))
 
-    val fr = format match {
+    val fr = format.toLowerCase match {
       case "tsv" =>
         new PrintWriter(new FileWriter(s"/tmp/${load.name}.tsv"))
       case "csv" =>
         new PrintWriter(new FileWriter(s"/tmp/${load.name}.csv"))
     }
 
-    format match {
+    format.toLowerCase match {
       case "tsv" =>
         fr.println(attributeTypes.mkString("\t"))
       case "csv" =>
@@ -130,7 +130,7 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
         }
       }
 
-      val separatedString = format match {
+      val separatedString = format.toLowerCase match {
         case "tsv" =>
           attributeValues.mkString("\t")
         case "csv" =>
