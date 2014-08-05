@@ -44,8 +44,8 @@ trait CloseableIterator[+A] extends Iterator[A] {
   override def map[B](f: A => B): CloseableIterator[B] = CloseableIterator(super.map(f), self.close)
 
   // NB: Since we wish to be able to close the iterator currently in use, we can't call out to super.flatMap.
-  def flatMap[B](f: A => CloseableIterator[B]): CloseableIterator[B] = new SelfClosingIterator[B] {
-    private var cur: CloseableIterator[B] = empty
+  def ciFlatMap[B](f: A => CloseableIterator[B]): CloseableIterator[B] = new SelfClosingIterator[B] {
+    private var cur: CloseableIterator[B] = if(self.hasNext) f(self.next()) else empty
 
     // Add in the 'SelfClosing' behavior.
     def hasNext: Boolean = {

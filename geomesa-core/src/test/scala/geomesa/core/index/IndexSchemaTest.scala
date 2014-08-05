@@ -216,7 +216,7 @@ class IndexSchemaTest extends Specification {
       val schema = IndexSchema("%~#s%foo#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%15#id",
         dummyType, featureEncoder)
       val q = new Query()
-      val fs = "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+      val fs = s"INTERSECTS(${dummyType.getGeometryDescriptor.getLocalName}, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
       val f = ECQL.toFilter(fs)
       q.setFilter(f)
 
