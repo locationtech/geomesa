@@ -20,15 +20,14 @@ package geomesa.tools
  *
  * ALT+SHIFT+F10, Right, E, Enter, Tab, enter your command line parameters, Enter.
  */
-class Tools {}
 
 object Tools extends App {
   val parser = new scopt.OptionParser[Config]("geomesa-tools") {
     head("GeoMesa Tools", "1.0")
     help("help").text("show help command")
+
     cmd("export") action { (_, c) =>
-      c.copy(mode = "export")
-    } text ("export is a command") children(
+      c.copy(mode = "export") } text ("export is a command") children(
       opt[String]("catalog").action { (s, c) =>
         c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
         "if it does not already exist -- to contain the new data" required(),
@@ -51,11 +50,13 @@ object Tools extends App {
       opt[String]("query").action { (s, c) =>
         c.copy(query = s )} text "ECQL query to run on the features" optional()
       )
+
     cmd("list") action { (_, c) =>
       c.copy(mode = "list") } text "List the features in the specified Catalog Table" children(
       opt[String]("catalog").action { (s, c) =>
         c.copy(catalog = s) } text "the name of the Accumulo table to use" required()
       )
+
     cmd("explain") action { (_, c) =>
       c.copy(mode = "explain") } text "Explain and plan a query in Geomesa" children(
       opt[String]("catalog").action { (s, c) =>
@@ -82,6 +83,7 @@ object Tools extends App {
       opt[String]("sft").action { (s, c) =>
         c.copy(sft = s) } text "the string representation of the SimpleFeatureType" required()
       )
+
     cmd("ingest") action { (_, c) =>
       c.copy(mode = "ingest") } text "Ingest a feature into GeoMesa" children (
       opt[String]("file").action { (s, c) =>
@@ -98,9 +100,7 @@ object Tools extends App {
       opt[String]("datetime").action { (s, c) =>
         c.copy(dtField = s) } text "the name of the datetime field in the sft" required(),
       opt[String]("dtformat").action { (s, c) =>
-        c.copy(dtFormat = s) } text "the format of the datetime field" required(),
-      opt[String]('m', "method").action { (s, c) =>
-        c.copy(method = s) } text "the method used to ingest, e.g.: mapreduce, naive" required()
+        c.copy(dtFormat = s) } text "the format of the datetime field" required()
       )
   }
 
@@ -167,14 +167,15 @@ object Tools extends App {
   }
 }
 
+/*  Config is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
 case class Config(mode: String = null, table: String = null, spec: String = null,
                   idFields: String = null, latField: String = null, lonField: String = null,
-                  dtField: String = null, dtFormat: String = null, method: String = null,
+                  dtField: String = null, dtFormat: String = null, method: String = "local",
                   file: String = null, typeName: String = null, format: String = null,
                   catalog: String = null, sft: String = null, maxFeatures: Int = -1,
                   filterString: String = null, attributes: String = null, idAttribute: String = null,
-                  lonAttribute: Option[String] = None, latAttribute: Option[String] = None, dateAttribute: Option[String] = None,
-                  query: String = null)
+                  lonAttribute: Option[String] = None, latAttribute: Option[String] = None,
+                  dateAttribute: Option[String] = None, query: String = null)
 
 
 

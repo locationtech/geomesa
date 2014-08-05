@@ -17,6 +17,7 @@ package geomesa.tools
 
 import java.net.URLDecoder
 import java.nio.charset.Charset
+
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.data.AccumuloDataStore
@@ -29,6 +30,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+
 import scala.io.Source
 
 class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
@@ -53,7 +55,7 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
     ret
   }
 
-  lazy val delim  = config.format match {
+  lazy val delim  = config.format.toUpperCase match {
     case "TSV" => "\t"
     case "CSV" => "\",\""
   }
@@ -90,7 +92,7 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
       toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       fw.write()
     } catch {
-      case t: Throwable => logger.error(t.getStackTraceString)
+      case t: Throwable => logger.error(s"Cannot parse: $line", t)
     }
   }
 

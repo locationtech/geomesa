@@ -47,7 +47,7 @@ Specify the feature to delete with ```--typeName```.
 Ingests TSV and CSV files containing WKT geometries with the following caveat:CSV files must surround values with double quotation marks, e.g.: `"37266103","2013-07-17","POINT(0.0 0.0)"` the first and last quotation marks are optional however. Also the WKT Geometry is assumed to be the last column of the CSV/TSV file.
 ####Usage
    
-```ingest --file <> --format <> --table <> --typeName <> --spec <> --datetime <> --dtformat <> --method <>```
+```ingest --file <> --format <> --table <> --typeName <> --spec <> --datetime <> --dtformat <>```
 
 note: *the `<>` marks are where user values would go*
 
@@ -59,8 +59,10 @@ with the following parameters:
 
 `--table` The accumulo table name, the table will be created if not already extant.
 
+`--typeName` The name of the SimpleFeatureType to be used.
+
 `--spec` The SimpleFeatureType of the CSV or TSV file, must match the layout of columns in the CSV/TSV file
 
 `--datetime` The name of the field in the SFT spec above that corresponds to the the *time* column in the data being ingested.
 
-`--method` The method of choice to perform the ingest, currently only `naive` is supported
+`--dtformat` The Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss"

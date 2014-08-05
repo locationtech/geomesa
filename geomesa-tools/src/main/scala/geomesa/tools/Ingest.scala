@@ -36,7 +36,7 @@ class Ingest() extends Logging {
         config.method.toLowerCase match {
           case "mapreduce" =>
             true
-          case "naive" =>
+          case "local" =>
             new SVIngest(config, dsConfig)
             true
           case _ =>
