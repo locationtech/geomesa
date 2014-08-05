@@ -66,8 +66,10 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
    */
   def writeFeatures(features: SimpleFeatureIterator): Unit = {
 
-    val attributeTypes = List(load.idAttribute) ++ load.attributes.split(",")
+    val attributesArray = if (load.attributes == null){ Array[String]("") } else { load.attributes.split(',') }
+    val idAttributeArray = if (load.idAttribute == null){ List() } else { List(load.idAttribute) }
 
+    val attributeTypes = idAttributeArray ++ attributesArray
     val attributes = attributeTypes.map(_.split(":")(0))
 
     val fr = format.toLowerCase match {

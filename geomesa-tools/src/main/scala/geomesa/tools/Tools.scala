@@ -52,35 +52,28 @@ object Tools extends App {
         c.copy(query = s )} text "ECQL query to run on the features" optional()
       )
     cmd("list") action { (_, c) =>
-      c.copy(mode = "list")
-    } text ("list is a command") children(
+      c.copy(mode = "list") } text "List the features in the specified Catalog Table" children(
       opt[String]("catalog").action { (s, c) =>
-        c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
-        "if it does not already exist -- to contain the new data" required()
+        c.copy(catalog = s) } text "the name of the Accumulo table to use" required()
       )
     cmd("explain") action { (_, c) =>
-      c.copy(mode = "explain")
-    } text ("explain is a command") children(
+      c.copy(mode = "explain") } text "Explain and plan a query in Geomesa" children(
       opt[String]("catalog").action { (s, c) =>
-        c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
-        "if it does not already exist -- to contain the new data" required(),
+        c.copy(catalog = s) } text "the name of the Accumulo table to use" required(),
       opt[String]("typeName").action { (s, c) =>
         c.copy(typeName = s) } text "the name of the new feature to be create" required(),
       opt[String]("filter").action { (s, c) =>
         c.copy(filterString = s) } text "the filter string" required()
       )
     cmd("delete") action { (_, c) =>
-      c.copy(mode = "delete")
-    } text ("delete is a command") children(
+      c.copy(mode = "delete") } text "Delete a feature from the specified Catalog Table in Geomesa" children(
       opt[String]("catalog").action { (s, c) =>
-        c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
-        "if it does not already exist -- to contain the new data" required(),
+        c.copy(catalog = s) } text "the name of the Accumulo table to use" required(),
       opt[String]("typeName").action { (s, c) =>
         c.copy(typeName = s) } text "the name of the new feature to be create" required()
       )
     cmd("create") action { (_, c) =>
-      c.copy(mode = "create")
-    } text ("create is a command") children(
+      c.copy(mode = "create") } text "Create a feature in Geomesa" children(
       opt[String]("catalog").action { (s, c) =>
         c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
         "if it does not already exist -- to contain the new data" required(),
@@ -114,9 +107,9 @@ object Tools extends App {
   parser.parse(args, Config()) map { config =>
     config.mode match {
       case "export" =>
-        //example command
-        //export --catalog geomesa_catalog --feature twittersmall --attributes geom --format csv --idAttribute "" --query "include" --maxFeatures 1000
-        //NOTE: will export about 100,000 features
+        //example commands
+        //export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format csv --query "include" --maxFeatures 1000
+        //export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format gml --query "user_name='Meghan Ho'"
         println(s"Exporting '${config.typeName}' from '${config.catalog}'. Just a few moments...")
         val ft = new FeaturesTool(config.catalog)
         ft.exportFeatures(
@@ -137,7 +130,7 @@ object Tools extends App {
         ft.listFeatures()
       case "explain" =>
         //example command
-        //explain --catalog test_jdk2pq_create --typeName testing --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+        //explain --catalog geomesa_catalog --typeName twittersmall --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
         val ft = new FeaturesTool(config.catalog)
         ft.explainQuery(config.typeName, config.filterString)
       case "delete" =>
