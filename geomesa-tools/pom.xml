@@ -64,12 +64,12 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-geojson</artifactId>
-            <version>11.2</version>
+            <version>${gt.version}</version>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-xml</artifactId>
-            <version>11.2</version>
+            <version>${gt.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -77,15 +77,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>com.github.scopt</groupId>
             <artifactId>scopt_2.10</artifactId>
-            <version>3.2.0</version>
+            <version>${scopt.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

@@ -24,7 +24,7 @@ import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import geomesa.core.data.AccumuloDataStore
+import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
 import geomesa.utils.geotools.Conversions._
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator

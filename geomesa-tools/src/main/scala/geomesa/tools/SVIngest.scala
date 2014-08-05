@@ -92,7 +92,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
       toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       fw.write()
     } catch {
-      case t: Throwable => logger.error(s"Cannot parse: $line", t)
+      case e: Exception => logger.error(s"Cannot parse: $line", e)
     }
   }
 

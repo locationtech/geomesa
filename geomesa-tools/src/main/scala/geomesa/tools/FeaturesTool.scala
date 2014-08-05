@@ -19,7 +19,6 @@ package geomesa.tools
 import java.io.FileOutputStream
 
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
-import geomesa.core.integration.data.LoadAttributes
 import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
