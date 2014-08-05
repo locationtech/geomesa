@@ -24,6 +24,7 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class DeDuplicatingIteratorTest extends Specification {
+  sequential
 
   val key = new Key("test")
   val value = new Value(Array[Byte](2.toByte))

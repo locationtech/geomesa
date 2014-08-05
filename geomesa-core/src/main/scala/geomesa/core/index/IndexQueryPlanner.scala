@@ -25,7 +25,8 @@ import geomesa.core.data._
 import geomesa.core.filter.{ff, _}
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
-import geomesa.core.util.{BatchMultiScanner, CloseableIterator, SelfClosingBatchScanner}
+import geomesa.core.util.CloseableIterator._
+import geomesa.core.util.{SelfClosingIterator, BatchMultiScanner, CloseableIterator, SelfClosingBatchScanner}
 import geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
@@ -106,7 +107,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         splitQueryOnOrs(query, output)
       }
 
-    queries.flatMap(runQuery(acc, sft, _, isDensity, output))
+    queries.ciFlatMap(runQuery(acc, sft, _, isDensity, output))
   }
   
   def splitQueryOnOrs(query: Query, output: ExplainerOutputType): Iterator[Query] = {
@@ -280,8 +281,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                    derivedQuery: Query,
                    filterVisitor: FilterToAccumulo,
                    range: AccRange,
-                   output: ExplainerOutputType) = {
-    logger.trace(s"Scanning attribute table for feature type ${featureType.getTypeName}")
+                   output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+    output(s"Scanning attribute table for feature type ${featureType.getTypeName}")
     val attrScanner = acc.createAttrIdxScanner(featureType)
 
     val (geomFilters, otherFilters) = partitionGeom(derivedQuery.getFilter)
@@ -304,7 +305,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(kv.getKey.getColumnFamily)
     val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
 
-    CloseableIterator(bms.iterator, () => bms.close())
+    SelfClosingIterator(bms.iterator, () => bms.close())
   }
 
   def configureAttributeIndexIterator(scanner: Scanner,
@@ -398,14 +399,13 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def stIdxQuery(acc: AccumuloConnectorCreator,
                  query: Query,
                  filterVisitor: FilterToAccumulo,
-                 output: ExplainerOutputType) = {
+                 output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     val bs = acc.createSTIdxScanner(featureType)
     val qp = buildSTIdxQueryPlan(query, filterVisitor, output)
     configureBatchScanner(bs, qp)
     // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
     //  we wrap our calls in a SelfClosingBatchScanner.
     SelfClosingBatchScanner(bs)
-
   }
 
   def configureBatchScanner(bs: BatchScanner, qp: QueryPlan): Unit = {
