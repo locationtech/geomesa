@@ -11,7 +11,6 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.{GenTraversable, GenTraversableOnce}
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -118,7 +117,7 @@ object SimpleFeatureTypes {
 
     def toAttributes(spec: String): Array[AttributeSpec] = spec.split(",").map(AttributeSpec(_))
 
-    def toString(spec: GenTraversable[AttributeSpec]) = spec.map(_.toSpec).mkString(",")
+    def toString(spec: Seq[AttributeSpec]) = spec.map(_.toSpec).mkString(",")
   }
 
   private val typeEncode: Map[Class[_], String] = Map(
