@@ -32,7 +32,7 @@ import scala.collection.mutable.ListBuffer
  * Time: 4:50 PM
  */
 object FeatureHandler {
-  val OUTPUT_FIELD_SEPARATOR : String = ","
+  val OUTPUT_FIELD_SEPARATOR : String = "|"
   val OUTPUT_FIELD_SEPARATOR_CHAR : Char = OUTPUT_FIELD_SEPARATOR.charAt(0)
 
   def features2csv(featureIterator: FeatureIterator[SimpleFeature],

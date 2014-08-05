@@ -47,8 +47,7 @@ Specify the feature to delete with ```--typeName```.
 Ingests TSV and CSV files containing WKT geometries with the following caveat:CSV files must surround values with double quotation marks, e.g.: `"37266103","2013-07-17","POINT(0.0 0.0)"` the first and last quotation marks are optional however. Also the WKT Geometry is assumed to be the last column of the CSV/TSV file.
 ####Usage
    
-```ingest --file <> --format <> --table <> --typeName <> --spec <> --datetime <> --dtformat <> --method <>
-```
+```ingest --file <> --format <> --table <> --typeName <> --spec <> --datetime <> --dtformat <> --method <>```
 
 note: *the `<>` marks are where user values would go*
 
