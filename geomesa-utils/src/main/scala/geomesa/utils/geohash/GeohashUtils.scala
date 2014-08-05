@@ -248,9 +248,9 @@ object GeohashUtils
     def getLocalMinimaAlongLatitude(lon1: Double): Seq[Double] = {
       Seq[Double](lon1, if (lon1 > 0) lon1 - Math.PI else lon1 + Math.PI)
     }
-    def getGeodeticDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double = {
-      val dX = Math.cos(lat2) * Math.cos(lon2) + Math.cos(lat1) * Math.cos(lon1)
-      val dY = Math.cos(lat2) * Math.sin(lon2) + Math.cos(lat1) * Math.sin(lon1)
+    def getChordLength(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double = {
+      val dX = Math.cos(lat2) * Math.cos(lon2) - Math.cos(lat1) * Math.cos(lon1)
+      val dY = Math.cos(lat2) * Math.sin(lon2) - Math.cos(lat1) * Math.sin(lon1)
       val dZ = Math.sin(lat2) - Math.sin(lat1)
       Math.sqrt(dX * dX + dY * dY + dZ * dZ)
     }
@@ -286,7 +286,7 @@ object GeohashUtils
       case _ => getPointsToTryAlongLongitude(x, y, minLat, maxLat, minLon) ++
                 getPointsToTryAlongLongitude(x, y, minLat, maxLat, maxLon)
     }
-    pointsToTry.map(p => getGeodeticDistance(y, x, p.getY, p.getX)).reduceLeft(_ min _)
+    pointsToTry.map(p => getChordLength(y, x, p.getY, p.getX)).reduceLeft(_ min _)
   }
 
   /**

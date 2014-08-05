@@ -64,9 +64,10 @@ class GeohashUtilsTest extends Specification with Logging {
     "[POINT] out point no span" ->("POINT(-190 40)", "POINT(170 40)", "POINT(40 40)")
   )
 
-  //
-  val geodeticMinDistToGeohashTestData: Map[String, ((Int, Int), (Int, Int), (Int, Int), Double)] = Map(
-    "pole wrapper" -> ((-30, -89), (149, -89), (151, -87), Math.PI / 180 / 2)
+  //first tuple is the point, second tuple is the BoundingBox of GH, the double is degrees of min great circle arc from point to GH
+  val geodeticMinDistToGeohashTestData: Map[String, ((Int, Int), ((Int, Int), (Int, Int)), Double)] = Map(
+    "pole wrapper" -> ((-30, -89), ((149, -89), (151, -87)), 2.0),
+    "IDL wrapper" -> ((179, 0), ((-180, -1), (-178, 1)), 1.0)
   )
 
   // (reasonable) odd GeoHash resolutions
@@ -186,14 +187,15 @@ class GeohashUtilsTest extends Specification with Logging {
     }
   }
 
-  geodeticMinDistToGeohashTestData.map { case (name, ((x, y), (minLon, minLat), (maxLon, maxLat), dist)) =>
+  geodeticMinDistToGeohashTestData.map { case (name, ((x, y), ((minLon, minLat), (maxLon, maxLat)), degrees)) =>
     "getGeodeticGreatCircleChordLength" should {
       s"work for $name" in {
         val point = defaultGeometryFactory.createPoint(new Coordinate(x.asInstanceOf[Double], y.asInstanceOf[Double]))
         val ll = defaultGeometryFactory.createPoint(new Coordinate(minLon.asInstanceOf[Double], minLat.asInstanceOf[Double]))
         val ur = defaultGeometryFactory.createPoint(new Coordinate(maxLon.asInstanceOf[Double], maxLat.asInstanceOf[Double]))
         val bbox = new BoundingBox(ll, ur)
-        GeohashUtils.getMinimumGreatCircleChordLength(bbox, point) must beLessThan(dist)
+        val chordLength = GeohashUtils.getMinimumGreatCircleChordLength(bbox, point)
+        chordLength must beLessThan(Math.PI / 180 * degrees)
       }
     }
   }
