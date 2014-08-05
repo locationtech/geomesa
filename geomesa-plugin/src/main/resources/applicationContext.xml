@@ -19,7 +19,19 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="accumuloDataStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
+  <bean id="geoMesaServlet" class="geomesa.plugin.servlet.GeoMesaServlet"/>
+
+  <bean id="geoMesaDispatcherMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+    <property name="alwaysUseFullPath" value="true"/>
+    <property name="mappings">
+      <props>
+        <prop key="/geomesa">geoMesaServlet</prop>
+        <prop key="/geomesa/**">geoMesaServlet</prop>
+      </props>
+    </property>
+  </bean>
+
+  <bean id="accumuloDataStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
         <property name="id" value="accumuloDataStorePanel"/>
         <property name="factoryClass" value="geomesa.core.data.AccumuloDataStoreFactory"/>
         <property name="iconBase" value="org.geoserver.web.GeoServerApplication"/>
