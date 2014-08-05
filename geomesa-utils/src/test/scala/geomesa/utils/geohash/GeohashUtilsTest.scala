@@ -64,6 +64,11 @@ class GeohashUtilsTest extends Specification with Logging {
     "[POINT] out point no span" ->("POINT(-190 40)", "POINT(170 40)", "POINT(40 40)")
   )
 
+  //
+  val geodeticMinDistToGeohashTestData: Map[String, ((Int, Int), (Int, Int), (Int, Int), Double)] = Map(
+    "pole wrapper" -> ((-30, -89), (149, -89), (151, -87), Math.PI / 180 / 2)
+  )
+
   // (reasonable) odd GeoHash resolutions
   val oddResolutions = new ResolutionRange(5, 63, 2)
 
@@ -177,6 +182,18 @@ class GeohashUtilsTest extends Specification with Logging {
             decomposed.contains(includedPoint) must equalTo(true)
             decomposed.contains(excludedPoint) must equalTo(false)
         }
+      }
+    }
+  }
+
+  geodeticMinDistToGeohashTestData.map { case (name, ((x, y), (minLon, minLat), (maxLon, maxLat), dist)) =>
+    "getGeodeticGreatCircleChordLength" should {
+      s"work for $name" in {
+        val point = defaultGeometryFactory.createPoint(new Coordinate(x.asInstanceOf[Double], y.asInstanceOf[Double]))
+        val ll = defaultGeometryFactory.createPoint(new Coordinate(minLon.asInstanceOf[Double], minLat.asInstanceOf[Double]))
+        val ur = defaultGeometryFactory.createPoint(new Coordinate(maxLon.asInstanceOf[Double], maxLat.asInstanceOf[Double]))
+        val bbox = new BoundingBox(ll, ur)
+        GeohashUtils.getMinimumGreatCircleChordLength(bbox, point) must beLessThan(dist)
       }
     }
   }

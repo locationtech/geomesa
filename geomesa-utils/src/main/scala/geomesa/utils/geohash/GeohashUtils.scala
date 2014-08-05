@@ -241,6 +241,54 @@ object GeohashUtils
     gh
   }
 
+  def getMinimumGreatCircleChordLength(bbox: BoundingBox, point: Point): Double = {
+    def getLocalMinimumAlongLongitude(lat1: Double, lon1: Double, lon2: Double): Double = {
+      Math.atan(Math.tan(lat1) / (Math.cos(lon2) * Math.cos(lon1) + Math.sin(lon2) + Math.sin(lon1)))
+    }
+    def getLocalMinimaAlongLatitude(lon1: Double): Seq[Double] = {
+      Seq[Double](lon1, if (lon1 > 0) lon1 - Math.PI else lon1 + Math.PI)
+    }
+    def getGeodeticDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double = {
+      val dX = Math.cos(lat2) * Math.cos(lon2) + Math.cos(lat1) * Math.cos(lon1)
+      val dY = Math.cos(lat2) * Math.sin(lon2) + Math.cos(lat1) * Math.sin(lon1)
+      val dZ = Math.sin(lat2) - Math.sin(lat1)
+      Math.sqrt(dX * dX + dY * dY + dZ * dZ)
+    }
+    def degreesToRadians(degrees: Double): Double = Math.PI / 180 * degrees
+    def getPointsToTryIfAboveOrBelowLat(pointX: Double, minX: Double, maxX: Double, latY: Double): Seq[Point] = {
+      val minima = getLocalMinimaAlongLatitude(pointX).withFilter(m => m > minX && m < maxX).map(m =>
+        defaultGeometryFactory.createPoint(new Coordinate(m, latY))
+      )
+      if (minima.size == 0) {
+        Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(minX, latY)), defaultGeometryFactory.createPoint(new Coordinate(maxX, latY)))
+      } else {
+        minima
+      }
+    }
+    def getPointsToTryAlongLongitude(x: Double, y: Double, minY: Double, maxY: Double, longX: Double): Seq[Point] = {
+      val localMin = getLocalMinimumAlongLongitude(y, x, longX)
+      if (localMin > minY && localMin < maxY) {
+        Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(longX, localMin)))
+      } else {
+        Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(longX, minY)),
+                   defaultGeometryFactory.createPoint(new Coordinate(longX, maxY)))
+      }
+    }
+    val x = degreesToRadians(point.getX)
+    val y = degreesToRadians(point.getY)
+    val minLon = degreesToRadians(bbox.minLon)
+    val maxLon = degreesToRadians(bbox.maxLon)
+    val minLat = degreesToRadians(bbox.minLat)
+    val maxLat = degreesToRadians(bbox.maxLat)
+    val pointsToTry = y match {
+      case y: Double if y >= maxLat => getPointsToTryIfAboveOrBelowLat(x, minLon, maxLon, maxLat)
+      case y: Double if y <= minLat => getPointsToTryIfAboveOrBelowLat(x, minLon, maxLon, minLat)
+      case _ => getPointsToTryAlongLongitude(x, y, minLat, maxLat, minLon) ++
+                getPointsToTryAlongLongitude(x, y, minLat, maxLat, maxLon)
+    }
+    pointsToTry.map(p => getGeodeticDistance(y, x, p.getY, p.getX)).reduceLeft(_ min _)
+  }
+
   /**
    * Computes the centroid of the given geometry as a WGS84 point.
    *
