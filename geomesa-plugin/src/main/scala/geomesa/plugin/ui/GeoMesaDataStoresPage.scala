@@ -113,7 +113,7 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
     val values =
       for {
         map <- metadata.values
-        (feature, metadataList) <- map
+        (_, metadataList) <- map
         metadata <- metadataList
         if (metadata.tableName.contains("Record"))
       } yield {
