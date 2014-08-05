@@ -54,7 +54,7 @@ class SVIngest(config: Config, dsConfig: Map[String, _]) extends Logging {
   }
 
   lazy val delim  = config.format match {
-    case "TSV" => "\"\t\""
+    case "TSV" => "\t"
     case "CSV" => "\",\""
   }
 
