@@ -22,6 +22,7 @@ import java.util.UUID
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.index._
 import geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.{BatchWriter, BatchWriterConfig, Connector}
 import org.apache.accumulo.core.data.{Key, Mutation, PartialKey, Value, Range => ARange}
 import org.apache.accumulo.core.security.ColumnVisibility
@@ -74,6 +75,10 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
                                      visibility: String)
   extends SimpleFeatureWriter
           with Logging {
+
+  val indexedAttributes = SimpleFeatureTypes.getIndexedAttributes(featureType)
+  val indexedAttributeNames = indexedAttributes.map(_.getLocalName.getBytes(StandardCharsets.UTF_8))
+  val indexedAttributesWithNames = indexedAttributes.zip(indexedAttributeNames)
 
   val NULLBYTE = Array[Byte](0.toByte)
   val connector = ds.connector
@@ -157,14 +162,14 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
   case class PutOrDeleteMutation(row: Array[Byte], cf: Text, cq: Text, v: Value)
 
-  def getAttrIdxMutations(feature: SimpleFeature, cf: Text) =
-    featureType.getAttributeDescriptors.map { attr =>
-      val attrName = attr.getLocalName.getBytes(StandardCharsets.UTF_8)
+  def getAttrIdxMutations(feature: SimpleFeature, cf: Text) = {
+    val value = IndexSchema.encodeIndexValue(feature)
+    indexedAttributesWithNames.map { case (attr, name) =>
       val attrValue = valOrNull(feature.getAttribute(attr.getName)).getBytes(StandardCharsets.UTF_8)
-      val row = attrName ++ NULLBYTE ++ attrValue
-      val value = IndexSchema.encodeIndexValue(feature)
+      val row = name ++ NULLBYTE ++ attrValue
       PutOrDeleteMutation(row, cf, EMPTY_COLQ, value)
     }
+  }
 
   private val nullString = "<null>"
   private def valOrNull(o: AnyRef) = if(o == null) nullString else o.toString
@@ -253,7 +258,9 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
         val key = entry.getKey
         mutation.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed)
       }
-      bw.addMutation(mutation)
+      if (mutation.size() > 0) {
+        bw.addMutation(mutation)
+      }
     }
 
   /** Creates a function to remove spatio temporal index entries for a feature **/

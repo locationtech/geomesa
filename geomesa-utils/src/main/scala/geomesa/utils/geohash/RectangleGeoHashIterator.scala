@@ -16,6 +16,8 @@
 
 package geomesa.utils.geohash
 
+import com.vividsolutions.jts.geom.Geometry
+
 
 /**
  * Created by IntelliJ IDEA.
@@ -61,9 +63,16 @@ object RectangleGeoHashIterator {
    * shared between GeoHashes).
    */
   val OFFSET_DEGREES = 1e-6
+
+  // alternate constructor
+  def apply(geometry: Geometry, precision: Int) = {
+    val env = geometry.getEnvelopeInternal
+    new RectangleGeoHashIterator(env.getMinY, env.getMinX, env.getMaxY, env.getMaxX, precision)
+  }
 }
 
 import RectangleGeoHashIterator._
+import com.vividsolutions.jts.geom.Geometry
 
 class RectangleGeoHashIterator(latitudeLL: Double,
                                longitudeLL: Double,

@@ -24,12 +24,12 @@ import com.vividsolutions.jts.geom._
 import geomesa.core._
 import geomesa.core.data._
 import geomesa.core.index._
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ArrayByteSequence, ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.apache.hadoop.io.Text
-import org.geotools.data.DataUtilities
 import org.geotools.factory.GeoTools
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
@@ -90,7 +90,7 @@ class SpatioTemporalIntersectingIterator
     logger.trace("Initializing classLoader")
     SpatioTemporalIntersectingIterator.initClassLoader(logger)
 
-    val featureType = DataUtilities.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
+    val featureType = SimpleFeatureTypes.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
     featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
     dateAttributeName = getDtgFieldName(featureType)
@@ -107,7 +107,10 @@ class SpatioTemporalIntersectingIterator
 
     if (options.containsKey(DEFAULT_CACHE_SIZE_NAME))
       maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
-    deduplicate = IndexSchema.mayContainDuplicates(featureType)
+
+    if (!options.containsKey(GEOMESA_ITERATORS_IS_DENSITY_TYPE)) {
+      deduplicate = IndexSchema.mayContainDuplicates(featureType)
+    }
 
     this.indexSource = source.deepCopy(env)
     this.dataSource = source.deepCopy(env)

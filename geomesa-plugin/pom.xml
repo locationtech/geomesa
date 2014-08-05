@@ -90,11 +90,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
           <groupId>org.apache.accumulo</groupId>
           <artifactId>accumulo-test</artifactId>
         </dependency>
@@ -132,7 +127,8 @@
                                     <exclude>it.geosolutions.*:*</exclude>
                                     <exclude>org.jaitools:*</exclude>
                                     <exclude>com.vividsolutions:*</exclude>
-                                    <exclude>commons*:*</exclude>
+                                    <exclude>commons-pool:*</exclude>
+                                    <exclude>commons-codec:*</exclude>
                                     <exclude>net.java.dev:*</exclude>
                                     <exclude>java3d:*</exclude>
                                     <exclude>net.jcip:*</exclude>

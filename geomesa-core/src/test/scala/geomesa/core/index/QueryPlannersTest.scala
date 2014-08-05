@@ -16,7 +16,7 @@
 
 package geomesa.core.index
 
-import com.vividsolutions.jts.geom.{Geometry, Polygon}
+import com.vividsolutions.jts.geom.Polygon
 import geomesa.utils.geohash.GeoHash
 import geomesa.utils.text.WKTUtils
 import org.joda.time.format.DateTimeFormat

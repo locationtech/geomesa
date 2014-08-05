@@ -20,12 +20,12 @@ class FilterPackageObjectTest extends Specification with Logging {
     "change ANDs to ORs" in {
       oneLevelAndFilters.flatMap { case (f: And) =>
         val dm = deMorgan(f)
-        dm.isInstanceOf[Or] mustEqual true
+        dm.isInstanceOf[Or] must beTrue
         val dmChildren = dm.asInstanceOf[Or].getChildren
 
         f.getChildren.zip(dmChildren).map {
           case (origChild, dmChild) =>
-            dmChild.isInstanceOf[Not] mustEqual true
+            dmChild.isInstanceOf[Not] must beTrue
             dmChild.asInstanceOf[Not].getFilter mustEqual origChild
         }
       }
@@ -34,12 +34,12 @@ class FilterPackageObjectTest extends Specification with Logging {
     "change ORs to ANDs" in {
       oneLevelOrFilters.flatMap { case (f: Or) =>
         val dm = deMorgan(f)
-        dm.isInstanceOf[And] mustEqual true
+        dm.isInstanceOf[And] must beTrue
         val dmChildren = dm.asInstanceOf[And].getChildren
 
         f.getChildren.zip(dmChildren).map {
           case (origChild, dmChild) =>
-            dmChild.isInstanceOf[Not] mustEqual true
+            dmChild.isInstanceOf[Not] must beTrue
             dmChild.asInstanceOf[Not].getFilter mustEqual origChild
         }
       }
@@ -76,7 +76,7 @@ class FilterPackageObjectTest extends Specification with Logging {
       // NB: The nested lists imply ANDs and ORs.
       andsOrsFilters.flatMap { filter: Filter =>
         val ll = logicDistribution(filter)
-        ll.flatten.map { l => l.isInstanceOf[BinaryLogicOperator] mustEqual false}
+        ll.flatten.map { l => l.isInstanceOf[BinaryLogicOperator] must beFalse}
       }
     }
 
@@ -108,13 +108,11 @@ class FilterPackageObjectTest extends Specification with Logging {
       val children = decomposeOr(rewrittenFilter)
 
       "return a Filter where the children of the (optional) OR can (optionally) be an AND" in {
-        children.map { _.isInstanceOf[Or] mustEqual false }
+        children.map { _.isInstanceOf[Or] must beFalse }
       }
 
       "return a Filter where NOTs do not have ANDs or ORs as children" in {
-        children.filter(_.isInstanceOf[Not]).foreach { f =>
-          f.isInstanceOf[BinaryLogicOperator] mustEqual false
-        }
+        foreachWhen(children) { case f if f.isInstanceOf[Not] => f.isInstanceOf[BinaryLogicOperator] must beFalse }
       }
 
       "return a Filter which is 'equivalent' to the original filter" in {

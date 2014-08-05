@@ -17,23 +17,15 @@
 package geomesa.core.iterators
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Polygon
-import geomesa.core._
-import geomesa.core.data.{AccumuloDataStore, SimpleFeatureEncoderFactory}
+import geomesa.core.data.METADATA_TAG
 import geomesa.core.index._
 import geomesa.core.iterators.TestData._
-import geomesa.core.security.DefaultAuthorizationsProvider
-import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, IteratorSetting}
 import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
-import org.geotools.data.Query
-import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -75,192 +67,17 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     logger.debug(s"Done adding mutations to table $tableName.")
 
     // add the schema description
-    val mutSchema = new Mutation(s"~META_$featureName")
-    mutSchema.put("schema", schemaEncoding, emptyBytes)
+    val mutSchema = new Mutation(s"${METADATA_TAG}_$featureName")
+    mutSchema.put("schema", "", schemaEncoding)
     bw.addMutation(mutSchema)
 
     // add the attributes description
-    val mutAttributes = new Mutation(s"~META_$featureName")
-    mutAttributes.put("attributes", UnitTestEntryType.getTypeSpec, emptyBytes)
+    val mutAttributes = new Mutation(s"${METADATA_TAG}_$featureName")
+    mutAttributes.put("attributes", "", UnitTestEntryType.getTypeSpec)
     bw.addMutation(mutAttributes)
 
     bw.flush()
     c
-  }
-
-  def runMockAccumuloTest(label: String,
-                          entries: GenSeq[TestData.Entry] = TestData.fullData,
-                          ecqlFilter: Option[String] = None,
-                          dtFilter: Interval = null,
-                          overrideGeometry: Boolean = false,
-                          doPrint: Boolean = true): Int = {
-    // create the query polygon
-    val polygon: Polygon = overrideGeometry match {
-      case true => IndexSchema.everywhere
-      case false => WKTUtils.read(TestData.wktQuery).asInstanceOf[Polygon]
-    }
-
-    // create the batch scanner
-    val c = setupMockAccumuloTable(entries)
-    val ds = new AccumuloDataStore(c, TEST_TABLE, new DefaultAuthorizationsProvider, "")
-
-    val gf = s"INTERSECTS(geom, ${polygon.toText})"
-    val dt: Option[String] = Option(dtFilter).map(int =>
-      s"(dtg between '${int.getStart}' AND '${int.getEnd}')"
-    )
-
-    def red(f: String, og: Option[String]) = og match {
-      case Some(g) => s"$f AND $g"
-      case None => f
-    }
-
-    val tfString = red(red(gf, dt), ecqlFilter)
-    val tf = ECQL.toFilter(tfString)
-
-    val q = new Query(TestData.featureType.getTypeName, tf)
-    runQuery(q, ds)
-  }
-
-  def runQuery(q: Query, ds: AccumuloDataStore, doPrint: Boolean = false, label: String = "test") = {
-    val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
-    // create the schema, and require de-duplication
-    val schema = IndexSchema(TestData.schemaEncoding, TestData.featureType, featureEncoder)
-
-    // fetch results from the schema!
-    val itr = schema.query(q, ds)
-
-    // print out the hits
-    val retval = if (doPrint) {
-      val results: List[SimpleFeature] = itr.toList
-      results.map(simpleFeature => {
-        val attrs = simpleFeature.getAttributes.map(attr => if (attr == null) "" else attr.toString).mkString("|")
-        println(s"[SII.$label] query-hit: ${simpleFeature.getID} = + $attrs")
-      })
-      results.size
-    } else itr.size
-
-    println(s"[SII.$label] total query hits:$retval")
-    itr.close()
-    retval
-  }
-
-  "Mock Accumulo with a small table" should {
-    "cover corner cases" in {
-      // compose the list of entries to use
-      val entries: List[TestData.Entry] = TestData.shortListOfPoints
-
-      // run this query on regular data
-      val numHits: Int = runMockAccumuloTest("mock-small", entries, None)
-
-      // validate the total number of query-hits
-      // Since we are playing with points, we can count **exactly** how many results we should
-      //  get back.  This is important to check corner cases.
-      numHits must be equalTo (3)
-    }
-  }
-
-  "Realistic Mock Accumulo" should {
-    "use our iterators and aggregators the same way we do" in {
-      // run this query on regular data
-      val numHits: Int = runMockAccumuloTest("mock-real",
-        TestData.fullData, None)
-
-      // validate the total number of query-hits
-      numHits must be equalTo (21)
-    }
-  }
-
-  "Realistic Mock Accumulo with a meaningless attribute-filter" should {
-    "return a full results-set" in {
-      val ecqlFilter = "true = true"
-
-      // run this query on regular data
-      val numHits: Int = runMockAccumuloTest("mock-attr-all",
-        TestData.fullData, Some(ecqlFilter))
-
-      // validate the total number of query-hits
-      numHits must be equalTo (21)
-    }
-  }
-
-  "Realistic Mock Accumulo with a meaningful attribute-filter" should {
-    "return a partial results-set" in {
-      val ecqlFilter = """(attr2 like '2nd___')"""
-
-      // run this query on regular data
-      val numHits: Int = runMockAccumuloTest("mock-attr-filt",
-        TestData.fullData, Some(ecqlFilter))
-
-      // validate the total number of query-hits
-      numHits must be equalTo (6)
-    }
-  }
-
-  "Realistic Mock Accumulo" should {
-    "handle edge intersection false positives" in {
-      val numHits = runMockAccumuloTest("mock-small", TestData.shortListOfPoints ++ TestData.geohashHitActualNotHit, None)
-      numHits must be equalTo(3)
-    }
-  }
-
-  "Large Mock Accumulo with a meaningful attribute-filter" should {
-    "return a partial results-set" in {
-      val ecqlFilter = "(not " + DEFAULT_DTG_PROPERTY_NAME +
-        " after 2010-08-08T23:59:59Z) and (not " + DEFAULT_DTG_END_PROPERTY_NAME +
-        " before 2010-08-08T00:00:00Z)"
-
-      // run this query on regular data
-      val numHits: Int = runMockAccumuloTest("mock-huge",
-        TestData.hugeData, Some(ecqlFilter))
-
-      // validate the total number of query-hits
-      numHits must be equalTo 81
-    }
-  }
-
-  "Large Mock Accumulo with a meaningful time-range" should {
-    "return a filterd results-set" in {
-      val ecqlFilter = "true = true"
-
-      // run this query on regular data
-      val dtFilter = new Interval(
-        new DateTime(2010, 8, 8, 0, 0, 0, DateTimeZone.forID("UTC")),
-        new DateTime(2010, 8, 8, 23, 59, 59, DateTimeZone.forID("UTC"))
-      )
-      val numHits: Int = runMockAccumuloTest("mock-huge-time",
-        TestData.hugeData, Some(ecqlFilter), dtFilter)
-
-      // validate the total number of query-hits
-      numHits must be equalTo 81
-    }
-  }
-
-  "Large Mock Accumulo with a degenerate time-range" should {
-    "return a filterd results-set" in {
-      val ecqlFilter = "true = true"
-
-      // run this query on regular data
-      val dtFilter = IndexSchema.everywhen
-      val numHits: Int = runMockAccumuloTest("mock-huge-notime",
-        TestData.hugeData, Some(ecqlFilter), dtFilter,
-        doPrint = false)
-
-      // validate the total number of query-hits
-      numHits must be equalTo 7434
-    }
-  }
-
-  "Large Mock Accumulo with a global request" should {
-    "return an unfiltered results-set" in {
-      // run this query on regular data
-      val dtFilter = IndexSchema.everywhen
-      val numHits: Int = runMockAccumuloTest("mock-huge-notime",
-        TestData.hugeData, None, dtFilter,
-        overrideGeometry = true, doPrint = false)
-
-      // validate the total number of query-hits
-      numHits must be equalTo 52000
-    }
   }
 
   "Consistency Iterator" should {
@@ -273,7 +90,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
       bs.addScanIterator(cfg)
 
       // validate the total number of query-hits
-      bs.iterator().size mustEqual(0)
+      bs.iterator().size mustEqual 0
     }
   }
 
@@ -292,7 +109,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
       bs.addScanIterator(cfg)
 
       // validate the total number of query-hits
-      bs.iterator().size mustEqual(1)
+      bs.iterator().size mustEqual 1
     }
   }
 

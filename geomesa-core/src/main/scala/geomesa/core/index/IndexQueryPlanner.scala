@@ -1,17 +1,32 @@
+/*
+ * Copyright 2013 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package geomesa.core.index
 
 import java.nio.charset.StandardCharsets
 import java.util.Map.Entry
 
-import geomesa.utils.geotools.GeometryUtils
-import com.google.common.collect.Iterators
 import com.vividsolutions.jts.geom.{Point, Polygon}
 import geomesa.core._
 import geomesa.core.data._
 import geomesa.core.filter.{ff, _}
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
-import geomesa.core.util.{CloseableIterator, SelfClosingBatchScanner}
+import geomesa.core.util.{BatchMultiScanner, CloseableIterator, SelfClosingBatchScanner}
+import geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.user.RegExFilter
@@ -26,7 +41,6 @@ import org.opengis.filter._
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial.DWithin
 
-
 import scala.collection.JavaConversions._
 import scala.util.Random
 
@@ -40,12 +54,14 @@ object IndexQueryPlanner {
 }
 
 import geomesa.core.index.IndexQueryPlanner._
+import geomesa.utils.geotools.Conversions._
 
 case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              cfPlanner: ColumnFamilyPlanner,
                              schema: String,
                              featureType: SimpleFeatureType,
                              featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
+
   def buildFilter(poly: Polygon, interval: Interval): KeyPlanningFilter =
     (IndexSchema.somewhere(poly), IndexSchema.somewhen(interval)) match {
       case (None, None)       =>    AcceptEverythingFilter
@@ -150,11 +166,11 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                       output: ExplainerOutputType) = {
 
     rewrittenFilter match {
-      case isEqualTo: PropertyIsEqualTo if !isDensity =>
+      case isEqualTo: PropertyIsEqualTo if !isDensity && attrIdxQueryEligible(isEqualTo) =>
         attrIdxEqualToQuery(acc, derivedQuery, isEqualTo, filterVisitor, output)
 
       case like: PropertyIsLike if !isDensity =>
-        if(likeEligible(like))
+        if(attrIdxQueryEligible(like) && likeEligible(like))
           attrIdxLikeQuery(acc, derivedQuery, like, filterVisitor, output)
         else
           stIdxQuery(acc, derivedQuery, filterVisitor, output)
@@ -164,7 +180,24 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     }
   }
 
-  // TODO try to use wildcard values from the Filter itself
+  def attrIdxQueryEligible(filt: Filter): Boolean = filt match {
+    case filter: PropertyIsEqualTo =>
+      val one = filter.getExpression1
+      val two = filter.getExpression2
+      val prop = (one, two) match {
+        case (p: PropertyName, _) => Some(p.getPropertyName)
+        case (_, p: PropertyName) => Some(p.getPropertyName)
+        case (_, _)               => None
+      }
+      prop.exists(featureType.getDescriptor(_).isIndexed)
+
+    case filter: PropertyIsLike =>
+      val prop = filter.getExpression.asInstanceOf[PropertyName].getPropertyName
+      featureType.getDescriptor(prop).isIndexed
+  }
+
+
+      // TODO try to use wildcard values from the Filter itself
   // Currently pulling the wildcard values from the filter
   // leads to inconsistent results...so use % as wildcard
   val MULTICHAR_WILDCARD = "%"
@@ -262,24 +295,16 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     configureAttributeIndexIterator(attrScanner, ofilter, range)
 
-    import scala.collection.JavaConversions._
-    val ranges = attrScanner.iterator.map(_.getKey.getColumnFamily).map(new AccRange(_))
+    val recordScanner = acc.createRecordScanner(featureType)
+    val iterSetting = configureSimpleFeatureFilteringIterator(featureType, None, derivedQuery)
+    recordScanner.addScanIterator(iterSetting)
 
-    val recScanner = if(ranges.hasNext) {
-      val recordScanner = acc.createRecordScanner(featureType)
-      recordScanner.setRanges(ranges.toList)
-      configureSimpleFeatureFilteringIterator(recordScanner, featureType, None, derivedQuery)
-      Some(recordScanner)
-    } else None
+    // function to join the attribute index scan results to the record table
+    // since the row id of the record table is in the CF just grab that
+    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(kv.getKey.getColumnFamily)
+    val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
 
-    val iter = recScanner.map(_.iterator()).getOrElse(Iterators.emptyIterator[Entry[Key, Value]])
-
-    def close(): Unit = {
-      recScanner.foreach(_.close)
-      attrScanner.close
-    }
-
-    CloseableIterator(iter, close)
+    CloseableIterator(bms.iterator, () => bms.close())
   }
 
   def configureAttributeIndexIterator(scanner: Scanner,
@@ -306,10 +331,9 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     case _ => Some(ff.and(filters))
   }
 
-  def stIdxQuery(acc: AccumuloConnectorCreator,
-                 query: Query,
-                 filterVisitor: FilterToAccumulo,
-                 output: ExplainerOutputType) = {
+  def buildSTIdxQueryPlan(query: Query,
+                          filterVisitor: FilterToAccumulo,
+                          output: ExplainerOutputType) = {
     output(s"Scanning ST index table for feature type ${featureType.getTypeName}")
 
     val spatial = filterVisitor.spatialPredicate
@@ -341,9 +365,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val oint  = IndexSchema.somewhen(interval)
 
     // set up row ranges and regular expression filter
-    val bs = acc.createSTIdxScanner(featureType)
-
-    planQuery(bs, filter, output)
+    val qp = planQuery(filter, output)
 
     output("Configuring batch scanner for ST table: \n" +
       s"  Filter ${query.getFilter}\n" +
@@ -355,21 +377,41 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
-    iteratorConfig.iterator match {
-      case IndexOnlyIterator  =>
-        val transformedSFType = transformedSimpleFeatureType(query).getOrElse(featureType)
-        configureIndexIterator(bs, ofilter, query, transformedSFType)
-      case SpatioTemporalIterator =>
-        configureSpatioTemporalIntersectingIterator(bs, ofilter, featureType)
-    }
+    val stIdxIterCfg =
+      iteratorConfig.iterator match {
+        case IndexOnlyIterator  =>
+          val transformedSFType = transformedSimpleFeatureType(query).getOrElse(featureType)
+          configureIndexIterator(ofilter, query, transformedSFType)
+        case SpatioTemporalIterator =>
+          val isDensity = query.getHints.containsKey(DENSITY_KEY)
+          configureSpatioTemporalIntersectingIterator(ofilter, featureType, isDensity)
+      }
 
-    if (iteratorConfig.useSFFI) {
-      configureSimpleFeatureFilteringIterator(bs, featureType, ecql, query, poly)
-    }
+    val sffiIterCfg =
+      if (iteratorConfig.useSFFI) {
+        Some(configureSimpleFeatureFilteringIterator(featureType, ecql, query, poly))
+      } else None
 
+    qp.copy(iterators = qp.iterators ++ List(Some(stIdxIterCfg), sffiIterCfg).flatten)
+  }
+
+  def stIdxQuery(acc: AccumuloConnectorCreator,
+                 query: Query,
+                 filterVisitor: FilterToAccumulo,
+                 output: ExplainerOutputType) = {
+    val bs = acc.createSTIdxScanner(featureType)
+    val qp = buildSTIdxQueryPlan(query, filterVisitor, output)
+    configureBatchScanner(bs, qp)
     // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
     //  we wrap our calls in a SelfClosingBatchScanner.
     SelfClosingBatchScanner(bs)
+
+  }
+
+  def configureBatchScanner(bs: BatchScanner, qp: QueryPlan): Unit = {
+    qp.iterators.foreach { i => bs.addScanIterator(i) }
+    bs.setRanges(qp.ranges)
+    qp.cf.foreach { c => bs.fetchColumnFamily(c) }
   }
 
   // Let's handle special cases.
@@ -398,7 +440,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
 
   def configureFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) {
-    val encodedSimpleFeatureType = DataUtilities.encodeType(featureType)
+    val encodedSimpleFeatureType = SimpleFeatureTypes.encodeType(featureType)
     cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, encodedSimpleFeatureType)
     cfg.encodeUserData(featureType.getUserData, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
   }
@@ -415,16 +457,16 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       transform     = transformOpt.asInstanceOf[String]
       _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
       sfType        <- transformedSimpleFeatureType(query)
-      encodedSFType = DataUtilities.encodeType(sfType)
+      encodedSFType = SimpleFeatureTypes.encodeType(sfType)
       _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, encodedSFType)
     } yield Unit
 
   // establishes the regular expression that defines (minimally) acceptable rows
-  def configureRowRegexIterator(bs: BatchScanner, regex: String) {
+  def configureRowRegexIterator(regex: String): IteratorSetting = {
     val name = "regexRow-" + randomPrintableString(5)
     val cfg = new IteratorSetting(iteratorPriority_RowRegex, name, classOf[RegExFilter])
     RegExFilter.setRegexs(cfg, regex, null, null, null, false)
-    bs.addScanIterator(cfg)
+    cfg
   }
 
   // returns an iterator over [key,value] pairs where the key is taken from the index row and the value is a SimpleFeature,
@@ -432,38 +474,38 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // -- for items that either:
   // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
-  def configureIndexIterator(bs: BatchScanner,
-                             filter: Option[Filter],
+  def configureIndexIterator(filter: Option[Filter],
                              query: Query,
-                             featureType: SimpleFeatureType) {
+                             featureType: SimpleFeatureType): IteratorSetting = {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),classOf[IndexIterator])
     IndexIterator.setOptions(cfg, schema, filter)
     configureFeatureType(cfg, featureType)
     configureFeatureEncoding(cfg)
-    bs.addScanIterator(cfg)
+    cfg
   }
 
   // returns only the data entries -- no index entries -- for items that either:
   // 1) the GeoHash-box intersects the query polygon; this is a coarse-grained filter
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
-  def configureSpatioTemporalIntersectingIterator(bs: BatchScanner,
-                                                  filter: Option[Filter],
-                                                  featureType: SimpleFeatureType) {
+  def configureSpatioTemporalIntersectingIterator(filter: Option[Filter],
+                                                  featureType: SimpleFeatureType,
+                                                  isDensity: Boolean): IteratorSetting = {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),
       classOf[SpatioTemporalIntersectingIterator])
     SpatioTemporalIntersectingIterator.setOptions(cfg, schema, filter)
     configureFeatureType(cfg, featureType)
-    bs.addScanIterator(cfg)
+    if (isDensity) cfg.addOption(GEOMESA_ITERATORS_IS_DENSITY_TYPE, "isDensity")
+    cfg
   }
+
   // assumes that it receives an iterator over data-only entries, and aggregates
   // the values into a map of attribute, value pairs
-  def configureSimpleFeatureFilteringIterator(bs: BatchScanner,
-                                              simpleFeatureType: SimpleFeatureType,
+  def configureSimpleFeatureFilteringIterator(simpleFeatureType: SimpleFeatureType,
                                               ecql: Option[String],
                                               query: Query,
-                                              poly: Polygon = null) {
+                                              poly: Polygon = null): IteratorSetting = {
 
     val density: Boolean = query.getHints.containsKey(DENSITY_KEY)
 
@@ -475,6 +517,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       "sffilter-" + randomPrintableString(5),
       clazz)
 
+    cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
     configureFeatureEncoding(cfg)
     configureTransforms(query,cfg)
     configureFeatureType(cfg, simpleFeatureType)
@@ -486,14 +529,14 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       DensityIterator.configure(cfg, poly, width, height)
     }
 
-    bs.addScanIterator(cfg)
+    cfg
   }
 
   def randomPrintableString(length:Int=5) : String = (1 to length).
     map(i => Random.nextPrintableChar()).mkString
 
-  def planQuery(bs: BatchScanner, filter: KeyPlanningFilter, output: ExplainerOutputType): BatchScanner = {
-    output(s"Planning query/configurating batch scanner: $bs")
+  def planQuery(filter: KeyPlanningFilter, output: ExplainerOutputType): QueryPlan = {
+    output(s"Planning query")
     val keyPlan = keyPlanner.getKeyPlan(filter, output)
     val columnFamilies = cfPlanner.getColumnFamiliesToFetch(filter)
 
@@ -502,26 +545,25 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       case KeyRanges(ranges) => ranges.map(r => new org.apache.accumulo.core.data.Range(r.start, r.end))
       case _ => Seq(new org.apache.accumulo.core.data.Range())
     }
-    bs.setRanges(accRanges)
 
     // always try to set a RowID regular expression
     //@TODO this is broken/disabled as a result of the KeyTier
-    keyPlan.toRegex match {
-      case KeyRegex(regex) => configureRowRegexIterator(bs, regex)
-      case _ => // do nothing
-    }
+    val iters =
+      keyPlan.toRegex match {
+        case KeyRegex(regex) => Seq(configureRowRegexIterator(regex))
+        case _               => Seq()
+      }
 
     // if you have a list of distinct column-family entries, fetch them
-    columnFamilies match {
-      case KeyList(keys) => {
+    val cf = columnFamilies match {
+      case KeyList(keys) =>
         output(s"Settings ${keys.size} col fams: $keys.")
-        keys.foreach { cf =>
-          bs.fetchColumnFamily(new Text(cf))
-        }
-      }
-      case _ => // do nothing
+        keys.map { cf => new Text(cf) }
+
+      case _ =>
+        Seq()
     }
 
-    bs
+    QueryPlan(iters, accRanges, cf)
   }
 }

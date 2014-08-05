@@ -3,9 +3,9 @@ package geomesa.core.process.tube
 import com.vividsolutions.jts.geom.GeometryCollection
 import geomesa.core._
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import org.apache.log4j.Logger
-import org.geotools.data.DataUtilities
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
@@ -30,7 +30,7 @@ class TubeBinTest extends Specification {
 
     "correctly time bin features" in {
       val sftName = "tubetest2"
-      val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
 
       val features = for(day <- 1 until 20) yield {
         val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), day.toString)
@@ -52,9 +52,9 @@ class TubeBinTest extends Specification {
         else log.debug("size: 1")
       }
 
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DEFAULT_DTG_PROPERTY_NAME).toSeq, 1).size should equalTo(1)
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DEFAULT_DTG_PROPERTY_NAME).toSeq, 1).size mustEqual 1
 
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DEFAULT_DTG_PROPERTY_NAME).toSeq, 0).size should equalTo(1)
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DEFAULT_DTG_PROPERTY_NAME).toSeq, 0).size mustEqual 1
     }
 
   }

@@ -1,6 +1,7 @@
 package geomesa.feature
 
 import com.vividsolutions.jts.geom.Geometry
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.feature.NameImpl
@@ -18,7 +19,7 @@ class AvroSimpleFeatureTest extends Specification {
 
   "AvroSimpleFeature" should {
     "properly convert attributes that are set as strings" in {
-      val sft = DataUtilities.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 
       val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
       f.setAttribute(0,"1")
@@ -31,7 +32,7 @@ class AvroSimpleFeatureTest extends Specification {
     }
 
     "properly return all requested properties" in {
-      val sft = DataUtilities.createType("testType", "a:Integer,*geom:Point:srid=4326,d:Double,e:Boolean,f:String")
+      val sft = SimpleFeatureTypes.createType("testType", "a:Integer,*geom:Point:srid=4326,d:Double,e:Boolean,f:String")
       val valueList = List("1", "POINT (45 49)", "1.01", "true", "Test String")
       val nameStringList = List("a", "geom", "d", "e", "f")
       val nameList = nameStringList.map(new NameImpl(_))
@@ -45,15 +46,15 @@ class AvroSimpleFeatureTest extends Specification {
       //Test getProperties(name: String)
       for((name, value) <- nameStringList.view.zip(valueList)) {
         val tempProperty = f.getProperties(name)
-        tempProperty.head.getName.toString must beEqualTo(name)
-        tempProperty.head.getValue.toString must beEqualTo(value)
+        tempProperty.head.getName.toString mustEqual name
+        tempProperty.head.getValue.toString mustEqual value
       }
 
       //Test getProperties(name: Name)
       for((name, value) <- nameList.view.zip(valueList)) {
         val tempProperty = f.getProperties(name)
-        tempProperty.head.getName must beEqualTo(name)
-        tempProperty.head.getValue.toString must beEqualTo(value)
+        tempProperty.head.getName mustEqual name
+        tempProperty.head.getValue.toString mustEqual value
       }
 
       f.getProperties must beAnInstanceOf[util.Collection[Property]]
@@ -64,7 +65,7 @@ class AvroSimpleFeatureTest extends Specification {
 
   "AvroSimpleFeature" should {
     "properly validate a correct object" in {
-      val sft = DataUtilities.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 
       val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
       f.setAttribute(0,"1")
@@ -78,17 +79,19 @@ class AvroSimpleFeatureTest extends Specification {
       val typeList = List("tower_u1234", "tower:type", "☕你好:世界♓", "tower_‽", "‽_‽:‽", "_‽", "a__u1234")
 
       for(typeName <- typeList) {
-        val sft = DataUtilities.createType(typeName, "a⬨_⬨b:Integer,☕☄crazy☄☕_☕name&such➿:Date,*geom:Point:srid=4326")
+        val sft = SimpleFeatureTypes.createType(typeName, "a⬨_⬨b:Integer,☕☄crazy☄☕_☕name&such➿:Date,*geom:Point:srid=4326")
         val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
         f.setAttribute(0,"1")
         f.setAttribute(1,"2013-01-02T00:00:00.000Z") // this date format should be converted
         f.setAttribute(2,"POINT(45.0 49.0)")
         f.validate must not(throwA[org.opengis.feature.IllegalAttributeException])
       }
+
+      true must beTrue
     }
 
     "fail to validate a correct object" in {
-      val sft = DataUtilities.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 
       val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
       f.setAttribute(0,"1")
@@ -99,7 +102,7 @@ class AvroSimpleFeatureTest extends Specification {
     }
 
     "properly convert empty strings to null" in {
-      val sft = DataUtilities.createType(
+      val sft = SimpleFeatureTypes.createType(
         "testType",
         "a:Integer,b:Float,c:Double,d:Boolean,e:Date,f:UUID,g:Point"+
         ",h:LineString,i:Polygon,j:MultiPoint,k:MultiLineString"+
@@ -132,7 +135,7 @@ class AvroSimpleFeatureTest extends Specification {
     "give back a null when an attribute doesn't exist" in {
 
       // Verify that AvroSimpleFeature returns null for attributes that do not exist like SimpleFeatureImpl
-      val sft = DataUtilities.createType("avrotesttype", "a:Integer,b:String")
+      val sft = SimpleFeatureTypes.createType("avrotesttype", "a:Integer,b:String")
       val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
       sf.getAttribute("c") must not(throwA[NullPointerException])
       sf.getAttribute("c") should beNull

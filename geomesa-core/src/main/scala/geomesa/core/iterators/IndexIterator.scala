@@ -20,10 +20,9 @@ import com.vividsolutions.jts.geom._
 import geomesa.core.data._
 import geomesa.core.index._
 import geomesa.feature.AvroSimpleFeatureFactory
-import geomesa.utils.text.WKTUtils
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
@@ -58,10 +57,8 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
-    val featureType = DataUtilities.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
+    val featureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
     featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
-
-    dateAttributeName = getDtgFieldName(featureType)
 
     // default to text if not found for backwards compatibility
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
@@ -108,7 +105,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 }
 
 object IndexIterator extends IteratorHelpers {
-  import IteratorTrigger.IndexAttributeNames
+  import geomesa.core.iterators.IteratorTrigger.IndexAttributeNames
 
   /**
    * Converts values taken from the Index Value to a SimpleFeature, using the passed SimpleFeatureBuilder

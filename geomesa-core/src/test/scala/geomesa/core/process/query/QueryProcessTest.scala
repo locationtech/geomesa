@@ -2,10 +2,11 @@ package geomesa.core.process.query
 
 import com.vividsolutions.jts.geom.Geometry
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import geomesa.core.index.Constants
+import geomesa.core.index.{Constants, IndexSchemaBuilder}
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.{DataStoreFinder, DataUtilities}
+import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
@@ -28,17 +29,18 @@ class QueryProcessTest extends Specification {
   // the specific parameter values should not matter, as we
   // are requesting a mock data store connection to Accumulo
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> "mycloud",
-      "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"       -> "myuser",
-      "password"   -> "mypassword",
-      "auths"      -> "A,B,C",
-      "tableName"  -> "testwrite",
-      "useMock"    -> "true",
-      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      "instanceId"        -> "mycloud",
+      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      "user"              -> "myuser",
+      "password"          -> "mypassword",
+      "auths"             -> "A,B,C",
+      "tableName"         -> "testwrite",
+      "useMock"           -> "true",
+      "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
+      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
   val sftName = "geomesaQueryTestType"
-  val sft = DataUtilities.createType(sftName, s"type:String,$geotimeAttributes")
+  val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
   sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
   val ds = createStore
@@ -76,7 +78,7 @@ class QueryProcessTest extends Specification {
         sf.getAttribute("type") should beOneOf("a", "b")
       }
 
-      results.size should equalTo(8)
+      results.size mustEqual 8
     }
 
     "respect a parent filter" in {
@@ -88,10 +90,10 @@ class QueryProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should be equalTo "b"
+        sf.getAttribute("type") mustEqual "b"
       }
 
-      results.size should equalTo(4)
+      results.size mustEqual 4
     }
 
     "be able to use its own filter" in {
@@ -103,10 +105,10 @@ class QueryProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        sf.getAttribute("type") should be equalTo "a"
+        sf.getAttribute("type") mustEqual "a"
       }
 
-      results.size should equalTo(4)
+      results.size mustEqual 4
     }
 
     "properly query geometry" in {
@@ -120,10 +122,10 @@ class QueryProcessTest extends Specification {
       val f = results.features()
       while (f.hasNext) {
         val sf = f.next
-        poly.intersects(sf.getDefaultGeometry.asInstanceOf[Geometry]) should equalTo(true)
+        poly.intersects(sf.getDefaultGeometry.asInstanceOf[Geometry]) must beTrue
       }
 
-      results.size should equalTo(4)
+      results.size mustEqual 4
     }
   }
 

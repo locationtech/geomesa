@@ -25,6 +25,7 @@ import geomesa.core.data._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators._
 import geomesa.core.util._
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.{DataUtilities, Query}
@@ -131,7 +132,7 @@ case class IndexSchema(encoder: IndexEncoder,
   private def getReturnSFT(query: Query): SimpleFeatureType =
     query match {
       case _: Query if query.getHints.containsKey(DENSITY_KEY)  =>
-        DataUtilities.createType(featureType.getTypeName, DensityIterator.DENSITY_FEATURE_STRING)
+        SimpleFeatureTypes.createType(featureType.getTypeName, DensityIterator.DENSITY_FEATURE_STRING)
       case _: Query if query.getHints.get(TRANSFORM_SCHEMA) != null =>
         query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
       case _ => featureType
@@ -161,16 +162,24 @@ object IndexSchema extends RegexParsers {
 
   val DEFAULT_TIME = new DateTime(0, DateTimeZone.forID("UTC"))
 
-  val emptyBytes = new Value(Array[Byte]())
+  val CODE_START = "%"
+  val CODE_END = "#"
+  val GEO_HASH_CODE = "gh"
+  val DATE_CODE = "d"
+  val CONSTANT_CODE = "cstr"
+  val RANDOM_CODE = "r"
+  val SEPARATOR_CODE = "s"
+  val ID_CODE = "id"
+  val PART_DELIMITER = "::"
 
-  def pattern[T](p: => Parser[T], code: String): Parser[T] = "%" ~> p <~ ("#" + code)
+  def pattern[T](p: => Parser[T], code: String): Parser[T] = CODE_START ~> p <~ (CODE_END + code)
 
   // A separator character, typically '%~#s' would indicate that elements are to be separated
   // with a '~'
-  def sep = pattern("\\W".r, "s")
+  def sep = pattern("\\W".r, SEPARATOR_CODE)
 
   // A random partitioner.  '%999#r' would write a random value between 000 and 999 inclusive
-  def randPartitionPattern = pattern("\\d+".r,"r")
+  def randPartitionPattern = pattern("\\d+".r,RANDOM_CODE)
   def randEncoder: Parser[PartitionTextFormatter[SimpleFeature]] = randPartitionPattern ^^ {
     case d => PartitionTextFormatter(d.toInt)
   }
@@ -180,20 +189,20 @@ object IndexSchema extends RegexParsers {
 
   // A geohash encoder.  '%2,4#gh' indicates that two characters starting at character 4 should
   // be extracted from the geohash and written to the field
-  def geohashPattern = pattern((offset <~ ",") ~ bits, "gh")
+  def geohashPattern = pattern((offset <~ ",") ~ bits, GEO_HASH_CODE)
   def geohashEncoder: Parser[GeoHashTextFormatter] = geohashPattern ^^ {
     case o ~ b => GeoHashTextFormatter(o, b)
   }
 
   // A date encoder. '%YYYY#d' would pull out the year from the date and write it to the key
-  def datePattern = pattern("\\w+".r,"d")
+  def datePattern = pattern("\\w+".r, DATE_CODE)
   def dateEncoder: Parser[DateTextFormatter] = datePattern ^^ {
     case t => DateTextFormatter(t)
   }
 
   // A constant string encoder. '%fname#cstr' would yield fname
   //  We match any string other that does *not* contain % or # since we use those for delimiters
-  def constStringPattern = pattern("[^%#]+".r, "cstr")
+  def constStringPattern = pattern("[^%#]+".r, CONSTANT_CODE)
   def constantStringEncoder: Parser[ConstantTextFormatter[SimpleFeature]] = constStringPattern ^^ {
     case str => ConstantTextFormatter(str)
   }
@@ -211,8 +220,8 @@ object IndexSchema extends RegexParsers {
     }
 
   // An index key is three keyparts, one for row, colf, and colq
-  def formatter = keypart ~ "::" ~ keypart ~ "::" ~ cqpart ^^ {
-    case rowf ~ "::" ~ cff ~ "::" ~ cqf => (rowf, cff, cqf)
+  def formatter = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
+    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => (rowf, cff, cqf)
   }
 
   // builds the encoder from a string representation
@@ -231,8 +240,8 @@ object IndexSchema extends RegexParsers {
     }
 
   // builds the date decoder to deserialize the entire date from the parts of the index key
-  def dateDecoderParser = keypart ~ "::" ~ keypart ~ "::" ~ cqpart ^^ {
-    case rowf ~ "::" ~ cff ~ "::" ~ cqf => {
+  def dateDecoderParser = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
+    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => {
       // extract the per-key-portion date encoders; each is optional
       val rowVals: Option[(String,Int)] = extractDateEncoder(rowf.lf, 0, rowf.sep.length)
       val cfVals: Option[(String,Int)] = extractDateEncoder(cff.lf, 0, cff.sep.length)
@@ -271,8 +280,8 @@ object IndexSchema extends RegexParsers {
     }
 
   // builds a geohash decoder to extract the entire geohash from the parts of the index key
-  def ghDecoderParser = keypart ~ "::" ~ keypart ~ "::" ~ cqpart ^^ {
-    case rowf ~ "::" ~ cff ~ "::" ~ cqf => {
+  def ghDecoderParser = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
+    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => {
       val (roffset, (ghoffset, rbits)) = extractGeohashEncoder(rowf.lf, 0, rowf.sep.length)
       val (cfoffset, (ghoffset2, cfbits)) = extractGeohashEncoder(cff.lf, 0, cff.sep.length)
       val (cqoffset, (ghoffset3, cqbits)) = extractGeohashEncoder(cqf.lf, 0, cqf.sep.length)
@@ -292,13 +301,13 @@ object IndexSchema extends RegexParsers {
     }
 
   // An id encoder. '%15#id' would pad the id out to 15 characters
-  def idEncoder: Parser[IdFormatter] = pattern("[0-9]*".r, "id") ^^ {
+  def idEncoder: Parser[IdFormatter] = pattern("[0-9]*".r, ID_CODE) ^^ {
     case len if len.length > 0 => IdFormatter(len.toInt)
     case _                     => IdFormatter(0)
   }
 
-  def idDecoderParser = keypart ~ "::" ~ keypart ~ "::" ~ cqpart ^^ {
-    case rowf ~ "::" ~ cff ~ "::" ~ cqf => {
+  def idDecoderParser = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
+    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => {
       val bits = extractIdEncoder(cqf.lf, 0, cqf.sep.length)
       IdDecoder(Seq(ColumnQualifierExtractor(0, bits)))
     }
@@ -333,7 +342,7 @@ object IndexSchema extends RegexParsers {
   }
 
 
-  def geohashColumnFamilyPlanner: Parser[GeoHashColumnFamilyPlanner] = (keypart ~ "::") ~> (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) <~ ("::" ~ keypart) ^^ {
+  def geohashColumnFamilyPlanner: Parser[GeoHashColumnFamilyPlanner] = (keypart ~ PART_DELIMITER) ~> (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) <~ (PART_DELIMITER ~ keypart) ^^ {
     case sep ~ xs => xs.find(tf => tf match {
       case gh: GeoHashTextFormatter => true
       case _ => false
@@ -403,6 +412,123 @@ object IndexSchema extends RegexParsers {
     } else {
       DecodedIndexValue(id, WKBUtils.read(geomDatePortion.drop(4)), None)
     }
+  }
+
+}
+
+/**
+ * Class to facilitate the building of custom index schemas.
+ *
+ * @param separator
+ */
+class IndexSchemaBuilder(separator: String) {
+
+  import IndexSchema._
+
+  var newPart = true
+  val schema = new StringBuilder()
+
+  /**
+   * Adds a random number, useful for sharding.
+   *
+   * @param maxValue
+   * @return the schema builder instance
+   */
+  def randomNumber(maxValue: Int): IndexSchemaBuilder = append(RANDOM_CODE, maxValue)
+
+  /**
+   * Adds a constant value.
+   *
+   * @param constant
+   * @return the schema builder instance
+   */
+  def constant(constant: String): IndexSchemaBuilder = append(CONSTANT_CODE, constant)
+
+  /**
+   * Adds a date value.
+   *
+   * @param format format to apply to the date, equivalent to SimpleDateFormat
+   * @return the schema builder instance
+   */
+  def date(format: String): IndexSchemaBuilder = append(DATE_CODE, format)
+
+  /**
+   * Adds a geohash value.
+   *
+   * @param offset
+   * @param length
+   * @return the schema builder instance
+   */
+  def geoHash(offset: Int, length: Int): IndexSchemaBuilder = append(GEO_HASH_CODE, offset, ',', length)
+
+  /**
+   * Add an ID value.
+   *
+   * @return the schema builder instance
+   */
+  def id(): IndexSchemaBuilder = id(-1)
+
+  /**
+   * Add an ID value.
+   *
+   * @param length ID will be padded to this length
+   * @return the schema builder instance
+   */
+  def id(length: Int): IndexSchemaBuilder = {
+    if (length > 0) {
+      append(ID_CODE, length)
+    } else {
+      append(ID_CODE)
+    }
+  }
+
+  /**
+   * End the current part of the schema format. Schemas consist of (in order) key part, column
+   * family part and column qualifier part. The schema builder starts on the key part.
+   *
+   * The schema builder does not validate parts. This method should be called exactly two times to
+   * build a typical schema.
+   *
+   * @return the schema builder instance
+   */
+  def nextPart(): IndexSchemaBuilder = {
+    schema.append(PART_DELIMITER)
+    newPart = true
+    this
+  }
+
+  /**
+   *
+   * @return the formatted schema string
+   */
+  def build(): String = schema.toString()
+
+  override def toString(): String = build
+
+  /**
+   * Clears internal state
+   */
+  def reset(): Unit = {
+    schema.clear()
+    newPart = true
+  }
+
+  /**
+   * Wraps the code in the appropriate delimiters and adds the provided values
+   *
+   * @param code
+   * @param values
+   * @return
+   */
+  private def append(code: String, values: Any*): IndexSchemaBuilder = {
+    if (newPart) {
+      schema.append(CODE_START).append(separator).append(CODE_END).append(SEPARATOR_CODE)
+      newPart = false
+    }
+    schema.append(CODE_START)
+    values.foreach(schema.append(_))
+    schema.append(CODE_END).append(code)
+    this
   }
 
 }

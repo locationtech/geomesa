@@ -30,7 +30,7 @@
                                                         outputFormat="GML2"
                                                         xmlns:accumulo="http://locationtech.org/geomesa">
                                             <!-- type name set up in geoserver named "testType" -->
-                                            <wfs:Query typeName="accumulo:testType"/>
+                                            <wfs:Query typeName="acc:twitter"/>
                                         </wfs:GetFeature>
                                     </wps:Body>
                                 </wps:Reference>
@@ -39,7 +39,7 @@
                                 <ows:Identifier>filter</ows:Identifier>
                                 <wps:Data>
                                     <wps:ComplexData mimeType="text/plain; subtype=cql">
-                                        <![CDATA[BBOX(geom, 40.0, 40.0, 40.0, 50.0) AND type='a']]></wps:ComplexData>
+                                        <![CDATA[tweet_id = 429663124233650176]]></wps:ComplexData>
                                 </wps:Data>
                             </wps:Input>
                         </wps:DataInputs>
@@ -73,18 +73,18 @@
                                                         outputFormat="GML2"
                                                         xmlns:accumulo="http://locationtech.org/geomesa">
                                             <!-- type name set up in geoserver named "testType" -->
-                                            <wfs:Query typeName="accumulo:testType"/>
+                                            <wfs:Query typeName="acc:twitter"/>
                                         </wfs:GetFeature>
                                     </wps:Body>
                                 </wps:Reference>
                             </wps:Input>
-                            <wps:Input>
+                           <!-- <wps:Input>
                                 <ows:Identifier>filter</ows:Identifier>
                                 <wps:Data>
                                     <wps:ComplexData mimeType="text/plain; subtype=cql">
                                         <![CDATA[type <>'a']]></wps:ComplexData>
                                 </wps:Data>
-                            </wps:Input>
+                            </wps:Input>-->
                         </wps:DataInputs>
                         <wps:ResponseForm>
                             <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
@@ -101,7 +101,7 @@
         <wps:Input>
             <ows:Identifier>bufferDistance</ows:Identifier>
             <wps:Data>
-                <wps:LiteralData>100</wps:LiteralData>
+                <wps:LiteralData>10000</wps:LiteralData>
             </wps:Data>
         </wps:Input>
 

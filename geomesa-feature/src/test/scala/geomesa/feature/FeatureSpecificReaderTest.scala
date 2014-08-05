@@ -6,6 +6,7 @@ import java.util.UUID
 
 import com.vividsolutions.jts.geom.{LineString, Point, Polygon}
 import geomesa.utils.geohash.GeohashUtils
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.avro.io.DecoderFactory
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
@@ -21,7 +22,7 @@ class FeatureSpecificReaderTest {
 
 
   def createTypeWithGeo: AvroSimpleFeature = {
-    val sft = DataUtilities.createType("test","f0:Point,f1:Polygon,f2:LineString");
+    val sft = SimpleFeatureTypes.createType("test","f0:Point,f1:Polygon,f2:LineString")
     val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
 
     sf.setAttribute("f0", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])
@@ -52,12 +53,11 @@ class FeatureSpecificReaderTest {
     f
   }
 
-  def readAvroWithFsr(f: File, oldType: SimpleFeatureType): List[AvroSimpleFeature] = readAvroWithFsr(f, oldType, oldType)
+  def readAvroWithFsr(f: File, oldType: SimpleFeatureType): List[AvroSimpleFeature] = readAvroWithFsr(new FeatureSpecificReader(oldType, oldType), f)
 
-  def readAvroWithFsr(f: File, oldType: SimpleFeatureType, newType: SimpleFeatureType): List[AvroSimpleFeature] = {
+  def readAvroWithFsr(fsr: FeatureSpecificReader, f: File): List[AvroSimpleFeature] = {
     val fis = new FileInputStream(f)
     val decoder = DecoderFactory.get().binaryDecoder(fis, null)
-    val fsr = new FeatureSpecificReader(oldType, newType)
 
     val sfList = new ListBuffer[AvroSimpleFeature]()
 
@@ -87,7 +87,7 @@ class FeatureSpecificReaderTest {
   }
 
   def createStringFeatures(schema:String, size: Int, id: String) : AvroSimpleFeature = {
-    val sft = DataUtilities.createType("test", schema)
+    val sft = SimpleFeatureTypes.createType("test", schema)
     val r = new Random()
     r.setSeed(0)
 
@@ -120,8 +120,8 @@ class FeatureSpecificReaderTest {
     val oldType = sfList(0).getType
 
     val f = writeAvroFile(sfList)
-    val subsetType = DataUtilities.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
-    val subsetList = readAvroWithFsr(f, oldType, subsetType)
+    val subsetType = SimpleFeatureTypes.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
+    val subsetList = readAvroWithFsr(new FeatureSpecificReader(oldType, subsetType), f)
 
     subsetList
   }
@@ -158,7 +158,7 @@ class FeatureSpecificReaderTest {
   def testGeoTypes() = {
     val orig = createTypeWithGeo
     val f = writeAvroFile(List(orig))
-    val fsrList = readAvroWithFsr(f, orig.getType, orig.getType)
+    val fsrList = readAvroWithFsr(new FeatureSpecificReader(orig.getType, orig.getType), f)
 
     Assert.assertEquals(1, fsrList.size)
     val sf = fsrList(0)
@@ -192,8 +192,8 @@ class FeatureSpecificReaderTest {
     val avroFile = writeAvroFile(sfList)
     val pipeFile = writePipeFile(sfList)
 
-    val subsetType = DataUtilities.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
-    val fsrList = readAvroWithFsr(avroFile, oldType, subsetType)
+    val subsetType = SimpleFeatureTypes.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
+    val fsrList = readAvroWithFsr(new FeatureSpecificReader(oldType, subsetType), avroFile)
     val pipeList = readPipeFile(pipeFile, oldType)
 
     Assert.assertEquals(sfList.size, pipeList.size)
@@ -222,7 +222,7 @@ class FeatureSpecificReaderTest {
 
   def createComplicatedFeatures(numFeatures : Int) : List[AvroSimpleFeature] = {
     val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,f8:Polygon:srid=4326"
-    val sft = DataUtilities.createType("test", geoSchema)
+    val sft = SimpleFeatureTypes.createType("test", geoSchema)
     val r = new Random()
     r.setSeed(0)
 
@@ -255,11 +255,11 @@ class FeatureSpecificReaderTest {
     val avroFile = writeAvroFile(sfList)
     val pipeFile = writePipeFile(sfList)
 
-    val subsetType = DataUtilities.createType("subsetType", "f0:String,f3:Float,f5:UUID,f6:Date")
+    val subsetType = SimpleFeatureTypes.createType("subsetType", "f0:String,f3:Float,f5:UUID,f6:Date")
 
     val pipeList = readPipeFile(pipeFile, oldType)
 
-    val avroList = readAvroWithFsr(avroFile, oldType, subsetType)
+    val avroList = readAvroWithFsr(new FeatureSpecificReader(oldType, subsetType), avroFile)
 
     Assert.assertEquals(pipeList.size, avroList.size)
     Assert.assertEquals(numRecords, avroList.size)
@@ -288,7 +288,7 @@ class FeatureSpecificReaderTest {
     val sfList = for (i <- (0 until numRecords).toList) yield  createStringFeatures(geoSchema, numFields, i.toString)
 
     val oldType = sfList(0).getType
-    val subsetType = DataUtilities.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
+    val subsetType = SimpleFeatureTypes.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
 
     val avroFile = writeAvroFile(sfList)
     val pipeFile = writePipeFile(sfList)
@@ -298,8 +298,9 @@ class FeatureSpecificReaderTest {
     val pipeTime = System.currentTimeMillis() - pipeStart
     println(f"Text Read time $pipeTime%dms")
 
+    val fsr = new FeatureSpecificReader(oldType, subsetType)
     val avroStart = System.currentTimeMillis()
-    readAvroWithFsr(avroFile, oldType, subsetType)
+    readAvroWithFsr(fsr, avroFile)
     val avroTime = System.currentTimeMillis() - avroStart
     println(f"Avro Subset Read time $avroTime%dms")
 

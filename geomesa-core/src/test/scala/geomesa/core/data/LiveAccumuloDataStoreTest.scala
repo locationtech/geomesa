@@ -16,28 +16,21 @@
 
 package geomesa.core.data
 
+import geomesa.core.index.IndexSchemaBuilder
 import geomesa.feature.AvroSimpleFeatureFactory
-
-import scala.collection.JavaConversions._
-import com.vividsolutions.jts.geom.Coordinate
-import geomesa.core.security.{FilteringAuthorizationsProvider, AuthorizationsProvider, DefaultAuthorizationsProvider}
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
-import org.apache.accumulo.core.security.Authorizations
-import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data._
-import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.{FeatureIterator, FeatureCollection, DefaultFeatureCollection}
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.data.collection.ListFeatureCollection
+import org.geotools.data.simple.SimpleFeatureIterator
+import org.geotools.factory.Hints
 import org.geotools.filter.text.cql2.CQL
-import org.geotools.geometry.jts.JTSFactoryFinder
-import org.geotools.process.vector.TransformProcess
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import scala.collection
-import org.geotools.data.simple.SimpleFeatureIterator
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class LiveAccumuloDataStoreTest extends Specification {
@@ -49,15 +42,16 @@ class LiveAccumuloDataStoreTest extends Specification {
    */
 
   val params = Map(
-                    "instanceId" -> "mycloud",
-                    "zookeepers" -> "zoo1,zoo2,zoo3",
-                    "user"       -> "user",
-                    "password"   -> "password",
-                    "auths"      -> "user,admin",
-                    "visibilities" -> "user&admin",
-                    "tableName"  -> "test_auths",
-                    "useMock"    -> "false",
-                    "featureEncoding" -> "avro")
+    "instanceId"        -> "mycloud",
+    "zookeepers"        -> "zoo1,zoo2,zoo3",
+    "user"              -> "user",
+    "password"          -> "password",
+    "auths"             -> "user,admin",
+    "visibilities"      -> "user&admin",
+    "tableName"         -> "test_auths",
+    "useMock"           -> "false",
+    "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
+    "featureEncoding"   -> "avro")
 
   val sftName = "authwritetest"
 
@@ -66,7 +60,7 @@ class LiveAccumuloDataStoreTest extends Specification {
   }
 
   def createSimpleFeatureType: SimpleFeatureType = {
-    DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+    SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
   }
 
   def initializeDataStore(ds: AccumuloDataStore): Unit = {

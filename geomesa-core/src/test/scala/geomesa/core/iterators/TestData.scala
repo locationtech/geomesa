@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
 import geomesa.core.data.SimpleFeatureEncoderFactory
 import geomesa.core.index._
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import java.util
 import org.apache.accumulo.core.Constants
@@ -32,7 +33,7 @@ object TestData extends Logging {
   val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
 
   def getFeatureType = {
-    val ft = DataUtilities.createType(featureName, UnitTestEntryType.getTypeSpec)
+    val ft: SimpleFeatureType = SimpleFeatureTypes.createType(featureName, UnitTestEntryType.getTypeSpec)
     ft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
     ft
   }
@@ -45,7 +46,7 @@ object TestData extends Logging {
   val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
 
   // utility function that can encode multiple types of geometry
-  def createObject(id: String, wkt: String, dt: DateTime = null): List[(Key, Value)] = {
+  def createObject(id: String, wkt: String, dt: DateTime = new DateTime(defaultDateTime)): List[(Key, Value)] = {
     val geomType: String = wkt.split( """\(""").head
     val geometry: Geometry = WKTUtils.read(wkt)
     val entry =
@@ -108,6 +109,12 @@ object TestData extends Logging {
     Entry("POINT(50.2 30.6)", "118"),
     Entry("POINT(50.2 30.6)", "119")
   )
+
+  val allThePoints = (-180 to 180).map(lon => {
+    val x = lon.toString
+    val y = (lon / 2).toString
+    Entry(s"POINT($x $y)", x)
+  })
 
   // add some lines to this query, both qualifying and non-qualifying
   val lines = List(

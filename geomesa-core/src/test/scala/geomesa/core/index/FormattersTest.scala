@@ -16,18 +16,19 @@
 
 package geomesa.core.index
 
+import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data.DataUtilities
 import org.junit.runner.RunWith
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.opengis.feature.simple.SimpleFeature
 
 @RunWith(classOf[JUnitRunner])
 class FormattersTest extends Specification {
   "PartitionTextFormatter" should {
     val numTrials = 100
 
-    val featureType = DataUtilities.createType("TestFeature",
+    val featureType = SimpleFeatureTypes.createType("TestFeature",
       "the_geom:Point,lat:Double,lon:Double,date:String")
     val featureWithId = DataUtilities.createFeature(
       featureType, "fid1=POINT(-78.1 38.2)|38.2|-78.1|2014-03-20T07:28:00.0Z" )

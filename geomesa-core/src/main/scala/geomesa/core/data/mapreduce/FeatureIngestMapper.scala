@@ -17,13 +17,13 @@
 package geomesa.core.data.mapreduce
 
 import com.typesafe.scalalogging.slf4j.Logging
-import geomesa.core.data.{AccumuloDataStoreFactory, MapReduceAccumuloDataStore}
+import geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import geomesa.utils.geotools.FeatureHandler
 import geomesa.utils.text.WKBUtils
-import org.apache.accumulo.core.data.{Value, Key}
-import org.apache.hadoop.io.{Text, LongWritable}
-import org.apache.hadoop.mapreduce.{Mapper=>HMapper}
-import org.geotools.data.{Base64, DataUtilities, DataStoreFinder, FeatureWriter}
+import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.hadoop.io.{LongWritable, Text}
+import org.apache.hadoop.mapreduce.{Mapper => HMapper}
+import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -45,10 +45,10 @@ object FeatureIngestMapper
       val featureName = context.getConfiguration.get(DEFAULT_FEATURE_NAME)
       val ds = DataStoreFinder.getDataStore(
         AccumuloDataStoreFactory.getMRAccumuloConnectionParams(
-          context.getConfiguration)).asInstanceOf[MapReduceAccumuloDataStore]
+          context.getConfiguration)).asInstanceOf[AccumuloDataStore]
 
       featureType = ds.getSchema(featureName)
-      fw = ds.createMapReduceFeatureWriter(featureName, context)
+      fw = ds.createFeatureWriter(featureName, Transaction.AUTO_COMMIT)
     }
 
     override def map(key: LongWritable, value: Text, context: Mapper#Context) {

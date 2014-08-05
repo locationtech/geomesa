@@ -22,8 +22,9 @@ import java.util.TimeZone
 
 import com.vividsolutions.jts.geom.Geometry
 import geomesa.core.data._
-import geomesa.core.index.IndexSchema
+import geomesa.core.index.{IndexSchema, IndexSchemaBuilder}
 import geomesa.utils.geotools.Conversions._
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -32,7 +33,7 @@ import org.apache.accumulo.core.client.{BatchWriterConfig, IteratorSetting}
 import org.apache.accumulo.core.data.{Mutation, Value, Range => ARange}
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
 import org.apache.hadoop.io.Text
-import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
+import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -49,7 +50,7 @@ import scala.collection.JavaConversions._
 class AttributeIndexFilteringIteratorTest extends Specification {
 
   val sftName = "AttributeIndexFilteringIteratorTest"
-  val sft = DataUtilities.createType(sftName, s"name:String,age:Integer,dtg:Date,*geom:Geometry:srid=4326")
+  val sft = SimpleFeatureTypes.createType(sftName, s"name:String,age:Integer,dtg:Date,*geom:Geometry:srid=4326")
 
   val sdf = new SimpleDateFormat("yyyyMMdd")
   sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))
@@ -58,16 +59,15 @@ class AttributeIndexFilteringIteratorTest extends Specification {
   def createStore: AccumuloDataStore =
   // the specific parameter values should not matter, as we
   // are requesting a mock data store connection to Accumulo
-    DataStoreFinder.getDataStore(
-      Map(
-        "instanceId" -> "mycloud",
-        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
-        "user"       -> "myuser",
-        "password"   -> "mypassword",
-        "auths"      -> "A,B,C",
-        "tableName"  -> "AttributeIndexFilteringIteratorTest",
-        "useMock"    -> "true")
-    ).asInstanceOf[AccumuloDataStore]
+    DataStoreFinder.getDataStore(Map(
+      "instanceId"        -> "mycloud",
+      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      "user"              -> "myuser",
+      "password"          -> "mypassword",
+      "auths"             -> "A,B,C",
+      "tableName"         -> "AttributeIndexFilteringIteratorTest",
+      "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
+      "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
   val ds = createStore
 
@@ -139,31 +139,34 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       // Test single wildcard, trailing, leading, and both trailing & leading wildcards
 
       // % should return all features
-      fs.getFeatures(ff.like(ff.property("name"),"%")).features.size should equalTo(16)
+      fs.getFeatures(ff.like(ff.property("name"),"%")).features.size mustEqual 16
 
-      List("a", "b", "c", "d").foreach { letter =>
+      forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"%$letter")).features.size should equalTo(4)
+        fs.getFeatures(ff.like(ff.property("name"),s"%$letter")).features.size mustEqual 4
 
         // should return the 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"%$letter%")).features.size should equalTo(4)
+        fs.getFeatures(ff.like(ff.property("name"),s"%$letter%")).features.size mustEqual 4
 
         // should return the 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"$letter%")).features.size should equalTo(4)
+        fs.getFeatures(ff.like(ff.property("name"),s"$letter%")).features.size mustEqual 4
       }
 
     }
 
     "handle transforms" in {
       // transform to only return the attribute geom - dropping dtg and name
-      List("a", "b", "c", "d").foreach { letter =>
+      forall(List("a", "b", "c", "d")) { letter =>
         val query = new Query(sftName, ECQL.toFilter(s"name <> '$letter'"), Array("geom"))
         val features = fs.getFeatures(query)
 
-        features.size should equalTo(12)
-        features.features.foreach { sf =>
-          sf.getAttributeCount should equalTo(1)
-          sf.getAttribute(0) should beAnInstanceOf[Geometry]
+        features.size mustEqual 12
+        forall(features.features) { sf =>
+          sf.getAttribute(0) must beAnInstanceOf[Geometry]
+        }
+
+        forall(features.features) { sf =>
+          sf.getAttributeCount mustEqual 1
         }
       }
     }
