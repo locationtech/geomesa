@@ -31,13 +31,17 @@ object GeneralShapefileIngest {
                               params: JMap[String, Serializable], featureName: String): DataStore = {
     val shapefile =  FileDataStoreFinder.getDataStore(new File(shapefilePath))
     val features = shapefile.getFeatureSource.getFeatures
-    featuresToDataStoreViaParams(features, params, featureName)
+    val newDS = featuresToDataStoreViaParams(features, params, featureName)
+    shapefile.dispose()
+    newDS
   }
 
   def shpToDataStore(shapefilePath: String, ds: DataStore, featureName: String): DataStore = {
     val shapefile =  FileDataStoreFinder.getDataStore(new File(shapefilePath))
     val features = shapefile.getFeatureSource.getFeatures
-    featuresToDataStore(features, ds, featureName)
+    val newDS = featuresToDataStore(features, ds, featureName)
+    shapefile.dispose()
+    newDS
   }
 
   def featuresToDataStoreViaParams(features: SimpleFeatureCollection,
