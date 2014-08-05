@@ -91,7 +91,16 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
     features.foreach { sf =>
       val map = scala.collection.mutable.Map.empty[String, Object]
 
-      val attrs = if (attributes.size > 0) attributes else { sf.getProperties.map(property => property.getName.toString) }
+      val attrs = if (attributes.size > 0) { attributes } else { sf.getProperties.map(property => property.getName.toString) }
+
+      if (attributes.size == 0 && count == 0) {
+        format.toLowerCase match {
+          case "tsv" =>
+            fr.println(attrs.mkString("\t"))
+          case "csv" =>
+            fr.println(attrs.mkString(","))
+        }
+      }
 
       // copy attributes into map where we can manipulate them
       attrs.foreach(a => Try(map.put(a, sf.getAttribute(a))))
