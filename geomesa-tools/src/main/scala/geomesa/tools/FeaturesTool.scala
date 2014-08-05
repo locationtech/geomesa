@@ -77,13 +77,13 @@ class FeaturesTool(catalogTable: String) {
         de.writeFeatures(sftCollection.features())
       case "shp" =>
         val shapeFileExporter = new ShapefileExport
-        shapeFileExporter.write("/tmp/export.shp", feature, sftCollection, ds.getSchema(feature))
+        shapeFileExporter.write(s"/tmp/$feature.shp", feature, sftCollection, ds.getSchema(feature))
       case "geojson" =>
-        val os = new FileOutputStream("/tmp/export.geojson")
+        val os = new FileOutputStream(s"/tmp/$feature.geojson")
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
       case "gml" =>
-        val os = new FileOutputStream("/tmp/export.gml")
+        val os = new FileOutputStream(s"/tmp/$feature.gml")
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
       case _ =>
