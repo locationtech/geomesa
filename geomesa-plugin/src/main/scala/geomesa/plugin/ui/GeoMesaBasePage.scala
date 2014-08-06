@@ -21,9 +21,9 @@ import geomesa.plugin.properties
 import org.apache.hadoop.conf.Configuration
 import org.apache.wicket.markup.html.internal.HtmlHeaderContainer
 import org.apache.wicket.markup.html.resources.JavascriptResourceReference
-import org.geoserver.web.GeoServerBasePage
+import org.geoserver.web.GeoServerSecuredPage
 
-class GeoMesaBasePage extends GeoServerBasePage {
+class GeoMesaBasePage extends GeoServerSecuredPage {
 
   /**
    * Add d3 library to the page header
