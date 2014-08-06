@@ -17,18 +17,19 @@
 package geomesa.tools
 
 import java.io.FileOutputStream
+import java.nio.file.{Files, Paths}
 
+import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
 import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
-import java.nio.file.{Path, Paths, Files}
 
 import scala.collection.JavaConversions._
 
-class FeaturesTool(catalogTable: String) {
+class FeaturesTool(catalogTable: String) extends Logging {
   val user = sys.env.getOrElse("GEOMESA_USER", "admin")
   val password = sys.env.getOrElse("GEOMESA_PASSWORD", "admin")
   val instanceId = sys.env.getOrElse("GEOMESA_INSTANCEID", "instanceId")
@@ -46,7 +47,7 @@ class FeaturesTool(catalogTable: String) {
 
   def listFeatures() {
     ds.getTypeNames.foreach(name =>
-      println(s"$name: ${ds.getSchema(name).getAttributeDescriptors}")
+      logger.info(s"$name: ${ds.getSchema(name).getAttributeDescriptors}")
     )
   }
 
@@ -66,7 +67,7 @@ class FeaturesTool(catalogTable: String) {
                      query: String,
                      maxFeatures: Int) {
     val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
-    val folderPath = Paths.get(s"${System.getProperty("user.dir")}/export/")
+    val folderPath = Paths.get(s"${System.getProperty("user.dir")}/export")
     if (Files.notExists(folderPath)) {
       Files.createDirectory(folderPath)
     }
@@ -82,17 +83,20 @@ class FeaturesTool(catalogTable: String) {
         de.writeFeatures(sftCollection.features())
       case "shp" =>
         val shapeFileExporter = new ShapefileExport
-        shapeFileExporter.write(s"${System.getProperty("user.dir")}/export/$feature.shp", feature, sftCollection, ds.getSchema(feature))
+        shapeFileExporter.write(s"$folderPath/$feature.shp", feature, sftCollection, ds.getSchema(feature))
+        logger.info(s"Successfully wrote features to '${System.getProperty("user.dir")}/export/$feature.shp'")
       case "geojson" =>
-        val os = new FileOutputStream(s"${System.getProperty("user.dir")}/export/$feature.geojson")
+        val os = new FileOutputStream(s"$folderPath/$feature.geojson")
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
+        logger.info(s"Successfully wrote features to '$folderPath/$feature.geojson'")
       case "gml" =>
-        val os = new FileOutputStream(s"${System.getProperty("user.dir")}/export/$feature.gml")
+        val os = new FileOutputStream(s"$folderPath/$feature.gml")
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
+        logger.info(s"Successfully wrote features to '$folderPath/$feature.gml'")
       case _ =>
-        println("Unsupported export format. Supported formats are shp, geojson, csv, and gml.")
+        logger.error("Unsupported export format. Supported formats are shp, geojson, csv, and gml.")
     }
   }
 
@@ -120,7 +124,7 @@ class FeaturesTool(catalogTable: String) {
 
     if (maxFeatures > 0) q.setMaxFeatures(maxFeatures)
     if (attributes != null) q.setPropertyNames(attributes.split(','))
-    println(q)
+    logger.info(s"$q")
 
     // get the feature store used to query the GeoMesa data
     val featureStore = ds.getFeatureSource(feature).asInstanceOf[AccumuloFeatureStore]

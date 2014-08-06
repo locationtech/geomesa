@@ -24,7 +24,7 @@ import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
+import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import geomesa.utils.geotools.Conversions._
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.data._
@@ -163,8 +163,7 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
       }
     }
     fr.close()
-
-    logger.info(s"wrote $count features to '/tmp/${load.name}.$format'")
+    logger.info(s"Successfully wrote $count features to '${System.getProperty("user.dir")}/export/${load.name}.$format'")
   }
 
   /**

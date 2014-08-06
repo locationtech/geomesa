@@ -15,8 +15,9 @@
  */
 package geomesa.tools
 
+import com.typesafe.scalalogging.slf4j.Logging
 
-object Tools extends App {
+object Tools extends App with Logging {
   val parser = new scopt.OptionParser[ScoptArguments]("geomesa-tools") {
     head("GeoMesa Tools", "1.0")
     help("help").text("show help command")
@@ -104,7 +105,7 @@ object Tools extends App {
   parser.parse(args, ScoptArguments()).map(config =>
     config.mode match {
       case "export" =>
-        println(s"Exporting '${config.typeName}' from '${config.catalog}'. Just a few moments...")
+        logger.info(s"Exporting '${config.typeName}' from '${config.catalog}'. Just a few moments...")
         val ft = new FeaturesTool(config.catalog)
         ft.exportFeatures(
           config.typeName,
@@ -117,7 +118,7 @@ object Tools extends App {
           config.query,
           config.maxFeatures)
       case "list" =>
-        println(s"Listing features on '${config.catalog}'. Just a few moments...")
+        logger.info(s"Listing features on '${config.catalog}'. Just a few moments...")
         val ft = new FeaturesTool(config.catalog)
         ft.listFeatures()
       case "explain" =>
@@ -125,43 +126,43 @@ object Tools extends App {
         ft.explainQuery(config.typeName, config.filterString)
       case "delete" =>
         val ft = new FeaturesTool(config.catalog)
-        println(s"Deleting '${config.typeName}.' Just a few moments...")
+        logger.info(s"Deleting '${config.typeName}.' Just a few moments...")
         if (ft.deleteFeature(config.typeName)) {
-          println(s"Feature '${config.typeName}' successfully deleted.")
+          logger.info(s"Feature '${config.typeName}' successfully deleted.")
         } else {
-          println(s"There was an error deleting feature '${config.typeName}'." +
+          logger.error(s"There was an error deleting feature '${config.typeName}'." +
             " Please check that your configuration settings are correct and try again.")
         }
       case "create" =>
         val ft = new FeaturesTool(config.catalog)
-        println(s"Creating '${config.typeName}' with schema '${config.sft}'. Just a few moments...")
+        logger.info(s"Creating '${config.typeName}' with schema '${config.sft}'. Just a few moments...")
         if (ft.createFeatureType(config.typeName, config.sft)) {
-          println(s"Feature '${config.typeName}' with schema '${config.sft}' successfully created.")
+          logger.info(s"Feature '${config.typeName}' with schema '${config.sft}' successfully created.")
         } else {
-          println(s"There was an error creating feature '${config.typeName}' with featureType '${config.sft}'." +
+          logger.error(s"There was an error creating feature '${config.typeName}' with featureType '${config.sft}'." +
             " Please check that your configuration settings are correct and try again.")
         }
       case "ingest" =>
         val ingest = new Ingest()
         ingest.defineIngestJob(config) match {
-          case true => println(s"Successful ingest of file: \'${config.file}\'")
-          case false => println(s"Error: could not successfully ingest file: \'${config.file}\'")
+          case true => logger.info(s"Successful ingest of file: \'${config.file}\'")
+          case false => logger.error(s"Error: could not successfully ingest file: \'${config.file}\'")
         }
     }
   ).getOrElse(
-    Console.printf("Error: command not recognized.")
-  )
+      logger.error("Error: command not recognized.")
+    )
 }
 
 /*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
 case class ScoptArguments(mode: String = null, table: String = null, spec: String = null,
-                  idFields: String = null, latField: String = null, lonField: String = null,
-                  dtField: String = null, dtFormat: String = null, method: String = "local",
-                  file: String = null, typeName: String = null, format: String = null,
-                  catalog: String = null, sft: String = null, maxFeatures: Int = -1,
-                  filterString: String = null, attributes: String = null, idAttribute: String = null,
-                  lonAttribute: Option[String] = None, latAttribute: Option[String] = None,
-                  dateAttribute: Option[String] = None, query: String = null)
+                          idFields: String = null, latField: String = null, lonField: String = null,
+                          dtField: String = null, dtFormat: String = null, method: String = "local",
+                          file: String = null, typeName: String = null, format: String = null,
+                          catalog: String = null, sft: String = null, maxFeatures: Int = -1,
+                          filterString: String = null, attributes: String = null, idAttribute: String = null,
+                          lonAttribute: Option[String] = None, latAttribute: Option[String] = None,
+                          dateAttribute: Option[String] = None, query: String = null)
 
 
 
