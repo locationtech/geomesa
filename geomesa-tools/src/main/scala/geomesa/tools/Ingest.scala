@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package geomesa.tools
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -34,8 +35,6 @@ class Ingest() extends Logging {
     config.format.toUpperCase match {
       case "CSV" | "TSV" =>
         config.method.toLowerCase match {
-          case "mapreduce" =>
-            true
           case "local" =>
             new SVIngest(config, dsConfig)
             true
@@ -43,6 +42,17 @@ class Ingest() extends Logging {
             logger.error("Error, no such ingest method for CSV or TSV found, no data ingested")
             false
         }
+
+      case "SHP" | "SHAPEFILE" =>
+        config.method.toLowerCase match {
+          case "local" =>
+            val shi = new ShapefileIngest(config, dsConfig)
+            shi.runIngest
+          case _ =>
+            logger.error("Error, no such ingest method for Shapefile found, no data ingested")
+            false
+        }
+
       case _ =>
         logger.error(s"Error, format: \'${config.format}\' not supported. Supported formats include: CSV, TSV")
         false

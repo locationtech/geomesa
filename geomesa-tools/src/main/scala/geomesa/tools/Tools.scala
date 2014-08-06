@@ -81,12 +81,10 @@ object Tools extends App {
         c.copy(sft = s) } text "the string representation of the SimpleFeatureType" required()
       )
 
-    cmd("ingest") action { (_, c) =>
-      c.copy(mode = "ingest") } text "Ingest a feature into GeoMesa" children (
+    cmd("ingest-csv") action { (_, c) =>
+      c.copy(mode = "ingest", format="csv") } text "Ingest a csv file into GeoMesa" children (
       opt[String]("file").action { (s, c) =>
         c.copy(file = s) } text "the file you wish to ingest, e.g.: ~/capelookout.csv" required(),
-      opt[String]("format").action { (s, c) =>
-        c.copy(format = s.toUpperCase) } text "the format of the file, it must be csv or tsv" required(),
       opt[String]("table").action { (s, c) =>
         c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
         "if it does not already exist -- to contain the new data" required(),
@@ -99,6 +97,35 @@ object Tools extends App {
       opt[String]("dtformat").action { (s, c) =>
         c.copy(dtFormat = s) } text "the format of the datetime field" required()
       )
+
+    cmd("ingest-shp") action { (_, c) =>
+      c.copy(mode = "ingest", format="shp") } text "Ingest a shapefile into GeoMesa" children (
+      opt[String]("file").action { (s, c) =>
+        c.copy(file = s) } text "the file you wish to ingest, e.g.: ~/capelookout.shp" required(),
+      opt[String]("table").action { (s, c) =>
+        c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
+        "if it does not already exist -- to contain the new data" required(),
+      opt[String]("typeName").action { (s, c) =>
+        c.copy(typeName = s) } text "the name of the feature type to be ingested" required()
+      )
+
+    cmd("ingest-tsv") action { (_, c) =>
+      c.copy(mode = "ingest", format="tsv") } text "Ingest a csv file into GeoMesa" children (
+      opt[String]("file").action { (s, c) =>
+        c.copy(file = s) } text "the file you wish to ingest, e.g.: ~/capelookout.tsv" required(),
+      opt[String]("table").action { (s, c) =>
+        c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
+        "if it does not already exist -- to contain the new data" required(),
+      opt[String]("typeName").action { (s, c) =>
+        c.copy(typeName = s) } text "the name of the feature type to be ingested" required(),
+      opt[String]('s', "spec").action { (s, c) =>
+        c.copy(spec = s) } text "the sft specification for the file" required(),
+      opt[String]("datetime").action { (s, c) =>
+        c.copy(dtField = s) } text "the name of the datetime field in the sft" required(),
+      opt[String]("dtformat").action { (s, c) =>
+        c.copy(dtFormat = s) } text "the format of the datetime field" required()
+      )
+
   }
 
   parser.parse(args, ScoptArguments()).map(config =>
