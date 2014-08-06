@@ -246,7 +246,10 @@ object GeohashUtils
     if (closestPoint.chordLength == 0) {
       new VincentyModel.Distance(0)
     } else {
-      VincentyModel.getDistanceBetweenTwoPoints(point, closestPoint.point)
+      VincentyModel.getDistanceBetweenTwoPoints(point, defaultGeometryFactory.createPoint(
+        new Coordinate(closestPoint.point.getX * 180 / Math.PI,
+                       closestPoint.point.getY * 180 / Math.PI))
+      )
     }
   }
 
@@ -261,10 +264,11 @@ object GeohashUtils
   }
 
   private def getClosestPoint(bbox: BoundingBox, point: Point, exhaustive: Boolean = false): GHClosePoint = {
-    //local minimum where derivative of chord length equals zero
+    //local minimum or maximum where derivative of chord length equals zero
     def getLocalMinimumAlongLongitude(lat1: Double, lon1: Double, lon2: Double): Seq[Double] = {
       Seq[Double](Math.atan(Math.tan(lat1) / (Math.cos(lon2) * Math.cos(lon1) + Math.sin(lon2) * Math.sin(lon1))))
     }
+    //local minima or maxima where derivative of chord length equals zero
     def getLocalMinimaAlongLatitude(lon1: Double): Seq[Double] = {
       Seq[Double](lon1, if (lon1 > 0) lon1 - Math.PI else lon1 + Math.PI)
     }

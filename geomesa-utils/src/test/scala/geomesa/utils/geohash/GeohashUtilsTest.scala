@@ -205,6 +205,7 @@ class GeohashUtilsTest extends Specification with Logging {
 
   geodeticMinDistToGeohashTestData.map { case (name, ((x, y), ((minLon, minLat), (maxLon, maxLat)), degrees)) =>
     "getGeodeticGreatCircleChordLength" should {
+      val toleranceMeters = 1
       s"work for $name" in {
         val point = defaultGeometryFactory.createPoint(new Coordinate(x, y))
         val ll = defaultGeometryFactory.createPoint(new Coordinate(minLon.asInstanceOf[Double], minLat.asInstanceOf[Double]))
@@ -214,6 +215,11 @@ class GeohashUtilsTest extends Specification with Logging {
         logger.debug(s"chord length for $name = " + chordLength)
         chordLength must beLessThan(Math.PI / 180 * degrees)
         chordLength must beLessThanOrEqualTo(GeohashUtils.getMinimumChordLength(bbox, point, true))
+        val distance = GeohashUtils.getMinimumGeodeticDistance(bbox, point).getDistanceInMeters
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ul, point).getDistanceInMeters + toleranceMeters)
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ur, point).getDistanceInMeters + toleranceMeters)
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ll, point).getDistanceInMeters + toleranceMeters)
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.lr, point).getDistanceInMeters + toleranceMeters)
       }
     }
   }
