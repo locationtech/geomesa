@@ -2,6 +2,7 @@
 *.ipr
 *.iml
 *.idea/
+*.log
 .idea/**
 target
 atlassian*
