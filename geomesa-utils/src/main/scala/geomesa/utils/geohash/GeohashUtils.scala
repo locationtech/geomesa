@@ -326,7 +326,7 @@ object GeohashUtils
       lazy val geomCatcher = catching(classOf[Exception])
 
       // compute the MBR enclosing the target geometry
-      val ghMBR = getMinimumBoundingGeohash(geom, resolutions)
+      val ghMBR = getMinimumBoundingGeohash(geom, new ResolutionRange(0, 63, 1))
 
       // compute the ratio of the area of the target geometry to its MBR
       val areaMBR = ghMBR.getArea
