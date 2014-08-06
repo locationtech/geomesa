@@ -74,11 +74,13 @@ class GeoMesaDataStoresPageTest extends Specification {
       connector.tableOperations().flush(table, null, null, true)
 
       val metadata = GeoMesaDataStoresPage.getTableMetadata(connector,
-                                                            "featureName",
+                                                            "feature",
                                                             "test",
-                                                            connector.tableOperations().tableIdMap().get("test"))
+                                                             connector.tableOperations().tableIdMap().get("test"),
+                                                            "test table")
 
-      metadata.tableName must be equalTo "test"
+      metadata.table must be equalTo "test"
+      metadata.displayName must be equalTo "test table"
       metadata.numTablets should be equalTo 100
       metadata.numEntries should be equalTo 450
       metadata.numSplits should be equalTo 100

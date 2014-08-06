@@ -30,33 +30,38 @@ import org.apache.wicket.markup.html.basic.Label
 import org.apache.wicket.markup.html.form.upload.FileUploadField
 import org.apache.wicket.markup.html.form.{Form, TextField}
 import org.apache.wicket.markup.html.link.BookmarkablePageLink
-import org.apache.wicket.model.Model
+import org.apache.wicket.markup.html.list.{ListItem, ListView}
+import org.apache.wicket.model.{Model, PropertyModel}
 
 import scala.collection.JavaConverters._
 import scala.util.Try
 
 class GeoMesaConfigPage extends GeoMesaBasePage with Logging {
 
-  var resourceManager = PersistenceUtil.read(properties.YARN_RESOURCEMANAGER_ADDRESS)
+  import geomesa.plugin.properties._
 
-  var nameNode = PersistenceUtil.read(properties.FS_DEFAULTFS)
+  // form fields
+  val props = List(
+    ConfigField(YARN_RESOURCEMANAGER_ADDRESS, "YARN Resource Manager"),
+    ConfigField(YARN_SCHEDULER_ADDRESS, "YARN Scheduler"),
+    ConfigField(FS_DEFAULTFS, "Hadoop NameNode"),
+    ConfigField(MAPREDUCE_FRAMEWORK_NAME, "MapReduce Framework"),
+    ConfigField(ACCUMULO_MONITOR, "Accumulo Monitor", "")
+  ).asJava
 
-  var framework = PersistenceUtil.read(properties.MAPREDUCE_FRAMEWORK_NAME)
-
-  var scheduler = PersistenceUtil.read(properties.YARN_SCHEDULER_ADDRESS)
-  
   private val form = new Form("hdfsForm") {
 
-    // form fields
-    val resourceManagerField = new TextField("resourceManagerField", Model.of(resourceManager.getOrElse("")))
-    val nameNodeField = new TextField("nameNodeField", Model.of(nameNode.getOrElse("")))
-    val frameworkField = new TextField("frameworkField", Model.of(framework.getOrElse("yarn")))
-    val schedulerField = new TextField("schedulerField", Model.of(scheduler.getOrElse("")))
+    // each row in the form is an attribute with a checkbox indicating if it is indexed
+    val listView = new ListView[ConfigField]("fields", props) {
+      override def populateItem(item: ListItem[ConfigField]) = {
+        val field = item.getModel.getObject
+        item.add(new Label("label", field.label))
+        item.add(new Label("sublabel", field.subLabel))
+        item.add(new TextField("field", new PropertyModel[String](field, "value")))
+      }
+    }
 
-    add(resourceManagerField)
-    add(nameNodeField)
-    add(frameworkField)
-    add(schedulerField)
+    add(listView)
 
     // cancel form button
     // fancy comment wrappers disable intellij from incorrectly marking this as an error
@@ -65,12 +70,8 @@ class GeoMesaConfigPage extends GeoMesaBasePage with Logging {
     // submit link
     add(new AjaxSubmitLink("save", this) {
       protected def onSubmit(target: AjaxRequestTarget, form: Form[_]) {
-        PersistenceUtil.persistAll(Map(
-          properties.YARN_RESOURCEMANAGER_ADDRESS    -> resourceManagerField.getModel.getObject,
-          properties.YARN_SCHEDULER_ADDRESS          -> schedulerField.getModel.getObject,
-          properties.FS_DEFAULTFS                    -> nameNodeField.getModel.getObject,
-          properties.MAPREDUCE_FRAMEWORK_NAME        -> frameworkField.getModel.getObject
-        ))
+        val models = listView.getModelObject.asScala.map(f => (f.prop, f.value)).toMap
+        PersistenceUtil.persistAll(models)
       }
     })
 
@@ -163,4 +164,14 @@ class GeoMesaConfigPage extends GeoMesaBasePage with Logging {
 
   }
 
+}
+
+case class ConfigField(prop: String, label: String, subLabel: String, value: String)
+
+object ConfigField {
+
+  def apply(prop: String, label: String): ConfigField = apply(prop, label, prop)
+
+  def apply(prop: String, label: String, subLabel: String): ConfigField =
+    ConfigField(prop, label, subLabel, PersistenceUtil.read(prop).getOrElse(""))
 }

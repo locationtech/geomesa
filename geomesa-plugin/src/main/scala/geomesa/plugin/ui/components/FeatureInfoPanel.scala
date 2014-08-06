@@ -30,7 +30,7 @@ import scala.collection.JavaConverters._
 
 class FeatureInfoPanel(id: String, featureData: FeatureData) extends Panel(id) {
 
-  add(new Label("featureName", Model.of(s"Feature: ${featureData.featureName}")))
+  add(new Label("featureName", Model.of(s"Feature: ${featureData.feature}")))
   add(new Label("bounds", Model.of(s"Bounds: ${featureData.bounds}")))
 
   import geomesa.plugin.ui.GeoMesaFeaturePage._
@@ -39,7 +39,7 @@ class FeatureInfoPanel(id: String, featureData: FeatureData) extends Panel(id) {
   private val pageParameters = new PageParameters()
   pageParameters.put(WORKSPACE_PARAM, featureData.workspace)
   pageParameters.put(DATASTORE_PARAM, featureData.dataStore)
-  pageParameters.put(FEATURE_NAME_PARAM, featureData.featureName)
+  pageParameters.put(FEATURE_NAME_PARAM, featureData.feature)
 
   /*_*/add(new BookmarkablePageLink("featureLink", classOf[GeoMesaFeaturePage], pageParameters))/*_*/
 
@@ -50,7 +50,7 @@ class FeatureInfoPanel(id: String, featureData: FeatureData) extends Panel(id) {
   add(new ListView[TableMetadata]("featureRows", featureData.metadata.asJava) {
     override def populateItem(item: ListItem[TableMetadata]) = {
       val metadata = item.getModelObject
-      item.add(new Label("tableName", new PropertyModel(item.getModel, "tableName")))
+      item.add(new Label("tableName", new PropertyModel(item.getModel, "displayName")))
       item.add(new Label("metadataNumTablets", Model.of(numberFormat.format(metadata.numTablets))))
       item.add(new Label("metadataNumSplits", Model.of(numberFormat.format(metadata.numSplits))))
       item.add(new Label("metadataNumEntries", Model.of(numberFormat.format(metadata.numEntries))))

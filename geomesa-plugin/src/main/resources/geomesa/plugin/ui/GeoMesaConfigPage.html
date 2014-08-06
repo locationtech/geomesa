@@ -48,46 +48,17 @@
         </legend>
         <form wicket:id="hdfsForm">
           <table class="geomesa-config">
-            <tr>
-              <td>YARN Resource Manager:</td>
-              <td>
-                <input wicket:id="resourceManagerField" type="text" id="resourceManagerField"
-                       size="50" maxlength="100"/>
-              </td>
-            </tr>
-            <tr>
-              <td colspan="2" class="geomesa-prop">yarn.resourcemanager.address</td>
-            </tr>
-            <tr>
-              <td>YARN Scheduler:</td>
-              <td>
-                <input wicket:id="schedulerField" type="text" id="schedulerField"
-                       size="50" maxlength="100"/>
-              </td>
-            </tr>
-            <tr>
-              <td colspan="2" class="geomesa-prop">yarn.resourcemanager.scheduler.address</td>
-            </tr>
-            <tr>
-              <td>Hadoop NameNode:</td>
-              <td>
-                <input wicket:id="nameNodeField" type="text" id="nameNodeField"
-                       size="50" maxlength="100"/>
-              </td>
-            </tr>
-            <tr>
-              <td colspan="2" class="geomesa-prop">fs.defaultFS</td>
-            </tr>
-            <tr>
-              <td>MapReduce Framework:</td>
-              <td>
-                <input wicket:id="frameworkField" type="text" id="frameworkField"
-                       size="50" maxlength="100"/>
-              </td>
-            </tr>
-            <tr>
-              <td colspan="2" class="geomesa-prop">mapreduce.framework.name</td>
-            </tr>
+            <tbody wicket:id="fields">
+              <tr>
+                <td wicket:id="label"/>
+                <td>
+                  <input wicket:id="field" type="text" size="50" maxlength="100"/>
+                </td>
+              </tr>
+              <tr>
+                <td wicket:id="sublabel" colspan="2" class="geomesa-prop"/>
+              </tr>
+            </tbody>
           </table>
           <div class="button-group selfclear">
             <a href="#" wicket:id="save"><wicket:message key="save">Save</wicket:message></a>
