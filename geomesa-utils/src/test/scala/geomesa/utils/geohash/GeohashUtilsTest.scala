@@ -66,9 +66,24 @@ class GeohashUtilsTest extends Specification with Logging {
 
   //first tuple is the point, second tuple is the BoundingBox of GH, the double is degrees of min great circle arc from point to GH
   val geodeticMinDistToGeohashTestData: Map[String, ((Double, Double), ((Int, Int), (Int, Int)), Double)] = Map(
+    "within" -> ((150.0, -88.0), ((149, -89), (151, -87)), 0.0001),
     "pole wrapper" -> ((-30.0, -89.000001), ((149, -89), (151, -87)), 2.0),
     "tricksy pole wrapper" -> ((-30.0, -88.999999), ((149, -89), (151, -87)), 2.0),
-    "IDL wrapper" -> ((179.0, 0.0), ((-180, -1), (-178, 1)), 1.0)
+    "exact pole wrapper" -> ((-30.0, -89.0), ((149, -89), (151, -87)), 2.0),
+    "otherside of pole wrapper" -> ((-30.0, 89.000001), ((149, -89), (151, -87)), 178.0),
+    "otherside of tricksy pole wrapper" -> ((-30.0, 88.999999), ((149, -89), (151, -87)), 178.0),
+    "otherside of exact pole wrapper" -> ((-30.0, 89.0), ((149, -89), (151, -87)), 178.0),
+    "northside of exact pole wrapper" -> ((150.0, 89.0), ((149, -89), (151, -87)), 176.0),
+    "slightly left of northside of exact pole wrapper" -> ((148.999999, 89.0), ((149, -89), (151, -87)), 176.0),
+    "IDL wrapper" -> ((179.0, 0.0), ((-180, -1), (-178, 1)), 1.0),
+    "west of tl of gh in southern hemi" -> ((148.0, -87.0), ((149, -89), (151, -87)), 1.0),
+    "north of tl of gh in southern hemi" -> ((149.0, -86.0), ((149, -89), (151, -87)), 1.0),
+    "south of bl of gh in southern hemi" -> ((149.0, -90.0), ((149, -89), (151, -87)), 1.0),
+    "west of bl of gh in southern hemi" -> ((148.0, -89.0), ((149, -89), (151, -87)), 1.0),
+    "slightly WNW of gh in southern hemi" -> ((148.0, -86.999999), ((149, -89), (151, -87)), 1.0),
+    "slightly NNW of gh in southern hemi" -> ((148.999999, -86.0), ((149, -89), (151, -87)), 1.0),
+    "slightly WSW of gh in southern hemi" -> ((148.0, -89.000001), ((149, -89), (151, -87)), 1.0),
+    "slightly SSW of gh in southern hemi" -> ((148.999999, -90.0), ((149, -89), (151, -87)), 1.0)
   )
 
   // (reasonable) odd GeoHash resolutions
@@ -191,13 +206,14 @@ class GeohashUtilsTest extends Specification with Logging {
   geodeticMinDistToGeohashTestData.map { case (name, ((x, y), ((minLon, minLat), (maxLon, maxLat)), degrees)) =>
     "getGeodeticGreatCircleChordLength" should {
       s"work for $name" in {
-        val point = defaultGeometryFactory.createPoint(new Coordinate(x.asInstanceOf[Double], y.asInstanceOf[Double]))
+        val point = defaultGeometryFactory.createPoint(new Coordinate(x, y))
         val ll = defaultGeometryFactory.createPoint(new Coordinate(minLon.asInstanceOf[Double], minLat.asInstanceOf[Double]))
         val ur = defaultGeometryFactory.createPoint(new Coordinate(maxLon.asInstanceOf[Double], maxLat.asInstanceOf[Double]))
         val bbox = new BoundingBox(ll, ur)
         val chordLength = GeohashUtils.getMinimumGreatCircleChordLength(bbox, point)
-        println(s"chord length for $name = " + chordLength)
+        logger.debug(s"chord length for $name = " + chordLength)
         chordLength must beLessThan(Math.PI / 180 * degrees)
+        chordLength must beLessThanOrEqualTo(GeohashUtils.getMinimumGreatCircleChordLength(bbox, point, true))
       }
     }
   }
