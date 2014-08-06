@@ -23,12 +23,14 @@ package object plugin {
     val YARN_RESOURCEMANAGER_ADDRESS     = "yarn.resourcemanager.address"
     val YARN_SCHEDULER_ADDRESS           = "yarn.resourcemanager.scheduler.address"
     val MAPREDUCE_FRAMEWORK_NAME         = "mapreduce.framework.name"
+    val ACCUMULO_MONITOR                 = "accumulo.monitor.address"
 
     def values: List[String] = {
       List(FS_DEFAULTFS,
            YARN_RESOURCEMANAGER_ADDRESS,
            YARN_SCHEDULER_ADDRESS,
-           MAPREDUCE_FRAMEWORK_NAME)
+           MAPREDUCE_FRAMEWORK_NAME,
+           ACCUMULO_MONITOR)
     }
   }
 
