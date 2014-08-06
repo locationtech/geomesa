@@ -73,7 +73,10 @@ class GeoMesaDataStoresPageTest extends Specification {
       // have to flush table in order for it to write to metadata table
       connector.tableOperations().flush(table, null, null, true)
 
-      val metadata = GeoMesaDataStoresPage.getTableMetadata(connector, table)
+      val metadata = GeoMesaDataStoresPage.getTableMetadata(connector,
+                                                            "featureName",
+                                                            "test",
+                                                            connector.tableOperations().tableIdMap().get("test"))
 
       metadata.tableName must be equalTo "test"
       metadata.numTablets should be equalTo 100
