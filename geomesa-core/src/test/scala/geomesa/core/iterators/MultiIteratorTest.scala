@@ -39,6 +39,8 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class MultiIteratorTest extends Specification with Logging {
 
+  sequential
+
   object IteratorTest {
     def setupMockFeatureSource(entries: GenSeq[TestData.Entry], tableName: String = "test_table"): SimpleFeatureStore = {
       val mockInstance = new MockInstance("dummy")

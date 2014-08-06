@@ -23,6 +23,7 @@ import geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvi
 import geomesa.core.util.CloseableIterator
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.SimpleFeatureTypes
+import geomesa.utils.geotools.SimpleFeatureTypes.AttributeSpec
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
@@ -871,6 +872,59 @@ class AccumuloDataStoreTest extends Specification {
       val results2 = fs2.getFeatures(query2)
       results.size() mustEqual 0
       results2.size() should beGreaterThan(0)
+    }
+
+    "update metadata for indexed attributes" in {
+      val originalSchema = "name:String:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=false"
+      val updatedSchema = "name:String:index=true,dtg:Date:index=false,*geom:Point:srid=4326:index=false"
+      val ds = createStore
+      val sft = SimpleFeatureTypes.createType("test", originalSchema)
+      ds.createSchema(sft)
+      ds.updateIndexedAttributes("test", updatedSchema)
+      val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema("test"))
+      retrievedSchema mustEqual updatedSchema
+    }
+
+    "prevent changing schema types" in {
+      val originalSchema = "name:String:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=false"
+      val ds = createStore
+      val sft = SimpleFeatureTypes.createType("test", originalSchema)
+      ds.createSchema(sft)
+
+      "prevent changing indexing of geometry attributes" in {
+        val updatedSchema = "name:String,dtg:Date,*geom:Point:srid=4326:index=true"
+        ds.updateIndexedAttributes("test", updatedSchema) should throwA[IllegalArgumentException]
+        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema("test"))
+        retrievedSchema mustEqual originalSchema
+      }
+
+      "prevent changing default geometry" in {
+        val updatedSchema = "name:String,dtg:Date,geom:Point:srid=4326"
+        ds.updateIndexedAttributes("test", updatedSchema) should throwA[IllegalArgumentException]
+        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema("test"))
+        retrievedSchema mustEqual originalSchema
+      }
+
+      "prevent changing attribute order" in {
+        val updatedSchema = "dtg:Date,name:String,*geom:Point:srid=4326"
+        ds.updateIndexedAttributes("test", updatedSchema) should throwA[IllegalArgumentException]
+        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema("test"))
+        retrievedSchema mustEqual originalSchema
+      }
+
+      "prevent adding attributes" in {
+        val updatedSchema = "name:String,dtg:Date,*geom:Point:srid=4326,newField:String"
+        ds.updateIndexedAttributes("test", updatedSchema) should throwA[IllegalArgumentException]
+        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema("test"))
+        retrievedSchema mustEqual originalSchema
+      }
+
+      "prevent removing attributes" in {
+        val updatedSchema = "dtg:Date,*geom:Point:srid=4326"
+        ds.updateIndexedAttributes("test", updatedSchema) should throwA[IllegalArgumentException]
+        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema("test"))
+        retrievedSchema mustEqual originalSchema
+      }
     }
   }
 

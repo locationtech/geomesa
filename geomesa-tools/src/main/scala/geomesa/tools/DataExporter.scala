@@ -16,7 +16,7 @@
  *
  */
 
-package geomesa.core.integration.data
+package geomesa.tools
 
 import java.io.{FileWriter, PrintWriter}
 import java.text.SimpleDateFormat
@@ -26,6 +26,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import geomesa.utils.geotools.Conversions._
+import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.filter.text.cql2.CQL
@@ -38,6 +39,7 @@ object DataExporter extends App with Logging {
 
   // replace this with your load specification
   val load: LoadAttributes = null
+  val format = "tsv"
 
   val params = Map("instanceId"    -> "mycloud",
                     "zookeepers"   -> "zoo1,zoo2,zoo3",
@@ -47,45 +49,69 @@ object DataExporter extends App with Logging {
                     "visibilities" -> "",
                     "tableName"    -> load.table)
 
-  val extractor = new DataExporter(load, params)
+  val extractor = new DataExporter(load, params, format)
   val features = extractor.queryFeatures()
   extractor.writeFeatures(features)
 }
 
-class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
+class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) extends Logging {
 
   lazy val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
   lazy val geometryFactory = JTSFactoryFinder.getGeometryFactory
 
   /**
-   * Writes features to a tmp file in tsv format
+   * Writes features to a tmp file in specified format
    *
    * @param features
    */
   def writeFeatures(features: SimpleFeatureIterator): Unit = {
 
-    val attributeTypes = List(load.idAttribute) ++ load.attributes.split(",")
+    val attributesArray = if (load.attributes == null) { Array[String]() } else { load.attributes.split(',') }
+    val idAttributeArray = if (load.idAttribute == null) { List() } else { List(load.idAttribute) }
 
+    val attributeTypes = idAttributeArray ++ attributesArray
     val attributes = attributeTypes.map(_.split(":")(0))
 
-    val fr = new PrintWriter(new FileWriter(s"/tmp/${load.name}.tsv"))
+    val fr = format.toLowerCase match {
+      case "tsv" =>
+        new PrintWriter(new FileWriter(s"${System.getProperty("user.dir")}/export/${load.name}.tsv"))
+      case "csv" =>
+        new PrintWriter(new FileWriter(s"${System.getProperty("user.dir")}/export/${load.name}.csv"))
+    }
 
-    // header
-    fr.println(attributeTypes.mkString("\t"))
+    format.toLowerCase match {
+      case "tsv" =>
+        fr.println(attributeTypes.mkString("\t"))
+      case "csv" =>
+        fr.println(attributeTypes.mkString(","))
+    }
 
     var count = 0
 
     features.foreach { sf =>
       val map = scala.collection.mutable.Map.empty[String, Object]
 
+      val attrs = if (attributes.size > 0) { attributes } else { sf.getProperties.map(property => property.getName.toString) }
+
+      if (attributes.size == 0 && count == 0) {
+        format.toLowerCase match {
+          case "tsv" =>
+            fr.println(attrs.mkString("\t"))
+          case "csv" =>
+            fr.println(attrs.mkString(","))
+        }
+      }
+
       // copy attributes into map where we can manipulate them
-      attributes.foreach(a => Try(map.put(a, sf.getAttribute(a))))
+      attrs.foreach(a => Try(map.put(a, sf.getAttribute(a))))
 
       // check that ID is set in the map
-      val id = map.getOrElse(attributes(0), null)
-      if (id == null || id.toString.isEmpty) {
-        map.put(attributes(0), sf.getID)
+      if (attributes.size > 0) {
+        val id = map.getOrElse(attributes(0), null)
+        if (id == null || id.toString.isEmpty) {
+          map.put(attributes(0), sf.getID)
+        }
       }
 
       // calculate geom and dtg
@@ -109,20 +135,25 @@ class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
       }
 
       // put the values into a checked list
-      val attributeValues = attributes.map { a =>
+      val attributeValues = attrs.map { a =>
         val value = map.getOrElse(a, null)
         if (value == null) {
           ""
         } else if (value.isInstanceOf[java.util.Date]) {
           dateFormat.format(value.asInstanceOf[java.util.Date])
         } else {
-          value.toString
+          StringEscapeUtils.escapeCsv(value.toString)
         }
       }
 
-      val tabSeparatedString = attributeValues.mkString("\t")
+      val separatedString = format.toLowerCase match {
+        case "tsv" =>
+          attributeValues.mkString("\t")
+        case "csv" =>
+          attributeValues.mkString(",")
+      }
 
-      fr.println(tabSeparatedString)
+      fr.println(separatedString)
 
       fr.flush()
       count = count + 1
@@ -132,8 +163,7 @@ class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
       }
     }
     fr.close()
-
-    logger.info(s"wrote $count features to '/tmp/${load.name}.tsv'")
+    logger.info(s"Successfully wrote $count features to '${System.getProperty("user.dir")}/export/${load.name}.$format'")
   }
 
   /**
