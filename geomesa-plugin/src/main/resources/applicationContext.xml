@@ -63,7 +63,7 @@
   <bean id="geoMesaCategory" class="org.geoserver.web.Category">
     <property name="nameKey" value="GeoMesaCategory.title"/>
     <!-- Optional, a key used to order the links in the menu. -->
-    <property name="order" value="100"/>
+    <property name="order" value="110"/>
   </bean>
 
   <!-- link for the geomesa status page -->
