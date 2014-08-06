@@ -472,7 +472,7 @@ object GeohashUtils
    * @return the list of GeoHash cells into which this polygon was decomposed
    *         under the given constraints
    */
-  private def decomposeGeometry_(targetGeom: Geometry,
+  def decomposeGeometry_(targetGeom: Geometry,
                                  maxSize: Int = 100,
                                  resolutions: ResolutionRange = new ResolutionRange(5,40,5)): List[GeoHash] = {
     lazy val geomCatcher = catching(classOf[Exception])
@@ -597,6 +597,9 @@ object GeohashUtils
         case m: MultiPolygon =>     translateMultiPolygon(geometry)
         case m: MultiPoint =>       translateMultiPoint(geometry)
         case p: Point =>            translatePoint(geometry)
+//        case gc: GeometryCollection =>
+//          val translatedGeoms = Array.tabulate(gc.getNumGeometries)(i => translateGeometry(gc.getGeometryN(i)))
+//          new GeometryCollection(translatedGeoms, gc.getGeometryN(0).getFactory)
       }
     }
 
@@ -621,6 +624,9 @@ object GeohashUtils
     // quick hit to avoid wasting time for single points
     targetGeom match {
       case point: Point => List(GeoHash(point.getX, point.getY, resolutions.maxBitsResolution))
+      case gc: GeometryCollection => (0 until gc.getNumGeometries).toList.flatMap { i =>
+       decomposeGeometry(gc.getGeometryN(i), maxSize, resolutions, relaxFit)
+      }.distinct
       case _ =>
         val safeGeom = getInternationalDateLineSafeGeometry(targetGeom)
         decomposeGeometry_(
@@ -736,7 +742,7 @@ object GeohashUtils
    *
    * This is easier to explain with pictures.
    *
-   * @param poly the query-polygon that must intersect candidate GeoHashes
+   * @param geom the query-polygon that must intersect candidate GeoHashes
    * @param offset how many of the left-most GeoHash characters to skip
    * @param bits how many of the (remaining) GeoHash characters to use
    * @param MAX_KEYS_IN_LIST the maximum allowable number of unique GeoHash
@@ -746,21 +752,26 @@ object GeohashUtils
    * @return the list of unique GeoHash sub-strings from 35-bits precision that
    *         intersect the target polygon; an empty list if there are too many
    */
-  def getUniqueGeohashSubstringsInPolygon(poly: Polygon,
+  def getUniqueGeohashSubstringsInPolygon(geom: Geometry,
                                           offset: Int,
                                           bits: Int,
                                           MAX_KEYS_IN_LIST: Int = Int.MaxValue,
                                           includeDots: Boolean = true): Seq[String] = {
+
+
+    val cover: Geometry = geom.buffer(0)
+
+    println(s"Original Geometry $geom: Buffer(0): $cover")
 
     val maxBits = (offset + bits) * 5
     val minBits = offset * 5
     val usedBits = bits * 5
     val allResolutions = ResolutionRange(0, Math.min(35, maxBits), 1)
     val maxKeys = Math.min(2 << usedBits, MAX_KEYS_IN_LIST)
-    val polyCentroid = poly.getCentroid
+    val polyCentroid = geom.getCentroid
 
     // find the smallest GeoHash you can that covers the target geometry
-    val ghMBR = getMinimumBoundingGeohash(poly, allResolutions)
+    val ghMBR = getMinimumBoundingGeohash(geom, allResolutions)
 
     // this case-class closes over properties of the current search
     case class BitPrefixes(prefixes: Seq[String]) {
@@ -842,9 +853,9 @@ object GeohashUtils
     def considerCandidate(candidate: GeoHash): Seq[String] = {
       val bitString = candidate.toBinaryString
 
-      if (!poly.intersects(candidate.geom)) return Nil
+      if (!geom.intersects(candidate.geom)) return Nil
 
-      if (poly.covers(candidate.geom) || (bitString.size == maxBits)) {
+      if (cover.covers(candidate.geom) || (bitString.size == maxBits)) {
         Seq(bitString)
       } else {
         if (bitString.size < maxBits) {
