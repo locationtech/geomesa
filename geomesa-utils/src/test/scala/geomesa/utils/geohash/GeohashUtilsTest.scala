@@ -213,7 +213,7 @@ class GeohashUtilsTest extends Specification with Logging {
         val bbox = new BoundingBox(ll, ur)
         val chordLength = GeohashUtils.getMinimumChordLength(bbox, point)
         logger.debug(s"chord length for $name = " + chordLength)
-        chordLength must beLessThan(Math.PI / 180 * degrees)
+        chordLength must beLessThan(Math.toRadians(degrees))
         chordLength must beLessThanOrEqualTo(GeohashUtils.getMinimumChordLength(bbox, point, true))
         val distance = GeohashUtils.getMinimumGeodeticDistance(bbox, point).getDistanceInMeters
         distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ul, point).getDistanceInMeters + toleranceMeters)
