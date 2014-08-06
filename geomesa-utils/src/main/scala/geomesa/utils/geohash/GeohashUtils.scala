@@ -241,7 +241,26 @@ object GeohashUtils
     gh
   }
 
-  def getMinimumGreatCircleChordLength(bbox: BoundingBox, point: Point, exhaustive: Boolean = false): Double = {
+  def getMinimumGeodeticDistance(bbox: BoundingBox, point: Point, exhaustive: Boolean = false): VincentyModel.Distance = {
+    val closestPoint = getClosestPoint(bbox: BoundingBox, point: Point, exhaustive)
+    if (closestPoint.chordLength == 0) {
+      new VincentyModel.Distance(0)
+    } else {
+      VincentyModel.getDistanceBetweenTwoPoints(point, closestPoint.point)
+    }
+  }
+
+  def getMinimumChordLength(bbox: BoundingBox, point: Point, exhaustive: Boolean = false): Double = {
+    getClosestPoint(bbox: BoundingBox, point: Point, exhaustive).chordLength
+  }
+
+  case class GHClosePoint(point: Point, chordLength: Double)
+
+  def min(p1: GHClosePoint, p2: GHClosePoint): GHClosePoint = {
+    if (p1.chordLength < p2.chordLength) p1 else p2
+  }
+
+  private def getClosestPoint(bbox: BoundingBox, point: Point, exhaustive: Boolean = false): GHClosePoint = {
     //local minimum where derivative of chord length equals zero
     def getLocalMinimumAlongLongitude(lat1: Double, lon1: Double, lon2: Double): Seq[Double] = {
       Seq[Double](Math.atan(Math.tan(lat1) / (Math.cos(lon2) * Math.cos(lon1) + Math.sin(lon2) * Math.sin(lon1))))
@@ -273,7 +292,7 @@ object GeohashUtils
       minima ++ startAndEndpoints
     }
     if (point.getX >= bbox.minLon && point.getX <= bbox.maxLon && point.getY >= bbox.minLat && point.getY <= bbox.maxLat) {
-      0
+      new GHClosePoint(point, 0)
     } else {
       val x = degreesToRadians(point.getX)
       val y = degreesToRadians(point.getY)
@@ -294,7 +313,7 @@ object GeohashUtils
           case _ => leftEdgeSolutions ++ rightEdgeSolutions
         }
       }
-      pointsToTry.map(p => getChordLength(y, x, p.getY, p.getX)).reduceLeft(_ min _)
+      pointsToTry.map(p => new GHClosePoint(p, getChordLength(y, x, p.getY, p.getX))).reduceLeft(min)
     }
   }
 

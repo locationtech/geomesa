@@ -210,10 +210,10 @@ class GeohashUtilsTest extends Specification with Logging {
         val ll = defaultGeometryFactory.createPoint(new Coordinate(minLon.asInstanceOf[Double], minLat.asInstanceOf[Double]))
         val ur = defaultGeometryFactory.createPoint(new Coordinate(maxLon.asInstanceOf[Double], maxLat.asInstanceOf[Double]))
         val bbox = new BoundingBox(ll, ur)
-        val chordLength = GeohashUtils.getMinimumGreatCircleChordLength(bbox, point)
+        val chordLength = GeohashUtils.getMinimumChordLength(bbox, point)
         logger.debug(s"chord length for $name = " + chordLength)
         chordLength must beLessThan(Math.PI / 180 * degrees)
-        chordLength must beLessThanOrEqualTo(GeohashUtils.getMinimumGreatCircleChordLength(bbox, point, true))
+        chordLength must beLessThanOrEqualTo(GeohashUtils.getMinimumChordLength(bbox, point, true))
       }
     }
   }
