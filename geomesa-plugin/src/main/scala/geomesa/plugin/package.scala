@@ -21,9 +21,10 @@ package object plugin {
   object properties {
     val FS_DEFAULT_NAME                  = "fs.default.name"
     val JOB_TRACKER                      = "mapred.job.tracker"
+    val ACCUMULO_MONITOR                 = "accumulo.monitor.address"
 
     def values: List[String] = {
-      List(FS_DEFAULT_NAME, JOB_TRACKER)
+      List(FS_DEFAULT_NAME, JOB_TRACKER, ACCUMULO_MONITOR)
     }
   }
 

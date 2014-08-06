@@ -20,6 +20,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
   <bean id="geoMesaServlet" class="geomesa.plugin.servlet.GeoMesaServlet"/>
+  <bean id="ingestRateServlet" class="geomesa.plugin.servlet.IngestRateServlet"/>
 
   <bean id="geoMesaDispatcherMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
     <property name="alwaysUseFullPath" value="true"/>
@@ -27,6 +28,7 @@
       <props>
         <prop key="/geomesa">geoMesaServlet</prop>
         <prop key="/geomesa/**">geoMesaServlet</prop>
+        <prop key="/geomesa/ingest/rate">ingestRateServlet</prop>
       </props>
     </property>
   </bean>

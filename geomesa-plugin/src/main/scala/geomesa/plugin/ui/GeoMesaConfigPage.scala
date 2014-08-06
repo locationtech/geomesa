@@ -30,25 +30,36 @@ import org.apache.wicket.markup.html.basic.Label
 import org.apache.wicket.markup.html.form.upload.FileUploadField
 import org.apache.wicket.markup.html.form.{Form, TextField}
 import org.apache.wicket.markup.html.link.BookmarkablePageLink
-import org.apache.wicket.model.Model
+import org.apache.wicket.markup.html.list.{ListItem, ListView}
+import org.apache.wicket.model.{Model, PropertyModel}
 
 import scala.collection.JavaConverters._
 import scala.util.Try
 
 class GeoMesaConfigPage extends GeoMesaBasePage with Logging {
 
-  var jobTracker = PersistenceUtil.read(properties.JOB_TRACKER)
+  import geomesa.plugin.properties._
 
-  var nameNode = PersistenceUtil.read(properties.FS_DEFAULT_NAME)
+  // form fields
+  val props = List(
+    ConfigField(JOB_TRACKER, "Hadoop JobTracker"),
+    ConfigField(FS_DEFAULT_NAME, "Hadoop NameNode"),
+    ConfigField(ACCUMULO_MONITOR, "Accumulo Monitor", "")
+  ).asJava
 
   private val form = new Form("hdfsForm") {
 
-    // form fields
-    val jobTrackerField = new TextField("jobTrackerField", Model.of(jobTracker.getOrElse("")))
-    val nameNodeField = new TextField("nameNodeField", Model.of(nameNode.getOrElse("")))
+    // each row in the form is an attribute with a checkbox indicating if it is indexed
+    val listView = new ListView[ConfigField]("fields", props) {
+      override def populateItem(item: ListItem[ConfigField]) = {
+        val field = item.getModel.getObject
+        item.add(new Label("label", field.label))
+        item.add(new Label("sublabel", field.subLabel))
+        item.add(new TextField("field", new PropertyModel[String](field, "value")))
+      }
+    }
 
-    add(jobTrackerField)
-    add(nameNodeField)
+    add(listView)
 
     // cancel form button
     // fancy comment wrappers disable intellij from incorrectly marking this as an error
@@ -57,10 +68,8 @@ class GeoMesaConfigPage extends GeoMesaBasePage with Logging {
     // submit link
     add(new AjaxSubmitLink("save", this) {
       protected def onSubmit(target: AjaxRequestTarget, form: Form[_]) {
-        PersistenceUtil.persistAll(Map(
-          properties.JOB_TRACKER        -> jobTrackerField.getModel.getObject,
-          properties.FS_DEFAULT_NAME    -> nameNodeField.getModel.getObject
-        ))
+        val models = listView.getModelObject.asScala.map(f => (f.prop, f.value)).toMap
+        PersistenceUtil.persistAll(models)
       }
     })
 
@@ -153,4 +162,14 @@ class GeoMesaConfigPage extends GeoMesaBasePage with Logging {
 
   }
 
+}
+
+case class ConfigField(prop: String, label: String, subLabel: String, value: String)
+
+object ConfigField {
+
+  def apply(prop: String, label: String): ConfigField = apply(prop, label, prop)
+
+  def apply(prop: String, label: String, subLabel: String): ConfigField =
+    ConfigField(prop, label, subLabel, PersistenceUtil.read(prop).getOrElse(""))
 }
