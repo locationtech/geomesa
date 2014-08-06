@@ -24,6 +24,7 @@ import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
+import java.nio.file.{Path, Paths, Files}
 
 import scala.collection.JavaConversions._
 
@@ -65,8 +66,12 @@ class FeaturesTool(catalogTable: String) {
                      query: String,
                      maxFeatures: Int) {
     val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
+    val folderPath = Paths.get(s"${System.getProperty("user.dir")}/export/")
+    if (Files.notExists(folderPath)) {
+      Files.createDirectory(folderPath)
+    }
     format.toLowerCase match {
-      case "csv" =>
+      case "csv" | "tsv" =>
         val loadAttributes = new LoadAttributes(feature, table, attributes, idAttribute, latAttribute, lonAttribute, dateAttribute, query)
         val de = new DataExporter(loadAttributes, Map(
           "instanceId" -> instanceId,
@@ -77,13 +82,13 @@ class FeaturesTool(catalogTable: String) {
         de.writeFeatures(sftCollection.features())
       case "shp" =>
         val shapeFileExporter = new ShapefileExport
-        shapeFileExporter.write(s"/tmp/$feature.shp", feature, sftCollection, ds.getSchema(feature))
+        shapeFileExporter.write(s"${System.getProperty("user.dir")}/export/$feature.shp", feature, sftCollection, ds.getSchema(feature))
       case "geojson" =>
-        val os = new FileOutputStream(s"/tmp/$feature.geojson")
+        val os = new FileOutputStream(s"${System.getProperty("user.dir")}/export/$feature.geojson")
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
       case "gml" =>
-        val os = new FileOutputStream(s"/tmp/$feature.gml")
+        val os = new FileOutputStream(s"${System.getProperty("user.dir")}/export/$feature.gml")
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
       case _ =>

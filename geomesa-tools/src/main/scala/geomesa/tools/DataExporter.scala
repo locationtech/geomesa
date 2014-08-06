@@ -26,6 +26,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore}
 import geomesa.utils.geotools.Conversions._
+import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.filter.text.cql2.CQL
@@ -74,9 +75,9 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
 
     val fr = format.toLowerCase match {
       case "tsv" =>
-        new PrintWriter(new FileWriter(s"/tmp/${load.name}.tsv"))
+        new PrintWriter(new FileWriter(s"${System.getProperty("user.dir")}/export/${load.name}.tsv"))
       case "csv" =>
-        new PrintWriter(new FileWriter(s"/tmp/${load.name}.csv"))
+        new PrintWriter(new FileWriter(s"${System.getProperty("user.dir")}/export/${load.name}.csv"))
     }
 
     format.toLowerCase match {
@@ -141,7 +142,7 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
         } else if (value.isInstanceOf[java.util.Date]) {
           dateFormat.format(value.asInstanceOf[java.util.Date])
         } else {
-          value.toString
+          StringEscapeUtils.escapeCsv(value.toString)
         }
       }
 
