@@ -4,11 +4,8 @@ import geomesa.utils.geohash.VincentyModel
 import geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.collection.mutable
 
-
-trait NearestNeighbors[T] extends BoundedPriorityQueue[T] {
-
+trait NearestNeighbors {
   def distance(sf: SimpleFeature): Double
 
   def maxDistance: Option[Double]
@@ -16,11 +13,11 @@ trait NearestNeighbors[T] extends BoundedPriorityQueue[T] {
   implicit def toSimpleFeatureWithDistance(sf: SimpleFeature): (SimpleFeature, Double) = (sf, distance(sf))
 
   implicit def backToSimpleFeature(sfTuple: (SimpleFeature, Double)): SimpleFeature = sfTuple._1
+
 }
 
 object NearestNeighbors {
   def apply(aFeatureForSearch: SimpleFeature, numDesired: Int) = {
-    //def distanceCalc(geom: Geometry) = aFeatureForSearch.point.distance(geom)
 
     def distanceCalc(sf: SimpleFeature) =
       VincentyModel.getDistanceBetweenTwoPoints(aFeatureForSearch.point, sf.point).getDistanceInMeters
@@ -28,18 +25,14 @@ object NearestNeighbors {
     def orderedSF: Ordering[(SimpleFeature, Double)] =
       Ordering.by { sfTuple: (SimpleFeature, Double) => sfTuple._2}.reverse
 
-    new mutable.PriorityQueue[(SimpleFeature, Double)]()(orderedSF) with NearestNeighbors[(SimpleFeature, Double)] {
-
-      val maxSize = numDesired
-      // needed to make IDEA happy, but scalac is fine without this.
-      //override val ord = orderedSF
+    // type aliased to  BoundedNearestNeighbors
+    new BoundedPriorityQueue[(SimpleFeature, Double)](numDesired)(orderedSF) with NearestNeighbors {
 
       def distance(sf: SimpleFeature) = distanceCalc(sf)
 
-      def maxDistance = getLast.map {_._2}
+      def maxDistance = Option(last).map {_._2}
     }
   }
 }
   // this should include a guard against adding two NearestNeighbor collections which are for different points
-  // override def ++ (that: NearestNeighbors ) =  that.dequeueAll
-  // should override enqueue to prevent more than k elements from being contained
+

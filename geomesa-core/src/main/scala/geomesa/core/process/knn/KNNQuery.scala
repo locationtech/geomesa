@@ -6,7 +6,6 @@ import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.opengis.feature.simple.SimpleFeature
-import scala.collection.mutable
 import scala.annotation.tailrec
 
 /**
@@ -23,13 +22,13 @@ object KNNQuery {
                      numDesired: Int,
                      searchDistance: Double,
                      maxDistance: Double,
-                     aFeatureForSearch: SimpleFeature): mutable.PriorityQueue[(SimpleFeature, Double)] = {
+                     aFeatureForSearch: SimpleFeature): BoundedNearestNeighbors[(SimpleFeature, Double)] = {
 
-    // setup the GHSpiral -- it requires the search point and the searchRadius
+    // setup the GeoHashSpiral -- it requires the search point,
+    // an estimate of the area containing the K Nearest Neighbors,
+    // and a maximum distance for search as a safeguard
     val geoHashPQ = GeoHashSpiral(aFeatureForSearch, searchDistance, maxDistance)
 
-    // setup the stateful object for record keeping
-    //val searchStatus = KNNSearchStatus(numDesired, maxDistance)
     // setup the NearestNeighbors PriorityQueue -- this is the last usage of aFeatureForSearch
     val sfPQ = NearestNeighbors(aFeatureForSearch, numDesired)
 
@@ -45,10 +44,9 @@ object KNNQuery {
   def runKNNQuery(source: SimpleFeatureSource,
                    query: Query,
                    ghPQ: GeoHashSpiral,
-                   sfPQ: NearestNeighbors[(SimpleFeature,Double)]) : NearestNeighbors[(SimpleFeature,Double)] = {
+                   sfPQ: BoundedNearestNeighbors[(SimpleFeature,Double)]) : BoundedNearestNeighbors[(SimpleFeature,Double)] = {
     import geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
-    // add a filter to the ghPQ if we've already found kNN
-    //val newghPQ = if (numDesired <= numFound) ghPQ.withFilter(thing(kNN.maxDistance)) else ghPQ
+
     if (!ghPQ.hasNext) sfPQ
     else {
         val newGH = ghPQ.next()
@@ -66,6 +64,7 @@ object KNNQuery {
         runKNNQuery(source, query, ghPQ, sfPQ)
     }
   }
+
   /**
    * Generate a new query by narrowing another down to a single GeoHash
    */

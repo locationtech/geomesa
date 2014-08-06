@@ -80,7 +80,6 @@ class NearestNeighborsPQTest extends Specification {
       import geomesa.utils.geotools.Conversions._
       val equatorPQ = NearestNeighbors(equatorSF, 10)
       equatorPQ ++= diagonalFeatureCollection.features.map { sf=> (sf,equatorPQ.distance(sf)) }
-
       equatorPQ.head._1.getID must equalTo("0")
     }
 
