@@ -17,7 +17,6 @@ package geomesa.tools
 
 import java.net.URLDecoder
 import java.nio.charset.Charset
-
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.data.AccumuloDataStore
@@ -30,8 +29,8 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-
 import scala.io.Source
+import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 
 class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging {
@@ -74,7 +73,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   def parseFeature(line: String) = {
     try {
       val fields = config.format.toUpperCase match {
-        case "TSV" => line.toString.split("\t").toArray[String]
+        case "TSV" => TSV.parse(line).flatten.toArray[String]
         case "CSV" => CSV.parse(line).flatten.toArray[String]
         case _     => throw new Exception
       }
@@ -123,21 +122,34 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   fw.close()
 }
 
-object CSV extends RegexParsers {
+object CSV extends SV {
+  override def SEP: String = ","
+
+  override def SPACES: Regex = "[ \t]+".r
+}
+
+object TSV extends SV {
+  override def SEP: String = "\t"
+
+  override def SPACES: Regex = "".r
+}
+
+trait SV extends RegexParsers {
   override val skipWhitespace = false
 
-  def COMMA   = ","
+  def SEP: String //= "\t"
+  def SPACES: Regex //= "[ \t]+".r
+
   def DQUOTE  = "\""
   def DQUOTE2 = "\"\"" ^^ { case _ => "\"" }  // combine 2 dquotes into 1
   def CRLF    = "\r\n" | "\n"
-  def TXT     = "[^\",\r\n]".r
-  def SPACES  = "[ \t]+".r
+  def TXT     = s"""[^\"$SEP\r\n]""".r
 
   def file: Parser[List[List[String]]] = repsep(record, CRLF) <~ (CRLF?)
-  def record: Parser[List[String]] = repsep(field, COMMA)
+  def record: Parser[List[String]] = repsep(field, SEP)
   def field: Parser[String] = escaped|nonescaped
   def escaped: Parser[String] = {
-    ((SPACES?)~>DQUOTE~>((TXT|COMMA|CRLF|DQUOTE2)*)<~DQUOTE<~(SPACES?)) ^^ { case ls => ls.mkString("") }
+    ((SPACES?)~>DQUOTE~>((TXT|SEP|CRLF|DQUOTE2)*)<~DQUOTE<~(SPACES?)) ^^ { case ls => ls.mkString("") }
   }
   def nonescaped: Parser[String] = (TXT*) ^^ { case ls => ls.mkString("") }
   def parse(s: String) = parseAll(file, s) match {
