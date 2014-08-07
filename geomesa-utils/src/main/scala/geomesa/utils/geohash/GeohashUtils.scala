@@ -240,11 +240,6 @@ object GeohashUtils
     gh
   }
 
-  /**
-   * Speedy estimation of closest point (in radians) on a GH to a target point
-   * Assumes spherical earth and minimizes chord length by evaluating valid local minima along GH BBOX
-   * Chord length is on unit circle
-   */
   def getMinimumGeodeticDistance(bbox: BoundingBox, point: Point, exhaustive: Boolean = false): VincentyModel.Distance = {
     val closestPoint = getClosestPoint(bbox: BoundingBox, point: Point, exhaustive)
     if (closestPoint.chordLength == 0) {
@@ -267,8 +262,16 @@ object GeohashUtils
     if (p1.chordLength < p2.chordLength) p1 else p2
   }
 
+  /**
+   * Speedy estimation of closest point (in radians) on a GH to a target point
+   * Assumes spherical earth and minimizes chord length by evaluating valid local minima along GH BBOX
+   * Chord length is on unit circle
+   *
+   * Error is greatest when point is due east or west of GH
+   * For distances < 1000km, our reported closest distance is within 0.2m of actual closest distance (15-35bit GH)
+   * For distances < 5000km, our reported closest distance is within 6m of actual closest distance (15-35bit GH)
+   */
   private def getClosestPoint(bbox: BoundingBox, point: Point, exhaustive: Boolean = false): GHClosePoint = {
-
     if (point.within(bbox)) {
       new GHClosePoint(point, 0)
     } else {
