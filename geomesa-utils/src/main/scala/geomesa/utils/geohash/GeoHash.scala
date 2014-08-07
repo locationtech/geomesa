@@ -35,6 +35,8 @@ case class GeoHash private(x: Double,
                            bitset: BitSet,
                            prec: Int, // checked in factory methods in companion object
                            private val optHash: Option[String]) extends Comparable[GeoHash] {
+  require(x >= -180.0 && x <= 180.0)
+  require(y >= -90.0  && y <= 90.0)
 
   import GeoHash._
 
@@ -121,6 +123,9 @@ object GeoHash extends Logging {
   private val characterMap: Map[Char, BitSet] =
     base32.zipWithIndex.map { case (c, i) => c -> bitSetFromBase32Character(i) }.toMap
 
+  private val lonMax = 360 - math.pow(0.5, 32)
+  private val latMax = 180 - math.pow(0.5, 32)
+
   // create a new GeoHash from a binary string in MSB -> LSB format
   // (analogous to what is output by the "toBinaryString" method)
   def fromBinaryString(bitsString: String): GeoHash = {
@@ -141,12 +146,14 @@ object GeoHash extends Logging {
 
   // We expect points x,y i.e., lon-lat
   def apply(lon: Double, lat: Double, prec: Int = 25): GeoHash = {
+    require(lon >= -180.0 && lon <= 180.0)
+    require(lat >= -90.0  && lat <= 90.0)
     checkPrecision(prec)
 
     val lonDelta = lonDeltaMap(prec)
     val latDelta = latDeltaMap(prec)
-    val lonIndex = ((lon - lonBounds.low) / lonDelta).toLong
-    val latIndex = ((lat - latBounds.low) / latDelta).toLong
+    val lonIndex = if(lon == 180.0) (lonMax / lonDelta).toLong else ((lon - lonBounds.low) / lonDelta).toLong
+    val latIndex = if(lat == 90.0)  (latMax / latDelta).toLong else ((lat - latBounds.low) / latDelta).toLong
 
     encode(lonIndex, latIndex, lonDelta, latDelta, prec)
   }
