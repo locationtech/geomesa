@@ -27,6 +27,8 @@ import scala.collection.mutable.TreeSet
 class BoundingBoxGeoHashIterator(twoGh: TwoGeoHashBoundingBox) extends Iterator[GeoHash] {
   val (latSteps, lonSteps) = GeoHash.getLatitudeLongitudeSpanCount(twoGh.ll, twoGh.ur, twoGh.prec)
 
+  val Array(endLatIndex, endLonIndex) = GeoHash.gridIndicesForLatLong(twoGh.ur)
+
   // This is the number of GeoHashes that our iterator will return.
   val ns = latSteps*lonSteps
 
@@ -46,16 +48,22 @@ class BoundingBoxGeoHashIterator(twoGh: TwoGeoHashBoundingBox) extends Iterator[
       val latIndex = GeoHash.gridIndexForLatitude(nextGh)
       val lonIndex = GeoHash.gridIndexForLongitude(nextGh)
 
-      val nextLonGh = GeoHash.composeGeoHashFromBitIndicesAndPrec(
-        latIndex, lonIndex + 1, nextGh.prec)
-      val nextLatGh = GeoHash.composeGeoHashFromBitIndicesAndPrec(
-        latIndex + 1, lonIndex, nextGh.prec)
+      if (lonIndex + 1 <= endLonIndex) {
+        val nextLonGh = GeoHash.composeGeoHashFromBitIndicesAndPrec(
+          latIndex, lonIndex + 1, nextGh.prec)
 
-      // If the calculated GeoHashes are still with the box, we add them to the queue.
-      if(twoGh.bbox.covers(nextLatGh.getPoint))
-        queue add nextLatGh
-      if(twoGh.bbox.covers(nextLonGh.getPoint))
-        queue add nextLonGh
+        if (twoGh.bbox.covers(nextLonGh.getPoint))
+          queue add nextLonGh
+      }
+
+      if (latIndex + 1 <= endLatIndex) {
+        val nextLatGh = GeoHash.composeGeoHashFromBitIndicesAndPrec(
+          latIndex + 1, lonIndex, nextGh.prec)
+
+        // If the calculated GeoHashes are still with the box, we add them to the queue.
+        if (twoGh.bbox.covers(nextLatGh.getPoint))
+          queue add nextLatGh
+      }
 
       queue.remove(nextGh)
       nextGh
