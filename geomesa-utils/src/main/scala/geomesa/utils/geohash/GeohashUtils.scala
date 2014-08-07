@@ -298,20 +298,20 @@ object GeohashUtils
         val dZ = Math.sin(lat2) - sinY
         Math.sqrt(dX * dX + dY * dY + dZ * dZ)
       }
-      def getPointsToTryIfAboveOrBelowLat(latY: Double): Seq[Point] = {
+      def getPointsToTryIfAboveOrBelowLat(lat: Double): Seq[Point] = {
         val minima = getLocalMinimaAlongLatitude().withFilter(m => m > minLon && m < maxLon).map(m =>
-          defaultGeometryFactory.createPoint(new Coordinate(m, latY))
+          defaultGeometryFactory.createPoint(new Coordinate(m, lat))
         )
-        val startAndEndpoints = Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(minLon, latY)),
-                                           defaultGeometryFactory.createPoint(new Coordinate(maxLon, latY)))
+        val startAndEndpoints = Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(minLon, lat)),
+                                           defaultGeometryFactory.createPoint(new Coordinate(maxLon, lat)))
         minima ++ startAndEndpoints
       }
-      def getPointsToTryAlongLongitude(longX: Double): Seq[Point] = {
-        val minima = getLocalMinimumAlongLongitude(longX).withFilter(m => m > minLat && m < maxLat).map( m =>
-          defaultGeometryFactory.createPoint(new Coordinate(longX, m))
+      def getPointsToTryAlongLongitude(lon: Double): Seq[Point] = {
+        val minima = getLocalMinimumAlongLongitude(lon).withFilter(m => m > minLat && m < maxLat).map( m =>
+          defaultGeometryFactory.createPoint(new Coordinate(lon, m))
         )
-        val startAndEndpoints = Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(longX, minLat)),
-                                           defaultGeometryFactory.createPoint(new Coordinate(longX, maxLat)))
+        val startAndEndpoints = Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(lon, minLat)),
+                                           defaultGeometryFactory.createPoint(new Coordinate(lon, maxLat)))
         minima ++ startAndEndpoints
       }
 
