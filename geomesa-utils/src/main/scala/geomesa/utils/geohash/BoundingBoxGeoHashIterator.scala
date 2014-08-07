@@ -48,7 +48,7 @@ class BoundingBoxGeoHashIterator(twoGh: TwoGeoHashBoundingBox) extends Iterator[
       val latIndex = GeoHash.gridIndexForLatitude(nextGh)
       val lonIndex = GeoHash.gridIndexForLongitude(nextGh)
 
-      if(lonIndex + 1 <= endLonIndex) {
+      if (lonIndex + 1 <= endLonIndex) {
         val nextLonGh = GeoHash.composeGeoHashFromBitIndicesAndPrec(
           latIndex, lonIndex + 1, nextGh.prec)
 
@@ -56,7 +56,7 @@ class BoundingBoxGeoHashIterator(twoGh: TwoGeoHashBoundingBox) extends Iterator[
           queue add nextLonGh
       }
 
-      if(latIndex + 1 <= endLatIndex) {
+      if (latIndex + 1 <= endLatIndex) {
         val nextLatGh = GeoHash.composeGeoHashFromBitIndicesAndPrec(
           latIndex + 1, lonIndex, nextGh.prec)
 
