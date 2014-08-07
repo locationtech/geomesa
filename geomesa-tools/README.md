@@ -7,20 +7,15 @@ the command line.
 ## Configuration
 To begin using the command line tools, first build the full Geomesa project with `mvn clean install`. This will build the project and geomesa-tools JAR file.  
  
-Geomesa Tools relies on environment variables to connect to the Accumulo and Zookeeper instances. To set these, edit your `~/.bashrc` file and 
-add the following lines at the end, adding the information specific to your instance:  
+Geomesa Tools relies on environment variables to connect to the Accumulo and Zookeeper instances. To set these, run `. geomesa-tools/geomesa configure` 
+(note the space between the '.' and 'geomesa-tools/geomesa configure', as this is important).
 
-    export GEOMESA_USER=Your.user.here  
-    export GEOMESA_PASSWORD=Your.password.here  
-    export GEOMESA_INSTANCEID=Your.instanceId.here  
-    export GEOMESA_ZOOKEEPERS=Your.zookeepers.string.here
-   
-Source your `~/.bashrc` file by running `source ~/.bashrc`. After this step, you will likely need to log out and log back in for your 
-environment variables to be set correctly.  
+This command will prompt you for GEOMESA_USER, GEOMESA_PASSWORD, GEOMESA_INSTANCEID, and GEOMESA_ZOOKEEPERS values and set them in your environment variables.
+It will also add a GEOMESA_HOME environment variable based on the root directory of Geomesa and put the geomesa-tools directory on your `PATH`. 
 
-Next, run the command line tools jar with the following command from your root Geomesa directory:  
+Now, you should be able to use Geomesa from any directory on your computer. To test, `cd` to a different directory and run:
 
-    java -jar geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar --help
+    geomesa
 
 This should print out the following usage text:
 
@@ -94,7 +89,6 @@ This should print out the following usage text:
             the format of the datetime field
             
 This usage text gives a brief overview of how to use each command, and this is expanded upon below with example commands.  
-Note that each command should be prefixed by `java -jar geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar` on the command line.
 
 ## Command Explanations and Usage
 
@@ -109,15 +103,15 @@ To retrieve specific attributes from each feature, use `--attributes` followed b
 To set a maximum number of features to return, use `--maxFeatures` followed by the maximum number of features.  
 To run an ECQL query, use `--query` followed by the query filter string.  
 #### Example commands:
-    export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format csv --query "include" --maxFeatures 1000  
-    export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format gml --query "user_name='JohnSmith'"
+    geomesa export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format csv --query "include" --maxFeatures 1000  
+    geomesa export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format gml --query "user_name='JohnSmith'"
         
 ### list
 To list the features on a specified catalog table, use the `list` command.  
 #### Required flags: 
 Specify the catalog table to use with `--catalog`
 #### Example command:
-    list --catalog geomesa_catalog
+    geomesa list --catalog geomesa_catalog
 
 ### create
 To create a new feature on a specified catalog table, use the `create` command.  
@@ -126,7 +120,7 @@ Specify the catalog table to use with `--catalog`. This can be a previously crea
 Specify the feature to create with the `--typeName`.  
 Specify the SimpleFeatureType schema with `--sft`.  
 #### Example command:
-    create --catalog test_create --typeName testing --sft id:String:indexed=true,dtg:Date,geom:Point:srid=4326
+    geomesa create --catalog test_create --typeName testing --sft id:String:indexed=true,dtg:Date,geom:Point:srid=4326
         
 ### delete
 To delete a feature on a specified catalog table, use the `delete` command.  
@@ -134,12 +128,12 @@ To delete a feature on a specified catalog table, use the `delete` command.
 Specify the catalog table to use with `--catalog`. NOTE: Catalog tables will not be deleted when using the `delete` command, only the tables related to the given feature.  
 Specify the feature to delete with `--typeName`.  
 #### Example command:
-    delete --catalog test_delete --typeName testing
+    geomesa delete --catalog test_delete --typeName testing
   
 ### ingest
 Ingests TSV and CSV files containing WKT geometries with the following caveat:CSV files must surround values with double quotation marks, e.g.: `"37266103","2013-07-17","POINT(0.0 0.0)"` the first and last quotation marks are optional however. Also the WKT Geometry is assumed to be the last column of the CSV/TSV file.
 #### Usage
-    ingest --file <> --format <> --table <> --typeName <> --spec <> --datetime <> --dtformat <>
+    geomesa ingest --file <> --format <> --table <> --typeName <> --spec <> --datetime <> --dtformat <>
 
 note: *the `<>` marks are where user values would go*
 
@@ -167,4 +161,4 @@ Specify the catalog table to use with `--catalog`. This can be a previously crea
 Specify the feature to create with the `--typeName`.  
 Specify the filter string with `--filter`.
 #### Example command:
-    explain --catalog geomesa_catalog --typeName twittersmall --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+    geomesa explain --catalog geomesa_catalog --typeName twittersmall --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"

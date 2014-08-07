@@ -21,7 +21,6 @@ import java.nio.file.{Files, Paths}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
-import geomesa.utils.geotools.Conversions.RichAttributeDescriptor
 import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
@@ -52,7 +51,7 @@ class FeaturesTool(catalogTable: String) extends Logging {
       ds.getSchema(name).getAttributeDescriptors.foreach( attr => {
         val indexed = attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]
         val attrType = attr.getType.toString.replace(attr.getLocalName, "")
-        val attrString = if (indexed) s"         |_ ${attr.getLocalName}: $attrType (Indexed)" else s"         |_ ${attr.getLocalName}: $attrType"
+        val attrString = if (indexed) { s"         |_ ${attr.getLocalName}: $attrType (Indexed)" } else { s"         |_ ${attr.getLocalName}: $attrType" }
         logger.info(s"$attrString")
       })
     })
