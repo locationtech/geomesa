@@ -17,6 +17,7 @@ package geomesa.tools
 
 import java.net.URLDecoder
 import java.nio.charset.Charset
+
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core.data.AccumuloDataStore
@@ -29,6 +30,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+
 import scala.io.Source
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
@@ -73,8 +75,8 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   def parseFeature(line: String) = {
     try {
       val fields = config.format.toUpperCase match {
-        case "TSV" => TSV.parse(line).flatten.toArray[String]
-        case "CSV" => CSV.parse(line).flatten.toArray[String]
+        case "TSV" => TSV.parse(line).toArray[String]
+        case "CSV" => CSV.parse(line).toArray[String]
         case _     => throw new Exception
       }
       val id = idBuilder(fields)
@@ -152,7 +154,7 @@ trait SV extends RegexParsers {
     ((SPACES?)~>DQUOTE~>((TXT|SEP|CRLF|DQUOTE2)*)<~DQUOTE<~(SPACES?)) ^^ { case ls => ls.mkString("") }
   }
   def nonescaped: Parser[String] = (TXT*) ^^ { case ls => ls.mkString("") }
-  def parse(s: String) = parseAll(file, s) match {
+  def parse(s: String) = parseAll(record, s) match {
     case Success(res, _) => res
     case e => throw new Exception(e.toString)
   }
