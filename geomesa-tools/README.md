@@ -83,8 +83,8 @@ This should print out the following usage text:
     Ingest a csv file
       --file <value>
             the file you wish to ingest, e.g.: ~/capelookout.csv
-      --table <value>
-            the name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data
+      --catalog <value>
+            the name of the Accumulo table to use
       --typeName <value>
             the name of the feature type to be ingested
       -s <value> | --spec <value>
@@ -97,8 +97,8 @@ This should print out the following usage text:
     Ingest a tsv file
       --file <value>
             the file you wish to ingest, e.g.: ~/capehatteras.tsv
-      --table <value>
-            the name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data
+      --catalog <value>
+            the name of the Accumulo table to use
       --typeName <value>
             the name of the feature type to be ingested
       -s <value> | --spec <value>
@@ -164,7 +164,7 @@ The following sub commands correspond to the file type you are attempting to ing
          
     `--file` The file path to the csv file being ingested.
     
-    `--table` The accumulo table name, the table will be created if not already extant.
+    `--catalog` The accumulo table name, the table will be created if not already extant.
     
     `--typeName` The name of the SimpleFeatureType to be used.
     
@@ -181,7 +181,7 @@ The following sub commands correspond to the file type you are attempting to ing
          
     `--file` The file path to the tsv file being ingested.
     
-    `--table` The accumulo table name, the table will be created if not already extant.
+    `--catalog` The accumulo table name, the table will be created if not already extant.
     
     `--typeName` The name of the SimpleFeatureType to be used.
     
@@ -193,10 +193,10 @@ The following sub commands correspond to the file type you are attempting to ing
 
 #### Example Ingest commands:
    
-    ingest csv --file capefear.csv --table outerbanks --typeName cape
+    ingest csv --file capefear.csv --catalog outerbanks --typeName cape
                 --spec id:Double,time:Date,*geom:Geometry --datetime time --dtformat MM/dd/yyyy
                 
-    ingest tsv --file capehatteras.tsv --table outerbanks --typeName cape
+    ingest tsv --file capehatteras.tsv --catalog outerbanks --typeName cape
                 --spec id:Double,time:Date,*geom:Geometry --datetime time --dtformat MM/dd/yyyy
 
 ### explain

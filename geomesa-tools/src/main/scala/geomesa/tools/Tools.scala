@@ -89,10 +89,9 @@ object Tools extends App with Logging {
         opt[String]("file").action { (s, c) =>
           c.copy(file = s)
         } text "the file you wish to ingest, e.g.: ~/capelookout.csv" required(),
-        opt[String]("table").action { (s, c) =>
-          c.copy(table = s)
-        } text "the name of the Accumulo table to use -- or create, " +
-          "if it does not already exist -- to contain the new data" required(),
+        opt[String]("catalog").action { (s, c) =>
+          c.copy(catalog = s)
+        } text "the name of the Accumulo table to use" required(),
         opt[String]("typeName").action { (s, c) =>
           c.copy(typeName = s)
         } text "the name of the feature type to be ingested" required(),
@@ -111,10 +110,9 @@ object Tools extends App with Logging {
         opt[String]("file").action { (s, c) =>
           c.copy(file = s)
         } text "the file you wish to ingest, e.g.: ~/capefear.tsv" required(),
-        opt[String]("table").action { (s, c) =>
-          c.copy(table = s)
-        } text "the name of the Accumulo table to use -- or create, " +
-          "if it does not already exist -- to contain the new data" required(),
+        opt[String]("catalog").action { (s, c) =>
+          c.copy(catalog = s)
+        } text "the name of the Accumulo table to use" required(),
         opt[String]("typeName").action { (s, c) =>
           c.copy(typeName = s)
         } text "the name of the feature type to be ingested" required(),
@@ -186,7 +184,7 @@ object Tools extends App with Logging {
 }
 
 /*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
-case class ScoptArguments(mode: String = null, table: String = null, spec: String = null,
+case class ScoptArguments(mode: String = null, spec: String = null,
                           idFields: String = null, latField: String = null, lonField: String = null,
                           dtField: String = null, dtFormat: String = null, method: String = "local",
                           file: String = null, typeName: String = null, format: String = null,

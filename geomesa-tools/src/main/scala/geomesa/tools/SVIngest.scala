@@ -37,7 +37,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
 
   import scala.collection.JavaConversions._
 
-  lazy val table            = config.table
+  lazy val table            = config.catalog
   lazy val path             = config.file
   lazy val typeName         = config.typeName
   lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")

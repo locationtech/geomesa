@@ -27,7 +27,7 @@ class Ingest() extends Logging {
     "password"     ->  sys.env.getOrElse("GEOMESA_PASSWORD", "admin"),
     "auths"        ->  sys.env.getOrElse("GEOMESA_AUTHS", ""),
     "visibilities" ->  sys.env.getOrElse("GEOMESA_VISIBILITIES", ""),
-    "tableName"    ->  config.table
+    "tableName"    ->  config.catalog
   )
 
   def defineIngestJob(config: ScoptArguments): Boolean = {
