@@ -146,6 +146,7 @@ object SimpleFeatureTypes {
     "Integer"             -> classOf[java.lang.Integer],
     "java.lang.Integer"   -> classOf[java.lang.Integer],
     "int"                 -> classOf[java.lang.Integer],
+    "Int"                 -> classOf[java.lang.Integer],
     "0"                   -> classOf[java.lang.Integer],
     "Long"                -> classOf[java.lang.Long],
     "java.lang.Long"      -> classOf[java.lang.Long],

@@ -1,23 +1,29 @@
 package geomesa.core.filter
 
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreTest, AccumuloFeatureStore}
-import geomesa.core.filter.FilterUtils._
 import geomesa.core.filter.TestFilters._
 import geomesa.core.iterators.TestData._
+import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
+import java.util.Date
 import org.geotools.data.DataStoreFinder
-import org.geotools.data.simple.SimpleFeatureSource
+import org.geotools.data.simple.{SimpleFeatureStore, SimpleFeatureSource}
+import org.geotools.factory.{Hints, CommonFactoryFinder}
 import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.Fragments
-
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+
 
 @RunWith(classOf[JUnitRunner])
 class AllPredicateTest extends Specification with FilterTester {
@@ -53,6 +59,63 @@ class AttributePredicateTest extends FilterTester {
 class AttributeGeoPredicateTest extends FilterTester {
   val filters = attributeAndGeometricPredicates
   runTest
+}
+
+@RunWith(classOf[JUnitRunner])
+class IdQueryTest extends Specification {
+
+  val ff = CommonFactoryFinder.getFilterFactory2
+  val ds = {
+    DataStoreFinder.getDataStore(Map(
+      "instanceId"        -> "mycloud",
+      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      "user"              -> "myuser",
+      "password"          -> "mypassword",
+      "auths"             -> "A,B,C",
+      "tableName"         -> "idquerytest",
+      "useMock"           -> "true",
+      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
+  }
+  val geomBuilder = JTSFactoryFinder.getGeometryFactory
+  val sft = SimpleFeatureTypes.createType("idquerysft", "age:Int:index=true,name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+  ds.createSchema(sft)
+  val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
+  val data = List(
+    ("1", Array(10, "johndoe", new Date), geomBuilder.createPoint(new Coordinate(10, 10))),
+    ("2", Array(20, "janedoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20))),
+    ("3", Array(30, "johnrdoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20)))
+  )
+  val featureCollection = new DefaultFeatureCollection()
+  val features = data.foreach { case (id, attrs, geom) =>
+    builder.reset()
+    builder.addAll(attrs.asInstanceOf[Array[AnyRef]])
+    val f = builder.buildFeature(id)
+    f.setDefaultGeometry(geom)
+    f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    featureCollection.add(f)
+  }
+  val fs = ds.getFeatureSource("idquerysft").asInstanceOf[SimpleFeatureStore]
+  fs.addFeatures(featureCollection)
+  fs.flush()
+
+  import geomesa.utils.geotools.Conversions._
+
+  "Id queries" should {
+
+    "use record table to return a result" >> {
+      val idQ = ff.id(ff.featureId("2"))
+      val res = fs.getFeatures(idQ).features().toList
+      res.length mustEqual 1
+      res.head.getID mustEqual "2"
+    }
+
+    "handle multiple ids correctly" >> {
+      val idQ = ff.id(ff.featureId("1"), ff.featureId("3"))
+      val res = fs.getFeatures(idQ).features().toList
+      res.length mustEqual 2
+      res.map(_.getID) must contain ("1", "3")
+    }
+  }
 }
 
 object FilterTester extends AccumuloDataStoreTest with Logging {
@@ -97,9 +160,9 @@ object FilterTester extends AccumuloDataStoreTest with Logging {
 
 }
 
-import geomesa.core.filter.FilterTester._
 
 trait FilterTester extends Specification with Logging {
+  import FilterTester._
   lazy val fs = getFeatureStore
 
   def filters: Seq[String]
@@ -119,5 +182,6 @@ trait FilterTester extends Specification with Logging {
     }
   }
 
+  import FilterUtils._
   def runTest = filters.map {s => compareFilter(s) }
 }
