@@ -20,7 +20,6 @@ import geomesa.utils.CartesianProductIterable
 
 import collection.BitSet
 import collection.immutable.Range.Inclusive
-import collection.mutable.{HashSet => MutableHashSet}
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
@@ -239,6 +238,101 @@ object GeohashUtils
         geom)
 
     gh
+  }
+
+  def getMinimumGeodeticDistance(bbox: BoundingBox, point: Point, exhaustive: Boolean = false): VincentyModel.Distance = {
+    val closestPoint = getClosestPoint(bbox: BoundingBox, point: Point, exhaustive)
+    if (closestPoint.chordLength == 0) {
+      new VincentyModel.Distance(0)
+    } else {
+      VincentyModel.getDistanceBetweenTwoPoints(point, defaultGeometryFactory.createPoint(
+        new Coordinate(Math.toDegrees(closestPoint.point.getX),
+                       Math.toDegrees(closestPoint.point.getY))
+      ))
+    }
+  }
+
+  def getMinimumChordLength(bbox: BoundingBox, point: Point, exhaustive: Boolean = false): Double = {
+    getClosestPoint(bbox: BoundingBox, point: Point, exhaustive).chordLength
+  }
+
+  case class GHClosePoint(point: Point, chordLength: Double)
+
+  def min(p1: GHClosePoint, p2: GHClosePoint): GHClosePoint = {
+    if (p1.chordLength < p2.chordLength) p1 else p2
+  }
+
+  /**
+   * Speedy estimation of closest point (in radians) on a GH to a target point
+   * Assumes spherical earth and minimizes chord length by evaluating valid local minima along GH BBOX
+   * Chord length is on unit circle
+   *
+   * Error is greatest when point is due east or west of GH
+   * For distances < 1000km, our reported closest distance is within 0.2m of actual closest distance (15-35bit GH)
+   * For distances < 5000km, our reported closest distance is within 6m of actual closest distance (15-35bit GH)
+   */
+  private def getClosestPoint(bbox: BoundingBox, point: Point, exhaustive: Boolean = false): GHClosePoint = {
+    if (point.within(bbox)) {
+      new GHClosePoint(point, 0)
+    } else {
+      val x = Math.toRadians(point.getX)
+      val y = Math.toRadians(point.getY)
+      val sinY = Math.sin(y)
+      val sinX = Math.sin(x)
+      val cosY = Math.cos(y)
+      val cosX = Math.cos(x)
+      val minLon = Math.toRadians(bbox.minLon)
+      val maxLon = Math.toRadians(bbox.maxLon)
+      val minLat = Math.toRadians(bbox.minLat)
+      val maxLat = Math.toRadians(bbox.maxLat)
+
+      //local minimum or maximum where derivative of chord length equals zero
+      def getLocalMinimumAlongLongitude(lon2: Double): Seq[Double] = {
+        Seq[Double](Math.atan(Math.tan(y) / (Math.cos(lon2) * cosX + Math.sin(lon2) * sinX)))
+      }
+      //local minima or maxima where derivative of chord length equals zero
+      def getLocalMinimaAlongLatitude(): Seq[Double] = {
+        Seq[Double](x, if (x > 0) x - Math.PI else x + Math.PI)
+      }
+      def getChordLength(lat2: Double, lon2: Double): Double = {
+        val cosLat2 = Math.cos(lat2)
+        val dX = cosLat2 * Math.cos(lon2) - cosY * cosX
+        val dY = cosLat2 * Math.sin(lon2) - cosY * sinX
+        val dZ = Math.sin(lat2) - sinY
+        Math.sqrt(dX * dX + dY * dY + dZ * dZ)
+      }
+      def getPointsToTryIfAboveOrBelowLat(lat: Double): Seq[Point] = {
+        val minima = getLocalMinimaAlongLatitude().withFilter(m => m > minLon && m < maxLon).map(m =>
+          defaultGeometryFactory.createPoint(new Coordinate(m, lat))
+        )
+        val startAndEndpoints = Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(minLon, lat)),
+                                           defaultGeometryFactory.createPoint(new Coordinate(maxLon, lat)))
+        minima ++ startAndEndpoints
+      }
+      def getPointsToTryAlongLongitude(lon: Double): Seq[Point] = {
+        val minima = getLocalMinimumAlongLongitude(lon).withFilter(m => m > minLat && m < maxLat).map( m =>
+          defaultGeometryFactory.createPoint(new Coordinate(lon, m))
+        )
+        val startAndEndpoints = Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(lon, minLat)),
+                                           defaultGeometryFactory.createPoint(new Coordinate(lon, maxLat)))
+        minima ++ startAndEndpoints
+      }
+
+      lazy val topEdgeSolutions = getPointsToTryIfAboveOrBelowLat(maxLat)
+      lazy val bottomEdgeSolutions = getPointsToTryIfAboveOrBelowLat(minLat)
+      lazy val leftEdgeSolutions = getPointsToTryAlongLongitude(minLon)
+      lazy val rightEdgeSolutions = getPointsToTryAlongLongitude(maxLon)
+      val pointsToTry = if (exhaustive) {
+          topEdgeSolutions ++ bottomEdgeSolutions ++ leftEdgeSolutions ++ rightEdgeSolutions
+      } else {
+        y match {
+          case y: Double if y >= maxLat && x <= maxLon && x >= minLon => topEdgeSolutions
+          case y: Double if y <= minLat && x <= maxLon && x >= minLon => bottomEdgeSolutions
+          case _ => leftEdgeSolutions ++ rightEdgeSolutions
+        }
+      }
+      pointsToTry.map( p => new GHClosePoint(p, getChordLength(p.getY, p.getX))).reduceLeft(min)
+    }
   }
 
   /**
