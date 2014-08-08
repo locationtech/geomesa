@@ -79,27 +79,86 @@ object Tools extends App with Logging {
       opt[String]("typeName").action { (s, c) =>
         c.copy(typeName = s) } text "the name of the new feature to be create" required(),
       opt[String]("sft").action { (s, c) =>
-        c.copy(sft = s) } text "the string representation of the SimpleFeatureType" required()
+        c.copy(sft = s)
+      } text "the string representation of the SimpleFeatureType" required()
       )
 
-    cmd("ingest") action { (_, c) =>
-      c.copy(mode = "ingest") } text "Ingest a feature into GeoMesa" children (
-      opt[String]("file").action { (s, c) =>
-        c.copy(file = s) } text "the file you wish to ingest, e.g.: ~/capelookout.csv" required(),
-      opt[String]("format").action { (s, c) =>
-        c.copy(format = s.toUpperCase) } text "the format of the file, it must be csv or tsv" required(),
-      opt[String]("table").action { (s, c) =>
-        c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
-        "if it does not already exist -- to contain the new data" required(),
-      opt[String]("typeName").action { (s, c) =>
-        c.copy(typeName = s) } text "the name of the feature type to be ingested" required(),
-      opt[String]('s', "spec").action { (s, c) =>
-        c.copy(spec = s) } text "the sft specification for the file" required(),
-      opt[String]("datetime").action { (s, c) =>
-        c.copy(dtField = s) } text "the name of the datetime field in the sft" required(),
-      opt[String]("dtformat").action { (s, c) =>
-        c.copy(dtFormat = s) } text "the format of the datetime field" required()
+    cmd("ingest") text "Ingest a file into GeoMesa" action { (x, c) => c.copy(mode = "ingest") }  children(
+
+      cmd("csv") action { (_, c) => c.copy(format = "csv") } text "Ingest a csv file" children(
+        opt[String]("catalog").action { (s, c) =>
+          c.copy(catalog = s)
+        } text "the name of the Accumulo table to use" required(),
+        opt[String]("typeName").action { (s, c) =>
+          c.copy(typeName = s)
+        } text "the name of the feature type to be ingested" required(),
+        opt[String]('s', "spec").action { (s, c) =>
+          c.copy(spec = s)
+        } text "the sft specification for the file" required(),
+        opt[String]("datetime").action { (s, c) =>
+          c.copy(dtField = s)
+        } text "the name of the datetime field in the sft" required(),
+        opt[String]("dtformat").action { (s, c) =>
+          c.copy(dtFormat = s)
+        } text "the format of the datetime field" required(),
+        opt[Boolean]("skip-header").action { (b, c) =>
+          c.copy(skipHeader = b)
+        } text "specify if to skip the header or not (false includes the header)" optional(),
+        note("\n\tThe following named parameters are optional for cases when ingesting csv/tsv files \n" +
+          "\tcontaining explicit latitude and longitude columns, which will be constructed into point data.\n"),
+        opt[String]("idfields").action { (s, c) =>
+          c.copy(idFields = Option(s))
+        } text "the comma separated list of id fields used to generate the feature ids. \n" +
+          "\t\tif empty it is assumed that the id will be generated via a hash on the attributes of that line" optional(),
+        opt[String]("lon").action { (s, c) =>
+          c.copy(lonAttribute = Option(s))
+        } text "the name of the longitude field" optional(),
+        opt[String]("lat").action { (s, c) =>
+          c.copy(latAttribute = Option(s))
+        } text "the name of the latitude field" optional(),
+        opt[String]("file").action { (s, c) =>
+          c.copy(file = s)
+        } text "the file you wish to ingest, e.g.: ~/capelookout.csv, this is required" required()
+        ),
+
+      cmd("tsv") action { (_, c) => c.copy(format = "tsv") } text "Ingest a tsv file" children(
+        opt[String]("catalog").action { (s, c) =>
+          c.copy(catalog = s)
+        } text "the name of the Accumulo table to use" required(),
+        opt[String]("typeName").action { (s, c) =>
+          c.copy(typeName = s)
+        } text "the name of the feature type to be ingested" required(),
+        opt[String]('s', "spec").action { (s, c) =>
+          c.copy(spec = s)
+        } text "the sft specification for the file" required(),
+        opt[String]("datetime").action { (s, c) =>
+          c.copy(dtField = s)
+        } text "the name of the datetime field in the sft" required(),
+        opt[String]("dtformat").action { (s, c) =>
+          c.copy(dtFormat = s)
+        } text "the format of the datetime field" required(),
+        opt[Boolean]("skip-header").action { (b, c) =>
+          c.copy(skipHeader = b)
+        } text "specify if to skip the header or not (false includes the header)" optional(),
+        note("\n\tThe following named parameters are optional for cases when ingesting csv/tsv files \n" +
+          "\tcontaining explicit latitude and longitude columns, which will be constructed into point data.\n"),
+        opt[String]("idfields").action { (s, c) =>
+          c.copy(idFields = Option(s))
+        } text "the comma separated list of id fields used to generate the feature ids. \n" +
+          "\t\tif empty it is assumed that the id will be generated via a hash on the attributes of that line" optional(),
+        opt[String]("lon").action { (s, c) =>
+          c.copy(lonAttribute = Option(s))
+        } text "the name of the longitude field" optional(),
+        opt[String]("lat").action { (s, c) =>
+          c.copy(latAttribute = Option(s))
+        } text "the name of the latitude field" optional(),
+        opt[String]("file").action { (s, c) =>
+          c.copy(file = s)
+        } text "the file you wish to ingest, e.g.: ~/capefear.tsv" required()
+        )
+
       )
+
   }
 
   parser.parse(args, ScoptArguments()).map(config =>
@@ -145,8 +204,8 @@ object Tools extends App with Logging {
       case "ingest" =>
         val ingest = new Ingest()
         ingest.defineIngestJob(config) match {
-          case true => logger.info(s"Successful ingest of file: \'${config.file}\'")
-          case false => logger.error(s"Error: could not successfully ingest file: \'${config.file}\'")
+          case true => logger.info(s"Ingest complete of file: \'${config.file}\'")
+          case false => logger.error(s"Error: could not ingest file: \'${config.file}\'")
         }
     }
   ).getOrElse(
@@ -155,14 +214,13 @@ object Tools extends App with Logging {
 }
 
 /*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
-case class ScoptArguments(mode: String = null, table: String = null, spec: String = null,
-                          idFields: String = null, latField: String = null, lonField: String = null,
+case class ScoptArguments(mode: String = null, spec: String = null, idFields: Option[String] = None,
                           dtField: String = null, dtFormat: String = null, method: String = "local",
                           file: String = null, typeName: String = null, format: String = null,
                           catalog: String = null, sft: String = null, maxFeatures: Int = -1,
                           filterString: String = null, attributes: String = null, idAttribute: String = null,
                           lonAttribute: Option[String] = None, latAttribute: Option[String] = None,
-                          dateAttribute: Option[String] = None, query: String = null)
+                          dateAttribute: Option[String] = None, query: String = null, skipHeader: Boolean = false)
 
 
 

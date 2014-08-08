@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.locationtech.geomesa.tools
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -26,23 +27,25 @@ class Ingest() extends Logging {
     "password"     ->  sys.env.getOrElse("GEOMESA_PASSWORD", "admin"),
     "auths"        ->  sys.env.getOrElse("GEOMESA_AUTHS", ""),
     "visibilities" ->  sys.env.getOrElse("GEOMESA_VISIBILITIES", ""),
-    "tableName"    ->  config.table
+    "tableName"    ->  config.catalog
   )
 
   def defineIngestJob(config: ScoptArguments): Boolean = {
+    //ensure that geomesa classes are loaded so that the subsequent
     val dsConfig = getAccumuloDataStoreConf(config)
     config.format.toUpperCase match {
       case "CSV" | "TSV" =>
         config.method.toLowerCase match {
-          case "mapreduce" =>
-            true
           case "local" =>
-            new SVIngest(config, dsConfig)
+            logger.info("Ingest has started, please wait.")
+            val ingest = new SVIngest(config, dsConfig)
+            ingest.runIngest()
             true
           case _ =>
             logger.error("Error, no such ingest method for CSV or TSV found, no data ingested")
             false
         }
+
       case _ =>
         logger.error(s"Error, format: \'${config.format}\' not supported. Supported formats include: CSV, TSV")
         false
