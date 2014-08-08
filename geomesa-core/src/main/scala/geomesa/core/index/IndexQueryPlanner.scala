@@ -19,7 +19,7 @@ package geomesa.core.index
 import com.vividsolutions.jts.geom.{Point, Polygon}
 import geomesa.core._
 import geomesa.core.data._
-import geomesa.core.filter.{ff, _}
+import geomesa.core.filter._
 import geomesa.core.index.IndexQueryPlanner._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
@@ -190,7 +190,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       org.apache.accumulo.core.data.Range.exact(id.toString)
     }
     recordScanner.setRanges(ranges)
-    SelfClosingIterator(recordScanner.iterator, () => recordScanner.close())
+
+    SelfClosingBatchScanner(recordScanner)
   }
 
   def attrIdxQueryEligible(filt: Filter): Boolean = filt match {

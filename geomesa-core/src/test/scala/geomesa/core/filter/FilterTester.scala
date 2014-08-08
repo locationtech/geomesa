@@ -3,8 +3,6 @@ package geomesa.core.filter
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreTest, AccumuloFeatureStore}
-import geomesa.core.filter.FilterTester._
-import geomesa.core.filter.FilterUtils._
 import geomesa.core.filter.TestFilters._
 import geomesa.core.iterators.TestData._
 import geomesa.feature.AvroSimpleFeatureFactory
@@ -74,7 +72,7 @@ class IdQueryTest extends Specification {
       "user"              -> "myuser",
       "password"          -> "mypassword",
       "auths"             -> "A,B,C",
-      "tableName"         -> "filtertester",
+      "tableName"         -> "idquerytest",
       "useMock"           -> "true",
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
   }
@@ -164,6 +162,7 @@ object FilterTester extends AccumuloDataStoreTest with Logging {
 
 
 trait FilterTester extends Specification with Logging {
+  import FilterTester._
   lazy val fs = getFeatureStore
 
   def filters: Seq[String]
@@ -183,5 +182,6 @@ trait FilterTester extends Specification with Logging {
     }
   }
 
+  import FilterUtils._
   def runTest = filters.map {s => compareFilter(s) }
 }

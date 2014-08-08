@@ -10,7 +10,6 @@ import geomesa.utils.text.WKTUtils
 import java.util
 import org.apache.accumulo.core.Constants
 import org.apache.accumulo.core.data.{Key, Value}
-import org.geotools.data.DataUtilities
 import org.joda.time.{DateTime, DateTimeZone}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
