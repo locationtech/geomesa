@@ -26,48 +26,49 @@ This should print out the following usage text:
 
     GeoMesa Tools 1.0
     Usage: geomesa-tools [export|list|explain|delete|create|ingest] [options]
-     --help
-           show help command
+    
+      --help
+            show help command
     Command: export [options]
     Export all or a set of features in csv, geojson, gml, or shp format
-     --catalog <value>
-           the name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data
-     --typeName <value>
-           the name of the feature to export
-     --format <value>
-           the format to export to (e.g. csv, tsv)
-     --attributes <value>
-           attributes to return in the export
-     --idAttribute <value>
-           feature ID attribute to query on
-     --latAttribute <value>
-           latitude attribute to query on
-     --lonAttribute <value>
-           longitude attribute to query on
-     --dateAttribute <value>
-           date attribute to query on
-     --maxFeatures <value>
-           max number of features to return
-     --query <value>
-           ECQL query to run on the features
+      --catalog <value>
+            the name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data
+      --typeName <value>
+            the name of the feature to export
+      --format <value>
+            the format to export to (e.g. csv, tsv)
+      --attributes <value>
+            attributes to return in the export
+      --idAttribute <value>
+            feature ID attribute to query on
+      --latAttribute <value>
+            latitude attribute to query on
+      --lonAttribute <value>
+            longitude attribute to query on
+      --dateAttribute <value>
+            date attribute to query on
+      --maxFeatures <value>
+            max number of features to return
+      --query <value>
+            ECQL query to run on the features
     Command: list [options]
     List the features in the specified Catalog Table
-     --catalog <value>
-           the name of the Accumulo table to use
+      --catalog <value>
+            the name of the Accumulo table to use
     Command: explain [options]
     Explain and plan a query in Geomesa
-     --catalog <value>
-           the name of the Accumulo table to use
-     --typeName <value>
-           the name of the new feature to be create
-     --filter <value>
-           the filter string
+      --catalog <value>
+            the name of the Accumulo table to use
+      --typeName <value>
+            the name of the new feature to be create
+      --filter <value>
+            the filter string
     Command: delete [options]
     Delete a feature from the specified Catalog Table in Geomesa
-     --catalog <value>
-           the name of the Accumulo table to use
-     --typeName <value>
-           the name of the new feature to be create
+      --catalog <value>
+            the name of the Accumulo table to use
+      --typeName <value>
+            the name of the new feature to be create
     Command: create [options]
     Create a feature in Geomesa
       --catalog <value>
@@ -76,14 +77,14 @@ This should print out the following usage text:
             the name of the new feature to be create
       --sft <value>
             the string representation of the SimpleFeatureType
-    Command: ingest [options]
-    Ingest a feature into GeoMesa
+    Command: ingest [csv|tsv]
+    Ingest a file into GeoMesa
+    Command: ingest csv [options]
+    Ingest a csv file
       --file <value>
             the file you wish to ingest, e.g.: ~/capelookout.csv
-      --format <value>
-            the format of the file, it must be csv or tsv
-      --table <value>
-            the name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data
+      --catalog <value>
+            the name of the Accumulo table to use
       --typeName <value>
             the name of the feature type to be ingested
       -s <value> | --spec <value>
@@ -92,6 +93,47 @@ This should print out the following usage text:
             the name of the datetime field in the sft
       --dtformat <value>
             the format of the datetime field
+      --skip-header <value>
+            specify if to skip the header or not (false includes the header)
+      
+      The following named parameters are optional for cases when ingesting csv/tsv files 
+      containing explicit latitude and longitude columns, which will be constructed into point data.
+      
+      --idfields <value>
+            the comma separated list of id fields used to generate the feature ids. 
+            if empty it is assumed that the id will be generated via a hash on the attributes of that line
+      --lon <value>
+            the name of the longitude field
+      --lat <value>
+            the name of the latitude field
+            
+    Command: ingest tsv [options]
+    Ingest a tsv file
+      --file <value>
+            the file you wish to ingest, e.g.: ~/capehatteras.tsv
+      --catalog <value>
+            the name of the Accumulo table to use
+      --typeName <value>
+            the name of the feature type to be ingested
+      -s <value> | --spec <value>
+            the sft specification for the file
+      --datetime <value>
+            the name of the datetime field in the sft
+      --dtformat <value>
+            the format of the datetime field
+      --skip-header <value>
+            specify if to skip the header or not (false includes the header)
+      
+      The following named parameters are optional for cases when ingesting csv/tsv files 
+      containing explicit latitude and longitude columns, which will be constructed into point data.
+      
+      --idfields <value>
+            the comma separated list of id fields used to generate the feature ids. 
+            if empty it is assumed that the id will be generated via a hash on the attributes of that line
+      --lon <value>
+            the name of the longitude field
+      --lat <value>
+            the name of the latitude field
             
 This usage text gives a brief overview of how to use each command, and this is expanded upon below with example commands.  
 Note that each command should be prefixed by `java -jar geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar` on the command line.
@@ -137,28 +179,80 @@ Specify the feature to delete with `--typeName`.
     delete --catalog test_delete --typeName testing
   
 ### ingest
-Ingests TSV and CSV files containing WKT geometries with the following caveat:CSV files must surround values with double quotation marks, e.g.: `"37266103","2013-07-17","POINT(0.0 0.0)"` the first and last quotation marks are optional however. Also the WKT Geometry is assumed to be the last column of the CSV/TSV file.
-#### Usage
-    ingest --file <> --format <> --table <> --typeName <> --spec <> --datetime <> --dtformat <>
+Ingests files into GeoMesa.
 
-note: *the `<>` marks are where user values would go*
+#### Sub Commands:
+The following sub commands correspond to the file type you are attempting to ingest. The required flags used depend on the sub command.
 
-with the following parameters:
-     
-`--file` The file path to the csv file or tsv file being ingested.
+#### csv
+ For ingesting csv files containing WKT geometries in the last column. WKT geometries containing commas must be surrounded by quotes e.g.: `37266103,2013-07-17,"LINESTRING (30 10, 10 30, 40 40)"`
+ 
+###### csv required flags:
+         
+    `--file` The file path to the csv file being ingested.
+    
+    `--catalog` The accumulo table name, the table will be created if not already extant.
+    
+    `--typeName` The name of the SimpleFeatureType to be used.
+    
+    `--spec` The SimpleFeatureType of the CSV file, must match the layout of columns in the CSV file.
+    
+    `--datetime` The name of the field in the SFT spec above that corresponds to the the *time* column in the data being ingested.
+    
+    `--dtformat` The Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss"
+    
+optional flags for 
 
-`--format` The format of that file, either CSV or TSV.
+     `--skip-header` true|false indicate if you wish to skip the first line of the file or not.
+    
+optional flags for ingesting csv files with explicit latitude and longitude columns (non-WKT geometry), both `lon` and `lat` fields must be present to be valid
+    
+    `--idfields` the comma separated list of id fields used to generate a feature ids.
+    
+    `--lon` the name of the longitude field, must match the name in the sft.
+    
+    `--lat` the name of the latitude field, must match the name in the sft.
 
-`--table` The accumulo table name, the table will be created if not already extant.
+#### tsv
+ For ingesting tsv files containing WKT geometries in the last column.
+ 
+###### tsv required flags:
+         
+    `--file` The file path to the tsv file being ingested.
+    
+    `--catalog` The accumulo table name, the table will be created if not already extant.
+    
+    `--typeName` The name of the SimpleFeatureType to be used.
+    
+    `--spec` The SimpleFeatureType of the TSV file, must match the layout of columns in the TSV file.
+    
+    `--datetime` The name of the field in the SFT spec above that corresponds to the the *time* column in the data being ingested.
+    
+    `--dtformat` The Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss"
+    
+optional flags for 
 
-`--typeName` The name of the SimpleFeatureType to be used.
+     `--skip-header` true|false indicate if you wish to skip the first line of the file or not.
+    
+optional flags for ingesting tsv files with explicit latitude and longitude columns (non-WKT geometry), both `lon` and `lat` fields must be present to be valid
+    
+    `--idfields` the comma separated list of id fields used to generate a feature ids.
+    
+    `--lon` the name of the longitude field, must match the name in the sft.
+    
+    `--lat` the name of the latitude field, must match the name in the sft.
 
-`--spec` The SimpleFeatureType of the CSV or TSV file, must match the layout of columns in the CSV/TSV file
-
-`--datetime` The name of the field in the SFT spec above that corresponds to the the *time* column in the data being ingested.
-
-`--dtformat` The Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss"
-
+#### Example Ingest commands:
+   
+    ingest csv --file capefear.csv --catalog outerbanks --typeName cape
+                --spec id:Double,time:Date,*geom:Geometry --datetime time --dtformat MM/dd/yyyy
+                
+    ingest tsv --file capehatteras.tsv --catalog outerbanks --typeName cape
+                --spec id:Double,time:Date,*geom:Geometry --datetime time --dtformat MM/dd/yyyy
+                
+    ingest csv --file capelookout.csv --catalog outerbanks --typeName cape
+                --spec id:Double,time:Date,lat:Double,lon:Double,*geom:Point --datetime time --dtformat MM/dd/yyyy
+                --skip-header true --idfields id,time,lat,lon --lon lon --lat lat
 
 ### explain
 To ask GeoMesa how it intends to satisfy a given query, use the `explain` command.
@@ -168,3 +262,4 @@ Specify the feature to create with the `--typeName`.
 Specify the filter string with `--filter`.
 #### Example command:
     explain --catalog geomesa_catalog --typeName twittersmall --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+    

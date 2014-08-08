@@ -46,6 +46,11 @@
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
         </dependency>
+        <dependency>
+            <groupId>net.sourceforge.javacsv</groupId>
+            <artifactId>javacsv</artifactId>
+            <version>2.0</version>
+        </dependency>
         <!-- provided dependencies -->
         <dependency>
             <groupId>org.apache.accumulo</groupId>

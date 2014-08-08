@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package geomesa.tools
 
 import com.typesafe.scalalogging.slf4j.Logging
+import geomesa.core.iterators.SpatioTemporalIntersectingIterator
 
 class Ingest() extends Logging {
 
@@ -26,16 +28,15 @@ class Ingest() extends Logging {
     "password"     ->  sys.env.getOrElse("GEOMESA_PASSWORD", "admin"),
     "auths"        ->  sys.env.getOrElse("GEOMESA_AUTHS", ""),
     "visibilities" ->  sys.env.getOrElse("GEOMESA_VISIBILITIES", ""),
-    "tableName"    ->  config.table
+    "tableName"    ->  config.catalog
   )
 
   def defineIngestJob(config: ScoptArguments): Boolean = {
+    SpatioTemporalIntersectingIterator.initClassLoader(null)
     val dsConfig = getAccumuloDataStoreConf(config)
     config.format.toUpperCase match {
       case "CSV" | "TSV" =>
         config.method.toLowerCase match {
-          case "mapreduce" =>
-            true
           case "local" =>
             new SVIngest(config, dsConfig)
             true
@@ -43,6 +44,7 @@ class Ingest() extends Logging {
             logger.error("Error, no such ingest method for CSV or TSV found, no data ingested")
             false
         }
+
       case _ =>
         logger.error(s"Error, format: \'${config.format}\' not supported. Supported formats include: CSV, TSV")
         false

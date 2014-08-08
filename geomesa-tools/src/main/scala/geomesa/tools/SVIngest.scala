@@ -18,18 +18,22 @@ package geomesa.tools
 import java.net.URLDecoder
 import java.nio.charset.Charset
 
+import com.csvreader.CsvReader
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.Coordinate
 import geomesa.core.data.AccumuloDataStore
 import geomesa.core.index.Constants
 import geomesa.feature.AvroSimpleFeatureFactory
 import geomesa.utils.geotools.SimpleFeatureTypes
-import org.geotools.data.{DataStoreFinder, Transaction}
+import org.apache.commons.io.IOUtils
+import org.geotools.data.{DataStoreFinder, FeatureWriter, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.io.Source
 
@@ -37,16 +41,29 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
 
   import scala.collection.JavaConversions._
 
-  lazy val table            = config.table
+  lazy val table            = config.catalog
+  lazy val idFields         = config.idFields.orNull
   lazy val path             = config.file
   lazy val typeName         = config.typeName
   lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
   lazy val dtgField         = config.dtField
   lazy val dtgFmt           = config.dtFormat
   lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
+  lazy val latField         = config.latAttribute.orNull
+  lazy val lonField         = config.lonAttribute.orNull
+  lazy val skipHeader       = config.skipHeader
+
+  lazy val dropHeader = skipHeader match {
+    case true => 1
+    case _    => 0
+  }
+
+  lazy val delim = config.format.toUpperCase match {
+    case "TSV" => '\t'
+    case "CSV" => ','
+  }
 
   lazy val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
-
   ds.createSchema(sft)
 
   lazy val sft = {
@@ -55,33 +72,47 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
     ret
   }
 
-  lazy val delim  = config.format.toUpperCase match {
-    case "TSV" => "\t"
-    case "CSV" => "\",\""
-  }
-
   lazy val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
-
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
   lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt)
-
   lazy val attributes = sft.getAttributeDescriptors
   lazy val dtBuilder = buildDtBuilder
   lazy val idBuilder = buildIDBuilder
 
-  lazy val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
+  class CloseableFeatureWriter {
+    val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
+    def release(): Unit = { fw.close() }
+  }
 
-  Source.fromFile(path).getLines.foreach { line => parseFeature(line) }
+  lazy val cfw = new CloseableFeatureWriter
+  config.method.toLowerCase match {
+    case "local" =>
+      Source.fromFile(path).getLines.drop(dropHeader).foreach { line => parseFeature(cfw.fw, line) }
+    case _ =>
+      logger.error(s"Error, no such SV ingest method: ${config.method.toLowerCase}"); false
+  }
 
-  def parseFeature(line: String) = {
+  def parseFeature(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String) = {
     try {
-      val fields = line.toString.split(delim).map(s => s.replaceAll("\"", "")) // remove extra quote marks if present
+      val reader = new CsvReader(IOUtils.toInputStream(line), delim, Charset.defaultCharset())
+      val fields = reader.readRecord() match {
+        case true => reader.getValues
+        case _    => reader.close(); throw new Exception
+      }
+      reader.close()
       val id = idBuilder(fields)
       builder.reset()
       builder.addAll(fields.asInstanceOf[Array[AnyRef]])
       val feature = builder.buildFeature(id)
-      // assume last field is the WKT geom, however it is a valid property of feature...
-      feature.setDefaultGeometry(feature.getAttribute(feature.getAttributeCount-1))
+
+      // Support for point data method
+      val lon = Option(feature.getAttribute(lonField).asInstanceOf[Double])
+      val lat = Option(feature.getAttribute(latField).asInstanceOf[Double])
+      val geom = (lon, lat) match {
+        case (Some(lon), Some(lat)) => geomFactory.createPoint(new Coordinate(lon, lat))
+        case _                      => feature.getAttribute(feature.getAttributeCount-1) // assume last field is the WKT geom, however it is a valid property of feature...
+      }
+      feature.setDefaultGeometry(geom)
       val dtg = dtBuilder(feature.getAttribute(dtgField))
       feature.setAttribute(dtgTargetField, dtg.toDate)
       val toWrite = fw.next()
@@ -97,8 +128,14 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   }
 
   def buildIDBuilder: (Array[String]) => String = {
-     val hashFn = Hashing.md5()
-     attrs => hashFn.newHasher().putString(attrs.mkString("|"), Charset.defaultCharset()).hash().toString
+     idFields match {
+       case s: String =>
+         val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
+         attrs => idSplit.map { idx => attrs(idx) }.mkString("_")
+       case _         =>
+         val hashFn = Hashing.md5()
+         attrs => hashFn.newHasher().putString(attrs.mkString ("|"), Charset.defaultCharset()).hash().toString
+     }
   }
 
   def buildDtBuilder: (AnyRef) => DateTime =
@@ -118,5 +155,6 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
     }.getOrElse(throw new RuntimeException("Cannot parse date"))
 
   // make sure we close the feature writer
-  fw.close()
+  cfw.release()
 }
+
