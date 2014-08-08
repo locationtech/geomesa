@@ -32,12 +32,14 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 
 import scala.io.Source
+import scala.util.matching.Regex
+import scala.util.parsing.combinator.RegexParsers
 
 class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging {
 
   import scala.collection.JavaConversions._
 
-  lazy val table            = config.table
+  lazy val table            = config.catalog
   lazy val path             = config.file
   lazy val typeName         = config.typeName
   lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
@@ -46,7 +48,6 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
 
   lazy val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
-
   ds.createSchema(sft)
 
   lazy val sft = {
@@ -55,27 +56,29 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
     ret
   }
 
-  lazy val delim  = config.format.toUpperCase match {
-    case "TSV" => "\t"
-    case "CSV" => "\",\""
-  }
-
   lazy val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
-
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
   lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt)
-
   lazy val attributes = sft.getAttributeDescriptors
   lazy val dtBuilder = buildDtBuilder
   lazy val idBuilder = buildIDBuilder
 
   lazy val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
 
-  Source.fromFile(path).getLines.foreach { line => parseFeature(line) }
+  config.method.toLowerCase match {
+    case "local" =>
+      Source.fromFile(path).getLines.foreach { line => parseFeature (line) }
+    case _ =>
+      logger.error(s"Error, no such SV method: ${config.method.toLowerCase}"); false
+  }
 
   def parseFeature(line: String) = {
     try {
-      val fields = line.toString.split(delim).map(s => s.replaceAll("\"", "")) // remove extra quote marks if present
+      val fields = config.format.toUpperCase match {
+        case "TSV" => TSV.parse(line).toArray[String]
+        case "CSV" => CSV.parse(line).toArray[String]
+        case _     => throw new Exception
+      }
       val id = idBuilder(fields)
       builder.reset()
       builder.addAll(fields.asInstanceOf[Array[AnyRef]])
@@ -119,4 +122,40 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
 
   // make sure we close the feature writer
   fw.close()
+}
+
+object CSV extends SV {
+  override def SEP: String = ","
+
+  override def SPACES: Regex = "[ \t]+".r
+}
+
+object TSV extends SV {
+  override def SEP: String = "\t"
+
+  override def SPACES: Regex = "".r
+}
+
+trait SV extends RegexParsers {
+  override val skipWhitespace = false
+
+  def SEP: String //= "\t"
+  def SPACES: Regex //= "[ \t]+".r
+
+  def DQUOTE  = "\""
+  def DQUOTE2 = "\"\"" ^^ { case _ => "\"" }  // combine 2 dquotes into 1
+  def CRLF    = "\r\n" | "\n"
+  def TXT     = s"""[^\"$SEP\r\n]""".r
+
+  def file: Parser[List[List[String]]] = repsep(record, CRLF) <~ (CRLF?)
+  def record: Parser[List[String]] = repsep(field, SEP)
+  def field: Parser[String] = escaped|nonescaped
+  def escaped: Parser[String] = {
+    ((SPACES?)~>DQUOTE~>((TXT|SEP|CRLF|DQUOTE2)*)<~DQUOTE<~(SPACES?)) ^^ { case ls => ls.mkString("") }
+  }
+  def nonescaped: Parser[String] = (TXT*) ^^ { case ls => ls.mkString("") }
+  def parse(s: String) = parseAll(record, s) match {
+    case Success(res, _) => res
+    case e => throw new Exception(e.toString)
+  }
 }

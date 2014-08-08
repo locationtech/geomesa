@@ -79,27 +79,56 @@ object Tools extends App with Logging {
       opt[String]("typeName").action { (s, c) =>
         c.copy(typeName = s) } text "the name of the new feature to be create" required(),
       opt[String]("sft").action { (s, c) =>
-        c.copy(sft = s) } text "the string representation of the SimpleFeatureType" required()
+        c.copy(sft = s)
+      } text "the string representation of the SimpleFeatureType" required()
       )
 
-    cmd("ingest") action { (_, c) =>
-      c.copy(mode = "ingest") } text "Ingest a feature into GeoMesa" children (
-      opt[String]("file").action { (s, c) =>
-        c.copy(file = s) } text "the file you wish to ingest, e.g.: ~/capelookout.csv" required(),
-      opt[String]("format").action { (s, c) =>
-        c.copy(format = s.toUpperCase) } text "the format of the file, it must be csv or tsv" required(),
-      opt[String]("table").action { (s, c) =>
-        c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
-        "if it does not already exist -- to contain the new data" required(),
-      opt[String]("typeName").action { (s, c) =>
-        c.copy(typeName = s) } text "the name of the feature type to be ingested" required(),
-      opt[String]('s', "spec").action { (s, c) =>
-        c.copy(spec = s) } text "the sft specification for the file" required(),
-      opt[String]("datetime").action { (s, c) =>
-        c.copy(dtField = s) } text "the name of the datetime field in the sft" required(),
-      opt[String]("dtformat").action { (s, c) =>
-        c.copy(dtFormat = s) } text "the format of the datetime field" required()
+    cmd("ingest") text "Ingest a file into GeoMesa" action { (x, c) => c.copy(mode = "ingest") }  children(
+
+      cmd("csv") action { (_, c) => c.copy(format = "csv") } text "Ingest a csv file" children(
+        opt[String]("file").action { (s, c) =>
+          c.copy(file = s)
+        } text "the file you wish to ingest, e.g.: ~/capelookout.csv" required(),
+        opt[String]("catalog").action { (s, c) =>
+          c.copy(catalog = s)
+        } text "the name of the Accumulo table to use" required(),
+        opt[String]("typeName").action { (s, c) =>
+          c.copy(typeName = s)
+        } text "the name of the feature type to be ingested" required(),
+        opt[String]('s', "spec").action { (s, c) =>
+          c.copy(spec = s)
+        } text "the sft specification for the file" required(),
+        opt[String]("datetime").action { (s, c) =>
+          c.copy(dtField = s)
+        } text "the name of the datetime field in the sft" required(),
+        opt[String]("dtformat").action { (s, c) =>
+          c.copy(dtFormat = s)
+        } text "the format of the datetime field" required()
+        ),
+
+      cmd("tsv") action { (_, c) => c.copy(format = "tsv") } text "Ingest a tsv file" children(
+        opt[String]("file").action { (s, c) =>
+          c.copy(file = s)
+        } text "the file you wish to ingest, e.g.: ~/capefear.tsv" required(),
+        opt[String]("catalog").action { (s, c) =>
+          c.copy(catalog = s)
+        } text "the name of the Accumulo table to use" required(),
+        opt[String]("typeName").action { (s, c) =>
+          c.copy(typeName = s)
+        } text "the name of the feature type to be ingested" required(),
+        opt[String]('s', "spec").action { (s, c) =>
+          c.copy(spec = s)
+        } text "the sft specification for the file" required(),
+        opt[String]("datetime").action { (s, c) =>
+          c.copy(dtField = s)
+        } text "the name of the datetime field in the sft" required(),
+        opt[String]("dtformat").action { (s, c) =>
+          c.copy(dtFormat = s)
+        } text "the format of the datetime field" required()
+        )
+
       )
+
   }
 
   parser.parse(args, ScoptArguments()).map(config =>
@@ -155,7 +184,7 @@ object Tools extends App with Logging {
 }
 
 /*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
-case class ScoptArguments(mode: String = null, table: String = null, spec: String = null,
+case class ScoptArguments(mode: String = null, spec: String = null,
                           idFields: String = null, latField: String = null, lonField: String = null,
                           dtField: String = null, dtFormat: String = null, method: String = "local",
                           file: String = null, typeName: String = null, format: String = null,
