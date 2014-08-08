@@ -25,18 +25,13 @@ if  [[ $1 = configure ]]; then
     bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
     echo "Setting GEOMESA_HOME to "$bin""
     export GEOMESA_HOME="$bin"
-    export PATH=${GEOMESA_HOME}/geomesa-tools:$PATH
-    read -p "Enter your Accumulo user name: " user
-    export GEOMESA_USER=$user
-    echo "Enter your Accumulo password: "
-    read -s password
-    export GEOMESA_PASSWORD=$password
+    export PATH=${GEOMESA_HOME}/bin:$PATH
     read -p "Enter your Accumulo instance ID: " instanceId
     export "GEOMESA_INSTANCEID"=$instanceId
     read -p "Enter your Accumulo Zookeepers string: " zookeepers
     export "GEOMESA_ZOOKEEPERS"=$zookeepers
 else
-    if [[ (-z "$GEOMESA_HOME" || -z "$GEOMESA_USER" || -z "$GEOMESA_PASSWORD" || -z "$GEOMESA_INSTANCEID" || -z "$GEOMESA_ZOOKEEPERS") ]]; then
+    if [[ (-z "$GEOMESA_HOME" || -z "$GEOMESA_INSTANCEID" || -z "$GEOMESA_ZOOKEEPERS") ]]; then
         echo "Your environment variables are not configured appropriately. Please run 'geomesa configure'."
     elif [ -n "$*" ]; then
         java -jar ${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar $*

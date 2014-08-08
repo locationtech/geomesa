@@ -22,11 +22,11 @@ class Ingest() extends Logging {
   def getAccumuloDataStoreConf(config: ScoptArguments) = Map (
     "instanceId"   ->  sys.env.getOrElse("GEOMESA_INSTANCEID", "instanceId"),
     "zookeepers"   ->  sys.env.getOrElse("GEOMESA_ZOOKEEPERS", "zoo1:2181,zoo2:2181,zoo3:2181"),
-    "user"         ->  sys.env.getOrElse("GEOMESA_USER", "admin"),
-    "password"     ->  sys.env.getOrElse("GEOMESA_PASSWORD", "admin"),
+    "user"         ->  config.username,
+    "password"     ->  config.password,
     "auths"        ->  sys.env.getOrElse("GEOMESA_AUTHS", ""),
     "visibilities" ->  sys.env.getOrElse("GEOMESA_VISIBILITIES", ""),
-    "tableName"    ->  config.table
+    "tableName"    ->  config.catalog
   )
 
   def defineIngestJob(config: ScoptArguments): Boolean = {
