@@ -24,17 +24,16 @@ import com.google.common.collect._
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import geomesa.core._
-import geomesa.core.index.{IndexEntryDecoder, IndexSchema, GeohashDecoder}
+import geomesa.core.data.{FeatureEncoding, SimpleFeatureEncoder, SimpleFeatureEncoderFactory}
+import geomesa.core.index.{IndexEntryDecoder, IndexSchema}
 import geomesa.feature.AvroSimpleFeatureFactory
-import geomesa.utils.geotools.{SimpleFeatureTypes, GridSnap}
-import geomesa.utils.geotools.Conversions.{toRichSimpleFeatureIterator, RichSimpleFeature}
+import geomesa.utils.geotools.Conversions.{RichSimpleFeature, toRichSimpleFeatureIterator}
+import geomesa.utils.geotools.{GridSnap, SimpleFeatureTypes}
 import geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => ARange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.commons.codec.binary.Base64
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
-import org.geotools.data.{DataUtilities, Query}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder, ReferencedEnvelope}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -42,14 +41,13 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Random, Success, Try}
 
-class DensityIterator extends SimpleFeatureFilteringIterator {
+class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends SortedKeyValueIterator[Key, Value] {
 
   import geomesa.core.iterators.DensityIterator.{DENSITY_FEATURE_STRING, SparseMatrix}
 
   var bbox: ReferencedEnvelope = null
   var curRange: ARange = null
   var result: SparseMatrix = HashBasedTable.create[Double, Double, Long]()
-  var srcIter: SortedKeyValueIterator[Key, Value] = null
   var projectedSFT: SimpleFeatureType = null
   var featureBuilder: SimpleFeatureBuilder = null
   var snap: GridSnap = null
@@ -57,10 +55,33 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
   var topDensityValue: Option[Value] = None
   protected var decoder: IndexEntryDecoder = null
 
-  override def init(source: SortedKeyValueIterator[Key, Value],
+  var simpleFeatureType: SimpleFeatureType = null
+  var source: SortedKeyValueIterator[Key,Value] = null
+
+  var topSourceKey: Key = null
+  var topSourceValue: Value = null
+  var featureEncoder: SimpleFeatureEncoder = null
+
+  if (other != null && env != null) {
+    source = other.source.deepCopy(env)
+    simpleFeatureType = other.simpleFeatureType
+  }
+
+  def this() = this(null, null)
+
+  def init(source: SortedKeyValueIterator[Key, Value],
                     options: ju.Map[String, String],
                     env: IteratorEnvironment): Unit = {
-    super.init(source, options, env)
+    this.source = source
+
+    // default to text if not found for backwards compatibility
+    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
+    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
+
+    val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+    simpleFeatureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
+    simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+
     bbox = JTS.toEnvelope(WKTUtils.read(options.get(DensityIterator.BBOX_KEY)))
     val (w, h) = DensityIterator.getBounds(options)
     snap = new GridSnap(bbox, w, h)
@@ -71,22 +92,22 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
   }
 
   /**
-   * Repeatedly calls the SimpleFeatureFilteringIterators 'next' method and compiles the results
+   * Combines the results from the underlying iterator stack
    * into a single feature
    */
-  override def next() = {
+  def findTop() = {
     // reset our 'top' (current) variables
     result.clear()
-    topDensityKey = None
-    topDensityValue = None
+    topSourceKey = null
+    topSourceValue = null
     var geometry: Geometry = null
-    var featureOption: Option[SimpleFeature] = Option(nextFeature)
 
-    super.next()
-    while(super.hasTop && !curRange.afterEndKey(topKey)) {
-      topDensityKey = Some(topKey)
-      val feature = featureOption.getOrElse(featureEncoder.decode(simpleFeatureType, topValue))
-      lazy val geoHashGeom = decoder.decode(topKey).getDefaultGeometry.asInstanceOf[Geometry]
+    while(source.hasTop && !curRange.afterEndKey(source.getTopKey)) {
+      topSourceKey = source.getTopKey
+      topSourceValue = source.getTopValue
+
+      val feature = featureEncoder.decode(simpleFeatureType, topSourceValue)
+      lazy val geoHashGeom = decoder.decode(topSourceKey).getDefaultGeometry.asInstanceOf[Geometry]
       geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
       geometry match {
         case point: Point =>
@@ -119,22 +140,20 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
         case _ => Nil
 
       }
-      // get the next feature that will be returned before calling super.next(), for the next loop
-      // iteration, where it will the the feature corresponding to topValue
-      featureOption = Option(nextFeature)
-      super.next()
+
+      // Advance the source iterator
+      source.next()
     }
 
     // if we found anything, set the current value
-    topDensityKey match {
-      case None =>
-      case Some(k) =>
-        featureBuilder.reset()
-        // encode the bins into the feature - this will be expanded by the IndexSchema
-        featureBuilder.add(DensityIterator.encodeSparseMatrix(result))
-        featureBuilder.add(geometry)
-        val feature = featureBuilder.buildFeature(Random.nextString(6))
-        topDensityValue = Some(featureEncoder.encode(feature))
+    if(topSourceKey != null) {
+      featureBuilder.reset()
+      // encode the bins into the feature - this will be expanded by the IndexSchema
+      featureBuilder.add(DensityIterator.encodeSparseMatrix(result))
+      featureBuilder.add(geometry)
+      val feature = featureBuilder.buildFeature(Random.nextString(6))
+      topDensityKey = Some(topSourceKey)
+      topDensityValue = Some(featureEncoder.encode(feature))
     }
   }
 
@@ -173,14 +192,24 @@ class DensityIterator extends SimpleFeatureFilteringIterator {
                     columnFamilies: ju.Collection[ByteSequence],
                     inclusive: Boolean): Unit = {
     curRange = range
-    super.seek(range, columnFamilies, inclusive)
+    source.seek(range, columnFamilies, inclusive)
+    findTop()
   }
 
-  override def hasTop: Boolean = topDensityKey.nonEmpty
+  def hasTop: Boolean = topDensityKey.nonEmpty
 
-  override def getTopKey: Key = topDensityKey.getOrElse(null)
+  def getTopKey: Key = topDensityKey.orNull
 
-  override def getTopValue = topDensityValue.getOrElse(null)
+  def getTopValue = topDensityValue.orNull
+
+  def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = new DensityIterator(this, env)
+
+  def next(): Unit = if(!source.hasTop) {
+    topDensityKey = None
+    topDensityValue = None
+  } else {
+    findTop()
+  }
 }
 
 object DensityIterator extends Logging {

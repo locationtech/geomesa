@@ -32,6 +32,8 @@ import geomesa.utils.geohash.GeohashUtils
 import geomesa.utils.geohash.GeohashUtils._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.SimpleFeatureTypes
+import geomesa.utils.geotools.Conversions._
+import geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.user.RegExFilter
@@ -56,6 +58,7 @@ object IndexQueryPlanner {
   val iteratorPriority_ColFRegex                       = 100
   val iteratorPriority_SpatioTemporalIterator          = 200
   val iteratorPriority_SimpleFeatureFilteringIterator  = 300
+  val iteratorPriority_AnalysisIterator                = 400
 }
 
 
@@ -439,7 +442,25 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         Some(configureSimpleFeatureFilteringIterator(featureType, ecql, query, goodPoly))
       } else None
 
-    qp.copy(iterators = qp.iterators ++ List(Some(stIdxIterCfg), sffiIterCfg).flatten)
+    val topIterCfg = if(query.getHints.containsKey(DENSITY_KEY)) {
+      val clazz = classOf[DensityIterator]
+
+      val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
+        "topfilter-" + randomPrintableString(5),
+        clazz)
+
+      val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Int]
+      val height =  query.getHints.get(HEIGHT_KEY).asInstanceOf[Int]
+      DensityIterator.configure(cfg, goodPoly, width, height)
+
+      cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
+      configureFeatureEncoding(cfg)
+      configureFeatureType(cfg, featureType)
+
+      Some(cfg)
+    } else None
+
+    qp.copy(iterators = qp.iterators ++ List(Some(stIdxIterCfg), sffiIterCfg, topIterCfg).flatten)
   }
 
   def stIdxQuery(acc: AccumuloConnectorCreator,
@@ -545,25 +566,15 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     val density: Boolean = query.getHints.containsKey(DENSITY_KEY)
 
-    val clazz =
-      if(density) classOf[DensityIterator]
-      else classOf[SimpleFeatureFilteringIterator]
-
     val cfg = new IteratorSetting(iteratorPriority_SimpleFeatureFilteringIterator,
       "sffilter-" + randomPrintableString(5),
-      clazz)
+      classOf[SimpleFeatureFilteringIterator])
 
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
     configureFeatureEncoding(cfg)
     configureTransforms(query,cfg)
     configureFeatureType(cfg, simpleFeatureType)
     ecql.foreach(SimpleFeatureFilteringIterator.setECQLFilter(cfg, _))
-
-    if(density) {
-      val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Integer]
-      val height =  query.getHints.get(HEIGHT_KEY).asInstanceOf[Integer]
-      DensityIterator.configure(cfg, poly, width, height)
-    }
 
     cfg
   }
