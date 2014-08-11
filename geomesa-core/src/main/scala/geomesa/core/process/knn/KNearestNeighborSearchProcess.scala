@@ -70,12 +70,12 @@ class KNearestNeighborSearchProcess {
  *  The main visitor class for the KNN search process
  */
 
-class KNNVisitor( inputFeatures: SimpleFeatureCollection,
-                               dataFeatures: SimpleFeatureCollection,
-                               numDesired: java.lang.Integer,
-                               estimatedDistance: java.lang.Double,
-                               maxSearchDistance: java.lang.Double
-                             ) extends FeatureCalc {
+class KNNVisitor( inputFeatures:     SimpleFeatureCollection,
+                  dataFeatures:      SimpleFeatureCollection,
+                  numDesired:        java.lang.Integer,
+                  estimatedDistance: java.lang.Double,
+                  maxSearchDistance: java.lang.Double
+                ) extends FeatureCalc {
 
   private val log = Logger.getLogger(classOf[KNNVisitor])
 
@@ -105,30 +105,20 @@ class KNNVisitor( inputFeatures: SimpleFeatureCollection,
     */
   def kNNSearch(source: SimpleFeatureSource, query: Query) = {
     log.info("Running Geomesa K-Nearest Neighbor Search on source type " + source.getClass.getName)
-    // create a new FeatureCollection, and add to it the results of a KNN query for each point in inputFeatures
-    // the SimpleFeatures are extracted from the (SimpleFeature,distance) tuple here
 
-    // approach #1
-    /**
-    new DefaultFeatureCollection {
-      inputFeatures.features.foreach {
-        aFeatureForSearch => addAll(
-          KNNQuery.runNewKNNQuery(source, query, numDesired, estimatedDistance, maxSearchDistance, aFeatureForSearch).map{_._1 }.asJavaCollection
+    // create a new Feature collection to hold the results of the KNN search around each point
+    val resultCollection = new DefaultFeatureCollection
+    val searchFeatureIterator = inputFeatures.features()
 
-        )
-      }
+    // for each entry in the inputFeatures collection:
+    while (searchFeatureIterator.hasNext) {
+      val aFeatureForSearch = searchFeatureIterator.next()
+      val knnResults = KNNQuery.runNewKNNQuery(source, query, numDesired, estimatedDistance, maxSearchDistance, aFeatureForSearch)
+      // extract the SimpleFeatures and convert to a Collection. Ordering will not be preserved.
+      val sfList = knnResults.map { case (resSF, _) => resSF}.asJavaCollection
+      resultCollection.addAll(sfList)
     }
-    **/
-    //approach #2 using a for loop. More readable .......
-    new DefaultFeatureCollection {
-      for {
-        aFeatureForSearch <- inputFeatures.features
-        knnResults = KNNQuery.runNewKNNQuery(source, query, numDesired, estimatedDistance, maxSearchDistance, aFeatureForSearch)
-        // extract the SimpleFeatures and convert to a Collection. Note that the ordering will not be preserved.
-        list = knnResults.map{_._1}.asJavaCollection  // the map extracts the SimpleFeature from the tuple
-        _ = addAll(list)
-      } {}
-    }
+    resultCollection
   }
 }
 case class KNNResult(results: SimpleFeatureCollection) extends AbstractCalcResult

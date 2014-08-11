@@ -7,8 +7,9 @@ import geomesa.utils.geohash.GeoHash
  * This object provides a method for obtaining a set of GeoHashes which are in "contact" with a seed GeoHash.
  * Sets are used throughout to avoid duplication.
  *
- * These methods exploit the symmetry of GeoHashes to ensure that they are both antimeridian (aka Internaional Data Line)
- * and "pole" safe. For the latter, any GeoHash that touches the pole has all such GeoHashes as "touching" neighbors
+ * These methods exploit the symmetry of GeoHashes to ensure that they are both antimeridian
+ * (aka Internaional Data Line) and "pole" safe. For the latter, any GeoHash that touches the pole
+ * has all such GeoHashes as "touching" neighbors
  */
 
 object TouchingGeoHashes {

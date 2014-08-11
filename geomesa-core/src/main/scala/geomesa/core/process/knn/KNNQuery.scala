@@ -2,6 +2,7 @@ package geomesa.core.process.knn
 
 import geomesa.core.filter._
 import geomesa.utils.geohash.GeoHash
+import org.apache.log4j.Logger
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -17,6 +18,7 @@ object KNNQuery {
   /**
    * Method to kick off a new KNN query about aFeatureForSearch
    */
+  private val log = Logger.getLogger(classOf[KNearestNeighborSearchProcess])
   def runNewKNNQuery(source: SimpleFeatureSource,
                      query: Query,
                      numDesired: Int,
@@ -44,9 +46,9 @@ object KNNQuery {
   def runKNNQuery(source: SimpleFeatureSource,
                    query: Query,
                    ghPQ: GeoHashSpiral,
-                   sfPQ: BoundedNearestNeighbors[(SimpleFeature,Double)]) : BoundedNearestNeighbors[(SimpleFeature,Double)] = {
+                   sfPQ: BoundedNearestNeighbors[(SimpleFeature,Double)]
+                 )     : BoundedNearestNeighbors[(SimpleFeature,Double)] = {
     import geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
-
     if (!ghPQ.hasNext) sfPQ
     else {
         val newGH = ghPQ.next()
@@ -56,11 +58,12 @@ object KNNQuery {
         val newFeatures = source.getFeatures(newQuery).features
 
         // insert the SimpleFeature and its distance into sfPQ
-        newFeatures.foreach{ sf:SimpleFeature => sfPQ.enqueue( (sf,sfPQ.distance(sf)) ) }
+        newFeatures.foreach { sf => sfPQ.enqueue( (sf,sfPQ.distance(sf)) ) }
 
         // apply filter to ghPQ if we've found k neighbors
-        if (sfPQ.isFull) sfPQ.maxDistance.foreach { x: Double => ghPQ.mutateFilterDistance(x)}
-        //println ("KNN Status:" + newGH.hash + " " + sfPQ.maxDistance.getOrElse(0.0) +" " + sfPQ.length )
+        if (sfPQ.isFull) sfPQ.maxDistance.foreach { x => ghPQ.mutateFilterDistance(x)}
+        log.debug (
+          s"KNN Status: Completed subQuery: (hash,distance, PQ size) = $newGH.hash, $sfPQ.maxDistance.getOrElse(0.0), $sfPQ.size ")
         runKNNQuery(source, query, ghPQ, sfPQ)
     }
   }

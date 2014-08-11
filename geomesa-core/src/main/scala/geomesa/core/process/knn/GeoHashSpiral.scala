@@ -32,7 +32,8 @@ trait GeoHashDistanceFilter {
   // removes GeoHashes that are further than a certain distance from a feature or point
   // as long as distance is in cartesian degrees, it needs to be compared to the
   // statefulFilterDistance converted to degrees
-  def statefulDistanceFilter(x: GeoHashWithDistance): Boolean = { x.dist < distanceConversion(statefulFilterDistance) }
+  def statefulDistanceFilter(x: GeoHashWithDistance): Boolean =
+    { x.dist < distanceConversion(statefulFilterDistance) }
 
   // this is the conversion from distance in meters to the maximum distance in degrees
   // this can be removed once GEOMESA-226 is resolved
@@ -40,13 +41,14 @@ trait GeoHashDistanceFilter {
 
 }
 trait GeoHashAutoSize {
-  // typically 25 bits are encoded in the Index Key
-  val allowablePrecisions = List(25,30,35,40)
   // find the smallest GeoHash whose minimumSize is larger than the desiredSizeInMeters
   def geoHashToSize(pointInside: Point, desiredSizeInMeters: Double ): GeoHash = {
-    val variablePrecGH = allowablePrecisions.reverse.map { prec => GeoHash(pointInside,prec) }
-    val largeEnoughGH = variablePrecGH.filter { gh => GeohashUtils.getGeohashMinDimensionMeters(gh) > desiredSizeInMeters  }
-    largeEnoughGH.head
+    import GeohashUtils._
+    // typically 25 bits are encoded in the Index Key
+    val allowablePrecisions = List(25,30,35,40).reverse
+    allowablePrecisions.map { prec => GeoHash(pointInside,prec) }
+                       .find { gh    => getGeohashMinDimensionMeters(gh) > desiredSizeInMeters }
+                       .getOrElse (GeoHash (pointInside, allowablePrecisions.last) )
   }
 }
 
@@ -62,7 +64,7 @@ object GeoHashSpiral extends GeoHashAutoSize {
     // see GEOMESA-226
     def distanceCalc(gh: GeoHash) = centerPoint.point.distance(gh.geom)
 
-    def orderedGH: Ordering[GeoHashWithDistance] = Ordering.by { _.dist}
+    implicit val orderedGH: Ordering[GeoHashWithDistance] = Ordering.by { _.dist}
     // this can be removed once GEOMESA-226 is resolved
     def metersConversion(meters: Double) =  distanceDegrees(centerPoint.point, meters)
 
