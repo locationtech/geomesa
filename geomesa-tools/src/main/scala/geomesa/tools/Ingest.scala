@@ -17,7 +17,6 @@
 package geomesa.tools
 
 import com.typesafe.scalalogging.slf4j.Logging
-import geomesa.core.iterators.SpatioTemporalIntersectingIterator
 
 class Ingest() extends Logging {
 
@@ -32,13 +31,14 @@ class Ingest() extends Logging {
   )
 
   def defineIngestJob(config: ScoptArguments): Boolean = {
-    SpatioTemporalIntersectingIterator.initClassLoader(null)
+    //ensure that geomesa classes are loaded so that the subsequent
     val dsConfig = getAccumuloDataStoreConf(config)
     config.format.toUpperCase match {
       case "CSV" | "TSV" =>
         config.method.toLowerCase match {
           case "local" =>
-            new SVIngest(config, dsConfig)
+            val ingest = new SVIngest(config, dsConfig)
+            ingest.runIngest()
             true
           case _ =>
             logger.error("Error, no such ingest method for CSV or TSV found, no data ingested")

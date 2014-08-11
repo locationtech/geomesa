@@ -32,7 +32,7 @@ This should print out the following usage text:
     Command: export [options]
     Export all or a set of features in csv, geojson, gml, or shp format
       --catalog <value>
-            the name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data
+            the name of the Accumulo table to use
       --typeName <value>
             the name of the feature to export
       --format <value>
@@ -60,7 +60,7 @@ This should print out the following usage text:
       --catalog <value>
             the name of the Accumulo table to use
       --typeName <value>
-            the name of the new feature to be create
+            the name of the new feature to be created
       --filter <value>
             the filter string
     Command: delete [options]
@@ -68,13 +68,13 @@ This should print out the following usage text:
       --catalog <value>
             the name of the Accumulo table to use
       --typeName <value>
-            the name of the new feature to be create
+            the name of the new feature to be created
     Command: create [options]
     Create a feature in Geomesa
       --catalog <value>
-            the name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data
+            the name of the Accumulo table to use
       --typeName <value>
-            the name of the new feature to be create
+            the name of the new feature to be created
       --sft <value>
             the string representation of the SimpleFeatureType
     Command: ingest [csv|tsv]
