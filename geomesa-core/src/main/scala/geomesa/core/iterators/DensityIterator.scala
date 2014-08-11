@@ -202,7 +202,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
 
   def getTopValue = topDensityValue.orNull
 
-  def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = throw new Exception("boo") //new DensityIterator(this, env)
+  def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = new DensityIterator(this, env)
 
   def next(): Unit = if(!source.hasTop) {
     topDensityKey = None
