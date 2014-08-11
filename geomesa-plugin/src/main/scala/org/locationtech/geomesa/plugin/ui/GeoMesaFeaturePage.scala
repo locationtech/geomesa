@@ -17,25 +17,28 @@
 package org.locationtech.geomesa.plugin.ui
 
 import com.typesafe.scalalogging.slf4j.Logging
+import org.apache.wicket.ajax.AjaxRequestTarget
+import org.apache.wicket.ajax.markup.html.AjaxLink
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink
 import org.apache.wicket.behavior.AttributeAppender
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow.WindowClosedCallback
 import org.apache.wicket.markup.html.basic.Label
 import org.apache.wicket.markup.html.form.{CheckBox, Form}
+import org.apache.wicket.markup.html.image.Image
+import org.apache.wicket.markup.html.link.BookmarkablePageLink
 import org.apache.wicket.markup.html.list.{ListItem, ListView}
+import org.apache.wicket.markup.html.panel.Fragment
 import org.apache.wicket.model.{Model, PropertyModel}
-import org.apache.wicket.{AttributeModifier, PageParameters}
+import org.apache.wicket.{AttributeModifier, PageParameters, ResourceReference}
+import org.geoserver.web.GeoServerBasePage
 import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.jobs.index.AttributeIndexJob
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, GeomAttributeSpec, NonGeomAttributeSpec}
-import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
-
-object GeoMesaFeaturePage {
-  val FEATURE_NAME_PARAM = "feature"
-  val DATASTORE_PARAM = "store"
-  val WORKSPACE_PARAM = "workspace"
-}
 
 class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage with Logging {
 
@@ -46,27 +49,39 @@ class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage wit
   val dataStoreName = parameters.getString(DATASTORE_PARAM)
 
   // check that link parameters give us a valid datastore/feature
-  @transient
-  val setup = for {
-    dataStoreInfo <- Try(getCatalog.getDataStoreByName(workspaceName, dataStoreName))
-    dataStore <- Try(dataStoreInfo.getDataStore(null).asInstanceOf[AccumuloDataStore])
-    sft = dataStore.getSchema(featureName)
-    if (sft != null)
-  } yield {
-    (dataStore, sft)
-  }
+  def loadStore() =
+    for {
+      dataStoreInfo <- Try(getCatalog.getDataStoreByName(workspaceName, dataStoreName))
+      dataStore <- Try(dataStoreInfo.getDataStore(null).asInstanceOf[AccumuloDataStore])
+      sft = dataStore.getSchema(featureName)
+      if (sft != null)
+    } yield {
+      (dataStore, sft)
+    }
 
-  setup match {
-    case Success((dataStore, sft)) => initUi(dataStore, sft)
+  loadStore() match {
+    case Success((dataStore, sft)) => initUi(dataStore, SimpleFeatureTypes.encodeType(sft))
     case Failure(e) =>
       error(s"Error: could not find feature '$featureName' in data store " +
             s"'$dataStoreName' in workspace '$workspaceName'.")
       setResponsePage(classOf[GeoMesaDataStoresPage])
   }
 
-  def initUi(dataStore: AccumuloDataStore, sft: SimpleFeatureType) = {
-    val spec = SimpleFeatureTypes.encodeType(sft)
+  def initUi(dataStore: AccumuloDataStore, spec: String) = {
     val attributes = AttributeSpec.toAttributes(spec)
+
+    // create a copy of the original attributes since the original gets modified by wicket
+    val copy = attributes.map { a =>
+      a match {
+        case a: GeomAttributeSpec => a.copy()
+        case a: NonGeomAttributeSpec => a.copy()
+      }
+    }
+
+    // modal form for uploading an xml config
+    val modalWindow = new ModalWindow("modalConfirm")
+    // modal loading dialog
+    val modalWaiting = new ModalWindow("modalWaiting")
 
     val form = new Form("form") {
       // each row in the form is an attribute with a checkbox indicating if it is indexed
@@ -94,8 +109,87 @@ class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage wit
       }
 
       add(listView)
+
+      // cancel form button
+      /*_*/add(new BookmarkablePageLink("cancel", classOf[GeoMesaDataStoresPage]))/*_*/
+
+      // link to open the file loading dialog
+      add(new AjaxLink("save") {
+        override def onClick(target: AjaxRequestTarget) = {
+          modalWindow.show(target)
+        }
+      })
     }
 
     add(form)
+
+    val loadingContainer = new Fragment(modalWaiting.getContentId, "waitingFragment", this)
+    loadingContainer
+      .add(new Image("loading", new ResourceReference(classOf[GeoServerBasePage], "img/ajax-loader.gif")))
+
+    modalWaiting.setContent(loadingContainer)
+    modalWaiting.setResizable(false)
+    // have to specify explicit heights - these were calculated from the css
+    modalWaiting.setInitialWidth(200)
+    modalWaiting.setInitialHeight(85)
+    modalWaiting.setTitle("Please Wait...")
+
+    add(modalWaiting)
+
+    val confirmContainer = new Fragment(modalWindow.getContentId, "confirmFragment", this)
+    confirmContainer.add(new Label("confirmLabel", "Indexing attributes may take a while. Continue?"))
+
+    // submit link
+    confirmContainer.add(new AjaxSubmitLink("confirm", form) {
+      // need to trigger the close of the window with js, otherwise it won't close until request returns
+      add(new AttributeModifier("onclick", true, Model.of("Wicket.Window.get().close();")) {
+        override def newValue(currentValue: String, newValue: String): String = newValue + currentValue
+      })
+      protected def onSubmit(target: AjaxRequestTarget, form: Form[_]) {
+        // pull out any changes
+        val changed = attributes.zip(copy)
+                      .filter { case (a, c) => a != c }
+                      .map { case (a, _) => a }
+        if (!changed.isEmpty) {
+          val (ds, sft) = loadStore().get
+          val added = changed.filter(a => a.index).map(a => a.name)
+          if (!added.isEmpty) {
+            val params = getCatalog.getDataStoreByName(workspaceName, dataStoreName)
+                         .getConnectionParameters
+                         .asScala
+                         .toMap[String, java.io.Serializable]
+                         .asInstanceOf[Map[String, String]]
+            val conf = GeoMesaBasePage.getHdfsConfiguration
+            // TODO error handling
+            AttributeIndexJob.runJob(conf, params, sft.getTypeName, added)
+          }
+
+          // if the job was successful, update the schema stored in the metadata
+          ds.updateIndexedAttributes(sft.getTypeName, AttributeSpec.toString(attributes))
+        }
+        setResponsePage(new GeoMesaFeaturePage(parameters))
+      }
+    })
+    confirmContainer.add(new AjaxLink("cancel") {
+      override def onClick(target: AjaxRequestTarget) =
+        setResponsePage(new GeoMesaFeaturePage(parameters))
+    })
+    modalWindow.setContent(confirmContainer)
+    modalWindow.setResizable(false)
+    // have to specify explicit heights - these were calculated from the css
+    modalWindow.setInitialWidth(350)
+    modalWindow.setInitialHeight(85)
+    modalWindow.setTitle("Confirm Attribute Indexing Changes")
+    modalWindow.setWindowClosedCallback(new WindowClosedCallback() {
+      override def onClose(target: AjaxRequestTarget) = modalWaiting.show(target)
+    })
+
+    add(modalWindow)
   }
+}
+
+object GeoMesaFeaturePage {
+  val FEATURE_NAME_PARAM = "feature"
+  val DATASTORE_PARAM = "store"
+  val WORKSPACE_PARAM = "workspace"
 }
