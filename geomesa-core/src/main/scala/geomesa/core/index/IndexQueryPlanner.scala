@@ -87,7 +87,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
   def netGeom(geom: Geometry): Geometry = geom match {
     case null => null
-    case _ => geom.intersection(IndexSchema.everywhere) //.asInstanceOf[Polygon]
+    case _ => geom.intersection(IndexSchema.everywhere) 
   }
   
   def netInterval(interval: Interval): Interval = interval match {
