@@ -18,8 +18,6 @@ import scala.collection.JavaConverters._
 @RunWith(classOf[JUnitRunner])
 class GenerateKNNQueryTest extends Specification {
 
-  sequential
-
   def createStore: AccumuloDataStore =
   // the specific parameter values should not matter, as we
   // are requesting a mock data store connection to Accumulo

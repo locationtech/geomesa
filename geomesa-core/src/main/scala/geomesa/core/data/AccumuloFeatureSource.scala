@@ -16,9 +16,8 @@
 
 package geomesa.core.data
 
-import geomesa.core.process.knn.KNNVisitor
-
 import collection.JavaConversions._
+import geomesa.core.process.knn.KNNVisitor
 import geomesa.core.process.proximity.ProximityVisitor
 import geomesa.core.process.query.QueryVisitor
 import geomesa.core.process.tube.TubeVisitor
