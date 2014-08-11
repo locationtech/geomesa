@@ -3,8 +3,8 @@ package geomesa.core.process.knn
 
 import geomesa.core._
 import geomesa.core.index.Constants
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -19,7 +19,7 @@ import scala.collection.JavaConversions._
 class NearestNeighborsPQTest extends Specification {
 
   val sftName = "geomesaKNNTestQueryFeature"
-  val sft = DataUtilities.createType(sftName, index.spec)
+  val sft = SimpleFeatureTypes.createType(sftName, index.spec)
 
   val equatorSF = SimpleFeatureBuilder.build(sft, List(), "equator")
   equatorSF.setDefaultGeometry(WKTUtils.read(f"POINT(0.1 0.2)"))
@@ -39,7 +39,7 @@ class NearestNeighborsPQTest extends Specification {
 
   def diagonalFeatureCollection: DefaultFeatureCollection = {
     val sftName = "geomesaKNNTestDiagonalFeature"
-    val sft = DataUtilities.createType(sftName, index.spec)
+    val sft = SimpleFeatureTypes.createType(sftName, index.spec)
     sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = DEFAULT_DTG_PROPERTY_NAME
 
     val featureCollection = new DefaultFeatureCollection(sftName, sft)
@@ -57,7 +57,7 @@ class NearestNeighborsPQTest extends Specification {
 
   def polarFeatureCollection: DefaultFeatureCollection = {
     val sftName = "geomesaKNNTestPolarFeature"
-    val sft = DataUtilities.createType(sftName, index.spec)
+    val sft = SimpleFeatureTypes.createType(sftName, index.spec)
     sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = DEFAULT_DTG_PROPERTY_NAME
 
     val featureCollection = new DefaultFeatureCollection(sftName, sft)
@@ -79,40 +79,50 @@ class NearestNeighborsPQTest extends Specification {
     "find things close by the equator" in {
       import geomesa.utils.geotools.Conversions._
       val equatorPQ = NearestNeighbors(equatorSF, 10)
-      equatorPQ ++= diagonalFeatureCollection.features.map { sf=> (sf,equatorPQ.distance(sf)) }
-      equatorPQ.head._1.getID must equalTo("0")
+      equatorPQ ++= diagonalFeatureCollection.features.map {
+        sf=> SimpleFeatureWithDistance(sf,equatorPQ.distance(sf))
+      }
+      equatorPQ.head.sf.getID must equalTo("0")
     }
 
     "find things close by Southwest Russia" in {
       import geomesa.utils.geotools.Conversions._
       val midpointPQ = NearestNeighbors(midpointSF, 10)
-      midpointPQ ++= diagonalFeatureCollection.features.map { sf=> (sf,midpointPQ.distance(sf)) }
+      midpointPQ ++= diagonalFeatureCollection.features.map {
+        sf=> SimpleFeatureWithDistance(sf,midpointPQ.distance(sf))
+      }
 
-      midpointPQ.head._1.getID must equalTo("45")
+      midpointPQ.head.sf.getID must equalTo("45")
     }
 
     "find things close by the North Pole" in {
       import geomesa.utils.geotools.Conversions._
       val polarPQ = NearestNeighbors(polarSF, 10)
-      polarPQ ++= diagonalFeatureCollection.features.map{ sf=> (sf,polarPQ.distance(sf)) }
+      polarPQ ++= diagonalFeatureCollection.features.map{
+        sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
+      }
 
-      polarPQ.head._1.getID must equalTo("90")
+      polarPQ.head.sf.getID must equalTo("90")
     }
 
     "find things in the north polar region" in {
       import geomesa.utils.geotools.Conversions._
       val polarPQ = NearestNeighbors(polarSF, 10)
-      polarPQ ++= polarFeatureCollection.features.map { sf=> (sf,polarPQ.distance(sf)) }
+      polarPQ ++= polarFeatureCollection.features.map {
+        sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
+      }
 
-      polarPQ.head._1.getID must equalTo("90")
+      polarPQ.head.sf.getID must equalTo("90")
     }
 
     "find more things near the north polar region" in {
       import geomesa.utils.geotools.Conversions._
       val polarPQ = NearestNeighbors(polarSF2, 10)
-      polarPQ ++= polarFeatureCollection.features.map { sf=> (sf,polarPQ.distance(sf)) }
+      polarPQ ++= polarFeatureCollection.features.map {
+        sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
+      }
 
-      polarPQ.head._1.getID must equalTo("0")
+      polarPQ.head.sf.getID must equalTo("0")
     }
   }
 }

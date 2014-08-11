@@ -4,8 +4,9 @@ import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import geomesa.core.index
 import geomesa.core.index.{Constants, IndexSchemaBuilder}
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
+import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
@@ -23,7 +24,7 @@ case class TestEntry(wkt: String, id: String, dt: DateTime = new DateTime())
 class KNearestNeighborSearchProcessTest extends Specification {
 
   val sftName = "geomesaKNNTestType"
-  val sft = DataUtilities.createType(sftName, index.spec)
+  val sft = SimpleFeatureTypes.createType(sftName, index.spec)
   sft.getUserData.put(Constants.SF_PROPERTY_START_TIME,"dtg")
 
   val ds = createStore
@@ -178,7 +179,7 @@ class KNearestNeighborSearchProcessTest extends Specification {
       val knnResults =
         KNNQuery.runNewKNNQuery(fs, wideQuery, 20, 50.0, 2500.0, queryFeature("madison", 38.036871, -78.502720))
       // return the ordered neighbors and extract the SimpleFeatures
-      val knnFeatures = knnResults.dequeueAll.map { _._1}
+      val knnFeatures = knnResults.dequeueAll.map { _.sf }
       val knnIDs = knnFeatures.map { _.getID }
       knnIDs must equalTo(orderedFeatureIDs)
     }

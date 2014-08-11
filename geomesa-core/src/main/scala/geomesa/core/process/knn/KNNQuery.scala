@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package geomesa.core.process.knn
 
 import geomesa.core.filter._
@@ -24,7 +40,7 @@ object KNNQuery {
                      numDesired: Int,
                      searchDistance: Double,
                      maxDistance: Double,
-                     aFeatureForSearch: SimpleFeature): BoundedNearestNeighbors[(SimpleFeature, Double)] = {
+                     aFeatureForSearch: SimpleFeature): BoundedNearestNeighbors[SimpleFeatureWithDistance] = {
 
     // setup the GeoHashSpiral -- it requires the search point,
     // an estimate of the area containing the K Nearest Neighbors,
@@ -46,8 +62,8 @@ object KNNQuery {
   def runKNNQuery(source: SimpleFeatureSource,
                    query: Query,
                    ghPQ: GeoHashSpiral,
-                   sfPQ: BoundedNearestNeighbors[(SimpleFeature,Double)]
-                 )     : BoundedNearestNeighbors[(SimpleFeature,Double)] = {
+                   sfPQ: BoundedNearestNeighbors[SimpleFeatureWithDistance]
+                 )     : BoundedNearestNeighbors[SimpleFeatureWithDistance] = {
     import geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
     if (!ghPQ.hasNext) sfPQ
     else {
@@ -58,7 +74,7 @@ object KNNQuery {
         val newFeatures = source.getFeatures(newQuery).features
 
         // insert the SimpleFeature and its distance into sfPQ
-        newFeatures.foreach { sf => sfPQ.enqueue( (sf,sfPQ.distance(sf)) ) }
+        newFeatures.foreach { sf => sfPQ.enqueue( SimpleFeatureWithDistance(sf,sfPQ.distance(sf)) ) }
 
         // apply filter to ghPQ if we've found k neighbors
         if (sfPQ.isFull) sfPQ.maxDistance.foreach { x => ghPQ.mutateFilterDistance(x)}

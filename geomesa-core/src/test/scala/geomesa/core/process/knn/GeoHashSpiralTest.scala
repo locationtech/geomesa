@@ -1,8 +1,8 @@
 package geomesa.core.process.knn
 
 import geomesa.core._
+import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
-import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
@@ -17,7 +17,7 @@ class GeoHashSpiralTest extends Specification {
   def generateCvilleSF = {
     val sftName = "geomesaKNNTestQueryFeature"
 
-    val sft = DataUtilities.createType(sftName, index.spec)
+    val sft = SimpleFeatureTypes.createType(sftName, index.spec)
 
     val cvilleSF = SimpleFeatureBuilder.build(sft, List(), "equator")
     cvilleSF.setDefaultGeometry(WKTUtils.read(f"POINT(-78.4953560 38.0752150 )"))

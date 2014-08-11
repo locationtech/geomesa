@@ -4,7 +4,8 @@ import geomesa.core.data._
 import geomesa.core.index
 import geomesa.core.index.Constants
 import geomesa.utils.geohash.GeoHash
-import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
+import geomesa.utils.geotools.SimpleFeatureTypes
+import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -33,7 +34,7 @@ class GenerateKNNQueryTest extends Specification {
       "featureEncoding" -> "avro").asJava).asInstanceOf[AccumuloDataStore]
 
   val sftName = "test"
-  val sft = DataUtilities.createType(sftName, index.spec)
+  val sft = SimpleFeatureTypes.createType(sftName, index.spec)
   sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
 
   val ds = createStore
