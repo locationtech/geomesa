@@ -79,6 +79,8 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   lazy val dtBuilder = buildDtBuilder
   lazy val idBuilder = buildIDBuilder
 
+  // This class is possibly necessary for scalding (to be added later)
+  // Otherwise it can be removed with just the line val fw = ... retained
   class CloseableFeatureWriter {
     val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
     def release(): Unit = { fw.close() }
@@ -94,10 +96,12 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
 
   def parseFeature(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String) = {
     try {
+      // CsvReader is being used to just split the line up. this may be refactored out when
+      // scalding support is added however it may be necessary for local only ingest
       val reader = new CsvReader(IOUtils.toInputStream(line), delim, Charset.defaultCharset())
       val fields = reader.readRecord() match {
         case true => reader.getValues
-        case _    => reader.close(); throw new Exception
+        case _    => reader.close(); throw new Exception(s"CsvReader could not parse: $line")
       }
       reader.close()
       val id = idBuilder(fields)
@@ -123,7 +127,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
       toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       fw.write()
     } catch {
-      case e: Exception => logger.error(s"Cannot parse: $line", e)
+      case e: Exception => logger.error(s"Cannot ingest line: $line", e)
     }
   }
 
