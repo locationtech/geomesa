@@ -287,13 +287,10 @@ object GeohashUtils
       val maxLat = Math.toRadians(bbox.maxLat)
 
       //local minimum or maximum where derivative of chord length equals zero
-      def getLocalMinimumAlongLongitude(lon2: Double): Seq[Double] = {
+      def getLocalMinimumAlongLongitude(lon2: Double): Seq[Double] =
         Seq[Double](Math.atan(Math.tan(y) / (Math.cos(lon2) * cosX + Math.sin(lon2) * sinX)))
-      }
       //local minima or maxima where derivative of chord length equals zero
-      def getLocalMinimaAlongLatitude(): Seq[Double] = {
-        Seq[Double](x, if (x > 0) x - Math.PI else x + Math.PI)
-      }
+      def getLocalMinimaAlongLatitude(): Seq[Double] = Seq[Double](x, if (x > 0) x - Math.PI else x + Math.PI)
       def getChordLength(lat2: Double, lon2: Double): Double = {
         val cosLat2 = Math.cos(lat2)
         val dX = cosLat2 * Math.cos(lon2) - cosY * cosX
@@ -310,7 +307,9 @@ object GeohashUtils
         minima ++ startAndEndpoints
       }
       def getPointsToTryAlongLongitude(lon: Double): Seq[Point] = {
-        val minima = getLocalMinimumAlongLongitude(lon).withFilter(m => m > minLat && m < maxLat).map( m =>
+        val minima = getLocalMinimumAlongLongitude(lon).withFilter(m => m > minLat && m < maxLat)
+                                                       .withFilter(!_.isNaN)
+                                                       .map( m =>
           defaultGeometryFactory.createPoint(new Coordinate(lon, m))
         )
         val startAndEndpoints = Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(lon, minLat)),

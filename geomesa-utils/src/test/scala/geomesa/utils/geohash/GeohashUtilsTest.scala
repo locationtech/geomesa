@@ -92,7 +92,11 @@ class GeohashUtilsTest extends Specification with Logging {
     "slightly WNW of gh in southern hemi" -> ((148.0, -86.999999), ((149, -89), (151, -87)), 1.0),
     "slightly NNW of gh in southern hemi" -> ((148.999999, -86.0), ((149, -89), (151, -87)), 1.0),
     "slightly WSW of gh in southern hemi" -> ((148.0, -89.000001), ((149, -89), (151, -87)), 1.0),
-    "slightly SSW of gh in southern hemi" -> ((148.999999, -90.0), ((149, -89), (151, -87)), 1.0)
+    "slightly SSW of gh in southern hemi" -> ((148.999999, -90.0), ((149, -89), (151, -87)), 1.0),
+    "above south pole gh" -> ((99.5, -88.0), ((99, -90), (100, -89)), 1.0),
+    "above south pole gh 180 around" -> ((-80.5, -89.5), ((99, -90), (100, -89)), 0.5),
+    "left of south pole gh" -> ((98.0, -89.0), ((99, -90), (100, -89)), 1.0),
+    "south pole to south pole gh" -> ((98.0, -90.0), ((99, -90), (100, -89)), 1e-7)
   )
 
   // (reasonable) odd GeoHash resolutions
