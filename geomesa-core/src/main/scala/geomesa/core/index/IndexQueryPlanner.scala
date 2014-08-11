@@ -16,18 +16,19 @@
 
 package geomesa.core.index
 
-import java.nio.charset.StandardCharsets
-import java.util.Map.Entry
-
 import com.vividsolutions.jts.geom.{Point, Polygon}
 import geomesa.core._
 import geomesa.core.data._
-import geomesa.core.filter.{ff, _}
+import geomesa.core.filter._
+import geomesa.core.index.IndexQueryPlanner._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
 import geomesa.core.util.CloseableIterator._
 import geomesa.core.util.{SelfClosingIterator, BatchMultiScanner, CloseableIterator, SelfClosingBatchScanner}
+import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import java.nio.charset.StandardCharsets
+import java.util.Map.Entry
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.user.RegExFilter
@@ -41,7 +42,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial.DWithin
-
 import scala.collection.JavaConversions._
 import scala.util.Random
 
@@ -54,8 +54,6 @@ object IndexQueryPlanner {
   val iteratorPriority_SimpleFeatureFilteringIterator  = 300
 }
 
-import geomesa.core.index.IndexQueryPlanner._
-import geomesa.utils.geotools.Conversions._
 
 case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              cfPlanner: ColumnFamilyPlanner,
@@ -176,9 +174,24 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         else
           stIdxQuery(acc, derivedQuery, filterVisitor, output)
 
+      case idFilter: Id =>
+        recordIdFilter(acc, idFilter, output)
+
       case cql =>
         stIdxQuery(acc, derivedQuery, filterVisitor, output)
     }
+  }
+
+  def recordIdFilter(acc: AccumuloConnectorCreator,
+                     idFilter: Id,
+                     explain: ExplainerOutputType) = {
+    val recordScanner = acc.createRecordScanner(featureType)
+    val ranges = idFilter.getIdentifiers.map { id =>
+      org.apache.accumulo.core.data.Range.exact(id.toString)
+    }
+    recordScanner.setRanges(ranges)
+
+    SelfClosingBatchScanner(recordScanner)
   }
 
   def attrIdxQueryEligible(filt: Filter): Boolean = filt match {
@@ -210,7 +223,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
   /* contains no single character wildcards */
   def containsNoSingles(filter: PropertyIsLike) =
-    !(filter.getLiteral.replace("\\\\", "").replace(s"\\$SINGLE_CHAR_WILDCARD", "").contains(SINGLE_CHAR_WILDCARD))
+    !filter.getLiteral.replace("\\\\", "").replace(s"\\$SINGLE_CHAR_WILDCARD", "").contains(SINGLE_CHAR_WILDCARD)
 
   def trailingOnlyWildcard(filter: PropertyIsLike) =
     (filter.getLiteral.endsWith(MULTICHAR_WILDCARD) &&
