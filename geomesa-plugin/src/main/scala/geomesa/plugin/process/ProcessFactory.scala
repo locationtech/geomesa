@@ -17,6 +17,7 @@
 
 package geomesa.plugin.process
 
+import geomesa.core.process.knn.KNearestNeighborSearchProcess
 import geomesa.core.process.proximity.ProximitySearchProcess
 import geomesa.core.process.query.QueryProcess
 import geomesa.core.process.tube.TubeSelectProcess
@@ -30,5 +31,6 @@ class ProcessFactory
     classOf[DensityProcess],
     classOf[TubeSelectProcess],
     classOf[ProximitySearchProcess],
-    classOf[QueryProcess])
+    classOf[QueryProcess],
+    classOf[KNearestNeighborSearchProcess])
 
