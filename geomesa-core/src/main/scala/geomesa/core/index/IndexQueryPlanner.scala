@@ -23,6 +23,7 @@ import com.vividsolutions.jts.geom._
 import geomesa.core._
 import geomesa.core.data._
 import geomesa.core.filter._
+import geomesa.core.index.FilterHelper._
 import geomesa.core.index.IndexQueryPlanner._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
@@ -32,8 +33,6 @@ import geomesa.utils.geohash.GeohashUtils
 import geomesa.utils.geohash.GeohashUtils._
 import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.SimpleFeatureTypes
-import geomesa.utils.geotools.Conversions._
-import geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.user.RegExFilter
@@ -66,7 +65,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              cfPlanner: ColumnFamilyPlanner,
                              schema: String,
                              featureType: SimpleFeatureType,
-                             featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging with FilterHelper {
+                             featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
   def buildFilter(geom: Geometry, interval: Interval): KeyPlanningFilter =
     (IndexSchema.somewhere(geom), IndexSchema.somewhen(interval)) match {
       case (None, None)       =>    AcceptEverythingFilter
@@ -88,11 +87,9 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
       asInstanceOf[Polygon]
   }
 
-  def netGeom(geom: Geometry): Geometry = geom match {
-    case null => null
-    case _ => geom.intersection(IndexSchema.everywhere) 
-  }
-  
+  def netGeom(geom: Geometry): Geometry =
+    Option(geom).map(_.intersection(IndexSchema.everywhere)).orNull
+
   def netInterval(interval: Interval): Interval = interval match {
     case null => null
     case _    => IndexSchema.everywhen.overlap(interval)
@@ -380,20 +377,13 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     output(s"Tweaked geom filters are $tweakedGeoms")
 
     // standardize the two key query arguments:  polygon and date-range
-    //val poly = netPolygon(spatial)
-    val geomsToCover: Seq[Geometry] = tweakedGeoms.flatMap {
+    val geomsToCover = tweakedGeoms.flatMap {
       case bbox: BBOX =>
         val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
         Seq(getInternationalDateLineSafeGeometry(addWayPointsToBBOX(bboxPoly)))
       case gf: BinarySpatialOperator =>
-        gf.getExpression1.evaluate(null, classOf[Geometry]) match {
-          case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
-          case _           =>
-            gf.getExpression2.evaluate(null, classOf[Geometry]) match {
-              case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
-            }
-        }
-      case _                 => Seq()
+        extractGeometry(gf)
+      case _ => Seq()
     }
 
     val collectionToCover: Geometry = geomsToCover match {
@@ -485,10 +475,10 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   def tweakFilter(filter: Filter) = {
     filter match {
       case dw: DWithin => rewriteDwithin(dw)
-      case op: BBOX       => visitBBOX(op)
-      case op: Within     => visitBinarySpatialOp(op)
-      case op: Intersects => visitBinarySpatialOp(op)
-      case op: Overlaps   => visitBinarySpatialOp(op)
+      case op: BBOX       => visitBBOX(op, featureType)
+      case op: Within     => visitBinarySpatialOp(op, featureType)
+      case op: Intersects => visitBinarySpatialOp(op, featureType)
+      case op: Overlaps   => visitBinarySpatialOp(op, featureType)
       case _ => filter
     }
   }

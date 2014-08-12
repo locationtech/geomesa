@@ -302,9 +302,9 @@ trait GeoHashPlanner extends Logging {
   def getKeyPlan(filter: KeyPlanningFilter, offset: Int, bits: Int) = filter match {
     case SpatialFilter(geom) =>
       polyToPlan(geom, offset, bits)
-    case SpatialDateFilter(geom, dt) =>
+    case SpatialDateFilter(geom, _) =>
       polyToPlan(geom, offset, bits)
-    case SpatialDateRangeFilter(geom, dtStart, dtEnd) =>
+    case SpatialDateRangeFilter(geom, _, _) =>
       polyToPlan(geom, offset, bits)
     case AcceptEverythingFilter => KeyAccept
     case _ => KeyInvalid // degenerate outcome

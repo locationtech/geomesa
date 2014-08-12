@@ -18,6 +18,7 @@ package geomesa.core.index
 
 import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Point, Polygon}
 import geomesa.core.filter._
+import geomesa.utils.geohash.GeohashUtils
 import geomesa.utils.geohash.GeohashUtils._
 import geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeatureType
@@ -27,32 +28,30 @@ import org.opengis.filter.spatial._
 
 import scala.collection.JavaConversions._
 
-trait FilterHelper {
-  def featureType: SimpleFeatureType
-
-  def visitBinarySpatialOp(op: BinarySpatialOperator): Filter = {
+object FilterHelper {
+  def visitBinarySpatialOp(op: BinarySpatialOperator, featureType: SimpleFeatureType): Filter = {
     val e1 = op.getExpression1.asInstanceOf[PropertyName]
     val e2 = op.getExpression2.asInstanceOf[Literal]
     val geom = e2.evaluate(null, classOf[Geometry])
     val safeGeometry = getInternationalDateLineSafeGeometry(geom)
-    updateToIDLSafeFilter(op, safeGeometry)
+    updateToIDLSafeFilter(op, safeGeometry, featureType)
   }
 
-  def visitBBOX(op: BBOX): Filter = {
+  def visitBBOX(op: BBOX, featureType: SimpleFeatureType): Filter = {
     val e1 = op.getExpression1.asInstanceOf[PropertyName]
     val e2 = op.getExpression2.asInstanceOf[Literal]
     val geom = addWayPointsToBBOX( e2.evaluate(null, classOf[Geometry]) )
     val safeGeometry = getInternationalDateLineSafeGeometry(geom)
-    updateToIDLSafeFilter(op, safeGeometry)
+    updateToIDLSafeFilter(op, safeGeometry, featureType)
   }
 
-  def updateToIDLSafeFilter(op: BinarySpatialOperator, geom: Geometry): Filter = geom match {
+  def updateToIDLSafeFilter(op: BinarySpatialOperator, geom: Geometry, featureType: SimpleFeatureType): Filter = geom match {
     case p: Polygon =>
-      doCorrectSpatialCall(op, featureType.getGeometryDescriptor.getLocalName, p)
+      dispatchOnSpatialType(op, featureType.getGeometryDescriptor.getLocalName, p)
     case mp: MultiPolygon =>
       val polygonList = getGeometryListOf(geom)
       val filterList = polygonList.map {
-        p => doCorrectSpatialCall(op, featureType.getGeometryDescriptor.getLocalName, p)
+        p => dispatchOnSpatialType(op, featureType.getGeometryDescriptor.getLocalName, p)
       }
       ff.or(filterList)
   }
@@ -60,7 +59,7 @@ trait FilterHelper {
   def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
     for( i <- 0 until inMP.getNumGeometries ) yield inMP.getGeometryN(i)
 
-  def doCorrectSpatialCall(op: BinarySpatialOperator, property: String, geom: Geometry): Filter = op match {
+  def dispatchOnSpatialType(op: BinarySpatialOperator, property: String, geom: Geometry): Filter = op match {
     case op: Within     => ff.within( ff.property(property), ff.literal(geom) )
     case op: Intersects => ff.intersects( ff.property(property), ff.literal(geom) )
     case op: Overlaps   => ff.overlaps( ff.property(property), ff.literal(geom) )
@@ -69,7 +68,7 @@ trait FilterHelper {
         envelope.getMaxX, envelope.getMaxY, op.getSRS )
   }
 
-  def addWayPointsToBBOX(g: Geometry):Geometry = {
+  def addWayPointsToBBOX(g: Geometry): Geometry = {
     val gf = g.getFactory
     val geomArray = g.getCoordinates
     val correctedGeom = GeometryUtils.addWayPoints(geomArray).toArray
@@ -90,5 +89,15 @@ trait FilterHelper {
       ff.literal(startPoint),
       distanceDegrees,
       "meters")
+  }
+
+  def extractGeometry(bso: BinarySpatialOperator) = {
+    bso.getExpression1.evaluate(null, classOf[Geometry]) match {
+      case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
+      case _           =>
+        bso.getExpression2.evaluate(null, classOf[Geometry]) match {
+          case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
+        }
+    }
   }
 }

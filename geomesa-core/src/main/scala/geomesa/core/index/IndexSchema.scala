@@ -161,7 +161,7 @@ object IndexSchema extends RegexParsers {
     }
 
   // This function helps catch nulls and 'entire world' polygons.
-  def somewhere(geom: Geometry): Option[Geometry] = {
+  def somewhere(geom: Geometry): Option[Geometry] =
     geom match {
       case null => None
       case gc: GeometryCollection =>
@@ -171,8 +171,6 @@ object IndexSchema extends RegexParsers {
         if(wholeWorld) None else Some(gc)
       case g: Geometry => innerSomewhere(g)
     }
-  }
-
 
   val DEFAULT_TIME = new DateTime(0, DateTimeZone.forID("UTC"))
 
