@@ -1,2 +1,2 @@
-geomesa.plugin.process.ProcessFactory
+org.locationtech.geomesa.plugin.process.ProcessFactory
 
