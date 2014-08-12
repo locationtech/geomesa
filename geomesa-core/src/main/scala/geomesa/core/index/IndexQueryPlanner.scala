@@ -22,10 +22,13 @@ import java.util.Map.Entry
 import com.vividsolutions.jts.geom.{Point, Polygon}
 import geomesa.core._
 import geomesa.core.data._
-import geomesa.core.filter.{ff, _}
+import geomesa.core.filter._
+import geomesa.core.index.IndexQueryPlanner._
 import geomesa.core.index.QueryHints._
 import geomesa.core.iterators.{FEATURE_ENCODING, _}
-import geomesa.core.util.{BatchMultiScanner, CloseableIterator, SelfClosingBatchScanner}
+import geomesa.core.util.CloseableIterator._
+import geomesa.core.util.{BatchMultiScanner, CloseableIterator, SelfClosingBatchScanner, SelfClosingIterator}
+import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
@@ -51,10 +54,9 @@ object IndexQueryPlanner {
   val iteratorPriority_ColFRegex                       = 100
   val iteratorPriority_SpatioTemporalIterator          = 200
   val iteratorPriority_SimpleFeatureFilteringIterator  = 300
+  val iteratorPriority_AnalysisIterator                = 400
 }
 
-import geomesa.core.index.IndexQueryPlanner._
-import geomesa.utils.geotools.Conversions._
 
 case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              cfPlanner: ColumnFamilyPlanner,
@@ -106,7 +108,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         splitQueryOnOrs(query, output)
       }
 
-    queries.flatMap(runQuery(acc, sft, _, isDensity, output))
+    queries.ciFlatMap(runQuery(acc, sft, _, isDensity, output))
   }
   
   def splitQueryOnOrs(query: Query, output: ExplainerOutputType): Iterator[Query] = {
@@ -175,9 +177,24 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         else
           stIdxQuery(acc, derivedQuery, filterVisitor, output)
 
+      case idFilter: Id =>
+        recordIdFilter(acc, idFilter, output)
+
       case cql =>
         stIdxQuery(acc, derivedQuery, filterVisitor, output)
     }
+  }
+
+  def recordIdFilter(acc: AccumuloConnectorCreator,
+                     idFilter: Id,
+                     explain: ExplainerOutputType) = {
+    val recordScanner = acc.createRecordScanner(featureType)
+    val ranges = idFilter.getIdentifiers.map { id =>
+      org.apache.accumulo.core.data.Range.exact(id.toString)
+    }
+    recordScanner.setRanges(ranges)
+
+    SelfClosingBatchScanner(recordScanner)
   }
 
   def attrIdxQueryEligible(filt: Filter): Boolean = filt match {
@@ -209,7 +226,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
   /* contains no single character wildcards */
   def containsNoSingles(filter: PropertyIsLike) =
-    !(filter.getLiteral.replace("\\\\", "").replace(s"\\$SINGLE_CHAR_WILDCARD", "").contains(SINGLE_CHAR_WILDCARD))
+    !filter.getLiteral.replace("\\\\", "").replace(s"\\$SINGLE_CHAR_WILDCARD", "").contains(SINGLE_CHAR_WILDCARD)
 
   def trailingOnlyWildcard(filter: PropertyIsLike) =
     (filter.getLiteral.endsWith(MULTICHAR_WILDCARD) &&
@@ -280,8 +297,8 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                    derivedQuery: Query,
                    filterVisitor: FilterToAccumulo,
                    range: AccRange,
-                   output: ExplainerOutputType) = {
-    logger.trace(s"Scanning attribute table for feature type ${featureType.getTypeName}")
+                   output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+    output(s"Scanning attribute table for feature type ${featureType.getTypeName}")
     val attrScanner = acc.createAttrIdxScanner(featureType)
 
     val (geomFilters, otherFilters) = partitionGeom(derivedQuery.getFilter)
@@ -304,7 +321,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(kv.getKey.getColumnFamily)
     val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
 
-    CloseableIterator(bms.iterator, () => bms.close())
+    SelfClosingIterator(bms.iterator, () => bms.close())
   }
 
   def configureAttributeIndexIterator(scanner: Scanner,
@@ -392,20 +409,37 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         Some(configureSimpleFeatureFilteringIterator(featureType, ecql, query, poly))
       } else None
 
-    qp.copy(iterators = qp.iterators ++ List(Some(stIdxIterCfg), sffiIterCfg).flatten)
+    val topIterCfg = if(query.getHints.containsKey(DENSITY_KEY)) {
+      val clazz = classOf[DensityIterator]
+
+      val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
+        "topfilter-" + randomPrintableString(5),
+        clazz)
+
+      val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Integer]
+      val height =  query.getHints.get(HEIGHT_KEY).asInstanceOf[Integer]
+      DensityIterator.configure(cfg, poly, width, height)
+
+      cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
+      configureFeatureEncoding(cfg)
+      configureFeatureType(cfg, featureType)
+
+      Some(cfg)
+    } else None
+
+    qp.copy(iterators = qp.iterators ++ List(Some(stIdxIterCfg), sffiIterCfg, topIterCfg).flatten)
   }
 
   def stIdxQuery(acc: AccumuloConnectorCreator,
                  query: Query,
                  filterVisitor: FilterToAccumulo,
-                 output: ExplainerOutputType) = {
+                 output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     val bs = acc.createSTIdxScanner(featureType)
     val qp = buildSTIdxQueryPlan(query, filterVisitor, output)
     configureBatchScanner(bs, qp)
     // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
     //  we wrap our calls in a SelfClosingBatchScanner.
     SelfClosingBatchScanner(bs)
-
   }
 
   def configureBatchScanner(bs: BatchScanner, qp: QueryPlan): Unit = {
@@ -509,25 +543,15 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
     val density: Boolean = query.getHints.containsKey(DENSITY_KEY)
 
-    val clazz =
-      if(density) classOf[DensityIterator]
-      else classOf[SimpleFeatureFilteringIterator]
-
     val cfg = new IteratorSetting(iteratorPriority_SimpleFeatureFilteringIterator,
       "sffilter-" + randomPrintableString(5),
-      clazz)
+      classOf[SimpleFeatureFilteringIterator])
 
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
     configureFeatureEncoding(cfg)
     configureTransforms(query,cfg)
     configureFeatureType(cfg, simpleFeatureType)
     ecql.foreach(SimpleFeatureFilteringIterator.setECQLFilter(cfg, _))
-
-    if(density) {
-      val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Integer]
-      val height =  query.getHints.get(HEIGHT_KEY).asInstanceOf[Integer]
-      DensityIterator.configure(cfg, poly, width, height)
-    }
 
     cfg
   }

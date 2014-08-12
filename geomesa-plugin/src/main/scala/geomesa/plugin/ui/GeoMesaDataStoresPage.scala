@@ -16,8 +16,6 @@
 
 package geomesa.plugin.ui
 
-import java.util
-
 import geomesa.core.data.AccumuloDataStore
 import geomesa.core.data.AccumuloDataStoreFactory.params._
 import geomesa.plugin.ui.components.DataStoreInfoPanel
@@ -30,14 +28,13 @@ import org.apache.wicket.markup.html.list.{ListItem, ListView}
 import org.geoserver.catalog.StoreInfo
 import org.geoserver.web.data.store.{StorePanel, StoreProvider}
 import org.geotools.data.{DataStoreFinder, Query}
-import org.geotools.geometry.jts.ReferencedEnvelope
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class GeoMesaDataStoresPage extends GeoMesaBasePage {
 
-  import GeoMesaDataStoresPage._
+  import geomesa.plugin.ui.GeoMesaDataStoresPage._
 
   // TODO count in results chart shows total stores, not just the filtered ones
   private val storeProvider = new StoreProvider() {
@@ -52,52 +49,55 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
 
   private val connections = getStoreConnections
 
-  @transient
-  private val dataStores = for {
-    connection <- connections
-    params = getDataStoreParams(connection)
-  } yield {
-    DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
-  }
-
-  // TODO use something better than toString to uniquely identify each data store.
-  // we need a unique ID for each one to use as the key to the various maps -
-  // we could use the data store object itself, but the wicket framework throws exceptions b/c
-  // they aren't serializable.
-  private val dataStoreIds = dataStores.map(_.toString)
-
-  private val dataStoreNames = mutable.HashMap.empty[String, String]
-
-  private val tables = mutable.HashMap.empty[String, String]
-
-  private val metadata = mutable.HashMap.empty[String, TableMetadata]
+  private val dataStoreNames = mutable.ListBuffer.empty[String]
 
   private val features = mutable.HashMap.empty[String, List[String]]
 
-  private val bounds = mutable.HashMap.empty[String, mutable.Map[String, FeatureModel]]
+  private val metadata = mutable.HashMap.empty[String, Map[String, List[TableMetadata]]]
 
-  dataStores.foreach {
-    d =>
-      val id = d.toString
-      dataStoreNames.put(id, s"${d.connector.getInstance.getInstanceName}: ${d.catalogTable}")
-      val table = d.catalogTable
-      tables.put(id, table)
-      metadata.put(id, getTableMetadata(d.connector, table))
-      val typeNames = d.getTypeNames.toList
-      features.put(id, typeNames)
-      val boundsPerFeature = mutable.HashMap.empty[String, FeatureModel]
-      typeNames.foreach(typeName => boundsPerFeature.put(typeName, FeatureModel(typeName, d.getBounds(new Query(typeName)))))
-      bounds.put(id, boundsPerFeature)
+  private val bounds = mutable.HashMap.empty[String, Map[String, String]]
+
+  private val connectionParams = mutable.HashMap.empty[String, Map[String, String]]
+
+  // compile data store info
+  for {
+    connection <- connections
+    params = getDataStoreParams(connection)
+  } {
+    val name = connection.name
+    val dataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
+    dataStoreNames.append(name)
+
+    val featureNames = dataStore.getTypeNames.toList
+    features.put(name, featureNames)
+
+    val metadataPerFeature = featureNames.map { typeName =>
+      typeName -> getFeatureMetadata(dataStore, typeName, dataStore.catalogTable)
+    }.toMap[String, List[TableMetadata]]
+    metadata.put(name, metadataPerFeature)
+
+    val boundsPerFeature = featureNames.map { typeName =>
+      val bounds = dataStore.getBounds(new Query(typeName))
+      typeName -> s"${bounds.getMinX}:${bounds.getMaxX}, ${bounds.getMinY}:${bounds.getMaxY}"
+    }.toMap[String, String]
+    bounds.put(name, boundsPerFeature)
+
+    connectionParams.put(name, params)
   }
 
-  add(new ListView[String]("storeDetails", dataStoreIds.toList.asJava) {
+  add(new ListView[String]("storeDetails", dataStoreNames.toList.asJava) {
     override def populateItem(item: ListItem[String]) = {
       val dataStore = item.getModelObject
-      item.add(new DataStoreInfoPanel("storeMetadata",
-                                       dataStoreNames.get(dataStore).get,
-                                       metadata.get(dataStore).get,
-                                       features.get(dataStore).get,
-                                       bounds.get(dataStore).get.toMap))
+      val featureData = features.get(dataStore).get.map { feature =>
+        // data store name is workspace:name
+        val name = dataStore.split(":")
+        FeatureData(name(0),
+                    name(1),
+                    feature,
+                    metadata.get(dataStore).get(feature),
+                    bounds.get(dataStore).get(feature))
+      }
+      item.add(new DataStoreInfoPanel("storeMetadata", dataStore, featureData))
     }
   })
 
@@ -107,12 +107,27 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
    * @param container
    */
   override def renderHead(container: HtmlHeaderContainer): Unit = {
-    super.renderHead(container);
-    val values = metadata.values
-                   .map(entry => s"{name: '${entry.tableName}', value: ${entry.numEntries}}")
-                   .toList
-                   .sortWith(_ > _)
-    val string = s"var data = [ ${values.mkString(",")} ]"
+    super.renderHead(container)
+
+    // filter out the main record tables to display in the chart
+    val entries = mutable.ListBuffer.empty[String]
+    val tables = mutable.ListBuffer.empty[String]
+    for {
+      map <- metadata.values
+      (feature, metadataList) <- map
+      metadata <- metadataList
+      if (metadata.displayName.contains("Record"))
+    } {
+      entries.append(s"""{name:"${metadata.feature}",value:${metadata.numEntries}}""")
+      tables.append(s"""{name:"${metadata.feature}",table:"${metadata.table}"}""")
+    }
+
+    // sort entries reverse so that they show up alphabetically on the UI
+    val entriesJson = entries.sorted(Ordering[String].reverse).mkString(",")
+    // table order doesn't matter
+    val tableJson = tables.mkString(",")
+
+    val string = s"var entries = [ $entriesJson ]; var tables = [ $tableJson ];"
     container.getHeaderResponse.renderJavascript(string, "rawData")
   }
 
@@ -121,21 +136,21 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
    *
    * @return
    */
-  private def getStoreConnections : Set[AccumuloConnectionInfo] = {
+  private def getStoreConnections : List[AccumuloConnectionInfo] = {
     val stores = storeProvider.iterator(0, storeProvider.fullSize).asScala
 
-    stores.map {
-      provider =>
-        val params = provider.getConnectionParameters.asScala
+    stores.map { store =>
+      val name = s"${store.getWorkspace.getName}:${store.getName}"
+      val params = store.getConnectionParameters.asScala
 
-        val instanceId = params.getOrElse(instanceIdParam.key, "").toString
-        val zookeepers = params.getOrElse(zookeepersParam.key, "").toString
-        val user = params.getOrElse(userParam.key, "").toString
-        val password = params.getOrElse(passwordParam.key, "").toString
-        val table = params.getOrElse(tableNameParam.key, "").toString
+      val instanceId = params.getOrElse(instanceIdParam.key, "").toString
+      val zookeepers = params.getOrElse(zookeepersParam.key, "").toString
+      val user = params.getOrElse(userParam.key, "").toString
+      val password = params.getOrElse(passwordParam.key, "").toString
+      val table = params.getOrElse(tableNameParam.key, "").toString
 
-        AccumuloConnectionInfo(zookeepers, instanceId, user, password, table)
-    }.toSet
+      AccumuloConnectionInfo(name, zookeepers, instanceId, user, password, table)
+    }.toList
   }
 
   /**
@@ -164,18 +179,30 @@ object GeoMesaDataStoresPage {
    * each row is a tablet, each column family is the word 'file', each column qualifier is the tablet
    * and file name, and the value is the file size and the number of entries in that file
    *
-   * @param connector
+   * @param dataStore
+   * @param featureName
    * @param table
    * @return
    *   (tableName, number of tablets, number of splits, total number of entries, total file size)
    */
-  def getTableMetadata(connector: Connector, table: String): TableMetadata = {
-    // TODO move this to core utility class where it can be re-used
-    val tableId = Option(connector.tableOperations.tableIdMap.get(table))
+  def getFeatureMetadata(dataStore: AccumuloDataStore, featureName: String, table: String): List[TableMetadata] = {
+    val connector = dataStore.connector
 
-    tableId match {
-      case Some(id) => getTableMetadata(connector, table, id)
-      case None => TableMetadata(table, 0, 0, 0, 0)
+    val tables =
+      if (dataStore.catalogTableFormat(featureName)) {
+        List(("Record Table", dataStore.getRecordTableForType(featureName)),
+             ("GeoSpatial Index", dataStore.getSpatioTemporalIdxTableName(featureName)),
+             ("Attribute Index", dataStore.getAttrIdxTableName(featureName)))
+      } else {
+        List(("Record Table/GeoSpatial Index", table))
+      }
+
+    tables.map { case (displayName, table) =>
+      val tableId = Option(connector.tableOperations.tableIdMap.get(table))
+      tableId match {
+        case Some(id) => getTableMetadata(connector, featureName, table, id, displayName)
+        case None => TableMetadata(featureName, table, displayName, 0, 0, 0, 0)
+      }
     }
   }
 
@@ -187,11 +214,13 @@ object GeoMesaDataStoresPage {
    * each row is a tablet, each column family is the word 'file', each column qualifier is the tablet
    * and file name, and the value is the file size and the number of entries in that file
    * @param connector
-   * @param table
+   * @param featureName
+   * @param tableName
    * @param tableId
    * @return (tableName, number of tablets, number of splits, total number of entries, total file size)
    */
-  private def getTableMetadata(connector: Connector, table: String, tableId: String): TableMetadata = {
+  def getTableMetadata(connector: Connector, featureName: String, tableName: String, tableId: String, displayName: String): TableMetadata = {
+    // TODO move this to core utility class where it can be re-used
 
     val scanner = new IsolatedScanner(connector.createScanner(Constants.METADATA_TABLE_NAME, Constants.NO_AUTHS))
     scanner.fetchColumnFamily(Constants.METADATA_DATAFILE_COLUMN_FAMILY)
@@ -220,20 +249,27 @@ object GeoMesaDataStoresPage {
         numSplits = numSplits + 1
     }
 
-    TableMetadata(table, numTablets, numSplits, numEntries, fileSize / 1048576.0)
+    TableMetadata(featureName, tableName, displayName, numTablets, numSplits, numEntries, fileSize / 1048576.0)
   }
 }
 
-case class AccumuloConnectionInfo(zookeepers: String,
+case class AccumuloConnectionInfo(name: String,
+                                  zookeepers: String,
                                   instanceId: String,
                                   user: String,
                                   password: String,
                                   table: String)
 
-case class TableMetadata(tableName: String,
+case class TableMetadata(feature: String,
+                         table: String,
+                         displayName: String,
                          numTablets: Long,
                          numSplits: Long,
                          numEntries: Long,
                          fileSize: Double)
 
-case class FeatureModel (name: String, bounds: ReferencedEnvelope)
+case class FeatureData(workspace: String,
+                       dataStore: String,
+                       feature: String,
+                       metadata: List[TableMetadata],
+                       bounds: String)

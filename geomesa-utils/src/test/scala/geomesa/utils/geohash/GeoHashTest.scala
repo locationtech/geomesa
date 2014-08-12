@@ -254,4 +254,42 @@ class GeoHashTest extends Specification
       ghOut.hash must be equalTo hashIn
     }
   }
+
+  "The point (180.0, 0.5) should be in GeoHash 'x'" in {
+    val gh = GeoHash(180.0, 0.5, 5)
+    gh.hash must be equalTo "x"
+  }
+
+  "The point (180.0, 90.0) should be in GeoHash 'z'" in {
+    val gh = GeoHash(180.0, 90.0, 5)
+    gh.hash must be equalTo "z"
+  }
+
+  "The point (180.0, -90.0) should be in GeoHash 'p'" in {
+    val gh = GeoHash(180.0, -90.0, 5)
+    gh.hash must be equalTo "p"
+  }
+
+  "The point (-180.0, -90.0) should be in GeoHash '0'" in {
+    val gh = GeoHash(-180.0, -90.0, 5)
+    gh.hash must be equalTo "0"
+  }
+
+  "The point (-180.0, 90.0) should be in GeoHash 'b'" in {
+    val gh = GeoHash(-180.0, 90.0, 5)
+    gh.hash must be equalTo "b"
+  }
+
+  "Points outside the world" should {
+    "throw exceptions" in {
+      GeoHash(180.1, 0.0, 5) should throwA[Exception]
+      GeoHash(180.1, 90.1, 5) should throwA[Exception]
+      GeoHash(180.1, -90.1, 5) should throwA[Exception]
+      GeoHash(0.0, 90.1, 5) should throwA[Exception]
+      GeoHash(0.0, -90.1, 5) should throwA[Exception]
+      GeoHash(-180.1, 0.0, 5) should throwA[Exception]
+      GeoHash(-180.1, 90.1, 5) should throwA[Exception]
+      GeoHash(-180.1, -90.1, 5) should throwA[Exception]
+    }
+  }
 }

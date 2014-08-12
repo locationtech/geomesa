@@ -19,7 +19,18 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="accumuloDataStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
+  <bean id="ingestRateServlet" class="geomesa.plugin.servlet.IngestRateServlet"/>
+
+  <bean id="geoMesaDispatcherMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+    <property name="alwaysUseFullPath" value="true"/>
+    <property name="mappings">
+      <props>
+        <prop key="/geomesa/ingest/rate">ingestRateServlet</prop>
+      </props>
+    </property>
+  </bean>
+
+  <bean id="accumuloDataStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
         <property name="id" value="accumuloDataStorePanel"/>
         <property name="factoryClass" value="geomesa.core.data.AccumuloDataStoreFactory"/>
         <property name="iconBase" value="org.geoserver.web.GeoServerApplication"/>
@@ -52,7 +63,7 @@
   <bean id="geoMesaCategory" class="org.geoserver.web.Category">
     <property name="nameKey" value="GeoMesaCategory.title"/>
     <!-- Optional, a key used to order the links in the menu. -->
-    <property name="order" value="100"/>
+    <property name="order" value="110"/>
   </bean>
 
   <!-- link for the geomesa status page -->

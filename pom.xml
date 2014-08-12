@@ -30,6 +30,7 @@
         <module>geomesa-plugin</module>
         <module>geomesa-filter</module>
         <module>geomesa-feature</module>
+        <module>geomesa-tools</module>
         <module>geomesa-compute</module>
     </modules>
 
@@ -38,6 +39,7 @@
         <geoserver.version>2.5</geoserver.version>
         <gt.version>11.2</gt.version>
         <jts.version>1.13</jts.version>
+        <scopt.version>3.2.0</scopt.version>
 
         <!-- environment-dependent versions -->
         <zookeeper.version>3.4.5</zookeeper.version>

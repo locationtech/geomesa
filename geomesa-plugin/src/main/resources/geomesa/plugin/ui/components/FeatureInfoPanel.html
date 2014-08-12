@@ -1,0 +1,52 @@
+<!--
+  ~ Copyright 2014 Commonwealth Computer Research, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the License);
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an AS IS BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org/">
+  <body>
+    <wicket:panel>
+      <style>
+        .feature-info-panel-bounds {
+          padding-bottom: 10px;
+          padding-top: 5px;
+        }
+        .feature-info-panel-att {
+          padding-bottom: 5px;
+        }
+      </style>
+      <fieldset>
+        <legend wicket:id="featureName"/>
+        <table>
+          <tr>
+            <th><wicket:message key="FeatureInfoPanel.metadata.label.table"/></th>
+            <th><wicket:message key="FeatureInfoPanel.metadata.label.tablets"/></th>
+            <th><wicket:message key="FeatureInfoPanel.metadata.label.splits"/></th>
+            <th><wicket:message key="FeatureInfoPanel.metadata.label.entries"/></th>
+            <th><wicket:message key="FeatureInfoPanel.metadata.label.size"/></th>
+          </tr>
+          <tr wicket:id="featureRows">
+            <td><span wicket:id="tableName"/></td>
+            <td><span wicket:id="metadataNumTablets"/></td>
+            <td><span wicket:id="metadataNumSplits"/></td>
+            <td><span wicket:id="metadataNumEntries"/></td>
+            <td><span wicket:id="metadataFileSize"/></td>
+          </tr>
+        </table>
+        <div class="feature-info-panel-bounds"><span wicket:id="bounds"/></div>
+        <div class="feature-info-panel-att"><a wicket:id="featureLink">Feature Attributes</a></div>
+      </fieldset>
+    </wicket:panel>
+  </body>
+</html>

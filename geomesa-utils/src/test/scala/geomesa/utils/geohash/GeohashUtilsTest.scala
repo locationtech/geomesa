@@ -17,6 +17,7 @@
 package geomesa.utils.geohash
 
 import com.vividsolutions.jts.geom._
+import geomesa.utils.geohash.GeohashUtils.GeometrySizingUtilities.RecommendedResolution
 import geomesa.utils.geohash.GeohashUtils._
 import geomesa.utils.text.WKTUtils
 import org.junit.Ignore
@@ -90,6 +91,15 @@ class GeohashUtilsTest extends Specification with Logging {
     "south pole to south pole gh" -> ((98.0, -90.0), ((99, -90), (100, -89)), 1e-7)
   )
 
+  val recommendedBitsTestPolygons = Seq(
+    ("POLYGON((33 -14, 82 -14, 82 24, 33 24, 33 -14))", 23, 241044),
+    ("POLYGON((36 23, 36 18, 43 9, 50 10, 38 -4, 40 -14, 60 -14, 78 7, 76 8, 73 21, 71 23, 58 23, 57 19, 45 13, 40 20, 39 23, 36 23))", 23, 132496),
+    ("POLYGON((0 0, 0 10, -5 25, -15 35, -25 35, -40 10, -20 0, -30 15, -20 25, -10 20, -10 10, -15 0, -25 -5, -35 -15, -40 -35, -25 -35, -15 -25, -5 -35, 0 -25, -10 -10, -25 -25, -20 -10, 0 0))", 23, 184472),
+    ("POLYGON((-10 10, 0 30, 10 10, -10 10))", 25, 103564),
+    ("POLYGON((-10 -10, -10 10, 10 10, 10 -10, -10 -10))", 25, 207127)
+    // area bigger than ~2310 failing on Exception("Could not satisfy constraints, resolutions..." ln 361
+  )
+
   // (reasonable) odd GeoHash resolutions
   val oddResolutions = new ResolutionRange(5, 63, 2)
 
@@ -127,7 +137,7 @@ class GeohashUtilsTest extends Specification with Logging {
 
   def validateGeohashSubstrings(geom: Geometry, offset: Int, bits: Int, subs: Seq[String]) {
     import java.io._
-    val file = File.createTempFile("subhashes_", ".txt", new File("/tmp"))
+    val file = File.createTempFile("subhashes_", ".txt")
     val pw = new PrintWriter(new BufferedWriter(new FileWriter(file)))
     pw.println(s"wkt\tweight")
 
@@ -159,7 +169,7 @@ class GeohashUtilsTest extends Specification with Logging {
 
     def testGeohashSubstringsInCharlottesville(offset: Int, bits: Int): Int = {
       val ghSubstrings = getUniqueGeohashSubstringsInPolygon(
-        polygonCharlottesville, offset, bits, 1 << 15)
+        polygonCharlottesville, offset, bits)
 
       if (DEBUG_OUTPUT)
         ghSubstrings.foreach { gh => logger.debug("[unique Charlottesville gh(2,3)] " + gh)}
@@ -224,6 +234,17 @@ class GeohashUtilsTest extends Specification with Logging {
         distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ur, point).getDistanceInMeters + toleranceMeters)
         distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ll, point).getDistanceInMeters + toleranceMeters)
         distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.lr, point).getDistanceInMeters + toleranceMeters)
+      }
+    }
+  }
+
+  import GeohashUtils.GeometrySizingUtilities._
+
+  recommendedBitsTestPolygons.foreach{ case (testPolygon, recommendedBits, recommendedNumBoxes) =>
+    "getRecommendedBitsResolutionForPolygon" should {
+      s"return the expected value for the polygon $testPolygon" in {
+        val geom = wkt2geom(testPolygon)
+        getRecommendedBitsResolutionForPolygon(geom) must equalTo(RecommendedResolution(recommendedBits, recommendedNumBoxes))
       }
     }
   }
