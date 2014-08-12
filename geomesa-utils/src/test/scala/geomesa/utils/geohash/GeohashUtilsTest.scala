@@ -16,15 +16,14 @@
 
 package geomesa.utils.geohash
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
-import geomesa.utils.geohash.GeohashUtils.GeometrySizingUtilities.RecommendedResolution
 import geomesa.utils.geohash.GeohashUtils._
 import geomesa.utils.text.WKTUtils
 import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import com.typesafe.scalalogging.slf4j.Logging
 
 @RunWith(classOf[JUnitRunner])
 class GeohashUtilsTest extends Specification with Logging {
@@ -71,7 +70,33 @@ class GeohashUtilsTest extends Specification with Logging {
     ("POLYGON((0 0, 0 10, -5 25, -15 35, -25 35, -40 10, -20 0, -30 15, -20 25, -10 20, -10 10, -15 0, -25 -5, -35 -15, -40 -35, -25 -35, -15 -25, -5 -35, 0 -25, -10 -10, -25 -25, -20 -10, 0 0))", 23, 184472),
     ("POLYGON((-10 10, 0 30, 10 10, -10 10))", 25, 103564),
     ("POLYGON((-10 -10, -10 10, 10 10, 10 -10, -10 -10))", 25, 207127)
+  )
     // area bigger than ~2310 failing on Exception("Could not satisfy constraints, resolutions..." ln 361
+
+  //first tuple is the point, second tuple is the BoundingBox of GH, the double is degrees of min great circle arc from point to GH
+  val geodeticMinDistToGeohashTestData: Map[String, ((Double, Double), ((Int, Int), (Int, Int)), Double)] = Map(
+    "within" -> ((150.0, -88.0), ((149, -89), (151, -87)), 0.0001),
+    "pole wrapper" -> ((-30.0, -89.000001), ((149, -89), (151, -87)), 2.0),
+    "tricksy pole wrapper" -> ((-30.0, -88.999999), ((149, -89), (151, -87)), 2.0),
+    "exact pole wrapper" -> ((-30.0, -89.0), ((149, -89), (151, -87)), 2.0),
+    "otherside of pole wrapper" -> ((-30.0, 89.000001), ((149, -89), (151, -87)), 178.0),
+    "otherside of tricksy pole wrapper" -> ((-30.0, 88.999999), ((149, -89), (151, -87)), 178.0),
+    "otherside of exact pole wrapper" -> ((-30.0, 89.0), ((149, -89), (151, -87)), 178.0),
+    "northside of exact pole wrapper" -> ((150.0, 89.0), ((149, -89), (151, -87)), 176.0),
+    "slightly left of northside of exact pole wrapper" -> ((148.999999, 89.0), ((149, -89), (151, -87)), 176.0),
+    "IDL wrapper" -> ((179.0, 0.0), ((-180, -1), (-178, 1)), 1.0),
+    "west of tl of gh in southern hemi" -> ((148.0, -87.0), ((149, -89), (151, -87)), 1.0),
+    "north of tl of gh in southern hemi" -> ((149.0, -86.0), ((149, -89), (151, -87)), 1.0),
+    "south of bl of gh in southern hemi" -> ((149.0, -90.0), ((149, -89), (151, -87)), 1.0),
+    "west of bl of gh in southern hemi" -> ((148.0, -89.0), ((149, -89), (151, -87)), 1.0),
+    "slightly WNW of gh in southern hemi" -> ((148.0, -86.999999), ((149, -89), (151, -87)), 1.0),
+    "slightly NNW of gh in southern hemi" -> ((148.999999, -86.0), ((149, -89), (151, -87)), 1.0),
+    "slightly WSW of gh in southern hemi" -> ((148.0, -89.000001), ((149, -89), (151, -87)), 1.0),
+    "slightly SSW of gh in southern hemi" -> ((148.999999, -90.0), ((149, -89), (151, -87)), 1.0),
+    "above south pole gh" -> ((99.5, -88.0), ((99, -90), (100, -89)), 1.0),
+    "above south pole gh 180 around" -> ((-80.5, -89.5), ((99, -90), (100, -89)), 0.5),
+    "left of south pole gh" -> ((98.0, -89.0), ((99, -90), (100, -89)), 1.0),
+    "south pole to south pole gh" -> ((98.0, -90.0), ((99, -90), (100, -89)), 1e-7)
   )
 
   // (reasonable) odd GeoHash resolutions
@@ -198,6 +223,27 @@ class GeohashUtilsTest extends Specification with Logging {
       s"return the expected value for the polygon $testPolygon" in {
         val geom = wkt2geom(testPolygon)
         getRecommendedBitsResolutionForPolygon(geom) must equalTo(RecommendedResolution(recommendedBits, recommendedNumBoxes))
+      }
+    }
+  }
+
+  geodeticMinDistToGeohashTestData.map { case (name, ((x, y), ((minLon, minLat), (maxLon, maxLat)), degrees)) =>
+    "getGeodeticGreatCircleChordLength" should {
+      val toleranceMeters = 1
+      s"work for $name" in {
+        val point = defaultGeometryFactory.createPoint(new Coordinate(x, y))
+        val ll = defaultGeometryFactory.createPoint(new Coordinate(minLon.asInstanceOf[Double], minLat.asInstanceOf[Double]))
+        val ur = defaultGeometryFactory.createPoint(new Coordinate(maxLon.asInstanceOf[Double], maxLat.asInstanceOf[Double]))
+        val bbox = new BoundingBox(ll, ur)
+        val chordLength = GeohashUtils.getMinimumChordLength(bbox, point)
+        logger.debug(s"chord length for $name = " + chordLength)
+        chordLength must beLessThan(Math.toRadians(degrees))
+        chordLength must beLessThanOrEqualTo(GeohashUtils.getMinimumChordLength(bbox, point, true))
+        val distance = GeohashUtils.getMinimumGeodeticDistance(bbox, point).getDistanceInMeters
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ul, point).getDistanceInMeters + toleranceMeters)
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ur, point).getDistanceInMeters + toleranceMeters)
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ll, point).getDistanceInMeters + toleranceMeters)
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.lr, point).getDistanceInMeters + toleranceMeters)
       }
     }
   }
