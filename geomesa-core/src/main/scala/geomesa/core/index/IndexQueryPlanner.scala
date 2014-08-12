@@ -366,13 +366,13 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
     val (temporalFilters, ecqlFilters: Seq[Filter]) = partitionTemporal(otherFilters)
 
-    val tweakedEcqlFilters = ecqlFilters.map(tweakFilter)
+    val tweakedEcqlFilters = ecqlFilters.map(updateTopologicalFilters(_, featureType))
 
     val ecql = filterListAsAnd(tweakedEcqlFilters).map(ECQL.toCQL)
 
     output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
 
-    val tweakedGeoms = geomFilters.map(tweakFilter)
+    val tweakedGeoms = geomFilters.map(updateTopologicalFilters(_, featureType))
 
     output(s"Tweaked geom filters are $tweakedGeoms")
 
@@ -469,18 +469,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     qp.iterators.foreach { i => bs.addScanIterator(i) }
     bs.setRanges(qp.ranges)
     qp.cf.foreach { c => bs.fetchColumnFamily(c) }
-  }
-
-  // Let's handle special cases.
-  def tweakFilter(filter: Filter) = {
-    filter match {
-      case dw: DWithin => rewriteDwithin(dw)
-      case op: BBOX       => visitBBOX(op, featureType)
-      case op: Within     => visitBinarySpatialOp(op, featureType)
-      case op: Intersects => visitBinarySpatialOp(op, featureType)
-      case op: Overlaps   => visitBinarySpatialOp(op, featureType)
-      case _ => filter
-    }
   }
 
   def configureFeatureEncoding(cfg: IteratorSetting) =

@@ -29,6 +29,18 @@ import org.opengis.filter.spatial._
 import scala.collection.JavaConversions._
 
 object FilterHelper {
+  // Let's handle special cases with topological filters.
+  def updateTopologicalFilters(filter: Filter, featureType: SimpleFeatureType) = {
+    filter match {
+      case dw: DWithin    => rewriteDwithin(dw)
+      case op: BBOX       => visitBBOX(op, featureType)
+      case op: Within     => visitBinarySpatialOp(op, featureType)
+      case op: Intersects => visitBinarySpatialOp(op, featureType)
+      case op: Overlaps   => visitBinarySpatialOp(op, featureType)
+      case _ => filter
+    }
+  }
+
   def visitBinarySpatialOp(op: BinarySpatialOperator, featureType: SimpleFeatureType): Filter = {
     val e1 = op.getExpression1.asInstanceOf[PropertyName]
     val e2 = op.getExpression2.asInstanceOf[Literal]
