@@ -36,6 +36,11 @@ This should print out the following usage text:
 This usage text gives a brief overview of how to use each command, and this is expanded upon below with example commands.
 The command line tools also provides help for each command by passing `--help` to any individual command.  
 
+The Accumulo username and password is required for each command. Specify the username and password
+in each command by using `-u` or `--username `and `-p` or `--password` respectively. One can also only specify the username
+on the command line using `-u` or `--username` and type the password in an additional prompt, where the password will be
+hidden from the shell history.
+
 A test script is included under `geomesa\bin` that runs each command provided by geomesa-tools. Edit this script
 by including your Accumulo username, password, test catalog table, test feature name, and test SFT specification. Then,
 run the script from the command line to ensure there are no errors in the output text. 
@@ -50,7 +55,7 @@ Specify the feature to create with the `-f` or `--feature_name`.
 Specify the SimpleFeatureType schema with `-s` or `--spec`.  
 Specify the default temporal attribute with `-d` or `--default_date`.
 #### Example command:
-    geomesa create -c test_create -f testing -s id:String:indexed=true,dtg:Date,geom:Point:srid=4326
+    geomesa -u username -p password create -c test_create -f testing -s id:String:indexed=true,dtg:Date,geom:Point:srid=4326
 
 ### delete
 To delete a feature on a specified catalog table, use the `delete` command.  
@@ -58,7 +63,7 @@ To delete a feature on a specified catalog table, use the `delete` command.
 Specify the catalog table to use with `-o` or `--catalog`. NOTE: Catalog tables will not be deleted when using the `delete` command, only the tables related to the given feature.  
 Specify the feature to delete with `-f` or `--feature_name`.  
 #### Example command:
-    geomesa delete -c test_delete -f testing
+    geomesa -u username -p password delete -c test_delete -f testing
 
 ### describe
 To describe the attributes of a feature on a specified catalog table, use the `describe` command.  
@@ -66,7 +71,7 @@ To describe the attributes of a feature on a specified catalog table, use the `d
 Specify the catalog table to use with `-o` or `--catalog`.
 Specify the feature to describe with `-f` or `--feature_name`.  
 #### Example command:
-    geomesa describe -c test_delete -f testing
+    geomesa -u username -p password describe -c test_delete -f testing
  
 ### explain
 To ask GeoMesa how it intends to satisfy a given query, use the `explain` command.
@@ -75,7 +80,7 @@ Specify the catalog table to use with `-c` or `--catalog`. This can be a previou
 Specify the feature to create with the `-f` or `-feature_name`.  
 Specify the filter string with `-q` or `--filter`.
 #### Example command:
-    geomesa explain -c geomesa_catalog -f twittersmall -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+    geomesa -u username -p password explain -c geomesa_catalog -f twittersmall -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
 
 ### export
 To export features, use the `export` command.  
@@ -88,13 +93,13 @@ To retrieve specific attributes from each feature, use `-a` or `--attributes` fo
 To set a maximum number of features to return, use `-m` or `--maxFeatures` followed by the maximum number of features.  
 To run an ECQL query, use `-q` or `--query` followed by the query filter string.  
 #### Example commands:
-    geomesa export -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o csv -q "include" -m 100  
-    geomesa export -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
+    geomesa -u username -p password export -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o csv -q "include" -m 100  
+    geomesa -u username -p password export -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
            
 ### ingest
 Ingests TSV and CSV files containing WKT geometries with the following caveat:CSV files must surround values with double quotation marks, e.g.: `"37266103","2013-07-17","POINT(0.0 0.0)"` the first and last quotation marks are optional however. Also the WKT Geometry is assumed to be the last column of the CSV/TSV file.
 #### Usage
-    geomesa ingest --file <> --format <> --table <> --feature_name <> --spec <> --datetime <> --dtformat <>
+    geomesa -u username -p password ingest --file <> --format <> --table <> --feature_name <> --spec <> --datetime <> --dtformat <>
 
 note: *the `<>` marks are where user values would go*
 
@@ -119,4 +124,5 @@ To list the features on a specified catalog table, use the `list` command.
 #### Required flags: 
 Specify the catalog table to use with `-c` or `--catalog`
 #### Example command:
-    geomesa list -c geomesa_catalog
+    geomesa -u username -p password list -c geomesa_catalog
+    
