@@ -7,139 +7,99 @@ the command line.
 ## Configuration
 To begin using the command line tools, first build the full Geomesa project with `mvn clean install`. This will build the project and geomesa-tools JAR file.  
  
-Geomesa Tools relies on environment variables to connect to the Accumulo and Zookeeper instances. To set these, edit your `~/.bashrc` file and 
-add the following lines at the end, adding the information specific to your instance:  
+Geomesa Tools relies on a GEOMESA_HOME environment variable. In your `~/.bashrc`, add:
 
-    export GEOMESA_USER=Your.user.here  
-    export GEOMESA_PASSWORD=Your.password.here  
-    export GEOMESA_INSTANCEID=Your.instanceId.here  
-    export GEOMESA_ZOOKEEPERS=Your.zookeepers.string.here
-   
-Source your `~/.bashrc` file by running `source ~/.bashrc`. After this step, you will likely need to log out and log back in for your 
-environment variables to be set correctly.  
+    export GEOMESA_HOME=/path/to/root/geomesa/directory
+    export PATH=${GEOMESA_HOME}/bin:$PATH
 
-Next, run the command line tools jar with the following command from your root Geomesa directory:  
+Don't forget to source `~/.bashrc`. Now, you should be able to use Geomesa from any directory on your computer. To test, `cd` to a different directory and run:
 
-    java -jar geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar --help
+    geomesa
 
-This should print out the following usage text:
+This should print out the following usage text: 
 
-    GeoMesa Tools 1.0
-    Usage: geomesa-tools [export|list|explain|delete|create|ingest] [options]
-     --help
-           show help command
-    Command: export [options]
-    Export all or a set of features in csv, geojson, gml, or shp format
-     --catalog <value>
-           the name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data
-     --typeName <value>
-           the name of the feature to export
-     --format <value>
-           the format to export to (e.g. csv, tsv)
-     --attributes <value>
-           attributes to return in the export
-     --idAttribute <value>
-           feature ID attribute to query on
-     --latAttribute <value>
-           latitude attribute to query on
-     --lonAttribute <value>
-           longitude attribute to query on
-     --dateAttribute <value>
-           date attribute to query on
-     --maxFeatures <value>
-           max number of features to return
-     --query <value>
-           ECQL query to run on the features
-    Command: list [options]
-    List the features in the specified Catalog Table
-     --catalog <value>
-           the name of the Accumulo table to use
-    Command: explain [options]
-    Explain and plan a query in Geomesa
-     --catalog <value>
-           the name of the Accumulo table to use
-     --typeName <value>
-           the name of the new feature to be create
-     --filter <value>
-           the filter string
-    Command: delete [options]
-    Delete a feature from the specified Catalog Table in Geomesa
-     --catalog <value>
-           the name of the Accumulo table to use
-     --typeName <value>
-           the name of the new feature to be create
-    Command: create [options]
-    Create a feature in Geomesa
-      --catalog <value>
-            the name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data
-      --typeName <value>
-            the name of the new feature to be create
-      --sft <value>
-            the string representation of the SimpleFeatureType
-    Command: ingest [options]
-    Ingest a feature into GeoMesa
-      --file <value>
-            the file you wish to ingest, e.g.: ~/capelookout.csv
-      --format <value>
-            the format of the file, it must be csv or tsv
-      --table <value>
-            the name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data
-      --typeName <value>
-            the name of the feature type to be ingested
-      -s <value> | --spec <value>
-            the sft specification for the file
-      --datetime <value>
-            the name of the datetime field in the sft
-      --dtformat <value>
-            the format of the datetime field
+    Geomesa Tools 1.0
+    Required parameters:
+            -u, --username: the Accumulo username
+    Optional parameters:
+            -p, --password: the Accumulo password. This can also be provided after entering a command.
+    Supported commands are:
+             create: Create a feature in Geomesa
+             describe: Delete a feature from the specified Catalog Table in Geomesa
+             describe: Describe the attributes of a specified feature
+             explain: Explain and plan a query in Geomesa
+             export: Export all or a set of features in csv, geojson, gml, or shp format
+             ingest: Ingest a feature into GeoMesa
+             list: List the features in the specified Catalog Table
+
             
-This usage text gives a brief overview of how to use each command, and this is expanded upon below with example commands.  
-Note that each command should be prefixed by `java -jar geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar` on the command line.
+This usage text gives a brief overview of how to use each command, and this is expanded upon below with example commands.
+The command line tools also provides help for each command by passing `--help` to any individual command.  
+
+The Accumulo username and password is required for each command. Specify the username and password
+in each command by using `-u` or `--username `and `-p` or `--password` respectively. One can also only specify the username
+on the command line using `-u` or `--username` and type the password in an additional prompt, where the password will be
+hidden from the shell history.
+
+A test script is included under `geomesa\bin` that runs each command provided by geomesa-tools. Edit this script
+by including your Accumulo username, password, test catalog table, test feature name, and test SFT specification. Then,
+run the script from the command line to ensure there are no errors in the output text. 
 
 ## Command Explanations and Usage
-
-### export
-To export features, use the `export` command.  
-#### Required flags:
-Specify the catalog table to use with `--catalog`.  
-Specify the feature to export with `--typeName`.  
-Specify the export format with `--format`. The supported export formats are csv, gml, geojson, and shp.
-#### Optional flags:
-To retrieve specific attributes from each feature, use `--attributes` followed by a String of comma-separated attribute names.  
-To set a maximum number of features to return, use `--maxFeatures` followed by the maximum number of features.  
-To run an ECQL query, use `--query` followed by the query filter string.  
-#### Example commands:
-    export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format csv --query "include" --maxFeatures 1000  
-    export --catalog geomesa_catalog --typeName twittersmall --attributes "geom,text,user_name" --format gml --query "user_name='JohnSmith'"
-        
-### list
-To list the features on a specified catalog table, use the `list` command.  
-#### Required flags: 
-Specify the catalog table to use with `--catalog`
-#### Example command:
-    list --catalog geomesa_catalog
 
 ### create
 To create a new feature on a specified catalog table, use the `create` command.  
 #### Required flags: 
-Specify the catalog table to use with `--catalog`. This can be a previously created catalog table, or a new catalog table.  
-Specify the feature to create with the `--typeName`.  
-Specify the SimpleFeatureType schema with `--sft`.  
+Specify the catalog table to use with `-c` or `--catalog`. This can be a previously created catalog table, or a new catalog table.  
+Specify the feature to create with the `-f` or `--feature_name`.  
+Specify the SimpleFeatureType schema with `-s` or `--spec`.  
+Specify the default temporal attribute with `-d` or `--default_date`.
 #### Example command:
-    create --catalog test_create --typeName testing --sft id:String:indexed=true,dtg:Date,geom:Point:srid=4326
-        
+    geomesa -u username -p password create -c test_create -f testing -s id:String:indexed=true,dtg:Date,geom:Point:srid=4326
+
 ### delete
 To delete a feature on a specified catalog table, use the `delete` command.  
 #### Required flags: 
-Specify the catalog table to use with `--catalog`. NOTE: Catalog tables will not be deleted when using the `delete` command, only the tables related to the given feature.  
-Specify the feature to delete with `--typeName`.  
+Specify the catalog table to use with `-o` or `--catalog`. NOTE: Catalog tables will not be deleted when using the `delete` command, only the tables related to the given feature.  
+Specify the feature to delete with `-f` or `--feature_name`.  
 #### Example command:
-    delete --catalog test_delete --typeName testing
-  
+    geomesa -u username -p password delete -c test_delete -f testing
+
+### describe
+To describe the attributes of a feature on a specified catalog table, use the `describe` command.  
+#### Required flags: 
+Specify the catalog table to use with `-o` or `--catalog`.
+Specify the feature to describe with `-f` or `--feature_name`.  
+#### Example command:
+    geomesa -u username -p password describe -c test_delete -f testing
+ 
+### explain
+To ask GeoMesa how it intends to satisfy a given query, use the `explain` command.
+#### Required flags: 
+Specify the catalog table to use with `-c` or `--catalog`. This can be a previously created catalog table, or a new catalog table.  
+Specify the feature to create with the `-f` or `-feature_name`.  
+Specify the filter string with `-q` or `--filter`.
+#### Example command:
+    geomesa -u username -p password explain -c geomesa_catalog -f twittersmall -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+
+### export
+To export features, use the `export` command.  
+#### Required flags:
+Specify the catalog table to use with `-c` or `--catalog`.  
+Specify the feature to export with `-f` or `--feature_name`.  
+Specify the export format with `-o` or `--format`. The supported export formats are csv, gml, geojson, and shp.
+#### Optional flags:
+To retrieve specific attributes from each feature, use `-a` or `--attributes` followed by a String of comma-separated attribute names.  
+To set a maximum number of features to return, use `-m` or `--maxFeatures` followed by the maximum number of features.  
+To run an ECQL query, use `-q` or `--query` followed by the query filter string.  
+#### Example commands:
+    geomesa -u username -p password export -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o csv -q "include" -m 100  
+    geomesa -u username -p password export -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
+           
 ### ingest
 Ingests TSV and CSV files containing WKT geometries with the following caveat:CSV files must surround values with double quotation marks, e.g.: `"37266103","2013-07-17","POINT(0.0 0.0)"` the first and last quotation marks are optional however. Also the WKT Geometry is assumed to be the last column of the CSV/TSV file.
 #### Usage
-    ingest --file <> --format <> --table <> --typeName <> --spec <> --datetime <> --dtformat <>
+    geomesa -u username -p password ingest --file <> --format <> --table <> --feature_name <> --spec <> --datetime <> --dtformat <>
 
 note: *the `<>` marks are where user values would go*
 
@@ -151,7 +111,7 @@ with the following parameters:
 
 `--table` The accumulo table name, the table will be created if not already extant.
 
-`--typeName` The name of the SimpleFeatureType to be used.
+`--feature_name` The name of the SimpleFeatureType to be used.
 
 `--spec` The SimpleFeatureType of the CSV or TSV file, must match the layout of columns in the CSV/TSV file
 
@@ -159,12 +119,10 @@ with the following parameters:
 
 `--dtformat` The Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss"
 
-
-### explain
-To ask GeoMesa how it intends to satisfy a given query, use the `explain` command.
+### list
+To list the features on a specified catalog table, use the `list` command.  
 #### Required flags: 
-Specify the catalog table to use with `--catalog`. This can be a previously created catalog table, or a new catalog table.  
-Specify the feature to create with the `--typeName`.  
-Specify the filter string with `--filter`.
+Specify the catalog table to use with `-c` or `--catalog`
 #### Example command:
-    explain --catalog geomesa_catalog --typeName twittersmall --filter "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+    geomesa -u username -p password list -c geomesa_catalog
+    

@@ -19,148 +19,252 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 object Tools extends App with Logging {
   val parser = new scopt.OptionParser[ScoptArguments]("geomesa-tools") {
-    head("GeoMesa Tools", "1.0")
-    help("help").text("show help command")
+    def catalogOpt = opt[String]('c', "catalog").action { (s, c) =>
+      c.copy(catalog = s) } required() hidden()
+    def featureOpt = opt[String]('f', "feature_name").action { (s, c) =>
+      c.copy(featureName = s) } required() hidden()
+    def specOpt = opt[String]('s', "spec").action { (s, c) =>
+      c.copy(spec = s) } required() hidden()
 
-    cmd("export") action { (_, c) =>
+    def export = cmd("export") action { (_, c) =>
       c.copy(mode = "export") } text "Export all or a set of features in csv, geojson, gml, or shp format" children(
-      opt[String]("catalog").action { (s, c) =>
-        c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
-        "if it does not already exist -- to contain the new data" required(),
-      opt[String]("typeName").action { (s, c) =>
-        c.copy(typeName = s) } text "the name of the feature to export" required(),
-      opt[String]("format").action { (s, c) =>
-        c.copy(format = s) } text "the format to export to (e.g. csv, tsv)" required(),
-      opt[String]("attributes").action { (s, c) =>
-        c.copy(attributes = s) } text "attributes to return in the export" optional(),
-      opt[String]("idAttribute").action { (s, c) =>
-        c.copy(idAttribute = s) } text "feature ID attribute to query on" optional(),
+      catalogOpt,
+      featureOpt,
+      opt[String]('o', "format").action { (s, c) =>
+        c.copy(format = s) } required() hidden(),
+      opt[String]('a', "attributes").action { (s, c) =>
+        c.copy(attributes = s) } optional() hidden(),
       opt[String]("latAttribute").action { (s, c) =>
-        c.copy(latAttribute = Option(s)) } text "latitude attribute to query on" optional(),
+        c.copy(latAttribute = Option(s)) } optional() hidden(),
       opt[String]("lonAttribute").action { (s, c) =>
-        c.copy(lonAttribute = Option(s)) } text "longitude attribute to query on" optional(),
+        c.copy(lonAttribute = Option(s)) } optional() hidden(),
       opt[String]("dateAttribute").action { (s, c) =>
-        c.copy(dateAttribute = Option(s)) } text "date attribute to query on" optional(),
-      opt[Int]("maxFeatures").action { (s, c) =>
-        c.copy(maxFeatures = s) } text "max number of features to return" optional(),
-      opt[String]("query").action { (s, c) =>
-        c.copy(query = s )} text "ECQL query to run on the features" optional()
+        c.copy(dateAttribute = Option(s)) } optional() hidden(),
+      opt[Int]('m', "maxFeatures").action { (s, c) =>
+        c.copy(maxFeatures = s) } optional() hidden(),
+      opt[String]('q', "query").action { (s, c) =>
+        c.copy(query = s )} optional() hidden()
       )
 
-    cmd("list") action { (_, c) =>
-      c.copy(mode = "list") } text "List the features in the specified Catalog Table" children(
-      opt[String]("catalog").action { (s, c) =>
-        c.copy(catalog = s) } text "the name of the Accumulo table to use" required()
+    def describe = cmd("describe") action { (_, c) =>
+      c.copy(mode = "describe") } text "Describe the specified feature" children(
+      catalogOpt,
+      featureOpt
       )
 
-    cmd("explain") action { (_, c) =>
+    def list = cmd("list") action { (_, c) =>
+      c.copy(mode = "list") } text "List the features in the specified Catalog Table" children
+      catalogOpt
+
+    def explain = cmd("explain") action { (_, c) =>
       c.copy(mode = "explain") } text "Explain and plan a query in Geomesa" children(
-      opt[String]("catalog").action { (s, c) =>
-        c.copy(catalog = s) } text "the name of the Accumulo table to use" required(),
-      opt[String]("typeName").action { (s, c) =>
-        c.copy(typeName = s) } text "the name of the new feature to be create" required(),
-      opt[String]("filter").action { (s, c) =>
-        c.copy(filterString = s) } text "the filter string" required()
+      catalogOpt,
+      featureOpt,
+      opt[String]('q', "filter").action { (s, c) =>
+        c.copy(filterString = s) } required() hidden()
       )
 
-    cmd("delete") action { (_, c) =>
+    def delete = cmd("delete") action { (_, c) =>
       c.copy(mode = "delete") } text "Delete a feature from the specified Catalog Table in Geomesa" children(
-      opt[String]("catalog").action { (s, c) =>
-        c.copy(catalog = s) } text "the name of the Accumulo table to use" required(),
-      opt[String]("typeName").action { (s, c) =>
-        c.copy(typeName = s) } text "the name of the new feature to be create" required()
+      catalogOpt,
+      featureOpt
       )
 
-    cmd("create") action { (_, c) =>
+    def create = cmd("create") action { (_, c) =>
       c.copy(mode = "create") } text "Create a feature in Geomesa" children(
-      opt[String]("catalog").action { (s, c) =>
-        c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create, " +
-        "if it does not already exist -- to contain the new data" required(),
-      opt[String]("typeName").action { (s, c) =>
-        c.copy(typeName = s) } text "the name of the new feature to be create" required(),
-      opt[String]("sft").action { (s, c) =>
-        c.copy(sft = s) } text "the string representation of the SimpleFeatureType" required()
+      catalogOpt,
+      featureOpt,
+      specOpt,
+      opt[String]('d', "default_date").action { (s, c) =>
+        c.copy(defaultDate = s) } optional() hidden()
       )
 
-    cmd("ingest") action { (_, c) =>
+    def ingest = cmd("ingest") action { (_, c) =>
       c.copy(mode = "ingest") } text "Ingest a feature into GeoMesa" children (
       opt[String]("file").action { (s, c) =>
-        c.copy(file = s) } text "the file you wish to ingest, e.g.: ~/capelookout.csv" required(),
+        c.copy(file = s) } required() hidden(),
       opt[String]("format").action { (s, c) =>
-        c.copy(format = s.toUpperCase) } text "the format of the file, it must be csv or tsv" required(),
-      opt[String]("table").action { (s, c) =>
-        c.copy(table = s) } text "the name of the Accumulo table to use -- or create, " +
-        "if it does not already exist -- to contain the new data" required(),
-      opt[String]("typeName").action { (s, c) =>
-        c.copy(typeName = s) } text "the name of the feature type to be ingested" required(),
-      opt[String]('s', "spec").action { (s, c) =>
-        c.copy(spec = s) } text "the sft specification for the file" required(),
+        c.copy(format = s.toUpperCase) } required() hidden(),
+      catalogOpt,
+      featureOpt,
+      specOpt,
       opt[String]("datetime").action { (s, c) =>
-        c.copy(dtField = s) } text "the name of the datetime field in the sft" required(),
+        c.copy(dtField = s) } required() hidden(),
       opt[String]("dtformat").action { (s, c) =>
-        c.copy(dtFormat = s) } text "the format of the datetime field" required()
+        c.copy(dtFormat = s) } required() hidden()
       )
+
+    head("GeoMesa Tools", "1.0")
+    help("help").text("show help command")
+    opt[String]('u', "username") action { (x, c) =>
+      c.copy(username = x) } text "Accumulo username" required() children (create, delete, describe, explain, export, ingest, list)
+    opt[String]('p', "password") action { (x, c) =>
+      c.copy(password = x) } text "Accumulo password" optional() children (create, delete, describe, explain, export, ingest, list)
   }
 
-  parser.parse(args, ScoptArguments()).map(config =>
-    config.mode match {
-      case "export" =>
-        logger.info(s"Exporting '${config.typeName}' from '${config.catalog}'. Just a few moments...")
-        val ft = new FeaturesTool(config.catalog)
-        ft.exportFeatures(
-          config.typeName,
-          config.attributes,
-          config.idAttribute,
-          config.latAttribute,
-          config.lonAttribute,
-          config.dateAttribute,
-          config.format,
-          config.query,
-          config.maxFeatures)
-      case "list" =>
-        logger.info(s"Listing features on '${config.catalog}'. Just a few moments...")
-        val ft = new FeaturesTool(config.catalog)
-        ft.listFeatures()
-      case "explain" =>
-        val ft = new FeaturesTool(config.catalog)
-        ft.explainQuery(config.typeName, config.filterString)
-      case "delete" =>
-        val ft = new FeaturesTool(config.catalog)
-        logger.info(s"Deleting '${config.typeName}.' Just a few moments...")
-        if (ft.deleteFeature(config.typeName)) {
-          logger.info(s"Feature '${config.typeName}' successfully deleted.")
-        } else {
-          logger.error(s"There was an error deleting feature '${config.typeName}'." +
-            " Please check that your configuration settings are correct and try again.")
-        }
-      case "create" =>
-        val ft = new FeaturesTool(config.catalog)
-        logger.info(s"Creating '${config.typeName}' with schema '${config.sft}'. Just a few moments...")
-        if (ft.createFeatureType(config.typeName, config.sft)) {
-          logger.info(s"Feature '${config.typeName}' with schema '${config.sft}' successfully created.")
-        } else {
-          logger.error(s"There was an error creating feature '${config.typeName}' with featureType '${config.sft}'." +
-            " Please check that your configuration settings are correct and try again.")
-        }
-      case "ingest" =>
-        val ingest = new Ingest()
-        ingest.defineIngestJob(config) match {
-          case true => logger.info(s"Successful ingest of file: \'${config.file}\'")
-          case false => logger.error(s"Error: could not successfully ingest file: \'${config.file}\'")
-        }
+  /**
+   * The default scopt help/usage is too verbose and isn't helpful if you only want the help text for a single command,
+   * so we roll our own.
+   *
+   * This will look to see which command is contained in the arguments passed to geomesa-tools. Then, it will print
+   * out that usage text. If a suitable command isn't found, it will show the default usage texts for geomesa-tools.
+   */
+  def printHelp(): Unit = {
+    val help = if (args.contains("create")) {
+      "\tCreate a feature in Geomesa\n" +
+        "\t-c, --catalog : required\n" +
+        "\t\tthe name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data\n" +
+        "\t-f, --feature_name : required\n" +
+        "\t\t\"the name of the new feature to be created\n" +
+        "\t-s, --spec : required\n" +
+        "\t\tthe SFT specification for the new feature\n" +
+        "\t-d, --default_date : optional\n" +
+        "\t\tthe default date of the sft"
+    } else if (args.contains("delete")) {
+      "\tDelete a feature from the specified Catalog Table in Geomesa\n" +
+        "\t-c, --catalog : required\n" +
+        "\t\tthe name of the Accumulo table to use\n" +
+        "\t-f, --feature_name : required\n" +
+        "\t\tthe name of the feature to be deleted"
+    } else if (args.contains("describe")) {
+      "\tDescribe the attributes of a specified feature\n" +
+        "\t-c, --catalog : required\n" +
+        "\t\tthe name of the Accumulo table to use\n" +
+        "\t-f, --feature_name : required\n" +
+        "\t\tthe name of the feature to be described"
+    } else if (args.contains("explain")) {
+      "\tExplain and plan a query in Geomesa\n" +
+        "\t-c, --catalog : required\n" +
+        "\t\tthe name of the Accumulo table to use\n" +
+        "\t-f, --feature_name : required\n" +
+        "\t\tthe name of the feature to use\n" +
+        "\t-q, --filter : required\n" +
+        "\t\tthe filter string to apply, plan, and explain"
+    } else if (args.contains("export")) {
+      "\tExport all or a set of features in csv, geojson, gml, or shp format\n" +
+        "\t-c, --catalog : required\n" +
+        "\t\tthe name of the Accumulo table to use\n" +
+        "\t-f, --feature_name : required\n" +
+        "\t\tthe name of the feature to export\n" +
+        "\t-o, --format : required\n" +
+        "\t\tthe format to export to (e.g. csv, tsv)\n" +
+        "\t-a', --attributes : optional\n" +
+        "\t-m, --maxFeatures : optional\n" +
+        "\t\tmax number of features to return\n" +
+        "\t-q, --query : optional\n" +
+        "\t\tECQL query to run on the features\n" +
+        "\t\tattributes to return in the export\n" +
+        "\t--latAttribute : optional\n" +
+        "\t\tlatitude attribute to query on\n" +
+        "\t--lonAttribute : optional\n" +
+        "\t\tlongitude attribute to query on\n" +
+        "\t--dateAttribute : optional\n" +
+        "\t\tdate attribute to query on"
+    } else if (args.contains("ingest")) {
+      "\tIngest a feature into GeoMesa\n" +
+        "\t--file : required\n" +
+        "\t\tthe file you wish to ingest, e.g.: ~/capelookout.csv\n" +
+        "\t--format : required\n" +
+        "\t\tthe format of the file, it must be csv or tsv\n" +
+        "\t-c, --catalog : required\n" +
+        "\t\tthe name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data\n" +
+        "\t-f, --feature_name : required\n" +
+        "\t\tthe name of the feature to export\n" +
+        "\t-s, --spec : required\n" +
+        "\t\tthe sft specification for the file\n" +
+        "\t--datetime : required\n" +
+        "\t\tthe name of the datetime field in the sft\n" +
+        "\t--dtformat : required\n" +
+        "\t\tthe format of the datetime field"
+    } else if (args.contains("list")) {
+      "\tList the features in the specified Catalog Table\n" +
+        "\t-c, --catalog : required\n" +
+        "\t\tthe name of the Accumulo table to use"
+    } else {
+      "Geomesa Tools 1.0\n" +
+        "Required parameters:\n" +
+        "\t-u, --username: the Accumulo username\n" +
+        "Optional parameters:\n" +
+        "\t-p, --password: the Accumulo password. This can also be provided after entering a command.\n" +
+        "Supported commands are:\n" +
+        "\t create: Create a feature in Geomesa\n" +
+        "\t describe: Delete a feature from the specified Catalog Table in Geomesa\n" +
+        "\t describe: Describe the attributes of a specified feature\n" +
+        "\t explain: Explain and plan a query in Geomesa\n" +
+        "\t export: Export all or a set of features in csv, geojson, gml, or shp format\n" +
+        "\t ingest: Ingest a feature into GeoMesa\n" +
+        "\t list: List the features in the specified Catalog Table"
     }
-  ).getOrElse(
-      logger.error("Error: command not recognized.")
-    )
+    logger.info(s"$help")
+  }
+
+  if (args.contains("help") || args.contains("--help") || args.contains("-help")) {
+    printHelp()
+  } else {
+    parser.parse(args, ScoptArguments()).map(config => {
+      val password = if (config.password == null) {
+        val standardIn = System.console()
+        print("Password> ")
+        standardIn.readPassword().mkString
+      } else {
+        config.password
+      }
+      config.mode match {
+        case "export" =>
+          logger.info(s"Exporting '${config.featureName}' from '${config.catalog}'. Just a few moments...")
+          val ft = new FeaturesTool(config, password)
+          ft.exportFeatures()
+        case "list" =>
+          logger.info(s"Listing features on '${config.catalog}'. Just a few moments...")
+          val ft = new FeaturesTool(config, password)
+          ft.listFeatures()
+        case "describe" =>
+          logger.info(s"Describing attributes of feature '${config.featureName}' on '${config.catalog}'. Just a few moments...")
+          val ft = new FeaturesTool(config, password)
+          ft.describeFeature()
+        case "explain" =>
+          val ft = new FeaturesTool(config, password)
+          ft.explainQuery()
+        case "delete" =>
+          val ft = new FeaturesTool(config, password)
+          logger.info(s"Deleting '${config.featureName}'. This may be a good time to grab a coffee, as this will take a few moments...")
+          if (ft.deleteFeature()) {
+            logger.info(s"Feature '${config.featureName}' successfully deleted.")
+          } else {
+            logger.error(s"There was an error deleting feature '${config.featureName}'. This " +
+              s"feature may not exist on '${config.catalog}'. Please check that all arguments are" +
+              "correct in the previous command.")
+          }
+        case "create" =>
+          val ft = new FeaturesTool(config, password)
+          logger.info(s"Creating '${config.featureName}' with schema '${config.spec}'. Just a few moments...")
+          if (ft.createFeatureType(config.featureName, config.spec, config.defaultDate)) {
+            logger.info(s"Feature '${config.featureName}' with schema '${config.spec}' successfully created.")
+          } else {
+            logger.error(s"There was an error creating feature '${config.featureName}' with featureType '${config.spec}'." +
+              " Please check that all arguments are correct in the previous command.")
+          }
+        case "ingest" =>
+          val ingest = new Ingest()
+          ingest.defineIngestJob(config, password) match {
+            case true => logger.info(s"Successful ingest of file: \'${config.file}\'")
+            case false => logger.error(s"Error: could not successfully ingest file: \'${config.file}\'")
+          }
+      }
+    }
+    ).getOrElse(
+        logger.error("Error: command not recognized.")
+      )
+  }
 }
 
 /*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
-case class ScoptArguments(mode: String = null, table: String = null, spec: String = null,
+case class ScoptArguments(username: String = null, password: String = null, mode: String = null, spec: String = null,
                           idFields: String = null, latField: String = null, lonField: String = null,
                           dtField: String = null, dtFormat: String = null, method: String = "local",
-                          file: String = null, typeName: String = null, format: String = null,
-                          catalog: String = null, sft: String = null, maxFeatures: Int = -1,
-                          filterString: String = null, attributes: String = null, idAttribute: String = null,
+                          file: String = null, featureName: String = null, format: String = null,
+                          catalog: String = null, maxFeatures: Int = -1, defaultDate: String = null,
+                          filterString: String = null, attributes: String = null,
                           lonAttribute: Option[String] = None, latAttribute: Option[String] = None,
                           dateAttribute: Option[String] = None, query: String = null)
 
