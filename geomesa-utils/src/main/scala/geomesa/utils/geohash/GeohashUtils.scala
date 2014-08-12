@@ -240,6 +240,15 @@ object GeohashUtils
     gh
   }
 
+  /**
+   * Returns closest geodetic distance between any point of a gh to another point
+   *
+   * @param bbox bounding box
+   * @param point point
+   * @param exhaustive If true, all corners and minima along edges will be evaluated
+   *                   If false, a subset of cases which should contain closest point are evaluated
+   * @return the distance from the point to the closest point on the bounding box
+   */
   def getMinimumGeodeticDistance(bbox: BoundingBox, point: Point, exhaustive: Boolean = false): VincentyModel.Distance = {
     val closestPoint = getClosestPoint(bbox: BoundingBox, point: Point, exhaustive)
     if (closestPoint.chordLength == 0) {
@@ -298,6 +307,7 @@ object GeohashUtils
         val dZ = Math.sin(lat2) - sinY
         Math.sqrt(dX * dX + dY * dY + dZ * dZ)
       }
+
       def getPointsToTryIfAboveOrBelowLat(lat: Double): Seq[Point] = {
         val minima = getLocalMinimaAlongLatitude().withFilter(m => m > minLon && m < maxLon).map(m =>
           defaultGeometryFactory.createPoint(new Coordinate(m, lat))
@@ -306,6 +316,7 @@ object GeohashUtils
                                            defaultGeometryFactory.createPoint(new Coordinate(maxLon, lat)))
         minima ++ startAndEndpoints
       }
+
       def getPointsToTryAlongLongitude(lon: Double): Seq[Point] = {
         val minima = getLocalMinimumAlongLongitude(lon).withFilter(m => m > minLat && m < maxLat)
                                                        .withFilter(!_.isNaN)
@@ -321,16 +332,17 @@ object GeohashUtils
       lazy val bottomEdgeSolutions = getPointsToTryIfAboveOrBelowLat(minLat)
       lazy val leftEdgeSolutions = getPointsToTryAlongLongitude(minLon)
       lazy val rightEdgeSolutions = getPointsToTryAlongLongitude(maxLon)
-      val pointsToTry = if (exhaustive) {
+      val pointsToTry =
+        if (exhaustive) {
           topEdgeSolutions ++ bottomEdgeSolutions ++ leftEdgeSolutions ++ rightEdgeSolutions
-      } else {
-        y match {
-          case y: Double if y >= maxLat && x <= maxLon && x >= minLon => topEdgeSolutions
-          case y: Double if y <= minLat && x <= maxLon && x >= minLon => bottomEdgeSolutions
-          case _ => leftEdgeSolutions ++ rightEdgeSolutions
+        } else {
+          y match {
+            case y: Double if y >= maxLat && x <= maxLon && x >= minLon => topEdgeSolutions
+            case y: Double if y <= minLat && x <= maxLon && x >= minLon => bottomEdgeSolutions
+            case _ => leftEdgeSolutions ++ rightEdgeSolutions
+          }
         }
-      }
-      pointsToTry.map( p => new GHClosePoint(p, getChordLength(p.getY, p.getX))).reduceLeft(min)
+      pointsToTry.map { p => new GHClosePoint(p, getChordLength(p.getY, p.getX)) }.reduceLeft(min)
     }
   }
 
