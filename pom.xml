@@ -17,7 +17,7 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>geomesa</groupId>
+    <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa-accumulo1.5</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -72,6 +72,12 @@
             <properties>
                 <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit -Xrunjdwp:transport=dt_socket,address=5000,server=y,suspend=y</maven.test.jvmargs>
             </properties>
+        </profile>
+        <profile>
+            <id>build-minicluster</id>
+            <modules>
+                <module>geomesa-minicluster</module>
+            </modules>
         </profile>
     </profiles>
 
@@ -231,38 +237,38 @@
                 <version>2.0</version>
             </dependency>
             <dependency>
-                <groupId>geomesa</groupId>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-core-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>geomesa</groupId>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-utils-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>geomesa</groupId>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-filter-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>geomesa</groupId>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-plugin-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>geomesa</groupId>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>geomesa</groupId>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-plugin-accumulo1.5</artifactId>
                 <classifier>geoserver-plugin</classifier>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>geomesa</groupId>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-feature-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>

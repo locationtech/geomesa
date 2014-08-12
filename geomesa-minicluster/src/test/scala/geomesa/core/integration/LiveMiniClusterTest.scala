@@ -16,10 +16,10 @@
  *
  */
 
-package geomesa.core.integration
+package org.locationtech.geomesa.core.integration
 
 import com.typesafe.scalalogging.slf4j.Logging
-import geomesa.core.data.AccumuloFeatureStore
+import org.locationtech.geomesa.core.data.AccumuloFeatureStore
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
@@ -32,7 +32,7 @@ import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.Conversions._
 
 import scala.collection.JavaConverters._
 
