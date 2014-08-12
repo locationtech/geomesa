@@ -20,6 +20,7 @@ import java.io.FileOutputStream
 import java.nio.file.{Files, Paths}
 
 import com.typesafe.scalalogging.slf4j.Logging
+import geomesa.core
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
 import geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data._
@@ -28,13 +29,15 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 
 import scala.collection.JavaConversions._
+import scala.xml.XML
 
 class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
   val user = config.username
   val pass = password
-  val instanceId = sys.env.getOrElse("GEOMESA_INSTANCEID", "instanceId")
-  val zookeepers = sys.env.getOrElse("GEOMESA_ZOOKEEPERS", "zoo1:2181,zoo2:2181,zoo3:2181")
   val table = config.catalog
+  val accumuloConf = XML.loadFile(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
+  val zookeepers = (accumuloConf \\ "property").filter(x => (x \ "name").text == "instance.zookeeper.host").map(y => (y \ "value").text).head
+  val instanceId = (accumuloConf \\ "property").filter(x => (x \ "name").text == "instance.instanceId").map(y => (y \ "value").text).head
 
   val ds: AccumuloDataStore = {
     DataStoreFinder.getDataStore(Map(
@@ -46,7 +49,14 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
   }
 
   def listFeatures() {
-    logger.info(s"${ds.getTypeNames.size} features exist on ${config.catalog}. They are: ")
+    val featureCount = if (ds.getTypeNames.size == 1) {
+      s"1 feature exists on ${config.catalog}. It is: "
+    } else if (ds.getTypeNames.size == 0) {
+      s"0 features exist on ${config.catalog}."
+    } else {
+      s"${ds.getTypeNames.size} features exist on ${config.catalog}. They are: "
+    }
+    logger.info(s"$featureCount")
     ds.getTypeNames.foreach(name =>
       logger.info(s" - $name")
     )
@@ -60,7 +70,13 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
       val attrType = typeString.substring(typeString.indexOf("<"), typeString.length)
       var attrString = s" - ${attr.getLocalName}: $attrType "
       if (isIndexed) {
-        attrString = attrString.concat("(Indexed) ")
+        if (attrType == "<Date>") {
+          attrString = attrString.concat("(Time-index) ")
+        } else if (attrType == "<Geometry>") {
+          attrString = attrString.concat("(Geo-index) ")
+        } else {
+          attrString = attrString.concat("(Indexed) ")
+        }
       }
       if (defaultValue != null) {
         attrString = attrString.concat(s"- Default Value: $defaultValue")
@@ -69,8 +85,9 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
     })
   }
 
-  def createFeatureType(sftName: String, sftString: String): Boolean = {
+  def createFeatureType(sftName: String, sftString: String, defaultDate: String = null): Boolean = {
     val sft = SimpleFeatureTypes.createType(sftName, sftString)
+    if (defaultDate != null) { sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, defaultDate) }
     ds.createSchema(sft)
     ds.getSchema(sftName) != null
   }
@@ -108,6 +125,8 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
       case _ =>
         logger.error("Unsupported export format. Supported formats are shp, geojson, csv, and gml.")
     }
+    //necessary to avoid StatsWriter exception when exporting
+    Thread.sleep(1000)
   }
 
   def deleteFeature(): Boolean = {
