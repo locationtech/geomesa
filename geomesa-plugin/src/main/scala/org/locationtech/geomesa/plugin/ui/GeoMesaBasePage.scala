@@ -31,7 +31,7 @@ class GeoMesaBasePage extends GeoServerSecuredPage {
    */
   override def renderHead(container: HtmlHeaderContainer) : Unit = {
     super.renderHead(container)
-    val resourceReference = new JavascriptResourceReference(classOf[GeoMesaBasePage], "../../../js/d3.min.js")
+    val resourceReference = new JavascriptResourceReference(classOf[GeoMesaBasePage], "../../../../../js/d3.min.js")
     container.getHeaderResponse.renderJavascriptReference(resourceReference)
   }
 }
