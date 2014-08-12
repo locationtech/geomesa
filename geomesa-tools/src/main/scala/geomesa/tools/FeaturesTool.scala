@@ -29,6 +29,7 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 import scala.xml.XML
 
 class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
@@ -85,8 +86,8 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
         logger.info(s"$attrString")
       })
     } catch {
-      case npe: NullPointerException => logger.error("Error: feature not found. Are you sure you " +
-        "typed the feature_name correctly?")
+      case npe: NullPointerException => logger.error("Error: feature not found. Please ensure " +
+        "that all arguments are correct in the previous command.")
       case e: Exception => logger.error("Error describing feature")
     }
   }
@@ -99,7 +100,11 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
   }
 
   def exportFeatures() {
-    val sftCollection = getFeatureCollection
+    val sftCollection = getFeatureCollection getOrElse{
+      logger.error("Error: Could not create a SimpleFeatureCollection to export. Please ensure " +
+        "that all arguments are correct in the previous command.")
+      sys.exit()
+    }
     val folderPath = Paths.get(s"${System.getProperty("user.dir")}/export")
     if (Files.notExists(folderPath)) {
       Files.createDirectory(folderPath)
@@ -136,8 +141,15 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
   }
 
   def deleteFeature(): Boolean = {
-    ds.deleteSchema(config.featureName)
-    !ds.getNames.contains(config.featureName)
+    try {
+      ds.deleteSchema(config.featureName)
+      !ds.getNames.contains(config.featureName)
+    } catch {
+      case re: RuntimeException =>
+        false
+      case e: Exception =>
+        false
+    }
   }
 
   def explainQuery() = {
@@ -148,12 +160,18 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
     val f = ECQL.toFilter(config.filterString)
     q.setFilter(f)
 
-    val afr = ds.getFeatureReader(q, t).asInstanceOf[AccumuloFeatureReader]
+    try {
+      val afr = ds.getFeatureReader(q, t).asInstanceOf[AccumuloFeatureReader]
 
-    afr.explainQuery(q)
+      afr.explainQuery(q)
+    } catch {
+      case re: RuntimeException => logger.error(s"Error: Could not explain the query. Please " +
+        s"ensure that all arguments are correct in the previous command.")
+      case e: Exception => logger.error(s"Error: Could not explain the query.")
+    }
   }
 
-  def getFeatureCollection: SimpleFeatureCollection = {
+  def getFeatureCollection: Try[SimpleFeatureCollection] = {
     val filter = if (config.query != null) { CQL.toFilter(config.query) } else { CQL.toFilter("include") }
     val q = new Query(config.featureName, filter)
 
@@ -161,9 +179,7 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
     if (config.attributes != null) { q.setPropertyNames(config.attributes.split(',')) }
     logger.info(s"$q")
 
-    // get the feature store used to query the GeoMesa data
-    val featureStore = ds.getFeatureSource(config.featureName).asInstanceOf[AccumuloFeatureStore]
-    // execute the query
-    featureStore.getFeatures(q)
+    // get the feature store used to query the GeoMesa data and execute the query
+    Try(ds.getFeatureSource(config.featureName).asInstanceOf[AccumuloFeatureStore].getFeatures(q))
   }
 }

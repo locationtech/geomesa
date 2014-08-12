@@ -231,8 +231,9 @@ object Tools extends App with Logging {
           if (ft.deleteFeature()) {
             logger.info(s"Feature '${config.featureName}' successfully deleted.")
           } else {
-            logger.error(s"There was an error deleting feature '${config.featureName}'." +
-              " Please check that your configuration settings are correct and try again.")
+            logger.error(s"There was an error deleting feature '${config.featureName}'. This " +
+              s"feature may not exist on '${config.catalog}'. Please check that all arguments are" +
+              "correct in the previous command.")
           }
         case "create" =>
           val ft = new FeaturesTool(config, password)
@@ -241,7 +242,7 @@ object Tools extends App with Logging {
             logger.info(s"Feature '${config.featureName}' with schema '${config.spec}' successfully created.")
           } else {
             logger.error(s"There was an error creating feature '${config.featureName}' with featureType '${config.spec}'." +
-              " Please check that your configuration settings are correct and try again.")
+              " Please check that all arguments are correct in the previous command.")
           }
         case "ingest" =>
           val ingest = new Ingest()
