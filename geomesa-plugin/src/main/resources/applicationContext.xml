@@ -19,7 +19,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="ingestRateServlet" class="geomesa.plugin.servlet.IngestRateServlet"/>
+  <bean id="ingestRateServlet" class="org.locationtech.geomesa.plugin.servlet.IngestRateServlet"/>
 
   <bean id="geoMesaDispatcherMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
     <property name="alwaysUseFullPath" value="true"/>
@@ -32,30 +32,30 @@
 
   <bean id="accumuloDataStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
         <property name="id" value="accumuloDataStorePanel"/>
-        <property name="factoryClass" value="geomesa.core.data.AccumuloDataStoreFactory"/>
+        <property name="factoryClass" value="org.locationtech.geomesa.core.data.AccumuloDataStoreFactory"/>
         <property name="iconBase" value="org.geoserver.web.GeoServerApplication"/>
         <property name="icon" value="img/icons/geosilk/database_vector.png"/>
         <property name="componentClass"
-                  value="geomesa.plugin.wfs.AccumuloDataStoreEditPanel"/>
+                  value="org.locationtech.geomesa.plugin.wfs.AccumuloDataStoreEditPanel"/>
     </bean>
 
     <bean id="accumuloCoverageStorePanel"
           class="org.geoserver.web.data.resource.DataStorePanelInfo">
         <property name="id" value="accumulo"/>
-        <property name="factoryClass" value="geomesa.plugin.wms.CoverageFormat"/>
+        <property name="factoryClass" value="org.locationtech.geomesa.plugin.wms.CoverageFormat"/>
         <property name="iconBase" value="org.geoserver.web.GeoServerApplication"/>
         <property name="icon" value="img/icons/geosilk/database_raster.png"/>
         <property name="componentClass"
-                  value="geomesa.plugin.wms.CoverageStoreEditPanel"/>
+                  value="org.locationtech.geomesa.plugin.wms.CoverageStoreEditPanel"/>
     </bean>
 
-    <bean id="geomesaProcessFactory" class="geomesa.plugin.wps.GeomesaProcessFactory">
+    <bean id="geomesaProcessFactory" class="org.locationtech.geomesa.plugin.wps.GeomesaProcessFactory">
         <constructor-arg index="0" value="Geomesa Processes"/>
         <constructor-arg index="1" value="geomesa"/>
-        <constructor-arg index="2" value="geomesa.plugin.wps.GeomesaProcess"/>
+        <constructor-arg index="2" value="org.locationtech.geomesa.plugin.wps.GeomesaProcess"/>
     </bean>
 
-    <bean id="geomesaImportProcess" class="geomesa.plugin.process.ImportProcess">
+    <bean id="geomesaImportProcess" class="org.locationtech.geomesa.plugin.process.ImportProcess">
         <constructor-arg index="0" ref="catalog"/>
     </bean>
 
@@ -75,7 +75,7 @@
     <!-- The i18n key for a longer description of the page -->
     <property name="descriptionKey" value="GeoMesaDataStoresPage.link.description"/>
     <!-- The fully qualified name of the page class -->
-    <property name="componentClass" value="geomesa.plugin.ui.GeoMesaDataStoresPage"/>
+    <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.GeoMesaDataStoresPage"/>
     <!-- Optional, an icon to display alongside the link. -->
     <!--<property name="icon" value="img/icons/silk/server.png"/>-->
     <!-- Optional, the category in which the link should be grouped. -->
@@ -89,7 +89,7 @@
     <property name="id" value="geoMesaConfigPage"/>
     <property name="titleKey" value="GeoMesaConfigPage.link.title"/>
     <property name="descriptionKey" value="GeoMesaConfigPage.link.description"/>
-    <property name="componentClass" value="geomesa.plugin.ui.GeoMesaConfigPage"/>
+    <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.GeoMesaConfigPage"/>
     <!--<property name="icon" value="img/icons/silk/server.png"/>-->
     <property name="category" ref="geoMesaCategory"/>
     <property name="order" value="300"/>
@@ -100,7 +100,7 @@
     <property name="id" value="hadoopStatusPage"/>
     <property name="titleKey" value="HadoopStatusPage.link.title"/>
     <property name="descriptionKey" value="HadoopStatusPage.link.description"/>
-    <property name="componentClass" value="geomesa.plugin.ui.HadoopStatusPage"/>
+    <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.HadoopStatusPage"/>
     <!--<property name="icon" value="img/icons/silk/server.png"/>-->
     <property name="category" ref="geoMesaCategory"/>
     <property name="order" value="200"/>
@@ -111,7 +111,7 @@
     <property name="id" value="geoMesaActionPage"/>
     <property name="titleKey" value="GeoMesaActionPage.link.title"/>
     <property name="descriptionKey" value="GeoMesaActionPage.link.description"/>
-    <property name="componentClass" value="geomesa.plugin.ui.GeoMesaActionPage"/>
+    <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.GeoMesaActionPage"/>
     <!--<property name="icon" value="img/icons/silk/server.png"/>-->
     <property name="category" ref="geoMesaCategory"/>
     <property name="order" value="400"/>

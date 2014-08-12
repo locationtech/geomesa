@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package geomesa.utils
+package org.locationtech.geomesa.utils
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
