@@ -19,12 +19,17 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 object Tools extends App with Logging {
   val parser = new scopt.OptionParser[ScoptArguments]("geomesa-tools") {
+    def catalogOpt = opt[String]('c', "catalog").action { (s, c) =>
+      c.copy(catalog = s) } required() hidden()
+    def featureOpt = opt[String]('f', "feature_name").action { (s, c) =>
+      c.copy(featureName = s) } required() hidden()
+    def specOpt = opt[String]('s', "spec").action { (s, c) =>
+      c.copy(spec = s) } required() hidden()
+
     def export = cmd("export") action { (_, c) =>
       c.copy(mode = "export") } text "Export all or a set of features in csv, geojson, gml, or shp format" children(
-      opt[String]('c', "catalog").action { (s, c) =>
-        c.copy(catalog = s) } required() hidden(),
-      opt[String]('f', "feature_name").action { (s, c) =>
-        c.copy(featureName = s) } required() hidden(),
+      catalogOpt,
+      featureOpt,
       opt[String]('o', "format").action { (s, c) =>
         c.copy(format = s) } required() hidden(),
       opt[String]('a', "attributes").action { (s, c) =>
@@ -43,44 +48,33 @@ object Tools extends App with Logging {
 
     def describe = cmd("describe") action { (_, c) =>
       c.copy(mode = "describe") } text "Describe the specified feature" children(
-      opt[String]('c', "catalog").action { (s, c) =>
-        c.copy(catalog = s) } required() hidden(),
-      opt[String]('f', "feature_name").action { (s, c) =>
-        c.copy(featureName = s) } required() hidden()
+      catalogOpt,
+      featureOpt
       )
 
     def list = cmd("list") action { (_, c) =>
-      c.copy(mode = "list") } text "List the features in the specified Catalog Table" children(
-      opt[String]('c', "catalog").action { (s, c) =>
-        c.copy(catalog = s) } required() hidden()
-      )
+      c.copy(mode = "list") } text "List the features in the specified Catalog Table" children
+      catalogOpt
 
     def explain = cmd("explain") action { (_, c) =>
       c.copy(mode = "explain") } text "Explain and plan a query in Geomesa" children(
-      opt[String]('c', "catalog").action { (s, c) =>
-        c.copy(catalog = s) } required() hidden(),
-      opt[String]('f', "feature_name").action { (s, c) =>
-        c.copy(featureName = s) } required() hidden(),
+      catalogOpt,
+      featureOpt,
       opt[String]('q', "filter").action { (s, c) =>
         c.copy(filterString = s) } required() hidden()
       )
 
     def delete = cmd("delete") action { (_, c) =>
       c.copy(mode = "delete") } text "Delete a feature from the specified Catalog Table in Geomesa" children(
-      opt[String]('c', "catalog").action { (s, c) =>
-        c.copy(catalog = s) } required() hidden(),
-      opt[String]('f', "feature_name").action { (s, c) =>
-        c.copy(featureName = s) } required() hidden()
+      catalogOpt,
+      featureOpt
       )
 
     def create = cmd("create") action { (_, c) =>
       c.copy(mode = "create") } text "Create a feature in Geomesa" children(
-      opt[String]('c', "catalog").action { (s, c) =>
-        c.copy(catalog = s) } required() hidden(),
-      opt[String]('f', "feature_name").action { (s, c) =>
-        c.copy(featureName = s) } required() hidden(),
-      opt[String]('s', "spec").action { (s, c) =>
-        c.copy(spec = s) } required() hidden(),
+      catalogOpt,
+      featureOpt,
+      specOpt,
       opt[String]('d', "default_date").action { (s, c) =>
         c.copy(defaultDate = s) } optional() hidden()
       )
@@ -91,12 +85,9 @@ object Tools extends App with Logging {
         c.copy(file = s) } required() hidden(),
       opt[String]("format").action { (s, c) =>
         c.copy(format = s.toUpperCase) } required() hidden(),
-      opt[String]("catalog").action { (s, c) =>
-        c.copy(catalog = s) } required() hidden(),
-      opt[String]("featureName").action { (s, c) =>
-        c.copy(featureName = s) } required() hidden(),
-      opt[String]('s', "spec").action { (s, c) =>
-        c.copy(spec = s) } required() hidden(),
+      catalogOpt,
+      featureOpt,
+      specOpt,
       opt[String]("datetime").action { (s, c) =>
         c.copy(dtField = s) } required() hidden(),
       opt[String]("dtformat").action { (s, c) =>

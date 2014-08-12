@@ -52,7 +52,7 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
     val featureCount = if (ds.getTypeNames.size == 1) {
       s"1 feature exists on ${config.catalog}. It is: "
     } else if (ds.getTypeNames.size == 0) {
-      s"0 features exist on ${config.catalog}."
+      s"0 features exist on ${config.catalog}. This catalog table might not yet exist."
     } else {
       s"${ds.getTypeNames.size} features exist on ${config.catalog}. They are: "
     }
@@ -63,26 +63,32 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
   }
 
   def describeFeature() {
-    ds.getSchema(config.featureName).getAttributeDescriptors.foreach( attr => {
-      val isIndexed = attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]
-      val defaultValue = attr.getDefaultValue
-      val typeString = attr.getType.toString
-      val attrType = typeString.substring(typeString.indexOf("<"), typeString.length)
-      var attrString = s" - ${attr.getLocalName}: $attrType "
-      if (isIndexed) {
-        if (attrType == "<Date>") {
-          attrString = attrString.concat("(Time-index) ")
-        } else if (attrType == "<Geometry>") {
-          attrString = attrString.concat("(Geo-index) ")
-        } else {
-          attrString = attrString.concat("(Indexed) ")
+    try {
+      ds.getSchema(config.featureName).getAttributeDescriptors.foreach(attr => {
+        val isIndexed = attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]
+        val defaultValue = attr.getDefaultValue
+        val typeString = attr.getType.toString
+        val attrType = typeString.substring(typeString.indexOf("<"), typeString.length)
+        var attrString = s" - ${attr.getLocalName}: $attrType "
+        if (isIndexed) {
+          if (attrType == "<Date>") {
+            attrString = attrString.concat("(Time-index) ")
+          } else if (attrType == "<Geometry>") {
+            attrString = attrString.concat("(Geo-index) ")
+          } else {
+            attrString = attrString.concat("(Indexed) ")
+          }
         }
-      }
-      if (defaultValue != null) {
-        attrString = attrString.concat(s"- Default Value: $defaultValue")
-      }
-      logger.info(s"$attrString")
-    })
+        if (defaultValue != null) {
+          attrString = attrString.concat(s"- Default Value: $defaultValue")
+        }
+        logger.info(s"$attrString")
+      })
+    } catch {
+      case npe: NullPointerException => logger.error("Error: feature not found. Are you sure you " +
+        "typed the feature_name correctly?")
+      case e: Exception => logger.error("Error describing feature")
+    }
   }
 
   def createFeatureType(sftName: String, sftString: String, defaultDate: String = null): Boolean = {
