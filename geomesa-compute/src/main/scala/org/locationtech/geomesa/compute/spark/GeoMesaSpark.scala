@@ -68,9 +68,7 @@ object GeoMesaSpark {
     ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, ds.connector.whoami(), ds.authToken)
     ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat], conf, ds.connector.getInstance().getInstanceName, ds.connector.getInstance().getZooKeepers)
 
-    val tableName = ds.getSpatioTemporalIdxTableName(sft)
-//    ds.connector.tableOperations().offline(tableName)
-    InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, tableName)
+    InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, ds.getSpatioTemporalIdxTableName(sft))
     InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
     InputConfigurator.setOfflineTableScan(classOf[AccumuloInputFormat], conf, true)
     qp.iterators.foreach { is => InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, is) }
