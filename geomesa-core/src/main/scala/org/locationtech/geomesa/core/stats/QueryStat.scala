@@ -18,10 +18,10 @@ package org.locationtech.geomesa.core.stats
 
 import java.util.Map.Entry
 
-import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.QueryHints._
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.core.index.QueryHints._
 import org.opengis.filter.Filter
 
 /**

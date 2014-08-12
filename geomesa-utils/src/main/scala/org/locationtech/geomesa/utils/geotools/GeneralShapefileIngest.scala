@@ -18,6 +18,7 @@ package org.locationtech.geomesa.utils.geotools
 
 import java.io.{File, Serializable}
 import java.util.{Map => JMap}
+
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder

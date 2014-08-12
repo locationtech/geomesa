@@ -16,11 +16,11 @@
 
 package org.locationtech.geomesa.plugin.wms
 
-import org.locationtech.geomesa.utils.geohash.{GeoHash, TwoGeoHashBoundingBox}
 import java.awt.Point
 import java.awt.image._
-import java.lang.Math
 import javax.media.jai.{PlanarImage, RasterFactory}
+
+import org.locationtech.geomesa.utils.geohash.{GeoHash, TwoGeoHashBoundingBox}
 
 object ImageUtils {
   def createTileImage(ghBbox: TwoGeoHashBoundingBox,

@@ -22,14 +22,14 @@ import java.io._
 
 import com.google.common.io.Files
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.core.integration.data.{DataLoader, DataType}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.apache.accumulo.minicluster.MiniAccumuloCluster
 import org.apache.commons.cli.{BasicParser, Option, Options}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.text.cql2.CQL
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.core.integration.data.{DataLoader, DataType}
 
 import scala.collection.JavaConverters._
 import scala.io.Source

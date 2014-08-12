@@ -16,10 +16,12 @@
 
 package org.locationtech.geomesa.core.util
 
-import org.locationtech.geomesa.utils.geohash.BoundingBox
-import java.util.{Collection=>JCollection}
+import java.util.{Collection => JCollection}
+
 import org.apache.accumulo.core.data.{Key, PartialKey, Range => AccRange}
 import org.apache.hadoop.io.Text
+import org.locationtech.geomesa.utils.geohash.BoundingBox
+
 import scala.collection.JavaConversions._
 
 /**

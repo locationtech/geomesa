@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import annotation.tailrec
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.Random
 

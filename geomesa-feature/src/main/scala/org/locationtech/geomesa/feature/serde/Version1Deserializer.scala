@@ -16,9 +16,9 @@
 
 package org.locationtech.geomesa.feature.serde
 
+import org.apache.avro.io.Decoder
 import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.apache.avro.io.Decoder
 
 /**
  * Version 1 AvroSimpleFeature encodes fields as WKT (Well Known Text) in an Avro String

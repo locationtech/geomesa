@@ -23,10 +23,6 @@ import java.text.DecimalFormat
 import com.google.common.collect.HashBasedTable
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Envelope
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, QueryHints}
-import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-import org.locationtech.geomesa.utils.geotools.GridSnap
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.filter.text.ecql.ECQL
@@ -34,6 +30,10 @@ import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, QueryHints}
+import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+import org.locationtech.geomesa.utils.geotools.GridSnap
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

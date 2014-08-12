@@ -17,12 +17,14 @@ package org.locationtech.geomesa.core.iterators
 
 import java.io.IOException
 import java.util.UUID
+
 import org.apache.accumulo.core.client.{IteratorSetting, ScannerBase}
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators._
 import org.apache.accumulo.start.classloader.AccumuloClassLoader
-import scala.collection.JavaConversions._
 import org.apache.accumulo.start.classloader.vfs.AccumuloVFSClassLoader
+
+import scala.collection.JavaConversions._
 
 object AggregatingKeyIterator {
   val aggClass = "aggClass"

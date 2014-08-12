@@ -16,11 +16,11 @@
 
 package org.locationtech.geomesa.plugin.ui.components
 
-import org.locationtech.geomesa.plugin.ui.FeatureData
 import org.apache.wicket.markup.html.basic.Label
 import org.apache.wicket.markup.html.list.{ListItem, ListView}
 import org.apache.wicket.markup.html.panel.Panel
 import org.apache.wicket.model.Model
+import org.locationtech.geomesa.plugin.ui.FeatureData
 
 import scala.collection.JavaConverters._
 

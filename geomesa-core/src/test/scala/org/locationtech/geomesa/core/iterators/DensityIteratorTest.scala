@@ -21,10 +21,6 @@ import java.util.Date
 
 import com.google.common.collect.HashBasedTable
 import com.vividsolutions.jts.geom.{Envelope, Point}
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
-import org.locationtech.geomesa.core.index.{Constants, IndexSchemaBuilder, QueryHints}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.hadoop.io.Text
@@ -37,6 +33,10 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
+import org.locationtech.geomesa.core.index.{Constants, IndexSchemaBuilder, QueryHints}
+import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

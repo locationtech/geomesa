@@ -1,17 +1,17 @@
 package org.locationtech.geomesa.core.process.proximity
 
 import com.vividsolutions.jts.geom.GeometryFactory
-import org.locationtech.geomesa.core.data.AccumuloFeatureCollection
-import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.apache.log4j.Logger
 import org.geotools.data.Query
-import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.visitor.{CalcResult, FeatureCalc, AbstractCalcResult}
-import org.geotools.process.factory.{DescribeParameter, DescribeResult, DescribeProcess}
+import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
+import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
+import org.locationtech.geomesa.core.data.AccumuloFeatureCollection
+import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -96,7 +96,8 @@ class ProximityVisitor( inputFeatures: SimpleFeatureCollection,
 
   def dwithinFilters(requestedUnit: String) = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
-    import scala.collection.JavaConversions._
+
+import scala.collection.JavaConversions._
 
     val geomProperty = ff.property(dataFeatures.getSchema.getGeometryDescriptor.getName)
     val geomFilters = inputFeatures.features().map { sf =>

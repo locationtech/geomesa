@@ -21,13 +21,6 @@ import java.util.{Map => JMap}
 
 import com.google.common.collect.ImmutableSortedSet
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core
-import org.locationtech.geomesa.core.data.AccumuloDataStore._
-import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.core.index.{IndexSchema, IndexSchemaBuilder, TemporalIndexCheck}
-import org.locationtech.geomesa.core.security.AuthorizationsProvider
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, NonGeomAttributeSpec}
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
@@ -42,6 +35,13 @@ import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.core
+import org.locationtech.geomesa.core.data.AccumuloDataStore._
+import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.core.index.{IndexSchema, IndexSchemaBuilder, TemporalIndexCheck}
+import org.locationtech.geomesa.core.security.AuthorizationsProvider
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, NonGeomAttributeSpec}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem

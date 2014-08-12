@@ -1,24 +1,25 @@
 package org.locationtech.geomesa.core.process.tube
 
-import collection.JavaConversions._
+import java.util.Date
+
 import com.vividsolutions.jts.geom._
+import org.apache.log4j.Logger
+import org.geotools.data.Query
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.data.store.{EmptyFeatureCollection, ReTypingFeatureCollection}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.feature.visitor._
+import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
+import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.core.data.AccumuloFeatureCollection
 import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.core.process.tube.GapFill.GapFill
 import org.locationtech.geomesa.core.util.UniqueMultiCollection
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import java.util.Date
-import org.apache.log4j.Logger
-import org.geotools.data.Query
-import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
-import org.geotools.data.store.{ReTypingFeatureCollection, EmptyFeatureCollection}
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.feature.visitor._
-import org.geotools.process.factory.{DescribeResult, DescribeParameter, DescribeProcess}
-import org.geotools.process.vector.VectorProcess
-import org.geotools.util.NullProgressListener
 import org.opengis.feature.Feature
 import org.opengis.filter.Filter
+
+import scala.collection.JavaConversions._
 
 @DescribeProcess(
   title = "Tube Select",

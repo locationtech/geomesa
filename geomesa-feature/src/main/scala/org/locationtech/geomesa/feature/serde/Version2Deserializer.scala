@@ -19,9 +19,9 @@ package org.locationtech.geomesa.feature.serde
 import java.nio.ByteBuffer
 
 import com.vividsolutions.jts.io.InStream
+import org.apache.avro.io.Decoder
 import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.locationtech.geomesa.utils.text.WKBUtils
-import org.apache.avro.io.Decoder
 
 /**
  * AvroSimpleFeature version 2 changes serialization of Geometry types from

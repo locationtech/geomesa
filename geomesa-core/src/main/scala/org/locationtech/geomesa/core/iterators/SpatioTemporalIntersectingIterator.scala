@@ -21,10 +21,6 @@ import java.util.{Date, HashSet => JHashSet}
 
 import com.typesafe.scalalogging.slf4j.{Logger, Logging}
 import com.vividsolutions.jts.geom._
-import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ArrayByteSequence, ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -34,6 +30,10 @@ import org.geotools.factory.GeoTools
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone, Interval}
+import org.locationtech.geomesa.core._
+import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
 

@@ -16,10 +16,9 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import GeoHashIterator._
 import com.vividsolutions.jts.geom.Coordinate
-import org.junit.Assert
-import org.junit.Test
+import org.junit.{Assert, Test}
+import org.locationtech.geomesa.utils.geohash.GeoHashIterator._
 
 
 class RectangleGeoHashIteratorTest {

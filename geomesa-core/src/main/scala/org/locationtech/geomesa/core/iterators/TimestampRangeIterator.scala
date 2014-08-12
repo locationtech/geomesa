@@ -15,15 +15,14 @@
  */
 package org.locationtech.geomesa.core.iterators
 
-import TimestampRangeIterator._
-import collection.JavaConverters._
 import java.util.{Date, UUID, Map => JMap}
+
 import org.apache.accumulo.core.client.{IteratorSetting, ScannerBase}
-import org.apache.accumulo.core.data.Key
-import org.apache.accumulo.core.data.Value
-import org.apache.accumulo.core.iterators.IteratorEnvironment
-import org.apache.accumulo.core.iterators.SkippingIterator
-import org.apache.accumulo.core.iterators.SortedKeyValueIterator
+import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.iterators.{IteratorEnvironment, SkippingIterator, SortedKeyValueIterator}
+import org.locationtech.geomesa.core.iterators.TimestampRangeIterator._
+
+import scala.collection.JavaConverters._
 
 object TimestampRangeIterator {
   def setupIterator(scanner: ScannerBase, startTime: Date, endTime: Date, priority: Int) {

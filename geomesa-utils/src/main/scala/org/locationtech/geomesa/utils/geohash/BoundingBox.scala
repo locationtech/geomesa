@@ -18,8 +18,9 @@
 package org.locationtech.geomesa.utils.geohash
 
 import com.vividsolutions.jts.geom._
-import org.locationtech.geomesa.utils.text.WKBUtils
 import org.apache.commons.codec.binary.Base64
+import org.locationtech.geomesa.utils.text.WKBUtils
+
 import scala.collection.BitSet
 
 /**
@@ -33,7 +34,7 @@ import scala.collection.BitSet
  */
 case class BoundingBox(ll: Point, ur: Point) {
   
-  import BoundingBox._
+  import org.locationtech.geomesa.utils.geohash.BoundingBox._
 
   require(ll.getX <= ur.getX, s"Bounding box lower left X: ${ll.getX} > upper right X: ${ur.getX}")
   require(ll.getY <= ur.getY, s"Bounding box lower left Y: ${ll.getY} > upper right Y: ${ur.getY}")

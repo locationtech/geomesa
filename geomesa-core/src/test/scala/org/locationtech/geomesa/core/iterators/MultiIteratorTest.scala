@@ -18,11 +18,6 @@ package org.locationtech.geomesa.core.iterators
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Polygon
-import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
-import org.locationtech.geomesa.core.index.{IndexSchema, IndexSchemaBuilder}
-import org.locationtech.geomesa.core.iterators.TestData._
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.simple.SimpleFeatureStore
@@ -30,6 +25,11 @@ import org.geotools.data.{DataUtilities, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core._
+import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
+import org.locationtech.geomesa.core.index.{IndexSchema, IndexSchemaBuilder}
+import org.locationtech.geomesa.core.iterators.TestData._
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

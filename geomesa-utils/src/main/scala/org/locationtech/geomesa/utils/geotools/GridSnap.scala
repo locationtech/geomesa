@@ -18,11 +18,12 @@
 package org.locationtech.geomesa.utils.geotools
 
 import com.vividsolutions.jts.geom.{Coordinate, Envelope}
-import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.data.simple.SimpleFeatureSource
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.grid.DefaultGridFeatureBuilder
 import org.geotools.grid.oblong.Oblongs
-import org.geotools.grid.{DefaultGridFeatureBuilder}
 import org.geotools.referencing.crs.DefaultGeographicCRS
+
 import scala.math.abs
 
 class GridSnap(env: Envelope, xSize: Int, ySize: Int) {

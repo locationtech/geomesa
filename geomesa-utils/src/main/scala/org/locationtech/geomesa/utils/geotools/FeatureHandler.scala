@@ -16,13 +16,15 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import java.io.{BufferedWriter, File, FileWriter}
+
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.utils.text.WKBUtils
-import java.io.{FileWriter, BufferedWriter, File}
-import org.geotools.data.{DataUtilities, Base64}
+import org.geotools.data.{Base64, DataUtilities}
 import org.geotools.feature.FeatureIterator
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import org.locationtech.geomesa.utils.text.WKBUtils
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
+
 import scala.collection.mutable.ListBuffer
 
 /**

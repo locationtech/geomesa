@@ -4,6 +4,7 @@ import org.geotools.factory.CommonFactoryFinder
 import org.opengis.filter._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.BinaryTemporalOperator
+
 import scala.collection.JavaConversions._
 
 package object filter {

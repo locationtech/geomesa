@@ -1,10 +1,8 @@
 package org.locationtech.geomesa.core.util
 
-import org.locationtech.geomesa.core.data.{AccumuloConnectorCreator, AccumuloDataStore}
+import org.apache.accumulo.core.client.{BatchScanner, Scanner}
+import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.core.index.ExplainerOutputType
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{Scanner, BatchScanner}
 import org.opengis.feature.simple.SimpleFeatureType
 
 

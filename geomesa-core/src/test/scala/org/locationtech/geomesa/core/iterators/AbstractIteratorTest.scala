@@ -15,13 +15,11 @@
  */
 package org.locationtech.geomesa.core.iterators
 
-import AbstractIteratorTest._
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.data.Key
-import org.apache.accumulo.core.data.Mutation
-import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.data.{Key, Mutation, Value}
+import org.locationtech.geomesa.core.iterators.AbstractIteratorTest._
 
 object AbstractIteratorTest {
   val TEST_TABLE_NAME: String = "query_test"

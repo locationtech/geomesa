@@ -1,8 +1,9 @@
 package org.locationtech.geomesa.core
 
-import collection.JavaConversions._
 import org.apache.accumulo.core.client.IteratorSetting
 import org.opengis.feature.simple.SimpleFeatureType
+
+import scala.collection.JavaConversions._
 
 
 package object iterators {

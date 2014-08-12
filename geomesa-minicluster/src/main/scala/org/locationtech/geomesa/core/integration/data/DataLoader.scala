@@ -18,18 +18,12 @@
 
 package org.locationtech.geomesa.core.integration.data
 
-import java.util.UUID
-
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Coordinate
-import org.locationtech.geomesa.core.data.AccumuloDataStore
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.geotools.data.Transaction
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
-import org.geotools.geometry.jts.JTSFactoryFinder
-
-import scala.io.Source
+import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 
 class DataLoader(dataType: DataType) extends Logging {
 

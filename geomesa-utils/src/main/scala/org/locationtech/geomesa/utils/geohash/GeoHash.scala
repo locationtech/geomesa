@@ -16,10 +16,11 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import com.vividsolutions.jts.geom.{Point, Coordinate, PrecisionModel, GeometryFactory}
+import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point, PrecisionModel}
+
 import scala.collection.BitSet
 import scala.collection.immutable.{BitSet => IBitSet}
-import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * GeoHashes above GeoHash.MAX_PRECISION are not supported.
@@ -38,7 +39,7 @@ case class GeoHash private(x: Double,
   require(x >= -180.0 && x <= 180.0)
   require(y >= -90.0  && y <= 90.0)
 
-  import GeoHash._
+  import org.locationtech.geomesa.utils.geohash.GeoHash._
 
   /**
    * Hash string is calculated lazily if GeoHash object was created

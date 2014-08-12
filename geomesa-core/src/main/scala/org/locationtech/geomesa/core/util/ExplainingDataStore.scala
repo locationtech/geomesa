@@ -1,8 +1,8 @@
 package org.locationtech.geomesa.core.util
 
+import org.apache.accumulo.core.client.{BatchScanner, Scanner}
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.index.ExplainerOutputType
-import org.apache.accumulo.core.client.{Scanner, BatchScanner}
 import org.opengis.feature.simple.SimpleFeatureType
 
 class ExplainingDataStore(output: ExplainerOutputType) extends AccumuloDataStore(null, null, null, null, null) {

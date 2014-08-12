@@ -17,14 +17,13 @@
 package org.locationtech.geomesa.core.iterators
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.transform.TransformCreator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.core.transform.TransformCreator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 

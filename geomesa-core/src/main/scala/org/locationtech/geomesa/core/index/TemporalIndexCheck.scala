@@ -19,6 +19,7 @@ package org.locationtech.geomesa.core.index
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.core.index
 import org.opengis.feature.simple.SimpleFeatureType
+
 import scala.collection.JavaConverters._
 
 /**

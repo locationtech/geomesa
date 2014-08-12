@@ -16,15 +16,14 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import AbstractIteratorTest._
-import collection.JavaConverters._
 import java.nio.ByteBuffer
-import org.apache.accumulo.core.data.Key
-import org.apache.accumulo.core.data.Range
-import org.apache.accumulo.core.data.Value
+
+import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.accumulo.core.security.Authorizations
-import org.junit.Before
-import org.junit.Test
+import org.junit.{Before, Test}
+import org.locationtech.geomesa.core.iterators.AbstractIteratorTest._
+
+import scala.collection.JavaConverters._
 
 
 class RowOnlyIteratorTest

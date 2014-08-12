@@ -16,15 +16,15 @@
 
 package org.locationtech.geomesa.core.data
 
-import java.io.{InputStream, ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
 import com.google.common.cache.LoadingCache
+import org.apache.accumulo.core.data.{Value => AValue}
+import org.apache.avro.io.DecoderFactory
+import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.{AvroSimpleFeature, FeatureSpecificReader}
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
-import org.apache.accumulo.core.data.{ Value => AValue }
-import org.apache.avro.io.DecoderFactory
-import org.geotools.data.DataUtilities
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 

@@ -16,10 +16,11 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, PrecisionModel, Point}
-import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import java.awt.geom.Point2D
+
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point, PrecisionModel}
 import org.geotools.referencing.GeodeticCalculator
+import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 
 /**
  * Encapsulates the notion of a geographic distance, and is primarily intended

@@ -20,16 +20,16 @@ import java.nio.charset.Charset
 
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core.data.AccumuloDataStore
-import org.locationtech.geomesa.core.index.Constants
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data.{DataStoreFinder, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.core.index.Constants
+import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import scala.io.Source
 

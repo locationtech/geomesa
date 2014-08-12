@@ -16,13 +16,15 @@
 
 package org.locationtech.geomesa.core.security
 
-import collection.JavaConversions._
+import java.io.Serializable
+import java.util
+
+import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.apache.accumulo.core.security.Authorizations
-import java.util
-import java.io.Serializable
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class FilteringAuthorizationsProviderTest extends Specification {

@@ -19,8 +19,8 @@ package org.locationtech.geomesa.core.iterators
 import java.util.Map.Entry
 
 import com.google.common.cache.{Cache, CacheBuilder}
-import org.locationtech.geomesa.core.util.CloseableIterator
 import org.apache.accumulo.core.data.{Key, Value}
+import org.locationtech.geomesa.core.util.CloseableIterator
 
 class KVEntry(akey: Key, avalue: Value) extends Entry[Key, Value] {
   def this(entry: Entry[Key, Value]) = this(entry.getKey, entry.getValue)

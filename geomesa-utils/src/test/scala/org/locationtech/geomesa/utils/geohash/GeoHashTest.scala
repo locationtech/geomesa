@@ -16,13 +16,14 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import collection.BitSet
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Point
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.collection.BitSet
 import scala.math._
 
 @RunWith(classOf[JUnitRunner])

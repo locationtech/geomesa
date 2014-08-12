@@ -5,12 +5,12 @@ import java.text.SimpleDateFormat
 import java.util.UUID
 
 import com.vividsolutions.jts.geom.{LineString, Point, Polygon}
-import org.locationtech.geomesa.utils.geohash.GeohashUtils
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.avro.io.DecoderFactory
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.{Assert, Test}
+import org.locationtech.geomesa.utils.geohash.GeohashUtils
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable

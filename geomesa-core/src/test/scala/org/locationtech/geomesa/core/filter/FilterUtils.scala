@@ -2,7 +2,8 @@ package org.locationtech.geomesa.core.filter
 
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.opengis.filter.{Or, BinaryLogicOperator, Filter}
+import org.opengis.filter.{BinaryLogicOperator, Filter, Or}
+
 import scala.collection.JavaConversions._
 
 object FilterUtils {

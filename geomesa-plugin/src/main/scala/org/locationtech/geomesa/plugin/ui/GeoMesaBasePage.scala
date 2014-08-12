@@ -16,12 +16,12 @@
 
 package org.locationtech.geomesa.plugin.ui
 
-import org.locationtech.geomesa.plugin.persistence.PersistenceUtil
-import org.locationtech.geomesa.plugin.properties
 import org.apache.hadoop.conf.Configuration
 import org.apache.wicket.markup.html.internal.HtmlHeaderContainer
 import org.apache.wicket.markup.html.resources.JavascriptResourceReference
 import org.geoserver.web.GeoServerSecuredPage
+import org.locationtech.geomesa.plugin.persistence.PersistenceUtil
+import org.locationtech.geomesa.plugin.properties
 
 class GeoMesaBasePage extends GeoServerSecuredPage {
 

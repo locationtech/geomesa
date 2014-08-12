@@ -19,20 +19,16 @@
 package org.locationtech.geomesa.core.integration
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core.data.AccumuloFeatureStore
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStoreFinder, Query}
-import org.geotools.factory.Hints
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
-import org.opengis.feature.simple.SimpleFeature
+import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.locationtech.geomesa.utils.geotools.Conversions._
 
 import scala.collection.JavaConverters._
 

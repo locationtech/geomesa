@@ -17,9 +17,6 @@
 package org.locationtech.geomesa.plugin.ui
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.plugin.persistence.PersistenceUtil
-import org.locationtech.geomesa.plugin.properties
-import org.locationtech.geomesa.plugin.ui.components.FileUploadComponent
 import org.apache.hadoop.conf.Configuration
 import org.apache.wicket.ajax.AjaxRequestTarget
 import org.apache.wicket.ajax.markup.html.AjaxLink
@@ -32,6 +29,9 @@ import org.apache.wicket.markup.html.form.{Form, TextField}
 import org.apache.wicket.markup.html.link.BookmarkablePageLink
 import org.apache.wicket.markup.html.list.{ListItem, ListView}
 import org.apache.wicket.model.{Model, PropertyModel}
+import org.locationtech.geomesa.plugin.persistence.PersistenceUtil
+import org.locationtech.geomesa.plugin.properties
+import org.locationtech.geomesa.plugin.ui.components.FileUploadComponent
 
 import scala.collection.JavaConverters._
 import scala.util.Try

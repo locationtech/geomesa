@@ -71,8 +71,7 @@ object RectangleGeoHashIterator {
   }
 }
 
-import RectangleGeoHashIterator._
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.geomesa.utils.geohash.RectangleGeoHashIterator._
 
 class RectangleGeoHashIterator(latitudeLL: Double,
                                longitudeLL: Double,

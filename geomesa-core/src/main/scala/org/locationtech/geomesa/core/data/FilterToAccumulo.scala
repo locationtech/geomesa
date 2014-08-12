@@ -17,6 +17,12 @@
 package org.locationtech.geomesa.core.data
 
 import com.vividsolutions.jts.geom._
+import org.geotools.data.Query
+import org.geotools.filter.visitor.SimplifyingFilterVisitor
+import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
+import org.geotools.temporal.`object`.{DefaultInstant, DefaultPosition}
+import org.joda.time.format.ISODateTimeFormat
+import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.locationtech.geomesa.core.data.FilterToAccumulo._
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.utils.filters.Filters._
@@ -25,12 +31,6 @@ import org.locationtech.geomesa.utils.geometry.Geometry._
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.time.Time._
-import org.geotools.data.Query
-import org.geotools.filter.visitor.SimplifyingFilterVisitor
-import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
-import org.geotools.temporal.`object`.{DefaultInstant, DefaultPosition}
-import org.joda.time.format.ISODateTimeFormat
-import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -38,6 +38,7 @@ import org.opengis.filter.expression._
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 import org.opengis.temporal.{Instant, Period => OGCPeriod}
+
 import scala.collection.JavaConversions._
 
 object FilterToAccumulo {

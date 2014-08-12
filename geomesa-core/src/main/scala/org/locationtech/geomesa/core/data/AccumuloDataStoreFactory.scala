@@ -21,8 +21,6 @@ import java.io.Serializable
 import java.util.{Map => JMap}
 import javax.imageio.spi.ServiceRegistry
 
-import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
-import org.locationtech.geomesa.core.stats.StatWriter
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, PasswordToken}
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
@@ -30,6 +28,8 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
+import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
+import org.locationtech.geomesa.core.stats.StatWriter
 
 import scala.collection.JavaConversions._
 import scala.util.Try

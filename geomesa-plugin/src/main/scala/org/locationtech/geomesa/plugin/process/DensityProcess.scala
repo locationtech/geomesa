@@ -17,11 +17,11 @@
 
 package org.locationtech.geomesa.plugin.process
 
-import org.locationtech.geomesa.core.index.QueryHints
 import org.geotools.data.Query
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess}
 import org.geotools.process.vector.HeatmapProcess
+import org.locationtech.geomesa.core.index.QueryHints
 import org.opengis.coverage.grid.GridGeometry
 
 @DescribeProcess(

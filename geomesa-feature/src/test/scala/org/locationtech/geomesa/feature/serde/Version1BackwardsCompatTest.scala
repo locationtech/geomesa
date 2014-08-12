@@ -5,14 +5,14 @@ import java.text.SimpleDateFormat
 import java.util.UUID
 
 import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
-import org.locationtech.geomesa.feature.{AvroSimpleFeature, FeatureSpecificReader, Version1ASF}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.text.WKTUtils
-import org.apache.avro.io.{EncoderFactory, DecoderFactory}
+import org.apache.avro.io.DecoderFactory
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.Assert
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.feature.{AvroSimpleFeature, FeatureSpecificReader, Version1ASF}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

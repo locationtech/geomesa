@@ -16,12 +16,12 @@
 
 package org.locationtech.geomesa.plugin.wms
 
-import org.locationtech.geomesa.plugin.GeoMesaStoreEditPanel
 import org.apache.wicket.markup.html.form.validation.IFormValidator
 import org.apache.wicket.markup.html.form.{Form, FormComponent}
 import org.apache.wicket.model.PropertyModel
 import org.geoserver.catalog.CoverageStoreInfo
 import org.geotools.data.DataAccessFactory.Param
+import org.locationtech.geomesa.plugin.GeoMesaStoreEditPanel
 
 class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
     extends GeoMesaStoreEditPanel(componentId, storeEditForm) {

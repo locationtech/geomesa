@@ -1,17 +1,19 @@
 package org.locationtech.geomesa.core.iterators
 
+import java.util
+
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
+import org.apache.accumulo.core.Constants
+import org.apache.accumulo.core.data.{Key, Value}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.data.SimpleFeatureEncoderFactory
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import java.util
-import org.apache.accumulo.core.Constants
-import org.apache.accumulo.core.data.{Key, Value}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.util.Random

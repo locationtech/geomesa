@@ -16,9 +16,9 @@
 
 package org.locationtech.geomesa.core.index
 
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data.DataUtilities
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

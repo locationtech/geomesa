@@ -16,9 +16,8 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import GeoHashIterator._
-import com.vividsolutions.jts.geom.Coordinate
-import com.vividsolutions.jts.geom.Point
+import com.vividsolutions.jts.geom.{Coordinate, Point}
+import org.locationtech.geomesa.utils.geohash.GeoHashIterator._
 
 
 object RadialGeoHashIterator {

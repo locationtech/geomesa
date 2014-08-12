@@ -3,10 +3,11 @@ package org.locationtech.geomesa.core.util
 import java.util
 import java.util.Map.Entry
 import java.util.concurrent.TimeUnit
-import org.locationtech.geomesa.core.index.ExplainerOutputType
-import org.apache.accumulo.core.client.{IteratorSetting, BatchScanner, Scanner}
-import org.apache.accumulo.core.data.{Range, Value, Key}
+
+import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
+import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.hadoop.io.Text
+import org.locationtech.geomesa.core.index.ExplainerOutputType
 
 class ExplainingBatchScanner(output: ExplainerOutputType) extends ExplainingScanner(output) with BatchScanner {
   override def setRanges(ranges: util.Collection[Range]): Unit = {}

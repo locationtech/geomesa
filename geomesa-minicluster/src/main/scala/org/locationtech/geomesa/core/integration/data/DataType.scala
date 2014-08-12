@@ -18,12 +18,9 @@
 
 package org.locationtech.geomesa.core.integration.data
 
-import java.text.SimpleDateFormat
-
-import org.locationtech.geomesa.core.index.Constants
 import org.geotools.data.DataUtilities
+import org.locationtech.geomesa.core.index.Constants
 import org.opengis.feature.simple.SimpleFeatureType
-import scala.collection.JavaConverters._
 
 import scala.io.Source
 

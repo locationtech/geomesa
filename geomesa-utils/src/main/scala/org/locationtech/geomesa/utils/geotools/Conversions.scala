@@ -20,12 +20,12 @@ import com.vividsolutions.jts.geom._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
 import org.geotools.geometry.DirectPosition2D
-import org.geotools.temporal.`object`.{DefaultPosition, DefaultInstant, DefaultPeriod}
+import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.geotools.util.{Converter, ConverterFactory}
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import org.opengis.feature.simple.SimpleFeature
 import org.opengis.temporal.Instant
 
 object Conversions {
@@ -70,7 +70,7 @@ object Conversions {
     def multiLineString = sf.getDefaultGeometry.asInstanceOf[MultiLineString]
   }
 
-  import collection.JavaConversions._
+  import scala.collection.JavaConversions._
   implicit class RichAttributeDescriptor(val attr: AttributeDescriptor) extends AnyVal {
     def isIndexed = attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]
   }

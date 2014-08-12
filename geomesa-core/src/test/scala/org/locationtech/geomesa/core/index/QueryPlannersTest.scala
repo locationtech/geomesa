@@ -17,11 +17,11 @@
 package org.locationtech.geomesa.core.index
 
 import com.vividsolutions.jts.geom.Polygon
-import org.locationtech.geomesa.utils.geohash.GeoHash
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

@@ -16,12 +16,12 @@
 
 package org.locationtech.geomesa.feature
 
-import com.google.common.cache.{CacheLoader, CacheBuilder}
-import org.locationtech.geomesa.utils.text.{ObjectPoolFactory, ObjectPoolUtils}
+import com.google.common.cache.{CacheBuilder, CacheLoader}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.utils.text.{ObjectPoolFactory, ObjectPoolUtils}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 

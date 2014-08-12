@@ -18,6 +18,7 @@ package org.locationtech.geomesa.plugin.wms
 
 import java.awt.RenderingHints
 import java.util.Collections
+
 import org.geotools.coverage.grid.io.{AbstractGridFormat, GridFormatFactorySpi}
 
 class CoverageFormatFactory extends GridFormatFactorySpi {

@@ -17,15 +17,15 @@
 package org.locationtech.geomesa.plugin.ui
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core.data.AccumuloDataStore
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, GeomAttributeSpec, NonGeomAttributeSpec}
 import org.apache.wicket.behavior.AttributeAppender
 import org.apache.wicket.markup.html.basic.Label
 import org.apache.wicket.markup.html.form.{CheckBox, Form}
 import org.apache.wicket.markup.html.list.{ListItem, ListView}
 import org.apache.wicket.model.{Model, PropertyModel}
 import org.apache.wicket.{AttributeModifier, PageParameters}
+import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, GeomAttributeSpec, NonGeomAttributeSpec}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._

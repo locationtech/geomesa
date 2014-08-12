@@ -18,8 +18,6 @@ package org.locationtech.geomesa.core;
 
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-import org.locationtech.geomesa.core.index.Constants;
-import org.locationtech.geomesa.utils.geotools.ShapefileIngest;
 import org.geotools.data.*;
 import org.geotools.factory.Hints;
 import org.geotools.feature.FeatureIterator;
@@ -27,6 +25,8 @@ import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
+import org.locationtech.geomesa.core.index.Constants;
+import org.locationtech.geomesa.utils.geotools.ShapefileIngest;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;

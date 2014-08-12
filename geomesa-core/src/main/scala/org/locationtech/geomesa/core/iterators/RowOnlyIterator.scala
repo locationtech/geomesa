@@ -17,9 +17,10 @@
 package org.locationtech.geomesa.core.iterators
 
 import java.util.UUID
+
 import org.apache.accumulo.core.client.{IteratorSetting, ScannerBase}
-import org.apache.accumulo.core.data.{Value, Key}
-import org.apache.accumulo.core.iterators.{SortedKeyValueIterator, IteratorEnvironment, WrappingIterator}
+import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator, WrappingIterator}
 
 object RowOnlyIterator {
   def setupRowOnlyIterator(scanner: ScannerBase, priority: Int) {

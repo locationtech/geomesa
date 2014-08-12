@@ -18,13 +18,13 @@ package org.locationtech.geomesa.plugin.ui.components
 
 import java.text.DecimalFormat
 
-import org.locationtech.geomesa.plugin.ui.{FeatureData, GeoMesaFeaturePage, TableMetadata}
 import org.apache.wicket.PageParameters
 import org.apache.wicket.markup.html.basic.Label
 import org.apache.wicket.markup.html.link.BookmarkablePageLink
 import org.apache.wicket.markup.html.list.{ListItem, ListView}
 import org.apache.wicket.markup.html.panel.Panel
 import org.apache.wicket.model.{Model, PropertyModel}
+import org.locationtech.geomesa.plugin.ui.{FeatureData, GeoMesaFeaturePage, TableMetadata}
 
 import scala.collection.JavaConverters._
 

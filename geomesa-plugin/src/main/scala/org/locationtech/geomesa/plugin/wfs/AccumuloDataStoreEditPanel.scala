@@ -17,12 +17,12 @@
 
 package org.locationtech.geomesa.plugin.wfs
 
-import org.locationtech.geomesa.plugin.GeoMesaStoreEditPanel
 import org.apache.wicket.markup.html.form.validation.IFormValidator
-import org.apache.wicket.markup.html.form.{FormComponent, Form}
+import org.apache.wicket.markup.html.form.{Form, FormComponent}
 import org.apache.wicket.model.PropertyModel
 import org.geoserver.catalog.DataStoreInfo
 import org.geotools.data.DataAccessFactory.Param
+import org.locationtech.geomesa.plugin.GeoMesaStoreEditPanel
 
 class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
     extends GeoMesaStoreEditPanel(componentId, storeEditForm) {

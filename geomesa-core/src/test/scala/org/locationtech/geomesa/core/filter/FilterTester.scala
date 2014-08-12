@@ -1,26 +1,28 @@
 package org.locationtech.geomesa.core.filter
 
+import java.util.Date
+
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreTest, AccumuloFeatureStore}
-import org.locationtech.geomesa.core.filter.TestFilters._
-import org.locationtech.geomesa.core.iterators.TestData._
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import java.util.Date
 import org.geotools.data.DataStoreFinder
-import org.geotools.data.simple.{SimpleFeatureStore, SimpleFeatureSource}
-import org.geotools.factory.{Hints, CommonFactoryFinder}
+import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
+import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreTest, AccumuloFeatureStore}
+import org.locationtech.geomesa.core.filter.TestFilters._
+import org.locationtech.geomesa.core.iterators.TestData._
+import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.Fragments
+
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
@@ -162,7 +164,7 @@ object FilterTester extends AccumuloDataStoreTest with Logging {
 
 
 trait FilterTester extends Specification with Logging {
-  import FilterTester._
+  import org.locationtech.geomesa.core.filter.FilterTester._
   lazy val fs = getFeatureStore
 
   def filters: Seq[String]
@@ -182,6 +184,6 @@ trait FilterTester extends Specification with Logging {
     }
   }
 
-  import FilterUtils._
+  import org.locationtech.geomesa.core.filter.FilterUtils._
   def runTest = filters.map {s => compareFilter(s) }
 }

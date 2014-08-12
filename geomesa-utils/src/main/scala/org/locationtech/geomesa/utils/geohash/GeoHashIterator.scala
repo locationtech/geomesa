@@ -16,9 +16,10 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import GeoHashIterator._
-import collection.mutable
-import com.vividsolutions.jts.geom.{PrecisionModel, GeometryFactory, Coordinate, Point}
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point, PrecisionModel}
+import org.locationtech.geomesa.utils.geohash.GeoHashIterator._
+
+import scala.collection.mutable
 
 object GeoHashIterator {
   val geometryFactory = new GeometryFactory(new PrecisionModel, 4326)

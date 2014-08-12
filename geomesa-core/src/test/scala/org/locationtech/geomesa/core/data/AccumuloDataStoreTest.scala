@@ -17,14 +17,6 @@
 package org.locationtech.geomesa.core.data
 
 import com.vividsolutions.jts.geom.Coordinate
-import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, SF_PROPERTY_START_TIME}
-import org.locationtech.geomesa.core.iterators.TestData
-import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
-import org.locationtech.geomesa.core.util.CloseableIterator
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeSpec
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{BatchWriterConfig, IteratorSetting}
@@ -45,6 +37,13 @@ import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, SF_PROPERTY_START_TIME}
+import org.locationtech.geomesa.core.iterators.TestData
+import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
+import org.locationtech.geomesa.core.util.CloseableIterator
+import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification

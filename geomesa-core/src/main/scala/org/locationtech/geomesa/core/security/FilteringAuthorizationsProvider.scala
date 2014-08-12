@@ -1,7 +1,8 @@
 package org.locationtech.geomesa.core.security
 
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
 import org.apache.accumulo.core.security.Authorizations
+import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
+
 import scala.collection.JavaConversions._
 
 /**

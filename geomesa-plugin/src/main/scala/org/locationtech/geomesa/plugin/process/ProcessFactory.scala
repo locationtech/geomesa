@@ -17,11 +17,11 @@
 
 package org.locationtech.geomesa.plugin.process
 
+import org.geotools.process.factory.AnnotatedBeanProcessFactory
+import org.geotools.text.Text
 import org.locationtech.geomesa.core.process.proximity.ProximitySearchProcess
 import org.locationtech.geomesa.core.process.query.QueryProcess
 import org.locationtech.geomesa.core.process.tube.TubeSelectProcess
-import org.geotools.process.factory.AnnotatedBeanProcessFactory
-import org.geotools.text.Text
 
 class ProcessFactory
   extends AnnotatedBeanProcessFactory(

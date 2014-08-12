@@ -16,8 +16,8 @@
 
 package org.locationtech.geomesa.core.util
 
-import org.locationtech.geomesa.utils.geohash.{GeoHash, BoundingBox}
 import org.junit.{Assert, Test}
+import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 
 class BoundingBoxUtilTest {
   @Test def getRangesTest {

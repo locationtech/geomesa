@@ -1,16 +1,16 @@
 package org.locationtech.geomesa.feature
 
+import java.util
+
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.geotools.data.DataUtilities
-import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.feature.NameImpl
+import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.Property
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import java.util
-import org.opengis.feature.Property
 
 import scala.collection.JavaConversions._
 

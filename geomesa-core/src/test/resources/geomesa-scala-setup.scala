@@ -22,18 +22,4 @@ val result = a
 println("%f seconds".format( (System.nanoTime - now) / 1000000000.0 ))
 result }
 */
-import collection.JavaConversions._
-import collection.JavaConverters._
-import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.utils.geohash._
-import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.text._
-import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.utils.geotools._
-import org.geotools.data._
-import org.geotools.factory._
-import org.geotools.temporal.`object`._
-import org.joda.time.{DateTimeZone, DateTime}
 

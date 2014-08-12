@@ -1,17 +1,17 @@
 package org.locationtech.geomesa.core.process.proximity
 
 import com.vividsolutions.jts.geom.Coordinate
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.core.index.{Constants, IndexSchemaBuilder}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.core.index.{Constants, IndexSchemaBuilder}
+import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

@@ -16,30 +16,32 @@
 
 package org.locationtech.geomesa.plugin.wms
 
-import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core.iterators.{TimestampSetIterator, TimestampRangeIterator, SurfaceAggregatingIterator, AggregatingKeyIterator}
-import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, BoundingBoxUtil}
-import org.locationtech.geomesa.utils.geohash.{GeoHash, TwoGeoHashBoundingBox, Bounds, BoundingBox}
 import java.awt.image.BufferedImage
 import java.awt.{AlphaComposite, Color, Graphics2D, Rectangle}
-import java.util.{List => JList, Date}
+import java.util.{Date, List => JList}
+
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{Scanner, IteratorSetting, ZooKeeperInstance}
+import org.apache.accumulo.core.client.{IteratorSetting, Scanner, ZooKeeperInstance}
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.geotools.coverage.CoverageFactoryFinder
-import org.geotools.coverage.grid.io.{AbstractGridFormat, AbstractGridCoverage2DReader}
-import org.geotools.coverage.grid.{GridGeometry2D, GridCoverage2D, GridEnvelope2D}
+import org.geotools.coverage.grid.io.{AbstractGridCoverage2DReader, AbstractGridFormat}
+import org.geotools.coverage.grid.{GridCoverage2D, GridEnvelope2D, GridGeometry2D}
 import org.geotools.geometry.GeneralEnvelope
 import org.geotools.parameter.Parameter
-import org.geotools.util.{Utilities, DateRange}
+import org.geotools.util.{DateRange, Utilities}
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
+import org.locationtech.geomesa.core.iterators.{AggregatingKeyIterator, SurfaceAggregatingIterator, TimestampRangeIterator, TimestampSetIterator}
+import org.locationtech.geomesa.core.util.{BoundingBoxUtil, SelfClosingBatchScanner}
+import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, TwoGeoHashBoundingBox}
 import org.opengis.geometry.Envelope
-import org.opengis.parameter.{InvalidParameterValueException, GeneralParameterValue}
+import org.opengis.parameter.{GeneralParameterValue, InvalidParameterValueException}
+
 import scala.collection.JavaConversions._
-import util.Random
+import scala.util.Random
 
 
 object CoverageReader {
@@ -47,7 +49,7 @@ object CoverageReader {
   val DefaultDateString = GeoServerDateFormat.print(new DateTime(DateTimeZone.forID("UTC")))
 }
 
-import CoverageReader._
+import org.locationtech.geomesa.plugin.wms.CoverageReader._
 
 class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() with Logging {
 

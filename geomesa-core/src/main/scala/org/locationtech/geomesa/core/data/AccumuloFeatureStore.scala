@@ -16,35 +16,20 @@
 
 package org.locationtech.geomesa.core.data
 
+import java.util.{List => JList, Map => JMap, Set => JSet}
+
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.conf._
-import org.locationtech.geomesa.core.data.mapreduce.FeatureIngestMapper.FeatureIngestMapper
-import org.locationtech.geomesa.utils.geotools.FeatureHandler
-import java.io.File
-import java.io.Serializable
-import java.util.{List => JList, Set => JSet, Map => JMap, UUID}
-import org.apache.accumulo.core.client.mapreduce.AccumuloFileOutputFormat
-import org.apache.accumulo.core.data.{Value, Key}
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{Path, FileSystem}
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
-import org.apache.hadoop.mapreduce.{Reducer, Job}
 import org.geotools.data._
-import org.geotools.data.store._
 import org.geotools.feature._
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess.Definition
 import org.opengis.feature.GeometryAttribute
-import org.opengis.feature.`type`.{GeometryDescriptor, AttributeDescriptor}
+import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.identity.FeatureId
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 
 class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: String)
     extends AbstractFeatureStore with AccumuloAbstractFeatureSource {

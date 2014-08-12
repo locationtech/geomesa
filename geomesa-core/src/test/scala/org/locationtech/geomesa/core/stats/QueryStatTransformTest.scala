@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.core.stats
 
-import org.locationtech.geomesa.core.index.QueryHints
 import org.apache.accumulo.core.client.BatchWriterConfig
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
@@ -25,6 +24,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.cql2.CQL
 import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.index.QueryHints
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

@@ -19,8 +19,8 @@ package org.locationtech.geomesa.feature.serde
 import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.apache.avro.io.Decoder
+import org.locationtech.geomesa.feature.AvroSimpleFeature
 
 /**
  * Trait that encapsulates the methods needed to deserialize

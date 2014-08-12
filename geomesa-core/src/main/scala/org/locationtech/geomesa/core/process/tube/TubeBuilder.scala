@@ -5,14 +5,14 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
-import org.locationtech.geomesa.core.index.Constants
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.apache.log4j.Logger
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.format.DateTimeFormat
+import org.locationtech.geomesa.core.index.Constants
+import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**

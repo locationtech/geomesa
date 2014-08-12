@@ -20,11 +20,11 @@ import java.io.InputStream
 import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.feature.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
 import org.apache.avro.Schema
 import org.apache.avro.io.{DatumReader, Decoder, DecoderFactory}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.feature.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 

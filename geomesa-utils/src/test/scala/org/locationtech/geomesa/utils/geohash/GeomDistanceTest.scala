@@ -17,8 +17,8 @@
 package org.locationtech.geomesa.utils.geohash
 
 import com.vividsolutions.jts.geom.Point
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

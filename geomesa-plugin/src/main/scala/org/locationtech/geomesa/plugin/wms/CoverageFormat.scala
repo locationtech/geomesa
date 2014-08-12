@@ -17,10 +17,11 @@
 package org.locationtech.geomesa.plugin.wms
 
 import java.io.File
-import java.util.{List=>JList}
+import java.util.{List => JList}
+
 import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.factory.Hints
-import org.geotools.parameter.{ParameterGroup, DefaultParameterDescriptorGroup, DefaultParameterDescriptor}
+import org.geotools.parameter.{DefaultParameterDescriptor, DefaultParameterDescriptorGroup, ParameterGroup}
 import org.opengis.parameter.GeneralParameterDescriptor
 
 class CoverageFormat extends AbstractGridFormat {

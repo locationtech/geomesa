@@ -15,17 +15,16 @@
  */
 package org.locationtech.geomesa.core.iterators
 
-import TimestampSetIterator._
-import collection.SortedSet
-import java.util.{Map => JMap, UUID}
+import java.util.{UUID, Map => JMap}
+
 import org.apache.accumulo.core.client.mapreduce.InputFormatBase
 import org.apache.accumulo.core.client.{IteratorSetting, ScannerBase}
-import org.apache.accumulo.core.data.Key
-import org.apache.accumulo.core.data.Value
-import org.apache.accumulo.core.iterators.IteratorEnvironment
-import org.apache.accumulo.core.iterators.SkippingIterator
-import org.apache.accumulo.core.iterators.SortedKeyValueIterator
+import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.iterators.{IteratorEnvironment, SkippingIterator, SortedKeyValueIterator}
 import org.apache.hadoop.mapreduce.Job
+import org.locationtech.geomesa.core.iterators.TimestampSetIterator._
+
+import scala.collection.SortedSet
 
 object TimestampSetIterator {
   def setupIterator(scanner: ScannerBase, timestampLongs: Long*) {

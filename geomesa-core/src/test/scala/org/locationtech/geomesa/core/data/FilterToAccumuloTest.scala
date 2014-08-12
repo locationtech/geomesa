@@ -18,13 +18,6 @@
 package org.locationtech.geomesa.core.data
 
 import com.vividsolutions.jts.geom.{Coordinate, Polygon}
-import org.locationtech.geomesa.core.index.Constants
-import org.locationtech.geomesa.core.iterators.TestData
-import org.locationtech.geomesa.utils.geometry.Geometry._
-import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.text.WKTUtils
-import org.locationtech.geomesa.utils.time.Time._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -34,6 +27,13 @@ import org.geotools.temporal.`object`.{DefaultInstant, DefaultPosition}
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.index.Constants
+import org.locationtech.geomesa.core.iterators.TestData
+import org.locationtech.geomesa.utils.geometry.Geometry._
+import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.utils.time.Time._
 import org.opengis.filter.expression.{Expression, Literal}
 import org.opengis.filter.spatial.DWithin
 import org.opengis.filter.temporal.{After, Before, During}

@@ -17,12 +17,12 @@
 package org.locationtech.geomesa.core
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.DateTime
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.FeatureId
 

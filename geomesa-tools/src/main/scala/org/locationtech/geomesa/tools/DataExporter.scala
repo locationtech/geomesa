@@ -24,13 +24,13 @@ import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.utils.geotools.Conversions._
 
 import scala.collection.JavaConversions._
 import scala.util.Try

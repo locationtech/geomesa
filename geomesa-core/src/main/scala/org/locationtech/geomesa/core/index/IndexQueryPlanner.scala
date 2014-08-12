@@ -20,6 +20,15 @@ import java.nio.charset.StandardCharsets
 import java.util.Map.Entry
 
 import com.vividsolutions.jts.geom.{Point, Polygon}
+import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
+import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
+import org.apache.accumulo.core.iterators.user.RegExFilter
+import org.apache.hadoop.io.Text
+import org.geotools.data.{DataUtilities, Query}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.joda.time.Interval
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
@@ -30,15 +39,6 @@ import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, CloseableIterator, SelfClosingBatchScanner, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
-import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
-import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
-import org.apache.accumulo.core.iterators.user.RegExFilter
-import org.apache.hadoop.io.Text
-import org.geotools.data.{DataUtilities, Query}
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.Interval
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.{Literal, PropertyName}

@@ -17,15 +17,15 @@
 package org.locationtech.geomesa.core.data.mapreduce
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
-import org.locationtech.geomesa.utils.geotools.FeatureHandler
-import org.locationtech.geomesa.utils.text.WKBUtils
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.{LongWritable, Text}
 import org.apache.hadoop.mapreduce.{Mapper => HMapper}
 import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.utils.geotools.FeatureHandler
+import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object FeatureIngestMapper

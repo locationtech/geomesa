@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.utils.text
 
 import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.io.{WKBWriter, WKBReader, WKTWriter, WKTReader}
+import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
 import org.apache.commons.pool.BasePoolableObjectFactory
 import org.apache.commons.pool.impl.GenericObjectPool
 

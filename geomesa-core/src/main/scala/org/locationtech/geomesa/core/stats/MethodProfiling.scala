@@ -20,7 +20,7 @@ package org.locationtech.geomesa.core.stats
 
 trait MethodProfiling {
 
-  import System.{currentTimeMillis => ctm}
+  import java.lang.System.{currentTimeMillis => ctm}
 
   def profile[R](code: => R, startTime: Long = ctm) = (code, ctm - startTime)
 }

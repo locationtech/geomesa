@@ -17,8 +17,9 @@
 package org.locationtech.geomesa.utils.geotools
 
 import java.util
+
 import org.geotools.data.DataUtilities
-import org.geotools.data.simple.{SimpleFeatureIterator, SimpleFeatureCollection}
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.geotools.factory.Hints
 import org.geotools.feature.collection.AbstractFeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope

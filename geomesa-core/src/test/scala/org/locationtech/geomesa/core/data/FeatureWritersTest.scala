@@ -19,15 +19,15 @@ package org.locationtech.geomesa.core.data
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 
-import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, SF_PROPERTY_START_TIME}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, SF_PROPERTY_START_TIME}
+import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

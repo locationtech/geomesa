@@ -20,9 +20,6 @@ import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.{BatchWriter, BatchWriterConfig, Connector}
 import org.apache.accumulo.core.data.{Key, Mutation, PartialKey, Value, Range => ARange}
 import org.apache.accumulo.core.security.ColumnVisibility
@@ -33,6 +30,9 @@ import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._

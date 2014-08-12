@@ -1,7 +1,7 @@
 package org.locationtech.geomesa.core.security
 
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
 import org.apache.accumulo.core.security.Authorizations
+import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
 
 /**
  * Default implementation of the AuthorizationsProvider that doesn't provide any authorizations

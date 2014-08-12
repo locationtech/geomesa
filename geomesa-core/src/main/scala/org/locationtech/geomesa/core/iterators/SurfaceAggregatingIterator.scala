@@ -16,10 +16,10 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import org.locationtech.geomesa.utils.geohash.{Bounds, GeoHash, BoundingBox}
-import java.lang.Math
 import java.nio.ByteBuffer
-import org.apache.accumulo.core.data.{Value, Key}
+
+import org.apache.accumulo.core.data.{Key, Value}
+import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash}
 
 
 class SurfaceAggregatingIterator extends KeyAggregator {

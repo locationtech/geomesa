@@ -16,10 +16,10 @@
 
 package org.locationtech.geomesa.core.conf
 
-import collection.JavaConversions._
-import org.apache.accumulo.core.conf.{DefaultConfiguration, AccumuloConfiguration}
-import org.locationtech.geomesa.core.conf._
+import org.apache.accumulo.core.conf.{AccumuloConfiguration, DefaultConfiguration}
 import org.apache.hadoop.conf.Configuration
+
+import scala.collection.JavaConversions._
 
 object AccGeoConfiguration {
 

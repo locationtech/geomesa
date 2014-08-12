@@ -16,10 +16,11 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import org.locationtech.geomesa.utils.geohash.GeoHash
 import java.nio.ByteBuffer
-import org.apache.accumulo.core.data.{Value, Key}
+
+import org.apache.accumulo.core.data.{Key, Value}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

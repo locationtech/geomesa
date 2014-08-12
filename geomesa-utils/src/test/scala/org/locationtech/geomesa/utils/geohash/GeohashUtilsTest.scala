@@ -16,15 +16,14 @@
 
 package org.locationtech.geomesa.utils.geohash
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
-import org.locationtech.geomesa.utils.geohash.GeohashUtils.GeometrySizingUtilities.RecommendedResolution
-import org.locationtech.geomesa.utils.geohash.GeohashUtils._
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.junit.Ignore
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geohash.GeohashUtils._
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import com.typesafe.scalalogging.slf4j.Logging
 
 @RunWith(classOf[JUnitRunner])
 class GeohashUtilsTest extends Specification with Logging {
@@ -191,7 +190,7 @@ class GeohashUtilsTest extends Specification with Logging {
     }
   }
 
-  import GeohashUtils.GeometrySizingUtilities._
+  import org.locationtech.geomesa.utils.geohash.GeohashUtils.GeometrySizingUtilities._
 
   recommendedBitsTestPolygons.foreach{ case (testPolygon, recommendedBits, recommendedNumBoxes) =>
     "getRecommendedBitsResolutionForPolygon" should {

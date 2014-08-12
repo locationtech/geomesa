@@ -16,10 +16,6 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.QueryHints._
-import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.simple.SimpleFeatureStore
@@ -28,6 +24,10 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.core.index.QueryHints._
+import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

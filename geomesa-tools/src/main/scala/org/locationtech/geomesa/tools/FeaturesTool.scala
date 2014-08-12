@@ -20,12 +20,12 @@ import java.io.FileOutputStream
 import java.nio.file.{Files, Paths}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import scala.collection.JavaConversions._
 

@@ -1,12 +1,13 @@
 package org.locationtech.geomesa.core.util
 
 import java.util.Map.Entry
-import org.apache.accumulo.core.client.{Scanner, BatchScanner}
+
+import org.apache.accumulo.core.client.{BatchScanner, Scanner}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.FeatureReader
 import org.opengis.feature.Feature
 import org.opengis.feature.`type`.FeatureType
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
 import scala.collection.Iterator
 import scala.collection.JavaConversions._
 

@@ -17,13 +17,13 @@
 package org.locationtech.geomesa.core.index
 
 import com.vividsolutions.jts.geom.Polygon
-import org.locationtech.geomesa.core.index.KeyUtils._
-import org.locationtech.geomesa.utils.CartesianProductIterable
-import org.locationtech.geomesa.utils.geohash.{GeoHash, GeohashUtils}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.hadoop.io.Text
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.{DateTime, DateTimeZone}
+import org.locationtech.geomesa.core.index.KeyUtils._
+import org.locationtech.geomesa.utils.CartesianProductIterable
+import org.locationtech.geomesa.utils.geohash.{GeoHash, GeohashUtils}
 
 case class QueryPlan(iterators: Seq[IteratorSetting], ranges: Seq[org.apache.accumulo.core.data.Range], cf: Seq[Text])
 

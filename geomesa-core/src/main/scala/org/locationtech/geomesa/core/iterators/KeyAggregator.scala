@@ -16,8 +16,7 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import org.apache.accumulo.core.data.Key
-import org.apache.accumulo.core.data.Value
+import org.apache.accumulo.core.data.{Key, Value}
 
 trait KeyAggregator {
   def reset()

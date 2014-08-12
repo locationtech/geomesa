@@ -16,9 +16,9 @@
 
 package org.locationtech.geomesa.core.index
 
-import org.locationtech.geomesa.core.index.IndexEntry._
 import org.apache.hadoop.io.Text
 import org.joda.time.{DateTime, DateTimeZone}
+import org.locationtech.geomesa.core.index.IndexEntry._
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.util.hashing.MurmurHash3

@@ -16,19 +16,20 @@
 
 package org.locationtech.geomesa.core.data
 
-import collection.JavaConversions._
-import org.locationtech.geomesa.core.process.proximity.ProximityVisitor
-import org.locationtech.geomesa.core.process.query.QueryVisitor
-import org.locationtech.geomesa.core.process.tube.TubeVisitor
 import org.geotools.data._
-import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.geotools.process.vector.TransformProcess
 import org.joda.time.DateTime
+import org.locationtech.geomesa.core.process.proximity.ProximityVisitor
+import org.locationtech.geomesa.core.process.query.QueryVisitor
+import org.locationtech.geomesa.core.process.tube.TubeVisitor
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
+
+import scala.collection.JavaConversions._
 
 trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
   val dataStore: AccumuloDataStore
