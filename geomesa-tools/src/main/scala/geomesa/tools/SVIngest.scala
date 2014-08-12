@@ -37,9 +37,9 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
 
   import scala.collection.JavaConversions._
 
-  lazy val table            = config.table
+  lazy val table            = config.catalog
   lazy val path             = config.file
-  lazy val typeName         = config.typeName
+  lazy val featureName         = config.featureName
   lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
   lazy val dtgField         = config.dtField
   lazy val dtgFmt           = config.dtFormat
@@ -50,7 +50,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   ds.createSchema(sft)
 
   lazy val sft = {
-    val ret = SimpleFeatureTypes.createType(typeName, sftSpec)
+    val ret = SimpleFeatureTypes.createType(featureName, sftSpec)
     ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField)
     ret
   }
@@ -69,7 +69,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   lazy val dtBuilder = buildDtBuilder
   lazy val idBuilder = buildIDBuilder
 
-  lazy val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
+  lazy val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
 
   Source.fromFile(path).getLines.foreach { line => parseFeature(line) }
 
