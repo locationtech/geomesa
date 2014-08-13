@@ -609,7 +609,6 @@
         <tag>HEAD</tag>
     </scm>
 
-
     <repositories>
         <repository>
             <id>central</id>
