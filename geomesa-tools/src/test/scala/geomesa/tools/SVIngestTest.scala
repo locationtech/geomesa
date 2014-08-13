@@ -103,6 +103,24 @@ class SVIngestTest extends Specification{
 
     }
 
+    "properly create an AvroSimpleFeature from a tab-delimited string with" +
+      " a Point WKT geometry and non-standard dtformat" in {
+      val ingest = new SVIngest(csvWktConfig.copy(spec = "id:String:index=False,username:String:index=false," +
+        "userid:String:index=false,text:String:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true",
+        format = "TSV", dtFormat = "yyyy/MM/dd :HH:mm:ss:", dtField = "dtg"),
+        createConnectionMap)
+      val testString = "0000\tgeomesa user\t823543\tGeoMesa rules!\t2014/08/13 :06:06:06:\tPoint(-78.4 38.0)"
+      val f = ingest.lineToFeature(testString)
+
+      f.get.getAttribute(0) must beAnInstanceOf[java.lang.String]
+      f.get.getAttribute(1) must beAnInstanceOf[java.lang.String]
+      f.get.getAttribute(2) must beAnInstanceOf[java.lang.String]
+      f.get.getAttribute(3) must beAnInstanceOf[java.lang.String]
+      f.get.getAttribute(4) must beAnInstanceOf[java.util.Date]
+      f.get.getAttribute(5) must beAnInstanceOf[Geometry]
+
+    }
+
     "properly create an Interator[Try[AvroSimpleFeature]] from a valid CSV" in {
       val path = Tools.getClass.getResource("/test_valid.csv")
       val ingest = new SVIngest(csvConfig, createConnectionMap)

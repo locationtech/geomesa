@@ -37,6 +37,7 @@ class Ingest() extends Logging {
       case "CSV" | "TSV" =>
         config.method.toLowerCase match {
           case "local" =>
+            logger.info("Ingest has started, please wait.")
             val ingest = new SVIngest(config, dsConfig)
             ingest.runIngest()
             true

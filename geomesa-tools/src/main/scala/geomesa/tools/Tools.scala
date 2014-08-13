@@ -86,9 +86,6 @@ object Tools extends App with Logging {
     cmd("ingest") text "Ingest a file into GeoMesa" action { (x, c) => c.copy(mode = "ingest") }  children(
 
       cmd("csv") action { (_, c) => c.copy(format = "csv") } text "Ingest a csv file" children(
-        opt[String]("file").action { (s, c) =>
-          c.copy(file = s)
-        } text "the file you wish to ingest, e.g.: ~/capelookout.csv" required(),
         opt[String]("catalog").action { (s, c) =>
           c.copy(catalog = s)
         } text "the name of the Accumulo table to use" required(),
@@ -118,13 +115,13 @@ object Tools extends App with Logging {
         } text "the name of the longitude field" optional(),
         opt[String]("lat").action { (s, c) =>
           c.copy(latAttribute = Option(s))
-        } text "the name of the latitude field" optional()
+        } text "the name of the latitude field" optional(),
+        opt[String]("file").action { (s, c) =>
+          c.copy(file = s)
+        } text "the file you wish to ingest, e.g.: ~/capelookout.csv, this is required" required()
         ),
 
       cmd("tsv") action { (_, c) => c.copy(format = "tsv") } text "Ingest a tsv file" children(
-        opt[String]("file").action { (s, c) =>
-          c.copy(file = s)
-        } text "the file you wish to ingest, e.g.: ~/capefear.tsv" required(),
         opt[String]("catalog").action { (s, c) =>
           c.copy(catalog = s)
         } text "the name of the Accumulo table to use" required(),
@@ -154,7 +151,10 @@ object Tools extends App with Logging {
         } text "the name of the longitude field" optional(),
         opt[String]("lat").action { (s, c) =>
           c.copy(latAttribute = Option(s))
-        } text "the name of the latitude field" optional()
+        } text "the name of the latitude field" optional(),
+        opt[String]("file").action { (s, c) =>
+          c.copy(file = s)
+        } text "the file you wish to ingest, e.g.: ~/capefear.tsv" required()
         )
 
       )
@@ -204,8 +204,8 @@ object Tools extends App with Logging {
       case "ingest" =>
         val ingest = new Ingest()
         ingest.defineIngestJob(config) match {
-          case true => logger.info(s"Successful ingest of file: \'${config.file}\'")
-          case false => logger.error(s"Error: could not successfully ingest file: \'${config.file}\'")
+          case true => logger.info(s"Ingest complete of file: \'${config.file}\'")
+          case false => logger.error(s"Error: could not ingest file: \'${config.file}\'")
         }
     }
   ).getOrElse(

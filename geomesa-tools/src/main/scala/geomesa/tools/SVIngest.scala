@@ -51,6 +51,9 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   lazy val latField         = config.latAttribute.orNull
   lazy val lonField         = config.lonAttribute.orNull
   lazy val skipHeader       = config.skipHeader
+  var lineNumber            = 0
+  var errors                = 0
+  var successes             = 0
 
   lazy val dropHeader = skipHeader match {
     case true => 1
@@ -63,7 +66,17 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   }
 
   val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
-  ds.createSchema(sft)
+
+  if(ds.getSchema(typeName) == null){
+    logger.info("\tCreating GeoMesa tables...")
+    val startTime = System.currentTimeMillis()
+    ds.createSchema(sft)
+    val createTime = System.currentTimeMillis() - startTime
+    logger.info(s"\tCreated schema in: $createTime ms")
+  } else {
+    logger.info("GeoMesa tables extant")
+  }
+
 
   lazy val sft = {
     val ret = SimpleFeatureTypes.createType(typeName, sftSpec)
@@ -97,6 +110,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
         finally {
           cfw.release()
           ds.dispose()
+          logger.info(s"For file $path - added $successes features and failed $errors")
         }
       case _ =>
         logger.error(s"Error, no such SV ingest method: ${config.method.toLowerCase}")
@@ -105,8 +119,8 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
 
   def performIngest(cfw: CloseableFeatureWriter, lines: Iterator[String]) = {
     linesToFeatures(lines).foreach {
-      case Success(ft) => writeFeature(cfw.fw, ft)
-      case Failure(ex) => logger.error(s"Could not write feature due to: ${ex.getLocalizedMessage}")
+      case Success(ft) => successes +=1; writeFeature(cfw.fw, ft)
+      case Failure(ex) => errors +=1; logger.error(s"Could not write feature due to: ${ex.getLocalizedMessage}")
     }
   }
 
@@ -115,6 +129,11 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   }
 
   def lineToFeature(line: String): Try[AvroSimpleFeature] = Try{
+    lineNumber += 1
+    // Log info to user that ingest is still working, might be in wrong spot however...
+    if ( lineNumber % 10000 == 0 ) {
+      logger.info(s"Ingest proceeding, on line number: $lineNumber")
+    }
     // CsvReader is being used to just split the line up. this may be refactored out when
     // scalding support is added however it may be necessary for local only ingest
     val reader = new CsvReader(IOUtils.toInputStream(line), delim, Charset.defaultCharset())
@@ -126,16 +145,29 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
     } finally {
       reader.close()
     }
+
     val id = idBuilder(fields)
     builder.reset()
     builder.addAll(fields.asInstanceOf[Array[AnyRef]])
     val feature = builder.buildFeature(id).asInstanceOf[AvroSimpleFeature]
-    //try date stuff first
-    // dtg throws null pointer exception here
+
+    //override the feature dtgField if it could not be parsed in
+    if (feature.getAttribute(dtgField) == null) {
+      try {
+        val dtgFieldIndex = getAttributeIndexInLine(dtgField)
+        val date = dtBuilder(fields(dtgFieldIndex)).toDate
+        feature.setAttribute(dtgField, date)
+      } catch {
+        case e: Exception => throw new Exception(s"Could not form Date object from field" +
+          s" using $dtFormat, on line number: $lineNumber")
+      }
+    }
+
     val dtg = try{
       dtBuilder(feature.getAttribute(dtgField))
     } catch {
-      case e: Exception => throw new Exception(s"Could not find date-time field: \'${dtgField}\' in line: \'${line}\'")
+      case e: Exception => throw new Exception(s"Could not find date-time field: \'${dtgField}\' " +
+        s"in line: \'${line}\', number: $lineNumber")
     }
     feature.setAttribute(dtgTargetField, dtg.toDate)
     // Support for point data method
@@ -145,6 +177,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
       case (Some(x), Some(y)) => feature.setDefaultGeometry(geomFactory.createPoint(new Coordinate(x, y)))
       case _                  => Nil
     }
+
     feature
   }
 
@@ -161,6 +194,8 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
       case e: Exception => logger.error(s"Cannot ingest avro simple feature: $feature", e)
     }
   }
+
+  def getAttributeIndexInLine(attribute: String) = attributes.indexOf(sft.getDescriptor(attribute))
 
   def buildIDBuilder: (Array[String]) => String = {
      idFields match {
