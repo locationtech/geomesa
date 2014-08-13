@@ -472,7 +472,7 @@ object GeohashUtils
    * @return the list of GeoHash cells into which this polygon was decomposed
    *         under the given constraints
    */
-  private def decomposeGeometry_(targetGeom: Geometry,
+  def decomposeGeometry_(targetGeom: Geometry,
                                  maxSize: Int = 100,
                                  resolutions: ResolutionRange = new ResolutionRange(5,40,5)): List[GeoHash] = {
     lazy val geomCatcher = catching(classOf[Exception])
