@@ -98,8 +98,8 @@ object JobUtils extends Logging {
     sys.env.get(home)
       .map(f => new File(new File(f), "lib"))
       .filter(_.isDirectory)
-      .flatMap(loadJarsFromFolder)
-      .toSeq
+      .map(loadJarsFromFolder)
+      .getOrElse(Seq.empty)
 
   /**
    * Finds URLs of jar files based on the current classpath
