@@ -64,6 +64,32 @@ class GeohashUtilsTest extends Specification with Logging {
     "[POINT] out point no span" ->("POINT(-190 40)", "POINT(170 40)", "POINT(40 40)")
   )
 
+  //first tuple is the point, second tuple is the BoundingBox of GH, the double is degrees of min great circle arc from point to GH
+  val geodeticMinDistToGeohashTestData: Map[String, ((Double, Double), ((Int, Int), (Int, Int)), Double)] = Map(
+    "within" -> ((150.0, -88.0), ((149, -89), (151, -87)), 0.0001),
+    "pole wrapper" -> ((-30.0, -89.000001), ((149, -89), (151, -87)), 2.0),
+    "tricksy pole wrapper" -> ((-30.0, -88.999999), ((149, -89), (151, -87)), 2.0),
+    "exact pole wrapper" -> ((-30.0, -89.0), ((149, -89), (151, -87)), 2.0),
+    "otherside of pole wrapper" -> ((-30.0, 89.000001), ((149, -89), (151, -87)), 178.0),
+    "otherside of tricksy pole wrapper" -> ((-30.0, 88.999999), ((149, -89), (151, -87)), 178.0),
+    "otherside of exact pole wrapper" -> ((-30.0, 89.0), ((149, -89), (151, -87)), 178.0),
+    "northside of exact pole wrapper" -> ((150.0, 89.0), ((149, -89), (151, -87)), 176.0),
+    "slightly left of northside of exact pole wrapper" -> ((148.999999, 89.0), ((149, -89), (151, -87)), 176.0),
+    "IDL wrapper" -> ((179.0, 0.0), ((-180, -1), (-178, 1)), 1.0),
+    "west of tl of gh in southern hemi" -> ((148.0, -87.0), ((149, -89), (151, -87)), 1.0),
+    "north of tl of gh in southern hemi" -> ((149.0, -86.0), ((149, -89), (151, -87)), 1.0),
+    "south of bl of gh in southern hemi" -> ((149.0, -90.0), ((149, -89), (151, -87)), 1.0),
+    "west of bl of gh in southern hemi" -> ((148.0, -89.0), ((149, -89), (151, -87)), 1.0),
+    "slightly WNW of gh in southern hemi" -> ((148.0, -86.999999), ((149, -89), (151, -87)), 1.0),
+    "slightly NNW of gh in southern hemi" -> ((148.999999, -86.0), ((149, -89), (151, -87)), 1.0),
+    "slightly WSW of gh in southern hemi" -> ((148.0, -89.000001), ((149, -89), (151, -87)), 1.0),
+    "slightly SSW of gh in southern hemi" -> ((148.999999, -90.0), ((149, -89), (151, -87)), 1.0),
+    "above south pole gh" -> ((99.5, -88.0), ((99, -90), (100, -89)), 1.0),
+    "above south pole gh 180 around" -> ((-80.5, -89.5), ((99, -90), (100, -89)), 0.5),
+    "left of south pole gh" -> ((98.0, -89.0), ((99, -90), (100, -89)), 1.0),
+    "south pole to south pole gh" -> ((98.0, -90.0), ((99, -90), (100, -89)), 1e-7)
+  )
+
   val recommendedBitsTestPolygons = Seq(
     ("POLYGON((33 -14, 82 -14, 82 24, 33 24, 33 -14))", 23, 241044),
     ("POLYGON((36 23, 36 18, 43 9, 50 10, 38 -4, 40 -14, 60 -14, 78 7, 76 8, 73 21, 71 23, 58 23, 57 19, 45 13, 40 20, 39 23, 36 23))", 23, 132496),
@@ -186,6 +212,27 @@ class GeohashUtilsTest extends Specification with Logging {
             decomposed.contains(includedPoint) must equalTo(true)
             decomposed.contains(excludedPoint) must equalTo(false)
         }
+      }
+    }
+  }
+
+  geodeticMinDistToGeohashTestData.map { case (name, ((x, y), ((minLon, minLat), (maxLon, maxLat)), degrees)) =>
+    "getGeodeticGreatCircleChordLength" should {
+      val toleranceMeters = 1
+      s"work for $name" in {
+        val point = defaultGeometryFactory.createPoint(new Coordinate(x, y))
+        val ll = defaultGeometryFactory.createPoint(new Coordinate(minLon.asInstanceOf[Double], minLat.asInstanceOf[Double]))
+        val ur = defaultGeometryFactory.createPoint(new Coordinate(maxLon.asInstanceOf[Double], maxLat.asInstanceOf[Double]))
+        val bbox = new BoundingBox(ll, ur)
+        val chordLength = GeohashUtils.getMinimumChordLength(bbox, point)
+        logger.debug(s"chord length for $name = " + chordLength)
+        chordLength must beLessThan(Math.toRadians(degrees))
+        chordLength must beLessThanOrEqualTo(GeohashUtils.getMinimumChordLength(bbox, point, true))
+        val distance = GeohashUtils.getMinimumGeodeticDistance(bbox, point).getDistanceInMeters
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ul, point).getDistanceInMeters + toleranceMeters)
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ur, point).getDistanceInMeters + toleranceMeters)
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.ll, point).getDistanceInMeters + toleranceMeters)
+        distance must beLessThanOrEqualTo(VincentyModel.getDistanceBetweenTwoPoints(bbox.lr, point).getDistanceInMeters + toleranceMeters)
       }
     }
   }
