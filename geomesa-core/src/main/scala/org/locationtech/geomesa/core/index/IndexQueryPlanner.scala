@@ -379,7 +379,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val geomsToCover = tweakedGeoms.flatMap {
       case bbox: BBOX =>
         val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
-        Seq(getInternationalDateLineSafeGeometry(addWayPointsToBBOX(bboxPoly)))
+        Seq(bboxPoly)
       case gf: BinarySpatialOperator =>
         extractGeometry(gf)
       case _ => Seq()
@@ -391,10 +391,10 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     }
 
     val interval = netInterval(temporal)
-    val poly = netGeom(collectionToCover)
-    val filter = buildFilter(poly, interval)
+    val geometryToCover = netGeom(collectionToCover)
+    val filter = buildFilter(geometryToCover, interval)
 
-    output(s"GeomsToCover $geomsToCover\nBounding poly: $poly")
+    output(s"GeomsToCover $geomsToCover.")
 
     val ofilter = filterListAsAnd(geomFilters ++ temporalFilters)
     if(ofilter.isEmpty) logger.warn(s"Querying Accumulo without ST filter.")
@@ -424,11 +424,9 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
           configureSpatioTemporalIntersectingIterator(ofilter, featureType, isDensity)
       }
 
-    val goodPoly = if(poly == null) null else poly.getEnvelope.asInstanceOf[Polygon]
-
     val sffiIterCfg =
       if (iteratorConfig.useSFFI) {
-        Some(configureSimpleFeatureFilteringIterator(featureType, ecql, query, goodPoly))
+        Some(configureSimpleFeatureFilteringIterator(featureType, ecql, query))
       } else None
 
     val topIterCfg = if(query.getHints.containsKey(DENSITY_KEY)) {
@@ -440,7 +438,9 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
 
       val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Int]
       val height =  query.getHints.get(HEIGHT_KEY).asInstanceOf[Int]
-      DensityIterator.configure(cfg, goodPoly, width, height)
+      val polygon = if(geometryToCover == null) null else geometryToCover.getEnvelope.asInstanceOf[Polygon]
+
+      DensityIterator.configure(cfg, polygon, width, height)
 
       cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
       configureFeatureEncoding(cfg)
@@ -538,8 +538,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
   // the values into a map of attribute, value pairs
   def configureSimpleFeatureFilteringIterator(simpleFeatureType: SimpleFeatureType,
                                               ecql: Option[String],
-                                              query: Query,
-                                              poly: Polygon = null): IteratorSetting = {
+                                              query: Query): IteratorSetting = {
 
     val density: Boolean = query.getHints.containsKey(DENSITY_KEY)
 
