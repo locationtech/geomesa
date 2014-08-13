@@ -51,11 +51,11 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
 
   def listFeatures() {
     val featureCount = if (ds.getTypeNames.size == 1) {
-      s"1 feature exists on ${config.catalog}. It is: "
+      s"1 feature exists on '${config.catalog}'. It is: "
     } else if (ds.getTypeNames.size == 0) {
-      s"0 features exist on ${config.catalog}. This catalog table might not yet exist."
+      s"0 features exist on '${config.catalog}'. This catalog table might not yet exist."
     } else {
-      s"${ds.getTypeNames.size} features exist on ${config.catalog}. They are: "
+      s"${ds.getTypeNames.size} features exist on '${config.catalog}'. They are: "
     }
     logger.info(s"$featureCount")
     ds.getTypeNames.foreach(name =>
@@ -105,10 +105,7 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
         "that all arguments are correct in the previous command.")
       sys.exit()
     }
-    val folderPath = Paths.get(s"${System.getProperty("user.dir")}/export")
-    if (Files.notExists(folderPath)) {
-      Files.createDirectory(folderPath)
-    }
+    val folderPath = Paths.get(s"${System.getProperty("user.dir")}")
     config.format.toLowerCase match {
       case "csv" | "tsv" =>
         val loadAttributes = new LoadAttributes(config.featureName, table, config.attributes, null, config.latAttribute, config.lonAttribute, config.dateAttribute, config.query)
@@ -121,18 +118,18 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
         de.writeFeatures(sftCollection.features())
       case "shp" =>
         val shapeFileExporter = new ShapefileExport
-        shapeFileExporter.write(s"$folderPath/${config.featureName}.shp", config.featureName, sftCollection, ds.getSchema(config.featureName))
+        shapeFileExporter.write(s"$folderPath/${config.catalog}_${config.featureName}.shp", config.featureName, sftCollection, ds.getSchema(config.featureName))
         logger.info(s"Successfully wrote features to '${System.getProperty("user.dir")}/export/${config.featureName}.shp'")
       case "geojson" =>
-        val os = new FileOutputStream(s"$folderPath/${config.featureName}.geojson")
+        val os = new FileOutputStream(s"$folderPath/${config.catalog}_${config.featureName}.geojson")
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
-        logger.info(s"Successfully wrote features to '$folderPath/${config.featureName}.geojson'")
+        logger.info(s"Successfully wrote features to '$folderPath/${config.catalog}_${config.featureName}.geojson'")
       case "gml" =>
-        val os = new FileOutputStream(s"$folderPath/${config.featureName}.gml")
+        val os = new FileOutputStream(s"$folderPath/${config.catalog}_${config.featureName}.gml")
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
-        logger.info(s"Successfully wrote features to '$folderPath/${config.featureName}.gml'")
+        logger.info(s"Successfully wrote features to '$folderPath/${config.catalog}_${config.featureName}.gml'")
       case _ =>
         logger.error("Unsupported export format. Supported formats are shp, geojson, csv, and gml.")
     }
@@ -145,10 +142,8 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
       ds.deleteSchema(config.featureName)
       !ds.getNames.contains(config.featureName)
     } catch {
-      case re: RuntimeException =>
-        false
-      case e: Exception =>
-        false
+      case re: RuntimeException => false
+      case e: Exception => false
     }
   }
 

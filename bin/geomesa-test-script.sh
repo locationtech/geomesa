@@ -24,16 +24,16 @@ USERNAME=username
 PASSWORD=password
 CATALOG=test_catalog
 FEATURENAME=test_feature
-SPEC=id:String:indexed=true,dtg:Date,geom:Point:srid=4326
+SPEC=id:String:index=true,dtg:Date,geom:Point:srid=4326
 
-geomesa -u ${USERNAME} -p ${PASSWORD} create -c ${CATALOG} -f ${FEATURENAME} -s ${SPEC}
-geomesa -u ${USERNAME} -p ${PASSWORD} list -c ${CATALOG}
-geomesa -u ${USERNAME} -p ${PASSWORD} describe -c ${CATALOG} -f ${FEATURENAME}
-geomesa -u ${USERNAME} -p ${PASSWORD} explain -c ${CATALOG} -f ${FEATURENAME} -q include
-geomesa -u ${USERNAME} -p ${PASSWORD} export -c ${CATALOG} -f ${FEATURENAME} -o csv
-geomesa -u ${USERNAME} -p ${PASSWORD} export -c ${CATALOG} -f ${FEATURENAME} -o tsv
-geomesa -u ${USERNAME} -p ${PASSWORD} export -c ${CATALOG} -f ${FEATURENAME} -o geojson
-geomesa -u ${USERNAME} -p ${PASSWORD} export -c ${CATALOG} -f ${FEATURENAME} -o gml
-geomesa -u ${USERNAME} -p ${PASSWORD} export -c ${CATALOG} -f ${FEATURENAME} -o shp
-geomesa -u ${USERNAME} -p ${PASSWORD} delete -c ${CATALOG} -f ${FEATURENAME}
-geomesa -u ${USERNAME} -p ${PASSWORD} list -c ${CATALOG}
+geomesa create -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -s ${SPEC}
+geomesa list -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG}
+geomesa describe -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME}
+geomesa explain -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -q include
+geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o csv
+geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o tsv
+geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o geojson
+geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o gml
+geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o shp
+geomesa delete -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME}
+geomesa list -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG}

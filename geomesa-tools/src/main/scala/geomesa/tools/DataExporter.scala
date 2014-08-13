@@ -73,12 +73,7 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
     val attributeTypes = idAttributeArray ++ attributesArray
     val attributes = attributeTypes.map(_.split(":")(0))
 
-    val fr = format.toLowerCase match {
-      case "tsv" =>
-        new PrintWriter(new FileWriter(s"${System.getProperty("user.dir")}/export/${load.name}.tsv"))
-      case "csv" =>
-        new PrintWriter(new FileWriter(s"${System.getProperty("user.dir")}/export/${load.name}.csv"))
-    }
+    val fr = new PrintWriter(new FileWriter(s"${System.getProperty("user.dir")}/${load.table}_${load.name}.$format"))
 
     format.toLowerCase match {
       case "tsv" =>
@@ -163,7 +158,7 @@ class DataExporter(load: LoadAttributes, params: Map[_,_], format: String) exten
       }
     }
     fr.close()
-    logger.info(s"Successfully wrote $count features to '${System.getProperty("user.dir")}/export/${load.name}.$format'")
+    logger.info(s"Successfully wrote $count features to '${System.getProperty("user.dir")}/${load.table}_${load.name}.$format'")
   }
 
   /**

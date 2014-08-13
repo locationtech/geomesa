@@ -27,8 +27,8 @@ if  [[ $1 = configure ]]; then
     export GEOMESA_HOME="$bin"
     export PATH=${GEOMESA_HOME}/bin:$PATH
 else
-    if [[ (-z "$GEOMESA_HOME") ]]; then
-        echo "Your environment variables are not configured appropriately. Please run 'geomesa configure' and ensure that $GEOMESA_HOME is set in your environment variables."
+    if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") ||  (-z "$HADOOP_HOME")  ]]; then
+        echo "Please ensure $GEOMESA_HOME, $ACCUMULO_HOME, and $HADOOP_HOME are set before running geomesa-tools."
     elif [ -n "$*" ]; then
         java -jar ${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar $*
     else
