@@ -314,7 +314,7 @@ trait GeoHashPlanner extends Logging {
 case class GeoHashKeyPlanner(offset: Int, bits: Int) extends KeyPlanner with GeoHashPlanner {
   def getKeyPlan(filter: KeyPlanningFilter, output: ExplainerOutputType) = getKeyPlan(filter, offset, bits) match {
     case KeyList(keys) => {
-      output(s"GeoHashKeyPlanner is settings ${keys.size}: $keys")
+      output(s"GeoHashKeyPlanner is setting ${keys.size}: $keys")
       KeyListTiered(keys)
     }
     case KeyAccept => KeyAccept
