@@ -77,7 +77,7 @@ object AccumuloFeatureWriter {
                                  indexedAttributes: Seq[(AttributeDescriptor, Array[Byte])],
                                  visibility: ColumnVisibility,
                                  delete: Boolean = false): Seq[Mutation] = {
-    lazy val cf = new Text(feature.getID)
+    val cf = new Text(feature.getID)
     lazy val value = IndexSchema.encodeIndexValue(feature)
     indexedAttributes.map { case (attr, name) =>
       val attrValue = valOrNull(feature.getAttribute(attr.getName)).getBytes(StandardCharsets.UTF_8)

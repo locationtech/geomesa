@@ -100,14 +100,16 @@ object AttributeIndexJob {
 
   def runJob(conf: Configuration, params: Map[String, String], feature: String, attributes: Seq[String]) = {
 
+    if (attributes.isEmpty) {
+      throw new IllegalArgumentException("No attributes specified")
+    }
+
     val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
 
     if (ds == null) {
       throw new IllegalArgumentException("Data store could not be loaded")
     } else if (!ds.catalogTableFormat(feature)) {
       throw new IllegalStateException("Feature does not have an attribute index")
-    } else if (attributes.isEmpty) {
-      throw new IllegalArgumentException("No attributes specified")
     }
 
     val jParams = params.asJava

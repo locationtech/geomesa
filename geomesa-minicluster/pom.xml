@@ -50,9 +50,8 @@
       <artifactId>geomesa-utils-accumulo1.5</artifactId>
     </dependency>
     <dependency>
-      <groupId>geomesa</groupId>
+      <groupId>org.locationtech.geomesa</groupId>
       <artifactId>geomesa-tools-accumulo1.5</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>

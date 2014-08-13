@@ -97,9 +97,9 @@ object JobUtils extends Logging {
   def getUrlsFromEnvironment(home: String): Seq[File] =
     sys.env.get(home)
       .map(f => new File(new File(f), "lib"))
-      .filter(f => f.isDirectory)
-      .map(f => loadJarsFromFolder(f))
-      .getOrElse(Seq.empty)
+      .filter(_.isDirectory)
+      .flatMap(loadJarsFromFolder)
+      .toSeq
 
   /**
    * Finds URLs of jar files based on the current classpath
