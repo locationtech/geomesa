@@ -20,7 +20,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
-        <groupId>geomesa</groupId>
+        <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-accumulo1.5</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
@@ -35,16 +35,21 @@
 
     <dependencies>
         <dependency>
-            <groupId>geomesa</groupId>
+            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-core-accumulo1.5</artifactId>
         </dependency>
         <dependency>
-            <groupId>geomesa</groupId>
+            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-utils-accumulo1.5</artifactId>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.javacsv</groupId>
+            <artifactId>javacsv</artifactId>
+            <version>2.0</version>
         </dependency>
         <!-- provided dependencies -->
         <dependency>
@@ -124,7 +129,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>geomesa.tools.Tools</mainClass>
+                                    <mainClass>org.locationtech.geomesa.tools.Tools</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
