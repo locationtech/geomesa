@@ -47,6 +47,7 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.collection.JavaConversions._
+import scala.util.{Success, Failure, Try}
 
 /**
  *
@@ -253,15 +254,40 @@ class AccumuloDataStore(val connector: Connector,
    * @return
    */
   def getQueriesTableName(featureType: SimpleFeatureType): String =
-    getQueriesTableName(featureType.getTypeName)
+    Try(readRequiredMetadataItem(featureType.getTypeName, QUERIES_TABLE_CF)) match {
+      case Success(queriesTableName) => queriesTableName
+      // For backwards compatibility with existing tables that do not have queries table metadata
+      case Failure(t) if t.getMessage.contains("Unable to find required metadata property") =>
+        writeAndReturnMissingQueryTableMetadata(featureType)
+      case Failure(t) => throw t
+    }
 
   /**
-   * Read Queries table name from store metadata
-   * @param featureName
-   * @return
+   * Here just to write missing query metadata (for backwards compatibility with preexisting data).
+   * @param sft
    */
-  def getQueriesTableName(featureName: String): String =
-    readRequiredMetadataItem(featureName, QUERIES_TABLE_CF)
+  private[this] def writeAndReturnMissingQueryTableMetadata(sft: SimpleFeatureType): String = {
+    val featureName = getFeatureName(sft)
+
+    // the mutation we'll be writing to
+    val mutation = getMetadataMutation(featureName)
+    val queriesTableValue = formatQueriesTableName(catalogTable, sft)
+
+    putMetadata(featureName, mutation, QUERIES_TABLE_CF, queriesTableValue)
+
+    // write out a visibilities protected entry that we can use to validate that a user can see
+    // data in this store
+    if (!writeVisibilities.isEmpty) {
+      mutation.put(VISIBILITIES_CHECK_CF, EMPTY_COLQ, new ColumnVisibility(writeVisibilities),
+        new Value(writeVisibilities.getBytes))
+    }
+
+    // write out the mutation
+    writeMutations(mutation)
+
+    queriesTableValue
+  }
+
 
   /**
    * Read SpatioTemporal Index table name from store metadata

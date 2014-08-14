@@ -70,7 +70,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                              planningTime,
                              scanTime,
                              hitsSeen)
-        sw.writeStat(stat, dataStore.getQueriesTableName(sft.getTypeName))
+        sw.writeStat(stat, dataStore.getQueriesTableName(sft))
       case _ => // do nothing
     }
   }
