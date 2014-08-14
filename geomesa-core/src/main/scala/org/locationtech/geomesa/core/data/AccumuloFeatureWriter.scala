@@ -33,6 +33,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -66,6 +67,34 @@ object AccumuloFeatureWriter {
 
     def close(reporter: Reporter) {}
   }
+
+  def getAttributesWithNames(descriptors: Seq[AttributeDescriptor]): Seq[(AttributeDescriptor, Array[Byte])] = {
+    val attributeNames = descriptors.map(_.getLocalName.getBytes(StandardCharsets.UTF_8))
+    descriptors.zip(attributeNames)
+  }
+
+  def getAttributeIndexMutations(feature: SimpleFeature,
+                                 indexedAttributes: Seq[(AttributeDescriptor, Array[Byte])],
+                                 visibility: ColumnVisibility,
+                                 delete: Boolean = false): Seq[Mutation] = {
+    val cf = new Text(feature.getID)
+    lazy val value = IndexSchema.encodeIndexValue(feature)
+    indexedAttributes.map { case (attr, name) =>
+      val attrValue = valOrNull(feature.getAttribute(attr.getName)).getBytes(StandardCharsets.UTF_8)
+      val row = name ++ NULLBYTE ++ attrValue
+      val m = new Mutation(row)
+      if (delete) {
+        m.putDelete(cf, EMPTY_COLQ, visibility)
+      } else {
+        m.put(cf, EMPTY_COLQ, visibility, value)
+      }
+      m
+    }
+  }
+
+  private val NULLBYTE = Array[Byte](0.toByte)
+  private val nullString = "<null>"
+  private def valOrNull(o: AnyRef) = if (o == null) nullString else o.toString
 }
 
 abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
@@ -76,11 +105,11 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   extends SimpleFeatureWriter
           with Logging {
 
-  val indexedAttributes = SimpleFeatureTypes.getIndexedAttributes(featureType)
-  val indexedAttributeNames = indexedAttributes.map(_.getLocalName.getBytes(StandardCharsets.UTF_8))
-  val indexedAttributesWithNames = indexedAttributes.zip(indexedAttributeNames)
+  import org.locationtech.geomesa.core.data.AccumuloFeatureWriter._
 
-  val NULLBYTE = Array[Byte](0.toByte)
+  val indexedAttributesWithNames = AccumuloFeatureWriter
+    .getAttributesWithNames(SimpleFeatureTypes.getIndexedAttributes(featureType))
+
   val connector = ds.connector
 
   protected val multiBWWriter = connector.createMultiTableBatchWriter(new BatchWriterConfig)
@@ -151,28 +180,13 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   /** Creates a function to write a feature to the attribute index **/
   private def attrWriter(bw: BatchWriter): SimpleFeature => Unit =
     (feature: SimpleFeature) => {
-      val muts = getAttrIdxMutations(feature, new Text(feature.getID)).map {
-        case PutOrDeleteMutation(row, cf, cq, v) =>
-          val m = new Mutation(row)
-          m.put(cf, cq, new ColumnVisibility(visibility), v)
-          m
-      }
-      bw.addMutations(muts)
+      val mutations = getAttributeIndexMutations(feature,
+                                                 indexedAttributesWithNames,
+                                                 new ColumnVisibility(visibility))
+      bw.addMutations(mutations)
     }
 
   case class PutOrDeleteMutation(row: Array[Byte], cf: Text, cq: Text, v: Value)
-
-  def getAttrIdxMutations(feature: SimpleFeature, cf: Text) = {
-    val value = IndexSchema.encodeIndexValue(feature)
-    indexedAttributesWithNames.map { case (attr, name) =>
-      val attrValue = valOrNull(feature.getAttribute(attr.getName)).getBytes(StandardCharsets.UTF_8)
-      val row = name ++ NULLBYTE ++ attrValue
-      PutOrDeleteMutation(row, cf, EMPTY_COLQ, value)
-    }
-  }
-
-  private val nullString = "<null>"
-  private def valOrNull(o: AnyRef) = if(o == null) nullString else o.toString
 
   private def kvsToMutations(row: Text, kvs: Seq[(Key, Value)]): Mutation = {
     val m = new Mutation(row)
@@ -219,6 +233,8 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
                                   visibility: String,
                                   dataStore: AccumuloDataStore)
   extends AccumuloFeatureWriter(featureType, indexer, encoder, dataStore, visibility) {
+
+  import org.locationtech.geomesa.core.data.AccumuloFeatureWriter._
 
   val reader = dataStore.getFeatureReader(featureType.getName.toString)
   var live: SimpleFeature = null      /* feature to let user modify   */
@@ -273,17 +289,14 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
       }
     }
 
-  val emptyVis = new ColumnVisibility()
-
   /** Creates a function to remove attribute index entries for a feature **/
   private def removeAttrIdx(bw: BatchWriter): SimpleFeature => Unit =
     (feature: SimpleFeature) => {
-      getAttrIdxMutations(feature, new Text(feature.getID)).map {
-        case PutOrDeleteMutation(row, cf, cq, _) =>
-          val m = new Mutation(row)
-          m.putDelete(cf, cq, emptyVis)
-          bw.addMutation(m)
-      }
+      val mutations = getAttributeIndexMutations(feature,
+                                                 indexedAttributesWithNames,
+                                                 new ColumnVisibility(visibility),
+                                                 true)
+      bw.addMutations(mutations)
     }
 
   override def remove() =

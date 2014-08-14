@@ -27,6 +27,7 @@
         <module>geomesa-utils</module>
         <module>geomesa-core</module>
         <module>geomesa-distributed-runtime</module>
+        <module>geomesa-jobs</module>
         <module>geomesa-plugin</module>
         <module>geomesa-filter</module>
         <module>geomesa-feature</module>
@@ -45,6 +46,7 @@
         <zookeeper.version>3.4.5</zookeeper.version>
         <accumulo.version>1.5.1</accumulo.version>
         <hadoop.version>2.2.0</hadoop.version>
+        <scalding.version>0.11.2</scalding.version>
 
         <!-- logging properties
              we expect logging jars to be provided -->
@@ -237,6 +239,11 @@
                 <version>2.0</version>
             </dependency>
             <dependency>
+                <groupId>com.twitter</groupId>
+                <artifactId>scalding-core_2.10</artifactId>
+                <version>${scalding.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-core-accumulo1.5</artifactId>
                 <version>${project.version}</version>
@@ -272,7 +279,16 @@
                 <artifactId>geomesa-feature-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-tools-accumulo1.5</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-jobs-accumulo1.5</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- logging -->
             <dependency>
@@ -599,7 +615,6 @@
         <tag>HEAD</tag>
     </scm>
 
-
     <repositories>
         <repository>
             <id>central</id>
@@ -616,6 +631,10 @@
         <repository>
             <id>opengeo</id>
             <url>http://repo.opengeo.org</url>
+        </repository>
+        <repository>
+            <id>conjars.org</id>
+            <url>http://conjars.org/repo</url>
         </repository>
     </repositories>
 
