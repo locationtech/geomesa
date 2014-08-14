@@ -42,7 +42,7 @@
          from the index query-planner; this can be helpful in debugging
          query plans -->
     <!--
-    <logger name="geomesa.core.index.IndexQueryPlanner" level="TRACE"/>
+    <logger name="org.locationtech.geomesa.core.index.IndexQueryPlanner" level="TRACE"/>
     -->
 </configuration>
 
