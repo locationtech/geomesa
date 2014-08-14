@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package geomesa.core.process.knn
+package org.locationtech.geomesa.core.process.knn
 
 import com.vividsolutions.jts.geom.Coordinate
-import geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.utils.geohash.GeoHash
 
 /**
  * This object provides a method for obtaining a set of GeoHashes which are in "contact" with a seed GeoHash.

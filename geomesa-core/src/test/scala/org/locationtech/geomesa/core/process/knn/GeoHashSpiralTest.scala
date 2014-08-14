@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package geomesa.core.process.knn
+package org.locationtech.geomesa.core.process.knn
 
-import geomesa.core._
-import geomesa.utils.geotools.SimpleFeatureTypes
-import geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.core._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package geomesa.core.process.knn
+package org.locationtech.geomesa.core.process.knn
 
-import geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

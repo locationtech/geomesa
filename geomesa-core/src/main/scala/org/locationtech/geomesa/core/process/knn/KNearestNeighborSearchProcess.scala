@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package geomesa.core.process.knn
+package org.locationtech.geomesa.core.process.knn
 
 import com.vividsolutions.jts.geom.Point
 
 import collection.JavaConverters._
-import geomesa.core.data.AccumuloFeatureCollection
-import geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
+import org.locationtech.geomesa.core.data.AccumuloFeatureCollection
+import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
 import org.apache.log4j.Logger
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}

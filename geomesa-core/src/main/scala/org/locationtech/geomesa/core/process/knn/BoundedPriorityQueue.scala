@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package geomesa.core.process.knn
+package org.locationtech.geomesa.core.process.knn
 
 import com.google.common.collect.MinMaxPriorityQueue
 

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package geomesa.core.process.knn
+package org.locationtech.geomesa.core.process.knn
 
-import geomesa.core.filter._
-import geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.core.filter._
+import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.apache.log4j.Logger
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
@@ -67,7 +67,7 @@ object KNNQuery {
                    ghPQ: GeoHashSpiral,
                    sfPQ: BoundedNearestNeighbors[SimpleFeatureWithDistance]
                  )     : BoundedNearestNeighbors[SimpleFeatureWithDistance] = {
-    import geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
+    import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
     if (!ghPQ.hasNext) sfPQ
     else {
         val newGH = ghPQ.next()

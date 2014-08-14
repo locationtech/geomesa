@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package geomesa.core.process.knn
+package org.locationtech.geomesa.core.process.knn
 
-import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import geomesa.core.index
-import geomesa.core.index.{Constants, IndexSchemaBuilder}
-import geomesa.feature.AvroSimpleFeatureFactory
-import geomesa.utils.geohash.VincentyModel
-import geomesa.utils.geotools.Conversions._
-import geomesa.utils.geotools.SimpleFeatureTypes
-import geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.core.index
+import org.locationtech.geomesa.core.index.{Constants, IndexSchemaBuilder}
+import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geohash.VincentyModel
+import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection

@@ -14,11 +14,11 @@
 * limitations under the License.
 */
 
-package geomesa.core.process.knn
+package org.locationtech.geomesa.core.process.knn
 
 import com.vividsolutions.jts.geom.Point
-import geomesa.utils.geohash.VincentyModel
-import geomesa.utils.geotools.Conversions.RichSimpleFeature
+import org.locationtech.geomesa.utils.geohash.VincentyModel
+import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.opengis.feature.simple.SimpleFeature
 
 case class SimpleFeatureWithDistance(sf: SimpleFeature, dist: Double)

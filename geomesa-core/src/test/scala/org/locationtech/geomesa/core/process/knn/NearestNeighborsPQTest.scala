@@ -14,13 +14,14 @@
 * limitations under the License.
 */
 
-package geomesa.core.process.knn
+package org.locationtech.geomesa.core.process.knn
 
 
-import geomesa.core._
-import geomesa.core.index.Constants
-import geomesa.utils.geotools.SimpleFeatureTypes
-import geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.core._
+import org.locationtech.geomesa.core.index.Constants
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -97,7 +98,6 @@ class NearestNeighborsPQTest extends Specification {
 
   "Geomesa NearestNeighbor PriorityQueue" should {
     "find things close by the equator" in {
-      import geomesa.utils.geotools.Conversions._
       val equatorPQ = NearestNeighbors(equatorSF, 10)
       equatorPQ ++= diagonalFeatureCollection.features.map {
         sf=> SimpleFeatureWithDistance(sf,equatorPQ.distance(sf))
@@ -106,7 +106,6 @@ class NearestNeighborsPQTest extends Specification {
     }
 
     "find things close by Southwest Russia" in {
-      import geomesa.utils.geotools.Conversions._
       val midpointPQ = NearestNeighbors(midpointSF, 10)
       midpointPQ ++= diagonalFeatureCollection.features.map {
         sf=> SimpleFeatureWithDistance(sf,midpointPQ.distance(sf))
@@ -116,7 +115,6 @@ class NearestNeighborsPQTest extends Specification {
     }
 
     "find things close by the North Pole" in {
-      import geomesa.utils.geotools.Conversions._
       val polarPQ = NearestNeighbors(polarSF, 10)
       polarPQ ++= diagonalFeatureCollection.features.map{
         sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
@@ -126,7 +124,6 @@ class NearestNeighborsPQTest extends Specification {
     }
 
     "find things in the north polar region" in {
-      import geomesa.utils.geotools.Conversions._
       val polarPQ = NearestNeighbors(polarSF, 10)
       polarPQ ++= polarFeatureCollection.features.map {
         sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
@@ -136,7 +133,6 @@ class NearestNeighborsPQTest extends Specification {
     }
 
     "find more things near the north polar region" in {
-      import geomesa.utils.geotools.Conversions._
       val polarPQ = NearestNeighbors(polarSF2, 10)
       polarPQ ++= polarFeatureCollection.features.map {
         sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package geomesa.core.process.knn
+package org.locationtech.geomesa.core.process.knn
 
-import geomesa.core.data._
-import geomesa.core.index
-import geomesa.core.index.Constants
-import geomesa.utils.geohash.GeoHash
-import geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.core.index
+import org.locationtech.geomesa.core.index.Constants
+import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.referencing.CRS

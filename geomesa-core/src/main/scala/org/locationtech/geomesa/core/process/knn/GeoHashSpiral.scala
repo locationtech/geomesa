@@ -14,12 +14,12 @@
 * limitations under the License.
 */
 
-package geomesa.core.process.knn
+package org.locationtech.geomesa.core.process.knn
 
 import com.vividsolutions.jts.geom.Point
-import geomesa.utils.geohash._
-import geomesa.utils.geotools.Conversions.RichSimpleFeature
-import geomesa.utils.geotools.GeometryUtils.distanceDegrees
+import org.locationtech.geomesa.utils.geohash._
+import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+import org.locationtech.geomesa.utils.geotools.GeometryUtils.distanceDegrees
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.annotation.tailrec
