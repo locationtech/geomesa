@@ -38,7 +38,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  */
 
 trait SimpleFeatureEncoder {
-  def encode(feature:SimpleFeature) : AValue
+  def encode(feature:SimpleFeature) : Array[Byte]
   def decode(simpleFeatureType: SimpleFeatureType, featureValue: AValue) : SimpleFeature
   def extractFeatureId(value: AValue): String
   def getName = getEncoding.toString
@@ -52,8 +52,8 @@ object FeatureEncoding extends Enumeration {
 }
 
 class TextFeatureEncoder extends SimpleFeatureEncoder{
-  def encode(feature:SimpleFeature) : AValue =
-    new AValue(ThreadSafeDataUtilities.encodeFeature(feature).getBytes)
+  def encode(feature:SimpleFeature) : Array[Byte] =
+    ThreadSafeDataUtilities.encodeFeature(feature).getBytes()
 
   def decode(simpleFeatureType: SimpleFeatureType, featureValue: AValue) = {
     ThreadSafeDataUtilities.createFeature(simpleFeatureType, featureValue.toString)
@@ -88,14 +88,14 @@ object ThreadSafeDataUtilities {
 // TODO the AvroFeatureEncoder may not be threadsafe...evaluate.
 class AvroFeatureEncoder extends SimpleFeatureEncoder {
 
-  def encode(feature: SimpleFeature): AValue = {
+  def encode(feature: SimpleFeature): Array[Byte] = {
     val asf = feature.getClass match {
       case c if classOf[AvroSimpleFeature].isAssignableFrom(c) => feature.asInstanceOf[AvroSimpleFeature]
       case _ =>  AvroSimpleFeature(feature)
     }
     val baos = new ByteArrayOutputStream()
     asf.write(baos)
-    new AValue(baos.toByteArray)
+    baos.toByteArray
   }
 
   def decode(simpleFeatureType: SimpleFeatureType, featureAValue: AValue) =

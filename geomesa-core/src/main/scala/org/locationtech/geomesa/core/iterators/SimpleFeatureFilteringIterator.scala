@@ -50,7 +50,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   // the default filter accepts everything
   var filter: Filter = null
 
-  var transform: (SimpleFeature => Value) = (_: SimpleFeature) => source.getTopValue
+  var transform: (SimpleFeature => Array[Byte]) = (_: SimpleFeature) => source.getTopValue.get()
 
   def evalFilter(v: Value) = {
     Try(featureEncoder.decode(simpleFeatureType, v)) match {
@@ -95,7 +95,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
     val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
     transform =
       if(transformString != null) TransformCreator.createTransform(targetFeatureType, featureEncoder, transformString)
-      else _ => source.getTopValue
+      else _ => source.getTopValue.get()
 
     // read off the filter expression, if applicable
     filter =
