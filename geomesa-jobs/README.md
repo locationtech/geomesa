@@ -35,3 +35,7 @@ yarn jar target/geomesa-jobs-accumulo1.5-1.0.0-SNAPSHOT.jar \
 ```
 
 (Note that this command also requires an extensive -libjars argument with all dependent jars)
+
+<b>Note: this job will not change the meta-data that indicates which attributes are indexed for
+search. In order to do that, you will need to call
+<code>AccumuloDataStore.updateIndexedAttributes()</code></b>
