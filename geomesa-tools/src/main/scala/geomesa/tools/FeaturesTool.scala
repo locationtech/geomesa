@@ -17,12 +17,17 @@
 package geomesa.tools
 
 import java.io.FileOutputStream
-import java.nio.file.{Files, Paths}
+import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
 import geomesa.core
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
 import geomesa.utils.geotools.SimpleFeatureTypes
+import org.apache.accumulo.core.client.ZooKeeperInstance
+import org.apache.accumulo.core.conf.SiteConfiguration
+import org.apache.accumulo.core.util.CachedConfiguration
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.cql2.CQL
@@ -33,20 +38,33 @@ import scala.util.Try
 import scala.xml.XML
 
 class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
-  val user = config.username
-  val pass = password
-  val table = config.catalog
+  val accumuloConfPath = s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml"
   val accumuloConf = XML.loadFile(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
-  val zookeepers = (accumuloConf \\ "property").filter(x => (x \ "name").text == "instance.zookeeper.host").map(y => (y \ "value").text).head
-  val instanceId = (accumuloConf \\ "property").filter(x => (x \ "name").text == "instance.instanceId").map(y => (y \ "value").text).head
-
-  val ds: AccumuloDataStore = {
+  val zookeepers = (accumuloConf \\ "property")
+    .filter(x => (x \ "name")
+    .text == "instance.zookeeper.host")
+    .map(y => (y \ "value").text)
+    .head
+  val instanceDfsDir = Try((accumuloConf \\ "property")
+      .filter(x => (x \ "name")
+      .text == "instance.dfs.dir")
+      .map(y => (y \ "value").text)
+      .head)
+    .getOrElse("/accumulo")
+  
+  val instanceIdDir = new Path(instanceDfsDir, "instance_id")
+  val instanceName = new ZooKeeperInstance(UUID.fromString(ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)), zookeepers).getInstanceName
+  println(instanceName)
+  val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> instanceId,
+      "instanceId" -> instanceIdDir,
       "zookeepers" -> zookeepers,
-      "user"       -> user,
-      "password"   -> pass,
-      "tableName"  -> table)).asInstanceOf[AccumuloDataStore]
+      "user"       -> config.username,
+      "password"   -> password,
+      "tableName"  -> config.catalog)).asInstanceOf[AccumuloDataStore]
+  }).getOrElse{
+    logger.error("Incorrect username or password. Please try again.")
+    sys.exit()
   }
 
   def listFeatures() {
@@ -68,13 +86,12 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
       ds.getSchema(config.featureName).getAttributeDescriptors.foreach(attr => {
         val isIndexed = attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]
         val defaultValue = attr.getDefaultValue
-        val typeString = attr.getType.toString
-        val attrType = typeString.substring(typeString.indexOf("<"), typeString.length)
+        val attrType = attr.getType.getBinding.getSimpleName
         var attrString = s" - ${attr.getLocalName}: $attrType "
         if (isIndexed) {
-          if (attrType == "<Date>") {
+          if (attrType == "Date") {
             attrString = attrString.concat("(Time-index) ")
-          } else if (attrType == "<Geometry>") {
+          } else if (attrType == "Geometry") {
             attrString = attrString.concat("(Geo-index) ")
           } else {
             attrString = attrString.concat("(Indexed) ")
@@ -100,36 +117,39 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
   }
 
   def exportFeatures() {
-    val sftCollection = getFeatureCollection getOrElse{
-      logger.error("Error: Could not create a SimpleFeatureCollection to export. Please ensure " +
-        "that all arguments are correct in the previous command.")
-      sys.exit()
-    }
-    val folderPath = Paths.get(s"${System.getProperty("user.dir")}")
+    val sftCollection = getFeatureCollection
+    val outputPath = s"${System.getProperty("user.dir")}/${config.catalog}_${config.featureName}.${config.format}"
     config.format.toLowerCase match {
       case "csv" | "tsv" =>
-        val loadAttributes = new LoadAttributes(config.featureName, table, config.attributes, null, config.latAttribute, config.lonAttribute, config.dateAttribute, config.query)
+        val loadAttributes = new LoadAttributes(config.featureName,
+                                                config.catalog,
+                                                config.attributes,
+                                                null,
+                                                config.latAttribute,
+                                                config.lonAttribute,
+                                                config.dateAttribute,
+                                                config.query)
         val de = new DataExporter(loadAttributes, Map(
-          "instanceId" -> instanceId,
+          "instanceId" -> instanceIdDir,
           "zookeepers" -> zookeepers,
-          "user"       -> user,
-          "password"   -> pass,
-          "tableName"  -> table), config.format)
+          "user"       -> config.username,
+          "password"   -> password,
+          "tableName"  -> config.catalog), config.format)
         de.writeFeatures(sftCollection.features())
       case "shp" =>
         val shapeFileExporter = new ShapefileExport
-        shapeFileExporter.write(s"$folderPath/${config.catalog}_${config.featureName}.shp", config.featureName, sftCollection, ds.getSchema(config.featureName))
-        logger.info(s"Successfully wrote features to '${System.getProperty("user.dir")}/export/${config.featureName}.shp'")
+        shapeFileExporter.write(outputPath, config.featureName, sftCollection, ds.getSchema(config.featureName))
+        logger.info(s"Successfully wrote features to '$outputPath'")
       case "geojson" =>
-        val os = new FileOutputStream(s"$folderPath/${config.catalog}_${config.featureName}.geojson")
+        val os = new FileOutputStream(s"$outputPath")
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
-        logger.info(s"Successfully wrote features to '$folderPath/${config.catalog}_${config.featureName}.geojson'")
+        logger.info(s"Successfully wrote features to '$outputPath'")
       case "gml" =>
-        val os = new FileOutputStream(s"$folderPath/${config.catalog}_${config.featureName}.gml")
+        val os = new FileOutputStream(s"$outputPath")
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
-        logger.info(s"Successfully wrote features to '$folderPath/${config.catalog}_${config.featureName}.gml'")
+        logger.info(s"Successfully wrote features to '$outputPath'")
       case _ =>
         logger.error("Unsupported export format. Supported formats are shp, geojson, csv, and gml.")
     }
@@ -166,7 +186,7 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
     }
   }
 
-  def getFeatureCollection: Try[SimpleFeatureCollection] = {
+  def getFeatureCollection: SimpleFeatureCollection = {
     val filter = if (config.query != null) { CQL.toFilter(config.query) } else { CQL.toFilter("include") }
     val q = new Query(config.featureName, filter)
 
@@ -174,7 +194,14 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
     if (config.attributes != null) { q.setPropertyNames(config.attributes.split(',')) }
     logger.info(s"$q")
 
-    // get the feature store used to query the GeoMesa data and execute the query
-    Try(ds.getFeatureSource(config.featureName).asInstanceOf[AccumuloFeatureStore].getFeatures(q))
+    // get the feature store used to query the GeoMesa data
+    val fs = ds.getFeatureSource(config.featureName).asInstanceOf[AccumuloFeatureStore]
+
+    // and execute the query
+    Try(fs.getFeatures(q)).getOrElse{
+      logger.error("Error: Could not create a SimpleFeatureCollection to export. Please ensure " +
+        "that all arguments are correct in the previous command.")
+      sys.exit()
+    }
   }
 }

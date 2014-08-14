@@ -39,7 +39,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
 
   lazy val table            = config.catalog
   lazy val path             = config.file
-  lazy val featureName         = config.featureName
+  lazy val featureName      = config.featureName
   lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
   lazy val dtgField         = config.dtField
   lazy val dtgFmt           = config.dtFormat

@@ -53,9 +53,9 @@ run the script from the command line to ensure there are no errors in the output
 To create a new feature on a specified catalog table, use the `create` command.  
 #### Required flags: 
 Specify the catalog table to use with `-c` or `--catalog`. This can be a previously created catalog table, or a new catalog table.  
-Specify the feature to create with the `-f` or `--feature_name`.  
+Specify the feature to create with the `-f` or `--feature-name`.  
 Specify the SimpleFeatureType schema with `-s` or `--spec`.  
-Specify the default temporal attribute with `-d` or `--default_date`.
+Specify the default temporal attribute with `-d` or `--default-date`.
 #### Example command:
     geomesa create -u username -p password -c test_create -f testing -s id:String:index=true,dtg:Date,geom:Point:srid=4326
 
@@ -63,7 +63,7 @@ Specify the default temporal attribute with `-d` or `--default_date`.
 To delete a feature on a specified catalog table, use the `delete` command.  
 #### Required flags: 
 Specify the catalog table to use with `-o` or `--catalog`. NOTE: Catalog tables will not be deleted when using the `delete` command, only the tables related to the given feature.  
-Specify the feature to delete with `-f` or `--feature_name`.  
+Specify the feature to delete with `-f` or `--feature-name`.  
 #### Example command:
     geomesa delete -u username -p password  -c test_delete -f testing
 
@@ -71,7 +71,7 @@ Specify the feature to delete with `-f` or `--feature_name`.
 To describe the attributes of a feature on a specified catalog table, use the `describe` command.  
 #### Required flags: 
 Specify the catalog table to use with `-o` or `--catalog`.
-Specify the feature to describe with `-f` or `--feature_name`.  
+Specify the feature to describe with `-f` or `--feature-name`.  
 #### Example command:
     geomesa describe -u username -p password -c test_delete -f testing
  
@@ -79,7 +79,7 @@ Specify the feature to describe with `-f` or `--feature_name`.
 To ask GeoMesa how it intends to satisfy a given query, use the `explain` command.
 #### Required flags: 
 Specify the catalog table to use with `-c` or `--catalog`. This can be a previously created catalog table, or a new catalog table.  
-Specify the feature to create with the `-f` or `-feature_name`.  
+Specify the feature to create with the `-f` or `-feature-name`.  
 Specify the filter string with `-q` or `--filter`.
 #### Example command:
     geomesa explain -u username -p password -c geomesa_catalog -f twittersmall -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
@@ -88,7 +88,7 @@ Specify the filter string with `-q` or `--filter`.
 To export features, use the `export` command.  
 #### Required flags:
 Specify the catalog table to use with `-c` or `--catalog`.  
-Specify the feature to export with `-f` or `--feature_name`.  
+Specify the feature to export with `-f` or `--feature-name`.  
 Specify the export format with `-o` or `--format`. The supported export formats are csv, gml, geojson, and shp.
 #### Optional flags:
 To retrieve specific attributes from each feature, use `-a` or `--attributes` followed by a String of comma-separated attribute names.  
@@ -101,7 +101,7 @@ To run an ECQL query, use `-q` or `--query` followed by the query filter string.
 ### ingest
 Ingests TSV and CSV files containing WKT geometries with the following caveat:CSV files must surround values with double quotation marks, e.g.: `"37266103","2013-07-17","POINT(0.0 0.0)"` the first and last quotation marks are optional however. Also the WKT Geometry is assumed to be the last column of the CSV/TSV file.
 #### Usage
-    geomesa ingest -u username -p password --file <> --format <> --table <> --feature_name <> --spec <> --datetime <> --dtformat <>
+    geomesa ingest -u username -p password --file <> --format <> --table <> --feature-name <> --spec <> --datetime <> --dtformat <>
 
 note: *the `<>` marks are where user values would go*
 
@@ -113,7 +113,7 @@ with the following parameters:
 
 `--table` The accumulo table name, the table will be created if not already extant.
 
-`--feature_name` The name of the SimpleFeatureType to be used.
+`--feature-name` The name of the SimpleFeatureType to be used.
 
 `--spec` The SimpleFeatureType of the CSV or TSV file, must match the layout of columns in the CSV/TSV file
 

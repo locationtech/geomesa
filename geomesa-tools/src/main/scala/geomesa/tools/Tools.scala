@@ -17,13 +17,11 @@ package geomesa.tools
 
 import com.typesafe.scalalogging.slf4j.Logging
 
-import scala.util.Try
-
 object Tools extends App with Logging {
   val parser = new scopt.OptionParser[ScoptArguments]("geomesa-tools") {
     def catalogOpt = opt[String]('c', "catalog").action { (s, c) =>
       c.copy(catalog = s) } required() hidden()
-    def featureOpt = opt[String]('f', "feature_name").action { (s, c) =>
+    def featureOpt = opt[String]('f', "feature-name").action { (s, c) =>
       c.copy(featureName = s) } required() hidden()
     def specOpt = opt[String]('s', "spec").action { (s, c) =>
       c.copy(spec = s) } required() hidden()
@@ -94,7 +92,7 @@ object Tools extends App with Logging {
       catalogOpt,
       featureOpt,
       specOpt,
-      opt[String]('d', "default_date").action { (s, c) =>
+      opt[String]('d', "default-date").action { (s, c) =>
         c.copy(defaultDate = s) } optional() hidden()
       )
 
@@ -142,11 +140,11 @@ object Tools extends App with Logging {
         "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
         "\t-c, --catalog : required\n" +
         "\t\tthe name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data\n" +
-        "\t-f, --feature_name : required\n" +
+        "\t-f, --feature-name : required\n" +
         "\t\t\"the name of the new feature to be created\n" +
         "\t-s, --spec : required\n" +
         "\t\tthe SFT specification for the new feature\n" +
-        "\t-d, --default_date : optional\n" +
+        "\t-d, --default-date : optional\n" +
         "\t\tthe default date of the sft"
     } else if (args.contains("delete")) {
       "\tDelete a feature from the specified Catalog Table in Geomesa\n" +
@@ -166,7 +164,7 @@ object Tools extends App with Logging {
         "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
         "\t-c, --catalog : required\n" +
         "\t\tthe name of the Accumulo table to use\n" +
-        "\t-f, --feature_name : required\n" +
+        "\t-f, --feature-name : required\n" +
         "\t\tthe name of the feature to be described"
     } else if (args.contains("explain")) {
       "\tExplain and plan a query in Geomesa\n" +
@@ -176,7 +174,7 @@ object Tools extends App with Logging {
         "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
         "\t-c, --catalog : required\n" +
         "\t\tthe name of the Accumulo table to use\n" +
-        "\t-f, --feature_name : required\n" +
+        "\t-f, --feature-name : required\n" +
         "\t\tthe name of the feature to use\n" +
         "\t-q, --filter : required\n" +
         "\t\tthe filter string to apply, plan, and explain"
@@ -188,7 +186,7 @@ object Tools extends App with Logging {
         "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
         "\t-c, --catalog : required\n" +
         "\t\tthe name of the Accumulo table to use\n" +
-        "\t-f, --feature_name : required\n" +
+        "\t-f, --feature-name : required\n" +
         "\t\tthe name of the feature to export\n" +
         "\t-o, --format : required\n" +
         "\t\tthe format to export to (csv, tsv, gml, geojson, shp)\n" +
@@ -217,7 +215,7 @@ object Tools extends App with Logging {
         "\t\tthe format of the file, it must be csv or tsv\n" +
         "\t-c, --catalog : required\n" +
         "\t\tthe name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data\n" +
-        "\t-f, --feature_name : required\n" +
+        "\t-f, --feature-name : required\n" +
         "\t\tthe name of the feature to export\n" +
         "\t-s, --spec : required\n" +
         "\t\tthe sft specification for the file\n" +
@@ -263,11 +261,7 @@ object Tools extends App with Logging {
       } else {
         config.password
       }
-      val ftTry = Try(new FeaturesTool(config, password))
-      val ft: FeaturesTool = ftTry.getOrElse{
-        logger.error("Incorrect username or password. Please try again.")
-        sys.exit()
-      }
+      val ft: FeaturesTool = new FeaturesTool(config, password)
       config.mode match {
         case "export" =>
           logger.info(s"Exporting '${config.catalog}_${config.featureName}'. Just a few moments...")
