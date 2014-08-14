@@ -39,6 +39,10 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-utils-accumulo1.4</artifactId>
         </dependency>
+      <dependency>
+          <groupId>org.locationtech.geomesa</groupId>
+          <artifactId>geomesa-jobs-accumulo1.4</artifactId>
+      </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>

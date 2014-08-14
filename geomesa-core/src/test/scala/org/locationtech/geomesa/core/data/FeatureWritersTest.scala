@@ -19,6 +19,8 @@ package org.locationtech.geomesa.core.data
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 
+import org.apache.accumulo.core.security.ColumnVisibility
+import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
@@ -411,6 +413,45 @@ class FeatureWritersTest extends Specification {
 
         val features = getMap[String,Int](getFeatures(sftName, fs, "name = 'will'"), "name", "age")
         features.keySet.size mustEqual 1
+      }
+
+      "encode mutations for attribute index" in {
+        val descriptors = sft.getAttributeDescriptors
+        val attributesWithNames = AccumuloFeatureWriter.getAttributesWithNames(descriptors)
+
+        val feature = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id1")
+        val geom = WKTUtils.read("POINT(45.0 49.0)")
+        feature.setDefaultGeometry(geom)
+        feature.setAttribute("name","fred")
+        feature.setAttribute("age",50.asInstanceOf[Any])
+        feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+
+        val mutations = AccumuloFeatureWriter.getAttributeIndexMutations(feature,
+                                                                         attributesWithNames,
+                                                                         new ColumnVisibility())
+        mutations.size mustEqual descriptors.size()
+        mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
+        mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(false)).foreach
+      }
+
+      "encode mutations for delete attribute index" in {
+        val descriptors = sft.getAttributeDescriptors
+        val attributesWithNames = AccumuloFeatureWriter.getAttributesWithNames(descriptors)
+
+        val feature = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id1")
+        val geom = WKTUtils.read("POINT(45.0 49.0)")
+        feature.setDefaultGeometry(geom)
+        feature.setAttribute("name","fred")
+        feature.setAttribute("age",50.asInstanceOf[Any])
+        feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+
+        val mutations = AccumuloFeatureWriter.getAttributeIndexMutations(feature,
+                                                                          attributesWithNames,
+                                                                          new ColumnVisibility(),
+                                                                          true)
+        mutations.size mustEqual descriptors.size()
+        mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
+        mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(true)).foreach
       }
     }
 
