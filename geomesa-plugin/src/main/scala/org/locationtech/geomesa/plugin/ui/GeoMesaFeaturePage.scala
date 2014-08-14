@@ -153,19 +153,26 @@ class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage wit
         if (!changed.isEmpty) {
           val (ds, sft) = loadStore().get
           val added = changed.filter(a => a.index).map(a => a.name)
-          if (!added.isEmpty) {
-            val params = getCatalog.getDataStoreByName(workspaceName, dataStoreName)
-                         .getConnectionParameters
-                         .asScala
-                         .toMap[String, java.io.Serializable]
-                         .asInstanceOf[Map[String, String]]
-            val conf = GeoMesaBasePage.getHdfsConfiguration
-            // TODO error handling
-            AttributeIndexJob.runJob(conf, params, sft.getTypeName, added)
-          }
+          val run =
+            if (added.isEmpty) {
+              Success
+            } else {
+              val params = getCatalog.getDataStoreByName(workspaceName, dataStoreName)
+                           .getConnectionParameters
+                           .asScala
+                           .toMap[String, java.io.Serializable]
+                           .asInstanceOf[Map[String, String]]
+              val conf = GeoMesaBasePage.getHdfsConfiguration
+              Try(AttributeIndexJob.runJob(conf, params, sft.getTypeName, added))
+            }
 
-          // if the job was successful, update the schema stored in the metadata
-          ds.updateIndexedAttributes(sft.getTypeName, AttributeSpec.toString(attributes))
+          run match {
+            case Success =>
+              // if the job was successful, update the schema stored in the metadata
+              ds.updateIndexedAttributes(sft.getTypeName, AttributeSpec.toString(attributes))
+            case Failure(e) =>
+              getSession().error(s"Failed to index attributes: ${e.getMessage}")
+          }
         }
         setResponsePage(new GeoMesaFeaturePage(parameters))
       }
