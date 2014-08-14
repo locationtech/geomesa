@@ -29,7 +29,7 @@ if  [[ $1 = configure ]]; then
                                                             # path where the symlink file was located
 
     done
-    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
+    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../../ && pwd )"
     echo "Setting GEOMESA_HOME to "$bin""
     export GEOMESA_HOME="$bin"
     export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
