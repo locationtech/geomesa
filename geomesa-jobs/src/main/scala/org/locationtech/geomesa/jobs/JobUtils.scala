@@ -61,6 +61,7 @@ object JobUtils extends Logging {
    * @param libJars
    */
   def setLibJars(conf: Configuration, libJars: Seq[String] = defaultLibJars): Unit = {
+    // paths are in order of preference for finding a jar
     val paths = Iterator(getUrlsFromEnvironment("GEOMESA_HOME"),
                          getUrlsFromEnvironment("ACCUMULO_HOME"),
                          getUrlsFromClasspath(classOf[AccumuloDataStore]),
