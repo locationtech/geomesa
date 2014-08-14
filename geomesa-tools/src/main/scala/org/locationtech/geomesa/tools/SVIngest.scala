@@ -47,7 +47,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   lazy val path             = config.file
   lazy val featureName      = config.featureName
   lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
-  lazy val dtgField         = config.dtField
+  lazy val dtgField         = config.dtField.get
   lazy val dtgFmt           = config.dtFormat
   lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
   lazy val latField         = config.latAttribute.orNull

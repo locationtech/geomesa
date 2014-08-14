@@ -45,7 +45,7 @@ object Tools extends App with Logging {
       opt[String]("lonAttribute").action { (s, c) =>
         c.copy(lonAttribute = Option(s)) } optional() hidden(),
       opt[String]("dateAttribute").action { (s, c) =>
-        c.copy(dateAttribute = Option(s)) } optional() hidden(),
+        c.copy(dtField = Option(s)) } optional() hidden(),
       opt[Int]('m', "maxFeatures").action { (s, c) =>
         c.copy(maxFeatures = s) } optional() hidden(),
       opt[String]('q', "query").action { (s, c) =>
@@ -104,7 +104,7 @@ object Tools extends App with Logging {
         featureOpt,
         specOpt,
         opt[String]("datetime").action { (s, c) =>
-          c.copy(dtField = s)
+          c.copy(dtField = Option(s))
         } required(),
         opt[String]("dtformat").action { (s, c) =>
           c.copy(dtFormat = s)
@@ -133,7 +133,7 @@ object Tools extends App with Logging {
         featureOpt,
         specOpt,
         opt[String]("datetime").action { (s, c) =>
-          c.copy(dtField = s)
+          c.copy(dtField = Option(s))
         } required(),
         opt[String]("dtformat").action { (s, c) =>
           c.copy(dtFormat = s)
@@ -256,8 +256,6 @@ object Tools extends App with Logging {
         "\t\tthe Accumulo username\n" +
         "\t-p, --password : optional\n" +
         "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
-        "\t--file : required\n" +
-        "\t\tthe file you wish to ingest, e.g.: ~/capelookout.csv\n" +
         "\t--format : required\n" +
         "\t\tthe format of the file, it must be csv or tsv\n" +
         "\t-c, --catalog : required\n" +
@@ -269,11 +267,13 @@ object Tools extends App with Logging {
         "\t--datetime : required\n" +
         "\t\tthe name of the datetime field in the sft\n" +
         "\t--dtformat : required\n" +
-        "\t\tthe format of the datetime field" +
-        "\t--skip-header : required\n" +
+        "\t\tthe format of the datetime field\n" +
+        "\t--skip-header : optional\n" +
         "\t\tspecify if to skip the header or not (false includes the header)\n\n" +
-        "\tThe following named parameters are optional for cases when ingesting csv/tsv files" +
-        "\tcontaining explicit latitude and longitude columns, which will be constructed into point data.\n" +
+        "\t--file : required\n" +
+        "\t\tthe file you wish to ingest, e.g.: ~/capelookout.csv\n" +
+        "\tThe following named parameters are optional for cases when ingesting csv/tsv files\n" +
+        "\t\tcontaining explicit latitude and longitude columns, which will be constructed into point data.\n" +
         "\t\tspecify if to skip the header or not (false includes the header)\n"+
         "\t--idfields : optional\n"+
         "\t\tthe comma separated list of id fields used to generate the feature ids. \n" +
@@ -364,14 +364,14 @@ object Tools extends App with Logging {
 }
 
 /*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
-case class ScoptArguments(username: String = null, password: String = null, latField: String = null, lonField: String = null,
+case class ScoptArguments(username: String = null, password: String = null,
                           mode: String = null, spec: String = null, idFields: Option[String] = None,
-                          dtField: String = null, dtFormat: String = null, method: String = "local",
+                          dtField: Option[String] = None, dtFormat: String = null, method: String = "local",
                           file: String = null, featureName: String = null, format: String = null,
                           catalog: String = null, maxFeatures: Int = -1, defaultDate: String = null,
                           filterString: String = null, attributes: String = null,
                           lonAttribute: Option[String] = None, latAttribute: Option[String] = None,
-                          dateAttribute: Option[String] = None, query: String = null, skipHeader: Boolean = false)
+                          query: String = null, skipHeader: Boolean = false)
 
 
 

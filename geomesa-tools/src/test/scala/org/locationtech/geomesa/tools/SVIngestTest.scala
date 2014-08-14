@@ -30,12 +30,12 @@ class SVIngestTest extends Specification{
   sequential
   var id = 0
   var csvConfig = new ScoptArguments(spec = "id:Double,time:Date,lon:Double,lat:Double,*geom:Point:srid=4326",
-    idFields = None, dtField = "time", lonAttribute = Option("lon"), latAttribute = Option("lat"),
+    idFields = None, dtField = Option("time"), lonAttribute = Option("lon"), latAttribute = Option("lat"),
     dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = "test_type",
     method = "local", file = "none", format = "CSV")
 
   var csvWktConfig = new ScoptArguments(spec = "id:Double,time:Date,*geom:Geometry", idFields = None,
-    dtField = "time", dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = "test_type",
+    dtField = Option("time"), dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = "test_type",
     method = "local", file = "none", format = "CSV")
 
   def currentCatalog = f"SVIngestTestTableUnique$id%d"
@@ -106,7 +106,7 @@ class SVIngestTest extends Specification{
       " a Point WKT geometry and non-standard dtformat" in {
       val ingest = new SVIngest(csvWktConfig.copy(spec = "id:String:index=False,username:String:index=false," +
         "userid:String:index=false,text:String:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true",
-        format = "TSV", dtFormat = "yyyy/MM/dd :HH:mm:ss:", dtField = "dtg"),
+        format = "TSV", dtFormat = "yyyy/MM/dd :HH:mm:ss:", dtField = Option("dtg")),
         createConnectionMap)
       val testString = "0000\tgeomesa user\t823543\tGeoMesa rules!\t2014/08/13 :06:06:06:\tPoint(-78.4 38.0)"
       val f = ingest.lineToFeature(testString)
