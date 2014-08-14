@@ -63,7 +63,7 @@ object StatWriter extends Runnable with Logging {
 
   private val running = new AtomicBoolean(false)
 
-  private val queue = Queues.newLinkedBlockingQueue[StatToWrite[_]](batchSize)
+  private val queue = Queues.newLinkedBlockingQueue[StatToWrite](batchSize)
 
   private val tableCache = new mutable.HashMap[String, Boolean] with mutable.SynchronizedMap[String, Boolean]
 
@@ -88,9 +88,9 @@ object StatWriter extends Runnable with Logging {
     }
   }
 
-  private[stats] case class StatToWrite[T <: Stat](stat: T,
-                                                   table: String,
-                                                   transform: StatTransform[T]) {
+  private[stats] case class StatToWrite(stat: Stat,
+                                        table: String,
+                                        transform: StatTransform[Stat]) {
     def mutation() = transform.statToMutation(stat)
   }
 
@@ -117,7 +117,7 @@ object StatWriter extends Runnable with Logging {
    * @param statsToWrite
    * @param connector
    */
-  def write(statsToWrite: Iterable[StatToWrite[_]], connector: Connector): Unit =
+  def write(statsToWrite: Iterable[StatToWrite], connector: Connector): Unit =
     statsToWrite.groupBy(_.table).foreach { case (table, statsForTable) =>
       checkTable(table, connector)
       val writer = connector.createBatchWriter(table, batchWriterConfig)
@@ -145,7 +145,7 @@ object StatWriter extends Runnable with Logging {
       // wait for a stat to be queued
       val head = queue.take()
       // drain out any other stats that have been queued while sleeping
-      val stats = collection.mutable.ListBuffer[StatToWrite[_]](head)
+      val stats = collection.mutable.ListBuffer[StatToWrite](head)
       queue.drainTo(stats.asJava)
       write(stats, connector)
     } catch {
