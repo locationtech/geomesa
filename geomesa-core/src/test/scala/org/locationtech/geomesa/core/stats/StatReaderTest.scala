@@ -41,7 +41,7 @@ class StatReaderTest extends Specification {
   val auths = new Authorizations()
 
   def writeStat(stat: Stat, tableName: String) =
-    StatWriter.write(List(StatToWrite(stat, tableName, QueryStatTransform.asInstanceOf[StatTransform[Stat]])), connector)
+    StatWriter.write(List(StatToWrite(stat, tableName)), connector)
 
   "QueryStatReader" should {
 

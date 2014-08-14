@@ -89,10 +89,7 @@ object StatWriter extends Runnable with Logging {
   }
 
   private[stats] case class StatToWrite(stat: Stat,
-                                        table: String,
-                                        transform: StatTransform[Stat]) {
-    def mutation() = transform.statToMutation(stat)
-  }
+                                        table: String)
 
   /**
    * Queues a stat for writing. We don't want to affect memory and accumulo performance too much...
@@ -106,7 +103,7 @@ object StatWriter extends Runnable with Logging {
       case _ => throw new RuntimeException("Not implemented")
     }
 
-    if (!queue.offer(StatToWrite(stat, table, transform))) {
+    if (!queue.offer(StatToWrite(stat, table))) {
       logger.debug("Stat queue is full - stat being dropped")
     }
   }
@@ -118,12 +115,21 @@ object StatWriter extends Runnable with Logging {
    * @param connector
    */
   def write(statsToWrite: Iterable[StatToWrite], connector: Connector): Unit =
-    statsToWrite.groupBy(_.table).foreach { case (table, statsForTable) =>
-      checkTable(table, connector)
-      val writer = connector.createBatchWriter(table, batchWriterConfig)
-      writer.addMutations(statsForTable.map(_.mutation()).asJava)
-      writer.flush()
-      writer.close()
+    statsToWrite.groupBy(_.stat.getClass).foreach { case (clas, statsForClass) =>
+      // get the appropriate transform for this type of stat
+      val transform = clas match {
+        case c if c == classOf[QueryStat] => QueryStatTransform.asInstanceOf[StatTransform[Stat]]
+        case _ => throw new RuntimeException("Not implemented")
+      }
+
+      // write data by table
+      statsForClass.groupBy(_.table).foreach { case (table, statsForTable) =>
+        checkTable(table, connector)
+        val writer = connector.createBatchWriter(table, batchWriterConfig)
+        writer.addMutations(statsForTable.map(stw => transform.statToMutation(stw.stat)).asJava)
+        writer.flush()
+        writer.close()
+      }
     }
 
   /**
