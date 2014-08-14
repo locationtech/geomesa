@@ -115,7 +115,7 @@ class KryoAvroSimpleFeatureBridge extends KryoRegistrator {
           val len = typeName.length
           out.writeInt(len, true)
           out.write(typeName.getBytes(StandardCharsets.UTF_8))
-          val bytes = encoder.encode(feature).get()
+          val bytes = encoder.encode(feature)
           out.writeInt(bytes.length, true)
           out.write(bytes)
         }
