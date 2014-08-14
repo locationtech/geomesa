@@ -97,16 +97,10 @@ object StatWriter extends Runnable with Logging {
    *
    * @param stat
    */
-  private def queueStat(stat: Stat, table: String): Unit = {
-    val transform = stat.getClass match {
-      case c if c == classOf[QueryStat] => QueryStatTransform.asInstanceOf[StatTransform[Stat]]
-      case _ => throw new RuntimeException("Not implemented")
-    }
-
+  private def queueStat(stat: Stat, table: String): Unit =
     if (!queue.offer(StatToWrite(stat, table))) {
       logger.debug("Stat queue is full - stat being dropped")
     }
-  }
 
   /**
    * Writes the stats.
