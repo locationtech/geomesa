@@ -94,7 +94,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     // using the already decoded index value, generate a SimpleFeature and set as the Value
     val nextSimpleFeature = IndexIterator.encodeIndexValueToSF(featureBuilder, decodedValue.id,
       decodedValue.geom, decodedValue.dtgMillis)
-    nextValue = featureEncoder.encode(nextSimpleFeature)
+    nextValue = new Value(featureEncoder.encode(nextSimpleFeature))
   }
 
   override def deepCopy(env: IteratorEnvironment) =

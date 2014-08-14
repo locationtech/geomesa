@@ -153,7 +153,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
       featureBuilder.add(geometry)
       val feature = featureBuilder.buildFeature(Random.nextString(6))
       topDensityKey = Some(topSourceKey)
-      topDensityValue = Some(featureEncoder.encode(feature))
+      topDensityValue = Some(new Value(featureEncoder.encode(feature)))
     }
   }
 
