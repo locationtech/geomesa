@@ -13,7 +13,10 @@ This project contains map/reduce and scalding jobs for maintaining GeoMesa.
 To index GeoMesa attributes on demand, you can call:
 
 ```scala
-AttributeIndexJob.runJob(conf: Configuration, params: Map[String, String], feature: String, attributes: Seq[String])
+AttributeIndexJob.runJob(conf: Configuration,
+                         params: Map[String, String],
+                         feature: String,
+                         attributes: Seq[String])
 ```
 
 You can also run through Hadoop Yarn on the command line:

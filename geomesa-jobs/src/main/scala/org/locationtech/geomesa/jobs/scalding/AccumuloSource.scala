@@ -38,17 +38,21 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 case class AccumuloSourceOptions(instance: String,
-                                zooKeepers: String,
-                                user: String,
-                                password: String,
-                                input: AccumuloInputOptions,
-                                output: AccumuloOutputOptions)
+                                 zooKeepers: String,
+                                 user: String,
+                                 password: String,
+                                 input: AccumuloInputOptions,
+                                 output: AccumuloOutputOptions)
 
 case class AccumuloInputOptions(table: String,
                                 ranges: Option[Seq[acRange]] = None,
                                 columns: Option[Seq[AcPair[Text, Text]]] = None,
                                 iterators: Seq[IteratorSetting] = Seq.empty,
                                 authorizations: Authorizations = new Authorizations(),
+                                autoAdjustRanges: Option[Boolean] = None,
+                                localIterators: Option[Boolean] = None,
+                                offlineTableScan: Option[Boolean] = None,
+                                scanIsolation: Option[Boolean] = None,
                                 logLevel: Option[Level] = None)
 
 case class AccumuloOutputOptions(table: String,
@@ -173,12 +177,6 @@ class AccumuloScheme(val options: AccumuloSourceOptions)
   override def sourceConfInit(fp: FlowProcess[JobConf], tap: AccTap, conf: JobConf) {
     // this method may be called more than once so check to see if we've already configured
     if (!ConfiguratorBase.isConnectorInfoSet(classOf[AccumuloInputFormat], conf)) {
-      // TODO allow the rest of input format options
-      // InputFormatBase.setAutoAdjustRanges(conf, false)
-      // InputFormatBase.setLocalIterators(conf, false)
-      // InputFormatBase.setOfflineTableScan(conf, false)
-      // InputFormatBase.setScanIsolation(conf, false)
-
       InputFormatBase.setZooKeeperInstance(conf, options.instance, options.zooKeepers)
       InputFormatBase.setConnectorInfo(conf,
                                        options.user,
@@ -187,8 +185,12 @@ class AccumuloScheme(val options: AccumuloSourceOptions)
       InputFormatBase.setScanAuthorizations(conf, options.input.authorizations)
       options.input.ranges.foreach(r => InputFormatBase.setRanges(conf, r.asJava))
       options.input.columns.foreach(c => InputFormatBase.fetchColumns(conf, c.asJava))
-      options.input.iterators.foreach(i => InputFormatBase.addIterator(conf, i))
-      options.input.logLevel.foreach(l => InputFormatBase.setLogLevel(conf, l))
+      options.input.iterators.foreach(InputFormatBase.addIterator(conf, _))
+      options.input.autoAdjustRanges.foreach(InputFormatBase.setAutoAdjustRanges(conf, _))
+      options.input.localIterators.foreach(InputFormatBase.setLocalIterators(conf, _))
+      options.input.offlineTableScan.foreach(InputFormatBase.setOfflineTableScan(conf, _))
+      options.input.scanIsolation.foreach(InputFormatBase.setScanIsolation(conf, _))
+      options.input.logLevel.foreach(InputFormatBase.setLogLevel(conf, _))
     }
 
     conf.setInputFormat(classOf[AccumuloInputFormat])

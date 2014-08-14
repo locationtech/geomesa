@@ -53,6 +53,13 @@ object JobUtils extends Logging {
                            "hsqldb",
                            "commons-pool")
 
+  // paths are in order of preference for finding a jar
+  def defaultSearchPath: Iterator[() => Seq[File]] =
+    Iterator(() => getJarsFromEnvironment("GEOMESA_HOME"),
+             () => getJarsFromEnvironment("ACCUMULO_HOME"),
+             () => getJarsFromClasspath(classOf[AccumuloDataStore]),
+             () => getJarsFromClasspath(classOf[Connector]))
+
   /**
    * Sets the libjars into a Hadoop configuration. Will search the environment first, then the
    * classpath, until all required jars have been found.
@@ -60,18 +67,14 @@ object JobUtils extends Logging {
    * @param conf
    * @param libJars
    */
-  def setLibJars(conf: Configuration, libJars: Seq[String] = defaultLibJars): Unit = {
-    // paths are in order of preference for finding a jar
-    val paths = Iterator(getUrlsFromEnvironment("GEOMESA_HOME"),
-                         getUrlsFromEnvironment("ACCUMULO_HOME"),
-                         getUrlsFromClasspath(classOf[AccumuloDataStore]),
-                         getUrlsFromClasspath(classOf[Connector]))
-
+  def setLibJars(conf: Configuration,
+                 libJars: Seq[String] = defaultLibJars,
+                 searchPath: Iterator[() => Seq[File]] = defaultSearchPath): Unit = {
     val libjars = scala.collection.mutable.Set.empty[String]
     var remaining = libJars
     // search each path in order until we've found all our jars
-    while (!remaining.isEmpty && paths.hasNext) {
-      val urls = paths.next()
+    while (!remaining.isEmpty && searchPath.hasNext) {
+      val urls = searchPath.next()()
       remaining = remaining.filter { jarPrefix =>
         val matched = urls.filter(url => url.getName.startsWith(jarPrefix))
         libjars ++= matched.map(url => "file:///" + url.getAbsolutePath)
@@ -95,7 +98,7 @@ object JobUtils extends Logging {
    * @param home
    * @return
    */
-  def getUrlsFromEnvironment(home: String): Seq[File] =
+  def getJarsFromEnvironment(home: String): Seq[File] =
     sys.env.get(home)
       .map(f => new File(new File(f), "lib"))
       .filter(_.isDirectory)
@@ -108,7 +111,7 @@ object JobUtils extends Logging {
    * @param clas
    * @return
    */
-  def getUrlsFromClasspath(clas: Class[_]): Seq[File] = {
+  def getJarsFromClasspath(clas: Class[_]): Seq[File] = {
     val urls =
       clas.getClassLoader match {
         case cl: VFSClassLoader =>
@@ -126,13 +129,13 @@ object JobUtils extends Logging {
    * @return
    */
   def loadJarsFromFolder(dir: File): Seq[File] = {
-    val files = dir.listFiles(new FilenameFilter() {
+    val files = Option(dir.listFiles(new FilenameFilter() {
       override def accept(dir: File, name: String) =
         name.endsWith(".jar") && !name.endsWith("-sources.jar") && !name.endsWith("-javadoc.jar")
-    })
-    files ++ dir.listFiles(new FileFilter() {
+    })).toSeq.flatten
+    files ++ Option(dir.listFiles(new FileFilter() {
       override def accept(pathname: File) = pathname.isDirectory
-    }).flatMap(f => loadJarsFromFolder(f))
+    })).toSeq.flatten.flatMap(loadJarsFromFolder)
   }
 
   def cleanClassPathURL(url: String): String =
