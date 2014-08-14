@@ -16,6 +16,7 @@
 
 package geomesa.core.process.knn
 
+import com.vividsolutions.jts.geom.Point
 import geomesa.utils.geohash.VincentyModel
 import geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.opengis.feature.simple.SimpleFeature
@@ -26,18 +27,24 @@ trait NearestNeighbors {
   def distance(sf: SimpleFeature): Double
 
   def maxDistance: Option[Double]
-
-  //implicit def toSimpleFeatureWithDistance(sf: SimpleFeature): (SimpleFeature, Double) = (sf, distance(sf))
-
-  //implicit def backToSimpleFeature(sfTuple: (SimpleFeature, Double) => SimpleFeature): SimpleFeature = {case (sf, distance) => sf }
-
 }
 
+/**
+ *  This object provides a PriorityQueue of SimpleFeatures sorted by distance from a central POINT.
+ *
+ */
 object NearestNeighbors {
-  def apply(aFeatureForSearch: SimpleFeature, numDesired: Int) = {
+  def apply(aFeatureForSearch: SimpleFeature, numDesired: Int): BoundedNearestNeighbors[SimpleFeatureWithDistance] = {
+    aFeatureForSearch.point match {
+      case aPoint: Point => NearestNeighbors(aPoint, numDesired)
+      case _ => throw new RuntimeException("NearestNeighbors not implemented for non-point geometries")
+    }
+  }
+
+  def apply(aPointForSearch: Point, numDesired: Int): BoundedNearestNeighbors[SimpleFeatureWithDistance] = {
 
     def distanceCalc(sf: SimpleFeature) =
-      VincentyModel.getDistanceBetweenTwoPoints(aFeatureForSearch.point, sf.point).getDistanceInMeters
+      VincentyModel.getDistanceBetweenTwoPoints(aPointForSearch, sf.point).getDistanceInMeters
 
     implicit val orderedSF: Ordering[SimpleFeatureWithDistance] = Ordering.by { _.dist }
 
@@ -50,5 +57,4 @@ object NearestNeighbors {
     }
   }
 }
-  // this should include a guard against adding two NearestNeighbor collections which are for different points
 

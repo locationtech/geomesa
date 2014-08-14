@@ -1,14 +1,33 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package geomesa.core.process.knn
 
 import geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import geomesa.core.index
 import geomesa.core.index.{Constants, IndexSchemaBuilder}
 import geomesa.feature.AvroSimpleFeatureFactory
+import geomesa.utils.geohash.VincentyModel
+import geomesa.utils.geotools.Conversions._
 import geomesa.utils.geotools.SimpleFeatureTypes
 import geomesa.utils.text.WKTUtils
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
@@ -151,16 +170,27 @@ class KNearestNeighborSearchProcessTest extends Specification {
     }
 
     "handle an empty query point collection" in {
-
       val inputFeatures = new DefaultFeatureCollection(sftName, sft)
       val dataFeatures = fs.getFeatures()
       val knn = new KNearestNeighborSearchProcess
-      knn.execute(inputFeatures, dataFeatures, 5, 500.0, 5000.0).size must equalTo(0)
+      knn.execute(inputFeatures, dataFeatures, 100, 500.0, 5000.0).size must equalTo(0)
+    }
+    "handle non-point geometries in inputFeatures by ignoring them" in {
+      val inputFeatures = new DefaultFeatureCollection(sftName, sft)
+      val lineSF = SimpleFeatureBuilder.build(sft, List(), "route 29")
+      lineSF.setDefaultGeometry(WKTUtils.read(f"LINESTRING(-78.491 38.062, -78.474 38.082)"))
+      lineSF.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+      lineSF
+      inputFeatures.add(lineSF)
+
+      val dataFeatures = fs.getFeatures()
+      val knn = new KNearestNeighborSearchProcess
+      knn.execute(inputFeatures, dataFeatures, 100, 500.0, 5000.0).size must equalTo(0)
     }
   }
 
   "runNewKNNQuery" should {
-    "return a NearestNeighbors object with features in correct order" in {
+    "return a NearestNeighbors object with features around Charlottesville in correct order" in {
       val orderedFeatureIDs = List("rotunda",
         "pavilion II",
         "pavilion I",
@@ -182,6 +212,17 @@ class KNearestNeighborSearchProcessTest extends Specification {
       val knnFeatures = knnResults.dequeueAll.map { _.sf }
       val knnIDs = knnFeatures.map { _.getID }
       knnIDs must equalTo(orderedFeatureIDs)
+    }
+    "return a nearestNeighbors object with features around Staunton in correct order" in {
+      val k = 100
+      val referenceFeature = queryFeature("blackfriars", 38.149185, -79.070569)
+      val knnResults =
+        KNNQuery.runNewKNNQuery(fs, wideQuery, k, 500.0, 50000.0, referenceFeature)
+      val knnFeatureIDs = knnResults.dequeueAll.map { _.sf.getID }
+      val directFeatures = fs.getFeatures().features.toList
+      val sortedByDist = directFeatures.sortBy (
+        a => VincentyModel.getDistanceBetweenTwoPoints(referenceFeature.point, a.point).getDistanceInMeters).take(k)
+      knnFeatureIDs.equals(sortedByDist.map{_.getID}) must beTrue
     }
   }
 }

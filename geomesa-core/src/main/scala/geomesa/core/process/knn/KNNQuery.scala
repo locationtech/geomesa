@@ -33,19 +33,22 @@ import scala.annotation.tailrec
 object KNNQuery {
   /**
    * Method to kick off a new KNN query about aFeatureForSearch
+   *
+   * Situations where maxDistanceInMeters is set too small may cause the search to not actually find the K nearest neighbors,
+   * but still permit K neighbors to be found, resulting in incorrect results. To be addressed in GEOMESA-285.
    */
   private val log = Logger.getLogger(classOf[KNearestNeighborSearchProcess])
   def runNewKNNQuery(source: SimpleFeatureSource,
                      query: Query,
                      numDesired: Int,
-                     searchDistance: Double,
-                     maxDistance: Double,
+                     searchDistanceInMeters: Double,
+                     maxDistanceInMeters: Double,
                      aFeatureForSearch: SimpleFeature): BoundedNearestNeighbors[SimpleFeatureWithDistance] = {
 
     // setup the GeoHashSpiral -- it requires the search point,
     // an estimate of the area containing the K Nearest Neighbors,
     // and a maximum distance for search as a safeguard
-    val geoHashPQ = GeoHashSpiral(aFeatureForSearch, searchDistance, maxDistance)
+    val geoHashPQ = GeoHashSpiral(aFeatureForSearch, searchDistanceInMeters, maxDistanceInMeters)
 
     // setup the NearestNeighbors PriorityQueue -- this is the last usage of aFeatureForSearch
     val sfPQ = NearestNeighbors(aFeatureForSearch, numDesired)
@@ -78,8 +81,9 @@ object KNNQuery {
 
         // apply filter to ghPQ if we've found k neighbors
         if (sfPQ.isFull) sfPQ.maxDistance.foreach { x => ghPQ.mutateFilterDistance(x)}
+        lazy val subQueryInfo = s"${newGH.hash}, ${sfPQ.maxDistance.getOrElse(0.0)}, ${sfPQ.size}"
         log.debug (
-          s"KNN Status: Completed subQuery: (hash,distance, PQ size) = $newGH.hash, $sfPQ.maxDistance.getOrElse(0.0), $sfPQ.size ")
+          s"KNN Status: Completed subQuery: (hash,distance, PQ size) = $subQueryInfo ")
         runKNNQuery(source, query, ghPQ, sfPQ)
     }
   }
@@ -97,7 +101,10 @@ object KNNQuery {
     val newGHFilter = ff.bbox(geomProp, newGHEnv)
 
     // could ALSO apply a dwithin filter if k neighbors have been found.
-    // copy the original query before mutation, then AND the new GeoHash filter with the original filter
-    new Query(oldQuery) { setFilter(ff.and(oldQuery.getFilter, newGHFilter)) }
+    // copy the original query before mutation
+    val newQuery = new Query(oldQuery)
+    // AND the new GeoHash filter with the original filter
+    newQuery.setFilter(ff.and(oldQuery.getFilter, newGHFilter))
+    newQuery
   }
 }

@@ -16,21 +16,21 @@
 
 package geomesa.core.process.knn
 
+import com.vividsolutions.jts.geom.Point
+
 import collection.JavaConverters._
-import com.vividsolutions.jts.geom.GeometryFactory
 import geomesa.core.data.AccumuloFeatureCollection
 import geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
 import org.apache.log4j.Logger
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
 import org.geotools.data.store.ReTypingFeatureCollection
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.visitor.{CalcResult, FeatureCalc, AbstractCalcResult}
 import org.geotools.process.factory.{DescribeParameter, DescribeResult, DescribeProcess}
 import org.geotools.util.NullProgressListener
 import org.opengis.feature.Feature
-import org.opengis.filter.Filter
+
 
 @DescribeProcess(
   title = "Geomesa-enabled K Nearest Neighbor Search",
@@ -95,14 +95,10 @@ class KNNVisitor( inputFeatures:     SimpleFeatureCollection,
 
   private val log = Logger.getLogger(classOf[KNNVisitor])
 
-  val geoFac = new GeometryFactory
-  val ff = CommonFactoryFinder.getFilterFactory2
-
-  var manualFilter: Filter = _
   val manualVisitResults = new DefaultFeatureCollection(null, dataFeatures.getSchema)
 
   // called for non AccumuloFeatureCollections
-  // does this warrant an actual implementation?
+  // FIXME Implement as detailed in  GEOMESA-284
   def visit(feature: Feature): Unit = {}
 
   var resultCalc: KNNResult = new KNNResult(manualVisitResults)
@@ -129,10 +125,14 @@ class KNNVisitor( inputFeatures:     SimpleFeatureCollection,
     // for each entry in the inputFeatures collection:
     while (searchFeatureIterator.hasNext) {
       val aFeatureForSearch = searchFeatureIterator.next()
-      val knnResults = KNNQuery.runNewKNNQuery(source, query, numDesired, estimatedDistance, maxSearchDistance, aFeatureForSearch)
-      // extract the SimpleFeatures and convert to a Collection. Ordering will not be preserved.
-      val sfList = knnResults.map { _.sf }.asJavaCollection
-      resultCollection.addAll(sfList)
+      aFeatureForSearch.getDefaultGeometry match {
+        case geo: Point =>
+          val knnResults = KNNQuery.runNewKNNQuery(source, query, numDesired, estimatedDistance, maxSearchDistance, aFeatureForSearch)
+          // extract the SimpleFeatures and convert to a Collection. Ordering will not be preserved.
+          val sfList = knnResults.map {_.sf}.asJavaCollection
+          resultCollection.addAll(sfList)
+        case _ => log.warn("K Nearest Neighbor Search not implemented for non-point geometries, skipping this Feature")
+      }
     }
     resultCollection
   }

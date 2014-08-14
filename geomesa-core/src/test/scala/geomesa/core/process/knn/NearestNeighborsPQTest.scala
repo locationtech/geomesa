@@ -1,3 +1,19 @@
+/*
+* Copyright 2014 Commonwealth Computer Research, Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 package geomesa.core.process.knn
 
 
@@ -36,6 +52,10 @@ class NearestNeighborsPQTest extends Specification {
   val polarSF2 = SimpleFeatureBuilder.build(sft, List(), "polar2")
   polarSF2.setDefaultGeometry(WKTUtils.read(f"POINT(0.0001 89.9)"))
   polarSF2.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+
+  val lineSF = SimpleFeatureBuilder.build(sft, List(), "line")
+  lineSF.setDefaultGeometry(WKTUtils.read(f"LINESTRING(45.0 45.0, 50.0 50.0 )"))
+  lineSF.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
   def diagonalFeatureCollection: DefaultFeatureCollection = {
     val sftName = "geomesaKNNTestDiagonalFeature"
@@ -119,10 +139,14 @@ class NearestNeighborsPQTest extends Specification {
       import geomesa.utils.geotools.Conversions._
       val polarPQ = NearestNeighbors(polarSF2, 10)
       polarPQ ++= polarFeatureCollection.features.map {
-        sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
+        sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
       }
 
       polarPQ.head.sf.getID must equalTo("0")
+    }
+
+    "thrown an exception when given non-point geometries" in {
+        NearestNeighbors(lineSF ,10) should throwAn[RuntimeException]
     }
   }
 }

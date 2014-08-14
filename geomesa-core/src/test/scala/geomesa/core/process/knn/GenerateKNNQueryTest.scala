@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package geomesa.core.process.knn
 
 import geomesa.core.data._
@@ -38,11 +54,13 @@ class GenerateKNNQueryTest extends Specification {
   val ds = createStore
 
   ds.createSchema(sft)
+
   val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
   val smallGH = GeoHash("dqb0tg")
 
   val ff = CommonFactoryFinder.getFilterFactory2
+
   val WGS84 = DefaultGeographicCRS.WGS84
 
 
@@ -54,8 +72,8 @@ class GenerateKNNQueryTest extends Specification {
           ff.like(ff.property("prop"), "foo"),
           ff.bbox("geom", -80.0, 30, -70, 40, CRS.toSRS(WGS84))
         )
-      val f2a = new FilterToAccumulo(sft)
 
+      val f2a = new FilterToAccumulo(sft)
 
       // use the above to generate a Query
       val oldQuery = new Query(sftName, q)
@@ -72,7 +90,6 @@ class GenerateKNNQueryTest extends Specification {
       // get the extracted spatial predicate
       val newPolygon = f2a.spatialPredicate
 
-
       // confirm that the oldFilter was not mutated by operations on the new filter
       // this confirms that the deep copy on the oldQuery was done properly
       oldFilter mustEqual q
@@ -82,10 +99,6 @@ class GenerateKNNQueryTest extends Specification {
 
       //confirm that the newFilter has all spatial predicates removed
       newFilter mustEqual ff.like(ff.property("prop"), "foo")
-
-
     }
-
   }
-
 }

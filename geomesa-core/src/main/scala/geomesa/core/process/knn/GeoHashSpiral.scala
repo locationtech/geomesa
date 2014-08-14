@@ -31,7 +31,7 @@ case class GeoHashWithDistance(gh: GeoHash, dist: Double)
 /**
  * Object and Class for the GeoHashSpiral
  *
- * This provides a Iterator[GeoHash] which generates GeoHashes in order from the distance from a single point
+ * This provides a Iterator[GeoHash] which generates GeoHashes in order from the distance from a single POINT.
  * Currently the ordering is according to the Cartesian distance, NOT the geodetic distance
  * However the provided filter interface does use geodetic distance
  */
@@ -69,20 +69,27 @@ trait GeoHashAutoSize {
 }
 
 object GeoHashSpiral extends GeoHashAutoSize {
-  def apply(centerPoint: SimpleFeature, distanceGuess: Double, maxDistance: Double) = {
+  def apply(centerFeature: SimpleFeature, distanceGuess: Double, maxDistance: Double): GeoHashSpiral = {
+    centerFeature.point match {
+      case aPoint: Point => GeoHashSpiral(aPoint, distanceGuess, maxDistance)
+      case _ => throw new RuntimeException("GeoHashSpiral not implemented for non-point geometries")
+    }
+  }
+
+  def apply(centerPoint: Point, distanceGuess: Double, maxDistance: Double): GeoHashSpiral = {
 
     // generate the central GeoHash as a seed with precision/size governed by distanceGuess
-    val seedGH = geoHashToSize(centerPoint.point, distanceGuess)
+    val seedGH = geoHashToSize(centerPoint, distanceGuess)
     val seedWithDistance = GeoHashWithDistance(seedGH, 0.0)
 
     // These are helpers for distance calculations and ordering.
     // FIXME: using JTS distance returns the cartesian distance only, and does NOT handle wraps correctly
     // see GEOMESA-226
-    def distanceCalc(gh: GeoHash) = centerPoint.point.distance(gh.geom)
+    def distanceCalc(gh: GeoHash) = centerPoint.distance(gh.geom)
 
     implicit val orderedGH: Ordering[GeoHashWithDistance] = Ordering.by { _.dist}
     // this can be removed once GEOMESA-226 is resolved
-    def metersConversion(meters: Double) =  distanceDegrees(centerPoint.point, meters)
+    def metersConversion(meters: Double) =  distanceDegrees(centerPoint, meters)
 
     // Create a new GeoHash PriorityQueue and enqueue with a seed.
     val ghPQ = new mutable.PriorityQueue[GeoHashWithDistance]()(orderedGH.reverse) { enqueue(seedWithDistance) }
