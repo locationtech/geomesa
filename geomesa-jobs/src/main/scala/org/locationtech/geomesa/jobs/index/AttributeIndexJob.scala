@@ -36,8 +36,8 @@ class AttributeIndexJob(args: Args) extends Job(args) {
   lazy val user             = args(ConnectionParams.ACCUMULO_USER)
   lazy val password         = args(ConnectionParams.ACCUMULO_PASSWORD)
   lazy val catalog          = args(ConnectionParams.CATALOG_TABLE)
-  lazy val recordTable      = args(AttributeIndexJob.Params.RECORD_TABLE)
-  lazy val attributeTable   = args(AttributeIndexJob.Params.ATTRIBUTE_TABLE)
+  lazy val recordTable      = args(ConnectionParams.RECORD_TABLE)
+  lazy val attributeTable   = args(ConnectionParams.ATTRIBUTE_TABLE)
   lazy val auths            = args.optional(ConnectionParams.AUTHORIZATIONS).getOrElse("")
 
   lazy val input   = AccumuloInputOptions(recordTable)
@@ -93,9 +93,7 @@ class AttributeIndexJob(args: Args) extends Job(args) {
 object AttributeIndexJob {
 
   object Params {
-    val ATTRIBUTES_TO_INDEX = "geomesa.feature.attributes"
-    val RECORD_TABLE        = "geomesa.ds.tables.record"
-    val ATTRIBUTE_TABLE     = "geomesa.ds.tables.attribute"
+    val ATTRIBUTES_TO_INDEX   = "geomesa.index.attributes"
   }
 
   def runJob(conf: Configuration, params: Map[String, String], feature: String, attributes: Seq[String]) = {
@@ -120,8 +118,8 @@ object AttributeIndexJob {
     val args = new collection.mutable.ListBuffer[String]()
     args.append("--" + ConnectionParams.FEATURE_NAME, feature)
     args.appendAll(Seq("--" + Params.ATTRIBUTES_TO_INDEX) ++ attributes)
-    args.append("--" + Params.RECORD_TABLE, ds.getRecordTableForType(feature))
-    args.append("--" + Params.ATTRIBUTE_TABLE, ds.getAttrIdxTableName(feature))
+    args.append("--" + ConnectionParams.RECORD_TABLE, ds.getRecordTableForType(feature))
+    args.append("--" + ConnectionParams.ATTRIBUTE_TABLE, ds.getAttrIdxTableName(feature))
 
     args.append("--" + ConnectionParams.ZOOKEEPERS,
                  zookeepersParam.lookUp(jParams).asInstanceOf[String])
