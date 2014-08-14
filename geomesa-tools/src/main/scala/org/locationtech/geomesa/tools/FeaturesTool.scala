@@ -35,7 +35,6 @@ import scala.util.Try
 import scala.xml.XML
 
 class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
-  val accumuloConfPath = s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml"
   val accumuloConf = XML.loadFile(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
   val zookeepers = (accumuloConf \\ "property")
     .filter(x => (x \ "name")

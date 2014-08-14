@@ -16,13 +16,34 @@
 
 package org.locationtech.geomesa.tools
 
+import java.util.UUID
+
 import com.typesafe.scalalogging.slf4j.Logging
+import org.apache.accumulo.core.client.ZooKeeperInstance
+import org.apache.hadoop.fs.Path
+
+import scala.util.Try
+import scala.xml.XML
 
 class Ingest() extends Logging {
+  val accumuloConf = XML.loadFile(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
+  val zookeepers = (accumuloConf \\ "property")
+    .filter(x => (x \ "name")
+    .text == "instance.zookeeper.host")
+    .map(y => (y \ "value").text)
+    .head
+  val instanceDfsDir = Try((accumuloConf \\ "property")
+    .filter(x => (x \ "name")
+    .text == "instance.dfs.dir")
+    .map(y => (y \ "value").text)
+    .head)
+    .getOrElse("/accumulo")
+  val instanceIdDir = new Path(instanceDfsDir, "instance_id")
+  val instanceName = new ZooKeeperInstance(UUID.fromString(ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)), zookeepers).getInstanceName
 
   def getAccumuloDataStoreConf(config: ScoptArguments, password: String) = Map (
-    "instanceId"   ->  sys.env.getOrElse("GEOMESA_INSTANCEID", "instanceId"),
-    "zookeepers"   ->  sys.env.getOrElse("GEOMESA_ZOOKEEPERS", "zoo1:2181,zoo2:2181,zoo3:2181"),
+    "instanceId"   ->  instanceName,
+    "zookeepers"   ->  zookeepers,
     "user"         ->  config.username,
     "password"     ->  password,
     "auths"        ->  sys.env.getOrElse("GEOMESA_AUTHS", ""),
