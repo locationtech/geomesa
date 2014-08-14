@@ -17,9 +17,7 @@
 
 ACCUMULO_CONF=${ACCUMULO_HOME}/conf
 HADOOP_CLASSPATH=${HADOOP_HOME}/conf
-ACCUMULO_LIB=${ACCUMULO_HOME}/lib
-CLASSPATH=${ACCUMULO_CONF}:${HADOOP_CLASSPATH}:${ACCUMULO_LIB}
-echo $CLASSPATH
+CLASSPATH=${ACCUMULO_CONF}:${HADOOP_CLASSPATH}
 
 if  [[ $1 = configure ]]; then
     SOURCE="${BASH_SOURCE[0]}"
@@ -39,8 +37,8 @@ else
     if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") ||  (-z "$HADOOP_HOME")  ]]; then
         echo "Please ensure GEOMESA_HOME, ACCUMULO_HOME, and HADOOP_HOME are set before running geomesa-tools."
     elif [ -n "$*" ]; then
-        java -jar ${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar $*
+        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Tools $*
     else
-        java -jar ${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar --help
+        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Tools --help
     fi
 fi

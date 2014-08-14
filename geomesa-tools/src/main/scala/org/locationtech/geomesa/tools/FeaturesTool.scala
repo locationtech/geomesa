@@ -48,13 +48,11 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
       .map(y => (y \ "value").text)
       .head)
     .getOrElse("/accumulo")
-  
   val instanceIdDir = new Path(instanceDfsDir, "instance_id")
   val instanceName = new ZooKeeperInstance(UUID.fromString(ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)), zookeepers).getInstanceName
-  println(instanceName)
   val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> instanceIdDir,
+      "instanceId" -> instanceName,
       "zookeepers" -> zookeepers,
       "user"       -> config.username,
       "password"   -> password,
