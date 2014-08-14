@@ -136,7 +136,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   private def recordWriter(bw: BatchWriter): SimpleFeature => Unit =
     (feature: SimpleFeature) => {
       val m = new Mutation(feature.getID)
-      m.put(SFT_CF, EMPTY_COLQ, new ColumnVisibility(visibility), encoder.encode(feature))
+      m.put(SFT_CF, EMPTY_COLQ, new ColumnVisibility(visibility), new Value(encoder.encode(feature)))
       bw.addMutation(m)
     }
 
