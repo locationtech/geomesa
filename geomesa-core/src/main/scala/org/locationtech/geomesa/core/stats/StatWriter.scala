@@ -145,7 +145,7 @@ object StatWriter extends Runnable with Logging {
       // wait for a stat to be queued
       val head = queue.take()
       // drain out any other stats that have been queued while sleeping
-      val stats = collection.mutable.ListBuffer[StatToWrite](head)
+      val stats = collection.mutable.ListBuffer(head)
       queue.drainTo(stats.asJava)
       write(stats, connector)
     } catch {
