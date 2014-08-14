@@ -125,7 +125,7 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
                                                 config.dtField,
                                                 config.query)
         val de = new DataExporter(loadAttributes, Map(
-          "instanceId" -> instanceIdDir,
+          "instanceId" -> instanceName,
           "zookeepers" -> zookeepers,
           "user"       -> config.username,
           "password"   -> password,
