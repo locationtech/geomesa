@@ -201,6 +201,8 @@ class AccumuloDataStore(val connector: Connector,
     val mutation = getMetadataMutation(featureName)
     putMetadata(featureName, mutation, ATTRIBUTES_CF, attributes)
     writeMutations(mutation)
+    // reconfigure the splits on the attribute table
+    configureAttrIdxTable(getSchema(featureName), getAttrIdxTableName(featureName))
   }
 
   type KVEntry = JMap.Entry[Key,Value]
