@@ -152,6 +152,7 @@ class AccumuloDataStore(val connector: Connector,
     val spatioTemporalIdxTableValue = formatSpatioTemporalIdxTableName(catalogTable, sft)
     val attrIdxTableValue           = formatAttrIdxTableName(catalogTable, sft)
     val recordTableValue            = formatRecordTableName(catalogTable, sft)
+    val queriesTableValue           = formatQueriesTableName(catalogTable, sft)
     val dtgFieldValue               = dtgValue.getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
 
     // store each metadata in the associated column family
@@ -162,7 +163,8 @@ class AccumuloDataStore(val connector: Connector,
                            VISIBILITIES_CF      -> writeVisibilities,
                            ST_IDX_TABLE_CF      -> spatioTemporalIdxTableValue,
                            ATTR_IDX_TABLE_CF    -> attrIdxTableValue,
-                           RECORD_TABLE_CF      -> recordTableValue)
+                           RECORD_TABLE_CF      -> recordTableValue,
+                           QUERIES_TABLE_CF     -> queriesTableValue)
 
     attributeMap.foreach { case (cf, value) =>
       putMetadata(featureName, mutation, cf, value)
@@ -244,6 +246,22 @@ class AccumuloDataStore(val connector: Connector,
    */
   def getAttrIdxTableName(featureName: String): String =
     readRequiredMetadataItem(featureName, ATTR_IDX_TABLE_CF)
+
+  /**
+   * Read Queries table name from store metadata
+   * @param featureType
+   * @return
+   */
+  def getQueriesTableName(featureType: SimpleFeatureType): String =
+    getQueriesTableName(featureType.getTypeName)
+
+  /**
+   * Read Queries table name from store metadata
+   * @param featureName
+   * @return
+   */
+  def getQueriesTableName(featureName: String): String =
+    readRequiredMetadataItem(featureName, QUERIES_TABLE_CF)
 
   /**
    * Read SpatioTemporal Index table name from store metadata
@@ -357,24 +375,17 @@ class AccumuloDataStore(val connector: Connector,
    * @param featureName the name of the feature
    * @param numThreads the number of concurrent threads to spawn for querying during metadata deletion
    */
-  def removeSchema(featureName: String, numThreads: Int = 1) = {
+  def removeSchema(featureName: String, numThreads: Int = 1) =
     if (readMetadataItem(featureName, ST_IDX_TABLE_CF).nonEmpty) {
       val featureType = getSchema(featureName)
 
-      val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(catalogTable, featureType)
-      val attributeIndexTable = formatAttrIdxTableName(catalogTable, featureType)
-      val recordTable = formatRecordTableName(catalogTable, featureType)
-      val queriesTable = formatQueriesTableName(catalogTable, featureType)
-
-      List(spatioTemporalIdxTable, attributeIndexTable, recordTable, queriesTable).foreach { t =>
-        if(tableOps.exists(t)) tableOps.delete(t)
-      }
+      Seq(getSpatioTemporalIdxTableName(featureType),
+          getAttrIdxTableName(featureType),
+          getRecordTableForType(featureType),
+          getQueriesTableName(featureType)).filter(tableOps.exists).foreach(tableOps.delete)
 
       deleteMetadata(featureName, numThreads)
-    } else {
-      throw new RuntimeException("Cannot delete schema for this version of the data store")
-    }
-  }
+    } else throw new RuntimeException("Cannot delete schema for this version of the data store")
 
   /**
    * GeoTools API createSchema() method for a featureType...creates tables with
@@ -908,7 +919,7 @@ object AccumuloDataStore {
     formatTableName(catalogTable, featureType, "records")
 
   /**
-   * Format record table name for Accumulo...table name is stored in metadata for other usage
+   * Format spatio-temoral index table name for Accumulo...table name is stored in metadata for other usage
    * and provide compatibility moving forward if table names change
    * @param catalogTable
    * @param featureType
@@ -918,7 +929,7 @@ object AccumuloDataStore {
     formatTableName(catalogTable, featureType, "st_idx")
 
   /**
-   * Format record table name for Accumulo...table name is stored in metadata for other usage
+   * Format attribute index table name for Accumulo...table name is stored in metadata for other usage
    * and provide compatibility moving forward if table names change
    * @param catalogTable
    * @param featureType
@@ -928,13 +939,13 @@ object AccumuloDataStore {
     formatTableName(catalogTable, featureType, "attr_idx")
 
   /**
-   * Format record table name for Accumulo...table name is stored in metadata for other usage
+   * Format queries table name for Accumulo...table name is stored in metadata for other usage
    * and provide compatibility moving forward if table names change
    * @param catalogTable
    * @param featureType
    * @return
    */
-  def formatQueriesTableName(catalogTable: String, featureType: SimpleFeatureType) =
+  def formatQueriesTableName(catalogTable: String, featureType: SimpleFeatureType): String =
     formatTableName(catalogTable, featureType, "queries")
 
   // only alphanumeric is safe

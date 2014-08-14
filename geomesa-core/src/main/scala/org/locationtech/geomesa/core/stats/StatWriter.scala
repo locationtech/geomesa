@@ -44,7 +44,7 @@ trait StatWriter {
    *
    * @param stat
    */
-  def writeStat(stat: Stat): Unit = StatWriter.queueStat(stat)
+  def writeStat(stat: Stat, statTable: String): Unit = StatWriter.queueStat(stat, statTable)
 }
 
 /**
@@ -63,7 +63,7 @@ object StatWriter extends Runnable with Logging {
 
   private val running = new AtomicBoolean(false)
 
-  private val queue = Queues.newLinkedBlockingQueue[Stat](batchSize)
+  private val queue = Queues.newLinkedBlockingQueue[StatToWrite[_]](batchSize)
 
   private val tableCache = new mutable.HashMap[String, Boolean] with mutable.SynchronizedMap[String, Boolean]
 
@@ -88,14 +88,25 @@ object StatWriter extends Runnable with Logging {
     }
   }
 
+  private[stats] case class StatToWrite[T <: Stat](stat: T,
+                                                   table: String,
+                                                   transform: StatTransform[T]) {
+    def mutation() = transform.statToMutation(stat)
+  }
+
   /**
    * Queues a stat for writing. We don't want to affect memory and accumulo performance too much...
    * if we exceed the queue size, we drop any further stats
    *
    * @param stat
    */
-  private def queueStat(stat: Stat): Unit = {
-    if (!queue.offer(stat)) {
+  private def queueStat(stat: Stat, table: String): Unit = {
+    val transform = stat.getClass match {
+      case c if c == classOf[QueryStat] => QueryStatTransform.asInstanceOf[StatTransform[Stat]]
+      case _ => throw new RuntimeException("Not implemented")
+    }
+
+    if (!queue.offer(StatToWrite(stat, table, transform))) {
       logger.debug("Stat queue is full - stat being dropped")
     }
   }
@@ -103,28 +114,17 @@ object StatWriter extends Runnable with Logging {
   /**
    * Writes the stats.
    *
-   * @param stats
+   * @param statsToWrite
    * @param connector
    */
-  def write(stats: Iterable[Stat], connector: Connector): Unit = {
-    stats.groupBy(s => s.getClass).foreach { case (clas, clasIter) =>
-      // get the appropriate transform for this type of stat
-      val transform = clas match {
-        case c if c == classOf[QueryStat] => QueryStatTransform.asInstanceOf[StatTransform[Stat]]
-        case _ => throw new RuntimeException("Not implemented")
-      }
-      // group stats by catalog and feature name
-      clasIter.groupBy(s => (s.catalogTable, s.featureName)).foreach { case ((catalogTable, featureName), iter) =>
-        val table = transform.getStatTable(catalogTable, featureName)
-        checkTable(table, connector)
-        val writer = connector.createBatchWriter(table, batchWriterConfig)
-        val mutations = iter.map(s => transform.statToMutation(s))
-        writer.addMutations(mutations.asJava)
-        writer.flush()
-        writer.close()
-      }
+  def write(statsToWrite: Iterable[StatToWrite[_]], connector: Connector): Unit =
+    statsToWrite.groupBy(_.table).foreach { case (table, statsForTable) =>
+      checkTable(table, connector)
+      val writer = connector.createBatchWriter(table, batchWriterConfig)
+      writer.addMutations(statsForTable.map(_.mutation()).asJava)
+      writer.flush()
+      writer.close()
     }
-  }
 
   /**
    * Create the stats table if it doesn't exist
@@ -145,7 +145,7 @@ object StatWriter extends Runnable with Logging {
       // wait for a stat to be queued
       val head = queue.take()
       // drain out any other stats that have been queued while sleeping
-      val stats = collection.mutable.ListBuffer(head)
+      val stats = collection.mutable.ListBuffer[StatToWrite[_]](head)
       queue.drainTo(stats.asJava)
       write(stats, connector)
     } catch {

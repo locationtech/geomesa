@@ -27,9 +27,7 @@ import org.opengis.filter.Filter
 /**
  * Class for capturing query-related stats
  */
-case class QueryStat(catalogTable:  String,
-                     featureName:   String,
-                     date:          Long,
+case class QueryStat(date:          Long,
                      queryFilter:   String,
                      queryHints:    String,
                      planningTime:  Long,
@@ -47,8 +45,6 @@ object QueryStatTransform extends StatTransform[QueryStat] {
   private val CQ_SCANTIME = "timeScanning"
   private val CQ_TIME = "timeTotal"
   private val CQ_HITS = "hits"
-
-  protected val getStatTableSuffix = "queries"
 
   override def statToMutation(stat: QueryStat): Mutation = {
     val mutation = createMutation(stat)
@@ -88,8 +84,7 @@ object QueryStatTransform extends StatTransform[QueryStat] {
     val scanTime = values.getOrElse(CQ_SCANTIME, 0L).asInstanceOf[Long]
     val hits = values.getOrElse(CQ_HITS, 0).asInstanceOf[Int]
 
-    // TODO do we care about table/schema? they would have to be known to query anything and get this far...
-    QueryStat(null, null, date, queryFilter, queryHints, planTime, scanTime, hits)
+    QueryStat(date, queryFilter, queryHints, planTime, scanTime, hits)
   }
 
   /**

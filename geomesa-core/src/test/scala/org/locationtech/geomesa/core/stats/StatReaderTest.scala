@@ -23,6 +23,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.stats.StatWriter.StatToWrite
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -32,42 +33,41 @@ class StatReaderTest extends Specification {
   val df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss")
 
   val catalogTable = "geomesa_catalog"
-  val featureName = "stat-reader-test"
+  val featureName = "stat_reader_test"
+  val statsTable = s"${catalogTable}_${featureName}_queries"
 
   val connector = new MockInstance().getConnector("user", new PasswordToken("password"))
 
   val auths = new Authorizations()
 
-  def writeStat(stat: Stat) = StatWriter.write(List(stat), connector)
+  def writeStat(stat: Stat, tableName: String) =
+    StatWriter.write(List(StatToWrite(stat, tableName, QueryStatTransform.asInstanceOf[StatTransform[Stat]])), connector)
 
   "QueryStatReader" should {
 
-    writeStat(QueryStat(catalogTable,
-                          featureName,
-                          df.parseMillis("2014.07.26 13:20:01"),
-                          "query1",
-                          "hint1=true",
-                          101L,
-                          201L,
-                          11))
-    writeStat(QueryStat(catalogTable,
-                          featureName,
-                          df.parseMillis("2014.07.26 14:20:01"),
-                          "query2",
-                          "hint2=true",
-                          102L,
-                          202L,
-                          12))
-    writeStat(QueryStat(catalogTable,
-                          featureName,
-                          df.parseMillis("2014.07.27 13:20:01"),
-                          "query3",
-                          "hint3=true",
-                          102L,
-                          202L,
-                          12))
+    writeStat(QueryStat(df.parseMillis("2014.07.26 13:20:01"),
+                        "query1",
+                        "hint1=true",
+                        101L,
+                        201L,
+                        11),
+              statsTable)
+    writeStat(QueryStat(df.parseMillis("2014.07.26 14:20:01"),
+                        "query2",
+                        "hint2=true",
+                        102L,
+                        202L,
+                        12),
+              statsTable)
+    writeStat(QueryStat(df.parseMillis("2014.07.27 13:20:01"),
+                        "query3",
+                        "hint3=true",
+                        102L,
+                        202L,
+                        12),
+              statsTable)
 
-    val reader = new QueryStatReader(connector, catalogTable)
+    val reader = new QueryStatReader(connector, (_: String) => statsTable)
 
     "query all stats in order" in {
       val queries = reader.query(featureName, new Date(0), new Date(), auths)
