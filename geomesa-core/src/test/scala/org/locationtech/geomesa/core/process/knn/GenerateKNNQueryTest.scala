@@ -16,16 +16,16 @@
 
 package org.locationtech.geomesa.core.process.knn
 
-import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index
-import org.locationtech.geomesa.core.index.Constants
-import org.locationtech.geomesa.utils.geohash.GeoHash
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.core.index
+import org.locationtech.geomesa.core.index.Constants
+import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

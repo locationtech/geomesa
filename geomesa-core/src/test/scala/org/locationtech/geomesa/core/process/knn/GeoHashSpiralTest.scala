@@ -16,12 +16,12 @@
 
 package org.locationtech.geomesa.core.process.knn
 
-import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -62,7 +62,7 @@ class GeoHashSpiralTest extends Specification {
 
       val nearest9ByCalculation = cvillePQ2List.take(9).map{_.hash}
 
-      // the below are ordered by the cartesian distances, NOT the geodetic distances
+      // the below are ordered by geodetic distances
       val nearest9ByVisualInspection = List (
       "dqb0tg",
       "dqb0te",
@@ -70,9 +70,11 @@ class GeoHashSpiralTest extends Specification {
       "dqb0td",
       "dqb0tu",
       "dqb0ts",
-      "dqb0tc",
-      "dqb0t9",
-      "dqb0tv")
+      "dqb0w5",
+      "dqb0w4",
+      "dqb0tc")
+
+
       nearest9ByCalculation must equalTo(nearest9ByVisualInspection)
     }
 
@@ -85,7 +87,7 @@ class GeoHashSpiralTest extends Specification {
 
       val numHashesAfterFilter = cvillePQ.toList.length
 
-      numHashesAfterFilter must equalTo(13)
+      numHashesAfterFilter must equalTo(12)
     }
 
 

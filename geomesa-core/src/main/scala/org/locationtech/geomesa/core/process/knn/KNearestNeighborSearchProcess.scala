@@ -17,19 +17,19 @@
 package org.locationtech.geomesa.core.process.knn
 
 import com.vividsolutions.jts.geom.Point
-
-import collection.JavaConverters._
-import org.locationtech.geomesa.core.data.AccumuloFeatureCollection
-import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
 import org.apache.log4j.Logger
 import org.geotools.data.Query
-import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureCollection}
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.visitor.{CalcResult, FeatureCalc, AbstractCalcResult}
-import org.geotools.process.factory.{DescribeParameter, DescribeResult, DescribeProcess}
+import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
+import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
+import org.locationtech.geomesa.core.data.AccumuloFeatureCollection
+import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
 import org.opengis.feature.Feature
+
+import scala.collection.JavaConverters._
 
 
 @DescribeProcess(

@@ -19,7 +19,6 @@ package org.locationtech.geomesa.core.process.knn
 import com.vividsolutions.jts.geom.Point
 import org.locationtech.geomesa.utils.geohash._
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-import org.locationtech.geomesa.utils.geotools.GeometryUtils.distanceDegrees
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.annotation.tailrec
@@ -31,13 +30,10 @@ case class GeoHashWithDistance(gh: GeoHash, dist: Double)
 /**
  * Object and Class for the GeoHashSpiral
  *
- * This provides a Iterator[GeoHash] which generates GeoHashes in order from the distance from a single POINT.
- * Currently the ordering is according to the Cartesian distance, NOT the geodetic distance
- * However the provided filter interface does use geodetic distance
+ * This provides a Iterator[GeoHash] which generates GeoHashes in order from the geodetic distance from a single POINT.
  */
 
 trait GeoHashDistanceFilter {
-
   // distance in meters used by the filter
   var statefulFilterDistance: Double
 
@@ -46,20 +42,14 @@ trait GeoHashDistanceFilter {
     if (theNewMaxDistance < statefulFilterDistance) statefulFilterDistance = theNewMaxDistance
   }
   // removes GeoHashes that are further than a certain distance from a feature or point
-  // as long as distance is in cartesian degrees, it needs to be compared to the
-  // statefulFilterDistance converted to degrees
   def statefulDistanceFilter(x: GeoHashWithDistance): Boolean =
-    { x.dist < distanceConversion(statefulFilterDistance) }
-
-  // this is the conversion from distance in meters to the maximum distance in degrees
-  // this can be removed once GEOMESA-226 is resolved
-  def distanceConversion: Double => Double
-
+    { x.dist < statefulFilterDistance }
 }
+
 trait GeoHashAutoSize {
   // find the smallest GeoHash whose minimumSize is larger than the desiredSizeInMeters
   def geoHashToSize(pointInside: Point, desiredSizeInMeters: Double ): GeoHash = {
-    import GeohashUtils._
+    import org.locationtech.geomesa.utils.geohash.GeohashUtils._
     // typically 25 bits are encoded in the Index Key
     val allowablePrecisions = List(25,30,35,40).reverse
     allowablePrecisions.map { prec => GeoHash(pointInside,prec) }
@@ -83,31 +73,23 @@ object GeoHashSpiral extends GeoHashAutoSize {
     val seedWithDistance = GeoHashWithDistance(seedGH, 0.0)
 
     // These are helpers for distance calculations and ordering.
-    // FIXME: using JTS distance returns the cartesian distance only, and does NOT handle wraps correctly
-    // see GEOMESA-226
-    def distanceCalc(gh: GeoHash) = centerPoint.distance(gh.geom)
+    def distanceCalc(gh:GeoHash) =
+      GeohashUtils.getMinimumGeodeticDistance(gh.bbox, centerPoint, exhaustive = true)
 
     implicit val orderedGH: Ordering[GeoHashWithDistance] = Ordering.by { _.dist}
-    // this can be removed once GEOMESA-226 is resolved
-    def metersConversion(meters: Double) =  distanceDegrees(centerPoint, meters)
 
     // Create a new GeoHash PriorityQueue and enqueue with a seed.
     val ghPQ = new mutable.PriorityQueue[GeoHashWithDistance]()(orderedGH.reverse) { enqueue(seedWithDistance) }
 
-    new GeoHashSpiral(ghPQ, distanceCalc, maxDistance, metersConversion)
-
+    new GeoHashSpiral(ghPQ, distanceCalc, maxDistance)
   }
 }
 
 class GeoHashSpiral(pq: mutable.PriorityQueue[GeoHashWithDistance],
                      val distance: (GeoHash) => Double,
-                     var statefulFilterDistance: Double,
-                     val distanceConversion: (Double) => Double) extends GeoHashDistanceFilter with BufferedIterator[GeoHash] {
+                     var statefulFilterDistance: Double) extends GeoHashDistanceFilter with BufferedIterator[GeoHash] {
 
   // running set of GeoHashes which have already been encountered -- used to prevent visiting a GeoHash more than once
-  // TODO: think if this is needed, or if distance ordering/filtering alone is sufficient
-  //       the Best Way will depend on if calculating the distance for old GHs is more expensive than
-  //       searching through a HashSet
   val oldGH = new mutable.HashSet[GeoHash] ++= pq.toSet[GeoHashWithDistance].map{ _.gh }
 
   // these are used to setup a modified on-deck pattern: a PriorityQueue backed by a generator

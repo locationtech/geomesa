@@ -16,6 +16,13 @@
 
 package org.locationtech.geomesa.core.process.knn
 
+import org.geotools.data.{DataStoreFinder, Query}
+import org.geotools.factory.Hints
+import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
+import org.joda.time.DateTime
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index.{Constants, IndexSchemaBuilder}
@@ -24,13 +31,6 @@ import org.locationtech.geomesa.utils.geohash.VincentyModel
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.geotools.data.{DataStoreFinder, Query}
-import org.geotools.factory.Hints
-import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.DateTime
-import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -151,12 +151,12 @@ class KNearestNeighborSearchProcessTest extends Specification {
       knn.execute(inputFeatures, dataFeatures, 5, 500.0, 10000.0).size must equalTo(0)
     }
 
-    "find 12 points within 400m of a point when k is set to 15 " in {
+    "find 11 points within 400m of a point when k is set to 15 " in {
       val inputFeatures = new DefaultFeatureCollection(sftName, sft)
       inputFeatures.add(queryFeature("madison", 38.036871, -78.502720))
       val dataFeatures = fs.getFeatures()
       val knn = new KNearestNeighborSearchProcess
-      knn.execute(inputFeatures, dataFeatures, 15, 50.0, 400.0).size should be equalTo 12
+      knn.execute(inputFeatures, dataFeatures, 15, 50.0, 400.0).size should be equalTo 11
     }
 
     "handle three query points, one of which will return nothing" in {

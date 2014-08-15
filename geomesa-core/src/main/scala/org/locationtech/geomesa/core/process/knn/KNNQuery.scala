@@ -16,13 +16,14 @@
 
 package org.locationtech.geomesa.core.process.knn
 
-import org.locationtech.geomesa.core.filter._
-import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.apache.log4j.Logger
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.core.filter._
+import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeature
+
 import scala.annotation.tailrec
 
 /**
