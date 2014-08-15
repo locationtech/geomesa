@@ -3,14 +3,14 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-accumulo1.5</artifactId>
+        <artifactId>geomesa-accumulo1.5-hadoop2.0</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-compute-accumulo1.5</artifactId>
-    <name>GeoMesa Compute - [Accumulo 1.5.x]</name>
+    <artifactId>geomesa-compute-accumulo1.5-hadoop2.0</artifactId>
+    <name>GeoMesa Compute - [Accumulo 1.5.x Hadoop 2.0]</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,7 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-core-accumulo1.5</artifactId>
+            <artifactId>geomesa-core-accumulo1.5-hadoop2.0</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
