@@ -105,7 +105,8 @@ To run an ECQL query, use `-q` or `--query` followed by the query filter string.
 ### ingest
 Ingests TSV and CSV files containing WKT geometries with the following caveat:CSV files must surround values with double quotation marks, e.g.: `"37266103","2013-07-17","POINT(0.0 0.0)"` the first and last quotation marks are optional however. Also the WKT Geometry is assumed to be the last column of the CSV/TSV file.
 #### Usage
-    geomesa ingest -u username -p password --file <> --format <> --table <> --feature-name <> --spec <> --datetime <> --dtformat <>
+    geomesa ingest csv -u username -p password --file <> -c <> -f <> -s <> --datetime <> --dtformat <>
+    geomesa ingest tsv -u username -p password --file <> -c <> -f <> -s <> --datetime <> --dtformat <>
 
 note: *the `<>` marks are where user values would go*
 
@@ -113,17 +114,23 @@ with the following parameters:
      
 `--file` The file path to the csv file or tsv file being ingested.
 
-`--format` The format of that file, either CSV or TSV.
+`-c` or `--catalog` The accumulo table name, the table will be created if not already extant.
 
-`--table` The accumulo table name, the table will be created if not already extant.
+`-f` or `--feature-name` The name of the SimpleFeatureType to be used.
 
-`--feature-name` The name of the SimpleFeatureType to be used.
+`-s` or `--spec` The SimpleFeatureType of the CSV or TSV file, must match the layout of columns in the CSV/TSV file
 
-`--spec` The SimpleFeatureType of the CSV or TSV file, must match the layout of columns in the CSV/TSV file
+`--skip-header` Boolean value to specify whether to skip the header or not (false includes the header)
 
 `--datetime` The name of the field in the SFT spec above that corresponds to the the *time* column in the data being ingested.
 
 `--dtformat` The Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss"
+
+`--idfields` The comma separated list of ID fields used to generate the feature IDs. If empty, it is assumed that the ID will be generated via a hash on the attributes of that line
+
+`--lon` The name of the longitude field.
+
+`--lat` The name of the latitude field.
 
 ### list
 To list the features on a specified catalog table, use the `list` command.  
