@@ -45,9 +45,9 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   lazy val table            = dsConfig.get("tableName")
   lazy val idFields         = config.idFields.orNull
   lazy val path             = config.file
-  lazy val typeName         = config.typeName
+  lazy val featureName      = config.featureName
   lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
-  lazy val dtgField         = config.dtField
+  lazy val dtgField         = config.dtField.get
   lazy val dtgFmt           = config.dtFormat
   lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
   lazy val latField         = config.latAttribute.orNull
@@ -69,7 +69,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
 
   val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
 
-  if(ds.getSchema(typeName) == null){
+  if(ds.getSchema(featureName) == null){
     logger.info("\tCreating GeoMesa tables...")
     val startTime = System.currentTimeMillis()
     ds.createSchema(sft)
@@ -81,7 +81,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
 
 
   lazy val sft = {
-    val ret = SimpleFeatureTypes.createType(typeName, sftSpec)
+    val ret = SimpleFeatureTypes.createType(featureName, sftSpec)
     ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField)
     ret
   }
@@ -96,7 +96,7 @@ class SVIngest(config: ScoptArguments, dsConfig: Map[String, _]) extends Logging
   // This class is possibly necessary for scalding (to be added later)
   // Otherwise it can be removed with just the line val fw = ... retained
   class CloseableFeatureWriter {
-    val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
+    val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
     def release(): Unit = { fw.close() }
   }
 

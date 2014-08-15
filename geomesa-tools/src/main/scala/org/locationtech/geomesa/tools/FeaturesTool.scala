@@ -17,118 +17,184 @@
 package org.locationtech.geomesa.tools
 
 import java.io.FileOutputStream
-import java.nio.file.{Files, Paths}
+import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
+import org.apache.accumulo.core.client.ZooKeeperInstance
+import org.apache.hadoop.fs.Path
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
+import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import scala.collection.JavaConversions._
+import scala.util.Try
+import scala.xml.XML
 
-class FeaturesTool(catalogTable: String) extends Logging {
-  val user = sys.env.getOrElse("GEOMESA_USER", "admin")
-  val password = sys.env.getOrElse("GEOMESA_PASSWORD", "admin")
-  val instanceId = sys.env.getOrElse("GEOMESA_INSTANCEID", "instanceId")
-  val zookeepers = sys.env.getOrElse("GEOMESA_ZOOKEEPERS", "zoo1:2181,zoo2:2181,zoo3:2181")
-  val table = catalogTable
-
-  val ds: AccumuloDataStore = {
+class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
+  val accumuloConf = XML.loadFile(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
+  val zookeepers = (accumuloConf \\ "property")
+    .filter(x => (x \ "name")
+    .text == "instance.zookeeper.host")
+    .map(y => (y \ "value").text)
+    .head
+  val instanceDfsDir = Try((accumuloConf \\ "property")
+    .filter(x => (x \ "name")
+    .text == "instance.dfs.dir")
+    .map(y => (y \ "value").text)
+    .head)
+    .getOrElse("/accumulo")
+  val instanceIdDir = new Path(instanceDfsDir, "instance_id")
+  val instanceIdStr = ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)
+  val instanceName = new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepers).getInstanceName
+  val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> instanceId,
+      "instanceId" -> instanceName,
       "zookeepers" -> zookeepers,
-      "user"       -> user,
+      "user"       -> config.username,
       "password"   -> password,
-      "tableName"  -> table)).asInstanceOf[AccumuloDataStore]
+      "tableName"  -> config.catalog)).asInstanceOf[AccumuloDataStore]
+  }).getOrElse{
+    logger.error("Incorrect username or password. Please try again.")
+    sys.exit()
   }
 
   def listFeatures() {
+    val featureCount = if (ds.getTypeNames.size == 1) {
+      s"1 feature exists on '${config.catalog}'. It is: "
+    } else if (ds.getTypeNames.size == 0) {
+      s"0 features exist on '${config.catalog}'. This catalog table might not yet exist."
+    } else {
+      s"${ds.getTypeNames.size} features exist on '${config.catalog}'. They are: "
+    }
+    logger.info(s"$featureCount")
     ds.getTypeNames.foreach(name =>
-      logger.info(s"$name: ${ds.getSchema(name).getAttributeDescriptors}")
+      logger.info(s"$name")
     )
   }
 
-  def createFeatureType(sftName: String, sftString: String): Boolean = {
+  def describeFeature() {
+    try {
+      val sft = ds.getSchema(config.featureName)
+      sft.getAttributeDescriptors.foreach(attr => {
+        val defaultValue = attr.getDefaultValue
+        val attrType = attr.getType.getBinding.getSimpleName
+        var attrString = s" - ${attr.getLocalName}: $attrType "
+        if (sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, "") == attr.getLocalName) {
+          attrString = attrString.concat("(Time-index) ")
+        } else if (sft.getGeometryDescriptor == attr ) {
+          attrString = attrString.concat("(Geo-index) ")
+        } else if (attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]) {
+          attrString = attrString.concat("(Indexed) ")
+        }
+        if (defaultValue != null) {
+          attrString = attrString.concat(s"- Default Value: $defaultValue")
+        }
+        logger.info(s"$attrString")
+      })
+    } catch {
+      case npe: NullPointerException => logger.error("Error: feature not found. Please ensure " +
+        "that all arguments are correct in the previous command.")
+      case e: Exception => logger.error("Error describing feature")
+    }
+  }
+
+  def createFeatureType(sftName: String, sftString: String, defaultDate: String = null): Boolean = {
     val sft = SimpleFeatureTypes.createType(sftName, sftString)
+    if (defaultDate != null) { sft.getUserData.put(SF_PROPERTY_START_TIME, defaultDate) }
     ds.createSchema(sft)
     ds.getSchema(sftName) != null
   }
 
-  def exportFeatures(feature: String,
-                     attributes: String,
-                     idAttribute: String,
-                     latAttribute: Option[String],
-                     lonAttribute: Option[String],
-                     dateAttribute: Option[String],
-                     format: String,
-                     query: String,
-                     maxFeatures: Int) {
-    val sftCollection = getFeatureCollection(feature, query, attributes, maxFeatures)
-    val folderPath = Paths.get(s"${System.getProperty("user.dir")}/export")
-    if (Files.notExists(folderPath)) {
-      Files.createDirectory(folderPath)
-    }
-    format.toLowerCase match {
+  def exportFeatures() {
+    val sftCollection = getFeatureCollection
+    val outputPath = s"${System.getProperty("user.dir")}/${config.catalog}_${config.featureName}.${config.format}"
+    config.format.toLowerCase match {
       case "csv" | "tsv" =>
-        val loadAttributes = new LoadAttributes(feature, table, attributes, idAttribute, latAttribute, lonAttribute, dateAttribute, query)
+        val loadAttributes = new LoadAttributes(config.featureName,
+                                                config.catalog,
+                                                config.attributes,
+                                                null,
+                                                config.latAttribute,
+                                                config.lonAttribute,
+                                                config.dtField,
+                                                config.query)
         val de = new DataExporter(loadAttributes, Map(
-          "instanceId" -> instanceId,
+          "instanceId" -> instanceName,
           "zookeepers" -> zookeepers,
-          "user"       -> user,
+          "user"       -> config.username,
           "password"   -> password,
-          "tableName"  -> table), format)
+          "tableName"  -> config.catalog), config.format)
         de.writeFeatures(sftCollection.features())
       case "shp" =>
         val shapeFileExporter = new ShapefileExport
-        shapeFileExporter.write(s"$folderPath/$feature.shp", feature, sftCollection, ds.getSchema(feature))
-        logger.info(s"Successfully wrote features to '${System.getProperty("user.dir")}/export/$feature.shp'")
+        shapeFileExporter.write(outputPath, config.featureName, sftCollection, ds.getSchema(config.featureName))
+        logger.info(s"Successfully wrote features to '$outputPath'")
       case "geojson" =>
-        val os = new FileOutputStream(s"$folderPath/$feature.geojson")
+        val os = new FileOutputStream(s"$outputPath")
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
-        logger.info(s"Successfully wrote features to '$folderPath/$feature.geojson'")
+        logger.info(s"Successfully wrote features to '$outputPath'")
       case "gml" =>
-        val os = new FileOutputStream(s"$folderPath/$feature.gml")
+        val os = new FileOutputStream(s"$outputPath")
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
-        logger.info(s"Successfully wrote features to '$folderPath/$feature.gml'")
+        logger.info(s"Successfully wrote features to '$outputPath'")
       case _ =>
         logger.error("Unsupported export format. Supported formats are shp, geojson, csv, and gml.")
     }
+    //necessary to avoid StatsWriter exception when exporting
+    Thread.sleep(1000)
   }
 
-  def deleteFeature(sftName: String): Boolean = {
-    ds.deleteSchema(sftName)
-    !ds.getNames.contains(sftName)
+  def deleteFeature(): Boolean = {
+    try {
+      ds.deleteSchema(config.featureName)
+      !ds.getNames.contains(config.featureName)
+    } catch {
+      case re: RuntimeException => false
+      case e: Exception => false
+    }
   }
 
-  def explainQuery(featureName: String, filterString: String) = {
+  def explainQuery() = {
     val q = new Query()
     val t = Transaction.AUTO_COMMIT
-    q.setTypeName(featureName)
+    q.setTypeName(config.featureName)
 
-    val f = ECQL.toFilter(filterString)
+    val f = ECQL.toFilter(config.filterString)
     q.setFilter(f)
 
-    val afr = ds.getFeatureReader(q, t).asInstanceOf[AccumuloFeatureReader]
+    try {
+      val afr = ds.getFeatureReader(q, t).asInstanceOf[AccumuloFeatureReader]
 
-    afr.explainQuery(q)
+      afr.explainQuery(q)
+    } catch {
+      case re: RuntimeException => logger.error(s"Error: Could not explain the query. Please " +
+        s"ensure that all arguments are correct in the previous command.")
+      case e: Exception => logger.error(s"Error: Could not explain the query.")
+    }
   }
 
-  def getFeatureCollection(feature: String, query: String, attributes: String, maxFeatures: Int): SimpleFeatureCollection = {
-    val filter = if (query != null) CQL.toFilter(query) else CQL.toFilter("include")
-    val q = new Query(feature, filter)
+  def getFeatureCollection: SimpleFeatureCollection = {
+    val filter = if (config.query != null) { CQL.toFilter(config.query) } else { CQL.toFilter("include") }
+    val q = new Query(config.featureName, filter)
 
-    if (maxFeatures > 0) q.setMaxFeatures(maxFeatures)
-    if (attributes != null) q.setPropertyNames(attributes.split(','))
+    if (config.maxFeatures > 0) { q.setMaxFeatures(config.maxFeatures) }
+    if (config.attributes != null) { q.setPropertyNames(config.attributes.split(',')) }
     logger.info(s"$q")
 
     // get the feature store used to query the GeoMesa data
-    val featureStore = ds.getFeatureSource(feature).asInstanceOf[AccumuloFeatureStore]
-    // execute the query
-    featureStore.getFeatures(q)
+    val fs = ds.getFeatureSource(config.featureName).asInstanceOf[AccumuloFeatureStore]
+
+    // and execute the query
+    Try(fs.getFeatures(q)).getOrElse{
+      logger.error("Error: Could not create a SimpleFeatureCollection to export. Please ensure " +
+        "that all arguments are correct in the previous command.")
+      sys.exit()
+    }
   }
 }
