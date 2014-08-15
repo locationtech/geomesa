@@ -47,6 +47,7 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.collection.JavaConversions._
+import scala.util.{Success, Failure, Try}
 
 /**
  *
@@ -152,6 +153,7 @@ class AccumuloDataStore(val connector: Connector,
     val spatioTemporalIdxTableValue = formatSpatioTemporalIdxTableName(catalogTable, sft)
     val attrIdxTableValue           = formatAttrIdxTableName(catalogTable, sft)
     val recordTableValue            = formatRecordTableName(catalogTable, sft)
+    val queriesTableValue           = formatQueriesTableName(catalogTable, sft)
     val dtgFieldValue               = dtgValue.getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
 
     // store each metadata in the associated column family
@@ -162,7 +164,8 @@ class AccumuloDataStore(val connector: Connector,
                            VISIBILITIES_CF      -> writeVisibilities,
                            ST_IDX_TABLE_CF      -> spatioTemporalIdxTableValue,
                            ATTR_IDX_TABLE_CF    -> attrIdxTableValue,
-                           RECORD_TABLE_CF      -> recordTableValue)
+                           RECORD_TABLE_CF      -> recordTableValue,
+                           QUERIES_TABLE_CF     -> queriesTableValue)
 
     attributeMap.foreach { case (cf, value) =>
       putMetadata(featureName, mutation, cf, value)
@@ -244,6 +247,40 @@ class AccumuloDataStore(val connector: Connector,
    */
   def getAttrIdxTableName(featureName: String): String =
     readRequiredMetadataItem(featureName, ATTR_IDX_TABLE_CF)
+
+  /**
+   * Read Queries table name from store metadata
+   * @param featureType
+   * @return
+   */
+  def getQueriesTableName(featureType: SimpleFeatureType): String =
+    Try(readRequiredMetadataItem(featureType.getTypeName, QUERIES_TABLE_CF)) match {
+      case Success(queriesTableName) => queriesTableName
+      // For backwards compatibility with existing tables that do not have queries table metadata
+      case Failure(t) if t.getMessage.contains("Unable to find required metadata property") =>
+        writeAndReturnMissingQueryTableMetadata(featureType)
+      case Failure(t) => throw t
+    }
+
+  /**
+   * Here just to write missing query metadata (for backwards compatibility with preexisting data).
+   * @param sft
+   */
+  private[this] def writeAndReturnMissingQueryTableMetadata(sft: SimpleFeatureType): String = {
+    val featureName = getFeatureName(sft)
+
+    // the mutation we'll be writing to
+    val mutation = getMetadataMutation(featureName)
+    val queriesTableValue = formatQueriesTableName(catalogTable, sft)
+
+    putMetadata(featureName, mutation, QUERIES_TABLE_CF, queriesTableValue)
+
+    // write out the mutation
+    writeMutations(mutation)
+
+    queriesTableValue
+  }
+
 
   /**
    * Read SpatioTemporal Index table name from store metadata
@@ -343,31 +380,31 @@ class AccumuloDataStore(val connector: Connector,
    * Deletes the tables from Accumulo created from the Geomesa SpatioTemporal Schema, and deletes
    * metadata from the catalog. If the table is an older 0.10.x table, we throw an exception.
    *
+   * This version overrides the default geotools removeSchema function and uses 1 thread for
+   * querying during metadata deletion.
+   *
+   * @param featureName the name of the feature
+   */
+  override def removeSchema(featureName: String) = removeSchema(featureName, 1)
+
+  /**
+   * Deletes the tables from Accumulo created from the Geomesa SpatioTemporal Schema, and deletes
+   * metadata from the catalog. If the table is an older 0.10.x table, we throw an exception.
+   *
    * @param featureName the name of the feature
    * @param numThreads the number of concurrent threads to spawn for querying during metadata deletion
    */
-  def deleteSchema(featureName: String, numThreads: Int = 1) = {
+  def removeSchema(featureName: String, numThreads: Int = 1) =
     if (readMetadataItem(featureName, ST_IDX_TABLE_CF).nonEmpty) {
-      removeSchema(featureName)
+      val featureType = getSchema(featureName)
+
+      Seq(getSpatioTemporalIdxTableName(featureType),
+          getAttrIdxTableName(featureType),
+          getRecordTableForType(featureType),
+          getQueriesTableName(featureType)).filter(tableOps.exists).foreach(tableOps.delete)
+
       deleteMetadata(featureName, numThreads)
-    } else {
-      throw new RuntimeException("Cannot delete schema for this version of the data store")
-    }
-  }
-
-  /**
-   * Retrieves the Geotools SpatioTemporal Schema and deletes the three previously created tables
-   *
-   * @param featureName the name of the table to query and delete from
-   */
-  override def removeSchema(featureName: String) = {
-    val featureType            = getSchema(featureName)
-    val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(catalogTable, featureType)
-    val attributeIndexTable    = formatAttrIdxTableName(catalogTable, featureType)
-    val recordTable            = formatRecordTableName(catalogTable, featureType)
-
-    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach { t => if (tableOps.exists(t)) tableOps.delete(t) }
-  }
+    } else throw new RuntimeException("Cannot delete schema for this version of the data store")
 
   /**
    * GeoTools API createSchema() method for a featureType...creates tables with
@@ -890,20 +927,45 @@ class AccumuloDataStore(val connector: Connector,
 
 object AccumuloDataStore {
 
-  // Format record table name for Accumulo...table name is stored in metadata for other usage
-  // and provide compatibility moving forward if table names change
+  /**
+   * Format record table name for Accumulo...table name is stored in metadata for other usage
+   * and provide compatibility moving forward if table names change
+   * @param catalogTable
+   * @param featureType
+   * @return
+   */
   def formatRecordTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "records")
 
-  // Format record table name for Accumulo...table name is stored in metadata for other usage
-  // and provide compatibility moving forward if table names change
+  /**
+   * Format spatio-temoral index table name for Accumulo...table name is stored in metadata for other usage
+   * and provide compatibility moving forward if table names change
+   * @param catalogTable
+   * @param featureType
+   * @return
+   */
   def formatSpatioTemporalIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "st_idx")
 
-  // Format record table name for Accumulo...table name is stored in metadata for other usage
-  // and provide compatibility moving forward if table names change
+  /**
+   * Format attribute index table name for Accumulo...table name is stored in metadata for other usage
+   * and provide compatibility moving forward if table names change
+   * @param catalogTable
+   * @param featureType
+   * @return
+   */
   def formatAttrIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, "attr_idx")
+
+  /**
+   * Format queries table name for Accumulo...table name is stored in metadata for other usage
+   * and provide compatibility moving forward if table names change
+   * @param catalogTable
+   * @param featureType
+   * @return
+   */
+  def formatQueriesTableName(catalogTable: String, featureType: SimpleFeatureType): String =
+    formatTableName(catalogTable, featureType, "queries")
 
   // only alphanumeric is safe
   val SAFE_FEATURE_NAME_PATTERN = "^[a-zA-Z0-9]+$"
