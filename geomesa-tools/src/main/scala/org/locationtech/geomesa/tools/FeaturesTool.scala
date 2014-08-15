@@ -42,13 +42,14 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
     .map(y => (y \ "value").text)
     .head
   val instanceDfsDir = Try((accumuloConf \\ "property")
-      .filter(x => (x \ "name")
-      .text == "instance.dfs.dir")
-      .map(y => (y \ "value").text)
-      .head)
+    .filter(x => (x \ "name")
+    .text == "instance.dfs.dir")
+    .map(y => (y \ "value").text)
+    .head)
     .getOrElse("/accumulo")
   val instanceIdDir = new Path(instanceDfsDir, "instance_id")
-  val instanceName = new ZooKeeperInstance(UUID.fromString(ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)), zookeepers).getInstanceName
+  val instanceIdStr = ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)
+  val instanceName = new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepers).getInstanceName
   val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
       "instanceId" -> instanceName,
@@ -77,19 +78,17 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
 
   def describeFeature() {
     try {
-      ds.getSchema(config.featureName).getAttributeDescriptors.foreach(attr => {
-        val isIndexed = attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]
+      val sft = ds.getSchema(config.featureName)
+      sft.getAttributeDescriptors.foreach(attr => {
         val defaultValue = attr.getDefaultValue
         val attrType = attr.getType.getBinding.getSimpleName
         var attrString = s" - ${attr.getLocalName}: $attrType "
-        if (isIndexed) {
-          if (attrType == "Date") {
-            attrString = attrString.concat("(Time-index) ")
-          } else if (attrType == "Geometry") {
-            attrString = attrString.concat("(Geo-index) ")
-          } else {
-            attrString = attrString.concat("(Indexed) ")
-          }
+        if (sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, "") == attr.getLocalName) {
+          attrString = attrString.concat("(Time-index) ")
+        } else if (sft.getGeometryDescriptor == attr ) {
+          attrString = attrString.concat("(Geo-index) ")
+        } else if (attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]) {
+          attrString = attrString.concat("(Indexed) ")
         }
         if (defaultValue != null) {
           attrString = attrString.concat(s"- Default Value: $defaultValue")

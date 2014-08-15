@@ -197,7 +197,7 @@ object Tools extends App with Logging {
         "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
         "\t-c, --catalog : required\n" +
         "\t\tthe name of the Accumulo table to use\n" +
-        "\t-f, --feature_name : required\n" +
+        "\t-f, --feature-name : required\n" +
         "\t\tthe name of the feature to be deleted"
     } else if (args.contains("describe")) {
       "\tDescribe the attributes of a specified feature\n" +
