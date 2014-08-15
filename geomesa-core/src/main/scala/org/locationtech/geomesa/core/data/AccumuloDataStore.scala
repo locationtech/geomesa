@@ -275,13 +275,6 @@ class AccumuloDataStore(val connector: Connector,
 
     putMetadata(featureName, mutation, QUERIES_TABLE_CF, queriesTableValue)
 
-    // write out a visibilities protected entry that we can use to validate that a user can see
-    // data in this store
-    if (!writeVisibilities.isEmpty) {
-      mutation.put(VISIBILITIES_CHECK_CF, EMPTY_COLQ, new ColumnVisibility(writeVisibilities),
-        new Value(writeVisibilities.getBytes))
-    }
-
     // write out the mutation
     writeMutations(mutation)
 

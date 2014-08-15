@@ -64,7 +64,8 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
     dataStore match {
       case sw: StatWriter =>
-        val stat = QueryStat(System.currentTimeMillis(),
+        val stat = QueryStat(sft.getTypeName,
+                             System.currentTimeMillis(),
                              QueryStatTransform.filterToString(query.getFilter),
                              QueryStatTransform.hintsToString(query.getHints),
                              planningTime,

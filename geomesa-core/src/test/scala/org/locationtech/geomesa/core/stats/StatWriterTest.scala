@@ -52,21 +52,24 @@ class StatWriterTest extends Specification {
     "write query stats asynchronously" in {
       val writer = new MockWriter(connector) with StatWriter
 
-      writer.writeStat(QueryStat(df.parseMillis("2014.07.26 13:20:01"),
+      writer.writeStat(QueryStat(featureName,
+                                 df.parseMillis("2014.07.26 13:20:01"),
                                  "query1",
                                  "hint1=true",
                                  101L,
                                  201L,
                                  11),
                        statsTable)
-      writer.writeStat(QueryStat(df.parseMillis("2014.07.26 14:20:01"),
+      writer.writeStat(QueryStat(featureName,
+                                 df.parseMillis("2014.07.26 14:20:01"),
                                  "query2",
                                  "hint2=true",
                                  102L,
                                  202L,
                                  12),
                        statsTable)
-      writer.writeStat(QueryStat(df.parseMillis("2014.07.27 13:20:01"),
+      writer.writeStat(QueryStat(featureName,
+                                 df.parseMillis("2014.07.27 13:20:01"),
                                  "query3",
                                  "hint3=true",
                                  102L,

@@ -27,7 +27,8 @@ import org.opengis.filter.Filter
 /**
  * Class for capturing query-related stats
  */
-case class QueryStat(date:          Long,
+case class QueryStat(featureName:   String,
+                     date:          Long,
                      queryFilter:   String,
                      queryHints:    String,
                      planningTime:  Long,
@@ -58,12 +59,15 @@ object QueryStatTransform extends StatTransform[QueryStat] {
     mutation
   }
 
+  val ROWID = "(.*)~(.*)".r
+
   override def rowToStat(entries: Iterable[Entry[Key, Value]]): QueryStat = {
     if (entries.isEmpty) {
       return null
     }
 
-    val date = StatTransform.dateFormat.parseMillis(entries.head.getKey.getRow.toString)
+    val ROWID(featureName, dateString) = entries.head.getKey.getRow.toString
+    val date = StatTransform.dateFormat.parseMillis(dateString)
     val values = collection.mutable.Map.empty[String, Any]
 
     entries.foreach { e =>
@@ -84,7 +88,7 @@ object QueryStatTransform extends StatTransform[QueryStat] {
     val scanTime = values.getOrElse(CQ_SCANTIME, 0L).asInstanceOf[Long]
     val hits = values.getOrElse(CQ_HITS, 0).asInstanceOf[Int]
 
-    QueryStat(date, queryFilter, queryHints, planTime, scanTime, hits)
+    QueryStat(featureName, date, queryFilter, queryHints, planTime, scanTime, hits)
   }
 
   /**

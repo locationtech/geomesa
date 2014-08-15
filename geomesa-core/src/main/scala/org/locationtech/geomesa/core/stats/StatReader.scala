@@ -47,8 +47,8 @@ abstract class StatReader[S <: Stat](connector: Connector, statTableForFeatureNa
     val table = statTableForFeatureName(featureName)
 
     val scanner = connector.createScanner(table, authorizations)
-    val rangeStart = StatTransform.dateFormat.print(start.getTime)
-    val rangeEnd = StatTransform.dateFormat.print(end.getTime)
+    val rangeStart = s"$featureName~${StatTransform.dateFormat.print(start.getTime)}"
+    val rangeEnd = s"$featureName~${StatTransform.dateFormat.print(end.getTime)}"
     scanner.setRange(new AccRange(rangeStart, rangeEnd))
 
     configureScanner(scanner)
