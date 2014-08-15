@@ -101,7 +101,7 @@ class FeaturesTool(catalogTable: String) extends Logging {
   }
 
   def deleteFeature(sftName: String): Boolean = {
-    ds.deleteSchema(sftName)
+    ds.removeSchema(sftName)
     !ds.getNames.contains(sftName)
   }
 

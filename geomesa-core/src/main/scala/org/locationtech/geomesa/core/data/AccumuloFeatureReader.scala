@@ -61,16 +61,18 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
   override def close() = {
     iter.close()
-    if (dataStore.isInstanceOf[StatWriter]) {
-      val stat = QueryStat(dataStore.catalogTable,
-                            sft.getTypeName,
-                            System.currentTimeMillis(),
-                            QueryStatTransform.filterToString(query.getFilter),
-                            QueryStatTransform.hintsToString(query.getHints),
-                            planningTime,
-                            scanTime,
-                            hitsSeen)
-      dataStore.asInstanceOf[StatWriter].writeStat(stat)
+
+    dataStore match {
+      case sw: StatWriter =>
+        val stat = QueryStat(sft.getTypeName,
+                             System.currentTimeMillis(),
+                             QueryStatTransform.filterToString(query.getFilter),
+                             QueryStatTransform.hintsToString(query.getHints),
+                             planningTime,
+                             scanTime,
+                             hitsSeen)
+        sw.writeStat(stat, dataStore.getQueriesTableName(sft))
+      case _ => // do nothing
     }
   }
 }

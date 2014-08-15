@@ -44,7 +44,7 @@ class QueryStatTransformTest extends Specification {
     "convert query stats to and from accumulo" in {
 
       // currently we don't restore table and feature in the query stat - thus setting them null here
-      val stat = QueryStat(null, null, 500L, "attr=1", "hint1=true", 101L, 201L, 11)
+      val stat = QueryStat(featureName, 500L, "attr=1", "hint1=true", 101L, 201L, 11)
 
       val writer = connector.createBatchWriter(table, 1000L, 300L, 1)
 
