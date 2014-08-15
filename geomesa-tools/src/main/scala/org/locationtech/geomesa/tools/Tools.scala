@@ -193,7 +193,7 @@ object Tools extends App with Logging {
       "\tDelete a feature from the specified Catalog Table in Geomesa\n" +
         "\t-u, --username : required\n" +
         "\t\tthe Accumulo username\n" +
-        "\t-p, --passwor : optionald\n" +
+        "\t-p, --password : optional\n" +
         "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
         "\t-c, --catalog : required\n" +
         "\t\tthe name of the Accumulo table to use\n" +
