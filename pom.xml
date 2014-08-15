@@ -18,10 +18,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.locationtech.geomesa</groupId>
-    <artifactId>geomesa-accumulo1.5</artifactId>
+    <artifactId>geomesa-accumulo1.5-hadoop2.0</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>GeoMesa - [Accumulo 1.5.x]</name>
+    <name>GeoMesa - [Accumulo 1.5.x Hadoop 2.0]</name>
 
     <modules>
         <module>geomesa-utils</module>
@@ -238,38 +238,38 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-core-accumulo1.5</artifactId>
+                <artifactId>geomesa-core-accumulo1.5-hadoop2.0</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-utils-accumulo1.5</artifactId>
+                <artifactId>geomesa-utils-accumulo1.5-hadoop2.0</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-filter-accumulo1.5</artifactId>
+                <artifactId>geomesa-filter-accumulo1.5-hadoop2.0</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-plugin-accumulo1.5</artifactId>
+                <artifactId>geomesa-plugin-accumulo1.5-hadoop2.0</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
+                <artifactId>geomesa-distributed-runtime-accumulo1.5-hadoop2.0</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-plugin-accumulo1.5</artifactId>
+                <artifactId>geomesa-plugin-accumulo1.5-hadoop2.0</artifactId>
                 <classifier>geoserver-plugin</classifier>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-feature-accumulo1.5</artifactId>
+                <artifactId>geomesa-feature-accumulo1.5-hadoop2.0</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
