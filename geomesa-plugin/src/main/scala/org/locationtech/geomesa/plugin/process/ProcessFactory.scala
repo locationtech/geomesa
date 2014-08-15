@@ -21,6 +21,7 @@ import org.geotools.process.factory.AnnotatedBeanProcessFactory
 import org.geotools.text.Text
 import org.locationtech.geomesa.core.process.proximity.ProximitySearchProcess
 import org.locationtech.geomesa.core.process.query.QueryProcess
+import org.locationtech.geomesa.core.process.rank.{TrackRankProcess, RouteRankProcess}
 import org.locationtech.geomesa.core.process.tube.TubeSelectProcess
 
 class ProcessFactory
@@ -30,5 +31,7 @@ class ProcessFactory
     classOf[DensityProcess],
     classOf[TubeSelectProcess],
     classOf[ProximitySearchProcess],
-    classOf[QueryProcess])
+    classOf[QueryProcess],
+    classOf[RouteRankProcess],
+    classOf[TrackRankProcess])
 
