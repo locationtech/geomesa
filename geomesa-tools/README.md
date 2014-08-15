@@ -9,10 +9,14 @@ To begin using the command line tools, first build the full Geomesa project with
  
 Geomesa Tools relies on a GEOMESA_HOME environment variable. In your `~/.bashrc`, add:
 
-    export GEOMESA_HOME=/path/to/root/geomesa/directory
-    export PATH=${GEOMESA_HOME}/bin:$PATH
+    export GEOMESA_HOME=/path/to/geomesa/source/directory
+    export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
 
-Don't forget to source `~/.bashrc`. Also make sure that $ACCUMULO_HOME and $HADOOP_HOME are set.  
+Don't forget to source `~/.bashrc`. Also make sure that $ACCUMULO_HOME and $HADOOP_HOME are set. For your convenience, you can also run:
+    
+    . /path/to/geomesa/source/dir/geomesa-tools/bin/geomesa configure
+
+Make sure to include the `. ` prefix to the command, as this sources your new environment variables.  
 
 Now, you should be able to use Geomesa from any directory on your computer. To test, `cd` to a different directory and run:
 

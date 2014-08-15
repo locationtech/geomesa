@@ -72,7 +72,7 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
     }
     logger.info(s"$featureCount")
     ds.getTypeNames.foreach(name =>
-      logger.info(s" - $name")
+      logger.info(s"$name")
     )
   }
 
