@@ -101,7 +101,7 @@ object Tools extends App with Logging with GetPassword {
       featureOpt,
       specOpt,
       opt[String]('d', "default-date").action { (s, c) =>
-        c.copy(defaultDate = s) } optional() hidden()
+        c.copy(dtField = Option(s)) } optional() hidden()
       )
 
     def tableconf = cmd("tableconf") action { (_, c) =>
@@ -110,14 +110,18 @@ object Tools extends App with Logging with GetPassword {
         userOpt,
         passOpt,
         catalogOpt,
-        featureOpt),
+        featureOpt,
+        opt[String]('s', "suffix").action { (s, c) =>
+          c.copy(suffix = s) } required() hidden()),
       cmd("describe") action { (_, c) => c.copy(method = "describe") } text "Return the value of a single parameter of the given table" children(
         userOpt,
         passOpt,
         catalogOpt,
         featureOpt,
         opt[String]("param").action { (s, c) =>
-          c.copy(param = s) } required() hidden()),
+          c.copy(param = s) } required() hidden(),
+        opt[String]('s', "suffix").action { (s, c) =>
+          c.copy(suffix = s) } required() hidden()),
       cmd("update") action { (_, c) => c.copy(method = "update") } text "Update a configuration parameter of the given table" children(
         userOpt,
         passOpt,
@@ -126,7 +130,9 @@ object Tools extends App with Logging with GetPassword {
         opt[String]("param").action { (s, c) =>
           c.copy(param = s) } required() hidden(),
         opt[String]('n', "new-value").action { (s, c) =>
-          c.copy(newValue = s) } required() hidden()
+          c.copy(newValue = s) } required() hidden(),
+        opt[String]('s', "suffix").action { (s, c) =>
+          c.copy(suffix = s) } required() hidden()
         ))
     head("GeoMesa Tools", "1.0")
     help("help").text("show help command")
@@ -152,6 +158,7 @@ object Tools extends App with Logging with GetPassword {
     val catalogHelp = "\t-c, --catalog : required\n\t\tthe name of the Accumulo table to use\n"
     val featureHelp = "\t-f, --feature-name : required\n\t\tthe name of the feature\n"
     val specHelp = "\t-s, --spec : required\n\t\tthe SFT specification for the new feature\n"
+    val suffixHelp = "\t-s, --suffix : required\n\t\tthe table suffix (attr_idx, st_idx, or records)\n"
     val help = if (args.contains("create")) {
       "Create a feature in GeoMesa\n" + usernameHelp + passwordHelp +
         "\t-c, --catalog : required\n" +
@@ -202,17 +209,19 @@ object Tools extends App with Logging with GetPassword {
         "\t-q, --quiet : optional\n" +
         "\t\tget output from the command without any info statements. useful for piping output\n"
     } else if (args.contains("tableconf") && args.contains("list")) {
-        "List all table configuration parameters.\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp
+        "List all table configuration parameters.\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp + suffixHelp
     } else if (args.contains("tableconf") && args.contains("describe")) {
       "Print the value of a single table configuration parameter.\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
         "\t--param : required\n" +
-        "\t\tthe table configuration parameter to describe\n"
+        "\t\tthe table configuration parameter to describe\n" +
+        suffixHelp
     } else if (args.contains("tableconf") && args.contains( "update")) {
       "Update a table configuration parameter to the new specified value.\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
         "\t--param : required\n" +
         "\t\tthe table configuration parameter to update\n" +
         "\t-n, --new-value : required\n" +
-        "\t\tthe new value for the table configuration parameter\n"
+        "\t\tthe new value for the table configuration parameter\n" +
+        suffixHelp
     } else {
       "GeoMesa Tools 1.0\n" +
         "Required for each command:\n" +
@@ -271,7 +280,7 @@ object Tools extends App with Logging with GetPassword {
         case "create" =>
           val ft: FeaturesTool = new FeaturesTool(config, password)
           logger.info(s"Creating '${config.catalog}_${config.featureName}' with spec '${config.spec}'. Just a few moments...")
-          if (ft.createFeatureType(config.featureName, config.spec, config.defaultDate)) {
+          if (ft.createFeatureType(config.featureName, config.spec, config.dtField.orNull)) {
             logger.info(s"Feature '${config.catalog}_${config.featureName}' with spec '${config.spec}' successfully created.")
           } else {
             logger.error(s"There was an error creating feature '${config.catalog}_${config.featureName}' with spec '${config.spec}'." +
@@ -304,7 +313,6 @@ case class ScoptArguments(username: String = null,
                           toStdOut:Boolean = false,
                           catalog: String = null,
                           maxFeatures: Int = -1,
-                          defaultDate: String = null,
                           filterString: String = null,
                           attributes: String = null,
                           lonAttribute: Option[String] = None,
@@ -312,5 +320,5 @@ case class ScoptArguments(username: String = null,
                           query: String = null,
                           skipHeader: Boolean = false,
                           param: String = null,
-                          newValue: String = null)
-
+                          newValue: String = null,
+                          suffix: String = null)

@@ -174,13 +174,14 @@ List all table configuration parameters
 ##### Required flags: 
 Specify the catalog table to use with `-c` or `--catalog`.
 Specify the feature name with `-f` or `--feature-name`.
+Specify the table suffix (attr_idx, st_idx, or records) with `-s` or `--suffix`. 
 #### describe
 Describe a single table configuration parameter.
 ##### Required flags: 
 Specify the catalog table to use with `-c` or `--catalog`.
 Specify the feature name with `-f` or `--feature-name`.
 Specify the table configuration parameter with `--param`.
-
+Specify the table suffix (attr_idx, st_idx, or records) with `-s` or `--suffix`.
 #### update
 Update a single table configuration parameter to a new value.
 ##### Required flags: 
@@ -188,9 +189,10 @@ Specify the catalog table to use with `-c` or `--catalog`.
 Specify the feature name with `-f` or `--feature-name`.
 Specify the table configuration parameter with `--param`.
 Specify the new value for the configuration parameter with `-n` or `--new-value`.
+Specify the table suffix (attr_idx, st_idx, or records) with `-s` or `--suffix`.
 
 #### Example commands:
-    geomesa tableconf list -u username -p password -c geomesa_catalog -f twittersmall
-    geomesa tableconf describe -u username -p password -c geomesa_catalog -f twittersmall --param table.bloom.enabled
-    geomesa tableconf update -u username -p password -c geomesa_catalog -f twittersmall --table.bloom.enabled -n true
+    geomesa tableconf list -u username -p password -c geomesa_catalog -f twittersmall -s st_idx
+    geomesa tableconf describe -u username -p password -c geomesa_catalog -f twittersmall --param table.bloom.enabled -s attr_idx
+    geomesa tableconf update -u username -p password -c geomesa_catalog -f twittersmall --table.bloom.enabled -n true -s records
     

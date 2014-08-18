@@ -59,9 +59,9 @@ class TableTools(config: ScoptArguments, password: String) extends Logging {
   }
 
   val tableOps = ds.connector.tableOperations()
+  val tableName = AccumuloDataStore.formatTableName(config.catalog, config.featureName, config.suffix)
 
   def listConfig(): Unit = {
-    val tableName = AccumuloDataStore.formatTableName(config.catalog, config.featureName, "st_idx")
     logger.info(s"Gathering the configuration parameters for $tableName. Just a few moments...")
     try {
       val properties = tableOps.getProperties(tableName)
@@ -73,7 +73,6 @@ class TableTools(config: ScoptArguments, password: String) extends Logging {
   }
 
   def getProperty: Entry[String, String] = {
-    val tableName = AccumuloDataStore.formatTableName(config.catalog, config.featureName, "st_idx")
     try {
       tableOps.getProperties(tableName).find(p => p.getKey == config.param).getOrElse({
         logger.error(s"Parameter '${config.param}' not found. Please ensure that all arguments from the " +
@@ -91,14 +90,12 @@ class TableTools(config: ScoptArguments, password: String) extends Logging {
   }
 
   def describeConfig(): Unit = {
-    val tableName = AccumuloDataStore.formatTableName(config.catalog, config.featureName, "st_idx")
     logger.info(s"Finding the value for '${config.param}' on table '$tableName'. Just a few moments...")
     val property = getProperty
     logger.info(s"$property")
   }
 
   def updateConfig(): Unit = {
-    val tableName = AccumuloDataStore.formatTableName(config.catalog, config.featureName, "st_idx")
     val property = getProperty
     logger.info(s"'${config.param}' on table '$tableName' currently set to: \n$property")
     if (config.newValue != property.getValue) {
