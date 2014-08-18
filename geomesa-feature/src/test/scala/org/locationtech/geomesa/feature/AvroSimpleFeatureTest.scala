@@ -60,6 +60,11 @@ class AvroSimpleFeatureTest extends Specification {
       f.getProperties must beAnInstanceOf[util.Collection[Property]]
       f.getProperties("a") must beAnInstanceOf[util.Collection[Property]]
       f.getProperties("a").head.getValue must not(throwA [org.opengis.feature.IllegalAttributeException])
+
+      val prop = f.getProperty("a")
+      prop must not beNull;
+      prop.getName.getLocalPart mustEqual("a")
+      prop.getValue mustEqual(1)
     }
   }
 
@@ -142,6 +147,17 @@ class AvroSimpleFeatureTest extends Specification {
 
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getAttribute("c") should beNull
+    }
+
+    "give back a null when a property doesn't exist" in {
+      // Verify that AvroSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
+      val sft = SimpleFeatureTypes.createType("avrotesttype", "a:Integer,b:String")
+      val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+      sf.getProperty("c") must not(throwA[NullPointerException])
+      sf.getProperty("c") should beNull
+
+      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      oldSf.getProperty("c") should beNull
     }
   }
 }
