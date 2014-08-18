@@ -22,7 +22,7 @@ import org.apache.commons.math3.ml.clustering.{Clusterable, DBSCANClusterer}
 import org.apache.commons.math3.ml.distance.DistanceMeasure
 import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.geometry.jts.{GeometryBuilder, JTSFactoryFinder}
+import org.geotools.geometry.jts.{JTS, GeometryBuilder, JTSFactoryFinder}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -31,6 +31,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
+import com.vividsolutions.jts.geom.Point
+import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 
 @DescribeProcess(
   title = "Density Based Spatial Clustering of Applications with Noise",
@@ -68,7 +70,7 @@ class DBSCANProcess {
 
     val calc = new GeodeticCalculator(DefaultGeographicCRS.WGS84)
 
-    val clusterer = new DBSCANClusterer[FeatureClusterable](eps, 3, new DistanceMeasure {
+    val clusterer = new DBSCANClusterer[FeatureClusterable](eps, minPts, new DistanceMeasure {
       override def compute(p1: Array[Double], p2: Array[Double]): Double = {
         calc.setStartingGeographicPoint(p1(0), p1(1))
         calc.setDestinationGeographicPoint(p2(0), p2(1))
@@ -77,16 +79,19 @@ class DBSCANProcess {
     })
 
     val clusters = clusterer.cluster(features.features().toList.map(new FeatureClusterable(_)))
-    val resultFeatures = clusters.map { c =>
+    val resultFeatures = clusters.flatMap { c =>
       val points = c.getPoints.map(_.sf.point)
       val geom = geomFactory.buildGeometry(points)
       val pt = geom.getCentroid
-      val radius = points.map(_.distance(pt)).max
-      val circle = geomBuilder.circle(pt.getX, pt.getY, radius, 20)
-      builder.reset()
-      builder.add(radius)
-      builder.add(circle)
-      builder.buildFeature(UUID.randomUUID().toString)
+      val radius = points.map { p => p.distance(pt) }.max
+      if(radius > 0.0) {
+        val circle = geomBuilder.circle(pt.getX, pt.getY, radius, 20)
+        builder.reset()
+        builder.add(radius)
+        builder.add(circle)
+        val feature = builder.buildFeature(UUID.randomUUID().toString)
+        Some(feature)
+      } else None
     }
     DataUtilities.collection(resultFeatures)
   }
