@@ -17,10 +17,12 @@
 
 package org.locationtech.geomesa.plugin.wfs
 
+import org.apache.wicket.ResourceReference
 import org.apache.wicket.markup.html.form.validation.IFormValidator
 import org.apache.wicket.markup.html.form.{Form, FormComponent}
+import org.apache.wicket.markup.html.image.Image
 import org.apache.wicket.model.PropertyModel
-import org.geoserver.catalog.DataStoreInfo
+import org.geoserver.web.GeoServerBasePage
 import org.geotools.data.DataAccessFactory.Param
 import org.locationtech.geomesa.plugin.GeoMesaStoreEditPanel
 
@@ -29,8 +31,8 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
 
   val model = storeEditForm.getModel
   setDefaultModel(model)
-  val storeInfo = storeEditForm.getModelObject.asInstanceOf[DataStoreInfo]
   val paramsModel = new PropertyModel(model, "connectionParameters")
+
   val instanceId = addTextPanel(paramsModel, new Param("instanceId", classOf[String], "The Accumulo Instance ID", true))
   val zookeepers = addTextPanel(paramsModel, new Param("zookeepers", classOf[String], "Zookeepers", true))
   val user = addTextPanel(paramsModel, new Param("user", classOf[String], "User", true))
@@ -39,12 +41,32 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
   val visibilities = addTextPanel(paramsModel, new Param("visibilities", classOf[String], "Accumulo visibilities that will be applied to data written by this DataStore", false))
   val tableName = addTextPanel(paramsModel, new Param("tableName", classOf[String], "The Accumulo Table Name", true))
 
-  val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, tableName, auths, visibilities)
-  dependentFormComponents.map(_.setOutputMarkupId(true))
+  val collectStats = addTextPanel(paramsModel, new Param("collectStats", classOf[String], "Set to 'false' to disable collection of statistics", false))
+  val writeThreads = addTextPanel(paramsModel, new Param("writeThreads", classOf[String], "Default number of threads used to write data", false))
+  val queryThreads = addTextPanel(paramsModel, new Param("queryThreads", classOf[String], "Default number of threads used to query data", false))
+  val recordThreads = addTextPanel(paramsModel, new Param("recordThreads", classOf[String], "Default number of threads used to retrieve records", false))
+
+  val dependentFormComponents = Array[FormComponent[_]](instanceId,
+                                                        zookeepers,
+                                                        user,
+                                                        password,
+                                                        tableName,
+                                                        auths,
+                                                        visibilities,
+                                                        collectStats,
+                                                        writeThreads,
+                                                        queryThreads,
+                                                        recordThreads)
+  dependentFormComponents.foreach(_.setOutputMarkupId(true))
 
   storeEditForm.add(new IFormValidator() {
-    def getDependentFormComponents = dependentFormComponents
+    override def getDependentFormComponents = dependentFormComponents
 
-    def validate(form: Form[_]) {}
+    override def validate(form: Form[_]) {}
   })
+
+  val open = new ResourceReference(classOf[GeoServerBasePage], "img/icons/silk/bullet_arrow_down.png")
+  val closed = new ResourceReference(classOf[GeoServerBasePage], "img/icons/silk/bullet_arrow_right.png")
+  add(new Image("toggleOpen", open))
+  add(new Image("toggleClosed", closed))
 }
