@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.{PrintStream, PrintWriter, FileOutputStream}
+import java.io.FileOutputStream
 import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
