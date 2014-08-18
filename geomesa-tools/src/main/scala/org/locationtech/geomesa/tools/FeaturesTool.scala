@@ -17,11 +17,14 @@
 package org.locationtech.geomesa.tools
 
 import java.io.FileOutputStream
+import java.io.{File, FileOutputStream}
+import java.util.UUID
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
+import org.joda.time.DateTime
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
 import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -94,8 +97,9 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
 
   def exportFeatures() {
     val sftCollection = getFeatureCollection
-    val outputPath = s"${System.getProperty("user.dir")}/${config.catalog}_${config.featureName}.${config.format}"
-    val os = if (config.toStdOut) { System.out } else { new FileOutputStream(s"$outputPath") }
+    val filePrefix = s"${config.catalog}_${config.featureName}_${DateTime.now()}_"
+    val fileSuffix = s".${config.format}"
+    val fileDir = new File(s"${System.getProperty("user.dir")}")
     config.format.toLowerCase match {
       case "csv" | "tsv" =>
         val loadAttributes = new LoadAttributes(config.featureName,
@@ -116,17 +120,22 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
           "tableName"  -> config.catalog))
         de.writeFeatures(sftCollection.features())
       case "shp" =>
+        val outputPath = File.createTempFile(filePrefix, fileSuffix, fileDir)
         val shapeFileExporter = new ShapefileExport
         shapeFileExporter.write(outputPath, config.featureName, sftCollection, ds.getSchema(config.featureName))
-        logger.info(s"Successfully wrote features to '$outputPath'")
+        if (!config.toStdOut) { logger.info(s"Successfully wrote features to '${outputPath.toString}'") }
       case "geojson" =>
+        val outputPath = File.createTempFile(filePrefix, fileSuffix, fileDir)
+        val os = new FileOutputStream(outputPath)
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
-        if (!config.toStdOut) { logger.info(s"Successfully wrote features to '$outputPath'") }
+        if (!config.toStdOut) { logger.info(s"Successfully wrote features to '${outputPath.toString}'") }
       case "gml" =>
+        val outputPath = File.createTempFile(filePrefix, fileSuffix, fileDir)
+        val os = new FileOutputStream(outputPath)
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
-        if (!config.toStdOut) { logger.info(s"Successfully wrote features to '$outputPath'") }
+        if (!config.toStdOut) { logger.info(s"Successfully wrote features to '${outputPath.toString}'") }
       case _ =>
         logger.error("Unsupported export format. Supported formats are shp, geojson, csv, and gml.")
     }
