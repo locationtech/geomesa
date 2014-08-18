@@ -90,15 +90,14 @@ object FilterHelper {
   // Rewrites a Dwithin (assumed to express distance in meters) in degrees.
   def rewriteDwithin(op: DWithin): Filter = {
     val e2 = op.getExpression2.asInstanceOf[Literal]
-    val startPoint = e2.evaluate(null, classOf[Point])
-    val distance = op.getDistance
-    val distanceDegrees = GeometryUtils.distanceDegrees(startPoint, distance)
+    val geom = e2.getValue.asInstanceOf[Geometry]
+    val distanceDegrees = GeometryUtils.distanceDegrees(geom, op.getDistance)
 
     // NB: The ECQL spec doesn't allow for us to put the measurement in "degrees",
     //  but that's how this filter will be used.
     ff.dwithin(
       op.getExpression1,
-      ff.literal(startPoint),
+      op.getExpression2,
       distanceDegrees,
       "meters")
   }
