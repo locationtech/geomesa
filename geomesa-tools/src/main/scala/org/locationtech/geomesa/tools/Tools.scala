@@ -76,7 +76,7 @@ object Tools extends App with Logging with GetPassword {
       )
 
     def explain = cmd("explain") action { (_, c) =>
-      c.copy(mode = "explain") } text "Explain and plan a query in Geomesa" children(
+      c.copy(mode = "explain") } text "Explain and plan a query in GeoMesa" children(
       userOpt,
       passOpt,
       catalogOpt,
@@ -86,7 +86,7 @@ object Tools extends App with Logging with GetPassword {
       )
 
     def delete = cmd("delete") action { (_, c) =>
-      c.copy(mode = "delete") } text "Delete a feature from the specified Catalog Table in Geomesa" children(
+      c.copy(mode = "delete") } text "Delete a feature from the specified Catalog Table in GeoMesa" children(
       userOpt,
       passOpt,
       catalogOpt,
@@ -94,7 +94,7 @@ object Tools extends App with Logging with GetPassword {
       )
 
     def create = cmd("create") action { (_, c) =>
-      c.copy(mode = "create") } text "Create a feature in Geomesa" children(
+      c.copy(mode = "create") } text "Create a feature in GeoMesa" children(
       userOpt,
       passOpt,
       catalogOpt,
@@ -104,6 +104,30 @@ object Tools extends App with Logging with GetPassword {
         c.copy(defaultDate = s) } optional() hidden()
       )
 
+    def tableconf = cmd("tableconf") action { (_, c) =>
+      c.copy(mode = "tableconf") } text "Configure a GeoMesa table" children(
+      cmd("list") action { (_, c) => c.copy(method = "list") } text "List all configuration parameters of a given table" children(
+        userOpt,
+        passOpt,
+        catalogOpt,
+        featureOpt),
+      cmd("describe") action { (_, c) => c.copy(method = "describe") } text "Return the value of a single parameter of the given table" children(
+        userOpt,
+        passOpt,
+        catalogOpt,
+        featureOpt,
+        opt[String]("param").action { (s, c) =>
+          c.copy(param = s) } required() hidden()),
+      cmd("update") action { (_, c) => c.copy(method = "update") } text "Update a configuration parameter of the given table" children(
+        userOpt,
+        passOpt,
+        catalogOpt,
+        featureOpt,
+        opt[String]("param").action { (s, c) =>
+          c.copy(param = s) } required() hidden(),
+        opt[String]('n', "new-value").action { (s, c) =>
+          c.copy(newValue = s) } required() hidden()
+        ))
     head("GeoMesa Tools", "1.0")
     help("help").text("show help command")
     create
@@ -112,6 +136,7 @@ object Tools extends App with Logging with GetPassword {
     explain
     export
     list
+    tableconf
   }
 
   /**
@@ -122,62 +147,37 @@ object Tools extends App with Logging with GetPassword {
    * out that usage text. If a suitable command isn't found, it will show the default usage texts for geomesa-tools.
    */
   def printHelp(): Unit = {
+    val usernameHelp = "\t-u, --username : required\n\t\tthe Accumulo username\n"
+    val passwordHelp = "\t-p, --password : optional\n\t\tthe Accumulo password. This can also be provided after entering a command.\n"
+    val catalogHelp = "\t-c, --catalog : required\n\t\tthe name of the Accumulo table to use\n"
+    val featureHelp = "\t-f, --feature-name : required\n\t\tthe name of the feature\n"
+    val specHelp = "\t-s, --spec : required\n\t\tthe SFT specification for the new feature\n"
     val help = if (args.contains("create")) {
-      "\tCreate a feature in Geomesa\n" +
-        "\t-u, --username : required\n" +
-        "\t\tthe Accumulo username\n" +
-        "\t-p, --password : optional\n" +
-        "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
+      "Create a feature in GeoMesa\n" + usernameHelp + passwordHelp +
         "\t-c, --catalog : required\n" +
         "\t\tthe name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data\n" +
         "\t-f, --feature-name : required\n" +
         "\t\t\"the name of the new feature to be created\n" +
-        "\t-s, --spec : required\n" +
-        "\t\tthe SFT specification for the new feature\n" +
+        specHelp +
         "\t-d, --default-date : optional\n" +
         "\t\tthe default date of the sft"
     } else if (args.contains("delete")) {
-      "\tDelete a feature from the specified Catalog Table in Geomesa\n" +
-        "\t-u, --username : required\n" +
-        "\t\tthe Accumulo username\n" +
-        "\t-p, --password : optional\n" +
-        "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
-        "\t-c, --catalog : required\n" +
-        "\t\tthe name of the Accumulo table to use\n" +
+      "Delete a feature from the specified Catalog Table in GeoMesa\n" + usernameHelp + passwordHelp + catalogHelp +
         "\t-f, --feature-name : required\n" +
         "\t\tthe name of the feature to be deleted"
-    } else if (args.contains("describe")) {
-      "\tDescribe the attributes of a specified feature\n" +
-        "\t-u, --username : required\n" +
-        "\t\tthe Accumulo username\n" +
-        "\t-p, --password : optional\n" +
-        "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
-        "\t-c, --catalog : required\n" +
-        "\t\tthe name of the Accumulo table to use\n" +
+    } else if (args.contains("describe") && !args.contains("tableconf")) {
+      "Describe the attributes of a specified feature\n" + usernameHelp + passwordHelp + catalogHelp +
         "\t-f, --feature-name : required\n" +
         "\t\tthe name of the feature to be described\n" +
         "\t-q, --quiet : optional\n" +
         "\t\tget output from the command without any info statements. useful for piping output\n"
     } else if (args.contains("explain")) {
-      "\tExplain and plan a query in Geomesa\n" +
-        "\t-u, --username : required\n" +
-        "\t\tthe Accumulo username\n" +
-        "\t-p, --password : optional\n" +
-        "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
-        "\t-c, --catalog : required\n" +
-        "\t\tthe name of the Accumulo table to use\n" +
-        "\t-f, --feature-name : required\n" +
-        "\t\tthe name of the feature to use\n" +
+      "Explain and plan a query in GeoMesa\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
         "\t-q, --filter : required\n" +
         "\t\tthe filter string to apply, plan, and explain"
     } else if (args.contains("export")) {
-      "\tExport all or a set of features in csv, tsv, geojson, gml, or shp format\n" +
-        "\t-u, --username : required\n" +
-        "\t\tthe Accumulo username\n" +
-        "\t-p, --password : optional\n" +
-        "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
-        "\t-c, --catalog : required\n" +
-        "\t\tthe name of the Accumulo table to use\n" +
+      "Export all or a set of features in csv, tsv, geojson, gml, or shp format\n" +
+        usernameHelp + passwordHelp + catalogHelp +
         "\t-f, --feature-name : required\n" +
         "\t\tthe name of the feature to export\n" +
         "\t-o, --format : required\n" +
@@ -197,31 +197,37 @@ object Tools extends App with Logging with GetPassword {
       //        "\t\tlongitude attribute to query on\n" +
       //        "\t--dateAttribute : optional\n" +
       //        "\t\tdate attribute to query on"
-    } else if (args.contains("list")) {
-      "\tList the features in the specified Catalog Table\n" +
-        "\t-u, --username : required\n" +
-        "\t\tthe Accumulo username\n" +
-        "\t-p, --password : optional\n" +
-        "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
-        "\t-c, --catalog : required\n" +
-        "\t\tthe name of the Accumulo table to use\n" +
+    } else if (args.contains("list") && !args.contains("tableconf")) {
+      "List the features in the specified Catalog Table\n" + usernameHelp + passwordHelp + catalogHelp +
         "\t-q, --quiet : optional\n" +
         "\t\tget output from the command without any info statements. useful for piping output\n"
+    } else if (args.contains("tableconf") && args.contains("list")) {
+        "List all table configuration parameters.\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp
+    } else if (args.contains("tableconf") && args.contains("describe")) {
+      "Print the value of a single table configuration parameter.\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
+        "\t--param : required\n" +
+        "\t\tthe table configuration parameter to describe\n"
+    } else if (args.contains("tableconf") && args.contains( "update")) {
+      "Update a table configuration parameter to the new specified value.\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
+        "\t--param : required\n" +
+        "\t\tthe table configuration parameter to update\n" +
+        "\t-n, --new-value : required\n" +
+        "\t\tthe new value for the table configuration parameter\n"
     } else {
-      "Geomesa Tools 1.0\n" +
+      "GeoMesa Tools 1.0\n" +
         "Required for each command:\n" +
         "\t-u, --username: the Accumulo username : required\n" +
         "Optional parameters:\n" +
         "\t-p, --password: the Accumulo password. This can also be provided after entering a command.\n" +
         "\thelp, -help, --help: show this help dialog or the help dialog for a specific command (e.g. geomesa create help)\n" +
         "Supported commands are:\n" +
-        "\t create: Create a feature in Geomesa\n" +
-        "\t delete: Delete a feature from the specified Catalog Table in Geomesa\n" +
+        "\t create: Create a feature in GeoMesa\n" +
+        "\t delete: Delete a feature from the specified Catalog Table in GeoMesa\n" +
         "\t describe: Describe the attributes of a specified feature\n" +
-        "\t explain: Explain and plan a query in Geomesa\n" +
+        "\t explain: Explain and plan a query in GeoMesa\n" +
         "\t export: Export all or a set of features in csv, geojson, gml, or shp format\n" +
-        "\t ingest: Ingest a feature into GeoMesa\n" +
-        "\t list: List the features in the specified Catalog Table"
+        "\t list: List the features in the specified Catalog Table\n" +
+        "\t tableconf: List, describe, and update table configuration parameters"
     }
     logger.info(s"$help")
   }
@@ -230,21 +236,31 @@ object Tools extends App with Logging with GetPassword {
     printHelp()
   } else {
     parser.parse(args, ScoptArguments()).map(config => {
-      val pw = password(config.password)
-      val ft: FeaturesTool = new FeaturesTool(config, pw)
+      val password = if (config.password == null) {
+        val standardIn = System.console()
+        print("Password> ")
+        standardIn.readPassword().mkString
+      } else {
+        config.password
+      }
       config.mode match {
         case "export" =>
+          val ft: FeaturesTool = new FeaturesTool(config, password)
           if (!config.toStdOut) { logger.info(s"Exporting '${config.catalog}_${config.featureName}'. Just a few moments...") }
           ft.exportFeatures()
         case "list" =>
+          val ft: FeaturesTool = new FeaturesTool(config, password)
           if (!config.toStdOut) { logger.info(s"Listing features on '${config.catalog}'. Just a few moments...") }
           ft.listFeatures()
         case "describe" =>
+          val ft: FeaturesTool = new FeaturesTool(config, password)
           if (!config.toStdOut) { logger.info(s"Describing attributes of feature '${config.catalog}_${config.featureName}'. Just a few moments...") }
           ft.describeFeature()
         case "explain" =>
+          val ft: FeaturesTool = new FeaturesTool(config, password)
           ft.explainQuery()
         case "delete" =>
+          val ft: FeaturesTool = new FeaturesTool(config, password)
           logger.info(s"Deleting '${config.catalog}_${config.featureName}'. This may be a good time to grab a coffee, as this will take a few moments...")
           if (ft.deleteFeature()) {
             logger.info(s"Feature '${config.catalog}_${config.featureName}' successfully deleted.")
@@ -253,12 +269,20 @@ object Tools extends App with Logging with GetPassword {
               "Please check that all arguments are correct in the previous command.")
           }
         case "create" =>
+          val ft: FeaturesTool = new FeaturesTool(config, password)
           logger.info(s"Creating '${config.catalog}_${config.featureName}' with spec '${config.spec}'. Just a few moments...")
           if (ft.createFeatureType(config.featureName, config.spec, config.defaultDate)) {
             logger.info(s"Feature '${config.catalog}_${config.featureName}' with spec '${config.spec}' successfully created.")
           } else {
             logger.error(s"There was an error creating feature '${config.catalog}_${config.featureName}' with spec '${config.spec}'." +
               " Please check that all arguments are correct in the previous command.")
+          }
+        case "tableconf" =>
+          val tt = new TableTools(config, password)
+          config.method match {
+            case "list" => tt.listConfig()
+            case "describe" => tt.describeConfig()
+            case "update" => tt.updateConfig()
           }
       }
     }
@@ -267,7 +291,26 @@ object Tools extends App with Logging with GetPassword {
       )
   }
 }
-
-
-
+/*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
+case class ScoptArguments(username: String = null,
+                          password: String = null,
+                          mode: String = null,
+                          spec: String = null,
+                          idFields: Option[String] = None,
+                          dtField: Option[String] = None,
+                          method: String = "local",
+                          featureName: String = null,
+                          format: String = null,
+                          toStdOut:Boolean = false,
+                          catalog: String = null,
+                          maxFeatures: Int = -1,
+                          defaultDate: String = null,
+                          filterString: String = null,
+                          attributes: String = null,
+                          lonAttribute: Option[String] = None,
+                          latAttribute: Option[String] = None,
+                          query: String = null,
+                          skipHeader: Boolean = false,
+                          param: String = null,
+                          newValue: String = null)
 
