@@ -30,6 +30,12 @@ class JobUtilsTest extends Specification {
   "JobUtils" should {
     val testFolder = new File(getClass().getClassLoader.getResource("fakejars").getFile)
 
+    "load list of jars from class resource" in {
+      JobUtils.defaultLibJars must not beNull;
+      JobUtils.defaultLibJars.isEmpty mustEqual(false)
+      JobUtils.defaultLibJars must contain("accumulo-core")
+    }
+
     "load jars from folder" in {
       val files = JobUtils.loadJarsFromFolder(testFolder)
       files.length mustEqual(3)

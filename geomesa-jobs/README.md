@@ -22,7 +22,7 @@ AttributeIndexJob.runJob(conf: Configuration,
 You can also run through Hadoop Yarn on the command line:
 
 ```shell
-yarn jar target/geomesa-jobs-accumulo1.5-1.0.0-SNAPSHOT.jar \
+yarn jar $GEOMESA_HOME/lib/geomesa-jobs-accumulo1.5-1.0.0-SNAPSHOT.jar \
     com.twitter.scalding.Tool \
     org.locationtech.geomesa.jobs.index.AttributeIndexJob \
     --hdfs \

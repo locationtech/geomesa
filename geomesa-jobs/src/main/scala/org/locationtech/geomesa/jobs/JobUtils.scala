@@ -25,33 +25,20 @@ import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 
+import scala.io.Source
+import scala.util.Try
+
 object JobUtils extends Logging {
 
   // default jars that will be included with m/r jobs
-  val defaultLibJars = Seq("geomesa",
-                           "accumulo-core",
-                           "accumulo-fate",
-                           "accumulo-start",
-                           "accumulo-trace",
-                           "gt-referencing",
-                           "gt-grid",
-                           "gt-transform",
-                           "gt-main",
-                           "gt-api",
-                           "gt-data",
-                           "gt-opengis",
-                           "gt-cql",
-                           "gt-metadata",
-                           "gt-render",
-                           "gt-coverage",
-                           "gt-process-feature",
-                           "gt-process",
-                           "gt-shapefile",
-                           "libthrift",
-                           "jts",
-                           "jsr-275",
-                           "hsqldb",
-                           "commons-pool")
+  lazy val defaultLibJars = {
+    val defaultLibJarsFile = "org/locationtech/geomesa/jobs/default-libjars.list"
+    val url = Try(getClass.getClassLoader.getResource(defaultLibJarsFile))
+    val source = url.map(Source.fromURL)
+    val lines = source.map(_.getLines().toList)
+    source.foreach(_.close())
+    lines.get
+  }
 
   // paths are in order of preference for finding a jar
   def defaultSearchPath: Iterator[() => Seq[File]] =
