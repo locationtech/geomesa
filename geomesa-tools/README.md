@@ -76,6 +76,8 @@ To describe the attributes of a feature on a specified catalog table, use the `d
 #### Required flags: 
 Specify the catalog table to use with `-o` or `--catalog`.
 Specify the feature to describe with `-f` or `--feature-name`.  
+#### Optional flags: 
+To pipe the output of the command, use `-q` or `--quiet`.
 #### Example command:
     geomesa describe -u username -p password -c test_delete -f testing
  
@@ -98,6 +100,7 @@ Specify the export format with `-o` or `--format`. The supported export formats 
 To retrieve specific attributes from each feature, use `-a` or `--attributes` followed by a String of comma-separated attribute names.  
 To set a maximum number of features to return, use `-m` or `--maxFeatures` followed by the maximum number of features.  
 To run an ECQL query, use `-q` or `--query` followed by the query filter string.  
+To export to stdOut, use `-s` or `--stdout`. This is useful for piping output.
 #### Example commands:
     geomesa export -u username -p password -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o csv -q "include" -m 100  
     geomesa export -u username -p password -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
@@ -136,6 +139,8 @@ with the following parameters:
 To list the features on a specified catalog table, use the `list` command.  
 #### Required flags: 
 Specify the catalog table to use with `-c` or `--catalog`
+#### Optional flags:
+To pipe the output of the command, use `-q` or `--quiet`.
 #### Example command:
     geomesa list -u username -p password -c geomesa_catalog
     

@@ -36,10 +36,14 @@ object Tools extends App with Logging {
       passOpt,
       catalogOpt,
       featureOpt,
+      opt[Unit]('s', "stdOut").action { (_, c) =>
+        c.copy(toStdOut = true) } optional() hidden(),
       opt[String]('o', "format").action { (s, c) =>
         c.copy(format = s) } required() hidden(),
       opt[String]('a', "attributes").action { (s, c) =>
         c.copy(attributes = s) } optional() hidden(),
+      opt[String]("idAttribute").action { (s, c) =>
+        c.copy(latAttribute = Option(s)) } optional() hidden(),
       opt[String]("latAttribute").action { (s, c) =>
         c.copy(latAttribute = Option(s)) } optional() hidden(),
       opt[String]("lonAttribute").action { (s, c) =>
@@ -57,14 +61,18 @@ object Tools extends App with Logging {
       userOpt,
       passOpt,
       catalogOpt,
-      featureOpt
+      featureOpt,
+      opt[Unit]('q', "quiet").action { (_, c) =>
+        c.copy(toStdOut = true) } optional() hidden()
       )
 
     def list = cmd("list") action { (_, c) =>
       c.copy(mode = "list") } text "List the features in the specified Catalog Table" children(
       userOpt,
       passOpt,
-      catalogOpt
+      catalogOpt,
+      opt[Unit]('q', "quiet").action { (_, c) =>
+        c.copy(toStdOut = true) } optional() hidden()
       )
 
     def explain = cmd("explain") action { (_, c) =>
@@ -208,7 +216,9 @@ object Tools extends App with Logging {
         "\t-c, --catalog : required\n" +
         "\t\tthe name of the Accumulo table to use\n" +
         "\t-f, --feature-name : required\n" +
-        "\t\tthe name of the feature to be described"
+        "\t\tthe name of the feature to be described\n" +
+        "\t-q, --quiet : optional\n" +
+        "\t\tget output from the command without any info statements. useful for piping output\n"
     } else if (args.contains("explain")) {
       "\tExplain and plan a query in Geomesa\n" +
         "\t-u, --username : required\n" +
@@ -233,6 +243,8 @@ object Tools extends App with Logging {
         "\t\tthe name of the feature to export\n" +
         "\t-o, --format : required\n" +
         "\t\tthe format to export to (csv, tsv, gml, geojson, shp)\n" +
+        "\t-s, --stdout : optional\n" +
+        "\t\tadd this flag to export to stdOut\n" +
         "\t-a, --attributes : optional\n" +
         "\t\tattributes to return in the export. default: ALL\n"+
         "\t-m, --maxFeatures : optional\n" +
@@ -289,7 +301,9 @@ object Tools extends App with Logging {
         "\t-p, --password : optional\n" +
         "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
         "\t-c, --catalog : required\n" +
-        "\t\tthe name of the Accumulo table to use"
+        "\t\tthe name of the Accumulo table to use\n" +
+        "\t-q, --quiet : optional\n" +
+        "\t\tget output from the command without any info statements. useful for piping output\n"
     } else {
       "Geomesa Tools 1.0\n" +
         "Required for each command:\n" +
@@ -323,13 +337,13 @@ object Tools extends App with Logging {
       val ft: FeaturesTool = new FeaturesTool(config, password)
       config.mode match {
         case "export" =>
-          logger.info(s"Exporting '${config.catalog}_${config.featureName}'. Just a few moments...")
+          if (!config.toStdOut) { logger.info(s"Exporting '${config.catalog}_${config.featureName}'. Just a few moments...") }
           ft.exportFeatures()
         case "list" =>
-          logger.info(s"Listing features on '${config.catalog}'. Just a few moments...")
+          if (!config.toStdOut) { logger.info(s"Listing features on '${config.catalog}'. Just a few moments...") }
           ft.listFeatures()
         case "describe" =>
-          logger.info(s"Describing attributes of feature '${config.catalog}_${config.featureName}'. Just a few moments...")
+          if (!config.toStdOut) { logger.info(s"Describing attributes of feature '${config.catalog}_${config.featureName}'. Just a few moments...") }
           ft.describeFeature()
         case "explain" =>
           ft.explainQuery()
@@ -364,14 +378,27 @@ object Tools extends App with Logging {
 }
 
 /*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
-case class ScoptArguments(username: String = null, password: String = null,
-                          mode: String = null, spec: String = null, idFields: Option[String] = None,
-                          dtField: Option[String] = None, dtFormat: String = null, method: String = "local",
-                          file: String = null, featureName: String = null, format: String = null,
-                          catalog: String = null, maxFeatures: Int = -1, defaultDate: String = null,
-                          filterString: String = null, attributes: String = null,
-                          lonAttribute: Option[String] = None, latAttribute: Option[String] = None,
-                          query: String = null, skipHeader: Boolean = false)
+case class ScoptArguments(username: String = null,
+                          password: String = null,
+                          mode: String = null,
+                          spec: String = null,
+                          idFields: Option[String] = None,
+                          dtField: Option[String] = None,
+                          dtFormat: String = null,
+                          method: String = "local",
+                          file: String = null,
+                          featureName: String = null,
+                          format: String = null,
+                          toStdOut:Boolean = false,
+                          catalog: String = null,
+                          maxFeatures: Int = -1,
+                          defaultDate: String = null,
+                          filterString: String = null,
+                          attributes: String = null,
+                          lonAttribute: Option[String] = None,
+                          latAttribute: Option[String] = None,
+                          query: String = null,
+                          skipHeader: Boolean = false)
 
 
 
