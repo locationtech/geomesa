@@ -31,7 +31,7 @@ object Tools extends App with Logging with GetPassword {
       c.copy(password = x) } text "Accumulo password" optional()
 
     def export = cmd("export") action { (_, c) =>
-      c.copy(mode = "export") } text "Export all or a set of features in csv, geojson, gml, or shp format" children(
+      c.copy(mode = "export") } text "Export all or a set of features in CSV, TSV, GeoJSON, GML, or SHP format" children(
       userOpt,
       passOpt,
       catalogOpt,
@@ -183,7 +183,7 @@ object Tools extends App with Logging with GetPassword {
         "\t-q, --filter : required\n" +
         "\t\tthe filter string to apply, plan, and explain"
     } else if (args.contains("export")) {
-      "Export all or a set of features in csv, tsv, geojson, gml, or shp format\n" +
+      "Export all or a set of features in CSV, TSV, GeoJSON, GML, or SHP format\n" +
         usernameHelp + passwordHelp + catalogHelp +
         "\t-f, --feature-name : required\n" +
         "\t\tthe name of the feature to export\n" +
@@ -234,7 +234,7 @@ object Tools extends App with Logging with GetPassword {
         "\t delete: Delete a feature from the specified Catalog Table in GeoMesa\n" +
         "\t describe: Describe the attributes of a specified feature\n" +
         "\t explain: Explain and plan a query in GeoMesa\n" +
-        "\t export: Export all or a set of features in csv, geojson, gml, or shp format\n" +
+        "\t export: Export all or a set of features in CSV, TSV, GeoJSON, GML, or SHP format\n" +
         "\t list: List the features in the specified Catalog Table\n" +
         "\t tableconf: List, describe, and update table configuration parameters"
     }
@@ -254,22 +254,22 @@ object Tools extends App with Logging with GetPassword {
       }
       config.mode match {
         case "export" =>
-          val ft: FeaturesTool = new FeaturesTool(config, password)
+          val ft = new FeaturesTool(config, password)
           if (!config.toStdOut) { logger.info(s"Exporting '${config.catalog}_${config.featureName}'. Just a few moments...") }
           ft.exportFeatures()
         case "list" =>
-          val ft: FeaturesTool = new FeaturesTool(config, password)
+          val ft = new FeaturesTool(config, password)
           if (!config.toStdOut) { logger.info(s"Listing features on '${config.catalog}'. Just a few moments...") }
           ft.listFeatures()
         case "describe" =>
-          val ft: FeaturesTool = new FeaturesTool(config, password)
+          val ft = new FeaturesTool(config, password)
           if (!config.toStdOut) { logger.info(s"Describing attributes of feature '${config.catalog}_${config.featureName}'. Just a few moments...") }
           ft.describeFeature()
         case "explain" =>
-          val ft: FeaturesTool = new FeaturesTool(config, password)
+          val ft = new FeaturesTool(config, password)
           ft.explainQuery()
         case "delete" =>
-          val ft: FeaturesTool = new FeaturesTool(config, password)
+          val ft = new FeaturesTool(config, password)
           logger.info(s"Deleting '${config.catalog}_${config.featureName}'. This may be a good time to grab a coffee, as this will take a few moments...")
           if (ft.deleteFeature()) {
             logger.info(s"Feature '${config.catalog}_${config.featureName}' successfully deleted.")
@@ -278,7 +278,7 @@ object Tools extends App with Logging with GetPassword {
               "Please check that all arguments are correct in the previous command.")
           }
         case "create" =>
-          val ft: FeaturesTool = new FeaturesTool(config, password)
+          val ft = new FeaturesTool(config, password)
           logger.info(s"Creating '${config.catalog}_${config.featureName}' with spec '${config.spec}'. Just a few moments...")
           if (ft.createFeatureType(config.featureName, config.spec, config.dtField.orNull)) {
             logger.info(s"Feature '${config.catalog}_${config.featureName}' with spec '${config.spec}' successfully created.")

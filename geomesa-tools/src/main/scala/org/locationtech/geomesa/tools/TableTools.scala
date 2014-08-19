@@ -59,8 +59,14 @@ class TableTools(config: ScoptArguments, password: String) extends Logging {
   }
 
   val tableOps = ds.connector.tableOperations()
-  val tableName = AccumuloDataStore.formatTableName(config.catalog, config.featureName, config.suffix)
-
+  val tableName = config.suffix match {
+    case "st_idx" => ds.getSpatioTemporalIdxTableName(config.featureName)
+    case "attr_idx" => ds.getAttrIdxTableName(config.featureName)
+    case "records" => ds.getRecordTableForType(config.featureName)
+    case _ =>
+      logger.error("Incorrect table suffix. Please check that all arguments are correct and try again.")
+      sys.exit()
+  }
   def listConfig(): Unit = {
     logger.info(s"Gathering the configuration parameters for $tableName. Just a few moments...")
     try {
@@ -74,7 +80,7 @@ class TableTools(config: ScoptArguments, password: String) extends Logging {
 
   def getProperty: Entry[String, String] = {
     try {
-      tableOps.getProperties(tableName).find(p => p.getKey == config.param).getOrElse({
+      tableOps.getProperties(tableName).find(_.getKey == config.param).getOrElse({
         logger.error(s"Parameter '${config.param}' not found. Please ensure that all arguments from the " +
           s"previous command are correct, and try again.")
         sys.exit()
