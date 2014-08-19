@@ -42,7 +42,6 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
 
   import scala.collection.JavaConversions._
 
-  lazy val table            = dsConfig.get("tableName")
   lazy val idFields         = config.idFields.orNull
   lazy val path             = config.file
   lazy val featureName      = config.featureName
@@ -71,20 +70,27 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
 
   val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
 
-  if(ds.getSchema(featureName) == null){
+  if (ds.getSchema(featureName) == null) {
     logger.info("\tCreating GeoMesa tables...")
     val startTime = System.currentTimeMillis()
-    // This can be cut down to just call the shard-specific create Schema
-    // Function if the user specified a number of shards to use.
-    // also I think the number of shards used can be pulled after the call
-    // to ds.createSchema so I could potentially have the number of shards
-    // logged in both cases of this if statement
-    val numShards = maxShard.getOrElse(ds.connector.instanceOperations().getTabletServers.size())
-    ds.createSchema(sft, numShards)
+    if (maxShard.isDefined)
+      ds.createSchema(sft, maxShard.get)
+    else
+      ds.createSchema(sft)
     val createTime = System.currentTimeMillis() - startTime
-    logger.info(s"\tCreated schema in: $createTime ms using $numShards Shards.")
+    val numShards = ds.getSpatioTemporalMaxShard(sft)
+    val shardPvsS = if (numShards == 1) "Shard" else "Shards"
+    logger.info(s"\tCreated schema in: $createTime ms using $numShards $shardPvsS.")
+
   } else {
-    logger.info("GeoMesa tables extant")
+    val numShards = ds.getSpatioTemporalMaxShard(sft)
+    val shardPvsS = if (numShards == 1) "Shard" else "Shards"
+
+    maxShard match {
+      case None => logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS.")
+      case Some(x) => logger.warn(s"GeoMesa tables extant, ignoring user request, using schema's $numShards $shardPvsS")
+    }
+
   }
 
   lazy val sft = {
@@ -119,7 +125,9 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
         finally {
           cfw.release()
           ds.dispose()
-          logger.info(s"For file $path - added $successes features and failed on $failures features")
+          val successPvsS = if (successes == 1) "feature" else "features"
+          val failurePvsS = if (failures == 1) "feature" else "features"
+          logger.info(s"For file $path - added $successes $successPvsS and failed on $failures $failurePvsS")
         }
       case _ =>
         logger.error(s"Error, no such SV ingest method: ${config.method.toLowerCase}")
@@ -132,8 +140,10 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
         writeFeature(cfw.fw, ft)
         // Log info to user that ingest is still working, might be in wrong spot however...
         if ( lineNumber % 10000 == 0 ) {
+          val successPvsS = if (successes == 1) "feature" else "features"
+          val failurePvsS = if (failures == 1) "feature" else "features"
           logger.info(s"Ingest proceeding, on line number: $lineNumber," +
-            s" with $successes successes and $failures failures.")
+            s" with $successes $successPvsS and $failures $failurePvsS.")
         }
       case Failure(ex) => failures +=1; logger.error(s"Could not write feature due to: ${ex.getLocalizedMessage}")
     }
@@ -180,6 +190,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
       case e: Exception => throw new Exception(s"Could not find date-time field: \'${dtgField}\' " +
         s"in line: \'${line}\', number: $lineNumber")
     }
+
     feature.setAttribute(dtgTargetField, dtg.toDate)
     // Support for point data method
     val lon = Option(feature.getAttribute(lonField)).map(_.asInstanceOf[Double])

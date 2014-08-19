@@ -48,7 +48,6 @@ class SVIngestTest extends Specification{
       "user"            -> "myuser",
       "password"        -> "mypassword",
       "tableName"       -> currentCatalog,
-      "featureEncoding" -> "avro",
       "useMock"         -> "true")
   }
 
