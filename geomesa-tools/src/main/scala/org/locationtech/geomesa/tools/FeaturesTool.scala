@@ -16,9 +16,8 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.FileOutputStream
 import java.io.{File, FileOutputStream}
-import java.util.UUID
+
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
@@ -28,6 +27,7 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
 import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+
 import scala.collection.JavaConversions._
 import scala.util.Try
 
