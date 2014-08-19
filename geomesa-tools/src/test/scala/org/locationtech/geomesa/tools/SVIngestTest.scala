@@ -30,14 +30,14 @@ class SVIngestTest extends Specification{
 
   sequential
   var id = 0
-  var csvConfig = new ScoptArguments(spec = "id:Double,time:Date,lon:Double,lat:Double,*geom:Point:srid=4326",
+  var csvConfig = new IngestArguments(spec = "id:Double,time:Date,lon:Double,lat:Double,*geom:Point:srid=4326",
     idFields = None, dtField = Option("time"), lonAttribute = Option("lon"), latAttribute = Option("lat"),
-    dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = "test_type",
-    method = "local", file = "none", format = "CSV")
+    dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = Option("test_type"),
+    method = "local", file = "none", format = Some("CSV"))
 
-  var csvWktConfig = new ScoptArguments(spec = "id:Double,time:Date,*geom:Geometry", idFields = None,
-    dtField = Option("time"), dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = "test_type",
-    method = "local", file = "none", format = "CSV")
+  var csvWktConfig = new IngestArguments(spec = "id:Double,time:Date,*geom:Geometry", idFields = None,
+    dtField = Option("time"), dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = Option("test_type"),
+    method = "local", file = "none", format = Some("CSV"))
 
   def currentCatalog = f"SVIngestTestTableUnique$id%d"
 
@@ -49,7 +49,6 @@ class SVIngestTest extends Specification{
       "user"            -> "myuser",
       "password"        -> "mypassword",
       "tableName"       -> currentCatalog,
-      "featureEncoding" -> "avro",
       "useMock"         -> "true")
   }
 
@@ -69,7 +68,7 @@ class SVIngestTest extends Specification{
     }
 
     "properly create an AvroSimpleFeature from a tab-delimited string" in {
-      val ingest = new SVIngest(csvConfig.copy(format = "TSV"), createConnectionMap)
+      val ingest = new SVIngest(csvConfig.copy(format = Option("TSV")), createConnectionMap)
       val testString = "1325409954\t2013-07-17Z\t-90.368732\t35.3155"
       val f = ingest.lineToFeature(testString)
 
@@ -93,7 +92,7 @@ class SVIngestTest extends Specification{
     }
 
     "properly create an AvroSimpleFeature from a tab-delimited string with a Point WKT geometry" in {
-      val ingest = new SVIngest(csvWktConfig.copy(format = "TSV"), createConnectionMap)
+      val ingest = new SVIngest(csvWktConfig.copy(format = Option("TSV")), createConnectionMap)
       val testString = "294908082\t2013-07-17Z\tPOINT(-90.161852 32.39271)"
       val f = ingest.lineToFeature(testString)
 
@@ -107,7 +106,7 @@ class SVIngestTest extends Specification{
       " a Point WKT geometry and non-standard dtformat" in {
       val ingest = new SVIngest(csvWktConfig.copy(spec = "id:String:index=False,username:String:index=false," +
         "userid:String:index=false,text:String:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true",
-        format = "TSV", dtFormat = "yyyy/MM/dd :HH:mm:ss:", dtField = Option("dtg")),
+        format = Option("TSV"), dtFormat = "yyyy/MM/dd :HH:mm:ss:", dtField = Option("dtg")),
         createConnectionMap)
       val testString = "0000\tgeomesa user\t823543\tGeoMesa rules!\t2014/08/13 :06:06:06:\tPoint(-78.4 38.0)"
       val f = ingest.lineToFeature(testString)
@@ -142,7 +141,7 @@ class SVIngestTest extends Specification{
 
     "properly create an Interator[Try[AvroSimpleFeature]] from a valid TSV" in {
       val path = Tools.getClass.getResource("/test_valid.tsv")
-      val ingest = new SVIngest(csvConfig.copy(format = "TSV"), createConnectionMap)
+      val ingest = new SVIngest(csvConfig.copy(format = Option("TSV")), createConnectionMap)
       val lines = Source.fromFile(path.getFile).getLines
       val featureIterator = ingest.linesToFeatures(lines)
 
@@ -178,7 +177,7 @@ class SVIngestTest extends Specification{
 
     "properly create an Interator[Try[AvroSimpleFeature]] from a valid TSV with WKT geometries" in {
       val path = Tools.getClass.getResource("/test_valid_wkt.tsv")
-      val ingest = new SVIngest(csvWktConfig.copy(format = "TSV"), createConnectionMap)
+      val ingest = new SVIngest(csvWktConfig.copy(format = Option("TSV")), createConnectionMap)
       val lines = Source.fromFile(path.getFile).getLines
       val featureIterator = ingest.linesToFeatures(lines)
 
