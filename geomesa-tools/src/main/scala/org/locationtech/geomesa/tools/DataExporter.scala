@@ -73,11 +73,17 @@ class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
     val attributeTypes = idAttributeArray ++ attributesArray
     val attributes = attributeTypes.map(_.split(":")(0))
 
-    val outputPath = File.createTempFile(
-      s"${load.table}_${load.name}_${DateTime.now()}_",
-      s".${load.format}",
-      new File(s"${System.getProperty("user.dir")}")
-    )
+    var outputPath: File = null
+    do {
+      //check for overridden/user-given output path first
+      if (load.fileOutputPath != null) {
+        outputPath = load.fileOutputPath
+      } else {
+        //if not found, make own output path
+        if (outputPath != null) { Thread.sleep(1) }
+        outputPath = new File(s"${System.getProperty("user.dir")}/${load.table}_${load.name}_${DateTime.now()}.${load.format}")
+      }
+    } while (outputPath.exists)
 
     val fr = if (load.toStdOut) { new PrintWriter(System.out) } else { new PrintWriter(new FileWriter(outputPath)) }
 
@@ -189,4 +195,5 @@ case class LoadAttributes(name: String,
                           dateAttribute: Option[String],
                           query: String,
                           format: String = "tsv",
-                          toStdOut: Boolean = false)
+                          toStdOut: Boolean = false,
+                          fileOutputPath: File = null)

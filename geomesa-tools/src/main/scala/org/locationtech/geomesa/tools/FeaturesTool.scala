@@ -97,9 +97,11 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
 
   def exportFeatures() {
     val sftCollection = getFeatureCollection
-    val filePrefix = s"${config.catalog}_${config.featureName}_${DateTime.now()}_"
-    val fileSuffix = s".${config.format}"
-    val fileDir = new File(s"${System.getProperty("user.dir")}")
+    var outputPath: File = null
+    do {
+      if (outputPath != null) { Thread.sleep(1) }
+      outputPath = new File(s"${System.getProperty("user.dir")}/${config.catalog}_${config.featureName}_${DateTime.now()}.${config.format}")
+    } while (outputPath.exists)
     config.format.toLowerCase match {
       case "csv" | "tsv" =>
         val loadAttributes = new LoadAttributes(config.featureName,
@@ -111,7 +113,8 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
                                                 config.dtField,
                                                 config.query,
                                                 config.format,
-                                                config.toStdOut)
+                                                config.toStdOut,
+                                                outputPath)
         val de = new DataExporter(loadAttributes, Map(
           "instanceId" -> instanceName,
           "zookeepers" -> zookeepers,
@@ -120,18 +123,15 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
           "tableName"  -> config.catalog))
         de.writeFeatures(sftCollection.features())
       case "shp" =>
-        val outputPath = File.createTempFile(filePrefix, fileSuffix, fileDir)
         val shapeFileExporter = new ShapefileExport
         shapeFileExporter.write(outputPath, config.featureName, sftCollection, ds.getSchema(config.featureName))
         if (!config.toStdOut) { logger.info(s"Successfully wrote features to '${outputPath.toString}'") }
       case "geojson" =>
-        val outputPath = File.createTempFile(filePrefix, fileSuffix, fileDir)
         val os = new FileOutputStream(outputPath)
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
         if (!config.toStdOut) { logger.info(s"Successfully wrote features to '${outputPath.toString}'") }
       case "gml" =>
-        val outputPath = File.createTempFile(filePrefix, fileSuffix, fileDir)
         val os = new FileOutputStream(outputPath)
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
