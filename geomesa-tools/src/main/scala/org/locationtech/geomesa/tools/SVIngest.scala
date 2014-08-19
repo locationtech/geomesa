@@ -44,7 +44,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
 
   lazy val idFields         = config.idFields.orNull
   lazy val path             = config.file
-  lazy val featureName      = config.featureName
+  lazy val featureName      = config.featureName.get
   lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
   lazy val dtgField         = config.dtField.get
   lazy val dtgFmt           = config.dtFormat
@@ -63,7 +63,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     case _    => 0
   }
 
-  lazy val delim = config.format.toUpperCase match {
+  lazy val delim = config.format.get.toUpperCase match {
     case "TSV" => '\t'
     case "CSV" => ','
   }

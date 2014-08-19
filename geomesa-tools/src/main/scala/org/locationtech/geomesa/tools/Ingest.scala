@@ -20,7 +20,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 class Ingest() extends Logging with AccumuloProperties {
 
-  def getAccumuloDataStoreConf(config: IngestArguments, password: String) = collection.mutable.Map (
+  def getAccumuloDataStoreConf(config: IngestArguments, password: String) = Map (
     "instanceId"        ->  instanceName,
     "zookeepers"        ->  zookeepers,
     "user"              ->  config.username,
@@ -40,22 +40,30 @@ class Ingest() extends Logging with AccumuloProperties {
     if (config.maxShards.isEmpty && config.indexSchemaFormat.isDefined) {
       dsConfig.updated("indexSchemaFormat", config.indexSchemaFormat.get)
     }
-    config.format.toUpperCase match {
-      case "CSV" | "TSV" =>
-        config.method.toLowerCase match {
-          case "local" =>
-            logger.info("Ingest has started, please wait.")
-            val ingest = new SVIngest(config, dsConfig.toMap)
-            ingest.runIngest()
-            true
-          case _ =>
-            logger.error("Error, no such ingest method for CSV or TSV found, no data ingested")
-            false
-        }
+    if (config.format.isDefined) {
+      config.format.get.toUpperCase match {
+        case "CSV" | "TSV" =>
+          config.method.toLowerCase match {
+            case "local" =>
+              logger.info("Ingest has started, please wait.")
+              val ingest = new SVIngest(config, dsConfig.toMap)
+              ingest.runIngest()
+              true
+            case _ =>
+              logger.error("Error, no such ingest method for CSV or TSV found, no data ingested")
+              false
+          }
 
-      case _ =>
-        logger.error(s"Error, format: \'${config.format}\' not supported. Supported formats include: CSV, TSV")
-        false
+        case _ =>
+          // check if the file is a shapefile
+          logger.error(s"Error, format: \'${config.format}\' not supported. Supported formats include: CSV, TSV")
+          false
+
+      }
+    } else if (config.file.endsWith(".shp")) {
+      ShpIngest.doIngest(config, dsConfig)
+    } else {
+      false
     }
   }
 }
@@ -65,9 +73,9 @@ object Ingest extends App with Logging with GetPassword {
     head("GeoMesa Tools Ingest", "1.0")
     note("A single format flag must be set, eg: either --csv or --tsv")
     opt[Unit]("csv") action { (_, c) =>
-      c.copy(format = "CSV") } text "partially optional csv format flag" optional()
+      c.copy(format = Option("CSV")) } text "partially optional csv format flag" optional()
     opt[Unit]("tsv") action { (_, c) =>
-      c.copy(format = "TSV") } text "partially optional tsv format flag" optional()
+      c.copy(format = Option("TSV")) } text "partially optional tsv format flag" optional()
     opt[String]('u', "username") action { (x, c) =>
       c.copy(username = x) } text "Accumulo username" required()
     opt[String]('p', "password") action { (x, c) =>
@@ -83,14 +91,14 @@ object Ingest extends App with Logging with GetPassword {
     opt[Int]("shards") action { (i, c) =>
       c.copy(maxShards = Option(i)) } text "Accumulo number of shards to use (optional)" optional()
     opt[String]('f', "feature-name").action { (s, c) =>
-      c.copy(featureName = s) } text "the name of the feature" required()
+      c.copy(featureName = Option(s)) } text "the name of the feature" required()
     opt[String]('s', "sftspec").action { (s, c) =>
       c.copy(spec = s) } text "the sft specification of the file," +
-      " must match number of columns and order of ingest file if csv or tsv formatted" required()
+      " must match number of columns and order of ingest file if csv or tsv formatted" optional()
     opt[String]("datetime").action { (s, c) =>
-      c.copy(dtField = Option(s)) } text "the name of the datetime field in the sft" required()
+      c.copy(dtField = Option(s)) } text "the name of the datetime field in the sft" optional()
     opt[String]("dtformat").action { (s, c) =>
-      c.copy(dtFormat = s) } text "the format of the datetime field" required()
+      c.copy(dtFormat = s) } text "the format of the datetime field" optional()
     opt[String]("idfields").action { (s, c) =>
       c.copy(idFields = Option(s)) } text "the set of attributes of each feature used" +
       " to encode the feature name" optional()
@@ -105,14 +113,13 @@ object Ingest extends App with Logging with GetPassword {
     opt[String]("file").action { (s, c) =>
       c.copy(file = s) } text "the file to be ingested" required()
     help("help").text("show help command")
-    checkConfig{ c =>
-      if (c.format.isEmpty) {
-        failure("No format set for ingest, user must use one of the following flags for first argument: --csv, --tsv")
-      } else if (c.maxShards.isDefined && c.indexSchemaFormat.isDefined) {
+    checkConfig { c =>
+      if (c.maxShards.isDefined && c.indexSchemaFormat.isDefined) {
         failure("Error: the options for setting the max shards and the index schema format cannot both be set")
       } else {
         success
-      } }
+      }
+    }
   }
 
   try {
