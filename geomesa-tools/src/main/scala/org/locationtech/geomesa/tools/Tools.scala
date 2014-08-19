@@ -245,7 +245,8 @@ object Tools extends App with Logging with GetPassword {
         case "explain" =>
           ft.explainQuery()
         case "delete" =>
-          logger.info(s"Deleting '${config.catalog}_${config.featureName}'. This may be a good time to grab a coffee, as this will take a few moments...")
+          logger.info(s"Deleting '${config.catalog}_${config.featureName}'. This will take longer " +
+            "than other commands to complete. Just a few moments...")
           if (ft.deleteFeature()) {
             logger.info(s"Feature '${config.catalog}_${config.featureName}' successfully deleted.")
           } else {
