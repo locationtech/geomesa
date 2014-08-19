@@ -492,6 +492,11 @@
                 <artifactId>spark-core_2.10</artifactId>
                 <version>1.0.1</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>3.3</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
