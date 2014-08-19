@@ -87,6 +87,12 @@ class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
 
     val fr = if (load.toStdOut) { new PrintWriter(System.out) } else { new PrintWriter(new FileWriter(outputPath)) }
 
+    load.format.toLowerCase match {
+      case "tsv" =>
+        fr.println(attributeTypes.mkString("\t"))
+      case "csv" =>
+        fr.println(attributeTypes.mkString(","))
+    }
     var count = 0
 
     features.foreach { sf =>
