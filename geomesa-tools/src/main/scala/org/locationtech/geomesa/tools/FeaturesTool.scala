@@ -85,9 +85,9 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
     }
   }
 
-  def createFeatureType(sftName: String, sftString: String, defaultDate: String = null): Boolean = {
+  def createFeatureType(sftName: String, sftString: String, dtField: String = null): Boolean = {
     val sft = SimpleFeatureTypes.createType(sftName, sftString)
-    if (defaultDate != null) { sft.getUserData.put(SF_PROPERTY_START_TIME, defaultDate) }
+    if (dtField != null) { sft.getUserData.put(SF_PROPERTY_START_TIME, dtField) }
     ds.createSchema(sft)
     ds.getSchema(sftName) != null
   }
