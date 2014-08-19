@@ -30,7 +30,7 @@ import scala.collection.JavaConversions._
 class RecordIdxStrategy extends Strategy {
 
   override def execute(acc: AccumuloConnectorCreator,
-                       iqp: IndexQueryPlanner,
+                       iqp: QueryPlanner,
                        featureType: SimpleFeatureType,
                        query: Query,
                        filterVisitor: FilterToAccumulo,

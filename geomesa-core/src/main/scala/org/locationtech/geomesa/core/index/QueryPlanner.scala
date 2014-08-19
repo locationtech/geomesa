@@ -27,11 +27,13 @@ import org.joda.time.Interval
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.QueryHints._
+import org.locationtech.geomesa.core.iterators.{DensityIterator, DeDuplicatingIterator}
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-object IndexQueryPlanner {
+object QueryPlanner {
   val iteratorPriority_RowRegex                        = 0
   val iteratorPriority_AttributeIndexFilteringIterator = 10
   val iteratorPriority_ColFRegex                       = 100
@@ -40,11 +42,9 @@ object IndexQueryPlanner {
   val iteratorPriority_AnalysisIterator                = 400
 }
 
-case class IndexQueryPlanner(keyPlanner: KeyPlanner,
-                             cfPlanner: ColumnFamilyPlanner,
-                             schema: String,
-                             featureType: SimpleFeatureType,
-                             featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
+case class QueryPlanner(schema: String,
+                        featureType: SimpleFeatureType,
+                        featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
   def buildFilter(geom: Geometry, interval: Interval): KeyPlanningFilter =
     (IndexSchema.somewhere(geom), IndexSchema.somewhen(interval)) match {
       case (None, None)       =>    AcceptEverythingFilter
@@ -135,4 +135,46 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     output(s"Strategy: $strategy")
     strategy.execute(acc, this, sft, derivedQuery, filterVisitor, output)
   }
+
+  def query(query: Query, acc: AccumuloConnectorCreator): CloseableIterator[SimpleFeature] = {
+    // Perform the query
+    logger.trace(s"Running ${query.toString}")
+
+    val accumuloIterator = getIterator(acc, featureType, query)
+
+    // Convert Accumulo results to SimpleFeatures
+    adaptIterator(accumuloIterator, query)
+  }
+
+  // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
+  def adaptIterator(accumuloIterator: CloseableIterator[Entry[Key,Value]], query: Query): CloseableIterator[SimpleFeature] = {
+    val returnSFT = getReturnSFT(query)
+
+    // the final iterator may need duplicates removed
+    val uniqKVIter: CloseableIterator[Entry[Key,Value]] =
+      if (IndexSchema.mayContainDuplicates(featureType))
+        new DeDuplicatingIterator(accumuloIterator, (key: Key, value: Value) => featureEncoder.extractFeatureId(value))
+      else accumuloIterator
+
+    // Decode according to the SFT return type.
+    // if this is a density query, expand the map
+    if (query.getHints.containsKey(DENSITY_KEY)) {
+      uniqKVIter.flatMap { kv: Entry[Key, Value] =>
+        DensityIterator.expandFeature(featureEncoder.decode(returnSFT, kv.getValue))
+      }
+    } else {
+      uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue)}
+    }
+  }
+
+  // This function calculates the SimpleFeatureType of the returned SFs.
+  private def getReturnSFT(query: Query): SimpleFeatureType =
+    query match {
+      case _: Query if query.getHints.containsKey(DENSITY_KEY)  =>
+        SimpleFeatureTypes.createType(featureType.getTypeName, DensityIterator.DENSITY_FEATURE_STRING)
+      case _: Query if query.getHints.get(TRANSFORM_SCHEMA) != null =>
+        query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
+      case _ => featureType
+    }
 }
+

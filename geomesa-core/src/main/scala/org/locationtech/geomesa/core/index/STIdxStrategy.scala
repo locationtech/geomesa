@@ -33,7 +33,7 @@ import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
 import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
-import org.locationtech.geomesa.core.index.IndexQueryPlanner._
+import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -44,7 +44,7 @@ import org.opengis.filter.spatial.{BinarySpatialOperator, BBOX}
 class STIdxStrategy extends Strategy with Logging {
 
   def execute(acc: AccumuloConnectorCreator,
-              iqp: IndexQueryPlanner,
+              iqp: QueryPlanner,
               featureType: SimpleFeatureType,
               query: Query,
               filterVisitor: FilterToAccumulo,
@@ -59,13 +59,13 @@ class STIdxStrategy extends Strategy with Logging {
 
   def buildSTIdxQueryPlan(query: Query,
                           filterVisitor: FilterToAccumulo,
-                          iqp: IndexQueryPlanner,
+                          iqp: QueryPlanner,
                           featureType: SimpleFeatureType,
                           output: ExplainerOutputType) = {
     val schema         = iqp.schema
     val featureEncoder = iqp.featureEncoder
-    val keyPlanner     = iqp.keyPlanner
-    val cfPlanner      = iqp.cfPlanner
+    val keyPlanner     = IndexSchema.buildKeyPlanner(iqp.schema)
+    val cfPlanner      = IndexSchema.buildColumnFamilyPlanner(iqp.schema)
 
     output(s"Scanning ST index table for feature type ${featureType.getTypeName}")
 

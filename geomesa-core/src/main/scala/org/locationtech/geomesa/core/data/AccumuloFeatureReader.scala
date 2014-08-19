@@ -32,6 +32,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   private var hitsSeen = 0
 
   private val indexSchema = IndexSchema(indexSchemaFmt, sft, featureEncoder)
+  private val queryPlanner = indexSchema.planner
 
   def explainQuery(q: Query = query) {
     val (_, explainTime) = profile {
@@ -41,7 +42,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   }
 
   private lazy val (iter, planningTime) = profile {
-    indexSchema.query(query, dataStore)
+    queryPlanner.query(query, dataStore)
   }
 
   override def getFeatureType = sft
