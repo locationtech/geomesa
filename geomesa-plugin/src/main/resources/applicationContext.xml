@@ -106,15 +106,4 @@
     <property name="order" value="200"/>
   </bean>
 
-  <!-- link for the geomesa action page -->
-  <bean id="geoMesaActionPageLink" class="org.geoserver.web.MenuPageInfo">
-    <property name="id" value="geoMesaActionPage"/>
-    <property name="titleKey" value="GeoMesaActionPage.link.title"/>
-    <property name="descriptionKey" value="GeoMesaActionPage.link.description"/>
-    <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.GeoMesaActionPage"/>
-    <!--<property name="icon" value="img/icons/silk/server.png"/>-->
-    <property name="category" ref="geoMesaCategory"/>
-    <property name="order" value="400"/>
-  </bean>
-
 </beans>
