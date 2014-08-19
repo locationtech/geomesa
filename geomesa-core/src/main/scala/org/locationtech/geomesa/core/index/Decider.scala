@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.core.index
 
 import org.geotools.data.Query
@@ -12,19 +28,15 @@ object Decider {
 
   def chooseStrategy(acc: AccumuloConnectorCreator,
                      sft: SimpleFeatureType,
-                     query: Query //filter: Filter, ///derivedQuery: Query,
-                     //isDensity: Boolean,
-                     /*output: ExplainerOutputType*/): Strategy = {
+                     query: Query): Strategy = {
 
 
     if(acc.catalogTableFormat(sft)) {
       chooseNewStrategy(sft, query)
     } else {
       // datastore doesn't support attr index use spatiotemporal only
-      new StIdxStrategy
+      new STIdxStrategy
     }
-
-    //new StIdxStrategy
   }
 
   def chooseNewStrategy(sft: SimpleFeatureType, query: Query): Strategy = {
@@ -35,23 +47,23 @@ object Decider {
 
     filter match {
       case isEqualTo: PropertyIsEqualTo if !isDensity && attrIdxQueryEligible(isEqualTo, sft) =>
-        new AttributeEqualsIdxStrategy // attrIdxEqualToQuery(acc, derivedQuery, isEqualTo, filterVisitor, output)
+        new AttributeEqualsIdxStrategy
 
       case like: PropertyIsLike if !isDensity =>
         if (attrIdxQueryEligible(like, sft) && likeEligible(like))
-          new AttributeLikeIdxStrategy // attrIdxLikeQuery(acc, derivedQuery, like, filterVisitor, output)
+          new AttributeLikeIdxStrategy
         else
-          new StIdxStrategy
+          new STIdxStrategy
 
       case idFilter: Id =>
-        new RecordIdxStrategy // recordIdFilter(acc, idFilter, output)
+        new RecordIdxStrategy
 
       case cql =>
-        new StIdxStrategy
+        new STIdxStrategy
     }
   }
 
-  // TODO try to use wildcard values from the Filter itself
+  // TODO try to use wildcard values from the Filter itself (https://geomesa.atlassian.net/browse/GEOMESA-309)
   // Currently pulling the wildcard values from the filter
   // leads to inconsistent results...so use % as wildcard
   val MULTICHAR_WILDCARD = "%"
