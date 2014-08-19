@@ -300,25 +300,3 @@ object Tools extends App with Logging with GetPassword {
       )
   }
 }
-/*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
-case class ScoptArguments(username: String = null,
-                          password: String = null,
-                          mode: String = null,
-                          spec: String = null,
-                          idFields: Option[String] = None,
-                          dtField: Option[String] = None,
-                          method: String = "local",
-                          featureName: String = null,
-                          format: String = null,
-                          toStdOut: Boolean = false,
-                          catalog: String = null,
-                          maxFeatures: Int = -1,
-                          filterString: String = null,
-                          attributes: String = null,
-                          lonAttribute: Option[String] = None,
-                          latAttribute: Option[String] = None,
-                          query: String = null,
-                          skipHeader: Boolean = false,
-                          param: String = null,
-                          newValue: String = null,
-                          suffix: String = null)
