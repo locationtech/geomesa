@@ -17,7 +17,7 @@ package org.locationtech.geomesa.tools
 
 import com.typesafe.scalalogging.slf4j.Logging
 
-object Tools extends App with Logging {
+object Tools extends App with Logging with GetPassword {
   val parser = new scopt.OptionParser[ScoptArguments]("geomesa-tools") {
     def catalogOpt = opt[String]('c', "catalog").action { (s, c) =>
       c.copy(catalog = s) } required() hidden()
@@ -104,66 +104,6 @@ object Tools extends App with Logging {
         c.copy(defaultDate = s) } optional() hidden()
       )
 
-    def ingest = cmd("ingest") text "Ingest a file into GeoMesa" action { (x, c) => c.copy(mode = "ingest") }  children(
-      cmd("csv") action { (_, c) => c.copy(format = "csv") } text "Ingest a csv file" children(
-        userOpt,
-        passOpt,
-        catalogOpt,
-        featureOpt,
-        specOpt,
-        opt[String]("datetime").action { (s, c) =>
-          c.copy(dtField = Option(s))
-        } required(),
-        opt[String]("dtformat").action { (s, c) =>
-          c.copy(dtFormat = s)
-        } required(),
-        opt[Boolean]("skip-header").action { (b, c) =>
-          c.copy(skipHeader = b)
-        } optional(),
-        opt[String]("idfields").action { (s, c) =>
-          c.copy(idFields = Option(s))
-        } optional(),
-        opt[String]("lon").action { (s, c) =>
-          c.copy(lonAttribute = Option(s))
-        } optional(),
-        opt[String]("lat").action { (s, c) =>
-          c.copy(latAttribute = Option(s))
-        } optional(),
-        opt[String]("file").action { (s, c) =>
-          c.copy(file = s)
-        } required()
-        ),
-
-      cmd("tsv") action { (_, c) => c.copy(format = "tsv") } text "Ingest a tsv file" children(
-        userOpt,
-        passOpt,
-        catalogOpt,
-        featureOpt,
-        specOpt,
-        opt[String]("datetime").action { (s, c) =>
-          c.copy(dtField = Option(s))
-        } required(),
-        opt[String]("dtformat").action { (s, c) =>
-          c.copy(dtFormat = s)
-        } required(),
-        opt[Boolean]("skip-header").action { (b, c) =>
-          c.copy(skipHeader = b)
-        } optional(),
-        opt[String]("idfields").action { (s, c) =>
-          c.copy(idFields = Option(s))
-        } optional(),
-        opt[String]("lon").action { (s, c) =>
-          c.copy(lonAttribute = Option(s))
-        } optional(),
-        opt[String]("lat").action { (s, c) =>
-          c.copy(latAttribute = Option(s))
-        } optional(),
-        opt[String]("file").action { (s, c) =>
-          c.copy(file = s)
-        } required()
-        )
-      )
-
     head("GeoMesa Tools", "1.0")
     help("help").text("show help command")
     create
@@ -171,7 +111,6 @@ object Tools extends App with Logging {
     describe
     explain
     export
-    ingest
     list
   }
 
@@ -258,42 +197,6 @@ object Tools extends App with Logging {
       //        "\t\tlongitude attribute to query on\n" +
       //        "\t--dateAttribute : optional\n" +
       //        "\t\tdate attribute to query on"
-    } else if (args.contains("ingest")) {
-      "\tIngest a feature into GeoMesa\n" +
-        "\tCommands:\n"+
-        "\tcsv : Ingest a csv file\n"+
-        "\ttsv : Ingest a csv file\n"+
-        "\tFlags:\n"+
-        "\t-u, --username : required\n" +
-        "\t\tthe Accumulo username\n" +
-        "\t-p, --password : optional\n" +
-        "\t\tthe Accumulo password. This can also be provided after entering a command.\n" +
-        "\t--format : required\n" +
-        "\t\tthe format of the file, it must be csv or tsv\n" +
-        "\t-c, --catalog : required\n" +
-        "\t\tthe name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data\n" +
-        "\t-f, --feature-name : required\n" +
-        "\t\tthe name of the feature to export\n" +
-        "\t-s, --spec : required\n" +
-        "\t\tthe sft specification for the file\n" +
-        "\t--datetime : required\n" +
-        "\t\tthe name of the datetime field in the sft\n" +
-        "\t--dtformat : required\n" +
-        "\t\tthe format of the datetime field\n" +
-        "\t--skip-header : optional\n" +
-        "\t\tspecify if to skip the header or not (false includes the header)\n\n" +
-        "\t--file : required\n" +
-        "\t\tthe file you wish to ingest, e.g.: ~/capelookout.csv\n" +
-        "\tThe following named parameters are optional for cases when ingesting csv/tsv files\n" +
-        "\t\tcontaining explicit latitude and longitude columns, which will be constructed into point data.\n" +
-        "\t\tspecify if to skip the header or not (false includes the header)\n"+
-        "\t--idfields : optional\n"+
-        "\t\tthe comma separated list of id fields used to generate the feature ids. \n" +
-        "\t\tif empty it is assumed that the id will be generated via a hash on the attributes of that line\n"+
-        "\t--lon : optional\n"+
-        "\t\tthe name of the longitude field\n"+
-        "\t--lat : optional\n"+
-        "\t\tthe name of the latitude field\n"
     } else if (args.contains("list")) {
       "\tList the features in the specified Catalog Table\n" +
         "\t-u, --username : required\n" +
@@ -327,14 +230,8 @@ object Tools extends App with Logging {
     printHelp()
   } else {
     parser.parse(args, ScoptArguments()).map(config => {
-      val password = if (config.password == null) {
-        val standardIn = System.console()
-        print("Password> ")
-        standardIn.readPassword().mkString
-      } else {
-        config.password
-      }
-      val ft: FeaturesTool = new FeaturesTool(config, password)
+      val pw = password(config.password)
+      val ft: FeaturesTool = new FeaturesTool(config, pw)
       config.mode match {
         case "export" =>
           if (!config.toStdOut) { logger.info(s"Exporting '${config.catalog}_${config.featureName}'. Just a few moments...") }
@@ -363,12 +260,6 @@ object Tools extends App with Logging {
             logger.error(s"There was an error creating feature '${config.catalog}_${config.featureName}' with spec '${config.spec}'." +
               " Please check that all arguments are correct in the previous command.")
           }
-        case "ingest" =>
-          val ingest = new Ingest()
-          ingest.defineIngestJob(config, password) match {
-            case true => logger.info(s"Successful ingest of file: \'${config.file}\'")
-            case false => logger.error(s"Error: could not successfully ingest file: \'${config.file}\'")
-          }
       }
     }
     ).getOrElse(
@@ -377,28 +268,6 @@ object Tools extends App with Logging {
   }
 }
 
-/*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
-case class ScoptArguments(username: String = null,
-                          password: String = null,
-                          mode: String = null,
-                          spec: String = null,
-                          idFields: Option[String] = None,
-                          dtField: Option[String] = None,
-                          dtFormat: String = null,
-                          method: String = "local",
-                          file: String = null,
-                          featureName: String = null,
-                          format: String = null,
-                          toStdOut:Boolean = false,
-                          catalog: String = null,
-                          maxFeatures: Int = -1,
-                          defaultDate: String = null,
-                          filterString: String = null,
-                          attributes: String = null,
-                          lonAttribute: Option[String] = None,
-                          latAttribute: Option[String] = None,
-                          query: String = null,
-                          skipHeader: Boolean = false)
 
 
 

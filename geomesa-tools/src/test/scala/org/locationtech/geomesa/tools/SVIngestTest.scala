@@ -30,12 +30,12 @@ class SVIngestTest extends Specification{
 
   sequential
   var id = 0
-  var csvConfig = new ScoptArguments(spec = "id:Double,time:Date,lon:Double,lat:Double,*geom:Point:srid=4326",
+  var csvConfig = new IngestArguments(spec = "id:Double,time:Date,lon:Double,lat:Double,*geom:Point:srid=4326",
     idFields = None, dtField = Option("time"), lonAttribute = Option("lon"), latAttribute = Option("lat"),
     dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = "test_type",
     method = "local", file = "none", format = "CSV")
 
-  var csvWktConfig = new ScoptArguments(spec = "id:Double,time:Date,*geom:Geometry", idFields = None,
+  var csvWktConfig = new IngestArguments(spec = "id:Double,time:Date,*geom:Geometry", idFields = None,
     dtField = Option("time"), dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = "test_type",
     method = "local", file = "none", format = "CSV")
 
@@ -49,7 +49,6 @@ class SVIngestTest extends Specification{
       "user"            -> "myuser",
       "password"        -> "mypassword",
       "tableName"       -> currentCatalog,
-      "featureEncoding" -> "avro",
       "useMock"         -> "true")
   }
 
