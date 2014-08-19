@@ -17,11 +17,7 @@
 package org.locationtech.geomesa.tools
 
 import java.io.FileOutputStream
-import java.util.UUID
-
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.ZooKeeperInstance
-import org.apache.hadoop.fs.Path
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.cql2.CQL
@@ -29,27 +25,11 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
 import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-
 import scala.collection.JavaConversions._
 import scala.util.Try
-import scala.xml.XML
 
-class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
-  val accumuloConf = XML.loadFile(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
-  val zookeepers = (accumuloConf \\ "property")
-    .filter(x => (x \ "name")
-    .text == "instance.zookeeper.host")
-    .map(y => (y \ "value").text)
-    .head
-  val instanceDfsDir = Try((accumuloConf \\ "property")
-    .filter(x => (x \ "name")
-    .text == "instance.dfs.dir")
-    .map(y => (y \ "value").text)
-    .head)
-    .getOrElse("/accumulo")
-  val instanceIdDir = new Path(instanceDfsDir, "instance_id")
-  val instanceIdStr = ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)
-  val instanceName = new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepers).getInstanceName
+class FeaturesTool(config: ScoptArguments, password: String) extends Logging with AccumuloProperties {
+
   val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
       "instanceId" -> instanceName,
