@@ -70,7 +70,7 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
     } else {
       s"${ds.getTypeNames.size} features exist on '${config.catalog}'. They are: "
     }
-    logger.info(s"$featureCount")
+    if (!config.toStdOut) { logger.info(s"$featureCount") }
     ds.getTypeNames.foreach(name =>
       logger.info(s"$name")
     )
@@ -82,16 +82,19 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
       sft.getAttributeDescriptors.foreach(attr => {
         val defaultValue = attr.getDefaultValue
         val attrType = attr.getType.getBinding.getSimpleName
-        var attrString = s" - ${attr.getLocalName}: $attrType "
-        if (sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, "") == attr.getLocalName) {
-          attrString = attrString.concat("(Time-index) ")
-        } else if (sft.getGeometryDescriptor == attr ) {
-          attrString = attrString.concat("(Geo-index) ")
-        } else if (attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]) {
-          attrString = attrString.concat("(Indexed) ")
-        }
-        if (defaultValue != null) {
-          attrString = attrString.concat(s"- Default Value: $defaultValue")
+        var attrString = s"${attr.getLocalName}"
+        if (!config.toStdOut) {
+          attrString = attrString.concat(s": $attrType ")
+          if (sft.getUserData.getOrElse(SF_PROPERTY_START_TIME, "") == attr.getLocalName) {
+            attrString = attrString.concat("(Time-index) ")
+          } else if (sft.getGeometryDescriptor == attr) {
+            attrString = attrString.concat("(Geo-index) ")
+          } else if (attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]) {
+            attrString = attrString.concat("(Indexed) ")
+          }
+          if (defaultValue != null) {
+            attrString = attrString.concat(s"- Default Value: $defaultValue")
+          }
         }
         logger.info(s"$attrString")
       })
@@ -112,37 +115,38 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
   def exportFeatures() {
     val sftCollection = getFeatureCollection
     val outputPath = s"${System.getProperty("user.dir")}/${config.catalog}_${config.featureName}.${config.format}"
+    val os = if (config.toStdOut) { System.out } else { new FileOutputStream(s"$outputPath") }
     config.format.toLowerCase match {
       case "csv" | "tsv" =>
         val loadAttributes = new LoadAttributes(config.featureName,
                                                 config.catalog,
                                                 config.attributes,
-                                                null,
+                                                config.idFields.orNull,
                                                 config.latAttribute,
                                                 config.lonAttribute,
                                                 config.dtField,
-                                                config.query)
+                                                config.query,
+                                                config.format,
+                                                config.toStdOut)
         val de = new DataExporter(loadAttributes, Map(
           "instanceId" -> instanceName,
           "zookeepers" -> zookeepers,
           "user"       -> config.username,
           "password"   -> password,
-          "tableName"  -> config.catalog), config.format)
+          "tableName"  -> config.catalog))
         de.writeFeatures(sftCollection.features())
       case "shp" =>
         val shapeFileExporter = new ShapefileExport
         shapeFileExporter.write(outputPath, config.featureName, sftCollection, ds.getSchema(config.featureName))
         logger.info(s"Successfully wrote features to '$outputPath'")
       case "geojson" =>
-        val os = new FileOutputStream(s"$outputPath")
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
-        logger.info(s"Successfully wrote features to '$outputPath'")
+        if (!config.toStdOut) { logger.info(s"Successfully wrote features to '$outputPath'") }
       case "gml" =>
-        val os = new FileOutputStream(s"$outputPath")
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
-        logger.info(s"Successfully wrote features to '$outputPath'")
+        if (!config.toStdOut) { logger.info(s"Successfully wrote features to '$outputPath'") }
       case _ =>
         logger.error("Unsupported export format. Supported formats are shp, geojson, csv, and gml.")
     }
@@ -185,7 +189,7 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging {
 
     if (config.maxFeatures > 0) { q.setMaxFeatures(config.maxFeatures) }
     if (config.attributes != null) { q.setPropertyNames(config.attributes.split(',')) }
-    logger.info(s"$q")
+    if (!config.toStdOut) { logger.info(s"$q") }
 
     // get the feature store used to query the GeoMesa data
     val fs = ds.getFeatureSource(config.featureName).asInstanceOf[AccumuloFeatureStore]
