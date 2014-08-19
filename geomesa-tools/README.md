@@ -1,13 +1,13 @@
 # GeoMesa Tools
 
 ## Introduction
-Geomesa Tools is a set of command line tools to add feature management functions, query planning and explanation, ingest, and export abilities from 
+GeoMesa Tools is a set of command line tools to add feature management functions, query planning and explanation, ingest, and export abilities from 
 the command line.  
 
 ## Configuration
-To begin using the command line tools, first build the full Geomesa project with `mvn clean install`. This will build the project and geomesa-tools JAR file.  
+To begin using the command line tools, first build the full GeoMesa project with `mvn clean install`. This will build the project and geomesa-tools JAR file.  
  
-Geomesa Tools relies on a GEOMESA_HOME environment variable. In your `~/.bashrc`, add:
+GeoMesa Tools relies on a GEOMESA_HOME environment variable. In your `~/.bashrc`, add:
 
     export GEOMESA_HOME=/path/to/geomesa/source/directory
     export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
@@ -18,23 +18,23 @@ Don't forget to source `~/.bashrc`. Also make sure that $ACCUMULO_HOME and $HADO
 
 Make sure to include the `. ` prefix to the command, as this sources your new environment variables.  
 
-Now, you should be able to use Geomesa from any directory on your computer. To test, `cd` to a different directory and run:
+Now, you should be able to use GeoMesa from any directory on your computer. To test, `cd` to a different directory and run:
 
     geomesa
 
 This should print out the following usage text: 
 
-    Geomesa Tools 1.0
+    GeoMesa Tools 1.0
     Required for each command:
             -u, --username: the Accumulo username : required
     Optional parameters:
             -p, --password: the Accumulo password. This can also be provided after entering a command.
             help, -help, --help: show this help dialog or the help dialog for a specific command (e.g. geomesa create help)
     Supported commands are:
-             create: Create a feature in Geomesa
-             delete: Delete a feature from the specified Catalog Table in Geomesa
+             create: Create a feature in GeoMesa
+             delete: Delete a feature from the specified Catalog Table in GeoMesa
              describe: Describe the attributes of a specified feature
-             explain: Explain and plan a query in Geomesa
+             explain: Explain and plan a query in GeoMesa
              export: Export all or a set of features in csv, geojson, gml, or shp format
              ingest: Ingest a feature into GeoMesa
              list: List the features in the specified Catalog Table
@@ -160,9 +160,39 @@ If a invalid dtformat is given Ingest attempts to parse the date-time value usin
 ### list
 To list the features on a specified catalog table, use the `list` command.  
 #### Required flags: 
-Specify the catalog table to use with `-c` or `--catalog`
+Specify the catalog table to use with `-c` or `--catalog`.
 #### Optional flags:
 To pipe the output of the command, use `-q` or `--quiet`.
 #### Example command:
     geomesa list -u username -p password -c geomesa_catalog
+    
+### tableconf
+To list, describe, and update the configuration parameters on a specified table, use the `tableconf` command.  
+### Subcommands
+#### list
+List all table configuration parameters
+##### Required flags: 
+Specify the catalog table to use with `-c` or `--catalog`.
+Specify the feature name with `-f` or `--feature-name`.
+Specify the table suffix (attr_idx, st_idx, or records) with `-s` or `--suffix`. 
+#### describe
+Describe a single table configuration parameter.
+##### Required flags: 
+Specify the catalog table to use with `-c` or `--catalog`.
+Specify the feature name with `-f` or `--feature-name`.
+Specify the table configuration parameter with `--param`.
+Specify the table suffix (attr_idx, st_idx, or records) with `-s` or `--suffix`.
+#### update
+Update a single table configuration parameter to a new value.
+##### Required flags: 
+Specify the catalog table to use with `-c` or `--catalog`.
+Specify the feature name with `-f` or `--feature-name`.
+Specify the table configuration parameter with `--param`.
+Specify the new value for the configuration parameter with `-n` or `--new-value`.
+Specify the table suffix (attr_idx, st_idx, or records) with `-s` or `--suffix`.
+
+#### Example commands:
+    geomesa tableconf list -u username -p password -c geomesa_catalog -f twittersmall -s st_idx
+    geomesa tableconf describe -u username -p password -c geomesa_catalog -f twittersmall --param table.bloom.enabled -s attr_idx
+    geomesa tableconf update -u username -p password -c geomesa_catalog -f twittersmall --table.bloom.enabled -n true -s records
     
