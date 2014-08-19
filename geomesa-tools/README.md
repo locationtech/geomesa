@@ -24,21 +24,22 @@ Now, you should be able to use Geomesa from any directory on your computer. To t
 
 This should print out the following usage text: 
 
-    Geomesa Tools 1.0
+    GeoMesa Tools 1.0
     Required for each command:
             -u, --username: the Accumulo username : required
     Optional parameters:
             -p, --password: the Accumulo password. This can also be provided after entering a command.
             help, -help, --help: show this help dialog or the help dialog for a specific command (e.g. geomesa create help)
     Supported commands are:
-             create: Create a feature in Geomesa
-             delete: Delete a feature from the specified Catalog Table in Geomesa
+             create: Create a feature in GeoMesa
+             delete: Delete a feature from the specified Catalog Table in GeoMesa
              describe: Describe the attributes of a specified feature
-             explain: Explain and plan a query in Geomesa
+             explain: Explain and plan a query in GeoMesa
              export: Export all or a set of features in csv, geojson, gml, or shp format
              ingest: Ingest a feature into GeoMesa
              list: List the features in the specified Catalog Table
-            
+             tableconf: List, describe, and update table configuration parameters
+                
 This usage text gives a brief overview of how to use each command, and this is expanded upon below with example commands.
 The command line tools also provides help for each command by passing `--help` to any individual command.  
 
