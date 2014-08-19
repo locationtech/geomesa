@@ -36,6 +36,10 @@ if  [[ $1 = configure ]]; then
 else
     if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") ||  (-z "$HADOOP_HOME")  ]]; then
         echo "Please ensure GEOMESA_HOME, ACCUMULO_HOME, and HADOOP_HOME are set before running geomesa-tools."
+    elif [[ $1 = ingest ]] && [[ (-z "$2") || ($2 = --help)  || ($2 = -help) || ($2 = help) ]]; then
+        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Ingest --help
+    elif [[ $1 = ingest ]]; then
+        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Ingest "${@:2}"
     elif [ -n "$*" ]; then
         java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Tools $*
     else
