@@ -48,9 +48,8 @@ class IndexSchemaTest extends Specification {
     }
 
     "allow geohash in the row" in {
-      val schema = IndexSchema("%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id",
-        dummyType, featureEncoder)
-      val matched = schema.planner.keyPlanner match {
+      val s = "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id"
+      val matched = IndexSchema.buildKeyPlanner(s) match {
         case CompositePlanner(List(ConstStringPlanner("foo"), GeoHashKeyPlanner(0,1), RandomPartitionPlanner(99)),"~") => true
         case _ => false
       }
