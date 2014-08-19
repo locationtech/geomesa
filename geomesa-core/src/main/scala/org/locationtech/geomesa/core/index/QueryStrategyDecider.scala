@@ -17,14 +17,12 @@
 package org.locationtech.geomesa.core.index
 
 import org.geotools.data.Query
-import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.{Filter, Id, PropertyIsLike, PropertyIsEqualTo}
 
 object QueryStrategyDecider {
-
 
   def chooseStrategy(isCatalogTableFormat: Boolean,
                      sft: SimpleFeatureType,

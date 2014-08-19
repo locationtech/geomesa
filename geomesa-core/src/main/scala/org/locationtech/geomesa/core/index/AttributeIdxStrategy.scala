@@ -43,19 +43,20 @@ trait AttributeIdxStrategy extends Strategy with Logging {
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
    */
   def attrIdxQuery(acc: AccumuloConnectorCreator,
-                   derivedQuery: Query,
+                   query: Query,
                    iqp: IndexQueryPlanner,
                    featureType: SimpleFeatureType,
                    filterVisitor: FilterToAccumulo,
                    range: AccRange,
                    output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+    output(s"Searching the attribute table with filter ${query.getFilter}")
     val schema         = iqp.schema
     val featureEncoder = iqp.featureEncoder
 
     output(s"Scanning attribute table for feature type ${featureType.getTypeName}")
     val attrScanner = acc.createAttrIdxScanner(featureType)
 
-    val (geomFilters, otherFilters) = partitionGeom(derivedQuery.getFilter)
+    val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
     val (temporalFilters, nonSTFilters) = partitionTemporal(otherFilters)
 
     // NB: Added check to see if the nonSTFilters is empty.
@@ -67,7 +68,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     configureAttributeIndexIterator(attrScanner, featureType, ofilter, range)
 
     val recordScanner = acc.createRecordScanner(featureType)
-    val iterSetting = configureSimpleFeatureFilteringIterator(featureType, None, schema, featureEncoder, derivedQuery)
+    val iterSetting = configureSimpleFeatureFilteringIterator(featureType, None, schema, featureEncoder, query)
     recordScanner.addScanIterator(iterSetting)
 
     // function to join the attribute index scan results to the record table
@@ -104,7 +105,12 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 
 class AttributeEqualsIdxStrategy extends AttributeIdxStrategy {
 
-  override def execute(acc: AccumuloConnectorCreator, iqp: IndexQueryPlanner, featureType: SimpleFeatureType, query: Query, filterVisitor: FilterToAccumulo, output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+  override def execute(acc: AccumuloConnectorCreator,
+                       iqp: IndexQueryPlanner,
+                       featureType: SimpleFeatureType,
+                       query: Query,
+                       filterVisitor: FilterToAccumulo,
+                       output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     val filter = query.getFilter.asInstanceOf[PropertyIsEqualTo]
     val one = filter.getExpression1
     val two = filter.getExpression2
@@ -127,7 +133,12 @@ class AttributeEqualsIdxStrategy extends AttributeIdxStrategy {
 
 class AttributeLikeIdxStrategy extends AttributeIdxStrategy {
 
-  override def execute(acc: AccumuloConnectorCreator, iqp: IndexQueryPlanner, featureType: SimpleFeatureType, query: Query, filterVisitor: FilterToAccumulo, output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+  override def execute(acc: AccumuloConnectorCreator,
+                       iqp: IndexQueryPlanner,
+                       featureType: SimpleFeatureType,
+                       query: Query,
+                       filterVisitor: FilterToAccumulo,
+                       output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     val filter = query.getFilter.asInstanceOf[PropertyIsLike]
     val expr = filter.getExpression
     val prop = expr match {

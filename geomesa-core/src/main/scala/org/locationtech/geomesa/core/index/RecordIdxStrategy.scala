@@ -29,7 +29,13 @@ import scala.collection.JavaConversions._
 
 class RecordIdxStrategy extends Strategy {
 
-  override def execute(acc: AccumuloConnectorCreator, iqp: IndexQueryPlanner, featureType: SimpleFeatureType, query: Query, filterVisitor: FilterToAccumulo, output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+  override def execute(acc: AccumuloConnectorCreator,
+                       iqp: IndexQueryPlanner,
+                       featureType: SimpleFeatureType,
+                       query: Query,
+                       filterVisitor: FilterToAccumulo,
+                       output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+    output(s"Searching the record table with filter ${query.getFilter}")
     val idFilter = query.getFilter.asInstanceOf[Id]
     val recordScanner = acc.createRecordScanner(featureType)
     val ranges = idFilter.getIdentifiers.map { id =>

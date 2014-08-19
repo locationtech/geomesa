@@ -25,7 +25,6 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.IndexQueryPlanner._
-import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.iterators.{FEATURE_ENCODING, _}
 import org.locationtech.geomesa.core.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -43,14 +42,15 @@ trait Strategy {
               filterVisitor: FilterToAccumulo,
               output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]]
 
-  def configureBatchScanner(bs: BatchScanner, qp: QueryPlan): Unit = {
+  def configureBatchScanner(bs: BatchScanner, qp: QueryPlan) {
     qp.iterators.foreach { i => bs.addScanIterator(i) }
     bs.setRanges(qp.ranges)
     qp.cf.foreach { c => bs.fetchColumnFamily(c) }
   }
 
-  def configureFeatureEncoding(cfg: IteratorSetting, featureEncoder: SimpleFeatureEncoder) =
+  def configureFeatureEncoding(cfg: IteratorSetting, featureEncoder: SimpleFeatureEncoder) {
     cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
+  }
 
   def configureFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) {
     val encodedSimpleFeatureType = SimpleFeatureTypes.encodeType(featureType)
@@ -81,9 +81,6 @@ trait Strategy {
                                               schema: String,
                                               featureEncoder: SimpleFeatureEncoder,
                                               query: Query): IteratorSetting = {
-
-    val density: Boolean = query.getHints.containsKey(DENSITY_KEY)
-
     val cfg = new IteratorSetting(iteratorPriority_SimpleFeatureFilteringIterator,
       "sffilter-" + randomPrintableString(5),
       classOf[SimpleFeatureFilteringIterator])

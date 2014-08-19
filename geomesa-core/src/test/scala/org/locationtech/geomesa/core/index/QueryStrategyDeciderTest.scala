@@ -25,16 +25,20 @@ import org.specs2.runner.JUnitRunner
 
 //Expand the test - https://geomesa.atlassian.net/browse/GEOMESA-308
 @RunWith(classOf[JUnitRunner])
-class DeciderTest extends Specification {
+class QueryStrategyDeciderTest extends Specification {
 
-  val sft = SimpleFeatureTypes.createType("feature", "id:Integer:index=false,*geom:Point:srid=4326:index=true,dtg:Date,attr1:String:index=false,attr2:String:index=true")
-  sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+  val sftIndex = SimpleFeatureTypes.createType("feature", "id:Integer:index=false,*geom:Point:srid=4326:index=true,dtg:Date,attr1:String:index=false,attr2:String:index=true")
+  val sftNonIndex = SimpleFeatureTypes.createType("featureNonIndex", "id:Integer,*geom:Point:srid=4326,dtg:Date,attr1:String,attr2:String")
 
-  def getStrategy(filterString: String): Strategy = {
+  sftIndex.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+  sftNonIndex.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+
+  def getStrategy(filterString: String, isCatalogTable: Boolean = true): Strategy = {
+    val sft = if (isCatalogTable) sftIndex else sftNonIndex
     val filter = ECQL.toFilter(filterString)
     val query = new Query(sft.getTypeName)
     query.setFilter(filter)
-    QueryStrategyDecider.chooseNewStrategy(sft, query)
+    QueryStrategyDecider.chooseStrategy(isCatalogTable, sft, query)
   }
 
   "Spatio-temporal filters" should {
@@ -77,11 +81,27 @@ class DeciderTest extends Specification {
     }
   }
 
+  "Attribute filters" should {
+    "get the stidx strategy if not catalog" in {
+      val fs = "attr1 ILIKE '2nd1%'"
+
+      getStrategy(fs, isCatalogTable = false) must beAnInstanceOf[STIdxStrategy]
+    }
+  }
+
   "Id filters" should {
     "get the attribute equals strategy" in {
       val fs = "IN ('val56')"
 
       getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
+    }
+  }
+
+  "Id filters" should {
+    "get the stidx strategy if not catalog" in {
+      val fs = "IN ('val56')"
+
+      getStrategy(fs, isCatalogTable = false) must beAnInstanceOf[STIdxStrategy]
     }
   }
 

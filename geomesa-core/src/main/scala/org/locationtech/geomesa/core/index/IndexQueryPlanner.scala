@@ -129,7 +129,6 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                        isDensity: Boolean,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     val filterVisitor = new FilterToAccumulo(featureType)
-    val rewrittenFilter = filterVisitor.visit(derivedQuery)
 
     val strategy = QueryStrategyDecider.chooseStrategy(acc.catalogTableFormat(sft), sft, derivedQuery)
 

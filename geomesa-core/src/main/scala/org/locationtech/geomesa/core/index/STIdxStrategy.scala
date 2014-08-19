@@ -22,45 +22,24 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Polygon, GeometryCollection, Geometry}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Value, Key}
+import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
-import org.locationtech.geomesa.core._
-import data.{SimpleFeatureEncoder, FilterToAccumulo, AccumuloConnectorCreator}
-import index.DateFilter
-import index.DateFilter
-import index.DateRangeFilter
-import index.DateRangeFilter
-import index.KeyList
-import index.KeyList
-import index.KeyRanges
-import index.KeyRanges
-import index.KeyRegex
-import index.KeyRegex
-import index.QueryPlan
-import index.QueryPlan
-import index.SpatialDateFilter
-import index.SpatialDateFilter
-import index.SpatialDateRangeFilter
-import index.SpatialDateRangeFilter
-import index.SpatialFilter
-import index.SpatialFilter
+import org.locationtech.geomesa.core.data.{SimpleFeatureEncoder, FilterToAccumulo, AccumuloConnectorCreator}
+import org.locationtech.geomesa.core.DEFAULT_SCHEMA_NAME
+import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
+import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.IndexQueryPlanner._
 import org.locationtech.geomesa.core.index.QueryHints._
-import iterators._
 import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Literal
 import org.opengis.filter.spatial.{BinarySpatialOperator, BBOX}
-
-import scala.Some
-import org.apache.accumulo.core.iterators.user.RegExFilter
-import scala.Some
-import scala.Some
 
 class STIdxStrategy extends Strategy with Logging {
 
@@ -83,7 +62,6 @@ class STIdxStrategy extends Strategy with Logging {
                           iqp: IndexQueryPlanner,
                           featureType: SimpleFeatureType,
                           output: ExplainerOutputType) = {
-
     val schema         = iqp.schema
     val featureEncoder = iqp.featureEncoder
     val keyPlanner     = iqp.keyPlanner
@@ -91,7 +69,6 @@ class STIdxStrategy extends Strategy with Logging {
 
     output(s"Scanning ST index table for feature type ${featureType.getTypeName}")
 
-    val spatial = filterVisitor.spatialPredicate
     val temporal = filterVisitor.temporalPredicate
 
     // TODO: Select only the geometry filters which involve the indexed geometry type.
@@ -132,7 +109,7 @@ class STIdxStrategy extends Strategy with Logging {
     output(s"GeomsToCover $geomsToCover.")
 
     val ofilter = filterListAsAnd(geomFilters ++ temporalFilters)
-    if(ofilter.isEmpty) logger.warn(s"Querying Accumulo without ST filter.")
+    if (ofilter.isEmpty) logger.warn(s"Querying Accumulo without ST filter.")
 
     val oint  = IndexSchema.somewhen(interval)
 
@@ -149,22 +126,48 @@ class STIdxStrategy extends Strategy with Logging {
 
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
-    val stIdxIterCfg =
-      iteratorConfig.iterator match {
-        case IndexOnlyIterator  =>
-          val transformedSFType = transformedSimpleFeatureType(query).getOrElse(featureType)
-          configureIndexIterator(ofilter, query, schema, featureEncoder, transformedSFType)
-        case SpatioTemporalIterator =>
-          val isDensity = query.getHints.containsKey(DENSITY_KEY)
-          configureSpatioTemporalIntersectingIterator(ofilter, featureType, schema, isDensity)
-      }
+    val stiiIterCfg = getSTIIIterCfg(iteratorConfig, query, featureType, ofilter, schema, featureEncoder)
 
-    val sffiIterCfg =
-      if (iteratorConfig.useSFFI) {
-        Some(configureSimpleFeatureFilteringIterator(featureType, ecql, schema, featureEncoder, query))
-      } else None
+    val sffiIterCfg = getSFFIIterCfg(iteratorConfig, featureType, ecql, schema, featureEncoder, query)
 
-    val topIterCfg = if(query.getHints.containsKey(DENSITY_KEY)) {
+    val topIterCfg = getTopIterCfg(query, geometryToCover, schema, featureEncoder, featureType)
+
+    qp.copy(iterators = qp.iterators ++ List(Some(stiiIterCfg), sffiIterCfg, topIterCfg).flatten)
+  }
+
+  def getSTIIIterCfg(iteratorConfig: IteratorConfig,
+                     query: Query,
+                     featureType: SimpleFeatureType,
+                     ofilter: Option[Filter],
+                     schema: String,
+                     featureEncoder: SimpleFeatureEncoder): IteratorSetting = {
+    iteratorConfig.iterator match {
+      case IndexOnlyIterator =>
+        val transformedSFType = transformedSimpleFeatureType(query).getOrElse(featureType)
+        configureIndexIterator(ofilter, query, schema, featureEncoder, transformedSFType)
+      case SpatioTemporalIterator =>
+        val isDensity = query.getHints.containsKey(DENSITY_KEY)
+        configureSpatioTemporalIntersectingIterator(ofilter, featureType, schema, isDensity)
+    }
+  }
+
+  def getSFFIIterCfg(iteratorConfig: IteratorConfig,
+                     featureType: SimpleFeatureType,
+                     ecql: Option[String],
+                     schema: String,
+                     featureEncoder: SimpleFeatureEncoder,
+                     query: Query): Option[IteratorSetting] = {
+    if (iteratorConfig.useSFFI) {
+      Some(configureSimpleFeatureFilteringIterator(featureType, ecql, schema, featureEncoder, query))
+    } else None
+  }
+
+  def getTopIterCfg(query: Query,
+                    geometryToCover: Geometry,
+                    schema: String,
+                    featureEncoder: SimpleFeatureEncoder,
+                    featureType: SimpleFeatureType) = {
+    if (query.getHints.containsKey(DENSITY_KEY)) {
       val clazz = classOf[DensityIterator]
 
       val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
@@ -172,8 +175,8 @@ class STIdxStrategy extends Strategy with Logging {
         clazz)
 
       val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Int]
-      val height =  query.getHints.get(HEIGHT_KEY).asInstanceOf[Int]
-      val polygon = if(geometryToCover == null) null else geometryToCover.getEnvelope.asInstanceOf[Polygon]
+      val height = query.getHints.get(HEIGHT_KEY).asInstanceOf[Int]
+      val polygon = if (geometryToCover == null) null else geometryToCover.getEnvelope.asInstanceOf[Polygon]
 
       DensityIterator.configure(cfg, polygon, width, height)
 
@@ -183,8 +186,6 @@ class STIdxStrategy extends Strategy with Logging {
 
       Some(cfg)
     } else None
-
-    qp.copy(iterators = qp.iterators ++ List(Some(stIdxIterCfg), sffiIterCfg, topIterCfg).flatten)
   }
 
   // establishes the regular expression that defines (minimally) acceptable rows
@@ -257,7 +258,6 @@ class STIdxStrategy extends Strategy with Logging {
     case null => null
     case _    => IndexSchema.everywhen.overlap(interval)
   }
-
 
   def planQuery(filter: KeyPlanningFilter, output: ExplainerOutputType, keyPlanner: KeyPlanner, cfPlanner: ColumnFamilyPlanner): QueryPlan = {
     output(s"Planning query")
