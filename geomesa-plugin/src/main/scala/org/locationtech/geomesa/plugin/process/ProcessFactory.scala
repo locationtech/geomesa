@@ -30,5 +30,7 @@ class ProcessFactory
     classOf[DensityProcess],
     classOf[TubeSelectProcess],
     classOf[ProximitySearchProcess],
-    classOf[QueryProcess])
+    classOf[QueryProcess],
+    classOf[DBSCANProcess]
+  )
 
