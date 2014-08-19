@@ -39,9 +39,6 @@ import scala.collection.JavaConversions._
 
 trait AttributeIdxStrategy extends Strategy with Logging {
 
-  override def execute(acc: AccumuloConnectorCreator, iqp: IndexQueryPlanner, featureType: SimpleFeatureType, query: Query, filterVisitor: FilterToAccumulo, output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = ???
-
-
   /**
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
    */
@@ -102,7 +99,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
   }
 
   def formatAttrIdxRow(prop: String, lit: String) =
-    new Text(prop.getBytes(StandardCharsets.UTF_8) ++ Decider.NULLBYTE ++ lit.getBytes(StandardCharsets.UTF_8))
+    new Text(prop.getBytes(StandardCharsets.UTF_8) ++ QueryStrategyDecider.NULLBYTE ++ lit.getBytes(StandardCharsets.UTF_8))
 }
 
 class AttributeEqualsIdxStrategy extends AttributeIdxStrategy {
@@ -140,8 +137,8 @@ class AttributeLikeIdxStrategy extends AttributeIdxStrategy {
     // Remove the trailing wilcard and create a range prefix
     val literal = filter.getLiteral
     val value =
-      if(literal.endsWith(Decider.MULTICHAR_WILDCARD))
-        literal.substring(0, literal.length - Decider.MULTICHAR_WILDCARD.length)
+      if(literal.endsWith(QueryStrategyDecider.MULTICHAR_WILDCARD))
+        literal.substring(0, literal.length - QueryStrategyDecider.MULTICHAR_WILDCARD.length)
       else
         literal
 

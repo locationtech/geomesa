@@ -23,21 +23,14 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.{Filter, Id, PropertyIsLike, PropertyIsEqualTo}
 
-object Decider {
+object QueryStrategyDecider {
 
 
-  def chooseStrategy(acc: AccumuloConnectorCreator,
+  def chooseStrategy(isCatalogTableFormat: Boolean,
                      sft: SimpleFeatureType,
-                     query: Query): Strategy = {
-
-
-    if(acc.catalogTableFormat(sft)) {
-      chooseNewStrategy(sft, query)
-    } else {
-      // datastore doesn't support attr index use spatiotemporal only
-      new STIdxStrategy
-    }
-  }
+                     query: Query): Strategy =
+    // if datastore doesn't support attr index use spatiotemporal only
+    if (isCatalogTableFormat) chooseNewStrategy(sft, query) else new STIdxStrategy
 
   def chooseNewStrategy(sft: SimpleFeatureType, query: Query): Strategy = {
     // If we have attr index table try it

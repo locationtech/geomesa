@@ -34,7 +34,7 @@ class DeciderTest extends Specification {
     val filter = ECQL.toFilter(filterString)
     val query = new Query(sft.getTypeName)
     query.setFilter(filter)
-    Decider.chooseNewStrategy(sft, query)
+    QueryStrategyDecider.chooseNewStrategy(sft, query)
   }
 
   "Spatio-temporal filters" should {

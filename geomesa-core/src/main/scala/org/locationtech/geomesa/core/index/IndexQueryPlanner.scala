@@ -40,7 +40,6 @@ object IndexQueryPlanner {
   val iteratorPriority_AnalysisIterator                = 400
 }
 
-
 case class IndexQueryPlanner(keyPlanner: KeyPlanner,
                              cfPlanner: ColumnFamilyPlanner,
                              schema: String,
@@ -92,7 +91,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
         splitQueryOnOrs(query, output)
       }
 
-    queries.ciFlatMap(runQuery(acc, sft, _, isDensity, output))
+    queries.ciFlatMap(configureScanners(acc, sft, _, isDensity, output))
   }
   
   def splitQueryOnOrs(query: Query, output: ExplainerOutputType): Iterator[Query] = {
@@ -124,7 +123,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
    *
    * If the query is a density query use the spatio-temporal index table only
    */
-  private def runQuery(acc: AccumuloConnectorCreator,
+  private def configureScanners(acc: AccumuloConnectorCreator,
                        sft: SimpleFeatureType,
                        derivedQuery: Query,
                        isDensity: Boolean,
@@ -132,7 +131,7 @@ case class IndexQueryPlanner(keyPlanner: KeyPlanner,
     val filterVisitor = new FilterToAccumulo(featureType)
     val rewrittenFilter = filterVisitor.visit(derivedQuery)
 
-    val strategy = Decider.chooseStrategy(acc, sft, derivedQuery)
+    val strategy = QueryStrategyDecider.chooseStrategy(acc.catalogTableFormat(sft), sft, derivedQuery)
 
     output(s"Strategy: $strategy")
     strategy.execute(acc, this, sft, derivedQuery, filterVisitor, output)
