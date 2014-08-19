@@ -28,7 +28,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.{FilterToAccumulo, AccumuloConnectorCreator}
 import org.locationtech.geomesa.core.DEFAULT_FILTER_PROPERTY_NAME
 import org.locationtech.geomesa.core.filter._
-import org.locationtech.geomesa.core.index.IndexQueryPlanner._
+import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators.AttributeIndexFilteringIterator
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -44,7 +44,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
    */
   def attrIdxQuery(acc: AccumuloConnectorCreator,
                    query: Query,
-                   iqp: IndexQueryPlanner,
+                   iqp: QueryPlanner,
                    featureType: SimpleFeatureType,
                    filterVisitor: FilterToAccumulo,
                    range: AccRange,
@@ -106,7 +106,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 class AttributeEqualsIdxStrategy extends AttributeIdxStrategy {
 
   override def execute(acc: AccumuloConnectorCreator,
-                       iqp: IndexQueryPlanner,
+                       iqp: QueryPlanner,
                        featureType: SimpleFeatureType,
                        query: Query,
                        filterVisitor: FilterToAccumulo,
@@ -134,7 +134,7 @@ class AttributeEqualsIdxStrategy extends AttributeIdxStrategy {
 class AttributeLikeIdxStrategy extends AttributeIdxStrategy {
 
   override def execute(acc: AccumuloConnectorCreator,
-                       iqp: IndexQueryPlanner,
+                       iqp: QueryPlanner,
                        featureType: SimpleFeatureType,
                        query: Query,
                        filterVisitor: FilterToAccumulo,

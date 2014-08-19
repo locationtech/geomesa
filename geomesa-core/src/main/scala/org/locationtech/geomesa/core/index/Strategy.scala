@@ -24,7 +24,7 @@ import org.geotools.data.Query
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
-import org.locationtech.geomesa.core.index.IndexQueryPlanner._
+import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators.{FEATURE_ENCODING, _}
 import org.locationtech.geomesa.core.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -36,7 +36,7 @@ import scala.util.Random
 
 trait Strategy {
   def execute(acc: AccumuloConnectorCreator,
-              iqp: IndexQueryPlanner,
+              iqp: QueryPlanner,
               featureType: SimpleFeatureType,
               query: Query,
               filterVisitor: FilterToAccumulo,

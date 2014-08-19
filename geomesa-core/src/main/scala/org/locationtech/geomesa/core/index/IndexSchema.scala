@@ -75,7 +75,7 @@ import scala.util.parsing.combinator.RegexParsers
 
 case class IndexSchema(encoder: IndexEncoder,
                        decoder: IndexEntryDecoder,
-                       planner: IndexQueryPlanner,
+                       planner: QueryPlanner,
                        featureType: SimpleFeatureType,
                        featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
 
@@ -91,51 +91,10 @@ case class IndexSchema(encoder: IndexEncoder,
       case _ => 1  // couldn't find a matching partitioner
     }
 
-  def query(query: Query, acc: AccumuloConnectorCreator): CloseableIterator[SimpleFeature] = {
-    // Perform the query
-    logger.trace(s"Running ${query.toString}")
-
-    val accumuloIterator = planner.getIterator(acc, featureType, query)
-
-    // Convert Accumulo results to SimpleFeatures
-    adaptIterator(accumuloIterator, query)
-  }
-
   // Writes out an explanation of how a query would be run.
   def explainQuery(q: Query, output: ExplainerOutputType = log) = {
      planner.getIterator(new ExplainingConnectorCreator(output), featureType, q, output)
   }
-
-  // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
-  def adaptIterator(accumuloIterator: CloseableIterator[Entry[Key,Value]], query: Query): CloseableIterator[SimpleFeature] = {
-    val returnSFT = getReturnSFT(query)
-
-    // the final iterator may need duplicates removed
-    val uniqKVIter: CloseableIterator[Entry[Key,Value]] =
-      if (mayContainDuplicates(featureType))
-        new DeDuplicatingIterator(accumuloIterator, (key: Key, value: Value) => featureEncoder.extractFeatureId(value))
-      else accumuloIterator
-
-    // Decode according to the SFT return type.
-    // if this is a density query, expand the map
-    if (query.getHints.containsKey(DENSITY_KEY)) {
-      uniqKVIter.flatMap { kv: Entry[Key, Value] =>
-        DensityIterator.expandFeature(featureEncoder.decode(returnSFT, kv.getValue))
-      }
-    } else {
-      uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue)}
-    }
-  }
-
-  // This function calculates the SimpleFeatureType of the returned SFs.
-  private def getReturnSFT(query: Query): SimpleFeatureType =
-    query match {
-      case _: Query if query.getHints.containsKey(DENSITY_KEY)  =>
-        SimpleFeatureTypes.createType(featureType.getTypeName, DensityIterator.DENSITY_FEATURE_STRING)
-      case _: Query if query.getHints.get(TRANSFORM_SCHEMA) != null =>
-        query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
-      case _ => featureType
-    }
 }
 
 object IndexSchema extends RegexParsers {
@@ -383,7 +342,7 @@ object IndexSchema extends RegexParsers {
     val keyPlanner        = buildKeyPlanner(s)
     val cfPlanner         = buildColumnFamilyPlanner(s)
     val indexEntryDecoder = IndexEntryDecoder(geohashDecoder, dateDecoder)
-    val queryPlanner      = IndexQueryPlanner(keyPlanner, cfPlanner, s, featureType, featureEncoder)
+    val queryPlanner      = QueryPlanner(s, featureType, featureEncoder)
     IndexSchema(keyEncoder, indexEntryDecoder, queryPlanner, featureType, featureEncoder)
   }
 
