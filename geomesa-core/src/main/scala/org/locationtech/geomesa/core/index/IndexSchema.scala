@@ -17,25 +17,19 @@
 package org.locationtech.geomesa.core.index
 
 import java.nio.ByteBuffer
-import java.util.Map.Entry
 
-import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{GeometryCollection, Geometry, Point, Polygon}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.Query
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.QueryHints._
-import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.util._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
 import scala.util.parsing.combinator.RegexParsers
-
 
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)
@@ -82,7 +76,6 @@ case class IndexSchema(encoder: IndexEncoder,
   def encode(entry: SimpleFeature, visibility: String = "") = encoder.encode(entry, visibility)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
 
-  import org.locationtech.geomesa.core.index.IndexSchema._
 
   // utility method to ask for the maximum allowable shard number
   def maxShard: Int =
@@ -500,5 +493,4 @@ class IndexSchemaBuilder(separator: String) {
     schema.append(CODE_END).append(code)
     this
   }
-
 }

@@ -27,11 +27,11 @@ import org.joda.time.Interval
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.QueryHints._
+import org.locationtech.geomesa.core.iterators.{DensityIterator, DeDuplicatingIterator}
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.core.iterators.{DensityIterator, DeDuplicatingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object QueryPlanner {
   val iteratorPriority_RowRegex                        = 0
