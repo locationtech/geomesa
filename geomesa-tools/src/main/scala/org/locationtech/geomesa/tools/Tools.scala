@@ -104,66 +104,6 @@ object Tools extends App with Logging {
         c.copy(defaultDate = s) } optional() hidden()
       )
 
-    def ingest = cmd("ingest") text "Ingest a file into GeoMesa" action { (x, c) => c.copy(mode = "ingest") }  children(
-      cmd("csv") action { (_, c) => c.copy(format = "csv") } text "Ingest a csv file" children(
-        userOpt,
-        passOpt,
-        catalogOpt,
-        featureOpt,
-        specOpt,
-        opt[String]("datetime").action { (s, c) =>
-          c.copy(dtField = Option(s))
-        } required(),
-        opt[String]("dtformat").action { (s, c) =>
-          c.copy(dtFormat = s)
-        } required(),
-        opt[Boolean]("skip-header").action { (b, c) =>
-          c.copy(skipHeader = b)
-        } optional(),
-        opt[String]("idfields").action { (s, c) =>
-          c.copy(idFields = Option(s))
-        } optional(),
-        opt[String]("lon").action { (s, c) =>
-          c.copy(lonAttribute = Option(s))
-        } optional(),
-        opt[String]("lat").action { (s, c) =>
-          c.copy(latAttribute = Option(s))
-        } optional(),
-        opt[String]("file").action { (s, c) =>
-          c.copy(file = s)
-        } required()
-        ),
-
-      cmd("tsv") action { (_, c) => c.copy(format = "tsv") } text "Ingest a tsv file" children(
-        userOpt,
-        passOpt,
-        catalogOpt,
-        featureOpt,
-        specOpt,
-        opt[String]("datetime").action { (s, c) =>
-          c.copy(dtField = Option(s))
-        } required(),
-        opt[String]("dtformat").action { (s, c) =>
-          c.copy(dtFormat = s)
-        } required(),
-        opt[Boolean]("skip-header").action { (b, c) =>
-          c.copy(skipHeader = b)
-        } optional(),
-        opt[String]("idfields").action { (s, c) =>
-          c.copy(idFields = Option(s))
-        } optional(),
-        opt[String]("lon").action { (s, c) =>
-          c.copy(lonAttribute = Option(s))
-        } optional(),
-        opt[String]("lat").action { (s, c) =>
-          c.copy(latAttribute = Option(s))
-        } optional(),
-        opt[String]("file").action { (s, c) =>
-          c.copy(file = s)
-        } required()
-        )
-      )
-
     head("GeoMesa Tools", "1.0")
     help("help").text("show help command")
     create
@@ -171,7 +111,6 @@ object Tools extends App with Logging {
     describe
     explain
     export
-    ingest
     list
   }
 
@@ -362,12 +301,6 @@ object Tools extends App with Logging {
           } else {
             logger.error(s"There was an error creating feature '${config.catalog}_${config.featureName}' with spec '${config.spec}'." +
               " Please check that all arguments are correct in the previous command.")
-          }
-        case "ingest" =>
-          val ingest = new Ingest()
-          ingest.defineIngestJob(config, password) match {
-            case true => logger.info(s"Successful ingest of file: \'${config.file}\'")
-            case false => logger.error(s"Error: could not successfully ingest file: \'${config.file}\'")
           }
       }
     }
