@@ -118,7 +118,6 @@ object FilterHelper {
     }
   }
 
-  // TODO: Write a unit test.
   // NB: This method assumes that the filters represent a collection of 'and'ed temporal filters.
   def extractTemporal(filters: Seq[Filter]) = {
     def extractInterval(filter: Filter): Interval = {
