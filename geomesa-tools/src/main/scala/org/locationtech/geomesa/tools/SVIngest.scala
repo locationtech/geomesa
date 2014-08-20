@@ -18,11 +18,11 @@ package org.locationtech.geomesa.tools
 import java.net.URLDecoder
 import java.nio.charset.Charset
 
-import com.csvreader.CsvReader
 import com.google.common.hash.Hashing
+import com.twitter.scalding.{TextLine, Args, Job}
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import org.apache.commons.io.IOUtils
+import org.apache.commons.csv.{CSVFormat, CSVParser}
 import org.geotools.data.{DataStoreFinder, FeatureWriter, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
@@ -34,38 +34,64 @@ import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
-class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Logging {
+class SVIngest(args: Args) extends Job(args) with Logging {
 
   import scala.collection.JavaConversions._
 
-  lazy val idFields         = config.idFields.orNull
-  lazy val path             = config.file
-  lazy val featureName      = config.featureName.get
-  lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
-  lazy val dtgField         = config.dtField.get
-  lazy val dtgFmt           = config.dtFormat
-  lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
-  lazy val latField         = config.latAttribute.orNull
-  lazy val lonField         = config.lonAttribute.orNull
-  lazy val skipHeader       = config.skipHeader
-  lazy val doHash           = config.doHash
   var lineNumber            = 0
   var failures              = 0
   var successes             = 0
-  val maxShard: Option[Int] = config.maxShards
+
+  lazy val idFields         = args.optional("idFields").orNull
+  lazy val path             = args("file")
+  lazy val sftSpec          = URLDecoder.decode(args("sftspec"), "UTF-8")
+  lazy val dtgField         = args.optional("dtField").orNull
+  lazy val dtgFmt           = args("dtFormat")
+  lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
+  lazy val lonField         = args.optional("lonAttribute").orNull
+  lazy val latField         = args.optional("latAttribute").orNull
+  lazy val skipHeader       = args("skipHeader")
+  lazy val doHash           = args("doHash").toBoolean
+  lazy val format           = args.optional("format").orNull
+
+  //Data Store parameters
+  lazy val catalog          = args("catalog")
+  lazy val instanceId       = args("instanceId")
+  lazy val featureName      = args("featureName")
+  lazy val zookeepers       = args("zookeepers")
+  lazy val user             = args("user")
+  lazy val password         = args("password")
+  lazy val auths            = args.optional("auths").orNull
+  lazy val visibilities     = args.optional("visibilities").orNull
+  lazy val indexSchemaFmt   = args.optional("indexSchemaFmt").orNull
+  lazy val shards           = args.optional("shards").orNull
+
+  // need to work in shards, vis, isf
+  lazy val dsConfig =
+    Map(
+      "zookeepers"    -> zookeepers,
+      "instanceId"    -> instanceId,
+      "tableName"     -> catalog,
+      "featureName"   -> featureName,
+      "user"          -> user,
+      "password"      -> password,
+      "auths"         -> auths,
+      "visibilities"  -> visibilities,
+      "maxShard"      -> shards
+    )
+
+  val maxShard: Option[Int] = Some(shards.toInt)
 
   lazy val dropHeader = skipHeader match {
     case true => 1
     case _    => 0
   }
 
-  lazy val delim = config.format.get.toUpperCase match {
-    case "TSV" => '\t'
-    case "CSV" => ','
+  val delim = format.toUpperCase match {
+    case "TSV" => CSVFormat.TDF
+    case "CSV" => CSVFormat.DEFAULT
   }
 
   val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
@@ -107,31 +133,36 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
   lazy val dtBuilder = buildDtBuilder
   lazy val idBuilder = buildIDBuilder
 
-  // This class is possibly necessary for scalding (to be added later)
-  // Otherwise it can be removed with just the line val fw = ... retained
   class CloseableFeatureWriter {
     val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
     def release(): Unit = { fw.close() }
   }
 
-  def runIngest() = {
-    config.method.toLowerCase match {
-      case "local" =>
-        val cfw = new CloseableFeatureWriter
-        try {
-          performIngest(cfw, Source.fromFile(path).getLines.drop(dropHeader))
-        } catch {
-          case e: Exception => logger.error("error", e)
-        }
-        finally {
-          cfw.release()
-          ds.dispose()
+  try {
+    TextLine(path).using(new CloseableFeatureWriter)
+      .foreach('line) { (cfw: CloseableFeatureWriter, line: String) => ingestLine(cfw, line) }
+  } catch {
+    case e: Exception => logger.error("error", e)
+  }
+  finally {
+    ds.dispose()
+    val successPvsS = if (successes == 1) "feature" else "features"
+    val failurePvsS = if (failures == 1) "feature" else "features"
+    logger.info(s"For file $path - added $successes $successPvsS and failed on $failures $failurePvsS")
+  }
+
+  def ingestLine(cfw: CloseableFeatureWriter, line: String) = {
+    lineToFeature(line) match {
+      case Success(ft) =>
+        writeFeature(cfw.fw, ft)
+        // Log info to user that ingest is still working, might be in wrong spot however...
+        if ( lineNumber % 10000 == 0 ) {
           val successPvsS = if (successes == 1) "feature" else "features"
           val failurePvsS = if (failures == 1) "feature" else "features"
-          logger.info(s"For file $path - ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
+          logger.info(s"Ingest proceeding, on line number: $lineNumber," +
+            s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
         }
-      case _ =>
-        logger.error(s"Error, no such SV ingest method: ${config.method.toLowerCase}")
+      case Failure(ex) => failures +=1; logger.error(s"Could not write feature due to: ${ex.getLocalizedMessage}")
     }
   }
 
@@ -146,7 +177,8 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
           logger.info(s"Ingest proceeding, on line number: $lineNumber," +
             s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
         }
-      case Failure(ex) => failures +=1; logger.error(s"Could not write feature on line number: $lineNumber due to: ${ex.getLocalizedMessage}")
+      case Failure(ex) => failures +=1; logger.error(s"Could not write feature on line number:" +
+        s" $lineNumber due to: ${ex.getLocalizedMessage}")
     }
   }
 
@@ -158,16 +190,15 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     lineNumber += 1
     // CsvReader is being used to just split the line up. this may be refactored out when
     // scalding support is added however it may be necessary for local only ingest
-    val reader = new CsvReader(IOUtils.toInputStream(line), delim, Charset.defaultCharset())
-    val fields = try {
-      reader.readRecord() match {
-        case true => reader.getValues
-        case _ => throw new Exception(s"CsvReader could not parse line number: $lineNumber \n\t with value: $line")
-      }
-    } finally {
+    val reader = CSVParser.parse(line, delim)
+    val fields: Array[String] = try {
+      reader.iterator.toArray.flatten
+    } catch {
+      case e: Exception => throw new Exception(s"Commons CSV could not parse" +
+        s" line number: $lineNumber \n\t with value: $line")
+    }finally {
       reader.close()
     }
-
     val id = idBuilder(fields)
     builder.reset()
     builder.addAll(fields.asInstanceOf[Array[AnyRef]])
@@ -182,6 +213,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
       } catch {
         case e: Exception => throw new Exception(s"Could not form Date object from field" +
           s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
+
       }
     }
 

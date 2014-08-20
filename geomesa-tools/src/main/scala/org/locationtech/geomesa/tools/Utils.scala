@@ -16,13 +16,26 @@
 
 package org.locationtech.geomesa.tools
 
+import java.io.File
+import java.net.URLDecoder
 import java.util.UUID
-
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.hadoop.fs.Path
-
 import scala.util.Try
 import scala.xml.XML
+
+object Utils {
+
+  def cleanClassPathURL(url: String): String =
+    URLDecoder.decode(url, "UTF-8")
+      .replace("file:", "")
+      .replace("!", "")
+
+  def classPathUrlToAbsolutePath(url: String) =
+    new File(cleanClassPathURL(url)).getAbsolutePath
+
+}
+
 
 /*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
 case class ScoptArguments(username: String = null,
