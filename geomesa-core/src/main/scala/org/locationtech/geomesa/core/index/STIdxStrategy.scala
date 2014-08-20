@@ -73,9 +73,7 @@ class STIdxStrategy extends Strategy with Logging {
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
     val (temporalFilters, ecqlFilters: Seq[Filter]) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
 
-    val tweakedEcqlFilters = ecqlFilters.map(updateTopologicalFilters(_, featureType))
-
-    val ecql = filterListAsAnd(tweakedEcqlFilters).map(ECQL.toCQL)
+    val ecql = filterListAsAnd(ecqlFilters).map(ECQL.toCQL)
 
     output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
 
@@ -105,7 +103,7 @@ class STIdxStrategy extends Strategy with Logging {
 
     output(s"GeomsToCover $geomsToCover.")
 
-    val ofilter = filterListAsAnd(geomFilters ++ temporalFilters)
+    val ofilter = filterListAsAnd(tweakedGeoms ++ temporalFilters)
     if (ofilter.isEmpty) logger.warn(s"Querying Accumulo without ST filter.")
 
     val oint  = IndexSchema.somewhen(interval)
