@@ -109,17 +109,17 @@ To export to stdOut, use `-s` or `--stdout`. This is useful for piping output.
 ### ingest
 Ingests CSV, TSV, and SHP files. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
 Please note that for lat/lon column ingest, the sft spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.
-The file type is inferred from the extension of the file, so please also ensure that the formatting of the file matches the extension of the file.
+The file type is inferred from the extension of the file, so please also ensure that the formatting of the file matches the eggixtension of the file.
 
 #### Usage
-    geomesa ingest -u username -p password -c geomesa_catolog -f twittersmall -s id:Double,dtg:Date,*geom:Geometry 
+    geomesa ingest -u username -p password -c geomesa_catalog -f twittersmall -s id:Double,dtg:Date,*geom:Geometry 
     --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" --skip-header --file /some/path/to/file.csv
     
-    geomesa ingest -u username -p password -c geomesa_catolog  -a someAuths -v someVis --shards 42 -f twittersmall
+    geomesa ingest -u username -p password -c geomesa_catalog  -a someAuths -v someVis --shards 42 -f twittersmall
      -s id:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
      --idfields id,dtg --hash --lon lon --lat lat --file /some/path/to/file.tsv
      
-    geomesa ingest -u username -p password -c geomesa_catolog -f shapeFileFeatureName --file /some/path/to/file.shp
+    geomesa ingest -u username -p password -c geomesa_catalog -f shapeFileFeatureName --file /some/path/to/file.shp
 
 with the following parameters:
  
