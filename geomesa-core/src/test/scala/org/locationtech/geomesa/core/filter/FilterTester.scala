@@ -52,6 +52,12 @@ class BasicTemporalPredicateTest extends FilterTester {
 }
 
 @RunWith(classOf[JUnitRunner])
+class BasicSpatioTemporalPredicateTest extends FilterTester {
+  val filters = spatioTemporalPredicates
+  runTest
+}
+
+@RunWith(classOf[JUnitRunner])
 class AttributePredicateTest extends FilterTester {
   val filters = attributePredicates
   runTest
