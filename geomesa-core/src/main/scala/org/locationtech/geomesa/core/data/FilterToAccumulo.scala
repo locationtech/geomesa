@@ -25,6 +25,7 @@ import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.locationtech.geomesa.core.data.FilterToAccumulo._
 import org.locationtech.geomesa.core.index
+import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.utils.filters.Filters._
 import org.locationtech.geomesa.utils.geohash.GeohashUtils.getInternationalDateLineSafeGeometry
 import org.locationtech.geomesa.utils.geometry.Geometry._
@@ -213,7 +214,7 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
         case (f, s) => ff.and(f, s)
       })
   }
-  
+
   def processNot(op: Not): Filter = {
     spatialPredicate = noPolygon
     temporalPredicate = noInterval
@@ -288,20 +289,10 @@ class FilterToAccumulo(sft: SimpleFeatureType) {
       ff.and(acc, op)
     } else {
       val e2 = op.getExpression2.asInstanceOf[Literal]
-      val startPoint = e2.evaluate(null, classOf[Point])
-      val distance = op.getDistance
-      val distanceDegrees = GeometryUtils.distanceDegrees(startPoint, distance)
+      val geom = e2.getValue.asInstanceOf[Geometry]
 
-      // Walk circle bounds for bounding box
-      spatialPredicate = GeometryUtils.bufferPoint(startPoint, distance)
-
-      val rewrittenFilter =
-        ff.dwithin(
-          ff.property(sft.getGeometryDescriptor.getLocalName),
-          ff.literal(startPoint),
-          distanceDegrees,
-          "meters")
-      ff.and(acc, rewrittenFilter)
+      spatialPredicate = GeometryUtils.bufferGeometry(geom, op.getDistance)
+      ff.and(acc, rewriteDwithin(op))
     }
   }
 

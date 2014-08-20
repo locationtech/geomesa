@@ -30,48 +30,33 @@ object GeometryUtils {
   val geoFactory = JTSFactoryFinder.getGeometryFactory
 
   /**
-   * Returns a bounding box which circumscribes a buffered circle around a point
+   * Returns the buffered bounding box of a geometry
+   * Buffering is done in degrees, based on the geometry and meters passed in.
    *
-   * @param startingPoint the Point to buffer around
+   * @param geometry the Geometry to buffer around
    * @param distance the buffered distance in meters
    * @return A Polygon which bounds the buffered point
    */
-  def bufferPoint(startPoint: Point, distance: Double): Polygon = {
-    geoCalc.setStartingGeographicPoint(startPoint.getX, startPoint.getY)
-
-    // Convert meters to dec degrees based on widest point in dec degrees of circle
-    geoCalc.setDirection(90, distance)
-    val right = geoCalc.getDestinationGeographicPoint
-    val distanceDegrees = startPoint.distance(geoFactory.createPoint(new Coordinate(right.getX, right.getY)))
-
-    // Walk circle bounds for bounding box
-    geoCalc.setDirection(0, distance)
-    val top = geoCalc.getDestinationGeographicPoint
-    geoCalc.setDirection(180, distance)
-    val bottom = geoCalc.getDestinationGeographicPoint
-    geoCalc.setStartingGeographicPoint(top)
-    geoCalc.setDirection(90, distance)
-    val topRight = geoCalc.getDestinationGeographicPoint
-    geoCalc.setDirection(-90, distance)
-    val topLeft = geoCalc.getDestinationGeographicPoint
-    geoCalc.setStartingGeographicPoint(bottom)
-    geoCalc.setDirection(90, distance)
-    val bottomRight = geoCalc.getDestinationGeographicPoint
-    geoCalc.setDirection(-90, distance)
-    val bottomLeft = geoCalc.getDestinationGeographicPoint
-
-    val env = (new Envelope(startPoint.getCoordinate))
-    env.expandToInclude(topRight.getX, topRight.getY)
-    env.expandToInclude(topLeft.getX, topLeft.getY)
-    env.expandToInclude(bottomRight.getX, bottomRight.getY)
-    env.expandToInclude(bottomLeft.getX, bottomLeft.getY)
+  def bufferGeometry(geometry: Geometry, distance: Double): Polygon = {
+    val env = geometry.getEnvelopeInternal
+    env.expandBy(distanceDegrees(geometry, distance))
     JTS.toGeometry(env)
   }
 
-  /** Convert meters to dec degrees based on widest point in dec degrees of circle */
-  def distanceDegrees(startPoint: Point, meters: Double) = {
-    startPoint.distance(farthestPoint(startPoint, meters))
+  /** Convert meters to dec degrees based on widest point in dec degrees of circles at bounding box corners */
+  def distanceDegrees(geometry: Geometry, meters: Double): Double = {
+    if (geometry.isInstanceOf[Point]) geometry.distance(farthestPoint(geometry.asInstanceOf[Point], meters))
+    else distanceDegrees(geometry.getEnvelopeInternal, meters)
   }
+
+  /** Convert meters to dec degrees based on widest point in dec degrees of circles at envelope corners */
+  def distanceDegrees(env: Envelope, meters: Double): Double =
+    List(
+      distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMaxX, env.getMaxY)), meters),
+      distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMaxX, env.getMinY)), meters),
+      distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMinX, env.getMinY)), meters),
+      distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMinX, env.getMaxY)), meters)
+    ).max
 
   /** Farthest point based on widest point in dec degrees of circle */
   def farthestPoint(startPoint: Point, meters: Double) = {

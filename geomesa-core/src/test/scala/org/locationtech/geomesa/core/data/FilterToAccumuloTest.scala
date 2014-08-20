@@ -90,6 +90,7 @@ class FilterToAccumuloTest extends Specification {
 
   "DWithin queries" should {
     val targetPoint = geomFactory.createPoint(new Coordinate(-70, 30))
+    val targetLine = geomFactory.createLineString(List(new Coordinate(-70, 30), new Coordinate(-80, 20)).toArray)
 
     "take in meters" in {
       val q =
@@ -97,7 +98,19 @@ class FilterToAccumuloTest extends Specification {
 
       val f2a = new FilterToAccumulo(sft)
       val result = f2a.visit(q)
-      val expected = WKTUtils.read("POLYGON ((-70.00103642615518 29.999097895754463, -69.9989635738448 29.999097895754463, -69.9989635738448 30.000902095962825, -70.00103642615518 30.000902095962825, -70.00103642615518 29.999097895754463))").asInstanceOf[Polygon]
+      val expected = WKTUtils.read("POLYGON ((-70.00103641678118 29.99896358321883, -69.99896358321882 29.99896358321883, -69.99896358321882 30.00103641678117, -70.00103641678118 30.00103641678117, -70.00103641678118 29.99896358321883))").asInstanceOf[Polygon]
+      val resultEnv = f2a.spatialPredicate
+      resultEnv.equalsNorm(expected) must beTrue
+      result.asInstanceOf[DWithin].getDistance mustEqual 0.0010364167811696486
+    }
+
+    "handle LineString target" in {
+      val q =
+        ff.dwithin(ff.property("geom"), ff.literal(targetLine), 100.0, "meters")
+
+      val f2a = new FilterToAccumulo(sft)
+      val result = f2a.visit(q)
+      val expected = WKTUtils.read("POLYGON ((-80.00103641678118 19.99896358321883, -69.99896358321882 19.99896358321883, -69.99896358321882 30.00103641678117, -80.00103641678118 30.00103641678117, -80.00103641678118 19.99896358321883))").asInstanceOf[Polygon]
       val resultEnv = f2a.spatialPredicate
       resultEnv.equalsNorm(expected) must beTrue
       result.asInstanceOf[DWithin].getDistance mustEqual 0.0010364167811696486
