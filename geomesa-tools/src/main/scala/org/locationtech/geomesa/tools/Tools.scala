@@ -133,7 +133,8 @@ object Tools extends App with Logging with GetPassword {
           c.copy(newValue = s) } required() hidden(),
         opt[String]('s', "suffix").action { (s, c) =>
           c.copy(suffix = s) } required() hidden()
-        ))
+        )
+      )
     head("GeoMesa Tools", "1.0")
     help("help").text("show help command")
     create
@@ -164,7 +165,7 @@ object Tools extends App with Logging with GetPassword {
         "\t-c, --catalog : required\n" +
         "\t\tthe name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data\n" +
         "\t-f, --feature-name : required\n" +
-        "\t\t\"the name of the new feature to be created\n" +
+        "\t\tthe name of the new feature to be created\n" +
         specHelp +
         "\t-d, --default-date : optional\n" +
         "\t\tthe default date of the sft"
@@ -192,11 +193,11 @@ object Tools extends App with Logging with GetPassword {
         "\t-s, --stdout : optional\n" +
         "\t\tadd this flag to export to stdOut\n" +
         "\t-a, --attributes : optional\n" +
-        "\t\tattributes to return in the export. default: ALL\n"+
+        "\t\tattributes to return in the export. default: ALL\n" +
         "\t-m, --maxFeatures : optional\n" +
         "\t\tmax number of features to return. default: 2147483647\n" +
         "\t-q, --query : optional\n" +
-        "\t\tECQL query to run on the features. default: INCLUDE\n"
+        "\t\tECQL query to run on the features. default: INCLUDE"
       //commenting out for now because these aren't implemented yet, but will be in the future
       //        "\t--latAttribute : optional\n" +
       //        "\t\tlatitude attribute to query on\n" +
@@ -211,12 +212,12 @@ object Tools extends App with Logging with GetPassword {
     } else if (args.contains("tableconf") && args.contains("list")) {
         "List all table configuration parameters.\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp + suffixHelp
     } else if (args.contains("tableconf") && args.contains("describe")) {
-      "Print the value of a single table configuration parameter.\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
+      "Print the value of a single table configuration parameter\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
         "\t--param : required\n" +
         "\t\tthe table configuration parameter to describe\n" +
         suffixHelp
     } else if (args.contains("tableconf") && args.contains( "update")) {
-      "Update a table configuration parameter to the new specified value.\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
+      "Update a table configuration parameter to the new specified value\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
         "\t--param : required\n" +
         "\t\tthe table configuration parameter to update\n" +
         "\t-n, --new-value : required\n" +
@@ -230,13 +231,13 @@ object Tools extends App with Logging with GetPassword {
         "\t-p, --password: the Accumulo password. This can also be provided after entering a command.\n" +
         "\thelp, -help, --help: show this help dialog or the help dialog for a specific command (e.g. geomesa create help)\n" +
         "Supported commands are:\n" +
-        "\t create: Create a feature in GeoMesa\n" +
-        "\t delete: Delete a feature from the specified Catalog Table in GeoMesa\n" +
-        "\t describe: Describe the attributes of a specified feature\n" +
-        "\t explain: Explain and plan a query in GeoMesa\n" +
-        "\t export: Export all or a set of features in CSV, TSV, GeoJSON, GML, or SHP format\n" +
-        "\t list: List the features in the specified Catalog Table\n" +
-        "\t tableconf: List, describe, and update table configuration parameters"
+        "\tcreate: Create a feature in GeoMesa\n" +
+        "\tdelete: Delete a feature from the specified Catalog Table in GeoMesa\n" +
+        "\tdescribe: Describe the attributes of a specified feature\n" +
+        "\texplain: Explain and plan a query in GeoMesa\n" +
+        "\texport: Export all or a set of features in CSV, TSV, GeoJSON, GML, or SHP format\n" +
+        "\tlist: List the features in the specified Catalog Table\n" +
+        "\ttableconf: List, describe, and update table configuration parameters"
     }
     logger.info(s"$help")
   }
@@ -281,7 +282,7 @@ object Tools extends App with Logging with GetPassword {
         case "create" =>
           val ft = new FeaturesTool(config, password)
           logger.info(s"Creating '${config.catalog}_${config.featureName}' with spec '${config.spec}'. Just a few moments...")
-          if (ft.createFeatureType(config.featureName, config.spec, config.dtField.orNull)) {
+          if (ft.createFeatureType()) {
             logger.info(s"Feature '${config.catalog}_${config.featureName}' with spec '${config.spec}' successfully created.")
           } else {
             logger.error(s"There was an error creating feature '${config.catalog}_${config.featureName}' with spec '${config.spec}'." +

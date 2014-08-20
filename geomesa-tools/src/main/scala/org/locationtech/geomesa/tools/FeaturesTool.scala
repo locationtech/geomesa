@@ -88,11 +88,18 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
     }
   }
 
-  def createFeatureType(sftName: String, sftString: String, dtField: String = null): Boolean = {
-    val sft = SimpleFeatureTypes.createType(sftName, sftString)
-    if (dtField != null) { sft.getUserData.put(SF_PROPERTY_START_TIME, dtField) }
-    ds.createSchema(sft)
-    ds.getSchema(sftName) != null
+  def createFeatureType(): Boolean = {
+    if (ds.getSchema(config.featureName) == null) {
+      val sft = SimpleFeatureTypes.createType(config.featureName, config.spec)
+      if (config.dtField.orNull != null) {
+        sft.getUserData.put(SF_PROPERTY_START_TIME, config.dtField.get)
+      }
+      ds.createSchema(sft)
+      ds.getSchema(config.featureName) != null
+    } else {
+      logger.error(s"Feature '${config.catalog}_${config.featureName}' already exists.")
+      sys.exit()
+    }
   }
 
   def exportFeatures() {
@@ -125,14 +132,14 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
       case "shp" =>
         val shapeFileExporter = new ShapefileExport
         shapeFileExporter.write(outputPath, config.featureName, sftCollection, ds.getSchema(config.featureName))
-        if (!config.toStdOut) { logger.info(s"Successfully wrote features to '${outputPath.toString}'") }
+        logger.info(s"Successfully wrote features to '${outputPath.toString}'")
       case "geojson" =>
-        val os = new FileOutputStream(outputPath)
+        val os = if (config.toStdOut) { System.out } else { new FileOutputStream(outputPath) }
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
         if (!config.toStdOut) { logger.info(s"Successfully wrote features to '${outputPath.toString}'") }
       case "gml" =>
-        val os = new FileOutputStream(outputPath)
+        val os = if (config.toStdOut) { System.out } else { new FileOutputStream(outputPath) }
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
         if (!config.toStdOut) { logger.info(s"Successfully wrote features to '${outputPath.toString}'") }
