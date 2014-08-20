@@ -43,7 +43,7 @@ class Ingest extends Logging with AccumuloProperties {
               val ingest = new SVIngest(config, dsConfig.toMap)
               ingest.runIngest()
             case _ =>
-              logger.error("Error, no such ingest method for CSV or TSV found, no data ingested")
+              logger.error("Error, no such ingest method for CSV or TSV found. No data ingested.")
 
           }
 
@@ -51,11 +51,12 @@ class Ingest extends Logging with AccumuloProperties {
           ShpIngest.doIngest(config, dsConfig)
 
         case _ =>
-          logger.error(s"Error, file format not supported. Supported formats include: CSV, TSV, SHP, no data ingested")
+          logger.error(s"Error: file format not supported." +
+            s" Supported formats include: CSV, TSV, and SHP. No data ingested.")
 
       }
     } else {
-      logger.error(s"Error: could not successfully ingest file: '${config.file}', no data ingested")
+      logger.error(s"Error: could not successfully ingest file: '${config.file}'. No data ingested.")
 
     }
   }
@@ -104,7 +105,7 @@ object Ingest extends App with Logging with GetPassword {
     help("help").text("show help command")
     checkConfig { c =>
       if (c.maxShards.isDefined && c.indexSchemaFormat.isDefined) {
-        failure("Error: the options for setting the max shards and the indexSchemaFormat cannot both be set at once")
+        failure("Error: the options for setting the max shards and the indexSchemaFormat cannot both be set.")
       } else {
         success
       }

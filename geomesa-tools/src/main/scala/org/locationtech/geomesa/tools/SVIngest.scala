@@ -87,7 +87,8 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     val shardPvsS = if (numShards == 1) "Shard" else "Shards"
 
     maxShard match {
-      case None => logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS. Using extant SFT. If this is not desired please delete (aka: drop) the catalog using the delete command.")
+      case None => logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS. Using extant SFT. " +
+        s"\n\tIf this is not desired please delete (aka: drop) the catalog using the delete command.")
       case Some(x) => logger.warn(s"GeoMesa tables extant, ignoring user request, using schema's $numShards $shardPvsS")
     }
 
