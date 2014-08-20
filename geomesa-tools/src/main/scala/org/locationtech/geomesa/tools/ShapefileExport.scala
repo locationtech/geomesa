@@ -24,9 +24,9 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 class ShapefileExport {
 
-  def write(file: String, feature: String, collection: SimpleFeatureCollection, schema: SimpleFeatureType) {
+  def write(file: File, feature: String, collection: SimpleFeatureCollection, schema: SimpleFeatureType) {
 
-    val url = DataUtilities.fileToURL(new File(file))
+    val url = DataUtilities.fileToURL(file)
 
     // create a new shapfile data store
     val factory = new ShapefileDataStoreFactory()

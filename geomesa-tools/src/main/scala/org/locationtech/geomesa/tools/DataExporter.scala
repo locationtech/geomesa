@@ -18,7 +18,7 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.{FileWriter, PrintWriter}
+import java.io.{File, FileWriter, PrintWriter}
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -29,6 +29,7 @@ import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.joda.time.DateTime
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 
@@ -72,8 +73,19 @@ class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
     val attributeTypes = idAttributeArray ++ attributesArray
     val attributes = attributeTypes.map(_.split(":")(0))
 
-    val outputDir = s"${System.getProperty("user.dir")}/${load.table}_${load.name}.${load.format}"
-    val fr = if (load.toStdOut) { new PrintWriter(System.out) } else { new PrintWriter(new FileWriter(s"$outputDir")) }
+    var outputPath: File = null
+    do {
+      //check for overridden/user-given output path first
+      if (load.fileOutputPath != null) {
+        outputPath = load.fileOutputPath
+      } else {
+        //if not found, make own output path
+        if (outputPath != null) { Thread.sleep(1) }
+        outputPath = new File(s"${System.getProperty("user.dir")}/${load.table}_${load.name}_${DateTime.now()}.${load.format}")
+      }
+    } while (outputPath.exists)
+
+    val fr = if (load.toStdOut) { new PrintWriter(System.out) } else { new PrintWriter(new FileWriter(outputPath)) }
 
     load.format.toLowerCase match {
       case "tsv" =>
@@ -81,7 +93,6 @@ class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
       case "csv" =>
         fr.println(attributeTypes.mkString(","))
     }
-
     var count = 0
 
     features.foreach { sf =>
@@ -158,7 +169,7 @@ class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
       }
     }
     fr.close()
-    if (!load.toStdOut) { logger.info(s"Successfully wrote $count features to '$outputDir'") }
+    if (!load.toStdOut) { logger.info(s"Successfully wrote $count features to '${outputPath.toString}'") }
   }
 
   /**
@@ -190,4 +201,5 @@ case class LoadAttributes(name: String,
                           dateAttribute: Option[String],
                           query: String,
                           format: String = "tsv",
-                          toStdOut: Boolean = false)
+                          toStdOut: Boolean = false,
+                          fileOutputPath: File = null)
