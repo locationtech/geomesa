@@ -57,14 +57,14 @@ object JobUtils extends Logging {
   def setLibJars(conf: Configuration,
                  libJars: Seq[String] = defaultLibJars,
                  searchPath: Iterator[() => Seq[File]] = defaultSearchPath): Unit = {
-    val libjars = scala.collection.mutable.Set.empty[String]
+    val foundJars = scala.collection.mutable.Set.empty[String]
     var remaining = libJars
     // search each path in order until we've found all our jars
     while (!remaining.isEmpty && searchPath.hasNext) {
       val urls = searchPath.next()()
       remaining = remaining.filter { jarPrefix =>
         val matched = urls.filter(url => url.getName.startsWith(jarPrefix))
-        libjars ++= matched.map(url => "file:///" + url.getAbsolutePath)
+        foundJars ++= matched.map(url => "file:///" + url.getAbsolutePath)
         matched.isEmpty
       }
     }
@@ -74,9 +74,9 @@ object JobUtils extends Logging {
     }
 
     // tmpjars is the hadoop config that corresponds to libjars
-    conf.setStrings("tmpjars", libjars.toSeq: _*)
+    conf.setStrings("tmpjars", foundJars.toSeq: _*)
 
-    logger.trace(s"libjars=${libjars.mkString("\n", "\n", "")}")
+    println(s"libjars=${foundJars.mkString("\n", "\n", "")}")
   }
 
   /**
