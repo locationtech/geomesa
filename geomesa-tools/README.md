@@ -109,7 +109,7 @@ To export to stdOut, use `-s` or `--stdout`. This is useful for piping output.
 ### ingest
 Ingests CSV, TSV, and SHP files. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
 Please note that for lat/lon column ingest, the sft spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.
-The file type is inferred from the extension of the file, so please also ensure that the formatting of the file matches the eggixtension of the file.
+The file type is inferred from the extension of the file, so please also ensure that the formatting of the file matches the extension of the file.
 
 #### Usage
     geomesa ingest -u username -p password -c geomesa_catalog -f twittersmall -s id:Double,dtg:Date,*geom:Geometry 
