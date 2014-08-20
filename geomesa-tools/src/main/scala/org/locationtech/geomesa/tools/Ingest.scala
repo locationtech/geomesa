@@ -18,28 +18,22 @@ package org.locationtech.geomesa.tools
 
 import com.typesafe.scalalogging.slf4j.Logging
 
-class Ingest() extends Logging with AccumuloProperties {
+class Ingest extends Logging with AccumuloProperties {
 
   def getAccumuloDataStoreConf(config: IngestArguments, password: String) = Map (
     "instanceId"        ->  instanceName,
     "zookeepers"        ->  zookeepers,
     "user"              ->  config.username,
     "password"          ->  password,
-    "auths"             ->  config.auths.getOrElse(""),
-    "visibilities"      ->  config.visibilities.getOrElse(""),
+    "auths"             ->  config.auths.orNull,
+    "visibilities"      ->  config.visibilities.orNull,
+    "maxShard"          ->  Some(config.maxShards),
+    "indexSchemaFormat" ->  config.indexSchemaFormat.orNull,
     "tableName"         ->  config.catalog
   )
 
-  def defineIngestJob(config: IngestArguments, password: String): Boolean = {
-    //ensure that geomesa classes are loaded so that the subsequent
+  def defineIngestJob(config: IngestArguments, password: String) = {
     val dsConfig = getAccumuloDataStoreConf(config, password)
-    // add the maxShards variable if present prior to connecting to data store, make sure both are not set!
-    if (config.maxShards.isDefined && config.indexSchemaFormat.isEmpty) {
-      dsConfig.updated("maxShard", config.maxShards.get)
-    }
-    if (config.maxShards.isEmpty && config.indexSchemaFormat.isDefined) {
-      dsConfig.updated("indexSchemaFormat", config.indexSchemaFormat.get)
-    }
     if (config.format.isDefined) {
       config.format.get.toUpperCase match {
         case "CSV" | "TSV" =>
@@ -48,22 +42,21 @@ class Ingest() extends Logging with AccumuloProperties {
               logger.info("Ingest has started, please wait.")
               val ingest = new SVIngest(config, dsConfig.toMap)
               ingest.runIngest()
-              true
             case _ =>
               logger.error("Error, no such ingest method for CSV or TSV found, no data ingested")
-              false
+
           }
 
+        case "SHP" =>
+          ShpIngest.doIngest(config, dsConfig)
+
         case _ =>
-          // check if the file is a shapefile
-          logger.error(s"Error, format: \'${config.format}\' not supported. Supported formats include: CSV, TSV")
-          false
+          logger.error(s"Error, file format not supported. Supported formats include: CSV, TSV, SHP, no data ingested")
 
       }
-    } else if (config.file.endsWith(".shp")) {
-      ShpIngest.doIngest(config, dsConfig)
     } else {
-      false
+      logger.error(s"Error: could not successfully ingest file: '${config.file}', no data ingested")
+
     }
   }
 }
@@ -71,11 +64,6 @@ class Ingest() extends Logging with AccumuloProperties {
 object Ingest extends App with Logging with GetPassword {
   val parser = new scopt.OptionParser[IngestArguments]("geomesa-tools ingest") {
     head("GeoMesa Tools Ingest", "1.0")
-    note("A single format flag must be set, eg: either --csv or --tsv")
-    opt[Unit]("csv") action { (_, c) =>
-      c.copy(format = Option("CSV")) } text "partially optional csv format flag" optional()
-    opt[Unit]("tsv") action { (_, c) =>
-      c.copy(format = Option("TSV")) } text "partially optional tsv format flag" optional()
     opt[String]('u', "username") action { (x, c) =>
       c.copy(username = x) } text "Accumulo username" required()
     opt[String]('p', "password") action { (x, c) =>
@@ -94,7 +82,8 @@ object Ingest extends App with Logging with GetPassword {
       c.copy(featureName = Option(s)) } text "the name of the feature" required()
     opt[String]('s', "sftspec").action { (s, c) =>
       c.copy(spec = s) } text "the sft specification of the file," +
-      " must match number of columns and order of ingest file if csv or tsv formatted" optional()
+      " must match number of columns and order of ingest file if csv or tsv formatted." +
+      " If ingesting lat/lon column data an additional field for the point geometry must be added, ie: *geom:Point ." optional()
     opt[String]("datetime").action { (s, c) =>
       c.copy(dtField = Option(s)) } text "the name of the datetime field in the sft" optional()
     opt[String]("dtformat").action { (s, c) =>
@@ -111,11 +100,11 @@ object Ingest extends App with Logging with GetPassword {
     opt[Unit]("skip-header").action { (b, c) =>
       c.copy(skipHeader = true) } text "flag for skipping first line in file" optional()
     opt[String]("file").action { (s, c) =>
-      c.copy(file = s) } text "the file to be ingested" required()
+      c.copy(file = s, format = Option(getFileExtension(s))) } text "the file to be ingested" required()
     help("help").text("show help command")
     checkConfig { c =>
       if (c.maxShards.isDefined && c.indexSchemaFormat.isDefined) {
-        failure("Error: the options for setting the max shards and the index schema format cannot both be set")
+        failure("Error: the options for setting the max shards and the indexSchemaFormat cannot both be set at once")
       } else {
         success
       }
@@ -125,13 +114,8 @@ object Ingest extends App with Logging with GetPassword {
   try {
     parser.parse(args, IngestArguments()).map { config =>
       val pw = password(config.password)
-
       val ingest = new Ingest()
-      ingest.defineIngestJob(config, pw) match {
-        case true => logger.info(s"Successful ingest of file: '${config.file}'")
-        case false => logger.error(s"Error: could not successfully ingest file: '${config.file}'")
-      }
-
+      ingest.defineIngestJob(config, pw)
     } getOrElse {
       logger.error("Error: command not recognized.")
     }
@@ -139,6 +123,13 @@ object Ingest extends App with Logging with GetPassword {
   catch {
     case npe: NullPointerException => logger.error("Missing options and or unknown arguments on ingest." +
                                                    "\n\t See 'geomesa ingest --help'")
+  }
+
+  def getFileExtension(file: String) = file.toLowerCase match {
+    case csv if file.endsWith("csv") => "CSV"
+    case tsv if file.endsWith("tsv") => "TSV"
+    case shp if file.endsWith("shp") => "SHP"
+    case _                           => "NOTSUPPORTED"
   }
 
 }

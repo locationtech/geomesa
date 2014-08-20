@@ -87,7 +87,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     val shardPvsS = if (numShards == 1) "Shard" else "Shards"
 
     maxShard match {
-      case None => logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS.")
+      case None => logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS. Using extant SFT. If this is not desired please delete (aka: drop) the catalog using the delete command.")
       case Some(x) => logger.warn(s"GeoMesa tables extant, ignoring user request, using schema's $numShards $shardPvsS")
     }
 
@@ -127,7 +127,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
           ds.dispose()
           val successPvsS = if (successes == 1) "feature" else "features"
           val failurePvsS = if (failures == 1) "feature" else "features"
-          logger.info(s"For file $path - added $successes $successPvsS and failed on $failures $failurePvsS")
+          logger.info(s"For file $path - ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
         }
       case _ =>
         logger.error(s"Error, no such SV ingest method: ${config.method.toLowerCase}")
@@ -143,9 +143,9 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
           val successPvsS = if (successes == 1) "feature" else "features"
           val failurePvsS = if (failures == 1) "feature" else "features"
           logger.info(s"Ingest proceeding, on line number: $lineNumber," +
-            s" with $successes $successPvsS and $failures $failurePvsS.")
+            s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
         }
-      case Failure(ex) => failures +=1; logger.error(s"Could not write feature due to: ${ex.getLocalizedMessage}")
+      case Failure(ex) => failures +=1; logger.error(s"Could not write feature on line number: $lineNumber due to: ${ex.getLocalizedMessage}")
     }
   }
 
@@ -161,7 +161,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     val fields = try {
       reader.readRecord() match {
         case true => reader.getValues
-        case _ => throw new Exception(s"CsvReader could not parse line: $line")
+        case _ => throw new Exception(s"CsvReader could not parse line number: $lineNumber \n\t with value: $line")
       }
     } finally {
       reader.close()
@@ -180,15 +180,15 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
         feature.setAttribute(dtgField, date)
       } catch {
         case e: Exception => throw new Exception(s"Could not form Date object from field" +
-          s" using dt-format: $dtgFmt, on line number: $lineNumber")
+          s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
       }
     }
 
     val dtg = try{
       dtBuilder(feature.getAttribute(dtgField))
     } catch {
-      case e: Exception => throw new Exception(s"Could not find date-time field: \'${dtgField}\' " +
-        s"in line: \'${line}\', number: $lineNumber")
+      case e: Exception => throw new Exception(s"Could not find date-time field: '${dtgField}'," +
+        s" on line  number: $lineNumber \n\t With value of: $line")
     }
 
     feature.setAttribute(dtgTargetField, dtg.toDate)
@@ -215,7 +215,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
       successes +=1
     } catch {
       case e: Exception =>
-        logger.error(s"Cannot ingest avro simple feature: $feature", e)
+        logger.error(s"Cannot ingest avro simple feature: $feature, corrisponding to line number: $lineNumber", e)
         failures +=1
     }
   }

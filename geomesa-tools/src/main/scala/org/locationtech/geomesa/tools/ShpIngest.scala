@@ -14,7 +14,7 @@ import scala.collection.JavaConversions._
 
 object ShpIngest extends Logging {
   
-  def doIngest(config: IngestArguments, dsConf: Map[String, String]): Boolean = {
+  def doIngest(config: IngestArguments, dsConf: Map[String, _]): Boolean = {
     val fileUrl = new File(config.file).toURI.toURL
     val params = Map(ShapefileDataStoreFactory.URLP.getName -> fileUrl)
     val shpDataStore = DataStoreFinder.getDataStore(params)

@@ -107,23 +107,22 @@ To export to stdOut, use `-s` or `--stdout`. This is useful for piping output.
     geomesa export -u username -p password -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
            
 ### ingest
-Ingests TSV and CSV files containing explicit latitude and longitude point data or WKT geometries. 
+Ingests CSV, TSV, and SHP files. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
+Please note that for lat/lon column ingest, the sft spec must include a additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.
+The file type is inferred from the extension of the file, so please also ensure that the formatting of the file matches the extension of the file.
+
 #### Usage
-    geomesa ingest --csv -u username -p password -c geomesa_catolog -f twittersmall -s id:Double,dtg:Date,*geom:Geometry 
+    geomesa ingest -u username -p password -c geomesa_catolog -f twittersmall -s id:Double,dtg:Date,*geom:Geometry 
     --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" --skip-header --file /some/path/to/file.csv
     
-    geomesa ingest --tsv -u username -p password -c geomesa_catolog  -a someAuths -v someVis --shards 42 -f twittersmall
+    geomesa ingest -u username -p password -c geomesa_catolog  -a someAuths -v someVis --shards 42 -f twittersmall
      -s id:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
      --idfields id,dtg --hash --lon lon --lat lat --file /some/path/to/file.tsv
-
-note: *the `<>` marks are where user values would go*
+     
+    geomesa ingest -u username -p password -c geomesa_catolog -f shapeFileFeatureName --file /some/path/to/file.shp
 
 with the following parameters:
-     
-`--csv` The partially optional flag to specify the file is comma delimited. A single format flag must be set, eg: either --csv or --tsv
-
-`--tsv` The partially optional flag to specify the file is tab delimited. A single format flag must be set, eg: either --csv or --tsv
-
+ 
 `-c` or `--catalog` The accumulo table name, the table will be created if not already extant.
 
 `-a` or `--auths` The optional accumulo authorizations to use.
@@ -139,6 +138,7 @@ This option and the `--indexSchemaFormat` cannot be provided together and Ingest
 `-f` or `--feature-name` The name of the SimpleFeatureType to be used.
 
 `-s` or `--sftspec` The SimpleFeatureType of the CSV or TSV file, this must match exactly with the number and order of columns and data formats in the file being ingested and must also include a default geometry field.
+If attempting to ingest files with explicit latitude and longitude columns, the sft spec must include a additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.
 
 `--datetime` The name of the field in the SFT specification that corresponds to the the *time* column.
 
