@@ -20,9 +20,16 @@ import org.geotools.data.Query
 import org.locationtech.geomesa.core.index.AttributeIdxEqualsStrategy
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.opengis.feature.simple.SimpleFeatureType
+
 import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.temporal.TEquals
 import org.opengis.filter.{Filter, Id, PropertyIsEqualTo, PropertyIsLike}
+
+import org.opengis.filter.expression.PropertyName
+import org.opengis.filter._
+
+import scala.collection.JavaConversions._
+
 
 object QueryStrategyDecider {
 
@@ -35,7 +42,10 @@ object QueryStrategyDecider {
   def chooseNewStrategy(sft: SimpleFeatureType, query: Query): Strategy = {
     val filter = query.getFilter
     val isDensity = query.getHints.containsKey(BBOX_KEY)
+    chooseNewStrategy(isDensity, sft, filter)
+  }
 
+  def chooseNewStrategy(isDensity: Boolean, sft: SimpleFeatureType, filter: Filter): Strategy = {
     if (isDensity) {
       // TODO GEOMESA-322 use other strategies with density iterator
       new STIdxStrategy
@@ -45,9 +55,20 @@ object QueryStrategyDecider {
       attributeStrategy.getOrElse {
         filter match {
           case idFilter: Id => new RecordIdxStrategy
+          case and: And => processAnd(isDensity, sft, and)
           case cql          => new STIdxStrategy
         }
       }
+    }
+  }
+
+  private def processAnd(isDensity: Boolean, sft: SimpleFeatureType, and: And): Strategy = {
+    if (and.getChildren.forall(c => chooseNewStrategy(isDensity, sft, c).isInstanceOf[AttributeIdxStrategy])) {
+      //311 - return AttributeStrategy using first attr as index and containing simple feature filtering iterator to filter out remaining attrs
+      new STIdxStrategy
+    } else {
+      //other cases - flesh out, there may be record id lookup + attr
+      new STIdxStrategy
     }
   }
 
