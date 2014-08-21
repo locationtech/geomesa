@@ -96,7 +96,7 @@ trait FeatureGroupRanker extends Logging {
     val diffLon = env1.getMaxX - env1.getMinX
     val centerLat = (env1.getMaxY + env1.getMinY) / 2.0
     val centerLon = (env1.getMaxX + env1.getMinX) / 2.0
-    val delta = (if (diffLat > diffLon) diffLat else diffLon) / 2.0
+    val delta = math.max(diffLat, diffLon) / 2.0
     val env2 = new ReferencedEnvelope(centerLon - delta, centerLon + delta, centerLat - delta, centerLat + delta,
       DefaultGeographicCRS.WGS84)
     JTS.toGeometry(env2)
