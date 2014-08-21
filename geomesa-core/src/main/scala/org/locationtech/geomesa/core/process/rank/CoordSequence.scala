@@ -100,15 +100,14 @@ class CoordSequence(val coords: Seq[CoordWithDateTimePair]) {
   def distance: Double = coords.foldLeft(0.0) { (dist, pair) => dist + pair.distance }
 
   def speedStats = {
-    val spds = speeds
-    if (spds.length == 0) SpeedStatistics(0.0, 0.0, 0.0, 0.0)
+    if (speeds.length == 0) SpeedStatistics(0.0, 0.0, 0.0, 0.0)
     else {
-      val avg = spds.sum / spds.length.toDouble
-      SpeedStatistics(spds.max, spds.min, avg, MathUtil.stdDev(spds, avg))
+      val avg = speeds.sum / speeds.length.toDouble
+      SpeedStatistics(speeds.max, speeds.min, avg, MathUtil.stdDev(spds, avg))
     }
   }
 
-  def speeds: Seq[Double] = coords.map(_.speed)
+  lazy val speeds: Seq[Double] = coords.map(_.speed)
 }
 
 object CoordSequence {

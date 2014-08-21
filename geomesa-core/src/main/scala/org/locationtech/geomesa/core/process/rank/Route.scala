@@ -124,7 +124,7 @@ class Route(val route: LineString) {
       RouteDistances(coordinateDistance + coordDelta, metricDistance + metricDelta)
   }
 
-  def distance: RouteDistances = {
+  lazy val distance: RouteDistances = {
     route.getCoordinates.toList
       .sliding(2, 1)
       .foldLeft(RouteDistances(0.0, 0.0)) { case (sums, (scc, ecc)) =>
@@ -142,10 +142,9 @@ class Route(val route: LineString) {
    */
   def motionScores(coordSeq: CoordSequence,
                    routeDivisions: Double = RankingDefaults.defaultRouteDivisions): MotionScore = {
-    val routeDistances = distance
-    val routeDistance = routeDistances.metricDistance
+    val routeDistance = distance.metricDistance
     val coordDistance = coordSeq.distance
-    val coordDelta = routeDistances.coordinateDistance / routeDivisions
+    val coordDelta = distance.coordinateDistance / routeDivisions
     val coordsToRouteDistance = cumlativeDistanceToCoordSequence(coordSeq, coordDelta)
     val speedStats = coordSeq.speedStats
     new MotionScore(coordSeq.coords.length + 1, coordDistance, routeDistance, coordsToRouteDistance, speedStats, 0.0, 0.0)
