@@ -18,11 +18,10 @@ package org.locationtech.geomesa.tools
 import java.net.URLDecoder
 import java.nio.charset.Charset
 
-import com.csvreader.CsvReader
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import org.apache.commons.io.IOUtils
+import org.apache.commons.csv.{CSVFormat, CSVParser}
 import org.geotools.data.{DataStoreFinder, FeatureWriter, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
@@ -63,9 +62,9 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     case _    => 0
   }
 
-  lazy val delim = config.format.get.toUpperCase match {
-    case "TSV" => '\t'
-    case "CSV" => ','
+  val delim = config.format.get.toUpperCase match {
+    case "TSV" => CSVFormat.TDF
+    case "CSV" => CSVFormat.DEFAULT
   }
 
   val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
@@ -81,17 +80,14 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     val numShards = ds.getSpatioTemporalMaxShard(sft)
     val shardPvsS = if (numShards == 1) "Shard" else "Shards"
     logger.info(s"\tCreated schema in: $createTime ms using $numShards $shardPvsS.")
-
   } else {
     val numShards = ds.getSpatioTemporalMaxShard(sft)
     val shardPvsS = if (numShards == 1) "Shard" else "Shards"
-
     maxShard match {
       case None => logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS. Using extant SFT. " +
         s"\n\tIf this is not desired please delete (aka: drop) the catalog using the delete command.")
       case Some(x) => logger.warn(s"GeoMesa tables extant, ignoring user request, using schema's $numShards $shardPvsS")
     }
-
   }
 
   lazy val sft = {
@@ -128,7 +124,8 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
           ds.dispose()
           val successPvsS = if (successes == 1) "feature" else "features"
           val failurePvsS = if (failures == 1) "feature" else "features"
-          logger.info(s"For file $path - ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
+          val failureString = if (failures == 0) "with no failures" else s"and failed to ingest: $failures $failurePvsS"
+          logger.info(s"For file $path - ingested: $successes $successPvsS, $failureString.")
         }
       case _ =>
         logger.error(s"Error, no such SV ingest method: ${config.method.toLowerCase}")
@@ -143,10 +140,12 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
         if ( lineNumber % 10000 == 0 ) {
           val successPvsS = if (successes == 1) "feature" else "features"
           val failurePvsS = if (failures == 1) "feature" else "features"
+          val failureString = if (failures == 0) "with no failures" else s"and failed to ingest: $failures $failurePvsS"
           logger.info(s"Ingest proceeding, on line number: $lineNumber," +
-            s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
+            s" ingested: $successes $successPvsS, $failureString.")
         }
-      case Failure(ex) => failures +=1; logger.error(s"Could not write feature on line number: $lineNumber due to: ${ex.getLocalizedMessage}")
+      case Failure(ex) => failures +=1; logger.error(s"Could not write feature on " +
+        s"line number: $lineNumber due to: ${ex.getLocalizedMessage}")
     }
   }
 
@@ -154,16 +153,16 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     for(line <- lines) yield lineToFeature(line)
   }
 
-  def lineToFeature(line: String): Try[AvroSimpleFeature] = Try{
+  def lineToFeature(line: String): Try[AvroSimpleFeature] = Try {
     lineNumber += 1
     // CsvReader is being used to just split the line up. this may be refactored out when
     // scalding support is added however it may be necessary for local only ingest
-    val reader = new CsvReader(IOUtils.toInputStream(line), delim, Charset.defaultCharset())
-    val fields = try {
-      reader.readRecord() match {
-        case true => reader.getValues
-        case _ => throw new Exception(s"CsvReader could not parse line number: $lineNumber \n\t with value: $line")
-      }
+    val reader = CSVParser.parse(line, delim)
+    val fields: Array[String] = try {
+      reader.iterator.toArray.flatten
+    } catch {
+      case e: Exception => throw new Exception(s"Commons CSV could not parse " +
+        s"line number: $lineNumber \n\t with value: $line")
     } finally {
       reader.close()
     }
