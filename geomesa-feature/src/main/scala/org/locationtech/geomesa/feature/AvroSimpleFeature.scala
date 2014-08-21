@@ -89,7 +89,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
   def getIdentifier = id
   def getID = id.getID
 
-  def getAttribute(name: String) = nameIndex.get(name).map(getAttribute).getOrElse(null)
+  def getAttribute(name: String) = nameIndex.get(name).map(getAttribute).orNull
   def getAttribute(name: Name) = getAttribute(name.getLocalPart)
   def getAttribute(index: Int) = values(index)
 
@@ -143,7 +143,11 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
   def getProperties(name: Name): JCollection[Property] = getProperties(name.getLocalPart)
   def getProperties(name: String): JCollection[Property] = getProperties.filter(_.getName.toString == name)
   def getProperty(name: Name): Property = getProperty(name.getLocalPart)
-  def getProperty(name: String): Property = new AttributeImpl(getAttribute(name), sft.getDescriptor(name), id)
+  def getProperty(name: String): Property =
+    (Option(getAttribute(name)), Option(sft.getDescriptor(name))) match {
+      case (Some(attribute), Some(descriptor)) => new AttributeImpl(attribute, descriptor, id)
+      case _ => null
+    }
 
   def getValue: JCollection[_ <: Property] = getProperties
 

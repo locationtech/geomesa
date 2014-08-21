@@ -32,6 +32,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   private var hitsSeen = 0
 
   private val indexSchema = IndexSchema(indexSchemaFmt, sft, featureEncoder)
+  private val queryPlanner = indexSchema.planner
 
   def explainQuery(q: Query = query) {
     val (_, explainTime) = profile {
@@ -41,7 +42,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   }
 
   private lazy val (iter, planningTime) = profile {
-    indexSchema.query(query, dataStore)
+    queryPlanner.query(query, dataStore)
   }
 
   override def getFeatureType = sft
@@ -61,16 +62,18 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
   override def close() = {
     iter.close()
-    if (dataStore.isInstanceOf[StatWriter]) {
-      val stat = QueryStat(dataStore.catalogTable,
-                            sft.getTypeName,
-                            System.currentTimeMillis(),
-                            QueryStatTransform.filterToString(query.getFilter),
-                            QueryStatTransform.hintsToString(query.getHints),
-                            planningTime,
-                            scanTime,
-                            hitsSeen)
-      dataStore.asInstanceOf[StatWriter].writeStat(stat)
+
+    dataStore match {
+      case sw: StatWriter =>
+        val stat = QueryStat(sft.getTypeName,
+                             System.currentTimeMillis(),
+                             QueryStatTransform.filterToString(query.getFilter),
+                             QueryStatTransform.hintsToString(query.getHints),
+                             planningTime,
+                             scanTime,
+                             hitsSeen)
+        sw.writeStat(stat, dataStore.getQueriesTableName(sft))
+      case _ => // do nothing
     }
   }
 }

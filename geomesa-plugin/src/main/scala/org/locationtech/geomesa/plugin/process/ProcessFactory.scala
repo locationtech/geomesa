@@ -32,5 +32,8 @@ class ProcessFactory
     classOf[TubeSelectProcess],
     classOf[ProximitySearchProcess],
     classOf[QueryProcess],
-    classOf[KNearestNeighborSearchProcess])
+    classOf[KNearestNeighborSearchProcess],
+    classOf[DBSCANProcess]
+  )
+
 

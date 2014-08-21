@@ -28,10 +28,37 @@
         .centered {
           text-align: center;
         }
+        .button-center {
+          display: inline-block;
+        }
+        .modal-text {
+          color:black;
+          padding-bottom:12px;
+        }
+        .w_caption .w_close {
+          display: none;
+        }
       </style>
       <script type="text/javascript">
         Wicket.Window.unloadConfirmation = false;
       </script>
+      <div wicket:id="modalConfirm"/>
+      <wicket:fragment wicket:id="confirmFragment">
+        <div class="padded centered">
+          <div wicket:id="confirmLabel" class="modal-text"/>
+          <div class="button-group selfclear button-center">
+            <a href="#" wicket:id="confirm">Continue</a>
+            <a href="#" wicket:id="cancel"><wicket:message key="cancel">Cancel</wicket:message></a>
+          </div>
+        </div>
+      </wicket:fragment>
+      <div wicket:id="modalWaiting"/>
+      <wicket:fragment wicket:id="waitingFragment">
+        <div class="padded centered">
+          <div class="modal-text">Indexing attributes</div>
+          <img wicket:id="loading"/>
+        </div>
+      </wicket:fragment>
       <fieldset>
         <legend>
           <span><wicket:message key="GeoMesaFeaturePage.form.title"/></span>
@@ -55,6 +82,10 @@
               </tr>
             </tbody>
           </table>
+          <div class="button-group selfclear">
+            <a href="#" wicket:id="save"><wicket:message key="save">Save</wicket:message></a>
+            <a href="#" wicket:id="cancel"><wicket:message key="cancel">Cancel</wicket:message></a>
+          </div>
         </form>
       </fieldset>
     </wicket:extend>

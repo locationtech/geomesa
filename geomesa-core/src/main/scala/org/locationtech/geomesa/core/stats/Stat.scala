@@ -31,7 +31,6 @@ import scala.util.Random
  * Base trait for all stat types
  */
 trait Stat {
-  def catalogTable: String
   def featureName: String
   def date: Long
 }
@@ -41,11 +40,9 @@ trait Stat {
  */
 trait StatTransform[S <: Stat] extends Logging {
 
-  protected def createMutation(stat: Stat) = new Mutation(StatTransform.dateFormat.print(stat.date))
+  protected def createMutation(stat: Stat) = new Mutation(s"${stat.featureName}~${StatTransform.dateFormat.print(stat.date)}")
 
   protected def createRandomColumnFamily = Random.nextInt(9999).formatted("%1$04d")
-
-  protected def getStatTableSuffix: String
 
   /**
    * Convert a stat to a mutation
@@ -62,16 +59,6 @@ trait StatTransform[S <: Stat] extends Logging {
    * @return
    */
   def rowToStat(entries: Iterable[Entry[Key, Value]]): S
-
-  /**
-   * Gets the table used for a particular stat
-   *
-   * @param catalogTable
-   * @param featureName
-   * @return
-   */
-  def getStatTable(catalogTable: String, featureName: String): String =
-    AccumuloDataStore.formatTableName(catalogTable, featureName, getStatTableSuffix)
 
   /**
    * Creates an iterator that returns Stats from accumulo scans

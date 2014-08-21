@@ -51,6 +51,7 @@ import scala.collection.JavaConversions._
   val ST_IDX_TABLE_CF      = new Text("tables.idx.st.name")
   val ATTR_IDX_TABLE_CF    = new Text("tables.idx.attr.name")
   val RECORD_TABLE_CF      = new Text("tables.record.name")
+  val QUERIES_TABLE_CF     = new Text("tables.queries.name")
   val METADATA_TAG         = "~METADATA"
   val METADATA_TAG_END     = s"$METADATA_TAG~~"
   val EMPTY_STRING         = ""

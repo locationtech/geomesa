@@ -771,7 +771,7 @@ class AccumuloDataStoreTest extends Specification {
       val scannerResults = getScannerResults(ds, sftName)
       scannerResults should beSome
 
-      ds.deleteSchema(sftName)
+      ds.removeSchema(sftName)
 
       //tables should be deleted now
       c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beFalse
@@ -788,7 +788,7 @@ class AccumuloDataStoreTest extends Specification {
       results.size() mustEqual 0
     }
 
-    "throw a RuntimeException when calling deleteSchema on 0.10.x records" in {
+    "throw a RuntimeException when calling removeSchema on 0.10.x records" in {
       val manualParams = Map(
         "instanceId" -> "mycloud",
         "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
@@ -802,7 +802,7 @@ class AccumuloDataStoreTest extends Specification {
       buildPreSecondaryIndexTable(manualParams, sftName)
 
       val manualStore = DataStoreFinder.getDataStore(manualParams).asInstanceOf[AccumuloDataStore]
-      manualStore.deleteSchema(sftName) should throwA[RuntimeException]
+      manualStore.removeSchema(sftName) should throwA[RuntimeException]
     }
 
     "keep other tables when a separate schema is deleted" in {
@@ -846,7 +846,7 @@ class AccumuloDataStoreTest extends Specification {
       scannerResults should beSome
       scannerResults2 should beSome
 
-      ds.deleteSchema(sftName)
+      ds.removeSchema(sftName)
 
       //these tables should be deleted now
       c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beFalse

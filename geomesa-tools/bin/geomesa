@@ -1,0 +1,48 @@
+#! /usr/bin/env bash
+#
+# Copyright 2014 Commonwealth Computer Research, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+ACCUMULO_CONF=${ACCUMULO_HOME}/conf
+HADOOP_CLASSPATH=${HADOOP_HOME}/conf
+CLASSPATH=${ACCUMULO_CONF}:${HADOOP_CLASSPATH}
+
+if  [[ $1 = configure ]]; then
+    SOURCE="${BASH_SOURCE[0]}"
+    while [ -h "${SOURCE}" ]; do # resolve $SOURCE until the file is no longer a symlink
+       bin="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
+       SOURCE="$(readlink "${SOURCE}")"
+       [[ "${SOURCE}" != /* ]] && SOURCE="${bin}/${SOURCE}" # if $SOURCE was a relative symlink, we
+                                                            # need to resolve it relative to the
+                                                            # path where the symlink file was located
+
+    done
+    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../../ && pwd )"
+    echo "Setting GEOMESA_HOME to "$bin""
+    export GEOMESA_HOME="$bin"
+    export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
+else
+    if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") ||  (-z "$HADOOP_HOME")  ]]; then
+        echo "Please ensure GEOMESA_HOME, ACCUMULO_HOME, and HADOOP_HOME are set before running geomesa-tools."
+    elif [[ $1 = ingest ]] && [[ (-z "$2") || ($2 = --help)  || ($2 = -help) || ($2 = help) ]]; then
+        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Ingest --help
+    elif [[ $1 = ingest ]]; then
+        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Ingest "${@:2}"
+    elif [ -n "$*" ]; then
+        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Tools "$@"
+    else
+        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Tools --help
+    fi
+fi

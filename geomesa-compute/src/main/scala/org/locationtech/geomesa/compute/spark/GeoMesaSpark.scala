@@ -33,7 +33,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.{DataStore, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AvroFeatureEncoder, FilterToAccumulo}
-import org.locationtech.geomesa.core.index.IndexSchema
+import org.locationtech.geomesa.core.index.{STIdxStrategy, IndexSchema}
 import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -58,12 +58,13 @@ object GeoMesaSpark {
     val spec = SimpleFeatureTypes.encodeType(sft)
 
     val indexSchema = IndexSchema(ds.getIndexSchemaFmt(typeName), sft, ds.getFeatureEncoder(typeName))
-    val planner = indexSchema.planner
+
 
     val filterVisitor = new FilterToAccumulo(sft)
     filterVisitor.visit(query)
+    val planner = new STIdxStrategy
 
-    val qp = planner.buildSTIdxQueryPlan(query, filterVisitor, org.locationtech.geomesa.core.index.ExplainPrintln)
+    val qp = planner.buildSTIdxQueryPlan(query, filterVisitor, indexSchema.planner, sft, org.locationtech.geomesa.core.index.ExplainPrintln)
 
     ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, ds.connector.whoami(), ds.authToken)
     ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat], conf, ds.connector.getInstance().getInstanceName, ds.connector.getInstance().getZooKeepers)
@@ -115,7 +116,7 @@ class KryoAvroSimpleFeatureBridge extends KryoRegistrator {
           val len = typeName.length
           out.writeInt(len, true)
           out.write(typeName.getBytes(StandardCharsets.UTF_8))
-          val bytes = encoder.encode(feature).get()
+          val bytes = encoder.encode(feature)
           out.writeInt(bytes.length, true)
           out.write(bytes)
         }

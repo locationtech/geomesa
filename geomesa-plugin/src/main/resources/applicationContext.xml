@@ -77,7 +77,7 @@
     <!-- The fully qualified name of the page class -->
     <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.GeoMesaDataStoresPage"/>
     <!-- Optional, an icon to display alongside the link. -->
-    <!--<property name="icon" value="img/icons/silk/server.png"/>-->
+    <property name="icon" value="../../../../../org/geoserver/web/img/icons/silk/server_chart.png"/>
     <!-- Optional, the category in which the link should be grouped. -->
     <property name="category" ref="geoMesaCategory"/>
     <!-- Optional, a key used to order the links in the menu. -->
@@ -90,7 +90,7 @@
     <property name="titleKey" value="GeoMesaConfigPage.link.title"/>
     <property name="descriptionKey" value="GeoMesaConfigPage.link.description"/>
     <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.GeoMesaConfigPage"/>
-    <!--<property name="icon" value="img/icons/silk/server.png"/>-->
+    <property name="icon" value="../../../../../org/geoserver/web/img/icons/silk/wrench.png"/>
     <property name="category" ref="geoMesaCategory"/>
     <property name="order" value="300"/>
   </bean>
@@ -101,20 +101,9 @@
     <property name="titleKey" value="HadoopStatusPage.link.title"/>
     <property name="descriptionKey" value="HadoopStatusPage.link.description"/>
     <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.HadoopStatusPage"/>
-    <!--<property name="icon" value="img/icons/silk/server.png"/>-->
+    <property name="icon" value="../../../../../org/geoserver/web/img/icons/silk/information.png"/>
     <property name="category" ref="geoMesaCategory"/>
     <property name="order" value="200"/>
-  </bean>
-
-  <!-- link for the geomesa action page -->
-  <bean id="geoMesaActionPageLink" class="org.geoserver.web.MenuPageInfo">
-    <property name="id" value="geoMesaActionPage"/>
-    <property name="titleKey" value="GeoMesaActionPage.link.title"/>
-    <property name="descriptionKey" value="GeoMesaActionPage.link.description"/>
-    <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.GeoMesaActionPage"/>
-    <!--<property name="icon" value="img/icons/silk/server.png"/>-->
-    <property name="category" ref="geoMesaCategory"/>
-    <property name="order" value="400"/>
   </bean>
 
 </beans>

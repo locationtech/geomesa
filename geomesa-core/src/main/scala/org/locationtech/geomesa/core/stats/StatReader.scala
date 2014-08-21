@@ -26,10 +26,10 @@ import org.apache.accumulo.core.security.Authorizations
  * Abstract class for querying stats
  *
  * @param connector
- * @param catalogTable
+ * @param statTableForFeatureName
  * @tparam S
  */
-abstract class StatReader[S <: Stat](connector: Connector, catalogTable: String) {
+abstract class StatReader[S <: Stat](connector: Connector, statTableForFeatureName: (String) => String) {
 
   protected def statTransform: StatTransform[S]
 
@@ -44,11 +44,11 @@ abstract class StatReader[S <: Stat](connector: Connector, catalogTable: String)
    * @return
    */
   def query(featureName: String, start: Date, end: Date, authorizations: Authorizations): Iterator[S] = {
-    val table = statTransform.getStatTable(catalogTable, featureName)
+    val table = statTableForFeatureName(featureName)
 
     val scanner = connector.createScanner(table, authorizations)
-    val rangeStart = StatTransform.dateFormat.print(start.getTime)
-    val rangeEnd = StatTransform.dateFormat.print(end.getTime)
+    val rangeStart = s"$featureName~${StatTransform.dateFormat.print(start.getTime)}"
+    val rangeEnd = s"$featureName~${StatTransform.dateFormat.print(end.getTime)}"
     scanner.setRange(new AccRange(rangeStart, rangeEnd))
 
     configureScanner(scanner)
@@ -68,10 +68,10 @@ abstract class StatReader[S <: Stat](connector: Connector, catalogTable: String)
  * Class for querying query stats
  *
  * @param connector
- * @param catalogTable
+ * @param statTableForFeatureName
  */
-class QueryStatReader(connector: Connector, catalogTable: String)
-    extends StatReader[QueryStat](connector, catalogTable) {
+class QueryStatReader(connector: Connector, statTableForFeatureName: String => String)
+    extends StatReader[QueryStat](connector, statTableForFeatureName) {
 
   override protected val statTransform = QueryStatTransform
 

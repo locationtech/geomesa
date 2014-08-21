@@ -33,7 +33,8 @@ class StatWriterTest extends Specification {
   val df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss")
 
   val catalogTable = "geomesa_catalog"
-  val featureName = "stat-writer-test"
+  val featureName = "stat_writer_test"
+  val statsTable = s"${catalogTable}_${featureName}_queries"
 
   val auths = new Authorizations()
 
@@ -44,37 +45,37 @@ class StatWriterTest extends Specification {
     val connector = c
   }
 
-  val statReader = new QueryStatReader(connector, catalogTable)
+  val statReader = new QueryStatReader(connector, (_: String) => statsTable)
 
   "StatWriter" should {
 
     "write query stats asynchronously" in {
       val writer = new MockWriter(connector) with StatWriter
 
-      writer.writeStat(QueryStat(catalogTable,
-                                  featureName,
-                                  df.parseMillis("2014.07.26 13:20:01"),
-                                  "query1",
-                                  "hint1=true",
-                                  101L,
-                                  201L,
-                                  11))
-      writer.writeStat(QueryStat(catalogTable,
-                                  featureName,
-                                  df.parseMillis("2014.07.26 14:20:01"),
-                                  "query2",
-                                  "hint2=true",
-                                  102L,
-                                  202L,
-                                  12))
-      writer.writeStat(QueryStat(catalogTable,
-                                  featureName,
-                                  df.parseMillis("2014.07.27 13:20:01"),
-                                  "query3",
-                                  "hint3=true",
-                                  102L,
-                                  202L,
-                                  12))
+      writer.writeStat(QueryStat(featureName,
+                                 df.parseMillis("2014.07.26 13:20:01"),
+                                 "query1",
+                                 "hint1=true",
+                                 101L,
+                                 201L,
+                                 11),
+                       statsTable)
+      writer.writeStat(QueryStat(featureName,
+                                 df.parseMillis("2014.07.26 14:20:01"),
+                                 "query2",
+                                 "hint2=true",
+                                 102L,
+                                 202L,
+                                 12),
+                       statsTable)
+      writer.writeStat(QueryStat(featureName,
+                                 df.parseMillis("2014.07.27 13:20:01"),
+                                 "query3",
+                                 "hint3=true",
+                                 102L,
+                                 202L,
+                                 12),
+                       statsTable)
 
       try {
         val unwritten = statReader.query(featureName, new Date(0), new Date(), auths).toList
