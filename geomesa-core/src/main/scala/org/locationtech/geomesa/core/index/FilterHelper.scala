@@ -16,15 +16,20 @@
 
 package org.locationtech.geomesa.core.index
 
+import java.util.Date
+
 import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Point, Polygon}
+import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.opengis.filter.{PropertyIsBetween, Filter}
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial._
+import org.opengis.filter.temporal.{During, Before, After}
+import org.opengis.temporal.Period
 
 import scala.collection.JavaConversions._
 
@@ -111,5 +116,36 @@ object FilterHelper {
           case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
         }
     }
+  }
+
+  // NB: This method assumes that the filters represent a collection of 'and'ed temporal filters.
+  def extractTemporal(filters: Seq[Filter]) = {
+    def extractInterval(filter: Filter): Interval = {
+      filter match {
+        case after: After =>
+          val end = after.getExpression2.evaluate(null, classOf[Date])
+          new Interval(new DateTime(end), IndexSchema.maxDateTime)
+        case before: Before =>
+          val start = before.getExpression2.evaluate(null, classOf[Date])
+          new Interval(IndexSchema.minDateTime, new DateTime(start))
+        case during: During =>
+          val p = during.getExpression2.evaluate(null, classOf[Period])
+          val start = p.getBeginning.getPosition.getDate
+          val end = p.getEnding.getPosition.getDate
+          new Interval(start.getTime, end.getTime)
+        case between: PropertyIsBetween =>
+          val start = between.getLowerBoundary.evaluate(null, classOf[Date])
+          val end = between.getUpperBoundary.evaluate(null, classOf[Date])
+          new Interval(start.getTime, end.getTime)
+        case a: Any => throw new Exception(s"Expected temporal filters.  Processing an $a from $filters.")
+      }
+    }
+
+    filters.map(extractInterval).fold(IndexSchema.everywhen)( _.overlap(_))
+  }
+
+  def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = filters match {
+    case Nil => None
+    case _ => Some(ff.and(filters))
   }
 }

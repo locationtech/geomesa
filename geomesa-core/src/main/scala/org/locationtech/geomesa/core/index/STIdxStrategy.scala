@@ -27,7 +27,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
-import org.locationtech.geomesa.core.data.{SimpleFeatureEncoder, FilterToAccumulo, AccumuloConnectorCreator}
+import org.locationtech.geomesa.core.data.{SimpleFeatureEncoder, AccumuloConnectorCreator}
 import org.locationtech.geomesa.core.DEFAULT_SCHEMA_NAME
 import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
 import org.locationtech.geomesa.core.iterators._
@@ -47,10 +47,9 @@ class STIdxStrategy extends Strategy with Logging {
               iqp: QueryPlanner,
               featureType: SimpleFeatureType,
               query: Query,
-              filterVisitor: FilterToAccumulo,
               output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     val bs = acc.createSTIdxScanner(featureType)
-    val qp = buildSTIdxQueryPlan(query, filterVisitor, iqp, featureType, output)
+    val qp = buildSTIdxQueryPlan(query, iqp, featureType, output)
     configureBatchScanner(bs, qp)
     // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
     //  we wrap our calls in a SelfClosingBatchScanner.
@@ -58,7 +57,6 @@ class STIdxStrategy extends Strategy with Logging {
   }
 
   def buildSTIdxQueryPlan(query: Query,
-                          filterVisitor: FilterToAccumulo,
                           iqp: QueryPlanner,
                           featureType: SimpleFeatureType,
                           output: ExplainerOutputType) = {
@@ -69,13 +67,11 @@ class STIdxStrategy extends Strategy with Logging {
 
     output(s"Scanning ST index table for feature type ${featureType.getTypeName}")
 
-    val temporal = filterVisitor.temporalPredicate
-
     // TODO: Select only the geometry filters which involve the indexed geometry type.
     // https://geomesa.atlassian.net/browse/GEOMESA-200
     // Simiarly, we should only extract temporal filters for the index date field.
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
-    val (temporalFilters, ecqlFilters: Seq[Filter]) = partitionTemporal(otherFilters)
+    val (temporalFilters, ecqlFilters: Seq[Filter]) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
 
     val tweakedEcqlFilters = ecqlFilters.map(updateTopologicalFilters(_, featureType))
 
@@ -102,6 +98,7 @@ class STIdxStrategy extends Strategy with Logging {
       case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
     }
 
+    val temporal = extractTemporal(temporalFilters)
     val interval = netInterval(temporal)
     val geometryToCover = netGeom(collectionToCover)
     val filter = buildFilter(geometryToCover, interval)

@@ -21,7 +21,8 @@ object TestFilters {
       "(INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) AND attr17 = val17)",
       "(INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))))",
       "(INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND attr81 = val81)",
-      "(attr15 = val15 AND INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))))"
+      "(attr15 = val15 AND INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))))",
+      "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
     )
 
   val oneLevelOrFilters: Seq[Filter] =
@@ -150,6 +151,11 @@ object TestFilters {
 
   val temporalPredicates = Seq(
   "(not dtg after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)",
-  "(dtg between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')"
+  "(dtg between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')",
+  "dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
+  )
+
+  val spatioTemporalPredicates = Seq(
+    "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
   )
 }

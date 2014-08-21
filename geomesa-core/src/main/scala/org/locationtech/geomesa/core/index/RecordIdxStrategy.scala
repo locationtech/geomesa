@@ -20,7 +20,7 @@ import java.util.Map.Entry
 
 import org.apache.accumulo.core.data.{Value, Key}
 import org.geotools.data.Query
-import org.locationtech.geomesa.core.data.{FilterToAccumulo, AccumuloConnectorCreator}
+import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Id
@@ -33,7 +33,6 @@ class RecordIdxStrategy extends Strategy {
                        iqp: QueryPlanner,
                        featureType: SimpleFeatureType,
                        query: Query,
-                       filterVisitor: FilterToAccumulo,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     output(s"Searching the record table with filter ${query.getFilter}")
     val idFilter = query.getFilter.asInstanceOf[Id]
