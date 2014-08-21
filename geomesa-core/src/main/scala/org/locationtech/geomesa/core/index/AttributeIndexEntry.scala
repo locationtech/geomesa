@@ -95,7 +95,7 @@ object AttributeIndexEntry extends Logging {
   private val dateFormat = ISODateTimeFormat.dateTime();
   private val simpleEncoders = SimpleTypeEncoders.SIMPLE_TYPES.getAllEncoders.asScala
 
-  private type tryEncoder = Try[(TypeEncoder[Any, String], TypeEncoder[_, String])]
+  private type TryEncoder = Try[(TypeEncoder[Any, String], TypeEncoder[_, String])]
 
   /**
    * Tries to convert a value from one class to another. When querying attributes, the query
@@ -116,13 +116,12 @@ object AttributeIndexEntry extends Logging {
       } else {
         // cheap way to convert between basic classes (string, int, double, etc) - encode the value
         // to a string and then decode to the desired class
-        val encoder = simpleEncoders.find(_.resolves().equals(current)).map(_.asInstanceOf[TypeEncoder[Any, String]])
-        val decoder = simpleEncoders.find(_.resolves().equals(desired))
-        val encoderDecoder = encoder.flatMap(e => decoder.map((encoder.get, _)))
-        val failureToGetCoders = new RuntimeException("No matching encoder/decoder")
-        // convert the option to a try so we can flatmap the coding
-        val encoderDecoderAsTry = encoderDecoder.fold[tryEncoder](Failure(failureToGetCoders))(Success(_))
-        encoderDecoderAsTry.flatMap { case (e, d) => Try(d.decode(e.encode(value))) }
+        val encoderOpt = simpleEncoders.find(_.resolves().equals(current)).map(_.asInstanceOf[TypeEncoder[Any, String]])
+        val decoderOpt = simpleEncoders.find(_.resolves().equals(desired))
+        (encoderOpt, decoderOpt) match {
+          case (Some(e), Some(d)) => Try(d.decode(e.encode(value)))
+          case _ => Failure(new RuntimeException("No matching encoder/decoder"))
+        }
       }
 
     result match {

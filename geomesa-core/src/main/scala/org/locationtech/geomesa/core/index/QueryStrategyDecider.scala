@@ -36,12 +36,17 @@ object QueryStrategyDecider {
     val filter = query.getFilter
     val isDensity = query.getHints.containsKey(BBOX_KEY)
 
-    // If we have attr index, try it
-    val attributeStrategy = if (isDensity) None else getAttributeIndexStrategy(filter, sft)
-    attributeStrategy.getOrElse {
-      filter match {
-        case idFilter: Id => new RecordIdxStrategy
-        case cql          => new STIdxStrategy
+    if (isDensity) {
+      // TODO GEOMESA-322 use other strategies with density iterator
+      new STIdxStrategy
+    } else {
+      // check if we can use the attribute index first
+      val attributeStrategy = getAttributeIndexStrategy(filter, sft)
+      attributeStrategy.getOrElse {
+        filter match {
+          case idFilter: Id => new RecordIdxStrategy
+          case cql          => new STIdxStrategy
+        }
       }
     }
   }
@@ -77,7 +82,7 @@ object QueryStrategyDecider {
       case filter: PropertyIsLike =>
         val prop = filter.getExpression.asInstanceOf[PropertyName].getPropertyName
         val indexed = sft.getDescriptor(prop).isIndexed
-        PartialFunction.condOpt(indexed) { case _ if indexed => new AttributeIdxLikeStrategy }
+        if (indexed) Some(new AttributeIdxLikeStrategy) else None
       case _ => None
     }
 
