@@ -33,5 +33,7 @@ class ProcessFactory
     classOf[ProximitySearchProcess],
     classOf[QueryProcess],
     classOf[RouteRankProcess],
-    classOf[TrackRankProcess])
+    classOf[TrackRankProcess],
+    classOf[DBSCANProcess]
+  )
 

@@ -16,18 +16,42 @@
 
 <html xmlns:wicket="http://wicket.apache.org/">
 <body>
-<wicket:panel>
+  <wicket:panel>
+    <style>
+      .collapsible-panel {
+        padding-top: 12px;
+      }
+      .collapsible-panel legend span {
+        cursor: pointer;
+      }
+    </style>
+    <script type="text/javascript">
+      function toggle() {
+        $('.collapsible-panel img').toggle();
+        $('#content').slideToggle();
+      }
+    </script>
     <fieldset>
-        <legend><span><wicket:message key="connectionParameters">Connection Parameters
-        </wicket:message></span></legend>
-        <div><span wicket:id="instanceId"></span></div>
-        <div><span wicket:id="zookeepers"></span></div>
-        <div><span wicket:id="user"></span></div>
-        <div><span wicket:id="password"></span></div>
-        <div><span wicket:id="tableName"></span></div>
-        <div><span wicket:id="auths"></span></div>
-        <div><span wicket:id="visibilities"></span></div>
+      <legend><span><wicket:message key="connectionParameters">Connection Parameters</wicket:message></span></legend>
+      <div><span wicket:id="instanceId"></span></div>
+      <div><span wicket:id="zookeepers"></span></div>
+      <div><span wicket:id="user"></span></div>
+      <div><span wicket:id="password"></span></div>
+      <div><span wicket:id="tableName"></span></div>
     </fieldset>
-</wicket:panel>
+    <div class="collapsible-panel">
+      <fieldset>
+        <legend><span onclick="toggle();">Advanced Options<img wicket:id="toggleOpen" style="display:none;" id="open"/><img wicket:id="toggleClosed"/></span></legend>
+        <div id="content" style="display:none;">
+          <div><span wicket:id="auths"></span></div>
+          <div><span wicket:id="visibilities"></span></div>
+          <div><span wicket:id="collectStats"></span></div>
+          <div><span wicket:id="writeThreads"></span></div>
+          <div><span wicket:id="queryThreads"></span></div>
+          <div><span wicket:id="recordThreads"></span></div>
+        </div>
+      </fieldset>
+    </div>
+  </wicket:panel>
 </body>
 </html>
