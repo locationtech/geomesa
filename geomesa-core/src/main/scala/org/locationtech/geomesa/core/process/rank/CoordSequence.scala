@@ -60,9 +60,10 @@ class CoordWithDateTime(val c: Coordinate, val dt: DateTime, maxSpeed: Double = 
   }
 }
 
+// these defaults are reasonably appropriate for airplanes
 object CoordWithDateTime {
-  val defaultMaxTurnRate = 10.0 // degrees per second
-  val defaultMaxSpeed = 1000.0 // meters per second, about what an airplane might fly
+  val defaultMaxTurnRate = 10.0 // units are degrees per second
+  val defaultMaxSpeed = 1000.0 // units are meters per second
 }
 
 case class SpeedStatistics(max: Double, min: Double, avg: Double, stddev: Double)
