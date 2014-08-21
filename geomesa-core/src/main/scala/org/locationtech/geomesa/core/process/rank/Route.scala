@@ -119,18 +119,19 @@ class Route(val route: LineString) {
    * @param coordinateDistance distance in degrees
    * @param metricDistance distance in meters
    */
-  case class RouteDistances(coordinateDistance: Double, metricDistance: Double)
+  case class RouteDistances(coordinateDistance: Double, metricDistance: Double) {
+    def increment(coordDelta: Double, metricDelta: Double): RouteDistances =
+      RouteDistances(coordinateDistance + coordDelta, metricDistance + metricDelta)
+  }
 
   def distance: RouteDistances = {
-    val routeCoords = route.getCoordinates.toList
-    val first = routeCoords.slice(0, routeCoords.length - 1)
-    val routeCoordPairs = first.zip(routeCoords.tail)
-    val routeDistances = routeCoordPairs.map { case(scc, ecc) =>
-      val coordDist = math.sqrt((ecc.x - scc.x) * (ecc.x - scc.x) + (ecc.y - scc.y) * (ecc.y - scc.y))
-      val orthoDist = JTS.orthodromicDistance(scc, ecc, DefaultGeographicCRS.WGS84)
-      (coordDist, orthoDist)
-    }
-    RouteDistances(routeDistances.map(_._1).sum, routeDistances.map(_._2).sum)
+    route.getCoordinates.toList
+      .sliding(2, 1)
+      .foldLeft(RouteDistances(0.0, 0.0)) { case (sums, (scc, ecc)) =>
+        val coordDist = math.sqrt((ecc.x - scc.x) * (ecc.x - scc.x) + (ecc.y - scc.y) * (ecc.y - scc.y))
+        val orthoDist = JTS.orthodromicDistance(scc, ecc, DefaultGeographicCRS.WGS84)
+        sums.increment(coordDist, orthoDist)
+      }
   }
 
   /**
