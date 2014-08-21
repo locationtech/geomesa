@@ -83,8 +83,7 @@ object KNNQuery {
         // apply filter to ghPQ if we've found k neighbors
         if (sfPQ.isFull) sfPQ.maxDistance.foreach { x => ghPQ.mutateFilterDistance(x)}
         lazy val subQueryInfo = s"${newGH.hash}, ${sfPQ.maxDistance.getOrElse(0.0)}, ${sfPQ.size}"
-        // commented out to prevent excessive output during unit tests
-        //log.debug (s"KNN Status: Completed subQuery: (hash,distance, PQ size) = $subQueryInfo ")
+        log.trace (s"KNN Status: Completed subQuery: (hash,distance, PQ size) = $subQueryInfo ")
         // iterate after trimming sfPQ to the best K
         runKNNQuery(source, query, ghPQ, sfPQ.getKNN)
     }
