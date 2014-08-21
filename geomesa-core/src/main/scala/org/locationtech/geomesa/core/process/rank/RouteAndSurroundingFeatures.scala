@@ -160,6 +160,19 @@ class RouteAndSurroundingFeatures(val route: Route,
     })).toMap
   }
 
+  def hasDateTimeInSpec(sf: SimpleFeatureWithDateTimeAndKey, collection: SimpleFeatureWithDateTimeAndKeyCollection) =
+    sf.dateTime(collection.spec).isDefined
+
+  def hasDateTimeInBoxSpec(sf: SimpleFeatureWithDateTimeAndKey) =
+    hasDateTimeInSpec(sf, boxFeatures)
+
+  // unchecked get, use with caution
+  def dateTimeInSpec(sf: SimpleFeatureWithDateTimeAndKey, collection: SimpleFeatureWithDateTimeAndKeyCollection) =
+    sf.dateTime(collection.spec).get
+
+  def dateTimeInBoxSpec(sf: SimpleFeatureWithDateTimeAndKey) =
+    dateTimeInSpec(sf, boxFeatures)
+
   /**
    * This computes evidence of motion for a single ID / entity. First, it groups all observations into potential
    * tracklets based on time and location. Then it calculates motion scores for each tracklet. Then it aggregates all
@@ -175,7 +188,7 @@ class RouteAndSurroundingFeatures(val route: Route,
     val placeTimes =
       boxFeatures
         .collect {
-          case sf if sf.dateTime.isDefined => new CoordWithDateTime(sf.centroidCoordinate, sf.dateTime.get)
+          case sf if hasDateTimeInBoxSpec(sf) => new CoordWithDateTime(sf.centroidCoordinate, dateTimeInBoxSpec(sf))
         }
         .toList
         .sortBy(_.dt.getMillis)

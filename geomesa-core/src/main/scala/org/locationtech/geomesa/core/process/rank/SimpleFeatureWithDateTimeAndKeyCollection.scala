@@ -68,7 +68,7 @@ object SimpleFeatureCollectionExt {
 class SimpleFeatureWithDateTimeAndKeyCollection(override val sfc: SimpleFeatureCollection, val spec: SfSpec)
   extends SimpleFeatureCollectionExt(sfc) {
 
-  def groupByKey = sfc.features().toIterable.map(new SimpleFeatureWithDateTimeAndKey(_, spec)).
+  def groupByKey = sfc.features().toIterable.map(new SimpleFeatureWithDateTimeAndKey(_)).
     groupBy { sf => sf.getAttribute(spec.keyAttr).toString }
 
   def countKeys = countAttribute(spec.keyAttr)
@@ -99,8 +99,8 @@ class SimpleFeatureWithDateTimeAndKeyCollection(override val sfc: SimpleFeatureC
 case class SfSpec(keyAttr: String, timeAttr: String, dateTimeFormat: DateTimeFormatter =
   DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))
 
-class SimpleFeatureWithDateTimeAndKey(val sf: SimpleFeature, val spec: SfSpec) {
-  def dateTime: Option[DateTime] = {
+class SimpleFeatureWithDateTimeAndKey(val sf: SimpleFeature) {
+  def dateTime(spec: SfSpec): Option[DateTime] = {
     sf.getAttribute(spec.timeAttr) match {
       case s: String => Try(spec.dateTimeFormat.parseDateTime(s)).toOption
       case d: Date => Some(new DateTime(d))
