@@ -42,7 +42,7 @@ class Ingest() extends Logging with AccumuloProperties {
       case "CSV" | "TSV" =>
         config.method.toLowerCase match {
           case "local" =>
-            logger.info("Ingest has started, please wait.")
+            logger.info("Local Ingest has started, please wait.")
             runIngestJob(config, "--local", password)
           case "mr" =>
             logger.info("Map-reduced Ingest has started, please wait.")
@@ -61,37 +61,38 @@ class Ingest() extends Logging with AccumuloProperties {
   }
 
   def runIngestJob(config: IngestArguments, fileSystem: String, password: String): Unit = {
-    //val libJars = JobUtils.getJarsFromClasspath(classOf[SVIngest]).mkString(",")
-    val libJars = JobUtils.defaultLibJars.mkString(",")
+    val libJars = JobUtils.getJarsFromClasspath(classOf[SVIngest]).mkString(",")
+    //val libJars = JobUtils.defaultLibJars.mkString(",")
+    logger.info(libJars)
     val jobConf = new JobConf
     // jobConf.setJobName(s"Ingest Job by user: $config.username")
     // not sure about this part
     jobConf.setSpeculativeExecution(false)
-    ToolRunner.run(
-      jobConf, new Tool,
+    ToolRunner.run( jobConf, new Tool,
       Array(
-        "-libjars", libJars,
         classOf[SVIngest].getCanonicalName,
         fileSystem,
-        "--idFields",           config.idFields.orNull,
-        "--file",               config.file.toString,
+        "-libjars", libJars,
+        "--idFields",           config.idFields.getOrElse(""),
+        "--path",               config.file.toString,
         "--sftspec",            URLEncoder.encode(config.spec, "UTF-8"),
-        "--dtField",            config.dtField.orNull,
-        "--lonAttribute",       config.lonAttribute.orNull,
-        "--latAttribute",       config.latAttribute.orNull,
+        "--dtField",            config.dtField.getOrElse(""),
+        "--dtFormat",           config.dtFormat,
+        "--lonAttribute",       config.lonAttribute.getOrElse(""),
+        "--latAttribute",       config.latAttribute.getOrElse(""),
         "--skipHeader",         config.skipHeader.toString,
         "--doHash",             config.doHash.toString,
-        "--format",             config.format.orNull,
+        "--format",             config.format.getOrElse(""),
         "--catalog",            config.catalog,
         "--instanceId",         instanceName,
-        "--featureName",        config.featureName.orNull,
+        "--featureName",        config.featureName.getOrElse(""),
         "--zookeepers",         zookeepers,
         "--user",               config.username,
         "--password",           password,
-        "--auths",              config.auths.orNull,
-        "--visibilities",       config.visibilities.orNull,
-        "--indexSchemaFmt",     config.indexSchemaFormat.orNull,
-        "--shards",             config.maxShards.orNull.toString )
+        "--auths",              config.auths.getOrElse(""),
+        "--visibilities",       config.visibilities.getOrElse(""),
+        "--indexSchemaFmt",     config.indexSchemaFormat.getOrElse(""))//,
+       // "--shards",             config.maxShards.orNull.toString )
       )
   }
 
@@ -178,7 +179,7 @@ object Ingest extends App with Logging with GetPassword {
   }
   catch {
     case npe: NullPointerException => logger.error("Missing options and or unknown arguments on ingest." +
-                                                   "\n\t See 'geomesa ingest --help'")
+                                                   "\n\t See 'geomesa ingest --help'", npe)
   }
 
   def getFileExtension(file: String) = file.toLowerCase match {

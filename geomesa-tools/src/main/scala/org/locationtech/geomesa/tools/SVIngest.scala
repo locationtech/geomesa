@@ -46,14 +46,14 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   var successes             = 0
 
   lazy val idFields         = args.optional("idFields").orNull
-  lazy val path             = args("file")
+  lazy val path             = args("path")
   lazy val sftSpec          = URLDecoder.decode(args("sftspec"), "UTF-8")
   lazy val dtgField         = args.optional("dtField").orNull
   lazy val dtgFmt           = args("dtFormat")
   lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
   lazy val lonField         = args.optional("lonAttribute").orNull
   lazy val latField         = args.optional("latAttribute").orNull
-  lazy val skipHeader       = args("skipHeader")
+  lazy val skipHeader       = args("skipHeader").toBoolean
   lazy val doHash           = args("doHash").toBoolean
   lazy val format           = args.optional("format").orNull
 
@@ -85,16 +85,20 @@ class SVIngest(args: Args) extends Job(args) with Logging {
       "useMock"       -> useMock
     )
 
-  val maxShard: Option[Int] = Some(shards.toInt)
+  val maxShard: Option[Int] = shards match {
+    case s: String => Some(s.toInt)
+    case _         => None
+  }
 
-  lazy val dropHeader = skipHeader match {
+  val dropHeader = skipHeader match {
     case true => 1
     case _    => 0
   }
 
-  val delim = format.toUpperCase match {
-    case "TSV" => CSVFormat.TDF
-    case "CSV" => CSVFormat.DEFAULT
+  val delim = format match {
+    case s: String if s.toUpperCase == "TSV" => CSVFormat.TDF
+    case s: String if s.toUpperCase == "CSV" => CSVFormat.DEFAULT
+    case _                       => throw new Exception("Error, no format set and/or unrecognized format provided")
   }
 
   val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
