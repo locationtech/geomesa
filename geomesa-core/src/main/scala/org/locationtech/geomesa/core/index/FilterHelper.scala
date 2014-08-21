@@ -16,15 +16,20 @@
 
 package org.locationtech.geomesa.core.index
 
+import java.util.Date
+
 import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Point, Polygon}
+import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.opengis.filter.{PropertyIsBetween, Filter}
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial._
+import org.opengis.filter.temporal.{During, Before, After}
+import org.opengis.temporal.Period
 
 import scala.collection.JavaConversions._
 
@@ -90,26 +95,66 @@ object FilterHelper {
   // Rewrites a Dwithin (assumed to express distance in meters) in degrees.
   def rewriteDwithin(op: DWithin): Filter = {
     val e2 = op.getExpression2.asInstanceOf[Literal]
-    val startPoint = e2.evaluate(null, classOf[Point])
-    val distance = op.getDistance
-    val distanceDegrees = GeometryUtils.distanceDegrees(startPoint, distance)
+    val geom = e2.getValue.asInstanceOf[Geometry]
+    val distanceDegrees = GeometryUtils.distanceDegrees(geom, op.getDistance)
 
     // NB: The ECQL spec doesn't allow for us to put the measurement in "degrees",
     //  but that's how this filter will be used.
     ff.dwithin(
       op.getExpression1,
-      ff.literal(startPoint),
+      op.getExpression2,
       distanceDegrees,
       "meters")
   }
 
-  def extractGeometry(bso: BinarySpatialOperator) = {
-    bso.getExpression1.evaluate(null, classOf[Geometry]) match {
-      case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
-      case _           =>
-        bso.getExpression2.evaluate(null, classOf[Geometry]) match {
+  def extractGeometry(bso: BinarySpatialOperator): Seq[Geometry] = {
+    bso match {
+      // The Dwithin has already between rewritten.
+      case dwithin: DWithin =>
+        val e2 = dwithin.getExpression2.asInstanceOf[Literal]
+        val geom = e2.getValue.asInstanceOf[Geometry]
+        val buffer = dwithin.getDistance
+        val bufferedGeom = geom.buffer(buffer)
+        Seq(GeohashUtils.getInternationalDateLineSafeGeometry(bufferedGeom))
+      case bs =>
+        bs.getExpression1.evaluate(null, classOf[Geometry]) match {
           case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
+          case _           =>
+            bso.getExpression2.evaluate(null, classOf[Geometry]) match {
+              case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
+            }
         }
     }
+  }
+
+  // NB: This method assumes that the filters represent a collection of 'and'ed temporal filters.
+  def extractTemporal(filters: Seq[Filter]) = {
+    def extractInterval(filter: Filter): Interval = {
+      filter match {
+        case after: After =>
+          val end = after.getExpression2.evaluate(null, classOf[Date])
+          new Interval(new DateTime(end), IndexSchema.maxDateTime)
+        case before: Before =>
+          val start = before.getExpression2.evaluate(null, classOf[Date])
+          new Interval(IndexSchema.minDateTime, new DateTime(start))
+        case during: During =>
+          val p = during.getExpression2.evaluate(null, classOf[Period])
+          val start = p.getBeginning.getPosition.getDate
+          val end = p.getEnding.getPosition.getDate
+          new Interval(start.getTime, end.getTime)
+        case between: PropertyIsBetween =>
+          val start = between.getLowerBoundary.evaluate(null, classOf[Date])
+          val end = between.getUpperBoundary.evaluate(null, classOf[Date])
+          new Interval(start.getTime, end.getTime)
+        case a: Any => throw new Exception(s"Expected temporal filters.  Processing an $a from $filters.")
+      }
+    }
+
+    filters.map(extractInterval).fold(IndexSchema.everywhen)( _.overlap(_))
+  }
+
+  def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = filters match {
+    case Nil => None
+    case _ => Some(ff.and(filters))
   }
 }

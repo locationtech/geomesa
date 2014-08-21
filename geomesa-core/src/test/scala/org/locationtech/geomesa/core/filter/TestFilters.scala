@@ -3,6 +3,8 @@ package org.locationtech.geomesa.core.filter
 import org.locationtech.geomesa.core.filter.FilterUtils._
 import org.opengis.filter._
 
+import scala.collection.immutable.IndexedSeq
+
 object TestFilters {
 
   val baseFilters: Seq[Filter] =
@@ -21,7 +23,8 @@ object TestFilters {
       "(INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) AND attr17 = val17)",
       "(INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))))",
       "(INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND attr81 = val81)",
-      "(attr15 = val15 AND INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))))"
+      "(attr15 = val15 AND INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))))",
+      "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
     )
 
   val oneLevelOrFilters: Seq[Filter] =
@@ -150,6 +153,24 @@ object TestFilters {
 
   val temporalPredicates = Seq(
   "(not dtg after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)",
-  "(dtg between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')"
+  "(dtg between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')",
+  "dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
   )
+
+  val spatioTemporalPredicates = Seq(
+    "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
+  )
+
+  val dwithinPolys = for(i <- 1 until 50000 by 10000) yield {s"DWITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)), $i.0, meters)"}
+  val dwithinLinestrings = for(i <- 1 until 50000 by 10000) yield {s"DWITHIN(geom, LINESTRING (45 23, 48 27), $i.0, meters)"}
+
+  val dwithinPointPredicates = Seq(
+    "DWITHIN(geom, POINT (45 23), 1.0, meters)",
+    "DWITHIN(geom, POINT (45 23), 10000.0, meters)",
+    "DWITHIN(geom, POINT (45 23), 50000.0, meters)",
+    "DWITHIN(geom, LINESTRING (45 23, 48 27), 1000.0, meters)",
+    "DWITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)), 1000.0, meters)"
+  ) ++ dwithinPolys ++ dwithinLinestrings
+
+
 }

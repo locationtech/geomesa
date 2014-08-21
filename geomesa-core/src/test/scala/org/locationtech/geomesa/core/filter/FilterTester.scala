@@ -19,6 +19,7 @@ import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
+import org.opengis.filter.spatial.DWithin
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.Fragments
@@ -52,6 +53,12 @@ class BasicTemporalPredicateTest extends FilterTester {
 }
 
 @RunWith(classOf[JUnitRunner])
+class BasicSpatioTemporalPredicateTest extends FilterTester {
+  val filters = spatioTemporalPredicates
+  runTest
+}
+
+@RunWith(classOf[JUnitRunner])
 class AttributePredicateTest extends FilterTester {
   val filters = attributePredicates
   runTest
@@ -60,6 +67,12 @@ class AttributePredicateTest extends FilterTester {
 @RunWith(classOf[JUnitRunner])
 class AttributeGeoPredicateTest extends FilterTester {
   val filters = attributeAndGeometricPredicates
+  runTest
+}
+
+@RunWith(classOf[JUnitRunner])
+class DWithinPredicateTest extends DWithinTester {
+  val filters = dwithinPointPredicates
   runTest
 }
 
@@ -162,7 +175,6 @@ object FilterTester extends AccumuloDataStoreTest with Logging {
 
 }
 
-
 trait FilterTester extends Specification with Logging {
   import org.locationtech.geomesa.core.filter.FilterTester._
   lazy val fs = getFeatureStore
@@ -177,6 +189,39 @@ trait FilterTester extends Specification with Logging {
         val filterCount = mediumDataFeatures.count(filter.evaluate)
         val queryCount = fs.getFeatures(filter).size
         
+        logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
+          s"filter hits: $filterCount query hits: $queryCount")
+        filterCount mustEqual queryCount
+      }
+    }
+  }
+
+  import org.locationtech.geomesa.core.filter.FilterUtils._
+  def runTest = filters.map {s => compareFilter(s) }
+}
+
+trait DWithinTester extends Specification with Logging {
+  import org.locationtech.geomesa.core.filter.FilterTester._
+  lazy val fs = getFeatureStore
+
+  def filters: Seq[String]
+
+  def compareFilter(filter: Filter): Fragments = {
+    logger.debug(s"Filter: ${ECQL.toCQL(filter)}")
+
+    s"The filter $filter" should {
+      "return the same number of results from filtering and querying" in {
+        import org.locationtech.geomesa.core.index.FilterHelper._
+
+        val rewrittenDwithinFilter = filter match {
+          case op: DWithin => rewriteDwithin(op)
+          case _ => filter
+        }
+
+        val filterCount = mediumDataFeatures.count(rewrittenDwithinFilter.evaluate)
+        val queryCount = fs.getFeatures(filter).size
+
+        logger.debug(s"Rewritten dwithin filter is $rewrittenDwithinFilter")
         logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
           s"filter hits: $filterCount query hits: $queryCount")
         filterCount mustEqual queryCount
