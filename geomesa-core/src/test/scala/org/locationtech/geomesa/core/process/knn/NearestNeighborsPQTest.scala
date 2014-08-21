@@ -99,46 +99,105 @@ class NearestNeighborsPQTest extends Specification {
   "Geomesa NearestNeighbor PriorityQueue" should {
     "find things close by the equator" in {
       val equatorPQ = NearestNeighbors(equatorSF, 10)
-      equatorPQ ++= diagonalFeatureCollection.features.map {
+
+      val sfWDC = diagonalFeatureCollection.features.map {
         sf=> SimpleFeatureWithDistance(sf,equatorPQ.distance(sf))
-      }
-      equatorPQ.head.sf.getID must equalTo("0")
+      }.toList
+
+      equatorPQ.add(sfWDC)
+
+      equatorPQ.getK.head.sf.getID must equalTo("0")
     }
 
     "find things close by Southwest Russia" in {
       val midpointPQ = NearestNeighbors(midpointSF, 10)
-      midpointPQ ++= diagonalFeatureCollection.features.map {
-        sf=> SimpleFeatureWithDistance(sf,midpointPQ.distance(sf))
-      }
 
-      midpointPQ.head.sf.getID must equalTo("45")
+      val sfWDC = diagonalFeatureCollection.features.map {
+        sf=> SimpleFeatureWithDistance(sf,midpointPQ.distance(sf))
+      }.toList
+
+      midpointPQ.add(sfWDC)
+
+      midpointPQ.getK.head.sf.getID must equalTo("45")
     }
 
     "find things close by the North Pole" in {
       val polarPQ = NearestNeighbors(polarSF, 10)
-      polarPQ ++= diagonalFeatureCollection.features.map{
-        sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
-      }
 
-      polarPQ.head.sf.getID must equalTo("90")
+      val sfWDC =  diagonalFeatureCollection.features.map{
+        sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
+      }.toList
+
+      polarPQ.add(sfWDC)
+
+      polarPQ.getK.head.sf.getID must equalTo("90")
     }
 
     "find things in the north polar region" in {
       val polarPQ = NearestNeighbors(polarSF, 10)
-      polarPQ ++= polarFeatureCollection.features.map {
-        sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
-      }
 
-      polarPQ.head.sf.getID must equalTo("90")
+      val sfWDC = polarFeatureCollection.features.map {
+        sf=> SimpleFeatureWithDistance(sf,polarPQ.distance(sf))
+      }.toList
+
+      polarPQ.add(sfWDC)
+
+      polarPQ.getK.head.sf.getID must equalTo("90")
     }
 
     "find more things near the north polar region" in {
       val polarPQ = NearestNeighbors(polarSF2, 10)
-      polarPQ ++= polarFeatureCollection.features.map {
-        sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
-      }
 
-      polarPQ.head.sf.getID must equalTo("0")
+      val sfWDC = polarFeatureCollection.features.map {
+        sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
+      }.toList
+
+      polarPQ.add(sfWDC)
+
+      polarPQ.getK.head.sf.getID must equalTo("0")
+    }
+
+    "ignore extra features that are too far away" in {
+      val polarPQ = NearestNeighbors(polarSF2, 10)
+
+      val polarSFWDC = polarFeatureCollection.features.map {
+        sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
+      }.toList
+
+      val dSFWDC = diagonalFeatureCollection.features.map {
+        sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
+      }.toList
+
+      polarPQ.add(polarSFWDC)
+      polarPQ.add(dSFWDC)
+
+      polarPQ.getK.head.sf.getID must equalTo("0")
+    }
+
+    "should produce the same results as its clone" in {
+
+      val polarPQ = NearestNeighbors(polarSF2, 10)
+
+      val sfWDC = polarFeatureCollection.features.map {
+        sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
+      }.toList
+
+      polarPQ.add(sfWDC)
+
+      val clonePQ = polarPQ.clone()
+      polarPQ.getK.map{_.sf.getID} must equalTo(clonePQ.getK.map{_.sf.getID})
+    }
+
+    "should produce the same results as getKNN" in {
+      val polarPQ = NearestNeighbors(polarSF2, 10)
+
+      val sfWDC = polarFeatureCollection.features.map {
+        sf => SimpleFeatureWithDistance(sf, polarPQ.distance(sf))
+      }.toList
+
+      polarPQ.add(sfWDC)
+
+      polarPQ.getK.map{_.sf.getID} must equalTo(polarPQ.getKNN.getK.map{_.sf.getID})
     }
 
     "thrown an exception when given non-point geometries" in {

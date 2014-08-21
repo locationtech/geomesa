@@ -209,7 +209,7 @@ class KNearestNeighborSearchProcessTest extends Specification {
       val knnResults =
         KNNQuery.runNewKNNQuery(fs, wideQuery, 20, 50.0, 2500.0, queryFeature("madison", 38.036871, -78.502720))
       // return the ordered neighbors and extract the SimpleFeatures
-      val knnFeatures = knnResults.dequeueAll.map { _.sf }
+      val knnFeatures = knnResults.getK.map { _.sf }
       val knnIDs = knnFeatures.map { _.getID }
       knnIDs must equalTo(orderedFeatureIDs)
     }
@@ -218,7 +218,7 @@ class KNearestNeighborSearchProcessTest extends Specification {
       val referenceFeature = queryFeature("blackfriars", 38.149185, -79.070569)
       val knnResults =
         KNNQuery.runNewKNNQuery(fs, wideQuery, k, 500.0, 50000.0, referenceFeature)
-      val knnFeatureIDs = knnResults.dequeueAll.map { _.sf.getID }
+      val knnFeatureIDs = knnResults.getK.map { _.sf.getID }
       val directFeatures = fs.getFeatures().features.toList
       val sortedByDist = directFeatures.sortBy (
         a => VincentyModel.getDistanceBetweenTwoPoints(referenceFeature.point, a.point).getDistanceInMeters).take(k)

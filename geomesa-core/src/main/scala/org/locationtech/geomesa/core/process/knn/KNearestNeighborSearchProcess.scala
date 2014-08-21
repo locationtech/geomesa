@@ -129,7 +129,7 @@ class KNNVisitor( inputFeatures:     SimpleFeatureCollection,
         case geo: Point =>
           val knnResults = KNNQuery.runNewKNNQuery(source, query, numDesired, estimatedDistance, maxSearchDistance, aFeatureForSearch)
           // extract the SimpleFeatures and convert to a Collection. Ordering will not be preserved.
-          val sfList = knnResults.map {_.sf}.asJavaCollection
+          val sfList = knnResults.getK.map {_.sf}.asJavaCollection
           resultCollection.addAll(sfList)
         case _ => log.warn("K Nearest Neighbor Search not implemented for non-point geometries, skipping this Feature")
       }

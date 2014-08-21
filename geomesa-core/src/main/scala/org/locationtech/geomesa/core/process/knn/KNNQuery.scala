@@ -44,7 +44,7 @@ object KNNQuery {
                      numDesired: Int,
                      searchDistanceInMeters: Double,
                      maxDistanceInMeters: Double,
-                     aFeatureForSearch: SimpleFeature): BoundedNearestNeighbors[SimpleFeatureWithDistance] = {
+                     aFeatureForSearch: SimpleFeature): NearestNeighbors = {
 
     // setup the GeoHashSpiral -- it requires the search point,
     // an estimate of the area containing the K Nearest Neighbors,
@@ -66,8 +66,8 @@ object KNNQuery {
   def runKNNQuery(source: SimpleFeatureSource,
                    query: Query,
                    ghPQ: GeoHashSpiral,
-                   sfPQ: BoundedNearestNeighbors[SimpleFeatureWithDistance]
-                 )     : BoundedNearestNeighbors[SimpleFeatureWithDistance] = {
+                   sfPQ: NearestNeighbors
+                 )     : NearestNeighbors = {
     import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
     if (!ghPQ.hasNext) sfPQ
     else {
@@ -78,14 +78,15 @@ object KNNQuery {
         val newFeatures = source.getFeatures(newQuery).features
 
         // insert the SimpleFeature and its distance into sfPQ
-        newFeatures.foreach { sf => sfPQ.enqueue( SimpleFeatureWithDistance(sf,sfPQ.distance(sf)) ) }
 
+        newFeatures.foreach { sf => sfPQ.add( SimpleFeatureWithDistance(sf,sfPQ.distance(sf)) ) }
         // apply filter to ghPQ if we've found k neighbors
         if (sfPQ.isFull) sfPQ.maxDistance.foreach { x => ghPQ.mutateFilterDistance(x)}
         lazy val subQueryInfo = s"${newGH.hash}, ${sfPQ.maxDistance.getOrElse(0.0)}, ${sfPQ.size}"
         log.debug (
           s"KNN Status: Completed subQuery: (hash,distance, PQ size) = $subQueryInfo ")
-        runKNNQuery(source, query, ghPQ, sfPQ)
+        // iterate after trimming sfPQ to the best K
+        runKNNQuery(source, query, ghPQ, sfPQ.getKNN)
     }
   }
 
