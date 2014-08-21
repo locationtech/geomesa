@@ -50,6 +50,7 @@ class StatWriterTest extends Specification {
   "StatWriter" should {
 
     "write query stats asynchronously" in {
+      skipped("concurrency issues cause intermittent failures- GEOMESA-323")
       val writer = new MockWriter(connector) with StatWriter
 
       writer.writeStat(QueryStat(featureName,

@@ -34,7 +34,8 @@ import org.locationtech.geomesa.core.iterators.AttributeIndexFilteringIterator
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Literal, PropertyName}
-import org.opengis.filter.{PropertyIsLike, PropertyIsEqualTo, Filter}
+import org.opengis.filter.temporal.TEquals
+import org.opengis.filter.{Filter, PropertyIsEqualTo, PropertyIsLike}
 
 import scala.collection.JavaConversions._
 
@@ -99,23 +100,51 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     scanner.setRange(range)
   }
 
-  def formatAttrIdxRow(prop: String, lit: String) =
-    new Text(prop.getBytes(StandardCharsets.UTF_8) ++ QueryStrategyDecider.NULLBYTE ++ lit.getBytes(StandardCharsets.UTF_8))
+  /**
+   * Gets a row key that can used as a range for an attribute query.
+   * The attribute index encodes the type of the attribute as part of the row. This checks for
+   * query literals that don't match the expected type and tries to convert them.
+   *
+   * @param sft
+   * @param prop
+   * @param value
+   * @return
+   */
+  def getEncodedAttrIdxRow(sft: SimpleFeatureType, prop: String, value: Any): String = {
+    // the class type as defined in the SFT
+    val expectedBinding = sft.getDescriptor(prop).getType.getBinding
+    // the class type of the literal pulled from the query
+    val actualBinding = value.getClass
+    val typedValue =
+      if (expectedBinding.equals(actualBinding)) {
+        value
+      } else {
+        // type mismatch, encoding won't work b/c class is stored as part of the row
+        // try to convert to the appropriate class
+        AttributeIndexEntry.convertType(value, actualBinding, expectedBinding)
+      }
+    AttributeIndexEntry.getAttributeIndexRow(prop, Some(typedValue))
+  }
 }
 
-class AttributeEqualsIdxStrategy extends AttributeIdxStrategy {
+class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
 
   override def execute(acc: AccumuloConnectorCreator,
                        iqp: QueryPlanner,
                        featureType: SimpleFeatureType,
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val filter = query.getFilter.asInstanceOf[PropertyIsEqualTo]
-    val one = filter.getExpression1
-    val two = filter.getExpression2
+    val (one, two) =
+      query.getFilter match {
+        case f: PropertyIsEqualTo => (f.getExpression1, f.getExpression2)
+        case f: TEquals => (f.getExpression1, f.getExpression2)
+        case _ =>
+          val msg = s"Unhandled filter type in equals strategy: ${query.getFilter.getClass.getName}"
+          throw new RuntimeException(msg)
+      }
     val (prop, lit) = (one, two) match {
-      case (p: PropertyName, l: Literal) => (p.getPropertyName, l.getValue.toString)
-      case (l: Literal, p: PropertyName) => (p.getPropertyName, l.getValue.toString)
+      case (p: PropertyName, l: Literal) => (p.getPropertyName, l.getValue)
+      case (l: Literal, p: PropertyName) => (p.getPropertyName, l.getValue)
       case _ =>
         val msg =
           s"""Unhandled equalTo Query (expr1 type: ${one.getClass.getName}, expr2 type: ${two.getClass.getName}
@@ -124,13 +153,13 @@ class AttributeEqualsIdxStrategy extends AttributeIdxStrategy {
         throw new RuntimeException(msg)
     }
 
-    val range = new AccRange(formatAttrIdxRow(prop, lit))
+    val range = new AccRange(getEncodedAttrIdxRow(featureType, prop, lit))
 
     attrIdxQuery(acc, query, iqp, featureType, range, output)
   }
 }
 
-class AttributeLikeIdxStrategy extends AttributeIdxStrategy {
+class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
 
   override def execute(acc: AccumuloConnectorCreator,
                        iqp: QueryPlanner,
@@ -151,7 +180,7 @@ class AttributeLikeIdxStrategy extends AttributeIdxStrategy {
       else
         literal
 
-    val range = AccRange.prefix(formatAttrIdxRow(prop, value))
+    val range = AccRange.prefix(getEncodedAttrIdxRow(featureType, prop, value))
 
     attrIdxQuery(acc, query, iqp, featureType, range, output)
   }
