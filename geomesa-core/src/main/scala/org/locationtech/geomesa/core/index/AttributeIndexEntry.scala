@@ -38,7 +38,6 @@ object AttributeIndexEntry extends Logging {
 
   val typeRegistry = LexiTypeEncoders.LEXI_TYPES
   val nullString = "<null>"
-  private val genericAlias = "obj"
   private val NULLBYTE = "\u0000"
 
   /**
@@ -86,10 +85,7 @@ object AttributeIndexEntry extends Logging {
    */
   def encode(valueOption: Option[Any]): String = {
     val value = valueOption.getOrElse(nullString)
-    Try(typeRegistry.encode(value)).map(typeRegistry.getAlias(value) ++ NULLBYTE ++ _) match {
-      case Success(encoded) => encoded
-      case Failure(e) => genericAlias ++ NULLBYTE ++ value.toString
-    }
+    Try(typeRegistry.encode(value)).getOrElse(value.toString)
   }
 
   private val dateFormat = ISODateTimeFormat.dateTime();

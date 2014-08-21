@@ -115,15 +115,15 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     val expectedBinding = sft.getDescriptor(prop).getType.getBinding
     // the class type of the literal pulled from the query
     val actualBinding = value.getClass
-    val option =
+    val typedValue =
       if (expectedBinding.equals(actualBinding)) {
-        Some(value)
+        value
       } else {
         // type mismatch, encoding won't work b/c class is stored as part of the row
         // try to convert to the appropriate class
-        Some(AttributeIndexEntry.convertType(value, actualBinding, expectedBinding))
+        AttributeIndexEntry.convertType(value, actualBinding, expectedBinding)
       }
-    AttributeIndexEntry.getAttributeIndexRow(prop, option)
+    AttributeIndexEntry.getAttributeIndexRow(prop, Some(typedValue))
   }
 }
 
