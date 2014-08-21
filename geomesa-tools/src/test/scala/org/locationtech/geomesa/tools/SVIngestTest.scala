@@ -21,6 +21,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -63,7 +64,6 @@ class SVIngestTest extends Specification{
       f.get.getAttribute(2) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(3) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(4) must beAnInstanceOf[Geometry]
-
     }
 
     "properly create an AvroSimpleFeature from a tab-delimited string" in {
@@ -76,7 +76,6 @@ class SVIngestTest extends Specification{
       f.get.getAttribute(2) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(3) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(4) must beAnInstanceOf[Geometry]
-
     }
 
     "properly create an AvroSimpleFeature from a comma-delimited string with a Point WKT geometry" in {
@@ -87,7 +86,6 @@ class SVIngestTest extends Specification{
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.util.Date]
       f.get.getAttribute(2) must beAnInstanceOf[Geometry]
-
     }
 
     "properly create an AvroSimpleFeature from a tab-delimited string with a Point WKT geometry" in {
@@ -98,7 +96,6 @@ class SVIngestTest extends Specification{
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.util.Date]
       f.get.getAttribute(2) must beAnInstanceOf[Geometry]
-
     }
 
     "properly create an AvroSimpleFeature from a comma-delimited string with a Polygon WKT geometry" in {
@@ -109,7 +106,6 @@ class SVIngestTest extends Specification{
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.util.Date]
       f.get.getAttribute(2) must beAnInstanceOf[Geometry]
-
     }
 
     "properly create an AvroSimpleFeature from a tab-delimited string with a Polygon WKT geometry" in {
@@ -120,7 +116,6 @@ class SVIngestTest extends Specification{
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.util.Date]
       f.get.getAttribute(2) must beAnInstanceOf[Geometry]
-
     }
 
     "properly create an AvroSimpleFeature from a tab-delimited string with" +
@@ -138,7 +133,6 @@ class SVIngestTest extends Specification{
       f.get.getAttribute(3) must beAnInstanceOf[java.lang.String]
       f.get.getAttribute(4) must beAnInstanceOf[java.util.Date]
       f.get.getAttribute(5) must beAnInstanceOf[Geometry]
-
     }
 
     "properly create an Interator[Try[AvroSimpleFeature]] from a valid CSV" in {
@@ -157,7 +151,6 @@ class SVIngestTest extends Specification{
         case Failure(ex) => failure
       }
       featureIterator must beAnInstanceOf[Iterator[Try[AvroSimpleFeature]]]
-
     }
 
     "properly create an Interator[Try[AvroSimpleFeature]] from a valid TSV" in {
@@ -176,7 +169,6 @@ class SVIngestTest extends Specification{
         case Failure(ex) => failure
       }
       featureIterator must beAnInstanceOf[Iterator[Try[AvroSimpleFeature]]]
-
     }
 
     "properly create an Interator[Try[AvroSimpleFeature]] from a valid CSV with WKT geometries" in {
@@ -193,7 +185,6 @@ class SVIngestTest extends Specification{
         case Failure(ex) => failure
       }
       featureIterator must beAnInstanceOf[Iterator[Try[AvroSimpleFeature]]]
-
     }
 
     "properly create an Interator[Try[AvroSimpleFeature]] from a valid TSV with WKT geometries" in {
@@ -210,7 +201,6 @@ class SVIngestTest extends Specification{
         case Failure(ex) => failure
       }
       featureIterator must beAnInstanceOf[Iterator[Try[AvroSimpleFeature]]]
-
     }
 
   }
