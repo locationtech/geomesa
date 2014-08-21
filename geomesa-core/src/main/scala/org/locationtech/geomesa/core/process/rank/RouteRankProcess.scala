@@ -124,15 +124,19 @@ class RouteFeatureGroupRanker(inputFeatures: SimpleFeatureCollection,
     if (inputFeatures.size() == 1) {
       val routeTry = for {
         ls <- Try(inputFeatures.features().take(1).next().getDefaultGeometry.asInstanceOf[LineString])
-        ls4326 <- Try(if (ls.getSRID == 4326) ls else {
-          val sourceCRS = inputFeatures.getSchema.getCoordinateReferenceSystem
-          val transform = CRS.findMathTransform(sourceCRS, DefaultGeographicCRS.WGS84, true)
-          JTS.transform(ls, transform).asInstanceOf[LineString]
-        })
+        ls4326 <- wgs84LineString(ls)
         route = new Route(ls4326)
       } yield route
       routeTry.toOption
     }
     else None
+  }
+
+  def wgs84LineString(ls: LineString) = {
+    Try(if (ls.getSRID == 4326) ls else {
+      val sourceCRS = inputFeatures.getSchema.getCoordinateReferenceSystem
+      val transform = CRS.findMathTransform(sourceCRS, DefaultGeographicCRS.WGS84, true)
+      JTS.transform(ls, transform).asInstanceOf[LineString]
+    })
   }
 }
