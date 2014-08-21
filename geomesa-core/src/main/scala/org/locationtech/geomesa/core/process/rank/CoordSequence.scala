@@ -88,8 +88,6 @@ case class CoordWithDateTimePair(first: CoordWithDateTime, last: CoordWithDateTi
   def speed = distance / timeDiff
 
   def heading = {
-    // Formula for heading taken from: (heading = bearing)
-    // http://www.movable-type.co.uk/scripts/latlong.html
     val lonDiff = last.c.x - first.c.x
     val cosLastY = Math.cos(last.c.y)
     val y = Math.sin(lonDiff) * cosLastY
