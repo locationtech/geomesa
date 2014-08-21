@@ -125,9 +125,7 @@ class Route(val route: LineString) {
     val routeCoords = route.getCoordinates.toList
     val first = routeCoords.slice(0, routeCoords.length - 1)
     val routeCoordPairs = first.zip(routeCoords.tail)
-    val routeDistances = routeCoordPairs.map { ls =>
-      val scc = ls._1
-      val ecc = ls._2
+    val routeDistances = routeCoordPairs.map { case(scc, ecc) =>
       val coordDist = math.sqrt((ecc.x - scc.x) * (ecc.x - scc.x) + (ecc.y - scc.y) * (ecc.y - scc.y))
       val orthoDist = JTS.orthodromicDistance(scc, ecc, DefaultGeographicCRS.WGS84)
       (coordDist, orthoDist)
