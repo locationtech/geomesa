@@ -115,8 +115,7 @@ object CoordSequence {
   def fromCoordWithDateTimeList(motionCoords: Seq[CoordWithDateTime]): CoordSequence = {
     if (motionCoords.size > 1) {
       val coords = motionCoords.sortBy(_.dt.getMillis)
-      val first = coords.slice(0, coords.length - 1)
-      new CoordSequence(first.zip(coords.tail).map(pr => CoordWithDateTimePair(pr._1, pr._2)))
+      new CoordSequence(coords.sliding(2, 1).map { case (l, r) => CoordWithDateTimePair(l, r) })
     }
     else new CoordSequence(List[CoordWithDateTimePair]())
   }
