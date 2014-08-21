@@ -96,7 +96,7 @@ case class CoordWithDateTimePair(first: CoordWithDateTime, last: CoordWithDateTi
   }
 }
 
-class CoordSequence(val coords: List[CoordWithDateTimePair]) {
+class CoordSequence(val coords: Seq[CoordWithDateTimePair]) {
   def distance: Double = coords.foldLeft(0.0) { (dist, pair) => dist + pair.distance }
 
   def speedStats = {
@@ -108,11 +108,11 @@ class CoordSequence(val coords: List[CoordWithDateTimePair]) {
     }
   }
 
-  def speeds: List[Double] = coords.map(_.speed)
+  def speeds: Seq[Double] = coords.map(_.speed)
 }
 
 object CoordSequence {
-  def fromCoordWithDateTimeList(motionCoords: List[CoordWithDateTime]): CoordSequence = {
+  def fromCoordWithDateTimeList(motionCoords: Seq[CoordWithDateTime]): CoordSequence = {
     if (motionCoords.size > 1) {
       val coords = motionCoords.sortBy(_.dt.getMillis)
       val first = coords.slice(0, coords.length - 1)
