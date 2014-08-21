@@ -31,7 +31,7 @@ import org.apache.spark.serializer.KryoRegistrator
 import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.{DataStore, Query}
 import org.geotools.factory.CommonFactoryFinder
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AvroFeatureEncoder, FilterToAccumulo}
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AvroFeatureEncoder}
 import org.locationtech.geomesa.core.index.{STIdxStrategy, IndexSchema}
 import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -58,12 +58,8 @@ object GeoMesaSpark {
 
     val indexSchema = IndexSchema(ds.getIndexSchemaFmt(typeName), sft, ds.getFeatureEncoder(typeName))
 
-
-    val filterVisitor = new FilterToAccumulo(sft)
-    filterVisitor.visit(query)
     val planner = new STIdxStrategy
-
-    val qp = planner.buildSTIdxQueryPlan(query, filterVisitor, indexSchema.planner, sft, org.locationtech.geomesa.core.index.ExplainPrintln)
+    val qp = planner.buildSTIdxQueryPlan(query, indexSchema.planner, sft, org.locationtech.geomesa.core.index.ExplainPrintln)
 
     val tableName = ds.getSpatioTemporalIdxTableName(sft)
     val user      = ds.connector.whoami

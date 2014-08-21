@@ -17,17 +17,17 @@
 package org.locationtech.geomesa.core.iterators
 
 import org.apache.accumulo.core.client.mock.MockInstance
+import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{DataUtilities, Query}
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.QueryHints._
+import org.locationtech.geomesa.core.filter._
+import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -86,22 +86,16 @@ class IteratorTriggerTest extends Specification {
     }
 
     /**
-     * Function that duplicates the filter mutation from IndexQueryPlanner.getIterator
+     * Function that duplicates the filter mutation from StIdxStrategy
      *
      * This will attempt to factor out the time and space components of the ECQL query.
      */
 
     def extractReWrittenCQL(query: Query, featureType: SimpleFeatureType): Option[String] = {
-      val ff = CommonFactoryFinder.getFilterFactory2
-      val derivedQuery =
-        if (query.getHints.containsKey(BBOX_KEY)) {
-          val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
-          val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
-          DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
-        } else query
-      val filterVisitor = new FilterToAccumulo(featureType)
-      val rewrittenCQL = filterVisitor.visit(derivedQuery)
-      Option(ECQL.toCQL(rewrittenCQL))
+      val (_, otherFilters) = partitionGeom(query.getFilter)
+      val (_, ecqlFilters: Seq[Filter]) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
+
+      filterListAsAnd(ecqlFilters).map(ECQL.toCQL)
     }
   }
 
