@@ -103,7 +103,7 @@ class CoordSequence(val coords: Seq[CoordWithDateTimePair]) {
     if (speeds.length == 0) SpeedStatistics(0.0, 0.0, 0.0, 0.0)
     else {
       val avg = speeds.sum / speeds.length.toDouble
-      SpeedStatistics(speeds.max, speeds.min, avg, MathUtil.stdDev(spds, avg))
+      SpeedStatistics(speeds.max, speeds.min, avg, MathUtil.stdDev(speeds, avg))
     }
   }
 
@@ -111,11 +111,14 @@ class CoordSequence(val coords: Seq[CoordWithDateTimePair]) {
 }
 
 object CoordSequence {
-  def fromCoordWithDateTimeList(motionCoords: Seq[CoordWithDateTime]): CoordSequence = {
-    if (motionCoords.size > 1) {
-      val coords = motionCoords.sortBy(_.dt.getMillis)
-      new CoordSequence(coords.sliding(2, 1).map { case (l, r) => CoordWithDateTimePair(l, r) })
-    }
-    else new CoordSequence(List[CoordWithDateTimePair]())
-  }
+  def fromCoordWithDateTimeList(motionCoords: Seq[CoordWithDateTime]): CoordSequence =
+    new CoordSequence(
+      motionCoords
+        .sortBy(_.dt.getMillis)
+        .sliding(2, 1)
+        .collect { // if there is only one element in motionCoords, this phase will return empty
+          case l :: r :: t => CoordWithDateTimePair(l, r) // sliding should return size-2 Seqs, t is empty
+        }
+        .toSeq
+    )
 }

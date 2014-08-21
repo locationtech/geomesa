@@ -19,12 +19,12 @@ package org.locationtech.geomesa.core.process.rank
 object MathUtil {
   def squaredDifference(v1: Double, v2: Double) = math.pow(v1 - v2, 2.0)
 
-  def avg(list: List[Double]) = list.sum / list.length
+  def avg(list: Iterable[Double]) = list.sum / list.size
 
-  def stdDev(list: List[Double], average: Double): Double = list.isEmpty match {
+  def stdDev(list: Iterable[Double], average: Double): Double = list.isEmpty match {
     case false =>
       val squared = list.foldLeft(0.0)(_ + squaredDifference(_, average))
-      math.sqrt(squared / list.length.toDouble)
+      math.sqrt(squared / list.size.toDouble)
     case true => 0.0
   }
 

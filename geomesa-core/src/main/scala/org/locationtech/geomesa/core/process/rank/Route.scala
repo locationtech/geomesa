@@ -127,10 +127,11 @@ class Route(val route: LineString) {
   lazy val distance: RouteDistances = {
     route.getCoordinates.toList
       .sliding(2, 1)
-      .foldLeft(RouteDistances(0.0, 0.0)) { case (sums, (scc, ecc)) =>
-        val coordDist = math.sqrt((ecc.x - scc.x) * (ecc.x - scc.x) + (ecc.y - scc.y) * (ecc.y - scc.y))
-        val orthoDist = JTS.orthodromicDistance(scc, ecc, DefaultGeographicCRS.WGS84)
-        sums.increment(coordDist, orthoDist)
+      .foldLeft(RouteDistances(0.0, 0.0)) {
+        case (sums, (scc :: ecc :: tail)) => // sliding should return things of size 2, tail is empty
+          val coordDist = math.sqrt((ecc.x - scc.x) * (ecc.x - scc.x) + (ecc.y - scc.y) * (ecc.y - scc.y))
+          val orthoDist = JTS.orthodromicDistance(scc, ecc, DefaultGeographicCRS.WGS84)
+          sums.increment(coordDist, orthoDist)
       }
   }
 
