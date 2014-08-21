@@ -90,6 +90,19 @@ case class RankingValuesBean(@BeanProperty key: String, @BeanProperty counts: Co
   }
 }
 
+object RankingValuesBean {
+  def apply(key: String, rv: RankingValues): RankingValuesBean =
+    RankingValuesBean(
+      key,
+      Counts(rv.tubeCount, rv.boxCount),
+      CellsCovered(rv.boxCellsCovered, rv.tubeCellsCovered, rv.percentageOfTubeCellsCovered, rv.avgPerTubeCell),
+      RouteCellDeviation(rv.tubeCellsStddev, rv.scaledTubeCellStddev, rv.tubeCellDeviationScore),
+      TfIdf(rv.idf, rv.tfIdf, rv.scaledTfIdf),
+      EvidenceOfMotion(rv.motionEvidence.total, rv.motionEvidence.max, rv.motionEvidence.stddev),
+      Combined(rv.combinedScoreNoMotion, rv.combinedScore)
+    )
+}
+
 /**
  * Container for the results of a search and rank process.
  * @param results a list of results sorted according to the "sortBy" field
@@ -120,18 +133,22 @@ case class ResultBean(@BeanProperty results: java.util.List[RankingValuesBean], 
 
 object ResultBean {
   def fromRankingValues(rankingValues: Map[String,RankingValues], sortBy: String, skip: Int = 0, max: Int = -1) = {
-    val (nTubeCells, gridSize) = rankingValues.headOption.
-      flatMap(h => Some((h._2.nTubeCells, h._2.gridDivisions))).getOrElse((0,0))
-    ResultBean(new util.ArrayList(rankingValues.map {
-      case (key, rv) => RankingValuesBean(key, Counts(rv.tubeCount, rv.boxCount),
-        CellsCovered(rv.boxCellsCovered, rv.tubeCellsCovered, rv.percentageOfTubeCellsCovered, rv.avgPerTubeCell),
-        RouteCellDeviation(rv.tubeCellsStddev, rv.scaledTubeCellStddev, rv.tubeCellDeviationScore),
-        TfIdf(rv.idf, rv.tfIdf, rv.scaledTfIdf),
-        EvidenceOfMotion(rv.motionEvidence.total, rv.motionEvidence.max, rv.motionEvidence.stddev),
-        Combined(rv.combinedScoreNoMotion, rv.combinedScore))
-    }.toList.sortBy(_.combined.score * -1.0).
-      slice(skip, if (max > 0) skip + max else Int.MaxValue).asJava),
-      rankingValues.maxBy(_._2.combinedScore)._2.combinedScore, gridSize, nTubeCells, sortBy)
+    val (nTubeCells, gridSize) =
+      rankingValues.headOption.flatMap(h => Some((h._2.nTubeCells, h._2.gridDivisions))).getOrElse((0,0))
+    ResultBean(
+      new util.ArrayList(
+        rankingValues
+          .map { case (key, rv) => RankingValuesBean(key, rv) }
+          .toList
+          .sortBy(_.combined.score * -1.0)
+          .slice(skip, if (max > 0) skip + max else Int.MaxValue)
+          .asJava
+      ),
+      rankingValues.maxBy(_._2.combinedScore)._2.combinedScore,
+      gridSize,
+      nTubeCells,
+      sortBy
+    )
   }
 }
 
