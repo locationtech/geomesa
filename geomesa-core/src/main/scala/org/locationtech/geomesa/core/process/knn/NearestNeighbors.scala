@@ -21,6 +21,7 @@ import org.locationtech.geomesa.utils.geohash.VincentyModel
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.opengis.feature.simple.SimpleFeature
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 case class SimpleFeatureWithDistance(sf: SimpleFeature, dist: Double)
@@ -93,25 +94,26 @@ class NearestNeighbors(val maxSize: Int,
 
   def isFull = !(corePQ.length < maxSize)
 
-  final def dequeueN(n: Int): List[SimpleFeatureWithDistance] = {
-    if (corePQ.isEmpty || n == 0) List[SimpleFeatureWithDistance]()
+  @tailrec
+  final def dequeueN(n: Int, list:List[SimpleFeatureWithDistance]): List[SimpleFeatureWithDistance] = {
+    if (corePQ.isEmpty || list.length == n) list.reverse
     else {
-      val newN = n - 1
-      corePQ.dequeue() :: dequeueN(newN)
+      val newList = corePQ.dequeue() :: list
+      dequeueN(n,newList)
     }
   }
 
-  def peekLast = clone().dequeueN(maxSize).lastOption
+  def peekLast = getK.lastOption
 
   def getKNN = {
     if (isFull) {
       val that = new NearestNeighbors(maxSize, distance)
-      that.add(this.dequeueN(maxSize))
+      that.add(this.dequeueN(maxSize,List[SimpleFeatureWithDistance]()))
       that
     } else this
   }
 
-  def getK = clone().dequeueN(maxSize)
+  def getK = clone().dequeueN(maxSize,List[SimpleFeatureWithDistance]())
 
   def add(sfWDC: Iterable[SimpleFeatureWithDistance]) = sfWDC.map(add)
 
