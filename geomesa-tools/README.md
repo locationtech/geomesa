@@ -5,12 +5,20 @@ GeoMesa Tools is a set of command line tools to add feature management functions
 the command line.  
 
 ## Configuration
-To begin using the command line tools, first build the full GeoMesa project with `mvn clean install`. This will build the project and geomesa-tools JAR file.  
- 
+To begin using the command line tools, first build the full GeoMesa project from the GeoMesa source directory with `mvn package -P assemble`. 
+You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-{version}-bin.tar.gz" 
+in the geomesa-assemble/target directory. Untar this file with
+
+    tar xvfz geomesa-assemble/target/geomesa-1.0.0-SNAPSHOT-bin.tar.gz
+    
+Next, `cd` into the newly created directory with
+    
+    cd geomesa-1.0.0-SNAPSHOT
+
 GeoMesa Tools relies on a GEOMESA_HOME environment variable. In your `~/.bashrc`, add:
 
     export GEOMESA_HOME=/path/to/geomesa/source/directory
-    export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
+    export PATH=${GEOMESA_HOME}/bin:$PATH
 
 Don't forget to source `~/.bashrc`. Also make sure that $ACCUMULO_HOME and $HADOOP_HOME are set. For your convenience, you can also run:
     

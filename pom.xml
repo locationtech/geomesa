@@ -33,6 +33,7 @@
         <module>geomesa-feature</module>
         <module>geomesa-tools</module>
         <module>geomesa-compute</module>
+        <module>geomesa-assemble</module>
     </modules>
 
     <properties>

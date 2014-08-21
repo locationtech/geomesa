@@ -17,7 +17,7 @@
 
 ACCUMULO_CONF=${ACCUMULO_HOME}/conf
 HADOOP_CLASSPATH=${HADOOP_HOME}/conf
-CLASSPATH=${ACCUMULO_CONF}:${HADOOP_CLASSPATH}
+CLASSPATH=${GEOMESA_HOME}/lib/*:${ACCUMULO_CONF}:${HADOOP_CLASSPATH}:${HADOOP_HOME}/lib/*
 
 if  [[ $1 = configure ]]; then
     SOURCE="${BASH_SOURCE[0]}"
@@ -29,20 +29,20 @@ if  [[ $1 = configure ]]; then
                                                             # path where the symlink file was located
 
     done
-    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../../ && pwd )"
+    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
     echo "Setting GEOMESA_HOME to "$bin""
     export GEOMESA_HOME="$bin"
-    export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
+    export PATH=${GEOMESA_HOME}/bin:$PATH
 else
     if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") ||  (-z "$HADOOP_HOME")  ]]; then
         echo "Please ensure GEOMESA_HOME, ACCUMULO_HOME, and HADOOP_HOME are set before running geomesa-tools."
     elif [[ $1 = ingest ]] && [[ (-z "$2") || ($2 = --help)  || ($2 = -help) || ($2 = help) ]]; then
-        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Ingest --help
+        java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Ingest --help
     elif [[ $1 = ingest ]]; then
-        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Ingest "${@:2}"
+        java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Ingest "${@:2}"
     elif [ -n "$*" ]; then
-        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Tools "$@"
+        java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Tools "$@"
     else
-        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Tools --help
+        java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Tools --help
     fi
 fi
