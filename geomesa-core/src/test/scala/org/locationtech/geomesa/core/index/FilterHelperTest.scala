@@ -58,11 +58,11 @@ class FilterHelperTest extends Specification with Logging {
 
   "extractTemporal " should {
     "return 0000 to date for Before filters" in {
-     forall(dts) { dt =>
-       val extractedInterval = extractTemporal(Seq(before(dt)))
-       val expectedInterval = beforeInterval(dt)
-       extractedInterval must equalTo(expectedInterval)
-     }
+      forall(dts) { dt =>
+        val extractedInterval = extractTemporal(Seq(before(dt)))
+        val expectedInterval = beforeInterval(dt)
+        extractedInterval must equalTo(expectedInterval)
+      }
     }
 
     "return date to 9999 for After filters" in {
