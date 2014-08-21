@@ -172,8 +172,13 @@ class RouteAndSurroundingFeatures(val route: Route,
   def evidenceOfMotion(tubeFeatures: Iterable[SimpleFeatureWithDateTimeAndKey],
                        boxFeatures: Iterable[SimpleFeatureWithDateTimeAndKey],
                        routeDivisions: Double = RankingDefaults.defaultRouteDivisions): EvidenceOfMotion = {
-    val placeTimes = boxFeatures.map(sf => (sf.centroidCoordinate, sf.dateTime)).filter(_._2.isDefined).
-      map(p => new CoordWithDateTime(p._1, p._2.get)).toList.sortBy(_.dt.getMillis)
+    val placeTimes =
+      boxFeatures
+        .collect {
+          case sf if sf.dateTime.isDefined => new CoordWithDateTime(sf.centroidCoordinate, sf.dateTime.get)
+        }
+        .toList
+        .sortBy(_.dt.getMillis)
     val motionSets = placeTimes.foldLeft(List[List[CoordWithDateTime]](List[CoordWithDateTime]())) {
       case(bigList, currentPoint) =>
         val first = bigList.head
