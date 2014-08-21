@@ -53,7 +53,7 @@ class QueryStrategyDeciderTest extends Specification {
     "get the attribute equals strategy" in {
       val fs = "attr2 = val56"
 
-      getStrategy(fs) must beAnInstanceOf[AttributeEqualsIdxStrategy]
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxEqualsStrategy]
     }
 
     "get the attribute equals strategy" in {
@@ -65,7 +65,7 @@ class QueryStrategyDeciderTest extends Specification {
     "get the attribute likes strategy" in {
       val fs = "attr2 ILIKE '2nd1%'"
 
-      getStrategy(fs) must beAnInstanceOf[AttributeLikeIdxStrategy]
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxLikeStrategy]
     }
 
     "get the stidx strategy if attribute non-indexed" in {
@@ -119,7 +119,7 @@ class QueryStrategyDeciderTest extends Specification {
     "get an attribute strategy" in {
       val fs = "attr2 = val56 AND attr1 = val3"
 
-      getStrategy(fs) must beAnInstanceOf[AttributeEqualsIdxStrategy]
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxEqualsStrategy]
     }.pendingUntilFixed
   }
 

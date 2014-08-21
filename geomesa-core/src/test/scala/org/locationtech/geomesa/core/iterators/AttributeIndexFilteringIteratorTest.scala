@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 
@@ -25,9 +24,8 @@ import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{BatchWriterConfig, IteratorSetting}
-import org.apache.accumulo.core.data.{Mutation, Value, Range => ARange}
+import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
-import org.apache.hadoop.io.Text
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
@@ -36,11 +34,10 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.{IndexSchema, IndexSchemaBuilder}
+import org.locationtech.geomesa.core.index.{AttributeIndexEntry, IndexSchemaBuilder}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -91,21 +88,6 @@ class AttributeIndexFilteringIteratorTest extends Specification {
 
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  case class PutOrDeleteMutation(row: Array[Byte], cf: Text, cq: Text, v: Value)
-
-  def getAttrIdxMutations(feature: SimpleFeature, cf: Text) =
-    feature.getFeatureType.getAttributeDescriptors.map { attr =>
-      val attrName = attr.getLocalName.getBytes(StandardCharsets.UTF_8)
-      val attrValue = valOrNull(feature.getAttribute(attr.getName)).getBytes(StandardCharsets.UTF_8)
-      val row = attrName ++ NULLBYTE ++ attrValue
-      val value = IndexSchema.encodeIndexValue(feature)
-      PutOrDeleteMutation(row, cf, EMPTY_COLQ, value)
-    }
-
-  val NULLBYTE = Array[Byte](0.toByte)
-  private val nullString = "<null>"
-  private def valOrNull(o: AnyRef) = if(o == null) nullString else o.toString
-
   "AttributeIndexFilteringIterator" should {
 
     "implement the Accumulo iterator stack properly" in {
@@ -116,12 +98,9 @@ class AttributeIndexFilteringIteratorTest extends Specification {
 
       val bw = conn.createBatchWriter(table, new BatchWriterConfig)
       featureCollection.foreach { feature =>
-        val muts = getAttrIdxMutations(feature, new Text(feature.getID)).map {
-          case PutOrDeleteMutation(row, cf, cq, v) =>
-            val m = new Mutation(row)
-            m.put(cf, cq, new ColumnVisibility(), v)
-            m
-        }
+        val muts = AttributeIndexEntry.getAttributeIndexMutations(feature,
+                                                                  sft.getAttributeDescriptors,
+                                                                  new ColumnVisibility())
         bw.addMutations(muts)
       }
       bw.close()
@@ -130,7 +109,7 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       val scanner = conn.createScanner(table, new Authorizations())
       val is = new IteratorSetting(40, classOf[AttributeIndexFilteringIterator])
       scanner.addScanIterator(is)
-      scanner.setRange(new ARange(new Text("name".getBytes ++ NULLBYTE ++ "b".getBytes)))
+      scanner.setRange(new ARange(AttributeIndexEntry.getAttributeIndexRow("name", Some("b"))))
       scanner.iterator.size mustEqual 4
     }
 

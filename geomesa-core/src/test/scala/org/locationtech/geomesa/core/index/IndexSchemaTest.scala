@@ -157,58 +157,6 @@ class IndexSchemaTest extends Specification {
     }
   }
 
-  "index-value encoder and decoder" should {
-    "encode and decode round-trip properly" in {
-      // inputs
-      val wkt = "POINT (-78.495356 38.075215)"
-      val id = "Feature0123456789"
-      val geom = WKTUtils.read(wkt)
-      val dt = now
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(dummyType, List(id, geom, dt, geom, dt, dt), id)
-
-      // output
-      val value = IndexSchema.encodeIndexValue(entry)
-
-      // requirements
-      value must not beNull
-
-      // return trip
-      val decoded = IndexSchema.decodeIndexValue(value)
-
-      // requirements
-      decoded must not equalTo null
-      decoded.id must be equalTo id
-      WKTUtils.write(decoded.geom) must be equalTo wkt
-      dt must be equalTo now
-
-    }
-
-    "encode and decode round-trip properly when there is no datetime" in {
-      // inputs
-      val wkt = "POINT (-78.495356 38.075215)"
-      val id = "Feature0123456789"
-      val geom = WKTUtils.read(wkt)
-      val dt: Option[DateTime] = None
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(dummyType, List(id, geom, null, geom, null, null), id)
-
-      // output
-      val value = IndexSchema.encodeIndexValue(entry)
-
-      // requirements
-      value must not beNull
-
-      // return trip
-      val decoded = IndexSchema.decodeIndexValue(value)
-
-      // requirements
-      decoded must not equalTo null
-      decoded.id must be equalTo id
-      WKTUtils.write(decoded.geom) must be equalTo wkt
-      dt.isDefined must beFalse
-    }
-
-  }
-
   "IndexSchema " should {
     "be able to run explainQuery" in {
 

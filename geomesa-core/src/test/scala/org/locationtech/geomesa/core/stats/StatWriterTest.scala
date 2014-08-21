@@ -92,6 +92,6 @@ class StatWriterTest extends Specification {
 
       written must not beNull;
       written.size mustEqual 3
-    }
+    }.pendingUntilFixed("concurrency issues")
   }
 }
