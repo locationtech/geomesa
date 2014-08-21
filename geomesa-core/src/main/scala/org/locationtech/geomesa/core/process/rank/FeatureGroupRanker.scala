@@ -21,7 +21,7 @@ import org.locationtech.geomesa.core.data.AccumuloFeatureCollection
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.process.query.QueryProcess
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.apache.log4j.Logger
+import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
@@ -31,9 +31,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 /**
  * Provides the basic functionality to rank data used by both WPS processes: RouteRank and TrackRank
  */
-trait FeatureGroupRanker {
-
-  private val log = Logger.getLogger(classOf[RouteRankProcess])
+trait FeatureGroupRanker extends Logging {
 
   def dataFeatures: SimpleFeatureCollection // features to rank
   def extractRoute: Option[Route] // A method that defines the route to rank along
@@ -46,13 +44,13 @@ trait FeatureGroupRanker {
 
   def groupAndRank: ResultBean = {
 
-    log.info("Attempting Geomesa Route Rank on collection type " + dataFeatures.getClass.getName)
+    logger.info("Attempting Geomesa Route Rank on collection type " + dataFeatures.getClass.getName)
     if (!dataFeatures.isInstanceOf[AccumuloFeatureCollection]) {
-      log.warn("The provided data feature collection type may not support geomesa proximity search: "
+      logger.warn("The provided data feature collection type may not support geomesa proximity search: "
         + dataFeatures.getClass.getName)
     }
     if (dataFeatures.isInstanceOf[ReTypingFeatureCollection]) {
-      log.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
+      logger.warn("Layer name in geoserver must match feature type name in geomesa")
     }
 
     val route = extractRoute
@@ -80,7 +78,7 @@ trait FeatureGroupRanker {
         val routeAndFeatures = new RouteAndSurroundingFeatures(r, boxFeatures, routeFeatures)
         routeAndFeatures.rank(boxShape.getEnvelopeInternal, List(routeShape))
       case _ =>
-        log.warn("WARNING: input feature to rank process must be a single LineString")
+        logger.warn("Input feature to rank process must be a single LineString")
         Map[String, RankingValues]()
     }
     ResultBean.fromRankingValues(rv, sortBy, skip, max)
