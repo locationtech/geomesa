@@ -128,12 +128,10 @@ case class QueryPlanner(schema: String,
                        derivedQuery: Query,
                        isDensity: Boolean,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val filterVisitor = new FilterToAccumulo(featureType)
-
     val strategy = QueryStrategyDecider.chooseStrategy(acc.catalogTableFormat(sft), sft, derivedQuery)
 
     output(s"Strategy: $strategy")
-    strategy.execute(acc, this, sft, derivedQuery, filterVisitor, output)
+    strategy.execute(acc, this, sft, derivedQuery, output)
   }
 
   def query(query: Query, acc: AccumuloConnectorCreator): CloseableIterator[SimpleFeature] = {

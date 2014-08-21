@@ -55,25 +55,19 @@ class QueryStrategyDeciderTest extends Specification {
 
       getStrategy(fs) must beAnInstanceOf[AttributeEqualsIdxStrategy]
     }
-  }
 
-  "Attribute filters" should {
     "get the attribute equals strategy" in {
       val fs = "attr1 = val56"
 
       getStrategy(fs) must beAnInstanceOf[STIdxStrategy]
     }
-  }
 
-  "Attribute filters" should {
     "get the attribute likes strategy" in {
       val fs = "attr2 ILIKE '2nd1%'"
 
       getStrategy(fs) must beAnInstanceOf[AttributeLikeIdxStrategy]
     }
-  }
 
-  "Attribute filters" should {
     "get the stidx strategy if attribute non-indexed" in {
       val fs = "attr1 ILIKE '2nd1%'"
 
@@ -95,9 +89,7 @@ class QueryStrategyDeciderTest extends Specification {
 
       getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
     }
-  }
 
-  "Id filters" should {
     "get the stidx strategy if not catalog" in {
       val fs = "IN ('val56')"
 
@@ -105,6 +97,7 @@ class QueryStrategyDeciderTest extends Specification {
     }
   }
 
+  // TODO: The next two tests should be handled be handled by GEOMESA-313
   "Id and Spatio-temporal filters" should {
     "get the records strategy" in {
       val fs = "IN ('val56') AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
@@ -112,4 +105,22 @@ class QueryStrategyDeciderTest extends Specification {
       getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
     }.pendingUntilFixed
   }
+
+  "Id and Attribute filters" should {
+    "get the records strategy" in {
+      val fs = "IN ('val56') AND attr2 = val56"
+
+      getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
+    }.pendingUntilFixed
+  }
+
+  // TODO: GEOMESA-311
+  "Anded Attribute filters" should {
+    "get an attribute strategy" in {
+      val fs = "attr2 = val56 AND attr1 = val3"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeEqualsIdxStrategy]
+    }.pendingUntilFixed
+  }
+
 }
