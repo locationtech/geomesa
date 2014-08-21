@@ -16,11 +16,13 @@
 
 package org.locationtech.geomesa.tools
 
+import com.twitter.scalding.Args
 import com.vividsolutions.jts.geom.Geometry
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -33,6 +35,25 @@ class SVIngestTest extends Specification{
     idFields = None, dtField = Option("time"), lonAttribute = Option("lon"), latAttribute = Option("lat"),
     dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = Option("test_type"),
     method = "local", file = "none", format = Some("CSV"))
+
+  val csvNormParams = Map("--idFields"        -> None,
+                          "--file"            -> None,
+                          "--sftspec"         -> "id:Double,time:Date,lon:Double,lat:Double,*geom:Point:srid=4326",
+                          "--dtField"         -> "time",
+                          "--lonAttribute"    -> "lon",
+                          "--latAttribute"    -> "lat",
+                          "--skipHeader"      -> "false",
+                          "--doHash"          -> "true",
+                          "--format"          -> "CSV",
+                          "--featureName"     -> "test_type",
+                          "--catalog"         -> currentCatalog,
+                          "--instanceID"      -> "mycloud",
+                          "--zookeepers"      -> "zoo1:2181,zoo2:2181,zoo3:2181",
+                          "--user"            -> "myuser",
+                          "--password"        -> "mypassword",
+                          "--useMock"         -> "true")
+
+  var csvArgs = Args()
 
   var csvWktConfig = new IngestArguments(spec = "id:Double,time:Date,*geom:Geometry", idFields = None,
     dtField = Option("time"), dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = Option("test_type"),

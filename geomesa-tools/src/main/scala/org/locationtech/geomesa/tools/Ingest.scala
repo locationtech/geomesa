@@ -16,13 +16,12 @@
 
 package org.locationtech.geomesa.tools
 
-import java.net.{URLClassLoader, URLEncoder}
+import java.net.URLEncoder
 import com.twitter.scalding.Tool
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.apache.hadoop.mapred.JobConf
 import org.apache.hadoop.util.ToolRunner
-import org.locationtech.geomesa.core.index.IndexSchema
+import org.locationtech.geomesa.jobs.JobUtils
 
 class Ingest() extends Logging with AccumuloProperties {
 
@@ -62,8 +61,10 @@ class Ingest() extends Logging with AccumuloProperties {
   }
 
   def runIngestJob(config: IngestArguments, fileSystem: String, password: String): Unit = {
-    val libJars = buildLibJars
+    //val libJars = JobUtils.getJarsFromClasspath(classOf[SVIngest]).mkString(",")
+    val libJars = JobUtils.defaultLibJars.mkString(",")
     val jobConf = new JobConf
+    // jobConf.setJobName(s"Ingest Job by user: $config.username")
     // not sure about this part
     jobConf.setSpeculativeExecution(false)
     ToolRunner.run(
@@ -72,8 +73,8 @@ class Ingest() extends Logging with AccumuloProperties {
         "-libjars", libJars,
         classOf[SVIngest].getCanonicalName,
         fileSystem,
-        "--idFields", config.idFields.orNull,
-        "--file", config.file.toString,
+        "--idFields",           config.idFields.orNull,
+        "--file",               config.file.toString,
         "--sftspec",            URLEncoder.encode(config.spec, "UTF-8"),
         "--dtField",            config.dtField.orNull,
         "--lonAttribute",       config.lonAttribute.orNull,
@@ -90,28 +91,28 @@ class Ingest() extends Logging with AccumuloProperties {
         "--auths",              config.auths.orNull,
         "--visibilities",       config.visibilities.orNull,
         "--indexSchemaFmt",     config.indexSchemaFormat.orNull,
-        "--shards", config.maxShards.orNull.toString )
+        "--shards",             config.maxShards.orNull.toString )
       )
   }
 
-  def buildLibJars: String = {
-    val accumuloJars = classOf[String].getClassLoader.asInstanceOf[URLClassLoader]
-      .getURLs
-      .filter { _.toString.contains("accumulo") }
-      .map(u => Utils.classPathUrlToAbsolutePath(u.getFile))
-
-    val geomesaJars = classOf[IndexSchema].getClassLoader match {
-      case cl: VFSClassLoader =>
-        cl.getFileObjects.map(u => Utils.classPathUrlToAbsolutePath(u.getURL.getFile))
-
-      case cl: URLClassLoader =>
-        cl.getURLs.filter { _.toString.contains("geomesa") }.map { u => Utils.classPathUrlToAbsolutePath(u.getFile) }
-    }
-
-    val ret = (accumuloJars ++ geomesaJars).mkString(",")
-    println(ret)
-    ret
-  }
+//  def buildLibJars: String = {
+//    val accumuloJars = classOf[String].getClassLoader.asInstanceOf[URLClassLoader]
+//      .getURLs
+//      .filter { _.toString.contains("accumulo") }
+//      .map(u => Utils.classPathUrlToAbsolutePath(u.getFile))
+//
+//    val geomesaJars = classOf[IndexSchema].getClassLoader match {
+//      case cl: VFSClassLoader =>
+//        cl.getFileObjects.map(u => Utils.classPathUrlToAbsolutePath(u.getURL.getFile))
+//
+//      case cl: URLClassLoader =>
+//        cl.getURLs.filter { _.toString.contains("geomesa") }.map { u => Utils.classPathUrlToAbsolutePath(u.getFile) }
+//    }
+//
+//    val ret = (accumuloJars ++ geomesaJars).mkString(",")
+//    logger.info(ret)
+//    ret
+//  }
 
 }
 
@@ -155,7 +156,7 @@ object Ingest extends App with Logging with GetPassword {
     opt[Unit]("skip-header").action { (b, c) =>
       c.copy(skipHeader = true) } text "flag for skipping first line in file" optional()
     opt[String]("file").action { (s, c) =>
-      c.copy(file = s, format = Option(getFileExtension(s))) } text "the file to be ingested" required()
+      c.copy(file = s, format = Option(getFileExtension(s)), method = getFileSystemMethod(s)) } text "the file to be ingested" required()
     help("help").text("show help command")
     checkConfig { c =>
       if (c.maxShards.isDefined && c.indexSchemaFormat.isDefined) {
@@ -185,6 +186,11 @@ object Ingest extends App with Logging with GetPassword {
     case tsv if file.endsWith("tsv") => "TSV"
     case shp if file.endsWith("shp") => "SHP"
     case _                           => "NOTSUPPORTED"
+  }
+
+  def getFileSystemMethod(path: String): String = path.toLowerCase.startsWith("hdfs") match {
+    case true => "mr"
+    case _    => "local"
   }
 
 }

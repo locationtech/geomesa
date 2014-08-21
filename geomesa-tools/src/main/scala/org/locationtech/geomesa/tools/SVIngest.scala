@@ -34,6 +34,7 @@ import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
 import scala.util.{Failure, Success, Try}
 
 class SVIngest(args: Args) extends Job(args) with Logging {
@@ -67,6 +68,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val visibilities     = args.optional("visibilities").orNull
   lazy val indexSchemaFmt   = args.optional("indexSchemaFmt").orNull
   lazy val shards           = args.optional("shards").orNull
+  lazy val useMock          = args.optional("useMock").orNull
 
   // need to work in shards, vis, isf
   lazy val dsConfig =
@@ -79,7 +81,8 @@ class SVIngest(args: Args) extends Job(args) with Logging {
       "password"      -> password,
       "auths"         -> auths,
       "visibilities"  -> visibilities,
-      "maxShard"      -> shards
+      "maxShard"      -> shards,
+      "useMock"       -> useMock
     )
 
   val maxShard: Option[Int] = Some(shards.toInt)
