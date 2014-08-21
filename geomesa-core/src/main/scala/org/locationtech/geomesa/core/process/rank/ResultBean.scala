@@ -134,7 +134,10 @@ case class ResultBean(@BeanProperty results: java.util.List[RankingValuesBean], 
 object ResultBean {
   def fromRankingValues(rankingValues: Map[String,RankingValues], sortBy: String, skip: Int = 0, max: Int = -1) = {
     val (nTubeCells, gridSize) =
-      rankingValues.headOption.flatMap(h => Some((h._2.nTubeCells, h._2.gridDivisions))).getOrElse((0,0))
+      rankingValues.headOption match {
+        case Some((_, rv)) => (rv.nTubeCells, rv.gridDivisions)
+        case None          => (0, 0)
+      }
     ResultBean(
       new util.ArrayList(
         rankingValues
