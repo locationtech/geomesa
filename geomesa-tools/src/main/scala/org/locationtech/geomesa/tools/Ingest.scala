@@ -88,7 +88,7 @@ object Ingest extends App with Logging with GetPassword {
     opt[String]("datetime").action { (s, c) =>
       c.copy(dtField = Option(s)) } text "the name of the datetime field in the sft" optional()
     opt[String]("dtformat").action { (s, c) =>
-      c.copy(dtFormat = s) } text "the format of the datetime field" optional()
+      c.copy(dtFormat = Option(s)) } text "the format of the datetime field" optional()
     opt[String]("idfields").action { (s, c) =>
       c.copy(idFields = Option(s)) } text "the set of attributes of each feature used" +
       " to encode the feature name" optional()

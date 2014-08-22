@@ -45,7 +45,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
   lazy val path             = config.file
   lazy val featureName      = config.featureName.get
   lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
-  lazy val dtgField         = config.dtField.get
+  lazy val dtgField         = config.dtField
   lazy val dtgFmt           = config.dtFormat
   lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
   lazy val latField         = config.latAttribute.orNull
@@ -92,13 +92,13 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
 
   lazy val sft = {
     val ret = SimpleFeatureTypes.createType(featureName, sftSpec)
-    ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField)
+    ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField.getOrElse(Constants.SF_PROPERTY_START_TIME))
     ret
   }
 
   lazy val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
-  lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt)
+  lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt.getOrElse("MILLISEPOCH"))
   lazy val attributes = sft.getAttributeDescriptors
   lazy val dtBuilder = buildDtBuilder
   lazy val idBuilder = buildIDBuilder
@@ -114,6 +114,12 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     config.method.toLowerCase match {
       case "local" =>
         val cfw = new CloseableFeatureWriter
+        if ( dtgField.isEmpty ) {
+          // assume we have no user input on what date field to use and that
+          // there is no column of data signifying it.
+          logger.warn("Warning: no date-time field specified by user. Assuming that data contains no date column. \n" +
+            s"GeoMesa is defaulting to ingest features using the system time as the date for data in file : \n\t $path")
+        }
         try {
           performIngest(cfw, Source.fromFile(path).getLines.drop(dropHeader))
         } catch {
@@ -130,6 +136,12 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
       case _ =>
         logger.error(s"Error, no such SV ingest method: ${config.method.toLowerCase}")
     }
+  }
+
+  def runTestIngest(lines: Iterator[String]) = Try {
+    val cfw = new CloseableFeatureWriter
+    performIngest(cfw, lines)
+    cfw.release()
   }
 
   def performIngest(cfw: CloseableFeatureWriter, lines: Iterator[String]) = {
@@ -172,26 +184,29 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     builder.addAll(fields.asInstanceOf[Array[AnyRef]])
     val feature = builder.buildFeature(id).asInstanceOf[AvroSimpleFeature]
 
-    //override the feature dtgField if it could not be parsed in
-    if (feature.getAttribute(dtgField) == null) {
-      try {
-        val dtgFieldIndex = getAttributeIndexInLine(dtgField)
-        val date = dtBuilder(fields(dtgFieldIndex)).toDate
-        feature.setAttribute(dtgField, date)
-      } catch {
-        case e: Exception => throw new Exception(s"Could not form Date object from field" +
-          s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
+    // assume we have some dt field and possibly a format
+    if (dtgField.isDefined) {
+      // override the feature dtgField if it was not be parsed in using default dtformat
+      if ( feature.getAttribute(dtgField.get) == null) {
+        try {
+          val dtgFieldIndex = getAttributeIndexInLine(dtgField.get)
+          val date = dtBuilder(fields(dtgFieldIndex)).toDate
+          feature.setAttribute(dtgField.get, date)
+        } catch {
+          case e: Exception => throw new Exception(s"Could not form Date object from field" +
+            s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
+        }
       }
+      //now try to build the date time object and set the dtgTargetField to the date value
+      val dtg = try {
+        dtBuilder(feature.getAttribute(dtgField.get))
+      } catch {
+        case e: Exception => throw new Exception(s"Could not find date-time field: '${dtgField}'," +
+          s" on line  number: $lineNumber \n\t With value of: $line")
+      }
+      feature.setAttribute(dtgTargetField, dtg.toDate)
     }
 
-    val dtg = try{
-      dtBuilder(feature.getAttribute(dtgField))
-    } catch {
-      case e: Exception => throw new Exception(s"Could not find date-time field: '${dtgField}'," +
-        s" on line  number: $lineNumber \n\t With value of: $line")
-    }
-
-    feature.setAttribute(dtgTargetField, dtg.toDate)
     // Support for point data method
     val lon = Option(feature.getAttribute(lonField)).map(_.asInstanceOf[Double])
     val lat = Option(feature.getAttribute(latField)).map(_.asInstanceOf[Double])
@@ -215,7 +230,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
       successes +=1
     } catch {
       case e: Exception =>
-        logger.error(s"Cannot ingest avro simple feature: $feature, corrisponding to line number: $lineNumber", e)
+        logger.error(s"Cannot ingest avro simple feature: $feature, corresponding to line number: $lineNumber", e)
         failures +=1
     }
   }
@@ -240,7 +255,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
   }
 
   def buildDtBuilder: (AnyRef) => DateTime =
-    attributes.find(_.getLocalName == dtgField).map {
+    attributes.find(_.getLocalName == dtgField.get).map {
       case attr if attr.getType.getBinding.equals(classOf[java.lang.Long]) =>
         (obj: AnyRef) => new DateTime(obj.asInstanceOf[java.lang.Long])
 
