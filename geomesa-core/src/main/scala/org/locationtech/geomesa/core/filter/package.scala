@@ -3,7 +3,7 @@ package org.locationtech.geomesa.core
 import org.geotools.factory.CommonFactoryFinder
 import org.opengis.filter._
 import org.opengis.filter.spatial._
-import org.opengis.filter.temporal.BinaryTemporalOperator
+import org.opengis.filter.temporal.{BinaryTemporalOperator, TEquals}
 
 import scala.collection.JavaConversions._
 
@@ -117,7 +117,8 @@ package object filter {
 
   def filterIsApplicableTemporal(f: Filter, dtgAttr: Option[String]) =
     f match {
-      case bto: BinaryTemporalOperator => dtgAttr.exists(_ == bto.getExpression1.toString)
+      // TEQUALS can't convert to ECQL, so don't consider it here
+      case bto: BinaryTemporalOperator if !f.isInstanceOf[TEquals] => dtgAttr.exists(_ == bto.getExpression1.toString)
       case _ => false
     }
 
