@@ -55,7 +55,7 @@ object QueryStrategyDecider {
   }
 
   private def processAnd(isDensity: Boolean, sft: SimpleFeatureType, and: And): Strategy = {
-    if (and.getChildren.find(c => getAttributeIndexStrategy(c, sft).isDefined).isDefined) {
+    if (and.getChildren.exists(c => getAttributeIndexStrategy(c, sft).isDefined)) {
       //311 - return AttributeStrategy using first attr as index and containing simple feature filtering iterator to filter out remaining attrs
       //once AttributeIndexStrategy can handle this -> getAttributeIndexStrategy(attributeIndexFilter.get, sft).get
       new STIdxStrategy
