@@ -140,9 +140,9 @@ This option and the `--indexSchemaFormat` cannot be provided together and Ingest
 `-s` or `--sftspec` The SimpleFeatureType of the CSV or TSV file, this must match exactly with the number and order of columns and data formats in the file being ingested and must also include a default geometry field.
 If attempting to ingest files with explicit latitude and longitude columns, the sft spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.
 
-`--datetime` The name of the field in the SFT specification that corresponds to the the *time* column.
+`--datetime` The optional name of the field in the SFT specification that corresponds to the the *time* column.
 
-`--dtformat` The Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss". This must be surrounded by quotes and must match exactly the format in the source file. 
+`--dtformat` The optional Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss". This must be surrounded by quotes and must match exactly the format in the source file. 
 If a invalid dtformat is given Ingest attempts to parse the date-time value using the ISO8601 standard.
 
 `--idfields` The optional comma separated list of ID fields used to generate the feature IDs. If empty, it is assumed that the ID will be generated via a hash on all attributes of that line.
