@@ -32,6 +32,7 @@ import org.joda.time.format.DateTimeFormat
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
+import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -45,44 +46,46 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   var failures              = 0
   var successes             = 0
 
-  lazy val idFields         = args.optional("idFields").orNull
-  lazy val path             = args("path")
-  lazy val sftSpec          = URLDecoder.decode(args("sftspec"), "UTF-8")
-  lazy val dtgField         = args.optional("dtField").orNull
-  lazy val dtgFmt           = args("dtFormat")
+  lazy val idFields         = args.optional(IngestParams.ID_FIELDS).orNull
+  lazy val path             = args(IngestParams.FILE_PATH)
+  lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
+  lazy val dtgField         = args.optional(IngestParams.DT_FIELD).orNull
+  lazy val dtgFmt           = args(IngestParams.DT_FORMAT)
   lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
-  lazy val lonField         = args.optional("lonAttribute").orNull
-  lazy val latField         = args.optional("latAttribute").orNull
-  lazy val skipHeader       = args("skipHeader").toBoolean
-  lazy val doHash           = args("doHash").toBoolean
-  lazy val format           = args.optional("format").orNull
+  lazy val lonField         = args.optional(IngestParams.LON_ATTRIBUTE).orNull
+  lazy val latField         = args.optional(IngestParams.LAT_ATTRIBUTE).orNull
+  lazy val skipHeader       = args(IngestParams.SKIP_HEADER).toBoolean
+  lazy val doHash           = args(IngestParams.DO_HASH).toBoolean
+  lazy val format           = args.optional(IngestParams.FORMAT).orNull
 
   //Data Store parameters
-  lazy val catalog          = args("catalog")
-  lazy val instanceId       = args("instanceId")
-  lazy val featureName      = args("featureName")
-  lazy val zookeepers       = args("zookeepers")
-  lazy val user             = args("user")
-  lazy val password         = args("password")
-  lazy val auths            = args.optional("auths").orNull
-  lazy val visibilities     = args.optional("visibilities").orNull
-  lazy val indexSchemaFmt   = args.optional("indexSchemaFmt").orNull
-  lazy val shards           = args.optional("shards").orNull
-  lazy val useMock          = args.optional("useMock").orNull
+  lazy val catalog          = args(IngestParams.CATALOG_TABLE)
+  lazy val instanceId       = args(IngestParams.ACCUMULO_INSTANCE)
+  lazy val featureName      = args(IngestParams.FEATURE_NAME)
+  lazy val zookeepers       = args(IngestParams.ZOOKEEPERS)
+  lazy val user             = args(IngestParams.ACCUMULO_USER)
+  lazy val password         = args(IngestParams.ACCUMULO_PASSWORD)
+  lazy val auths            = args.optional(IngestParams.AUTHORIZATIONS).orNull
+  lazy val visibilities     = args.optional(IngestParams.VISIBILITIES).orNull
+  lazy val indexSchemaFmt   = args.optional(IngestParams.INDEX_SCHEMA_FMT).orNull
+  lazy val shards           = args.optional(IngestParams.SHARDS).orNull
+  lazy val useMock          = args.optional(IngestParams.ACCUMULO_MOCK).orNull
+  lazy val runIngest        = args.optional(IngestParams.RUN_INGEST)
 
   // need to work in shards, vis, isf
   lazy val dsConfig =
     Map(
-      "zookeepers"    -> zookeepers,
-      "instanceId"    -> instanceId,
-      "tableName"     -> catalog,
-      "featureName"   -> featureName,
-      "user"          -> user,
-      "password"      -> password,
-      "auths"         -> auths,
-      "visibilities"  -> visibilities,
-      "maxShard"      -> shards,
-      "useMock"       -> useMock
+      "zookeepers"        -> zookeepers,
+      "instanceId"        -> instanceId,
+      "tableName"         -> catalog,
+      "featureName"       -> featureName,
+      "user"              -> user,
+      "password"          -> password,
+      "auths"             -> auths,
+      "visibilities"      -> visibilities,
+      "indexSchemaFormat" -> indexSchemaFmt,
+      "maxShard"          -> maxShard,
+      "useMock"           -> useMock
     )
 
   val maxShard: Option[Int] = shards match {
@@ -114,17 +117,14 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     val numShards = ds.getSpatioTemporalMaxShard(sft)
     val shardPvsS = if (numShards == 1) "Shard" else "Shards"
     logger.info(s"\tCreated schema in: $createTime ms using $numShards $shardPvsS.")
-
   } else {
     val numShards = ds.getSpatioTemporalMaxShard(sft)
     val shardPvsS = if (numShards == 1) "Shard" else "Shards"
-
     maxShard match {
       case None => logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS. Using extant SFT. " +
         s"\n\tIf this is not desired please delete (aka: drop) the catalog using the delete command.")
       case Some(x) => logger.warn(s"GeoMesa tables extant, ignoring user request, using schema's $numShards $shardPvsS")
     }
-
   }
 
   lazy val sft = {
@@ -145,17 +145,20 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     def release(): Unit = { fw.close() }
   }
 
-  try {
-    TextLine(path).using(new CloseableFeatureWriter)
-      .foreach('line) { (cfw: CloseableFeatureWriter, line: String) => ingestLine(cfw, line) }
-  } catch {
-    case e: Exception => logger.error("error", e)
-  }
-  finally {
-    ds.dispose()
-    val successPvsS = if (successes == 1) "feature" else "features"
-    val failurePvsS = if (failures == 1) "feature" else "features"
-    logger.info(s"For file $path - added $successes $successPvsS and failed on $failures $failurePvsS")
+  // Check to see if this an actual ingest job or just a test.
+  if ( runIngest.isDefined ) {
+    try {
+      TextLine(path).using(new CloseableFeatureWriter)
+        .foreach('line) { (cfw: CloseableFeatureWriter, line: String) => ingestLine(cfw, line)}
+    } catch {
+      case e: Exception => logger.error("error", e)
+    }
+    finally {
+      ds.dispose()
+      val successPvsS = if (successes == 1) "feature" else "features"
+      val failurePvsS = if (failures == 1) "feature" else "features"
+      logger.info(s"For file $path - added $successes $successPvsS and failed on $failures $failurePvsS")
+    }
   }
 
   def ingestLine(cfw: CloseableFeatureWriter, line: String) = {
@@ -173,25 +176,25 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     }
   }
 
-  def performIngest(cfw: CloseableFeatureWriter, lines: Iterator[String]) = {
-    linesToFeatures(lines).foreach {
-      case Success(ft) =>
-        writeFeature(cfw.fw, ft)
-        // Log info to user that ingest is still working, might be in wrong spot however...
-        if ( lineNumber % 10000 == 0 ) {
-          val successPvsS = if (successes == 1) "feature" else "features"
-          val failurePvsS = if (failures == 1) "feature" else "features"
-          logger.info(s"Ingest proceeding, on line number: $lineNumber," +
-            s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
-        }
-      case Failure(ex) => failures +=1; logger.error(s"Could not write feature on line number:" +
-        s" $lineNumber due to: ${ex.getLocalizedMessage}")
-    }
-  }
+//  def performIngest(cfw: CloseableFeatureWriter, lines: Iterator[String]) = {
+//    linesToFeatures(lines).foreach {
+//      case Success(ft) =>
+//        writeFeature(cfw.fw, ft)
+//        // Log info to user that ingest is still working, might be in wrong spot however...
+//        if ( lineNumber % 10000 == 0 ) {
+//          val successPvsS = if (successes == 1) "feature" else "features"
+//          val failurePvsS = if (failures == 1) "feature" else "features"
+//          logger.info(s"Ingest proceeding, on line number: $lineNumber," +
+//            s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
+//        }
+//      case Failure(ex) => failures +=1; logger.error(s"Could not write feature on line number:" +
+//        s" $lineNumber due to: ${ex.getLocalizedMessage}")
+//    }
+//  }
 
-  def linesToFeatures(lines: Iterator[String]): Iterator[Try[AvroSimpleFeature]] = {
-    for(line <- lines) yield lineToFeature(line)
-  }
+//  def linesToFeatures(lines: Iterator[String]): Iterator[Try[AvroSimpleFeature]] = {
+//    for(line <- lines) yield lineToFeature(line)
+//  }
 
   def lineToFeature(line: String): Try[AvroSimpleFeature] = Try{
     lineNumber += 1
@@ -220,7 +223,6 @@ class SVIngest(args: Args) extends Job(args) with Logging {
       } catch {
         case e: Exception => throw new Exception(s"Could not form Date object from field" +
           s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
-
       }
     }
 

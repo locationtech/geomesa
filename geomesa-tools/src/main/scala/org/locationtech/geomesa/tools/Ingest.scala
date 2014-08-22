@@ -22,6 +22,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.hadoop.mapred.JobConf
 import org.apache.hadoop.util.ToolRunner
 import org.locationtech.geomesa.jobs.JobUtils
+import org.locationtech.geomesa.tools.Utils.IngestParams
 
 class Ingest() extends Logging with AccumuloProperties {
 
@@ -33,7 +34,7 @@ class Ingest() extends Logging with AccumuloProperties {
     "auths"             ->  config.auths.orNull,
     "visibilities"      ->  config.visibilities.orNull,
     "maxShard"          ->  Some(config.maxShards),
-    "indexSchemaFormat" ->  config.indexSchemaFormat.orNull,
+    "indexSchemaFormat" ->  config.indexSchemaFmt.orNull,
     "tableName"         ->  config.catalog
   )
 
@@ -67,33 +68,38 @@ class Ingest() extends Logging with AccumuloProperties {
     val jobConf = new JobConf
     // jobConf.setJobName(s"Ingest Job by user: $config.username")
     // not sure about this part
+    val args = new collection.mutable.ListBuffer[String]()
+    args.append(classOf[SVIngest].getCanonicalName)
+    args.append(fileSystem)
+    args.append("-libjars", libJars)
+    args.append("--" + IngestParams.FILE_PATH, config.file)
+    args.append("--" + IngestParams.SFT_SPEC, URLEncoder.encode(config.spec, "UTF-8"))
+    args.append("--" + IngestParams.DT_FORMAT, config.dtFormat)
+    args.append("--" + IngestParams.CATALOG_TABLE, config.catalog)
+    args.append("--" + IngestParams.ZOOKEEPERS, zookeepers)
+    args.append("--" + IngestParams.ACCUMULO_INSTANCE, instanceName)
+    args.append("--" + IngestParams.ACCUMULO_USER, config.username)
+    args.append("--" + IngestParams.ACCUMULO_PASSWORD, password)
+    args.append("--" + IngestParams.SKIP_HEADER, config.skipHeader.toString)
+    args.append("--" + IngestParams.DO_HASH, config.doHash.toString)
+    // optional parameters
+    if ( config.idFields.isDefined )        args.append("--" + IngestParams.ID_FIELDS, config.idFields.get)
+    if ( config.dtField.isDefined )         args.append("--" + IngestParams.DT_FIELD, config.dtField.get)
+    if ( config.lonAttribute.isDefined )    args.append("--" + IngestParams.LON_ATTRIBUTE, config.lonAttribute.get)
+    if ( config.latAttribute.isDefined )    args.append("--" + IngestParams.LAT_ATTRIBUTE, config.latAttribute.get)
+    if ( config.format.isDefined )          args.append("--" + IngestParams.FORMAT, config.format.get)
+    if ( config.featureName.isDefined )     args.append("--" + IngestParams.FEATURE_NAME, config.featureName.get)
+    if ( config.auths.isDefined )           args.append("--" + IngestParams.AUTHORIZATIONS, config.auths.get)
+    if ( config.visibilities.isDefined )    args.append("--" + IngestParams.VISIBILITIES, config.visibilities.get)
+    if ( config.indexSchemaFmt.isDefined )  args.append("--" + IngestParams.INDEX_SCHEMA_FMT, config.indexSchemaFmt.get)
+    if ( config.maxShards.isDefined )       args.append("--" + IngestParams.SHARDS, config.maxShards.get.toString)
+    // since we are not in a test script we are choosing to run the ingest
+    args.append("--" + IngestParams.RUN_INGEST, "true")
+
+    // set job config options
     jobConf.setSpeculativeExecution(false)
-    ToolRunner.run( jobConf, new Tool,
-      Array(
-        classOf[SVIngest].getCanonicalName,
-        fileSystem,
-        "-libjars", libJars,
-        "--idFields",           config.idFields.getOrElse(""),
-        "--path",               config.file.toString,
-        "--sftspec",            URLEncoder.encode(config.spec, "UTF-8"),
-        "--dtField",            config.dtField.getOrElse(""),
-        "--dtFormat",           config.dtFormat,
-        "--lonAttribute",       config.lonAttribute.getOrElse(""),
-        "--latAttribute",       config.latAttribute.getOrElse(""),
-        "--skipHeader",         config.skipHeader.toString,
-        "--doHash",             config.doHash.toString,
-        "--format",             config.format.getOrElse(""),
-        "--catalog",            config.catalog,
-        "--instanceId",         instanceName,
-        "--featureName",        config.featureName.getOrElse(""),
-        "--zookeepers",         zookeepers,
-        "--user",               config.username,
-        "--password",           password,
-        "--auths",              config.auths.getOrElse(""),
-        "--visibilities",       config.visibilities.getOrElse(""),
-        "--indexSchemaFmt",     config.indexSchemaFormat.getOrElse(""))//,
-       // "--shards",             config.maxShards.orNull.toString )
-      )
+    // run the tool
+    ToolRunner.run( jobConf, new Tool, args.toArray)
   }
 
 //  def buildLibJars: String = {
@@ -132,7 +138,7 @@ object Ingest extends App with Logging with GetPassword {
     opt[String]('v', "visibilities") action { (s, c) =>
       c.copy(visibilities = Option(s)) } text "Accumulo visibilities (optional)" optional()
     opt[String]('i', "indexSchemaFormat") action { (s, c) =>
-      c.copy(indexSchemaFormat = Option(s)) } text "Accumulo index schema format (optional)" optional()
+      c.copy(indexSchemaFmt = Option(s)) } text "Accumulo index schema format (optional)" optional()
     opt[Int]("shards") action { (i, c) =>
       c.copy(maxShards = Option(i)) } text "Accumulo number of shards to use (optional)" optional()
     opt[String]('f', "feature-name").action { (s, c) =>
@@ -160,7 +166,7 @@ object Ingest extends App with Logging with GetPassword {
       c.copy(file = s, format = Option(getFileExtension(s)), method = getFileSystemMethod(s)) } text "the file to be ingested" required()
     help("help").text("show help command")
     checkConfig { c =>
-      if (c.maxShards.isDefined && c.indexSchemaFormat.isDefined) {
+      if (c.maxShards.isDefined && c.indexSchemaFmt.isDefined) {
         failure("Error: the options for setting the max shards and the indexSchemaFormat cannot both be set.")
       } else {
         success
