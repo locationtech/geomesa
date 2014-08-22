@@ -17,12 +17,14 @@
 package org.locationtech.geomesa.core.index
 
 import org.geotools.data.Query
-import org.locationtech.geomesa.core.index.AttributeIdxEqualsStrategy
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.expression.{Expression, PropertyName}
+import org.opengis.filter._
+import org.opengis.filter.expression.Expression
+import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.temporal.TEquals
-import org.opengis.filter.{Filter, Id, PropertyIsEqualTo, PropertyIsLike}
+
+import scala.collection.JavaConversions._
 
 object QueryStrategyDecider {
 
@@ -45,9 +47,21 @@ object QueryStrategyDecider {
       attributeStrategy.getOrElse {
         filter match {
           case idFilter: Id => new RecordIdxStrategy
+          case and: And => processAnd(isDensity, sft, and)
           case cql          => new STIdxStrategy
         }
       }
+    }
+  }
+
+  private def processAnd(isDensity: Boolean, sft: SimpleFeatureType, and: And): Strategy = {
+    if (and.getChildren.exists(c => getAttributeIndexStrategy(c, sft).isDefined)) {
+      //311 - return AttributeStrategy using first attr as index and containing simple feature filtering iterator to filter out remaining attrs
+      //once AttributeIndexStrategy can handle this -> getAttributeIndexStrategy(attributeIndexFilter.get, sft).get
+      new STIdxStrategy
+    } else {
+      //other cases - flesh out, there may be record id lookup + attr
+      new STIdxStrategy
     }
   }
 
