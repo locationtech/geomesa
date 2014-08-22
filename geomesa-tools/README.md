@@ -7,16 +7,16 @@ the command line.
 ## Configuration
 To begin using the command line tools, first build the full GeoMesa project from the GeoMesa source directory with 
 
-    mvn package -P assemble
+    mvn clean install
     
-You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-{version}-bin.tar.gz" 
+You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-${version}-bin.tar.gz" 
 in the geomesa-assemble/target directory. Untar this file with
 
-    tar xvfz geomesa-assemble/target/geomesa-1.0.0-SNAPSHOT-bin.tar.gz
+    tar xvfz geomesa-assemble/target/geomesa-${version}-bin.tar.gz
     
 Next, `cd` into the newly created directory with
     
-    cd geomesa-1.0.0-SNAPSHOT
+    cd geomesa-${version}
 
 GeoMesa Tools relies on a GEOMESA_HOME environment variable. Running
     

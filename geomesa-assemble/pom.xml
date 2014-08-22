@@ -26,7 +26,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>geomesa</artifactId>
-    <name>GeoMesa Release - [Accumulo 1.5.x]</name>
+    <name>GeoMesa Tarball - [Accumulo 1.5.x]</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -69,43 +69,43 @@
             <artifactId>geomesa-compute-accumulo1.5</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-jobs-accumulo1.5</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
-    <profiles>
-        <profile>
-            <id>assemble</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-jar-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>default-jar</id>
-                                <phase>none</phase>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>binary-assembly</id>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                                <phase>package</phase>
-                                <configuration>
-                                    <attach>true</attach>
-                                    <finalName>${project.artifactId}-${project.version}</finalName>
-                                    <descriptors>
-                                        <descriptor>src/main/assemblies/binary-release.xml</descriptor>
-                                    </descriptors>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>binary-assembly</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <attach>true</attach>
+                            <finalName>${project.artifactId}-${project.version}</finalName>
+                            <descriptors>
+                                <descriptor>src/main/assemblies/binary-release.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

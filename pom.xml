@@ -306,6 +306,11 @@
                 <artifactId>geomesa-jobs-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- logging -->
             <dependency>
