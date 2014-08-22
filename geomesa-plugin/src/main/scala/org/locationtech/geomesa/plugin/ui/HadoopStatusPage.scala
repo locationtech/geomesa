@@ -4,6 +4,7 @@ import org.apache.hadoop.mapred.JobClient
 import org.apache.wicket.markup.html.WebMarkupContainer
 import org.apache.wicket.markup.html.basic.Label
 import org.apache.wicket.model.Model
+import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Success, Try}
 
@@ -58,17 +59,14 @@ class HadoopStatusPage extends GeoMesaBasePage {
    * Loads the HDFS status and populates the labels
    */
   private def loadStatus(): Unit = {
-    val jobClient = {
-      val configuration = GeoMesaBasePage.getHdfsConfiguration
-      new JobClient(configuration)
-    }
-    Try(jobClient.getClusterStatus) match {
+    val jobClient = Try(new JobClient(GeoMesaBasePage.getHdfsConfiguration))
+    jobClient.flatMap(jc => Try(jc.getClusterStatus)) match {
       // TODO is there some way to tell if a cluster is valid or not? the status says 'running' even
       // if not actually connected to anything
       case Success(cluster) =>
         error.setVisible(false)
 
-        val activeJobs = Try(jobClient.jobsToComplete.toList.map(_.getJobID.toString))
+        val activeJobs = jobClient.flatMap(jc => Try(jc.jobsToComplete.toList.map(_.getJobID.toString)))
                            .getOrElse(List.empty)
         val activeJobsString = activeJobs.length match {
           case 0 => "none"
@@ -86,6 +84,8 @@ class HadoopStatusPage extends GeoMesaBasePage {
         reduceSlotsModel.setObject(s"${cluster.getReduceTasks} / ${cluster.getMaxReduceTasks}")
         activeJobsModel.setObject(activeJobsString)
       case Failure(e) =>
+        // we have to get a logger instance each time since the page has to be serializable
+        LoggerFactory.getLogger(classOf[HadoopStatusPage]).error("Error retrieving hadoop status", e)
         errorMessageModel.setObject(s"Hadoop configuration error: ${e.getMessage}")
     }
   }
