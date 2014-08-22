@@ -95,7 +95,7 @@ class BatchMultiScannerTest extends Specification {
     val attrIdxTable = AccumuloDataStore.formatAttrIdxTableName(catalogTable, sft)
     conn.tableOperations.exists(attrIdxTable) must beTrue
     val attrScanner = conn.createScanner(attrIdxTable, new Authorizations())
-    attrScanner.setRange(new ARange(AttributeIndexEntry.getAttributeIndexRow(attr, Some(value))))
+    attrScanner.setRange(new ARange(AttributeIndexEntry.getAttributeIndexRow(attr, Option(value))))
 
     val recordTable = AccumuloDataStore.formatRecordTableName(catalogTable, sft)
     conn.tableOperations().exists(recordTable) must beTrue
@@ -107,7 +107,7 @@ class BatchMultiScannerTest extends Specification {
     val retrieved = bms.iterator.toList
     retrieved.foreach { e =>
       val sf = SimpleFeatureEncoderFactory.defaultEncoder.decode(sft, e.getValue)
-      if (value != AttributeIndexEntry.nullString) {
+      if (value != null) {
         sf.getAttribute(attr) mustEqual value
       }
     }
@@ -130,8 +130,8 @@ class BatchMultiScannerTest extends Specification {
         // test something that was stored as a null
         attrIdxEqualQuery("age", "43", batchSize) mustEqual 0
 
-        // find nullstring...ugh
-        attrIdxEqualQuery("age", "<null>", batchSize) mustEqual 16
+        // find nulls
+        attrIdxEqualQuery("age", null, batchSize) mustEqual 16
       }
       Success()
     }

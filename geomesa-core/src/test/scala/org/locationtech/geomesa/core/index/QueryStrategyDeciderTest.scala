@@ -51,13 +51,13 @@ class QueryStrategyDeciderTest extends Specification {
 
   "Attribute filters" should {
     "get the attribute equals strategy" in {
-      val fs = "attr2 = val56"
+      val fs = "attr2 = 'val56'"
 
       getStrategy(fs) must beAnInstanceOf[AttributeIdxEqualsStrategy]
     }
 
     "get the attribute equals strategy" in {
-      val fs = "attr1 = val56"
+      val fs = "attr1 = 'val56'"
 
       getStrategy(fs) must beAnInstanceOf[STIdxStrategy]
     }
