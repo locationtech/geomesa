@@ -17,19 +17,14 @@
 package org.locationtech.geomesa.core.index
 
 import org.geotools.data.Query
-import org.locationtech.geomesa.core.index.AttributeIdxEqualsStrategy
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.opengis.feature.simple.SimpleFeatureType
-
-import org.opengis.filter.expression.{Expression, PropertyName}
-import org.opengis.filter.temporal.TEquals
-import org.opengis.filter.{Filter, Id, PropertyIsEqualTo, PropertyIsLike}
-
-import org.opengis.filter.expression.PropertyName
 import org.opengis.filter._
+import org.opengis.filter.expression.Expression
+import org.opengis.filter.expression.PropertyName
+import org.opengis.filter.temporal.TEquals
 
 import scala.collection.JavaConversions._
-
 
 object QueryStrategyDecider {
 
@@ -42,6 +37,7 @@ object QueryStrategyDecider {
   def chooseNewStrategy(sft: SimpleFeatureType, query: Query): Strategy = {
     val filter = query.getFilter
     val isDensity = query.getHints.containsKey(BBOX_KEY)
+
     if (isDensity) {
       // TODO GEOMESA-322 use other strategies with density iterator
       new STIdxStrategy
