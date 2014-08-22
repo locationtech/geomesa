@@ -29,6 +29,10 @@ object Tools extends App with Logging with GetPassword {
       c.copy(username = x) } text "Accumulo username" required()
     def passOpt = opt[String]('p', "password") action { (x, c) =>
       c.copy(password = x) } text "Accumulo password" optional()
+    def instanceNameOpt = opt[String]('i', "instance-name") action { (x, c) =>
+      c.copy(instanceName = x) } text "Accumulo instance name" optional()
+    def zookeepersOpt = opt[String]('z', "zookeepers") action { (x, c) =>
+      c.copy(zookeepers = x) } text "Zookeepers comma-separated instances string" optional()
 
     def export = cmd("export") action { (_, c) =>
       c.copy(mode = "export") } text "Export all or a set of features in CSV, TSV, GeoJSON, GML, or SHP format" children(
@@ -53,7 +57,9 @@ object Tools extends App with Logging with GetPassword {
       opt[Int]('m', "maxFeatures").action { (s, c) =>
         c.copy(maxFeatures = s) } optional() hidden(),
       opt[String]('q', "query").action { (s, c) =>
-        c.copy(query = s )} optional() hidden()
+        c.copy(query = s )} optional() hidden(),
+      instanceNameOpt,
+      zookeepersOpt
       )
 
     def describe = cmd("describe") action { (_, c) =>
@@ -63,7 +69,9 @@ object Tools extends App with Logging with GetPassword {
       catalogOpt,
       featureOpt,
       opt[Unit]('q', "quiet").action { (_, c) =>
-        c.copy(toStdOut = true) } optional() hidden()
+        c.copy(toStdOut = true) } optional() hidden(),
+      instanceNameOpt,
+      zookeepersOpt
       )
 
     def list = cmd("list") action { (_, c) =>
@@ -72,7 +80,9 @@ object Tools extends App with Logging with GetPassword {
       passOpt,
       catalogOpt,
       opt[Unit]('q', "quiet").action { (_, c) =>
-        c.copy(toStdOut = true) } optional() hidden()
+        c.copy(toStdOut = true) } optional() hidden(),
+      instanceNameOpt,
+      zookeepersOpt
       )
 
     def explain = cmd("explain") action { (_, c) =>
@@ -82,7 +92,9 @@ object Tools extends App with Logging with GetPassword {
       catalogOpt,
       featureOpt,
       opt[String]('q', "filter").action { (s, c) =>
-        c.copy(filterString = s) } required() hidden()
+        c.copy(query = s) } required() hidden(),
+      instanceNameOpt,
+      zookeepersOpt
       )
 
     def delete = cmd("delete") action { (_, c) =>
@@ -90,7 +102,9 @@ object Tools extends App with Logging with GetPassword {
       userOpt,
       passOpt,
       catalogOpt,
-      featureOpt
+      featureOpt,
+      instanceNameOpt,
+      zookeepersOpt
       )
 
     def create = cmd("create") action { (_, c) =>
@@ -101,7 +115,9 @@ object Tools extends App with Logging with GetPassword {
       featureOpt,
       specOpt,
       opt[String]('d', "default-date").action { (s, c) =>
-        c.copy(dtField = Option(s)) } optional() hidden()
+        c.copy(dtField = Option(s)) } optional() hidden(),
+      instanceNameOpt,
+      zookeepersOpt
       )
 
     def tableconf = cmd("tableconf") action { (_, c) =>
@@ -113,6 +129,8 @@ object Tools extends App with Logging with GetPassword {
         featureOpt,
         opt[String]('s', "suffix").action { (s, c) =>
           c.copy(suffix = s) } required() hidden()),
+        instanceNameOpt,
+        zookeepersOpt,
       cmd("describe") action { (_, c) => c.copy(method = "describe") } text "Return the value of a single parameter of the given table" children(
         userOpt,
         passOpt,
@@ -122,6 +140,8 @@ object Tools extends App with Logging with GetPassword {
           c.copy(param = s) } required() hidden(),
         opt[String]('s', "suffix").action { (s, c) =>
           c.copy(suffix = s) } required() hidden()),
+        instanceNameOpt,
+        zookeepersOpt,
       cmd("update") action { (_, c) => c.copy(method = "update") } text "Update a configuration parameter of the given table" children(
         userOpt,
         passOpt,
@@ -133,7 +153,9 @@ object Tools extends App with Logging with GetPassword {
           c.copy(newValue = s) } required() hidden(),
         opt[String]('s', "suffix").action { (s, c) =>
           c.copy(suffix = s) } required() hidden()
-        )
+        ),
+        instanceNameOpt,
+        zookeepersOpt
       )
     head("GeoMesa Tools", "1.0")
     help("help").text("show help command")

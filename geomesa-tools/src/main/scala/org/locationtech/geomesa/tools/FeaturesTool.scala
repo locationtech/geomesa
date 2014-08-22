@@ -33,16 +33,18 @@ import scala.util.Try
 
 class FeaturesTool(config: ScoptArguments, password: String) extends Logging with AccumuloProperties {
 
+  val instance = if (config.instanceName != null) { config.instanceName } else { instanceName }
+  val zookeepersString = if (config.zookeepers != null) { config.zookeepers }  else { zookeepers  }
+
   val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
-      "instanceId"   -> instanceName,
-      "zookeepers"   -> zookeepers,
-      "user"         -> config.username,
-      "password"     -> password,
-      "tableName"    -> config.catalog,
-      "collectStats" -> "false")).asInstanceOf[AccumuloDataStore]
+      "instanceId" -> instance,
+      "zookeepers" -> zookeepersString,
+      "user"       -> config.username,
+      "password"   -> password,
+      "tableName"  -> config.catalog)).asInstanceOf[AccumuloDataStore]
   }).getOrElse{
-    logger.error("Incorrect username or password. Please try again.")
+    logger.error("Cannot connect to Accumulo. Please check your configuration and try again.")
     sys.exit()
   }
 
@@ -124,12 +126,11 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
                                                 config.toStdOut,
                                                 outputPath)
         val de = new DataExporter(loadAttributes, Map(
-          "instanceId"   -> instanceName,
-          "zookeepers"   -> zookeepers,
-          "user"         -> config.username,
-          "password"     -> password,
-          "tableName"    -> config.catalog,
-          "collectStats" -> "false"))
+          "instanceId" -> instance,
+          "zookeepers" -> zookeepersString,
+          "user"       -> config.username,
+          "password"   -> password,
+          "tableName"  -> config.catalog))
         de.writeFeatures(sftCollection.features())
       case "shp" =>
         val shapeFileExporter = new ShapefileExport
@@ -165,7 +166,7 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
     val t = Transaction.AUTO_COMMIT
     q.setTypeName(config.featureName)
 
-    val f = ECQL.toFilter(config.filterString)
+    val f = ECQL.toFilter(config.query)
     q.setFilter(f)
 
     try {
