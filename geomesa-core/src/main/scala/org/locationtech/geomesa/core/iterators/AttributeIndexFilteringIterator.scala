@@ -66,7 +66,7 @@ class AttributeIndexFilteringIterator extends Filter with Logging {
 
       val filterString  = options.get(DEFAULT_FILTER_PROPERTY_NAME)
       filter = ECQL.toFilter(filterString)
-      println(s"In AIFI with $filter")
+      logger.debug(s"In AIFI with $filter")
       val sfb = new SimpleFeatureBuilder(featureType)
 
       testSimpleFeature = sfb.buildFeature("test")
