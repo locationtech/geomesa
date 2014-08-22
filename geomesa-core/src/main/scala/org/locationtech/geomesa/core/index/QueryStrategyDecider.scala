@@ -17,10 +17,12 @@
 package org.locationtech.geomesa.core.index
 
 import org.geotools.data.Query
+import org.locationtech.geomesa.core.index.AttributeIdxEqualsStrategy
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.expression.PropertyName
-import org.opengis.filter.{Filter, Id, PropertyIsLike, PropertyIsEqualTo}
+import org.opengis.filter.expression.{Expression, PropertyName}
+import org.opengis.filter.temporal.TEquals
+import org.opengis.filter.{Filter, Id, PropertyIsEqualTo, PropertyIsLike}
 
 object QueryStrategyDecider {
 
@@ -31,26 +33,21 @@ object QueryStrategyDecider {
     if (isCatalogTableFormat) chooseNewStrategy(sft, query) else new STIdxStrategy
 
   def chooseNewStrategy(sft: SimpleFeatureType, query: Query): Strategy = {
-    // If we have attr index table try it
-
     val filter = query.getFilter
     val isDensity = query.getHints.containsKey(BBOX_KEY)
 
-    filter match {
-      case isEqualTo: PropertyIsEqualTo if !isDensity && attrIdxQueryEligible(isEqualTo, sft) =>
-        new AttributeEqualsIdxStrategy
-
-      case like: PropertyIsLike if !isDensity =>
-        if (attrIdxQueryEligible(like, sft) && likeEligible(like))
-          new AttributeLikeIdxStrategy
-        else
-          new STIdxStrategy
-
-      case idFilter: Id =>
-        new RecordIdxStrategy
-
-      case cql =>
-        new STIdxStrategy
+    if (isDensity) {
+      // TODO GEOMESA-322 use other strategies with density iterator
+      new STIdxStrategy
+    } else {
+      // check if we can use the attribute index first
+      val attributeStrategy = getAttributeIndexStrategy(filter, sft)
+      attributeStrategy.getOrElse {
+        filter match {
+          case idFilter: Id => new RecordIdxStrategy
+          case cql          => new STIdxStrategy
+        }
+      }
     }
   }
 
@@ -76,19 +73,26 @@ object QueryStrategyDecider {
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
-  def attrIdxQueryEligible(filt: Filter, featureType: SimpleFeatureType): Boolean = filt match {
-    case filter: PropertyIsEqualTo =>
-      val one = filter.getExpression1
-      val two = filter.getExpression2
-      val prop = (one, two) match {
+  def getAttributeIndexStrategy(f: Filter, sft: SimpleFeatureType): Option[Strategy] =
+    f match {
+      case filter: PropertyIsEqualTo =>
+        checkEqualsExpression(sft, filter.getExpression1, filter.getExpression2)
+      case filter: TEquals =>
+        checkEqualsExpression(sft, filter.getExpression1, filter.getExpression2)
+      case filter: PropertyIsLike =>
+        val prop = filter.getExpression.asInstanceOf[PropertyName].getPropertyName
+        val indexed = sft.getDescriptor(prop).isIndexed
+        if (indexed) Some(new AttributeIdxLikeStrategy) else None
+      case _ => None
+    }
+
+  private def checkEqualsExpression(sft: SimpleFeatureType, one: Expression, two: Expression): Option[Strategy] = {
+    val prop =
+      (one, two) match {
         case (p: PropertyName, _) => Some(p.getPropertyName)
         case (_, p: PropertyName) => Some(p.getPropertyName)
         case (_, _)               => None
       }
-      prop.exists(featureType.getDescriptor(_).isIndexed)
-
-    case filter: PropertyIsLike =>
-      val prop = filter.getExpression.asInstanceOf[PropertyName].getPropertyName
-      featureType.getDescriptor(prop).isIndexed
+    prop.filter(p => sft.getDescriptor(p).isIndexed).map(_ => new AttributeIdxEqualsStrategy)
   }
 }
