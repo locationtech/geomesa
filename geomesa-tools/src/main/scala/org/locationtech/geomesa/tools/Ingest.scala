@@ -74,7 +74,6 @@ class Ingest() extends Logging with AccumuloProperties {
     args.append("-libjars", libJars)
     args.append("--" + IngestParams.FILE_PATH, config.file)
     args.append("--" + IngestParams.SFT_SPEC, URLEncoder.encode(config.spec, "UTF-8"))
-    args.append("--" + IngestParams.DT_FORMAT, config.dtFormat)
     args.append("--" + IngestParams.CATALOG_TABLE, config.catalog)
     args.append("--" + IngestParams.ZOOKEEPERS, zookeepers)
     args.append("--" + IngestParams.ACCUMULO_INSTANCE, instanceName)
@@ -83,6 +82,7 @@ class Ingest() extends Logging with AccumuloProperties {
     args.append("--" + IngestParams.SKIP_HEADER, config.skipHeader.toString)
     args.append("--" + IngestParams.DO_HASH, config.doHash.toString)
     // optional parameters
+    if ( config.dtFormat.isDefined )        args.append("--" + IngestParams.DT_FORMAT, config.dtFormat.get)
     if ( config.idFields.isDefined )        args.append("--" + IngestParams.ID_FIELDS, config.idFields.get)
     if ( config.dtField.isDefined )         args.append("--" + IngestParams.DT_FIELD, config.dtField.get)
     if ( config.lonAttribute.isDefined )    args.append("--" + IngestParams.LON_ATTRIBUTE, config.lonAttribute.get)
@@ -101,26 +101,6 @@ class Ingest() extends Logging with AccumuloProperties {
     // run the tool
     ToolRunner.run( jobConf, new Tool, args.toArray)
   }
-
-//  def buildLibJars: String = {
-//    val accumuloJars = classOf[String].getClassLoader.asInstanceOf[URLClassLoader]
-//      .getURLs
-//      .filter { _.toString.contains("accumulo") }
-//      .map(u => Utils.classPathUrlToAbsolutePath(u.getFile))
-//
-//    val geomesaJars = classOf[IndexSchema].getClassLoader match {
-//      case cl: VFSClassLoader =>
-//        cl.getFileObjects.map(u => Utils.classPathUrlToAbsolutePath(u.getURL.getFile))
-//
-//      case cl: URLClassLoader =>
-//        cl.getURLs.filter { _.toString.contains("geomesa") }.map { u => Utils.classPathUrlToAbsolutePath(u.getFile) }
-//    }
-//
-//    val ret = (accumuloJars ++ geomesaJars).mkString(",")
-//    logger.info(ret)
-//    ret
-//  }
-
 }
 
 
@@ -150,7 +130,7 @@ object Ingest extends App with Logging with GetPassword {
     opt[String]("datetime").action { (s, c) =>
       c.copy(dtField = Option(s)) } text "the name of the datetime field in the sft" optional()
     opt[String]("dtformat").action { (s, c) =>
-      c.copy(dtFormat = s) } text "the format of the datetime field" optional()
+      c.copy(dtFormat = Option(s)) } text "the format of the datetime field" optional()
     opt[String]("idfields").action { (s, c) =>
       c.copy(idFields = Option(s)) } text "the set of attributes of each feature used" +
       " to encode the feature name" optional()

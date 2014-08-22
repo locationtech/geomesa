@@ -29,15 +29,6 @@ class SVIngestTest extends Specification{
   sequential
   var id = 0
 
-  var csvConfig = new IngestArguments(spec = "id:Double,time:Date,lon:Double,lat:Double,*geom:Point:srid=4326",
-    idFields = None, dtField = Option("time"), lonAttribute = Option("lon"), latAttribute = Option("lat"),
-    dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = Option("test_type"),
-    method = "local", file = "none", format = Some("CSV"))
-
-  var csvWktConfig = new IngestArguments(spec = "id:Double,time:Date,*geom:Geometry", idFields = None,
-    dtField = Option("time"), dtFormat = "yyyy-MM-dd", skipHeader = false, featureName = Option("test_type"),
-    method = "local", file = "none", format = Some("CSV"))
-
   def csvNormParams: Map[String, List[String]] = {
     id = id + 1
     Map(

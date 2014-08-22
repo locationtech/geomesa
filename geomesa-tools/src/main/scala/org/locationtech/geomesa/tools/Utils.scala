@@ -19,8 +19,10 @@ package org.locationtech.geomesa.tools
 import java.io.File
 import java.net.URLDecoder
 import java.util.UUID
+
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.hadoop.fs.Path
+
 import scala.util.Try
 import scala.xml.XML
 
@@ -96,7 +98,7 @@ case class IngestArguments(username: String = null,
                            spec: String = null,
                            idFields: Option[String] = None,
                            dtField: Option[String] = None,
-                           dtFormat: String = null,
+                           dtFormat: Option[String] = None,
                            method: String = "local",
                            file: String = null,
                            featureName: Option[String] = None,
