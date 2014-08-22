@@ -59,8 +59,7 @@ object QueryStrategyDecider {
   }
 
   private def processAnd(isDensity: Boolean, sft: SimpleFeatureType, and: And): Strategy = {
-    val attributeIndexFilter = and.getChildren.find(c => getAttributeIndexStrategy(c, sft).isDefined)
-    if (and.getChildren.forall(c => isAttributeFilter(c, sft)) && attributeIndexFilter.isDefined) {
+    if (and.getChildren.find(c => getAttributeIndexStrategy(c, sft).isDefined).isDefined) {
       //311 - return AttributeStrategy using first attr as index and containing simple feature filtering iterator to filter out remaining attrs
       //once AttributeIndexStrategy can handle this -> getAttributeIndexStrategy(attributeIndexFilter.get, sft).get
       new STIdxStrategy
@@ -114,12 +113,4 @@ object QueryStrategyDecider {
       }
     prop.filter(p => sft.getDescriptor(p).isIndexed).map(_ => new AttributeIdxEqualsStrategy)
   }
-
-  def isAttributeFilter(f: Filter, sft: SimpleFeatureType): Boolean = {
-    f match {
-      case filter: PropertyIsEqualTo => true
-      case filter: TEquals => true
-      case filter: PropertyIsLike => true
-      case _ => false
-    }
 }
