@@ -214,7 +214,7 @@ class KNearestNeighborSearchProcessTest extends Specification {
       knnIDs must equalTo(orderedFeatureIDs)
     }
     "return a nearestNeighbors object with features around Staunton in correct order" in {
-      val k = 100
+      val k = 10
       val referenceFeature = queryFeature("blackfriars", 38.149185, -79.070569)
       val knnResults =
         KNNQuery.runNewKNNQuery(fs, wideQuery, k, 500.0, 50000.0, referenceFeature)

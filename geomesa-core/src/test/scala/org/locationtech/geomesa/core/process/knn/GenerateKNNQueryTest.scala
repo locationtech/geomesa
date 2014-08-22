@@ -22,10 +22,12 @@ import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index
-import org.locationtech.geomesa.core.index.Constants
+import org.locationtech.geomesa.core.index.{Constants, FilterHelper}
+import org.locationtech.geomesa.core.{filter, index}
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.filter.expression.Literal
+import org.opengis.filter.spatial.BBOX
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -65,15 +67,12 @@ class GenerateKNNQueryTest extends Specification {
 
 
   "GenerateKNNQuery" should {
-    "inject a small BBOX into a larger query and have the spatial predicate be equal to the GeoHash boundary" in {
-      // setup a spatial filter, taken from FilterToAccumuloTest
+    " inject a small BBOX into a larger query and confirm that the original is untouched" in {
       val q =
         ff.and(
           ff.like(ff.property("prop"), "foo"),
           ff.bbox("geom", -80.0, 30, -70, 40, CRS.toSRS(WGS84))
         )
-
-      val f2a = new FilterToAccumulo(sft)
 
       // use the above to generate a Query
       val oldQuery = new Query(sftName, q)
@@ -84,21 +83,43 @@ class GenerateKNNQueryTest extends Specification {
       // check that oldQuery is untouched
       val oldFilter = oldQuery.getFilter
 
-      // process the newQuery
-      val newFilter = f2a.visit(newQuery)
-
-      // get the extracted spatial predicate
-      val newPolygon = f2a.spatialPredicate
-
       // confirm that the oldFilter was not mutated by operations on the new filter
       // this confirms that the deep copy on the oldQuery was done properly
       oldFilter mustEqual q
+    }
+
+    "inject a small BBOX into a larger query and have the spatial predicate be equal to the GeoHash boundary" in {
+      //define a loose BBOX
+      val q =
+        ff.and(
+          ff.like(ff.property("prop"), "foo"),
+          ff.bbox("geom", -80.0, 30, -70, 40, CRS.toSRS(WGS84))
+        )
+
+      // use the above to generate a Query
+      val oldQuery = new Query(sftName, q)
+
+      // and then generate a new one
+      val newQuery = KNNQuery.generateKNNQuery(smallGH, oldQuery, fs)
+
+      // get the newFilter
+      val newFilter =  newQuery.getFilter
+
+      // process the newFilter to split out the geometry part
+      val (geomFilters, otherFilters) = filter.partitionGeom(newFilter)
+
+      // rewrite the geometry filter
+      val tweakedGeoms = geomFilters.map ( FilterHelper.updateTopologicalFilters(_, sft) )
+
+      //there can be only one
+      tweakedGeoms.length mustEqual(1)
+
+      val oneBBOX = tweakedGeoms.head.asInstanceOf[BBOX]
+
+      val bboxPoly=oneBBOX.getExpression2.asInstanceOf[Literal].evaluate(null)
 
       // confirm that the extracted spatial predicate matches the GeoHash BBOX.
-      newPolygon.equalsExact(smallGH.geom) must beTrue
-
-      //confirm that the newFilter has all spatial predicates removed
-      newFilter mustEqual ff.like(ff.property("prop"), "foo")
+      bboxPoly.equals(smallGH.geom) must beTrue
     }
   }
 }
