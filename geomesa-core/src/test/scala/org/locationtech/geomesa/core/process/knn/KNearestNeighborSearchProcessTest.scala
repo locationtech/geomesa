@@ -207,17 +207,17 @@ class KNearestNeighborSearchProcessTest extends Specification {
         "hep",
         "mccormick")
       val knnResults =
-        KNNQuery.runNewKNNQuery(fs, wideQuery, 15, 50.0, 2500.0, queryFeature("madison", 38.036871, -78.502720))
+        KNNQuery.runNewKNNQuery(fs, wideQuery, 15, 500.0, 2500.0, queryFeature("madison", 38.036871, -78.502720))
       // return the ordered neighbors and extract the SimpleFeatures
       val knnFeatures = knnResults.getK.map { _.sf }
       val knnIDs = knnFeatures.map { _.getID }
       knnIDs must equalTo(orderedFeatureIDs)
-    }
+    }.
     "return a nearestNeighbors object with features around Staunton in correct order" in {
       val k = 10
       val referenceFeature = queryFeature("blackfriars", 38.149185, -79.070569)
       val knnResults =
-        KNNQuery.runNewKNNQuery(fs, wideQuery, k, 500.0, 50000.0, referenceFeature)
+        KNNQuery.runNewKNNQuery(fs, wideQuery, k, 5000.0, 50000.0, referenceFeature)
       val knnFeatureIDs = knnResults.getK.map { _.sf.getID }
       val directFeatures = fs.getFeatures().features.toList
       val sortedByDist = directFeatures.sortBy (
