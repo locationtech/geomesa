@@ -150,7 +150,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   if ( runIngest.isDefined ) {
     try {
       TextLine(path).using(new CloseableFeatureWriter)
-        .foreach('line) { (cfw: CloseableFeatureWriter, line: String) => ingestLine(cfw, line)}
+        .foreach('line) { (cfw: CloseableFeatureWriter, line: String) => ingestLine(cfw.fw, line)}
     } catch {
       case e: Exception => logger.error("error", e)
     }
@@ -164,14 +164,14 @@ class SVIngest(args: Args) extends Job(args) with Logging {
 
   def runTestIngest(lines: Iterator[String]) = Try {
     val cfw = new CloseableFeatureWriter
-    lines.foreach( line => ingestLine(cfw, line) )
+    lines.foreach( line => ingestLine(cfw.fw, line) )
     cfw.release()
   }
 
-  def ingestLine(cfw: CloseableFeatureWriter, line: String) = {
+  def ingestLine(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String): Unit = {
     lineToFeature(line) match {
       case Success(ft) =>
-        writeFeature(cfw.fw, ft)
+        writeFeature(fw, ft)
         // Log info to user that ingest is still working, might be in wrong spot however...
         if ( lineNumber % 10000 == 0 ) {
           val successPvsS = if (successes == 1) "feature" else "features"

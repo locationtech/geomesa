@@ -17,10 +17,10 @@
 package org.locationtech.geomesa.tools
 
 import java.net.URLEncoder
-import com.twitter.scalding.Tool
+import com.twitter.scalding.{Args, Hdfs, Mode}
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.hadoop.mapred.JobConf
-import org.apache.hadoop.util.ToolRunner
+import org.apache.hadoop.conf.Configuration
+import org.locationtech.geomesa.core.iterators.SpatioTemporalIntersectingIterator
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.tools.Utils.IngestParams
 
@@ -62,11 +62,10 @@ class Ingest() extends Logging with AccumuloProperties {
   }
 
   def runIngestJob(config: IngestArguments, fileSystem: String, password: String): Unit = {
+    SpatioTemporalIntersectingIterator.initClassLoader(null)
     val libJars = JobUtils.getJarsFromClasspath(classOf[SVIngest]).mkString(",")
-    //val libJars = JobUtils.defaultLibJars.mkString(",")
     logger.info(libJars)
-    val jobConf = new JobConf
-    // jobConf.setJobName(s"Ingest Job by user: $config.username")
+    val conf = new Configuration()
     // not sure about this part
     val args = new collection.mutable.ListBuffer[String]()
     args.append(classOf[SVIngest].getCanonicalName)
@@ -96,10 +95,11 @@ class Ingest() extends Logging with AccumuloProperties {
     // since we are not in a test script we are choosing to run the ingest
     args.append("--" + IngestParams.RUN_INGEST, "true")
 
-    // set job config options
-    jobConf.setSpeculativeExecution(false)
-    // run the tool
-    ToolRunner.run( jobConf, new Tool, args.toArray)
+    val hdfsMode = if (fileSystem == "mr") Hdfs(strict=true, conf) else Hdfs(strict=false, conf)
+    val arguments = Mode.putMode(hdfsMode, Args(args))
+    val job = new SVIngest(arguments)
+    val flow = job.buildFlow
+    flow.complete()
   }
 }
 
