@@ -40,6 +40,15 @@
                 <include>README.md</include>
             </includes>
         </fileSet>
+        <fileSet>
+            <directory>target/lib</directory>
+            <outputDirectory>lib</outputDirectory>
+            <excludes>
+                <exclude>logback-classic-1.1.1.jar</exclude>
+                <exclude>logback-core-1.1.1.jar</exclude>
+                <exclude>*SNAPSHOT.jar</exclude>
+            </excludes>
+        </fileSet>
     </fileSets>
     <files>
         <file>
@@ -73,10 +82,10 @@
             <source>../geomesa-plugin/README.md</source>
             <outputDirectory>docs/plugin</outputDirectory>
         </file>
-            <file>
+        <file>
             <source>../geomesa-tools/README.md</source>
             <outputDirectory>docs/tools</outputDirectory>
             <filtered>true</filtered>
-            </file>
+        </file>
     </files>
 </component>
