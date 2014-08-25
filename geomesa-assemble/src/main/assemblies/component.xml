@@ -27,17 +27,11 @@
             <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>${groupId}:${artifactId}*</include>
+                <include>*</include>
             </includes>
         </dependencySet>
     </dependencySets>
     <fileSets>
-        <fileSet>
-            <directory>../geomesa-tools/bin</directory>
-            <outputDirectory>bin</outputDirectory>
-            <directoryMode>0755</directoryMode>
-            <fileMode>0755</fileMode>
-        </fileSet>
         <fileSet>
             <directory>../</directory>
             <fileMode>0644</fileMode>
@@ -48,6 +42,17 @@
         </fileSet>
     </fileSets>
     <files>
+        <file>
+            <source>../geomesa-tools/bin/geomesa</source>
+            <outputDirectory>bin</outputDirectory>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+        </file>
+        <file>
+            <source>../geomesa-tools/bin/geomesa-test-script.sh</source>
+            <outputDirectory>bin</outputDirectory>
+            <fileMode>0755</fileMode>
+        </file>
         <file>
             <source>../geomesa-compute/README.md</source>
             <outputDirectory>docs/compute</outputDirectory>

@@ -33,34 +33,10 @@ object Tools extends App with Logging with GetPassword {
       c.copy(instanceName = x) } text "Accumulo instance name" optional()
     def zookeepersOpt = opt[String]('z', "zookeepers") action { (x, c) =>
       c.copy(zookeepers = x) } text "Zookeepers comma-separated instances string" optional()
-
-    def export = cmd("export") action { (_, c) =>
-      c.copy(mode = "export") } text "Export all or a set of features in CSV, TSV, GeoJSON, GML, or SHP format" children(
-      userOpt,
-      passOpt,
-      catalogOpt,
-      featureOpt,
-      opt[Unit]('s', "stdOut").action { (_, c) =>
-        c.copy(toStdOut = true) } optional() hidden(),
-      opt[String]('o', "format").action { (s, c) =>
-        c.copy(format = s) } required() hidden(),
-      opt[String]('a', "attributes").action { (s, c) =>
-        c.copy(attributes = s) } optional() hidden(),
-      opt[String]("idAttribute").action { (s, c) =>
-        c.copy(latAttribute = Option(s)) } optional() hidden(),
-      opt[String]("latAttribute").action { (s, c) =>
-        c.copy(latAttribute = Option(s)) } optional() hidden(),
-      opt[String]("lonAttribute").action { (s, c) =>
-        c.copy(lonAttribute = Option(s)) } optional() hidden(),
-      opt[String]("dateAttribute").action { (s, c) =>
-        c.copy(dtField = Option(s)) } optional() hidden(),
-      opt[Int]('m', "maxFeatures").action { (s, c) =>
-        c.copy(maxFeatures = s) } optional() hidden(),
-      opt[String]('q', "query").action { (s, c) =>
-        c.copy(query = s )} optional() hidden(),
-      instanceNameOpt,
-      zookeepersOpt
-      )
+    def visibilitiesOpt = opt[String]('v', "visibilities") action { (x, c) =>
+      c.copy(visibilities = x) } text "Accumulo visibilities string" optional()
+    def authsOpt = opt[String]('a', "auths") action { (x, c) =>
+      c.copy(auths = x) } text "Accumulo auths string" optional()
 
     def describe = cmd("describe") action { (_, c) =>
       c.copy(mode = "describe") } text "Describe the specified feature" children(
@@ -71,7 +47,9 @@ object Tools extends App with Logging with GetPassword {
       opt[Unit]('q', "quiet").action { (_, c) =>
         c.copy(toStdOut = true) } optional() hidden(),
       instanceNameOpt,
-      zookeepersOpt
+      zookeepersOpt,
+      visibilitiesOpt,
+      authsOpt
       )
 
     def list = cmd("list") action { (_, c) =>
@@ -82,7 +60,9 @@ object Tools extends App with Logging with GetPassword {
       opt[Unit]('q', "quiet").action { (_, c) =>
         c.copy(toStdOut = true) } optional() hidden(),
       instanceNameOpt,
-      zookeepersOpt
+      zookeepersOpt,
+      visibilitiesOpt,
+      authsOpt
       )
 
     def explain = cmd("explain") action { (_, c) =>
@@ -94,7 +74,9 @@ object Tools extends App with Logging with GetPassword {
       opt[String]('q', "filter").action { (s, c) =>
         c.copy(query = s) } required() hidden(),
       instanceNameOpt,
-      zookeepersOpt
+      zookeepersOpt,
+      visibilitiesOpt,
+      authsOpt
       )
 
     def delete = cmd("delete") action { (_, c) =>
@@ -104,7 +86,9 @@ object Tools extends App with Logging with GetPassword {
       catalogOpt,
       featureOpt,
       instanceNameOpt,
-      zookeepersOpt
+      zookeepersOpt,
+      visibilitiesOpt,
+      authsOpt
       )
 
     def create = cmd("create") action { (_, c) =>
@@ -117,7 +101,9 @@ object Tools extends App with Logging with GetPassword {
       opt[String]('d', "default-date").action { (s, c) =>
         c.copy(dtField = Option(s)) } optional() hidden(),
       instanceNameOpt,
-      zookeepersOpt
+      zookeepersOpt,
+      visibilitiesOpt,
+      authsOpt
       )
 
     def tableconf = cmd("tableconf") action { (_, c) =>
@@ -131,6 +117,8 @@ object Tools extends App with Logging with GetPassword {
           c.copy(suffix = s) } required() hidden()),
         instanceNameOpt,
         zookeepersOpt,
+        visibilitiesOpt,
+        authsOpt,
       cmd("describe") action { (_, c) => c.copy(method = "describe") } text "Return the value of a single parameter of the given table" children(
         userOpt,
         passOpt,
@@ -142,6 +130,8 @@ object Tools extends App with Logging with GetPassword {
           c.copy(suffix = s) } required() hidden()),
         instanceNameOpt,
         zookeepersOpt,
+        visibilitiesOpt,
+        authsOpt,
       cmd("update") action { (_, c) => c.copy(method = "update") } text "Update a configuration parameter of the given table" children(
         userOpt,
         passOpt,
@@ -155,7 +145,9 @@ object Tools extends App with Logging with GetPassword {
           c.copy(suffix = s) } required() hidden()
         ),
         instanceNameOpt,
-        zookeepersOpt
+        zookeepersOpt,
+        visibilitiesOpt,
+        authsOpt
       )
     head("GeoMesa Tools", "1.0")
     help("help").text("show help command")
@@ -163,7 +155,6 @@ object Tools extends App with Logging with GetPassword {
     delete
     describe
     explain
-    export
     list
     tableconf
   }
@@ -205,28 +196,6 @@ object Tools extends App with Logging with GetPassword {
       "Explain and plan a query in GeoMesa\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
         "\t-q, --filter : required\n" +
         "\t\tthe filter string to apply, plan, and explain"
-    } else if (args.contains("export")) {
-      "Export all or a set of features in CSV, TSV, GeoJSON, GML, or SHP format\n" +
-        usernameHelp + passwordHelp + catalogHelp +
-        "\t-f, --feature-name : required\n" +
-        "\t\tthe name of the feature to export\n" +
-        "\t-o, --format : required\n" +
-        "\t\tthe format to export to (csv, tsv, gml, geojson, shp)\n" +
-        "\t-s, --stdout : optional\n" +
-        "\t\tadd this flag to export to stdOut\n" +
-        "\t-a, --attributes : optional\n" +
-        "\t\tattributes to return in the export. default: ALL\n" +
-        "\t-m, --maxFeatures : optional\n" +
-        "\t\tmax number of features to return. default: 2147483647\n" +
-        "\t-q, --query : optional\n" +
-        "\t\tECQL query to run on the features. default: INCLUDE"
-      //commenting out for now because these aren't implemented yet, but will be in the future
-      //        "\t--latAttribute : optional\n" +
-      //        "\t\tlatitude attribute to query on\n" +
-      //        "\t--lonAttribute : optional\n" +
-      //        "\t\tlongitude attribute to query on\n" +
-      //        "\t--dateAttribute : optional\n" +
-      //        "\t\tdate attribute to query on"
     } else if (args.contains("list") && !args.contains("tableconf")) {
       "List the features in the specified Catalog Table\n" + usernameHelp + passwordHelp + catalogHelp +
         "\t-q, --quiet : optional\n" +
@@ -258,6 +227,7 @@ object Tools extends App with Logging with GetPassword {
         "\tdescribe: Describe the attributes of a specified feature\n" +
         "\texplain: Explain and plan a query in GeoMesa\n" +
         "\texport: Export all or a set of features in CSV, TSV, GeoJSON, GML, or SHP format\n" +
+        "\tingest: Ingest features into GeoMesa" +
         "\tlist: List the features in the specified Catalog Table\n" +
         "\ttableconf: List, describe, and update table configuration parameters"
     }
@@ -276,10 +246,6 @@ object Tools extends App with Logging with GetPassword {
         config.password
       }
       config.mode match {
-        case "export" =>
-          val ft = new FeaturesTool(config, password)
-          if (!config.toStdOut) { logger.info(s"Exporting '${config.featureName}' on catalog table '${config.catalog}'. Just a few moments...") }
-          ft.exportFeatures()
         case "list" =>
           val ft = new FeaturesTool(config, password)
           if (!config.toStdOut) { logger.info(s"Listing features on '${config.catalog}'. Just a few moments...") }

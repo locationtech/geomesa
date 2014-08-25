@@ -38,11 +38,13 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
 
   val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> instance,
-      "zookeepers" -> zookeepersString,
-      "user"       -> config.username,
-      "password"   -> password,
-      "tableName"  -> config.catalog)).asInstanceOf[AccumuloDataStore]
+      "instanceId"   -> instance,
+      "zookeepers"   -> zookeepersString,
+      "user"         -> config.username,
+      "password"     -> password,
+      "tableName"    -> config.catalog,
+      "visibilities" -> config.visibilities,
+      "auths"        -> config.auths)).asInstanceOf[AccumuloDataStore]
   }).getOrElse{
     logger.error("Cannot connect to Accumulo. Please check your configuration and try again.")
     sys.exit()
@@ -105,52 +107,6 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
     }
   }
 
-  def exportFeatures() {
-    val sftCollection = getFeatureCollection
-    var outputPath: File = null
-    do {
-      if (outputPath != null) { Thread.sleep(1) }
-      outputPath = new File(s"${System.getProperty("user.dir")}/${config.catalog}_${config.featureName}_${DateTime.now()}.${config.format}")
-    } while (outputPath.exists)
-    config.format.toLowerCase match {
-      case "csv" | "tsv" =>
-        val loadAttributes = new LoadAttributes(config.featureName,
-                                                config.catalog,
-                                                config.attributes,
-                                                config.idFields.orNull,
-                                                config.latAttribute,
-                                                config.lonAttribute,
-                                                config.dtField,
-                                                config.query,
-                                                config.format,
-                                                config.toStdOut,
-                                                outputPath)
-        val de = new DataExporter(loadAttributes, Map(
-          "instanceId" -> instance,
-          "zookeepers" -> zookeepersString,
-          "user"       -> config.username,
-          "password"   -> password,
-          "tableName"  -> config.catalog))
-        de.writeFeatures(sftCollection.features())
-      case "shp" =>
-        val shapeFileExporter = new ShapefileExport
-        shapeFileExporter.write(outputPath, config.featureName, sftCollection, ds.getSchema(config.featureName))
-        logger.info(s"Successfully wrote features to '${outputPath.toString}'")
-      case "geojson" =>
-        val os = if (config.toStdOut) { System.out } else { new FileOutputStream(outputPath) }
-        val geojsonExporter = new GeoJsonExport
-        geojsonExporter.write(sftCollection, os)
-        if (!config.toStdOut) { logger.info(s"Successfully wrote features to '${outputPath.toString}'") }
-      case "gml" =>
-        val os = if (config.toStdOut) { System.out } else { new FileOutputStream(outputPath) }
-        val gmlExporter = new GmlExport
-        gmlExporter.write(sftCollection, os)
-        if (!config.toStdOut) { logger.info(s"Successfully wrote features to '${outputPath.toString}'") }
-      case _ =>
-        logger.error("Unsupported export format. Supported formats are shp, geojson, csv, and gml.")
-    }
-  }
-
   def deleteFeature(): Boolean = {
     try {
       ds.removeSchema(config.featureName)
@@ -177,25 +133,6 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
       case re: RuntimeException => logger.error(s"Error: Could not explain the query. Please " +
         s"ensure that all arguments are correct in the previous command.")
       case e: Exception => logger.error(s"Error: Could not explain the query.")
-    }
-  }
-
-  def getFeatureCollection: SimpleFeatureCollection = {
-    val filter = if (config.query != null) { CQL.toFilter(config.query) } else { CQL.toFilter("include") }
-    val q = new Query(config.featureName, filter)
-
-    if (config.maxFeatures > 0) { q.setMaxFeatures(config.maxFeatures) }
-    if (config.attributes != null) { q.setPropertyNames(config.attributes.split(',')) }
-    if (!config.toStdOut) { logger.info(s"$q") }
-
-    // get the feature store used to query the GeoMesa data
-    val fs = ds.getFeatureSource(config.featureName).asInstanceOf[AccumuloFeatureStore]
-
-    // and execute the query
-    Try(fs.getFeatures(q)).getOrElse{
-      logger.error("Error: Could not create a SimpleFeatureCollection to export. Please ensure " +
-        "that all arguments are correct in the previous command.")
-      sys.exit()
     }
   }
 }

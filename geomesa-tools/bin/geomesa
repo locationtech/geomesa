@@ -16,7 +16,8 @@
 #
 
 ACCUMULO_CONF=${ACCUMULO_HOME}/conf
-CLASSPATH=${GEOMESA_HOME}/lib/*:${ACCUMULO_CONF}:${HADOOP_CONF_DIR}
+ACCUMULO_LIB=${ACCUMULO_HOME}/lib/*
+CLASSPATH=${GEOMESA_HOME}/lib/*:${ACCUMULO_LIB}:${ACCUMULO_CONF}:${HADOOP_CONF_DIR}
 
 if  [[ $1 = configure ]]; then
     SOURCE="${BASH_SOURCE[0]}"
@@ -39,6 +40,8 @@ else
         java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Ingest --help
     elif [[ $1 = ingest ]]; then
         java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Ingest "${@:2}"
+    elif [[ $1 = export ]]; then
+        java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Export "${@:2}"
     elif [ -n "$*" ]; then
         java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Tools "$@"
     else
