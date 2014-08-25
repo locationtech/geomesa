@@ -17,7 +17,6 @@
 
 ACCUMULO_CONF=${ACCUMULO_HOME}/conf
 ACCUMULO_LIB=${ACCUMULO_HOME}/lib/*
-EXCLUDED="geomesa-tools-accumulo1.5.jar"
 GEOMESA_LIB=${GEOMESA_HOME}/lib/*
 GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898 -Duser.timezone=UTC"
 
