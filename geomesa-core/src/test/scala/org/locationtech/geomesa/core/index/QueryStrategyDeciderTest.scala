@@ -51,13 +51,13 @@ class QueryStrategyDeciderTest extends Specification {
 
   "Attribute filters" should {
     "get the attribute equals strategy" in {
-      val fs = "attr2 = val56"
+      val fs = "attr2 = 'val56'"
 
-      getStrategy(fs) must beAnInstanceOf[AttributeEqualsIdxStrategy]
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxEqualsStrategy]
     }
 
     "get the attribute equals strategy" in {
-      val fs = "attr1 = val56"
+      val fs = "attr1 = 'val56'"
 
       getStrategy(fs) must beAnInstanceOf[STIdxStrategy]
     }
@@ -65,7 +65,7 @@ class QueryStrategyDeciderTest extends Specification {
     "get the attribute likes strategy" in {
       val fs = "attr2 ILIKE '2nd1%'"
 
-      getStrategy(fs) must beAnInstanceOf[AttributeLikeIdxStrategy]
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxLikeStrategy]
     }
 
     "get the stidx strategy if attribute non-indexed" in {
@@ -114,13 +114,23 @@ class QueryStrategyDeciderTest extends Specification {
     }.pendingUntilFixed
   }
 
-  // TODO: GEOMESA-311
   "Anded Attribute filters" should {
     "get an attribute strategy" in {
-      val fs = "attr2 = val56 AND attr1 = val3"
+      val fs = "attr2 = 'val56' AND attr1 = 'val3'"
 
-      getStrategy(fs) must beAnInstanceOf[AttributeEqualsIdxStrategy]
-    }.pendingUntilFixed
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxEqualsStrategy]
+    }
+
+    "get the attribute strategy" in {
+      val fs = "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND attr2 = 'dummy'"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxEqualsStrategy]
+    }
+
+    "get the stidx strategy" in {
+      val fs = "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND attr1 = 'dummy'"
+
+      getStrategy(fs) must beAnInstanceOf[STIdxStrategy]
+    }
   }
-
 }
