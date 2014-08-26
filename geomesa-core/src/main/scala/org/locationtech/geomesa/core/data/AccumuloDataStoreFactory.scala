@@ -129,7 +129,6 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         tableName,
         authorizationsProvider,
         visibility,
-        idxSchemaParam.lookupOpt(params),
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
@@ -140,7 +139,6 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         tableName,
         authorizationsProvider,
         visibility,
-        idxSchemaParam.lookupOpt(params),
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
@@ -165,7 +163,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   override def getParametersInfo =
     Array(instanceIdParam, zookeepersParam, userParam, passwordParam,
-        authsParam, visibilityParam, tableNameParam, idxSchemaParam)
+        authsParam, visibilityParam, tableNameParam)
 
   def canProcess(params: JMap[String,Serializable]) =
     params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
@@ -190,7 +188,6 @@ object AccumuloDataStoreFactory {
     val authsParam          = new Param("auths", classOf[String], "Super-set of authorizations that will be used for queries. The actual authorizations might differ, depending on the authorizations provider, but will be outside this set. Comma-delimited.", false)
     val visibilityParam     = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
     val tableNameParam      = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
-    val idxSchemaParam      = new Param("indexSchemaFormat", classOf[String], "The feature-specific index-schema format", false)
     val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false)
     val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false)
     val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false)

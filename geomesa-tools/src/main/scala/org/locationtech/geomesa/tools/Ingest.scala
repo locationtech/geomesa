@@ -28,7 +28,6 @@ class Ingest extends Logging with AccumuloProperties {
     "auths"             ->  config.auths.orNull,
     "visibilities"      ->  config.visibilities.orNull,
     "maxShard"          ->  Some(config.maxShards),
-    "indexSchemaFormat" ->  config.indexSchemaFormat.orNull,
     "tableName"         ->  config.catalog
   )
 
