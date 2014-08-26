@@ -144,8 +144,8 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
   def getProperties(name: String): JCollection[Property] = getProperties.filter(_.getName.toString == name)
   def getProperty(name: Name): Property = getProperty(name.getLocalPart)
   def getProperty(name: String): Property =
-    (Option(getAttribute(name)), Option(sft.getDescriptor(name))) match {
-      case (Some(attribute), Some(descriptor)) => new AttributeImpl(attribute, descriptor, id)
+    Option(sft.getDescriptor(name)) match {
+      case Some(descriptor) => new AttributeImpl(getAttribute(name), descriptor, id)
       case _ => null
     }
 
