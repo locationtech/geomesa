@@ -17,10 +17,8 @@ package org.locationtech.geomesa.tools
 
 import java.net.URLDecoder
 import java.nio.charset.Charset
-
 import com.google.common.hash.Hashing
 import com.twitter.scalding.{TextLine, Args, Job}
-import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import org.geotools.data.{DataStoreFinder, FeatureWriter, Transaction}
@@ -35,12 +33,14 @@ import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFac
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
+import org.slf4j.LoggerFactory
 import scala.util.{Failure, Success, Try}
 
-class SVIngest(args: Args) extends Job(args) with Logging {
+class SVIngest(args: Args) extends Job(args) {
 
   import scala.collection.JavaConversions._
+
+  val logger = LoggerFactory.getLogger(classOf[SVIngest])
 
   var lineNumber            = 0
   var failures              = 0
@@ -51,12 +51,13 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
   lazy val dtgField         = args.optional(IngestParams.DT_FIELD)
   lazy val dtgFmt           = args.optional(IngestParams.DT_FORMAT)
-  lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
   lazy val lonField         = args.optional(IngestParams.LON_ATTRIBUTE).orNull
   lazy val latField         = args.optional(IngestParams.LAT_ATTRIBUTE).orNull
   lazy val skipHeader       = args(IngestParams.SKIP_HEADER).toBoolean
   lazy val doHash           = args(IngestParams.DO_HASH).toBoolean
   lazy val format           = args.optional(IngestParams.FORMAT).orNull
+  lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
+  lazy val dtFormat         = DateTimeFormat.forPattern(dtgFmt.getOrElse("MILLISEPOCH"))
 
   //Data Store parameters
   lazy val catalog          = args(IngestParams.CATALOG_TABLE)
@@ -98,34 +99,10 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     case _    => 0
   }
 
-
   val delim = format match {
     case s: String if s.toUpperCase == "TSV" => CSVFormat.TDF
     case s: String if s.toUpperCase == "CSV" => CSVFormat.DEFAULT
     case _                       => throw new Exception("Error, no format set and/or unrecognized format provided")
-  }
-
-  val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
-
-  if (ds.getSchema(featureName) == null) {
-    logger.info("\tCreating GeoMesa tables...")
-    val startTime = System.currentTimeMillis()
-    if (maxShard.isDefined)
-      ds.createSchema(sft, maxShard.get)
-    else
-      ds.createSchema(sft)
-    val createTime = System.currentTimeMillis() - startTime
-    val numShards = ds.getSpatioTemporalMaxShard(sft)
-    val shardPvsS = if (numShards == 1) "Shard" else "Shards"
-    logger.info(s"\tCreated schema in: $createTime ms using $numShards $shardPvsS.")
-  } else {
-    val numShards = ds.getSpatioTemporalMaxShard(sft)
-    val shardPvsS = if (numShards == 1) "Shard" else "Shards"
-    maxShard match {
-      case None => logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS. Using extant SFT. " +
-        s"\n\tIf this is not desired please delete (aka: drop) the catalog using the delete command.")
-      case Some(x) => logger.warn(s"GeoMesa tables extant, ignoring user request, using schema's $numShards $shardPvsS")
-    }
   }
 
   lazy val sft = {
@@ -136,34 +113,36 @@ class SVIngest(args: Args) extends Job(args) with Logging {
 
   lazy val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
-  lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt.getOrElse("MILLISEPOCH"))
   lazy val attributes = sft.getAttributeDescriptors
   lazy val dtBuilder = buildDtBuilder
   lazy val idBuilder = buildIDBuilder
 
-  class CloseableFeatureWriter {
-    val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
-    def release(): Unit = { fw.close() }
+  // non-serializable resources.
+  class Resources {
+    val dst = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
+    val fw = dst.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
+    def release(): Unit = { fw.close(); dst.dispose() }
   }
 
   // Check to see if this an actual ingest job or just a test.
   if ( runIngest.isDefined ) {
     try {
-      TextLine(path).using(new CloseableFeatureWriter)
-        .foreach('line) { (cfw: CloseableFeatureWriter, line: String) => ingestLine(cfw.fw, line)}
+      TextLine(path).using(new Resources)
+        .foreach('line) { (cfw: Resources, line: String) => lineNumber += 1; ingestLine(cfw.fw, line) }
+//      TextLine(path).read.using(new Resources)
+//        .map('line -> 'result) { (cfw: Resources, line: String) => lineNumber += 1; ingestLine(cfw.fw, line) }
     } catch {
-      case e: Exception => logger.error("error", e)
+      case e: Exception => e.printStackTrace()
     }
     finally {
-      ds.dispose()
-      val successPvsS = if (successes == 1) "feature" else "features"
-      val failurePvsS = if (failures == 1) "feature" else "features"
-      logger.info(s"For file $path - added $successes $successPvsS and failed on $failures $failurePvsS")
+//      val successPvsS = if (successes == 1) "feature" else "features"
+//      val failurePvsS = if (failures == 1) "feature" else "features"
+//      logger.info(s"For file $path - added $successes $successPvsS and failed on $failures $failurePvsS")
     }
   }
 
   def runTestIngest(lines: Iterator[String]) = Try {
-    val cfw = new CloseableFeatureWriter
+    val cfw = new Resources
     lines.foreach( line => ingestLine(cfw.fw, line) )
     cfw.release()
   }
@@ -176,15 +155,14 @@ class SVIngest(args: Args) extends Job(args) with Logging {
         if ( lineNumber % 10000 == 0 ) {
           val successPvsS = if (successes == 1) "feature" else "features"
           val failurePvsS = if (failures == 1) "feature" else "features"
-          logger.info(s"Ingest proceeding, on line number: $lineNumber," +
+          println(s"Ingest proceeding, on line number: $lineNumber," +
             s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
         }
-      case Failure(ex) => failures +=1; logger.error(s"Could not write feature due to: ${ex.getLocalizedMessage}")
+      case Failure(ex) => failures +=1; println(s"Could not write feature due to: ${ex.getLocalizedMessage}")
     }
   }
 
   def lineToFeature(line: String): Try[AvroSimpleFeature] = Try{
-    lineNumber += 1
     // CsvReader is being used to just split the line up. this may be refactored out when
     // scalding support is added however it may be necessary for local only ingest
     val reader = CSVParser.parse(line, delim)
@@ -248,7 +226,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
       successes +=1
     } catch {
       case e: Exception =>
-        logger.error(s"Cannot ingest avro simple feature: $feature, corresponding to line number: $lineNumber", e)
+        println(s"Cannot ingest avro simple feature: $feature, corresponding to line number: $lineNumber", e)
         failures +=1
     }
   }
