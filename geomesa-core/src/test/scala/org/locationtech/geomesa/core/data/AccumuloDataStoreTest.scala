@@ -16,6 +16,10 @@
 
 package org.locationtech.geomesa.core.data
 
+
+
+import java.util.Date
+
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
@@ -42,6 +46,7 @@ import org.locationtech.geomesa.core.iterators.TestData
 import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import org.locationtech.geomesa.core.util.CloseableIterator
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -56,6 +61,7 @@ class AccumuloDataStoreTest extends Specification {
 
   sequential
 
+  val ff = CommonFactoryFinder.getFilterFactory2
   val geotimeAttributes = org.locationtech.geomesa.core.index.spec
   var id = 0
   val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
@@ -194,7 +200,6 @@ class AccumuloDataStoreTest extends Specification {
         fs.addFeatures(featureCollection)
 
         // compose a CQL query that uses a polygon that is disjoint with the feature bounds
-        val ff = CommonFactoryFinder.getFilterFactory2
         val geomFactory = JTSFactoryFinder.getGeometryFactory
         val q = ff.dwithin(ff.property("geom"), ff.literal(geomFactory.createPoint(new Coordinate(45.000001, 48.99999))), 100.0, "meters")
         val query = new Query(sftName, q)
@@ -242,6 +247,38 @@ class AccumuloDataStoreTest extends Specification {
         }
 
         "and correct result" >> { "fid-1=testType|POINT (45 49)|hellotestType" mustEqual DataUtilities.encodeFeature(f) }
+      }
+
+      "handle setPropertyNames transformations" in {
+        val sftName = "transformtest0"
+        val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+        sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+        ds.createSchema(sft)
+
+        val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+        // create a feature
+        val geom = WKTUtils.read("POINT(45.0 49.0)")
+        val builder = new SimpleFeatureBuilder(sft, featureFactory)
+        builder.addAll(List("testType", new Date, geom))
+        val liveFeature = builder.buildFeature("fid-1")
+
+        // make sure we ask the system to re-use the provided feature-ID
+        liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        val featureCollection = new DefaultFeatureCollection(sftName, sft)
+        featureCollection.add(liveFeature)
+
+        fs.addFeatures(featureCollection)
+
+        val filter = ff.bbox("geom", 44.0, 48.0, 46.0, 50.0, "EPSG:4326")
+        val query = new Query(sftName, filter)
+        query.setPropertyNames(Array("geom"))
+
+        val features = fs.getFeatures(query).features
+
+        val results = features.toList
+
+        "must has exactly one result" >> { results.size  must equalTo(1) }
       }
 
       "handle transformations across multiple fields" in {
@@ -331,7 +368,6 @@ class AccumuloDataStoreTest extends Specification {
       val featureCollection = new DefaultFeatureCollection()
       featureCollection.addAll(TestData.allThePoints.map(TestData.createSF))
       fs.addFeatures(featureCollection)
-      val ff = CommonFactoryFinder.getFilterFactory2
 
       "default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
         val spatial = ff.bbox("geom", -230, -110, 230, 110, CRS.toSRS(WGS84))
@@ -584,8 +620,6 @@ class AccumuloDataStoreTest extends Specification {
       val fs = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
       fs.addFeatures(DataUtilities.collection(List(one, two)))
       fs.flush()
-
-      val ff = CommonFactoryFinder.getFilterFactory2
 
       "query indexed attribute" >> {
         val q1 = ff.equals(ff.property("name"), ff.literal("one"))
