@@ -19,7 +19,7 @@ package org.locationtech.geomesa.core.index
 import org.geotools.data.Query
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter._
+import org.opengis.filter.{Id, And, PropertyIsLike}
 
 import scala.collection.JavaConversions._
 
@@ -42,7 +42,7 @@ object QueryStrategyDecider {
       new STIdxStrategy
     } else {
       // check if we can use the attribute index first
-      val attributeStrategy = getAttributeIndexStrategy(filter, sft)
+      val attributeStrategy = AttributeIndexStrategy.getAttributeIndexStrategy(filter, sft)
       attributeStrategy.getOrElse {
         filter match {
           case idFilter: Id => new RecordIdxStrategy
