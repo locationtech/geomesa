@@ -212,12 +212,11 @@ class STIdxStrategy extends Strategy with Logging {
     builder.setName(featureType.getName)
     builder.add(featureType.getGeometryDescriptor)
     builder.setDefaultGeometry(featureType.getGeometryDescriptor.getLocalName)
-    if(featureType.getUserData.containsKey(SF_PROPERTY_START_TIME)) {
-      val name = featureType.getDescriptor(featureType.getUserData.get(SF_PROPERTY_START_TIME).toString)
-      builder.add(ab.name(name.getLocalName).binding(classOf[Date]).buildDescriptor(name.getLocalName))
-    }
+    // dtg attribute is optional -- if it exists add it to the builder
+    getDtgDescriptor(featureType).foreach ( builder.add(_) )
     val testType = builder.buildFeatureType()
-    testType.getUserData.put(SF_PROPERTY_START_TIME, featureType.getDescriptor(featureType.getUserData.get(SF_PROPERTY_START_TIME).toString).getLocalName)
+     // dtg attribute is optional -- if it exists add the pointer to UserData
+    getDtgFieldName(featureType).foreach ( testType.getUserData.put(SF_PROPERTY_START_TIME,_) )
     configureFeatureType(cfg, testType)
     configureFeatureEncoding(cfg, featureEncoder)
     cfg
