@@ -35,11 +35,12 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
 
   val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> instanceName,
-      "zookeepers" -> zookeepers,
-      "user"       -> config.username,
-      "password"   -> password,
-      "tableName"  -> config.catalog)).asInstanceOf[AccumuloDataStore]
+      "instanceId"   -> instanceName,
+      "zookeepers"   -> zookeepers,
+      "user"         -> config.username,
+      "password"     -> password,
+      "tableName"    -> config.catalog,
+      "collectStats" -> "false")).asInstanceOf[AccumuloDataStore]
   }).getOrElse{
     logger.error("Incorrect username or password. Please try again.")
     sys.exit()
@@ -123,11 +124,12 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
                                                 config.toStdOut,
                                                 outputPath)
         val de = new DataExporter(loadAttributes, Map(
-          "instanceId" -> instanceName,
-          "zookeepers" -> zookeepers,
-          "user"       -> config.username,
-          "password"   -> password,
-          "tableName"  -> config.catalog))
+          "instanceId"   -> instanceName,
+          "zookeepers"   -> zookeepers,
+          "user"         -> config.username,
+          "password"     -> password,
+          "tableName"    -> config.catalog,
+          "collectStats" -> "false"))
         de.writeFeatures(sftCollection.features())
       case "shp" =>
         val shapeFileExporter = new ShapefileExport
@@ -146,8 +148,6 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
       case _ =>
         logger.error("Unsupported export format. Supported formats are shp, geojson, csv, and gml.")
     }
-    //necessary to avoid StatsWriter exception when exporting
-    Thread.sleep(1000)
   }
 
   def deleteFeature(): Boolean = {
