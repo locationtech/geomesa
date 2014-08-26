@@ -136,6 +136,18 @@ trait AttributeIdxStrategy extends Strategy with Logging {
                     s"${one.getClass.getName}, ${two.getClass.getName}"
         throw new RuntimeException(msg)
     }
+
+  def partitionFilter(filter: Filter, sft: SimpleFeatureType): (Query, Filter) = {
+
+    val (indexFilter, cqlFilter) = filter match {
+      case and: And =>
+        pickout(AttributeIndexStrategy.getAttributeIndexStrategy(_, sft).isDefined)(and.getChildren)
+      case f: Filter =>
+        (Some(f), Seq())
+    }
+
+    (new Query(sft.getTypeName, filterListAsAnd(cqlFilter).getOrElse(Filter.INCLUDE)), indexFilter.get)
+  }
 }
 
 class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
