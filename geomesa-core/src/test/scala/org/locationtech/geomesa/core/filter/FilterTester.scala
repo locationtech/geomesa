@@ -47,8 +47,6 @@ class OrGeomsPredicateTest extends FilterTester {
 
 @RunWith(classOf[JUnitRunner])
 class OrGeomsPredicateWithProjectionTest extends FilterTester {
-
-
   val filters = oredSpatialPredicates
   runTest
 

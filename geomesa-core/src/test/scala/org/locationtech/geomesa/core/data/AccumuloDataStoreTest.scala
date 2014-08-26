@@ -16,8 +16,6 @@
 
 package org.locationtech.geomesa.core.data
 
-
-
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Coordinate
