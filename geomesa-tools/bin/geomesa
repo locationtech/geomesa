@@ -37,8 +37,8 @@ if  [[ $1 = configure ]]; then
     export GEOMESA_HOME="$bin"
     export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
 else
-    if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") || (-z "$HADOOP_CONF")  ]]; then
-        echo "Please ensure GEOMESA_HOME, ACCUMULO_HOME, and HADOOP_CONF are set before running geomesa-tools."
+    if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") || (-z "$HADOOP_CONF_DIR")  ]]; then
+        echo "Please ensure GEOMESA_HOME, ACCUMULO_HOME, and HADOOP_CONF_DIR are set before running geomesa-tools."
     elif [[ $1 = ingest ]] && [[ ($2 = debug) ]]; then
         java ${GEOMESA_DEBUG_OPTS} -cp "$CLASSPATH" org.locationtech.geomesa.tools.Ingest
     elif [[ $1 = ingest ]] && [[ (-z "$2") || ($2 = --help)  || ($2 = -help) || ($2 = help) ]]; then
