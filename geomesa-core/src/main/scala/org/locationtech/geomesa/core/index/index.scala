@@ -38,11 +38,11 @@ package object index {
   val SF_PROPERTY_END_TIME   = "geomesa_index_end_time"
   val SFT_INDEX_SCHEMA       = "geomesa_index_schema"
 
-  def getDtgFieldName(sft: SimpleFeatureType) = Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map{_.toString}
+  def getDtgFieldName(sft: SimpleFeatureType) = Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map{ _.toString }
   // wrapping function in option to protect against incorrect values in SF_PROPERTY_START_TIME
   def getDtgDescriptor(sft: SimpleFeatureType) = getDtgFieldName(sft).flatMap{name => Option(sft.getDescriptor(name))}
 
-  def getIndexSchema(sft: SimpleFeatureType) = Option(sft.getUserData.get(SFT_INDEX_SCHEMA)).map{_.toString}
+  def getIndexSchema(sft: SimpleFeatureType) = Option(sft.getUserData.get(SFT_INDEX_SCHEMA)).map{ _.toString }
 
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)
