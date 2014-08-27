@@ -55,8 +55,7 @@ object SimpleFeatureTypes {
     val name = gd.getLocalName
     val binding = typeEncode(gd.getType.getBinding)
     val indexed = Try(gd.getUserData.get("index").asInstanceOf[lang.Boolean].booleanValue()).getOrElse(java.lang.Boolean.FALSE)
-    val epsg = Try(CRS.lookupEpsgCode(gd.getCoordinateReferenceSystem, true)).getOrElse(Integer.valueOf(-1))
-    s"$default$name:$binding:srid=$epsg:index=$indexed"
+    s"$default$name:$binding:srid=4326:index=$indexed"
   }
 
   trait AttributeSpec {

@@ -4,18 +4,18 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
-import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.{DATA_CQ, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geohash.{GeoHash, GeohashUtils}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 
 object IndexEntry {
+
+  val timeZone = DateTimeZone.forID("UTC")
 
   implicit class IndexEntrySFT(sf: SimpleFeature) {
     lazy val userData = sf.getFeatureType.getUserData
@@ -44,9 +44,9 @@ object IndexEntry {
 
 }
 
-case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
-                        cff: TextFormatter[SimpleFeature],
-                        cqf: TextFormatter[SimpleFeature],
+case class IndexEncoder(rowf: TextFormatter,
+                        cff: TextFormatter,
+                        cqf: TextFormatter,
                         featureEncoder: SimpleFeatureEncoder) 
   extends Logging {
 
@@ -71,31 +71,14 @@ case class IndexEncoder(rowf: TextFormatter[SimpleFeature],
     val geohashes =
       decomposeGeometry(featureToEncode.geometry, maximumDecompositions, decomposableResolutions)
 
-    logger.trace(s"decomposed geohashes: ${geohashes.map(_.hash).mkString(",")})}")
-
-    val origFeatureType = featureToEncode.getType
-    val origFeatureTypeSpec = SimpleFeatureTypes.encodeType(origFeatureType)
-    val decompFeatureTypeSpec = origFeatureTypeSpec.replaceAll(":(Point|MultiPoint|LineString|MultiLineString|MultiPolygon)",":Geometry")
-    val decompFeatureType = SimpleFeatureTypes.createType(origFeatureType.getName.toString, decompFeatureTypeSpec)
-    decompFeatureType.getUserData.putAll(origFeatureType.getUserData)  // for field annotations
-    logger.trace(s"decomposed feature type geometry descriptor ${decompFeatureType.getGeometryDescriptor}")
-
-    def setDefaultGeometry(sf: SimpleFeature, geom: Geometry) =
-      sf.setAttribute(decompFeatureType.getGeometryDescriptor.getName, geom)
-
-    val entries = geohashes.map { gh =>
-      val copy = DataUtilities.reType(decompFeatureType, featureToEncode, true)
-      setDefaultGeometry(copy, gh)
-      copy
-    }
-
-    logger.trace(s"decomposed features: ${entries.map(e => (e, e.getType.getGeometryDescriptor)).mkString(",")})}")
+    logger.trace(s"decomposed ${featureToEncode.geometry} into geohashes: ${geohashes.map(_.hash).mkString(",")})}")
 
     val v = new Text(visibility)
+    val dt = featureToEncode.dt.getOrElse(new DateTime()).withZone(timeZone)
 
     // remember the resulting index-entries
-    val keys = entries.map { entry =>
-      val Array(r, cf, cq) = formats.map { _.format(entry) }
+    val keys = geohashes.map { gh =>
+      val Array(r, cf, cq) = formats.map { _.format(gh, dt, featureToEncode) }
       new Key(r, cf, cq, v)
     }
     val rowIDs = keys.map(_.getRow)

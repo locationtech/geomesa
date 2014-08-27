@@ -33,11 +33,12 @@ class FormattersTest extends Specification {
     val featureWithId = DataUtilities.createFeature(
       featureType, "fid1=POINT(-78.1 38.2)|38.2|-78.1|2014-03-20T07:28:00.0Z" )
 
-    val partitionTextFormatter = PartitionTextFormatter[SimpleFeature](99)
+    val partitionTextFormatter = PartitionTextFormatter(99)
 
     "map features with non-null identifiers to fixed partitions" in {
       val shardNumbers = (1 to numTrials).map(trial =>
-        partitionTextFormatter.format(featureWithId)
+        // The nulls are unused
+        partitionTextFormatter.format(null, null, featureWithId)
       ).toSet
 
       shardNumbers.size must be equalTo 1
