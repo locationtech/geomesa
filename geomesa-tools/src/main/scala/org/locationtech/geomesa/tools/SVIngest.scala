@@ -84,8 +84,8 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     val numShards = ds.getSpatioTemporalMaxShard(sft)
     val shardPvsS = if (numShards == 1) "Shard" else "Shards"
     maxShard match {
-      case None => logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS. Using extant SFT. " +
-        s"\n\tIf this is not desired please delete (aka: drop) the catalog using the delete command.")
+      case None => logger.info(s"GeoMesa tables and SFT extant, using $numShards $shardPvsS. " +
+        s"\nIf this is not desired please delete (aka: drop) the catalog using the delete command.")
       case Some(x) => logger.warn(s"GeoMesa tables extant, ignoring user request, using schema's $numShards $shardPvsS")
     }
   }
@@ -117,8 +117,8 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
         if ( dtgField.isEmpty ) {
           // assume we have no user input on what date field to use and that
           // there is no column of data signifying it.
-          logger.warn("Warning: no date-time field specified by user. Assuming that data contains no date column. \n" +
-            s"GeoMesa is defaulting to ingest features using the system time as the date for data in file : \n\t $path")
+          logger.warn("Warning: no date-time field specified. Assuming that data contains no date column. \n" +
+            s"GeoMesa is defaulting to the system time for ingested features.")
         }
         try {
           performIngest(cfw, Source.fromFile(path).getLines.drop(dropHeader))
@@ -184,26 +184,24 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     builder.addAll(fields.asInstanceOf[Array[AnyRef]])
     val feature = builder.buildFeature(id).asInstanceOf[AvroSimpleFeature]
 
-    // assume we have some dt field and possibly a format
     if (dtgField.isDefined) {
-      // override the feature dtgField if it was not be parsed in using default dtformat
-      if ( feature.getAttribute(dtgField.get) == null) {
-        try {
-          val dtgFieldIndex = getAttributeIndexInLine(dtgField.get)
-          val date = dtBuilder(fields(dtgFieldIndex)).toDate
-          feature.setAttribute(dtgField.get, date)
-        } catch {
-          case e: Exception => throw new Exception(s"Could not form Date object from field" +
-            s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
-        }
+      // override the feature dtgField
+      try {
+        val dtgFieldIndex = getAttributeIndexInLine(dtgField.get)
+        val date = dtBuilder(fields(dtgFieldIndex)).toDate
+        feature.setAttribute(dtgField.get, date)
+      } catch {
+        case e: Exception => throw new Exception(s"Could not form Date object from field" +
+          s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
       }
       //now try to build the date time object and set the dtgTargetField to the date value
       val dtg = try {
         dtBuilder(feature.getAttribute(dtgField.get))
       } catch {
-        case e: Exception => throw new Exception(s"Could not find date-time field: '${dtgField}'," +
+        case e: Exception => throw new Exception(s"Could not find date-time field: '$dtgField'," +
           s" on line  number: $lineNumber \n\t With value of: $line")
       }
+
       feature.setAttribute(dtgTargetField, dtg.toDate)
     }
 
@@ -255,7 +253,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
   }
 
   def buildDtBuilder: (AnyRef) => DateTime =
-    attributes.find(_.getLocalName == dtgField.get).map {
+    attributes.find(_.getLocalName == dtgField.getOrElse(None)).map {
       case attr if attr.getType.getBinding.equals(classOf[java.lang.Long]) =>
         (obj: AnyRef) => new DateTime(obj.asInstanceOf[java.lang.Long])
 
