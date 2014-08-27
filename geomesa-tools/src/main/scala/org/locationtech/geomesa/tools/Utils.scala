@@ -29,23 +29,39 @@ case class ScoptArguments(username: String = null,
                           password: String = null,
                           mode: String = null,
                           spec: String = null,
-                          idFields: Option[String] = None,
                           dtField: Option[String] = None,
-                          dtFormat: String = null,
                           method: String = "local",
                           featureName: String = null,
-                          format: String = null,
-                          toStdOut:Boolean = false,
                           catalog: String = null,
-                          maxFeatures: Int = -1,
-                          filterString: String = null,
-                          attributes: String = null,
-                          lonAttribute: Option[String] = None,
-                          latAttribute: Option[String] = None,
                           query: String = null,
                           param: String = null,
                           newValue: String = null,
-                          suffix: String = null)
+                          suffix: String = null,
+                          instanceName: String = null,
+                          zookeepers: String = null,
+                          visibilities: String = null,
+                          auths: String = null,
+                          toStdOut: Boolean = false)
+
+case class ExportArguments(username: String = null,
+                           password: String = null,
+                           mode: String = null,
+                           spec: String = null,
+                           idFields: Option[String] = None,
+                           dtField: Option[String] = None,
+                           featureName: String = null,
+                           format: String = null,
+                           toStdOut:Boolean = false,
+                           catalog: String = null,
+                           maxFeatures: Int = -1,
+                           attributes: String = null,
+                           lonAttribute: Option[String] = None,
+                           latAttribute: Option[String] = None,
+                           query: String = null,
+                           instanceName: String = null,
+                           zookeepers: String = null,
+                           visibilities: String = null,
+                           auths: String = null)
 
 /*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
 case class IngestArguments(username: String = null,
@@ -66,7 +82,9 @@ case class IngestArguments(username: String = null,
                            latAttribute: Option[String] = None,
                            skipHeader: Boolean = false,
                            doHash: Boolean = false,
-                           maxShards: Option[Int] = None )
+                           maxShards: Option[Int] = None,
+                           instanceName: String = null,
+                           zookeepers: String = null)
 
 /* get password trait */
 trait GetPassword {
@@ -93,9 +111,8 @@ trait AccumuloProperties {
     .map(y => (y \ "value").text)
     .head)
     .getOrElse("/accumulo")
-  val instanceIdDir = new Path(instanceDfsDir, "instance_id")
-  val instanceIdStr = ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)
-  val instanceName = new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepers).getInstanceName
+  val instanceIdDir = Try(new Path(instanceDfsDir, "instance_id")).getOrElse(null)
+  val instanceIdStr = Try(ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)).getOrElse(null)
+  val instanceName = Try(new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepers).getInstanceName).getOrElse(null)
 }
-
 

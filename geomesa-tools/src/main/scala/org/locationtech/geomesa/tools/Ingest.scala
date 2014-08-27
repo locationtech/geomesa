@@ -20,17 +20,22 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 class Ingest extends Logging with AccumuloProperties {
 
-  def getAccumuloDataStoreConf(config: IngestArguments, password: String) = Map (
-    "instanceId"        ->  instanceName,
-    "zookeepers"        ->  zookeepers,
-    "user"              ->  config.username,
-    "password"          ->  password,
-    "auths"             ->  config.auths.orNull,
-    "visibilities"      ->  config.visibilities.orNull,
-    "maxShard"          ->  Some(config.maxShards),
-    "indexSchemaFormat" ->  config.indexSchemaFormat.orNull,
-    "tableName"         ->  config.catalog
-  )
+  def getAccumuloDataStoreConf(config: IngestArguments, password: String) = {
+    val instance = if (config.instanceName != null) { config.instanceName } else { instanceName }
+    val zookeepersString = if (config.zookeepers != null) { config.zookeepers }  else { zookeepers  }
+
+    Map (
+      "instanceId"        ->  instance,
+      "zookeepers"        ->  zookeepersString,
+      "user"              ->  config.username,
+      "password"          ->  password,
+      "auths"             ->  config.auths.orNull,
+      "visibilities"      ->  config.visibilities.orNull,
+      "maxShard"          ->  Some(config.maxShards),
+      "indexSchemaFormat" ->  config.indexSchemaFormat.orNull,
+      "tableName"         ->  config.catalog
+    )
+  }
 
   def defineIngestJob(config: IngestArguments, password: String) = {
     val dsConfig = getAccumuloDataStoreConf(config, password)
@@ -102,6 +107,10 @@ object Ingest extends App with Logging with GetPassword {
       c.copy(skipHeader = true) } text "flag for skipping first line in file" optional()
     opt[String]("file").action { (s, c) =>
       c.copy(file = s, format = Option(getFileExtension(s))) } text "the file to be ingested" required()
+    opt[String]('z', "zookeepers").action { (s, c) =>
+      c.copy(zookeepers = s) } text "Accumulo Zookeepers string" optional()
+    opt[String]("instance-name").action { (s, c) =>
+      c.copy(instanceName = s) } text "Accumulo instance name" optional()
     help("help").text("show help command")
     checkConfig { c =>
       if (c.maxShards.isDefined && c.indexSchemaFormat.isDefined) {
@@ -134,4 +143,3 @@ object Ingest extends App with Logging with GetPassword {
   }
 
 }
-

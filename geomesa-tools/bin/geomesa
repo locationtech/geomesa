@@ -16,8 +16,11 @@
 #
 
 ACCUMULO_CONF=${ACCUMULO_HOME}/conf
-HADOOP_CLASSPATH=${HADOOP_HOME}/conf
-CLASSPATH=${ACCUMULO_CONF}:${HADOOP_CLASSPATH}
+ACCUMULO_LIB=${ACCUMULO_HOME}/lib/*
+GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898 -Duser.timezone=UTC"
+
+# We explicitly add geomesa-tools as the first jar to ensure the correct log4j properties file is used.
+CLASSPATH=${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:${ACCUMULO_LIB}:${ACCUMULO_CONF}:${HADOOP_CONF_DIR}
 
 if  [[ $1 = configure ]]; then
     SOURCE="${BASH_SOURCE[0]}"
@@ -34,15 +37,23 @@ if  [[ $1 = configure ]]; then
     export GEOMESA_HOME="$bin"
     export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
 else
-    if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") ||  (-z "$HADOOP_HOME")  ]]; then
-        echo "Please ensure GEOMESA_HOME, ACCUMULO_HOME, and HADOOP_HOME are set before running geomesa-tools."
+    if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") || (-z "$HADOOP_CONF")  ]]; then
+        echo "Please ensure GEOMESA_HOME, ACCUMULO_HOME, and HADOOP_CONF are set before running geomesa-tools."
+    elif [[ $1 = ingest ]] && [[ ($2 = debug) ]]; then
+        java ${GEOMESA_DEBUG_OPTS} -cp "$CLASSPATH" org.locationtech.geomesa.tools.Ingest
     elif [[ $1 = ingest ]] && [[ (-z "$2") || ($2 = --help)  || ($2 = -help) || ($2 = help) ]]; then
-        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Ingest --help
+        java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Ingest --help
     elif [[ $1 = ingest ]]; then
-        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Ingest "${@:2}"
+        java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Ingest "${@:2}"
+    elif [[ $1 = export ]] && [[ ($2 = debug) ]]; then
+        java ${GEOMESA_DEBUG_OPTS} -cp "$CLASSPATH" org.locationtech.geomesa.tools.Export "${@:2}"
+    elif [[ $1 = export ]]; then
+        java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Export "${@:2}"
+    elif [ -n "$*" ] && [[ ($2 = debug)  ]]; then
+        java ${GEOMESA_DEBUG_OPTS} -cp "$CLASSPATH" org.locationtech.geomesa.tools.Tools "$@"
     elif [ -n "$*" ]; then
-        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Tools "$@"
+        java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Tools "$@"
     else
-        java -cp "${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:$CLASSPATH" org.locationtech.geomesa.tools.Tools --help
+        java -cp "$CLASSPATH" org.locationtech.geomesa.tools.Tools --help
     fi
 fi

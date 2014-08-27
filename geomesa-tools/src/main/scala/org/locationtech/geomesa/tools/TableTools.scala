@@ -17,44 +17,32 @@
 package org.locationtech.geomesa.tools
 
 import java.util.Map.Entry
-import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
+import org.apache.accumulo.core.client.TableNotFoundException
 import org.apache.accumulo.core.client.impl.thrift.ThriftTableOperationException
-import org.apache.accumulo.core.client.{TableNotFoundException, ZooKeeperInstance}
-import org.apache.hadoop.fs.Path
 import org.geotools.data._
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 
 import scala.collection.JavaConversions._
 import scala.util.Try
-import scala.xml.XML
 
-class TableTools(config: ScoptArguments, password: String) extends Logging {
-  val accumuloConf = XML.loadFile(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
-  val zookeepers = (accumuloConf \\ "property")
-    .filter(x => (x \ "name")
-    .text == "instance.zookeeper.host")
-    .map(y => (y \ "value").text)
-    .head
-  val instanceDfsDir = Try((accumuloConf \\ "property")
-    .filter(x => (x \ "name")
-    .text == "instance.dfs.dir")
-    .map(y => (y \ "value").text)
-    .head)
-    .getOrElse("/accumulo")
-  val instanceIdDir = new Path(instanceDfsDir, "instance_id")
-  val instanceIdStr = ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)
-  val instanceName = new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepers).getInstanceName
+class TableTools(config: ScoptArguments, password: String) extends Logging with AccumuloProperties {
+
+  val instance = if (config.instanceName != null) { config.instanceName } else { instanceName }
+  val zookeepersString = if (config.zookeepers != null) { config.zookeepers }  else { zookeepers  }
+
   val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> instanceName,
-      "zookeepers" -> zookeepers,
-      "user"       -> config.username,
-      "password"   -> password,
-      "tableName"  -> config.catalog)).asInstanceOf[AccumuloDataStore]
+      "instanceId"   -> instance,
+      "zookeepers"   -> zookeepersString,
+      "user"         -> config.username,
+      "password"     -> password,
+      "tableName"    -> config.catalog,
+      "visibilities" -> config.visibilities,
+      "auths"        -> config.auths)).asInstanceOf[AccumuloDataStore]
   }).getOrElse{
-    logger.error("Incorrect username or password. Please try again.")
+    logger.error("Cannot connect to Accumulo. Please check your configuration and try again.")
     sys.exit()
   }
 

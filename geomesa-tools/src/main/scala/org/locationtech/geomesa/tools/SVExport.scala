@@ -36,7 +36,7 @@ import org.locationtech.geomesa.utils.geotools.Conversions._
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-object DataExporter extends App with Logging {
+object SVExport extends App with Logging {
 
   // replace this with your load specification
   val load: LoadAttributes = null
@@ -49,12 +49,12 @@ object DataExporter extends App with Logging {
                     "visibilities" -> "",
                     "tableName"    -> load.table)
 
-  val extractor = new DataExporter(load, params)
+  val extractor = new SVExport(load, params)
   val features = extractor.queryFeatures()
   extractor.writeFeatures(features)
 }
 
-class DataExporter(load: LoadAttributes, params: Map[_,_]) extends Logging {
+class SVExport(load: LoadAttributes, params: Map[_,_]) extends Logging {
 
   lazy val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 

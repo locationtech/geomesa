@@ -52,6 +52,11 @@ A test script is included under `geomesa\bin` that runs each command provided by
 by including your Accumulo username, password, test catalog table, test feature name, and test SFT specification. Then,
 run the script from the command line to ensure there are no errors in the output text. 
 
+In all commands below, one can add `--instance-name`, `--zookeepers`, `--auths`, and `--visibilities` arguments
+to properly configure the Accumulo data store connector. The Accumulo instance name and Zookeepers string can usually
+be automatically assigned as long as Accumulo is configured correctly. The Auths and Visibilities strings will have to
+be added as arguments to each command, if needed.
+
 ## Command Explanations and Usage
 
 ### create
