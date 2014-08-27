@@ -40,6 +40,7 @@ class GeoHashSpiralTest extends Specification {
     cvilleSF.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
     cvilleSF
   }
+
   def generateLineSF = {
     val sftName = "geomesaKNNTestQueryFeature"
 
@@ -78,7 +79,6 @@ class GeoHashSpiralTest extends Specification {
       nearest9ByCalculation must equalTo(nearest9ByVisualInspection)
     }
 
-
     "use the statefulDistanceFilter around Charlottesville correctly before pulling GeoHashes" in {
       val cvilleSF = generateCvilleSF
 
@@ -89,7 +89,6 @@ class GeoHashSpiralTest extends Specification {
 
       numHashesAfterFilter must equalTo(12)
     }
-
 
     "use the statefulDistanceFilter around Charlottesville correctly after pulling GeoHashes " in {
       val cvilleSF = generateCvilleSF
@@ -109,6 +108,7 @@ class GeoHashSpiralTest extends Specification {
 
       ghAfterFilter.length must equalTo(0)
     }
+
     "throw an exception if given a non-point geometry"  in {
        val route29SF = generateLineSF
 

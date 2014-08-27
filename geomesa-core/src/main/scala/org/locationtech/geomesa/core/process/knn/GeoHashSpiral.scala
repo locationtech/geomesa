@@ -113,6 +113,7 @@ class GeoHashSpiral(pq: mutable.PriorityQueue[GeoHashWithDistance],
       else loadNextGHFromPQ()
     }
   }
+
   // method to load the neighbors of the next GeoHash to be visited into the PriorityQueue
   private def loadNextGHFromTouching() {
     // use the GeoHash already taken from the head of the PriorityQueue as a seed
@@ -136,11 +137,12 @@ class GeoHashSpiral(pq: mutable.PriorityQueue[GeoHashWithDistance],
       oldGH ++= newTouchingGH
     }
   }
+
   // loads the head element in the PQ into onDeck, and adds GeoHashes to the PQ
   private def loadNext() {
     nextGHFromPQ match {
-      case (None) => onDeck = None // nothing left in the priorityQueue
-      case (Some(x)) => loadNextGHFromPQ(); loadNextGHFromTouching(); onDeck = Some(x)
+      case None    => onDeck = None // nothing left in the priorityQueue
+      case Some(x) => loadNextGHFromPQ(); loadNextGHFromTouching(); onDeck = Some(x)
     }
   }
 
@@ -149,6 +151,7 @@ class GeoHashSpiral(pq: mutable.PriorityQueue[GeoHashWithDistance],
     case Some(nextGH) => nextGH.gh
     case None => throw new Exception
   }
+
   // filter applied here to account for mutations in the filter AFTER onDeck is loaded
   def hasNext = onDeck.filter(statefulDistanceFilter).isDefined
 
