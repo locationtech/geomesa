@@ -256,7 +256,7 @@ object Tools extends App with Logging with GetPassword {
       config.mode match {
         case "export" =>
           val ft = new FeaturesTool(config, password)
-          if (!config.toStdOut) { logger.info(s"Exporting '${config.catalog}_${config.featureName}'. Just a few moments...") }
+          if (!config.toStdOut) { logger.info(s"Exporting '${config.featureName}' on catalog table '${config.catalog}'. Just a few moments...") }
           ft.exportFeatures()
         case "list" =>
           val ft = new FeaturesTool(config, password)
@@ -264,28 +264,28 @@ object Tools extends App with Logging with GetPassword {
           ft.listFeatures()
         case "describe" =>
           val ft = new FeaturesTool(config, password)
-          if (!config.toStdOut) { logger.info(s"Describing attributes of feature '${config.catalog}_${config.featureName}'. Just a few moments...") }
+          if (!config.toStdOut) { logger.info(s"Describing attributes of feature '${config.featureName}' on catalog table '${config.catalog}'. Just a few moments...") }
           ft.describeFeature()
         case "explain" =>
           val ft = new FeaturesTool(config, password)
           ft.explainQuery()
         case "delete" =>
           val ft = new FeaturesTool(config, password)
-          logger.info(s"Deleting '${config.catalog}_${config.featureName}'. This will take longer " +
+          logger.info(s"Deleting '${config.featureName}' on catalog table '${config.catalog}'. This will take longer " +
             "than other commands to complete. Just a few moments...")
           if (ft.deleteFeature()) {
-            logger.info(s"Feature '${config.catalog}_${config.featureName}' successfully deleted.")
+            logger.info(s"Feature '${config.featureName}' on catalog table '${config.catalog}' successfully deleted.")
           } else {
-            logger.error(s"There was an error deleting feature '${config.catalog}_${config.featureName}'" +
+            logger.error(s"There was an error deleting feature '${config.featureName}' on catalog table '${config.catalog}'" +
               "Please check that all arguments are correct in the previous command.")
           }
         case "create" =>
           val ft = new FeaturesTool(config, password)
-          logger.info(s"Creating '${config.catalog}_${config.featureName}' with spec '${config.spec}'. Just a few moments...")
+          logger.info(s"Creating '${config.featureName}' on catalog table '${config.catalog}' with spec '${config.spec}'. Just a few moments...")
           if (ft.createFeatureType()) {
-            logger.info(s"Feature '${config.catalog}_${config.featureName}' with spec '${config.spec}' successfully created.")
+            logger.info(s"Feature '${config.featureName}' on catalog table '${config.catalog}' with spec '${config.spec}' successfully created.")
           } else {
-            logger.error(s"There was an error creating feature '${config.catalog}_${config.featureName}' with spec '${config.spec}'." +
+            logger.error(s"There was an error creating feature '${config.featureName}' on catalog table '${config.catalog}' with spec '${config.spec}'." +
               " Please check that all arguments are correct in the previous command.")
           }
         case "tableconf" =>

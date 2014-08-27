@@ -98,7 +98,7 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
       ds.createSchema(sft)
       ds.getSchema(config.featureName) != null
     } else {
-      logger.error(s"Feature '${config.catalog}_${config.featureName}' already exists.")
+      logger.error(s"A feature named '${config.featureName}' already exists in the data store with catalog table '${config.catalog}'.")
       sys.exit()
     }
   }
