@@ -98,6 +98,12 @@ class QueryStrategyDeciderTest extends Specification {
       getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
     }
 
+    "get the attribute strategy for gt prop on right" in {
+      val fs = "11 > attr2"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
     "get the attribute strategy for null" in {
       val fs = "attr2 IS NULL"
 

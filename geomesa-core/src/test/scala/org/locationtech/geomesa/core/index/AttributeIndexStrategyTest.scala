@@ -28,7 +28,8 @@ import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.geotools.filter.text.cql2.CQL
+import org.geotools.filter.text.cql2.CQLException
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
@@ -42,8 +43,6 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexStrategyTest extends Specification {
-
-  sequential
 
   val sftName = "AttributeIndexStrategyTest"
   val spec = "name:String:index=true,age:Integer:index=true,count:Long:index=true," +
@@ -104,7 +103,7 @@ class AttributeIndexStrategyTest extends Specification {
   val queryPlanner = indexSchema.planner
 
   def execute(strategy: AttributeIdxStrategy, filter: String): List[String] = {
-    val query = new Query(sftName, CQL.toFilter(filter))
+    val query = new Query(sftName, ECQL.toFilter(filter))
     val results = strategy.execute(ds, queryPlanner, sft, query, ExplainNull)
     queryPlanner.adaptIterator(results, query).map(_.getAttribute("name").toString).toList
   }
@@ -432,6 +431,35 @@ class AttributeIndexStrategyTest extends Specification {
         val features = execute(strategy, "dtg BETWEEN '2012-01-01T12:00:00.000Z' AND '2013-01-01T12:00:00.000Z'")
         features must have size(2)
         features must contain("alice", "bill")
+      }
+    }
+
+    "correctly query with attribute on right side" >> {
+      "lt" >> {
+        val features = execute(strategy, "'bill' > name")
+        features must have size(1)
+        features must contain("alice")
+      }
+      "gt" >> {
+        val features = execute(strategy, "'bill' < name")
+        features must have size(2)
+        features must contain("bob", "charles")
+      }
+      "lte" >> {
+        val features = execute(strategy, "'bill' >= name")
+        features must have size(2)
+        features must contain("alice", "bill")
+      }
+      "gte" >> {
+        val features = execute(strategy, "'bill' <= name")
+        features must have size(3)
+        features must contain("bill", "bob", "charles")
+      }
+      "before" >> {
+        execute(strategy, "2014-01-01T12:30:00.000Z AFTER dtg") should throwA[CQLException]
+      }
+      "after" >> {
+        execute(strategy, "2013-01-01T12:30:00.000Z BEFORE dtg") should throwA[CQLException]
       }
     }
   }

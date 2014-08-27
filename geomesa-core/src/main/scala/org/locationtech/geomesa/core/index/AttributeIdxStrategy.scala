@@ -128,35 +128,19 @@ trait AttributeIdxStrategy extends Strategy with Logging {
   }
 
   /**
-   * Returns the property name and literal value, regardless of order.
+   * Checks the order of properties and literals in the expression
    *
    * @param one
    * @param two
-   * @return
+   * @return (prop, literal, whether the order was flipped)
    */
-  def checkEqualityOrder(one: Expression, two: Expression): (String, AnyRef) =
+  def checkOrder(one: Expression, two: Expression): (String, AnyRef, Boolean) =
     (one, two) match {
-      case (p: PropertyName, l: Literal) => (p.getPropertyName, l.getValue)
-      case (l: Literal, p: PropertyName) => (p.getPropertyName, l.getValue)
+      case (p: PropertyName, l: Literal) => (p.getPropertyName, l.getValue, false)
+      case (l: Literal, p: PropertyName) => (p.getPropertyName, l.getValue, true)
       case _ =>
         val msg = "Unhandled properties in attribute index strategy: " +
                     s"${one.getClass.getName}, ${two.getClass.getName}"
-        throw new RuntimeException(msg)
-    }
-
-  /**
-   * CQL is valid only if the expression is 'prop [comp] literal', not the other way around.
-   *
-   * @param one
-   * @param two
-   * @return
-   */
-  def checkRangeOrder(one: Expression, two: Expression): (String, AnyRef) =
-    (one, two) match {
-      case (p: PropertyName, l: Literal) => (p.getPropertyName, l.getValue)
-      case _ =>
-        val msg = "Unhandled properties in attribute index strategy: " +
-                  s"${one.getClass.getName}, ${two.getClass.getName}"
         throw new RuntimeException(msg)
     }
 }
@@ -171,11 +155,11 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
     val range =
       query.getFilter match {
         case f: PropertyIsEqualTo =>
-          val (prop, lit) = checkEqualityOrder(f.getExpression1, f.getExpression2)
+          val (prop, lit, _) = checkOrder(f.getExpression1, f.getExpression2)
           AccRange.exact(getEncodedAttrIdxRow(featureType, prop, lit))
 
         case f: TEquals =>
-          val (prop, lit) = checkEqualityOrder(f.getExpression1, f.getExpression2)
+          val (prop, lit, _) = checkOrder(f.getExpression1, f.getExpression2)
           AccRange.exact(getEncodedAttrIdxRow(featureType, prop, lit))
 
         case f: PropertyIsNil =>
@@ -213,43 +197,49 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
           new AccRange(lowerBound, true, upperBound, true)
 
         case f: PropertyIsGreaterThan =>
-          val (prop, lit) = checkRangeOrder(f.getExpression1, f.getExpression2)
-          val start = new Text(getEncodedAttrIdxRow(featureType, prop, lit))
-          val end = AccRange.followingPrefix(new Text(AttributeIndexEntry.getAttributeIndexRowPrefix(prop)))
-          new AccRange(start, false, end, false)
-
+          val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
+          if (flipped) {
+            lessThanRange(featureType, prop, lit)
+          } else {
+            greaterThanRange(featureType, prop, lit)
+          }
         case f: PropertyIsGreaterThanOrEqualTo =>
-          val (prop, lit) = checkRangeOrder(f.getExpression1, f.getExpression2)
-          val start = new Text(getEncodedAttrIdxRow(featureType, prop, lit))
-          val end = AccRange.followingPrefix(new Text(AttributeIndexEntry.getAttributeIndexRowPrefix(prop)))
-          new AccRange(start, true, end, false)
-
+          val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
+          if (flipped) {
+            lessThanOrEqualRange(featureType, prop, lit)
+          } else {
+            greaterThanOrEqualRange(featureType, prop, lit)
+          }
         case f: PropertyIsLessThan =>
-          val (prop, lit) = checkRangeOrder(f.getExpression1, f.getExpression2)
-          val start = AttributeIndexEntry.getAttributeIndexRowPrefix(prop)
-          val end = getEncodedAttrIdxRow(featureType, prop, lit)
-          new AccRange(start, false, end, false)
-
+          val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
+          if (flipped) {
+            greaterThanRange(featureType, prop, lit)
+          } else {
+            lessThanRange(featureType, prop, lit)
+          }
         case f: PropertyIsLessThanOrEqualTo =>
-          val (prop, lit) = checkRangeOrder(f.getExpression1, f.getExpression2)
-          val start = AttributeIndexEntry.getAttributeIndexRowPrefix(prop)
-          val end = getEncodedAttrIdxRow(featureType, prop, lit)
-          new AccRange(start, false, end, true)
-
+          val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
+          if (flipped) {
+            greaterThanOrEqualRange(featureType, prop, lit)
+          } else {
+            lessThanOrEqualRange(featureType, prop, lit)
+          }
         case f: Before =>
-          val (prop, lit) = checkRangeOrder(f.getExpression1, f.getExpression2)
-          val start = AttributeIndexEntry.getAttributeIndexRowPrefix(prop)
-          val end = getEncodedAttrIdxRow(featureType, prop, lit)
-          new AccRange(start, false, end, false)
-
+          val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
+          if (flipped) {
+            greaterThanRange(featureType, prop, lit)
+          } else {
+            lessThanRange(featureType, prop, lit)
+          }
         case f: After =>
-          val (prop, lit) = checkRangeOrder(f.getExpression1, f.getExpression2)
-          val start = new Text(getEncodedAttrIdxRow(featureType, prop, lit))
-          val end = AccRange.followingPrefix(new Text(AttributeIndexEntry.getAttributeIndexRowPrefix(prop)))
-          new AccRange(start, false, end, false)
-
+          val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
+          if (flipped) {
+            lessThanRange(featureType, prop, lit)
+          } else {
+            greaterThanRange(featureType, prop, lit)
+          }
         case f: During =>
-          val (prop, lit) = checkRangeOrder(f.getExpression1, f.getExpression2)
+          val (prop, lit, _) = checkOrder(f.getExpression1, f.getExpression2)
           val during = lit.asInstanceOf[DefaultPeriod]
           val lower = during.getBeginning.getPosition.getDate
           val upper = during.getEnding.getPosition.getDate
@@ -263,6 +253,30 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
       }
 
     attrIdxQuery(acc, query, iqp, featureType, range, output)
+  }
+
+  private def greaterThanRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val start = new Text(getEncodedAttrIdxRow(featureType, prop, lit))
+    val end = AccRange.followingPrefix(new Text(AttributeIndexEntry.getAttributeIndexRowPrefix(prop)))
+    new AccRange(start, false, end, false)
+  }
+
+  private def greaterThanOrEqualRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val start = new Text(getEncodedAttrIdxRow(featureType, prop, lit))
+    val end = AccRange.followingPrefix(new Text(AttributeIndexEntry.getAttributeIndexRowPrefix(prop)))
+    new AccRange(start, true, end, false)
+  }
+
+  private def lessThanRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val start = AttributeIndexEntry.getAttributeIndexRowPrefix(prop)
+    val end = getEncodedAttrIdxRow(featureType, prop, lit)
+    new AccRange(start, false, end, false)
+  }
+
+  private def lessThanOrEqualRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val start = AttributeIndexEntry.getAttributeIndexRowPrefix(prop)
+    val end = getEncodedAttrIdxRow(featureType, prop, lit)
+    new AccRange(start, false, end, true)
   }
 }
 
