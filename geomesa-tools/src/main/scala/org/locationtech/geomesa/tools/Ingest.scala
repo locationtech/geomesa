@@ -165,6 +165,7 @@ class Ingest() extends Logging with AccumuloProperties {
     if ( config.maxShards.isDefined )       args.append("--" + IngestParams.SHARDS, config.maxShards.get.toString)
     // since we are not in a test script we are choosing to run the ingest
     args.append("--" + IngestParams.RUN_INGEST, "true")
+    println("Zookeeper info: " + zookeepers )
 
     val scaldingArgs = Args(args)
     // create data store schema outside of map reduce

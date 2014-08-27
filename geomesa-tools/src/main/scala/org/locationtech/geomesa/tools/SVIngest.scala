@@ -99,7 +99,7 @@ class SVIngest(args: Args) extends Job(args) {
     case _    => 0
   }
 
-  val delim = format match {
+  lazy val delim = format match {
     case s: String if s.toUpperCase == "TSV" => CSVFormat.TDF
     case s: String if s.toUpperCase == "CSV" => CSVFormat.DEFAULT
     case _                       => throw new Exception("Error, no format set and/or unrecognized format provided")
@@ -119,9 +119,9 @@ class SVIngest(args: Args) extends Job(args) {
 
   // non-serializable resources.
   class Resources {
-    val dst = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
-    val fw = dst.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
-    def release(): Unit = { fw.close(); dst.dispose() }
+    val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
+    val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
+    def release(): Unit = { fw.close() }
   }
 
   // Check to see if this an actual ingest job or just a test.
@@ -129,8 +129,6 @@ class SVIngest(args: Args) extends Job(args) {
     try {
       TextLine(path).using(new Resources)
         .foreach('line) { (cfw: Resources, line: String) => lineNumber += 1; ingestLine(cfw.fw, line) }
-//      TextLine(path).read.using(new Resources)
-//        .map('line -> 'result) { (cfw: Resources, line: String) => lineNumber += 1; ingestLine(cfw.fw, line) }
     } catch {
       case e: Exception => e.printStackTrace()
     }
@@ -150,19 +148,26 @@ class SVIngest(args: Args) extends Job(args) {
   def ingestLine(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String): Unit = {
     lineToFeature(line) match {
       case Success(ft) =>
-        writeFeature(fw, ft)
-        // Log info to user that ingest is still working, might be in wrong spot however...
-        if ( lineNumber % 10000 == 0 ) {
-          val successPvsS = if (successes == 1) "feature" else "features"
-          val failurePvsS = if (failures == 1) "feature" else "features"
-          println(s"Ingest proceeding, on line number: $lineNumber," +
-            s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
+        writeFeature(fw, ft) match {
+          case Success(wu) =>
+            successes += 1
+            // Log info to user that ingest is still working, might be in wrong spot however...
+            if ( lineNumber % 10000 == 0 ) {
+              val successPvsS = if (successes == 1) "feature" else "features"
+              val failurePvsS = if (failures == 1) "feature" else "features"
+              println(s"Ingest proceeding, on line number: $lineNumber," +
+                s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
+            }
+          case Failure(ex) =>
+            failures +=1
+            println(s"Cannot ingest avro simple feature: $ft," +
+              s" corresponding to line number: $lineNumber, with value $line . ", ex)
         }
       case Failure(ex) => failures +=1; println(s"Could not write feature due to: ${ex.getLocalizedMessage}")
     }
   }
 
-  def lineToFeature(line: String): Try[AvroSimpleFeature] = Try{
+  def lineToFeature(line: String): Try[AvroSimpleFeature] = Try {
     // CsvReader is being used to just split the line up. this may be refactored out when
     // scalding support is added however it may be necessary for local only ingest
     val reader = CSVParser.parse(line, delim)
@@ -214,21 +219,14 @@ class SVIngest(args: Args) extends Job(args) {
     feature
   }
 
-  def writeFeature(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], feature: AvroSimpleFeature) = {
-    try {
-      val toWrite = fw.next()
-      sft.getAttributeDescriptors.foreach { ad =>
-        toWrite.setAttribute(ad.getName, feature.getAttribute(ad.getName))
-      }
-      toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
-      toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      fw.write()
-      successes +=1
-    } catch {
-      case e: Exception =>
-        println(s"Cannot ingest avro simple feature: $feature, corresponding to line number: $lineNumber", e)
-        failures +=1
+  def writeFeature(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], feature: AvroSimpleFeature) = Try {
+    val toWrite = fw.next()
+    sft.getAttributeDescriptors.foreach { ad =>
+      toWrite.setAttribute(ad.getName, feature.getAttribute(ad.getName))
     }
+    toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
+    toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    fw.write()
   }
 
   def getAttributeIndexInLine(attribute: String) = attributes.indexOf(sft.getDescriptor(attribute))
