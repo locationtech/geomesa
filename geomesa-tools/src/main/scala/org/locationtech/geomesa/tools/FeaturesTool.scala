@@ -33,8 +33,8 @@ import scala.util.Try
 
 class FeaturesTool(config: ScoptArguments, password: String) extends Logging with AccumuloProperties {
 
-  val instance = if (config.instanceName != null) { config.instanceName } else { instanceName }
-  val zookeepersString = if (config.zookeepers != null) { config.zookeepers }  else { zookeepers  }
+  val instance = instanceName.getOrElse(config.instanceName)
+  val zookeepersString = zookeepers.getOrElse(config.zookeepers)
 
   val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(

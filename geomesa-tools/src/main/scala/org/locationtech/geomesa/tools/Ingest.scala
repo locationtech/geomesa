@@ -21,8 +21,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 class Ingest extends Logging with AccumuloProperties {
 
   def getAccumuloDataStoreConf(config: IngestArguments, password: String) = {
-    val instance = if (config.instanceName != null) { config.instanceName } else { instanceName }
-    val zookeepersString = if (config.zookeepers != null) { config.zookeepers }  else { zookeepers  }
+    val instance = instanceName.getOrElse(config.instanceName)
+    val zookeepersString = zookeepers.getOrElse(config.zookeepers)
 
     Map (
       "instanceId"        ->  instance,

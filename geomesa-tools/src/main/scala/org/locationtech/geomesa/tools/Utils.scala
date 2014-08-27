@@ -100,11 +100,11 @@ trait GetPassword {
 /* Accumulo properties trait */
 trait AccumuloProperties {
   val accumuloConf = XML.loadFile(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
-  val zookeepers = (accumuloConf \\ "property")
+  val zookeepers = Option((accumuloConf \\ "property")
     .filter(x => (x \ "name")
     .text == "instance.zookeeper.host")
     .map(y => (y \ "value").text)
-    .head
+    .head)
   val instanceDfsDir = Try((accumuloConf \\ "property")
     .filter(x => (x \ "name")
     .text == "instance.dfs.dir")
@@ -113,6 +113,6 @@ trait AccumuloProperties {
     .getOrElse("/accumulo")
   val instanceIdDir = Try(new Path(instanceDfsDir, "instance_id")).getOrElse(null)
   val instanceIdStr = Try(ZooKeeperInstance.getInstanceIDFromHdfs(instanceIdDir)).getOrElse(null)
-  val instanceName = Try(new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepers).getInstanceName).getOrElse(null)
+  val instanceName = Try(new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepers.orNull).getInstanceName)
 }
 
