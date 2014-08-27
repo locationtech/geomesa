@@ -49,7 +49,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.0</version>
         </dependency>
         <!-- provided dependencies -->
         <dependency>
@@ -69,12 +68,10 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-geojson</artifactId>
-            <version>${gt.version}</version>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-xml</artifactId>
-            <version>${gt.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -84,7 +81,6 @@
         <dependency>
             <groupId>com.github.scopt</groupId>
             <artifactId>scopt_2.10</artifactId>
-            <version>${scopt.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
