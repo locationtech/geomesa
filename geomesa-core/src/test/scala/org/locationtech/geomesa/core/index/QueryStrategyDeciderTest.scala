@@ -73,6 +73,66 @@ class QueryStrategyDeciderTest extends Specification {
 
       getStrategy(fs) must beAnInstanceOf[STIdxStrategy]
     }
+
+    "get the attribute strategy for lte" in {
+      val fs = "attr2 <= 11"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for lt" in {
+      val fs = "attr2 < 11"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for gte" in {
+      val fs = "attr2 >= 11"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for gt" in {
+      val fs = "attr2 > 11"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for null" in {
+      val fs = "attr2 IS NULL"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxEqualsStrategy]
+    }
+
+    "get the attribute strategy for during" in {
+      val fs = "attr2 DURING 2012-01-01T11:00:00.000Z/2014-01-01T12:15:00.000Z"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for after" in {
+      val fs = "attr2 AFTER 2013-01-01T12:30:00.000Z"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for before" in {
+      val fs = "attr2 BEFORE 2014-01-01T12:30:00.000Z"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for between" in {
+      val fs = "attr2 BETWEEN 10 and 20"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for ANDed attributes" in {
+      val fs = "attr1 >= 11 AND attr1 < 20"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }.pendingUntilFixed("GEOMESA-311")
   }
 
   "Attribute filters" should {
