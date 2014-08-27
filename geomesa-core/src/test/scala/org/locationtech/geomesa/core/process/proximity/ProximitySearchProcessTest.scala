@@ -8,7 +8,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.core.index.{Constants, IndexSchemaBuilder}
+import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -36,7 +36,6 @@ class ProximitySearchProcessTest extends Specification {
        "auths"             -> "A,B,C",
        "tableName"         -> "testwrite",
        "useMock"           -> "true",
-       "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
        "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
      val sftName = "geomesaProximityTestType"
