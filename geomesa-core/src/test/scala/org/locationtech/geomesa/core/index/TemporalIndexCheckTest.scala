@@ -77,4 +77,38 @@ class TemporalIndexCheckTest extends Specification {
       dtgCandidate.isDefined must beFalse
     }
   }
+
+  "getDTGFieldName" should {
+    "return a dtg field name if SF_PROPERTY_START_TIME is set properly" in {
+      val testType = oneDTGType
+      testType.getUserData.put(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME)
+      val theName= getDtgFieldName(testType)
+      theName.isDefined must beTrue
+      theName.get must equalTo(DEFAULT_DTG_PROPERTY_NAME)
+    }
+
+    "not return a dtg field name if SF_PROPERTY_START_TIME is not set correctly" in {
+      val testType = noDTGType
+      testType.getUserData.put(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME)
+      val theName= getDtgFieldName(testType)
+      theName.isDefined must beFalse
+    }
+  }
+
+  "getDTGDescriptor" should {
+    "return a dtg attribute descriptor if SF_PROPERTY_START_TIME is set properly" in {
+      val testType = oneDTGType
+      testType.getUserData.put(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME)
+      val theDescriptor = getDtgDescriptor(testType)
+      theDescriptor.isDefined must beTrue
+      theDescriptor.get must equalTo(oneDTGType.getDescriptor(DEFAULT_DTG_PROPERTY_NAME))
+    }
+
+    "not return a dtg attribute descriptor if SF_PROPERTY_START_TIME is not set correctly" in {
+      val testType = noDTGType
+      testType.getUserData.put(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME)
+      val theDescriptor = getDtgDescriptor(testType)
+      theDescriptor.isDefined must beFalse
+    }
+  }
 }
