@@ -143,7 +143,7 @@ object IndexSchema extends RegexParsers {
 
   // A random partitioner.  '%999#r' would write a random value between 000 and 999 inclusive
   def randPartitionPattern = pattern("\\d+".r,RANDOM_CODE)
-  def randEncoder: Parser[PartitionTextFormatter[SimpleFeature]] = randPartitionPattern ^^ {
+  def randEncoder: Parser[PartitionTextFormatter] = randPartitionPattern ^^ {
     case d => PartitionTextFormatter(d.toInt)
   }
 
@@ -166,20 +166,20 @@ object IndexSchema extends RegexParsers {
   // A constant string encoder. '%fname#cstr' would yield fname
   //  We match any string other that does *not* contain % or # since we use those for delimiters
   def constStringPattern = pattern("[^%#]+".r, CONSTANT_CODE)
-  def constantStringEncoder: Parser[ConstantTextFormatter[SimpleFeature]] = constStringPattern ^^ {
+  def constantStringEncoder: Parser[ConstantTextFormatter] = constStringPattern ^^ {
     case str => ConstantTextFormatter(str)
   }
 
   // a key element consists of a separator and any number of random partitions, geohashes, and dates
-  def keypart: Parser[CompositeTextFormatter[SimpleFeature]] =
+  def keypart: Parser[CompositeTextFormatter] =
     (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) ^^ {
-      case sep ~ xs => CompositeTextFormatter[SimpleFeature](xs, sep)
+      case sep ~ xs => CompositeTextFormatter(xs, sep)
     }
 
   // the column qualifier must end with an ID-encoder
-  def cqpart: Parser[CompositeTextFormatter[SimpleFeature]] =
+  def cqpart: Parser[CompositeTextFormatter] =
     phrase(sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder) ~ idEncoder) ^^ {
-      case sep ~ xs ~ id => CompositeTextFormatter[SimpleFeature](xs :+ id, sep)
+      case sep ~ xs ~ id => CompositeTextFormatter(xs :+ id, sep)
     }
 
   // An index key is three keyparts, one for row, colf, and colq
@@ -195,7 +195,7 @@ object IndexSchema extends RegexParsers {
 
   // extracts an entire date encoder from a key part
   @tailrec
-  def extractDateEncoder(seq: Seq[TextFormatter[_]], offset: Int, sepLength: Int): Option[(String, Int)] =
+  def extractDateEncoder(seq: Seq[TextFormatter], offset: Int, sepLength: Int): Option[(String, Int)] =
     seq match {
       case DateTextFormatter(f)::xs => Some(f,offset)
       case x::xs => extractDateEncoder(xs, offset + x.numBits + sepLength, sepLength)
@@ -235,7 +235,7 @@ object IndexSchema extends RegexParsers {
 
   // extracts the geohash encoder from a keypart
   @tailrec
-  def extractGeohashEncoder(seq: Seq[TextFormatter[_]], offset: Int, sepLength: Int): (Int, (Int, Int)) =
+  def extractGeohashEncoder(seq: Seq[TextFormatter], offset: Int, sepLength: Int): (Int, (Int, Int)) =
     seq match {
       case GeoHashTextFormatter(off, bits)::xs => (offset, (off, bits))
       case x::xs => extractGeohashEncoder(xs, offset + x.numBits + sepLength, sepLength)
@@ -257,7 +257,7 @@ object IndexSchema extends RegexParsers {
 
   def buildGeohashDecoder(s: String): GeohashDecoder = parse(ghDecoderParser, s).get
 
-  def extractIdEncoder(seq: Seq[TextFormatter[_]], offset: Int, sepLength: Int): Int =
+  def extractIdEncoder(seq: Seq[TextFormatter], offset: Int, sepLength: Int): Int =
     seq match {
       case IdFormatter(maxLength)::xs => maxLength
       case _ => sys.error("Id must be first element of column qualifier")

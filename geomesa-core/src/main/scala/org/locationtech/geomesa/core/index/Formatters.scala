@@ -17,14 +17,15 @@
 package org.locationtech.geomesa.core.index
 
 import org.apache.hadoop.io.Text
-import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.core.index.IndexEntry._
+import org.joda.time.DateTime
+import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.util.hashing.MurmurHash3
 
-trait TextFormatter[E] {
-  def format(entry: E): Text
+trait TextFormatter {
+  def format(gh: GeoHash, dt: DateTime, sf: SimpleFeature): Text = new Text(formatString(gh, dt, sf))
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature): String
   def numBits: Int
 }
 
@@ -45,22 +46,19 @@ object TextFormatter {
  * @param numBits how many characters to use
  */
 
-case class GeoHashTextFormatter(offset: Int, numBits: Int) extends TextFormatter[SimpleFeature] {
-  def format(entry: SimpleFeature) = {
-    val hash = entry.gh.hash
-    val padded = hash.padTo(7, ".").mkString
-    val partial = padded.drop(offset).take(numBits)
-    new Text(partial)
+case class GeoHashTextFormatter(offset: Int, numBits: Int) extends TextFormatter {
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = {
+    val padded = gh.hash.padTo(7, ".").mkString
+    padded.substring(offset, offset + numBits)
   }
 }
 
 // note:  this will fail if you have an entry lacking a valid date
-case class DateTextFormatter(f: String) extends TextFormatter[SimpleFeature] {
-  val timeZone = DateTimeZone.forID("UTC")
+case class DateTextFormatter(f: String) extends TextFormatter {
   val numBits = f.length
   val formatter = org.joda.time.format.DateTimeFormat.forPattern(f)
-  def format(entry: SimpleFeature) =
-    new Text(formatter.print(entry.dt.getOrElse(new DateTime()).withZone(timeZone)))
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) =   // JNH: Make this an option?
+   formatter.print(dt)
 }
 
 /**
@@ -85,14 +83,12 @@ case class DateTextFormatter(f: String) extends TextFormatter[SimpleFeature] {
  * </ul>
  *
  * @param numPartitions "%99#r" will mean:  create shards from 0..99
- * @tparam E some descendant of IndexEntry
  */
-case class PartitionTextFormatter[E <: SimpleFeature](numPartitions: Int) extends TextFormatter[E] {
+case class PartitionTextFormatter(numPartitions: Int) extends TextFormatter {
   val numBits: Int = numPartitions.toString.length
   val fmt = ("%0" + numBits + "d").format(_: Int)
 
-
-  def getIdHashPartition(entry: E): Int = {
+  def getIdHashPartition(entry: SimpleFeature): Int = {
     val toHash = entry.getID match {
       case null => entry.getAttributes.toArray
       case id   => Array(id)
@@ -100,23 +96,23 @@ case class PartitionTextFormatter[E <: SimpleFeature](numPartitions: Int) extend
     Math.abs(MurmurHash3.arrayHash(toHash) % (numPartitions + 1))
   }
 
-  def format(entry: E): Text = new Text(fmt(getIdHashPartition(entry)))
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = fmt(getIdHashPartition(sf))
 }
 
-case class ConstantTextFormatter[E](constStr: String) extends TextFormatter[E] {
+case class ConstantTextFormatter(constStr: String) extends TextFormatter {
   val constText = new Text(constStr)
-  def format(entry: E) = constText
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = constStr
   def numBits = constStr.length
 }
 
-case class IdFormatter(maxLength: Int) extends TextFormatter[SimpleFeature] {
-  def format(entry: SimpleFeature): Text = new Text(entry.sid.padTo(maxLength, "_").mkString)
+case class IdFormatter(maxLength: Int) extends TextFormatter {
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = sf.getID.padTo(maxLength, "_").mkString
   def numBits: Int = maxLength
 }
 
-case class CompositeTextFormatter[E](lf: Seq[TextFormatter[E]], sep: String) extends TextFormatter[E] {
+case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends TextFormatter {
   val numBits = lf.map(_.numBits).sum
-  def format(entry: E) = new Text(lf.map { _.format(entry) }.mkString(sep))
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = lf.map { _.formatString(gh, dt, sf) }.mkString(sep)
 }
 
 
