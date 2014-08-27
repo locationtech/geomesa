@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.core.process.knn
 
-import org.apache.log4j.Logger
+import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -31,14 +31,13 @@ import scala.annotation.tailrec
  */
 
 
-object KNNQuery {
+object KNNQuery extends Logging {
   /**
    * Method to kick off a new KNN query about aFeatureForSearch
    *
    * Situations where maxDistanceInMeters is set too small may cause the search to not actually find the K nearest neighbors,
    * but still permit K neighbors to be found, resulting in incorrect results. To be addressed in GEOMESA-285.
    */
-  private val log = Logger.getLogger(classOf[KNearestNeighborSearchProcess])
   def runNewKNNQuery(source: SimpleFeatureSource,
                      query: Query,
                      numDesired: Int,
@@ -83,7 +82,7 @@ object KNNQuery {
         // apply filter to ghPQ if we've found k neighbors
         if (sfPQ.isFull) sfPQ.maxDistance.foreach { x => ghPQ.mutateFilterDistance(x)}
         lazy val subQueryInfo = s"${newGH.hash}, ${sfPQ.maxDistance.getOrElse(0.0)}, ${sfPQ.size}"
-        log.trace (s"KNN Status: Completed subQuery: (hash,distance, PQ size) = $subQueryInfo ")
+        logger.trace (s"KNN Status: Completed subQuery: (hash,distance, PQ size) = $subQueryInfo ")
         // iterate after trimming sfPQ to the best K
         runKNNQuery(source, query, ghPQ, sfPQ.getKNN)
     }
@@ -105,7 +104,7 @@ object KNNQuery {
     // copy the original query before mutation
     val newQuery = new Query(oldQuery)
     // AND the new GeoHash filter with the original filter
-    newQuery.setFilter(ff.and(oldQuery.getFilter, newGHFilter))
+    newQuery.setFilter(ff.and(newGHFilter, oldQuery.getFilter))
     newQuery
   }
 }

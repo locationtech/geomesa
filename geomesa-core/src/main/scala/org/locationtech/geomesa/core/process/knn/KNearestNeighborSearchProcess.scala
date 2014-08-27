@@ -16,8 +16,8 @@
 
 package org.locationtech.geomesa.core.process.knn
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Point
-import org.apache.log4j.Logger
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
@@ -36,9 +36,7 @@ import scala.collection.JavaConverters._
   title = "Geomesa-enabled K Nearest Neighbor Search",
   description = "Performs a K Nearest Neighbor search on a Geomesa feature collection using another feature collection as input"
 )
-class KNearestNeighborSearchProcess {
-
-  private val log = Logger.getLogger(classOf[KNearestNeighborSearchProcess])
+class KNearestNeighborSearchProcess extends Logging {
 
   @DescribeResult(description = "Output feature collection")
   def execute(
@@ -68,13 +66,13 @@ class KNearestNeighborSearchProcess {
                maxSearchDistance: java.lang.Double
                ): SimpleFeatureCollection = {
 
-    log.info("Attempting Geomesa K-Nearest Neighbor Search on collection type " + dataFeatures.getClass.getName)
+    logger.info("Attempting Geomesa K-Nearest Neighbor Search on collection type " + dataFeatures.getClass.getName)
 
     if(!dataFeatures.isInstanceOf[AccumuloFeatureCollection]) {
-      log.warn("The provided data feature collection type may not support geomesa KNN search: "+dataFeatures.getClass.getName)
+      logger.warn("The provided data feature collection type may not support geomesa KNN search: "+dataFeatures.getClass.getName)
     }
     if(dataFeatures.isInstanceOf[ReTypingFeatureCollection]) {
-      log.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
+      logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
     val visitor = new KNNVisitor(inputFeatures, dataFeatures, numDesired, estimatedDistance, maxSearchDistance)
     dataFeatures.accepts(visitor, new NullProgressListener)
@@ -91,9 +89,7 @@ class KNNVisitor( inputFeatures:     SimpleFeatureCollection,
                   numDesired:        java.lang.Integer,
                   estimatedDistance: java.lang.Double,
                   maxSearchDistance: java.lang.Double
-                ) extends FeatureCalc {
-
-  private val log = Logger.getLogger(classOf[KNNVisitor])
+                ) extends FeatureCalc with Logging {
 
   val manualVisitResults = new DefaultFeatureCollection(null, dataFeatures.getSchema)
 
@@ -116,7 +112,7 @@ class KNNVisitor( inputFeatures:     SimpleFeatureCollection,
     *
     */
   def kNNSearch(source: SimpleFeatureSource, query: Query) = {
-    log.info("Running Geomesa K-Nearest Neighbor Search on source type " + source.getClass.getName)
+    logger.info("Running Geomesa K-Nearest Neighbor Search on source type " + source.getClass.getName)
 
     // create a new Feature collection to hold the results of the KNN search around each point
     val resultCollection = new DefaultFeatureCollection
@@ -131,7 +127,7 @@ class KNNVisitor( inputFeatures:     SimpleFeatureCollection,
           // extract the SimpleFeatures and convert to a Collection. Ordering will not be preserved.
           val sfList = knnResults.getK.map {_.sf}.asJavaCollection
           resultCollection.addAll(sfList)
-        case _ => log.warn("K Nearest Neighbor Search not implemented for non-point geometries, skipping this Feature")
+        case _ => logger.warn("K Nearest Neighbor Search not implemented for non-point geometries, skipping this Feature")
       }
     }
     resultCollection
