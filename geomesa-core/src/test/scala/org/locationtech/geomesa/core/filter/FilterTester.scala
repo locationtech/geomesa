@@ -4,7 +4,7 @@ import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import org.geotools.data.DataStoreFinder
+import org.geotools.data.{Query, DataStoreFinder}
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
@@ -43,6 +43,14 @@ class AndGeomsPredicateTest extends FilterTester {
 class OrGeomsPredicateTest extends FilterTester {
   val filters = oredSpatialPredicates
   runTest
+}
+
+@RunWith(classOf[JUnitRunner])
+class OrGeomsPredicateWithProjectionTest extends FilterTester {
+  val filters = oredSpatialPredicates
+  runTest
+
+  override def modifyQuery(query: Query): Unit = query.setPropertyNames(Array("geom"))
 }
 
 @RunWith(classOf[JUnitRunner])
@@ -165,9 +173,7 @@ object FilterTester extends AccumuloDataStoreTest with Logging {
 
     fs
   }
-
 }
-
 
 trait FilterTester extends Specification with Logging {
   import org.locationtech.geomesa.core.filter.FilterTester._
@@ -175,14 +181,20 @@ trait FilterTester extends Specification with Logging {
 
   def filters: Seq[String]
 
+  def modifyQuery(query: Query): Unit = { }
+
   def compareFilter(filter: Filter): Fragments = {
+    val q = new Query(sft.getTypeName)
+
     logger.debug(s"Filter: ${ECQL.toCQL(filter)}")
 
     s"The filter $filter" should {
       "return the same number of results from filtering and querying" in {
         val filterCount = mediumDataFeatures.count(filter.evaluate)
-        val queryCount = fs.getFeatures(filter).size
-        
+        q.setFilter(filter)
+        modifyQuery(q)
+        val queryCount = fs.getFeatures(q).size
+
         logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
           s"filter hits: $filterCount query hits: $queryCount")
         filterCount mustEqual queryCount
