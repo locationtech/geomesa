@@ -49,6 +49,9 @@
                   value="org.locationtech.geomesa.plugin.wms.CoverageStoreEditPanel"/>
     </bean>
 
+    <bean id="routeRankProcessResultPPIO" class="org.locationtech.geomesa.plugin.process.RouteRankProcessPPIO" />
+    <bean id="routeRankProcessResultJsonPPIO" class="org.locationtech.geomesa.plugin.process.RouteRankProcessJsonPPIO" />
+
     <bean id="geomesaProcessFactory" class="org.locationtech.geomesa.plugin.wps.GeomesaProcessFactory">
         <constructor-arg index="0" value="Geomesa Processes"/>
         <constructor-arg index="1" value="geomesa"/>
