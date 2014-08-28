@@ -258,14 +258,19 @@ object Tools extends App with Logging with GetPassword {
           val ft = new FeaturesTool(config, password)
           ft.explainQuery()
         case "delete" =>
-          val ft = new FeaturesTool(config, password)
-          logger.info(s"Deleting '${config.featureName}' on catalog table '${config.catalog}'. This will take longer " +
-            "than other commands to complete. Just a few moments...")
-          if (ft.deleteFeature()) {
-            logger.info(s"Feature '${config.featureName}' on catalog table '${config.catalog}' successfully deleted.")
-          } else {
-            logger.error(s"There was an error deleting feature '${config.featureName}' on catalog table '${config.catalog}'" +
-              "Please check that all arguments are correct in the previous command.")
+          val standardIn = System.console()
+          print(s"Delete ${config.featureName} on catalog table ${config.catalog}? (yes/no) : ")
+          val confirmation = standardIn.readLine()
+          if (confirmation == "yes") {
+            val ft = new FeaturesTool(config, password)
+            logger.info(s"Deleting '${config.catalog}_${config.featureName}'. This will take longer " +
+              "than other commands to complete. Just a few moments...")
+            if (ft.deleteFeature()) {
+              logger.info(s"Feature '${config.catalog}_${config.featureName}' successfully deleted.")
+            } else {
+              logger.error(s"There was an error deleting feature '${config.catalog}_${config.featureName}'" +
+                "Please check that all arguments are correct in the previous command.")
+            }
           }
         case "create" =>
           val ft = new FeaturesTool(config, password)
