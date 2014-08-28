@@ -25,7 +25,7 @@ import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.{PropertyIsBetween, Filter}
+import org.opengis.filter.{And, PropertyIsBetween, Filter}
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{During, Before, After}
@@ -158,4 +158,11 @@ object FilterHelper {
         (x, h +: xs)
       }
     }
+
+  def decomposeAnd(f: Filter): Seq[Filter] = {
+    f match {
+      case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
+      case f: Filter => Seq(f)
+    }
+  }
 }

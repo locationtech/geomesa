@@ -38,8 +38,8 @@ import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.Literal
-import org.opengis.filter.spatial.{BinarySpatialOperator, BBOX}
+import org.opengis.filter.expression.{PropertyName, Expression, Literal}
+import org.opengis.filter.spatial._
 
 class STIdxStrategy extends Strategy with Logging {
 
@@ -293,3 +293,56 @@ class STIdxStrategy extends Strategy with Logging {
   }
 }
 
+object STIdxStrategy {
+
+  import org.locationtech.geomesa.utils.geotools.Conversions._
+
+  def getSTIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =
+    filter match {
+      case f: BBOX =>
+        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
+        if (canQuery) Some(new STIdxStrategy) else None
+
+      case f: Contains =>
+        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
+        if (canQuery) Some(new STIdxStrategy) else None
+
+      case f: Crosses =>
+        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
+        if (canQuery) Some(new STIdxStrategy) else None
+
+      case f: Intersects =>
+        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
+        if (canQuery) Some(new STIdxStrategy) else None
+
+      case f: Overlaps =>
+        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
+        if (canQuery) Some(new STIdxStrategy) else None
+
+      case f: Within =>
+        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
+        if (canQuery) Some(new STIdxStrategy) else None
+
+      // doesn't match any supported topological predicates
+      case _ => None
+    }
+
+  /**
+   * Ensures the following conditions:
+   *   - there is exactly one 'property name' expression
+   *   - the property is indexed by GeoMesa
+   *   - all other expressions are literals
+   *
+   * @param sft
+   * @param exp
+   * @return
+   */
+  private def isValidSTIdxFilter(sft: SimpleFeatureType, exp: Expression*): Boolean = {
+    val (props, lits) = exp.partition(_.isInstanceOf[PropertyName])
+
+    props.length == 1 &&
+      props.map(_.asInstanceOf[PropertyName].getPropertyName).forall(sft.getDescriptor(_).isIndexed) &&
+      lits.forall(_.isInstanceOf[Literal])
+  }
+
+}

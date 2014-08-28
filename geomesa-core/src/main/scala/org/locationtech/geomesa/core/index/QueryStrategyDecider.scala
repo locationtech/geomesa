@@ -16,16 +16,20 @@
 
 package org.locationtech.geomesa.core.index
 
+import java.util
+
 import org.geotools.data.Query
+import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.{Id, And, PropertyIsLike}
+import org.opengis.filter.{And, Filter, Id, PropertyIsLike}
 
 import scala.collection.JavaConversions._
 
 object QueryStrategyDecider {
 
-  import AttributeIndexStrategy.getAttributeIndexStrategy
+  import org.locationtech.geomesa.core.index.AttributeIndexStrategy.getAttributeIndexStrategy
+  import org.locationtech.geomesa.core.index.STIdxStrategy.getSTIdxStrategy
 
   def chooseStrategy(isCatalogTableFormat: Boolean,
                      sft: SimpleFeatureType,
@@ -54,13 +58,20 @@ object QueryStrategyDecider {
   }
 
   private def processAnd(isDensity: Boolean, sft: SimpleFeatureType, and: And): Strategy = {
-    if (and.getChildren.exists(c => getAttributeIndexStrategy(c, sft).isDefined)) {
-      //311 - return AttributeStrategy using first attr as index and containing simple feature filtering iterator to filter out remaining attrs
-      //once AttributeIndexStrategy can handle this -> getAttributeIndexStrategy(attributeIndexFilter.get, sft).get
-      new STIdxStrategy
-    } else {
-      //other cases - flesh out, there may be record id lookup + attr
-      new STIdxStrategy
+    val children: util.List[Filter] = decomposeAnd(and)
+
+    def something(attr: Filter, st: Filter): Strategy = {
+      if(children.indexOf(attr) < children.indexOf(st)) getAttributeIndexStrategy(attr, sft).get
+      else new STIdxStrategy
+    }
+
+    val strats = (children.find(c => getAttributeIndexStrategy(c, sft).isDefined), children.find(c => getSTIdxStrategy(c, sft).isDefined))
+
+    strats match {
+      case (Some(attrFilter), Some(stFilter)) => something(attrFilter, stFilter)
+      case (None, Some(stFilter)) => new STIdxStrategy
+      case (Some(attrFilter), None) => getAttributeIndexStrategy(attrFilter, sft).get  // Never call .get
+      case (None, None) => new STIdxStrategy
     }
   }
 
