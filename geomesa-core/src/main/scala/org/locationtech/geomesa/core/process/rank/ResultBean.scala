@@ -132,25 +132,29 @@ case class ResultBean(@BeanProperty results: java.util.List[RankingValuesBean], 
 
 object ResultBean {
   def fromRankingValues(rankingValues: Map[String,RankingValues], sortBy: String, skip: Int = 0, max: Int = -1) = {
-    val (nTubeCells, gridSize) =
-      rankingValues.headOption match {
-        case Some((_, rv)) => (rv.nTubeCells, rv.gridDivisions)
-        case None          => (0, 0)
-      }
-    ResultBean(
-      new util.ArrayList(
-        rankingValues
-          .map { case (key, rv) => RankingValuesBean(key, rv) }
-          .toList
-          .sortBy(_.combined.score * -1.0)
-          .slice(skip, if (max > 0) skip + max else Int.MaxValue)
-          .asJava
-      ),
-      rankingValues.maxBy(_._2.combinedScore)._2.combinedScore,
-      gridSize,
-      nTubeCells,
-      sortBy
-    )
+    if (rankingValues.isEmpty) {
+      emptyResult(sortBy)
+    } else {
+      val firstRankingValue = rankingValues.head._2
+      val (nTubeCells, gridSize) = (firstRankingValue.nTubeCells, firstRankingValue.gridDivisions)
+      ResultBean(
+        new util.ArrayList(
+          rankingValues
+            .map { case (key, rv) => RankingValuesBean(key, rv) }
+            .toList
+            .sortBy(_.combined.score * -1.0)
+            .slice(skip, if (max > 0) skip + max else Int.MaxValue)
+            .asJava
+        ),
+        rankingValues.maxBy(_._2.combinedScore)._2.combinedScore,
+        gridSize,
+        nTubeCells,
+        sortBy
+      )
+    }
   }
+
+  def emptyResult(sortBy: String): ResultBean =
+    ResultBean(List[RankingValuesBean]().asJava, 0.0, 0, 0, sortBy)
 }
 
