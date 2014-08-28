@@ -21,15 +21,16 @@ import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 
-class CoordWithDateTime(val c: Coordinate, val dt: DateTime, maxSpeed: Double = CoordWithDateTime.defaultMaxSpeed,
+class CoordWithDateTime(val c: Coordinate,
+                        val dt: DateTime,
+                        maxSpeed: Double = CoordWithDateTime.defaultMaxSpeed,
                         maxTurnRate: Double = CoordWithDateTime.defaultMaxTurnRate) {
   def consistentWithMotion(previous: CoordWithDateTime, beforeThat: CoordWithDateTime): Boolean = {
     if (consistentWithMotion(previous)) {
       // Check that it hasn't changed heading too quickly
       val pair1 = new CoordWithDateTimePair(previous, this)
       val pair2 = new CoordWithDateTimePair(beforeThat, previous)
-      val headingDiff1 = pair1.heading - pair2.heading
-      val headingDiff = if (headingDiff1 > 180.0) headingDiff1 - 180.0 else headingDiff1
+      val headingDiff = MathUtil.headingDifference(pair1.heading, pair2.heading)
       val turnRate = headingDiff / (pair1.timeDiff + pair2.timeDiff)
       turnRate < maxTurnRate
     }
@@ -39,15 +40,15 @@ class CoordWithDateTime(val c: Coordinate, val dt: DateTime, maxSpeed: Double = 
   def consistentWithMotion(previous: CoordWithDateTime): Boolean = {
     // check that its speed is reasonable
     val coordPair = new CoordWithDateTimePair(previous, this)
-    if (coordPair.timeDiff < RankingDefaults.maxTimeBetweenPings) {
-      val speed = coordPair.speed
-      (speed > 0.0) && (speed < maxSpeed)
-    }
-    else false
+    (
+      coordPair.timeDiff < RankingDefaults.maxTimeBetweenPings
+      && coordPair.speed > 0.0
+      && coordPair.speed < maxSpeed
+    )
   }
 
   /**
-   * Check whether this point is consistent with vehicle motion
+   * Check whether this point is consistent with vehicle motion, assuming the other points led up to the current point
    * @param otherPoints the list of other points that define existing motion (must be ordered from newest to oldest)
    * @return true if this point is possibly consistent with motion involving the other points
    */
@@ -87,12 +88,14 @@ case class CoordWithDateTimePair(first: CoordWithDateTime, last: CoordWithDateTi
    */
   def speed = distance / timeDiff
 
+  /**
+   * The initial heading (or bearing) to travel in a geodesic from first.c to last.c
+   * @return Angle in degrees, 0 meaning North
+   */
   def heading = {
-    val lonDiff = last.c.x - first.c.x
-    val cosLastY = Math.cos(last.c.y)
-    val y = Math.sin(lonDiff) * cosLastY
-    val x = Math.cos(first.c.y) * Math.sin(last.c.y) - Math.sin(first.c.y) * cosLastY * Math.cos(lonDiff)
-    Math.atan2(y, x).toDegrees
+    val lastLonLatRadians = (last.c.x.toRadians, last.c.y.toRadians)
+    val firstLonLatRadians = (first.c.x.toRadians, first.c.y.toRadians)
+    MathUtil.headingGivenRadians(firstLonLatRadians, lastLonLatRadians)
   }
 }
 
