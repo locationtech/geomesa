@@ -19,26 +19,25 @@ package org.locationtech.geomesa.core.index
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Polygon, GeometryCollection, Geometry}
+import com.vividsolutions.jts.geom.{Geometry, GeometryCollection, Polygon}
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{Value, Key}
+import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
-import org.locationtech.geomesa.core.data.{SimpleFeatureEncoder, AccumuloConnectorCreator}
-import org.locationtech.geomesa.core.DEFAULT_SCHEMA_NAME
-import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
-import org.locationtech.geomesa.core.iterators._
+import org.locationtech.geomesa.core.data.{AccumuloConnectorCreator, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
-import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.index.QueryHints._
+import org.locationtech.geomesa.core.index.QueryPlanner._
+import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
+import org.locationtech.geomesa.core.{DEFAULT_SCHEMA_NAME, GEOMESA_ITERATORS_IS_DENSITY_TYPE}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.{PropertyName, Expression, Literal}
+import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.spatial._
 
 class STIdxStrategy extends Strategy with Logging {
@@ -295,37 +294,13 @@ class STIdxStrategy extends Strategy with Logging {
 
 object STIdxStrategy {
 
+  import org.locationtech.geomesa.core.filter.spatialFilters
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
   def getSTIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =
-    filter match {
-      case f: BBOX =>
-        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
-        if (canQuery) Some(new STIdxStrategy) else None
-
-      case f: Contains =>
-        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
-        if (canQuery) Some(new STIdxStrategy) else None
-
-      case f: Crosses =>
-        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
-        if (canQuery) Some(new STIdxStrategy) else None
-
-      case f: Intersects =>
-        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
-        if (canQuery) Some(new STIdxStrategy) else None
-
-      case f: Overlaps =>
-        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
-        if (canQuery) Some(new STIdxStrategy) else None
-
-      case f: Within =>
-        val canQuery = isValidSTIdxFilter(sft, f.getExpression1, f.getExpression2)
-        if (canQuery) Some(new STIdxStrategy) else None
-
-      // doesn't match any supported topological predicates
-      case _ => None
-    }
+    if (spatialFilters(filter) &&
+      isValidSTIdxFilter(sft, filter.asInstanceOf[BinarySpatialOperator].getExpression1, filter.asInstanceOf[BinarySpatialOperator].getExpression2)
+    ) { Some(new STIdxStrategy) } else { None }
 
   /**
    * Ensures the following conditions:

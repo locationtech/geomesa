@@ -60,18 +60,18 @@ object QueryStrategyDecider {
   private def processAnd(isDensity: Boolean, sft: SimpleFeatureType, and: And): Strategy = {
     val children: util.List[Filter] = decomposeAnd(and)
 
-    def something(attr: Filter, st: Filter): Strategy = {
-      if(children.indexOf(attr) < children.indexOf(st)) getAttributeIndexStrategy(attr, sft).get
-      else new STIdxStrategy
+    def determineStrategy(attr: Filter, st: Filter): Strategy = {
+      if(children.indexOf(attr) < children.indexOf(st)) { getAttributeIndexStrategy(attr, sft).get }
+      else { new STIdxStrategy }
     }
 
     val strats = (children.find(c => getAttributeIndexStrategy(c, sft).isDefined), children.find(c => getSTIdxStrategy(c, sft).isDefined))
 
     strats match {
-      case (Some(attrFilter), Some(stFilter)) => something(attrFilter, stFilter)
-      case (None, Some(stFilter)) => new STIdxStrategy
-      case (Some(attrFilter), None) => getAttributeIndexStrategy(attrFilter, sft).get  // Never call .get
-      case (None, None) => new STIdxStrategy
+      case (Some(attrFilter), Some(stFilter)) => determineStrategy(attrFilter, stFilter)
+      case (Some(attrFilter), None)           => getAttributeIndexStrategy(attrFilter, sft).get
+      case (None, Some(stFilter))             => new STIdxStrategy
+      case (None, None)                       => new STIdxStrategy
     }
   }
 

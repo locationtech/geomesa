@@ -44,26 +44,20 @@ class QueryStrategyDeciderTest extends Specification {
     QueryStrategyDecider.chooseStrategy(isCatalogTable, sft, query)
   }
 
-  def getStrategyT[T <: Strategy](filterString: String, ct: ClassTag[T]) = {
-    println(s"on $filterString: ${getStrategy(filterString).isInstanceOf[T]}")
+  def getStrategyT[T <: Strategy](filterString: String, ct: ClassTag[T]) =
     getStrategy(filterString) must beAnInstanceOf[T](ct)
-  }
 
-  def getStStrategy[T <: Strategy](filterString: String) = {
+  def getStStrategy(filterString: String) =
     getStrategyT(filterString, ClassTag(classOf[STIdxStrategy]))
-  }
 
-  def getAttributeIdxEqualsStrategy[T <: Strategy](filterString: String) = {
+  def getAttributeIdxEqualsStrategy(filterString: String) =
     getStrategyT(filterString, ClassTag(classOf[AttributeIdxEqualsStrategy]))
-  }
 
-  def getAttributeIdxLikeStrategy[T <: Strategy](filterString: String) = {
+  def getAttributeIdxLikeStrategy(filterString: String) =
     getStrategyT(filterString, ClassTag(classOf[AttributeIdxLikeStrategy]))
-  }
 
-  def getAttributeIdxStrategy[T <: Strategy](filterString: String) = {
+  def getAttributeIdxStrategy(filterString: String) =
     getStrategyT(filterString, ClassTag(classOf[AttributeIdxStrategy]))
-  }
 
   "Good spatial predicates" should {
     "get the stidx strategy" in {
@@ -157,10 +151,10 @@ class QueryStrategyDeciderTest extends Specification {
     }
 
     "get the attribute strategy for ANDed attributes" in {
-      val fs = "attr1 >= 11 AND attr1 < 20"
+      val fs = "attr2 >= 11 AND attr2 < 20"
 
       getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
-    }.pendingUntilFixed("GEOMESA-311")
+    }
   }
 
   "Attribute filters" should {
@@ -203,21 +197,15 @@ class QueryStrategyDeciderTest extends Specification {
   }
 
   "Anded Attribute filters" should {
-    "get an attribute strategy" in {
-      val fs = "attr2 = 'val56' AND attr1 = 'val3'"
-
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxEqualsStrategy]
-    }
-
-    "get the STIdx strategy" in {
+    "get the STIdx strategy with stIdxStrategyPredicates" in {
       forall(stIdxStrategyPredicates) { getStStrategy }
     }
 
-    "get the attribute strategy" in {
+    "get the attribute strategy with attributeAndGeometricPredicates" in {
       forall(attributeAndGeometricPredicates) { getAttributeIdxStrategy }
     }
 
-    "get the attribute strategy" in {
+    "get the attribute strategy with attrIdxStrategyPredicates" in {
       forall(attrIdxStrategyPredicates) { getAttributeIdxStrategy }
     }
   }
