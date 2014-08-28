@@ -16,6 +16,8 @@
 
 package org.locationtech.geomesa.tools
 
+import java.io.File
+import java.net.URLDecoder
 import java.util.UUID
 
 import org.apache.accumulo.core.client.ZooKeeperInstance
@@ -23,6 +25,45 @@ import org.apache.hadoop.fs.Path
 
 import scala.util.Try
 import scala.xml.XML
+
+object Utils {
+
+  def cleanClassPathURL(url: String): String =
+    URLDecoder.decode(url, "UTF-8")
+      .replace("file:", "")
+      .replace("!", "")
+
+  def classPathUrlToAbsolutePath(url: String) =
+    new File(cleanClassPathURL(url)).getAbsolutePath
+
+  object IngestParams {
+    val ACCUMULO_INSTANCE   = "geomesa-tools.ingest.instance"
+    val ZOOKEEPERS          = "geomesa-tools.ingest.zookeepers"
+    val ACCUMULO_MOCK       = "geomesa-tools.ingest.useMock"
+    val ACCUMULO_USER       = "geomesa-tools.ingest.user"
+    val ACCUMULO_PASSWORD   = "geomesa-tools.ingest.password"
+    val AUTHORIZATIONS      = "geomesa-tools.ingest.authorizations"
+    val VISIBILITIES        = "geomesa-tools.ingest.visibilities"
+    val SHARDS              = "geomesa-tools.ingest.shards"
+    val INDEX_SCHEMA_FMT    = "geomesa-tools.ingest.indexSchemaFormat"
+    val SKIP_HEADER         = "geomesa-tools.ingest.skipHeader"
+    val DO_HASH             = "geomesa-tools.ingest.doHash"
+    val DT_FORMAT           = "geomesa-tools.ingest.dtFormat"
+    val ID_FIELDS           = "geomesa-tools.ingest.idFields"
+    val DT_FIELD            = "geomesa-tools.ingest.dtField"
+    val FILE_PATH           = "geomesa-tools.ingest.path"
+    val FORMAT              = "geomesa-tools.ingest.delimiter"
+    val LON_ATTRIBUTE       = "geomesa-tools.ingest.lonAttribute"
+    val LAT_ATTRIBUTE       = "geoemsa-tools.ingest.latAttribute"
+    val FEATURE_NAME        = "geomesa-tools.feature.name"
+    val CATALOG_TABLE       = "geomesa-tools.feature.tables.catalog"
+    val SFT_SPEC            = "geomesa-tools.feature.sftspec"
+    val RUN_INGEST          = "geomesa-tools.ingest.runIngest"
+
+  }
+
+}
+
 
 /*  ScoptArguments is a case Class used by scopt, args are stored in it and default values can be set in Config also.*/
 case class ScoptArguments(username: String = null,
@@ -53,11 +94,11 @@ case class IngestArguments(username: String = null,
                            catalog: String = null,
                            auths: Option[String] = None,
                            visibilities: Option[String] = None,
-                           indexSchemaFormat: Option[String] = None,
+                           indexSchemaFmt: Option[String] = None,
                            spec: String = null,
                            idFields: Option[String] = None,
                            dtField: Option[String] = None,
-                           dtFormat: String = null,
+                           dtFormat: Option[String] = None,
                            method: String = "local",
                            file: String = null,
                            featureName: Option[String] = None,

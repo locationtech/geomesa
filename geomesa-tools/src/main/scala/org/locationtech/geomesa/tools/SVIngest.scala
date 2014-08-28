@@ -19,6 +19,7 @@ import java.net.URLDecoder
 import java.nio.charset.Charset
 
 import com.google.common.hash.Hashing
+import com.twitter.scalding.{Args, Job, TextLine}
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.commons.csv.{CSVFormat, CSVParser}
@@ -31,133 +32,135 @@ import org.joda.time.format.DateTimeFormat
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
+import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
-class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Logging {
+class SVIngest(args: Args) extends Job(args) with Logging {
 
   import scala.collection.JavaConversions._
 
-  lazy val idFields         = config.idFields.orNull
-  lazy val path             = config.file
-  lazy val featureName      = config.featureName.get
-  lazy val sftSpec          = URLDecoder.decode(config.spec, "UTF-8")
-  lazy val dtgField         = config.dtField.get
-  lazy val dtgFmt           = config.dtFormat
-  lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
-  lazy val latField         = config.latAttribute.orNull
-  lazy val lonField         = config.lonAttribute.orNull
-  lazy val skipHeader       = config.skipHeader
-  lazy val doHash           = config.doHash
+  //val logger = LoggerFactory.getLogger(classOf[SVIngest])
+
   var lineNumber            = 0
   var failures              = 0
   var successes             = 0
-  val maxShard: Option[Int] = config.maxShards
 
-  lazy val dropHeader = skipHeader match {
-    case true => 1
-    case _    => 0
+  lazy val idFields         = args.optional(IngestParams.ID_FIELDS).orNull
+  lazy val path             = args(IngestParams.FILE_PATH)
+  lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
+  lazy val dtgField         = args.optional(IngestParams.DT_FIELD)
+  lazy val dtgFmt           = args.optional(IngestParams.DT_FORMAT).getOrElse("MILLISEPOCH")
+  lazy val lonField         = args.optional(IngestParams.LON_ATTRIBUTE).orNull
+  lazy val latField         = args.optional(IngestParams.LAT_ATTRIBUTE).orNull
+  lazy val doHash           = args(IngestParams.DO_HASH).toBoolean
+  lazy val format           = args.optional(IngestParams.FORMAT).orNull
+  lazy val dtgTargetField   = sft.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String]
+  lazy val dtFormat         = DateTimeFormat.forPattern(dtgFmt)
+
+  //Data Store parameters
+  lazy val catalog          = args(IngestParams.CATALOG_TABLE)
+  lazy val instanceId       = args(IngestParams.ACCUMULO_INSTANCE)
+  lazy val featureName      = args(IngestParams.FEATURE_NAME)
+  lazy val zookeepers       = args(IngestParams.ZOOKEEPERS)
+  lazy val user             = args(IngestParams.ACCUMULO_USER)
+  lazy val password         = args(IngestParams.ACCUMULO_PASSWORD)
+  lazy val auths            = args.optional(IngestParams.AUTHORIZATIONS).orNull
+  lazy val visibilities     = args.optional(IngestParams.VISIBILITIES).orNull
+  lazy val indexSchemaFmt   = args.optional(IngestParams.INDEX_SCHEMA_FMT).orNull
+  lazy val shards           = args.optional(IngestParams.SHARDS).orNull
+  lazy val useMock          = args.optional(IngestParams.ACCUMULO_MOCK).orNull
+  lazy val runIngest        = args.optional(IngestParams.RUN_INGEST)
+
+  // need to work in shards, vis, isf
+  lazy val dsConfig =
+    Map(
+      "zookeepers"        -> zookeepers,
+      "instanceId"        -> instanceId,
+      "tableName"         -> catalog,
+      "featureName"       -> featureName,
+      "user"              -> user,
+      "password"          -> password,
+      "auths"             -> auths,
+      "visibilities"      -> visibilities,
+      "indexSchemaFormat" -> indexSchemaFmt,
+      "maxShard"          -> maxShard,
+      "useMock"           -> useMock
+    )
+
+  val maxShard: Option[Int] = shards match {
+    case s: String => Some(s.toInt)
+    case _         => None
   }
 
-  val delim = config.format.get.toUpperCase match {
-    case "TSV" => CSVFormat.TDF
-    case "CSV" => CSVFormat.DEFAULT
-  }
-
-  val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
-
-  if (ds.getSchema(featureName) == null) {
-    logger.info("\tCreating GeoMesa tables...")
-    val startTime = System.currentTimeMillis()
-    if (maxShard.isDefined)
-      ds.createSchema(sft, maxShard.get)
-    else
-      ds.createSchema(sft)
-    val createTime = System.currentTimeMillis() - startTime
-    val numShards = ds.getSpatioTemporalMaxShard(sft)
-    val shardPvsS = if (numShards == 1) "Shard" else "Shards"
-    logger.info(s"\tCreated schema in: $createTime ms using $numShards $shardPvsS.")
-  } else {
-    val numShards = ds.getSpatioTemporalMaxShard(sft)
-    val shardPvsS = if (numShards == 1) "Shard" else "Shards"
-    maxShard match {
-      case None => logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS. Using extant SFT. " +
-        s"\n\tIf this is not desired please delete (aka: drop) the catalog using the delete command.")
-      case Some(x) => logger.warn(s"GeoMesa tables extant, ignoring user request, using schema's $numShards $shardPvsS")
-    }
+  lazy val delim = format match {
+    case s: String if s.toUpperCase == "TSV" => CSVFormat.TDF
+    case s: String if s.toUpperCase == "CSV" => CSVFormat.DEFAULT
+    case _                       => throw new Exception("Error, no format set and/or unrecognized format provided")
   }
 
   lazy val sft = {
     val ret = SimpleFeatureTypes.createType(featureName, sftSpec)
-    ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField)
+    ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField.getOrElse(Constants.SF_PROPERTY_START_TIME))
     ret
   }
 
   lazy val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
-  lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt)
   lazy val attributes = sft.getAttributeDescriptors
   lazy val dtBuilder = buildDtBuilder
   lazy val idBuilder = buildIDBuilder
 
-  // This class is possibly necessary for scalding (to be added later)
-  // Otherwise it can be removed with just the line val fw = ... retained
-  class CloseableFeatureWriter {
+  // non-serializable resources.
+  class Resources {
+    val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
     val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
     def release(): Unit = { fw.close() }
   }
 
-  def runIngest() = {
-    config.method.toLowerCase match {
-      case "local" =>
-        val cfw = new CloseableFeatureWriter
-        try {
-          performIngest(cfw, Source.fromFile(path).getLines.drop(dropHeader))
-        } catch {
-          case e: Exception => logger.error("error", e)
-        }
-        finally {
-          cfw.release()
-          ds.dispose()
-          val successPvsS = if (successes == 1) "feature" else "features"
-          val failurePvsS = if (failures == 1) "feature" else "features"
-          val failureString = if (failures == 0) "with no failures" else s"and failed to ingest: $failures $failurePvsS"
-          logger.info(s"For file $path - ingested: $successes $successPvsS, $failureString.")
-        }
-      case _ =>
-        logger.error(s"Error, no such SV ingest method: ${config.method.toLowerCase}")
+  // Check to see if this an actual ingest job or just a test.
+  if ( runIngest.isDefined ) {
+    // I am not sure if we want this warning in here or not ...
+    if ( dtgField.isEmpty ) {
+      // assume we have no user input on what date field to use and that
+      // there is no column of data signifying it.
+      logger.warn("Warning: no date-time field specified. Assuming that data contains no date column. \n" +
+        s"GeoMesa is defaulting to the system time for ingested features.")
     }
+    TextLine(path).using(new Resources)
+      .foreach('line) { (cfw: Resources, line: String) => lineNumber += 1; ingestLine(cfw.fw, line) }
   }
 
-  def performIngest(cfw: CloseableFeatureWriter, lines: Iterator[String]) = {
-    linesToFeatures(lines).foreach {
+  def runTestIngest(lines: Iterator[String]) = Try {
+    val cfw = new Resources
+    lines.foreach( line => ingestLine(cfw.fw, line) )
+    cfw.release()
+  }
+
+  def ingestLine(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String): Unit = {
+    lineToFeature(line) match {
       case Success(ft) =>
-        writeFeature(cfw.fw, ft)
-        // Log info to user that ingest is still working, might be in wrong spot however...
-        if ( lineNumber % 10000 == 0 ) {
-          val successPvsS = if (successes == 1) "feature" else "features"
-          val failurePvsS = if (failures == 1) "feature" else "features"
-          val failureString = if (failures == 0) "with no failures" else s"and failed to ingest: $failures $failurePvsS"
-          logger.info(s"Ingest proceeding, on line number: $lineNumber," +
-            s" ingested: $successes $successPvsS, $failureString.")
+        writeFeature(fw, ft) match {
+          case Success(wu) =>
+            successes += 1
+            if ( lineNumber % 10000 == 0 ) {
+              val successPvsS = if (successes == 1) "feature" else "features"
+              val failurePvsS = if (failures == 1) "feature" else "features"
+              logger.info(s"${DateTime.now} Ingest proceeding, on line number: $lineNumber," +
+                s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
+            }
+          case Failure(ex) =>
+            failures += 1
+            logger.info(s"Cannot ingest avro simple feature on line number: $lineNumber, with value $line ")
         }
-      case Failure(ex) => failures +=1; logger.error(s"Could not write feature on " +
-        s"line number: $lineNumber due to: ${ex.getLocalizedMessage}")
+      case Failure(ex) => failures +=1; logger.info(s"Could not write feature due to: ${ex.getLocalizedMessage}")
     }
-  }
-
-  def linesToFeatures(lines: Iterator[String]): Iterator[Try[AvroSimpleFeature]] = {
-    for(line <- lines) yield lineToFeature(line)
   }
 
   def lineToFeature(line: String): Try[AvroSimpleFeature] = Try {
-    lineNumber += 1
-    // CsvReader is being used to just split the line up. this may be refactored out when
-    // scalding support is added however it may be necessary for local only ingest
-    val reader = CSVParser.parse(line, delim)
+    val reader: CSVParser = CSVParser.parse(line, delim)
     val fields: Array[String] = try {
       reader.iterator.toArray.flatten
     } catch {
@@ -172,26 +175,27 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     builder.addAll(fields.asInstanceOf[Array[AnyRef]])
     val feature = builder.buildFeature(id).asInstanceOf[AvroSimpleFeature]
 
-    //override the feature dtgField if it could not be parsed in
-    if (feature.getAttribute(dtgField) == null) {
+    if (dtgField.isDefined) {
+      // override the feature dtgField
       try {
-        val dtgFieldIndex = getAttributeIndexInLine(dtgField)
+        val dtgFieldIndex = getAttributeIndexInLine(dtgField.get)
         val date = dtBuilder(fields(dtgFieldIndex)).toDate
-        feature.setAttribute(dtgField, date)
+        feature.setAttribute(dtgField.get, date)
       } catch {
         case e: Exception => throw new Exception(s"Could not form Date object from field" +
           s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
       }
+      //now try to build the date time object and set the dtgTargetField to the date value
+      val dtg = try {
+        dtBuilder(feature.getAttribute(dtgField.get))
+      } catch {
+        case e: Exception => throw new Exception(s"Could not find date-time field: '${dtgField}'," +
+          s" on line  number: $lineNumber \n\t With value of: $line")
+      }
+
+      feature.setAttribute(dtgTargetField, dtg.toDate)
     }
 
-    val dtg = try{
-      dtBuilder(feature.getAttribute(dtgField))
-    } catch {
-      case e: Exception => throw new Exception(s"Could not find date-time field: '${dtgField}'," +
-        s" on line  number: $lineNumber \n\t With value of: $line")
-    }
-
-    feature.setAttribute(dtgTargetField, dtg.toDate)
     // Support for point data method
     val lon = Option(feature.getAttribute(lonField)).map(_.asInstanceOf[Double])
     val lat = Option(feature.getAttribute(latField)).map(_.asInstanceOf[Double])
@@ -203,21 +207,14 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     feature
   }
 
-  def writeFeature(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], feature: AvroSimpleFeature) = {
-    try {
-      val toWrite = fw.next()
-      sft.getAttributeDescriptors.foreach { ad =>
-        toWrite.setAttribute(ad.getName, feature.getAttribute(ad.getName))
-      }
-      toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
-      toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      fw.write()
-      successes +=1
-    } catch {
-      case e: Exception =>
-        logger.error(s"Cannot ingest avro simple feature: $feature, corrisponding to line number: $lineNumber", e)
-        failures +=1
+  def writeFeature(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], feature: AvroSimpleFeature) = Try {
+    val toWrite = fw.next()
+    sft.getAttributeDescriptors.foreach { ad =>
+      toWrite.setAttribute(ad.getName, feature.getAttribute(ad.getName))
     }
+    toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
+    toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    fw.write()
   }
 
   def getAttributeIndexInLine(attribute: String) = attributes.indexOf(sft.getDescriptor(attribute))
@@ -240,7 +237,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
   }
 
   def buildDtBuilder: (AnyRef) => DateTime =
-    attributes.find(_.getLocalName == dtgField).map {
+    attributes.find(_.getLocalName == dtgField.getOrElse(None)).map {
       case attr if attr.getType.getBinding.equals(classOf[java.lang.Long]) =>
         (obj: AnyRef) => new DateTime(obj.asInstanceOf[java.lang.Long])
 
