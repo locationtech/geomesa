@@ -53,8 +53,9 @@ case class RankingValues(tubeCount: Int, boxCount: Int, boxCellsCovered: Int, tu
    * = grid cells and terms = the number of grid cells covered by the entity
    *@return log(total number of grid cells / (# of grid cells covered))
    */
-  def idf = if (boxCellsCovered == 0) Double.MaxValue else Math.log((gridDivisions * gridDivisions).toDouble /
-    boxCellsCovered.toDouble)
+  def idf =
+    if (boxCellsCovered == 0) Double.MaxValue
+    else Math.log((gridDivisions * gridDivisions).toDouble / boxCellsCovered.toDouble)
 
   /**
    * This is the idf * the number of times that the entity occurs along the query route. Intended to be analogous to
@@ -104,23 +105,34 @@ case class RankingValues(tubeCount: Int, boxCount: Int, boxCellsCovered: Int, tu
   def combinedScoreNoMotion = Math.pow(scaledTfIdf * percentageOfTubeCellsCovered * tubeCellDeviationScore, 1.0 / 3.0)
 
   /**
-   * Aggregated teh combined score without motion with the motion evidence score.
+   * Aggregate the combined score without motion with the motion evidence score.
    * @return (combinedScoreNoMotion * log(total motion evidence + 1.0) * (maximum motion evidence))^^(1/3)
    */
-  def combinedScore = if (motionEvidence.total > 0.0)
-    Math.pow(combinedScoreNoMotion * Math.log(motionEvidence.total + 1.0) * motionEvidence.max, 1.0 / 3.0) else 0.0
+  def combinedScore =
+    if (motionEvidence.total > 0.0)
+      Math.pow(combinedScoreNoMotion * Math.log(motionEvidence.total + 1.0) * motionEvidence.max, 1.0 / 3.0)
+    else 0.0
 
   /**
    * Merge one RankingValues object with another
    * @param other
    * @return
    */
-  def merge(other: RankingValues) = RankingValues(tubeCount + other.tubeCount, boxCount + other.boxCount,
-    boxCellsCovered + other.boxCellsCovered, tubeCellsCovered + other.tubeCellsCovered,
-    MathUtil.combineStddev(tubeCellsStddev, other.tubeCellsStddev), // assumes independence, which might be questionable
-    EvidenceOfMotion(motionEvidence.total + other.motionEvidence.total,
-      Math.max(motionEvidence.max, other.motionEvidence.max),
-      MathUtil.combineStddev(motionEvidence.stddev, other.motionEvidence.stddev)), gridDivisions, nTubeCells)
+  def merge(other: RankingValues) =
+    RankingValues(
+      tubeCount + other.tubeCount,
+      boxCount + other.boxCount,
+      boxCellsCovered + other.boxCellsCovered,
+      tubeCellsCovered + other.tubeCellsCovered,
+      MathUtil.combineStddev(tubeCellsStddev, other.tubeCellsStddev), // assumes independence, which might be questionable
+      EvidenceOfMotion(
+        motionEvidence.total + other.motionEvidence.total,
+        Math.max(motionEvidence.max, other.motionEvidence.max),
+        MathUtil.combineStddev(motionEvidence.stddev, other.motionEvidence.stddev)
+      ),
+      gridDivisions,
+      nTubeCells
+    )
 }
 
 object RankingValues {

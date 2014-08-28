@@ -19,7 +19,6 @@ package org.locationtech.geomesa.core.process.rank
 import java.util
 
 import scala.beans.BeanProperty
-import scala.collection.mutable
 import scala.collection.JavaConverters._
 
 /**
@@ -114,15 +113,13 @@ object RankingValuesBean {
  */
 case class ResultBean(@BeanProperty results: java.util.List[RankingValuesBean], @BeanProperty maxScore: Double,
                       @BeanProperty gridSize: Int, @BeanProperty nRouteGridCells: Int, @BeanProperty sortBy: String) {
-  def keyMap = results.asScala.groupBy(_.key)
-
   def merge(other: ResultBean): ResultBean = {
     ResultBean.fromRankingValues(
       (results.asScala ++ other.results.asScala) // put all result together
         .groupBy(_.key)                          // now a Map[String, Buffer[RankingValuesBean]
         .mapValues(buffRVB => {                  // merge all beans in each buffer independently
-          buffRVB.foldLeft(RankingValues.emptyOne(gridSize, nRouteGridCells)) { case (comb, curr) =>
-            comb.merge(curr.toRankingValues(gridSize, nRouteGridCells))
+          buffRVB.foldLeft(RankingValues.emptyOne(gridSize, nRouteGridCells)) {
+            case (comb, curr) => comb.merge(curr.toRankingValues(gridSize, nRouteGridCells))
           }
         }),
       sortBy
@@ -155,6 +152,6 @@ object ResultBean {
   }
 
   def emptyResult(sortBy: String): ResultBean =
-    ResultBean(List[RankingValuesBean]().asJava, 0.0, 0, 0, sortBy)
+    ResultBean(List[RankingValuesBean]().asJava, Double.MinValue, 0, 0, sortBy)
 }
 
