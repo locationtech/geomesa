@@ -133,15 +133,12 @@ class TrackRankProcess {
 
                ): ResultBean = {
     new TrackFeatureGroupRanker(TubeSelectProcessInputs(tubeFeatures, featureCollection, filter, maxSpeed, maxTime,
-      bufferSize, maxBins, gapFill), keyField, skip, max, sortBy).groupAndRank
+      bufferSize, maxBins, gapFill), keyField).groupAndRank(skip, max, sortBy)
   }
 }
 
 class TrackFeatureGroupRanker(tubeSelectInputs: TubeSelectProcessInputs,
-                              override val keyField: String,
-                              override val skip: Int,
-                              override val max: Int,
-                              override val sortBy: String) extends FeatureGroupRanker {
+                              override val keyField: String) extends FeatureGroupRanker {
   val tubeSelectParameters = tubeSelectInputs.toParameters
   override def queryRoute(route: Route) = {
     val ts = new TubeSelectProcess

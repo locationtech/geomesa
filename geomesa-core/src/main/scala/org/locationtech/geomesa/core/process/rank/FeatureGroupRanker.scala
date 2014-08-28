@@ -38,11 +38,8 @@ trait FeatureGroupRanker extends Logging {
   def keyField: String // the field from dataFeatures to group data by
   def bufferMeters: Double // how far to buffer the route (in meters) for the search
   def queryRoute(route: Route): SimpleFeatureCollection // method that uses the route to find nearby feature instances
-  def skip: Int // Used for paging of search results: once results are sorted by rank, how many to skip
-  def max: Int // Used to limit the number of search results returned
-  def sortBy: String // Which field in ResultsBean.results to sort the output by, before applying skip and max
 
-  def groupAndRank: ResultBean = {
+  def groupAndRank(skip: Int, max: Int, sortBy: String): ResultBean = {
 
     logger.info("Attempting Geomesa Route Rank on collection type " + dataFeatures.getClass.getName)
     if (!dataFeatures.isInstanceOf[AccumuloFeatureCollection]) {

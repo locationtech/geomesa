@@ -99,17 +99,14 @@ class RouteRankProcess {
                sortBy: String
 
                ): ResultBean = {
-    new RouteFeatureGroupRanker(inputFeatures, dataFeatures, bufferDistance, keyField, skip, max, sortBy).groupAndRank
+    new RouteFeatureGroupRanker(inputFeatures, dataFeatures, bufferDistance, keyField).groupAndRank(skip, max, sortBy)
   }
 }
 
 class RouteFeatureGroupRanker(inputFeatures: SimpleFeatureCollection,
                               override val dataFeatures: SimpleFeatureCollection,
                               override val bufferMeters: Double,
-                              override val keyField: String,
-                              override val skip: Int,
-                              override val max: Int,
-                              override val sortBy: String) extends FeatureGroupRanker {
+                              override val keyField: String) extends FeatureGroupRanker {
   override def queryRoute(route: Route) = {
     val routeShape = route.route.bufferMeters(bufferMeters)
     val ff = CommonFactoryFinder.getFilterFactory2
