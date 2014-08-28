@@ -128,7 +128,7 @@ class TrackRankProcess {
                  name = "sortBy",
                  min = 0,
                  defaultValue = RankingDefaults.defaultResultsSortField,
-                 description = "The field to sort by")
+                 description = "The field to sort by, currently only \"combined.score\" is supported")
                sortBy: String
 
                ): ResultBean = {

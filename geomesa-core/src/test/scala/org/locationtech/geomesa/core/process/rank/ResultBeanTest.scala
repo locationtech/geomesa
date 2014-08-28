@@ -20,7 +20,7 @@ class ResultBeanTest extends Specification {
       RankingValues(tc, bc, bcc, tcc, tcD, EvidenceOfMotion(evTot, evMax, evStd), gridDivisions, tubeCells)
 
     val rv1 = rv(120, 300, 250, 178,   0.1, 1000.0, 900.0, 0.01) // clear winner
-    val rv2 = rv(  0,   1,   1,   0, 100.0,    0.1,   0.1,  0.0) // clear loser
+    val rv2 = rv( 51,   1,   1,   0, 100.0,    0.1,   0.1,  0.0) // clear loser (except by counts.route)
     val rv3 = rv( 50, 300, 120,  30,   1.0,   10.0,   5.0,  2.0) // mediocre
 
     "handle empty results gracefully" in {
@@ -29,15 +29,36 @@ class ResultBeanTest extends Specification {
       empty.maxScore must beEqualTo(Double.MinValue)
     }
 
-    "sort results descending by combined score" in {
+    "sort results descending by combined.score" in {
       val rvMap = Map[String, RankingValues](
         "winner"  -> rv1,
         "loser"   -> rv2,
         "midling" -> rv3
         )
-      val rb = ResultBean.fromRankingValues(rvMap, "sortField")
+      val rb = ResultBean.fromRankingValues(rvMap, "combined.score")
+      val rbKeys = rb.results.map(_.key).toArray
+      rbKeys(0) must be("winner")
+      rbKeys(1) must be("midling")
+      rbKeys(2) must be("loser")
       rb.results
         .map(_.combined.score)
+        .sliding(2, 1)
+        .forall(x => x(0) >= x(1)) must beTrue
+    }
+
+    "sort results descending by counts.route" in {
+      val rvMap = Map[String, RankingValues](
+        "winner"  -> rv1,
+        "loser"   -> rv2,
+        "midling" -> rv3
+      )
+      val rb = ResultBean.fromRankingValues(rvMap, "counts.route")
+      val rbKeys = rb.results.map(_.key).toArray
+      rbKeys(0) must be("winner")
+      rbKeys(1) must be("loser")
+      rbKeys(2) must be("midling")
+      rb.results
+        .map(_.counts.route)
         .sliding(2, 1)
         .forall(x => x(0) >= x(1)) must beTrue
     }
@@ -48,7 +69,7 @@ class ResultBeanTest extends Specification {
         "loser"   -> rv2,
         "midling" -> rv3
       )
-      val rb = ResultBean.fromRankingValues(rvMap, "sortField", 1, 1)
+      val rb = ResultBean.fromRankingValues(rvMap, "combined.score", 1, 1)
       rb.results.size must beEqualTo(1)
       rb.results.head.key must beEqualTo("midling")
     }

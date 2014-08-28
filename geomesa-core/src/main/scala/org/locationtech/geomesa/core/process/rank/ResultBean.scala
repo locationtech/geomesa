@@ -72,17 +72,20 @@ case class Combined(@BeanProperty scoreNoMotion: Double, @BeanProperty score: Do
 /**
  * All the values that we could think to compute to rank a group of features along a route, relative to other groups
  * @param key the key that is common among the feature group
- * @param counts
- * @param cellsCovered
- * @param routeCellDeviation
- * @param tfIdf
- * @param motionEvidence
- * @param combined
+ * @param counts An aggregated Counts object
+ * @param cellsCovered An aggregated CellsCovered object
+ * @param routeCellDeviation An aggregated RouteCellDeviation object
+ * @param tfIdf An aggregated TfIdf object
+ * @param motionEvidence An aggregated EvidenceOfMotion object
+ * @param combined An aggregated Combined object
  */
-case class RankingValuesBean(@BeanProperty key: String, @BeanProperty counts: Counts,
+case class RankingValuesBean(@BeanProperty key: String,
+                             @BeanProperty counts: Counts,
                              @BeanProperty cellsCovered: CellsCovered,
-                             @BeanProperty routeCellDeviation: RouteCellDeviation, @BeanProperty tfIdf: TfIdf,
-                             @BeanProperty motionEvidence: EvidenceOfMotion, @BeanProperty combined: Combined) {
+                             @BeanProperty routeCellDeviation: RouteCellDeviation,
+                             @BeanProperty tfIdf: TfIdf,
+                             @BeanProperty motionEvidence: EvidenceOfMotion,
+                             @BeanProperty combined: Combined) {
   def toRankingValues(gridSize: Int, nRouteGridCells: Int): RankingValues = {
     RankingValues(counts.route, counts.box, cellsCovered.box, cellsCovered.route, routeCellDeviation.stddev,
       motionEvidence, gridSize, nRouteGridCells)
@@ -100,6 +103,21 @@ object RankingValuesBean {
       EvidenceOfMotion(rv.motionEvidence.total, rv.motionEvidence.max, rv.motionEvidence.stddev),
       Combined(rv.combinedScoreNoMotion, rv.combinedScore)
     )
+
+  object NamedScore extends Enumeration {
+    protected case class NamedScoreVal(name: String, extractFrom: RankingValuesBean => Double) extends super.Val(nextId, name)
+    implicit def valueToNamedScoreVal(x: Value): NamedScoreVal = x.asInstanceOf[NamedScoreVal]
+    final val DEFAULT_SCORE = "combined.score"
+    val COMBINED_SCORE = NamedScoreVal("combined.score", (rvb: RankingValuesBean) => rvb.combined.score)
+    val COUNTS_ROUTE = NamedScoreVal("counts.route", (rvb: RankingValuesBean) => rvb.counts.route)
+
+    def safeWithName(name: String) =
+      try {
+        withName(name)
+      } catch {
+        case e: NoSuchElementException => COMBINED_SCORE
+      }
+  }
 }
 
 /**
@@ -134,12 +152,13 @@ object ResultBean {
     } else {
       val firstRankingValue = rankingValues.head._2
       val (nTubeCells, gridSize) = (firstRankingValue.nTubeCells, firstRankingValue.gridDivisions)
+      val sortField = RankingValuesBean.NamedScore.safeWithName(sortBy)
       ResultBean(
         new util.ArrayList(
           rankingValues
             .map { case (key, rv) => RankingValuesBean(key, rv) }
             .toList
-            .sortBy(_.combined.score * -1.0)
+            .sortBy(rvb => sortField.extractFrom(rvb) * -1.0)
             .slice(skip, if (max > 0) skip + max else Int.MaxValue)
             .asJava
         ),
