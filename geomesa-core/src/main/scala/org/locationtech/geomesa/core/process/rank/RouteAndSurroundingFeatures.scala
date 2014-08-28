@@ -145,6 +145,7 @@ object RankingDefaults {
   final val defaultRouteDivisions = 100.0
   final val defaultGridDivisions = 100
   final val maxTimeBetweenPings = 60 * 60 // one hour in seconds
+  final val defaultSkipResultsStr = "0"
   final val defaultMaxResultsStr = "1000"
   final val defaultResultsSortField = RankingValuesBean.NamedScore.DEFAULT_SCORE
 }

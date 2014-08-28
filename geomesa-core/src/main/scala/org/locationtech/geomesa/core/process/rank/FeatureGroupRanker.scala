@@ -102,5 +102,18 @@ trait FeatureGroupRanker extends Logging {
     JTS.toGeometry(env2)
   }
 
+}
 
+object FeatureGroupRanker {
+  final val KEY_FIELD_NAME = "keyField"
+  final val KEY_FIELD_DESCRIPTION = "The name of the key attribute to group by"
+
+  final val SKIP_FIELD_NAME = "skip"
+  final val SKIP_FIELD_DESCRIPTION = "The number of results to skip (for paging)"
+
+  final val MAX_FIELD_NAME = "max"
+  final val MAX_FIELD_DESCRIPTION = "The maximum number of results to return"
+
+  final val SORT_BY_FIELD_NAME = "sortBy"
+  final val SORT_BY_FIELD_DESCRIPTION = "The field to sort by, currently only \"combined.score\" is supported"
 }

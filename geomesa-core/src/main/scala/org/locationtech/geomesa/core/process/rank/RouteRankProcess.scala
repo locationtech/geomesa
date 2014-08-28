@@ -73,29 +73,29 @@ class RouteRankProcess {
                bufferDistance: java.lang.Double,
 
                @DescribeParameter(
-                 name = "keyField",
-                 description = "The name of the key attribute to group by")
+                 name = FeatureGroupRanker.KEY_FIELD_NAME,
+                 description = FeatureGroupRanker.KEY_FIELD_DESCRIPTION)
                keyField: String,
 
                @DescribeParameter(
-                 name = "skip",
+                 name = FeatureGroupRanker.SKIP_FIELD_NAME,
                  min = 0,
-                 defaultValue = "0",
-                 description = "The number of results to skip (for paging)")
+                 defaultValue = RankingDefaults.defaultSkipResultsStr,
+                 description = FeatureGroupRanker.SKIP_FIELD_DESCRIPTION)
                skip: Int,
 
                @DescribeParameter(
-                 name = "max",
+                 name = FeatureGroupRanker.MAX_FIELD_NAME,
                  min = 0,
                  defaultValue = RankingDefaults.defaultMaxResultsStr,
-                 description = "The maximum number of results to return")
+                 description = FeatureGroupRanker.MAX_FIELD_DESCRIPTION)
                max: Int,
 
                @DescribeParameter(
-                 name = "sortBy",
+                 name = FeatureGroupRanker.SORT_BY_FIELD_NAME,
                  min = 0,
                  defaultValue = RankingDefaults.defaultResultsSortField,
-                 description = "The field to sort by, currently only \"combined.score\" is supported")
+                 description = FeatureGroupRanker.SORT_BY_FIELD_DESCRIPTION)
                sortBy: String
 
                ): ResultBean = {
