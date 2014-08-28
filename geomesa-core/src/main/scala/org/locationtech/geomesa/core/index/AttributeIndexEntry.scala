@@ -37,8 +37,7 @@ import scala.util.{Failure, Success, Try}
 object AttributeIndexEntry extends Logging {
 
   val typeRegistry = LexiTypeEncoders.LEXI_TYPES
-  val nullString = "<null>"
-  private val NULLBYTE = "\u0000"
+  val NULLBYTE = "\u0000" // null byte (unicode value) as a string
 
   /**
    * Gets mutations for the attribute index table
@@ -75,7 +74,15 @@ object AttributeIndexEntry extends Logging {
    * @return
    */
   def getAttributeIndexRow(attributeName: String, attributeValue: Option[Any]): String =
-    attributeName ++ NULLBYTE ++ encode(attributeValue)
+    getAttributeIndexRowPrefix(attributeName) ++ encode(attributeValue)
+
+  /**
+   * Gets a prefix for an attribute row - useful for ranges over a particular attribute
+   *
+   * @param attributeName
+   * @return
+   */
+  def getAttributeIndexRowPrefix(attributeName: String): String = attributeName ++ NULLBYTE
 
   /**
    * Lexicographically encode the value
@@ -83,10 +90,11 @@ object AttributeIndexEntry extends Logging {
    * @param valueOption
    * @return
    */
-  def encode(valueOption: Option[Any]): String = {
-    val value = valueOption.getOrElse(nullString)
-    Try(typeRegistry.encode(value)).getOrElse(value.toString)
-  }
+  def encode(valueOption: Option[Any]): String =
+    valueOption match {
+      case Some(value) => Try(typeRegistry.encode(value)).getOrElse(value.toString)
+      case None => ""
+    }
 
   private val dateFormat = ISODateTimeFormat.dateTime();
   private val simpleEncoders = SimpleTypeEncoders.SIMPLE_TYPES.getAllEncoders.asScala
