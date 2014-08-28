@@ -19,14 +19,13 @@ package org.locationtech.geomesa.core.index
 import org.geotools.data.Query
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter._
-import org.opengis.filter.expression.Expression
-import org.opengis.filter.expression.PropertyName
-import org.opengis.filter.temporal.TEquals
+import org.opengis.filter.{Id, And, PropertyIsLike}
 
 import scala.collection.JavaConversions._
 
 object QueryStrategyDecider {
+
+  import AttributeIndexStrategy.getAttributeIndexStrategy
 
   def chooseStrategy(isCatalogTableFormat: Boolean,
                      sft: SimpleFeatureType,
@@ -43,7 +42,7 @@ object QueryStrategyDecider {
       new STIdxStrategy
     } else {
       // check if we can use the attribute index first
-      val attributeStrategy = getAttributeIndexStrategy(filter, sft)
+      val attributeStrategy = AttributeIndexStrategy.getAttributeIndexStrategy(filter, sft)
       attributeStrategy.getOrElse {
         filter match {
           case idFilter: Id => new RecordIdxStrategy
@@ -84,29 +83,4 @@ object QueryStrategyDecider {
       filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == filter.getLiteral.length - MULTICHAR_WILDCARD.length) ||
       filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == -1
 
-
-  import org.locationtech.geomesa.utils.geotools.Conversions._
-
-  def getAttributeIndexStrategy(f: Filter, sft: SimpleFeatureType): Option[Strategy] =
-    f match {
-      case filter: PropertyIsEqualTo =>
-        checkEqualsExpression(sft, filter.getExpression1, filter.getExpression2)
-      case filter: TEquals =>
-        checkEqualsExpression(sft, filter.getExpression1, filter.getExpression2)
-      case filter: PropertyIsLike =>
-        val prop = filter.getExpression.asInstanceOf[PropertyName].getPropertyName
-        val indexed = sft.getDescriptor(prop).isIndexed
-        if (indexed) Some(new AttributeIdxLikeStrategy) else None
-      case _ => None
-    }
-
-  private def checkEqualsExpression(sft: SimpleFeatureType, one: Expression, two: Expression): Option[Strategy] = {
-    val prop =
-      (one, two) match {
-        case (p: PropertyName, _) => Some(p.getPropertyName)
-        case (_, p: PropertyName) => Some(p.getPropertyName)
-        case (_, _)               => None
-      }
-    prop.filter(p => sft.getDescriptor(p).isIndexed).map(_ => new AttributeIdxEqualsStrategy)
-  }
 }
