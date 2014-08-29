@@ -53,8 +53,9 @@ case class RankingValues(tubeCount: Int, boxCount: Int, boxCellsCovered: Int, tu
                          tubeCellsStddev: Double, motionEvidence: EvidenceOfMotion, gridDivisions: Int,
                          nTubeCells: Int) {
   /**
-   * This is idf = Inverse document frequency, like is used for ranking documents from keywords. In this case, documents
-   * = grid cells and terms = the number of grid cells covered by the entity
+   * This is idf = Inverse document frequency, like is used for ranking documents from keywords.
+   * In this case, documents correspond to grid cells
+   * and terms correspond to the number of grid cells covered by the entity
    *@return log(total number of grid cells / (# of grid cells covered))
    */
   def idf =
@@ -156,9 +157,9 @@ object RankingDefaults {
 
 /**
  * Pairs a route with all the simple features along it, and surrounding it
- * @param route
- * @param boxFeatures surrounding features
- * @param tubeFeatures features along route
+ * @param route Target route
+ * @param boxFeatures Surrounding features in a containing bounding box
+ * @param tubeFeatures Features along route
  */
 class RouteAndSurroundingFeatures(val route: Route,
                                   val boxFeatures: SimpleFeatureWithDateTimeAndKeyCollection,
@@ -194,10 +195,10 @@ class RouteAndSurroundingFeatures(val route: Route,
    * This computes evidence of motion for a single ID / entity. First, it groups all observations into potential
    * tracklets based on time and location. Then it calculates motion scores for each tracklet. Then it aggregates all
    * the motion scores into statistics including the total, max, and standard deviation
-   * @param tubeFeatures
-   * @param boxFeatures
-   * @param routeDivisions
-   * @return
+   * @param tubeFeatures Collection of space-time pings in tube
+   * @param boxFeatures Collection of space-time pings in bounding box
+   * @param routeDivisions The number of divisions to break the route into for deviation calculations
+   * @return Aggregated EvidenceOfMotion scores for the pings
    */
   def evidenceOfMotion(tubeFeatures: Iterable[SimpleFeatureWithDateTimeAndKey],
                        boxFeatures: Iterable[SimpleFeatureWithDateTimeAndKey],
@@ -227,11 +228,13 @@ class RouteAndSurroundingFeatures(val route: Route,
   /**
    * Input is an iterable over a list of cells. Each item in the sequence is a map from ID / entity to the count of the
    * ID in that cell. This computes the total for each ID / entity across the iterable.
-   * @param m
+   * @param m Collection of maps from entity id to count
    * @return Map[String,Int] where String is the ID and Int is the total for the ID across the Iterable
    */
-  private def aggregateCellCounts(m: Iterable[Map[String,Int]]) = m.foldLeft(Map[String,Int]())((all, one) => all ++
-    one.map { case(k, v) => k -> (v + all.getOrElse(k, 0))})
+  private def aggregateCellCounts(m: Iterable[Map[String,Int]]) =
+    m.foldLeft(Map[String,Int]())(
+      (all, one) => all ++ one.map { case(k, v) => k -> (v + all.getOrElse(k, 0))}
+    )
 
   /**
    * Ranks all the entities, grouped by identifier, found in the feature set
