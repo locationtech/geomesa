@@ -133,23 +133,27 @@ class Route(val route: LineString) {
    *         tracklet to the end
    */
   def cumlativeDistanceToCoordSequence(coords: CoordSequence, divisions: Int): Double = {
-    val ls = Route.geomFactory.createLineString(
-      Array(coords.coords.head.first.c) ++ coords.coords.map(cdt => cdt.last.c)
-    )
-    val lsCursor = new LineStringCursor(ls)
-    val lsLength = ls.getLength
-    val lsDelta = lsLength / divisions
-    (0.0 to lsLength by lsDelta).map {
-      case ordinate =>
-        lsCursor.moveTo(ordinate)
-        val cp = lsCursor.getCurrentPosition
-        val rp = indexed.extractPoint(indexed.project(cp))
-        JTS.orthodromicDistance(cp, rp, DefaultGeographicCRS.WGS84)
-    }.sum
+    if (coords.coords.isEmpty) Route.DISTANCE_TO_EMPTY_SEQUENCE
+    else {
+      val ls = Route.geomFactory.createLineString(
+        Array(coords.coords.head.first.c) ++ coords.coords.map(cdt => cdt.last.c)
+      )
+      val lsCursor = new LineStringCursor(ls)
+      val lsLength = ls.getLength
+      val lsDelta = lsLength / divisions
+      (0.0 to lsLength by lsDelta).map {
+        case ordinate =>
+          lsCursor.moveTo(ordinate)
+          val cp = lsCursor.getCurrentPosition
+          val rp = indexed.extractPoint(indexed.project(cp))
+          JTS.orthodromicDistance(cp, rp, DefaultGeographicCRS.WGS84)
+      }.sum
+    }
   }
 
 }
 
 object Route {
   final lazy val geomFactory = new GeometryFactory(new PrecisionModel(), 4326)
+  final lazy val DISTANCE_TO_EMPTY_SEQUENCE = Double.MaxValue
 }

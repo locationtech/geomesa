@@ -2,6 +2,7 @@ package org.locationtech.geomesa.core.process.rank
 
 import org.geotools.data.DataStoreFinder
 import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.filter.text.cql2.CQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
@@ -86,17 +87,64 @@ class RouteRankProcessTest extends Specification {
       dataFeatureCollection.add(sf)
   }
 
+  cvilleRouteCoords.zipWithIndex.foreach {
+    case ((x, y), i) =>
+      val sf = buildSF(dataSFT, "tfcville" + i) // all dates the same, instantaneous travel!
+      sf.setAttribute("key", "toofast")
+      sf.setDefaultGeometry(WKTUtils.read(s"POINT($x $y)"))
+      dataFeatureCollection.add(sf)
+  }
+
+  cvilleRouteCoords.reverse.zipWithIndex.foreach {
+    case ((x, y), i) =>
+      val minutes = 10 * i
+      val sf = buildSF(dataSFT, "revcville" + i, f"2011-01-01T00:$minutes%02d:00Z")
+      sf.setAttribute("key", "reversed")
+      sf.setDefaultGeometry(WKTUtils.read(s"POINT($x $y)"))
+      dataFeatureCollection.add(sf)
+  }
+
   val dataRes = dataFeatureSource.addFeatures(dataFeatureCollection)
 
   "RouteRankProcess" should {
 
+    val epsilon = 0.0005
+    def be_~(x: Double) = beCloseTo(x, epsilon)
+
     "appropriately rank features along a route" in {
       val routeFeature = fsRoute.getFeatures()
-      val dataFeatures = dataFeatureSource.getFeatures()
+      val dataFeatures = dataFeatureSource.getFeatures(CQL.toFilter("key = 'orig'"))
       val process = new RouteRankProcess
       val results = process.execute(routeFeature, dataFeatures, 1000.0, "key", 0, -1, "combined.score")
 
       results.results.size must_== 1
+      val result = results.results.head
+      result.key must_== "orig"
+      result.combined.score must be_~(0.046)
+    }
+
+    "gracefully handle tracks with no consistent motion" in {
+      val routeFeature = fsRoute.getFeatures()
+      val dataFeatures = dataFeatureSource.getFeatures(CQL.toFilter("key = 'toofast'"))
+      val process = new RouteRankProcess
+      val results = process.execute(routeFeature, dataFeatures, 1000.0, "key", 0, -1, "combined.score")
+
+      results.results.size must_== 1
+      val result = results.results.head
+      result.key must_== "toofast"
+      result.combined.score must be_~(0.0)
+    }
+
+    "rank reverse route equal to original route" in {
+      val routeFeature = fsRoute.getFeatures()
+      val dataFeatures = dataFeatureSource.getFeatures(CQL.toFilter("key = 'orig' or key = 'reversed'"))
+      val process = new RouteRankProcess
+      val results = process.execute(routeFeature, dataFeatures, 1000.0, "key", 0, -1, "combined.score")
+
+      for (rvb <- results.results)
+        rvb.combined.score must be_~(0.046)
+      
+      results.results.size must_== 2
     }
 
   }
