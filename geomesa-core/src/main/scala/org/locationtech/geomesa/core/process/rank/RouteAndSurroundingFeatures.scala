@@ -147,7 +147,7 @@ object RankingValues {
 
 object RankingDefaults {
   final val defaultEvidenceOfMotion = EvidenceOfMotion.NONE
-  final val defaultRouteDivisions = 100.0
+  final val defaultRouteDivisions = 100
   final val defaultGridDivisions = 100
   final val maxTimeBetweenPings = 60 * 60 // one hour in seconds
   final val defaultSkipResultsStr = "0"

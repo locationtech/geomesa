@@ -117,7 +117,7 @@ class Route(val route: LineString) {
    * @return MotionScore
    */
   def motionScores(coordSeq: CoordSequence,
-                   routeDivisions: Double = RankingDefaults.defaultRouteDivisions): MotionScore = {
+                   routeDivisions: Int = RankingDefaults.defaultRouteDivisions): MotionScore = {
     val coordDistance = coordSeq.distance
     val coordsToRouteDistance = cumlativeDistanceToCoordSequence(coordSeq, routeDivisions)
     val speedStats = coordSeq.speedStats
@@ -132,7 +132,7 @@ class Route(val route: LineString) {
    * @return the total cumulative distance of the tracklet from the route at each coordDelta from the beginning of the
    *         tracklet to the end
    */
-  def cumlativeDistanceToCoordSequence(coords: CoordSequence, divisions: Double): Double = {
+  def cumlativeDistanceToCoordSequence(coords: CoordSequence, divisions: Int): Double = {
     val ls = Route.geomFactory.createLineString(
       Array(coords.coords.head.first.c) ++ coords.coords.map(cdt => cdt.last.c)
     )

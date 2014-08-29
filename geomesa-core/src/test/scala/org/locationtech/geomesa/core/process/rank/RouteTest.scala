@@ -64,7 +64,7 @@ class RouteTest extends Specification {
       val cvilleCS = CoordSequence.fromCoordWithDateTimeList(
         cvilleLS.getCoordinates.map(c => new CoordWithDateTime(new Coordinate(c.x, c.y), constDT)).toList
       )
-      cvilleRoute.cumlativeDistanceToCoordSequence(cvilleCS, 100.0) must be_~(0.0)
+      cvilleRoute.cumlativeDistanceToCoordSequence(cvilleCS, 100) must be_~(0.0)
     }
 
     "have positive distance to minor variation" in {
@@ -73,7 +73,7 @@ class RouteTest extends Specification {
       val cvilleCSmod = CoordSequence.fromCoordWithDateTimeList(
         cvilleLSmod.getCoordinates.map(c => new CoordWithDateTime(new Coordinate(c.x, c.y), constDT)).toList
       )
-      cvilleRoute.cumlativeDistanceToCoordSequence(cvilleCSmod, 100.0) must be_~(2901.28187)
+      cvilleRoute.cumlativeDistanceToCoordSequence(cvilleCSmod, 100) must be_~(2901.28187)
     }
   }
 }
