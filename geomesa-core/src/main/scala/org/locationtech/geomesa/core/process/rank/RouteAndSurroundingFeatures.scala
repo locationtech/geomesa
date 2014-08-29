@@ -247,10 +247,10 @@ class RouteAndSurroundingFeatures(val route: Route,
     val geomFactory = new GeometryBuilder()
 
     // Find the list of IDs in the data
-    val tubeHexIds = tubeFeatures.countKeys
-    val boxHexIds = boxFeatures.countKeys
-    val combined = (tubeHexIds.keySet ++ boxHexIds.keySet).map(k =>
-      (k, (tubeHexIds.getOrElse(k, 0), boxHexIds.getOrElse(k, 0)))).toMap
+    val tubeKeys = tubeFeatures.countKeys
+    val boxKeys = boxFeatures.countKeys
+    val combined = (tubeKeys.keySet ++ boxKeys.keySet).map(k =>
+      (k, (tubeKeys.getOrElse(k, 0), boxKeys.getOrElse(k, 0)))).toMap
 
     // Break the bounding box into a grid
     val grid = new Grid(boxEnvelope, 100)
