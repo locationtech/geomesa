@@ -179,13 +179,12 @@ class QueryStrategyDeciderTest extends Specification {
     }
   }
 
-  // TODO: The next two tests should be handled be handled by GEOMESA-313
   "Id and Spatio-temporal filters" should {
     "get the records strategy" in {
       val fs = "IN ('val56') AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
 
       getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
-    }.pendingUntilFixed
+    }
   }
 
   "Id and Attribute filters" should {
@@ -193,8 +192,19 @@ class QueryStrategyDeciderTest extends Specification {
       val fs = "IN ('val56') AND attr2 = val56"
 
       getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
-    }.pendingUntilFixed
+    }
   }
+
+  "Really complicated Id AND * filters" should {
+    "get the records strategy" in {
+      val fsFragment1="INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
+      val fsFragment2="AND IN ('val56','val55') AND attr2 = val56 AND IN('val59','val54') AND attr2 = val60"
+      val fs = s"$fsFragment1 $fsFragment2"
+
+      getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
+    }
+  }
+
 
   "Anded Attribute filters" should {
     "get the STIdx strategy with stIdxStrategyPredicates" in {

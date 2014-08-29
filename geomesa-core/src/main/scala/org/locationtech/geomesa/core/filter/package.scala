@@ -114,6 +114,12 @@ package object filter {
   def temporalFilters(f: Filter, dtgAttr: Option[String]): Boolean =
     filterIsApplicableTemporal(f, dtgAttr) || filterIsBetween(f, dtgAttr)
 
+  def filterIsId(f: Filter): Boolean =
+    f match {
+      case _: Id => true
+      case _     => false
+    }
+
   def filterIsApplicableTemporal(f: Filter, dtgAttr: Option[String]) =
     f match {
       // TEQUALS can't convert to ECQL, so don't consider it here
@@ -127,4 +133,30 @@ package object filter {
       case _ => false
     }
   }
+
+  def decomposeBinary(f: Filter): Seq[Filter] = {
+    f match {
+      case b: BinaryLogicOperator => b.getChildren.toSeq.flatMap(decomposeBinary)
+      case f: Filter => Seq(f)
+    }
+  }
+
+  def decomposeAnd(f: Filter): Seq[Filter] = {
+    f match {
+      case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
+      case f: Filter => Seq(f)
+    }
+  }
+
+  def recomposeAnd(s: Seq[Filter]): Filter = if (s.tail.isEmpty) s.head else ff.and(s)
+
+  def decomposeOr(f: Filter): Seq[Filter] = {
+    f match {
+      case b: Or => b.getChildren.toSeq.flatMap(decomposeOr)
+      case f: Filter => Seq(f)
+    }
+  }
+
+
+
 }
