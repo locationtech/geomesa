@@ -143,7 +143,6 @@ class RouteRankProcessTest extends Specification {
 
       for (rvb <- results.results)
         rvb.combined.score must be_~(0.046)
-      
       results.results.size must_== 2
     }
 
