@@ -104,6 +104,22 @@ class RouteRankProcessTest extends Specification {
       dataFeatureCollection.add(sf)
   }
 
+  // create an entity that moves about a little in the center of the square defined by the route
+  val linearStartX = -78.45
+  val linearStartY = 38.1
+  val linearDeltaX = 0.001
+  val linearDeltaY = -0.001
+  for (idx <- 0 to 5) {
+    val minutes = 5 * idx
+    val sf = buildSF(dataSFT, "linearcville" + idx, f"2011-01-01T00:$minutes%02d:00Z")
+    sf.setAttribute("key", "linear")
+    val x = linearStartX + idx * linearDeltaX
+    val y = linearStartY + idx * linearDeltaY
+    sf.setDefaultGeometry(WKTUtils.read(s"POINT($x $y)"))
+    dataFeatureCollection.add(sf)
+  }
+
+
   val dataRes = dataFeatureSource.addFeatures(dataFeatureCollection)
 
   "RouteRankProcess" should {
@@ -144,6 +160,21 @@ class RouteRankProcessTest extends Specification {
       for (rvb <- results.results)
         rvb.combined.score must be_~(0.046)
       results.results.size must_== 2
+    }
+
+    "rank route higher than extraneous entity" in {
+      val routeFeature = fsRoute.getFeatures()
+      val dataFeatures = dataFeatureSource.getFeatures(CQL.toFilter("key = 'orig' or key = 'linear'"))
+      val process = new RouteRankProcess
+      val results = process.execute(routeFeature, dataFeatures, 1000.0, "key", 0, -1, "combined.score")
+
+      results.results.size must_== 2
+      val winner = results.results.head
+      val loser = results.results.tail.head
+      winner.key must_== "orig"
+      loser.key must_== "linear"
+      winner.combined.score must be_~(0.046)
+      loser.combined.score must be_~(0.0)
     }
 
   }
