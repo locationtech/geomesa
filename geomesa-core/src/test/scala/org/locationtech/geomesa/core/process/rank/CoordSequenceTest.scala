@@ -11,6 +11,9 @@ class CoordSequenceTest extends Specification {
 
   "CoordWithDateTimePair" should {
 
+    val epsilon = 0.0000005
+    def be_~(d: Double) = beCloseTo(d, epsilon)
+
     val first = new CoordWithDateTime(new Coordinate(1.0, 40.0), new DateTime(2014, 8, 28, 6, 2, 30))
     val second = new CoordWithDateTime(new Coordinate(2.0, 41.0), new DateTime(2014, 8, 28, 6, 3, 45))
     val commonPair = CoordWithDateTimePair(first, second)
@@ -20,14 +23,14 @@ class CoordSequenceTest extends Specification {
     }
 
     "return distance orthodromically" in {
-      commonPair.distance must beCloseTo(139698.755392, 0.0000005)
+      commonPair.distance must be_~(139698.755392)
     }
 
     "calculate heading correctly" in {
-      commonPair.heading must beCloseTo(36.925885, 0.0000005)
+      commonPair.heading must be_~(36.925885)
 
       val revPair = CoordWithDateTimePair(second, first)
-      revPair.heading must beCloseTo(-142.424633, 0.0000005)
+      revPair.heading must be_~(-142.424633)
     }
 
   }

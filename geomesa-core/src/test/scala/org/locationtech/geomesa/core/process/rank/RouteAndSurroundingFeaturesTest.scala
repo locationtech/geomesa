@@ -13,6 +13,7 @@ class RouteAndSurroundingFeaturesTest extends Specification {
   "RankingValues" should {
 
     val epsilon = 0.0005
+    def be_~(d: Double) = beCloseTo(d, epsilon)
 
     // set up a 10x10 grid, with a tube hitting the main diagonal and first super-diagonal
     // there are 10+9=19 cells along the route
@@ -26,15 +27,15 @@ class RouteAndSurroundingFeaturesTest extends Specification {
           EvidenceOfMotion(100.0, 50.0, 1.0),
           gridDivisions, nTubeCells)
 
-      rv.idf must beCloseTo(1.661, epsilon) // log(100/19)
-      rv.tfIdf must beCloseTo(31.554, epsilon) // 19*log(100/19)
-      rv.avgPerTubeCell must beCloseTo(1.0, epsilon) // hits every cell exactly once
+      rv.idf must be_~(1.661) // log(100/19)
+      rv.tfIdf must be_~(31.554) // 19*log(100/19)
+      rv.avgPerTubeCell must be_~(1.0) // hits every cell exactly once
       rv.scaledTubeCellStddev must beCloseTo(tubeCellsStddev, epsilon) // specified stddev was 0.0
-      rv.tubeCellDeviationScore must beCloseTo(1.0, epsilon) // exp(-1 * previous scaledTubeCellStddev)
-      rv.scaledTfIdf must beCloseTo(1.661, epsilon) // every tube cell once, so the same as idf
-      rv.percentageOfTubeCellsCovered must beCloseTo(1.0, epsilon) // hits all tube cells
-      rv.combinedScoreNoMotion must beCloseTo(1.184, epsilon)
-      rv.combinedScore must beCloseTo(6.489, epsilon)
+      rv.tubeCellDeviationScore must be_~(1.0) // exp(-1 * previous scaledTubeCellStddev)
+      rv.scaledTfIdf must be_~(1.661) // every tube cell once, so the same as idf
+      rv.percentageOfTubeCellsCovered must be_~(1.0) // hits all tube cells
+      rv.combinedScoreNoMotion must be_~(1.184)
+      rv.combinedScore must be_~(6.489)
     }
 
     "calculate derived scores for area-but-not-tube-specifically case correctly" in {
@@ -52,15 +53,15 @@ class RouteAndSurroundingFeaturesTest extends Specification {
           EvidenceOfMotion(100.0, 50.0, 1.0),
           gridDivisions, nTubeCells)
 
-      rv.idf must beCloseTo(1.609, epsilon) // log(100/20)
-      rv.tfIdf must beCloseTo(8.047, epsilon) // 5*log(100/20)
-      rv.avgPerTubeCell must beCloseTo(0.263, epsilon) // 5 / 19
-      rv.scaledTubeCellStddev must beCloseTo(2.280, epsilon) // stddev / 0.263
-      rv.tubeCellDeviationScore must beCloseTo(0.102, epsilon) // exp(-1 * previous scaledTubeCellStddev)
-      rv.scaledTfIdf must beCloseTo(0.424, epsilon) // 5/19 * idf
-      rv.percentageOfTubeCellsCovered must beCloseTo(0.211, epsilon) // 4 / 19
-      rv.combinedScoreNoMotion must beCloseTo(0.209, epsilon) // less than the once-per-tubecell test, which is good
-      rv.combinedScore must beCloseTo(3.640, epsilon) // again, comfortably less than the once-per-tubecell test
+      rv.idf must be_~(1.609) // log(100/20)
+      rv.tfIdf must be_~(8.047) // 5*log(100/20)
+      rv.avgPerTubeCell must be_~(0.263) // 5 / 19
+      rv.scaledTubeCellStddev must be_~(2.280) // stddev / 0.263
+      rv.tubeCellDeviationScore must be_~(0.102) // exp(-1 * previous scaledTubeCellStddev)
+      rv.scaledTfIdf must be_~(0.424) // 5/19 * idf
+      rv.percentageOfTubeCellsCovered must be_~(0.211) // 4 / 19
+      rv.combinedScoreNoMotion must be_~(0.209) // less than the once-per-tubecell test, which is good
+      rv.combinedScore must be_~(3.640) // again, comfortably less than the once-per-tubecell test
     }
 
     "merge sensibly" in {
@@ -72,10 +73,10 @@ class RouteAndSurroundingFeaturesTest extends Specification {
       rvMerged.boxCount must_== 60
       rvMerged.boxCellsCovered must_== 38
       rvMerged.tubeCellsCovered must_== 6
-      rvMerged.tubeCellsStddev must beCloseTo(1.0, epsilon) // accidental pythagorean triple!
-      rvMerged.motionEvidence.total must beCloseTo(150.0, epsilon)
-      rvMerged.motionEvidence.max must beCloseTo(50.0, epsilon)
-      rvMerged.motionEvidence.stddev must beCloseTo(2.236, epsilon)
+      rvMerged.tubeCellsStddev must be_~(1.0) // accidental pythagorean triple!
+      rvMerged.motionEvidence.total must be_~(150.0)
+      rvMerged.motionEvidence.max must be_~(50.0)
+      rvMerged.motionEvidence.stddev must be_~(2.236)
       rvMerged.gridDivisions must_== 10
       rvMerged.nTubeCells must_== 19
     }
