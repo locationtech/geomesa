@@ -30,6 +30,7 @@ object QueryStrategyDecider {
 
   import org.locationtech.geomesa.core.index.AttributeIndexStrategy.getAttributeIndexStrategy
   import org.locationtech.geomesa.core.index.STIdxStrategy.getSTIdxStrategy
+  import org.locationtech.geomesa.core.index.RecordIdxStrategy.getRecordIdxStrategy
 
   def chooseStrategy(isCatalogTableFormat: Boolean,
                      sft: SimpleFeatureType,
@@ -65,13 +66,16 @@ object QueryStrategyDecider {
       else { new STIdxStrategy }
     }
 
-    val strats = (children.find(c => getAttributeIndexStrategy(c, sft).isDefined), children.find(c => getSTIdxStrategy(c, sft).isDefined))
+    val strats = (children.find(c => getAttributeIndexStrategy(c, sft).isDefined),
+                  children.find(c => getSTIdxStrategy(c, sft).isDefined),
+                  children.find(c => getRecordIdxStrategy(c, sft).isDefined))
 
     strats match {
-      case (Some(attrFilter), Some(stFilter)) => determineStrategy(attrFilter, stFilter)
-      case (Some(attrFilter), None)           => getAttributeIndexStrategy(attrFilter, sft).get
-      case (None, Some(stFilter))             => new STIdxStrategy
-      case (None, None)                       => new STIdxStrategy
+      case (_,_, Some(idFilter))                    => new RecordIdxStrategy
+      case (Some(attrFilter), Some(stFilter), None) => determineStrategy(attrFilter, stFilter)
+      case (Some(attrFilter), None, None)           => getAttributeIndexStrategy(attrFilter, sft).get
+      case (None, Some(stFilter), None)             => new STIdxStrategy
+      case (None, None, None)                       => new STIdxStrategy
     }
   }
 

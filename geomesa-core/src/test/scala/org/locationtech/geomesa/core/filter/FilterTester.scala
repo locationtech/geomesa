@@ -70,6 +70,12 @@ class AttributeGeoPredicateTest extends FilterTester {
 }
 
 @RunWith(classOf[JUnitRunner])
+class IdPredicateTest extends FilterTester {
+  val filters = idPredicates
+  runTest
+}
+
+@RunWith(classOf[JUnitRunner])
 class IdQueryTest extends Specification {
 
   val ff = CommonFactoryFinder.getFilterFactory2
@@ -182,7 +188,7 @@ trait FilterTester extends Specification with Logging {
       "return the same number of results from filtering and querying" in {
         val filterCount = mediumDataFeatures.count(filter.evaluate)
         val queryCount = fs.getFeatures(filter).size
-        
+
         logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
           s"filter hits: $filterCount query hits: $queryCount")
         filterCount mustEqual queryCount
