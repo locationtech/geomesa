@@ -140,11 +140,21 @@ class Route(val route: LineString) {
       .sliding(2, 1)
       .foldLeft(RouteDistances(0.0, 0.0)) {
         case (sums, (scc :: ecc :: tail)) => // sliding should return things of size 2, tail is empty
-          val coordDist = math.sqrt((ecc.x - scc.x) * (ecc.x - scc.x) + (ecc.y - scc.y) * (ecc.y - scc.y))
+          val xDiff = coordXDiff(ecc.x, scc.x)
+          val yDiff = coordYDiff(ecc.y, scc.y)
+          val coordDist = math.sqrt(xDiff * xDiff + yDiff * yDiff)
           val orthoDist = JTS.orthodromicDistance(scc, ecc, DefaultGeographicCRS.WGS84)
           sums.increment(coordDist, orthoDist)
       }
   }
+
+  private def coordXDiff(x1: Double, x2: Double) = {
+    val d = Math.max(x1, x2) - Math.min(x1, x2)
+    if (d < 180.0) d
+    else 360.0 - d
+  }
+
+  private def coordYDiff(y1: Double, y2: Double) = y1 - y2
 
   /**
    * Calculate all the motion scores associated with a tracklet along the route
