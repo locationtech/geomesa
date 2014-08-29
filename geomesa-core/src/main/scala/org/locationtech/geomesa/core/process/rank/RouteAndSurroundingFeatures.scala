@@ -32,8 +32,8 @@ case class EvidenceOfMotion(@BeanProperty total: Double, @BeanProperty max: Doub
 
 /**
  * This object contains values used to rank an entity along a route or track
- * @param tubeCount the number of occurences of the entity along the route
- * @param boxCount the number of occurences of the entity within a square box that bounds the route (for context)
+ * @param tubeCount the number of occurrences of the entity along the route
+ * @param boxCount the number of occurrences of the entity within a square box that bounds the route (for context)
  * @param boxCellsCovered once the square bounding box of the route is gridded to discrete cells, how many cells are
  *                        covered by the entity?
  * @param tubeCellsCovered how many of the cells both intersect the route and are covered by the entity?
@@ -66,7 +66,7 @@ case class RankingValues(tubeCount: Int, boxCount: Int, boxCellsCovered: Int, tu
 
   /**
    * The standard deviation of the count of the entity in each grid cell along the route, normalized by dividing it by
-   * the average number of occurences in each grid cell
+   * the average number of occurrences in each grid cell
    * @return
    */
   def scaledTubeCellStddev = if (avgPerTubeCell > 0.0) tubeCellsStddev / avgPerTubeCell else 0.0
