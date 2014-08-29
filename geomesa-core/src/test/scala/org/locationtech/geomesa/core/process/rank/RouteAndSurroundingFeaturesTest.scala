@@ -62,5 +62,22 @@ class RouteAndSurroundingFeaturesTest extends Specification {
       rv.combinedScoreNoMotion must beCloseTo(0.209, epsilon) // less than the once-per-tubecell test, which is good
       rv.combinedScore must beCloseTo(3.640, epsilon) // again, comfortably less than the once-per-tubecell test
     }
+
+    "merge sensibly" in {
+      val rv1 = RankingValues(5, 29, 20, 4, 0.6, EvidenceOfMotion(100.0, 50.0, 1.0), 10, 19)
+      val rv2 = RankingValues(3, 31, 18, 2, 0.8, EvidenceOfMotion( 50.0, 30.0, 2.0), 10, 19)
+      val rvMerged = rv1.merge(rv2)
+
+      rvMerged.tubeCount must_== 8
+      rvMerged.boxCount must_== 60
+      rvMerged.boxCellsCovered must_== 38
+      rvMerged.tubeCellsCovered must_== 6
+      rvMerged.tubeCellsStddev must beCloseTo(1.0, epsilon) // accidental pythagorean triple!
+      rvMerged.motionEvidence.total must beCloseTo(150.0, epsilon)
+      rvMerged.motionEvidence.max must beCloseTo(50.0, epsilon)
+      rvMerged.motionEvidence.stddev must beCloseTo(2.236, epsilon)
+      rvMerged.gridDivisions must_== 10
+      rvMerged.nTubeCells must_== 19
+    }
   }
 }

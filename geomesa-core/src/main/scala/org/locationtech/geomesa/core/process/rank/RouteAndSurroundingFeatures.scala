@@ -118,9 +118,9 @@ case class RankingValues(tubeCount: Int, boxCount: Int, boxCellsCovered: Int, tu
     else 0.0
 
   /**
-   * Merge one RankingValues object with another
-   * @param other
-   * @return
+   * Merge one RankingValues object with another.
+   * @param other A distinct RankingValues
+   * @return A combined RankingValues, generally representing the sum of this RankingValues with the other
    */
   def merge(other: RankingValues) =
     RankingValues(
