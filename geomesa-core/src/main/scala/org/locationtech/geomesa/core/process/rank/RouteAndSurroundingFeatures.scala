@@ -30,6 +30,10 @@ import scala.beans.BeanProperty
  */
 case class EvidenceOfMotion(@BeanProperty total: Double, @BeanProperty max: Double, @BeanProperty stddev: Double)
 
+object EvidenceOfMotion {
+  final val NONE: EvidenceOfMotion = EvidenceOfMotion(0.0, 0.0, 0.0)
+}
+
 /**
  * This object contains values used to rank an entity along a route or track
  * @param tubeCount the number of occurrences of the entity along the route
@@ -136,12 +140,12 @@ case class RankingValues(tubeCount: Int, boxCount: Int, boxCellsCovered: Int, tu
 }
 
 object RankingValues {
-  def emptyOne(gridDivisions: Int, nTubeCells: Int) = RankingValues(0, 0, 0, 0, 0,
-    EvidenceOfMotion(0, 0, 0), gridDivisions, nTubeCells)
+  def emptyOne(gridDivisions: Int, nTubeCells: Int) =
+    RankingValues(0, 0, 0, 0, 0, EvidenceOfMotion.NONE, gridDivisions, nTubeCells)
 }
 
 object RankingDefaults {
-  final val defaultEvidenceOfMotion = EvidenceOfMotion(0.0, 0.0, 0.0)
+  final val defaultEvidenceOfMotion = EvidenceOfMotion.NONE
   final val defaultRouteDivisions = 100.0
   final val defaultGridDivisions = 100
   final val maxTimeBetweenPings = 60 * 60 // one hour in seconds
