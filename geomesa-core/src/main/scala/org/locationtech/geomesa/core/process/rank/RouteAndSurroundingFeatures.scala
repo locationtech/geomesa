@@ -42,7 +42,7 @@ case class EvidenceOfMotion(@BeanProperty total: Double, @BeanProperty max: Doub
  *                        the route
  * @param motionEvidence See above. An aggregate score about whether potential tracklets extracted from the entity's
  *                       locations show evidence of motion along the route.
- * @param gridDivisions the number of grid cells along one dimension in the square bounding box that surrounds the route *
+ * @param gridDivisions the number of grid cells along one dimension in the square bounding box that surrounds the route
  * @param nTubeCells the number of grid cells that are intersected by the route
  */
 case class RankingValues(tubeCount: Int, boxCount: Int, boxCellsCovered: Int, tubeCellsCovered: Int,
