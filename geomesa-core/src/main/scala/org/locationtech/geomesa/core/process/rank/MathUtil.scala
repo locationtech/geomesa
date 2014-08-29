@@ -54,4 +54,15 @@ object MathUtil {
     if (clockwiseDifference <= 180.0) clockwiseDifference
     else 360.0 - clockwiseDifference
   }
+
+  /**
+   * Compute the geometric mean for a collection of doubles. The arguments are split into xf and x for convenience,
+   * forcing you to ask for the mean of at least one point. Note that no care is taken to handle negative numbers
+   * gracefully.
+   * @param xf The first double in the collection
+   * @param x The remaining doubles in the collection (possibly empty)
+   * @return The geometric mean, the n-th root of the product (where n is the number of instances)
+   */
+  def geometricMean(xf: Double, x: Double*): Double =
+    Math.pow(xf * x.product, 1.0 / (1.0 + x.size.toDouble))
 }

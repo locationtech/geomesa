@@ -105,17 +105,17 @@ case class RankingValues(tubeCount: Int, boxCount: Int, boxCellsCovered: Int, tu
   /**
    * The combined score, not including the motion score, which is the geometric mean of the normalized tfIdf, the
    * deviation score, and the percentage of tube cells covered.
-   * @return
+   * @return The geometric mean of the scaledTfIdf, pct tube cells covered, and tube cell deviation score
    */
-  def combinedScoreNoMotion = Math.pow(scaledTfIdf * percentageOfTubeCellsCovered * tubeCellDeviationScore, 1.0 / 3.0)
+  def combinedScoreNoMotion = MathUtil.geometricMean(scaledTfIdf, percentageOfTubeCellsCovered, tubeCellDeviationScore)
 
   /**
    * Aggregate the combined score without motion with the motion evidence score.
-   * @return (combinedScoreNoMotion * log(total motion evidence + 1.0) * (maximum motion evidence))^^(1/3)
+   * @return Geometric mean(combinedScoreNoMotion, log(total motion evidence + 1.0), (maximum motion evidence))
    */
   def combinedScore =
     if (motionEvidence.total > 0.0)
-      Math.pow(combinedScoreNoMotion * Math.log(motionEvidence.total + 1.0) * motionEvidence.max, 1.0 / 3.0)
+      MathUtil.geometricMean(combinedScoreNoMotion, Math.log(motionEvidence.total + 1.0), motionEvidence.max)
     else 0.0
 
   /**

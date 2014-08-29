@@ -49,22 +49,27 @@ case class MotionScore(numberOfPings: Int,
    * total route distance
    * @return normalized distance from route
    */
-  def normalizedDistanceFromRoute = if (cumulativePathDistance == 0.0) 0.0 else
-    cumulativeDistanceFromRoute / cumulativePathDistance
+  def normalizedDistanceFromRoute =
+    if (cumulativePathDistance == 0.0) 0.0
+    else cumulativeDistanceFromRoute / cumulativePathDistance
 
   /**
    * Returns the ratio of the distance along the tracklet to the distance along the query route
    * @return a ration, where 1 indicates a close match and lower or higher values a poorer match
    */
-  def lengthRatio = if (queryRouteDistance == 0.0) 0.0 else cumulativePathDistance / queryRouteDistance
+  def lengthRatio =
+    if (queryRouteDistance == 0.0) 0.0
+    else cumulativePathDistance / queryRouteDistance
 
   /**
    * Computes a score indicating whether the variation of the heading along the tracklet closely matches the variation
    * along the route
    * @return a score of zero indicates a close match. Higher scores indicate a bigger difference.
    */
-  def headingDeviationRelativeToRoute = if (queryRouteStddevOfHeading > 0.0)
-    Math.abs(stddevOfHeading - queryRouteStddevOfHeading) / queryRouteStddevOfHeading else 1.0
+  def headingDeviationRelativeToRoute =
+    if (queryRouteStddevOfHeading > 0.0)
+      Math.abs(stddevOfHeading - queryRouteStddevOfHeading) / queryRouteStddevOfHeading
+    else 1.0
 
   /**
    * Converts the normalized distance from route to a score where a low distance scores near 1.0 and a high distance
@@ -78,14 +83,18 @@ case class MotionScore(numberOfPings: Int,
    * motion along the route) and 0.0 indicates speed variability that might be inconsistent with travel.
    * @return a score between 0.0 and 1.0, with 1.0 indicating better evidence of motion along the route
    */
-  def constantSpeedScore = if (speedStats.avg > 0.0) Math.exp(-1.0 * speedStats.stddev / speedStats.avg) else 0.0
+  def constantSpeedScore =
+    if (speedStats.avg > 0.0) Math.exp(-1.0 * speedStats.stddev / speedStats.avg)
+    else 0.0
 
   /**
    * Computes a score between 0.0 and 1.0 indicating whether the length of the tracklet matches the length of the route.
    * A score near 1.0 indicates a high match and better evidence of motion along the route.
    * @return a score between 0.0 and 1.0
    */
-  def expectedLengthScore = if (lengthRatio < 1.0) lengthRatio else 1.0 / lengthRatio
+  def expectedLengthScore =
+    if (lengthRatio < 1.0) lengthRatio
+    else 1.0 / lengthRatio
 
   /**
    * Computes a score between 0.0 and 1.0 indicating whether the variation in the tracklet's heading closely matches the
@@ -108,8 +117,10 @@ case class MotionScore(numberOfPings: Int,
    * @return a score in which higher values indicate more evidence of motion than lower scores. The minimum value is
    *         zero.
    */
-  def combined = Math.pow(Math.log(numberOfPings) * distanceFromRouteScore * constantSpeedScore *
-    expectedLengthScore * headingDeviationScore * reasonableSpeedScore, 1.0 / 6.0)
+  def combined =
+    MathUtil.geometricMean(
+      Math.log(numberOfPings), distanceFromRouteScore, constantSpeedScore,
+      expectedLengthScore, headingDeviationScore, reasonableSpeedScore)
 }
 
 class Route(val route: LineString) {
