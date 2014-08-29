@@ -29,20 +29,6 @@ object GeometryUtils {
   val geoCalc = new GeodeticCalculator(DefaultGeographicCRS.WGS84)
   val geoFactory = JTSFactoryFinder.getGeometryFactory
 
-  /**
-   * Returns the buffered bounding box of a geometry
-   * Buffering is done in degrees, based on the geometry and meters passed in.
-   *
-   * @param geometry the Geometry to buffer around
-   * @param distance the buffered distance in meters
-   * @return A Polygon which bounds the buffered point
-   */
-  def bufferGeometry(geometry: Geometry, distance: Double): Polygon = {
-    val env = geometry.getEnvelopeInternal
-    env.expandBy(distanceDegrees(geometry, distance))
-    JTS.toGeometry(env)
-  }
-
   /** Convert meters to dec degrees based on widest point in dec degrees of circles at bounding box corners */
   def distanceDegrees(geometry: Geometry, meters: Double): Double = {
     if (geometry.isInstanceOf[Point]) geometry.distance(farthestPoint(geometry.asInstanceOf[Point], meters))

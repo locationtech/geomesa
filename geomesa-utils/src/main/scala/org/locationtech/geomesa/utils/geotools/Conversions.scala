@@ -57,7 +57,7 @@ object Conversions {
 
   implicit class RichGeometry(val geom: Geometry) extends AnyVal {
     def bufferMeters(meters: Double): Geometry = geom.buffer(distanceDegrees(meters))
-    def distanceDegrees(meters: Double) = GeometryUtils.distanceDegrees(geom.getCentroid, meters)
+    def distanceDegrees(meters: Double) = GeometryUtils.distanceDegrees(geom, meters)
   }
 
   implicit class RichSimpleFeature(val sf: SimpleFeature) extends AnyVal {
