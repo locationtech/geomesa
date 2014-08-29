@@ -268,7 +268,7 @@ class RouteAndSurroundingFeatures(val route: Route,
 
     // The "binary map" is simply used to compute how many grid cells are covered rather than how many observations
     // occur in each grid cell
-    def toBinaryMap(maps: Iterable[Map[String,Int]]) = maps.map(m => m.mapValues(v => if (v > 1) 1 else v))
+    def toBinaryMap(maps: Iterable[Map[String,Int]]) = maps.map(m => m.mapValues(v => Math.min(v, 1)))
     val allMaps = gridCounts.values
     val binaryMaps = toBinaryMap(allMaps)
     val tubeMaps = tubeCounts.values
@@ -276,21 +276,21 @@ class RouteAndSurroundingFeatures(val route: Route,
     val cellsCovered = aggregateCellCounts(binaryMaps)
     val tubeCellsCovered = aggregateCellCounts(tubeBinaryMaps)
     // What is the standard deviation of the number of observations across the grid cells along the route?
-    val tubeCellStddev = tubeMaps.flatMap(_.toList).groupBy(_._1).map { case(k,lp) =>
-      val l1 = lp.map(_._2.toDouble).toList
-      val l = l1 ++ (if (l1.size < tubePoints.size)
-        Array.fill[Double](tubePoints.size - l1.size)(0.0).toList else List())
-      k -> MathUtil.stdDev(l, MathUtil.avg(l))
+    val tubeCellStddev = tubeMaps.flatMap(_.toList).groupBy(_._1).mapValues { gridObservations =>
+      val nonzeros = gridObservations.map(_._2.toDouble).toList
+      val zeros = Array.fill[Double](tubePoints.size - nonzeros.size)(0.0)
+      val allCounts = nonzeros ++ zeros
+      MathUtil.stdDev(allCounts)
     }
 
     val evidenceOfMotionVals = evidenceOfMotion
-    combined.keys.toList.sortBy(combined(_)._1).map { hexid =>
-      val (c1, c2) = combined(hexid)
-      val cellsCovered1 = cellsCovered(hexid)
-      val tubeCellsCovered1 = tubeCellsCovered.getOrElse(hexid, 0)
-      val tubeCellStddev1 = tubeCellStddev.getOrElse(hexid, 0.0)
-      val evidenceOfMotion1 = evidenceOfMotionVals.getOrElse(hexid, RankingDefaults.defaultEvidenceOfMotion)
-      (hexid, RankingValues(c1, c2, cellsCovered1, tubeCellsCovered1, tubeCellStddev1, evidenceOfMotion1,
+    combined.keys.toList.sortBy(combined(_)._1).map { key =>
+      val (c1, c2) = combined(key)
+      val cellsCovered1 = cellsCovered(key)
+      val tubeCellsCovered1 = tubeCellsCovered.getOrElse(key, 0)
+      val tubeCellStddev1 = tubeCellStddev.getOrElse(key, 0.0)
+      val evidenceOfMotion1 = evidenceOfMotionVals.getOrElse(key, RankingDefaults.defaultEvidenceOfMotion)
+      (key, RankingValues(c1, c2, cellsCovered1, tubeCellsCovered1, tubeCellStddev1, evidenceOfMotion1,
         gridDivisions, tubePoints.size))
     }.toMap
   }

@@ -84,8 +84,8 @@ trait FeatureGroupRanker extends Logging {
   /**
    * Given a route geometry, computes a square box around it. Used for ranking context. See previous comment within the
    * group and rank method
-   * @param bufferedRouteGeometry
-   * @return geometry
+   * @param bufferedRouteGeometry The input route
+   * @return Rectangular bounding box geometry containing the route with some additional padding
    */
   private def boundingSquare(bufferedRouteGeometry: Geometry) = {
     val env1 = bufferedRouteGeometry.getEnvelopeInternal

@@ -28,6 +28,11 @@ object MathUtil {
     case true => 0.0
   }
 
+  def stdDev(list: Iterable[Double]): Double = list.isEmpty match {
+    case false => stdDev(list, avg(list))
+    case true => 0.0
+  }
+
   // only legitimate when d1 and d2 come from independent data
   def combineStddev(d1: Double, d2: Double) = Math.sqrt(d1 * d1 + d2 * d2)
 
