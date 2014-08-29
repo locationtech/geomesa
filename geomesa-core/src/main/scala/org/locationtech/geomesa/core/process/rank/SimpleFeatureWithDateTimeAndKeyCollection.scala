@@ -46,6 +46,7 @@ class Grid(val box: Envelope, val nDivisions: Int) {
   val xAxis = new GridAxis(box.getMinX, box.getMaxX, nDivisions)
   val yAxis = new GridAxis(box.getMinY, box.getMaxY, nDivisions)
 
+  // returns iterable of ((xBoxNumber, yBoxNumber), (xBoxCentroid, yBoxCentroid))
   def getIndexPairsWithLatLons = {
     for {
       x <- xAxis.getRange.zipWithIndex
@@ -55,9 +56,10 @@ class Grid(val box: Envelope, val nDivisions: Int) {
 }
 
 class SimpleFeatureCollectionExt(val sfc: SimpleFeatureCollection) {
-  def countAttribute(attr: String) = sfc.features().map { f =>
-    f.getAttribute(attr).toString
-  }.foldLeft[Map[String,Int]](Map.empty)((m, c) => m + (c -> (m.getOrElse(c, 0) + 1)))
+  def countAttribute(attr: String) =
+    sfc.features()
+      .map { f => f.getAttribute(attr).toString }
+      .foldLeft(Map[String,Int]())((m, c) => m + (c -> (m.getOrElse(c, 0) + 1)))
 }
 
 object SimpleFeatureCollectionExt {
@@ -68,33 +70,38 @@ object SimpleFeatureCollectionExt {
 class SimpleFeatureWithDateTimeAndKeyCollection(override val sfc: SimpleFeatureCollection, val spec: SfSpec)
   extends SimpleFeatureCollectionExt(sfc) {
 
-  def groupByKey = sfc.features().toIterable.map(new SimpleFeatureWithDateTimeAndKey(_)).
-    groupBy { sf => sf.getAttribute(spec.keyAttr).toString }
+  def groupByKey =
+    sfc.features().toIterable
+      .map(new SimpleFeatureWithDateTimeAndKey(_))
+      .groupBy { sf => sf.getAttribute(spec.keyAttr).toString }
 
   def countKeys = countAttribute(spec.keyAttr)
 
-  def gridCounts(grid: Grid) = sfc.features().foldLeft(Map[(Int, Int),Map[String,Int]]()) { case(allGridCounts, f) =>
-    val coord = f.getDefaultGeometry.asInstanceOf[Geometry].getCentroid.getCoordinate
-    val xIndex = grid.xAxis.getIdx(coord.x)
-    val yIndex = grid.yAxis.getIdx(coord.y)
-    if (xIndex.isDefined && yIndex.isDefined) {
-      val key = f.getAttribute(spec.keyAttr).toString
-      val pos = (xIndex.get, yIndex.get)
-      val gc = allGridCounts.getOrElse(pos, Map[String,Int]())
-      val cnt = gc.getOrElse(key, 0) + 1
-      allGridCounts ++ Map(pos -> (gc ++ Map(key -> cnt)))
-    }
-    else {
-      allGridCounts
-    }
-  }
+  def gridCounts(grid: Grid) =
+    sfc.features()
+      .foldLeft(Map[(Int, Int),Map[String,Int]]()) {
+        case(allGridCounts, f) =>
+          val coord = f.getDefaultGeometry.asInstanceOf[Geometry].getCentroid.getCoordinate
+          val xIndex = grid.xAxis.getIdx(coord.x)
+          val yIndex = grid.yAxis.getIdx(coord.y)
+          if (xIndex.isDefined && yIndex.isDefined) {
+            val key = f.getAttribute(spec.keyAttr).toString
+            val pos = (xIndex.get, yIndex.get)
+            val oldGC = allGridCounts.getOrElse(pos, Map[String,Int]())
+            val newGC = oldGC.updated(key, 1 + oldGC.getOrElse(key, 0))
+            allGridCounts.updated(pos, newGC)
+          }
+          else {
+            allGridCounts
+          }
+      }
 }
 
 /**
  * Defines a key field and time field for a SimpleFeatureCollection
- * @param keyAttr
- * @param timeAttr
- * @param dateTimeFormat
+ * @param keyAttr Name of the key attribute in the SimpleFeature
+ * @param timeAttr Name of the time attribute in the SimpleFeatures
+ * @param dateTimeFormat Format of the datetime data in the timeAttr of the SimpleFeature
  */
 case class SfSpec(keyAttr: String, timeAttr: String, dateTimeFormat: DateTimeFormatter =
   DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))
