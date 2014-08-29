@@ -114,7 +114,7 @@ class CoordSequence(val coords: Seq[CoordWithDateTimePair]) {
 }
 
 object CoordSequence {
-  def fromCoordWithDateTimeList(motionCoords: Seq[CoordWithDateTime]): CoordSequence =
+  def fromCoordWithDateTimeList(motionCoords: List[CoordWithDateTime]): CoordSequence =
     new CoordSequence(
       motionCoords
         .sortBy(_.dt.getMillis)

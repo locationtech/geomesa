@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.core.process.rank
 
-import com.vividsolutions.jts.geom.{Coordinate, PrecisionModel, GeometryFactory, LineString}
+import com.vividsolutions.jts.geom.{PrecisionModel, GeometryFactory, LineString}
 import com.vividsolutions.jts.linearref.LocationIndexedLine
 import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -34,16 +34,12 @@ import org.geotools.renderer.label.LineStringCursor
  *                                    calculated by dividing the track or route up into n divisions (100 by default) and
  *                                    calculating the closest distance from the route to the tracklet at each division
  * @param speedStats max, min, avg, and stddev of speed calculated along the tracklet
- * @param stddevOfHeading a measure of consistency for the heading associated with the tracklet
- * @param queryRouteStddevOfHeading a measure of consistency for the heading associated with the route
  */
 case class MotionScore(numberOfPings: Int,
                        cumulativePathDistance: Double,
                        queryRouteDistance: Double,
                        cumulativeDistanceFromRoute: Double,
-                       speedStats: SpeedStatistics,
-                       stddevOfHeading: Double,
-                       queryRouteStddevOfHeading: Double) {
+                       speedStats: SpeedStatistics) {
   /**
    * Normalizes the distance of the tracklet from the route or track by dividing the cumulative distance by the
    * total route distance
@@ -60,16 +56,6 @@ case class MotionScore(numberOfPings: Int,
   def lengthRatio =
     if (queryRouteDistance == 0.0) 0.0
     else cumulativePathDistance / queryRouteDistance
-
-  /**
-   * Computes a score indicating whether the variation of the heading along the tracklet closely matches the variation
-   * along the route
-   * @return a score of zero indicates a close match. Higher scores indicate a bigger difference.
-   */
-  def headingDeviationRelativeToRoute =
-    if (queryRouteStddevOfHeading > 0.0)
-      Math.abs(stddevOfHeading - queryRouteStddevOfHeading) / queryRouteStddevOfHeading
-    else 1.0
 
   /**
    * Converts the normalized distance from route to a score where a low distance scores near 1.0 and a high distance
@@ -97,14 +83,6 @@ case class MotionScore(numberOfPings: Int,
     else 1.0 / lengthRatio
 
   /**
-   * Computes a score between 0.0 and 1.0 indicating whether the variation in the tracklet's heading closely matches the
-   * variation in the route's heading. A score near 1.0 indicates a close match and better evidence of motion along the
-   * route
-   * @return a score between 0.0 and 1.0
-   */
-  def headingDeviationScore = Math.exp(-1.0 * headingDeviationRelativeToRoute)
-
-  /**
    * Computes a score between 0.0 and 1.0 indicating whether the computed speeds for the tracklet are reasonably close
    * to speeds that might be expected of humans or vehicles.
    * @return a score between 0.0 and 1.0 with 1.0 indicating a reasonable speed consistent with motion along the route
@@ -119,85 +97,59 @@ case class MotionScore(numberOfPings: Int,
    */
   def combined =
     MathUtil.geometricMean(
-      Math.log(numberOfPings), distanceFromRouteScore, constantSpeedScore,
-      expectedLengthScore, headingDeviationScore, reasonableSpeedScore)
+      Math.log(numberOfPings), distanceFromRouteScore, constantSpeedScore, expectedLengthScore, reasonableSpeedScore
+    )
 }
 
 class Route(val route: LineString) {
 
-  /**
-   * Two distances calculated along a route
-   * @param coordinateDistance distance in degrees
-   * @param metricDistance distance in meters
-   */
-  case class RouteDistances(coordinateDistance: Double, metricDistance: Double) {
-    def increment(coordDelta: Double, metricDelta: Double): RouteDistances =
-      RouteDistances(coordinateDistance + coordDelta, metricDistance + metricDelta)
-  }
-
-  lazy val distance: RouteDistances = {
+  lazy val distance: Double =
     route.getCoordinates.toList
       .sliding(2, 1)
-      .foldLeft(RouteDistances(0.0, 0.0)) {
-        case (sums, (scc :: ecc :: tail)) => // sliding should return things of size 2, tail is empty
-          val xDiff = coordXDiff(ecc.x, scc.x)
-          val yDiff = coordYDiff(ecc.y, scc.y)
-          val coordDist = math.sqrt(xDiff * xDiff + yDiff * yDiff)
-          val orthoDist = JTS.orthodromicDistance(scc, ecc, DefaultGeographicCRS.WGS84)
-          sums.increment(coordDist, orthoDist)
-      }
-  }
-
-  private def coordXDiff(x1: Double, x2: Double) = {
-    val d = Math.max(x1, x2) - Math.min(x1, x2)
-    if (d < 180.0) d
-    else 360.0 - d
-  }
-
-  private def coordYDiff(y1: Double, y2: Double) = y1 - y2
+      .map { case f :: s :: t => JTS.orthodromicDistance(f, s, DefaultGeographicCRS.WGS84) }
+      .sum
+  lazy private val indexed = new LocationIndexedLine(route)
 
   /**
    * Calculate all the motion scores associated with a tracklet along the route
    * @param coordSeq the tracklet
-   * @param routeDivisions the number of divisions to break the route into for deviation calculations
+   * @param routeDivisions the number of divisions to break the track into for deviation calculations
    * @return MotionScore
    */
   def motionScores(coordSeq: CoordSequence,
                    routeDivisions: Double = RankingDefaults.defaultRouteDivisions): MotionScore = {
-    val routeDistance = distance.metricDistance
     val coordDistance = coordSeq.distance
-    val coordDelta = distance.coordinateDistance / routeDivisions
-    val coordsToRouteDistance = cumlativeDistanceToCoordSequence(coordSeq, coordDelta)
+    val coordsToRouteDistance = cumlativeDistanceToCoordSequence(coordSeq, routeDivisions)
     val speedStats = coordSeq.speedStats
-    new MotionScore(coordSeq.coords.length + 1, coordDistance, routeDistance, coordsToRouteDistance, speedStats, 0.0, 0.0)
+    new MotionScore(coordSeq.coords.length + 1, coordDistance, distance, coordsToRouteDistance, speedStats)
   }
 
   /**
    * Computes the total distance that the tracklet deviates from the route. Computed iteratively at regular intervals
-   * along the route as specified by coordDelta.
+   * along the tracklet as specified by coordDelta.
    * @param coords the tracklet
-   * @param coordDelta the interval to compute distances at
+   * @param divisions the number of intervals to split the tracklet into
    * @return the total cumulative distance of the tracklet from the route at each coordDelta from the beginning of the
-   *         route to the end
+   *         tracklet to the end
    */
-  def cumlativeDistanceToCoordSequence(coords: CoordSequence, coordDelta: Double): Double = {
-    val geomFactory = new GeometryFactory(new PrecisionModel(), 4326)
-    coords.coords.foldLeft(0.0) { (dist, pair) =>
-      val first = pair.first
-      val second = pair.last
-      val ls = geomFactory.createLineString(List(new Coordinate(first.c.x, first.c.y),
-        new Coordinate(second.c.x, second.c.y)).toArray)
-      val routeIndexed = new LocationIndexedLine(route)
-      val lsCursor = new LineStringCursor(ls)
-      lsCursor.moveTo(0)
-      dist + (0.0 until ls.getLength by coordDelta).map { cd =>
-        lsCursor.moveRelative(coordDelta)
+  def cumlativeDistanceToCoordSequence(coords: CoordSequence, divisions: Double): Double = {
+    val ls = Route.geomFactory.createLineString(
+      Array(coords.coords.head.first.c) ++ coords.coords.map(cdt => cdt.last.c)
+    )
+    val lsCursor = new LineStringCursor(ls)
+    val lsLength = ls.getLength
+    val lsDelta = lsLength / divisions
+    (0.0 to lsLength by lsDelta).map {
+      case ordinate =>
+        lsCursor.moveTo(ordinate)
         val cp = lsCursor.getCurrentPosition
-        val location = routeIndexed.project(cp)
-        val routePt = routeIndexed.extractPoint(location)
-        JTS.orthodromicDistance(cp, routePt, DefaultGeographicCRS.WGS84)
-      }.sum
-    }
+        val rp = indexed.extractPoint(indexed.project(cp))
+        JTS.orthodromicDistance(cp, rp, DefaultGeographicCRS.WGS84)
+    }.sum
   }
 
+}
+
+object Route {
+  final lazy val geomFactory = new GeometryFactory(new PrecisionModel(), 4326)
 }
