@@ -222,7 +222,7 @@
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-grid</artifactId>
-                <version>11.0</version>
+                <version>${gt.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-pool</groupId>
@@ -328,13 +328,13 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-log4j12</artifactId>
                 <version>${slf4j.version}</version>
-                <scope>compile</scope>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>log4j</groupId>
                 <artifactId>log4j</artifactId>
                 <version>${log4j.version}</version>
-                <scope>compile</scope>
+                <scope>provided</scope>
             </dependency>
 
             <!-- provided dependencies -->
