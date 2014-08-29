@@ -202,7 +202,7 @@ class RouteAndSurroundingFeatures(val route: Route,
    */
   def evidenceOfMotion(tubeFeatures: Iterable[SimpleFeatureWithDateTimeAndKey],
                        boxFeatures: Iterable[SimpleFeatureWithDateTimeAndKey],
-                       routeDivisions: Double = RankingDefaults.defaultRouteDivisions): EvidenceOfMotion = {
+                       routeDivisions: Int = RankingDefaults.defaultRouteDivisions): EvidenceOfMotion = {
     val motionScores =
       boxFeatures
         .collect {
