@@ -300,7 +300,8 @@ object STIdxStrategy {
   def getSTIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =
     if (spatialFilters(filter) &&
       isValidSTIdxFilter(sft, filter.asInstanceOf[BinarySpatialOperator].getExpression1, filter.asInstanceOf[BinarySpatialOperator].getExpression2)
-    ) { Some(new STIdxStrategy) } else { None }
+    ) { Some(new STIdxStrategy) }
+    else { None }
 
   /**
    * Ensures the following conditions:
