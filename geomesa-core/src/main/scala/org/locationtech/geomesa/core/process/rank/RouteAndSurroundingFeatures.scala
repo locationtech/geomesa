@@ -24,9 +24,9 @@ import scala.beans.BeanProperty
 /**
  * This is an aggregate of the motion scores from a series of tracklets, for a single ID / entity. Basically we just
  * calculate the aggregate motion score for many tracklets and them compute the total, maximum, and standard deviation.
- * @param total
- * @param max
- * @param stddev
+ * @param total Sum of combined motion score across tracklets
+ * @param max Max of combined motion score across tracklets
+ * @param stddev Std. dev of combined motion score across tracklets
  */
 case class EvidenceOfMotion(@BeanProperty total: Double, @BeanProperty max: Double, @BeanProperty stddev: Double)
 
