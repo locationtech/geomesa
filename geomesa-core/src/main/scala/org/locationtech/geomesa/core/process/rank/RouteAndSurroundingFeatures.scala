@@ -203,26 +203,25 @@ class RouteAndSurroundingFeatures(val route: Route,
   def evidenceOfMotion(tubeFeatures: Iterable[SimpleFeatureWithDateTimeAndKey],
                        boxFeatures: Iterable[SimpleFeatureWithDateTimeAndKey],
                        routeDivisions: Double = RankingDefaults.defaultRouteDivisions): EvidenceOfMotion = {
-    val placeTimes =
+    val motionScores =
       boxFeatures
         .collect {
           case sf if hasDateTimeInBoxSpec(sf) => new CoordWithDateTime(sf.centroidCoordinate, dateTimeInBoxSpec(sf))
         }
         .toList
         .sortBy(_.dt.getMillis)
-    val motionSets = placeTimes.foldLeft(List[List[CoordWithDateTime]](List[CoordWithDateTime]())) {
-      case(bigList, currentPoint) =>
-        val first = bigList.head
-        val rest = bigList.tail
-        if (currentPoint.consistentWithMotion(first)) {
-          List(currentPoint :: first) ++ rest
+        .foldLeft(List[List[CoordWithDateTime]](List[CoordWithDateTime]())) {
+          case (bigList @ first :: rest, currentPoint) => // currentPoint is a CoordWithDateTime
+            if (currentPoint.consistentWithMotion(first)) List(currentPoint :: first) ++ rest
+            else List(List(currentPoint)) ++ bigList
         }
-        else List(List(currentPoint)) ++ bigList
-    }.map(ms => CoordSequence.fromCoordWithDateTimeList(ms))
-    val motionScores = motionSets.filter(ms => ms.coords.size > 0).
-      map(ms => route.motionScores(ms, routeDivisions).combined)
-    if (motionScores.size > 0) EvidenceOfMotion(motionScores.sum, motionScores.max,
-      MathUtil.stdDev(motionScores, motionScores.sum / motionScores.size)) else RankingDefaults.defaultEvidenceOfMotion
+        .filterNot(_.isEmpty)
+        .map(ms => route.motionScores(CoordSequence.fromCoordWithDateTimeList(ms), routeDivisions).combined)
+    if (motionScores.size > 0)
+      EvidenceOfMotion(
+        motionScores.sum, motionScores.max, MathUtil.stdDev(motionScores, motionScores.sum / motionScores.size)
+      )
+    else RankingDefaults.defaultEvidenceOfMotion
   }
 
   /**
@@ -233,7 +232,7 @@ class RouteAndSurroundingFeatures(val route: Route,
    */
   private def aggregateCellCounts(m: Iterable[Map[String,Int]]) =
     m.foldLeft(Map[String,Int]())(
-      (all, one) => all ++ one.map { case(k, v) => k -> (v + all.getOrElse(k, 0))}
+      (all, oneMap) => oneMap.foldLeft(all) { case (a, (k, v)) => a.updated(k, v + a.getOrElse(k, 0)) }
     )
 
   /**
