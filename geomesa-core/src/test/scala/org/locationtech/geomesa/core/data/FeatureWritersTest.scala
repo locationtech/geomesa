@@ -25,7 +25,7 @@ import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, SF_PROPERTY_START_TIME}
+import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -58,7 +58,6 @@ class FeatureWritersTest extends Specification {
       "password"          -> "mypassword",
       "auths"             -> "A,B,C",
       "tableName"         -> "differentTableFromOtherTests", //note the table needs to be different to prevent testing errors,
-      "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
       "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
     "AccumuloFeatureWriter" should {

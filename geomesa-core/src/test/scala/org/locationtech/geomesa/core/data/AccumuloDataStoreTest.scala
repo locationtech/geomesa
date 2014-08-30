@@ -39,7 +39,7 @@ import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, SF_PROPERTY_START_TIME}
+import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, _}
 import org.locationtech.geomesa.core.iterators.TestData
 import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import org.locationtech.geomesa.core.util.CloseableIterator
@@ -66,7 +66,7 @@ class AccumuloDataStoreTest extends Specification {
   val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
   val WGS84 = DefaultGeographicCRS.WGS84
   val gf = JTSFactoryFinder.getGeometryFactory
-  val testIndexSchemaFormat = new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build()
+  def buildTestIndexSchemaFormat(featureName: String) = new IndexSchemaBuilder("~").randomNumber(3).constant(featureName).geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build()
 
   def createStore: AccumuloDataStore = {
     // need to add a unique ID, otherwise create schema will throw an exception
@@ -81,7 +81,6 @@ class AccumuloDataStoreTest extends Specification {
       "auths"             -> "A,B,C",
       "tableName"         -> f"testwrite$id%d",
       "useMock"           -> "true",
-      "indexSchemaFormat" -> testIndexSchemaFormat,
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
   }
 
@@ -129,7 +128,7 @@ class AccumuloDataStoreTest extends Specification {
           val features = results.features
           var containsGeometry = false
 
-          while(features.hasNext) {
+          while (features.hasNext) {
             containsGeometry = containsGeometry | features.next.getDefaultGeometry.equals(geom)
           }
 
@@ -405,15 +404,14 @@ class AccumuloDataStoreTest extends Specification {
     "provide ability to configure auth provider by static auths" in {
       // create the data store
       val ds = DataStoreFinder.getDataStore(Map(
-        "instanceId"        -> "mycloud",
-        "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-        "user"              -> "myuser",
-        "password"          -> "mypassword",
-        "auths"             -> "user",
-        "tableName"         -> "testwrite",
-        "useMock"           -> "true",
-        "indexSchemaFormat" -> testIndexSchemaFormat,
-        "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
+        "instanceId" -> "mycloud",
+        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user" -> "myuser",
+        "password" -> "mypassword",
+        "auths" -> "user",
+        "tableName" -> "testwrite",
+        "useMock" -> "true",
+        "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
       ds.authorizationsProvider should beAnInstanceOf[FilteringAuthorizationsProvider]
       ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider should beAnInstanceOf[DefaultAuthorizationsProvider]
@@ -423,15 +421,14 @@ class AccumuloDataStoreTest extends Specification {
     "provide ability to configure auth provider by comma-delimited static auths" in {
       // create the data store
       val ds = DataStoreFinder.getDataStore(Map(
-        "instanceId"        -> "mycloud",
-        "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-        "user"              -> "myuser",
-        "password"          -> "mypassword",
-        "auths"             -> "user,admin,test",
-        "tableName"         -> "testwrite",
-        "useMock"           -> "true",
-        "indexSchemaFormat" -> testIndexSchemaFormat,
-        "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
+        "instanceId" -> "mycloud",
+        "zookeepers" -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user" -> "myuser",
+        "password" -> "mypassword",
+        "auths" -> "user,admin,test",
+        "tableName" -> "testwrite",
+        "useMock" -> "true",
+        "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
       ds.authorizationsProvider should beAnInstanceOf[FilteringAuthorizationsProvider]
       ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider should beAnInstanceOf[DefaultAuthorizationsProvider]
@@ -450,15 +447,12 @@ class AccumuloDataStoreTest extends Specification {
           "auths"             -> "user,admin,test",
           "tableName"         -> "testwrite",
           "useMock"           -> "true",
-          "indexSchemaFormat" -> testIndexSchemaFormat,
           "featureEncoding"   -> "avro")) should throwA[IllegalArgumentException]
       } finally System.clearProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
     }
 
-    "fail when schema does not match metadata" in {
+    "create and retrieve a schema" in {
       val sftName = "schematest"
-      // slight tweak from default - add '-fr' to name
-      val schema = s"%~#s%99#r%$sftName-fr#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
       val ds = DataStoreFinder.getDataStore(Map(
         "instanceId"        -> "mycloud",
         "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
@@ -467,14 +461,21 @@ class AccumuloDataStoreTest extends Specification {
         "auths"             -> "A,B,C",
         "tableName"         -> "schematest",
         "useMock"           -> "true",
-        "indexSchemaFormat" -> schema,
         "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
       val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
       ds.createSchema(sft)
 
-      val ds2 = DataStoreFinder.getDataStore(Map(
+      val retrievedSft = ds.getSchema(sftName)
+
+      retrievedSft must equalTo(sft)
+      retrievedSft.getUserData.get(SF_PROPERTY_START_TIME) must beEqualTo("dtg")
+    }
+
+    "create and retrieve a schema with a custom IndexSchema" in {
+      val sftName = "schematestCustomSchema"
+      val ds = DataStoreFinder.getDataStore(Map(
         "instanceId"        -> "mycloud",
         "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
         "user"              -> "myuser",
@@ -482,10 +483,49 @@ class AccumuloDataStoreTest extends Specification {
         "auths"             -> "A,B,C",
         "tableName"         -> "schematest",
         "useMock"           -> "true",
-        "indexSchemaFormat" -> "xyz",
         "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
-      ds2.getFeatureReader(sftName) should throwA[RuntimeException]
+      val indexSchema = buildTestIndexSchemaFormat(sftName)
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+      sft.getUserData.put(SFT_INDEX_SCHEMA, indexSchema)
+      ds.createSchema(sft)
+
+      val retrievedSft = ds.getSchema(sftName)
+
+      retrievedSft must equalTo(sft)
+      retrievedSft.getUserData.get(SF_PROPERTY_START_TIME) must beEqualTo("dtg")
+      retrievedSft.getUserData.get(SFT_INDEX_SCHEMA) must beEqualTo(indexSchema)
+      getIndexSchema(retrievedSft) must beEqualTo(Option(indexSchema))
+    }
+
+    "create and retrieve a schema without a custom IndexSchema" in {
+      val sftName = "schematestDefaultSchema"
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId"        -> "mycloud",
+        "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"              -> "myuser",
+        "password"          -> "mypassword",
+        "auths"             -> "A,B,C",
+        "tableName"         -> "schematest",
+        "useMock"           -> "true",
+        "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
+
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+
+      val mockMaxShards = ds.DEFAULT_MAX_SHARD
+      val indexSchema = ds.computeSpatioTemporalSchema(sft, mockMaxShards)
+
+      ds.createSchema(sft)
+
+      val retrievedSft = ds.getSchema(sftName)
+
+      mockMaxShards must equalTo(0)
+      retrievedSft must equalTo(sft)
+      retrievedSft.getUserData.get(SF_PROPERTY_START_TIME) must beEqualTo("dtg")
+      retrievedSft.getUserData.get(SFT_INDEX_SCHEMA) must beEqualTo(indexSchema)
+      getIndexSchema(retrievedSft) must beEqualTo(Option(indexSchema))
     }
 
     "allow custom schema metadata if not specified" in {
@@ -516,7 +556,6 @@ class AccumuloDataStoreTest extends Specification {
         "visibilities"      -> "user&admin",
         "tableName"         -> "testwrite",
         "useMock"           -> "true",
-        "indexSchemaFormat" -> testIndexSchemaFormat,
         "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
 
@@ -545,7 +584,6 @@ class AccumuloDataStoreTest extends Specification {
         "visibilities"      -> "user&admin",
         "tableName"         -> "testwrite",
         "useMock"           -> "true",
-        "indexSchemaFormat" -> testIndexSchemaFormat,
         "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
       ds should not be null
 
@@ -592,7 +630,6 @@ class AccumuloDataStoreTest extends Specification {
         "user"              -> "myuser",
         "password"          -> "mypassword",
         "tableName"         -> table,
-        "indexSchemaFormat" -> testIndexSchemaFormat,
         "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
       // accumulo supports only alphanum + underscore aka ^\\w+$
@@ -644,7 +681,6 @@ class AccumuloDataStoreTest extends Specification {
         "user"              -> "myuser",
         "password"          -> "mypassword",
         "tableName"         -> table,
-        "indexSchemaFormat" -> testIndexSchemaFormat,
         "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
       ds should not be null
@@ -781,7 +817,6 @@ class AccumuloDataStoreTest extends Specification {
         "user"              -> "myuser",
         "password"          -> "mypassword",
         "tableName"         -> table,
-        "indexSchemaFormat" -> testIndexSchemaFormat,
         "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
       ds should not be null
@@ -845,7 +880,6 @@ class AccumuloDataStoreTest extends Specification {
         "user"              -> "myuser",
         "password"          -> "mypassword",
         "tableName"         -> table,
-        "indexSchemaFormat" -> testIndexSchemaFormat,
         "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
       ds should not be null
