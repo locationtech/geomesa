@@ -34,7 +34,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.{AttributeIndexEntry, IndexSchemaBuilder}
+import org.locationtech.geomesa.core.index.AttributeIndexEntry
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -63,7 +63,6 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       "password"          -> "mypassword",
       "auths"             -> "A,B,C",
       "tableName"         -> "AttributeIndexFilteringIteratorTest",
-      "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
       "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
   val ds = createStore

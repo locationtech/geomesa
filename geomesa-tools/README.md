@@ -129,10 +129,10 @@ with the following parameters:
 
 `-v` or `--visibilities` The optional accumulo visibilities to use. 
 
-`-i` or `--indexSchemaFormat` The optional accumulo index schema format to use. If not set Ingest defaults to the Default SpatioTemporal Schema in the AccumuloDataStore class.
+`-i` or `--indexSchemaFormat` The optional accumulo index schema format to use. If not set, Ingest defaults to the Default SpatioTemporal Schema calculated by the AccumuloDataStore class.
 This option and the `--shards` cannot be provided together and Ingest exits if this occurs.
 
-`--shards` The optional number of shards to use for this catalog. If catalog exists Ingest defaults to number of shards used in extant schema. 
+`--shards` The optional number of shards to use for this catalog. If catalog exists Ingest defaults to number of shards used in existing schema. 
 This option and the `--indexSchemaFormat` cannot be provided together and Ingest exits if this occurs.
 
 `-f` or `--feature-name` The name of the SimpleFeatureType to be used.

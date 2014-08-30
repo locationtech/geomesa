@@ -139,7 +139,6 @@ object FilterTester extends AccumuloDataStoreTest with Logging {
       "auths"             -> "A,B,C",
       "tableName"         -> "filtertester",
       "useMock"           -> "true",
-      "indexSchemaFormat" -> testIndexSchemaFormat,
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
   }
 

@@ -159,5 +159,25 @@ class AvroSimpleFeatureTest extends Specification {
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getProperty("c") should beNull
     }
+    "give back a property when a property exists but the value is null" in {
+      // Verify that AvroSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
+      val sft = SimpleFeatureTypes.createType("avrotesttype", "a:Integer,b:String")
+      val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+      sf.getProperty("b") must not(throwA[NullPointerException])
+      sf.getProperty("b") should not beNull
+
+      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      oldSf.getProperty("b") should not beNull
+    }
+    "give back a null when the property value is null" in {
+      // Verify that AvroSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
+      val sft = SimpleFeatureTypes.createType("avrotesttype", "a:Integer,b:String")
+      val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+      sf.getProperty("b").getValue must not(throwA[NullPointerException])
+      sf.getProperty("b").getValue should beNull
+
+      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      oldSf.getProperty("b").getValue should beNull
+    }
   }
 }
