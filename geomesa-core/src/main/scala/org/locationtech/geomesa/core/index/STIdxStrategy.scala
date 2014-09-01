@@ -19,27 +19,26 @@ package org.locationtech.geomesa.core.index
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Polygon, GeometryCollection, Geometry}
+import com.vividsolutions.jts.geom.{Geometry, GeometryCollection, Polygon}
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{Value, Key}
+import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
-import org.locationtech.geomesa.core.data.{SimpleFeatureEncoder, AccumuloConnectorCreator}
-import org.locationtech.geomesa.core.DEFAULT_SCHEMA_NAME
-import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
-import org.locationtech.geomesa.core.iterators._
+import org.locationtech.geomesa.core.data.{AccumuloConnectorCreator, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
-import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.index.QueryHints._
+import org.locationtech.geomesa.core.index.QueryPlanner._
+import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
+import org.locationtech.geomesa.core.{DEFAULT_SCHEMA_NAME, GEOMESA_ITERATORS_IS_DENSITY_TYPE}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.Literal
-import org.opengis.filter.spatial.{BinarySpatialOperator, BBOX}
+import org.opengis.filter.expression.{Expression, Literal, PropertyName}
+import org.opengis.filter.spatial._
 
 class STIdxStrategy extends Strategy with Logging {
 
@@ -293,3 +292,33 @@ class STIdxStrategy extends Strategy with Logging {
   }
 }
 
+object STIdxStrategy {
+
+  import org.locationtech.geomesa.core.filter.spatialFilters
+  import org.locationtech.geomesa.utils.geotools.Conversions._
+
+  def getSTIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =
+    if (spatialFilters(filter) &&
+      isValidSTIdxFilter(sft, filter.asInstanceOf[BinarySpatialOperator].getExpression1, filter.asInstanceOf[BinarySpatialOperator].getExpression2)
+    ) { Some(new STIdxStrategy) }
+    else { None }
+
+  /**
+   * Ensures the following conditions:
+   *   - there is exactly one 'property name' expression
+   *   - the property is indexed by GeoMesa
+   *   - all other expressions are literals
+   *
+   * @param sft
+   * @param exp
+   * @return
+   */
+  private def isValidSTIdxFilter(sft: SimpleFeatureType, exp: Expression*): Boolean = {
+    val (props, lits) = exp.partition(_.isInstanceOf[PropertyName])
+
+    props.length == 1 &&
+      props.map(_.asInstanceOf[PropertyName].getPropertyName).forall(sft.getDescriptor(_).isIndexed) &&
+      lits.forall(_.isInstanceOf[Literal])
+  }
+
+}

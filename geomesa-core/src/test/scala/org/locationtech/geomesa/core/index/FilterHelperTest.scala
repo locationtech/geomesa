@@ -5,7 +5,6 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.filter.FilterUtils._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.utils.filters.Filters._
 import org.opengis.filter.Filter
