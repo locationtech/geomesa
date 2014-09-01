@@ -150,12 +150,52 @@ object TestFilters {
   )
 
   val temporalPredicates = Seq(
-  "(not dtg after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)",
-  "(dtg between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')",
-  "dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
+    "(not dtg after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)",
+    "(dtg between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')",
+    "dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
   )
 
   val spatioTemporalPredicates = Seq(
     "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
+  )
+
+  /**
+   * Note: The current implementation is to respect order when filtering on an Attribute Index
+   * AND Spatio-Temporal index, allowing us to assume that the STIdxStrategy will be chosen in
+   * the following queries. However, this may change when query optimization is added to GeoMesa.
+   */
+  val stIdxStrategyPredicates = Seq(
+    "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND attr2 = 'val56'",
+    "attr1 = 'dummy' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND attr2 = 'dummy'",
+    "attr1 = 'dummy' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "attr1 = 'val56'",
+    "attr1 ILIKE '2nd1%'",
+    "attr1 ILIKE '2nd1%'"
+  )
+
+  /**
+   * Note: The current implementation is to respect order when filtering on an Attribute Index
+   * AND Spatio-Temporal index, allowing us to assume that the AttrIdxStrategy will be chosen in
+   * the following queries. However, this may change when query optimization is added to GeoMesa.
+   */
+  val attrIdxStrategyPredicates = Seq(
+    "attr2 = 'val56' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "attr2 = 'val56'",
+    "attr1 = 'val56' AND attr2 = 'val56'",
+    "attr2 = 'val56' AND attr1 = 'val3'",
+    "attr1 = 'val56' AND attr1 = 'val57' AND attr2 = 'val56'",
+    "attr2 = 'val56' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z",
+    "dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND attr2 = 'val56' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 = 'val56' AND NOT (INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))))"
+  )
+
+  val idPredicates = Seq(
+    "IN('|data|100001','|data|100002')" ,
+    "IN('|data|100003','|data|100005') AND IN('|data|100001')",
+    "IN('|data|100001','|data|100002') AND attr2 = '2nd100001'",
+    "IN('|data|100001','|data|100002') AND attr2 = '2nd100001' AND IN('|data|100003','|data|100005')",
+    "attr2 = '2nd100001'  AND IN('|data|100001')" ,
+    "IN('|data|100010')"
   )
 }
