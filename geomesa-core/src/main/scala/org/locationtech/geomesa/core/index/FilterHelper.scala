@@ -149,12 +149,15 @@ object FilterHelper {
     case _ => Some(ff.and(filters))
   }
 
-  def pickout(pred: Filter => Boolean)(s: Seq[Filter]): (Option[Filter], Seq[Filter]) =
+  /**
+   * Finds the first filter satisfying the condition and returns the rest in the same order they were in
+   */
+  def findFirst(pred: Filter => Boolean)(s: Seq[Filter]): (Option[Filter], Seq[Filter]) =
     if (s.isEmpty) (None, s) else {
       val h = s.head
       val t = s.tail
       if (pred(h)) (Some(h), t) else {
-        val (x, xs) = pickout(pred)(t)
+        val (x, xs) = findFirst(pred)(t)
         (x, h +: xs)
       }
     }

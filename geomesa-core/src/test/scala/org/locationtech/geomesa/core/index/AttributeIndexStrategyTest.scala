@@ -154,6 +154,26 @@ class AttributeIndexStrategyTest extends Specification {
       val (thirdStripped, thirdExtractedFilter) = strategy.partitionFilter(secondStripped.getFilter, sft)
       AttributeIndexStrategy.getAttributeIndexStrategy(thirdExtractedFilter, sft).get must beAnInstanceOf[AttributeIdxRangeStrategy]
     }
+
+    "all attribute filters should be applied to SFFI" in {
+      val strategy = new AttributeIdxLikeStrategy
+      val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("name LIKE 'b%'"), ECQL.toFilter("count<27"), ECQL.toFilter("age<29"))).get
+      val query = new Query(sftName, filter)
+      val results = strategy.execute(ds, queryPlanner, sft, query, ExplainNull)
+      val resultNames = queryPlanner.adaptIterator(results, query).map(_.getAttribute("name").toString).toList
+      resultNames must have size(1)
+      resultNames must contain ("bill")
+    }
+
+    import scala.collection.JavaConversions._
+
+    "there are no attribute filters" in {
+      val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"),
+                                                    ECQL.toFilter("INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"))).get
+      val (extractedFilter, strippedFilters) = FilterHelper.findFirst(AttributeIndexStrategy.getAttributeIndexStrategy(_, sft).isDefined)(filter.asInstanceOf[org.opengis.filter.And].getChildren)
+      extractedFilter must beEmpty
+      strippedFilters must have size(2)
+    }
   }
 
   "AttributeIndexEqualsStrategy" should {

@@ -61,12 +61,12 @@ object QueryStrategyDecider {
     val children: util.List[Filter] = decomposeAnd(and)
 
     def determineStrategy(attr: Filter, st: Filter): Strategy = {
-      if(children.indexOf(attr) < children.indexOf(st)) { getAttributeIndexStrategy(attr, sft).get }
+      if (children.indexOf(attr) < children.indexOf(st)) { getAttributeIndexStrategy(attr, sft).get }
       else { new STIdxStrategy }
     }
 
     val strats = (children.find(c => getAttributeIndexStrategy(c, sft).isDefined),
-      children.find(c => getSTIdxStrategy(c, sft).isDefined))
+                  children.find(c => getSTIdxStrategy(c, sft).isDefined))
 
     strats match {
       case (Some(attrFilter), Some(stFilter)) => determineStrategy(attrFilter, stFilter)

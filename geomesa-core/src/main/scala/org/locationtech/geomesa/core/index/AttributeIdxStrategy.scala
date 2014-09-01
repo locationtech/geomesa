@@ -65,13 +65,16 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     //  If it is, we needn't configure the SFFI
 
     output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
-    val ofilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters ++ nonSTFilters)
+    val ofilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters)
 
     configureAttributeIndexIterator(attrScanner, featureType, ofilter, range)
 
     val recordScanner = acc.createRecordScanner(featureType)
-    val iterSetting = configureSimpleFeatureFilteringIterator(featureType, None, schema, featureEncoder, query)
-    recordScanner.addScanIterator(iterSetting)
+
+    if (nonSTFilters.nonEmpty) {
+      val iterSetting = configureSimpleFeatureFilteringIterator(featureType, Some(filterListAsAnd(nonSTFilters).get.toString), schema, featureEncoder, query)
+      recordScanner.addScanIterator(iterSetting)
+    }
 
     // function to join the attribute index scan results to the record table
     // since the row id of the record table is in the CF just grab that
@@ -148,7 +151,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 
     val (indexFilter, cqlFilter) = filter match {
       case and: And =>
-        pickout(AttributeIndexStrategy.getAttributeIndexStrategy(_, sft).isDefined)(and.getChildren)
+        findFirst(AttributeIndexStrategy.getAttributeIndexStrategy(_, sft).isDefined)(and.getChildren)
       case f: Filter =>
         (Some(f), Seq())
     }
