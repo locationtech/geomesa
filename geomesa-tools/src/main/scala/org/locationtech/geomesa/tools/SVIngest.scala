@@ -100,7 +100,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
   lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt.getOrElse("MILLISEPOCH"))
   lazy val attributes = sft.getAttributeDescriptors
-  lazy val dtBuilder = buildDtBuilder
+  lazy val dtBuilder = dtgField.flatMap(buildDtBuilder)
   lazy val idBuilder = buildIDBuilder
 
   // This class is possibly necessary for scalding (to be added later)
@@ -170,8 +170,8 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     // CsvReader is being used to just split the line up. this may be refactored out when
     // scalding support is added however it may be necessary for local only ingest
     val reader = CSVParser.parse(line, delim)
-    val fields: Array[String] = try {
-      reader.iterator.toArray.flatten
+    val fields: Seq[String] = try {
+      reader.getRecords.flatten
     } catch {
       case e: Exception => throw new Exception(s"Commons CSV could not parse " +
         s"line number: $lineNumber \n\t with value: $line")
@@ -181,30 +181,10 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
 
     val id = idBuilder(fields)
     builder.reset()
-    builder.addAll(fields.asInstanceOf[Array[AnyRef]])
+    builder.addAll(fields)
     val feature = builder.buildFeature(id).asInstanceOf[AvroSimpleFeature]
 
-    if (dtgField.isDefined) {
-      // override the feature dtgField
-      try {
-        val dtgFieldIndex = getAttributeIndexInLine(dtgField.get)
-        val date = dtBuilder(fields(dtgFieldIndex)).toDate
-        feature.setAttribute(dtgField.get, date)
-      } catch {
-        case e: Exception => throw new Exception(s"Could not form Date object from field" +
-          s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
-      }
-      //now try to build the date time object and set the dtgTargetField to the date value
-      val dtg = try {
-        dtBuilder(feature.getAttribute(dtgField.get))
-      } catch {
-        case e: Exception => throw new Exception(s"Could not find date-time field: '$dtgField'," +
-          s" on line  number: $lineNumber \n\t With value of: $line")
-      }
-
-      feature.setAttribute(dtgTargetField, dtg.toDate)
-    }
-
+    dtBuilder.foreach { dateBuilder => addDateToFeature(line, fields, feature, dateBuilder) }
     // Support for point data method
     val lon = Option(feature.getAttribute(lonField)).map(_.asInstanceOf[Double])
     val lat = Option(feature.getAttribute(latField)).map(_.asInstanceOf[Double])
@@ -214,6 +194,27 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     }
 
     feature
+  }
+
+  def addDateToFeature(line: String, fields: Seq[String], feature: AvroSimpleFeature,
+                       dateBuilder: (AnyRef) => DateTime) {
+    try {
+      val dtgFieldIndex = getAttributeIndexInLine(dtgField.get)
+      val date = dateBuilder(fields(dtgFieldIndex)).toDate
+      feature.setAttribute(dtgField.get, date)
+    } catch {
+      case e: Exception => throw new Exception(s"Could not form Date object from field" +
+        s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
+    }
+    //now try to build the date time object and set the dtgTargetField to the date value
+    val dtg = try {
+      dateBuilder(feature.getAttribute(dtgField.get))
+    } catch {
+      case e: Exception => throw new Exception(s"Could not find date-time field: '$dtgField'," +
+        s" on line  number: $lineNumber \n\t With value of: $line")
+    }
+
+    feature.setAttribute(dtgTargetField, dtg.toDate)
   }
 
   def writeFeature(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], feature: AvroSimpleFeature) = {
@@ -235,7 +236,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
 
   def getAttributeIndexInLine(attribute: String) = attributes.indexOf(sft.getDescriptor(attribute))
 
-  def buildIDBuilder: (Array[String]) => String = {
+  def buildIDBuilder: (Seq[String]) => String = {
     (idFields, doHash) match {
        case (s: String, false) =>
          val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
@@ -252,8 +253,8 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
      }
   }
 
-  def buildDtBuilder: (AnyRef) => DateTime =
-    attributes.find(_.getLocalName == dtgField.getOrElse(None)).map {
+  def buildDtBuilder(dtgFieldName: String): Option[(AnyRef) => DateTime] =
+    attributes.find(_.getLocalName == dtgFieldName).map {
       case attr if attr.getType.getBinding.equals(classOf[java.lang.Long]) =>
         (obj: AnyRef) => new DateTime(obj.asInstanceOf[java.lang.Long])
 
@@ -265,7 +266,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
 
       case attr if attr.getType.getBinding.equals(classOf[java.lang.String]) =>
         (obj: AnyRef) => dtFormat.parseDateTime(obj.asInstanceOf[String])
+    }
 
-    }.getOrElse(throw new RuntimeException("Cannot parse date"))
 }
 
