@@ -65,7 +65,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     //  If it is, we needn't configure the SFFI
 
     output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
-    val ofilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters)
+    val ofilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters ++ nonSTFilters)
 
     configureAttributeIndexIterator(attrScanner, featureType, ofilter, range)
 
@@ -164,8 +164,9 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
                        featureType: SimpleFeatureType,
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+    val (strippedQuery, filter) = partitionFilter(query.getFilter, featureType)
     val range =
-      query.getFilter match {
+      filter match {
         case f: PropertyIsEqualTo =>
           val (prop, lit, _) = checkOrder(f.getExpression1, f.getExpression2)
           AccRange.exact(getEncodedAttrIdxRow(featureType, prop, lit))
@@ -183,11 +184,11 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
           AccRange.exact(AttributeIndexEntry.getAttributeIndexRow(prop, None))
 
         case _ =>
-          val msg = s"Unhandled filter type in equals strategy: ${query.getFilter.getClass.getName}"
+          val msg = s"Unhandled filter type in equals strategy: ${filter.getClass.getName}"
           throw new RuntimeException(msg)
       }
 
-    attrIdxQuery(acc, query, iqp, featureType, range, output)
+    attrIdxQuery(acc, strippedQuery, iqp, featureType, range, output)
   }
 }
 
@@ -198,8 +199,9 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
                        featureType: SimpleFeatureType,
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+    val (strippedQuery, filter) = partitionFilter(query.getFilter, featureType)
     val range =
-      query.getFilter match {
+      filter match {
         case f: PropertyIsBetween =>
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
           val lower = f.getLowerBoundary.asInstanceOf[Literal].getValue
@@ -260,11 +262,11 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
           new AccRange(lowerBound, true, upperBound, true)
 
         case _ =>
-          val msg = s"Unhandled filter type in range strategy: ${query.getFilter.getClass.getName}"
+          val msg = s"Unhandled filter type in range strategy: ${filter.getClass.getName}"
           throw new RuntimeException(msg)
       }
 
-    attrIdxQuery(acc, query, iqp, featureType, range, output)
+    attrIdxQuery(acc, strippedQuery, iqp, featureType, range, output)
   }
 
   private def greaterThanRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
@@ -299,7 +301,8 @@ class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
                        featureType: SimpleFeatureType,
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val filter = query.getFilter.asInstanceOf[PropertyIsLike]
+    val (strippedQuery, extractedFilter) = partitionFilter(query.getFilter, featureType)
+    val filter = extractedFilter.asInstanceOf[PropertyIsLike]
     val expr = filter.getExpression
     val prop = expr match {
       case p: PropertyName => p.getPropertyName
@@ -315,7 +318,7 @@ class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
 
     val range = AccRange.prefix(getEncodedAttrIdxRow(featureType, prop, value))
 
-    attrIdxQuery(acc, query, iqp, featureType, range, output)
+    attrIdxQuery(acc, strippedQuery, iqp, featureType, range, output)
   }
 }
 
