@@ -56,7 +56,7 @@ class SVIngestTest extends Specification{
 
     "properly create an AvroSimpleFeature from a comma-delimited string" in {
       val ingest = new SVIngest(csvConfig, createConnectionMap)
-      val testString = "1325409954,2013-07-17Z,-90.368732,35.3155"
+      val testString = "1325409954,2013-07-17,-90.368732,35.3155"
       val f = ingest.lineToFeature(testString)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
@@ -68,7 +68,7 @@ class SVIngestTest extends Specification{
 
     "properly create an AvroSimpleFeature from a tab-delimited string" in {
       val ingest = new SVIngest(csvConfig.copy(format = Option("TSV")), createConnectionMap)
-      val testString = "1325409954\t2013-07-17Z\t-90.368732\t35.3155"
+      val testString = "1325409954\t2013-07-17\t-90.368732\t35.3155"
       val f = ingest.lineToFeature(testString)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
@@ -104,7 +104,7 @@ class SVIngestTest extends Specification{
 
     "properly create an AvroSimpleFeature from a comma-delimited string with a Point WKT geometry" in {
       val ingest = new SVIngest(csvWktConfig, createConnectionMap)
-      val testString = "294908082,2013-07-17Z,POINT(-90.161852 32.39271)"
+      val testString = "294908082,2013-07-17,POINT(-90.161852 32.39271)"
       val f = ingest.lineToFeature(testString)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
@@ -114,7 +114,7 @@ class SVIngestTest extends Specification{
 
     "properly create an AvroSimpleFeature from a tab-delimited string with a Point WKT geometry" in {
       val ingest = new SVIngest(csvWktConfig.copy(format = Option("TSV")), createConnectionMap)
-      val testString = "294908082\t2013-07-17Z\tPOINT(-90.161852 32.39271)"
+      val testString = "294908082\t2013-07-17\tPOINT(-90.161852 32.39271)"
       val f = ingest.lineToFeature(testString)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
@@ -124,7 +124,7 @@ class SVIngestTest extends Specification{
 
     "properly create an AvroSimpleFeature from a comma-delimited string with a Polygon WKT geometry" in {
       val ingest = new SVIngest(csvWktConfig, createConnectionMap)
-      val testString = "294908082,2013-07-17Z,\"POLYGON((0 0, 0 10, 10 10, 0 0))\""
+      val testString = "294908082,2013-07-17,\"POLYGON((0 0, 0 10, 10 10, 0 0))\""
       val f = ingest.lineToFeature(testString)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
@@ -134,7 +134,7 @@ class SVIngestTest extends Specification{
 
     "properly create an AvroSimpleFeature from a tab-delimited string with a Polygon WKT geometry" in {
       val ingest = new SVIngest(csvWktConfig.copy(format = Option("TSV")), createConnectionMap)
-      val testString = "294908082\t2013-07-17Z\tPOLYGON((0 0, 0 10, 10 10, 0 0))"
+      val testString = "294908082\t2013-07-17\tPOLYGON((0 0, 0 10, 10 10, 0 0))"
       val f = ingest.lineToFeature(testString)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
