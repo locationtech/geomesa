@@ -283,7 +283,7 @@ trait GeoHashPlanner extends Logging {
   // that is an empty list
   def polyToPlan(geom: Geometry, offset: Int, bits: Int): KeyPlan = {
     val subHashes = geomToGeoHashes(geom, offset, bits).sorted
-    logger.debug(s"Geom to GeoHashes has returned: ${subHashes.size} subhashes to cover $geom $offset $bits.")
+    logger.trace(s"Geom to GeoHashes has returned: ${subHashes.size} subhashes to cover $geom $offset $bits.")
     subHashes match {
       case subs if subs.size == 0 =>
         // if the list is empty, then there are probably too many 35-bit GeoHashes

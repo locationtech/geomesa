@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.core.index
 
-import java.util.Date
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -73,11 +72,9 @@ class STIdxStrategy extends Strategy with Logging {
     // https://geomesa.atlassian.net/browse/GEOMESA-200
     // Simiarly, we should only extract temporal filters for the index date field.
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
-    val (temporalFilters, ecqlFilters: Seq[Filter]) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
+    val (temporalFilters, ecqlFilters) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
 
-    val tweakedEcqlFilters = ecqlFilters.map(updateTopologicalFilters(_, featureType))
-
-    val ecql = filterListAsAnd(tweakedEcqlFilters).map(ECQL.toCQL)
+    val ecql = filterListAsAnd(ecqlFilters).map(ECQL.toCQL)
 
     output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
 
@@ -107,7 +104,7 @@ class STIdxStrategy extends Strategy with Logging {
 
     output(s"GeomsToCover $geomsToCover.")
 
-    val ofilter = filterListAsAnd(geomFilters ++ temporalFilters)
+    val ofilter = filterListAsAnd(tweakedGeoms ++ temporalFilters)
     if (ofilter.isEmpty) logger.warn(s"Querying Accumulo without ST filter.")
 
     val oint  = IndexSchema.somewhen(interval)
