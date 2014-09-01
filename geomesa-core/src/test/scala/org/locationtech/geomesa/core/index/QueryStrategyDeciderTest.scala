@@ -19,9 +19,12 @@ package org.locationtech.geomesa.core.index
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.filter.TestFilters._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.reflect.ClassTag
 
 //Expand the test - https://geomesa.atlassian.net/browse/GEOMESA-308
 @RunWith(classOf[JUnitRunner])
@@ -41,11 +44,24 @@ class QueryStrategyDeciderTest extends Specification {
     QueryStrategyDecider.chooseStrategy(isCatalogTable, sft, query)
   }
 
-  "Spatio-temporal filters" should {
-    "get the stidx strategy" in {
-      val fs = "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+  def getStrategyT[T <: Strategy](filterString: String, ct: ClassTag[T]) =
+    getStrategy(filterString) must beAnInstanceOf[T](ct)
 
-      getStrategy(fs) must beAnInstanceOf[STIdxStrategy]
+  def getStStrategy(filterString: String) =
+    getStrategyT(filterString, ClassTag(classOf[STIdxStrategy]))
+
+  def getAttributeIdxEqualsStrategy(filterString: String) =
+    getStrategyT(filterString, ClassTag(classOf[AttributeIdxEqualsStrategy]))
+
+  def getAttributeIdxLikeStrategy(filterString: String) =
+    getStrategyT(filterString, ClassTag(classOf[AttributeIdxLikeStrategy]))
+
+  def getAttributeIdxStrategy(filterString: String) =
+    getStrategyT(filterString, ClassTag(classOf[AttributeIdxStrategy]))
+
+  "Good spatial predicates" should {
+    "get the stidx strategy" in {
+      forall(goodSpatialPredicates){ getStStrategy }
     }
   }
 
@@ -135,10 +151,10 @@ class QueryStrategyDeciderTest extends Specification {
     }
 
     "get the attribute strategy for ANDed attributes" in {
-      val fs = "attr1 >= 11 AND attr1 < 20"
+      val fs = "attr2 >= 11 AND attr2 < 20"
 
       getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
-    }.pendingUntilFixed("GEOMESA-311")
+    }
   }
 
   "Attribute filters" should {
@@ -180,13 +196,17 @@ class QueryStrategyDeciderTest extends Specification {
     }.pendingUntilFixed
   }
 
-  // TODO: GEOMESA-311
   "Anded Attribute filters" should {
-    "get an attribute strategy" in {
-      val fs = "attr2 = val56 AND attr1 = val3"
+    "get the STIdx strategy with stIdxStrategyPredicates" in {
+      forall(stIdxStrategyPredicates) { getStStrategy }
+    }
 
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxEqualsStrategy]
-    }.pendingUntilFixed
+    "get the attribute strategy with attributeAndGeometricPredicates" in {
+      forall(attributeAndGeometricPredicates) { getAttributeIdxStrategy }
+    }
+
+    "get the attribute strategy with attrIdxStrategyPredicates" in {
+      forall(attrIdxStrategyPredicates) { getAttributeIdxStrategy }
+    }
   }
-
 }
