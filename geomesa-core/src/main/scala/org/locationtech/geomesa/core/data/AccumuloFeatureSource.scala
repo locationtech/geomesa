@@ -21,6 +21,7 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.geotools.process.vector.TransformProcess
 import org.joda.time.DateTime
+import org.locationtech.geomesa.core.process.knn.KNNVisitor
 import org.locationtech.geomesa.core.process.proximity.ProximityVisitor
 import org.locationtech.geomesa.core.process.query.QueryVisitor
 import org.locationtech.geomesa.core.process.tube.TubeVisitor
@@ -105,6 +106,7 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource,
     case v: TubeVisitor      => v.setValue(v.tubeSelect(source, query))
     case v: ProximityVisitor => v.setValue(v.proximitySearch(source, query))
     case v: QueryVisitor     => v.setValue(v.query(source, query))
+    case v: KNNVisitor       => v.setValue(v.kNNSearch(source,query))
     case _                   => super.accepts(visitor, progress)
   }
 

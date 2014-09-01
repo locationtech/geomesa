@@ -19,6 +19,7 @@ package org.locationtech.geomesa.plugin.process
 
 import org.geotools.process.factory.AnnotatedBeanProcessFactory
 import org.geotools.text.Text
+import org.locationtech.geomesa.core.process.knn.KNearestNeighborSearchProcess
 import org.locationtech.geomesa.core.process.proximity.ProximitySearchProcess
 import org.locationtech.geomesa.core.process.query.QueryProcess
 import org.locationtech.geomesa.core.process.tube.TubeSelectProcess
@@ -31,6 +32,8 @@ class ProcessFactory
     classOf[TubeSelectProcess],
     classOf[ProximitySearchProcess],
     classOf[QueryProcess],
+    classOf[KNearestNeighborSearchProcess],
     classOf[DBSCANProcess]
   )
+
 
