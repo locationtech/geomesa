@@ -100,6 +100,7 @@ package object filter {
   def spatialFilters(f: Filter): Boolean = {
     f match {
       case _: BBOX => true
+      case _: DWithin => true
       case _: Contains => true
       case _: Crosses => true
       case _: Intersects => true
