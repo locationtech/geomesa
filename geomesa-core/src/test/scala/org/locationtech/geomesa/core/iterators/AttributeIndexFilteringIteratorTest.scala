@@ -34,7 +34,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.AttributeIndexEntry
+import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -97,9 +97,9 @@ class AttributeIndexFilteringIteratorTest extends Specification {
 
       val bw = conn.createBatchWriter(table, new BatchWriterConfig)
       featureCollection.foreach { feature =>
-        val muts = AttributeIndexEntry.getAttributeIndexMutations(feature,
+        val muts = AttributeTable.getAttributeIndexMutations(feature,
                                                                   sft.getAttributeDescriptors,
-                                                                  new ColumnVisibility())
+                                                                  new ColumnVisibility(), "")
         bw.addMutations(muts)
       }
       bw.close()
@@ -108,7 +108,7 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       val scanner = conn.createScanner(table, new Authorizations())
       val is = new IteratorSetting(40, classOf[AttributeIndexFilteringIterator])
       scanner.addScanIterator(is)
-      scanner.setRange(new ARange(AttributeIndexEntry.getAttributeIndexRow("name", Some("b"))))
+      scanner.setRange(new ARange(AttributeTable.getAttributeIndexRow("", "name", Some("b"))))
       scanner.iterator.size mustEqual 4
     }
 
