@@ -15,13 +15,14 @@
  */
 package org.locationtech.geomesa.tools
 
+import java.io.{BufferedReader, File, FileReader}
 import java.net.URLDecoder
 import java.nio.charset.Charset
 
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import org.apache.commons.csv.{CSVFormat, CSVParser}
+import org.apache.commons.csv.{CSVFormat, CSVParser, CSVRecord}
 import org.geotools.data.{DataStoreFinder, FeatureWriter, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
@@ -34,7 +35,6 @@ import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFac
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Logging {
@@ -62,10 +62,13 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     case _    => 0
   }
 
-  val delim = config.format.get.toUpperCase match {
-    case "TSV" => CSVFormat.TDF
-    case "CSV" => CSVFormat.DEFAULT
-  }
+  val csvFormat =
+    config.format.get.toUpperCase match {
+      case "TSV" => CSVFormat.TDF
+      case "CSV" => CSVFormat.DEFAULT
+    }
+
+  val delim = csvFormat.withSkipHeaderRecord(skipHeader)
 
   val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
 
@@ -121,7 +124,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
             s"GeoMesa is defaulting to the system time for ingested features.")
         }
         try {
-          performIngest(cfw, Source.fromFile(path).getLines.drop(dropHeader))
+          performIngest(cfw, new File(path))
         } catch {
           case e: Exception => logger.error("error", e)
         }
@@ -138,14 +141,14 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     }
   }
 
-  def runTestIngest(lines: Iterator[String]) = Try {
+  def runTestIngest(file: File) = Try {
     val cfw = new CloseableFeatureWriter
-    performIngest(cfw, lines)
+    performIngest(cfw, file)
     cfw.release()
   }
 
-  def performIngest(cfw: CloseableFeatureWriter, lines: Iterator[String]) = {
-    linesToFeatures(lines).foreach {
+  def performIngest(cfw: CloseableFeatureWriter, file: File) = {
+    linesToFeatures(file).foreach {
       case Success(ft) =>
         writeFeature(cfw.fw, ft)
         // Log info to user that ingest is still working, might be in wrong spot however...
@@ -161,30 +164,22 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     }
   }
 
-  def linesToFeatures(lines: Iterator[String]): Iterator[Try[AvroSimpleFeature]] = {
-    for(line <- lines) yield lineToFeature(line)
+  def linesToFeatures(file: File) = {
+    val csvParser = new CSVParser(new BufferedReader(new FileReader(file)), delim)
+    for(line <- csvParser) yield lineToFeature(line)
   }
 
-  def lineToFeature(line: String): Try[AvroSimpleFeature] = Try {
+  def lineToFeature(record: CSVRecord): Try[AvroSimpleFeature] = Try {
     lineNumber += 1
-    // CsvReader is being used to just split the line up. this may be refactored out when
-    // scalding support is added however it may be necessary for local only ingest
-    val reader = CSVParser.parse(line, delim)
-    val fields: Seq[String] = try {
-      reader.getRecords.flatten
-    } catch {
-      case e: Exception => throw new Exception(s"Commons CSV could not parse " +
-        s"line number: $lineNumber \n\t with value: $line")
-    } finally {
-      reader.close()
-    }
+
+    val fields = record.toSeq
 
     val id = idBuilder(fields)
     builder.reset()
     builder.addAll(fields)
     val feature = builder.buildFeature(id).asInstanceOf[AvroSimpleFeature]
 
-    dtBuilder.foreach { dateBuilder => addDateToFeature(line, fields, feature, dateBuilder) }
+    dtBuilder.foreach { dateBuilder => addDateToFeature(record, fields, feature, dateBuilder) }
     // Support for point data method
     val lon = Option(feature.getAttribute(lonField)).map(_.asInstanceOf[Double])
     val lat = Option(feature.getAttribute(latField)).map(_.asInstanceOf[Double])
@@ -196,7 +191,7 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
     feature
   }
 
-  def addDateToFeature(line: String, fields: Seq[String], feature: AvroSimpleFeature,
+  def addDateToFeature(record: CSVRecord, fields: Seq[String], feature: AvroSimpleFeature,
                        dateBuilder: (AnyRef) => DateTime) {
     try {
       val dtgFieldIndex = getAttributeIndexInLine(dtgField.get)
@@ -204,14 +199,14 @@ class SVIngest(config: IngestArguments, dsConfig: Map[String, _]) extends Loggin
       feature.setAttribute(dtgField.get, date)
     } catch {
       case e: Exception => throw new Exception(s"Could not form Date object from field" +
-        s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
+        s" using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $record")
     }
     //now try to build the date time object and set the dtgTargetField to the date value
     val dtg = try {
       dateBuilder(feature.getAttribute(dtgField.get))
     } catch {
       case e: Exception => throw new Exception(s"Could not find date-time field: '$dtgField'," +
-        s" on line  number: $lineNumber \n\t With value of: $line")
+        s" on line  number: $lineNumber \n\t With value of: $record")
     }
 
     feature.setAttribute(dtgTargetField, dtg.toDate)
