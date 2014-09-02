@@ -262,10 +262,12 @@ object STIdxStrategy {
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
   def getSTIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =
-    if (spatialFilters(filter) &&
-      isValidSTIdxFilter(sft, filter.asInstanceOf[BinarySpatialOperator].getExpression1, filter.asInstanceOf[BinarySpatialOperator].getExpression2)
-    ) { Some(new STIdxStrategy) }
-    else { None }
+    if(!spatialFilters(filter)) None
+    else {
+      val e1 = filter.asInstanceOf[BinarySpatialOperator].getExpression1
+      val e2 = filter.asInstanceOf[BinarySpatialOperator].getExpression2
+      if(isValidSTIdxFilter(sft, e1, e2)) Some(new STIdxStrategy) else None
+    }
 
   /**
    * Ensures the following conditions:

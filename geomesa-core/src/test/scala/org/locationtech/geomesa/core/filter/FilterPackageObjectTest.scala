@@ -3,7 +3,7 @@ package org.locationtech.geomesa.core.filter
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.filter.FilterUtils._
+//import org.locationtech.geomesa.core.filter.FilterUtils._
 import org.locationtech.geomesa.core.filter.TestFilters._
 import org.locationtech.geomesa.core.iterators.TestData._
 import org.opengis.filter._

@@ -5,8 +5,10 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.filter.TestFilters._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.utils.filters.Filters._
+
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -150,6 +152,20 @@ class FilterHelperTest extends Specification with Logging {
         val beforeAndDuringInterval = beforeDtInterval.overlap(pairInterval)
         beforeAndDuring must equalTo(beforeAndDuringInterval)
       }
+    }
+  }
+  "filterListAsAnd as an inverse of decomposeAnd" should {
+
+    "handle empty sequences" in {
+     val emptyFilterSeq = Seq[Filter]()
+     val filteredSeq = filterListAsAnd(emptyFilterSeq)
+     filteredSeq.isDefined must beFalse
+
+    }
+    "handle sequences with just one entry" in {
+      val processed = baseFilters.flatMap{filter => filterListAsAnd(decomposeAnd(filter))}
+      val difference = processed diff baseFilters
+      difference.isEmpty must beTrue
     }
   }
 }

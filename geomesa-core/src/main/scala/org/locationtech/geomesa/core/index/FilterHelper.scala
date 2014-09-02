@@ -146,8 +146,10 @@ object FilterHelper {
 
   def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = filters match {
     case Nil => None
-    case _ => Some(ff.and(filters))
+    case _ => Some(recomposeAnd(filters))
   }
+
+  def recomposeAnd(s: Seq[Filter]): Filter = if (s.tail.isEmpty) s.head else ff.and(s)
 
   /**
    * Finds the first filter satisfying the condition and returns the rest in the same order they were in
