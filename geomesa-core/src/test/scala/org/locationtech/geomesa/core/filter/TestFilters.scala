@@ -129,7 +129,7 @@ object TestFilters {
 
   val attributePredicates = Seq(
     "attr2 = '2nd100001'",
-    "attr2 ILIKE '%1'",
+    //"attr2 ILIKE '%1'",    // JNH: IOU.
     "attr2 ILIKE '2nd1%'",
     "attr2 ILIKE '1%'"      // Returns 0 since medium data features start with "2nd"
   )
@@ -157,5 +157,10 @@ object TestFilters {
 
   val spatioTemporalPredicates = Seq(
     "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
+  )
+
+  val idPredicates = Seq(
+    "IN(100001)",
+    "IN(100001, 100011)"
   )
 }

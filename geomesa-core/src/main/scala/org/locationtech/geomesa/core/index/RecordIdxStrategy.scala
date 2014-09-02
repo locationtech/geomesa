@@ -37,8 +37,11 @@ class RecordIdxStrategy extends Strategy {
     output(s"Searching the record table with filter ${query.getFilter}")
     val idFilter = query.getFilter.asInstanceOf[Id]
     val recordScanner = acc.createRecordScanner(featureType)
+
+    val prefix = getTableSharingPrefix(featureType)
+
     val ranges = idFilter.getIdentifiers.map { id =>
-      org.apache.accumulo.core.data.Range.exact(id.toString)
+      org.apache.accumulo.core.data.Range.exact(prefix + id.toString)
     }
     recordScanner.setRanges(ranges)
 
