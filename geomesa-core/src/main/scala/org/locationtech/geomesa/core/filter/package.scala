@@ -96,6 +96,8 @@ package object filter {
   def partitionTemporal(filters: Seq[Filter], dtgAttr: Option[String]): (Seq[Filter], Seq[Filter]) =
     filters.partition(temporalFilters(_, dtgAttr))
 
+  def partitionID(filter: Filter) = partitionSubFilters(filter, filterIsId)
+
   // Defines the topological predicates we like for use in the STII.
   def spatialFilters(f: Filter): Boolean = {
     f match {
@@ -127,36 +129,30 @@ package object filter {
       case _ => false
     }
 
-  def filterIsBetween(f: Filter, dtgAttr: Option[String]): Boolean = {
+  def filterIsBetween(f: Filter, dtgAttr: Option[String]): Boolean =
     f match {
       case between: PropertyIsBetween => dtgAttr.exists(_ == between.getExpression.toString)
       case _ => false
     }
-  }
 
-  def decomposeBinary(f: Filter): Seq[Filter] = {
+
+  def decomposeBinary(f: Filter): Seq[Filter] =
     f match {
       case b: BinaryLogicOperator => b.getChildren.toSeq.flatMap(decomposeBinary)
       case f: Filter => Seq(f)
     }
-  }
 
-  def decomposeAnd(f: Filter): Seq[Filter] = {
+
+  def decomposeAnd(f: Filter): Seq[Filter] =
     f match {
       case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
       case f: Filter => Seq(f)
     }
-  }
 
-  def recomposeAnd(s: Seq[Filter]): Filter = if (s.tail.isEmpty) s.head else ff.and(s)
-
-  def decomposeOr(f: Filter): Seq[Filter] = {
+  def decomposeOr(f: Filter): Seq[Filter] =
     f match {
       case b: Or => b.getChildren.toSeq.flatMap(decomposeOr)
       case f: Filter => Seq(f)
     }
-  }
-
-
 
 }

@@ -47,7 +47,7 @@ object QueryStrategyDecider {
       new STIdxStrategy
     } else {
       // check if we can use the attribute index first
-      val attributeStrategy = AttributeIndexStrategy.getAttributeIndexStrategy(filter, sft)
+      val attributeStrategy = getAttributeIndexStrategy(filter, sft)
       attributeStrategy.getOrElse {
         filter match {
           case idFilter: Id => new RecordIdxStrategy
@@ -65,10 +65,18 @@ object QueryStrategyDecider {
       if (children.indexOf(attr) < children.indexOf(st)) { getAttributeIndexStrategy(attr, sft).get }
       else { new STIdxStrategy }
     }
-
+    // first scan the query and identify the type of predicates present
     val strats = (children.find(c => getAttributeIndexStrategy(c, sft).isDefined),
                   children.find(c => getSTIdxStrategy(c, sft).isDefined),
                   children.find(c => getRecordIdxStrategy(c, sft).isDefined))
+
+    /**
+     * Choose the query strategy to be employed here. This is the priority
+     *   * If an ID predicate is present, it is assumed that only a small number of queries are requested
+     *            --> The Record Index is scanned, and the other ECQL filters, if any, are then applied
+     *
+     */
+
 
     strats match {
       case (_,_, Some(idFilter))                    => new RecordIdxStrategy

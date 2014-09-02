@@ -19,22 +19,27 @@ package org.locationtech.geomesa.core.index
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.slf4j.Logging
+import org.apache.accumulo.core.data
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
+import org.locationtech.geomesa.core.index.FilterHelper.filterListAsAnd
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.iterators.IteratorTrigger
 import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.identity.Identifier
 import org.opengis.filter.{Filter, Id}
 
 import scala.collection.JavaConverters._
+//import scala.collection.mutable
+
+//import scala.collection.mutable
 
 object RecordIdxStrategy {
-   def getRecordIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] = {
+   def getRecordIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =
      if (filterIsId(filter)) Some(new RecordIdxStrategy) else None
-   }
 }
 
 class RecordIdxStrategy extends Strategy with Logging {
@@ -62,25 +67,28 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     output(s"Searching the record table with filter ${query.getFilter}")
 
-    val (idFilters, oFilters) =  partitionSubFilters(query.getFilter, filterIsId)
+    val (idFilters, oFilters) =  partitionID(query.getFilter)
+    // AND each group of filters back together into Some(filter) if they exist, or None if they do not
+    val combinedIDFilter = filterListAsAnd(idFilters)
 
-    val combinedIDFilter = recomposeAnd(idFilters)
+    val combinedOFilter = filterListAsAnd(oFilters)
 
-    // AND the other filters back together into Some(filter) if they exist, or None if they do not
-    val combinedOFilter = if (oFilters.isEmpty) None else Option(oFilters).map { recomposeAnd }
+    val identifiers = combinedIDFilter.map{_.asInstanceOf[Id].getIdentifiers.asScala.toSet}
 
-    val idFilter = combinedIDFilter.asInstanceOf[Id]
+    val rangesAsOption = identifiers.map{
+      aSet => aSet.map{
+        id => org.apache.accumulo.core.data.Range.exact(id.toString)
+      }
+    }
 
-    output(s"Extracted ID filter: ${idFilter}")
+    val ranges = rangesAsOption match {
+      case Some(filterSet) if filterSet.nonEmpty => filterSet
+      case _ => throw new RuntimeException(s"Filter ${query.getFilter} results in no valid range for record table")
+    }
+
+    output(s"Extracted ID filter: ${combinedIDFilter.get}")
 
     output(s"Extracted Other filters: ${oFilters}")
-
-    val ranges = idFilter.getIdentifiers.asScala.map { id =>
-      org.apache.accumulo.core.data.Range.exact(id.toString)
-    }.toSet
-
-    if (ranges.isEmpty)
-      throw new RuntimeException(s"Filter ${query.getFilter} results in no valid range for record table")
 
     val qp = planQuery(ranges, output, keyPlanner, cfPlanner)
 
