@@ -16,13 +16,13 @@
 
 package org.locationtech.geomesa.tools
 
+import java.io.File
 import com.vividsolutions.jts.geom.Geometry
+import org.apache.commons.csv.{CSVFormat, CSVParser}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])
@@ -57,7 +57,8 @@ class SVIngestTest extends Specification{
     "properly create an AvroSimpleFeature from a comma-delimited string" in {
       val ingest = new SVIngest(csvConfig, createConnectionMap)
       val testString = "1325409954,2013-07-17,-90.368732,35.3155"
-      val f = ingest.lineToFeature(testString)
+      val csvRecord = CSVParser.parse(testString, CSVFormat.DEFAULT).iterator().next()
+      val f = ingest.lineToFeature(csvRecord)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.util.Date]
@@ -69,7 +70,8 @@ class SVIngestTest extends Specification{
     "properly create an AvroSimpleFeature from a tab-delimited string" in {
       val ingest = new SVIngest(csvConfig.copy(format = Option("TSV")), createConnectionMap)
       val testString = "1325409954\t2013-07-17\t-90.368732\t35.3155"
-      val f = ingest.lineToFeature(testString)
+      val tsvRecord = CSVParser.parse(testString, CSVFormat.TDF).iterator().next()
+      val f = ingest.lineToFeature(tsvRecord)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.util.Date]
@@ -82,7 +84,8 @@ class SVIngestTest extends Specification{
       val ingest = new SVIngest(csvConfig.copy(dtFormat = None, dtField = None,
         spec = "id:Double,lon:Double,lat:Double,*geom:Point:srid=4326"), createConnectionMap)
       val testString = "1325409954,-90.368732,35.3155"
-      val f = ingest.lineToFeature(testString)
+      val csvRecord = CSVParser.parse(testString, CSVFormat.DEFAULT).iterator().next()
+      val f = ingest.lineToFeature(csvRecord)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.lang.Double]
@@ -94,7 +97,8 @@ class SVIngestTest extends Specification{
       val ingest = new SVIngest(csvConfig.copy(format = Option("TSV"), dtFormat = None, dtField = None,
         spec = "id:Double,lon:Double,lat:Double,*geom:Point:srid=4326"), createConnectionMap)
       val testString = "1325409954\t-90.368732\t35.3155"
-      val f = ingest.lineToFeature(testString)
+      val tsvRecord = CSVParser.parse(testString, CSVFormat.TDF).iterator().next()
+      val f = ingest.lineToFeature(tsvRecord)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.lang.Double]
@@ -105,7 +109,8 @@ class SVIngestTest extends Specification{
     "properly create an AvroSimpleFeature from a comma-delimited string with a Point WKT geometry" in {
       val ingest = new SVIngest(csvWktConfig, createConnectionMap)
       val testString = "294908082,2013-07-17,POINT(-90.161852 32.39271)"
-      val f = ingest.lineToFeature(testString)
+      val csvRecord = CSVParser.parse(testString, CSVFormat.DEFAULT).iterator().next()
+      val f = ingest.lineToFeature(csvRecord)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.util.Date]
@@ -115,7 +120,8 @@ class SVIngestTest extends Specification{
     "properly create an AvroSimpleFeature from a tab-delimited string with a Point WKT geometry" in {
       val ingest = new SVIngest(csvWktConfig.copy(format = Option("TSV")), createConnectionMap)
       val testString = "294908082\t2013-07-17\tPOINT(-90.161852 32.39271)"
-      val f = ingest.lineToFeature(testString)
+      val tsvRecord = CSVParser.parse(testString, CSVFormat.TDF).iterator().next()
+      val f = ingest.lineToFeature(tsvRecord)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.util.Date]
@@ -125,7 +131,8 @@ class SVIngestTest extends Specification{
     "properly create an AvroSimpleFeature from a comma-delimited string with a Polygon WKT geometry" in {
       val ingest = new SVIngest(csvWktConfig, createConnectionMap)
       val testString = "294908082,2013-07-17,\"POLYGON((0 0, 0 10, 10 10, 0 0))\""
-      val f = ingest.lineToFeature(testString)
+      val csvRecord = CSVParser.parse(testString, CSVFormat.DEFAULT).iterator().next()
+      val f = ingest.lineToFeature(csvRecord)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.util.Date]
@@ -135,7 +142,8 @@ class SVIngestTest extends Specification{
     "properly create an AvroSimpleFeature from a tab-delimited string with a Polygon WKT geometry" in {
       val ingest = new SVIngest(csvWktConfig.copy(format = Option("TSV")), createConnectionMap)
       val testString = "294908082\t2013-07-17\tPOLYGON((0 0, 0 10, 10 10, 0 0))"
-      val f = ingest.lineToFeature(testString)
+      val tsvRecord = CSVParser.parse(testString, CSVFormat.TDF).iterator().next()
+      val f = ingest.lineToFeature(tsvRecord)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.Double]
       f.get.getAttribute(1) must beAnInstanceOf[java.util.Date]
@@ -149,7 +157,8 @@ class SVIngestTest extends Specification{
         format = Option("TSV"), dtFormat = Option("yyyy/MM/dd :HH:mm:ss:"), dtField = Option("dtg")),
         createConnectionMap)
       val testString = "0000\tgeomesa user\t823543\tGeoMesa rules!\t2014/08/13 :06:06:06:\tPoint(-78.4 38.0)"
-      val f = ingest.lineToFeature(testString)
+      val tsvRecord = CSVParser.parse(testString, CSVFormat.TDF).iterator().next()
+      val f = ingest.lineToFeature(tsvRecord)
 
       f.get.getAttribute(0) must beAnInstanceOf[java.lang.String]
       f.get.getAttribute(1) must beAnInstanceOf[java.lang.String]
@@ -159,11 +168,10 @@ class SVIngestTest extends Specification{
       f.get.getAttribute(5) must beAnInstanceOf[Geometry]
     }
 
-    "properly create an Interator[Try[AvroSimpleFeature]] from a valid CSV" in {
+    "properly create an Seq[Try[AvroSimpleFeature]] from a valid CSV" in {
       val path = Tools.getClass.getResource("/test_valid.csv")
       val ingest = new SVIngest(csvConfig, createConnectionMap)
-      val lines = Source.fromFile(path.getFile).getLines
-      val featureIterator = ingest.linesToFeatures(lines)
+      val featureIterator = ingest.linesToFeatures(new File(path.toURI))
 
       featureIterator.foreach {
         case Success(ft) =>
@@ -174,14 +182,13 @@ class SVIngestTest extends Specification{
           ft.getAttribute(4) must beAnInstanceOf[Geometry]
         case Failure(ex) => failure
       }
-      featureIterator must beAnInstanceOf[Iterator[Try[AvroSimpleFeature]]]
+      featureIterator must beAnInstanceOf[Seq[Try[AvroSimpleFeature]]]
     }
 
-    "properly create an Interator[Try[AvroSimpleFeature]] from a valid TSV" in {
+    "properly create an Seq[Try[AvroSimpleFeature]] from a valid TSV" in {
       val path = Tools.getClass.getResource("/test_valid.tsv")
       val ingest = new SVIngest(csvConfig.copy(format = Option("TSV")), createConnectionMap)
-      val lines = Source.fromFile(path.getFile).getLines
-      val featureIterator = ingest.linesToFeatures(lines)
+      val featureIterator = ingest.linesToFeatures(new File(path.toURI))
 
       featureIterator.foreach {
         case Success(ft) =>
@@ -192,14 +199,13 @@ class SVIngestTest extends Specification{
           ft.getAttribute(4) must beAnInstanceOf[Geometry]
         case Failure(ex) => failure
       }
-      featureIterator must beAnInstanceOf[Iterator[Try[AvroSimpleFeature]]]
+      featureIterator must beAnInstanceOf[Seq[Try[AvroSimpleFeature]]]
     }
 
-    "properly create an Interator[Try[AvroSimpleFeature]] from a valid CSV with WKT geometries" in {
+    "properly create an Seq[Try[AvroSimpleFeature]] from a valid CSV with WKT geometries" in {
       val path = Tools.getClass.getResource("/test_valid_wkt.csv")
       val ingest = new SVIngest(csvWktConfig, createConnectionMap)
-      val lines = Source.fromFile(path.getFile).getLines
-      val featureIterator = ingest.linesToFeatures(lines)
+      val featureIterator = ingest.linesToFeatures(new File(path.toURI))
 
       featureIterator.foreach {
         case Success(ft) =>
@@ -208,14 +214,13 @@ class SVIngestTest extends Specification{
           ft.getAttribute(2) must beAnInstanceOf[Geometry]
         case Failure(ex) => failure
       }
-      featureIterator must beAnInstanceOf[Iterator[Try[AvroSimpleFeature]]]
+      featureIterator must beAnInstanceOf[Seq[Try[AvroSimpleFeature]]]
     }
 
-    "properly create an Interator[Try[AvroSimpleFeature]] from a valid TSV with WKT geometries" in {
+    "properly create an Seq[Try[AvroSimpleFeature]]from a valid TSV with WKT geometries" in {
       val path = Tools.getClass.getResource("/test_valid_wkt.tsv")
       val ingest = new SVIngest(csvWktConfig.copy(format = Option("TSV")), createConnectionMap)
-      val lines = Source.fromFile(path.getFile).getLines
-      val featureIterator = ingest.linesToFeatures(lines)
+      val featureIterator = ingest.linesToFeatures(new File(path.toURI))
 
       featureIterator.foreach {
         case Success(ft) =>
@@ -224,57 +229,51 @@ class SVIngestTest extends Specification{
           ft.getAttribute(2) must beAnInstanceOf[Geometry]
         case Failure(ex) => failure
       }
-      featureIterator must beAnInstanceOf[Iterator[Try[AvroSimpleFeature]]]
+      featureIterator must beAnInstanceOf[Seq[Try[AvroSimpleFeature]]]
     }
 
     "properly write the features from a valid CSV" in {
       val path = Tools.getClass.getResource("/test_valid.csv")
       val ingest = new SVIngest(csvConfig, createConnectionMap)
-      val lines = Source.fromFile(path.getFile).getLines
 
-      ingest.runTestIngest(lines) must beASuccessfulTry
+      ingest.runTestIngest(new File(path.toURI)) must beASuccessfulTry
     }
 
     "properly write the features from a valid TSV" in {
       val path = Tools.getClass.getResource("/test_valid.tsv")
       val ingest = new SVIngest(csvConfig.copy(format = Option("TSV")), createConnectionMap)
-      val lines = Source.fromFile(path.getFile).getLines
 
-      ingest.runTestIngest(lines) must beASuccessfulTry
+      ingest.runTestIngest(new File(path.toURI)) must beASuccessfulTry
     }
 
     "properly write the features from a valid CSV with WKT geometries" in {
       val path = Tools.getClass.getResource("/test_valid_wkt.csv")
       val ingest = new SVIngest(csvWktConfig, createConnectionMap)
-      val lines = Source.fromFile(path.getFile).getLines
 
-      ingest.runTestIngest(lines) must beASuccessfulTry
+      ingest.runTestIngest(new File(path.toURI)) must beASuccessfulTry
     }
 
     "properly write the features from a valid TSV with WKT geometries" in {
       val path = Tools.getClass.getResource("/test_valid_wkt.tsv")
       val ingest = new SVIngest(csvWktConfig.copy(format = Option("TSV")), createConnectionMap)
-      val lines = Source.fromFile(path.getFile).getLines
 
-      ingest.runTestIngest(lines) must beASuccessfulTry
+      ingest.runTestIngest(new File(path.toURI)) must beASuccessfulTry
     }
 
     "properly write the features from a valid CSV with no date/time" in {
       val path = Tools.getClass.getResource("/test_valid_nd.csv")
       val ingest = new SVIngest(csvConfig.copy(dtFormat = None, dtField = None,
         spec = "id:Double,lon:Double,lat:Double,*geom:Point:srid=4326"), createConnectionMap)
-      val lines = Source.fromFile(path.getFile).getLines
 
-      ingest.runTestIngest(lines) must beASuccessfulTry
+      ingest.runTestIngest(new File(path.toURI)) must beASuccessfulTry
     }
 
     "properly write the features from a valid TSV with no date/time" in {
       val path = Tools.getClass.getResource("/test_valid_nd.tsv")
       val ingest = new SVIngest(csvConfig.copy(format = Option("TSV"), dtFormat = None, dtField = None,
         spec = "id:Double,lon:Double,lat:Double,*geom:Point:srid=4326"), createConnectionMap)
-      val lines = Source.fromFile(path.getFile).getLines
 
-      ingest.runTestIngest(lines) must beASuccessfulTry
+      ingest.runTestIngest(new File(path.toURI)) must beASuccessfulTry
     }
   }
 
