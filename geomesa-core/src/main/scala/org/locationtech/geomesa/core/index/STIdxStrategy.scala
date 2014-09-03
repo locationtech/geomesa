@@ -39,7 +39,7 @@ import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingI
 import org.locationtech.geomesa.core.{DEFAULT_SCHEMA_NAME, GEOMESA_ITERATORS_IS_DENSITY_TYPE}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.Literal
+import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator}
 
 class STIdxStrategy extends Strategy with Logging {
@@ -301,3 +301,33 @@ class STIdxStrategy extends Strategy with Logging {
   }
 }
 
+object STIdxStrategy {
+
+  import org.locationtech.geomesa.core.filter.spatialFilters
+  import org.locationtech.geomesa.utils.geotools.Conversions._
+
+  def getSTIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =
+    if (spatialFilters(filter) &&
+      isValidSTIdxFilter(sft, filter.asInstanceOf[BinarySpatialOperator].getExpression1, filter.asInstanceOf[BinarySpatialOperator].getExpression2)
+    ) { Some(new STIdxStrategy) }
+    else { None }
+
+  /**
+   * Ensures the following conditions:
+   *   - there is exactly one 'property name' expression
+   *   - the property is indexed by GeoMesa
+   *   - all other expressions are literals
+   *
+   * @param sft
+   * @param exp
+   * @return
+   */
+  private def isValidSTIdxFilter(sft: SimpleFeatureType, exp: Expression*): Boolean = {
+    val (props, lits) = exp.partition(_.isInstanceOf[PropertyName])
+
+    props.length == 1 &&
+      props.map(_.asInstanceOf[PropertyName].getPropertyName).forall(sft.getDescriptor(_).isIndexed) &&
+      lits.forall(_.isInstanceOf[Literal])
+  }
+
+}
