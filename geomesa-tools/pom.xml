@@ -84,6 +84,11 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>com.github.scopt</groupId>
             <artifactId>scopt_2.10</artifactId>
         </dependency>
