@@ -48,11 +48,13 @@ class TableTools(config: ScoptArguments, password: String) extends Logging {
   val instanceName = new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepers).getInstanceName
   val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
-      "instanceId" -> instanceName,
-      "zookeepers" -> zookeepers,
-      "user"       -> config.username,
-      "password"   -> password,
-      "tableName"  -> config.catalog)).asInstanceOf[AccumuloDataStore]
+      "instanceId"   -> instanceName,
+      "zookeepers"   -> zookeepers,
+      "user"         -> config.username,
+      "password"     -> password,
+      "tableName"    -> config.catalog,
+      "visibilities" -> config.visibilities,
+      "auths"        -> config.auths)).asInstanceOf[AccumuloDataStore]
   }).getOrElse{
     logger.error("Incorrect username or password. Please try again.")
     sys.exit()

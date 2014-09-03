@@ -65,3 +65,6 @@ This sub-project contains the distribution-ready TAR-ball as well as the documen
 
 This sub-project contains utilities for working with distributed computing environments.  Currently, there are methods for instantiating an Apache Spark Resilient Distributed Dataset from a CQL query against data stored in GeoMesa.  Eventually, this project will contain bindings for traditional map-reduce processing, Scalding, and other environments.
 
+#### geomesa-tools
+
+This sub-project contains a set of command line tools for managing features, ingesting and exporting data, configuring tables, and explaining queries in GeoMesa. Please view the [geomesa-tools README](https://github.com/locationtech/geomesa/tree/accumulo1.5.x/1.x/geomesa-tools#geomesa-tools) to learn more.

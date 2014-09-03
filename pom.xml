@@ -33,6 +33,7 @@
         <module>geomesa-feature</module>
         <module>geomesa-tools</module>
         <module>geomesa-compute</module>
+        <module>geomesa-assemble</module>
     </modules>
 
     <properties>
@@ -303,6 +304,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-jobs-accumulo1.5</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
