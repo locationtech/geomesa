@@ -38,7 +38,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.core
 import org.locationtech.geomesa.core.data.AccumuloDataStore._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.core.data.tables.{RecordTable, AttributeTable, SpatioTemporalTable}
+import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -48,7 +48,7 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.collection.JavaConversions._
-import scala.util.{Success, Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
  *
@@ -421,11 +421,11 @@ class AccumuloDataStore(val connector: Connector,
   def removeSchema(featureName: String, numThreads: Int = 1) =
     if (readMetadataItem(featureName, ST_IDX_TABLE_CF).nonEmpty) {
       val featureType = getSchema(featureName)
-      val shared = core.index.getTableSharing(featureType)
 
-      shared match {
-        case true =>  deleteSharedTables(featureType)
-        case false => deleteStandAloneTables(featureType)
+      if (core.index.getTableSharing(featureType)) {
+        deleteSharedTables(featureType)
+      } else {
+        deleteStandAloneTables(featureType)
       }
 
       deleteMetadata(featureName, numThreads)
@@ -465,11 +465,10 @@ class AccumuloDataStore(val connector: Connector,
       getRecordTableForType(sft)
     ).filter(tableOps.exists).foreach(tableOps.delete)
 
-  private def expireMetadataFromCache(featureName: String) = {
+  private def expireMetadataFromCache(featureName: String) =
     metaDataCache.keys
       .filter { case (fn, cf) => fn == featureName }
       .map { metaDataCache.remove }
-  }
 
   /**
    * GeoTools API createSchema() method for a featureType...creates tables with
@@ -866,7 +865,7 @@ class AccumuloDataStore(val connector: Connector,
           .getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
         val indexSchema = readMetadataItem(featureName, SCHEMA_CF).orNull
         // If no data is written, we default to 'false' in order to support old tables.
-        val sharingBoolean: String = readMetadataItem(featureName, SHARED_TABLES_CF).getOrElse("false")
+        val sharingBoolean = readMetadataItem(featureName, SHARED_TABLES_CF).getOrElse("false")
 
         sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
         sft.getUserData.put(core.index.SF_PROPERTY_END_TIME, dtgField)
@@ -1017,7 +1016,7 @@ object AccumuloDataStore {
    * @return
    */
   def formatQueriesTableName(catalogTable: String, featureType: SimpleFeatureType): String =
-    s"${catalogTable}_queries" //formatTableName(catalogTable, featureType, "queries")
+    s"${catalogTable}_queries"
 
   // only alphanumeric is safe
   val SAFE_FEATURE_NAME_PATTERN = "^[a-zA-Z0-9]+$"

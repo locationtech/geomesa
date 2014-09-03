@@ -78,7 +78,6 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     // since the row id of the record table is in the CF just grab that
     val prefix = getTableSharingPrefix(featureType)
     val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(prefix + kv.getKey.getColumnQualifier)
-    //val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(kv.getKey.getColumnFamily)
     val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
 
     SelfClosingIterator(bms.iterator, () => bms.close())

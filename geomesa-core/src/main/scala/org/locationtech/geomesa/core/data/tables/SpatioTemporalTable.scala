@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.core.data.tables
 
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{Connector, BatchDeleter, BatchWriter}
 import org.apache.accumulo.core.data
 import org.apache.accumulo.core.data.{Mutation, Value, Key}
@@ -25,7 +26,7 @@ import org.locationtech.geomesa.core.index.{IndexEntryEncoder, IndexSchema}
 import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 import scala.collection.JavaConverters._
 
-object SpatioTemporalTable {
+object SpatioTemporalTable extends Logging {
 
   def spatioTemporalWriter(bw: BatchWriter, encoder: IndexEntryEncoder): SimpleFeature => Unit =
     (feature: SimpleFeature) => {
@@ -62,7 +63,7 @@ object SpatioTemporalTable {
     val (rowf, _,_) = IndexSchema.parse(IndexSchema.formatter, schema).get
     rowf.lf match {
       case Seq(pf: PartitionTextFormatter[SimpleFeature], const: ConstantTextFormatter[SimpleFeature], r@_*) =>
-        // JNH: Build ranges using pf and const!
+        // Build ranges using pf and const!
         val rpp = RandomPartitionPlanner(pf.numPartitions)
         val csp = ConstStringPlanner(const.constStr)
 
@@ -74,10 +75,9 @@ object SpatioTemporalTable {
             ranges.map { r =>
               new org.apache.accumulo.core.data.Range(r.start + "~" + MIN_START, r.end + "~" + MAX_END)
             }
-          case _ => throw new Exception("Shouldn't get here")
+          case _ => logger.error(s"Keyplanner failed to build range properly."); Seq()
         }
 
-        println(s"Setting ranges $rs and deleting")
         bd.setRanges(rs.asJavaCollection)
         bd.delete()
         bd.close()

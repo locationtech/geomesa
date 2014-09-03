@@ -26,6 +26,7 @@ class TableSharingTest extends Specification {
     DataStoreFinder.getDataStore(Map(
       "instanceId"        -> "mycloud",
       "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
       "user"              -> "myuser",
       "password"          -> "mypassword",
       "auths"             -> "A,B,C",
@@ -86,7 +87,6 @@ class TableSharingTest extends Specification {
     // Checks feature source #2's query count against the input.
     def check(count: Int) = {
       val q2 = queryCount(f, featureStore2)
-      println(s"Q2: $q2 for step $step for filter $fs")
 
       s"fs2 must get $count results from filter $fs" >> {
         q2 mustEqual count
@@ -98,13 +98,6 @@ class TableSharingTest extends Specification {
   }
 
   "all three queries" should {
-    val sft2AttrScanner = ds.createAttrIdxScanner(sft2)
-    sft2AttrScanner.iterator.take(10).foreach { e => println(s"Attr Key: ${e.getKey}") }
-
-    val sft2RecordScanner = ds.createRecordScanner(sft2)
-    sft2RecordScanner.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
-    sft2RecordScanner.iterator.take(10).foreach { e => println(s"Record Key: ${e.getKey}") }
-
     "work for all three features (after setup) " >> {
       compare(id, 1)
       compare(st, 1)

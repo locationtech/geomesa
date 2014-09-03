@@ -89,8 +89,6 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
         val recTable = ds.getRecordTableForType(featureType)
         val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
 
-        println(s"Getting writers for $stTable, $attrTable, $recTable")
-
         List(
           AttributeTable.attrWriter(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility, rowIdPrefix),
           RecordTable.recordWriter(multiBWWriter.getBatchWriter(recTable), encoder, visibility, rowIdPrefix))
@@ -182,8 +180,6 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
       if (dataStore.catalogTableFormat(featureType)) {
         val attrTable = dataStore.getAttrIdxTableName(featureType)
         val recTable = dataStore.getRecordTableForType(featureType)
-
-        println(s"Getting deleters for $stTable, $attrTable, $recTable")
 
         List(
           AttributeTable.removeAttrIdx(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility, rowIdPrefix),

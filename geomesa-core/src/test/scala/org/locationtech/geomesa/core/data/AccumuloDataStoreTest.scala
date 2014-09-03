@@ -822,9 +822,7 @@ class AccumuloDataStoreTest extends Specification {
       scannerResultsAfterDeletion should beNone
 
       val query = new Query(sftName, Filter.INCLUDE)
-//      val results = fs.getFeatures(query)
-//   JNH: This is actually undefined behavior
-      true mustEqual true //results.size() mustEqual 0
+      fs.getFeatures(query) must throwA[Exception]
     }
 
     "throw a RuntimeException when calling removeSchema on 0.10.x records" in {
@@ -905,9 +903,8 @@ class AccumuloDataStoreTest extends Specification {
 
       val query = new Query(sftName, Filter.INCLUDE)
       val query2 = new Query(sftName2, Filter.INCLUDE)
-      // JNH: This is undefined.  val results = fs.getFeatures(query)
+
       val results2 = fs2.getFeatures(query2)
-      //  results.size() mustEqual 0
       results2.size() should beGreaterThan(0)
     }
 
