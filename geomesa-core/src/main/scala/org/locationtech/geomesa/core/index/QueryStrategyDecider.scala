@@ -79,11 +79,11 @@ object QueryStrategyDecider {
 
 
     strats match {
-      case (_,_, Some(idFilter))                    => new RecordIdxStrategy
-      case (Some(attrFilter), Some(stFilter), None) => determineStrategy(attrFilter, stFilter)
-      case (Some(attrFilter), None, None)           => getAttributeIndexStrategy(attrFilter, sft).get
-      case (None, Some(stFilter), None)             => new STIdxStrategy
-      case (None, None, None)                       => new STIdxStrategy
+      case (               _,              _, Some(idFilter))  => new RecordIdxStrategy
+      case (Some(attrFilter), Some(stFilter),           None)  => determineStrategy(attrFilter, stFilter)
+      case (Some(attrFilter),           None,           None)  => getAttributeIndexStrategy(attrFilter, sft).get
+      case (            None, Some(stFilter),           None)  => new STIdxStrategy
+      case (            None,           None,           None)  => new STIdxStrategy
     }
   }
 

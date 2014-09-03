@@ -8,7 +8,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.filter.TestFilters._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.utils.filters.Filters._
-
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
