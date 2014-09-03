@@ -70,8 +70,11 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     configureAttributeIndexIterator(attrScanner, featureType, ofilter, range)
 
     val recordScanner = acc.createRecordScanner(featureType)
-    val iterSetting = configureSimpleFeatureFilteringIterator(featureType, None, schema, featureEncoder, query)
-    recordScanner.addScanIterator(iterSetting)
+
+    if (nonSTFilters.nonEmpty) {
+      val iterSetting = configureSimpleFeatureFilteringIterator(featureType, Some(filterListAsAnd(nonSTFilters).get.toString), schema, featureEncoder, query)
+      recordScanner.addScanIterator(iterSetting)
+    }
 
     // function to join the attribute index scan results to the record table
     // since the row id of the record table is in the CF just grab that
@@ -143,6 +146,18 @@ trait AttributeIdxStrategy extends Strategy with Logging {
                     s"${one.getClass.getName}, ${two.getClass.getName}"
         throw new RuntimeException(msg)
     }
+
+  def partitionFilter(filter: Filter, sft: SimpleFeatureType): (Query, Filter) = {
+
+    val (indexFilter, cqlFilter) = filter match {
+      case and: And =>
+        findFirst(AttributeIndexStrategy.getAttributeIndexStrategy(_, sft).isDefined)(and.getChildren)
+      case f: Filter =>
+        (Some(f), Seq())
+    }
+
+    (new Query(sft.getTypeName, filterListAsAnd(cqlFilter).getOrElse(Filter.INCLUDE)), indexFilter.get)
+  }
 }
 
 class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
@@ -152,8 +167,9 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
                        featureType: SimpleFeatureType,
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+    val (strippedQuery, filter) = partitionFilter(query.getFilter, featureType)
     val range =
-      query.getFilter match {
+      filter match {
         case f: PropertyIsEqualTo =>
           val (prop, lit, _) = checkOrder(f.getExpression1, f.getExpression2)
           AccRange.exact(getEncodedAttrIdxRow(featureType, prop, lit))
@@ -171,11 +187,11 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
           AccRange.exact(AttributeIndexEntry.getAttributeIndexRow(prop, None))
 
         case _ =>
-          val msg = s"Unhandled filter type in equals strategy: ${query.getFilter.getClass.getName}"
+          val msg = s"Unhandled filter type in equals strategy: ${filter.getClass.getName}"
           throw new RuntimeException(msg)
       }
 
-    attrIdxQuery(acc, query, iqp, featureType, range, output)
+    attrIdxQuery(acc, strippedQuery, iqp, featureType, range, output)
   }
 }
 
@@ -186,8 +202,9 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
                        featureType: SimpleFeatureType,
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+    val (strippedQuery, filter) = partitionFilter(query.getFilter, featureType)
     val range =
-      query.getFilter match {
+      filter match {
         case f: PropertyIsBetween =>
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
           val lower = f.getLowerBoundary.asInstanceOf[Literal].getValue
@@ -248,11 +265,11 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
           new AccRange(lowerBound, true, upperBound, true)
 
         case _ =>
-          val msg = s"Unhandled filter type in range strategy: ${query.getFilter.getClass.getName}"
+          val msg = s"Unhandled filter type in range strategy: ${filter.getClass.getName}"
           throw new RuntimeException(msg)
       }
 
-    attrIdxQuery(acc, query, iqp, featureType, range, output)
+    attrIdxQuery(acc, strippedQuery, iqp, featureType, range, output)
   }
 
   private def greaterThanRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
@@ -287,7 +304,8 @@ class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
                        featureType: SimpleFeatureType,
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val filter = query.getFilter.asInstanceOf[PropertyIsLike]
+    val (strippedQuery, extractedFilter) = partitionFilter(query.getFilter, featureType)
+    val filter = extractedFilter.asInstanceOf[PropertyIsLike]
     val expr = filter.getExpression
     val prop = expr match {
       case p: PropertyName => p.getPropertyName
@@ -303,7 +321,7 @@ class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
 
     val range = AccRange.prefix(getEncodedAttrIdxRow(featureType, prop, value))
 
-    attrIdxQuery(acc, query, iqp, featureType, range, output)
+    attrIdxQuery(acc, strippedQuery, iqp, featureType, range, output)
   }
 }
 

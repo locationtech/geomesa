@@ -6,6 +6,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
 import org.apache.accumulo.core.Constants
 import org.apache.accumulo.core.data.{Key, Value}
+import org.geotools.factory.Hints
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.data.SimpleFeatureEncoderFactory
 import org.locationtech.geomesa.core.index._
@@ -69,6 +70,7 @@ object TestData extends Logging {
         List(null, null, null, null, geometry, e.dt.toDate, e.dt.toDate),
         s"|data|${e.id}")
     entry.setAttribute("attr2", "2nd" + e.id)
+    entry.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     entry
   }
 

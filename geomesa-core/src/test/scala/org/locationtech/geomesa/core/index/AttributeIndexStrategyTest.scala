@@ -116,6 +116,64 @@ class AttributeIndexStrategyTest extends Specification {
       scanner.asScala.foreach(println)
       success
     }
+
+    "use first indexable attribute if equals" in {
+      val strategy = new AttributeIdxEqualsStrategy
+      val filter = ECQL.toFilter("age=21 AND count<5")
+      val (strippedQuery, extractedFilter) = strategy.partitionFilter(filter, sft)
+      AttributeIndexStrategy.getAttributeIndexStrategy(extractedFilter, sft).get must beAnInstanceOf[AttributeIdxEqualsStrategy]
+      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery.getFilter, sft)
+      AttributeIndexStrategy.getAttributeIndexStrategy(secondExtractedFilter, sft).get must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "use first indexable attribute if range" in {
+      val strategy = new AttributeIdxEqualsStrategy
+      val filter = ECQL.toFilter("count<5 AND age=21")
+      val (strippedQuery, extractedFilter) = strategy.partitionFilter(filter, sft)
+      AttributeIndexStrategy.getAttributeIndexStrategy(extractedFilter, sft).get must beAnInstanceOf[AttributeIdxRangeStrategy]
+      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery.getFilter, sft)
+      AttributeIndexStrategy.getAttributeIndexStrategy(secondExtractedFilter, sft).get must beAnInstanceOf[AttributeIdxEqualsStrategy]
+    }
+
+    "use first indexable attribute if like" in {
+      val strategy = new AttributeIdxEqualsStrategy
+      val filter = ECQL.toFilter("name LIKE 'baddy' AND age=21")
+      val (strippedQuery, extractedFilter) = strategy.partitionFilter(filter, sft)
+      AttributeIndexStrategy.getAttributeIndexStrategy(extractedFilter, sft).get must beAnInstanceOf[AttributeIdxLikeStrategy]
+      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery.getFilter, sft)
+      AttributeIndexStrategy.getAttributeIndexStrategy(secondExtractedFilter, sft).get must beAnInstanceOf[AttributeIdxEqualsStrategy]
+    }
+
+    "use first indexable attribute if like and retain all children for > 2 filters" in {
+      val strategy = new AttributeIdxEqualsStrategy
+      val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("name LIKE 'baddy'"), ECQL.toFilter("age=21"), ECQL.toFilter("count<5"))).get
+      val (strippedQuery, extractedFilter) = strategy.partitionFilter(filter, sft)
+      AttributeIndexStrategy.getAttributeIndexStrategy(extractedFilter, sft).get must beAnInstanceOf[AttributeIdxLikeStrategy]
+      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery.getFilter, sft)
+      AttributeIndexStrategy.getAttributeIndexStrategy(secondExtractedFilter, sft).get must beAnInstanceOf[AttributeIdxEqualsStrategy]
+      val (thirdStripped, thirdExtractedFilter) = strategy.partitionFilter(secondStripped.getFilter, sft)
+      AttributeIndexStrategy.getAttributeIndexStrategy(thirdExtractedFilter, sft).get must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "all attribute filters should be applied to SFFI" in {
+      val strategy = new AttributeIdxLikeStrategy
+      val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("name LIKE 'b%'"), ECQL.toFilter("count<27"), ECQL.toFilter("age<29"))).get
+      val query = new Query(sftName, filter)
+      val results = strategy.execute(ds, queryPlanner, sft, query, ExplainNull)
+      val resultNames = queryPlanner.adaptIterator(results, query).map(_.getAttribute("name").toString).toList
+      resultNames must have size(1)
+      resultNames must contain ("bill")
+    }
+
+    import scala.collection.JavaConversions._
+
+    "there are no attribute filters" in {
+      val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"),
+                                                    ECQL.toFilter("INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"))).get
+      val (extractedFilter, strippedFilters) = FilterHelper.findFirst(AttributeIndexStrategy.getAttributeIndexStrategy(_, sft).isDefined)(filter.asInstanceOf[org.opengis.filter.And].getChildren)
+      extractedFilter must beEmpty
+      strippedFilters must have size(2)
+    }
   }
 
   "AttributeIndexEqualsStrategy" should {
