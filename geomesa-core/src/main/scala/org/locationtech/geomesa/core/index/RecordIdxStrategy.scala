@@ -58,18 +58,19 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     val schema         = iqp.schema
     val featureEncoder = iqp.featureEncoder
-    val keyPlanner     = IndexSchema.buildKeyPlanner(iqp.schema)
-    val cfPlanner      = IndexSchema.buildColumnFamilyPlanner(iqp.schema)
 
     output(s"Searching the record table with filter ${query.getFilter}")
 
     val (idFilters, oFilters) =  partitionID(query.getFilter)
     // AND each group of filters back together into Some(filter) if they exist, or None if they do not
-    val combinedIDFilter = filterListAsAnd(idFilters)
+    // this should actually take the union of all filters and return just Option[ONE ID Filter]
+    // the Filters returned should be if class Id
+    val combinedIDFilter = intersectIDFilters(idFilters)
 
     val combinedOFilter = filterListAsAnd(oFilters)
-
-    val identifiers = combinedIDFilter.map{_.asInstanceOf[Id].getIdentifiers.asScala.toSet}
+    // casting to ID when it is a AND will nto work.
+    //val identifiers = combinedIDFilter.map{_.asInstanceOf[Id].getIdentifiers.asScala.toSet}
+    val identifiers = combinedIDFilter.map{_.getIdentifiers.asScala.toSet}
 
     val rangesAsOption = identifiers.map{
       aSet => aSet.map{
@@ -79,14 +80,17 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     val ranges = rangesAsOption match {
       case Some(filterSet) if filterSet.nonEmpty => filterSet
+      // TODO: for below instead pass empty query plan (https://geomesa.atlassian.net/browse/GEOMESA-347)
       case _ => throw new RuntimeException(s"Filter ${query.getFilter} results in no valid range for record table")
     }
 
     output(s"Extracted ID filter: ${combinedIDFilter.get}")
 
-    output(s"Extracted Other filters: ${oFilters}")
+    output(s"Extracted Other filters: $oFilters")
 
-    val qp = planQuery(ranges, output, keyPlanner, cfPlanner)
+    output(s"Setting ${ranges.size} ranges.")
+
+    val qp = QueryPlan(Seq(), ranges.toSeq, Seq())
 
     // this should be done with care, ECQL ->Filter ->CQL is NOT a unitary transform
     val ecql = combinedOFilter.map { ECQL.toCQL }
@@ -101,14 +105,21 @@ class RecordIdxStrategy extends Strategy with Logging {
     qp.copy(iterators = qp.iterators ++ List(sffiIterCfg).flatten)
   }
 
-  def planQuery(ranges:Set[org.apache.accumulo.core.data.Range],
-                output: ExplainerOutputType,
-                keyPlanner: KeyPlanner,
-                cfPlanner: ColumnFamilyPlanner): QueryPlan = {
-    output(s"Setting ${ranges.size} ranges.")
-    val iters = Seq()
-    val cf = Seq()
-    val accRanges = ranges.toSeq
-    QueryPlan(iters, accRanges, cf)
+  def intersectIDFilters(filters: Seq[Filter]): Option[Id] = {
+    if (filters.tail.isEmpty) Some(filters.head.asInstanceOf[Id])
+    else {
+       // get the Set of IDs in each filter
+       val ids = filters.map{_.asInstanceOf[Id].getIDs.asScala.toSet }
+       // take intersection of all sets
+       //intersectionIDs = something with a fold
+       val intersectionIDs = ids.reduceLeft(_ intersect _)
+       //val intersectionIDs = Set("A","B")
+       // convert back to a filter
+       if (intersectionIDs.isEmpty) None
+       else {
+         val newFilter = ff.id(ff.featureId(intersectionIDs.toString))
+         Some(newFilter)
+       }
+    }
   }
 }

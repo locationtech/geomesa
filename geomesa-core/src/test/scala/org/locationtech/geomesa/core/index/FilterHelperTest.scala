@@ -153,17 +153,19 @@ class FilterHelperTest extends Specification with Logging {
       }
     }
   }
-  "filterListAsAnd as an inverse of decomposeAnd" should {
 
+  "filterListAsAnd as an inverse of decomposeAnd" should {
     "handle empty sequences" in {
      val emptyFilterSeq = Seq[Filter]()
      val filteredSeq = filterListAsAnd(emptyFilterSeq)
-     filteredSeq.isDefined must beFalse
 
+      filteredSeq.isDefined must beFalse
     }
+
     "handle sequences with just one entry" in {
       val processed = baseFilters.flatMap{filter => filterListAsAnd(decomposeAnd(filter))}
       val difference = processed diff baseFilters
+
       difference.isEmpty must beTrue
     }
   }

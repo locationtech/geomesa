@@ -65,6 +65,7 @@ object QueryStrategyDecider {
       if (children.indexOf(attr) < children.indexOf(st)) { getAttributeIndexStrategy(attr, sft).get }
       else { new STIdxStrategy }
     }
+
     // first scan the query and identify the type of predicates present
     val strats = (children.find(c => getAttributeIndexStrategy(c, sft).isDefined),
                   children.find(c => getSTIdxStrategy(c, sft).isDefined),
@@ -75,9 +76,17 @@ object QueryStrategyDecider {
      *   * If an ID predicate is present, it is assumed that only a small number of queries are requested
      *            --> The Record Index is scanned, and the other ECQL filters, if any, are then applied
      *
+     *   * If attribute filters and ST filters are present, use the ordering to choose the correct strategy
+     *
+     *   * If attribute filters are present, then select the correct type of AttributeIdx Strategy
+     *            --> The Attribute Indices are scanned, and the other ECQL filters, if any, are then applied
+     *
+     *   * If ST filters are present, use the STIdxStrategy
+     *            --> The ST Index is scanned, and the other ECQL filters, if any are then applied
+     *
+     *   * If filters are not identified, use the STIdxStrategy
+     *            --> The ST Index is scanned (likely a full table scan) and the ECQL filters are applied
      */
-
-
     strats match {
       case (               _,              _, Some(idFilter))  => new RecordIdxStrategy
       case (Some(attrFilter), Some(stFilter),           None)  => determineStrategy(attrFilter, stFilter)
