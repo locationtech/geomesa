@@ -21,8 +21,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 class Ingest extends Logging with AccumuloProperties {
 
   def getAccumuloDataStoreConf(config: IngestArguments, password: String) = {
-    val instance = instanceName.getOrElse(config.instanceName)
-    val zookeepersString = zookeepers.getOrElse(config.zookeepers)
+    val instance = config.instanceName.getOrElse(instanceName)
+    val zookeepersString = config.zookeepers.getOrElse(zookeepers)
 
     Map (
       "instanceId"        ->  instance,
@@ -69,10 +69,11 @@ class Ingest extends Logging with AccumuloProperties {
 
 object Ingest extends App with Logging with GetPassword {
   val parser = new scopt.OptionParser[IngestArguments]("geomesa-tools ingest") {
+    implicit val optionStringRead: scopt.Read[Option[String]] = scopt.Read.reads(Option[String])
     head("GeoMesa Tools Ingest", "1.0")
     opt[String]('u', "username") action { (x, c) =>
       c.copy(username = x) } text "Accumulo username" required()
-    opt[String]('p', "password") action { (x, c) =>
+    opt[Option[String]]('p', "password") action { (x, c) =>
       c.copy(password = x) } text "Accumulo password, This can also be provided after entering a command" optional()
     opt[String]('c', "catalog").action { (s, c) =>
       c.copy(catalog = s) } text "the name of the Accumulo table to use -- or create" required()
@@ -107,9 +108,9 @@ object Ingest extends App with Logging with GetPassword {
       c.copy(skipHeader = true) } text "flag for skipping first line in file" optional()
     opt[String]("file").action { (s, c) =>
       c.copy(file = s, format = Option(getFileExtension(s))) } text "the file to be ingested" required()
-    opt[String]('z', "zookeepers").action { (s, c) =>
+    opt[Option[String]]('z', "zookeepers").action { (s, c) =>
       c.copy(zookeepers = s) } text "Accumulo Zookeepers string" optional()
-    opt[String]("instance-name").action { (s, c) =>
+    opt[Option[String]]("instance-name").action { (s, c) =>
       c.copy(instanceName = s) } text "Accumulo instance name" optional()
     help("help").text("show help command")
     checkConfig { c =>

@@ -27,10 +27,10 @@ import org.locationtech.geomesa.core.data.AccumuloDataStore
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-class TableTools(config: ScoptArguments, password: String) extends Logging with AccumuloProperties {
+class TableTools(config: FeatureArguments, password: String) extends Logging with AccumuloProperties {
 
-  val instance = instanceName.getOrElse(config.instanceName)
-  val zookeepersString = zookeepers.getOrElse(config.zookeepers)
+  val instance = config.instanceName.getOrElse(instanceName)
+  val zookeepersString = config.zookeepers.getOrElse(zookeepers)
 
   val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
@@ -39,8 +39,8 @@ class TableTools(config: ScoptArguments, password: String) extends Logging with 
       "user"         -> config.username,
       "password"     -> password,
       "tableName"    -> config.catalog,
-      "visibilities" -> config.visibilities,
-      "auths"        -> config.auths)).asInstanceOf[AccumuloDataStore]
+      "visibilities" -> config.visibilities.orNull,
+      "auths"        -> config.auths.orNull)).asInstanceOf[AccumuloDataStore]
   }).getOrElse{
     logger.error("Cannot connect to Accumulo. Please check your configuration and try again.")
     sys.exit()

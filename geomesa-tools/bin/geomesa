@@ -37,8 +37,9 @@ if  [[ $1 = configure ]]; then
     export GEOMESA_HOME="$bin"
     export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
 else
-    if [[ $2 = debug ]]; then
+    if [[ $1 = debug ]]; then
         GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898 -Duser.timezone=UTC"
+        shift 1
     fi
     if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") || (-z "$HADOOP_CONF_DIR")  ]]; then
         echo "Please ensure GEOMESA_HOME, ACCUMULO_HOME, and HADOOP_CONF_DIR are set before running geomesa-tools."

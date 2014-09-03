@@ -16,25 +16,20 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.{File, FileOutputStream}
-
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data._
-import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.DateTime
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader, AccumuloFeatureStore}
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader}
 import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-class FeaturesTool(config: ScoptArguments, password: String) extends Logging with AccumuloProperties {
+class FeaturesTool(config: FeatureArguments, password: String) extends Logging with AccumuloProperties {
 
-  val instance = instanceName.getOrElse(config.instanceName)
-  val zookeepersString = zookeepers.getOrElse(config.zookeepers)
+  val instance = config.instanceName.getOrElse(instanceName)
+  val zookeepersString = config.zookeepers.getOrElse(zookeepers)
 
   val ds: AccumuloDataStore = Try({
     DataStoreFinder.getDataStore(Map(
@@ -43,14 +38,15 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
       "user"         -> config.username,
       "password"     -> password,
       "tableName"    -> config.catalog,
-      "visibilities" -> config.visibilities,
-      "auths"        -> config.auths)).asInstanceOf[AccumuloDataStore]
+      "visibilities" -> config.visibilities.orNull,
+      "auths"        -> config.auths.orNull)).asInstanceOf[AccumuloDataStore]
   }).getOrElse{
     logger.error("Cannot connect to Accumulo. Please check your configuration and try again.")
     sys.exit()
   }
 
   def listFeatures() {
+    if (!config.toStdOut) { logger.info(s"Listing features on '${config.catalog}'. Just a few moments...") }
     val featureCount = if (ds.getTypeNames.size == 1) {
       s"1 feature exists on '${config.catalog}'. It is: "
     } else if (ds.getTypeNames.size == 0) {
@@ -65,6 +61,8 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
   }
 
   def describeFeature() {
+    if (!config.toStdOut) { logger.info(s"Describing attributes of feature '${config.featureName}' on " +
+      s"catalog table '${config.catalog}'. Just a few moments...") }
     try {
       val sft = ds.getSchema(config.featureName)
       sft.getAttributeDescriptors.foreach(attr => {
@@ -93,31 +91,56 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
     }
   }
 
-  def createFeatureType(): Boolean = {
+  def createFeature() {
+    logger.info(s"Creating '${config.featureName}' on catalog table '${config.catalog}' with spec " +
+      s"'${config.spec}'. Just a few moments...")
     if (ds.getSchema(config.featureName) == null) {
       val sft = SimpleFeatureTypes.createType(config.featureName, config.spec)
       if (config.dtField.orNull != null) {
         sft.getUserData.put(SF_PROPERTY_START_TIME, config.dtField.get)
       }
       ds.createSchema(sft)
-      ds.getSchema(config.featureName) != null
+      if (ds.getSchema(config.featureName) != null) {
+        logger.info(s"Feature '${config.featureName}' on catalog table '${config.catalog}' with spec " +
+          s"'${config.spec}' successfully created.")
+      } else {
+        logger.error(s"There was an error creating feature '${config.featureName}' on catalog table " +
+          s"'${config.catalog}' with spec '${config.spec}'. Please check that all arguments are correct " +
+          "in the previous command.")
+      }
     } else {
-      logger.error(s"A feature named '${config.featureName}' already exists in the data store with catalog table '${config.catalog}'.")
+      logger.error(s"A feature named '${config.featureName}' already exists in the data store with " +
+        s"catalog table '${config.catalog}'.")
       sys.exit()
     }
   }
 
-  def deleteFeature(): Boolean = {
-    try {
-      ds.removeSchema(config.featureName)
-      !ds.getNames.contains(config.featureName)
-    } catch {
-      case re: RuntimeException => false
-      case e: Exception => false
+  def deleteFeature() {
+    val confirmation = if (config.forceDelete) {
+      true
+    } else {
+      print(s"Delete '${config.featureName}' on catalog table '${config.catalog}'? (yes/no) : ")
+      if (System.console().readLine() == "yes") { true } else { false }
+    }
+    if (confirmation) {
+      logger.info(s"Deleting '${config.catalog}_${config.featureName}'. This will take longer " +
+        "than other commands to complete. Just a few moments...")
+      try {
+        ds.removeSchema(config.featureName)
+        if (!ds.getNames.contains(config.featureName)) {
+          logger.info(s"Feature '${config.catalog}_${config.featureName}' successfully deleted.")
+        } else {
+          logger.error(s"There was an error deleting feature '${config.catalog}_${config.featureName}'" +
+            "Please check that all arguments are correct in the previous command.")
+        }
+      } catch {
+        case re: RuntimeException => false
+        case e: Exception => false
+      }
     }
   }
 
-  def explainQuery() = {
+  def explainQuery() {
     val q = new Query()
     val t = Transaction.AUTO_COMMIT
     q.setTypeName(config.featureName)
@@ -127,7 +150,6 @@ class FeaturesTool(config: ScoptArguments, password: String) extends Logging wit
 
     try {
       val afr = ds.getFeatureReader(q, t).asInstanceOf[AccumuloFeatureReader]
-
       afr.explainQuery(q)
     } catch {
       case re: RuntimeException => logger.error(s"Error: Could not explain the query. Please " +

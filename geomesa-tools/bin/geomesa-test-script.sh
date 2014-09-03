@@ -24,12 +24,12 @@ USERNAME=username
 PASSWORD=password
 CREATE_CATALOG=test_catalog
 CREATE_FEATURENAME=test_feature
-SPEC=id:String:index=true,dtg:Date,geom:Point:srid=4326
+SPEC=fid:String:index=true,dtg:Date,geom:Point:srid=4326
 CATALOG=test_catalog
 FEATURENAME=test_feature
 MAXFEATURES=100
 
-geomesa create -u ${USERNAME} -p ${PASSWORD} -c ${CREATE_CATALOG} -f ${CREATE_FEATURENAME} -s ${SPEC}
+geomesa create -u ${USERNAME} -p ${PASSWORD} -c ${CREATE_CATALOG} -f ${CREATE_FEATURENAME} -s ${SPEC} -d dtg
 geomesa list -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG}
 geomesa describe -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME}
 geomesa explain -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -q include
@@ -42,6 +42,6 @@ geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o 
 geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o gml -m ${MAXFEATURES}
 geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o gml -s -m ${MAXFEATURES}
 geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o shp -m ${MAXFEATURES}
-geomesa delete -u ${USERNAME} -p ${PASSWORD} -c ${CREATE_CATALOG} -f ${CREATE_FEATURENAME}
+geomesa delete -u ${USERNAME} -p ${PASSWORD} --force -c ${CREATE_CATALOG} -f ${CREATE_FEATURENAME}
 geomesa list -u ${USERNAME} -p ${PASSWORD} -c ${CREATE_CATALOG}
 geomesa list -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG}
