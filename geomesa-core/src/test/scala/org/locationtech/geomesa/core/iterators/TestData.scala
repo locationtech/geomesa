@@ -50,7 +50,6 @@ object TestData extends Logging {
     val ft: SimpleFeatureType = SimpleFeatureTypes.createType(fn, getTypeSpec(attrNameSuffix))
     ft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
-    import org.locationtech.geomesa.core.index
     setTableSharing(ft, tableSharing)
     ft
   }

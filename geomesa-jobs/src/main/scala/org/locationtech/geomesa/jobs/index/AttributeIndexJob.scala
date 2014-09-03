@@ -40,6 +40,7 @@ class AttributeIndexJob(args: Args) extends Job(args) {
   lazy val recordTable      = args(ConnectionParams.RECORD_TABLE)
   lazy val attributeTable   = args(ConnectionParams.ATTRIBUTE_TABLE)
   lazy val auths            = args.optional(ConnectionParams.AUTHORIZATIONS).getOrElse("")
+  lazy val useMock            = args.optional(ConnectionParams.USEMOCKACCUMULO).getOrElse(false)
 
   lazy val input   = AccumuloInputOptions(recordTable)
   lazy val output  = AccumuloOutputOptions(attributeTable)
@@ -50,7 +51,8 @@ class AttributeIndexJob(args: Args) extends Job(args) {
                         "tableName"   -> catalog,
                         "user"        -> user,
                         "password"    -> password,
-                        "auths"       -> auths)
+                        "auths"       -> auths,
+                        "useMock"     -> useMock)
 
   // non-serializable resources we want to re-use if possible
   class Resources {

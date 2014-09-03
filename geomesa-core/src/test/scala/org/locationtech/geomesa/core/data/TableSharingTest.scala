@@ -26,7 +26,6 @@ class TableSharingTest extends Specification {
     DataStoreFinder.getDataStore(Map(
       "instanceId"        -> "mycloud",
       "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
       "user"              -> "myuser",
       "password"          -> "mypassword",
       "auths"             -> "A,B,C",
