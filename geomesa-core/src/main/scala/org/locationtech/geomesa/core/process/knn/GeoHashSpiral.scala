@@ -51,7 +51,7 @@ trait GeoHashAutoSize {
   def geoHashToSize(pointInside: Point, desiredSizeInMeters: Double ): GeoHash = {
     import org.locationtech.geomesa.utils.geohash.GeohashUtils._
     // typically 25 bits are encoded in the Index Key
-    val allowablePrecisions = List(25,30,35,40).reverse
+    val allowablePrecisions = (5 to 40 by 5).reverse
     allowablePrecisions.map { prec => GeoHash(pointInside,prec) }
                        .find { gh    => getGeohashMinDimensionMeters(gh) > desiredSizeInMeters }
                        .getOrElse (GeoHash (pointInside, allowablePrecisions.last) )
