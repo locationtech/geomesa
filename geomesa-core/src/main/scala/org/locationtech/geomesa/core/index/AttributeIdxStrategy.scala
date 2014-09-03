@@ -342,7 +342,7 @@ object AttributeIndexStrategy {
 
       // like strategy checks
       case f: PropertyIsLike =>
-        val canQuery = isValidAttributeFilter(sft, f.getExpression)
+        val canQuery = isValidAttributeFilter(sft, f.getExpression) && QueryStrategyDecider.likeEligible(f)
         if (canQuery) Some(new AttributeIdxLikeStrategy) else None
 
       // range strategy checks

@@ -129,7 +129,7 @@ object TestFilters {
 
   val attributePredicates = Seq(
     "attr2 = '2nd100001'",
-    //"attr2 ILIKE '%1'",    // JNH: IOU.
+    "attr2 ILIKE '%1'",    // JNH: IOU.
     "attr2 ILIKE '2nd1%'",
     "attr2 ILIKE '1%'"      // Returns 0 since medium data features start with "2nd"
   )
