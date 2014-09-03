@@ -109,7 +109,7 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-epsg-hsql</artifactId>
+            <artifactId>gt-epsg-wkt</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
