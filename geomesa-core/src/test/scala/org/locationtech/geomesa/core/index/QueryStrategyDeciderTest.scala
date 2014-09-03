@@ -30,7 +30,7 @@ import scala.reflect.ClassTag
 @RunWith(classOf[JUnitRunner])
 class QueryStrategyDeciderTest extends Specification {
 
-  val sftIndex = SimpleFeatureTypes.createType("feature", "id:Integer:index=false,*geom:Point:srid=4326:index=true,dtg:Date,attr1:String:index=false,attr2:String:index=true")
+  val sftIndex = SimpleFeatureTypes.createType("feature", "id:Integer:index=false,*geom:Point:srid=4326:index=true,dtg:Date,attr1:String:index=false,attr2:String:index=true,dtgNonIdx:Date:index=false")
   val sftNonIndex = SimpleFeatureTypes.createType("featureNonIndex", "id:Integer,*geom:Point:srid=4326,dtg:Date,attr1:String,attr2:String")
 
   sftIndex.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
