@@ -142,13 +142,6 @@ package object filter {
       case f: Filter => Seq(f)
     }
 
-
-  def decomposeAnd(f: Filter): Seq[Filter] =
-    f match {
-      case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
-      case f: Filter => Seq(f)
-    }
-
   def decomposeOr(f: Filter): Seq[Filter] =
     f match {
       case b: Or => b.getChildren.toSeq.flatMap(decomposeOr)
