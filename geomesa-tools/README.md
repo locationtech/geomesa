@@ -110,10 +110,11 @@ To export to stdOut, use `-s` or `--stdout`. This is useful for piping output.
 Ingests CSV, TSV, and SHP files. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
 Please note that for lat/lon column ingest, the sft spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.
 The file type is inferred from the extension of the file, so please also ensure that the formatting of the file matches the extension of the file.
+*Note* the header if any is present is not parsed by Ingest for information, it is assumed that all lines are valid data entries.
 
 #### Usage
     geomesa ingest -u username -p password -c geomesa_catalog -f twittersmall -s id:Double,dtg:Date,*geom:Geometry 
-    --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" --skip-header --file /some/path/to/file.csv
+    --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" --file /some/path/to/file.csv
     
     geomesa ingest -u username -p password -c geomesa_catalog  -a someAuths -v someVis --shards 42 -f twittersmall
      -s id:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
@@ -152,9 +153,6 @@ If a invalid dtformat is given Ingest attempts to parse the date-time value usin
 `--lon` The optional name of the longitude field. This field is not required for ingesting WKT geometries.
 
 `--lat` The optional name of the latitude field. This field is not required for ingesting WKT geometries.
-
-`--skip-header` The optional flag to skip the first line of the file, typically where the header is located. If not present Ingest will attempt to ingest starting from the first line. 
-*Note* the header is not parsed by Ingest, and will likely fail if a header exists in the file and this flag is not called.
 
 `--file` The file path to the csv file or tsv file being ingested.
 
