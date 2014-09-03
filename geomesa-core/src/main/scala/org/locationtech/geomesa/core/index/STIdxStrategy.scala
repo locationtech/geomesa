@@ -27,6 +27,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
+import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
 import org.locationtech.geomesa.core.data.{AccumuloConnectorCreator, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
@@ -34,7 +35,6 @@ import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
-import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}

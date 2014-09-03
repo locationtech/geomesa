@@ -19,23 +19,19 @@ package org.locationtech.geomesa.core.index
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.data
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
-import org.locationtech.geomesa.core.index.FilterHelper.filterListAsAnd
 import org.locationtech.geomesa.core.filter._
+import org.locationtech.geomesa.core.index.FilterHelper.filterListAsAnd
 import org.locationtech.geomesa.core.iterators.IteratorTrigger
 import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.identity.Identifier
 import org.opengis.filter.{Filter, Id}
 
 import scala.collection.JavaConverters._
-//import scala.collection.mutable
 
-//import scala.collection.mutable
 
 object RecordIdxStrategy {
    def getRecordIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =

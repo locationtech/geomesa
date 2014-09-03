@@ -34,7 +34,7 @@ class RecordIdxStrategyTest extends Specification {
        val idFilter2 = ECQL.toFilter("IN('val59','val54')")
        val oFilter = ECQL.toFilter("attr2 = val56 AND attr2 = val60")
        val theFilter = ff.and (List(oFilter,idFilter1,idFilter2).asJava)
-       val (idFilters, _) = partitionSubFilters(theFilter, filterIsId)
+       val (idFilters, _) = partitionID(theFilter)
        val areSame = (idFilters.toSet diff Set(idFilter1,idFilter2)).isEmpty
        areSame must beTrue
     }
@@ -42,7 +42,7 @@ class RecordIdxStrategyTest extends Specification {
     "return an empty set when no ID filter is present" in {
        val strategy = new RecordIdxStrategy
        val oFilter = ECQL.toFilter("attr2 = val56 AND attr2 = val60")
-       val (idFilters, _) = partitionSubFilters(oFilter, filterIsId)
+       val (idFilters, _) = partitionID(oFilter)
        idFilters.isEmpty must beTrue
     }
   }
