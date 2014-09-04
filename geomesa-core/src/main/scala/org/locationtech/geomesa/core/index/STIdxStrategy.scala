@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.core.index
 
-import java.util.Date
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.slf4j.Logging

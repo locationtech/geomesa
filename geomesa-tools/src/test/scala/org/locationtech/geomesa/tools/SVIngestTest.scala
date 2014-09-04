@@ -25,7 +25,6 @@ import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
 import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
@@ -52,7 +51,8 @@ class SVIngestTest extends Specification{
       IngestParams.ZOOKEEPERS -> List("zoo1:2181,zoo2:2181,zoo3:2181"),
       IngestParams.ACCUMULO_USER -> List("myuser"),
       IngestParams.ACCUMULO_PASSWORD -> List("mypassword"),
-      IngestParams.ACCUMULO_MOCK -> List("true"))
+      IngestParams.ACCUMULO_MOCK -> List("true"),
+      IngestParams.IS_TEST_INGEST -> List("true"))
   }
 
   def csvWktParams: Map[String, List[String]] = {
@@ -72,7 +72,8 @@ class SVIngestTest extends Specification{
       IngestParams.ZOOKEEPERS -> List("zoo1:2181,zoo2:2181,zoo3:2181"),
       IngestParams.ACCUMULO_USER -> List("myuser"),
       IngestParams.ACCUMULO_PASSWORD -> List("mypassword"),
-      IngestParams.ACCUMULO_MOCK -> List("true"))
+      IngestParams.ACCUMULO_MOCK -> List("true"),
+      IngestParams.IS_TEST_INGEST -> List("true"))
   }
 
   def currentCatalog = f"SVIngestTestTableUnique$id%d"
@@ -159,7 +160,6 @@ class SVIngestTest extends Specification{
       val sft = SimpleFeatureTypes.createType("test_type", "fid:Double,lon:Double,lat:Double,*geom:Point:srid=4326")
       val f = new AvroSimpleFeature(new FeatureIdImpl("test_type"), sft)
       val ingestTry = ingest.ingestDataToFeature(testString, f)
-
       ingestTry must beASuccessfulTry
 
       f.getAttribute(0) must beAnInstanceOf[java.lang.Double]
@@ -269,21 +269,21 @@ class SVIngestTest extends Specification{
     }
 
     "properly write the features from a valid TSV" in {
-      val path = Tools.getClass.getResource("/test_valid.csv")
+      val path = Tools.getClass.getResource("/test_valid.tsv")
       val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.FORMAT, List("TSV"))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
     }
 
     "properly write the features from a valid CSV containing WKT geometries" in {
-      val path = Tools.getClass.getResource("/test_valid.csv")
+      val path = Tools.getClass.getResource("/test_valid_wkt.csv")
       val ingest = new SVIngest(new Args(csvWktParams))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
     }
 
     "properly write the features from a valid TSV containing WKT geometries" in {
-      val path = Tools.getClass.getResource("/test_valid.csv")
+      val path = Tools.getClass.getResource("/test_valid_wkt.tsv")
       val ingest = new SVIngest(new Args(csvWktParams.updated(IngestParams.FORMAT, List("TSV"))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
@@ -292,7 +292,8 @@ class SVIngestTest extends Specification{
     "properly write the features from a valid CSV with no date/time" in {
       val path = Tools.getClass.getResource("/test_valid_nd.csv")
       val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.DT_FORMAT, List.empty)
-        .updated(IngestParams.DT_FIELD, List.empty)))
+        .updated(IngestParams.DT_FIELD, List.empty)
+        .updated(IngestParams.SFT_SPEC, List("fid:Double,lon:Double,lat:Double,*geom:Point:srid=4326"))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
     }
@@ -300,7 +301,8 @@ class SVIngestTest extends Specification{
     "properly write the features from a valid TSV with no date/time" in {
       val path = Tools.getClass.getResource("/test_valid_nd.tsv")
       val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.DT_FORMAT, List.empty)
-        .updated(IngestParams.DT_FIELD, List.empty).updated(IngestParams.FORMAT, List("TSV"))))
+        .updated(IngestParams.DT_FIELD, List.empty).updated(IngestParams.FORMAT, List("TSV"))
+        .updated(IngestParams.SFT_SPEC, List("fid:Double,lon:Double,lat:Double,*geom:Point:srid=4326"))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
     }

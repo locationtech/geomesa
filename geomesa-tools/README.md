@@ -107,18 +107,18 @@ To export to stdOut, use `-s` or `--stdout`. This is useful for piping output.
     geomesa export -u username -p password -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
            
 ### ingest
-Ingests CSV, TSV, and SHP files. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
-Please note that for lat/lon column ingest, the sft spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.
-The file type is inferred from the extension of the file, so please also ensure that the formatting of the file matches the extension of the file.
-*Note* the header if any is present is not parsed by Ingest for information, it is assumed that all lines are valid data entries.
+Ingests CSV, TSV, and SHP files from the local file system and HDFS. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
+For lat/lon column ingest, the sft spec must include an additional geometry attribute in the sft beyond the number of columns in the file such as: `*geom:Point`.
+The file type is inferred from the extension of the file, so ensure that the formatting of the file matches the extension of the file and that the extension is present.
+*Note* the header if present is not parsed by Ingest for information, it is assumed that all lines are valid data entries.
 
 #### Usage
-    geomesa ingest -u username -p password -c geomesa_catalog -f twittersmall -s id:Double,dtg:Date,*geom:Geometry 
-    --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" --file /some/path/to/file.csv
+    geomesa ingest -u username -p password -c geomesa_catalog -f somefeaturename -s fid:Double,dtg:Date,*geom:Geometry 
+    --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" --file hdsf:///some/hdfs/path/to/file.csv
     
-    geomesa ingest -u username -p password -c geomesa_catalog  -a someAuths -v someVis --shards 42 -f twittersmall
-     -s id:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
-     --idfields id,dtg --hash --lon lon --lat lat --file /some/path/to/file.tsv
+    geomesa ingest -u username -p password -c geomesa_catalog  -a someAuths -v someVis --shards 42 -f somefeaturename
+     -s fid:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
+     --idfields fid,dtg --hash --lon lon --lat lat --file /some/local/path/to/file.tsv
      
     geomesa ingest -u username -p password -c geomesa_catalog -f shapeFileFeatureName --file /some/path/to/file.shp
 
@@ -154,7 +154,7 @@ If a invalid dtformat is given Ingest attempts to parse the date-time value usin
 
 `--lat` The optional name of the latitude field. This field is not required for ingesting WKT geometries.
 
-`--file` The file path to the csv file or tsv file being ingested.
+`--file` The file path or hdfs path to the csv file or tsv file being ingested.
 
 ### list
 To list the features on a specified catalog table, use the `list` command.  

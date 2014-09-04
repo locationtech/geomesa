@@ -46,7 +46,7 @@ object Utils {
     val FEATURE_NAME        = "geomesa-tools.feature.name"
     val CATALOG_TABLE       = "geomesa-tools.feature.tables.catalog"
     val SFT_SPEC            = "geomesa-tools.feature.sftspec"
-    val RUN_INGEST          = "geomesa-tools.ingest.runIngest"
+    val IS_TEST_INGEST      = "geomesa-tools.ingest.runIngest"
 
   }
 
@@ -87,14 +87,12 @@ case class IngestArguments(username: String = null,
                            idFields: Option[String] = None,
                            dtField: Option[String] = None,
                            dtFormat: Option[String] = None,
-                           method: String = "local",
                            file: String = null,
                            featureName: Option[String] = None,
-                           format: Option[String] = None,
                            lonAttribute: Option[String] = None,
                            latAttribute: Option[String] = None,
-                           skipHeader: Boolean = false,
                            doHash: Boolean = false,
+                           dryRun: Boolean = false,
                            maxShards: Option[Int] = None )
 
 /* get password trait */

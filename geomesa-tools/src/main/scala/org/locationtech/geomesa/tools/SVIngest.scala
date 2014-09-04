@@ -15,15 +15,13 @@
  */
 package org.locationtech.geomesa.tools
 
-import java.io.{BufferedReader, File, FileReader}
 import java.net.URLDecoder
 import java.nio.charset.Charset
-
 import com.google.common.hash.Hashing
 import com.twitter.scalding.{Args, Job, TextLine}
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import org.apache.commons.csv.{CSVFormat, CSVParser, CSVRecord}
+import org.apache.commons.csv.{CSVFormat, CSVParser}
 import org.geotools.data.{DataStoreFinder, FeatureWriter, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
@@ -32,16 +30,14 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.index.Constants
-import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
+import scala.collection.JavaConversions._
 import scala.util.Try
 
 class SVIngest(args: Args) extends Job(args) with Logging {
 
-  import scala.collection.JavaConversions._
 
   var lineNumber            = 0
   var failures              = 0
@@ -55,7 +51,8 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val lonField         = args.optional(IngestParams.LON_ATTRIBUTE).orNull
   lazy val latField         = args.optional(IngestParams.LAT_ATTRIBUTE).orNull
   lazy val doHash           = args(IngestParams.DO_HASH).toBoolean
-  lazy val format           = args.optional(IngestParams.FORMAT).orNull
+  lazy val format           = args(IngestParams.FORMAT)
+  lazy val isTestRun        = args(IngestParams.IS_TEST_INGEST).toBoolean
 
   //Data Store parameters
   lazy val catalog          = args(IngestParams.CATALOG_TABLE)
@@ -69,7 +66,6 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val indexSchemaFmt   = args.optional(IngestParams.INDEX_SCHEMA_FMT).orNull
   lazy val shards           = args.optional(IngestParams.SHARDS).orNull
   lazy val useMock          = args.optional(IngestParams.ACCUMULO_MOCK).orNull
-  lazy val runIngest        = args.optional(IngestParams.RUN_INGEST)
 
   // need to work in shards, vis, isf
   lazy val dsConfig =
@@ -118,7 +114,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   }
 
   // Check to see if this an actual ingest job or just a test.
-  if ( runIngest.isDefined ) {
+  if (!isTestRun) {
     TextLine(path).using(new Resources)
       .foreach('line) { (cres: Resources, line: String) => lineNumber += 1; ingestLine(cres.fw, line) }
   }
@@ -132,13 +128,19 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   }
 
   def ingestLine(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String): Unit = {
-    val toWrite = fw.next.asInstanceOf[AvroSimpleFeature]
+    val toWrite = fw.next
     // add data from csv/tsv line to the feature
     val addDataToFeature = ingestDataToFeature(line, toWrite)
     // check if we have a success
     val writeSuccess = for {
       success <- addDataToFeature
-      write <- Try { fw.write() }
+      write <- Try {
+        try { fw.write() }
+        catch {
+          case e: Exception => throw new Exception(s" longitude and latitudes out of valid" +
+            s" range or malformed data in line with value: $line")
+        }
+      }
     } yield write
     // if write was successful, update successes count and log status if needed
     if (writeSuccess.isSuccess) {
@@ -151,11 +153,11 @@ class SVIngest(args: Args) extends Job(args) with Logging {
       }
     } else {
       failures += 1
-      logger.info(s"Cannot ingest avro simple feature on line number: $lineNumber, with value $line ")
+      logger.info(s"Cannot ingest feature on line number: $lineNumber, due to: ${writeSuccess.failed.get.getMessage} ")
     }
   }
 
-  def ingestDataToFeature(line: String, feature: AvroSimpleFeature) = Try {
+  def ingestDataToFeature(line: String, feature: SimpleFeature) = Try {
     val reader = CSVParser.parse(line, delim)
     val fields: List[String] = try {
       reader.getRecords.flatten.toList
@@ -181,11 +183,13 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     val lat = Option(feature.getAttribute(latField)).map(_.asInstanceOf[Double])
     (lon, lat) match {
       case (Some(x), Some(y)) => feature.setDefaultGeometry(geomFactory.createPoint(new Coordinate(x, y)))
-      case _                  => ;
+      case _                  =>
     }
+    if ( feature.getDefaultGeometry == null )
+      throw new Exception(s"No valid geometry found for line number: $lineNumber,  With value of: $line")
   }
 
-  def addDateToFeature(line: String, fields: Seq[String], feature: AvroSimpleFeature,
+  def addDateToFeature(line: String, fields: Seq[String], feature: SimpleFeature,
                        dateBuilder: (AnyRef) => DateTime) {
     try {
       val dtgFieldIndex = getAttributeIndexInLine(dtgField.get)
@@ -193,7 +197,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
       feature.setAttribute(dtgField.get, date)
     } catch {
       case e: Exception => throw new Exception(s"Could not form Date object from field " +
-        s"using dt-format: $dtgFmt, on line number: $lineNumber \n\t With value of: $line")
+        s"using dt-format: $dtgFmt, With line value of: $line")
     }
   }
 

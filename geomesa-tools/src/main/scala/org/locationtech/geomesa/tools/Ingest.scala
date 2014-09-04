@@ -109,9 +109,9 @@ class Ingest() extends Logging with AccumuloProperties {
   )
 
   def defineIngestJob(config: IngestArguments, password: String) = {
-    config.format.get.toUpperCase match {
+    Ingest.getFileExtension(config.file).toUpperCase match {
       case "CSV" | "TSV" =>
-        config.method.toLowerCase match {
+        Ingest.getFileSystemMethod(config.file).toLowerCase match {
           case "local" =>
             logger.info("Local Ingest has started, please wait.")
             runIngestJob(config, "--local", password)
@@ -125,7 +125,7 @@ class Ingest() extends Logging with AccumuloProperties {
         val dsConfig = getAccumuloDataStoreConf(config, password)
         ShpIngest.doIngest(config, dsConfig)
       case _ =>
-        logger.error(s"Error: file format not supported." +
+        logger.error(s"Error: file format not supported or not found in provided file path." +
           s" Supported formats include: CSV, TSV, and SHP. No data ingested.")
 
     }
@@ -147,20 +147,20 @@ class Ingest() extends Logging with AccumuloProperties {
     args.append("--" + IngestParams.ACCUMULO_USER, config.username)
     args.append("--" + IngestParams.ACCUMULO_PASSWORD, password)
     args.append("--" + IngestParams.DO_HASH, config.doHash.toString)
+    args.append("--" + IngestParams.FORMAT, Ingest.getFileExtension(config.file))
     // optional parameters
     if ( config.dtFormat.isDefined )        args.append("--" + IngestParams.DT_FORMAT, config.dtFormat.get)
     if ( config.idFields.isDefined )        args.append("--" + IngestParams.ID_FIELDS, config.idFields.get)
     if ( config.dtField.isDefined )         args.append("--" + IngestParams.DT_FIELD, config.dtField.get)
     if ( config.lonAttribute.isDefined )    args.append("--" + IngestParams.LON_ATTRIBUTE, config.lonAttribute.get)
     if ( config.latAttribute.isDefined )    args.append("--" + IngestParams.LAT_ATTRIBUTE, config.latAttribute.get)
-    if ( config.format.isDefined )          args.append("--" + IngestParams.FORMAT, config.format.get)
     if ( config.featureName.isDefined )     args.append("--" + IngestParams.FEATURE_NAME, config.featureName.get)
     if ( config.auths.isDefined )           args.append("--" + IngestParams.AUTHORIZATIONS, config.auths.get)
     if ( config.visibilities.isDefined )    args.append("--" + IngestParams.VISIBILITIES, config.visibilities.get)
     if ( config.indexSchemaFmt.isDefined )  args.append("--" + IngestParams.INDEX_SCHEMA_FMT, config.indexSchemaFmt.get)
     if ( config.maxShards.isDefined )       args.append("--" + IngestParams.SHARDS, config.maxShards.get.toString)
-    // since we are not in a test script we are choosing to run the ingest
-    args.append("--" + IngestParams.RUN_INGEST, "true")
+    // If we are running a test ingest, then set to true, default is false
+    args.append("--" + IngestParams.IS_TEST_INGEST, config.dryRun.toString)
     if ( config.dtField.isEmpty ) {
       // assume user has no date field to use and that there is no column of data signifying it.
       logger.warn("Warning: no date-time field specified. Assuming that data contains no date column. \n" +
@@ -209,14 +209,14 @@ object Ingest extends App with Logging with GetPassword {
     opt[String]("idfields").action { (s, c) =>
       c.copy(idFields = Option(s)) } text "the set of attributes of each feature used" +
       " to encode the feature name" optional()
-    opt[Unit]('h', "hash")action { (_, c) =>
+    opt[Unit]('h', "hash").action { (_, c) =>
       c.copy(doHash = true) } text "flag to md5 hash to identity of each feature" optional()
     opt[String]("lon").action { (s, c) =>
       c.copy(lonAttribute = Option(s)) } text "the name of the longitude field in the sft if ingesting point data" optional()
     opt[String]("lat").action { (s, c) =>
       c.copy(latAttribute = Option(s)) } text "the name of the latitude field in the sft if ingesting point data" optional()
     opt[String]("file").action { (s, c) =>
-      c.copy(file = s, format = Option(getFileExtension(s)), method = getFileSystemMethod(s)) } text "the file to be ingested" required()
+      c.copy(file = s) } text "the file to be ingested" required()
     help("help").text("show help command")
     checkConfig { c =>
       if (c.maxShards.isDefined && c.indexSchemaFmt.isDefined) {
