@@ -7,12 +7,12 @@ the command line.
 ## Configuration
 To begin using the command line tools, first build the full GeoMesa project with `mvn clean install`. This will build the project and geomesa-tools JAR file.  
  
-GeoMesa Tools relies on a GEOMESA_HOME environment variable. In your `~/.bashrc`, add:
+GeoMesa Tools relies on a $GEOMESA_HOME environment variable. In your `~/.bashrc`, add:
 
     export GEOMESA_HOME=/path/to/geomesa/source/directory
     export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
 
-Don't forget to source `~/.bashrc`. Also make sure that $ACCUMULO_HOME and $HADOOP_HOME are set. For your convenience, you can also run:
+Don't forget to source `~/.bashrc`. Also make sure that $ACCUMULO_HOME and $HADOOP_CONF_DIR are set. For your convenience, you can also run:
     
     . /path/to/geomesa/source/dir/geomesa-tools/bin/geomesa configure
 
@@ -44,13 +44,18 @@ This usage text gives a brief overview of how to use each command, and this is e
 The command line tools also provides help for each command by passing `--help` to any individual command.  
 
 The Accumulo username and password is required for each command. Specify the username and password
-in each command by using `-u` or `--username `and `-p` or `--password` respectively. One can also only specify the username
+in each command by using `-u` or `--username `and `-p` or `--password`, respectively. One can also only specify the username
 on the command line using `-u` or `--username` and type the password in an additional prompt, where the password will be
 hidden from the shell history.
 
-A test script is included under `geomesa\bin` that runs each command provided by geomesa-tools. Edit this script
-by including your Accumulo username, password, test catalog table, test feature name, and test SFT specification. Then,
-run the script from the command line to ensure there are no errors in the output text. 
+A test script is included under `geomesa\bin\geomesa-test-script.sh` that runs each command provided by geomesa-tools. Edit this script
+by including your Accumulo username, password, test catalog table, test feature name, and test SFT specification. Default values
+are already included in the script. Then, run the script from the command line to ensure there are no errors in the output text. 
+
+In all commands below, one can add `--instance-name`, `--zookeepers`, `--auths`, and `--visibilities` arguments
+to properly configure the Accumulo data store connector. The Accumulo instance name and Zookeepers string can usually
+be automatically assigned as long as Accumulo is configured correctly. The Auths and Visibilities strings will have to
+be added as arguments to each command, if needed.
 
 ## Command Explanations and Usage
 
@@ -60,15 +65,17 @@ To create a new feature on a specified catalog table, use the `create` command.
 Specify the catalog table to use with `-c` or `--catalog`. This can be a previously created catalog table, or a new catalog table.  
 Specify the feature to create with the `-f` or `--feature-name`.  
 Specify the SimpleFeatureType schema with `-s` or `--spec`.  
-Specify the default temporal attribute with `-d` or `--default-date`.
+Specify the default temporal attribute with `-d` or `--dt-field`.
 #### Example command:
-    geomesa create -u username -p password -c test_create -f testing -s id:String:index=true,dtg:Date,geom:Point:srid=4326
+    geomesa create -u username -p password -c test_create -f testing -s fid:String:index=true,dtg:Date,geom:Point:srid=4326 -d dtg
 
 ### delete
 To delete a feature on a specified catalog table, use the `delete` command.  
 #### Required flags: 
 Specify the catalog table to use with `-o` or `--catalog`. NOTE: Catalog tables will not be deleted when using the `delete` command, only the tables related to the given feature.  
 Specify the feature to delete with `-f` or `--feature-name`.  
+#### Optional flags: 
+To force the deletion of a table, without a user confirmation prompt, use `--force`.
 #### Example command:
     geomesa delete -u username -p password  -c test_delete -f testing
 
