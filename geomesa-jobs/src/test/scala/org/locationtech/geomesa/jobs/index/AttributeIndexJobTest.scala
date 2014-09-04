@@ -2,6 +2,7 @@ package org.locationtech.geomesa.jobs.index
 
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.hadoop.conf.Configuration
 import org.geotools.data.DataStoreFinder
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.filter.text.ecql.ECQL
@@ -14,6 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexJobTest extends Specification {
@@ -49,10 +51,9 @@ class AttributeIndexJobTest extends Specification {
   def queryCount(f: Filter, fs: SimpleFeatureSource) = fs.getFeatures(f).size
 
   def compareEquals(f: Filter, fs: SimpleFeatureSource, when: String) = {
-    s"feature count and querying ${fs.getName} should return the same count for filter ${ECQL.toCQL(f)} $when" >> {
+    s"feature count and querying ${fs.getName} return the same count for filter ${ECQL.toCQL(f)} $when" >> {
       val fc = filterCount(f)
       val qc = queryCount(f, fs)
-      println(s"FC: $fc QC: $qc")
       fc mustEqual queryCount(f, fs)
     }
   }
@@ -64,7 +65,7 @@ class AttributeIndexJobTest extends Specification {
   }
 
   "AccumuloIndexJob" should {
-    "for a stand-alone feature" in {
+    "for a stand-alone tables feature" in {
 
       sequential
       // Add mediumFeatures as with unshared tables.
@@ -84,10 +85,16 @@ class AttributeIndexJobTest extends Specification {
         compareZero(at, fs1)
       }
 
+      val args = AttributeIndexJob.buildArgs(params.asJava, sft1.getTypeName, Seq("attr2"))
+      val aij = new AttributeIndexJob(args)
+
+
       // Run AttributeIndexJob
+//      val conf = new Configuration()
+//      AttributeIndexJob.runJob(conf, params, sft1.getTypeName, Seq("attr2"))
 
       // Query for attributes; check success.
-      compareEquals(at, fs1, "after running the index job")
+      "specs annoys me" >> { compareEquals(at, fs1, "after running the index job") }
     }
 
     "recreate a queryable attribute index for a shared-table feature" in {

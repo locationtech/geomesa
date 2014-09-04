@@ -16,12 +16,15 @@
 
 package org.locationtech.geomesa.jobs.index
 
+import java.util
+
 import com.twitter.scalding._
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.conf.Configuration
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.scalding.{AccumuloInputOptions, AccumuloOutputOptions, AccumuloSource, AccumuloSourceOptions, ConnectionParams}
@@ -40,7 +43,7 @@ class AttributeIndexJob(args: Args) extends Job(args) {
   lazy val recordTable      = args(ConnectionParams.RECORD_TABLE)
   lazy val attributeTable   = args(ConnectionParams.ATTRIBUTE_TABLE)
   lazy val auths            = args.optional(ConnectionParams.AUTHORIZATIONS).getOrElse("")
-  lazy val useMock            = args.optional(ConnectionParams.USEMOCKACCUMULO).getOrElse(false)
+  lazy val useMock          = args.optional(ConnectionParams.USEMOCKACCUMULO).getOrElse(false)
 
   lazy val input   = AccumuloInputOptions(recordTable)
   lazy val output  = AccumuloOutputOptions(attributeTable)
@@ -117,11 +120,27 @@ object AttributeIndexJob {
       throw new IllegalStateException("Feature does not have an attribute index")
     }
 
-    val jParams = params.asJava
-
-    import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
+    val jParams: util.Map[String, String] = params.asJava
 
     // create args to pass to scalding job based on our input parameters
+    val args = buildArgs(jParams, feature, attributes)
+
+    // set libjars so that our dependent libs get propagated to the cluster
+    JobUtils.setLibJars(conf)
+
+    // run the scalding job on HDFS
+    val hdfsMode = Hdfs(strict = true, conf)
+    val arguments = Mode.putMode(hdfsMode, args)
+
+    val job = new AttributeIndexJob(arguments)
+    val flow = job.buildFlow
+    flow.complete() // this blocks until the job is done
+  }
+
+
+  def buildArgs(jParams: util.Map[String, String], feature: String, attributes: Seq[String]): Args = {
+    val ds = DataStoreFinder.getDataStore(jParams).asInstanceOf[AccumuloDataStore]
+
     val args = new collection.mutable.ListBuffer[String]()
     args.append("--" + ConnectionParams.FEATURE_NAME, feature)
     args.appendAll(Seq("--" + Params.ATTRIBUTES_TO_INDEX) ++ attributes)
@@ -129,29 +148,21 @@ object AttributeIndexJob {
     args.append("--" + ConnectionParams.ATTRIBUTE_TABLE, ds.getAttrIdxTableName(feature))
 
     args.append("--" + ConnectionParams.ZOOKEEPERS,
-                 zookeepersParam.lookUp(jParams).asInstanceOf[String])
+      zookeepersParam.lookUp(jParams).asInstanceOf[String])
     args.append("--" + ConnectionParams.ACCUMULO_INSTANCE,
-                 instanceIdParam.lookUp(jParams).asInstanceOf[String])
+      instanceIdParam.lookUp(jParams).asInstanceOf[String])
     args.append("--" + ConnectionParams.ACCUMULO_USER,
-                 userParam.lookUp(jParams).asInstanceOf[String])
+      userParam.lookUp(jParams).asInstanceOf[String])
     args.append("--" + ConnectionParams.ACCUMULO_PASSWORD,
-                 passwordParam.lookUp(jParams).asInstanceOf[String])
+      passwordParam.lookUp(jParams).asInstanceOf[String])
     args.append("--" + ConnectionParams.CATALOG_TABLE,
-                 tableNameParam.lookUp(jParams).asInstanceOf[String])
+      tableNameParam.lookUp(jParams).asInstanceOf[String])
     Option(authsParam.lookUp(jParams).asInstanceOf[String]).foreach(a =>
       args.append("--" + ConnectionParams.AUTHORIZATIONS, a))
     Option(visibilityParam.lookUp(jParams).asInstanceOf[String]).foreach(v =>
       args.append("--" + ConnectionParams.VISIBILITIES, v))
-
-    // set libjars so that our dependent libs get propagated to the cluster
-    JobUtils.setLibJars(conf)
-
-    // run the scalding job on HDFS
-    val hdfsMode = Hdfs(strict = true, conf)
-    val arguments = Mode.putMode(hdfsMode, Args(args))
-
-    val job = new AttributeIndexJob(arguments)
-    val flow = job.buildFlow
-    flow.complete() // this blocks until the job is done
+    Option(mockParam.lookUp(jParams).asInstanceOf[String]).foreach(v =>
+      args.append("--" + ConnectionParams.USEMOCKACCUMULO, v))
+    Args(args)
   }
 }
