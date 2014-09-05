@@ -73,7 +73,7 @@ object QueryStrategyDecider {
 
     /**
      * Choose the query strategy to be employed here. This is the priority
-     *   * If an ID predicate is present, it is assumed that only a small number of queries are requested
+     *   * If an ID predicate is present, it is assumed that only a small number of IDs are requested
      *            --> The Record Index is scanned, and the other ECQL filters, if any, are then applied
      *
      *   * If attribute filters and ST filters are present, use the ordering to choose the correct strategy
