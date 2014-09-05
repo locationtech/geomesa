@@ -23,18 +23,46 @@ import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.conf.Configuration
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, SimpleFeatureEncoder}
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.scalding.{AccumuloInputOptions, AccumuloOutputOptions, AccumuloSource, AccumuloSourceOptions, ConnectionParams}
+import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
+
+// non-serializable resources we want to re-use
+trait JobResources {
+  def ds: AccumuloDataStore
+  def sft: SimpleFeatureType
+  def visibilities: String
+  def decoder: SimpleFeatureEncoder
+  def attributeDescriptors: mutable.Buffer[AttributeDescriptor]
+
+  // required by scalding
+  def release(): Unit = {}
+}
+
+object JobResources {
+  def apply(params:  Map[String, Any], feature: String, attributes: List[String]) = new JobResources {
+    val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
+    val sft: SimpleFeatureType = ds.getSchema(feature)
+    val visibilities: String = ds.writeVisibilities
+    val decoder: SimpleFeatureEncoder = ds.getFeatureEncoder(feature)
+    // the attributes we want to index
+    val attributeDescriptors: mutable.Buffer[AttributeDescriptor] = sft.getAttributeDescriptors
+      .asScala
+      .filter(ad => attributes.contains(ad.getLocalName))
+  }
+}
 
 class AttributeIndexJob(args: Args) extends Job(args) {
 
   lazy val feature          = args(ConnectionParams.FEATURE_NAME)
-  lazy val attributes       = args.list(AttributeIndexJob.Params.ATTRIBUTES_TO_INDEX)
+  lazy val attributes = args.list(AttributeIndexJob.Params.ATTRIBUTES_TO_INDEX)
   lazy val zookeepers       = args(ConnectionParams.ZOOKEEPERS)
   lazy val instance         = args(ConnectionParams.ACCUMULO_INSTANCE)
   lazy val user             = args(ConnectionParams.ACCUMULO_USER)
@@ -49,7 +77,7 @@ class AttributeIndexJob(args: Args) extends Job(args) {
   lazy val output  = AccumuloOutputOptions(attributeTable)
   lazy val options = AccumuloSourceOptions(instance, zookeepers, user, password, input, output)
 
-  lazy val params = Map("zookeepers"  -> zookeepers,
+  lazy val params: Map[String, Any] = Map("zookeepers"  -> zookeepers,
                         "instanceId"  -> instance,
                         "tableName"   -> catalog,
                         "user"        -> user,
@@ -57,14 +85,14 @@ class AttributeIndexJob(args: Args) extends Job(args) {
                         "auths"       -> auths,
                         "useMock"     -> useMock)
 
-  // non-serializable resources we want to re-use if possible
+
   class Resources {
-    val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
-    val sft = ds.getSchema(feature)
-    val visibilities = ds.writeVisibilities
-    val decoder = ds.getFeatureEncoder(feature)
+    val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
+    val sft: SimpleFeatureType = ds.getSchema(feature)
+    val visibilities: String = ds.writeVisibilities
+    val decoder: SimpleFeatureEncoder = ds.getFeatureEncoder(feature)
     // the attributes we want to index
-    val attributeDescriptors = sft.getAttributeDescriptors
+    val attributeDescriptors: mutable.Buffer[AttributeDescriptor] = sft.getAttributeDescriptors
                                  .asScala
                                  .filter(ad => attributes.contains(ad.getLocalName))
 
@@ -74,10 +102,17 @@ class AttributeIndexJob(args: Args) extends Job(args) {
 
   // scalding job
   AccumuloSource(options)
-    .using(new Resources())
+    .using(JobResources(params, feature, attributes))
     .flatMap(('key, 'value) -> 'mutation) {
-      (r: Resources, kv: (Key, Value)) => getAttributeIndexMutation(r, kv._1, kv._2)
+      (r: JobResources, kv: (Key, Value)) => AttributeIndexJob.getAttributeIndexMutation(r, kv._1, kv._2)
     }.write(AccumuloSource(options))
+}
+
+object AttributeIndexJob {
+
+  object Params {
+    val ATTRIBUTES_TO_INDEX   = "geomesa.index.attributes"
+  }
 
   /**
    * Converts a key/value pair from the record table into attribute index mutations
@@ -87,7 +122,7 @@ class AttributeIndexJob(args: Args) extends Job(args) {
    * @param value
    * @return
    */
-  def getAttributeIndexMutation(r: Resources, key: Key, value: Value): Seq[Mutation] = {
+  def getAttributeIndexMutation(r: JobResources, key: Key, value: Value): Seq[Mutation] = {
     val feature = r.decoder.decode(r.sft, value)
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(r.sft)
 
@@ -97,13 +132,6 @@ class AttributeIndexJob(args: Args) extends Job(args) {
       new ColumnVisibility(r.visibilities),
       prefix
     )
-  }
-}
-
-object AttributeIndexJob {
-
-  object Params {
-    val ATTRIBUTES_TO_INDEX   = "geomesa.index.attributes"
   }
 
   def runJob(conf: Configuration, params: Map[String, String], feature: String, attributes: Seq[String]) = {

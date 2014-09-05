@@ -1,21 +1,25 @@
 package org.locationtech.geomesa.jobs.index
 
+import java.util
+
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.hadoop.conf.Configuration
+import org.apache.accumulo.core.data.{Key, Mutation, Value}
+import org.apache.accumulo.core.security.ColumnVisibility
 import org.geotools.data.DataStoreFinder
-import org.geotools.data.simple.SimpleFeatureSource
-import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.iterators.TestData
 import org.locationtech.geomesa.core.iterators.TestData._
-import org.opengis.filter.Filter
+import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexJobTest extends Specification {
@@ -40,74 +44,43 @@ class AttributeIndexJobTest extends Specification {
   val sft1 = TestData.getFeatureType("1", tableSharing = false)
   val sft2 = TestData.getFeatureType("2", tableSharing = true)
 
-  val mediumData1 = mediumData.map(createSF(_, sft1))
+  val mediumData1: Seq[SimpleFeature] = mediumData.map(createSF(_, sft1))
   val mediumData2 = mediumData.map(createSF(_, sft2))
 
   val fs1 = getFeatureStore(ds, sft1, mediumData1)
+  val fs2 = getFeatureStore(ds, sft2, mediumData1)
 
-  val at = ECQL.toFilter("attr2 = '2nd100001'")
+  def test(sft: SimpleFeatureType, feats: Seq[SimpleFeature]) = {
+    val recScanner1 = ds.createRecordScanner(sft)
+    recScanner1.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
+    val sft1Records: Seq[util.Map.Entry[Key, Value]] = recScanner1.iterator().toSeq
 
-  def filterCount(f: Filter) = mediumData1.count(f.evaluate)
-  def queryCount(f: Filter, fs: SimpleFeatureSource) = fs.getFeatures(f).size
+    val attributes = Seq("attr2")
+    val attributeDescriptors: mutable.Buffer[AttributeDescriptor] = sft.getAttributeDescriptors
+      .asScala
+      .filter(ad => attributes.contains(ad.getLocalName))
 
-  def compareEquals(f: Filter, fs: SimpleFeatureSource, when: String) = {
-    s"feature count and querying ${fs.getName} return the same count for filter ${ECQL.toCQL(f)} $when" >> {
-      val fc = filterCount(f)
-      val qc = queryCount(f, fs)
-      fc mustEqual queryCount(f, fs)
+    val r = JobResources(params, sft.getTypeName, List("attr2"))
+
+    val jobMutations1: Seq[Mutation] = sft1Records.flatMap { e =>
+      AttributeIndexJob.getAttributeIndexMutation(r, e.getKey, e.getValue)
     }
-  }
 
-  def compareZero(f: Filter, fs: SimpleFeatureSource) = {
-    s"querying ${fs.getName} should return 0 for filter ${ECQL.toCQL(f)}" >> {
-      queryCount(f, fs) mustEqual 0
+    val attrList = Seq(sft.getDescriptor("attr2"))
+    val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+    val tableMutations1 = feats.flatMap { sf =>
+      AttributeTable.getAttributeIndexMutations(sf, attrList, new ColumnVisibility(ds.writeVisibilities), prefix)
     }
+    forall(tableMutations1) { mut => jobMutations1.exists(mut.equals) }
   }
 
   "AccumuloIndexJob" should {
-    "for a stand-alone tables feature" in {
-
-      sequential
-      // Add mediumFeatures as with unshared tables.
-
-      "create and compare" >> {
-        // Query for attributes; check success.
-        compareEquals(at, fs1, "before deleting the attribute table")
-      }
-
-      // Run Queries with no results.
-      //Delete the Attribute table.
-      "delete and see nothing" >> {
-        val attrTable = ds.getAttrIdxTableName(sft1.getTypeName)
-        println(s"Deleting table $attrTable")
-
-        c.tableOperations().delete(attrTable)
-        compareZero(at, fs1)
-      }
-
-      val args = AttributeIndexJob.buildArgs(params.asJava, sft1.getTypeName, Seq("attr2"))
-      val aij = new AttributeIndexJob(args)
-
-
-      // Run AttributeIndexJob
-//      val conf = new Configuration()
-//      AttributeIndexJob.runJob(conf, params, sft1.getTypeName, Seq("attr2"))
-
-      // Query for attributes; check success.
-      "specs annoys me" >> { compareEquals(at, fs1, "after running the index job") }
+    "create the correct mutation for a stand-alone feature" in {
+      test(sft1, mediumData1)
     }
 
-    "recreate a queryable attribute index for a shared-table feature" in {
-      // Add mediumFeatures as with shared tables.
-
-      // Query for attributes; check success.
-
-      // Delete the Attribute table.
-
-      // Run AttributeIndexJob
-
-      // Query for attributes; check success.
-      true must beTrue
+    "create the correct mutation for a shared-table feature" in {
+      test(sft2, mediumData2)
     }
   }
 }
