@@ -22,7 +22,7 @@ GEOMESA_OPTS="-Duser.timezone=UTC"
 
 
 # We explicitly add geomesa-tools as the first jar to ensure the correct log4j properties file is used.
-CLASSPATH=${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:${ACCUMULO_LIB}:${ACCUMULO_CONF}:${HADOOP_CONF_DIR}
+CLASSPATH=${GEOMESA_HOME}/lib/geomesa-tools.jar:${GEOMESA_HOME}/lib/*:${ACCUMULO_CONF}:${HADOOP_CONF_DIR}:${ACCUMULO_LIB}
 
 if  [[ $1 = configure ]]; then
     SOURCE="${BASH_SOURCE[0]}"
@@ -34,10 +34,10 @@ if  [[ $1 = configure ]]; then
                                                             # path where the symlink file was located
 
     done
-    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../../ && pwd )"
+    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
     echo "Setting GEOMESA_HOME to "$bin""
     export GEOMESA_HOME="$bin"
-    export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
+    export PATH=${GEOMESA_HOME}/bin:$PATH
 else
     if [[ $1 = debug ]]; then
         GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"

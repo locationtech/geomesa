@@ -5,18 +5,24 @@ GeoMesa Tools is a set of command line tools to add feature management functions
 the command line.  
 
 ## Configuration
-To begin using the command line tools, first build the full GeoMesa project with `mvn clean install`. This will build the project and geomesa-tools JAR file.  
- 
-GeoMesa Tools relies on a $GEOMESA_HOME environment variable. In your `~/.bashrc`, add:
+To begin using the command line tools, first build the full GeoMesa project from the GeoMesa source directory with 
 
-    export GEOMESA_HOME=/path/to/geomesa/source/directory
-    export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
-
-Don't forget to source `~/.bashrc`. Also make sure that $ACCUMULO_HOME and $HADOOP_CONF_DIR are set. For your convenience, you can also run:
+    mvn clean install
     
-    . /path/to/geomesa/source/dir/geomesa-tools/bin/geomesa configure
+You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-${version}-bin.tar.gz" 
+in the geomesa-assemble/target directory. Untar this file with
 
-Make sure to include the `. ` prefix to the command, as this sources your new environment variables.  
+    tar xvfz geomesa-assemble/target/geomesa-${version}-bin.tar.gz
+    
+Next, `cd` into the newly created directory with
+    
+    cd geomesa-${version}
+
+GeoMesa Tools relies on a GEOMESA_HOME environment variable. Running
+    
+    . bin/geomesa configure
+
+with the `. ` prefix will set this for you, add $GEOMESA_HOME/bin to your PATH, and source your new environment variables in your current shell session.
 
 Now, you should be able to use GeoMesa from any directory on your computer. To test, `cd` to a different directory and run:
 
@@ -96,7 +102,7 @@ Specify the catalog table to use with `-c` or `--catalog`. This can be a previou
 Specify the feature to create with the `-f` or `-feature-name`.  
 Specify the filter string with `-q` or `--filter`.
 #### Example command:
-    geomesa explain -u username -p password -c geomesa_catalog -f twittersmall -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+    geomesa explain -u username -p password -c test_catalog -f test_feature -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
 
 ### export
 To export features, use the `export` command.  
@@ -110,8 +116,8 @@ To set a maximum number of features to return, use `-m` or `--maxFeatures` follo
 To run an ECQL query, use `-q` or `--query` followed by the query filter string.  
 To export to stdOut, use `-s` or `--stdout`. This is useful for piping output.
 #### Example commands:
-    geomesa export -u username -p password -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o csv -q "include" -m 100  
-    geomesa export -u username -p password -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
+    geomesa export -u username -p password -c test_catalog -f test_feature -a "geom,text,user_name" -o csv -q "include" -m 100  
+    geomesa export -u username -p password -c test_catalog -f test_feature -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
            
 ### ingest
 Ingests CSV, TSV, and SHP files from the local file system and HDFS. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
@@ -127,7 +133,7 @@ The file type is inferred from the extension of the file, so ensure that the for
      -s fid:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
      --idfields fid,dtg --hash --lon lon --lat lat --file /some/local/path/to/file.tsv
      
-    geomesa ingest -u username -p password -c geomesa_catalog -f shapeFileFeatureName --file /some/path/to/file.shp
+    geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName --file /some/path/to/file.shp
 
 with the following parameters:
  
@@ -156,7 +162,7 @@ Specify the catalog table to use with `-c` or `--catalog`.
 #### Optional flags:
 To pipe the output of the command, use `-q` or `--quiet`.
 #### Example command:
-    geomesa list -u username -p password -c geomesa_catalog
+    geomesa list -u username -p password -c test_catalog
     
 ### tableconf
 To list, describe, and update the configuration parameters on a specified table, use the `tableconf` command.  
@@ -184,7 +190,7 @@ Specify the new value for the configuration parameter with `-n` or `--new-value`
 Specify the table suffix (attr_idx, st_idx, or records) with `-s` or `--suffix`.
 
 #### Example commands:
-    geomesa tableconf list -u username -p password -c geomesa_catalog -f twittersmall -s st_idx
-    geomesa tableconf describe -u username -p password -c geomesa_catalog -f twittersmall --param table.bloom.enabled -s attr_idx
-    geomesa tableconf update -u username -p password -c geomesa_catalog -f twittersmall --table.bloom.enabled -n true -s records
+    geomesa tableconf list -u username -p password -c test_catalog -f test_feature -s st_idx
+    geomesa tableconf describe -u username -p password -c test_catalog -f test_feature --param table.bloom.enabled -s attr_idx
+    geomesa tableconf update -u username -p password -c test_catalog -f test_feature --table.bloom.enabled -n true -s records
     

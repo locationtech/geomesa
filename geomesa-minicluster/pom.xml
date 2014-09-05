@@ -140,6 +140,7 @@
             </goals>
             <configuration>
               <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
               <artifactSet>
                 <includes>
                   <include>*:*</include>
