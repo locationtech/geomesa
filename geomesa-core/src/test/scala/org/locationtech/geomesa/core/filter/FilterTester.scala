@@ -129,6 +129,16 @@ class IdQueryTest extends Specification {
       res.length mustEqual 2
       res.map(_.getID) must contain ("1", "3")
     }
+
+    "return no events when multiple IDs ANDed result in no intersection"  >> {
+      val idQ1 = ff.id(ff.featureId("1"), ff.featureId("3"))
+      val idQ2 = ff.id(ff.featureId("2"))
+      val idQ =  ff.and(idQ1, idQ2)
+      val qRes = fs.getFeatures(idQ)
+      val res= qRes.features().toList
+
+      res.length mustEqual 0
+    }
   }
 }
 
