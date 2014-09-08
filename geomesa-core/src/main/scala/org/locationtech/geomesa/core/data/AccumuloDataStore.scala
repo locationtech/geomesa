@@ -327,11 +327,14 @@ class AccumuloDataStore(val connector: Connector,
     }
   }
 
-  // if using UUID as FeatureID, configure splits with hex characters
-  private val HEX_SPLITS = "0,1,2,3,4,5,6,7,8,9,A,a,B,b,C,c,D,d,E,e,F,f".split(",").map(s => new Text(s))
-  private val RECORDS_SPLITS = ImmutableSortedSet.copyOf(HEX_SPLITS)
   def configureRecordTable(featureType: SimpleFeatureType, recordTable: String): Unit = {
+    // if using UUID as FeatureID, configure splits with hex characters
+    val HEX_SPLITS = "0,1,2,3,4,5,6,7,8,9,A,a,B,b,C,c,D,d,E,e,F,f".split(",").map(s => new Text(s))
+    val RECORDS_SPLITS = ImmutableSortedSet.copyOf(HEX_SPLITS)
     tableOps.addSplits(recordTable, RECORDS_SPLITS)
+    // enable the column-family functor
+    tableOps.setProperty(recordTable, "table.bloom.key.functor", classOf[ColumnFamilyFunctor].getCanonicalName)
+    tableOps.setProperty(recordTable, "table.bloom.enabled", "true")
   }
 
   // configure splits for each of the attribute names
