@@ -2,9 +2,7 @@ package org.locationtech.geomesa.core.filter
 
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.opengis.filter.{BinaryLogicOperator, Filter, And, Or}
-
-import scala.collection.JavaConversions._
+import org.opengis.filter.Filter
 
 object FilterUtils {
 
@@ -24,24 +22,4 @@ object FilterUtils {
 
   implicit def intToFilter(i: Int): RichFilter = intToAttributeFilter(i)
 
-  def decomposeBinary(f: Filter): Seq[Filter] = {
-    f match {
-      case b: BinaryLogicOperator => b.getChildren.toSeq.flatMap(decomposeBinary)
-      case f: Filter => Seq(f)
-    }
-  }
-
-  def decomposeAnd(f: Filter): Seq[Filter] = {
-    f match {
-      case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
-      case f: Filter => Seq(f)
-    }
-  }
-
-  def decomposeOr(f: Filter): Seq[Filter] = {
-    f match {
-      case b: Or => b.getChildren.toSeq.flatMap(decomposeOr)
-      case f: Filter => Seq(f)
-    }
-  }
 }

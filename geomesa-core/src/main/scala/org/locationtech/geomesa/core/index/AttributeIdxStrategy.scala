@@ -72,7 +72,12 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     val recordScanner = acc.createRecordScanner(featureType)
 
     if (nonSTFilters.nonEmpty) {
-      val iterSetting = configureSimpleFeatureFilteringIterator(featureType, Some(filterListAsAnd(nonSTFilters).get.toString), schema, featureEncoder, query)
+      val iterSetting =
+        configureSimpleFeatureFilteringIterator(featureType,
+                                                Some(filterListAsAnd(nonSTFilters).get.toString),
+                                                schema,
+                                                featureEncoder,
+                                                query)
       recordScanner.addScanIterator(iterSetting)
     }
 

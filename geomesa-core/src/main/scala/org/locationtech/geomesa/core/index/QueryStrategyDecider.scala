@@ -30,6 +30,7 @@ object QueryStrategyDecider {
 
   import org.locationtech.geomesa.core.index.AttributeIndexStrategy.getAttributeIndexStrategy
   import org.locationtech.geomesa.core.index.STIdxStrategy.getSTIdxStrategy
+  import org.locationtech.geomesa.core.index.RecordIdxStrategy.getRecordIdxStrategy
 
   def chooseStrategy(isCatalogTableFormat: Boolean,
                      sft: SimpleFeatureType,
@@ -46,7 +47,7 @@ object QueryStrategyDecider {
       new STIdxStrategy
     } else {
       // check if we can use the attribute index first
-      val attributeStrategy = AttributeIndexStrategy.getAttributeIndexStrategy(filter, sft)
+      val attributeStrategy = getAttributeIndexStrategy(filter, sft)
       attributeStrategy.getOrElse {
         filter match {
           case idFilter: Id => new RecordIdxStrategy
@@ -65,14 +66,33 @@ object QueryStrategyDecider {
       else { new STIdxStrategy }
     }
 
+    // first scan the query and identify the type of predicates present
     val strats = (children.find(c => getAttributeIndexStrategy(c, sft).isDefined),
-                  children.find(c => getSTIdxStrategy(c, sft).isDefined))
+                  children.find(c => getSTIdxStrategy(c, sft).isDefined),
+                  children.find(c => getRecordIdxStrategy(c, sft).isDefined))
 
+    /**
+     * Choose the query strategy to be employed here. This is the priority
+     *   * If an ID predicate is present, it is assumed that only a small number of IDs are requested
+     *            --> The Record Index is scanned, and the other ECQL filters, if any, are then applied
+     *
+     *   * If attribute filters and ST filters are present, use the ordering to choose the correct strategy
+     *
+     *   * If attribute filters are present, then select the correct type of AttributeIdx Strategy
+     *            --> The Attribute Indices are scanned, and the other ECQL filters, if any, are then applied
+     *
+     *   * If ST filters are present, use the STIdxStrategy
+     *            --> The ST Index is scanned, and the other ECQL filters, if any are then applied
+     *
+     *   * If filters are not identified, use the STIdxStrategy
+     *            --> The ST Index is scanned (likely a full table scan) and the ECQL filters are applied
+     */
     strats match {
-      case (Some(attrFilter), Some(stFilter)) => determineStrategy(attrFilter, stFilter)
-      case (Some(attrFilter), None)           => getAttributeIndexStrategy(attrFilter, sft).get
-      case (None, Some(stFilter))             => new STIdxStrategy
-      case (None, None)                       => new STIdxStrategy
+      case (               _,              _, Some(idFilter))  => new RecordIdxStrategy
+      case (Some(attrFilter), Some(stFilter),           None)  => determineStrategy(attrFilter, stFilter)
+      case (Some(attrFilter),           None,           None)  => getAttributeIndexStrategy(attrFilter, sft).get
+      case (            None, Some(stFilter),           None)  => new STIdxStrategy
+      case (            None,           None,           None)  => new STIdxStrategy
     }
   }
 
