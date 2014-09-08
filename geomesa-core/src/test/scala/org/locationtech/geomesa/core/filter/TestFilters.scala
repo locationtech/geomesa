@@ -205,4 +205,19 @@ object TestFilters {
     "attr2 = 'val56' AND dtg BETWEEN '2010-07-01T00:00:00.000Z' AND '2010-07-31T00:00:00.000Z'",
     "dtg BETWEEN '2010-07-01T00:00:00.000Z' AND '2010-07-31T00:00:00.000Z' AND attr2 = 'val56'"
   )
+
+  val idPredicates = Seq(
+    "IN('|data|100001','|data|100002')" ,
+    "IN('|data|100003','|data|100005') AND IN('|data|100001')",
+    "IN('|data|100001','|data|100002') AND attr2 = '2nd100001'",
+    "IN('|data|100001','|data|100002') AND attr2 = '2nd100001' AND IN('|data|100003','|data|100005')",
+    "attr2 = '2nd100001'  AND IN('|data|100001')" ,
+    "IN('|data|100010')",
+    "dtg DURING 2010-06-01T00:00:00.000Z/2010-08-31T23:59:59.000Z AND IN('|data|100001')",
+    "IN('|data|100001') AND dtg DURING 2010-06-01T00:00:00.000Z/2010-08-31T23:59:59.000Z ",
+    "WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20))) AND IN('|data|100001')",
+    "IN('|data|100001') AND WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20)))",
+    "dtg DURING 2010-06-01T00:00:00.000Z/2010-08-31T23:59:59.000Z AND IN('|data|100001','|data|100002')" +
+    "AND WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20))) AND attr2 = '2nd100001'"
+  )
 }

@@ -29,6 +29,7 @@ import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
+import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
 import org.locationtech.geomesa.core.data.{AccumuloConnectorCreator, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
@@ -36,7 +37,6 @@ import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
-import org.locationtech.geomesa.core.{DEFAULT_SCHEMA_NAME, GEOMESA_ITERATORS_IS_DENSITY_TYPE}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
@@ -146,42 +146,6 @@ class STIdxStrategy extends Strategy with Logging {
     }
   }
 
-  def getSFFIIterCfg(iteratorConfig: IteratorConfig,
-                     featureType: SimpleFeatureType,
-                     ecql: Option[String],
-                     schema: String,
-                     featureEncoder: SimpleFeatureEncoder,
-                     query: Query): Option[IteratorSetting] = {
-    if (iteratorConfig.useSFFI) {
-      Some(configureSimpleFeatureFilteringIterator(featureType, ecql, schema, featureEncoder, query))
-    } else None
-  }
-
-  def getTopIterCfg(query: Query,
-                    geometryToCover: Geometry,
-                    schema: String,
-                    featureEncoder: SimpleFeatureEncoder,
-                    featureType: SimpleFeatureType) = {
-    if (query.getHints.containsKey(DENSITY_KEY)) {
-      val clazz = classOf[DensityIterator]
-
-      val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
-        "topfilter-" + randomPrintableString(5),
-        clazz)
-
-      val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Int]
-      val height = query.getHints.get(HEIGHT_KEY).asInstanceOf[Int]
-      val polygon = if (geometryToCover == null) null else geometryToCover.getEnvelope.asInstanceOf[Polygon]
-
-      DensityIterator.configure(cfg, polygon, width, height)
-
-      cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-      configureFeatureEncoding(cfg, featureEncoder)
-      configureFeatureType(cfg, featureType)
-
-      Some(cfg)
-    } else None
-  }
 
   // establishes the regular expression that defines (minimally) acceptable rows
   def configureRowRegexIterator(regex: String): IteratorSetting = {
@@ -307,10 +271,12 @@ object STIdxStrategy {
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
   def getSTIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =
-    if (spatialFilters(filter) &&
-      isValidSTIdxFilter(sft, filter.asInstanceOf[BinarySpatialOperator].getExpression1, filter.asInstanceOf[BinarySpatialOperator].getExpression2)
-    ) { Some(new STIdxStrategy) }
-    else { None }
+    if(!spatialFilters(filter)) None
+    else {
+      val e1 = filter.asInstanceOf[BinarySpatialOperator].getExpression1
+      val e2 = filter.asInstanceOf[BinarySpatialOperator].getExpression2
+      if(isValidSTIdxFilter(sft, e1, e2)) Some(new STIdxStrategy) else None
+    }
 
   /**
    * Ensures the following conditions:

@@ -14,6 +14,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreTest, AccumuloFeatureStore}
 import org.locationtech.geomesa.core.filter.TestFilters._
+import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
 import org.locationtech.geomesa.core.iterators.TestData._
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -81,6 +82,10 @@ class AttributeGeoPredicateTest extends FilterTester {
 @RunWith(classOf[JUnitRunner])
 class DWithinPredicateTest extends DWithinTester {
   val filters = dwithinPointPredicates
+}
+
+class IdPredicateTest extends FilterTester {
+  val filters = idPredicates
   runTest
 }
 
@@ -101,6 +106,7 @@ class IdQueryTest extends Specification {
   }
   val geomBuilder = JTSFactoryFinder.getGeometryFactory
   val sft = SimpleFeatureTypes.createType("idquerysft", "age:Int:index=true,name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+  sft.getUserData.put(SF_PROPERTY_START_TIME,"dtg")
   ds.createSchema(sft)
   val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
   val data = List(
@@ -137,6 +143,16 @@ class IdQueryTest extends Specification {
       val res = fs.getFeatures(idQ).features().toList
       res.length mustEqual 2
       res.map(_.getID) must contain ("1", "3")
+    }
+
+    "return no events when multiple IDs ANDed result in no intersection"  >> {
+      val idQ1 = ff.id(ff.featureId("1"), ff.featureId("3"))
+      val idQ2 = ff.id(ff.featureId("2"))
+      val idQ =  ff.and(idQ1, idQ2)
+      val qRes = fs.getFeatures(idQ)
+      val res= qRes.features().toList
+
+      res.length mustEqual 0
     }
   }
 }
@@ -233,7 +249,6 @@ trait DWithinTester extends Specification with Logging {
         val filterCount = mediumDataFeatures.count(rewrittenDwithinFilter.evaluate)
         val queryCount = fs.getFeatures(filter).size
 
-        logger.debug(s"Rewritten dwithin filter is $rewrittenDwithinFilter")
         logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
           s"filter hits: $filterCount query hits: $queryCount")
         filterCount mustEqual queryCount
