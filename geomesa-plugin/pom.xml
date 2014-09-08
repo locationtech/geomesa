@@ -155,6 +155,13 @@
                                         <exclude>META-INF/*.SF</exclude>
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>org/apache/commons/math3/random/AbstractWell.class</exclude>
+                                        <exclude>org/apache/commons/math3/random/Well44497b.class</exclude>
+                                        <exclude>org/apache/commons/math3/random/Well1024a.class</exclude>
+                                        <exclude>org/apache/commons/math3/random/Well512a.class</exclude>
+                                        <exclude>org/apache/commons/math3/random/Well44497a.class</exclude>
+                                        <exclude>org/apache/commons/math3/random/Well19937a.class</exclude>
+                                        <exclude>org/apache/commons/math3/random/Well19937c.class</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
