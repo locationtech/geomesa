@@ -26,7 +26,7 @@ import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
-import org.apache.accumulo.core.file.keyfunctor.ColumnFamilyFunctor
+import org.apache.accumulo.core.file.keyfunctor.{RowFunctor, ColumnFamilyFunctor}
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.commons.codec.binary.Hex
@@ -327,11 +327,14 @@ class AccumuloDataStore(val connector: Connector,
     }
   }
 
-  // if using UUID as FeatureID, configure splits with hex characters
-  private val HEX_SPLITS = "0,1,2,3,4,5,6,7,8,9,A,a,B,b,C,c,D,d,E,e,F,f".split(",").map(s => new Text(s))
-  private val RECORDS_SPLITS = ImmutableSortedSet.copyOf(HEX_SPLITS)
   def configureRecordTable(featureType: SimpleFeatureType, recordTable: String): Unit = {
+    // if using UUID as FeatureID, configure splits with hex characters
+    val HEX_SPLITS = "0123456789abcdefABCDEF".map(s=>new Text(s.toString)).toArray
+    val RECORDS_SPLITS = ImmutableSortedSet.copyOf(HEX_SPLITS)
     tableOps.addSplits(recordTable, RECORDS_SPLITS)
+    // enable the row functor as the feature ID is stored in the Row ID
+    tableOps.setProperty(recordTable, "table.bloom.key.functor", classOf[RowFunctor].getCanonicalName)
+    tableOps.setProperty(recordTable, "table.bloom.enabled", "true")
   }
 
   // configure splits for each of the attribute names
