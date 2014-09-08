@@ -144,7 +144,7 @@ If attempting to ingest files with explicit latitude and longitude columns, the 
 `--datetime` The optional name of the field in the SFT specification that corresponds to the the *time* column.
 
 `--dtformat` The optional Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss". This must be surrounded by quotes and must match exactly the format in the source file. 
-If a invalid dtformat is given Ingest attempts to parse the date-time value using the ISO8601 standard.
+If no date time format is provided for a provided date time field, it is assumed to be in millisecond epoch time. 
 
 `--idfields` The optional comma separated list of ID fields used to generate the feature IDs. If empty, it is assumed that the ID will be generated via a hash on all attributes of that line.
 

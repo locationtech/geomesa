@@ -153,6 +153,23 @@ class SVIngestTest extends Specification{
       f.getAttribute(4) must beAnInstanceOf[Geometry]
     }
 
+    "properly add attributes to an AvroSimpleFeature from a comma-delimited string with a unix (milliseconds) datetime field" in {
+      val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.DT_FIELD, List("time"))
+        .updated(IngestParams.DT_FORMAT, List.empty)))
+      val testString = "1325409954,1410199543000,-90.368732,35.3155"
+      val sft = SimpleFeatureTypes.createType("test_type", "fid:Double,time:Date,lon:Double,lat:Double,*geom:Point:srid=4326")
+      val f = new AvroSimpleFeature(new FeatureIdImpl("test_type"), sft)
+      val ingestTry = ingest.ingestDataToFeature(testString, f)
+
+      ingestTry must beASuccessfulTry
+
+      f.getAttribute(0) must beAnInstanceOf[java.lang.Double]
+      f.getAttribute(1) must beAnInstanceOf[java.util.Date]
+      f.getAttribute(2) must beAnInstanceOf[java.lang.Double]
+      f.getAttribute(3) must beAnInstanceOf[java.lang.Double]
+      f.getAttribute(4) must beAnInstanceOf[Geometry]
+    }
+
     "properly add attributes to an AvroSimpleFeature from a comma-delimited string with no date time field or format" in {
       val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.DT_FORMAT, List.empty)
         .updated(IngestParams.DT_FIELD, List.empty)))

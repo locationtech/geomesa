@@ -33,11 +33,11 @@ import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import scala.collection.JavaConversions._
+
 import scala.util.Try
 
 class SVIngest(args: Args) extends Job(args) with Logging {
-
+  import scala.collection.JavaConversions._
 
   var lineNumber            = 0
   var failures              = 0
@@ -47,7 +47,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val path             = args(IngestParams.FILE_PATH)
   lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
   lazy val dtgField         = args.optional(IngestParams.DT_FIELD)
-  lazy val dtgFmt           = args.optional(IngestParams.DT_FORMAT).getOrElse("MILLISEPOCH")
+  lazy val dtgFmt           = args.optional(IngestParams.DT_FORMAT)
   lazy val lonField         = args.optional(IngestParams.LON_ATTRIBUTE).orNull
   lazy val latField         = args.optional(IngestParams.LAT_ATTRIBUTE).orNull
   lazy val doHash           = args(IngestParams.DO_HASH).toBoolean
@@ -101,7 +101,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   }
 
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
-  lazy val dtFormat = DateTimeFormat.forPattern(dtgFmt)
+  lazy val dtFormat = dtgFmt.map(DateTimeFormat.forPattern)
   lazy val attributes = sft.getAttributeDescriptors
   lazy val dtBuilder = dtgField.flatMap(buildDtBuilder)
   lazy val idBuilder = buildIDBuilder
@@ -228,11 +228,14 @@ class SVIngest(args: Args) extends Job(args) with Logging {
       case attr if attr.getType.getBinding.equals(classOf[java.util.Date]) =>
         (obj: AnyRef) => obj match {
           case d: java.util.Date => new DateTime(d)
-          case s: String         => dtFormat.parseDateTime(s)
+          case s: String         => dtFormat.map(_.parseDateTime(s)).getOrElse(new DateTime(s.toLong))
         }
 
       case attr if attr.getType.getBinding.equals(classOf[java.lang.String]) =>
-        (obj: AnyRef) => dtFormat.parseDateTime(obj.asInstanceOf[String])
+        (obj: AnyRef) => {
+          val dtString = obj.asInstanceOf[String]
+          dtFormat.map(_.parseDateTime(dtString)).getOrElse(new DateTime(dtString.toLong))
+        }
     }
 }
 
