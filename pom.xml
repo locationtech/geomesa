@@ -480,7 +480,7 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
-                <artifactId>gt-epsg-hsql</artifactId>
+                <artifactId>gt-epsg-wkt</artifactId>
                 <version>${gt.version}</version>
                 <scope>provided</scope>
             </dependency>
