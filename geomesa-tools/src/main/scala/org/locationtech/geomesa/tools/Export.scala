@@ -48,7 +48,6 @@ class Export(config: ExportArguments, password: String) extends Logging with Acc
   }
 
   def exportFeatures() {
-    val sftCollection = getFeatureCollection
     var outputPath: File = null
     do {
       if (outputPath != null) { Thread.sleep(1) }
@@ -56,6 +55,7 @@ class Export(config: ExportArguments, password: String) extends Logging with Acc
     } while (outputPath.exists)
     config.format.toLowerCase match {
       case "csv" | "tsv" =>
+        val sftCollection = getFeatureCollection()
         val loadAttributes = new LoadAttributes(config.featureName,
           config.catalog,
           config.attributes.orNull,
@@ -77,15 +77,29 @@ class Export(config: ExportArguments, password: String) extends Logging with Acc
           "auths"        -> config.auths.orNull))
         de.writeFeatures(sftCollection.features())
       case "shp" =>
+        // When exporting to Shapefile, we must rename the Geometry Attribute Descriptor to "the_geom", per
+        // the requirements of Geotools' ShapefileDataStore and ShapefileFeatureWriter. The easiest way to do this
+        // is transform the attribute when retrieving the SimpleFeatureCollection.
+        val attrDescriptors = config.attributes.getOrElse(
+          ds.getSchema(config.featureName).getAttributeDescriptors.map(_.getLocalName).mkString(","))
+        val geomDescriptor = ds.getSchema(config.featureName).getGeometryDescriptor.getLocalName
+        val renamedGeomAttrs = if (attrDescriptors.contains(geomDescriptor)) {
+          attrDescriptors.replace(geomDescriptor, s"the_geom=$geomDescriptor")
+        } else {
+          attrDescriptors.concat(s",the_geom=$geomDescriptor")
+        }
+        val shpCollection = getFeatureCollection(Some(renamedGeomAttrs))
         val shapeFileExporter = new ShapefileExport
-        shapeFileExporter.write(outputPath, config.featureName, sftCollection, ds.getSchema(config.featureName))
+        shapeFileExporter.write(outputPath, config.featureName, shpCollection, shpCollection.getSchema)
         logger.info(s"Successfully wrote features to '${outputPath.toString}'")
       case "geojson" =>
+        val sftCollection = getFeatureCollection()
         val os = if (config.toStdOut) { System.out } else { new FileOutputStream(outputPath) }
         val geojsonExporter = new GeoJsonExport
         geojsonExporter.write(sftCollection, os)
         if (!config.toStdOut) { logger.info(s"Successfully wrote features to '${outputPath.toString}'") }
       case "gml" =>
+        val sftCollection = getFeatureCollection()
         val os = if (config.toStdOut) { System.out } else { new FileOutputStream(outputPath) }
         val gmlExporter = new GmlExport
         gmlExporter.write(sftCollection, os)
@@ -96,14 +110,16 @@ class Export(config: ExportArguments, password: String) extends Logging with Acc
     Thread.sleep(1000)
   }
 
-  def getFeatureCollection: SimpleFeatureCollection = {
+  def getFeatureCollection(overrideAttributes: Option[String] = None): SimpleFeatureCollection = {
     val filter = CQL.toFilter(config.query.getOrElse("include"))
     val q = new Query(config.featureName, filter)
 
     q.setMaxFeatures(config.maxFeatures.getOrElse(Query.DEFAULT_MAX))
+    val attributesO = if (overrideAttributes.isDefined) overrideAttributes
+                      else if (config.attributes.isDefined) config.attributes
+                      else None
     //Split attributes by "," meanwhile allowing to escape it by "\,".
-    if (config.attributes.isDefined)
-      q.setPropertyNames(config.attributes.get.split("""(?<!\\),""").map(_.trim.replace("\\,", ",")))
+    attributesO.foreach(attributes => q.setPropertyNames(attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ","))))
 
     // get the feature store used to query the GeoMesa data
     val fs = ds.getFeatureSource(config.featureName).asInstanceOf[AccumuloFeatureStore]
