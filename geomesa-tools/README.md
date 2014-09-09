@@ -105,11 +105,10 @@ Specify the catalog table to use with `-c` or `--catalog`.
 Specify the feature to export with `-f` or `--feature-name`.  
 Specify the export format with `-o` or `--format`. The supported export formats are csv, gml, geojson, and shp.
 #### Optional flags:
-To set a maximum number of features to return, use `-m` or `--maxFeatures` followed by the maximum number of features
-.  
+To set a maximum number of features to return, use `-m` or `--maxFeatures` followed by the maximum number of features.
 To run an ECQL query, use `-q` or `--query` followed by the query filter string.  
 To export to stdOut, use `-s` or `--stdout`. This is useful for piping output.  
-To retrieve subset of attributes or transformed values from each feature, use `-a` or `--attributes` followed by a
+To retrieve a subset of attributes or transformed values from each feature, use `-a` or `--attributes` followed by a
 String of comma-separated expressions with each in the format
 `attribute[=filter_function_expression]|derived-attribute=filter_function_expression`. `filter_function_expression` is
 an expression of filter function applied to attributes, literals and filter functions, i.e. can be nested. Filter
