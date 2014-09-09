@@ -63,7 +63,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val auths            = args.optional(IngestParams.AUTHORIZATIONS).orNull
   lazy val visibilities     = args.optional(IngestParams.VISIBILITIES).orNull
   lazy val indexSchemaFmt   = args.optional(IngestParams.INDEX_SCHEMA_FMT).orNull
-  lazy val shards           = args.optional(IngestParams.SHARDS).orNull
+  lazy val shards           = args.optional(IngestParams.SHARDS)
   lazy val useMock          = args.optional(IngestParams.ACCUMULO_MOCK).orNull
 
   // need to work in shards, vis, isf
@@ -82,10 +82,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
       "useMock"           -> useMock
     )
 
-  val maxShard: Option[Int] = shards match {
-    case s: String => Some(s.toInt)
-    case _         => None
-  }
+  val maxShard: Option[Int] = shards.map(_.toInt)
 
   lazy val delim = format match {
     case s: String if s.toUpperCase == "TSV" => CSVFormat.TDF

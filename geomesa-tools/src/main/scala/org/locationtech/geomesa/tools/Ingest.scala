@@ -16,9 +16,11 @@
 
 package org.locationtech.geomesa.tools
 
+import java.io.File
 import java.net.{URLDecoder, URLEncoder}
 import com.twitter.scalding.{Args, Hdfs, Local, Mode}
 import com.typesafe.scalalogging.slf4j.Logging
+import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.conf.Configuration
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.core.data.AccumuloDataStore
@@ -27,6 +29,8 @@ import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import scala.collection.JavaConversions._
+import scala.io.Source
+import scala.util.Try
 
 class Ingest() extends Logging with AccumuloProperties {
 
@@ -134,16 +138,30 @@ class Ingest() extends Logging with AccumuloProperties {
     }
   }
 
+  def ingestLibJars = {
+    val defaultLibJarsFile = "org/locationtech/geomesa/tools/ingest-libjars.list"
+    val url = Try(getClass.getClassLoader.getResource(defaultLibJarsFile))
+    val source = url.map(Source.fromURL)
+    val lines = source.map(_.getLines().toList)
+    source.foreach(_.close())
+    lines.get
+  }
+
+  def ingestJarSearchPath: Iterator[() => Seq[File]] =
+    Iterator(() => JobUtils.getJarsFromEnvironment("GEOMESA_HOME"),
+      () => JobUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
+      () => JobUtils.getJarsFromClasspath(classOf[SVIngest]),
+      () => JobUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
+      () => JobUtils.getJarsFromClasspath(classOf[Connector]))
+
   def runIngestJob(config: IngestArguments, fileSystem: String, password: String): Unit = {
-    val svingestJars = JobUtils.getJarsFromClasspath(classOf[SVIngest])
-    val libJars = svingestJars.mkString(",")
     val conf = new Configuration()
-    JobUtils.setLibJars(conf) // this fixes MR jobs
-    //conf.setQuietMode(true)
+
+    JobUtils.setLibJars(conf, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
+
     val args = new collection.mutable.ListBuffer[String]()
     args.append(classOf[SVIngest].getCanonicalName)
     args.append(fileSystem)
-    //args.append("-libjars", libJars)
     args.append("--" + IngestParams.FILE_PATH, config.file)
     args.append("--" + IngestParams.SFT_SPEC, URLEncoder.encode(config.spec, "UTF-8"))
     args.append("--" + IngestParams.CATALOG_TABLE, config.catalog)
