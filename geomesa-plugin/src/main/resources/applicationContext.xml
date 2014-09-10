@@ -59,6 +59,10 @@
         <constructor-arg index="0" ref="catalog"/>
     </bean>
 
+  <bean id="binaryViewerOutputFormat" class="org.locationtech.geomesa.plugin.wfs.output.BinaryViewerOutputFormat">
+    <constructor-arg ref="geoServer"/>
+  </bean>
+
  <!-- Link category for grouping GeoMesa pages -->
   <bean id="geoMesaCategory" class="org.geoserver.web.Category">
     <property name="nameKey" value="GeoMesaCategory.title"/>
