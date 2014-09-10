@@ -17,7 +17,8 @@
 package org.locationtech.geomesa.tools
 
 import java.io.File
-import java.net.{URLDecoder, URLEncoder}
+import java.net.URLEncoder
+
 import com.twitter.scalding.{Args, Hdfs, Local, Mode}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.Connector
@@ -28,92 +29,75 @@ import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+
 import scala.collection.JavaConversions._
 import scala.io.Source
 import scala.util.Try
 
 class Ingest() extends Logging with AccumuloProperties {
 
-  def createDataStoreSchema(args: Args) = {
-    val catalog          = args(IngestParams.CATALOG_TABLE)
-    val instanceId       = args(IngestParams.ACCUMULO_INSTANCE)
-    val featureName      = args(IngestParams.FEATURE_NAME)
-    val zookeepers       = args(IngestParams.ZOOKEEPERS)
-    val user             = args(IngestParams.ACCUMULO_USER)
-    val password         = args(IngestParams.ACCUMULO_PASSWORD)
-    val auths            = args.optional(IngestParams.AUTHORIZATIONS).orNull
-    val visibilities     = args.optional(IngestParams.VISIBILITIES).orNull
-    val indexSchemaFmt   = args.optional(IngestParams.INDEX_SCHEMA_FMT).orNull
-    val shards           = args.optional(IngestParams.SHARDS).orNull
-    val useMock          = args.optional(IngestParams.ACCUMULO_MOCK).orNull
-    val dtgField         = args.optional(IngestParams.DT_FIELD)
-    val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
-
-    val maxShard: Option[Int] = shards match {
-      case s: String => Some(s.toInt)
-      case _         => None
+  def createDataStoreSchema(config: IngestArguments, password: String) = {
+    if (config.featureName.isEmpty) {
+      logger.error("No feature name specified for CSV/TSV Ingest." +
+        " Please check that all arguments are correct in the previous command. ")
+      sys.exit()
     }
 
-    val dsConfig =
-      Map(
-        "zookeepers"        -> zookeepers,
-        "instanceId"        -> instanceId,
-        "tableName"         -> catalog,
-        "featureName"       -> featureName,
-        "user"              -> user,
-        "password"          -> password,
-        "auths"             -> auths,
-        "visibilities"      -> visibilities,
-        "indexSchemaFormat" -> indexSchemaFmt,
-        "maxShard"          -> maxShard,
-        "useMock"           -> useMock
-      )
+    val featureName = config.featureName.get
+    val maxShard = config.maxShards
+    val sftSpec = config.spec
+
+    val dsConfig = getAccumuloDataStoreConf(config, password)
 
     val sft = {
       val ret = SimpleFeatureTypes.createType(featureName, sftSpec)
-      ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField.getOrElse(Constants.SF_PROPERTY_START_TIME))
+      ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, config.dtField.getOrElse(Constants.SF_PROPERTY_START_TIME))
       ret
     }
 
-    val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
-    if (ds.getSchema(featureName) == null) {
-      logger.info("\tCreating GeoMesa tables...")
-      val startTime = System.currentTimeMillis()
-      if (maxShard.isDefined)
-        ds.createSchema(sft, maxShard.get)
-      else
-        ds.createSchema(sft)
-      val createTime = System.currentTimeMillis() - startTime
-      val numShards = ds.getSpatioTemporalMaxShard(sft)
-      val shardPvsS = if (numShards == 1) "Shard" else "Shards"
-      logger.info(s"\tCreated schema in: $createTime ms using $numShards $shardPvsS.")
-    } else {
-      val numShards = ds.getSpatioTemporalMaxShard(sft)
-      val shardPvsS = if (numShards == 1) "Shard" else "Shards"
-      maxShard match {
-        case None =>
-          logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS. Using extant SFT. " +
-            s"\nIf this is not desired please delete (aka: drop) the catalog using the delete command.")
-        case Some(x) =>
-          logger.warn(s"GeoMesa tables extant, ignoring user request, using schema's $numShards $shardPvsS")
-      }
+    val ds = Option(DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore])
+    ds match {
+      case None =>
+        logger.error("Error, could not find data store with provided arguments." +
+          " Please check that all arguments are correct in the previous command")
+        sys.exit()
+      case Some(ads) =>
+        if (ads.getSchema(featureName) == null) {
+          logger.info("\tCreating GeoMesa tables...")
+          val startTime = System.currentTimeMillis()
+          if (maxShard.isDefined)
+            ads.createSchema(sft, maxShard.get)
+          else
+            ads.createSchema(sft)
+          val createTime = System.currentTimeMillis() - startTime
+          val numShards = ads.getSpatioTemporalMaxShard(sft)
+          val shardPvsS = if (numShards == 1) "Shard" else "Shards"
+          logger.info(s"\tCreated schema in: $createTime ms using $numShards $shardPvsS.")
+        } else {
+          val numShards = ads.getSpatioTemporalMaxShard(sft)
+          val shardPvsS = if (numShards == 1) "Shard" else "Shards"
+          maxShard match {
+            case None =>
+              logger.info(s"GeoMesa tables extant, using $numShards $shardPvsS. Using extant SFT. " +
+                s"\nIf this is not desired please delete (aka: drop) the catalog using the delete command.")
+            case Some(x) =>
+              logger.warn(s"GeoMesa tables extant, ignoring user request, using schema's $numShards $shardPvsS")
+          }
+        }
     }
-    //close the data store.
-    ds.dispose()
   }
-
 
   def getAccumuloDataStoreConf(config: IngestArguments, password: String) = Map (
       "instanceId"        -> config.instanceName.getOrElse(instanceName),
       "zookeepers"        -> config.zookeepers.getOrElse(zookeepers),
       "user"              -> config.username,
       "password"          -> password,
-      "auths"             -> Option(config.auths),
-      "visibilities"      -> Option(config.visibilities),
-      "maxShard"          -> Option(config.maxShards),
-      "indexSchemaFormat" -> Option(config.indexSchemaFmt),
-      "tableName"         -> config.catalog
-    )
+      "tableName"         -> config.catalog,
+      "auths"             -> config.auths,
+      "visibilities"      -> config.visibilities,
+      "maxShard"          -> config.maxShards,
+      "indexSchemaFormat" -> config.indexSchemaFmt
+    ).collect{ case (key, Some(value)) => (key, value); case (key, value: String) => (key, value) }
 
   def defineIngestJob(config: IngestArguments, password: String) = {
     Ingest.getFileExtension(config.file).toUpperCase match {
@@ -155,8 +139,10 @@ class Ingest() extends Logging with AccumuloProperties {
       () => JobUtils.getJarsFromClasspath(classOf[Connector]))
 
   def runIngestJob(config: IngestArguments, fileSystem: String, password: String): Unit = {
-    val conf = new Configuration()
+    // create data store schema outside of map-reduce
+    createDataStoreSchema(config, password)
 
+    val conf = new Configuration()
     JobUtils.setLibJars(conf, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
 
     val args = new collection.mutable.ListBuffer[String]()
@@ -190,13 +176,12 @@ class Ingest() extends Logging with AccumuloProperties {
         s"GeoMesa is defaulting to the system time for ingested features.")
     }
     val scaldingArgs = Args(args)
-    // create data store schema outside of map-reduce
-    createDataStoreSchema(scaldingArgs)
     // continue with ingest
     val hdfsMode = if (fileSystem == "--hdfs") Hdfs(strict = true, conf) else Local(strictSources = true)
     val arguments = Mode.putMode(hdfsMode, scaldingArgs)
     val job = new SVIngest(arguments)
     val flow = job.buildFlow
+    //block until job is completed.
     flow.complete()
   }
 }

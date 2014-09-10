@@ -47,42 +47,29 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
   lazy val dtgField         = args.optional(IngestParams.DT_FIELD)
   lazy val dtgFmt           = args.optional(IngestParams.DT_FORMAT)
-  lazy val lonField         = args.optional(IngestParams.LON_ATTRIBUTE).orNull
-  lazy val latField         = args.optional(IngestParams.LAT_ATTRIBUTE).orNull
+  lazy val lonField         = args.optional(IngestParams.LON_ATTRIBUTE)
+  lazy val latField         = args.optional(IngestParams.LAT_ATTRIBUTE)
   lazy val doHash           = args(IngestParams.DO_HASH).toBoolean
   lazy val format           = args(IngestParams.FORMAT)
   lazy val isTestRun        = args(IngestParams.IS_TEST_INGEST).toBoolean
+  lazy val featureName      = args(IngestParams.FEATURE_NAME)
+  lazy val maxShard         = args.optional(IngestParams.SHARDS).map(_.toInt)
 
   //Data Store parameters
-  lazy val catalog          = args(IngestParams.CATALOG_TABLE)
-  lazy val instanceId       = args(IngestParams.ACCUMULO_INSTANCE)
-  lazy val featureName      = args(IngestParams.FEATURE_NAME)
-  lazy val zookeepers       = args(IngestParams.ZOOKEEPERS)
-  lazy val user             = args(IngestParams.ACCUMULO_USER)
-  lazy val password         = args(IngestParams.ACCUMULO_PASSWORD)
-  lazy val auths            = args.optional(IngestParams.AUTHORIZATIONS).orNull
-  lazy val visibilities     = args.optional(IngestParams.VISIBILITIES).orNull
-  lazy val indexSchemaFmt   = args.optional(IngestParams.INDEX_SCHEMA_FMT).orNull
-  lazy val shards           = args.optional(IngestParams.SHARDS)
-  lazy val useMock          = args.optional(IngestParams.ACCUMULO_MOCK).orNull
-
-  // need to work in shards, vis, isf
   lazy val dsConfig =
     Map(
-      "zookeepers"        -> zookeepers,
-      "instanceId"        -> instanceId,
-      "tableName"         -> catalog,
       "featureName"       -> featureName,
-      "user"              -> user,
-      "password"          -> password,
-      "auths"             -> auths,
-      "visibilities"      -> visibilities,
-      "indexSchemaFormat" -> indexSchemaFmt,
       "maxShard"          -> maxShard,
-      "useMock"           -> useMock
-    )
-
-  val maxShard: Option[Int] = shards.map(_.toInt)
+      "zookeepers"        -> args(IngestParams.ZOOKEEPERS),
+      "instanceId"        -> args(IngestParams.ACCUMULO_INSTANCE),
+      "tableName"         -> args(IngestParams.CATALOG_TABLE),
+      "user"              -> args(IngestParams.ACCUMULO_USER),
+      "password"          -> args(IngestParams.ACCUMULO_PASSWORD),
+      "auths"             -> args.optional(IngestParams.AUTHORIZATIONS),
+      "visibilities"      -> args.optional(IngestParams.VISIBILITIES),
+      "indexSchemaFormat" -> args.optional(IngestParams.INDEX_SCHEMA_FMT),
+      "useMock"           -> args.optional(IngestParams.ACCUMULO_MOCK)
+    ).collect{ case (key, Some(value)) => (key, value); case (key, value: String) => (key, value) }
 
   lazy val delim = format match {
     case s: String if s.toUpperCase == "TSV" => CSVFormat.TDF
@@ -175,8 +162,8 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     dtBuilder.foreach { dateBuilder => addDateToFeature(line, fields, feature, dateBuilder) }
 
     // Support for point data method
-    val lon = Option(feature.getAttribute(lonField)).map(_.asInstanceOf[Double])
-    val lat = Option(feature.getAttribute(latField)).map(_.asInstanceOf[Double])
+    val lon = lonField.map(feature.getAttribute).map(_.asInstanceOf[Double])
+    val lat = latField.map(feature.getAttribute).map(_.asInstanceOf[Double])
     (lon, lat) match {
       case (Some(x), Some(y)) => feature.setDefaultGeometry(geomFactory.createPoint(new Coordinate(x, y)))
       case _                  =>
