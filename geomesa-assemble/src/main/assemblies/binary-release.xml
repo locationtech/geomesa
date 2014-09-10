@@ -23,7 +23,7 @@
     <format>tar.gz</format>
   </formats>
   <includeBaseDirectory>true</includeBaseDirectory>
-  <baseDirectory>${artifactId}-${project.version}</baseDirectory>
+  <baseDirectory>geomesa-${project.version}</baseDirectory>
   <componentDescriptors>
     <componentDescriptor>src/main/assemblies/component.xml</componentDescriptor>
   </componentDescriptors>

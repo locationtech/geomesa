@@ -309,7 +309,7 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa</artifactId>
+                <artifactId>geomesa-assemble-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

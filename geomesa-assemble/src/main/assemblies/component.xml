@@ -49,10 +49,6 @@
                 <exclude>*SNAPSHOT.jar</exclude>
             </excludes>
         </fileSet>
-        <fileSet>
-            <directory>target/links</directory>
-            <outputDirectory>lib</outputDirectory>
-        </fileSet>
     </fileSets>
     <files>
         <file>

@@ -25,8 +25,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa</artifactId>
-    <name>GeoMesa Tarball - [Accumulo 1.5.x]</name>
+    <artifactId>geomesa-assemble-accumulo1.5</artifactId>
+    <name>GeoMesa Assemble - [Accumulo 1.5.x]</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -60,7 +60,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-tools-accumulo1.5</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -70,7 +69,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-jobs-accumulo1.5</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
     <build>
@@ -97,38 +95,11 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <includeScope>runtime</includeScope>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>false</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
-                <executions>
-                    <execution>
-                        <id>link</id>
-                        <phase>package</phase>
-                        <configuration>
-                            <target>
-                                <mkdir dir="${project.build.directory}/links"/>
-                                <symlink link="${project.build.directory}/geomesa-compute.jar" resource="${project.build.directory}/lib/geomesa-compute-${accumuloSuffix}-${version}.jar"/>
-                                <symlink link="${project.build.directory}/geomesa-core.jar" resource="${project.build.directory}/lib/geomesa-core-${accumuloSuffix}-${version}.jar"/>
-                                <symlink link="${project.build.directory}/geomesa-distributed-runtime.jar" resource="${project.build.directory}/lib/geomesa-distributed-runtime-${accumuloSuffix}-${version}.jar"/>
-                                <symlink link="${project.build.directory}/geomesa-feature.jar" resource="${project.build.directory}/lib/geomesa-feature-${accumuloSuffix}-${version}.jar"/>
-                                <symlink link="${project.build.directory}/geomesa-filter.jar" resource="${project.build.directory}/lib/geomesa-filter-${accumuloSuffix}-${version}.jar"/>
-                                <symlink link="${project.build.directory}/geomesa-jobs.jar" resource="${project.build.directory}/lib/geomesa-jobs-${accumuloSuffix}-${version}.jar"/>
-                                <symlink link="${project.build.directory}/geomesa-plugin.jar" resource="${project.build.directory}/lib/geomesa-plugin-${accumuloSuffix}-${version}.jar"/>
-                                <symlink link="${project.build.directory}/geomesa-tools.jar" resource="${project.build.directory}/lib/geomesa-tools-${accumuloSuffix}-${version}.jar"/>
-                                <symlink link="${project.build.directory}/geomesa-utils.jar" resource="${project.build.directory}/lib/geomesa-utils-${accumuloSuffix}-${version}.jar"/>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -144,7 +115,7 @@
                         <phase>package</phase>
                         <configuration>
                             <attach>true</attach>
-                            <finalName>${project.artifactId}-${project.version}</finalName>
+                            <finalName>geomesa</finalName>
                             <descriptors>
                                 <descriptor>src/main/assemblies/binary-release.xml</descriptor>
                             </descriptors>

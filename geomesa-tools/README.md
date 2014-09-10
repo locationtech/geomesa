@@ -12,7 +12,7 @@ To begin using the command line tools, first build the full GeoMesa project from
 You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-${version}-bin.tar.gz" 
 in the geomesa-assemble/target directory. Untar this file with
 
-    tar xvfz geomesa-assemble/target/geomesa-${version}-bin.tar.gz
+    tar xvfz geomesa-assemble/target/geomesa-bin.tar.gz
     
 Next, `cd` into the newly created directory with
     
