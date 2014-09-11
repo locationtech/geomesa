@@ -76,9 +76,9 @@ done
 GEOMESA_CP=${GEOMESA_CP:1}
 
 # We explicitly add geomesa-tools as the first jar to ensure the correct log4j properties file is used.
-CLASSPATH="-cp ${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
+CLASSPATH="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
 if [ -n "$JAVA_LIBRARY_PATH" ]; then
-  CLASSPATH="-Djava.library.path=$JAVA_LIBRARY_PATH $CLASSPATH"
+  GEOMESA_OPTS="$GEOMESA_OPTS,java.library.path=$JAVA_LIBRARY_PATH"
   export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_LIBRARY_PATH"
 fi
 
@@ -108,14 +108,14 @@ else
     if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") || (-z "$HADOOP_CONF_DIR")  ]]; then
         echo "Please ensure GEOMESA_HOME, ACCUMULO_HOME, and HADOOP_CONF_DIR are set before running geomesa-tools."
     elif [[ $1 = ingest ]] && [[ (-z "$2") || ($2 = --help)  || ($2 = -help) || ($2 = help) ]]; then
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} ${CLASSPATH} org.locationtech.geomesa.tools.Ingest --help
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Ingest --help
     elif [[ $1 = ingest ]]; then
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} ${CLASSPATH} org.locationtech.geomesa.tools.Ingest "${@:2}"
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Ingest "${@:2}"
     elif [[ $1 = export ]]; then
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} ${CLASSPATH} org.locationtech.geomesa.tools.Export "${@:2}"
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Export "${@:2}"
     elif [ -n "$*" ]; then
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} ${CLASSPATH} org.locationtech.geomesa.tools.Tools "$@"
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Tools "$@"
     else
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} ${CLASSPATH} org.locationtech.geomesa.tools.Tools --help
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Tools --help
     fi
 fi
