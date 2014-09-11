@@ -86,26 +86,17 @@ class SVExport(load: LoadAttributes, params: Map[_,_]) extends Logging {
     } while (outputPath.exists)
 
     val fr = if (load.toStdOut) { new PrintWriter(System.out) } else { new PrintWriter(new FileWriter(outputPath)) }
-
-    load.format.toLowerCase match {
-      case "tsv" =>
-        fr.println(attributeTypes.mkString("\t"))
-      case "csv" =>
-        fr.println(attributeTypes.mkString(","))
-    }
     var count = 0
 
     features.foreach { sf =>
       val map = scala.collection.mutable.Map.empty[String, Object]
 
-      val attrs = if (attributes.size > 0) { attributes } else { sf.getProperties.map(property => property.getName.toString) }
+      val attrs = if (attributeTypes.size > 0) { attributeTypes } else { sf.getProperties.map(property => property.getName.toString) }
 
-      if (attributes.size == 0 && count == 0) {
+      if (count == 0) {
         load.format.toLowerCase match {
-          case "tsv" =>
-            fr.println(attrs.mkString("\t"))
-          case "csv" =>
-            fr.println(attrs.mkString(","))
+          case "tsv" => fr.println(attrs.mkString("\t"))
+          case "csv" => fr.println(attrs.mkString(","))
         }
       }
 

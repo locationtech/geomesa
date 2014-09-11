@@ -33,6 +33,7 @@
         <module>geomesa-feature</module>
         <module>geomesa-tools</module>
         <module>geomesa-compute</module>
+        <module>geomesa-assemble</module>
     </modules>
 
     <properties>
@@ -67,6 +68,7 @@
         <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit</maven.test.jvmargs>
         <fork.mode>once</fork.mode>
         <avro.version>1.7.5</avro.version>
+        <accumuloSuffix>accumulo1.5</accumuloSuffix>
     </properties>
 
     <profiles>
@@ -303,6 +305,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-jobs-accumulo1.5</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-assemble-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
