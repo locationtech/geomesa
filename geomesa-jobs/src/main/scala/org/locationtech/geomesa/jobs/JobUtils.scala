@@ -75,7 +75,7 @@ object JobUtils extends Logging {
     // tmpjars is the hadoop config that corresponds to libjars
     conf.setStrings("tmpjars", foundJars.toSeq: _*)
 
-    println(s"libjars=${foundJars.mkString("\n", "\n", "")}")
+    logger.debug(s"Job will use the following libjars=${foundJars.mkString("\n", "\n", "")}")
   }
 
   /**

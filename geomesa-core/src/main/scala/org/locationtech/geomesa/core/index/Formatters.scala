@@ -115,4 +115,3 @@ case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends T
   def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = lf.map { _.formatString(gh, dt, sf) }.mkString(sep)
 }
 
-
