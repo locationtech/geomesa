@@ -20,13 +20,9 @@ ACCUMULO_LIB=${ACCUMULO_HOME}/lib
 HADOOP_LIB=${HADOOP_HOME}/lib
 HADOOP_SHARE_DIR=${HADOOP_HOME}/share/hadoop
 HADOOP_COMMON=${HADOOP_SHARE_DIR}/common
-HADOOP_COMMON_LIB=${HADOOP_COMMON}/lib/*
 HADOOP_HDFS=${HADOOP_SHARE_DIR}/hdfs
-HADOOP_HDFS_LIB=${HADOOP_HDFS}/lib/*
 HADOOP_MAPREDUCE=${HADOOP_SHARE_DIR}/mapreduce
-HADOOP_MAPREDUCE_LIB=${HADOOP_MAPREDUCE}/lib/*
 HADOOP_YARN=${HADOOP_SHARE_DIR}/yarn
-HADOOP_YARN_LIB=${HADOOP_YARN}/lib/*
 HADOOP_CLIENT=${HADOOP_SHARE_DIR}/client
 
 ACCUMULO_CONF_DIR=${ACCUMULO_HOME}/conf
@@ -56,21 +52,21 @@ done
 GEOMESA_CP=${GEOMESA_CP:1}
 
 hadoopDirs=(${HADOOP_COMMON} \
-${HADOOP_COMMON_LIB} \
 ${HADOOP_MAPREDUCE} \
-${HADOOP_MAPREDUCE_LIB} \
 ${HADOOP_YARN} \
-${HADOOP_YARN_LIB} \
 ${HADOOP_HDFS} \
-${HADOOP_HDFS_LIB} \
 ${HADOOP_CLIENT} )
 for home in ${hadoopDirs[*]}; do
-  if [ -n "$home" ]; then
+  if [[ (-n "$home") && (-d ${home}) ]]; then
     for jar in $(find ${home} -name "*.jar"); do
       if [[ ("$jar" != *"test"*) && ("$jar" != *"slf4j"*) ]]; then
         GEOMESA_CP="$GEOMESA_CP:$jar"
       fi
     done
+  else
+    echo "Could not find directory $home. Either check to see that this directory exists and has
+      the appropriate Hadoop JARs, or edit this script directly to specify an alternate location for the
+      Hadoop JARs."
   fi
 done
 GEOMESA_CP=${GEOMESA_CP:1}
