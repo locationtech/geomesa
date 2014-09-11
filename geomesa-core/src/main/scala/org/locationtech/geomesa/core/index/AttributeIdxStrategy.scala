@@ -28,15 +28,16 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.temporal.`object`.DefaultPeriod
 import org.locationtech.geomesa.core.DEFAULT_FILTER_PROPERTY_NAME
 import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
+import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators.AttributeIndexFilteringIterator
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter._
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
+import org.opengis.filter.{Filter, PropertyIsEqualTo, PropertyIsLike, _}
 
 import scala.collection.JavaConversions._
 
@@ -83,7 +84,8 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 
     // function to join the attribute index scan results to the record table
     // since the row id of the record table is in the CF just grab that
-    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(kv.getKey.getColumnFamily)
+    val prefix = getTableSharingPrefix(featureType)
+    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(prefix + kv.getKey.getColumnQualifier)
     val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
 
     SelfClosingIterator(bms.iterator, () => bms.close())
@@ -130,9 +132,11 @@ trait AttributeIdxStrategy extends Strategy with Logging {
       } else {
         // type mismatch, encoding won't work b/c class is stored as part of the row
         // try to convert to the appropriate class
-        AttributeIndexEntry.convertType(value, actualBinding, expectedBinding)
+        AttributeTable.convertType(value, actualBinding, expectedBinding)
       }
-    AttributeIndexEntry.getAttributeIndexRow(prop, Some(typedValue))
+
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+    AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, Some(typedValue))
   }
 
   /**
@@ -185,11 +189,13 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
 
         case f: PropertyIsNil =>
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-          AccRange.exact(AttributeIndexEntry.getAttributeIndexRow(prop, None))
+          val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
+          AccRange.exact(AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, None))
 
         case f: PropertyIsNull =>
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-          AccRange.exact(AttributeIndexEntry.getAttributeIndexRow(prop, None))
+          val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
+          AccRange.exact(AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, None))
 
         case _ =>
           val msg = s"Unhandled filter type in equals strategy: ${filter.getClass.getName}"
@@ -278,25 +284,29 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
   }
 
   private def greaterThanRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
     val start = new Text(getEncodedAttrIdxRow(featureType, prop, lit))
-    val end = AccRange.followingPrefix(new Text(AttributeIndexEntry.getAttributeIndexRowPrefix(prop)))
+    val end = AccRange.followingPrefix(new Text(AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)))
     new AccRange(start, false, end, false)
   }
 
   private def greaterThanOrEqualRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
     val start = new Text(getEncodedAttrIdxRow(featureType, prop, lit))
-    val end = AccRange.followingPrefix(new Text(AttributeIndexEntry.getAttributeIndexRowPrefix(prop)))
+    val end = AccRange.followingPrefix(new Text(AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)))
     new AccRange(start, true, end, false)
   }
 
   private def lessThanRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val start = AttributeIndexEntry.getAttributeIndexRowPrefix(prop)
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
+    val start = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)
     val end = getEncodedAttrIdxRow(featureType, prop, lit)
     new AccRange(start, false, end, false)
   }
 
   private def lessThanOrEqualRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val start = AttributeIndexEntry.getAttributeIndexRowPrefix(prop)
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
+    val start = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)
     val end = getEncodedAttrIdxRow(featureType, prop, lit)
     new AccRange(start, false, end, true)
   }
@@ -355,7 +365,7 @@ object AttributeIndexStrategy {
 
       // like strategy checks
       case f: PropertyIsLike =>
-        val canQuery = isValidAttributeFilter(sft, f.getExpression)
+        val canQuery = isValidAttributeFilter(sft, f.getExpression) && QueryStrategyDecider.likeEligible(f)
         if (canQuery) Some(new AttributeIdxLikeStrategy) else None
 
       // range strategy checks

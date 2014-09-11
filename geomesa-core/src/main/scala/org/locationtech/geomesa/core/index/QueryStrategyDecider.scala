@@ -19,18 +19,17 @@ package org.locationtech.geomesa.core.index
 import java.util
 
 import org.geotools.data.Query
+import org.locationtech.geomesa.core.index.AttributeIndexStrategy.getAttributeIndexStrategy
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryHints._
+import org.locationtech.geomesa.core.index.RecordIdxStrategy.getRecordIdxStrategy
+import org.locationtech.geomesa.core.index.STIdxStrategy.getSTIdxStrategy
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Id, PropertyIsLike}
 
 import scala.collection.JavaConversions._
 
 object QueryStrategyDecider {
-
-  import org.locationtech.geomesa.core.index.AttributeIndexStrategy.getAttributeIndexStrategy
-  import org.locationtech.geomesa.core.index.STIdxStrategy.getSTIdxStrategy
-  import org.locationtech.geomesa.core.index.RecordIdxStrategy.getRecordIdxStrategy
 
   def chooseStrategy(isCatalogTableFormat: Boolean,
                      sft: SimpleFeatureType,

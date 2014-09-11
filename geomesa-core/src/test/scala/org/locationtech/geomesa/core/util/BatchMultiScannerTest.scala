@@ -30,7 +30,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.AttributeIndexEntry
+import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.execute.Success
@@ -95,19 +95,22 @@ class BatchMultiScannerTest extends Specification {
     val attrIdxTable = AccumuloDataStore.formatAttrIdxTableName(catalogTable, sft)
     conn.tableOperations.exists(attrIdxTable) must beTrue
     val attrScanner = conn.createScanner(attrIdxTable, new Authorizations())
-    attrScanner.setRange(new ARange(AttributeIndexEntry.getAttributeIndexRow(attr, Option(value))))
+
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+    attrScanner.setRange(new ARange(AttributeTable.getAttributeIndexRow(rowIdPrefix, attr, Option(value))))
 
     val recordTable = AccumuloDataStore.formatRecordTableName(catalogTable, sft)
     conn.tableOperations().exists(recordTable) must beTrue
     val recordScanner = conn.createBatchScanner(recordTable, new Authorizations(), 5)
 
-    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new ARange(kv.getKey.getColumnFamily)
+    val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new ARange(prefix + kv.getKey.getColumnQualifier)
     val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction, batchSize)
 
     val retrieved = bms.iterator.toList
     retrieved.foreach { e =>
       val sf = SimpleFeatureEncoderFactory.defaultEncoder.decode(sft, e.getValue)
-      if (value != null) {
+      if (value != AttributeTable.nullString) {
         sf.getAttribute(attr) mustEqual value
       }
     }
