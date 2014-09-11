@@ -6,9 +6,12 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
 import org.apache.accumulo.core.Constants
 import org.apache.accumulo.core.data.{Key, Value}
+import org.geotools.data.DataStore
+import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
+import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.core.data.SimpleFeatureEncoderFactory
+import org.locationtech.geomesa.core.data.{AccumuloFeatureStore, SimpleFeatureEncoderFactory}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -18,6 +21,10 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.util.Random
+
+object UnitTestEntryType  {
+  def getTypeSpec = "POINT:String," + "LINESTRING:String," + "POLYGON:String," + "attr2:String," + spec
+}
 
 object TestData extends Logging {
   val TEST_USER = "root"
@@ -34,14 +41,44 @@ object TestData extends Logging {
   val featureName = "feature"
   val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
 
-  def getFeatureType = {
-    val ft: SimpleFeatureType = SimpleFeatureTypes.createType(featureName, UnitTestEntryType.getTypeSpec)
+  def getTypeSpec(suffix: String = "2") = {
+    s"POINT:String,LINESTRING:String,POLYGON:String,attr$suffix:String:index=true," + spec
+  }
+
+  def getFeatureType(typeNameSuffix: String = "", attrNameSuffix: String = "2", tableSharing: Boolean = true) = {
+    val fn = s"$featureName$typeNameSuffix"
+    val ft: SimpleFeatureType = SimpleFeatureTypes.createType(fn, getTypeSpec(attrNameSuffix))
     ft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+
+    setTableSharing(ft, tableSharing)
     ft
   }
 
+  def buildFeatureSource(ds: DataStore, featureType: SimpleFeatureType, features: Seq[SimpleFeature]): SimpleFeatureSource = {
+    ds.createSchema(featureType)
+    val fs: AccumuloFeatureStore = ds.getFeatureSource(featureType.getTypeName).asInstanceOf[AccumuloFeatureStore]
+    val coll = new DefaultFeatureCollection(featureType.getTypeName)
+    coll.addAll(features.asJavaCollection)
+
+    logger.debug(s"Adding SimpleFeatures of type ${coll.getSchema.getTypeName} to feature store.")
+    fs.addFeatures(coll)
+    logger.debug("Done adding SimpleFeatures to feature store.")
+
+    fs
+  }
+
+  def getFeatureStore(ds: DataStore, simpleFeatureType: SimpleFeatureType, features: Seq[SimpleFeature]) = {
+    val names = ds.getNames
+
+    if(!names.contains(simpleFeatureType.getTypeName)) {
+      buildFeatureSource(ds, simpleFeatureType, features)
+    } else {
+      ds.getFeatureSource(simpleFeatureType.getTypeName)
+    }
+  }
+
   // This is a quick trick to make sure that the userData is set.
-  lazy val featureType: SimpleFeatureType = getFeatureType
+  lazy val featureType: SimpleFeatureType = getFeatureType()
 
   val index = IndexSchema(schemaEncoding, featureType, featureEncoder)
 
@@ -62,13 +99,15 @@ object TestData extends Logging {
     index.encode(entry).toList
   }
 
-  def createSF(e: Entry): SimpleFeature = {
+  def createSF(e: Entry): SimpleFeature = createSF(e, featureType)
+
+  def createSF(e: Entry, sft: SimpleFeatureType): SimpleFeature = {
     val geometry: Geometry = WKTUtils.read(e.wkt)
     val entry =
       AvroSimpleFeatureFactory.buildAvroFeature(
-        featureType,
+        sft,
         List(null, null, null, null, geometry, e.dt.toDate, e.dt.toDate),
-        s"|data|${e.id}")
+        s"${e.id}")
     entry.setAttribute("attr2", "2nd" + e.id)
     entry.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     entry

@@ -141,10 +141,6 @@ object TestFilters {
     // For mediumData, this next filter will hit and the one after will not.
     "attr2 = '2nd100001' AND INTERSECTS(geom, POLYGON ((45 20, 48 20, 48 27, 45 27, 45 20)))",
     "attr2 = '2nd100001' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
-    "attr2 ILIKE '%1' AND CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
-    "attr2 ILIKE '%1' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
-    "attr2 ILIKE '%1' AND OVERLAPS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
-    "attr2 ILIKE '%1' AND WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
     "attr2 ILIKE '2nd1%' AND CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
     "attr2 ILIKE '2nd1%' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
     "attr2 ILIKE '2nd1%' AND OVERLAPS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
@@ -185,6 +181,8 @@ object TestFilters {
     "attr1 = 'val56'",
     "attr1 ILIKE '2nd1%'",
     "attr1 ILIKE '2nd1%'",
+    // The next query is *not* 'like-eligible'.  As such, we do *not* want to use it with the current attribute inde.
+    "attr2 ILIKE '%1' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
     "dtgNonIdx DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND attr2 = 'val56'"
   )
 

@@ -92,9 +92,11 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     val identifiers: Option[Set[Identifier]] = combinedIDFilter.map ( _.getIdentifiers.asScala.toSet )
 
+    val prefix = getTableSharingPrefix(featureType)
+
     val rangesAsOption: Option[Set[data.Range]] = identifiers.map {
       aSet => aSet.map {
-        id => org.apache.accumulo.core.data.Range.exact(id.toString)
+        id => org.apache.accumulo.core.data.Range.exact(prefix + id.toString)
       }
     }
 

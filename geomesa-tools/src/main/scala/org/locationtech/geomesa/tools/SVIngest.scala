@@ -80,7 +80,6 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val sft = {
     val ret = SimpleFeatureTypes.createType(featureName, sftSpec)
     ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField.getOrElse(Constants.SF_PROPERTY_START_TIME))
-    // JNH: Double-check that this works.
     args.optional(IngestParams.INDEX_SCHEMA_FMT).foreach { indexSchema =>
       ret.getUserData.put(Constants.SFT_INDEX_SCHEMA, indexSchema)
     }

@@ -634,18 +634,19 @@ class AccumuloDataStoreTest extends Specification {
 
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should be OK
-      val sftName = "somethingsaf3"
+      val sftName = "somethingsafe3"
       val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,numattr:Integer:index=false,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
 
       val mockInstance = new MockInstance("mycloud")
       val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
 
+      // Shared
       "create all appropriate tables" >> {
         "catalog table" >> { c.tableOperations().exists(table) must beTrue }
-        "st_idx table" >> { c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beTrue }
-        "records table" >> { c.tableOperations().exists(s"${table}_${sftName}_records") must beTrue }
-        "attr idx table" >> { c.tableOperations().exists(s"${table}_${sftName}_attr_idx") must beTrue }
+        "st_idx table" >> { c.tableOperations().exists(s"${table}_st_idx") must beTrue }
+        "records table" >> { c.tableOperations().exists(s"${table}_records") must beTrue }
+        "attr idx table" >> { c.tableOperations().exists(s"${table}_attr_idx") must beTrue }
       }
 
       val pt = gf.createPoint(new Coordinate(0, 0))
@@ -689,6 +690,7 @@ class AccumuloDataStoreTest extends Specification {
       // this should end up hex encoded
       val sftName = "nihao你好"
       val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      org.locationtech.geomesa.core.index.setTableSharing(sft, false)
       ds.createSchema(sft)
 
       val mockInstance = new MockInstance("mycloud")
@@ -792,8 +794,9 @@ class AccumuloDataStoreTest extends Specification {
       bw.close
     }
 
-    def getFeatureStore(table: String, sftName: String, ds: AccumuloDataStore): AccumuloFeatureStore = {
-      val sft = DataUtilities.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+    def getFeatureStore(table: String, sftName: String, ds: AccumuloDataStore, sharedTables: Boolean = true): AccumuloFeatureStore = {
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      org.locationtech.geomesa.core.index.setTableSharing(sft, sharedTables)
       ds.createSchema(sft)
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
       val geom = WKTUtils.read("POINT(45.0 49.0)")
@@ -821,7 +824,7 @@ class AccumuloDataStoreTest extends Specification {
 
       ds should not be null
 
-      val fs = getFeatureStore(table, sftName, ds)
+      val fs = getFeatureStore(table, sftName, ds, false)
 
       val mockInstance = new MockInstance("mycloud")
       val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
@@ -840,7 +843,7 @@ class AccumuloDataStoreTest extends Specification {
 
       ds.removeSchema(sftName)
 
-      //tables should be deleted now
+      //tables should be deleted now (for stand-alone tables only)
       c.tableOperations().exists(s"${table}_${sftName}_st_idx") must beFalse
       c.tableOperations().exists(s"${table}_${sftName}_records") must beFalse
       c.tableOperations().exists(s"${table}_${sftName}_attr_idx") must beFalse
@@ -851,8 +854,7 @@ class AccumuloDataStoreTest extends Specification {
       scannerResultsAfterDeletion should beNone
 
       val query = new Query(sftName, Filter.INCLUDE)
-      val results = fs.getFeatures(query)
-      results.size() mustEqual 0
+      fs.getFeatures(query) must throwA[Exception]
     }
 
     "throw a RuntimeException when calling removeSchema on 0.10.x records" in {
@@ -887,8 +889,8 @@ class AccumuloDataStoreTest extends Specification {
       val sftName = "test"
       val sftName2 = "test2"
 
-      val fs = getFeatureStore(table, sftName, ds)
-      val fs2 = getFeatureStore(table, sftName2, ds)
+      val fs = getFeatureStore(table, sftName, ds, false)
+      val fs2 = getFeatureStore(table, sftName2, ds, false)
 
       val mockInstance = new MockInstance("mycloud")
       val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
@@ -933,9 +935,8 @@ class AccumuloDataStoreTest extends Specification {
 
       val query = new Query(sftName, Filter.INCLUDE)
       val query2 = new Query(sftName2, Filter.INCLUDE)
-      val results = fs.getFeatures(query)
+
       val results2 = fs2.getFeatures(query2)
-      results.size() mustEqual 0
       results2.size() should beGreaterThan(0)
     }
 
