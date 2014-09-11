@@ -114,56 +114,40 @@ To export to stdOut, use `-s` or `--stdout`. This is useful for piping output.
     geomesa export -u username -p password -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
            
 ### ingest
-Ingests CSV, TSV, and SHP files. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
-Please note that for lat/lon column ingest, the sft spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.
-The file type is inferred from the extension of the file, so please also ensure that the formatting of the file matches the extension of the file.
+Ingests CSV, TSV, and SHP files from the local file system and HDFS. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
+For lat/lon column ingest, the sft spec must include an additional geometry attribute in the sft beyond the number of columns in the file such as: `*geom:Point`.
+The file type is inferred from the extension of the file, so ensure that the formatting of the file matches the extension of the file and that the extension is present.
+*Note* the header if present is not parsed by Ingest for information, it is assumed that all lines are valid entries.
 
 #### Usage
-    geomesa ingest -u username -p password -c geomesa_catalog -f twittersmall -s id:Double,dtg:Date,*geom:Geometry 
-    --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" --skip-header --file /some/path/to/file.csv
+    geomesa ingest -u username -p password -c geomesa_catalog -f somefeaturename -s fid:Double,dtg:Date,*geom:Geometry 
+    --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" --file hdsf:///some/hdfs/path/to/file.csv
     
-    geomesa ingest -u username -p password -c geomesa_catalog  -a someAuths -v someVis --shards 42 -f twittersmall
-     -s id:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
-     --idfields id,dtg --hash --lon lon --lat lat --file /some/path/to/file.tsv
+    geomesa ingest -u username -p password -c geomesa_catalog  -a someAuths -v someVis --shards 42 -f somefeaturename
+     -s fid:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
+     --idfields fid,dtg --hash --lon lon --lat lat --file /some/local/path/to/file.tsv
      
     geomesa ingest -u username -p password -c geomesa_catalog -f shapeFileFeatureName --file /some/path/to/file.shp
 
 with the following parameters:
  
-`-c` or `--catalog` The accumulo table name, the table will be created if not already extant.
-
-`-a` or `--auths` The optional accumulo authorizations to use.
-
-`-v` or `--visibilities` The optional accumulo visibilities to use. 
-
-`-i` or `--indexSchemaFormat` The optional accumulo index schema format to use. If not set Ingest defaults to the Default SpatioTemporal Schema in the AccumuloDataStore class.
-This option and the `--shards` cannot be provided together and Ingest exits if this occurs.
-
+`-c` or `--catalog` The accumulo table name, the table will be created if not already extant.  
+`-a` or `--auths` The optional accumulo authorizations to use.  
+`-v` or `--visibilities` The optional accumulo visibilities to use.  
+`-i` or `--indexSchemaFormat` The optional accumulo index schema format to use instead of the default. This option and the `--shards` cannot be provided together.  
 `--shards` The optional number of shards to use for this catalog. If catalog exists Ingest defaults to number of shards used in extant schema. 
-This option and the `--indexSchemaFormat` cannot be provided together and Ingest exits if this occurs.
-
-`-f` or `--feature-name` The name of the SimpleFeatureType to be used.
-
+This option and the `--indexSchemaFormat` cannot be provided together and Ingest exits if this occurs.  
+`-f` or `--feature-name` The name of the SimpleFeatureType to be used.  
 `-s` or `--sftspec` The SimpleFeatureType of the CSV or TSV file, this must match exactly with the number and order of columns and data formats in the file being ingested and must also include a default geometry field.
-If attempting to ingest files with explicit latitude and longitude columns, the sft spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.
+If attempting to ingest files with explicit latitude and longitude columns, the sft spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.  
 
-`--datetime` The optional name of the field in the SFT specification that corresponds to the the *time* column.
-
-`--dtformat` The optional Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss". This must be surrounded by quotes and must match exactly the format in the source file. 
-If a invalid dtformat is given Ingest attempts to parse the date-time value using the ISO8601 standard.
-
-`--idfields` The optional comma separated list of ID fields used to generate the feature IDs. If empty, it is assumed that the ID will be generated via a hash on all attributes of that line.
-
-`-h` or `--hash` The optional flag to hash the value of the id generated from idfields for the feature IDs.
-
-`--lon` The optional name of the longitude field. This field is not required for ingesting WKT geometries.
-
-`--lat` The optional name of the latitude field. This field is not required for ingesting WKT geometries.
-
-`--skip-header` The optional flag to skip the first line of the file, typically where the header is located. If not present Ingest will attempt to ingest starting from the first line. 
-*Note* the header is not parsed by Ingest, and will likely fail if a header exists in the file and this flag is not called.
-
-`--file` The file path to the csv file or tsv file being ingested.
+`--datetime` The optional name of the field in the SFT specification that corresponds to the *time* column. **NOTE:** by default times are assumed to be UTC, please specify a specific timezone here and update the dtformat if this is not desired.
+`--dtformat` The optional Joda DateTimeFormat quote-wrapped string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss". Defaults to millisecond epoch format. 
+`--idfields` The optional comma separated list of ID fields used to generate the feature IDs. If empty, it is assumed that the ID will be generated via a hash on all attributes of that line.  
+`-h` or `--hash` The optional flag to hash the value of the feature id generated from idfields.  
+`--lon` The optional name of the longitude field. This field is not required for ingesting WKT geometries.  
+`--lat` The optional name of the latitude field. This field is not required for ingesting WKT geometries.  
+`--file` The file path or hdfs path to the csv file or tsv file being ingested.  
 
 ### list
 To list the features on a specified catalog table, use the `list` command.  
