@@ -52,7 +52,8 @@
     </fileSets>
     <files>
         <file>
-            <source>../geomesa-tools/bin/geomesa</source>
+            <source>../geomesa-tools/bin/geomesa-assemble</source>
+            <destName>geomesa</destName>
             <outputDirectory>bin</outputDirectory>
             <fileMode>0755</fileMode>
             <filtered>true</filtered>
