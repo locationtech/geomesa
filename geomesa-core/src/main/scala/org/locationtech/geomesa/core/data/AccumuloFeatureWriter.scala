@@ -172,7 +172,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   /** Creates a function to write a feature to the spatio temporal index **/
   private def spatioTemporalWriter(bw: BatchWriter): SimpleFeature => Unit =
     (feature: SimpleFeature) => {
-      val KVs = indexer.encode(feature)
+      val KVs = indexer.encode(feature, visibility)
       val m = KVs.groupBy { case (k, _) => k.getRow }.map { case (row, kvs) => kvsToMutations(row, kvs) }
       bw.addMutations(m.asJava)
     }
