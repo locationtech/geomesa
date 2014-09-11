@@ -23,7 +23,6 @@ HADOOP_COMMON=${HADOOP_SHARE_DIR}/common
 HADOOP_HDFS=${HADOOP_SHARE_DIR}/hdfs
 HADOOP_MAPREDUCE=${HADOOP_SHARE_DIR}/mapreduce
 HADOOP_YARN=${HADOOP_SHARE_DIR}/yarn
-HADOOP_CLIENT=${HADOOP_SHARE_DIR}/client
 
 ACCUMULO_CONF_DIR=${ACCUMULO_HOME}/conf
 if [ -z "$HADOOP_CONF_DIR" ]; then
@@ -54,8 +53,7 @@ GEOMESA_CP=${GEOMESA_CP:1}
 hadoopDirs=(${HADOOP_COMMON} \
 ${HADOOP_MAPREDUCE} \
 ${HADOOP_YARN} \
-${HADOOP_HDFS} \
-${HADOOP_CLIENT} )
+${HADOOP_HDFS} )
 for home in ${hadoopDirs[*]}; do
   if [[ (-n "$home") && (-d ${home}) ]]; then
     for jar in $(find ${home} -name "*.jar"); do
