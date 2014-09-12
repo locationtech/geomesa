@@ -36,6 +36,8 @@ package object index {
   val SF_PROPERTY_GEOMETRY   = "geomesa_index_geometry"
   val SF_PROPERTY_START_TIME = "geomesa_index_start_time"
   val SF_PROPERTY_END_TIME   = "geomesa_index_end_time"
+  val SFT_INDEX_SCHEMA       = "geomesa_index_schema"
+  val SF_TABLE_SHARING       = "geomesa_table_sharing"
 
   // wrapping function in option to protect against incorrect values in SF_PROPERTY_START_TIME
   def getDtgFieldName(sft: SimpleFeatureType) =
@@ -46,6 +48,33 @@ package object index {
 
   // wrapping function in option to protect against incorrect values in SF_PROPERTY_START_TIME
   def getDtgDescriptor(sft: SimpleFeatureType) = getDtgFieldName(sft).flatMap{name => Option(sft.getDescriptor(name))}
+
+  def setDtgDescriptor(sft: SimpleFeatureType, dateFieldName: String) {
+    sft.getUserData.put(SF_PROPERTY_START_TIME, dateFieldName)
+  }
+
+  def getIndexSchema(sft: SimpleFeatureType) = Option(sft.getUserData.get(SFT_INDEX_SCHEMA)).map { _.toString }
+  def setIndexSchema(sft: SimpleFeatureType, indexSchema: String) {
+    sft.getUserData.put(SFT_INDEX_SCHEMA, indexSchema)
+  }
+
+  def getTableSharing(sft: SimpleFeatureType) = {
+    val stored = sft.getUserData.get(SF_TABLE_SHARING)
+    //  If no data is stored in Accumulo, it means we have an old table, so that means 'false'
+    //  If no user data is specified when creating a new SFT, we should default to 'true'.
+    if(stored == null) true
+    else stored.asInstanceOf[Boolean]
+  }
+
+  def setTableSharing(sft: SimpleFeatureType, sharing: java.lang.Boolean) {
+    sft.getUserData.put(SF_TABLE_SHARING, sharing)
+  }
+
+  def getTableSharingPrefix(sft: SimpleFeatureType): String =
+    if(getTableSharing(sft)) s"${sft.getTypeName}~"
+    else                     ""
+
+
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)
 
@@ -64,6 +93,10 @@ package object index {
 
   object ExplainPrintln extends ExplainerOutputType {
     override def apply(v1: => String): Unit = println(v1)
+  }
+
+  object ExplainNull extends ExplainerOutputType {
+    override def apply(v1: => String): Unit = {}
   }
 
   trait ExplainingLogging extends Logging {

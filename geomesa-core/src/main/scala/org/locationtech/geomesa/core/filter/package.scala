@@ -3,7 +3,7 @@ package org.locationtech.geomesa.core
 import org.geotools.factory.CommonFactoryFinder
 import org.opengis.filter._
 import org.opengis.filter.spatial._
-import org.opengis.filter.temporal.BinaryTemporalOperator
+import org.opengis.filter.temporal.{BinaryTemporalOperator, TEquals}
 
 import scala.collection.JavaConversions._
 
@@ -96,6 +96,8 @@ package object filter {
   def partitionTemporal(filters: Seq[Filter], dtgAttr: Option[String]): (Seq[Filter], Seq[Filter]) =
     filters.partition(temporalFilters(_, dtgAttr))
 
+  def partitionID(filter: Filter) = partitionSubFilters(filter, filterIsId)
+
   // Defines the topological predicates we like for use in the STII.
   def spatialFilters(f: Filter): Boolean = {
     f match {
@@ -115,16 +117,36 @@ package object filter {
   def temporalFilters(f: Filter, dtgAttr: Option[String]): Boolean =
     filterIsApplicableTemporal(f, dtgAttr) || filterIsBetween(f, dtgAttr)
 
+  def filterIsId(f: Filter): Boolean =
+    f match {
+      case _: Id => true
+      case _     => false
+    }
+
   def filterIsApplicableTemporal(f: Filter, dtgAttr: Option[String]) =
     f match {
-      case bto: BinaryTemporalOperator => dtgAttr.exists(_ == bto.getExpression1.toString)
+      // TEQUALS can't convert to ECQL, so don't consider it here
+      case bto: BinaryTemporalOperator if !f.isInstanceOf[TEquals] => dtgAttr.exists(_ == bto.getExpression1.toString)
       case _ => false
     }
 
-  def filterIsBetween(f: Filter, dtgAttr: Option[String]): Boolean = {
+  def filterIsBetween(f: Filter, dtgAttr: Option[String]): Boolean =
     f match {
       case between: PropertyIsBetween => dtgAttr.exists(_ == between.getExpression.toString)
       case _ => false
     }
-  }
+
+
+  def decomposeBinary(f: Filter): Seq[Filter] =
+    f match {
+      case b: BinaryLogicOperator => b.getChildren.toSeq.flatMap(decomposeBinary)
+      case f: Filter => Seq(f)
+    }
+
+  def decomposeOr(f: Filter): Seq[Filter] =
+    f match {
+      case b: Or => b.getChildren.toSeq.flatMap(decomposeOr)
+      case f: Filter => Seq(f)
+    }
+
 }

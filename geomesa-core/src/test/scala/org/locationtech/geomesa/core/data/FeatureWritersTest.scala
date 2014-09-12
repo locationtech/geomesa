@@ -19,16 +19,16 @@ package org.locationtech.geomesa.core.data
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 
-import org.apache.accumulo.core.security.ColumnVisibility
-import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, SF_PROPERTY_START_TIME}
+import org.locationtech.geomesa.core.index.{AttributeIdxEqualsStrategy, QueryStrategyDecider, SF_PROPERTY_START_TIME}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -44,7 +44,7 @@ class FeatureWritersTest extends Specification {
 
   val geotimeAttributes = org.locationtech.geomesa.core.index.spec
   val sftName = "mutableType"
-  val sft = DataUtilities.createType(sftName, s"name:String,age:Integer,$geotimeAttributes")
+  val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,age:Integer,$geotimeAttributes")
   sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
   val sdf = new SimpleDateFormat("yyyyMMdd")
   sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))
@@ -60,7 +60,6 @@ class FeatureWritersTest extends Specification {
       "password"          -> "mypassword",
       "auths"             -> "A,B,C",
       "tableName"         -> "differentTableFromOtherTests", //note the table needs to be different to prevent testing errors,
-      "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
       "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
     "AccumuloFeatureWriter" should {
@@ -398,10 +397,34 @@ class FeatureWritersTest extends Specification {
         val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
         val deleteFilter = CQL.toFilter("name = 'will'")
+
+        val q = new Query(sft.getTypeName, deleteFilter)
+        QueryStrategyDecider.chooseStrategy(true, sft, q) must beAnInstanceOf[AttributeIdxEqualsStrategy]
+
+        import org.locationtech.geomesa.utils.geotools.Conversions._
+
+        // Retrieve Will's ID before deletion.
+        val featuresBeforeDelete = getFeatures(sftName, fs, "name = 'will'")
+        val feats = featuresBeforeDelete.toList
+
+        feats.size mustEqual 1
+        val willId = feats.head.getID
+
         fs.removeFeatures(deleteFilter)
 
-        val featuresAfterDelete = getMap[String,Int](getFeatures(sftName, fs, "name = 'will'"), "name", "age")
-        featuresAfterDelete.keySet.size mustEqual 0
+        // NB: We really need a test which reads from the attribute table directly since missing records entries
+        //  will result in attribute queries
+        // This verifies that 'will' has been deleted from the attribute table.
+        val attributeTableFeatures = getMap[String,Int](getFeatures(sftName, fs, "name = 'will'"), "name", "age")
+        attributeTableFeatures.keySet.size mustEqual 0
+
+        // This verifies that 'will' has been deleted from the record table.
+        val recordTableFeatures = getMap[String,Int](getFeatures(sftName, fs, s"IN('$willId')"), "name", "age")
+        recordTableFeatures.keySet.size mustEqual 0
+
+        // This verifies that 'will' has been deleted from the ST idx table.
+        val stTableFeatures = getFeatures(sftName, fs, "BBOX(geom, 44.0,44.0,51.0,51.0)")
+        stTableFeatures.count(_.getID == willId) mustEqual 0
 
         val featureCollection = new DefaultFeatureCollection(sftName, sft)
         val sftType = ds.getSchema(sftName)
@@ -414,49 +437,10 @@ class FeatureWritersTest extends Specification {
         val features = getMap[String,Int](getFeatures(sftName, fs, "name = 'will'"), "name", "age")
         features.keySet.size mustEqual 1
       }
-
-      "encode mutations for attribute index" in {
-        val descriptors = sft.getAttributeDescriptors
-        val attributesWithNames = AccumuloFeatureWriter.getAttributesWithNames(descriptors)
-
-        val feature = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id1")
-        val geom = WKTUtils.read("POINT(45.0 49.0)")
-        feature.setDefaultGeometry(geom)
-        feature.setAttribute("name","fred")
-        feature.setAttribute("age",50.asInstanceOf[Any])
-        feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-
-        val mutations = AccumuloFeatureWriter.getAttributeIndexMutations(feature,
-                                                                         attributesWithNames,
-                                                                         new ColumnVisibility())
-        mutations.size mustEqual descriptors.size()
-        mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
-        mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(false)).foreach
-      }
-
-      "encode mutations for delete attribute index" in {
-        val descriptors = sft.getAttributeDescriptors
-        val attributesWithNames = AccumuloFeatureWriter.getAttributesWithNames(descriptors)
-
-        val feature = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id1")
-        val geom = WKTUtils.read("POINT(45.0 49.0)")
-        feature.setDefaultGeometry(geom)
-        feature.setAttribute("name","fred")
-        feature.setAttribute("age",50.asInstanceOf[Any])
-        feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-
-        val mutations = AccumuloFeatureWriter.getAttributeIndexMutations(feature,
-                                                                          attributesWithNames,
-                                                                          new ColumnVisibility(),
-                                                                          true)
-        mutations.size mustEqual descriptors.size()
-        mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
-        mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(true)).foreach
-      }
     }
 
   def getFeatures(sftName: String, store: AccumuloFeatureStore, cql: String): SimpleFeatureIterator = {
-    val query = new Query(sftName, CQL.toFilter(cql))
+    val query = new Query(sftName, ECQL.toFilter(cql))
     val results = store.getFeatures(query)
     results.features
   }

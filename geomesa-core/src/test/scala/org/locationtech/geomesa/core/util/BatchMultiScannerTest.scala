@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.core.util
 
-import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 
@@ -24,7 +23,6 @@ import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Key, Value, Range => ARange}
 import org.apache.accumulo.core.security.Authorizations
-import org.apache.hadoop.io.Text
 import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
@@ -32,10 +30,9 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.IndexSchema
+import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.execute.Success
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -91,21 +88,6 @@ class BatchMultiScannerTest extends Specification {
 
   fs.addFeatures(featureCollection)
 
-  val nullByte = Array[Byte](0.toByte)
-  private val nullString = "<null>"
-  private def valOrNull(o: AnyRef) = if (o == null) nullString else o.toString
-
-  case class PutOrDeleteMutation(row: Array[Byte], cf: Text, cq: Text, v: Value)
-
-  def getAttrIdxMutations(feature: SimpleFeature, cf: Text) =
-    feature.getFeatureType.getAttributeDescriptors.map { attr =>
-      val attrName = attr.getLocalName.getBytes(StandardCharsets.UTF_8)
-      val attrValue = valOrNull(feature.getAttribute(attr.getName)).getBytes(StandardCharsets.UTF_8)
-      val row = attrName ++ nullByte ++ attrValue
-      val value = IndexSchema.encodeIndexValue(feature)
-      PutOrDeleteMutation(row, cf, EMPTY_COLQ, value)
-    }
-
   def attrIdxEqualQuery(attr: String, value: String, batchSize: Int): Int = {
     val instance = new MockInstance(instanceName)
     val conn = instance.getConnector(user, new PasswordToken(pass))
@@ -113,19 +95,22 @@ class BatchMultiScannerTest extends Specification {
     val attrIdxTable = AccumuloDataStore.formatAttrIdxTableName(catalogTable, sft)
     conn.tableOperations.exists(attrIdxTable) must beTrue
     val attrScanner = conn.createScanner(attrIdxTable, new Authorizations())
-    attrScanner.setRange(new ARange(new Text(attr.getBytes ++ nullByte ++ value.getBytes)))
+
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+    attrScanner.setRange(new ARange(AttributeTable.getAttributeIndexRow(rowIdPrefix, attr, Option(value))))
 
     val recordTable = AccumuloDataStore.formatRecordTableName(catalogTable, sft)
     conn.tableOperations().exists(recordTable) must beTrue
     val recordScanner = conn.createBatchScanner(recordTable, new Authorizations(), 5)
 
-    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new ARange(kv.getKey.getColumnFamily)
+    val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new ARange(prefix + kv.getKey.getColumnQualifier)
     val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction, batchSize)
 
     val retrieved = bms.iterator.toList
     retrieved.foreach { e =>
       val sf = SimpleFeatureEncoderFactory.defaultEncoder.decode(sft, e.getValue)
-      if (value != nullString) {
+      if (value != AttributeTable.nullString) {
         sf.getAttribute(attr) mustEqual value
       }
     }
@@ -148,8 +133,8 @@ class BatchMultiScannerTest extends Specification {
         // test something that was stored as a null
         attrIdxEqualQuery("age", "43", batchSize) mustEqual 0
 
-        // find nullstring...ugh
-        attrIdxEqualQuery("age", "<null>", batchSize) mustEqual 16
+        // find nulls
+        attrIdxEqualQuery("age", null, batchSize) mustEqual 16
       }
       Success()
     }
