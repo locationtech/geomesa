@@ -33,7 +33,7 @@ import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 class SVIngest(args: Args) extends Job(args) with Logging {
   import scala.collection.JavaConversions._
@@ -45,6 +45,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val idFields         = args.optional(IngestParams.ID_FIELDS).orNull
   lazy val path             = args(IngestParams.FILE_PATH)
   lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
+  lazy val colList          = buildCols(args.optional(IngestParams.COLS))
   lazy val dtgField         = args.optional(IngestParams.DT_FIELD)
   lazy val dtgFmt           = args.optional(IngestParams.DT_FORMAT)
   lazy val lonField         = args.optional(IngestParams.LON_ATTRIBUTE)
@@ -96,6 +97,17 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     def release(): Unit = { fw.close() }
   }
 
+  def printStatInfo() {
+    logger.info(getStatInfo(successes, failures, "Ingestion finished, total features:"))
+  }
+
+  def getStatInfo(successes: Int, failures: Int, pref: String): String = {
+    val successPvsS = if (successes == 1) "feature" else "features"
+    val failurePvsS = if (failures == 1) "feature" else "features"
+    val failureString = if (failures == 0) "with no failures" else s"and failed to ingest: $failures $failurePvsS"
+    s"$pref $lineNumber, ingested: $successes $successPvsS, $failureString."
+  }
+
   // Check to see if this an actual ingest job or just a test.
   if (!isTestRun) {
     TextLine(path).using(new Resources)
@@ -128,12 +140,8 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     // if write was successful, update successes count and log status if needed
     if (writeSuccess.isSuccess) {
       successes += 1
-      if (lineNumber % 10000 == 0 && !isTestRun) {
-        val successPvsS = if (successes == 1) "feature" else "features"
-        val failurePvsS = if (failures == 1) "feature" else "features"
-        logger.info(s"Ingest proceeding, on line number: $lineNumber," +
-          s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
-      }
+      if (lineNumber % 10000 == 0 && !isTestRun)
+        logger.info(getStatInfo(successes, failures, s"Ingest proceeding $line, on line number:"))
     } else {
       failures += 1
       logger.info(s"Cannot ingest feature on line number: $lineNumber, due to: ${writeSuccess.failed.get.getMessage} ")
@@ -143,7 +151,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   def ingestDataToFeature(line: String, feature: SimpleFeature) = Try {
     val reader = CSVParser.parse(line, delim)
     val fields: List[String] = try {
-      reader.getRecords.flatten.toList
+      Some(reader.getRecords.flatten.toList).map{ allCols => colList.map(_.map(allCols(_))).getOrElse(allCols) }.get
     } catch {
       case e: Exception => throw new Exception(s"Commons CSV could not parse " +
         s"line number: $lineNumber \n\t with value: $line")
@@ -220,5 +228,75 @@ class SVIngest(args: Args) extends Job(args) with Logging {
           dtFormat.map(_.parseDateTime(dtString)).getOrElse(new DateTime(dtString.toLong))
         }
     }
+
+  /*
+   * Parse column list input string into a sorted list of column indexes.
+   * column list input string is a list of comma-separated column-ranges with each has one of following formats:
+   * 1. [+]num - a column defined by num.
+   * 2. [+]num1-[+]num2- a range defined by num1 and num2.
+   * Prefix "+" means skip. Value of "+num" is num plus most recently accessed col value.
+   * Example:
+   * 1. "1,4-6,10" results List(1, 4, 5, 6, 10)
+   * 2. "1-2,+2,6-8,+2-12" results List(1, 2, 4, 6, 7, 8, 10, 11, 12)
+   * 2. "+3,6-+2,+2-+2,15-17" results List(3, 6, 7, 8, 10, 11, 12, 15, 16, 17)
+   */
+  def buildCols(colsStringO: Option[String]): Option[List[Int]] = {
+    var currCol = 0
+
+    def checkValid(val1: Int, val2: Int, allowEqual: Boolean) = {
+      val valid = if (allowEqual) val1 <= val2 else val1 < val2
+      if (!valid) displayErrMsgAndExit()
+    }
+
+    def displayErrMsgAndExit() {
+      logger.error(s"Column list ${colsStringO.get} has wrong format. Please correct it and try again.")
+      sys.exit()
+    }
+
+    def getIntVal(colStr: String, baseVal: Int): Int = {
+      val valTry = Try {
+        if (colStr.startsWith("+")) baseVal + colStr.substring(1).toInt
+        else colStr.toInt
+      }
+      valTry match {
+        case Failure(e) => displayErrMsgAndExit()
+        case _ =>
+      }
+      valTry.get
+    }
+
+    def processRange(colRange: String, startCol: Int): List[Int] = {
+      val fields = colRange.split("-")
+      fields.size match {
+        case 1 =>
+          val v = getIntVal(fields(0), startCol)
+          checkValid(startCol, v, (startCol == 0))
+          currCol = v
+          List(v)
+        case 2 =>
+          val v1 = getIntVal(fields(0), startCol)
+          val v2 = getIntVal(fields(1), v1)
+          checkValid(startCol, v1, (startCol == 0))
+          checkValid(v1, v2, true)
+          currCol = v2
+          (v1 to v2).toList
+        case _ =>
+          displayErrMsgAndExit
+          List()
+      }
+    }
+
+    colsStringO match {
+      case Some(colsString) =>
+        val colList =
+          (for {
+            col <- colsString.replaceAll(" ", "").split(",").toList
+          } yield {
+            processRange(col, currCol)
+          }).flatten
+        Some(colList)
+      case _ => None
+    }
+  }
 }
 
