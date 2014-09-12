@@ -158,6 +158,7 @@ class Ingest() extends Logging with AccumuloProperties {
     args.append("--" + IngestParams.DO_HASH, config.doHash.toString)
     args.append("--" + IngestParams.FORMAT, Ingest.getFileExtension(config.file))
     // optional parameters
+    if ( config.cols.isDefined )            args.append("--" + IngestParams.COLS, config.cols.get)
     if ( config.dtFormat.isDefined )        args.append("--" + IngestParams.DT_FORMAT, config.dtFormat.get)
     if ( config.idFields.isDefined )        args.append("--" + IngestParams.ID_FIELDS, config.idFields.get)
     if ( config.dtField.isDefined )         args.append("--" + IngestParams.DT_FIELD, config.dtField.get)
@@ -183,6 +184,7 @@ class Ingest() extends Logging with AccumuloProperties {
     val flow = job.buildFlow
     //block until job is completed.
     flow.complete()
+    job.printStatInfo
   }
 }
 
@@ -212,9 +214,12 @@ object Ingest extends App with Logging with GetPassword {
       c.copy(featureName = s) } text "the name of the feature" required()
     opt[String]('s', "sftspec").action { (s, c) =>
       c.copy(spec = s) } text "the sft specification of the file," +
-      " must match number of columns and order of ingest file if csv or tsv formatted." +
-      " If ingesting lat/lon column data an additional field for the point geometry" +
-      " must be added, ie: *geom:Point ." optional()
+      " must match number and order of columns in ingest file (or columns list when --cols is specified) if csv or " +
+      "tsv formatted. If ingesting lat/lon column data an additional field for the point geometry must be added, " +
+      "ie: *geom:Point ." optional()
+    opt[Option[String]]("cols").action { (s, c) =>
+      c.copy(cols = s) } text "the set of column indexes to be ingested, must match" +
+      " sft specification " optional()
     opt[Option[String]]("datetime").action { (s, c) =>
       c.copy(dtField = s) } text "the name of the datetime field in the sft" optional()
     opt[Option[String]]("dtformat").action { (s, c) =>

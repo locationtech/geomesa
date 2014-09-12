@@ -55,6 +55,7 @@ object Utils {
     val FEATURE_NAME        = "geomesa-tools.feature.name"
     val CATALOG_TABLE       = "geomesa-tools.feature.tables.catalog"
     val SFT_SPEC            = "geomesa-tools.feature.sftspec"
+    val COLS                = "geomesa-tools.ingest.cols"
     val IS_TEST_INGEST      = "geomesa-tools.ingest.runIngest"
 
   }
@@ -110,6 +111,7 @@ case class IngestArguments(username: String = null,
                            visibilities: Option[String] = None,
                            indexSchemaFmt: Option[String] = None,
                            spec: String = null,
+                           cols: Option[String] = None,
                            idFields: Option[String] = None,
                            dtField: Option[String] = None,
                            dtFormat: Option[String] = None,

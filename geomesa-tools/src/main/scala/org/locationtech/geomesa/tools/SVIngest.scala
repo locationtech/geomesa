@@ -17,6 +17,7 @@ package org.locationtech.geomesa.tools
 
 import java.net.URLDecoder
 import java.nio.charset.Charset
+
 import com.google.common.hash.Hashing
 import com.twitter.scalding.{Args, Job, TextLine}
 import com.typesafe.scalalogging.slf4j.Logging
@@ -33,7 +34,9 @@ import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
 import scala.util.Try
+import scala.util.parsing.combinator.JavaTokenParsers
 
 class SVIngest(args: Args) extends Job(args) with Logging {
   import scala.collection.JavaConversions._
@@ -45,6 +48,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val idFields         = args.optional(IngestParams.ID_FIELDS).orNull
   lazy val path             = args(IngestParams.FILE_PATH)
   lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
+  lazy val colList          = args.optional(IngestParams.COLS).map(ColsParser.build)
   lazy val dtgField         = args.optional(IngestParams.DT_FIELD)
   lazy val dtgFmt           = args.optional(IngestParams.DT_FORMAT)
   lazy val lonField         = args.optional(IngestParams.LON_ATTRIBUTE)
@@ -99,6 +103,17 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     def release(): Unit = { fw.close() }
   }
 
+  def printStatInfo() {
+    logger.info(getStatInfo(successes, failures, "Ingestion finished, total features:"))
+  }
+
+  def getStatInfo(successes: Int, failures: Int, pref: String): String = {
+    val successPvsS = if (successes == 1) "feature" else "features"
+    val failurePvsS = if (failures == 1) "feature" else "features"
+    val failureString = if (failures == 0) "with no failures" else s"and failed to ingest: $failures $failurePvsS"
+    s"$pref $lineNumber, ingested: $successes $successPvsS, $failureString."
+  }
+
   // Check to see if this an actual ingest job or just a test.
   if (!isTestRun) {
     TextLine(path).using(new Resources)
@@ -131,12 +146,8 @@ class SVIngest(args: Args) extends Job(args) with Logging {
     // if write was successful, update successes count and log status if needed
     if (writeSuccess.isSuccess) {
       successes += 1
-      if (lineNumber % 10000 == 0 && !isTestRun) {
-        val successPvsS = if (successes == 1) "feature" else "features"
-        val failurePvsS = if (failures == 1) "feature" else "features"
-        logger.info(s"Ingest proceeding, on line number: $lineNumber," +
-          s" ingested: $successes $successPvsS, and failed to ingest: $failures $failurePvsS.")
-      }
+      if (lineNumber % 10000 == 0 && !isTestRun)
+        logger.info(getStatInfo(successes, failures, s"Ingest proceeding $line, on line number:"))
     } else {
       failures += 1
       logger.info(s"Cannot ingest feature on line number: $lineNumber, due to: ${writeSuccess.failed.get.getMessage} ")
@@ -146,7 +157,8 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   def ingestDataToFeature(line: String, feature: SimpleFeature) = Try {
     val reader = CSVParser.parse(line, delim)
     val fields: List[String] = try {
-      reader.getRecords.flatten.toList
+      val allFields = reader.getRecords.flatten.toList
+      if (colList.isDefined) colList.map(_.map(allFields(_))).get else allFields
     } catch {
       case e: Exception => throw new Exception(s"Commons CSV could not parse " +
         s"line number: $lineNumber \n\t with value: $line")
@@ -223,5 +235,40 @@ class SVIngest(args: Args) extends Job(args) with Logging {
           dtFormat.map(_.parseDateTime(dtString)).getOrElse(new DateTime(dtString.toLong))
         }
     }
+
+  /*
+   * Parse column list input string into a sorted list of column indexes.
+   * column list input string is a list of comma-separated column-ranges. A column-range has one
+   * of following formats:
+   * 1. num - a column defined by num.
+   * 2. num1-num2- a range defined by num1 and num2.
+   * Example: "1,4-6,10,11,12" results in List(1, 4, 5, 6, 10, 11, 12)
+   */
+  object ColsParser extends JavaTokenParsers {
+    private val integer = wholeNumber ^^ { _.toInt }
+    private val singleCol =
+      integer ^^ {
+        case e if e >= 0 => List(e)
+        case _           => throw new IllegalArgumentException("Positive column numbers only")
+      }
+
+    private val colRange  =
+      (singleCol <~ "-") ~ singleCol ^^ {
+        case (s::Nil) ~ (e::Nil) if s < e => Range.inclusive(s, e).toList
+        case _                            => throw new IllegalArgumentException("Invalid range")
+      }
+
+    private val parser =
+      repsep(colRange | singleCol, ",") ^^ {
+        case l => l.flatten.sorted.distinct
+      }
+
+    def build(str: String): List[Int] = parse(parser, str) match {
+      case Success(i, _)   => i
+      case Failure(msg, _) => throw new IllegalArgumentException(msg)
+      case Error(msg, _)   => throw new IllegalArgumentException(msg)
+    }
+  }
+
 }
 
