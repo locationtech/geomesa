@@ -30,6 +30,7 @@ import org.geotools.util.Version
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, EncodedValues}
 import org.locationtech.geomesa.plugin.wfs.output.BinaryViewerOutputFormat._
 import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConverters._
 
@@ -49,27 +50,31 @@ import scala.collection.JavaConverters._
  *
  * @param gs
  */
-class BinaryViewerOutputFormat(gs: GeoServer) extends WFSGetFeatureOutputFormat(gs, MIME_TYPE) {
+class BinaryViewerOutputFormat(gs: GeoServer) extends WFSGetFeatureOutputFormat(gs, Set("bin", MIME_TYPE).asJava) {
 
   val wfsVersion1 = new Version("1.0.0")
 
   override def getMimeType(value: AnyRef, operation: Operation) = MIME_TYPE
 
-  override def getAttachmentFileName(value: AnyRef, operation: Operation) = {
-    val request = GetFeatureRequest.adapt(operation.getParameters()(0))
-    val name = Option(request.getHandle).getOrElse(request.getQueries.get(0).getTypeNames.get(0).getLocalPart)
-    s"${name}.${FILE_EXTENSION}"
-  }
-
   override def getPreferredDisposition(value: AnyRef, operation: Operation) = Response.DISPOSITION_INLINE
+
+  override def getAttachmentFileName(value: AnyRef, operation: Operation) = {
+    val gfr = GetFeatureRequest.adapt(operation.getParameters()(0))
+    val name = Option(gfr.getHandle).getOrElse(gfr.getQueries.get(0).getTypeNames.get(0).getLocalPart)
+    // if they have requested a label, then it will be 24 byte encoding (assuming the field exists...)
+    val size = if (gfr.getFormatOptions.containsKey(LABEL_FIELD)) "24" else "16"
+    s"${name}.${FILE_EXTENSION}$size"
+  }
 
   override def write(featureCollections: FeatureCollectionResponse,
                      output: OutputStream,
                      getFeature: Operation): Unit = {
 
+    // format_options flags for customizing the request
     val gfr = GetFeatureRequest.adapt(getFeature.getParameters()(0))
     val trackIdField = Option(gfr.getFormatOptions.get(TRACK_ID_FIELD).asInstanceOf[String])
     val labelField = Option(gfr.getFormatOptions.get(LABEL_FIELD).asInstanceOf[String])
+    // dtg isn't present in the feature or type hints, so we have to pass it in
     val dtgField = Option(gfr.getFormatOptions.get(DATE_FIELD).asInstanceOf[String])
 
     // wfs 1.0.0 stores x = lon y = lat, anything greater stores x = lat y = lon
@@ -85,8 +90,8 @@ class BinaryViewerOutputFormat(gs: GeoServer) extends WFSGetFeatureOutputFormat(
             .filter(_.isInstanceOf[Date])
             .map(_.asInstanceOf[Date].getTime)
             .getOrElse(System.currentTimeMillis())
-        val label = labelField.map(l => if (l == "id") f.getID else f.getAttribute(l).toString)
-        val trackId = trackIdField.map(f.getAttribute(_).toString)
+        val label = labelField.flatMap(getAttributeOrId(f, _))
+        val trackId = trackIdField.flatMap(getAttributeOrId(f, _))
         val values = EncodedValues(lat.toFloat, lon.toFloat, dtg, trackId, label)
         bos.write(Convert2ViewerFunction.encode(values))
       }
@@ -96,11 +101,21 @@ class BinaryViewerOutputFormat(gs: GeoServer) extends WFSGetFeatureOutputFormat(
     // none of the implementations in geoserver call 'close' on the output stream
   }
 
+  /**
+   * Gets an optional attribute or id
+   *
+   * @param f
+   * @param attribute
+   * @return
+   */
+  private def getAttributeOrId(f: SimpleFeature, attribute: String): Option[String] =
+    if (attribute == "id") Some(f.getID) else Option(f.getAttribute(attribute)).map(_.toString)
+
 }
 
 object BinaryViewerOutputFormat {
   val MIME_TYPE = "application/vnd.binary-viewer"
-  val FILE_EXTENSION = "bv"
+  val FILE_EXTENSION = "bin"
   val TRACK_ID_FIELD = "TRACKID"
   val LABEL_FIELD = "LABEL"
   val DATE_FIELD = "DTG"

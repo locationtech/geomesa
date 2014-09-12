@@ -70,32 +70,14 @@ object Convert2ViewerFunction {
    * @return
    */
   def encode(values: EncodedValues): Array[Byte] = {
-    val buf =
-      values.label match {
-        case Some(_) =>
-          val buf = simpleByteBuffer(24, values)
-          putOption(buf, values.label, 8)
-          buf
-        case None =>
-          simpleByteBuffer(16, values)
-      }
-    buf.array()
-  }
-
-  /**
-   * Encodes the simple attributes
-   *
-   * @param numBytes
-   * @param values
-   * @return
-   */
-  private def simpleByteBuffer(numBytes: Int, values: EncodedValues): ByteBuffer = {
+    val numBytes = if (values.label.isDefined) 24 else 16
     val buf = ByteBuffer.allocate(numBytes).order(ByteOrder.LITTLE_ENDIAN)
     putOption(buf, values.trackId, 4)
     buf.putInt((values.dtg / 1000).toInt)
     buf.putFloat(values.lat)
     buf.putFloat(values.lon)
-    buf
+    values.label.foreach(_ => putOption(buf, values.label, 8))
+    buf.array()
   }
 
   /**
@@ -154,4 +136,8 @@ object Convert2ViewerFunction {
   }
 }
 
-case class EncodedValues(lat: Float, lon: Float, dtg: Long, trackId: Option[String] = None, label: Option[String] = None)
+case class EncodedValues(lat: Float,
+                         lon: Float,
+                         dtg: Long,
+                         trackId: Option[String] = None,
+                         label: Option[String] = None)
