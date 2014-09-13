@@ -151,7 +151,8 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   def ingestDataToFeature(line: String, feature: SimpleFeature) = Try {
     val reader = CSVParser.parse(line, delim)
     val fields: List[String] = try {
-      Some(reader.getRecords.flatten.toList).map{ allCols => colList.map(_.map(allCols(_))).getOrElse(allCols) }.get
+      val allFields = reader.getRecords.flatten.toList
+      if (colList.isDefined) colList.map(_.map(allFields(_))).get else allFields
     } catch {
       case e: Exception => throw new Exception(s"Commons CSV could not parse " +
         s"line number: $lineNumber \n\t with value: $line")
@@ -231,14 +232,11 @@ class SVIngest(args: Args) extends Job(args) with Logging {
 
   /*
    * Parse column list input string into a sorted list of column indexes.
-   * column list input string is a list of comma-separated column-ranges with each has one of following formats:
-   * 1. [+]num - a column defined by num.
-   * 2. [+]num1-[+]num2- a range defined by num1 and num2.
-   * Prefix "+" means skip. Value of "+num" is num plus most recently accessed col value.
-   * Example:
-   * 1. "1,4-6,10" results List(1, 4, 5, 6, 10)
-   * 2. "1-2,+2,6-8,+2-12" results List(1, 2, 4, 6, 7, 8, 10, 11, 12)
-   * 2. "+3,6-+2,+2-+2,15-17" results List(3, 6, 7, 8, 10, 11, 12, 15, 16, 17)
+   * column list input string is a list of comma-separated column-ranges in increasing order. A column-range has one
+   * of following formats:
+   * 1. num - a column defined by num.
+   * 2. num1-num2- a range defined by num1 and num2.
+   * Example: "1,4-6,10,11,12" results in List(1, 4, 5, 6, 10, 11, 12)
    */
   def buildCols(colsStringO: Option[String]): Option[List[Int]] = {
     var currCol = 0
@@ -253,29 +251,26 @@ class SVIngest(args: Args) extends Job(args) with Logging {
       sys.exit()
     }
 
-    def getIntVal(colStr: String, baseVal: Int): Int = {
-      val valTry = Try {
-        if (colStr.startsWith("+")) baseVal + colStr.substring(1).toInt
-        else colStr.toInt
+    def getIntVal(colStr: String): Int = {
+      Try ({
+        colStr.toInt
+      }).getOrElse{
+        displayErrMsgAndExit()
+        0
       }
-      valTry match {
-        case Failure(e) => displayErrMsgAndExit()
-        case _ =>
-      }
-      valTry.get
     }
 
     def processRange(colRange: String, startCol: Int): List[Int] = {
       val fields = colRange.split("-")
       fields.size match {
         case 1 =>
-          val v = getIntVal(fields(0), startCol)
+          val v = getIntVal(fields(0))
           checkValid(startCol, v, (startCol == 0))
           currCol = v
           List(v)
         case 2 =>
-          val v1 = getIntVal(fields(0), startCol)
-          val v2 = getIntVal(fields(1), v1)
+          val v1 = getIntVal(fields(0))
+          val v2 = getIntVal(fields(1))
           checkValid(startCol, v1, (startCol == 0))
           checkValid(v1, v2, true)
           currCol = v2
