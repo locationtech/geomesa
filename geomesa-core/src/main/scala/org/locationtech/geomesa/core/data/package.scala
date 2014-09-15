@@ -52,10 +52,12 @@ import scala.collection.JavaConversions._
   val ATTR_IDX_TABLE_CF    = new Text("tables.idx.attr.name")
   val RECORD_TABLE_CF      = new Text("tables.record.name")
   val QUERIES_TABLE_CF     = new Text("tables.queries.name")
+  val SHARED_TABLES_CF     = new Text("tables.sharing")
   val METADATA_TAG         = "~METADATA"
   val METADATA_TAG_END     = s"$METADATA_TAG~~"
   val EMPTY_STRING         = ""
   val EMPTY_VALUE          = new Value(Array[Byte]())
+  val EMPTY_COLF           = new Text(EMPTY_STRING)
   val EMPTY_COLQ           = new Text(EMPTY_STRING)
   val WHOLE_WORLD_BOUNDS   = "-180.0:180.0:-90.0:90.0"
   val TRANSFORMS           = new ClassKey(classOf[String])

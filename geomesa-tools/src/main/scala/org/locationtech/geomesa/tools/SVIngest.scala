@@ -81,6 +81,9 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val sft = {
     val ret = SimpleFeatureTypes.createType(featureName, sftSpec)
     ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField.getOrElse(Constants.SF_PROPERTY_START_TIME))
+    args.optional(IngestParams.INDEX_SCHEMA_FMT).foreach { indexSchema =>
+      ret.getUserData.put(Constants.SFT_INDEX_SCHEMA, indexSchema)
+    }
     ret
   }
 
@@ -197,19 +200,19 @@ class SVIngest(args: Args) extends Job(args) with Logging {
 
   def buildIDBuilder: (Seq[String]) => String = {
     (idFields, doHash) match {
-       case (s: String, false) =>
-         val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
-         attrs => idSplit.map { idx => attrs(idx) }.mkString("_")
-       case (s: String, true) =>
-         val hashFn = Hashing.md5()
-         val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
-         attrs => hashFn.newHasher().putString(idSplit.map { idx => attrs(idx) }.mkString("_"),
-           Charset.defaultCharset()).hash().toString
-       case _         =>
-         val hashFn = Hashing.md5()
-         attrs => hashFn.newHasher().putString(attrs.mkString ("_"),
-           Charset.defaultCharset()).hash().toString
-     }
+      case (s: String, false) =>
+        val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
+        attrs => idSplit.map { idx => attrs(idx) }.mkString("_")
+      case (s: String, true) =>
+        val hashFn = Hashing.md5()
+        val idSplit = idFields.split(",").map { f => sft.indexOf(f) }
+        attrs => hashFn.newHasher().putString(idSplit.map { idx => attrs(idx) }.mkString("_"),
+          Charset.defaultCharset()).hash().toString
+      case _         =>
+        val hashFn = Hashing.md5()
+        attrs => hashFn.newHasher().putString(attrs.mkString ("_"),
+          Charset.defaultCharset()).hash().toString
+    }
   }
 
   def buildDtBuilder(dtgFieldName: String): Option[(AnyRef) => DateTime] =

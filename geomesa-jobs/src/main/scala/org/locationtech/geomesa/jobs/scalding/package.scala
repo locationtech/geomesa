@@ -45,5 +45,6 @@ package object scalding {
     val CATALOG_TABLE       = "geomesa.feature.tables.catalog"
     val RECORD_TABLE        = "geomesa.feature.tables.record"
     val ATTRIBUTE_TABLE     = "geomesa.feature.tables.attribute"
+    val USEMOCKACCUMULO     = "geomesa.use.mock"
   }
 }

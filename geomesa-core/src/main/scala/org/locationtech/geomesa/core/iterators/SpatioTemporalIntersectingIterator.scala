@@ -216,7 +216,7 @@ class SpatioTemporalIntersectingIterator
       decodeKey(indexSource.getTopKey).map { decodedKey =>
         curFeature = decodedKey
         // the value contains the full-resolution geometry and time; use them
-        lazy val decodedValue = IndexSchema.decodeIndexValue(indexSource.getTopValue)
+        lazy val decodedValue = IndexEntry.decodeIndexValue(indexSource.getTopValue)
         lazy val isSTAcceptable = wrappedSTFilter(decodedValue.geom, decodedValue.dtgMillis)
 
         // see whether this box is acceptable
@@ -247,7 +247,7 @@ class SpatioTemporalIntersectingIterator
    * data-iterator.  This is *IMPORTANT*, as otherwise we do not emit rows
    * that honor the SortedKeyValueIterator expectation, and Bad Things Happen.
    */
-  def seekData(indexValue: IndexSchema.DecodedIndexValue) {
+  def seekData(indexValue: IndexEntry.DecodedIndexValue) {
     val nextId = indexValue.id
     curId = new Text(nextId)
     val indexSourceTopKey = indexSource.getTopKey

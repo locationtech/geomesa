@@ -34,7 +34,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
-import org.locationtech.geomesa.core.index.{Constants, IndexSchemaBuilder, QueryHints}
+import org.locationtech.geomesa.core.index.{Constants, QueryHints}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
@@ -78,7 +78,6 @@ class DensityIteratorTest extends Specification {
       userParam.key       -> "user",
       passwordParam.key   -> "pass",
       tableNameParam.key  -> "test",
-      idxSchemaParam.key  -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
       mockParam.key       -> "true"))
     ds.createSchema(sft)
     ds

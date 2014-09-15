@@ -57,7 +57,7 @@ case class GeoHashTextFormatter(offset: Int, numBits: Int) extends TextFormatter
 case class DateTextFormatter(f: String) extends TextFormatter {
   val numBits = f.length
   val formatter = org.joda.time.format.DateTimeFormat.forPattern(f)
-  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) =   // JNH: Make this an option?
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) =   
    formatter.print(dt)
 }
 
