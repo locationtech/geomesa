@@ -36,6 +36,7 @@
     </root>
 
     <logger name="org.apache.zookeeper" level="warn"/>
+    <logger name="org.apache.accumulo" level="warn"/>
     <logger name="hsqldb.db" level="warn"/>
 
     <!-- un-comment the following line to enable verbose log messages
