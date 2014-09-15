@@ -17,6 +17,7 @@ package org.locationtech.geomesa.tools
 
 import java.net.URLDecoder
 import java.nio.charset.Charset
+
 import com.google.common.hash.Hashing
 import com.twitter.scalding.{Args, Job, TextLine}
 import com.typesafe.scalalogging.slf4j.Logging
@@ -33,7 +34,9 @@ import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import scala.util.{Failure, Try}
+
+import scala.util.Try
+import scala.util.parsing.combinator.JavaTokenParsers
 
 class SVIngest(args: Args) extends Job(args) with Logging {
   import scala.collection.JavaConversions._
@@ -45,7 +48,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
   lazy val idFields         = args.optional(IngestParams.ID_FIELDS).orNull
   lazy val path             = args(IngestParams.FILE_PATH)
   lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
-  lazy val colList          = buildCols(args.optional(IngestParams.COLS))
+  lazy val colList          = args.optional(IngestParams.COLS).map(ColsParser.build)
   lazy val dtgField         = args.optional(IngestParams.DT_FIELD)
   lazy val dtgFmt           = args.optional(IngestParams.DT_FORMAT)
   lazy val lonField         = args.optional(IngestParams.LON_ATTRIBUTE)
@@ -241,60 +244,31 @@ class SVIngest(args: Args) extends Job(args) with Logging {
    * 2. num1-num2- a range defined by num1 and num2.
    * Example: "1,4-6,10,11,12" results in List(1, 4, 5, 6, 10, 11, 12)
    */
-  def buildCols(colsStringO: Option[String]): Option[List[Int]] = {
-    var currCol = 0
-
-    def checkValid(val1: Int, val2: Int, allowEqual: Boolean) = {
-      val valid = if (allowEqual) val1 <= val2 else val1 < val2
-      if (!valid) displayErrMsgAndExit()
-    }
-
-    def displayErrMsgAndExit() {
-      logger.error(s"Column list ${colsStringO.get} has wrong format. Please correct it and try again.")
-      sys.exit()
-    }
-
-    def getIntVal(colStr: String): Int = {
-      Try ({
-        colStr.toInt
-      }).getOrElse{
-        displayErrMsgAndExit()
-        0
+  object ColsParser extends JavaTokenParsers {
+    private val integer = wholeNumber ^^ { _.toInt }
+    private val singleCol =
+      integer ^^ {
+        case e if e >= 0 => List(e)
+        case _           => throw new IllegalArgumentException("Positive column numbers only")
       }
-    }
 
-    def processRange(colRange: String, startCol: Int): List[Int] = {
-      val fields = colRange.split("-")
-      fields.size match {
-        case 1 =>
-          val v = getIntVal(fields(0))
-          checkValid(startCol, v, (startCol == 0))
-          currCol = v
-          List(v)
-        case 2 =>
-          val v1 = getIntVal(fields(0))
-          val v2 = getIntVal(fields(1))
-          checkValid(startCol, v1, (startCol == 0))
-          checkValid(v1, v2, true)
-          currCol = v2
-          (v1 to v2).toList
-        case _ =>
-          displayErrMsgAndExit
-          List()
+    private val colRange  =
+      (singleCol <~ "-") ~ singleCol ^^ {
+        case (s::Nil) ~ (e::Nil) if s < e => Range.inclusive(s, e).toList
+        case _                            => throw new IllegalArgumentException("Invalid range")
       }
-    }
 
-    colsStringO match {
-      case Some(colsString) =>
-        val colList =
-          (for {
-            col <- colsString.replaceAll(" ", "").split(",").toList
-          } yield {
-            processRange(col, currCol)
-          }).flatten
-        Some(colList)
-      case _ => None
+    private val parser =
+      repsep(colRange | singleCol, ",") ^^ {
+        case l => l.flatten
+      }
+
+    def build(str: String): List[Int] = parse(parser, str) match {
+      case Success(i, _)   => i
+      case Failure(msg, _) => throw new IllegalArgumentException(msg)
+      case Error(msg, _)   => throw new IllegalArgumentException(msg)
     }
   }
+
 }
 
