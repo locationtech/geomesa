@@ -31,7 +31,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, QueryHints}
+import org.locationtech.geomesa.core.index.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.locationtech.geomesa.utils.geotools.GridSnap
 import org.opengis.feature.simple.SimpleFeature
@@ -57,7 +57,6 @@ class LiveDensityIteratorTest extends Specification with Logging {
     "auths"             -> "user,admin",
     "visibilities"      -> "",
     "tableName"         -> "mytable",
-    "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
     "featureEncoding"   -> "avro")
 
   val sftName = "fr"

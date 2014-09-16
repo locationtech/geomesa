@@ -16,11 +16,18 @@
 
 package org.locationtech.geomesa.core.index
 
+import java.util
+
 import org.geotools.data.Query
+import org.locationtech.geomesa.core.index.AttributeIndexStrategy.getAttributeIndexStrategy
+import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryHints._
+import org.locationtech.geomesa.core.index.RecordIdxStrategy.getRecordIdxStrategy
+import org.locationtech.geomesa.core.index.STIdxStrategy.getSTIdxStrategy
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.expression.PropertyName
-import org.opengis.filter.{Filter, Id, PropertyIsLike, PropertyIsEqualTo}
+import org.opengis.filter.{And, Filter, Id, PropertyIsLike}
+
+import scala.collection.JavaConversions._
 
 object QueryStrategyDecider {
 
@@ -31,26 +38,60 @@ object QueryStrategyDecider {
     if (isCatalogTableFormat) chooseNewStrategy(sft, query) else new STIdxStrategy
 
   def chooseNewStrategy(sft: SimpleFeatureType, query: Query): Strategy = {
-    // If we have attr index table try it
-
     val filter = query.getFilter
     val isDensity = query.getHints.containsKey(BBOX_KEY)
 
-    filter match {
-      case isEqualTo: PropertyIsEqualTo if !isDensity && attrIdxQueryEligible(isEqualTo, sft) =>
-        new AttributeEqualsIdxStrategy
+    if (isDensity) {
+      // TODO GEOMESA-322 use other strategies with density iterator
+      new STIdxStrategy
+    } else {
+      // check if we can use the attribute index first
+      val attributeStrategy = getAttributeIndexStrategy(filter, sft)
+      attributeStrategy.getOrElse {
+        filter match {
+          case idFilter: Id => new RecordIdxStrategy
+          case and: And => processAnd(isDensity, sft, and)
+          case cql          => new STIdxStrategy
+        }
+      }
+    }
+  }
 
-      case like: PropertyIsLike if !isDensity =>
-        if (attrIdxQueryEligible(like, sft) && likeEligible(like))
-          new AttributeLikeIdxStrategy
-        else
-          new STIdxStrategy
+  private def processAnd(isDensity: Boolean, sft: SimpleFeatureType, and: And): Strategy = {
+    val children: util.List[Filter] = decomposeAnd(and)
 
-      case idFilter: Id =>
-        new RecordIdxStrategy
+    def determineStrategy(attr: Filter, st: Filter): Strategy = {
+      if (children.indexOf(attr) < children.indexOf(st)) { getAttributeIndexStrategy(attr, sft).get }
+      else { new STIdxStrategy }
+    }
 
-      case cql =>
-        new STIdxStrategy
+    // first scan the query and identify the type of predicates present
+    val strats = (children.find(c => getAttributeIndexStrategy(c, sft).isDefined),
+                  children.find(c => getSTIdxStrategy(c, sft).isDefined),
+                  children.find(c => getRecordIdxStrategy(c, sft).isDefined))
+
+    /**
+     * Choose the query strategy to be employed here. This is the priority
+     *   * If an ID predicate is present, it is assumed that only a small number of IDs are requested
+     *            --> The Record Index is scanned, and the other ECQL filters, if any, are then applied
+     *
+     *   * If attribute filters and ST filters are present, use the ordering to choose the correct strategy
+     *
+     *   * If attribute filters are present, then select the correct type of AttributeIdx Strategy
+     *            --> The Attribute Indices are scanned, and the other ECQL filters, if any, are then applied
+     *
+     *   * If ST filters are present, use the STIdxStrategy
+     *            --> The ST Index is scanned, and the other ECQL filters, if any are then applied
+     *
+     *   * If filters are not identified, use the STIdxStrategy
+     *            --> The ST Index is scanned (likely a full table scan) and the ECQL filters are applied
+     */
+    strats match {
+      case (               _,              _, Some(idFilter))  => new RecordIdxStrategy
+      case (Some(attrFilter), Some(stFilter),           None)  => determineStrategy(attrFilter, stFilter)
+      case (Some(attrFilter),           None,           None)  => getAttributeIndexStrategy(attrFilter, sft).get
+      case (            None, Some(stFilter),           None)  => new STIdxStrategy
+      case (            None,           None,           None)  => new STIdxStrategy
     }
   }
 
@@ -73,22 +114,4 @@ object QueryStrategyDecider {
       filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == filter.getLiteral.length - MULTICHAR_WILDCARD.length) ||
       filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == -1
 
-
-  import org.locationtech.geomesa.utils.geotools.Conversions._
-
-  def attrIdxQueryEligible(filt: Filter, featureType: SimpleFeatureType): Boolean = filt match {
-    case filter: PropertyIsEqualTo =>
-      val one = filter.getExpression1
-      val two = filter.getExpression2
-      val prop = (one, two) match {
-        case (p: PropertyName, _) => Some(p.getPropertyName)
-        case (_, p: PropertyName) => Some(p.getPropertyName)
-        case (_, _)               => None
-      }
-      prop.exists(featureType.getDescriptor(_).isIndexed)
-
-    case filter: PropertyIsLike =>
-      val prop = filter.getExpression.asInstanceOf[PropertyName].getPropertyName
-      featureType.getDescriptor(prop).isIndexed
-  }
 }

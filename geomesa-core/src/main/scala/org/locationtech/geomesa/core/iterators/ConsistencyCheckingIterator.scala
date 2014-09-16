@@ -21,7 +21,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.core.index.IndexSchema
+import org.locationtech.geomesa.core.index.IndexEntry
 
 class ConsistencyCheckingIterator
   extends SortedKeyValueIterator[Key, Value]
@@ -62,7 +62,7 @@ class ConsistencyCheckingIterator
     while (nextKey == null && indexSource.hasTop && !isData) {
       logger.trace(s"Checking ${indexSource.getTopKey}")
       nextKey = indexSource.getTopKey
-      curId = IndexSchema.decodeIndexValue(indexSource.getTopValue).id
+      curId = IndexEntry.decodeIndexValue(indexSource.getTopValue).id
 
       val dataSeekKey = new Key(indexSource.getTopKey.getRow, new Text(curId))
       val range = new Range(dataSeekKey, null)

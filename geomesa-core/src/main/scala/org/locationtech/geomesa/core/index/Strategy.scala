@@ -18,18 +18,18 @@ package org.locationtech.geomesa.core.index
 
 import java.util.Map.Entry
 
+import com.vividsolutions.jts.geom.{Polygon, Geometry}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.Query
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.filter._
+import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators.{FEATURE_ENCODING, _}
 import org.locationtech.geomesa.core.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -95,4 +95,41 @@ trait Strategy {
 
   def randomPrintableString(length:Int=5) : String = (1 to length).
     map(i => Random.nextPrintableChar()).mkString
+
+  def getSFFIIterCfg(iteratorConfig: IteratorConfig,
+                     featureType: SimpleFeatureType,
+                     ecql: Option[String],
+                     schema: String,
+                     featureEncoder: SimpleFeatureEncoder,
+                     query: Query): Option[IteratorSetting] = {
+    if (iteratorConfig.useSFFI) {
+      Some(configureSimpleFeatureFilteringIterator(featureType, ecql, schema, featureEncoder, query))
+    } else None
+  }
+
+  def getTopIterCfg(query: Query,
+                    geometryToCover: Geometry,
+                    schema: String,
+                    featureEncoder: SimpleFeatureEncoder,
+                    featureType: SimpleFeatureType) = {
+    if (query.getHints.containsKey(DENSITY_KEY)) {
+      val clazz = classOf[DensityIterator]
+
+      val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
+        "topfilter-" + randomPrintableString(5),
+        clazz)
+
+      val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Int]
+      val height = query.getHints.get(HEIGHT_KEY).asInstanceOf[Int]
+      val polygon = if (geometryToCover == null) null else geometryToCover.getEnvelope.asInstanceOf[Polygon]
+
+      DensityIterator.configure(cfg, polygon, width, height)
+
+      cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
+      configureFeatureEncoding(cfg, featureEncoder)
+      configureFeatureType(cfg, featureType)
+
+      Some(cfg)
+    } else None
+  }
 }
