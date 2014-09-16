@@ -34,14 +34,40 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-core-accumulo1.5</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.geotools</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.vividsolutions</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-utils-accumulo1.5</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.geotools</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.vividsolutions</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
       <dependency>
           <groupId>org.locationtech.geomesa</groupId>
           <artifactId>geomesa-jobs-accumulo1.5</artifactId>
+          <exclusions>
+              <exclusion>
+                  <groupId>org.geotools</groupId>
+                  <artifactId>*</artifactId>
+              </exclusion>
+          </exclusions>
       </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -55,56 +81,137 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
         </dependency>
-
-      <!-- provided dependencies -->
-        <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.geoserver</groupId>
-            <artifactId>gs-main</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geoserver.web</groupId>
-            <artifactId>gs-web-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geoserver.extension</groupId>
-            <artifactId>gs-wps-core</artifactId>
+            <groupId>com.typesafe</groupId>
+            <artifactId>scalalogging-slf4j_2.10</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <!-- provided dependencies -->
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-data</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-process</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-process-feature</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geoserver</groupId>
+            <artifactId>gs-main</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.geoserver.web</groupId>
+            <artifactId>gs-web-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.geoserver</groupId>
+            <artifactId>gs-ows</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.geoserver</groupId>
+            <artifactId>gs-wfs</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.geoserver</groupId>
+            <artifactId>gs-platform</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.geoserver.extension</groupId>
+            <artifactId>gs-wps-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-extensions</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
         </dependency>
 
         <!-- test deps -->
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_2.10</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.apache.accumulo</groupId>
           <artifactId>accumulo-test</artifactId>
         </dependency>
     </dependencies>
+
+
 
     <build>
         <plugins>
@@ -121,33 +228,6 @@
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <shadedClassifierName>geoserver-plugin</shadedClassifierName>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.geotools:*</exclude>
-                                    <exclude>org.apache.maven.*:*</exclude>
-                                    <exclude>com.bbn*:*</exclude>
-                                    <exclude>org.geotiff:*</exclude>
-                                    <exclude>com.sun.*:*</exclude>
-                                    <exclude>thredds.*:*</exclude>
-                                    <exclude>org.jdom:*</exclude>
-                                    <exclude>org.quartz-scheduler:*</exclude>
-                                    <exclude>com.mchange.*:*</exclude>
-                                    <exclude>com.google.*:*</exclude>
-                                    <exclude>com.sleepycat:*</exclude>
-                                    <exclude>javax.*:*</exclude>
-                                    <exclude>it.geosolutions.*:*</exclude>
-                                    <exclude>org.jaitools:*</exclude>
-                                    <exclude>com.vividsolutions:*</exclude>
-                                    <exclude>commons-pool:*</exclude>
-                                    <exclude>commons-codec:*</exclude>
-                                    <exclude>net.java.dev:*</exclude>
-                                    <exclude>java3d:*</exclude>
-                                    <exclude>net.jcip:*</exclude>
-                                    <exclude>c3p0:*</exclude>
-                                    <exclude>jdom:*</exclude>
-                                    <exclude>net.java.dev.jsr-275:*</exclude>
-                                </excludes>
-                            </artifactSet>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -165,6 +245,16 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.apache.commons</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shade.commons</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shade.google</shadedPattern>
+                                </relocation>
+                            </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                             </transformers>

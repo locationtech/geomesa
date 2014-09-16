@@ -2,8 +2,8 @@ package org.locationtech.geomesa.core.process.tube
 
 import java.util.Date
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
-import org.apache.log4j.Logger
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.{EmptyFeatureCollection, ReTypingFeatureCollection}
@@ -25,9 +25,7 @@ import scala.collection.JavaConversions._
   title = "Tube Select",
   description = "Performs a tube select on a Geomesa feature collection based on another feature collection"
 )
-class TubeSelectProcess {
-
-  private val log = Logger.getLogger(classOf[TubeSelectProcess])
+class TubeSelectProcess extends Logging {
 
   @DescribeResult(description = "Output feature collection")
   def execute(
@@ -79,7 +77,7 @@ class TubeSelectProcess {
 
                ): SimpleFeatureCollection = {
 
-    log.info("Tube selecting on collection type "+featureCollection.getClass.getName)
+    logger.info("Tube selecting on collection type "+featureCollection.getClass.getName)
 
     // assume for now that firstFeatures is a singleton collection
     val tubeVisitor = new TubeVisitor(
@@ -93,11 +91,11 @@ class TubeSelectProcess {
                                       Option(gapFill).map(GapFill.withName(_)).getOrElse(GapFill.NOFILL))
 
     if(!featureCollection.isInstanceOf[AccumuloFeatureCollection]) {
-      log.warn("The provided feature collection type may not support tubing: "+featureCollection.getClass.getName)
+      logger.warn("The provided feature collection type may not support tubing: "+featureCollection.getClass.getName)
     }
 
     if(featureCollection.isInstanceOf[ReTypingFeatureCollection]) {
-      log.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
+      logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
 
     featureCollection.accepts(tubeVisitor, new NullProgressListener)
@@ -112,18 +110,16 @@ object GapFill extends Enumeration{
   val LINE = Value("line")
 }
 
-class TubeVisitor(
-                   val tubeFeatures: SimpleFeatureCollection,
-                   val featureCollection: SimpleFeatureCollection,
-                   val filter: Filter = Filter.INCLUDE,
-                   val maxSpeed: Long,
-                   val maxTime: Long,
-                   val bufferSize: Double,
-                   val maxBins: Int,
-                   val gapFill: GapFill = GapFill.NOFILL
-                   ) extends FeatureCalc {
-
-  private val log = Logger.getLogger(classOf[TubeVisitor])
+class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
+                  val featureCollection: SimpleFeatureCollection,
+                  val filter: Filter = Filter.INCLUDE,
+                  val maxSpeed: Long,
+                  val maxTime: Long,
+                  val bufferSize: Double,
+                  val maxBins: Int,
+                  val gapFill: GapFill = GapFill.NOFILL)
+  extends FeatureCalc
+          with Logging {
 
   var resultCalc: TubeResult = new TubeResult(new EmptyFeatureCollection(featureCollection.getSchema))
 
@@ -139,13 +135,13 @@ class TubeVisitor(
 
   def tubeSelect(source: SimpleFeatureSource, query: Query): SimpleFeatureCollection = {
 
-    log.info("Visiting source type: "+source.getClass.getName)
+    logger.info("Visiting source type: "+source.getClass.getName)
 
     val geomProperty = ff.property(source.getSchema.getGeometryDescriptor.getName)
     val dateProperty = ff.property(source.getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])
 
-    if(log.isDebugEnabled) log.debug("Querying with date property: "+dateProperty)
-    if(log.isDebugEnabled) log.debug("Querying with geometry property: "+geomProperty)
+    logger.debug("Querying with date property: "+dateProperty)
+    logger.debug("Querying with geometry property: "+geomProperty)
 
     // Create a time binned set of tube features with no gap filling
 
