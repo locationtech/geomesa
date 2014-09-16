@@ -238,7 +238,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
 
   /*
    * Parse column list input string into a sorted list of column indexes.
-   * column list input string is a list of comma-separated column-ranges in increasing order. A column-range has one
+   * column list input string is a list of comma-separated column-ranges. A column-range has one
    * of following formats:
    * 1. num - a column defined by num.
    * 2. num1-num2- a range defined by num1 and num2.

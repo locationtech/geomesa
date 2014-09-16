@@ -149,7 +149,7 @@ of columns and data formats in the file (or columns list if `--cols` is specifie
 include a default geometry field. If attempting to ingest files with explicit latitude and longitude columns, the sft
 spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.  
 `--cols` The optional subset of columns to be ingested which must match `-s` or `--sfcspec`. It is a list of
-comma-separated column-ranges in increasing order. Each column-range has format `num1[-num2]` that defines a column by
+comma-separated column-ranges. Each column-range has format `num1[-num2]` that defines a column by
 num1 or a column range by num1 and num2 if num2 is presented. For example, "0,3,6-8,10,15-17" gives result
 List(0, 3, 6, 7, 8, 10, 15, 16, 17).
 `--datetime` The optional name of the field in the SFT specification that corresponds to the *time* column. **NOTE:** by default times are assumed to be UTC, please specify a specific timezone here and update the dtformat if this is not desired.  

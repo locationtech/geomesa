@@ -26,6 +26,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import scala.io.Source
+import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class SVIngestTest extends Specification{
@@ -324,5 +325,58 @@ class SVIngestTest extends Specification{
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
     }
 
+    "properly create subset of column list" in {
+      val ingest = new SVIngest(new Args(csvNormParams))
+      val inputColsList1 = "0,1,3,7-9,12,13"
+      val inputColsList2 = "0,3,1,3,1,7-9,12,13"
+      val checkList = List(0,1,3,7,8,9,12,13)
+
+      val resultList1 = ingest.ColsParser.build(inputColsList1)
+      resultList1 mustEqual checkList
+
+      val resultList2 = ingest.ColsParser.build(inputColsList2)
+      resultList2 mustEqual checkList
+    }
+
+    "properly fail in creating subset of column list" in {
+      val ingest = new SVIngest(new Args(csvNormParams))
+      Try(ingest.ColsParser.build("1,3,-7,12,13")) must beFailedTry
+      Try(ingest.ColsParser.build("1,3,9-7,12,13")) must beFailedTry
+      Try(ingest.ColsParser.build("1,3,-7-9,12,13")) must beFailedTry
+    }
+
+    "properly write a subset of features from a valid CSV" in {
+      val path = Tools.getClass.getResource("/test_valid.csv")
+      val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.SFT_SPEC,
+        List("time:Date,lon:Double,lat:Double,*geom:Point:srid=4326")) ++ Map(IngestParams.COLS -> List("1-3"))))
+
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
+    }
+
+    "properly write a subset of features from a valid TSV" in {
+      val path = Tools.getClass.getResource("/test_valid.tsv")
+      val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.SFT_SPEC,
+        List("time:Date,lon:Double,lat:Double,*geom:Point:srid=4326")).updated(IngestParams.FORMAT, List("TSV"))
+        ++ Map(IngestParams.COLS -> List("1-3"))))
+
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
+    }
+
+    "properly write the features from a valid CSV containing WKT geometries" in {
+      val path = Tools.getClass.getResource("/test_valid_wkt.csv")
+      val ingest = new SVIngest(new Args(csvWktParams.updated(IngestParams.SFT_SPEC,
+        List("time:Date,*geom:Point:srid=4326")) ++ Map(IngestParams.COLS -> List("1-2"))))
+
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
+    }
+
+    "properly write the features from a valid TSV containing WKT geometries" in {
+      val path = Tools.getClass.getResource("/test_valid_wkt.tsv")
+      val ingest = new SVIngest(new Args(csvWktParams.updated(IngestParams.SFT_SPEC,
+        List("time:Date,*geom:Point:srid=4326")).updated(IngestParams.FORMAT, List("TSV"))
+        ++ Map(IngestParams.COLS -> List("1-2"))))
+
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
+    }
   }
 }
