@@ -3,9 +3,9 @@ package org.locationtech.geomesa.core.process.tube
 import java.util.Date
 import java.util.concurrent.atomic.AtomicInteger
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
-import org.apache.log4j.Logger
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.format.DateTimeFormat
@@ -21,9 +21,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  */
 abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
                            val bufferDistance: Double,
-                           val maxBins: Int) {
-
-  private val log = Logger.getLogger(classOf[TubeBuilder])
+                           val maxBins: Int) extends Logging {
 
   val calc = new GeodeticCalculator()
   val dtgField = extractDtgField(tubeFeatures.getSchema)
@@ -44,7 +42,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   def bufferGeom(geom: Geometry, meters: Double) = geom.buffer(metersToDegrees(meters, geom.getCentroid))
 
   def metersToDegrees(meters: Double, point: Point) = {
-    if(log.isDebugEnabled) log.debug("Buffering: "+meters.toString + " "+WKTUtils.write(point))
+    logger.debug("Buffering: "+meters.toString + " "+WKTUtils.write(point))
 
     calc.setStartingGeographicPoint(point.getX, point.getY)
     calc.setDirection(0, meters)
@@ -84,7 +82,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
         else sf.getAttribute(dtgField)
 
       if(date == null) {
-        log.error("Unable to retrieve date field from input tubeFeatures...ensure there a field named " + dtgField)
+        logger.error("Unable to retrieve date field from input tubeFeatures...ensure there a field named " + dtgField)
         throw new IllegalArgumentException("Unable to retrieve date field from input tubeFeatures...ensure there a field named \"" + dtgField + "\"")
       }
 
@@ -101,9 +99,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
  */
 class NoGapFill(tubeFeatures: SimpleFeatureCollection,
                 bufferDistance: Double,
-                maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) {
-
-  private val log = Logger.getLogger(classOf[NoGapFill])
+                maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with Logging {
 
   // Bin ordered features into maxBins that retain order by date then union by geometry
   def timeBinAndUnion(features: Iterable[SimpleFeature], maxBins: Int) = {
@@ -130,7 +126,7 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
   }
 
   override def createTube = {
-    log.info("Creating tube with no gap filling")
+    logger.info("Creating tube with no gap filling")
 
     val transformed = transform(tubeFeatures, dtgField)
     val buffered = buffer(transformed, bufferDistance)
@@ -147,16 +143,14 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
  */
 class LineGapFill(tubeFeatures: SimpleFeatureCollection,
                   bufferDistance: Double,
-                  maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) {
-
-  private val log = Logger.getLogger(classOf[LineGapFill])
+                  maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with Logging {
 
   val id = new AtomicInteger(0)
 
   def nextId = id.getAndIncrement.toString
 
   override def createTube = {
-    log.info("Creating tube with line gap fill")
+    logger.info("Creating tube with line gap fill")
 
     val transformed = transform(tubeFeatures, dtgField)
     val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
@@ -171,9 +165,8 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
         if(p1.equals(p2)) p1
         else new LineString(new CoordinateArraySequence(Array(p1.getCoordinate, p2.getCoordinate)), geoFac)
 
-      if(log.isDebugEnabled) log.debug("Created Line-filled Geometry: " + WKTUtils.write(geo) + " from "
-        + WKTUtils.write(getGeom(pair(0))) + " and "
-        + WKTUtils.write(getGeom(pair(1))))
+      logger.debug(
+        s"Created Line-filled Geometry: ${WKTUtils.write(geo)} from ${WKTUtils.write(getGeom(pair(0)))} and ${WKTUtils.write(getGeom(pair(1)))}")
 
       builder.reset
       builder.buildFeature(nextId, Array(geo, t1, t2))

@@ -1,6 +1,6 @@
 package org.locationtech.geomesa.core.process.query
 
-import org.apache.log4j.Logger
+import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
@@ -17,9 +17,7 @@ import org.opengis.filter.Filter
   title = "Geomesa Query",
   description = "Performs a Geomesa optimized query using spatiotemporal indexes"
 )
-class QueryProcess {
-
-  private val log = Logger.getLogger(classOf[QueryProcess])
+class QueryProcess extends Logging {
 
   @DescribeResult(description = "Output feature collection")
   def execute(
@@ -35,10 +33,10 @@ class QueryProcess {
                filter: Filter
                ): SimpleFeatureCollection = {
 
-    log.info("Attempting Geomesa query on type " + features.getClass.getName)
+    logger.info("Attempting Geomesa query on type " + features.getClass.getName)
 
     if(features.isInstanceOf[ReTypingFeatureCollection]) {
-      log.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
+      logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
 
     val visitor = new QueryVisitor(features, Option(filter).getOrElse(Filter.INCLUDE))
@@ -47,11 +45,10 @@ class QueryProcess {
   }
 }
 
-class QueryVisitor( features: SimpleFeatureCollection,
-                           filter: Filter
-                           ) extends FeatureCalc {
-
-  private val log = Logger.getLogger(classOf[QueryVisitor])
+class QueryVisitor(features: SimpleFeatureCollection,
+                   filter: Filter)
+  extends FeatureCalc
+          with Logging {
 
   val manualVisitResults = new DefaultFeatureCollection(null, features.getSchema)
   val ff  = CommonFactoryFinder.getFilterFactory2
@@ -71,7 +68,7 @@ class QueryVisitor( features: SimpleFeatureCollection,
   def setValue(r: SimpleFeatureCollection) = resultCalc = QueryResult(r)
 
   def query(source: SimpleFeatureSource, query: Query) = {
-    log.info("Running Geomesa query on source type "+source.getClass.getName)
+    logger.info("Running Geomesa query on source type "+source.getClass.getName)
     val combinedFilter = ff.and(query.getFilter, filter)
     source.getFeatures(combinedFilter)
   }
