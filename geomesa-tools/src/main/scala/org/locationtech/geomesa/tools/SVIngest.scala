@@ -260,7 +260,7 @@ class SVIngest(args: Args) extends Job(args) with Logging {
 
     private val parser =
       repsep(colRange | singleCol, ",") ^^ {
-        case l => l.flatten
+        case l => l.flatten.sorted.distinct
       }
 
     def build(str: String): List[Int] = parse(parser, str) match {
