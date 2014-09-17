@@ -131,6 +131,13 @@ class AvroSimpleFeatureWriterTest extends Specification {
         n.getAttributes mustEqual o.getAttributes
       }
 
+      newFeatures.zip(features).foreach { case (n, o) =>
+        n.getID mustEqual o.getID
+        n.getAttributeCount mustEqual o.getAttributeCount
+        n.getAttributeCount mustEqual 15
+        n.getAttributes mustEqual o.getAttributes
+      }
+
       success
     }
 

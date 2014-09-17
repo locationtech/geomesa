@@ -31,12 +31,12 @@ import scala.collection.JavaConversions._
 
 object AvroSimpleFeatureUtils {
 
-  final val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
-  final val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
+  val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
+  val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
 
   // Increment whenever encoding changes and handle in reader and writer
-  final val VERSION: Int = 2
-  final val AVRO_NAMESPACE: String = "org.geomesa"
+  val VERSION: Int = 2
+  val AVRO_NAMESPACE: String = "org.geomesa"
 
   val attributeNameLookUp = Maps.newConcurrentMap[String, String]()
 

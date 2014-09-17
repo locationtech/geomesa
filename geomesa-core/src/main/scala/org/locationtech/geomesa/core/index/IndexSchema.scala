@@ -64,8 +64,7 @@ import scala.util.parsing.combinator.RegexParsers
 // an example of a fully specified index schema:
 //
 // %~#s%999#r%0,4#gh%HHmm#d::%~#s%4,2#gh::%~#s%6,1#gh%yyyyMMdd#d
-//
-// IndexSchema instances are NOT ThreadSafe and should be used within a single thread only.
+
 case class IndexSchema(encoder: IndexEntryEncoder,
                        decoder: IndexEntryDecoder,
                        planner: QueryPlanner,

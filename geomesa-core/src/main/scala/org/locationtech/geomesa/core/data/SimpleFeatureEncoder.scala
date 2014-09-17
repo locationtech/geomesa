@@ -94,7 +94,7 @@ object ThreadSafeDataUtilities {
  * Encode features as avro making reuse of binary decoders and encoders
  * as well as a custom datum writer and reader
  *
- * This class is NOT threadsafe and cannot be across multiple threads.
+ * This class is NOT threadsafe and cannot be shared across multiple threads.
  *
  * @param sft
  */
