@@ -667,8 +667,8 @@
             <url>http://download.osgeo.org/webdav/geotools</url>
         </repository>
         <repository>
-            <id>opengeo</id>
-            <url>http://repo.opengeo.org</url>
+            <id>boundlessgeo</id>
+            <url>http://repo.boundlessgeo.com/main</url>
         </repository>
         <repository>
             <id>conjars.org</id>
