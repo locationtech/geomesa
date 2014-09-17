@@ -35,7 +35,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
 
   import org.locationtech.geomesa.core._
 
-  SpatioTemporalIntersectingIterator.initClassLoader(logger)
+  TServerClassLoader.initClassLoader(logger)
 
   var source: SortedKeyValueIterator[Key,Value] = null
   var topKey: Key = null

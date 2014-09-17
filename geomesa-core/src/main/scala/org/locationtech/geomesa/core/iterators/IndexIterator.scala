@@ -52,8 +52,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment) {
-    logger.trace("Initializing classLoader")
-    IndexIterator.initClassLoader(logger)
+    TServerClassLoader.initClassLoader(logger)
 
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 

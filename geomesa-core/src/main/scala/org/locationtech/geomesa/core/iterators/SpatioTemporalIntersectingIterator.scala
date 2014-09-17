@@ -87,8 +87,7 @@ class SpatioTemporalIntersectingIterator
   def init(source: SortedKeyValueIterator[Key, Value],
            options: java.util.Map[String, String],
            env: IteratorEnvironment) {
-    logger.trace("Initializing classLoader")
-    SpatioTemporalIntersectingIterator.initClassLoader(logger)
+    TServerClassLoader.initClassLoader(logger)
 
     val featureType = SimpleFeatureTypes.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
     featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
@@ -317,105 +316,8 @@ object SpatioTemporalIntersectingIterator extends IteratorHelpers
  *  This trait contains many methods and values of general use to companion Iterator objects
  */
 trait IteratorHelpers  {
- import org.locationtech.geomesa.core._
-
-  val initialized = new ThreadLocal[Boolean] {
-    override def initialValue(): Boolean = false
-  }
-
-  def initClassLoader(log: Logger) =
-    if(!initialized.get()) {
-      try {
-        // locate the geomesa-distributed-runtime jar
-        val cl = this.getClass.getClassLoader
-        cl match {
-          case vfsCl: VFSClassLoader =>
-            val url = vfsCl.getFileObjects.map(_.getURL).filter {
-              _.toString.contains("geomesa-distributed-runtime")
-            }.head
-            if (log != null) log.debug(s"Found geomesa-distributed-runtime at $url")
-            val u = java.net.URLClassLoader.newInstance(Array(url), vfsCl)
-            GeoTools.addClassLoader(u)
-          case _ =>
-        }
-      } catch {
-        case t: Throwable =>
-          if(log != null) log.error("Failed to initialize GeoTools' ClassLoader ", t)
-      } finally {
-        initialized.set(true)
-      }
-    }
-
-  implicit def value2text(value: Value): Text = new Text(value.get)
-
-  // utility method for writing text to an output stream
-  def writeText(text: Text, dataStream: DataOutputStream) {
-    dataStream.writeInt(text.getLength)
-    dataStream.write(text.getBytes)
-  }
-
-  /**
-   * Combines the attribute name with its attribute value in a single
-   * Accumulo Value.  This allows us to re-use the index-entry key, but
-   * also to preserve the (attribute, value) pair for re-constitution.
-   *
-   * @param attribute the name of the feature property (currently, there is
-   *                  only one:  the entire encoded SimpleFeature
-   * @param value the serialized attribute value
-   * @return the attribute name concatenated with the attribute value
-   */
-  def encodeAttributeValue(attribute: Text, value: Text): Value = {
-    val byteStream = new ByteArrayOutputStream
-    val dataStream = new DataOutputStream(byteStream)
-
-    // write the attribute and value
-    writeText(attribute, dataStream)
-    writeText(value, dataStream)
-
-    // create the composite
-    dataStream.close()
-    new Value(byteStream.toByteArray)
-  }
-
-  // utility method for reading text from an input stream
-  def readText(dataStream: DataInputStream): Text = dataStream.readInt() match {
-    case 0 => new Text()
-    case n => new Text(Stream.continually(dataStream.read()).take(n).
-      map(_.asInstanceOf[Byte]).toArray)
-  }
-
-  /**
-   * Decomposes a single, concatenated (attribute, value) pair into an explicit
-   * Attribute(name, value) object.  This function is the counter-part to the
-   * encoder, and is used but subsequent iterators that need to reconstruct the
-   * entire Feature from its constituent parts.
-   *
-   * @param composite the concatenated (attribute, value) Value
-   * @return the decomposed Attribute(name, value) entity
-   */
-  def decodeAttributeValue(composite: Value): Attribute = {
-    val byteStream = new DataInputStream(new ByteArrayInputStream(composite.get()))
-
-    // read the attribute and value
-    val attribute = readText(byteStream)
-    val value = readText(byteStream)
-
-    Attribute(attribute, value)
-  }
-
   def setOptions(cfg: IteratorSetting, schema: String, filter: Option[Filter]) {
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
     filter.foreach { f => cfg.addOption(DEFAULT_FILTER_PROPERTY_NAME, ECQL.toCQL(f)) }
   }
-
-  protected def encodeInterval(interval: Interval): String =
-    interval.getStart.getMillis + "~" +  interval.getEnd.getMillis
-
-  def decodeInterval(str: String): Interval =
-    str.split("~") match {
-      case Array(s, e) =>
-        new Interval(new DateTime(s.toLong, DateTimeZone.forID("UTC")),
-                     new DateTime(e.toLong, DateTimeZone.forID("UTC")))
-      case pieces => throw new Exception("Wrong number of pieces for interval:  " + pieces.size)
-    }
 }
