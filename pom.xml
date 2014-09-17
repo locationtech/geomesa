@@ -424,6 +424,12 @@
                 <version>${jackson.codehaus.version}</version>
             </dependency>
             <dependency>
+                <!-- 2.3.0 is required for license reasons -->
+                <groupId>org.hsqldb</groupId>
+                <artifactId>hsqldb</artifactId>
+                <version>2.3.0</version>
+            </dependency>
+            <dependency>
                 <groupId>com.typesafe</groupId>
                 <artifactId>scalalogging-slf4j_2.10</artifactId>
                 <version>${scalalogging.version}</version>
