@@ -23,7 +23,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.SimpleFeatureEncoderFactory
+import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureEncoderFactory}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -38,12 +38,13 @@ class IndexSchemaTest extends Specification {
   val dummyType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
   val customType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,*the_geom:Geometry,dt_start:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
   customType.getUserData.put(SF_PROPERTY_START_TIME, "dt_start")
-  val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
+  val dummyEncoder = SimpleFeatureEncoderFactory.defaultEncoder(dummyType)
+  val customEncoder = SimpleFeatureEncoderFactory.defaultEncoder(customType)
 
   "SpatioTemporalIndexSchemaTest" should {
     "parse a valid string" in {
       val schema = IndexSchema("%~#s%foo#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%15#id",
-        dummyType, featureEncoder)
+        dummyType, dummyEncoder)
       schema should not be null
     }
 
@@ -59,14 +60,14 @@ class IndexSchemaTest extends Specification {
     "allow extra elements inside the column qualifier" in {
       val schema = Try(IndexSchema(
         "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%9#r%ColQ#cstr%15#id%5,2#gh",
-        dummyType, featureEncoder))
+        dummyType, dummyEncoder))
       schema.isFailure must beTrue
     }
 
     "complain when there are extra elements at the end" in {
       val schema = Try(IndexSchema(
         "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%15#id%5,2#gh",
-        dummyType, featureEncoder))
+        dummyType, dummyEncoder))
       schema.isFailure must beTrue
     }
   }
@@ -78,7 +79,7 @@ class IndexSchemaTest extends Specification {
   val Apr_23_2001 = new DateTime(2001, 4, 23, 12, 5, 0, DateTimeZone.forID("UTC")).toDate
 
   val schemaEncoding = "%~#s%feature#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%#id"
-  val index = IndexSchema(schemaEncoding, dummyType, featureEncoder)
+  val index = IndexSchema(schemaEncoding, dummyType, dummyEncoder)
 
   "single-point (-78.4953560 38.0752150)" should {
     "encode to 1 index row" in {
@@ -126,7 +127,7 @@ class IndexSchemaTest extends Specification {
       val entry = AvroSimpleFeatureFactory.buildAvroFeature(customType, List(id, geom, dt, geom, dt, dt), id)
       val indexSchema = IndexSchema(s"%~#s%99#r%TEST#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id",
                                     customType,
-                                    featureEncoder)
+                                    customEncoder)
 
       val encodedKVs = indexSchema.encode(entry)
 
@@ -161,7 +162,7 @@ class IndexSchemaTest extends Specification {
     "be able to run explainQuery" in {
 
       val schema = IndexSchema("%~#s%foo#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%15#id",
-        dummyType, featureEncoder)
+        dummyType, dummyEncoder)
       val q = new Query()
       val fs = s"INTERSECTS(${dummyType.getGeometryDescriptor.getLocalName}, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
       val f = ECQL.toFilter(fs)

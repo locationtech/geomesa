@@ -292,7 +292,7 @@ class AccumuloDataStore(val connector: Connector,
   def getSpatioTemporalMaxShard(featureType: SimpleFeatureType): Int = {
     val indexSchemaFmt = readMetadataItem(featureType.getTypeName, SCHEMA_CF)
       .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for $SCHEMA_CF"))
-    val featureEncoder = getFeatureEncoder(featureType.getTypeName)
+    val featureEncoder = getFeatureEncoder(featureType)
     val indexSchema = IndexSchema(indexSchemaFmt, featureType, featureEncoder)
     indexSchema.maxShard
   }
@@ -792,14 +792,12 @@ class AccumuloDataStore(val connector: Connector,
 
   /**
    * Reads the feature encoding from the metadata. Defaults to TEXT if there is no metadata.
-   *
-   * @param featureName
-   * @return
    */
-  def getFeatureEncoder(featureName: String) = {
-    val encodingString = readMetadataItem(featureName, FEATURE_ENCODING_CF)
+  def getFeatureEncoder(sft: SimpleFeatureType) = {
+    val encodingString = readMetadataItem(sft.getTypeName, FEATURE_ENCODING_CF)
                          .getOrElse(FeatureEncoding.TEXT.toString)
-    SimpleFeatureEncoderFactory.createEncoder(encodingString)
+    val encoding = FeatureEncoding.withName(encodingString).asInstanceOf[FeatureEncoding]
+    SimpleFeatureEncoderFactory.createEncoder(sft, encoding)
   }
 
   // We assume that they want the bounds for everything.
@@ -887,7 +885,7 @@ class AccumuloDataStore(val connector: Connector,
     validateMetadata(featureName)
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
     val sft = getSchema(featureName)
-    val fe = getFeatureEncoder(featureName)
+    val fe = getFeatureEncoder(sft)
     new AccumuloFeatureReader(this, query, indexSchemaFmt, sft, fe)
   }
 
@@ -897,7 +895,7 @@ class AccumuloDataStore(val connector: Connector,
     checkWritePermissions(typeName)
     val featureType = getSchema(typeName)
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
-    val fe = getFeatureEncoder(typeName)
+    val fe = getFeatureEncoder(featureType)
     val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe)
     new ModifyAccumuloFeatureWriter(featureType, encoder, connector, fe, writeVisibilities, this)
   }
@@ -909,7 +907,7 @@ class AccumuloDataStore(val connector: Connector,
     checkWritePermissions(typeName)
     val featureType = getSchema(typeName)
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
-    val fe = getFeatureEncoder(typeName)
+    val fe = getFeatureEncoder(featureType)
     val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe)
     new AppendAccumuloFeatureWriter(featureType, encoder, connector, fe, writeVisibilities, this)
   }

@@ -151,7 +151,7 @@ class TableVersionTest extends Specification {
 
       // Ensure that a table with featureEncoder metadata defaults to TextFeatureEncoder
       // and verify with a manual scanner
-      manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
+      manualStore.getFeatureEncoder(sft) should beAnInstanceOf[TextFeatureEncoder]
 
       val instance = new MockInstance(badParams("instanceId"))
       val connector = instance.getConnector(badParams("user"), new PasswordToken(badParams("password").getBytes))
@@ -169,7 +169,7 @@ class TableVersionTest extends Specification {
       // calling createSchema is invalid once the schema has been created - but the store will
       // validate itself upon operation
       // manualStore.createSchema(sft)
-      manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
+      manualStore.getFeatureEncoder(sft) should beAnInstanceOf[TextFeatureEncoder]
       val scanner2 = connector.createScanner(badParams("tableName"), new Authorizations())
       var hasEncodingMeta = false
       scanner2.iterator.foreach { entry =>
@@ -208,7 +208,7 @@ class TableVersionTest extends Specification {
 
       // Ensure that a table with featureEncoder metadata defaults to TextFeatureEncoder
       // and verify with a manual scanner
-      manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
+      manualStore.getFeatureEncoder(sft) should beAnInstanceOf[TextFeatureEncoder]
 
       val instance = new MockInstance(newManualParams("instanceId"))
       val connector = instance.getConnector(newManualParams("user"), new PasswordToken(newManualParams("password").getBytes))
@@ -247,7 +247,7 @@ class TableVersionTest extends Specification {
         m mustEqual g
       }
 
-      manualStore.getFeatureEncoder(sftName) should beAnInstanceOf[TextFeatureEncoder]
+      manualStore.getFeatureEncoder(sft) should beAnInstanceOf[TextFeatureEncoder]
       val scanner2 = connector.createScanner(newManualParams("tableName"), new Authorizations())
       var hasEncodingMeta = false
       scanner2.iterator.foreach { entry =>
@@ -272,7 +272,7 @@ class TableVersionTest extends Specification {
       val geomesaStore = DataStoreFinder.getDataStore(newGeomesaParams).asInstanceOf[AccumuloDataStore]
 
       geomesaStore.featureEncoding mustEqual FeatureEncoding.AVRO
-      geomesaStore.getFeatureEncoder(sftName) should beAnInstanceOf[AvroFeatureEncoder]
+      geomesaStore.getFeatureEncoder(sft) should beAnInstanceOf[AvroFeatureEncoder]
     }
   }
 

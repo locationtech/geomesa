@@ -33,6 +33,7 @@ import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
+import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
@@ -42,28 +43,39 @@ import org.opengis.geometry.BoundingBox
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-class Version1ASF(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
 
-  import org.locationtech.geomesa.feature.Version1ASF._
+/*
+ * TODO: OLD CLASS KEPT AROUND FOR TESTING the WRITE method and speed...
+ *
+ * TODO: Should be removed after stable 1.0.0 release and AvroSimpleFeatureWriter is known to work OK
+ */
+class Version2ASF(id: FeatureId, sft: SimpleFeatureType)
+  extends SimpleFeature
+  with Serializable {
 
-  val values    = Array.ofDim[AnyRef](sft.getAttributeCount)
-  val userData  = collection.mutable.HashMap.empty[AnyRef, AnyRef]
-  val typeMap   = typeMapCache.get(sft)
-  val names     = nameCache.get(sft)
-  val nameIndex = nameIndexCache.get(sft)
-  val schema    = avroSchemaCache.get(sft)
+  import org.locationtech.geomesa.feature.Version2ASF._
 
-  def write(datumWriter: GenericDatumWriter[GenericRecord], encoder: BinaryEncoder){
+  val values  = Array.ofDim[AnyRef](sft.getAttributeCount)
+  @transient val userData  = collection.mutable.HashMap.empty[AnyRef, AnyRef]
+  @transient val typeMap   = typeMapCache.get(sft)
+  @transient val names     = nameCache.get(sft)
+  @transient val nameIndex = nameIndexCache.get(sft)
+  @transient val schema    = avroSchemaCache.get(sft)
+
+  def write(datumWriter: GenericDatumWriter[GenericRecord], encoder: BinaryEncoder) {
     val record = new GenericData.Record(schema)
-    record.put(Version1ASF.AVRO_SIMPLE_FEATURE_VERSION, Version1ASF.VERSION)
-    record.put(Version1ASF.FEATURE_ID_AVRO_FIELD_NAME, getID)
+    record.put(Version2ASF.AVRO_SIMPLE_FEATURE_VERSION, Version2ASF.VERSION)
+    record.put(Version2ASF.FEATURE_ID_AVRO_FIELD_NAME, getID)
 
-    val converted = values.zipWithIndex.map {
-      case t@(null, _) => t
-      case (v, idx)    => (convertValue(idx, v), idx)
+    // We've tried to optimize this.
+    for (i <- 0 until sft.getAttributeCount) {
+      if (values(i) == null) {
+        record.put(i+2, null)
+      } else {
+        record.put(i+2, convertValue(i, values(i)))
+      }
     }
 
-    converted.foreach { case (x, idx) => record.put(names(idx), x) }
     datumWriter.write(record, encoder)
     encoder.flush()
   }
@@ -82,7 +94,7 @@ class Version1ASF(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
   def getIdentifier = id
   def getID = id.getID
 
-  def getAttribute(name: String) = nameIndex.get(name).map(getAttribute).getOrElse(null)
+  def getAttribute(name: String) = nameIndex.get(name).map(getAttribute).orNull
   def getAttribute(name: Name) = getAttribute(name.getLocalPart)
   def getAttribute(index: Int) = values(index)
 
@@ -136,7 +148,11 @@ class Version1ASF(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
   def getProperties(name: Name): JCollection[Property] = getProperties(name.getLocalPart)
   def getProperties(name: String): JCollection[Property] = getProperties.filter(_.getName.toString == name)
   def getProperty(name: Name): Property = getProperty(name.getLocalPart)
-  def getProperty(name: String): Property = new AttributeImpl(getAttribute(name), sft.getDescriptor(name), id)
+  def getProperty(name: String): Property =
+    Option(sft.getDescriptor(name)) match {
+      case Some(descriptor) => new AttributeImpl(getAttribute(name), descriptor, id)
+      case _ => null
+    }
 
   def getValue: JCollection[_ <: Property] = getProperties
 
@@ -154,12 +170,13 @@ class Version1ASF(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
   def setValue(newValue: Object) = setValue (newValue.asInstanceOf[JCollection[Property]])
 
   def validate() = values.zipWithIndex.foreach { case (v, idx) => Types.validate(getType.getDescriptor(idx), v) }
+
 }
 
-object Version1ASF {
+object Version2ASF {
 
   def apply(sf: SimpleFeature) = {
-    val asf = new Version1ASF(sf.getIdentifier, sf.getFeatureType)
+    val asf = new Version2ASF(sf.getIdentifier, sf.getFeatureType)
     for (i <- 0 until sf.getAttributeCount) asf.setAttribute(i, sf.getAttribute(i))
 
     asf
@@ -194,6 +211,7 @@ object Version1ASF {
       )
 
   case class Binding(clazz: Class[_], conv: AnyRef => Any)
+
   val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Binding]] =
     loadingCacheBuilder { sft =>
       sft.getAttributeDescriptors.map { ad =>
@@ -214,7 +232,7 @@ object Version1ASF {
               (v: AnyRef) => v.asInstanceOf[Date].getTime
 
             case t if classOf[Geometry].isAssignableFrom(t) =>
-              (v: AnyRef) => v.asInstanceOf[Geometry].toText
+              (v: AnyRef) => ByteBuffer.wrap(WKBUtils.write(v.asInstanceOf[Geometry]))
 
             case _ =>
               (v: AnyRef) =>
@@ -245,7 +263,7 @@ object Version1ASF {
 
   final val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   final val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
-  final val VERSION: Int = 1
+  final val VERSION: Int = 2
   final val AVRO_NAMESPACE: String = "org.geomesa"
 
   def encode(s: String): String = "_" + Hex.encodeHexString(s.getBytes("UTF8"))
@@ -278,7 +296,7 @@ object Version1ASF {
                nillable: Boolean): SchemaBuilder.FieldAssembler[Schema] = {
     val baseType = if (nillable) assembler.name(name).`type`.nullable() else assembler.name(name).`type`
     ct match {
-      case c if classOf[String].isAssignableFrom(c)             => baseType.stringType().noDefault()
+      case c if classOf[String].isAssignableFrom(c)             => baseType.stringType.noDefault
       case c if classOf[java.lang.Integer].isAssignableFrom(c)  => baseType.intType.noDefault
       case c if classOf[java.lang.Long].isAssignableFrom(c)     => baseType.longType.noDefault
       case c if classOf[java.lang.Double].isAssignableFrom(c)   => baseType.doubleType.noDefault
@@ -286,7 +304,7 @@ object Version1ASF {
       case c if classOf[java.lang.Boolean].isAssignableFrom(c)  => baseType.booleanType.noDefault
       case c if classOf[UUID].isAssignableFrom(c)               => baseType.bytesType.noDefault
       case c if classOf[Date].isAssignableFrom(c)               => baseType.longType.noDefault
-      case c if classOf[Geometry].isAssignableFrom(c)           => baseType.stringType.noDefault
+      case c if classOf[Geometry].isAssignableFrom(c)           => baseType.bytesType.noDefault
     }
   }
 

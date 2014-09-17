@@ -60,7 +60,8 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
 
   var topSourceKey: Key = null
   var topSourceValue: Value = null
-  var featureEncoder: SimpleFeatureEncoder = null
+  var originalEncoder: SimpleFeatureEncoder = null
+  var projectedEncoder: SimpleFeatureEncoder = null
 
   if (other != null && env != null) {
     source = other.source.deepCopy(env)
@@ -74,18 +75,22 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
                     env: IteratorEnvironment): Unit = {
     this.source = source
 
-    // default to text if not found for backwards compatibility
-    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
-
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
     simpleFeatureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
     simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+
+    // default to text if not found for backwards compatibility
+    // This encoder is for the original sft not the density projected sft
+    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
+    originalEncoder = SimpleFeatureEncoderFactory.createEncoder(simpleFeatureType, encodingOpt)
 
     bbox = JTS.toEnvelope(WKTUtils.read(options.get(DensityIterator.BBOX_KEY)))
     val (w, h) = DensityIterator.getBounds(options)
     snap = new GridSnap(bbox, w, h)
     projectedSFT = SimpleFeatureTypes.createType(simpleFeatureType.getTypeName, DENSITY_FEATURE_STRING)
+
+    // Use a new encoder for the projected SFT since the spec is different
+    projectedEncoder = SimpleFeatureEncoderFactory.createEncoder(projectedSFT, encodingOpt)
     featureBuilder = AvroSimpleFeatureFactory.featureBuilder(projectedSFT)
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
@@ -106,7 +111,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
       topSourceKey = source.getTopKey
       topSourceValue = source.getTopValue
 
-      val feature = featureEncoder.decode(simpleFeatureType, topSourceValue)
+      val feature = originalEncoder.decode(topSourceValue)
       lazy val geoHashGeom = decoder.decode(topSourceKey).getDefaultGeometry.asInstanceOf[Geometry]
       geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
       geometry match {
@@ -153,7 +158,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
       featureBuilder.add(geometry)
       val feature = featureBuilder.buildFeature(Random.nextString(6))
       topDensityKey = Some(topSourceKey)
-      topDensityValue = Some(new Value(featureEncoder.encode(feature)))
+      topDensityValue = Some(new Value(projectedEncoder.encode(feature)))
     }
   }
 

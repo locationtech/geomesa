@@ -68,8 +68,7 @@ import scala.util.parsing.combinator.RegexParsers
 case class IndexSchema(encoder: IndexEntryEncoder,
                        decoder: IndexEntryDecoder,
                        planner: QueryPlanner,
-                       featureType: SimpleFeatureType,
-                       featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
+                       featureType: SimpleFeatureType) extends ExplainingLogging {
 
   def encode(entry: SimpleFeature, visibility: String = "") = encoder.encode(entry, visibility)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
@@ -334,7 +333,7 @@ object IndexSchema extends RegexParsers {
     val cfPlanner         = buildColumnFamilyPlanner(s)
     val indexEntryDecoder = IndexEntryDecoder(geohashDecoder, dateDecoder)
     val queryPlanner      = QueryPlanner(s, featureType, featureEncoder)
-    IndexSchema(keyEncoder, indexEntryDecoder, queryPlanner, featureType, featureEncoder)
+    IndexSchema(keyEncoder, indexEntryDecoder, queryPlanner, featureType)
   }
 
   def getIndexEntryDecoder(s: String) = {
