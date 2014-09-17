@@ -4,5 +4,8 @@
 *.idea/
 *.log
 .idea/**
+**/.classpath
+**/.project
+**/.settings
 target
 atlassian*

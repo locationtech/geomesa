@@ -24,10 +24,23 @@
             <directoryMode>0755</directoryMode>
             <fileMode>0755</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
-            <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <excludes>
+                <exclude>org.locationtech.geomesa:geomesa-plugin*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-distributed-runtime*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-compute*</exclude>
+            </excludes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>*</include>
+                <include>org.locationtech.geomesa:geomesa-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-distributed-runtime*</include>
+                <include>org.locationtech.geomesa:geomesa-compute*</include>
             </includes>
         </dependencySet>
     </dependencySets>
@@ -39,15 +52,6 @@
                 <include>LICENSE.txt</include>
                 <include>README.md</include>
             </includes>
-        </fileSet>
-        <fileSet>
-            <directory>target/lib</directory>
-            <outputDirectory>lib</outputDirectory>
-            <excludes>
-                <exclude>logback-classic-1.1.1.jar</exclude>
-                <exclude>logback-core-1.1.1.jar</exclude>
-                <exclude>*SNAPSHOT.jar</exclude>
-            </excludes>
         </fileSet>
     </fileSets>
     <files>

@@ -48,14 +48,6 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-plugin-accumulo1.5</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-accumulo1.5</artifactId>
         </dependency>
         <dependency>
@@ -64,36 +56,27 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-compute-accumulo1.5</artifactId>
+            <artifactId>geomesa-jobs-accumulo1.5</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-jobs-accumulo1.5</artifactId>
+            <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-plugin-accumulo1.5</artifactId>
+            <classifier>geoserver-plugin</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-compute-accumulo1.5</artifactId>
+            <classifier>shaded</classifier>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.8</version>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                            <includeScope>runtime</includeScope>
-                            <overWriteReleases>false</overWriteReleases>
-                            <overWriteSnapshots>false</overWriteSnapshots>
-                            <overWriteIfNewer>true</overWriteIfNewer>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -106,7 +89,7 @@
                         <phase>package</phase>
                         <configuration>
                             <attach>true</attach>
-                            <finalName>geomesa</finalName>
+                            <finalName>geomesa-${project.version}</finalName>
                             <descriptors>
                                 <descriptor>src/main/assemblies/binary-release.xml</descriptor>
                             </descriptors>
@@ -116,4 +99,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
