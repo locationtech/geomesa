@@ -59,7 +59,6 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
                             <artifactSet>
                                 <excludes>
                                     <exclude>org.slf4j:*</exclude>

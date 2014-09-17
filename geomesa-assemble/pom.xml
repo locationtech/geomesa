@@ -61,7 +61,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
-            <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
