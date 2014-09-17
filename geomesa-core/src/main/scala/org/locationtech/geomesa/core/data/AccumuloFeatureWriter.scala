@@ -81,7 +81,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   // table + index tables)
   protected val writers: List[SimpleFeature => Unit] = {
     val stTable = ds.getSpatioTemporalIdxTableName(featureType)
-    val stWriter = List(SpatioTemporalTable.spatioTemporalWriter(multiBWWriter.getBatchWriter(stTable), indexEncoder))
+    val stWriter = List(SpatioTemporalTable.spatioTemporalWriter(multiBWWriter.getBatchWriter(stTable), visibility, indexEncoder))
 
     val attrWriters: List[SimpleFeature => Unit] =
       if (ds.catalogTableFormat(featureType)) {

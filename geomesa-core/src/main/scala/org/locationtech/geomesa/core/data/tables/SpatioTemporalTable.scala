@@ -28,9 +28,9 @@ import scala.collection.JavaConverters._
 
 object SpatioTemporalTable extends Logging {
 
-  def spatioTemporalWriter(bw: BatchWriter, encoder: IndexEntryEncoder): SimpleFeature => Unit =
+  def spatioTemporalWriter(bw: BatchWriter, visibility: String, encoder: IndexEntryEncoder): SimpleFeature => Unit =
     (feature: SimpleFeature) => {
-      val KVs = encoder.encode(feature)
+      val KVs = encoder.encode(feature, visibility)
       val m = KVs.groupBy { case (k, _) => k.getRow }.map { case (row, kvs) => kvsToMutations(row, kvs) }
       bw.addMutations(m.asJava)
     }
