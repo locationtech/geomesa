@@ -236,6 +236,12 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-render</artifactId>
                 <version>${gt.version}</version>
+                <exclusions>
+	                <exclusion>
+	                    <artifactId>imageio-ext-tiff</artifactId>
+	                    <groupId>it.geosolutions.imageio-ext</groupId>
+	                </exclusion>
+	            </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -283,6 +289,23 @@
                 <groupId>com.twitter</groupId>
                 <artifactId>scalding-core_2.10</artifactId>
                 <version>${scalding.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues - replaced with version 0.9.0 (EPL) -->
+                        <groupId>thirdparty</groupId>
+                        <artifactId>jgrapht-jdk1.6</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.jgrapht</groupId>
+                <artifactId>jgrapht-core</artifactId>
+                <version>0.9.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jgrapht</groupId>
+                <artifactId>jgrapht-ext</artifactId>
+                <version>0.9.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
