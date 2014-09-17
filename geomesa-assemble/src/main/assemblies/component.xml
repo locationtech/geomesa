@@ -25,6 +25,7 @@
             <fileMode>0755</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
             <excludes>
                 <exclude>org.locationtech.geomesa:geomesa-plugin*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-distributed-runtime*</exclude>
