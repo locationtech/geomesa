@@ -4,17 +4,15 @@ import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import org.geotools.data.{Query, DataStoreFinder}
+import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
-import org.geotools.data.DataStoreFinder
-import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.{AccumuloFeatureStore, AccumuloDataStore, AccumuloDataStoreTest}
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreTest, AccumuloFeatureStore}
 import org.locationtech.geomesa.core.filter.TestFilters._
 import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
 import org.locationtech.geomesa.core.iterators.TestData
@@ -23,10 +21,8 @@ import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
-import org.opengis.filter.spatial.DWithin
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.Fragments
 
 import scala.collection.JavaConversions._
 
