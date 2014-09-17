@@ -11,7 +11,7 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.core.data.{AccumuloFeatureStore, SimpleFeatureEncoderFactory}
+import org.locationtech.geomesa.core.data.{FeatureEncoding, AccumuloFeatureStore, SimpleFeatureEncoderFactory}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -37,7 +37,6 @@ object TestData extends Logging {
   // set up the geographic query polygon
   val wktQuery = "POLYGON((45 23, 48 23, 48 27, 45 27, 45 23))"
 
-  val featureEncoder = SimpleFeatureEncoderFactory.defaultEncoder
   val featureName = "feature"
   val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
 
@@ -79,6 +78,8 @@ object TestData extends Logging {
 
   // This is a quick trick to make sure that the userData is set.
   lazy val featureType: SimpleFeatureType = getFeatureType()
+
+  lazy val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(getFeatureType(), "avro")
 
   val index = IndexSchema(schemaEncoding, featureType, featureEncoder)
 

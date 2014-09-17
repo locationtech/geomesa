@@ -16,23 +16,13 @@
 
 package org.locationtech.geomesa.core.data
 
-import org.apache.accumulo.core.client.BatchWriterConfig
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.data.{Value, Mutation}
-import org.apache.accumulo.core.security.Authorizations
-import org.apache.commons.codec.binary.Hex
-import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
+import org.apache.accumulo.core.data.Value
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -63,13 +53,13 @@ class SimpleFeatureEncoderTest extends Specification {
     sf
   }
 
-  val encoder = new AvroFeatureEncoder
+  val encoder = new AvroFeatureEncoder(sft)
 
   "SimpleFeatureEncoder" should {
     "encode and decode points" in {
       val features = getFeatures
       val encoded = features.map(encoder.encode(_))
-      val decoded = encoded.map(bytes => encoder.decode(sft, new Value(bytes)))
+      val decoded = encoded.map { bytes => encoder.decode(new Value(bytes)) }
       decoded.map(_.getDefaultGeometry) mustEqual(features.map(_.getDefaultGeometry))
     }
   }

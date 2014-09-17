@@ -51,7 +51,7 @@ object JobResources {
     val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
     val sft: SimpleFeatureType = ds.getSchema(feature)
     val visibilities: String = ds.writeVisibilities
-    val decoder: SimpleFeatureEncoder = ds.getFeatureEncoder(feature)
+    val decoder: SimpleFeatureEncoder = ds.getFeatureEncoder(sft)
     // the attributes we want to index
     val attributeDescriptors: mutable.Buffer[AttributeDescriptor] = sft.getAttributeDescriptors
       .asScala
@@ -90,7 +90,7 @@ class AttributeIndexJob(args: Args) extends Job(args) {
     val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
     val sft: SimpleFeatureType = ds.getSchema(feature)
     val visibilities: String = ds.writeVisibilities
-    val decoder: SimpleFeatureEncoder = ds.getFeatureEncoder(feature)
+    val decoder: SimpleFeatureEncoder = ds.getFeatureEncoder(sft)
     // the attributes we want to index
     val attributeDescriptors: mutable.Buffer[AttributeDescriptor] = sft.getAttributeDescriptors
                                  .asScala
@@ -123,7 +123,7 @@ object AttributeIndexJob {
    * @return
    */
   def getAttributeIndexMutation(r: JobResources, key: Key, value: Value): Seq[Mutation] = {
-    val feature = r.decoder.decode(r.sft, value)
+    val feature = r.decoder.decode(value)
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(r.sft)
 
     AttributeTable.getAttributeIndexMutations(

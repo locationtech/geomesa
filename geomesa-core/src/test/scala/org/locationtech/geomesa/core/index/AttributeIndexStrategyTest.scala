@@ -99,7 +99,7 @@ class AttributeIndexStrategyTest extends Specification {
   val fs = ds.getFeatureSource(sftName).asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
   fs.addFeatures(featureCollection)
 
-  val indexSchema = IndexSchema(ds.getIndexSchemaFmt(sftName), sft, ds.getFeatureEncoder(sftName))
+  val indexSchema = IndexSchema(ds.getIndexSchemaFmt(sftName), sft, ds.getFeatureEncoder(sft))
   val queryPlanner = indexSchema.planner
 
   def execute(strategy: AttributeIdxStrategy, filter: String): List[String] = {

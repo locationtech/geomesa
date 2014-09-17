@@ -64,12 +64,12 @@ import scala.util.parsing.combinator.RegexParsers
 // an example of a fully specified index schema:
 //
 // %~#s%999#r%0,4#gh%HHmm#d::%~#s%4,2#gh::%~#s%6,1#gh%yyyyMMdd#d
-
+//
+// IndexSchema instances are NOT ThreadSafe and should be used within a single thread only.
 case class IndexSchema(encoder: IndexEntryEncoder,
                        decoder: IndexEntryDecoder,
                        planner: QueryPlanner,
-                       featureType: SimpleFeatureType,
-                       featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
+                       featureType: SimpleFeatureType) extends ExplainingLogging {
 
   def encode(entry: SimpleFeature, visibility: String = "") = encoder.encode(entry, visibility)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
@@ -334,7 +334,7 @@ object IndexSchema extends RegexParsers {
     val cfPlanner         = buildColumnFamilyPlanner(s)
     val indexEntryDecoder = IndexEntryDecoder(geohashDecoder, dateDecoder)
     val queryPlanner      = QueryPlanner(s, featureType, featureEncoder)
-    IndexSchema(keyEncoder, indexEntryDecoder, queryPlanner, featureType, featureEncoder)
+    IndexSchema(keyEncoder, indexEntryDecoder, queryPlanner, featureType)
   }
 
   def getIndexEntryDecoder(s: String) = {

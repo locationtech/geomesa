@@ -147,6 +147,7 @@ case class QueryPlanner(schema: String,
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
   def adaptIterator(accumuloIterator: CloseableIterator[Entry[Key,Value]], query: Query): CloseableIterator[SimpleFeature] = {
     val returnSFT = getReturnSFT(query)
+    val returnDecoder = SimpleFeatureEncoderFactory.createEncoder(returnSFT, featureEncoder.getEncoding)
 
     // the final iterator may need duplicates removed
     val uniqKVIter: CloseableIterator[Entry[Key,Value]] =
@@ -158,10 +159,10 @@ case class QueryPlanner(schema: String,
     // if this is a density query, expand the map
     if (query.getHints.containsKey(DENSITY_KEY)) {
       uniqKVIter.flatMap { kv: Entry[Key, Value] =>
-        DensityIterator.expandFeature(featureEncoder.decode(returnSFT, kv.getValue))
+        DensityIterator.expandFeature(returnDecoder.decode(kv.getValue))
       }
     } else {
-      uniqKVIter.map { kv => featureEncoder.decode(returnSFT, kv.getValue)}
+      uniqKVIter.map { kv => returnDecoder.decode(kv.getValue)}
     }
   }
 

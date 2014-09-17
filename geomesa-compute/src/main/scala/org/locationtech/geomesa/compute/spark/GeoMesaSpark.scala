@@ -57,7 +57,7 @@ object GeoMesaSpark {
     val sft = ds.getSchema(typeName)
     val spec = SimpleFeatureTypes.encodeType(sft)
 
-    val indexSchema = IndexSchema(ds.getIndexSchemaFmt(typeName), sft, ds.getFeatureEncoder(typeName))
+    val indexSchema = IndexSchema(ds.getIndexSchemaFmt(typeName), sft, ds.getFeatureEncoder(sft))
 
     val planner = new STIdxStrategy
     val qp = planner.buildSTIdxQueryPlan(query, indexSchema.planner, sft, org.locationtech.geomesa.core.index.ExplainPrintln)
@@ -74,8 +74,8 @@ object GeoMesaSpark {
 
     rdd.mapPartitions { iter =>
       val sft = SimpleFeatureTypes.createType(typeName, spec)
-      val encoder = new AvroFeatureEncoder
-      iter.map { case (k: Key, v: Value) => encoder.decode(sft, v) }
+      val encoder = new AvroFeatureEncoder(sft)
+      iter.map { case (k: Key, v: Value) => encoder.decode(v) }
     }
   }
 
@@ -105,14 +105,21 @@ class KryoAvroSimpleFeatureBridge extends KryoRegistrator {
               SimpleFeatureTypes.createType(key, spec)
             }
           })
-        val encoder = new AvroFeatureEncoder
+
+        // There is some overhead to managing this with a cache and it may be better to find a way
+        // to do this outside of the methods write() and read() and make the encoder a member
+        // variable on the instance of the Serializer
+        val encoderCache = CacheBuilder.newBuilder().build(
+          new CacheLoader[String, AvroFeatureEncoder] {
+            override def load(key: String): AvroFeatureEncoder = new AvroFeatureEncoder(typeCache.get(key))
+          })
 
         override def write(kryo: Kryo, out: Output, feature: AvroSimpleFeature): Unit = {
           val typeName = feature.getFeatureType.getTypeName
           val len = typeName.length
           out.writeInt(len, true)
           out.write(typeName.getBytes(StandardCharsets.UTF_8))
-          val bytes = encoder.encode(feature)
+          val bytes = encoderCache.get(typeName).encode(feature)
           out.writeInt(bytes.length, true)
           out.write(bytes)
         }
@@ -123,7 +130,7 @@ class KryoAvroSimpleFeatureBridge extends KryoRegistrator {
           val sft = typeCache.get(typeName)
           val flen = in.readInt(true)
           val bytes = in.readBytes(flen)
-          encoder.decode(sft, new ByteArrayInputStream(bytes))
+          encoderCache.get(typeName).decode(new ByteArrayInputStream(bytes))
         }
       })
   }

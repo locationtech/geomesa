@@ -1,17 +1,18 @@
 package org.locationtech.geomesa.core.data
 
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
+import org.opengis.feature.simple.SimpleFeatureType
 
 object SimpleFeatureEncoderFactory {
 
-  def createEncoder(featureEncoding: String): SimpleFeatureEncoder =
-    createEncoder(FeatureEncoding.withName(featureEncoding))
+  def createEncoder(sft: SimpleFeatureType, str: String): SimpleFeatureEncoder =
+    createEncoder(sft, encoding = FeatureEncoding.withName(str).asInstanceOf[FeatureEncoding])
 
-  def defaultEncoder = new AvroFeatureEncoder
+  def defaultEncoder(sft: SimpleFeatureType) = createEncoder(sft, FeatureEncoding.AVRO)
 
-  def createEncoder(featureEncoding: FeatureEncoding): SimpleFeatureEncoder =
-    featureEncoding match {
-      case FeatureEncoding.AVRO => new AvroFeatureEncoder
-      case FeatureEncoding.TEXT => new TextFeatureEncoder
+  def createEncoder(sft: SimpleFeatureType, encoding: FeatureEncoding): SimpleFeatureEncoder =
+    encoding match {
+      case FeatureEncoding.AVRO => new AvroFeatureEncoder(sft)
+      case FeatureEncoding.TEXT => new TextFeatureEncoder(sft)
     }
 }

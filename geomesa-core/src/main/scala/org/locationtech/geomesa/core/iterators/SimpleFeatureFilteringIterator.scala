@@ -47,7 +47,8 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var simpleFeatureType: SimpleFeatureType = null
   var targetFeatureType: SimpleFeatureType = null
 
-  var featureEncoder: SimpleFeatureEncoder = null
+  var sourceEncoder: SimpleFeatureEncoder = null
+  var targetEncoder: SimpleFeatureEncoder = null
 
   // the default filter accepts everything
   var filter: Filter = null
@@ -55,7 +56,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var transform: (SimpleFeature => Array[Byte]) = (_: SimpleFeature) => source.getTopValue.get()
 
   def evalFilter(v: Value) = {
-    Try(featureEncoder.decode(simpleFeatureType, v)) match {
+    Try(sourceEncoder.decode(v)) match {
       case Success(feature) =>
         nextFeature = feature
         filter.evaluate(nextFeature)
@@ -79,13 +80,14 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
            env: IteratorEnvironment) {
     this.source = source
 
-    // default to text if not found for backwards compatibility
-    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
-
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
     simpleFeatureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
     simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+
+    // default to text if not found for backwards compatibility
+    // this encoder is for the source sft not the transformed sft (may be different)
+    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
+    sourceEncoder = SimpleFeatureEncoderFactory.createEncoder(simpleFeatureType, encodingOpt)
 
     val transformSchema = options.get(GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
     targetFeatureType =
@@ -96,7 +98,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
 
     val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
     transform =
-      if(transformString != null) TransformCreator.createTransform(targetFeatureType, featureEncoder, transformString)
+      if(transformString != null) TransformCreator.createTransform(targetFeatureType, sourceEncoder.getEncoding, transformString)
       else _ => source.getTopValue.get()
 
     // read off the filter expression, if applicable
