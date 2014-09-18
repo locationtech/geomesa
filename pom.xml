@@ -209,6 +209,12 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-xml</artifactId>
                 <version>${gt.version}</version>
+                <exclusions>
+                  <exclusion>
+                    <groupId>commons-jxpath</groupId>
+                    <artifactId>commons-jxpath</artifactId>
+                  </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools.xsd</groupId>
