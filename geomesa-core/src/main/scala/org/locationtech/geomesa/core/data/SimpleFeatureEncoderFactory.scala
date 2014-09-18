@@ -8,7 +8,7 @@ object SimpleFeatureEncoderFactory {
   def createEncoder(sft: SimpleFeatureType, str: String): SimpleFeatureEncoder =
     createEncoder(sft, encoding = FeatureEncoding.withName(str))
 
-  def defaultEncoder(sft: SimpleFeatureType) = createEncoder(sft, FeatureEncoding.AVRO)
+  def defaultEncoder(sft: SimpleFeatureType): SimpleFeatureEncoder = createEncoder(sft, FeatureEncoding.AVRO)
 
   def createEncoder(sft: SimpleFeatureType, encoding: FeatureEncoding): SimpleFeatureEncoder =
     encoding match {
