@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.core.data
 
-import java.io.{ByteArrayOutputStream, ByteArrayInputStream, InputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
 import org.apache.accumulo.core.data.{Value => AValue}
 import org.apache.avro.io._
@@ -43,9 +43,11 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  * multiple features.
  */
 trait SimpleFeatureEncoder {
-  def encode(feature: SimpleFeature) : Array[Byte]
-  def decode(featureValue: AValue) : SimpleFeature
-  def extractFeatureId(value: AValue): String
+  def encode(feature: SimpleFeature): Array[Byte]
+  def decode(featureValue: AValue): SimpleFeature = decode(featureValue.get)
+  def decode(featureBytes: Array[Byte]): SimpleFeature
+  def extractFeatureId(value: AValue): String = extractFeatureId(value.get)
+  def extractFeatureId(bytes: Array[Byte]): String
   def getName = getEncoding.toString
   def getEncoding: FeatureEncoding
 }
@@ -57,17 +59,14 @@ object FeatureEncoding extends Enumeration {
 }
 
 class TextFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder{
-  def encode(feature:SimpleFeature) : Array[Byte] =
-    ThreadSafeDataUtilities.encodeFeature(feature).getBytes()
+  override def encode(feature:SimpleFeature): Array[Byte] = ThreadSafeDataUtilities.encodeFeature(feature).getBytes
 
-  def decode(featureValue: AValue) = {
-    ThreadSafeDataUtilities.createFeature(sft, featureValue.toString)
-  }
+  override def decode(bytes: Array[Byte]) = ThreadSafeDataUtilities.createFeature(sft, new String(bytes))
 
   // This is derived from the knowledge of the GeoTools encoding in DataUtilities
-  def extractFeatureId(value: AValue): String = {
-    val vString = value.toString
-    vString.substring(0, vString.indexOf("="))
+  override def extractFeatureId(bytes: Array[Byte]): String = {
+    val featureString = new String(bytes)
+    featureString.substring(0, featureString.indexOf("="))
   }
 
   override def getEncoding: FeatureEncoding = FeatureEncoding.TEXT
@@ -80,11 +79,11 @@ class TextFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder{
 object ThreadSafeDataUtilities {
   private[this] val dataUtilitiesPool = ObjectPoolFactory(new Object, 1)
 
-  def encodeFeature(feature:SimpleFeature) : String = dataUtilitiesPool.withResource {
+  def encodeFeature(feature:SimpleFeature): String = dataUtilitiesPool.withResource {
     _ => DataUtilities.encodeFeature(feature)
   }
 
-  def createFeature(simpleFeatureType:SimpleFeatureType, featureString:String) : SimpleFeature =
+  def createFeature(simpleFeatureType:SimpleFeatureType, featureString:String): SimpleFeature =
     dataUtilitiesPool.withResource {
       _ => DataUtilities.createFeature(simpleFeatureType, featureString)
     }
@@ -107,7 +106,7 @@ class AvroFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
   // small simple features. Reuse a common BAOS as well.
   private val baos = new ByteArrayOutputStream()
   private var reusableEncoder: DirectBinaryEncoder = null
-  def encode(feature: SimpleFeature): Array[Byte] = {
+  override def encode(feature: SimpleFeature): Array[Byte] = {
     baos.reset()
     reusableEncoder = EncoderFactory.get().directBinaryEncoder(baos, reusableEncoder).asInstanceOf[DirectBinaryEncoder]
     writer.write(feature, reusableEncoder)
@@ -115,7 +114,7 @@ class AvroFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
     baos.toByteArray
   }
 
-  def decode(featureAValue: AValue) = decode(new ByteArrayInputStream(featureAValue.get()))
+  override def decode(bytes: Array[Byte]) = decode(new ByteArrayInputStream(bytes))
 
   // Use a direct binary encoder that is reused. No need to buffer simple features
   // since they are small and no stream read-ahead is required
@@ -125,8 +124,8 @@ class AvroFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
     reader.read(null, reusableDecoder)
   }
 
-  def extractFeatureId(aValue: AValue) =
-    FeatureSpecificReader.extractId(new ByteArrayInputStream(aValue.get()), reusableDecoder)
+  override def extractFeatureId(bytes: Array[Byte]) =
+    FeatureSpecificReader.extractId(new ByteArrayInputStream(bytes), reusableDecoder)
 
   override def getEncoding: FeatureEncoding = FeatureEncoding.AVRO
 }
