@@ -380,10 +380,10 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-	            <groupId>org.locationtech.geomesa</groupId>
-	            <artifactId>geomesa-compute-accumulo1.5</artifactId>
-	            <classifier>shaded</classifier>
-	            <version>${project.version}</version>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-compute-accumulo1.5</artifactId>
+                <classifier>shaded</classifier>
+                <version>${project.version}</version>
 	        </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -456,6 +456,11 @@
                 <groupId>org.hsqldb</groupId>
                 <artifactId>hsqldb</artifactId>
                 <version>2.3.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.objenesis</groupId>
+                <artifactId>objenesis</artifactId>
+                <version>1.2</version>
             </dependency>
             <dependency>
                 <groupId>com.typesafe</groupId>
