@@ -71,7 +71,6 @@ class AttributeIndexJob(args: Args) extends Job(args) {
   lazy val recordTable      = args(ConnectionParams.RECORD_TABLE)
   lazy val attributeTable   = args(ConnectionParams.ATTRIBUTE_TABLE)
   lazy val auths            = args.optional(ConnectionParams.AUTHORIZATIONS).getOrElse("")
-  lazy val useMock          = args.optional(ConnectionParams.USEMOCKACCUMULO).getOrElse("false")
 
   lazy val input   = AccumuloInputOptions(recordTable)
   lazy val output  = AccumuloOutputOptions(attributeTable)
@@ -82,8 +81,7 @@ class AttributeIndexJob(args: Args) extends Job(args) {
                                              "tableName"   -> catalog,
                                              "user"        -> user,
                                              "password"    -> password,
-                                             "auths"       -> auths,
-                                             "useMock"     -> useMock)
+                                             "auths"       -> auths)
 
   class Resources {
     val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
@@ -188,8 +186,6 @@ object AttributeIndexJob {
       args.append("--" + ConnectionParams.AUTHORIZATIONS, a))
     Option(visibilityParam.lookUp(jParams).asInstanceOf[String]).foreach(v =>
       args.append("--" + ConnectionParams.VISIBILITIES, v))
-    Option(mockParam.lookUp(jParams).asInstanceOf[String]).foreach(v =>
-      args.append("--" + ConnectionParams.USEMOCKACCUMULO, v))
     Args(args)
   }
 }
