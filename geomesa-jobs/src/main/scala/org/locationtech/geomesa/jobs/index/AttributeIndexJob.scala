@@ -47,7 +47,7 @@ trait JobResources {
 }
 
 object JobResources {
-  def apply(params:  Map[String, Any], feature: String, attributes: List[String]) = new JobResources {
+  def apply(params:  Map[String, String], feature: String, attributes: List[String]) = new JobResources {
     val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
     val sft: SimpleFeatureType = ds.getSchema(feature)
     val visibilities: String = ds.writeVisibilities
@@ -62,7 +62,7 @@ object JobResources {
 class AttributeIndexJob(args: Args) extends Job(args) {
 
   lazy val feature          = args(ConnectionParams.FEATURE_NAME)
-  lazy val attributes = args.list(AttributeIndexJob.Params.ATTRIBUTES_TO_INDEX)
+  lazy val attributes       = args.list(AttributeIndexJob.Params.ATTRIBUTES_TO_INDEX)
   lazy val zookeepers       = args(ConnectionParams.ZOOKEEPERS)
   lazy val instance         = args(ConnectionParams.ACCUMULO_INSTANCE)
   lazy val user             = args(ConnectionParams.ACCUMULO_USER)
@@ -71,20 +71,19 @@ class AttributeIndexJob(args: Args) extends Job(args) {
   lazy val recordTable      = args(ConnectionParams.RECORD_TABLE)
   lazy val attributeTable   = args(ConnectionParams.ATTRIBUTE_TABLE)
   lazy val auths            = args.optional(ConnectionParams.AUTHORIZATIONS).getOrElse("")
-  lazy val useMock          = args.optional(ConnectionParams.USEMOCKACCUMULO).getOrElse(false)
+  lazy val useMock          = args.optional(ConnectionParams.USEMOCKACCUMULO).getOrElse("false")
 
   lazy val input   = AccumuloInputOptions(recordTable)
   lazy val output  = AccumuloOutputOptions(attributeTable)
   lazy val options = AccumuloSourceOptions(instance, zookeepers, user, password, input, output)
 
-  lazy val params: Map[String, Any] = Map("zookeepers"  -> zookeepers,
-                        "instanceId"  -> instance,
-                        "tableName"   -> catalog,
-                        "user"        -> user,
-                        "password"    -> password,
-                        "auths"       -> auths,
-                        "useMock"     -> useMock)
-
+  lazy val params: Map[String, String] = Map("zookeepers"  -> zookeepers,
+                                             "instanceId"  -> instance,
+                                             "tableName"   -> catalog,
+                                             "user"        -> user,
+                                             "password"    -> password,
+                                             "auths"       -> auths,
+                                             "useMock"     -> useMock)
 
   class Resources {
     val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]

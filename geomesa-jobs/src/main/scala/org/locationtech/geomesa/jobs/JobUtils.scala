@@ -21,7 +21,6 @@ import java.net.{URLClassLoader, URLDecoder}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.Connector
-import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 
@@ -99,13 +98,7 @@ object JobUtils extends Logging {
    * @return
    */
   def getJarsFromClasspath(clas: Class[_]): Seq[File] = {
-    val urls =
-      clas.getClassLoader match {
-        case cl: VFSClassLoader =>
-          cl.getFileObjects.map(u => u.getURL)
-        case cl: URLClassLoader =>
-          cl.getURLs
-      }
+    val urls = clas.getClassLoader.asInstanceOf[URLClassLoader].getURLs
     urls.map(u => new File(cleanClassPathURL(u.getFile)))
   }
 
