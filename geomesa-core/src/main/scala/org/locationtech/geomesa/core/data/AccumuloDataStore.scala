@@ -48,6 +48,7 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -375,16 +376,25 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   /**
-   * Compute the GeoMesa SpatioTemporal Schema, create tables, and write metadata to catalog
+   * Compute the GeoMesa SpatioTemporal Schema, create tables, and write metadata to catalog.
+   *
+   * This method is thread safe -- it will create the schema in a single thread and do nothing if it already exists.
    *
    * @param featureType
    * @param maxShard numerical id of the max shard (creates maxShard + 1 splits)
    */
   def createSchema(featureType: SimpleFeatureType, maxShard: Int) {
-    val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
-    checkSchemaRequirements(featureType, spatioTemporalSchema)
-    createTablesForType(featureType, maxShard)
-    writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
+    val typeName = featureType.getTypeName
+    schemaCreationLocks(typeName).synchronized {
+      if(getSchema(typeName) == null) {
+        val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
+        checkSchemaRequirements(featureType, spatioTemporalSchema)
+        createTablesForType(featureType, maxShard)
+        writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
+      } else {
+        logger.info(s"not creating schema for schema $typeName, schema has already been created")
+      }
+    }
   }
 
   // This function enforces the shared ST schema requirements.
@@ -877,8 +887,7 @@ class AccumuloDataStore(val connector: Connector,
     }
 
   // Implementation of Abstract method
-  def getFeatureReader(featureName: String): AccumuloFeatureReader = getFeatureReader(featureName,
-                                                                                       Query.ALL)
+  def getFeatureReader(featureName: String): AccumuloFeatureReader = getFeatureReader(featureName, Query.ALL)
 
   // This override is important as it allows us to optimize and plan our search with the Query.
   override def getFeatureReader(featureName: String, query: Query) = {
@@ -1078,9 +1087,21 @@ object AccumuloDataStore {
         sb.append(encoded)
       }
     }
-    sb.toString
+    sb.toString()
   }
 
-
+  /**
+   * Locks for type names so that schemas are not created by more than one thread at once.
+   * WeakHashMap should remove items automatically when there are no more references to the keys.
+   * The .withDefault automatically adds a new object to lock on to the map for a key when there isn't one already.
+   */
+  private[AccumuloDataStore] val schemaCreationLocks = {
+    val map = new mutable.WeakHashMap[String, Object] with mutable.SynchronizedMap[String, Object]
+    map.withDefault { k =>
+      val newVal = new Object()
+      map.put(k, newVal)
+      newVal
+    }
+  }
 }
 
