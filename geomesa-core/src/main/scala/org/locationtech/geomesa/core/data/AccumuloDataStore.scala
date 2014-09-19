@@ -376,8 +376,7 @@ class AccumuloDataStore(val connector: Connector,
 
   /**
    * Compute the GeoMesa SpatioTemporal Schema, create tables, and write metadata to catalog.
-   *
-   * This method is thread safe -- it will create the schema in a single thread and do nothing if it already exists.
+   * If the schema already exists, log a message and continue without error.
    *
    * @param featureType
    * @param maxShard numerical id of the max shard (creates maxShard + 1 splits)
