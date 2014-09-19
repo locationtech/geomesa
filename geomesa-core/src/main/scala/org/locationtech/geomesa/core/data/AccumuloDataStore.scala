@@ -383,10 +383,12 @@ class AccumuloDataStore(val connector: Connector,
    */
   def createSchema(featureType: SimpleFeatureType, maxShard: Int) =
     Try {
-      val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
-      checkSchemaRequirements(featureType, spatioTemporalSchema)
-      createTablesForType(featureType, maxShard)
-      writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
+      if(getSchema(featureType.getTypeName) == null) {
+        val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
+        checkSchemaRequirements(featureType, spatioTemporalSchema)
+        createTablesForType(featureType, maxShard)
+        writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
+      }
     }.recover {
       case tee: TableExistsException =>
         logger.info(s"not creating schema for feature type ${featureType.getTypeName}, schema has already been created")
