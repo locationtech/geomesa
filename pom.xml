@@ -295,6 +295,20 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-vfs2</artifactId>
                 <version>2.0</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-svn-commons</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-svnexe</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.twitter</groupId>
@@ -390,7 +404,7 @@
                 <artifactId>geomesa-compute-accumulo1.5</artifactId>
                 <classifier>shaded</classifier>
                 <version>${project.version}</version>
-	        </dependency>
+            </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-assemble-accumulo1.5</artifactId>
