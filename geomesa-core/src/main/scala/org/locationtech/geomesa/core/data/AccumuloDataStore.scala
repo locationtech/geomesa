@@ -43,12 +43,11 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, NonGeomAttributeSpec}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -383,19 +382,17 @@ class AccumuloDataStore(val connector: Connector,
    * @param featureType
    * @param maxShard numerical id of the max shard (creates maxShard + 1 splits)
    */
-  def createSchema(featureType: SimpleFeatureType, maxShard: Int) {
-    val typeName = featureType.getTypeName
-    schemaCreationLocks(typeName).synchronized {
-      if(getSchema(typeName) == null) {
-        val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
-        checkSchemaRequirements(featureType, spatioTemporalSchema)
-        createTablesForType(featureType, maxShard)
-        writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
-      } else {
-        logger.info(s"not creating schema for schema $typeName, schema has already been created")
-      }
-    }
-  }
+  def createSchema(featureType: SimpleFeatureType, maxShard: Int) =
+    Try {
+      val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
+      checkSchemaRequirements(featureType, spatioTemporalSchema)
+      createTablesForType(featureType, maxShard)
+      writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
+    }.recover {
+      case tee: TableExistsException =>
+        logger.info(s"not creating schema for feature type ${featureType.getTypeName}, schema has already been created")
+    }.get // otherwise, actually throw the exception
+
 
   // This function enforces the shared ST schema requirements.
   //  For a shared ST table, the IndexSchema must start with a partition number and a constant string.
@@ -1088,20 +1085,6 @@ object AccumuloDataStore {
       }
     }
     sb.toString()
-  }
-
-  /**
-   * Locks for type names so that schemas are not created by more than one thread at once.
-   * WeakHashMap should remove items automatically when there are no more references to the keys.
-   * The .withDefault automatically adds a new object to lock on to the map for a key when there isn't one already.
-   */
-  private[AccumuloDataStore] val schemaCreationLocks = {
-    val map = new mutable.WeakHashMap[String, Object] with mutable.SynchronizedMap[String, Object]
-    map.withDefault { k =>
-      val newVal = new Object()
-      map.put(k, newVal)
-      newVal
-    }
   }
 }
 
