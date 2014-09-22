@@ -467,7 +467,6 @@
                 <version>${jackson.codehaus.version}</version>
             </dependency>
             <dependency>
-                <!-- 2.3.0 is required for license reasons -->
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
                 <version>4.0</version>
@@ -626,7 +625,7 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <!-- excluded due to license issues -->
+                <!-- marked provided due to license issues -->
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
                 <version>1.3.9</version>
