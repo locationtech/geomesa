@@ -43,7 +43,7 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, NonGeomAttributeSpec}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
@@ -375,17 +375,25 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   /**
-   * Compute the GeoMesa SpatioTemporal Schema, create tables, and write metadata to catalog
+   * Compute the GeoMesa SpatioTemporal Schema, create tables, and write metadata to catalog.
+   * If the schema already exists, log a message and continue without error.
    *
    * @param featureType
    * @param maxShard numerical id of the max shard (creates maxShard + 1 splits)
    */
-  def createSchema(featureType: SimpleFeatureType, maxShard: Int) {
-    val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
-    checkSchemaRequirements(featureType, spatioTemporalSchema)
-    createTablesForType(featureType, maxShard)
-    writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
-  }
+  def createSchema(featureType: SimpleFeatureType, maxShard: Int) =
+    try {
+      if(getSchema(featureType.getTypeName) == null) {
+        val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
+        checkSchemaRequirements(featureType, spatioTemporalSchema)
+        createTablesForType(featureType, maxShard)
+        writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
+      }
+    } catch {
+      case tee: TableExistsException =>
+        logger.info(s"not creating schema for feature type ${featureType.getTypeName}, schema has already been created")
+    }
+
 
   // This function enforces the shared ST schema requirements.
   //  For a shared ST table, the IndexSchema must start with a partition number and a constant string.
@@ -877,8 +885,7 @@ class AccumuloDataStore(val connector: Connector,
     }
 
   // Implementation of Abstract method
-  def getFeatureReader(featureName: String): AccumuloFeatureReader = getFeatureReader(featureName,
-                                                                                       Query.ALL)
+  def getFeatureReader(featureName: String): AccumuloFeatureReader = getFeatureReader(featureName, Query.ALL)
 
   // This override is important as it allows us to optimize and plan our search with the Query.
   override def getFeatureReader(featureName: String, query: Query) = {
@@ -1078,9 +1085,7 @@ object AccumuloDataStore {
         sb.append(encoded)
       }
     }
-    sb.toString
+    sb.toString()
   }
-
-
 }
 
