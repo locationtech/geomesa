@@ -32,7 +32,7 @@ import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
-import org.locationtech.geomesa.core.iterators.AttributeIndexFilteringIterator
+import org.locationtech.geomesa.core.iterators.{IteratorConfig, IteratorTrigger, AttributeIndexFilteringIterator}
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
@@ -60,7 +60,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     val attrScanner = acc.createAttrIdxScanner(featureType)
 
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
-    val (temporalFilters, nonSTFilters) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
+    val (temporalFilters, nonSTFilters: Seq[Filter]) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
 
     // NB: Added check to see if the nonSTFilters is empty.
     //  If it is, we needn't configure the SFFI
@@ -72,10 +72,12 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 
     val recordScanner = acc.createRecordScanner(featureType)
 
-    if (nonSTFilters.nonEmpty) {
+    val iteratorConfig: IteratorConfig = IteratorTrigger.chooseIterator(nonSTFilters.map {s => ECQL.toCQL(recomposeAnd(nonSTFilters)) }.headOption, query, featureType)
+
+    if (nonSTFilters.nonEmpty || iteratorConfig.useSFFI) {
       val iterSetting =
         configureSimpleFeatureFilteringIterator(featureType,
-                                                Some(filterListAsAnd(nonSTFilters).get.toString),
+                                                filterListAsAnd(nonSTFilters).map(ECQL.toCQL),
                                                 schema,
                                                 featureEncoder,
                                                 query)
@@ -156,16 +158,28 @@ trait AttributeIdxStrategy extends Strategy with Logging {
         throw new RuntimeException(msg)
     }
 
-  def partitionFilter(filter: Filter, sft: SimpleFeatureType): (Query, Filter) = {
+  // This function assumes that the query's filter object is or has an attribute-idx-satisfiable
+  //  filter.  If not, you will get a None.get exception.
+  def partitionFilter(query: Query, sft: SimpleFeatureType): (Query, Filter) = {
 
-    val (indexFilter, cqlFilter) = filter match {
+    val filter = query.getFilter
+
+    val (indexFilter: Option[Filter], cqlFilter) = filter match {
       case and: And =>
         findFirst(AttributeIndexStrategy.getAttributeIndexStrategy(_, sft).isDefined)(and.getChildren)
       case f: Filter =>
         (Some(f), Seq())
     }
 
-    (new Query(sft.getTypeName, filterListAsAnd(cqlFilter).getOrElse(Filter.INCLUDE)), indexFilter.get)
+    val nonIndexFilters = filterListAsAnd(cqlFilter).getOrElse(Filter.INCLUDE)
+
+    val newQuery = new Query(query)
+    newQuery.setFilter(nonIndexFilters)
+
+    if (indexFilter.isEmpty) throw new Exception(s"Partition Filter was called on $query for filter $filter." +
+      s"\nThe AttributeIdxStrategy did not find a compatible sub-filter.")
+
+    (newQuery, indexFilter.get)
   }
 }
 
@@ -176,7 +190,7 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
                        featureType: SimpleFeatureType,
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val (strippedQuery, filter) = partitionFilter(query.getFilter, featureType)
+    val (strippedQuery, filter) = partitionFilter(query, featureType)
     val range =
       filter match {
         case f: PropertyIsEqualTo =>
@@ -213,7 +227,7 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
                        featureType: SimpleFeatureType,
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val (strippedQuery, filter) = partitionFilter(query.getFilter, featureType)
+    val (strippedQuery, filter) = partitionFilter(query, featureType)
     val range =
       filter match {
         case f: PropertyIsBetween =>
@@ -319,7 +333,7 @@ class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
                        featureType: SimpleFeatureType,
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val (strippedQuery, extractedFilter) = partitionFilter(query.getFilter, featureType)
+    val (strippedQuery, extractedFilter) = partitionFilter(query, featureType)
     val filter = extractedFilter.asInstanceOf[PropertyIsLike]
     val expr = filter.getExpression
     val prop = expr match {
