@@ -120,38 +120,42 @@ class AttributeIndexStrategyTest extends Specification {
     "use first indexable attribute if equals" in {
       val strategy = new AttributeIdxEqualsStrategy
       val filter = ECQL.toFilter("age=21 AND count<5")
-      val (strippedQuery, extractedFilter) = strategy.partitionFilter(filter, sft)
+      val query = new Query(sft.getTypeName, filter)
+      val (strippedQuery, extractedFilter) = strategy.partitionFilter(query, sft)
       AttributeIndexStrategy.getAttributeIndexStrategy(extractedFilter, sft).get must beAnInstanceOf[AttributeIdxEqualsStrategy]
-      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery.getFilter, sft)
+      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery, sft)
       AttributeIndexStrategy.getAttributeIndexStrategy(secondExtractedFilter, sft).get must beAnInstanceOf[AttributeIdxRangeStrategy]
     }
 
     "use first indexable attribute if range" in {
       val strategy = new AttributeIdxEqualsStrategy
       val filter = ECQL.toFilter("count<5 AND age=21")
-      val (strippedQuery, extractedFilter) = strategy.partitionFilter(filter, sft)
+      val query = new Query(sft.getTypeName, filter)
+      val (strippedQuery, extractedFilter) = strategy.partitionFilter(query, sft)
       AttributeIndexStrategy.getAttributeIndexStrategy(extractedFilter, sft).get must beAnInstanceOf[AttributeIdxRangeStrategy]
-      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery.getFilter, sft)
+      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery, sft)
       AttributeIndexStrategy.getAttributeIndexStrategy(secondExtractedFilter, sft).get must beAnInstanceOf[AttributeIdxEqualsStrategy]
     }
 
     "use first indexable attribute if like" in {
       val strategy = new AttributeIdxEqualsStrategy
       val filter = ECQL.toFilter("name LIKE 'baddy' AND age=21")
-      val (strippedQuery, extractedFilter) = strategy.partitionFilter(filter, sft)
+      val query = new Query(sft.getTypeName, filter)
+      val (strippedQuery, extractedFilter) = strategy.partitionFilter(query, sft)
       AttributeIndexStrategy.getAttributeIndexStrategy(extractedFilter, sft).get must beAnInstanceOf[AttributeIdxLikeStrategy]
-      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery.getFilter, sft)
+      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery, sft)
       AttributeIndexStrategy.getAttributeIndexStrategy(secondExtractedFilter, sft).get must beAnInstanceOf[AttributeIdxEqualsStrategy]
     }
 
     "use first indexable attribute if like and retain all children for > 2 filters" in {
       val strategy = new AttributeIdxEqualsStrategy
       val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("name LIKE 'baddy'"), ECQL.toFilter("age=21"), ECQL.toFilter("count<5"))).get
-      val (strippedQuery, extractedFilter) = strategy.partitionFilter(filter, sft)
+      val query = new Query(sft.getTypeName, filter)
+      val (strippedQuery, extractedFilter) = strategy.partitionFilter(query, sft)
       AttributeIndexStrategy.getAttributeIndexStrategy(extractedFilter, sft).get must beAnInstanceOf[AttributeIdxLikeStrategy]
-      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery.getFilter, sft)
+      val (secondStripped, secondExtractedFilter) = strategy.partitionFilter(strippedQuery, sft)
       AttributeIndexStrategy.getAttributeIndexStrategy(secondExtractedFilter, sft).get must beAnInstanceOf[AttributeIdxEqualsStrategy]
-      val (thirdStripped, thirdExtractedFilter) = strategy.partitionFilter(secondStripped.getFilter, sft)
+      val (thirdStripped, thirdExtractedFilter) = strategy.partitionFilter(secondStripped, sft)
       AttributeIndexStrategy.getAttributeIndexStrategy(thirdExtractedFilter, sft).get must beAnInstanceOf[AttributeIdxRangeStrategy]
     }
 
