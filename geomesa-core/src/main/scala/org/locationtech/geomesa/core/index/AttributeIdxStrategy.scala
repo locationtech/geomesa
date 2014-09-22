@@ -26,8 +26,8 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.temporal.`object`.DefaultPeriod
-import org.locationtech.geomesa.core.DEFAULT_FILTER_PROPERTY_NAME
-import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
+import org.locationtech.geomesa.core._
+import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
@@ -54,7 +54,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
                    output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     output(s"Searching the attribute table with filter ${query.getFilter}")
     val schema         = iqp.schema
-    val featureEncoder = iqp.featureEncoder
+    val featureEncoding = iqp.featureEncoding
 
     output(s"Scanning attribute table for feature type ${featureType.getTypeName}")
     val attrScanner = acc.createAttrIdxScanner(featureType)
@@ -79,7 +79,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
         configureSimpleFeatureFilteringIterator(featureType,
                                                 filterListAsAnd(nonSTFilters).map(ECQL.toCQL),
                                                 schema,
-                                                featureEncoder,
+                                                featureEncoding,
                                                 query)
       recordScanner.addScanIterator(iterSetting)
     }

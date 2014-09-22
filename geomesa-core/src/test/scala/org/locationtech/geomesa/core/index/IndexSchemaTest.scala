@@ -23,7 +23,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureEncoderFactory}
+import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureEncoder}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -38,8 +38,8 @@ class IndexSchemaTest extends Specification {
   val dummyType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
   val customType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,*the_geom:Geometry,dt_start:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
   customType.getUserData.put(SF_PROPERTY_START_TIME, "dt_start")
-  val dummyEncoder = SimpleFeatureEncoderFactory.defaultEncoder(dummyType)
-  val customEncoder = SimpleFeatureEncoderFactory.defaultEncoder(customType)
+  val dummyEncoder = SimpleFeatureEncoder(dummyType, FeatureEncoding.AVRO)
+  val customEncoder = SimpleFeatureEncoder(customType, FeatureEncoding.AVRO)
 
   "SpatioTemporalIndexSchemaTest" should {
     "parse a valid string" in {

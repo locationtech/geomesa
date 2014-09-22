@@ -63,7 +63,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
     // default to text if not found for backwards compatibility
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(featureType, encodingOpt)
+    featureEncoder = SimpleFeatureEncoder(featureType, encodingOpt)
 
     featureBuilder = AvroSimpleFeatureFactory.featureBuilder(featureType)
 

@@ -54,12 +54,13 @@ class SimpleFeatureEncoderTest extends Specification {
   }
 
   val encoder = new AvroFeatureEncoder(sft)
+  val decoder = new AvroFeatureDecoder(sft)
 
   "SimpleFeatureEncoder" should {
     "encode and decode points" in {
       val features = getFeatures
       val encoded = features.map(encoder.encode(_))
-      val decoded = encoded.map { bytes => encoder.decode(new Value(bytes)) }
+      val decoded = encoded.map { bytes => decoder.decode(new Value(bytes)) }
       decoded.map(_.getDefaultGeometry) mustEqual(features.map(_.getDefaultGeometry))
     }
   }

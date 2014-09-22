@@ -77,7 +77,7 @@ class RecordIdxStrategy extends Strategy with Logging {
                        output: ExplainerOutputType) = {
 
     val schema         = iqp.schema
-    val featureEncoder = iqp.featureEncoder
+    val featureEncoding = iqp.featureEncoding
 
     output(s"Searching the record table with filter ${query.getFilter}")
 
@@ -123,7 +123,7 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
-    val sffiIterCfg = getSFFIIterCfg(iteratorConfig, featureType, ecql, schema, featureEncoder, query)
+    val sffiIterCfg = getSFFIIterCfg(iteratorConfig, featureType, ecql, schema, featureEncoding, query)
 
     // TODO GEOMESA-322 use other strategies with density iterator
     //val topIterCfg = getTopIterCfg(query, geometryToCover, schema, featureEncoder, featureType)

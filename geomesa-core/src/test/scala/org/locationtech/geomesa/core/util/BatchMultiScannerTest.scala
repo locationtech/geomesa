@@ -107,9 +107,10 @@ class BatchMultiScannerTest extends Specification {
     val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new ARange(prefix + kv.getKey.getColumnQualifier)
     val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction, batchSize)
 
+    val decoder = SimpleFeatureDecoder(sft, "avro")
     val retrieved = bms.iterator.toList
     retrieved.foreach { e =>
-      val sf = SimpleFeatureEncoderFactory.defaultEncoder(sft).decode(e.getValue)
+      val sf = decoder.decode(e.getValue)
       if (value != AttributeTable.nullString) {
         sf.getAttribute(attr) mustEqual value
       }

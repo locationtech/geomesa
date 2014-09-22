@@ -18,11 +18,12 @@ package org.locationtech.geomesa.core.index
 
 import java.util.Map.Entry
 
-import com.vividsolutions.jts.geom.{Polygon, Geometry}
+import com.vividsolutions.jts.geom.{Geometry, Polygon}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.Query
 import org.locationtech.geomesa.core._
+import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
@@ -47,8 +48,8 @@ trait Strategy {
     qp.cf.foreach { c => bs.fetchColumnFamily(c) }
   }
 
-  def configureFeatureEncoding(cfg: IteratorSetting, featureEncoder: SimpleFeatureEncoder) {
-    cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
+  def configureFeatureEncoding(cfg: IteratorSetting, featureEncoding: FeatureEncoding) {
+    cfg.addOption(FEATURE_ENCODING, featureEncoding.toString)
   }
 
   def configureFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) {
@@ -78,14 +79,14 @@ trait Strategy {
   def configureSimpleFeatureFilteringIterator(simpleFeatureType: SimpleFeatureType,
                                               ecql: Option[String],
                                               schema: String,
-                                              featureEncoder: SimpleFeatureEncoder,
+                                              featureEncoding: FeatureEncoding,
                                               query: Query): IteratorSetting = {
     val cfg = new IteratorSetting(iteratorPriority_SimpleFeatureFilteringIterator,
       "sffilter-" + randomPrintableString(5),
       classOf[SimpleFeatureFilteringIterator])
 
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-    configureFeatureEncoding(cfg, featureEncoder)
+    configureFeatureEncoding(cfg, featureEncoding)
     configureTransforms(query,cfg)
     configureFeatureType(cfg, simpleFeatureType)
     ecql.foreach(SimpleFeatureFilteringIterator.setECQLFilter(cfg, _))
@@ -100,17 +101,17 @@ trait Strategy {
                      featureType: SimpleFeatureType,
                      ecql: Option[String],
                      schema: String,
-                     featureEncoder: SimpleFeatureEncoder,
+                     featureEncoding: FeatureEncoding,
                      query: Query): Option[IteratorSetting] = {
     if (iteratorConfig.useSFFI) {
-      Some(configureSimpleFeatureFilteringIterator(featureType, ecql, schema, featureEncoder, query))
+      Some(configureSimpleFeatureFilteringIterator(featureType, ecql, schema, featureEncoding, query))
     } else None
   }
 
   def getTopIterCfg(query: Query,
                     geometryToCover: Geometry,
                     schema: String,
-                    featureEncoder: SimpleFeatureEncoder,
+                    featureEncoding: FeatureEncoding,
                     featureType: SimpleFeatureType) = {
     if (query.getHints.containsKey(DENSITY_KEY)) {
       val clazz = classOf[DensityIterator]
@@ -126,7 +127,7 @@ trait Strategy {
       DensityIterator.configure(cfg, polygon, width, height)
 
       cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-      configureFeatureEncoding(cfg, featureEncoder)
+      configureFeatureEncoding(cfg, featureEncoding)
       configureFeatureType(cfg, featureType)
 
       Some(cfg)

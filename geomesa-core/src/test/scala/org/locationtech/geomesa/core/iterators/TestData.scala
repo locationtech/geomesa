@@ -11,7 +11,7 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.core.data.{FeatureEncoding, AccumuloFeatureStore, SimpleFeatureEncoderFactory}
+import org.locationtech.geomesa.core.data.{AccumuloFeatureStore, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -79,9 +79,9 @@ object TestData extends Logging {
   // This is a quick trick to make sure that the userData is set.
   lazy val featureType: SimpleFeatureType = getFeatureType()
 
-  lazy val featureEncoder = SimpleFeatureEncoderFactory.createEncoder(getFeatureType(), "avro")
+  lazy val featureEncoder = SimpleFeatureEncoder(getFeatureType(), "avro")
 
-  val index = IndexSchema(schemaEncoding, featureType, featureEncoder)
+  lazy val index = IndexSchema(schemaEncoding, featureType, featureEncoder)
 
   val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
 
