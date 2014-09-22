@@ -156,7 +156,6 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       val rightWildcard = new Query(sftName, ff.like(ff.property("name"), "b%"), Array("geom"))
       QueryStrategyDecider.chooseNewStrategy(sft, rightWildcard) must beAnInstanceOf[AttributeIdxLikeStrategy]
 
-
       forall(List(query, leftWildCard, doubleWildCard, rightWildcard)) { query =>
         val features = fs.getFeatures(query)
 
