@@ -37,6 +37,8 @@ package object core {
   val DEFAULT_AGGREGATOR_CLASS_PROPERTY_NAME = "geomesa.iterators.aggregator-class"
 
   val GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE = "geomesa.iterators.aggregator-types"
+  val GEOMESA_ITERATORS_SFT_NAME            = "geomesa.iterators.sft-name"
+  val GEOMESA_ITERATORS_ATTRIBUTE_NAME      = "geomesa.iterators.attribute.name"
   val GEOMESA_ITERATORS_ECQL_FILTER         = "geomesa.iterators.ecql-filter"
   val GEOMESA_ITERATORS_TRANSFORM           = "geomesa.iterators.transform"
   val GEOMESA_ITERATORS_TRANSFORM_SCHEMA    = "geomesa.iterators.transform.schema"

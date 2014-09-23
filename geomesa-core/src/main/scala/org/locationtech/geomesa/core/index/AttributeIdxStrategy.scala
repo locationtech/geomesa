@@ -20,19 +20,20 @@ package org.locationtech.geomesa.core.index
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.{IteratorSetting, Scanner}
+import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.temporal.`object`.DefaultPeriod
 import org.locationtech.geomesa.core.DEFAULT_FILTER_PROPERTY_NAME
-import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
+import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
-import org.locationtech.geomesa.core.iterators.{AttributeIndexFilteringIterator, IteratorConfig, IteratorTrigger}
+import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
@@ -50,67 +51,96 @@ trait AttributeIdxStrategy extends Strategy with Logging {
                    query: Query,
                    iqp: QueryPlanner,
                    featureType: SimpleFeatureType,
+                   attributeName: String,
                    range: AccRange,
                    output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     output(s"Searching the attribute table with filter ${query.getFilter}")
-    val schema         = iqp.schema
-    val featureEncoding = iqp.featureEncoding
 
     output(s"Scanning attribute table for feature type ${featureType.getTypeName}")
     val attrScanner = acc.createAttrIdxScanner(featureType)
 
+    logger.trace(s"Attribute Scan Range: ${range.toString}")
+    attrScanner.setRange(range)
+
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
-    val (temporalFilters, nonSTFilters: Seq[Filter]) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
+    val (temporalFilters, nonSTFilters) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
 
     // NB: Added check to see if the nonSTFilters is empty.
     //  If it is, we needn't configure the SFFI
 
     output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
-    val ofilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters)
+    val oFilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters)
+    val oNonStFilters: Option[Filter] = nonSTFilters.map(_ => recomposeAnd(nonSTFilters)).headOption
 
-    configureAttributeIndexIterator(attrScanner, featureType, ofilter, range)
+    // choose which iterator we want to use - joining iterator or attribute only iterator
+    val iteratorChoice: IteratorConfig = IteratorTrigger
+        .chooseAttributeIterator(oNonStFilters, query, featureType, attributeName)
 
-    val recordScanner = acc.createRecordScanner(featureType)
+    val opts = oFilter.map(f => DEFAULT_FILTER_PROPERTY_NAME -> ECQL.toCQL(f)).toMap
 
-    val iteratorConfig: IteratorConfig = IteratorTrigger.chooseIterator(nonSTFilters.map {s => ECQL.toCQL(recomposeAnd(nonSTFilters)) }.headOption, query, featureType)
+    iteratorChoice.iterator match {
+      case IndexOnlyIterator =>
+        val cfg = configureAttributeIndexIterator(featureType,
+                                                  iqp.featureEncoding,
+                                                  query,
+                                                  opts,
+                                                  attributeName)
+        attrScanner.addScanIterator(cfg)
+        output(s"AttributeIndexIterator: ${cfg.toString}")
+        // there won't be any non-st-filters if the index only iterator has been selected
+        SelfClosingIterator(attrScanner)
 
-    if (nonSTFilters.nonEmpty || iteratorConfig.useSFFI) {
-      val iterSetting =
-        configureSimpleFeatureFilteringIterator(featureType,
-                                                filterListAsAnd(nonSTFilters).map(ECQL.toCQL),
-                                                schema,
-                                                featureEncoding,
-                                                query)
-      recordScanner.addScanIterator(iterSetting)
+      case RecordJoinIterator =>
+        if (opts.nonEmpty) {
+          val cfg = configureAttributeFilteringIterator(featureType, opts)
+          attrScanner.addScanIterator(cfg)
+        }
+
+        val recordScanner = acc.createRecordScanner(featureType)
+        if (iteratorChoice.useSFFI) {
+          val cfg = configureSimpleFeatureFilteringIterator(featureType,
+                                                            oNonStFilters.map(ECQL.toCQL),
+                                                            iqp.schema,
+                                                            iqp.featureEncoding,
+                                                            query)
+          recordScanner.addScanIterator(cfg)
+        }
+
+        // function to join the attribute index scan results to the record table
+        // since the row id of the record table is in the CF just grab that
+        val prefix = getTableSharingPrefix(featureType)
+        val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(prefix + kv.getKey.getColumnQualifier)
+        val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
+
+        SelfClosingIterator(bms.iterator, () => bms.close())
     }
-
-    // function to join the attribute index scan results to the record table
-    // since the row id of the record table is in the CF just grab that
-    val prefix = getTableSharingPrefix(featureType)
-    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(prefix + kv.getKey.getColumnQualifier)
-    val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
-
-    SelfClosingIterator(bms.iterator, () => bms.close())
   }
 
-  def configureAttributeIndexIterator(scanner: Scanner,
-                                      featureType: SimpleFeatureType,
-                                      ofilter: Option[Filter],
-                                      range: AccRange) {
-    val opts = ofilter.map { f => DEFAULT_FILTER_PROPERTY_NAME -> ECQL.toCQL(f)}.toMap
+  def configureAttributeIndexIterator(featureType: SimpleFeatureType,
+                                      encoding: FeatureEncoding,
+                                      query: Query,
+                                      opts: Map[String, String],
+                                      attributeName: String) = {
+    // the attribute index iterator also checks any ST filters
+    val cfg = new IteratorSetting(iteratorPriority_AttributeIndexIterator,
+                                  "attrIndexIterator",
+                                  classOf[AttributeIndexIterator].getCanonicalName,
+                                  opts)
+    val transformedType = query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
+    configureFeatureType(cfg, transformedType)
+    configureFeatureTypeName(cfg, featureType.getTypeName)
+    configureAttributeName(cfg, attributeName)
+    configureFeatureEncoding(cfg, encoding)
+    cfg
+  }
 
-    if(opts.nonEmpty) {
-      val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
-        "attrIndexFilter",
-        classOf[AttributeIndexFilteringIterator].getCanonicalName,
-        opts)
-
-      configureFeatureType(cfg, featureType)
-      scanner.addScanIterator(cfg)
-    }
-
-    logger.trace(s"Attribute Scan Range: ${range.toString}")
-    scanner.setRange(range)
+  def configureAttributeFilteringIterator(featureType: SimpleFeatureType, opts: Map[String, String]) = {
+    val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
+                                  "attrIndexFilter",
+                                  classOf[AttributeIndexFilteringIterator].getCanonicalName,
+                                  opts)
+    configureFeatureType(cfg, featureType)
+    cfg
   }
 
   /**
@@ -191,32 +221,32 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     val (strippedQuery, filter) = partitionFilter(query, featureType)
-    val range =
+    val (prop, range) =
       filter match {
         case f: PropertyIsEqualTo =>
           val (prop, lit, _) = checkOrder(f.getExpression1, f.getExpression2)
-          AccRange.exact(getEncodedAttrIdxRow(featureType, prop, lit))
+          (prop, AccRange.exact(getEncodedAttrIdxRow(featureType, prop, lit)))
 
         case f: TEquals =>
           val (prop, lit, _) = checkOrder(f.getExpression1, f.getExpression2)
-          AccRange.exact(getEncodedAttrIdxRow(featureType, prop, lit))
+          (prop, AccRange.exact(getEncodedAttrIdxRow(featureType, prop, lit)))
 
         case f: PropertyIsNil =>
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
           val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
-          AccRange.exact(AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, None))
+          (prop, AccRange.exact(AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, None)))
 
         case f: PropertyIsNull =>
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
           val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
-          AccRange.exact(AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, None))
+          (prop, AccRange.exact(AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, None)))
 
         case _ =>
           val msg = s"Unhandled filter type in equals strategy: ${filter.getClass.getName}"
           throw new RuntimeException(msg)
       }
 
-    attrIdxQuery(acc, strippedQuery, iqp, featureType, range, output)
+    attrIdxQuery(acc, strippedQuery, iqp, featureType, prop, range, output)
   }
 }
 
@@ -228,7 +258,7 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     val (strippedQuery, filter) = partitionFilter(query, featureType)
-    val range =
+    val (prop, range) =
       filter match {
         case f: PropertyIsBetween =>
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
@@ -236,49 +266,49 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
           val upper = f.getUpperBoundary.asInstanceOf[Literal].getValue
           val lowerBound = getEncodedAttrIdxRow(featureType, prop, lower)
           val upperBound = getEncodedAttrIdxRow(featureType, prop, upper)
-          new AccRange(lowerBound, true, upperBound, true)
+          (prop, new AccRange(lowerBound, true, upperBound, true))
 
         case f: PropertyIsGreaterThan =>
           val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
           if (flipped) {
-            lessThanRange(featureType, prop, lit)
+            (prop, lessThanRange(featureType, prop, lit))
           } else {
-            greaterThanRange(featureType, prop, lit)
+            (prop, greaterThanRange(featureType, prop, lit))
           }
         case f: PropertyIsGreaterThanOrEqualTo =>
           val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
           if (flipped) {
-            lessThanOrEqualRange(featureType, prop, lit)
+            (prop, lessThanOrEqualRange(featureType, prop, lit))
           } else {
-            greaterThanOrEqualRange(featureType, prop, lit)
+            (prop, greaterThanOrEqualRange(featureType, prop, lit))
           }
         case f: PropertyIsLessThan =>
           val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
           if (flipped) {
-            greaterThanRange(featureType, prop, lit)
+            (prop, greaterThanRange(featureType, prop, lit))
           } else {
-            lessThanRange(featureType, prop, lit)
+            (prop, lessThanRange(featureType, prop, lit))
           }
         case f: PropertyIsLessThanOrEqualTo =>
           val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
           if (flipped) {
-            greaterThanOrEqualRange(featureType, prop, lit)
+            (prop, greaterThanOrEqualRange(featureType, prop, lit))
           } else {
-            lessThanOrEqualRange(featureType, prop, lit)
+            (prop, lessThanOrEqualRange(featureType, prop, lit))
           }
         case f: Before =>
           val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
           if (flipped) {
-            greaterThanRange(featureType, prop, lit)
+            (prop, greaterThanRange(featureType, prop, lit))
           } else {
-            lessThanRange(featureType, prop, lit)
+            (prop, lessThanRange(featureType, prop, lit))
           }
         case f: After =>
           val (prop, lit, flipped) = checkOrder(f.getExpression1, f.getExpression2)
           if (flipped) {
-            lessThanRange(featureType, prop, lit)
+            (prop, lessThanRange(featureType, prop, lit))
           } else {
-            greaterThanRange(featureType, prop, lit)
+            (prop, greaterThanRange(featureType, prop, lit))
           }
         case f: During =>
           val (prop, lit, _) = checkOrder(f.getExpression1, f.getExpression2)
@@ -287,14 +317,14 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
           val upper = during.getEnding.getPosition.getDate
           val lowerBound = getEncodedAttrIdxRow(featureType, prop, lower)
           val upperBound = getEncodedAttrIdxRow(featureType, prop, upper)
-          new AccRange(lowerBound, true, upperBound, true)
+          (prop, new AccRange(lowerBound, true, upperBound, true))
 
         case _ =>
           val msg = s"Unhandled filter type in range strategy: ${filter.getClass.getName}"
           throw new RuntimeException(msg)
       }
 
-    attrIdxQuery(acc, strippedQuery, iqp, featureType, range, output)
+    attrIdxQuery(acc, strippedQuery, iqp, featureType, prop, range, output)
   }
 
   private def greaterThanRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
@@ -350,7 +380,7 @@ class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
 
     val range = AccRange.prefix(getEncodedAttrIdxRow(featureType, prop, value))
 
-    attrIdxQuery(acc, strippedQuery, iqp, featureType, range, output)
+    attrIdxQuery(acc, strippedQuery, iqp, featureType, prop, range, output)
   }
 }
 
