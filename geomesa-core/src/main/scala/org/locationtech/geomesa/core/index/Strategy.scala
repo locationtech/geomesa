@@ -58,6 +58,14 @@ trait Strategy {
     cfg.encodeUserData(featureType.getUserData, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
   }
 
+  def configureFeatureTypeName(cfg: IteratorSetting, featureType: String) {
+    cfg.addOption(GEOMESA_ITERATORS_SFT_NAME, featureType)
+  }
+
+  def configureAttributeName(cfg: IteratorSetting, attributeName: String) {
+    cfg.addOption(GEOMESA_ITERATORS_ATTRIBUTE_NAME, attributeName)
+  }
+
   // returns the SimpleFeatureType for the query's transform
   def transformedSimpleFeatureType(query: Query): Option[SimpleFeatureType] = {
     Option(query.getHints.get(TRANSFORM_SCHEMA)).map {_.asInstanceOf[SimpleFeatureType]}

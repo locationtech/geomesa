@@ -58,12 +58,14 @@ package object index {
     sft.getUserData.put(SFT_INDEX_SCHEMA, indexSchema)
   }
 
-  def getTableSharing(sft: SimpleFeatureType) = {
-    val stored = sft.getUserData.get(SF_TABLE_SHARING)
+  def getTableSharing(sft: SimpleFeatureType): Boolean = {
     //  If no data is stored in Accumulo, it means we have an old table, so that means 'false'
     //  If no user data is specified when creating a new SFT, we should default to 'true'.
-    if(stored == null) true
-    else stored.asInstanceOf[Boolean]
+    if (sft.getUserData.containsKey(SF_TABLE_SHARING)) {
+      java.lang.Boolean.valueOf(sft.getUserData.get(SF_TABLE_SHARING).toString).booleanValue()
+    } else {
+      true
+    }
   }
 
   def setTableSharing(sft: SimpleFeatureType, sharing: java.lang.Boolean) {
@@ -97,6 +99,14 @@ package object index {
 
   object ExplainNull extends ExplainerOutputType {
     override def apply(v1: => String): Unit = {}
+  }
+
+  class ExplainString extends ExplainerOutputType {
+    private var string: StringBuilder = new StringBuilder()
+    override def apply(v1: => String) = {
+      string.append(v1).append('\n')
+    }
+    override def toString() = string.toString()
   }
 
   trait ExplainingLogging extends Logging {

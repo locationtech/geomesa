@@ -26,7 +26,7 @@ import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
-import org.apache.accumulo.core.file.keyfunctor.{RowFunctor, ColumnFamilyFunctor}
+import org.apache.accumulo.core.file.keyfunctor.{ColumnFamilyFunctor, RowFunctor}
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.commons.codec.binary.Hex
@@ -35,6 +35,7 @@ import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.core
 import org.locationtech.geomesa.core.data.AccumuloDataStore._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
@@ -892,6 +893,7 @@ class AccumuloDataStore(val connector: Connector,
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
     val sft = getSchema(featureName)
     val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
+    setQueryTransforms(query, sft)
     new AccumuloFeatureReader(this, query, indexSchemaFmt, sft, fe)
   }
 
@@ -1086,5 +1088,33 @@ object AccumuloDataStore {
     }
     sb.toString()
   }
+
+  /**
+   * Checks for attribute transforms in the query and sets them as hints if found
+   *
+   * @param query
+   * @param sft
+   * @return
+   */
+  def setQueryTransforms(query: Query, sft: SimpleFeatureType) =
+    if (query.getProperties != null && query.getProperties.size > 0) {
+      val (transformProps, regularProps) = query.getPropertyNames.partition(_.contains('='))
+      val convertedRegularProps = regularProps.map { p => s"$p=$p" }
+      val allTransforms = convertedRegularProps ++ transformProps
+      // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
+      val geomName = sft.getGeometryDescriptor.getLocalName
+      val geomTransform =
+        if (allTransforms.exists(_.matches(s"$geomName\\s*=.*"))) {
+          Nil
+        } else {
+          Seq(s"$geomName=$geomName")
+        }
+      val transforms = (allTransforms ++ geomTransform).mkString(";")
+      val transformDefs = TransformProcess.toDefinition(transforms)
+      val derivedSchema = AccumuloFeatureStore.computeSchema(sft, transformDefs)
+      query.setProperties(Query.ALL_PROPERTIES)
+      query.getHints.put(TRANSFORMS, transforms)
+      query.getHints.put(TRANSFORM_SCHEMA, derivedSchema)
+    }
 }
 
