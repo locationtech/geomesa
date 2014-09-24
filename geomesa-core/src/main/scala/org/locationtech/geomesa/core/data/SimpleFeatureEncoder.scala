@@ -69,7 +69,7 @@ object SimpleFeatureDecoder {
 
   def apply(originalSft: SimpleFeatureType,
             projectedSft: SimpleFeatureType,
-            encoding: FeatureEncoding): SimpleFeatureDecoder =
+            encoding: FeatureEncoding) =
     encoding match {
       case FeatureEncoding.AVRO => new ProjectingAvroFeatureDecoder(originalSft, projectedSft)
       case FeatureEncoding.TEXT => new ProjectingTextDecoder(originalSft, projectedSft)
@@ -102,13 +102,15 @@ object FeatureEncoding extends Enumeration {
 }
 
 class TextFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
-  override def encode(feature:SimpleFeature): Array[Byte] = ThreadSafeDataUtilities.encodeFeature(feature).getBytes
+  override def encode(feature:SimpleFeature): Array[Byte] =
+    ThreadSafeDataUtilities.encodeFeature(feature).getBytes
 
-  override def encoding: FeatureEncoding = FeatureEncoding.TEXT.asInstanceOf[FeatureEncoding]
+  override def encoding: FeatureEncoding = FeatureEncoding.TEXT
 }
 
 class TextFeatureDecoder(sft: SimpleFeatureType) extends SimpleFeatureDecoder {
-  override def decode(bytes: Array[Byte]) = ThreadSafeDataUtilities.createFeature(sft, new String(bytes))
+  override def decode(bytes: Array[Byte]) =
+    ThreadSafeDataUtilities.createFeature(sft, new String(bytes))
 
   // This is derived from the knowledge of the GeoTools encoding in DataUtilities
   override def extractFeatureId(bytes: Array[Byte]): String = {
@@ -116,7 +118,7 @@ class TextFeatureDecoder(sft: SimpleFeatureType) extends SimpleFeatureDecoder {
     featureString.substring(0, featureString.indexOf("="))
   }
 
-  override def encoding: FeatureEncoding = FeatureEncoding.TEXT.asInstanceOf[FeatureEncoding]
+  override def encoding: FeatureEncoding = FeatureEncoding.TEXT
 }
 
 class ProjectingTextDecoder(original: SimpleFeatureType, projected: SimpleFeatureType)
@@ -167,7 +169,7 @@ class AvroFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
     baos.toByteArray
   }
 
-  override def encoding: FeatureEncoding = FeatureEncoding.AVRO.asInstanceOf[FeatureEncoding]
+  override def encoding: FeatureEncoding = FeatureEncoding.AVRO
 }
 
 class ProjectingAvroFeatureDecoder(original: SimpleFeatureType, projected: SimpleFeatureType)
@@ -187,7 +189,7 @@ class ProjectingAvroFeatureDecoder(original: SimpleFeatureType, projected: Simpl
   override def extractFeatureId(bytes: Array[Byte]) =
     FeatureSpecificReader.extractId(new ByteArrayInputStream(bytes), reuse)
 
-  override def encoding: FeatureEncoding = FeatureEncoding.AVRO.asInstanceOf[FeatureEncoding]
+  override def encoding: FeatureEncoding = FeatureEncoding.AVRO
 }
 
 class AvroFeatureDecoder(sft: SimpleFeatureType) extends ProjectingAvroFeatureDecoder(sft, sft)

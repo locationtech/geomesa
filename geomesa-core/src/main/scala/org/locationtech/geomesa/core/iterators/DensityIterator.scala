@@ -88,7 +88,8 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
     snap = new GridSnap(bbox, w, h)
     projectedSFT = SimpleFeatureTypes.createType(simpleFeatureType.getTypeName, DENSITY_FEATURE_STRING)
 
-    // Use density SFT
+    // Use density SFT for the encoder since we are transforming the feature into
+    // a sparse matrix as the result type of this iterator
     densityFeatureEncoder = SimpleFeatureEncoder(projectedSFT, encodingOpt)
     featureBuilder = AvroSimpleFeatureFactory.featureBuilder(projectedSFT)
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)

@@ -26,13 +26,13 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.temporal.`object`.DefaultPeriod
-import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.core.DEFAULT_FILTER_PROPERTY_NAME
+import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
-import org.locationtech.geomesa.core.iterators.{IteratorConfig, IteratorTrigger, AttributeIndexFilteringIterator}
+import org.locationtech.geomesa.core.iterators.{AttributeIndexFilteringIterator, IteratorConfig, IteratorTrigger}
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}

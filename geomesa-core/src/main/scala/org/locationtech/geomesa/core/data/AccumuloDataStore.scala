@@ -804,7 +804,7 @@ class AccumuloDataStore(val connector: Connector,
   def getFeatureEncoding(sft: SimpleFeatureType): FeatureEncoding = {
     val encodingString = readMetadataItem(sft.getTypeName, FEATURE_ENCODING_CF)
                          .getOrElse(FeatureEncoding.TEXT.toString)
-    FeatureEncoding.withName(encodingString).asInstanceOf[FeatureEncoding]
+    FeatureEncoding.withName(encodingString)
   }
 
   // We assume that they want the bounds for everything.
