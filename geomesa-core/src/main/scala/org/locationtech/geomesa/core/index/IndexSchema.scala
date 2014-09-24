@@ -332,7 +332,7 @@ object IndexSchema extends RegexParsers {
     val keyPlanner        = buildKeyPlanner(s)
     val cfPlanner         = buildColumnFamilyPlanner(s)
     val indexEntryDecoder = IndexEntryDecoder(geohashDecoder, dateDecoder)
-    val queryPlanner      = QueryPlanner(s, featureType, featureEncoder)
+    val queryPlanner      = QueryPlanner(s, featureType, featureEncoder.encoding)
     IndexSchema(keyEncoder, indexEntryDecoder, queryPlanner, featureType)
   }
 

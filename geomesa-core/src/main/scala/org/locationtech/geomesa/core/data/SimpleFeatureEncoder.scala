@@ -22,34 +22,77 @@ import org.apache.accumulo.core.data.{Value => AValue}
 import org.apache.avro.io._
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.{AvroSimpleFeatureWriter, FeatureSpecificReader}
+import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, AvroSimpleFeature, AvroSimpleFeatureWriter, FeatureSpecificReader}
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 
+trait HasEncoding {
+  def encoding: FeatureEncoding
+}
+
 /**
- * Responsible for collecting data-entries that share an identifier, and
- * when done, collapsing these rows into a single SimpleFeature.
- *
- * All encoding/decoding/serializing of features should be done through this
- * single class to allow future versions of serialization instead of scattering
- * knowledge of how the serialization is done through geomesa codebase.
+ * Interface to encode SimpleFeatures with a configurable serialization format.
  *
  * A SimpleFeatureEncoder is bound to a given SimpleFeatureType since serialization
  * may depend upon the schema of the feature type.
  *
  * SimpleFeatureEncoder classes may not be thread safe and should generally be used
- * as instance variables for performance reasons. They can serialize and deserialize
- * multiple features.
+ * as instance variables for performance reasons.
  */
-trait SimpleFeatureEncoder {
+trait SimpleFeatureEncoder extends HasEncoding {
   def encode(feature: SimpleFeature): Array[Byte]
+}
+
+/**
+ * Interface to read SimpleFeatures with a configurable serialization format.
+ *
+ * A SimpleFeatureDecoder is bound to a given SimpleFeatureType since serialization
+ * may depend upon the schema of the feature type.
+ *
+ * SimpleFeatureDecoder classes may not be thread safe and should generally be used
+ * as instance variables for performance reasons.
+ */
+trait SimpleFeatureDecoder extends HasEncoding {
   def decode(featureValue: AValue): SimpleFeature = decode(featureValue.get)
   def decode(featureBytes: Array[Byte]): SimpleFeature
   def extractFeatureId(value: AValue): String = extractFeatureId(value.get)
   def extractFeatureId(bytes: Array[Byte]): String
-  def getName = getEncoding.toString
-  def getEncoding: FeatureEncoding
+}
+
+object SimpleFeatureDecoder {
+  def apply(sft: SimpleFeatureType, encoding: FeatureEncoding) =
+    encoding match {
+      case FeatureEncoding.AVRO => new AvroFeatureDecoder(sft)
+      case FeatureEncoding.TEXT => new TextFeatureDecoder(sft)
+    }
+
+  def apply(originalSft: SimpleFeatureType,
+            projectedSft: SimpleFeatureType,
+            encoding: FeatureEncoding) =
+    encoding match {
+      case FeatureEncoding.AVRO => new ProjectingAvroFeatureDecoder(originalSft, projectedSft)
+      case FeatureEncoding.TEXT => new ProjectingTextDecoder(originalSft, projectedSft)
+    }
+
+  def apply(sft: SimpleFeatureType, encoding: String): SimpleFeatureDecoder =
+    SimpleFeatureDecoder(sft, FeatureEncoding.withName(encoding))
+
+  def apply(originalSft: SimpleFeatureType,
+            projectedSft: SimpleFeatureType,
+            encoding: String): SimpleFeatureDecoder =
+    SimpleFeatureDecoder(originalSft, projectedSft, FeatureEncoding.withName(encoding))
+}
+
+object SimpleFeatureEncoder {
+  def apply(sft: SimpleFeatureType, encoding: FeatureEncoding) =
+    encoding match {
+      case FeatureEncoding.AVRO => new AvroFeatureEncoder(sft)
+      case FeatureEncoding.TEXT => new TextFeatureEncoder(sft)
+    }
+
+  def apply(sft: SimpleFeatureType, encoding: String): SimpleFeatureEncoder =
+    SimpleFeatureEncoder(sft, FeatureEncoding.withName(encoding))
 }
 
 object FeatureEncoding extends Enumeration {
@@ -58,10 +101,16 @@ object FeatureEncoding extends Enumeration {
   val TEXT = Value("text")
 }
 
-class TextFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder{
-  override def encode(feature:SimpleFeature): Array[Byte] = ThreadSafeDataUtilities.encodeFeature(feature).getBytes
+class TextFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
+  override def encode(feature:SimpleFeature): Array[Byte] =
+    ThreadSafeDataUtilities.encodeFeature(feature).getBytes
 
-  override def decode(bytes: Array[Byte]) = ThreadSafeDataUtilities.createFeature(sft, new String(bytes))
+  override def encoding: FeatureEncoding = FeatureEncoding.TEXT
+}
+
+class TextFeatureDecoder(sft: SimpleFeatureType) extends SimpleFeatureDecoder {
+  override def decode(bytes: Array[Byte]) =
+    ThreadSafeDataUtilities.createFeature(sft, new String(bytes))
 
   // This is derived from the knowledge of the GeoTools encoding in DataUtilities
   override def extractFeatureId(bytes: Array[Byte]): String = {
@@ -69,7 +118,21 @@ class TextFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder{
     featureString.substring(0, featureString.indexOf("="))
   }
 
-  override def getEncoding: FeatureEncoding = FeatureEncoding.TEXT
+  override def encoding: FeatureEncoding = FeatureEncoding.TEXT
+}
+
+class ProjectingTextDecoder(original: SimpleFeatureType, projected: SimpleFeatureType)
+  extends TextFeatureDecoder(original) {
+
+  private val fac = AvroSimpleFeatureFactory.featureBuilder(projected)
+  private val attrs = DataUtilities.attributeNames(projected)
+
+  override def decode(bytes: Array[Byte]) = {
+    val sf = super.decode(bytes)
+    fac.reset()
+    attrs.foreach { attr => fac.set(attr, sf.getAttribute(attr)) }
+    fac.buildFeature(sf.getID)
+  }
 }
 
 /**
@@ -89,44 +152,44 @@ object ThreadSafeDataUtilities {
     }
 }
 
-/**
- * Encode features as avro making reuse of binary decoders and encoders
- * as well as a custom datum writer and reader
- *
- * This class is NOT threadsafe and cannot be shared across multiple threads.
- *
- * @param sft
- */
 class AvroFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
 
   private val writer = new AvroSimpleFeatureWriter(sft)
-  private val reader = FeatureSpecificReader(sft)
 
   // Encode using a direct binary encoder that is reused. No need to buffer
   // small simple features. Reuse a common BAOS as well.
   private val baos = new ByteArrayOutputStream()
-  private var reusableEncoder: DirectBinaryEncoder = null
+  private var reuse: DirectBinaryEncoder = null
+
   override def encode(feature: SimpleFeature): Array[Byte] = {
     baos.reset()
-    reusableEncoder = EncoderFactory.get().directBinaryEncoder(baos, reusableEncoder).asInstanceOf[DirectBinaryEncoder]
-    writer.write(feature, reusableEncoder)
-    reusableEncoder.flush()
+    reuse = EncoderFactory.get().directBinaryEncoder(baos, reuse).asInstanceOf[DirectBinaryEncoder]
+    writer.write(feature, reuse)
+    reuse.flush()
     baos.toByteArray
   }
 
+  override def encoding: FeatureEncoding = FeatureEncoding.AVRO
+}
+
+class ProjectingAvroFeatureDecoder(original: SimpleFeatureType, projected: SimpleFeatureType)
+  extends SimpleFeatureDecoder {
+
+  private val reader = new FeatureSpecificReader(original, projected)
+
   override def decode(bytes: Array[Byte]) = decode(new ByteArrayInputStream(bytes))
 
-  // Use a direct binary encoder that is reused. No need to buffer simple features
-  // since they are small and no stream read-ahead is required
-  private var reusableDecoder: BinaryDecoder = null
+  private var reuse: BinaryDecoder = null
+
   def decode(is: InputStream) = {
-    reusableDecoder = DecoderFactory.get().directBinaryDecoder(is, reusableDecoder)
-    reader.read(null, reusableDecoder)
+    reuse = DecoderFactory.get().directBinaryDecoder(is, reuse)
+    reader.read(null, reuse)
   }
 
   override def extractFeatureId(bytes: Array[Byte]) =
-    FeatureSpecificReader.extractId(new ByteArrayInputStream(bytes), reusableDecoder)
+    FeatureSpecificReader.extractId(new ByteArrayInputStream(bytes), reuse)
 
-  override def getEncoding: FeatureEncoding = FeatureEncoding.AVRO
+  override def encoding: FeatureEncoding = FeatureEncoding.AVRO
 }
 
+class AvroFeatureDecoder(sft: SimpleFeatureType) extends ProjectingAvroFeatureDecoder(sft, sft)

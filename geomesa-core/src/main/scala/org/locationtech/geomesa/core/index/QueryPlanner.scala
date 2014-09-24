@@ -24,10 +24,11 @@ import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.Interval
+import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.QueryHints._
-import org.locationtech.geomesa.core.iterators.{DensityIterator, DeDuplicatingIterator}
+import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIterator}
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -44,7 +45,7 @@ object QueryPlanner {
 
 case class QueryPlanner(schema: String,
                         featureType: SimpleFeatureType,
-                        featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
+                        featureEncoding: FeatureEncoding) extends ExplainingLogging {
   def buildFilter(geom: Geometry, interval: Interval): KeyPlanningFilter =
     (IndexSchema.somewhere(geom), IndexSchema.somewhen(interval)) match {
       case (None, None)       =>    AcceptEverythingFilter
@@ -146,23 +147,24 @@ case class QueryPlanner(schema: String,
 
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
   def adaptIterator(accumuloIterator: CloseableIterator[Entry[Key,Value]], query: Query): CloseableIterator[SimpleFeature] = {
+    // Perform a projecting decode of the simple feature
     val returnSFT = getReturnSFT(query)
-    val returnDecoder = SimpleFeatureEncoderFactory.createEncoder(returnSFT, featureEncoder.getEncoding)
+    val decoder = SimpleFeatureDecoder(returnSFT, featureEncoding)
 
     // the final iterator may need duplicates removed
     val uniqKVIter: CloseableIterator[Entry[Key,Value]] =
       if (IndexSchema.mayContainDuplicates(featureType))
-        new DeDuplicatingIterator(accumuloIterator, (key: Key, value: Value) => featureEncoder.extractFeatureId(value))
+        new DeDuplicatingIterator(accumuloIterator, (key: Key, value: Value) => decoder.extractFeatureId(value))
       else accumuloIterator
 
     // Decode according to the SFT return type.
     // if this is a density query, expand the map
     if (query.getHints.containsKey(DENSITY_KEY)) {
       uniqKVIter.flatMap { kv: Entry[Key, Value] =>
-        DensityIterator.expandFeature(returnDecoder.decode(kv.getValue))
+        DensityIterator.expandFeature(decoder.decode(kv.getValue))
       }
     } else {
-      uniqKVIter.map { kv => returnDecoder.decode(kv.getValue)}
+      uniqKVIter.map { kv => decoder.decode(kv.getValue) }
     }
   }
 

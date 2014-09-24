@@ -31,7 +31,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.core.data.{SimpleFeatureEncoder, AccumuloDataStore}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -99,7 +99,8 @@ class AttributeIndexStrategyTest extends Specification {
   val fs = ds.getFeatureSource(sftName).asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
   fs.addFeatures(featureCollection)
 
-  val indexSchema = IndexSchema(ds.getIndexSchemaFmt(sftName), sft, ds.getFeatureEncoder(sft))
+  val featureEncoder = SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft))
+  val indexSchema = IndexSchema(ds.getIndexSchemaFmt(sftName), sft, featureEncoder)
   val queryPlanner = indexSchema.planner
 
   def execute(strategy: AttributeIdxStrategy, filter: String): List[String] = {

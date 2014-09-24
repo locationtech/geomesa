@@ -25,7 +25,7 @@ import org.apache.hadoop.conf.Configuration
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, SimpleFeatureEncoder}
+import org.locationtech.geomesa.core.data.{SimpleFeatureDecoder, AccumuloDataStore, SimpleFeatureEncoder}
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.scalding.{AccumuloInputOptions, AccumuloOutputOptions, AccumuloSource, AccumuloSourceOptions, ConnectionParams}
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -39,7 +39,7 @@ trait JobResources {
   def ds: AccumuloDataStore
   def sft: SimpleFeatureType
   def visibilities: String
-  def decoder: SimpleFeatureEncoder
+  def decoder: SimpleFeatureDecoder
   def attributeDescriptors: mutable.Buffer[AttributeDescriptor]
 
   // required by scalding
@@ -51,7 +51,7 @@ object JobResources {
     val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
     val sft: SimpleFeatureType = ds.getSchema(feature)
     val visibilities: String = ds.writeVisibilities
-    val decoder: SimpleFeatureEncoder = ds.getFeatureEncoder(sft)
+    val decoder: SimpleFeatureDecoder = SimpleFeatureDecoder(sft, ds.getFeatureEncoding(sft))
     // the attributes we want to index
     val attributeDescriptors: mutable.Buffer[AttributeDescriptor] = sft.getAttributeDescriptors
       .asScala
@@ -87,7 +87,7 @@ class AttributeIndexJob(args: Args) extends Job(args) {
     val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
     val sft: SimpleFeatureType = ds.getSchema(feature)
     val visibilities: String = ds.writeVisibilities
-    val decoder: SimpleFeatureEncoder = ds.getFeatureEncoder(sft)
+    val decoder: SimpleFeatureDecoder = SimpleFeatureDecoder(sft, ds.getFeatureEncoding(sft))
     // the attributes we want to index
     val attributeDescriptors: mutable.Buffer[AttributeDescriptor] = sft.getAttributeDescriptors
                                  .asScala

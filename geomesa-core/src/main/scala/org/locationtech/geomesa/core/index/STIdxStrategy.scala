@@ -30,7 +30,8 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
 import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
-import org.locationtech.geomesa.core.data.{AccumuloConnectorCreator, SimpleFeatureEncoder}
+import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
+import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryHints._
@@ -61,10 +62,10 @@ class STIdxStrategy extends Strategy with Logging {
                           iqp: QueryPlanner,
                           featureType: SimpleFeatureType,
                           output: ExplainerOutputType) = {
-    val schema         = iqp.schema
-    val featureEncoder = iqp.featureEncoder
-    val keyPlanner     = IndexSchema.buildKeyPlanner(iqp.schema)
-    val cfPlanner      = IndexSchema.buildColumnFamilyPlanner(iqp.schema)
+    val schema          = iqp.schema
+    val featureEncoding = iqp.featureEncoding
+    val keyPlanner      = IndexSchema.buildKeyPlanner(iqp.schema)
+    val cfPlanner       = IndexSchema.buildColumnFamilyPlanner(iqp.schema)
 
     output(s"Scanning ST index table for feature type ${featureType.getTypeName}")
 
@@ -122,11 +123,11 @@ class STIdxStrategy extends Strategy with Logging {
 
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
-    val stiiIterCfg = getSTIIIterCfg(iteratorConfig, query, featureType, ofilter, schema, featureEncoder)
+    val stiiIterCfg = getSTIIIterCfg(iteratorConfig, query, featureType, ofilter, schema, featureEncoding)
 
-    val sffiIterCfg = getSFFIIterCfg(iteratorConfig, featureType, ecql, schema, featureEncoder, query)
+    val sffiIterCfg = getSFFIIterCfg(iteratorConfig, featureType, ecql, schema, featureEncoding, query)
 
-    val topIterCfg = getTopIterCfg(query, geometryToCover, schema, featureEncoder, featureType)
+    val topIterCfg = getTopIterCfg(query, geometryToCover, schema, featureEncoding, featureType)
 
     qp.copy(iterators = qp.iterators ++ List(Some(stiiIterCfg), sffiIterCfg, topIterCfg).flatten)
   }
@@ -136,10 +137,10 @@ class STIdxStrategy extends Strategy with Logging {
                      featureType: SimpleFeatureType,
                      ofilter: Option[Filter],
                      schema: String,
-                     featureEncoder: SimpleFeatureEncoder): IteratorSetting = {
+                     featureEncoding: FeatureEncoding): IteratorSetting = {
     iteratorConfig.iterator match {
       case IndexOnlyIterator =>
-        configureIndexIterator(ofilter, query, schema, featureEncoder, featureType)
+        configureIndexIterator(ofilter, query, schema, featureEncoding, featureType)
       case SpatioTemporalIterator =>
         val isDensity = query.getHints.containsKey(DENSITY_KEY)
         configureSpatioTemporalIntersectingIterator(ofilter, featureType, schema, isDensity)
@@ -163,7 +164,7 @@ class STIdxStrategy extends Strategy with Logging {
   def configureIndexIterator(filter: Option[Filter],
                              query: Query,
                              schema: String,
-                             featureEncoder: SimpleFeatureEncoder,
+                             featureEncoding: FeatureEncoding,
                              featureType: SimpleFeatureType): IteratorSetting = {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),classOf[IndexIterator])
@@ -179,7 +180,7 @@ class STIdxStrategy extends Strategy with Logging {
      // dtg attribute is optional -- if it exists add the pointer to UserData
     getDtgFieldName(featureType).foreach ( testType.getUserData.put(SF_PROPERTY_START_TIME,_) )
     configureFeatureType(cfg, testType)
-    configureFeatureEncoding(cfg, featureEncoder)
+    configureFeatureEncoding(cfg, featureEncoding)
     cfg
   }
 

@@ -32,7 +32,7 @@ import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
-import org.locationtech.geomesa.core.iterators.{IteratorConfig, IteratorTrigger, AttributeIndexFilteringIterator}
+import org.locationtech.geomesa.core.iterators.{AttributeIndexFilteringIterator, IteratorConfig, IteratorTrigger}
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
@@ -54,7 +54,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
                    output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     output(s"Searching the attribute table with filter ${query.getFilter}")
     val schema         = iqp.schema
-    val featureEncoder = iqp.featureEncoder
+    val featureEncoding = iqp.featureEncoding
 
     output(s"Scanning attribute table for feature type ${featureType.getTypeName}")
     val attrScanner = acc.createAttrIdxScanner(featureType)
@@ -79,7 +79,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
         configureSimpleFeatureFilteringIterator(featureType,
                                                 filterListAsAnd(nonSTFilters).map(ECQL.toCQL),
                                                 schema,
-                                                featureEncoder,
+                                                featureEncoding,
                                                 query)
       recordScanner.addScanIterator(iterSetting)
     }

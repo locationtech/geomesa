@@ -30,7 +30,7 @@ import org.apache.commons.codec.binary.Base64
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder, ReferencedEnvelope}
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureEncoder, SimpleFeatureEncoderFactory}
+import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.index.{IndexEntryDecoder, IndexSchema}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, toRichSimpleFeatureIterator}
@@ -60,8 +60,8 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
 
   var topSourceKey: Key = null
   var topSourceValue: Value = null
-  var originalEncoder: SimpleFeatureEncoder = null
-  var projectedEncoder: SimpleFeatureEncoder = null
+  var originalDecoder: SimpleFeatureDecoder = null
+  var densityFeatureEncoder: SimpleFeatureEncoder = null
 
   if (other != null && env != null) {
     source = other.source.deepCopy(env)
@@ -80,17 +80,17 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
     simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
     // default to text if not found for backwards compatibility
-    // This encoder is for the original sft not the density projected sft
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    originalEncoder = SimpleFeatureEncoderFactory.createEncoder(simpleFeatureType, encodingOpt)
+    originalDecoder = SimpleFeatureDecoder(simpleFeatureType, encodingOpt)
 
     bbox = JTS.toEnvelope(WKTUtils.read(options.get(DensityIterator.BBOX_KEY)))
     val (w, h) = DensityIterator.getBounds(options)
     snap = new GridSnap(bbox, w, h)
     projectedSFT = SimpleFeatureTypes.createType(simpleFeatureType.getTypeName, DENSITY_FEATURE_STRING)
 
-    // Use a new encoder for the projected SFT since the spec is different
-    projectedEncoder = SimpleFeatureEncoderFactory.createEncoder(projectedSFT, encodingOpt)
+    // Use density SFT for the encoder since we are transforming the feature into
+    // a sparse matrix as the result type of this iterator
+    densityFeatureEncoder = SimpleFeatureEncoder(projectedSFT, encodingOpt)
     featureBuilder = AvroSimpleFeatureFactory.featureBuilder(projectedSFT)
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
@@ -111,7 +111,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
       topSourceKey = source.getTopKey
       topSourceValue = source.getTopValue
 
-      val feature = originalEncoder.decode(topSourceValue)
+      val feature = originalDecoder.decode(topSourceValue)
       lazy val geoHashGeom = decoder.decode(topSourceKey).getDefaultGeometry.asInstanceOf[Geometry]
       geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
       geometry match {
@@ -158,7 +158,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
       featureBuilder.add(geometry)
       val feature = featureBuilder.buildFeature(Random.nextString(6))
       topDensityKey = Some(topSourceKey)
-      topDensityValue = Some(new Value(projectedEncoder.encode(feature)))
+      topDensityValue = Some(new Value(densityFeatureEncoder.encode(feature)))
     }
   }
 

@@ -289,11 +289,11 @@ class AccumuloDataStore(val connector: Connector,
   /**
    * Read SpatioTemporal Index table name from store metadata
    */
-  def getSpatioTemporalMaxShard(featureType: SimpleFeatureType): Int = {
-    val indexSchemaFmt = readMetadataItem(featureType.getTypeName, SCHEMA_CF)
+  def getSpatioTemporalMaxShard(sft: SimpleFeatureType): Int = {
+    val indexSchemaFmt = readMetadataItem(sft.getTypeName, SCHEMA_CF)
       .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for $SCHEMA_CF"))
-    val featureEncoder = getFeatureEncoder(featureType)
-    val indexSchema = IndexSchema(indexSchemaFmt, featureType, featureEncoder)
+    val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
+    val indexSchema = IndexSchema(indexSchemaFmt, sft, fe)
     indexSchema.maxShard
   }
 
@@ -801,11 +801,10 @@ class AccumuloDataStore(val connector: Connector,
   /**
    * Reads the feature encoding from the metadata. Defaults to TEXT if there is no metadata.
    */
-  def getFeatureEncoder(sft: SimpleFeatureType) = {
+  def getFeatureEncoding(sft: SimpleFeatureType): FeatureEncoding = {
     val encodingString = readMetadataItem(sft.getTypeName, FEATURE_ENCODING_CF)
                          .getOrElse(FeatureEncoding.TEXT.toString)
-    val encoding = FeatureEncoding.withName(encodingString).asInstanceOf[FeatureEncoding]
-    SimpleFeatureEncoderFactory.createEncoder(sft, encoding)
+    FeatureEncoding.withName(encodingString)
   }
 
   // We assume that they want the bounds for everything.
@@ -892,7 +891,7 @@ class AccumuloDataStore(val connector: Connector,
     validateMetadata(featureName)
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
     val sft = getSchema(featureName)
-    val fe = getFeatureEncoder(sft)
+    val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
     new AccumuloFeatureReader(this, query, indexSchemaFmt, sft, fe)
   }
 
@@ -900,11 +899,11 @@ class AccumuloDataStore(val connector: Connector,
   override def createFeatureWriter(typeName: String, transaction: Transaction): SFFeatureWriter = {
     validateMetadata(typeName)
     checkWritePermissions(typeName)
-    val featureType = getSchema(typeName)
+    val sft = getSchema(typeName)
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
-    val fe = getFeatureEncoder(featureType)
+    val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
     val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe)
-    new ModifyAccumuloFeatureWriter(featureType, encoder, connector, fe, writeVisibilities, this)
+    new ModifyAccumuloFeatureWriter(sft, encoder, connector, fe, writeVisibilities, this)
   }
 
   /* optimized for GeoTools API to return writer ONLY for appending (aka don't scan table) */
@@ -912,11 +911,11 @@ class AccumuloDataStore(val connector: Connector,
                                       transaction: Transaction): SFFeatureWriter = {
     validateMetadata(typeName)
     checkWritePermissions(typeName)
-    val featureType = getSchema(typeName)
+    val sft = getSchema(typeName)
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
-    val fe = getFeatureEncoder(featureType)
+    val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
     val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe)
-    new AppendAccumuloFeatureWriter(featureType, encoder, connector, fe, writeVisibilities, this)
+    new AppendAccumuloFeatureWriter(sft, encoder, connector, fe, writeVisibilities, this)
   }
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE

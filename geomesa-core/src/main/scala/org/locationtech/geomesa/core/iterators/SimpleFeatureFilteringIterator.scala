@@ -47,8 +47,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var simpleFeatureType: SimpleFeatureType = null
   var targetFeatureType: SimpleFeatureType = null
 
-  var sourceEncoder: SimpleFeatureEncoder = null
-  var targetEncoder: SimpleFeatureEncoder = null
+  var sourceDecoder: SimpleFeatureDecoder = null
 
   // the default filter accepts everything
   var filter: Filter = null
@@ -56,7 +55,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var transform: (SimpleFeature => Array[Byte]) = (_: SimpleFeature) => source.getTopValue.get()
 
   def evalFilter(v: Value) = {
-    Try(sourceEncoder.decode(v)) match {
+    Try(sourceDecoder.decode(v)) match {
       case Success(feature) =>
         nextFeature = feature
         filter.evaluate(nextFeature)
@@ -87,7 +86,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
     // default to text if not found for backwards compatibility
     // this encoder is for the source sft not the transformed sft (may be different)
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    sourceEncoder = SimpleFeatureEncoderFactory.createEncoder(simpleFeatureType, encodingOpt)
+    sourceDecoder = SimpleFeatureDecoder(simpleFeatureType, encodingOpt)
 
     val transformSchema = options.get(GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
     targetFeatureType =
@@ -98,7 +97,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
 
     val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
     transform =
-      if(transformString != null) TransformCreator.createTransform(targetFeatureType, sourceEncoder.getEncoding, transformString)
+      if(transformString != null) TransformCreator.createTransform(targetFeatureType, sourceDecoder.encoding, transformString)
       else _ => source.getTopValue.get()
 
     // read off the filter expression, if applicable

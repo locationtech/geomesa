@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.core.data
 
+import com.vividsolutions.jts.geom.Point
 import org.apache.accumulo.core.data.Value
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
@@ -28,14 +29,10 @@ import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
-
-/**
-* The purpose of this test is to ensure that the table version is backwards compatible with
-* older versions (e.g. 0.10.x). The table format should not be changed without some sort of
-* transition map/reduce job to convert table formats.
-*/
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureEncoderTest extends Specification {
+
+  sequential
 
   val sftName = "SimpleFeatureEncoderTest"
   val sft = SimpleFeatureTypes.createType(sftName, "name:String,*geom:Point,dtg:Date")
@@ -53,14 +50,58 @@ class SimpleFeatureEncoderTest extends Specification {
     sf
   }
 
-  val encoder = new AvroFeatureEncoder(sft)
-
   "SimpleFeatureEncoder" should {
     "encode and decode points" in {
+      val encoder = new AvroFeatureEncoder(sft)
+      val decoder = new AvroFeatureDecoder(sft)
+
       val features = getFeatures
       val encoded = features.map(encoder.encode(_))
-      val decoded = encoded.map { bytes => encoder.decode(new Value(bytes)) }
+      val decoded = encoded.map { bytes => decoder.decode(new Value(bytes)) }
       decoded.map(_.getDefaultGeometry) mustEqual(features.map(_.getDefaultGeometry))
+    }
+
+    "have properly working apply() methods" in {
+      SimpleFeatureEncoder(sft, "avro") must beAnInstanceOf[AvroFeatureEncoder]
+      SimpleFeatureEncoder(sft, FeatureEncoding.AVRO) must beAnInstanceOf[AvroFeatureEncoder]
+
+      SimpleFeatureEncoder(sft, "text") must beAnInstanceOf[TextFeatureEncoder]
+      SimpleFeatureEncoder(sft, FeatureEncoding.TEXT) must beAnInstanceOf[TextFeatureEncoder]
+    }
+  }
+
+  "SimpleFeatureDecoder" should {
+    "have working apply() methods" in {
+      SimpleFeatureDecoder(sft, "avro") must beAnInstanceOf[AvroFeatureDecoder]
+      SimpleFeatureDecoder(sft, FeatureEncoding.AVRO) must beAnInstanceOf[AvroFeatureDecoder]
+
+      SimpleFeatureDecoder(sft, "text") must beAnInstanceOf[TextFeatureDecoder]
+      SimpleFeatureDecoder(sft, FeatureEncoding.TEXT) must beAnInstanceOf[TextFeatureDecoder]
+
+      val projectedSft = SimpleFeatureTypes.createType(sftName, "*geom:Point")
+      SimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.AVRO) must beAnInstanceOf[ProjectingAvroFeatureDecoder]
+      SimpleFeatureDecoder(sft, projectedSft, "avro") must beAnInstanceOf[ProjectingAvroFeatureDecoder]
+
+      SimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.TEXT) must beAnInstanceOf[ProjectingTextDecoder]
+      SimpleFeatureDecoder(sft, projectedSft, "text") must beAnInstanceOf[ProjectingTextDecoder]
+    }
+
+    "properly project features" in {
+      val encoder = SimpleFeatureEncoder(sft, "avro")
+
+      val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
+      val projectingDecoder = SimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.AVRO)
+
+      val features = getFeatures
+      val encoded = features.map(encoder.encode)
+      val decoded = encoded.map(projectingDecoder.decode)
+      decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
+
+      forall(decoded) { sf =>
+        sf.getAttributeCount mustEqual 1
+        sf.getAttribute(0) must beAnInstanceOf[Point]
+        sf.getFeatureType mustEqual projectedSft
+      }
     }
   }
 
