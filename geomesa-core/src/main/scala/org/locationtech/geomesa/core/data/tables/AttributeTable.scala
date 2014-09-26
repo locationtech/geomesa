@@ -151,7 +151,7 @@ object AttributeTable extends GeoMesaTable with Logging {
     typeRegistry.decode(alias, encoded)
   }
 
-  private val dateFormat = ISODateTimeFormat.dateTime();
+  private val dateFormat = ISODateTimeFormat.dateTime()
   private val simpleEncoders = SimpleTypeEncoders.SIMPLE_TYPES.getAllEncoders
 
   private type TryEncoder = Try[(TypeEncoder[Any, String], TypeEncoder[_, String])]

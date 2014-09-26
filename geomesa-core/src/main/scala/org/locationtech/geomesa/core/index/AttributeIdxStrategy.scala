@@ -65,9 +65,6 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
     val (temporalFilters, nonSTFilters) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
 
-    // NB: Added check to see if the nonSTFilters is empty.
-    //  If it is, we needn't configure the SFFI
-
     output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
     val oFilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters)
     val oNonStFilters: Option[Filter] = nonSTFilters.map(_ => recomposeAnd(nonSTFilters)).headOption
@@ -80,6 +77,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 
     iteratorChoice.iterator match {
       case IndexOnlyIterator =>
+        // the attribute index iterator also handles transforms and date/geom filters
         val cfg = configureAttributeIndexIterator(featureType,
                                                   iqp.featureEncoding,
                                                   query,
@@ -87,17 +85,20 @@ trait AttributeIdxStrategy extends Strategy with Logging {
                                                   attributeName)
         attrScanner.addScanIterator(cfg)
         output(s"AttributeIndexIterator: ${cfg.toString}")
-        // there won't be any non-st-filters if the index only iterator has been selected
+        // there won't be any non-date/time-filters if the index only iterator has been selected
         SelfClosingIterator(attrScanner)
 
       case RecordJoinIterator =>
         if (opts.nonEmpty) {
+          // this handles geom or date filters at the attribute table level
           val cfg = configureAttributeFilteringIterator(featureType, opts)
           attrScanner.addScanIterator(cfg)
         }
 
         val recordScanner = acc.createRecordScanner(featureType)
         if (iteratorChoice.useSFFI) {
+          // we use the SFFI if there are additional filters or a transform, this has to happen on
+          // the record table after the join as we don't have the data to evaluate the filter before that
           val cfg = configureSimpleFeatureFilteringIterator(featureType,
                                                             oNonStFilters.map(ECQL.toCQL),
                                                             iqp.schema,
