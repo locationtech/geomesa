@@ -20,5 +20,4 @@ gt-shapefile
 libthrift
 jts
 jsr-275
-hsqldb
 commons-pool
