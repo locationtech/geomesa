@@ -138,7 +138,19 @@ case class IndexEntryEncoder(rowf: TextFormatter,
 
 }
 
+object IndexEntryDecoder {
+  val localBuilder = new ThreadLocal[SimpleFeatureBuilder] {
+    override def initialValue(): SimpleFeatureBuilder = new SimpleFeatureBuilder(indexSFT)
+  }
+}
+
+import IndexEntryDecoder._
+
 case class IndexEntryDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
-  def decode(key: Key) =
-    SimpleFeatureBuilder.build(indexSFT, List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))), "")
+  def decode(key: Key) = {
+    val builder = localBuilder.get
+    builder.reset()
+    builder.addAll(List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))))
+    builder.buildFeature("")
+  }
 }
