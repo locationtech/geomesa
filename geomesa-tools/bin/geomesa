@@ -48,7 +48,6 @@ for home in ${GEOMESA_LIB} ${ACCUMULO_LIB} ${HADOOP_LIB}; do
     fi
   fi
 done
-GEOMESA_CP=${GEOMESA_CP:1}
 
 hadoopDirs=(${HADOOP_COMMON} \
 ${HADOOP_MAPREDUCE} \
@@ -67,7 +66,6 @@ for home in ${hadoopDirs[*]}; do
       Hadoop JARs."
   fi
 done
-GEOMESA_CP=${GEOMESA_CP:1}
 
 # We explicitly add geomesa-tools as the first jar to ensure the correct log4j properties file is used.
 CLASSPATH="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
