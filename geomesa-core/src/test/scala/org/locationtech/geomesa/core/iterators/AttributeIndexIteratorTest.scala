@@ -138,8 +138,7 @@ class AttributeIndexIteratorTest extends Specification {
            "dtg BETWEEN '2012-01-01T12:00:00.000Z' AND '2013-01-01T12:00:00.000Z'",
            "age < 10",
            "name = 'b' AND BBOX(geom, 30, 30, 50, 50)")
-      filters.foreach(checkExplainStrategy)
-      success
+      forall(filters) { filter => checkExplainStrategy(filter) }
     }
 
     "be selected for appropriate queries" in {
