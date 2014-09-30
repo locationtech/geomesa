@@ -23,7 +23,7 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 
 This project is managed by Maven, and builds with the command
 
-```geomesa> mvn clean install```
+``` geomesa> mvn clean install ```
 
 From the root directory, this builds each sub-project with its additional dependencies-included JAR.
 
@@ -38,7 +38,7 @@ From the root directory, this builds each sub-project with its additional depend
 
 #### geomesa-core
 
-This project contains the implementations of the core indexing structures, Accumulo iterators, and the GeoTools interfaces for exposing the functionalit yas a ```DataStore``` to both application developers and GeoServer.
+This project contains the implementations of the core indexing structures, Accumulo iterators, and the GeoTools interfaces for exposing the functionality as a ```DataStore``` to both application developers and GeoServer.
 
 ##### Scala console via scala-maven-plugin
 
