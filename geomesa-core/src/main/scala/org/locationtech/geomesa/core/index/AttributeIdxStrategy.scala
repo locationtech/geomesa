@@ -20,7 +20,7 @@ package org.locationtech.geomesa.core.index
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.IteratorSetting
+import org.apache.accumulo.core.client.{BatchScanner, Scanner, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
@@ -34,7 +34,7 @@ import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
+import org.locationtech.geomesa.core.util.{SelfClosingIterator, BatchMultiScanner}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
@@ -77,47 +77,118 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 
     iteratorChoice.iterator match {
       case IndexOnlyIterator =>
-        // the attribute index iterator also handles transforms and date/geom filters
-        val cfg = configureAttributeIndexIterator(featureType,
-                                                  iqp.featureEncoding,
-                                                  query,
-                                                  opts,
-                                                  attributeName)
-        attrScanner.addScanIterator(cfg)
-        output(s"AttributeIndexIterator: ${cfg.toString}")
-        // there won't be any non-date/time-filters if the index only iterator has been selected
-        SelfClosingIterator(attrScanner)
+        indexOnlyIterator(attrScanner,
+                          featureType,
+                          iqp.featureEncoding,
+                          query,
+                          opts,
+                          attributeName,
+                          output)
 
       case RecordJoinIterator =>
-        if (opts.nonEmpty) {
-          // this handles geom or date filters at the attribute table level
-          val cfg = configureAttributeFilteringIterator(featureType, opts)
-          attrScanner.addScanIterator(cfg)
-        }
-
         val recordScanner = acc.createRecordScanner(featureType)
-        if (iteratorChoice.useSFFI) {
-          // we use the SFFI if there are additional filters or a transform, this has to happen on
-          // the record table after the join as we don't have the data to evaluate the filter before that
-          val cfg = configureSimpleFeatureFilteringIterator(featureType,
-                                                            oNonStFilters.map(ECQL.toCQL),
-                                                            iqp.schema,
-                                                            iqp.featureEncoding,
-                                                            query)
-          recordScanner.addScanIterator(cfg)
-        }
-
-        // function to join the attribute index scan results to the record table
-        // since the row id of the record table is in the CF just grab that
-        val prefix = getTableSharingPrefix(featureType)
-        val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new AccRange(prefix + kv.getKey.getColumnQualifier)
-        val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
-
-        SelfClosingIterator(bms.iterator, () => bms.close())
+        recordJoinIterator(attrScanner,
+                           recordScanner,
+                           featureType,
+                           iqp.schema,
+                           iqp.featureEncoding,
+                           query,
+                           iteratorChoice.useSFFI,
+                           oNonStFilters,
+                           opts,
+                           output)
     }
   }
 
-  def configureAttributeIndexIterator(featureType: SimpleFeatureType,
+  /**
+   * Gets a iterator against the index table only
+   *
+   * @param attrScanner
+   * @param featureType
+   * @param encoding
+   * @param query
+   * @param opts
+   * @param attributeName
+   * @param output
+   * @return
+   */
+  private def indexOnlyIterator(attrScanner: Scanner,
+                        featureType: SimpleFeatureType,
+                        encoding: FeatureEncoding,
+                        query: Query,
+                        opts: Map[String, String],
+                        attributeName: String,
+                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+
+    // the attribute index iterator also handles transforms and date/geom filters
+    val cfg = configureAttributeIndexIterator(featureType, encoding, query, opts, attributeName)
+    attrScanner.addScanIterator(cfg)
+
+    output(s"AttributeIndexIterator: ${cfg.toString }")
+
+    // there won't be any non-date/time-filters if the index only iterator has been selected
+    SelfClosingIterator(attrScanner)
+  }
+
+  /**
+   * Iterator that joins the attribute index and the record table
+   *
+   * @param attrScanner
+   * @param recordScanner
+   * @param featureType
+   * @param schema
+   * @param encoding
+   * @param query
+   * @param useSffi
+   * @param sffiFilter
+   * @param opts
+   * @param output
+   * @return
+   */
+  private def recordJoinIterator(attrScanner: Scanner,
+                         recordScanner: BatchScanner,
+                         featureType: SimpleFeatureType,
+                         schema: String,
+                         encoding: FeatureEncoding,
+                         query: Query,
+                         useSffi: Boolean,
+                         sffiFilter: Option[Filter],
+                         opts: Map[String, String],
+                         output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+
+    if (opts.nonEmpty) {
+      // this handles geom or date filters at the attribute table level
+      val cfg = configureAttributeFilteringIterator(featureType, opts)
+      attrScanner.addScanIterator(cfg)
+
+      output(s"AttributeFilteringIterator: ${cfg.toString }")
+    }
+
+
+    if (useSffi) {
+      // we use the SFFI if there are additional filters or a transform, this has to happen on
+      // the record table after the join as we don't have the data to evaluate the filter before that
+      val cfg = configureSimpleFeatureFilteringIterator(featureType,
+                                                        sffiFilter.map(ECQL.toCQL),
+                                                        schema,
+                                                        encoding,
+                                                        query)
+      recordScanner.addScanIterator(cfg)
+
+      output(s"SimpleFeatureFilteringIterator: ${cfg.toString }")
+    }
+
+    // function to join the attribute index scan results to the record table
+    // since the row id of the record table is in the CF just grab that
+    val prefix = getTableSharingPrefix(featureType)
+    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) =>
+      new AccRange(prefix + kv.getKey.getColumnQualifier)
+    val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
+
+    SelfClosingIterator(bms.iterator, () => bms.close())
+  }
+
+  private def configureAttributeIndexIterator(featureType: SimpleFeatureType,
                                       encoding: FeatureEncoding,
                                       query: Query,
                                       opts: Map[String, String],
@@ -135,7 +206,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     cfg
   }
 
-  def configureAttributeFilteringIterator(featureType: SimpleFeatureType, opts: Map[String, String]) = {
+  private def configureAttributeFilteringIterator(featureType: SimpleFeatureType, opts: Map[String, String]) = {
     val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
                                   "attrIndexFilter",
                                   classOf[AttributeIndexFilteringIterator].getCanonicalName,
