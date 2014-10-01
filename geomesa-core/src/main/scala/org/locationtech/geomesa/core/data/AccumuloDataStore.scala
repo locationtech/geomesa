@@ -122,9 +122,7 @@ class AccumuloDataStore(val connector: Connector,
 
   private val tableOps = connector.tableOperations()
 
-  if (!tableOps.exists(catalogTable)) {
-    tableOps.create(catalogTable, true, TimeType.LOGICAL)
-  }
+  createTableConditionally(catalogTable)
 
   /**
    * Computes and writes the metadata for this feature type
@@ -321,16 +319,8 @@ class AccumuloDataStore(val connector: Connector,
     val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(catalogTable, featureType)
     val attributeIndexTable    = formatAttrIdxTableName(catalogTable, featureType)
     val recordTable            = formatRecordTableName(catalogTable, featureType)
-    
-    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach { t =>
-      if (!tableOps.exists(t)) {
-        try {
-          connector.tableOperations.create(t, true, TimeType.LOGICAL)
-        } catch {
-          case e: TableExistsException => // this can happen with multiple threads but shouldn't cause any issues
-        }
-      }
-    }
+
+    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach(createTableConditionally)
 
     if (!connector.isInstanceOf[MockConnector]) {
       configureRecordTable(featureType, recordTable)
@@ -338,6 +328,15 @@ class AccumuloDataStore(val connector: Connector,
       configureSpatioTemporalIdxTable(maxShard, featureType, spatioTemporalIdxTable)
     }
   }
+
+  private def createTableConditionally(table: String) =
+    if (!tableOps.exists(table)) {
+      try {
+        tableOps.create(table, true, TimeType.LOGICAL)
+      } catch {
+        case e: TableExistsException => // this can happen with multiple threads but shouldn't cause any issues
+      }
+    }
 
   def configureRecordTable(featureType: SimpleFeatureType, recordTable: String): Unit = {
     val prefix = index.getTableSharingPrefix(featureType)
