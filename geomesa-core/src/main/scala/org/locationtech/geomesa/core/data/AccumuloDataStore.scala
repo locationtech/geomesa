@@ -27,7 +27,6 @@ import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.{ColumnFamilyFunctor, RowFunctor}
-import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
@@ -40,8 +39,10 @@ import org.locationtech.geomesa.core
 import org.locationtech.geomesa.core.data.AccumuloDataStore._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
+import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
+import org.locationtech.geomesa.core.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, NonGeomAttributeSpec}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -49,6 +50,7 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -103,11 +105,14 @@ class AccumuloDataStore(val connector: Connector,
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
-  private val validated = scala.collection.mutable.Map[String, String]()
+  private val validated = new mutable.HashMap[String, String]()
+                              with mutable.SynchronizedMap[String, String]
 
-  private val metaDataCache = scala.collection.mutable.HashMap[(String, Text), Option[String]]()
+  private val metaDataCache = new mutable.HashMap[(String, Text), Option[String]]()
+                                  with mutable.SynchronizedMap[(String, Text), Option[String]]
 
-  private val visibilityCheckCache = scala.collection.mutable.Map[(String, String), Boolean]()
+  private val visibilityCheckCache = new mutable.HashMap[(String, String), Boolean]()
+                                         with mutable.SynchronizedMap[(String, String), Boolean]
 
   // TODO memory should be configurable
   private val metadataBWConfig =
@@ -117,9 +122,7 @@ class AccumuloDataStore(val connector: Connector,
 
   private val tableOps = connector.tableOperations()
 
-  if (!tableOps.exists(catalogTable)) {
-    tableOps.create(catalogTable, true, TimeType.LOGICAL)
-  }
+  ensureTableExists(catalogTable)
 
   /**
    * Computes and writes the metadata for this feature type
@@ -316,12 +319,8 @@ class AccumuloDataStore(val connector: Connector,
     val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(catalogTable, featureType)
     val attributeIndexTable    = formatAttrIdxTableName(catalogTable, featureType)
     val recordTable            = formatRecordTableName(catalogTable, featureType)
-    
-    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach { t =>
-      if (!tableOps.exists(t)) {
-        connector.tableOperations.create(t, true, TimeType.LOGICAL)
-      }
-    }
+
+    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach(ensureTableExists)
 
     if (!connector.isInstanceOf[MockConnector]) {
       configureRecordTable(featureType, recordTable)
@@ -330,11 +329,22 @@ class AccumuloDataStore(val connector: Connector,
     }
   }
 
+  private def ensureTableExists(table: String) =
+    if (!tableOps.exists(table)) {
+      try {
+        tableOps.create(table, true, TimeType.LOGICAL)
+      } catch {
+        case e: TableExistsException => // this can happen with multiple threads but shouldn't cause any issues
+      }
+    }
+
   def configureRecordTable(featureType: SimpleFeatureType, recordTable: String): Unit = {
+    val prefix = index.getTableSharingPrefix(featureType)
+    val prefixFn = RecordTable.getRowKey(prefix, _: String)
     // if using UUID as FeatureID, configure splits with hex characters
-    val HEX_SPLITS = "0123456789abcdefABCDEF".map(s=>new Text(s.toString)).toArray
-    val RECORDS_SPLITS = ImmutableSortedSet.copyOf(HEX_SPLITS)
-    tableOps.addSplits(recordTable, RECORDS_SPLITS)
+    val hexSplits = "0123456789abcdefABCDEF".map(_.toString).map(prefixFn).map(new Text(_))
+    val splits = ImmutableSortedSet.copyOf(hexSplits.toArray)
+    tableOps.addSplits(recordTable, splits)
     // enable the row functor as the feature ID is stored in the Row ID
     tableOps.setProperty(recordTable, "table.bloom.key.functor", classOf[RowFunctor].getCanonicalName)
     tableOps.setProperty(recordTable, "table.bloom.enabled", "true")
@@ -343,9 +353,13 @@ class AccumuloDataStore(val connector: Connector,
   // configure splits for each of the attribute names
   def configureAttrIdxTable(featureType: SimpleFeatureType, attributeIndexTable: String): Unit = {
     val indexedAttrs = SimpleFeatureTypes.getIndexedAttributes(featureType)
-    val names = indexedAttrs.map(_.getLocalName).map(new Text(_)).toArray
-    val splits = ImmutableSortedSet.copyOf(names)
-    tableOps.addSplits(attributeIndexTable, splits)
+    if (!indexedAttrs.isEmpty) {
+      val prefix = index.getTableSharingPrefix(featureType)
+      val prefixFn = AttributeTable.getAttributeIndexRowPrefix(prefix, _: String)
+      val names = indexedAttrs.map(_.getLocalName).map(prefixFn).map(new Text(_))
+      val splits = ImmutableSortedSet.copyOf(names.toArray)
+      tableOps.addSplits(attributeIndexTable, splits)
+    }
   }
 
   def configureSpatioTemporalIdxTable(maxShard: Int,
@@ -383,18 +397,12 @@ class AccumuloDataStore(val connector: Connector,
    * @param maxShard numerical id of the max shard (creates maxShard + 1 splits)
    */
   def createSchema(featureType: SimpleFeatureType, maxShard: Int) =
-    try {
-      if(getSchema(featureType.getTypeName) == null) {
-        val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
-        checkSchemaRequirements(featureType, spatioTemporalSchema)
-        createTablesForType(featureType, maxShard)
-        writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
-      }
-    } catch {
-      case tee: TableExistsException =>
-        logger.info(s"not creating schema for feature type ${featureType.getTypeName}, schema has already been created")
+    if (getSchema(featureType.getTypeName) == null) {
+      val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
+      checkSchemaRequirements(featureType, spatioTemporalSchema)
+      createTablesForType(featureType, maxShard)
+      writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
     }
-
 
   // This function enforces the shared ST schema requirements.
   //  For a shared ST table, the IndexSchema must start with a partition number and a constant string.
@@ -481,7 +489,7 @@ class AccumuloDataStore(val connector: Connector,
   private def expireMetadataFromCache(featureName: String) =
     metaDataCache.keys
       .filter { case (fn, cf) => fn == featureName }
-      .map { metaDataCache.remove }
+      .foreach(metaDataCache.remove)
 
   /**
    * GeoTools API createSchema() method for a featureType...creates tables with
@@ -675,11 +683,7 @@ class AccumuloDataStore(val connector: Connector,
    * @return
    */
   private def readMetadataItem(featureName: String, colFam: Text): Option[String] =
-    metaDataCache.getOrElse((featureName, colFam), {
-      val result = readMetadataItemNoCache(featureName, colFam)
-      metaDataCache.put((featureName, colFam), result)
-      result
-    })
+    metaDataCache.getOrElseUpdate((featureName, colFam), readMetadataItemNoCache(featureName, colFam))
 
   private def readRequiredMetadataItem(featureName: String, colFam: Text): String =
     readMetadataItem(featureName, colFam)
@@ -707,21 +711,7 @@ class AccumuloDataStore(val connector: Connector,
     scanner.setRange(new Range(s"${METADATA_TAG}_$featureName"))
     scanner.fetchColumn(colFam, EMPTY_COLQ)
 
-    val name = "version-" + featureName + "-" + colFam.toString
-    val cfg = new IteratorSetting(1, name, classOf[VersioningIterator])
-    VersioningIterator.setMaxVersions(cfg, 1)
-    scanner.addScanIterator(cfg)
-
-    val iter = scanner.iterator
-    val result =
-      if (iter.hasNext) {
-        Some(iter.next.getValue.toString)
-      } else {
-        None
-      }
-
-    scanner.close()
-    result
+    SelfClosingIterator(scanner).map(_.getValue.toString).toList.headOption
   }
 
   /**
