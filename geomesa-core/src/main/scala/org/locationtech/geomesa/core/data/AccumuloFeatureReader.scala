@@ -70,7 +70,7 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                              QueryStatTransform.filterToString(query.getFilter),
                              QueryStatTransform.hintsToString(query.getHints),
                              planningTime,
-                             scanTime,
+                             scanTime - planningTime, // planning time gets added to scan time due to lazy val...
                              hitsSeen)
         sw.writeStat(stat, dataStore.getQueriesTableName(sft))
       case _ => // do nothing
