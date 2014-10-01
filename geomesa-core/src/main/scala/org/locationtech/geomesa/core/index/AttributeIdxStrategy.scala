@@ -29,7 +29,7 @@ import org.geotools.temporal.`object`.DefaultPeriod
 import org.locationtech.geomesa.core.DEFAULT_FILTER_PROPERTY_NAME
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.data.tables.AttributeTable
+import org.locationtech.geomesa.core.data.tables.{RecordTable, AttributeTable}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
@@ -182,7 +182,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     // since the row id of the record table is in the CF just grab that
     val prefix = getTableSharingPrefix(featureType)
     val joinFunction = (kv: java.util.Map.Entry[Key, Value]) =>
-      new AccRange(prefix + kv.getKey.getColumnQualifier)
+      new AccRange(RecordTable.getRowKey(prefix, kv.getKey.getColumnQualifier.toString))
     val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
 
     SelfClosingIterator(bms.iterator, () => bms.close())

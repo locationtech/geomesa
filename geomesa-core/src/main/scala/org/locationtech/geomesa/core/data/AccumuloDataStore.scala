@@ -397,7 +397,7 @@ class AccumuloDataStore(val connector: Connector,
    * @param maxShard numerical id of the max shard (creates maxShard + 1 splits)
    */
   def createSchema(featureType: SimpleFeatureType, maxShard: Int) =
-    if(getSchema(featureType.getTypeName) == null) {
+    if (getSchema(featureType.getTypeName) == null) {
       val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
       checkSchemaRequirements(featureType, spatioTemporalSchema)
       createTablesForType(featureType, maxShard)
