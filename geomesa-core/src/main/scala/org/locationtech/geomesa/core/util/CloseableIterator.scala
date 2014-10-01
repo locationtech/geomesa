@@ -86,6 +86,9 @@ object SelfClosingIterator {
   def apply[A](iter: CloseableIterator[A]): SelfClosingIterator[A] = apply(iter, iter.close)
 
   def apply(s: Scanner): SelfClosingIterator[Entry[Key, Value]] = apply(s.iterator(), s.close)
+
+  def apply[A <: Feature, B <: FeatureType](fr: FeatureReader[B, A]): SelfClosingIterator[A] =
+    apply(CloseableIterator(fr))
 }
 
 // This object provides a standard way to wrap BatchScanners in a self-closing and closeable iterator.

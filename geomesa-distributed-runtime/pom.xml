@@ -42,21 +42,9 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-hsql</artifactId>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>accumulo1.5.1</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-shell</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
     <build>
         <plugins>
             <plugin>
@@ -95,4 +83,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

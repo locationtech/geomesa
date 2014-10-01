@@ -18,18 +18,19 @@ package org.locationtech.geomesa.core.index
 
 import java.util.Map.Entry
 
+import com.vividsolutions.jts.geom.{Geometry, Polygon}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.Query
 import org.locationtech.geomesa.core._
+import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.filter._
+import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators.{FEATURE_ENCODING, _}
 import org.locationtech.geomesa.core.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -47,14 +48,22 @@ trait Strategy {
     qp.cf.foreach { c => bs.fetchColumnFamily(c) }
   }
 
-  def configureFeatureEncoding(cfg: IteratorSetting, featureEncoder: SimpleFeatureEncoder) {
-    cfg.addOption(FEATURE_ENCODING, featureEncoder.getName)
+  def configureFeatureEncoding(cfg: IteratorSetting, featureEncoding: FeatureEncoding) {
+    cfg.addOption(FEATURE_ENCODING, featureEncoding.toString)
   }
 
   def configureFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) {
     val encodedSimpleFeatureType = SimpleFeatureTypes.encodeType(featureType)
     cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, encodedSimpleFeatureType)
     cfg.encodeUserData(featureType.getUserData, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+  }
+
+  def configureFeatureTypeName(cfg: IteratorSetting, featureType: String) {
+    cfg.addOption(GEOMESA_ITERATORS_SFT_NAME, featureType)
+  }
+
+  def configureAttributeName(cfg: IteratorSetting, attributeName: String) {
+    cfg.addOption(GEOMESA_ITERATORS_ATTRIBUTE_NAME, attributeName)
   }
 
   // returns the SimpleFeatureType for the query's transform
@@ -78,14 +87,14 @@ trait Strategy {
   def configureSimpleFeatureFilteringIterator(simpleFeatureType: SimpleFeatureType,
                                               ecql: Option[String],
                                               schema: String,
-                                              featureEncoder: SimpleFeatureEncoder,
+                                              featureEncoding: FeatureEncoding,
                                               query: Query): IteratorSetting = {
     val cfg = new IteratorSetting(iteratorPriority_SimpleFeatureFilteringIterator,
       "sffilter-" + randomPrintableString(5),
       classOf[SimpleFeatureFilteringIterator])
 
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
-    configureFeatureEncoding(cfg, featureEncoder)
+    configureFeatureEncoding(cfg, featureEncoding)
     configureTransforms(query,cfg)
     configureFeatureType(cfg, simpleFeatureType)
     ecql.foreach(SimpleFeatureFilteringIterator.setECQLFilter(cfg, _))
@@ -95,4 +104,41 @@ trait Strategy {
 
   def randomPrintableString(length:Int=5) : String = (1 to length).
     map(i => Random.nextPrintableChar()).mkString
+
+  def getSFFIIterCfg(iteratorConfig: IteratorConfig,
+                     featureType: SimpleFeatureType,
+                     ecql: Option[String],
+                     schema: String,
+                     featureEncoding: FeatureEncoding,
+                     query: Query): Option[IteratorSetting] = {
+    if (iteratorConfig.useSFFI) {
+      Some(configureSimpleFeatureFilteringIterator(featureType, ecql, schema, featureEncoding, query))
+    } else None
+  }
+
+  def getTopIterCfg(query: Query,
+                    geometryToCover: Geometry,
+                    schema: String,
+                    featureEncoding: FeatureEncoding,
+                    featureType: SimpleFeatureType) = {
+    if (query.getHints.containsKey(DENSITY_KEY)) {
+      val clazz = classOf[DensityIterator]
+
+      val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
+        "topfilter-" + randomPrintableString(5),
+        clazz)
+
+      val width = query.getHints.get(WIDTH_KEY).asInstanceOf[Int]
+      val height = query.getHints.get(HEIGHT_KEY).asInstanceOf[Int]
+      val polygon = if (geometryToCover == null) null else geometryToCover.getEnvelope.asInstanceOf[Polygon]
+
+      DensityIterator.configure(cfg, polygon, width, height)
+
+      cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
+      configureFeatureEncoding(cfg, featureEncoding)
+      configureFeatureType(cfg, featureType)
+
+      Some(cfg)
+    } else None
+  }
 }

@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 
@@ -25,9 +24,8 @@ import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{BatchWriterConfig, IteratorSetting}
-import org.apache.accumulo.core.data.{Mutation, Value, Range => ARange}
+import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
-import org.apache.hadoop.io.Text
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
@@ -36,11 +34,12 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.{IndexSchema, IndexSchemaBuilder}
+import org.locationtech.geomesa.core.data.tables.AttributeTable
+import org.locationtech.geomesa.core.index
+import org.locationtech.geomesa.core.index.{AttributeIdxEqualsStrategy, STIdxStrategy, AttributeIdxLikeStrategy, QueryStrategyDecider}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -50,7 +49,8 @@ import scala.collection.JavaConversions._
 class AttributeIndexFilteringIteratorTest extends Specification {
 
   val sftName = "AttributeIndexFilteringIteratorTest"
-  val sft = SimpleFeatureTypes.createType(sftName, s"name:String,age:Integer,dtg:Date,*geom:Geometry:srid=4326")
+  val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,age:Integer:index=true,dtg:Date,*geom:Geometry:srid=4326")
+  index.setDtgDescriptor(sft, "dtg")
 
   val sdf = new SimpleDateFormat("yyyyMMdd")
   sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))
@@ -66,7 +66,6 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       "password"          -> "mypassword",
       "auths"             -> "A,B,C",
       "tableName"         -> "AttributeIndexFilteringIteratorTest",
-      "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
       "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
   val ds = createStore
@@ -81,6 +80,7 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
       sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
       sf.setAttribute("dtg", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      sf.setAttribute("age", i)
       sf.setAttribute("name", name)
       sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       featureCollection.add(sf)
@@ -90,21 +90,6 @@ class AttributeIndexFilteringIteratorTest extends Specification {
   fs.addFeatures(featureCollection)
 
   val ff = CommonFactoryFinder.getFilterFactory2
-
-  case class PutOrDeleteMutation(row: Array[Byte], cf: Text, cq: Text, v: Value)
-
-  def getAttrIdxMutations(feature: SimpleFeature, cf: Text) =
-    feature.getFeatureType.getAttributeDescriptors.map { attr =>
-      val attrName = attr.getLocalName.getBytes(StandardCharsets.UTF_8)
-      val attrValue = valOrNull(feature.getAttribute(attr.getName)).getBytes(StandardCharsets.UTF_8)
-      val row = attrName ++ NULLBYTE ++ attrValue
-      val value = IndexSchema.encodeIndexValue(feature)
-      PutOrDeleteMutation(row, cf, EMPTY_COLQ, value)
-    }
-
-  val NULLBYTE = Array[Byte](0.toByte)
-  private val nullString = "<null>"
-  private def valOrNull(o: AnyRef) = if(o == null) nullString else o.toString
 
   "AttributeIndexFilteringIterator" should {
 
@@ -116,12 +101,9 @@ class AttributeIndexFilteringIteratorTest extends Specification {
 
       val bw = conn.createBatchWriter(table, new BatchWriterConfig)
       featureCollection.foreach { feature =>
-        val muts = getAttrIdxMutations(feature, new Text(feature.getID)).map {
-          case PutOrDeleteMutation(row, cf, cq, v) =>
-            val m = new Mutation(row)
-            m.put(cf, cq, new ColumnVisibility(), v)
-            m
-        }
+        val muts = AttributeTable.getAttributeIndexMutations(feature,
+                                                             sft.getAttributeDescriptors,
+                                                             new ColumnVisibility(), "")
         bw.addMutations(muts)
       }
       bw.close()
@@ -130,37 +112,56 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       val scanner = conn.createScanner(table, new Authorizations())
       val is = new IteratorSetting(40, classOf[AttributeIndexFilteringIterator])
       scanner.addScanIterator(is)
-      scanner.setRange(new ARange(new Text("name".getBytes ++ NULLBYTE ++ "b".getBytes)))
+      scanner.setRange(new ARange(AttributeTable.getAttributeIndexRow("", "name", Some("b"))))
       scanner.iterator.size mustEqual 4
     }
 
-    "handle like queries" in {
+    "handle like queries and choose correct strategies" in {
       // Try out wildcard queries using the % wildcard syntax.
       // Test single wildcard, trailing, leading, and both trailing & leading wildcards
 
       // % should return all features
-      fs.getFeatures(ff.like(ff.property("name"),"%")).features.size mustEqual 16
+      val wildCardQuery = new Query(sftName, ff.like(ff.property("name"),"%"))
+      QueryStrategyDecider.chooseNewStrategy(sft, wildCardQuery) must beAnInstanceOf[AttributeIdxLikeStrategy]
+      fs.getFeatures().features.size mustEqual 16
 
       forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"%$letter")).features.size mustEqual 4
+        val leftWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter"))
+        QueryStrategyDecider.chooseNewStrategy(sft, leftWildCard) must beAnInstanceOf[STIdxStrategy]
+        fs.getFeatures(leftWildCard).features.size mustEqual 4
+
+        // Double wildcards should be ST
+        val doubleWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter%"))
+        QueryStrategyDecider.chooseNewStrategy(sft, doubleWildCard) must beAnInstanceOf[STIdxStrategy]
+        fs.getFeatures(doubleWildCard).features.size mustEqual 4
 
         // should return the 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"%$letter%")).features.size mustEqual 4
-
-        // should return the 4 features for this letter
-        fs.getFeatures(ff.like(ff.property("name"),s"$letter%")).features.size mustEqual 4
+        val rightWildcard = new Query(sftName, ff.like(ff.property("name"),s"$letter%"))
+        QueryStrategyDecider.chooseNewStrategy(sft, rightWildcard) must beAnInstanceOf[AttributeIdxLikeStrategy]
+        fs.getFeatures(rightWildcard).features.size mustEqual 4
       }
 
     }
 
-    "handle transforms" in {
-      // transform to only return the attribute geom - dropping dtg and name
-      forall(List("a", "b", "c", "d")) { letter =>
-        val query = new Query(sftName, ECQL.toFilter(s"name <> '$letter'"), Array("geom"))
+    "actually handle transforms properly and chose correct strategies for attribute indexing" in {
+      // transform to only return the attribute geom - dropping dtg, age, and name
+      val query = new Query(sftName, ECQL.toFilter("name = 'b'"), Array("geom"))
+      QueryStrategyDecider.chooseNewStrategy(sft, query) must beAnInstanceOf[AttributeIdxEqualsStrategy]
+
+      val leftWildCard = new Query(sftName, ff.like(ff.property("name"), "%b"), Array("geom"))
+      QueryStrategyDecider.chooseNewStrategy(sft, leftWildCard) must beAnInstanceOf[STIdxStrategy]
+
+      val doubleWildCard = new Query(sftName, ff.like(ff.property("name"), "%b%"), Array("geom"))
+      QueryStrategyDecider.chooseNewStrategy(sft, doubleWildCard) must beAnInstanceOf[STIdxStrategy]
+
+      val rightWildcard = new Query(sftName, ff.like(ff.property("name"), "b%"), Array("geom"))
+      QueryStrategyDecider.chooseNewStrategy(sft, rightWildcard) must beAnInstanceOf[AttributeIdxLikeStrategy]
+
+      forall(List(query, leftWildCard, doubleWildCard, rightWildcard)) { query =>
         val features = fs.getFeatures(query)
 
-        features.size mustEqual 12
+        features.size mustEqual 4
         forall(features.features) { sf =>
           sf.getAttribute(0) must beAnInstanceOf[Geometry]
         }
@@ -168,6 +169,24 @@ class AttributeIndexFilteringIteratorTest extends Specification {
         forall(features.features) { sf =>
           sf.getAttributeCount mustEqual 1
         }
+        success
+      }
+    }
+
+    "handle corner case with attr idx, bbox, and no temporal filter" in {
+      val filter = ff.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
+      val query = new Query(sftName, filter, Array("geom"))
+      QueryStrategyDecider.chooseNewStrategy(sft, query) must beAnInstanceOf[AttributeIdxEqualsStrategy]
+
+      val features = fs.getFeatures(query)
+
+      features.size mustEqual 4
+      forall(features.features) { sf =>
+        sf.getAttribute(0) must beAnInstanceOf[Geometry]
+      }
+
+      forall(features.features) { sf =>
+        sf.getAttributeCount mustEqual 1
       }
     }
   }

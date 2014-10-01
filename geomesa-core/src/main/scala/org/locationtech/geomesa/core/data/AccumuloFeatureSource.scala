@@ -19,7 +19,6 @@ package org.locationtech.geomesa.core.data
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
-import org.geotools.process.vector.TransformProcess
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.process.knn.KNNVisitor
 import org.locationtech.geomesa.core.process.proximity.ProximityVisitor
@@ -29,8 +28,6 @@ import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
-
-import scala.collection.JavaConversions._
 
 trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
   val dataStore: AccumuloDataStore
@@ -65,19 +62,8 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
     }
   }
 
-
   override def getFeatures(query: Query): SimpleFeatureCollection = {
-    if(query.getProperties != null && query.getProperties.size > 0) {
-      val (transformProps, regularProps) = query.getPropertyNames.partition(_.contains('='))
-      val convertedRegularProps = regularProps.map { p => s"$p=$p" }
-      val allTransforms = convertedRegularProps ++ transformProps
-      val transforms = allTransforms.mkString(";")
-      val transformDefs = TransformProcess.toDefinition(transforms)
-      val derivedSchema = AccumuloFeatureStore.computeSchema(getSchema, transformDefs)
-      query.setProperties(Query.ALL_PROPERTIES)
-      query.getHints.put(TRANSFORMS, transforms)
-      query.getHints.put(TRANSFORM_SCHEMA, derivedSchema)
-    }
+    AccumuloDataStore.setQueryTransforms(query, getSchema)
     new AccumuloFeatureCollection(this, query)
   }
 

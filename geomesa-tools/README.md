@@ -5,18 +5,24 @@ GeoMesa Tools is a set of command line tools to add feature management functions
 the command line.  
 
 ## Configuration
-To begin using the command line tools, first build the full GeoMesa project with `mvn clean install`. This will build the project and geomesa-tools JAR file.  
- 
-GeoMesa Tools relies on a $GEOMESA_HOME environment variable. In your `~/.bashrc`, add:
+To begin using the command line tools, first build the full GeoMesa project from the GeoMesa source directory with 
 
-    export GEOMESA_HOME=/path/to/geomesa/source/directory
-    export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
-
-Don't forget to source `~/.bashrc`. Also make sure that $ACCUMULO_HOME and $HADOOP_CONF_DIR are set. For your convenience, you can also run:
+    mvn clean install
     
-    . /path/to/geomesa/source/dir/geomesa-tools/bin/geomesa configure
+You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-bin.tar.gz" 
+in the geomesa-assemble/target directory. Untar this file with
 
-Make sure to include the `. ` prefix to the command, as this sources your new environment variables.  
+    tar xvfz geomesa-assemble/target/geomesa-bin.tar.gz
+    
+Next, `cd` into the newly created directory with
+    
+    cd geomesa-${version}
+
+GeoMesa Tools relies on a GEOMESA_HOME environment variable. Running
+    
+    . bin/geomesa configure
+
+with the `. ` prefix will set this for you, add $GEOMESA_HOME/bin to your PATH, and source your new environment variables in your current shell session.
 
 Now, you should be able to use GeoMesa from any directory on your computer. To test, `cd` to a different directory and run:
 
@@ -96,7 +102,7 @@ Specify the catalog table to use with `-c` or `--catalog`. This can be a previou
 Specify the feature to create with the `-f` or `-feature-name`.  
 Specify the filter string with `-q` or `--filter`.
 #### Example command:
-    geomesa explain -u username -p password -c geomesa_catalog -f twittersmall -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+    geomesa explain -u username -p password -c test_catalog -f test_feature -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
 
 ### export
 To export features, use the `export` command.  
@@ -115,62 +121,50 @@ an expression of filter function applied to attributes, literals and filter func
 function list can be found at [here]([http://docs.geoserver.org/latest/en/user/filter/function_reference.html#filter-function-reference]).
 Any comma (,) in a `filter_function_expression` has to be escaped by `\,`.
 #### Example commands:
-    geomesa export -u username -p password -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o csv -q "include" -m 100  
-    geomesa export -u username -p password -c geomesa_catalog -f twittersmall -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
-    geomesa export -u username -p password -c geomesa_catalog -f twittersmall -a "user_name,buf=buffer(geom\, 2)"
+    geomesa export -u username -p password -c test_catalog -f test_feature -a "geom,text,user_name" -o csv -q "include" -m 100
+    geomesa export -u username -p password -c test_catalog -f test_feature -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
+    geomesa export -u username -p password -c test_catalog -f test_featurel -a "user_name,buf=buffer(geom\, 2)"
     -o csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
-
 ### ingest
-Ingests CSV, TSV, and SHP files. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
-Please note that for lat/lon column ingest, the sft spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.
-The file type is inferred from the extension of the file, so please also ensure that the formatting of the file matches the extension of the file.
+Ingests CSV, TSV, and SHP files from the local file system and HDFS. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
+For lat/lon column ingest, the sft spec must include an additional geometry attribute in the sft beyond the number of columns in the file such as: `*geom:Point`.
+The file type is inferred from the extension of the file, so ensure that the formatting of the file matches the extension of the file and that the extension is present.
+*Note* the header if present is not parsed by Ingest for information, it is assumed that all lines are valid entries.
 
 #### Usage
-    geomesa ingest -u username -p password -c geomesa_catalog -f twittersmall -s id:Double,dtg:Date,*geom:Geometry 
-    --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" --skip-header --file /some/path/to/file.csv
+    geomesa ingest -u username -p password -c geomesa_catalog -f somefeaturename -s fid:Double,dtg:Date,*geom:Geometry 
+    --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" --file hdsf:///some/hdfs/path/to/file.csv
     
-    geomesa ingest -u username -p password -c geomesa_catalog  -a someAuths -v someVis --shards 42 -f twittersmall
-     -s id:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
-     --idfields id,dtg --hash --lon lon --lat lat --file /some/path/to/file.tsv
+    geomesa ingest -u username -p password -c geomesa_catalog  -a someAuths -v someVis --shards 42 -f somefeaturename
+     -s fid:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
+     --idfields fid,dtg --hash --lon lon --lat lat --file /some/local/path/to/file.tsv
      
-    geomesa ingest -u username -p password -c geomesa_catalog -f shapeFileFeatureName --file /some/path/to/file.shp
+    geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName --file /some/path/to/file.shp
 
 with the following parameters:
  
-`-c` or `--catalog` The accumulo table name, the table will be created if not already extant.
-
-`-a` or `--auths` The optional accumulo authorizations to use.
-
-`-v` or `--visibilities` The optional accumulo visibilities to use. 
-
-`-i` or `--indexSchemaFormat` The optional accumulo index schema format to use. If not set Ingest defaults to the Default SpatioTemporal Schema in the AccumuloDataStore class.
-This option and the `--shards` cannot be provided together and Ingest exits if this occurs.
-
+`-c` or `--catalog` The accumulo table name, the table will be created if not already extant.  
+`-a` or `--auths` The optional accumulo authorizations to use.  
+`-v` or `--visibilities` The optional accumulo visibilities to use.  
+`-i` or `--indexSchemaFormat` The optional accumulo index schema format to use instead of the default. This option and the `--shards` cannot be provided together.  
 `--shards` The optional number of shards to use for this catalog. If catalog exists Ingest defaults to number of shards used in extant schema. 
-This option and the `--indexSchemaFormat` cannot be provided together and Ingest exits if this occurs.
-
-`-f` or `--feature-name` The name of the SimpleFeatureType to be used.
-
-`-s` or `--sftspec` The SimpleFeatureType of the CSV or TSV file, this must match exactly with the number and order of columns and data formats in the file being ingested and must also include a default geometry field.
-If attempting to ingest files with explicit latitude and longitude columns, the sft spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.
-
-`--datetime` The optional name of the field in the SFT specification that corresponds to the the *time* column.
-
-`--dtformat` The optional Joda DateTimeFormat string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss". This must be surrounded by quotes and must match exactly the format in the source file. 
-If a invalid dtformat is given Ingest attempts to parse the date-time value using the ISO8601 standard.
-
-`--idfields` The optional comma separated list of ID fields used to generate the feature IDs. If empty, it is assumed that the ID will be generated via a hash on all attributes of that line.
-
-`-h` or `--hash` The optional flag to hash the value of the id generated from idfields for the feature IDs.
-
-`--lon` The optional name of the longitude field. This field is not required for ingesting WKT geometries.
-
-`--lat` The optional name of the latitude field. This field is not required for ingesting WKT geometries.
-
-`--skip-header` The optional flag to skip the first line of the file, typically where the header is located. If not present Ingest will attempt to ingest starting from the first line. 
-*Note* the header is not parsed by Ingest, and will likely fail if a header exists in the file and this flag is not called.
-
-`--file` The file path to the csv file or tsv file being ingested.
+This option and the `--indexSchemaFormat` cannot be provided together and Ingest exits if this occurs.  
+`-f` or `--feature-name` The name of the SimpleFeatureType to be used.  
+`-s` or `--sftspec` The SimpleFeatureType of the CSV or TSV file, this must match exactly with the number and order
+of columns and data formats in the file (or columns list if `--cols` is specified) being ingested and must also
+include a default geometry field. If attempting to ingest files with explicit latitude and longitude columns, the sft
+spec must include an additional attribute beyond the number of columns in the file such as: `*geom:Point` in order for it to work.  
+`--cols` The optional subset of columns to be ingested which must match `-s` or `--sfcspec`. It is a list of
+comma-separated column-ranges. Each column-range has format `num1[-num2]` that defines a column by
+num1 or a column range by num1 and num2 if num2 is presented. For example, "0,3,6-8,10,15-17" gives result
+List(0, 3, 6, 7, 8, 10, 15, 16, 17).
+`--datetime` The optional name of the field in the SFT specification that corresponds to the *time* column. **NOTE:** by default times are assumed to be UTC, please specify a specific timezone here and update the dtformat if this is not desired.  
+`--dtformat` The optional Joda DateTimeFormat quote-wrapped string for the date-time field, e.g.: "MM/dd/yyyy HH:mm:ss". Defaults to millisecond epoch format.  
+`--idfields` The optional comma separated list of ID fields used to generate the feature IDs. If empty, it is assumed that the ID will be generated via a hash on all attributes of that line.  
+`-h` or `--hash` The optional flag to hash the value of the feature id generated from idfields.  
+`--lon` The optional name of the longitude field. This field is not required for ingesting WKT geometries.  
+`--lat` The optional name of the latitude field. This field is not required for ingesting WKT geometries.  
+`--file` The file path or hdfs path to the csv file or tsv file being ingested.  
 
 ### list
 To list the features on a specified catalog table, use the `list` command.  
@@ -179,7 +173,7 @@ Specify the catalog table to use with `-c` or `--catalog`.
 #### Optional flags:
 To pipe the output of the command, use `-q` or `--quiet`.
 #### Example command:
-    geomesa list -u username -p password -c geomesa_catalog
+    geomesa list -u username -p password -c test_catalog
     
 ### tableconf
 To list, describe, and update the configuration parameters on a specified table, use the `tableconf` command.  
@@ -207,7 +201,7 @@ Specify the new value for the configuration parameter with `-n` or `--new-value`
 Specify the table suffix (attr_idx, st_idx, or records) with `-s` or `--suffix`.
 
 #### Example commands:
-    geomesa tableconf list -u username -p password -c geomesa_catalog -f twittersmall -s st_idx
-    geomesa tableconf describe -u username -p password -c geomesa_catalog -f twittersmall --param table.bloom.enabled -s attr_idx
-    geomesa tableconf update -u username -p password -c geomesa_catalog -f twittersmall --table.bloom.enabled -n true -s records
-    
+    geomesa tableconf list -u username -p password -c test_catalog -f test_feature -s st_idx
+    geomesa tableconf describe -u username -p password -c test_catalog -f test_feature --param table.bloom.enabled -s attr_idx
+    geomesa tableconf update -u username -p password -c test_catalog -f test_feature --table.bloom.enabled -n true -s records
+

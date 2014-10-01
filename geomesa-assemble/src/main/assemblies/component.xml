@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2014 Commonwealth Computer Research, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<component xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <excludes>
+                <exclude>org.locationtech.geomesa:geomesa-plugin*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-distributed-runtime*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-compute*</exclude>
+            </excludes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-distributed-runtime*</include>
+                <include>org.locationtech.geomesa:geomesa-compute*</include>
+            </includes>
+        </dependencySet>
+    </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>../</directory>
+            <fileMode>0644</fileMode>
+            <includes>
+                <include>LICENSE.txt</include>
+                <include>README.md</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+    <files>
+        <file>
+            <source>../geomesa-tools/bin/geomesa</source>
+            <outputDirectory>bin</outputDirectory>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+        </file>
+        <file>
+            <source>../geomesa-tools/bin/geomesa-test-script.sh</source>
+            <outputDirectory>bin</outputDirectory>
+            <fileMode>0755</fileMode>
+        </file>
+        <file>
+            <source>../geomesa-compute/README.md</source>
+            <outputDirectory>docs/compute</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-core/README.md</source>
+            <outputDirectory>docs/core</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-jobs/README.md</source>
+            <outputDirectory>docs/jobs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-minicluster/README.md</source>
+            <outputDirectory>docs/minicluster</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-plugin/README.md</source>
+            <outputDirectory>docs/plugin</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-tools/README.md</source>
+            <outputDirectory>docs/tools</outputDirectory>
+            <filtered>true</filtered>
+        </file>
+    </files>
+</component>

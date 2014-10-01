@@ -52,8 +52,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment) {
-    logger.trace("Initializing classLoader")
-    IndexIterator.initClassLoader(logger)
+    TServerClassLoader.initClassLoader(logger)
 
     val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
@@ -64,7 +63,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
     // default to text if not found for backwards compatibility
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    featureEncoder = SimpleFeatureEncoderFactory.createEncoder(encodingOpt)
+    featureEncoder = SimpleFeatureEncoder(featureType, encodingOpt)
 
     featureBuilder = AvroSimpleFeatureFactory.featureBuilder(featureType)
 
@@ -93,7 +92,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
    * converted key value.  This is *IMPORTANT*, as otherwise we do not emit rows
    * that honor the SortedKeyValueIterator expectation, and Bad Things Happen.
    */
-  override def seekData(decodedValue: IndexSchema.DecodedIndexValue) {
+  override def seekData(decodedValue: IndexEntry.DecodedIndexValue) {
     // now increment the value of nextKey, copy because reusing it is UNSAFE
     nextKey = new Key(indexSource.getTopKey)
     // using the already decoded index value, generate a SimpleFeature and set as the Value

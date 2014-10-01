@@ -26,7 +26,7 @@ import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
-import org.apache.accumulo.core.file.keyfunctor.{RowFunctor, ColumnFamilyFunctor}
+import org.apache.accumulo.core.file.keyfunctor.{ColumnFamilyFunctor, RowFunctor}
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.commons.codec.binary.Hex
@@ -35,10 +35,12 @@ import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.core
 import org.locationtech.geomesa.core.data.AccumuloDataStore._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.core.index.{IndexSchema, IndexSchemaBuilder, TemporalIndexCheck}
+import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
+import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, NonGeomAttributeSpec}
@@ -47,7 +49,7 @@ import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.collection.JavaConversions._
-import scala.util.{Success, Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
  *
@@ -65,7 +67,6 @@ class AccumuloDataStore(val connector: Connector,
                         val catalogTable: String,
                         val authorizationsProvider: AuthorizationsProvider,
                         val writeVisibilities: String,
-                        val spatioTemporalIdxSchemaFmt: Option[String] = None,
                         val queryThreadsConfig: Option[Int] = None,
                         val recordThreadsConfig: Option[Int] = None,
                         val writeThreadsConfig: Option[Int] = None,
@@ -73,7 +74,7 @@ class AccumuloDataStore(val connector: Connector,
     extends AbstractDataStore(true) with AccumuloConnectorCreator with Logging {
 
   // having at least as many shards as tservers provides optimal parallelism in queries
-  private val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
+  protected [core] val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
 
   // record scans are single-row ranges - increasing the threads too much actually causes performance to decrease
   private val recordScanThreads = recordThreadsConfig.getOrElse(10)
@@ -155,6 +156,7 @@ class AccumuloDataStore(val connector: Connector,
     val recordTableValue            = formatRecordTableName(catalogTable, sft)
     val queriesTableValue           = formatQueriesTableName(catalogTable, sft)
     val dtgFieldValue               = dtgValue.getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
+    val tableSharingValue           = core.index.getTableSharing(sft).toString
 
     // store each metadata in the associated column family
     val attributeMap = Map(ATTRIBUTES_CF        -> attributesValue,
@@ -165,7 +167,8 @@ class AccumuloDataStore(val connector: Connector,
                            ST_IDX_TABLE_CF      -> spatioTemporalIdxTableValue,
                            ATTR_IDX_TABLE_CF    -> attrIdxTableValue,
                            RECORD_TABLE_CF      -> recordTableValue,
-                           QUERIES_TABLE_CF     -> queriesTableValue)
+                           QUERIES_TABLE_CF     -> queriesTableValue,
+                           SHARED_TABLES_CF     -> tableSharingValue)
 
     attributeMap.foreach { case (cf, value) =>
       putMetadata(featureName, mutation, cf, value)
@@ -287,11 +290,11 @@ class AccumuloDataStore(val connector: Connector,
   /**
    * Read SpatioTemporal Index table name from store metadata
    */
-  def getSpatioTemporalMaxShard(featureType: SimpleFeatureType): Int = {
-    val indexSchemaFmt = readMetadataItem(featureType.getTypeName, SCHEMA_CF)
+  def getSpatioTemporalMaxShard(sft: SimpleFeatureType): Int = {
+    val indexSchemaFmt = readMetadataItem(sft.getTypeName, SCHEMA_CF)
       .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for $SCHEMA_CF"))
-    val featureEncoder = getFeatureEncoder(featureType.getTypeName)
-    val indexSchema = IndexSchema(indexSchemaFmt, featureType, featureEncoder)
+    val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
+    val indexSchema = IndexSchema(indexSchemaFmt, sft, fe)
     indexSchema.maxShard
   }
 
@@ -357,28 +360,56 @@ class AccumuloDataStore(val connector: Connector,
     tableOps.setProperty(tableName, "table.bloom.enabled", "true")
   }
 
-  // Computes the schema, checking for the "DEFAULT" flag
-  def computeSpatioTemporalSchema(featureName: String, maxShard: Int): String = {
+  // Retrieves or computes the indexSchema
+  def computeSpatioTemporalSchema(sft: SimpleFeatureType, maxShard: Int): String = {
+    val spatioTemporalIdxSchemaFmt: Option[String] = core.index.getIndexSchema(sft)
+
     spatioTemporalIdxSchemaFmt match {
-      case None => buildDefaultSpatioTemporalSchema(featureName, maxShard)
-      case Some(schema) => schema
+      case None => buildDefaultSpatioTemporalSchema(getFeatureName(sft), maxShard)
+      case Some(schema) =>
+        if (maxShard != DEFAULT_MAX_SHARD) {
+          logger.warn("Calling create schema with a custom index format AND a custom shard number. " +
+            "The custom index format will take precedence.")
+        }
+        schema
     }
   }
 
   /**
-   * Compute the GeoMesa SpatioTemporal Schema, create tables, and write metadata to catalog
+   * Compute the GeoMesa SpatioTemporal Schema, create tables, and write metadata to catalog.
+   * If the schema already exists, log a message and continue without error.
    *
    * @param featureType
    * @param maxShard numerical id of the max shard (creates maxShard + 1 splits)
    */
-  def createSchema(featureType: SimpleFeatureType, maxShard: Int) {
-    if (maxShard != DEFAULT_MAX_SHARD && spatioTemporalIdxSchemaFmt.isDefined) {
-      logger.warn("Calling create schema with a custom index format AND a custom shard number. " +
-                  "The custom index format will take precedence.")
+  def createSchema(featureType: SimpleFeatureType, maxShard: Int) =
+    try {
+      if(getSchema(featureType.getTypeName) == null) {
+        val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
+        checkSchemaRequirements(featureType, spatioTemporalSchema)
+        createTablesForType(featureType, maxShard)
+        writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
+      }
+    } catch {
+      case tee: TableExistsException =>
+        logger.info(s"not creating schema for feature type ${featureType.getTypeName}, schema has already been created")
     }
-    val spatioTemporalSchema = computeSpatioTemporalSchema(getFeatureName(featureType), maxShard)
-    createTablesForType(featureType, maxShard)
-    writeMetadata(featureType, featureEncoding, spatioTemporalSchema, maxShard)
+
+
+  // This function enforces the shared ST schema requirements.
+  //  For a shared ST table, the IndexSchema must start with a partition number and a constant string.
+  //  TODO: This function should check if the constant is equal to the featureType.getTypeName
+  def checkSchemaRequirements(featureType: SimpleFeatureType, schema: String) {
+    if(core.index.getTableSharing(featureType)) {
+
+      val (rowf, _,_) = IndexSchema.parse(IndexSchema.formatter, schema).get
+      rowf.lf match {
+        case Seq(pf: PartitionTextFormatter, const: ConstantTextFormatter, r@_*) =>
+        case _ => throw new RuntimeException(s"Failed to validate the schema requirements for " +
+          s"the feature ${featureType.getTypeName} for catalog table : $catalogTable.  " +
+          s"We require that features sharing a table have schema starting with a partition and a constant.")
+      }
+    }
   }
 
   /**
@@ -403,13 +434,54 @@ class AccumuloDataStore(val connector: Connector,
     if (readMetadataItem(featureName, ST_IDX_TABLE_CF).nonEmpty) {
       val featureType = getSchema(featureName)
 
-      Seq(getSpatioTemporalIdxTableName(featureType),
-          getAttrIdxTableName(featureType),
-          getRecordTableForType(featureType),
-          getQueriesTableName(featureType)).filter(tableOps.exists).foreach(tableOps.delete)
+      if (core.index.getTableSharing(featureType)) {
+        deleteSharedTables(featureType)
+      } else {
+        deleteStandAloneTables(featureType)
+      }
 
       deleteMetadata(featureName, numThreads)
-    } else throw new RuntimeException("Cannot delete schema for this version of the data store")
+      expireMetadataFromCache(featureName)
+    } else {
+      // TODO: Apply the SpatioTemporalTable.deleteFeaturesFromTable here?
+      // https://geomesa.atlassian.net/browse/GEOMESA-360
+      throw new RuntimeException("Cannot delete schema for this version of the data store")
+    }
+
+  private def deleteSharedTables(sft: SimpleFeatureType) = {
+    val stTableName = getSpatioTemporalIdxTableName(sft)
+    val attrTableName = getAttrIdxTableName(sft)
+    val recordTableName = getRecordTableForType(sft)
+
+    val numThreads = queryThreadsConfig.getOrElse(Math.min(MAX_QUERY_THREADS,
+      Math.max(MIN_QUERY_THREADS, getSpatioTemporalMaxShard(sft))))
+
+    val stBatchDeleter =
+      connector.createBatchDeleter(stTableName, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+
+    SpatioTemporalTable.deleteFeaturesFromTable(connector, stBatchDeleter, sft)
+
+    val atBatchDeleter =
+      connector.createBatchDeleter(attrTableName, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+    AttributeTable.deleteFeaturesFromTable(connector, atBatchDeleter, sft)
+
+    val recordBatchDeleter =
+      connector.createBatchDeleter(recordTableName, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+    RecordTable.deleteFeaturesFromTable(connector, recordBatchDeleter, sft)
+  }
+
+  // NB: We are *not* currently deleting the query table and/or query information.
+  private def deleteStandAloneTables(sft: SimpleFeatureType) =
+    Seq(
+      getSpatioTemporalIdxTableName(sft),
+      getAttrIdxTableName(sft),
+      getRecordTableForType(sft)
+    ).filter(tableOps.exists).foreach(tableOps.delete)
+
+  private def expireMetadataFromCache(featureName: String) =
+    metaDataCache.keys
+      .filter { case (fn, cf) => fn == featureName }
+      .map { metaDataCache.remove }
 
   /**
    * GeoTools API createSchema() method for a featureType...creates tables with
@@ -502,7 +574,7 @@ class AccumuloDataStore(val connector: Connector,
   private def checkMetadata(featureName: String): String = {
 
     // check the different metadata options
-    val checks = List(checkVisibilitiesMetadata(featureName), checkSchemaMetadata(featureName))
+    val checks = List(checkVisibilitiesMetadata(featureName))
 
     val errors = checks.flatten.mkString(", ")
 
@@ -525,25 +597,6 @@ class AccumuloDataStore(val connector: Connector,
     val storedVisibilities = readMetadataItem(featureName, VISIBILITIES_CF).getOrElse("")
     if (storedVisibilities != writeVisibilities) {
       Some(s"$VISIBILITIES_CF = '$writeVisibilities', should be '$storedVisibilities'")
-    } else {
-      None
-    }
-  }
-
-  /**
-   * Checks the schema stored in the metadata table against the configuration of this data store.
-   *
-   * @param featureName
-   * @return
-   */
-  private def checkSchemaMetadata(featureName: String): Option[String] = {
-    // validate the index schema
-    val configuredSchema = computeSpatioTemporalSchema(featureName, DEFAULT_MAX_SHARD)
-    val storedSchema = readMetadataItem(featureName, SCHEMA_CF).getOrElse("")
-    // if they did not specify a custom schema (e.g. indexSchemaFormat == DEFAULT), just use the
-    // stored metadata
-    if (storedSchema != configuredSchema && spatioTemporalIdxSchemaFmt.isDefined) {
-      Some(s"$SCHEMA_CF = '$configuredSchema', should be '$storedSchema'")
     } else {
       None
     }
@@ -748,14 +801,11 @@ class AccumuloDataStore(val connector: Connector,
 
   /**
    * Reads the feature encoding from the metadata. Defaults to TEXT if there is no metadata.
-   *
-   * @param featureName
-   * @return
    */
-  def getFeatureEncoder(featureName: String) = {
-    val encodingString = readMetadataItem(featureName, FEATURE_ENCODING_CF)
+  def getFeatureEncoding(sft: SimpleFeatureType): FeatureEncoding = {
+    val encodingString = readMetadataItem(sft.getTypeName, FEATURE_ENCODING_CF)
                          .getOrElse(FeatureEncoding.TEXT.toString)
-    SimpleFeatureEncoderFactory.createEncoder(encodingString)
+    FeatureEncoding.withName(encodingString)
   }
 
   // We assume that they want the bounds for everything.
@@ -823,21 +873,27 @@ class AccumuloDataStore(val connector: Connector,
         val sft = SimpleFeatureTypes.createType(featureName, attributes)
         val dtgField = readMetadataItem(featureName, DTGFIELD_CF)
           .getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
+        val indexSchema = readMetadataItem(featureName, SCHEMA_CF).orNull
+        // If no data is written, we default to 'false' in order to support old tables.
+        val sharingBoolean = readMetadataItem(featureName, SHARED_TABLES_CF).getOrElse("false")
+
         sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
         sft.getUserData.put(core.index.SF_PROPERTY_END_TIME, dtgField)
+        sft.getUserData.put(core.index.SFT_INDEX_SCHEMA, indexSchema)
+        core.index.setTableSharing(sft, new java.lang.Boolean(sharingBoolean))
         sft
     }
 
   // Implementation of Abstract method
-  def getFeatureReader(featureName: String): AccumuloFeatureReader = getFeatureReader(featureName,
-                                                                                       Query.ALL)
+  def getFeatureReader(featureName: String): AccumuloFeatureReader = getFeatureReader(featureName, Query.ALL)
 
   // This override is important as it allows us to optimize and plan our search with the Query.
   override def getFeatureReader(featureName: String, query: Query) = {
     validateMetadata(featureName)
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
     val sft = getSchema(featureName)
-    val fe = getFeatureEncoder(featureName)
+    val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
+    setQueryTransforms(query, sft)
     new AccumuloFeatureReader(this, query, indexSchemaFmt, sft, fe)
   }
 
@@ -845,11 +901,11 @@ class AccumuloDataStore(val connector: Connector,
   override def createFeatureWriter(typeName: String, transaction: Transaction): SFFeatureWriter = {
     validateMetadata(typeName)
     checkWritePermissions(typeName)
-    val featureType = getSchema(typeName)
+    val sft = getSchema(typeName)
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
-    val fe = getFeatureEncoder(typeName)
-    val schema = IndexSchema(indexSchemaFmt, featureType, fe)
-    new ModifyAccumuloFeatureWriter(featureType, schema, connector, fe, writeVisibilities, this)
+    val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
+    val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe)
+    new ModifyAccumuloFeatureWriter(sft, encoder, connector, fe, writeVisibilities, this)
   }
 
   /* optimized for GeoTools API to return writer ONLY for appending (aka don't scan table) */
@@ -857,11 +913,11 @@ class AccumuloDataStore(val connector: Connector,
                                       transaction: Transaction): SFFeatureWriter = {
     validateMetadata(typeName)
     checkWritePermissions(typeName)
-    val featureType = getSchema(typeName)
+    val sft = getSchema(typeName)
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
-    val fe = getFeatureEncoder(typeName)
-    val schema = IndexSchema(indexSchemaFmt, featureType, fe)
-    new AppendAccumuloFeatureWriter(featureType, schema, connector, fe, writeVisibilities, this)
+    val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
+    val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe)
+    new AppendAccumuloFeatureWriter(sft, encoder, connector, fe, writeVisibilities, this)
   }
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE
@@ -970,7 +1026,7 @@ object AccumuloDataStore {
    * @return
    */
   def formatQueriesTableName(catalogTable: String, featureType: SimpleFeatureType): String =
-    formatTableName(catalogTable, featureType, "queries")
+    s"${catalogTable}_queries"
 
   // only alphanumeric is safe
   val SAFE_FEATURE_NAME_PATTERN = "^[a-zA-Z0-9]+$"
@@ -982,7 +1038,16 @@ object AccumuloDataStore {
    * but still human readable.
    */
   def formatTableName(catalogTable: String, featureType: SimpleFeatureType, suffix: String): String =
-    formatTableName(catalogTable, featureType.getTypeName, suffix)
+    if (core.index.getTableSharing(featureType))
+      formatTableName(catalogTable, suffix)
+    else
+      formatTableName(catalogTable, featureType.getTypeName, suffix)
+
+  /**
+   * Format a table name for the shared tables
+   */
+  def formatTableName(catalogTable: String, suffix: String): String =
+    s"${catalogTable}_$suffix"
 
   /**
    * Format a table name with a namespace. Non alpha-numeric characters present in
@@ -1021,9 +1086,35 @@ object AccumuloDataStore {
         sb.append(encoded)
       }
     }
-    sb.toString
+    sb.toString()
   }
 
-
+  /**
+   * Checks for attribute transforms in the query and sets them as hints if found
+   *
+   * @param query
+   * @param sft
+   * @return
+   */
+  def setQueryTransforms(query: Query, sft: SimpleFeatureType) =
+    if (query.getProperties != null && query.getProperties.size > 0) {
+      val (transformProps, regularProps) = query.getPropertyNames.partition(_.contains('='))
+      val convertedRegularProps = regularProps.map { p => s"$p=$p" }
+      val allTransforms = convertedRegularProps ++ transformProps
+      // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
+      val geomName = sft.getGeometryDescriptor.getLocalName
+      val geomTransform =
+        if (allTransforms.exists(_.matches(s"$geomName\\s*=.*"))) {
+          Nil
+        } else {
+          Seq(s"$geomName=$geomName")
+        }
+      val transforms = (allTransforms ++ geomTransform).mkString(";")
+      val transformDefs = TransformProcess.toDefinition(transforms)
+      val derivedSchema = AccumuloFeatureStore.computeSchema(sft, transformDefs)
+      query.setProperties(Query.ALL_PROPERTIES)
+      query.getHints.put(TRANSFORMS, transforms)
+      query.getHints.put(TRANSFORM_SCHEMA, derivedSchema)
+    }
 }
 

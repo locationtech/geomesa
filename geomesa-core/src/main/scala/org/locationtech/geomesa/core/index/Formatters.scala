@@ -57,7 +57,7 @@ case class GeoHashTextFormatter(offset: Int, numBits: Int) extends TextFormatter
 case class DateTextFormatter(f: String) extends TextFormatter {
   val numBits = f.length
   val formatter = org.joda.time.format.DateTimeFormat.forPattern(f)
-  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) =   // JNH: Make this an option?
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) =   
    formatter.print(dt)
 }
 
@@ -114,5 +114,4 @@ case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends T
   val numBits = lf.map(_.numBits).sum
   def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = lf.map { _.formatString(gh, dt, sf) }.mkString(sep)
 }
-
 

@@ -33,10 +33,6 @@ import scala.collection.GenSeq
 import scala.collection.JavaConversions._
 import scala.util.{Random, Try}
 
-object UnitTestEntryType  {
-  def getTypeSpec = "POINT:String," + "LINESTRING:String," + "POLYGON:String," + "attr2:String," + spec
-}
-
 @RunWith(classOf[JUnitRunner])
 class SpatioTemporalIntersectingIteratorTest extends Specification with Logging {
 
@@ -73,7 +69,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
 
     // add the attributes description
     val mutAttributes = new Mutation(s"${METADATA_TAG}_$featureName")
-    mutAttributes.put("attributes", "", UnitTestEntryType.getTypeSpec)
+    mutAttributes.put("attributes", "", TestData.getTypeSpec())
     bw.addMutation(mutAttributes)
 
     bw.flush()

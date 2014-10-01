@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.compute.spark
 
-import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 
@@ -32,8 +31,8 @@ import org.apache.spark.serializer.KryoRegistrator
 import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.{DataStore, Query}
 import org.geotools.factory.CommonFactoryFinder
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AvroFeatureEncoder}
-import org.locationtech.geomesa.core.index.{STIdxStrategy, IndexSchema}
+import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.core.index.{IndexSchema, STIdxStrategy}
 import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -56,8 +55,10 @@ object GeoMesaSpark {
     val typeName = query.getTypeName
     val sft = ds.getSchema(typeName)
     val spec = SimpleFeatureTypes.encodeType(sft)
+    val encoder = SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft))
+    val decoder = SimpleFeatureDecoder(sft, ds.getFeatureEncoding(sft))
 
-    val indexSchema = IndexSchema(ds.getIndexSchemaFmt(typeName), sft, ds.getFeatureEncoder(typeName))
+    val indexSchema = IndexSchema(ds.getIndexSchemaFmt(typeName), sft, encoder)
 
     val planner = new STIdxStrategy
     val qp = planner.buildSTIdxQueryPlan(query, indexSchema.planner, sft, org.locationtech.geomesa.core.index.ExplainPrintln)
@@ -74,8 +75,8 @@ object GeoMesaSpark {
 
     rdd.mapPartitions { iter =>
       val sft = SimpleFeatureTypes.createType(typeName, spec)
-      val encoder = new AvroFeatureEncoder
-      iter.map { case (k: Key, v: Value) => encoder.decode(sft, v) }
+      val encoder = new AvroFeatureEncoder(sft)
+      iter.map { case (k: Key, v: Value) => decoder.decode(v) }
     }
   }
 
@@ -105,14 +106,23 @@ class KryoAvroSimpleFeatureBridge extends KryoRegistrator {
               SimpleFeatureTypes.createType(key, spec)
             }
           })
-        val encoder = new AvroFeatureEncoder
+
+        val encoderCache = CacheBuilder.newBuilder().build(
+          new CacheLoader[String, AvroFeatureEncoder] {
+            override def load(key: String): AvroFeatureEncoder = new AvroFeatureEncoder(typeCache.get(key))
+          })
+
+        val decoderCache = CacheBuilder.newBuilder().build(
+          new CacheLoader[String, AvroFeatureDecoder] {
+            override def load(key: String): AvroFeatureDecoder = new AvroFeatureDecoder(typeCache.get(key))
+          })
 
         override def write(kryo: Kryo, out: Output, feature: AvroSimpleFeature): Unit = {
           val typeName = feature.getFeatureType.getTypeName
           val len = typeName.length
           out.writeInt(len, true)
           out.write(typeName.getBytes(StandardCharsets.UTF_8))
-          val bytes = encoder.encode(feature)
+          val bytes = encoderCache.get(typeName).encode(feature)
           out.writeInt(bytes.length, true)
           out.write(bytes)
         }
@@ -123,7 +133,7 @@ class KryoAvroSimpleFeatureBridge extends KryoRegistrator {
           val sft = typeCache.get(typeName)
           val flen = in.readInt(true)
           val bytes = in.readBytes(flen)
-          encoder.decode(sft, new ByteArrayInputStream(bytes))
+          decoderCache.get(typeName).decode(bytes)
         }
       })
   }

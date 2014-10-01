@@ -16,16 +16,14 @@
 
 package org.locationtech.geomesa.core.index
 
-import java.nio.ByteBuffer
-
-import com.vividsolutions.jts.geom.{GeometryCollection, Geometry, Point, Polygon}
-import org.apache.accumulo.core.data.{Key, Value}
+import com.vividsolutions.jts.geom.{Geometry, GeometryCollection, Point, Polygon}
+import org.apache.accumulo.core.data.Key
 import org.geotools.data.Query
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.util._
-import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
@@ -67,11 +65,10 @@ import scala.util.parsing.combinator.RegexParsers
 //
 // %~#s%999#r%0,4#gh%HHmm#d::%~#s%4,2#gh::%~#s%6,1#gh%yyyyMMdd#d
 
-case class IndexSchema(encoder: IndexEncoder,
+case class IndexSchema(encoder: IndexEntryEncoder,
                        decoder: IndexEntryDecoder,
                        planner: QueryPlanner,
-                       featureType: SimpleFeatureType,
-                       featureEncoder: SimpleFeatureEncoder) extends ExplainingLogging {
+                       featureType: SimpleFeatureType) extends ExplainingLogging {
 
   def encode(entry: SimpleFeature, visibility: String = "") = encoder.encode(entry, visibility)
   def decode(key: Key): SimpleFeature = decoder.decode(key)
@@ -188,9 +185,9 @@ object IndexSchema extends RegexParsers {
   }
 
   // builds the encoder from a string representation
-  def buildKeyEncoder(s: String, featureEncoder: SimpleFeatureEncoder): IndexEncoder = {
+  def buildKeyEncoder(s: String, featureEncoder: SimpleFeatureEncoder): IndexEntryEncoder = {
     val (rowf, cff, cqf) = parse(formatter, s).get
-    IndexEncoder(rowf, cff, cqf, featureEncoder)
+    IndexEntryEncoder(rowf, cff, cqf, featureEncoder)
   }
 
   // extracts an entire date encoder from a key part
@@ -335,8 +332,8 @@ object IndexSchema extends RegexParsers {
     val keyPlanner        = buildKeyPlanner(s)
     val cfPlanner         = buildColumnFamilyPlanner(s)
     val indexEntryDecoder = IndexEntryDecoder(geohashDecoder, dateDecoder)
-    val queryPlanner      = QueryPlanner(s, featureType, featureEncoder)
-    IndexSchema(keyEncoder, indexEntryDecoder, queryPlanner, featureType, featureEncoder)
+    val queryPlanner      = QueryPlanner(s, featureType, featureEncoder.encoding)
+    IndexSchema(keyEncoder, indexEntryDecoder, queryPlanner, featureType)
   }
 
   def getIndexEntryDecoder(s: String) = {
@@ -344,39 +341,6 @@ object IndexSchema extends RegexParsers {
     val dateDecoder       = buildDateDecoder(s)
     IndexEntryDecoder(geohashDecoder, dateDecoder)
   }
-
-  // the index value consists of the feature's:
-  // 1.  ID
-  // 2.  WKB-encoded geometry
-  // 3.  start-date/time
-  def encodeIndexValue(entry: SimpleFeature): Value = {
-    import org.locationtech.geomesa.core.index.IndexEntry._
-    val encodedId = entry.sid.getBytes
-    val encodedGeom = WKBUtils.write(entry.geometry)
-    val encodedDtg = entry.dt.map(dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array()).getOrElse(Array[Byte]())
-
-    new Value(
-      ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
-      ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
-      encodedDtg)
-  }
-
-  case class DecodedIndexValue(id: String, geom: Geometry, dtgMillis: Option[Long])
-
-  def decodeIndexValue(v: Value): DecodedIndexValue = {
-    val buf = v.get()
-    val idLength = ByteBuffer.wrap(buf, 0, 4).getInt
-    val (idPortion, geomDatePortion) = buf.drop(4).splitAt(idLength)
-    val id = new String(idPortion)
-    val geomLength = ByteBuffer.wrap(geomDatePortion, 0, 4).getInt
-    if(geomLength < (geomDatePortion.length - 4)) {
-      val (l,r) = geomDatePortion.drop(4).splitAt(geomLength)
-      DecodedIndexValue(id, WKBUtils.read(l), Some(ByteBuffer.wrap(r).getLong))
-    } else {
-      DecodedIndexValue(id, WKBUtils.read(geomDatePortion.drop(4)), None)
-    }
-  }
-
 }
 
 /**

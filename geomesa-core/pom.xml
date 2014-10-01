@@ -91,15 +91,9 @@
             <groupId>org.joda</groupId>
             <artifactId>joda-convert</artifactId>
         </dependency>
-
-        <!-- logging -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
+            <groupId>org.calrissian.mango</groupId>
+            <artifactId>mango-core</artifactId>
         </dependency>
 
         <!-- provided dependencies -->
@@ -122,16 +116,26 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-hsql</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
+            <groupId>com.typesafe</groupId>
+            <artifactId>scalalogging-slf4j_2.10</artifactId>
         </dependency>
+
         <!-- test dependencies -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_2.10</artifactId>
@@ -168,6 +172,18 @@
                                 <arg>-JXms64m</arg>
                             </args>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

@@ -15,12 +15,66 @@
 # limitations under the License.
 #
 
-ACCUMULO_CONF=${ACCUMULO_HOME}/conf
-ACCUMULO_LIB=${ACCUMULO_HOME}/lib/*
+GEOMESA_LIB=${GEOMESA_HOME}/lib
+ACCUMULO_LIB=${ACCUMULO_HOME}/lib
+HADOOP_LIB=${HADOOP_HOME}/lib
+HADOOP_SHARE_DIR=${HADOOP_HOME}/share/hadoop
+HADOOP_COMMON=${HADOOP_SHARE_DIR}/common
+HADOOP_HDFS=${HADOOP_SHARE_DIR}/hdfs
+HADOOP_MAPREDUCE=${HADOOP_SHARE_DIR}/mapreduce
+HADOOP_YARN=${HADOOP_SHARE_DIR}/yarn
+
+ACCUMULO_CONF_DIR=${ACCUMULO_HOME}/conf
+if [ -z "$HADOOP_CONF_DIR" ]; then
+  HADOOP_CONF_DIR=${HADOOP_HOME}/conf
+fi
+
 GEOMESA_DEBUG_OPTS=""
+GEOMESA_OPTS="-Duser.timezone=UTC"
+GEOMESA_CP=""
+JAVA_LIBRARY_PATH=""
+
+# include geomesa first so that the correct log4j.properties is picked up
+for home in ${GEOMESA_LIB} ${ACCUMULO_LIB} ${HADOOP_LIB}; do
+  if [ -n "$home" ]; then
+    for jar in $(find ${home} -name "*.jar"); do
+      GEOMESA_CP="$GEOMESA_CP:$jar"
+    done
+    if [ -d "$home/native" ]; then
+      if [ -n "$JAVA_LIBRARY_PATH" ]; then
+        JAVA_LIBRARY_PATH=":$JAVA_LIBRARY_PATH"
+      fi
+      JAVA_LIBRARY_PATH="$home/native$JAVA_LIBRARY_PATH"
+    fi
+  fi
+done
+GEOMESA_CP=${GEOMESA_CP:1}
+
+hadoopDirs=(${HADOOP_COMMON} \
+${HADOOP_MAPREDUCE} \
+${HADOOP_YARN} \
+${HADOOP_HDFS} )
+for home in ${hadoopDirs[*]}; do
+  if [[ (-n "$home") && (-d ${home}) ]]; then
+    for jar in $(find ${home} -name "*.jar"); do
+      if [[ ("$jar" != *"test"*) && ("$jar" != *"slf4j"*) ]]; then
+        GEOMESA_CP="$GEOMESA_CP:$jar"
+      fi
+    done
+  else
+    echo "Could not find directory $home. Either check to see that this directory exists and has
+      the appropriate Hadoop JARs, or edit this script directly to specify an alternate location for the
+      Hadoop JARs."
+  fi
+done
+GEOMESA_CP=${GEOMESA_CP:1}
 
 # We explicitly add geomesa-tools as the first jar to ensure the correct log4j properties file is used.
-CLASSPATH=${GEOMESA_HOME}/geomesa-tools/target/geomesa-tools-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:${ACCUMULO_LIB}:${ACCUMULO_CONF}:${HADOOP_CONF_DIR}
+CLASSPATH="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
+if [ -n "$JAVA_LIBRARY_PATH" ]; then
+  GEOMESA_OPTS="$GEOMESA_OPTS,java.library.path=$JAVA_LIBRARY_PATH"
+  export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_LIBRARY_PATH"
+fi
 
 if  [[ $1 = configure ]]; then
     SOURCE="${BASH_SOURCE[0]}"
@@ -32,26 +86,30 @@ if  [[ $1 = configure ]]; then
                                                             # path where the symlink file was located
 
     done
-    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../../ && pwd )"
+    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
     echo "Setting GEOMESA_HOME to "$bin""
     export GEOMESA_HOME="$bin"
-    export PATH=${GEOMESA_HOME}/geomesa-tools/bin:$PATH
+    export PATH=${GEOMESA_HOME}/bin:$PATH
+elif [[ $1 = classpath ]]; then
+    for element in ${CLASSPATH//:/ } ; do
+        echo ${element}
+    done
 else
     if [[ $1 = debug ]]; then
-        GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898 -Duser.timezone=UTC"
+        GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"
         shift 1
     fi
     if [[ (-z "$GEOMESA_HOME") || (-z "$ACCUMULO_HOME") || (-z "$HADOOP_CONF_DIR")  ]]; then
         echo "Please ensure GEOMESA_HOME, ACCUMULO_HOME, and HADOOP_CONF_DIR are set before running geomesa-tools."
     elif [[ $1 = ingest ]] && [[ (-z "$2") || ($2 = --help)  || ($2 = -help) || ($2 = help) ]]; then
-        java ${GEOMESA_DEBUG_OPTS} -cp "$CLASSPATH" org.locationtech.geomesa.tools.Ingest --help
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Ingest --help
     elif [[ $1 = ingest ]]; then
-        java ${GEOMESA_DEBUG_OPTS} -cp "$CLASSPATH" org.locationtech.geomesa.tools.Ingest "${@:2}"
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Ingest "${@:2}"
     elif [[ $1 = export ]]; then
-        java ${GEOMESA_DEBUG_OPTS} -cp "$CLASSPATH" org.locationtech.geomesa.tools.Export "${@:2}"
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Export "${@:2}"
     elif [ -n "$*" ]; then
-        java ${GEOMESA_DEBUG_OPTS} -cp "$CLASSPATH" org.locationtech.geomesa.tools.Tools "$@"
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Tools "$@"
     else
-        java ${GEOMESA_DEBUG_OPTS} -cp "$CLASSPATH" org.locationtech.geomesa.tools.Tools --help
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Tools --help
     fi
 fi

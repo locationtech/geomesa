@@ -161,6 +161,12 @@ object Tools extends App with Logging with GetPassword {
     tableconf
   }
 
+  def buildHelpText(char: Option[Char], string: String, required: Boolean, description: String): String = {
+    val requiredOrOptional = if (required) { "required" } else { "optional" }
+    val flags = if (char.isDefined) { s"-${char.get}, --$string" } else { s"--$string" }
+    s"\t$flags : $requiredOrOptional\n\t\t$description\n"
+  }
+
   /**
    * The default scopt help/usage is too verbose and isn't helpful if you only want the help text for a single command,
    * so we roll our own.
@@ -169,66 +175,61 @@ object Tools extends App with Logging with GetPassword {
    * out that usage text. If a suitable command isn't found, it will show the default usage texts for geomesa-tools.
    */
   def printHelp(): Unit = {
-    val usernameHelp = "\t-u, --username : required\n\t\tthe Accumulo username\n"
-    val passwordHelp = "\t-p, --password : optional\n\t\tthe Accumulo password. This can also be provided after entering a command.\n"
-    val instanceNameHelp = "\t-i, --instance-name : optional\n\t\tAccumulo instance name. This can usually be discovered by GeoMesa-Tools automatically.\n"
-    val zookeeperHelp = "\t-z, --zookeepers : optional\n\t\tZookeeper comma-separated instances string. This can usually be discovered by GeoMesa-Tools automatically.\\n"
-    val authsHelp = "\t--auths : optional\n\t\tAccumulo auths string\n"
-    val visibilitiesHelp = "\t-v, --visibilities : optional\n\t\tAccumulo visibilities string\n"
-    val catalogHelp = "\t-c, --catalog : required\n\t\tthe name of the Accumulo table to use\n"
-    val featureHelp = "\t-f, --feature-name : required\n\t\tthe name of the feature\n"
-    val specHelp = "\t-s, --spec : required\n\t\tthe SFT specification for the new feature\n"
-    val suffixHelp = "\t-s, --suffix : required\n\t\tthe table suffix (attr_idx, st_idx, or records)\n"
+    val usernameHelp = buildHelpText(Some('u'), "username", required = true, "the Accumulo username")
+    val passwordHelp = buildHelpText(Some('p'), "password", required = false,
+      "the Accumulo password. This can also be provided after entering a command")
+    val instanceNameHelp = buildHelpText(Some('i'), "instance-name", required = false,
+      "Accumulo instance name. This can usually be discovered by GeoMesa-Tools automatically.")
+    val zookeeperHelp = buildHelpText(Some('z'), "zookeepers", required = false,
+      "Zookeeper comma-separated instances string. This can usually be discovered by GeoMesa-Tools automatically.")
+    val authsHelp = buildHelpText(None, "auths", required = false, "Accumulo authorizations string")
+    val visibilitiesHelp = buildHelpText(Some('v'), "visibilities", required = false, "Accumulo visibilities string")
+    val catalogHelp = buildHelpText(Some('c'), "catalog", required = true, "the name of the Accumulo table to use")
+    val featureHelp =  buildHelpText(Some('f'), "feature-name", required = true, "the name of the feature")
+    val specHelp = buildHelpText(Some('s'), "spec", required = true, "the SFT specification for the new feature")
+    val suffixHelp = buildHelpText(Some('s'), "suffix", required = true, "the table suffix (attr_idx, st_idx, or records)")
     val help = if (args.contains("create")) {
-      "Create a feature in GeoMesa\n" + usernameHelp + passwordHelp + instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp +
-        "\t-c, --catalog : required\n" +
-        "\t\tthe name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data\n" +
-        "\t-f, --feature-name : required\n" +
-        "\t\tthe name of the new feature to be created\n" +
+      "Create a feature in GeoMesa\n" + usernameHelp + passwordHelp +
+        buildHelpText(Some('c'), "catalog", required = true,
+          "the name of the Accumulo table to use -- or create, if it does not already exist -- to contain the new data") +
+        buildHelpText(Some('f'), "feature-name", required = true, "the name of the new feature to be created") +
         specHelp +
-        "\t-d, --default-date : optional\n" +
-        "\t\tthe default date of the sft"
+        buildHelpText(Some('d'), "dt-field", required = false, "the default date attribute of the sft") +
+        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp
     } else if (args.contains("delete")) {
       "Delete a feature from the specified Catalog Table in GeoMesa\n" + usernameHelp + passwordHelp + catalogHelp +
-        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp +
-        "\t-f, --feature-name : required\n" +
-        "\t\tthe name of the feature to be deleted\n" +
-        "\t--force, : optional\n" +
-        "\t\tforce-delete a table and skip confirmation prompt"
+        buildHelpText(Some('f'), "feature-name", required = true, "the name of the new feature to be delete") +
+        buildHelpText(None, "force", required = false, "force-delete a table and skip confirmation prompt") +
+        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp
     } else if (args.contains("describe") && !args.contains("tableconf")) {
       "Describe the attributes of a specified feature\n" + usernameHelp + passwordHelp + catalogHelp +
-        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp +
-        "\t-f, --feature-name : required\n" +
-        "\t\tthe name of the feature to be described\n" +
-        "\t-q, --quiet : optional\n" +
-        "\t\tget output from the command without any info statements. useful for piping output\n"
+        buildHelpText(Some('f'), "feature-name", required = true, "the name of the feature to be described") +
+        buildHelpText(Some('q'), "quiet", required = false,
+          "get output from the command without any info statements. useful for piping output") +
+        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp
     } else if (args.contains("explain")) {
       "Explain and plan a query in GeoMesa\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
-        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp +
-        "\t-q, --filter : required\n" +
-        "\t\tthe filter string to apply, plan, and explain"
+        buildHelpText(Some('q'), "filter", required = true, "the filter string to apply, plan, and explain") +
+        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp
     } else if (args.contains("list") && !args.contains("tableconf")) {
       "List the features in the specified Catalog Table\n" + usernameHelp + passwordHelp + catalogHelp +
-        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp +
-        "\t-q, --quiet : optional\n" +
-        "\t\tget output from the command without any info statements. useful for piping output\n"
+        buildHelpText(Some('q'), "quiet", required = false,
+          "get output from the command without any info statements. useful for piping output") +
+        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp
     } else if (args.contains("tableconf") && args.contains("list")) {
       "List all table configuration parameters.\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp + suffixHelp +
       instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp
     } else if (args.contains("tableconf") && args.contains("describe")) {
       "Print the value of a single table configuration parameter\n" + usernameHelp + passwordHelp + catalogHelp + featureHelp +
-        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp +
-        "\t--param : required\n" +
-        "\t\tthe table configuration parameter to describe\n" +
-        suffixHelp
+        buildHelpText(None, "param", required = true, "the table configuration parameter to describe") +
+        suffixHelp +
+        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp
     } else if (args.contains("tableconf") && args.contains( "update")) {
       "Update a table configuration parameter to the new specified value\n" + usernameHelp + passwordHelp + catalogHelp +
-        featureHelp + instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp +
-        "\t--param : required\n" +
-        "\t\tthe table configuration parameter to update\n" +
-        "\t-n, --new-value : required\n" +
-        "\t\tthe new value for the table configuration parameter\n" +
-        suffixHelp
+        buildHelpText(None, "param", required = true, "the table configuration parameter to update") +
+        buildHelpText(Some('n'), "new-value", required = true, "the new value for the table configuration parameter") +
+        suffixHelp +
+        instanceNameHelp + zookeeperHelp + visibilitiesHelp + authsHelp
     } else {
       "GeoMesa Tools 1.0\n" +
         "Required for each command:\n" +
@@ -242,7 +243,7 @@ object Tools extends App with Logging with GetPassword {
         "\tdescribe: Describe the attributes of a specified feature\n" +
         "\texplain: Explain and plan a query in GeoMesa\n" +
         "\texport: Export all or a set of features in CSV, TSV, GeoJSON, GML, or SHP format\n" +
-        "\tingest: Ingest features into GeoMesa" +
+        "\tingest: Ingest features into GeoMesa\n" +
         "\tlist: List the features in the specified Catalog Table\n" +
         "\ttableconf: List, describe, and update table configuration parameters"
     }

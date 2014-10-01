@@ -79,19 +79,24 @@
             <groupId>org.joda</groupId>
             <artifactId>joda-convert</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.spatial4j</groupId>
             <artifactId>spatial4j</artifactId>
         </dependency>
-
-        <!-- logging -->
         <dependency>
             <groupId>com.typesafe</groupId>
             <artifactId>scalalogging-slf4j_2.10</artifactId>
         </dependency>
 
         <!-- test dependencies -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

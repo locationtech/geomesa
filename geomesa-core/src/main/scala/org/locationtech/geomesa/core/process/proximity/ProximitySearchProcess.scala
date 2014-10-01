@@ -1,7 +1,7 @@
 package org.locationtech.geomesa.core.process.proximity
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.GeometryFactory
-import org.apache.log4j.Logger
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
@@ -20,9 +20,7 @@ import org.opengis.filter.Filter
   title = "Geomesa-enabled Proximity Search",
   description = "Performs a proximity search on a Geomesa feature collection using another feature collection as input"
 )
-class ProximitySearchProcess {
-
-  private val log = Logger.getLogger(classOf[ProximitySearchProcess])
+class ProximitySearchProcess extends Logging {
 
   @DescribeResult(description = "Output feature collection")
   def execute(
@@ -43,13 +41,13 @@ class ProximitySearchProcess {
 
                ): SimpleFeatureCollection = {
 
-    log.info("Attempting Geomesa Proximity Search on collection type " + dataFeatures.getClass.getName)
+    logger.info("Attempting Geomesa Proximity Search on collection type " + dataFeatures.getClass.getName)
 
     if(!dataFeatures.isInstanceOf[AccumuloFeatureCollection]) {
-      log.warn("The provided data feature collection type may not support geomesa proximity search: "+dataFeatures.getClass.getName)
+      logger.warn("The provided data feature collection type may not support geomesa proximity search: "+dataFeatures.getClass.getName)
     }
     if(dataFeatures.isInstanceOf[ReTypingFeatureCollection]) {
-      log.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
+      logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
 
     val visitor = new ProximityVisitor(inputFeatures, dataFeatures, bufferDistance)
@@ -58,12 +56,11 @@ class ProximitySearchProcess {
   }
 }
 
-class ProximityVisitor( inputFeatures: SimpleFeatureCollection,
-                               dataFeatures: SimpleFeatureCollection,
-                               bufferDistance: java.lang.Double
-                             ) extends FeatureCalc {
-
-  private val log = Logger.getLogger(classOf[ProximityVisitor])
+class ProximityVisitor(inputFeatures: SimpleFeatureCollection,
+                       dataFeatures: SimpleFeatureCollection,
+                       bufferDistance: java.lang.Double)
+  extends FeatureCalc
+          with Logging {
 
   val geoFac = new GeometryFactory
   val ff = CommonFactoryFinder.getFilterFactory2
@@ -89,7 +86,7 @@ class ProximityVisitor( inputFeatures: SimpleFeatureCollection,
   def setValue(r: SimpleFeatureCollection) = resultCalc = ProximityResult(r)
 
   def proximitySearch(source: SimpleFeatureSource, query: Query) = {
-    log.info("Running Geomesa Proximity Search on source type "+source.getClass.getName)
+    logger.info("Running Geomesa Proximity Search on source type "+source.getClass.getName)
     val combinedFilter = ff.and(query.getFilter, dwithinFilters("meters"))
     source.getFeatures(combinedFilter)
   }

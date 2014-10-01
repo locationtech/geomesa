@@ -34,11 +34,11 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
   private val indexSchema = IndexSchema(indexSchemaFmt, sft, featureEncoder)
   private val queryPlanner = indexSchema.planner
 
-  def explainQuery(q: Query = query) {
+  def explainQuery(q: Query = query, o: ExplainerOutputType = ExplainPrintln) {
     val (_, explainTime) = profile {
-      indexSchema.explainQuery(q, ExplainPrintln)
+      indexSchema.explainQuery(q, o)
     }
-    ExplainPrintln(s"Query Planning took $explainTime milliseconds.")
+    o(s"Query Planning took $explainTime milliseconds.")
   }
 
   private lazy val (iter, planningTime) = profile {

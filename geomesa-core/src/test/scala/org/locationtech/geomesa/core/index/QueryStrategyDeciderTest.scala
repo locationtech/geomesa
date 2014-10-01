@@ -19,16 +19,30 @@ package org.locationtech.geomesa.core.index
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.filter.TestFilters._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.reflect.ClassTag
 
 //Expand the test - https://geomesa.atlassian.net/browse/GEOMESA-308
 @RunWith(classOf[JUnitRunner])
 class QueryStrategyDeciderTest extends Specification {
 
-  val sftIndex = SimpleFeatureTypes.createType("feature", "id:Integer:index=false,*geom:Point:srid=4326:index=true,dtg:Date,attr1:String:index=false,attr2:String:index=true")
-  val sftNonIndex = SimpleFeatureTypes.createType("featureNonIndex", "id:Integer,*geom:Point:srid=4326,dtg:Date,attr1:String,attr2:String")
+  val sftIndex = SimpleFeatureTypes.createType("feature",
+      "id:Integer:index=false," +
+      "*geom:Point:srid=4326:index=true," +
+      "dtg:Date," +
+      "attr1:String:index=false," +
+      "attr2:String:index=true," +
+      "dtgNonIdx:Date:index=false")
+  val sftNonIndex = SimpleFeatureTypes.createType("featureNonIndex",
+      "id:Integer," +
+      "*geom:Point:srid=4326," +
+      "dtg:Date," +
+      "attr1:String," +
+      "attr2:String")
 
   sftIndex.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
   sftNonIndex.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
@@ -41,23 +55,36 @@ class QueryStrategyDeciderTest extends Specification {
     QueryStrategyDecider.chooseStrategy(isCatalogTable, sft, query)
   }
 
-  "Spatio-temporal filters" should {
-    "get the stidx strategy" in {
-      val fs = "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+  def getStrategyT[T <: Strategy](filterString: String, ct: ClassTag[T]) =
+    getStrategy(filterString) must beAnInstanceOf[T](ct)
 
-      getStrategy(fs) must beAnInstanceOf[STIdxStrategy]
+  def getStStrategy(filterString: String) =
+    getStrategyT(filterString, ClassTag(classOf[STIdxStrategy]))
+
+  def getAttributeIdxEqualsStrategy(filterString: String) =
+    getStrategyT(filterString, ClassTag(classOf[AttributeIdxEqualsStrategy]))
+
+  def getAttributeIdxLikeStrategy(filterString: String) =
+    getStrategyT(filterString, ClassTag(classOf[AttributeIdxLikeStrategy]))
+
+  def getAttributeIdxStrategy(filterString: String) =
+    getStrategyT(filterString, ClassTag(classOf[AttributeIdxStrategy]))
+
+  "Good spatial predicates" should {
+    "get the stidx strategy" in {
+      forall(goodSpatialPredicates){ getStStrategy }
     }
   }
 
   "Attribute filters" should {
     "get the attribute equals strategy" in {
-      val fs = "attr2 = val56"
+      val fs = "attr2 = 'val56'"
 
-      getStrategy(fs) must beAnInstanceOf[AttributeEqualsIdxStrategy]
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxEqualsStrategy]
     }
 
     "get the attribute equals strategy" in {
-      val fs = "attr1 = val56"
+      val fs = "attr1 = 'val56'"
 
       getStrategy(fs) must beAnInstanceOf[STIdxStrategy]
     }
@@ -65,13 +92,79 @@ class QueryStrategyDeciderTest extends Specification {
     "get the attribute likes strategy" in {
       val fs = "attr2 ILIKE '2nd1%'"
 
-      getStrategy(fs) must beAnInstanceOf[AttributeLikeIdxStrategy]
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxLikeStrategy]
     }
 
     "get the stidx strategy if attribute non-indexed" in {
       val fs = "attr1 ILIKE '2nd1%'"
 
       getStrategy(fs) must beAnInstanceOf[STIdxStrategy]
+    }
+
+    "get the attribute strategy for lte" in {
+      val fs = "attr2 <= 11"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for lt" in {
+      val fs = "attr2 < 11"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for gte" in {
+      val fs = "attr2 >= 11"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for gt" in {
+      val fs = "attr2 > 11"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for gt prop on right" in {
+      val fs = "11 > attr2"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for null" in {
+      val fs = "attr2 IS NULL"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxEqualsStrategy]
+    }
+
+    "get the attribute strategy for during" in {
+      val fs = "attr2 DURING 2012-01-01T11:00:00.000Z/2014-01-01T12:15:00.000Z"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for after" in {
+      val fs = "attr2 AFTER 2013-01-01T12:30:00.000Z"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for before" in {
+      val fs = "attr2 BEFORE 2014-01-01T12:30:00.000Z"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for between" in {
+      val fs = "attr2 BETWEEN 10 and 20"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+
+    "get the attribute strategy for ANDed attributes" in {
+      val fs = "attr2 >= 11 AND attr2 < 20"
+
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
     }
   }
 
@@ -97,13 +190,12 @@ class QueryStrategyDeciderTest extends Specification {
     }
   }
 
-  // TODO: The next two tests should be handled be handled by GEOMESA-313
   "Id and Spatio-temporal filters" should {
     "get the records strategy" in {
       val fs = "IN ('val56') AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
 
       getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
-    }.pendingUntilFixed
+    }
   }
 
   "Id and Attribute filters" should {
@@ -111,16 +203,31 @@ class QueryStrategyDeciderTest extends Specification {
       val fs = "IN ('val56') AND attr2 = val56"
 
       getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
-    }.pendingUntilFixed
+    }
   }
 
-  // TODO: GEOMESA-311
+  "Really complicated Id AND * filters" should {
+    "get the records strategy" in {
+      val fsFragment1="INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
+      val fsFragment2="AND IN ('val56','val55') AND attr2 = val56 AND IN('val59','val54') AND attr2 = val60"
+      val fs = s"$fsFragment1 $fsFragment2"
+
+      getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
+    }
+  }
+
+
   "Anded Attribute filters" should {
-    "get an attribute strategy" in {
-      val fs = "attr2 = val56 AND attr1 = val3"
+    "get the STIdx strategy with stIdxStrategyPredicates" in {
+      forall(stIdxStrategyPredicates) { getStStrategy }
+    }
 
-      getStrategy(fs) must beAnInstanceOf[AttributeEqualsIdxStrategy]
-    }.pendingUntilFixed
+    "get the attribute strategy with attributeAndGeometricPredicates" in {
+      forall(attributeAndGeometricPredicates) { getAttributeIdxStrategy }
+    }
+
+    "get the attribute strategy with attrIdxStrategyPredicates" in {
+      forall(attrIdxStrategyPredicates) { getAttributeIdxStrategy }
+    }
   }
-
 }

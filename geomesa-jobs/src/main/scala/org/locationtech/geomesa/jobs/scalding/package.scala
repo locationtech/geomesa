@@ -18,9 +18,9 @@ package org.locationtech.geomesa.jobs
 
 import cascading.scheme.Scheme
 import cascading.tap.Tap
-import org.apache.accumulo.core.data.{Mutation, Value, Key}
-import org.apache.hadoop.io.{Text, NullWritable}
-import org.apache.hadoop.mapred.{RecordWriter, JobConf, OutputCollector, RecordReader}
+import org.apache.accumulo.core.data.{Key, Mutation, Value}
+import org.apache.hadoop.io.Text
+import org.apache.hadoop.mapred.{JobConf, OutputCollector, RecordReader, RecordWriter}
 
 package object scalding {
   type GenericRecordReader = RecordReader[_, _]
