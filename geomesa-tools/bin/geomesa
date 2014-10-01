@@ -48,6 +48,7 @@ for home in ${GEOMESA_LIB} ${ACCUMULO_LIB} ${HADOOP_LIB}; do
     fi
   fi
 done
+GEOMESA_CP=${GEOMESA_CP:1}
 
 hadoopDirs=(${HADOOP_COMMON} \
 ${HADOOP_MAPREDUCE} \
