@@ -122,7 +122,7 @@ class AccumuloDataStore(val connector: Connector,
 
   private val tableOps = connector.tableOperations()
 
-  createTableConditionally(catalogTable)
+  ensureTableExists(catalogTable)
 
   /**
    * Computes and writes the metadata for this feature type
@@ -320,7 +320,7 @@ class AccumuloDataStore(val connector: Connector,
     val attributeIndexTable    = formatAttrIdxTableName(catalogTable, featureType)
     val recordTable            = formatRecordTableName(catalogTable, featureType)
 
-    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach(createTableConditionally)
+    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach(ensureTableExists)
 
     if (!connector.isInstanceOf[MockConnector]) {
       configureRecordTable(featureType, recordTable)
@@ -329,7 +329,7 @@ class AccumuloDataStore(val connector: Connector,
     }
   }
 
-  private def createTableConditionally(table: String) =
+  private def ensureTableExists(table: String) =
     if (!tableOps.exists(table)) {
       try {
         tableOps.create(table, true, TimeType.LOGICAL)
