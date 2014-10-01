@@ -25,6 +25,7 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
+import org.locationtech.geomesa.core.data.tables.RecordTable
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper.filterListAsAnd
 import org.locationtech.geomesa.core.iterators.IteratorTrigger
@@ -96,7 +97,7 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     val rangesAsOption: Option[Set[data.Range]] = identifiers.map {
       aSet => aSet.map {
-        id => org.apache.accumulo.core.data.Range.exact(prefix + id.toString)
+        id => org.apache.accumulo.core.data.Range.exact(RecordTable.getRowKey(prefix, id.toString))
       }
     }
 

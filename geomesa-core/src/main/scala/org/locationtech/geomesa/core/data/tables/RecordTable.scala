@@ -28,14 +28,14 @@ object RecordTable extends GeoMesaTable {
 
   def buildWrite(encoder: SimpleFeatureEncoder, visibility: String, rowIdPrefix: String): SimpleFeature => Mutation =
     (feature: SimpleFeature) => {
-      val m = new Mutation(rowIdPrefix + feature.getID)
+      val m = new Mutation(getRowKey(rowIdPrefix, feature.getID))
       m.put(SFT_CF, EMPTY_COLQ, new ColumnVisibility(visibility), new Value(encoder.encode(feature)))
       m
     }
 
   def buildDelete(encoder: SimpleFeatureEncoder, visibility: String, rowIdPrefix: String): SimpleFeature => Mutation =
     (feature: SimpleFeature) => {
-      val m = new Mutation(rowIdPrefix + feature.getID)
+      val m = new Mutation(getRowKey(rowIdPrefix, feature.getID))
       m.putDelete(SFT_CF, EMPTY_COLQ, new ColumnVisibility(visibility))
       m
     }
@@ -50,4 +50,6 @@ object RecordTable extends GeoMesaTable {
     val builder = buildDelete(encoder, visibility, rowIdPrefix)
     feature: SimpleFeature => bw.addMutation(builder(feature))
   }
+
+  def getRowKey(rowIdPrefix: String, id: String): String = rowIdPrefix + id
 }
