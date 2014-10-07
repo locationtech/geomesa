@@ -5,14 +5,17 @@ import java.util.Map.Entry
 import org.apache.accumulo.core.client.{BatchScanner, Scanner}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.FeatureReader
+import org.geotools.data.simple.SimpleFeatureIterator
 import org.opengis.feature.Feature
 import org.opengis.feature.`type`.FeatureType
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.Iterator
 import scala.collection.JavaConversions._
 
 // A CloseableIterator is one which involves some kind of close function which should be called at the end of use.
 object CloseableIterator {
+
   // In order to use 'map' and 'flatMap', we provide an implicit promoting wrapper.
   implicit def iteratorToCloseable[A](iter: Iterator[A]) = apply(iter)
 
@@ -29,6 +32,12 @@ object CloseableIterator {
 
   // This apply method provides us with a simple interface for creating new CloseableIterators.
   def apply[A <: Feature, B <: FeatureType](iter: FeatureReader[B, A]) = new CloseableIterator[A] {
+    def hasNext = iter.hasNext
+    def next()  = iter.next()
+    def close() = iter.close()
+  }
+
+  def apply(iter: SimpleFeatureIterator) = new CloseableIterator[SimpleFeature] {
     def hasNext = iter.hasNext
     def next()  = iter.next()
     def close() = iter.close()
@@ -73,6 +82,7 @@ trait CloseableIterator[+A] extends Iterator[A] {
 trait SelfClosingIterator[+A] extends CloseableIterator[A]
 
 object SelfClosingIterator {
+
   def apply[A](iter: Iterator[A], closeIter: () => Unit) = new SelfClosingIterator[A] {
     def hasNext: Boolean = {
       val iterHasNext = iter.hasNext
@@ -89,6 +99,8 @@ object SelfClosingIterator {
 
   def apply[A <: Feature, B <: FeatureType](fr: FeatureReader[B, A]): SelfClosingIterator[A] =
     apply(CloseableIterator(fr))
+
+  def apply(iter: SimpleFeatureIterator): SelfClosingIterator[SimpleFeature] = apply(CloseableIterator(iter))
 }
 
 // This object provides a standard way to wrap BatchScanners in a self-closing and closeable iterator.

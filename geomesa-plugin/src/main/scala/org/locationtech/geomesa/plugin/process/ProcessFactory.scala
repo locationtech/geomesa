@@ -23,6 +23,7 @@ import org.locationtech.geomesa.core.process.knn.KNearestNeighborSearchProcess
 import org.locationtech.geomesa.core.process.proximity.ProximitySearchProcess
 import org.locationtech.geomesa.core.process.query.QueryProcess
 import org.locationtech.geomesa.core.process.tube.TubeSelectProcess
+import org.locationtech.geomesa.core.process.unique.UniqueProcess
 
 class ProcessFactory
   extends AnnotatedBeanProcessFactory(
@@ -33,7 +34,8 @@ class ProcessFactory
     classOf[ProximitySearchProcess],
     classOf[QueryProcess],
     classOf[KNearestNeighborSearchProcess],
-    classOf[DBSCANProcess]
+    classOf[DBSCANProcess],
+    classOf[UniqueProcess]
   )
 
 

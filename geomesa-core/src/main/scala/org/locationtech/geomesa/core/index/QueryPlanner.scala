@@ -38,6 +38,7 @@ object QueryPlanner {
   val iteratorPriority_RowRegex                        = 0
   val iteratorPriority_AttributeIndexFilteringIterator = 10
   val iteratorPriority_AttributeIndexIterator          = 200
+  val iteratorPriority_AttributeUniqueIterator         = 300
   val iteratorPriority_ColFRegex                       = 100
   val iteratorPriority_SpatioTemporalIterator          = 200
   val iteratorPriority_SimpleFeatureFilteringIterator  = 300
@@ -82,6 +83,9 @@ case class QueryPlanner(schema: String,
                   sft: SimpleFeatureType,
                   query: Query,
                   output: ExplainerOutputType = log): CloseableIterator[Entry[Key,Value]] = {
+
+    output(s"Running ${ExplainerOutputType.toString(query)}")
+
     val ff = CommonFactoryFinder.getFilterFactory2
     val isDensity = query.getHints.containsKey(BBOX_KEY)
     val queries: Iterator[Query] =
@@ -98,10 +102,10 @@ case class QueryPlanner(schema: String,
   
   def splitQueryOnOrs(query: Query, output: ExplainerOutputType): Iterator[Query] = {
     val originalFilter = query.getFilter
-    output(s"Originalfilter is $originalFilter")
+    output(s"Original filter: $originalFilter")
 
     val rewrittenFilter = rewriteFilter(originalFilter)
-    output(s"Filter is rewritten as $rewrittenFilter")
+    output(s"Rewritten filter: $rewrittenFilter")
 
     val orSplitter = new OrSplittingFilter
     val splitFilters = orSplitter.visit(rewrittenFilter, null)
@@ -130,16 +134,15 @@ case class QueryPlanner(schema: String,
                        derivedQuery: Query,
                        isDensity: Boolean,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+    output(s"Transforms: ${derivedQuery.getHints.get(TRANSFORMS)}")
     val strategy = QueryStrategyDecider.chooseStrategy(acc.catalogTableFormat(sft), sft, derivedQuery)
 
-    output(s"Strategy: $strategy")
+    output(s"Strategy: ${strategy.getClass.getCanonicalName}")
     strategy.execute(acc, this, sft, derivedQuery, output)
   }
 
   def query(query: Query, acc: AccumuloConnectorCreator): CloseableIterator[SimpleFeature] = {
     // Perform the query
-    logger.trace(s"Running ${query.toString}")
-
     val accumuloIterator = getIterator(acc, featureType, query)
 
     // Convert Accumulo results to SimpleFeatures

@@ -62,6 +62,7 @@ import scala.collection.JavaConversions._
   val WHOLE_WORLD_BOUNDS   = "-180.0:180.0:-90.0:90.0"
   val TRANSFORMS           = new ClassKey(classOf[String])
   val TRANSFORM_SCHEMA     = new ClassKey(classOf[SimpleFeatureType])
+  val GEOMESA_UNIQUE       = new ClassKey(classOf[String])
 
   type TASKIOCTX = TaskInputOutputContext[_, _, Key, Value]
   type SFFeatureWriter = FeatureWriter[SimpleFeatureType, SimpleFeature]
