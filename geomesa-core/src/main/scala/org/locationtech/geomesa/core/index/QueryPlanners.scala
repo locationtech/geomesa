@@ -313,11 +313,14 @@ trait GeoHashPlanner extends Logging {
 
 case class GeoHashKeyPlanner(offset: Int, bits: Int) extends KeyPlanner with GeoHashPlanner {
   def getKeyPlan(filter: KeyPlanningFilter, output: ExplainerOutputType) = getKeyPlan(filter, offset, bits) match {
-    case KeyList(keys) => {
-      output(s"GeoHashKeyPlanner is setting ${keys.size}: $keys")
+    case KeyList(keys) =>
+      output(s"GeoHashKeyPlanner: ${keys.size} : ${keys.take(20)}")
       KeyListTiered(keys)
-    }
-    case KeyAccept => KeyAccept
+
+    case KeyAccept =>
+      output(s"GeoHashKeyPlanner: KeyAccept")
+      KeyAccept
+
     case _ => KeyInvalid
   }
 }
@@ -330,13 +333,16 @@ case class RandomPartitionPlanner(numPartitions: Int) extends KeyPlanner {
   val numBits: Int = numPartitions.toString.length
   def getKeyPlan(filter: KeyPlanningFilter, output: ExplainerOutputType) = {
     val keys = (0 to numPartitions).map(_.toString.reverse.padTo(numBits,"0").reverse.mkString)
-    output(s"Random Partition Planner $keys")
+    output(s"Random Partition Planner: $keys")
     KeyListTiered(keys)
   }
 }
 
 case class ConstStringPlanner(cstr: String) extends KeyPlanner {
-  def getKeyPlan(filter:KeyPlanningFilter, output: ExplainerOutputType) = KeyListTiered(List(cstr))
+  def getKeyPlan(filter:KeyPlanningFilter, output: ExplainerOutputType) = {
+    output(s"ConstPlanner: $cstr")
+    KeyListTiered(List(cstr))
+  }
 }
 
 case class DatePlanner(formatter: DateTimeFormatter) extends KeyPlanner {

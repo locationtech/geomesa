@@ -25,13 +25,11 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
-import org.geotools.feature.AttributeTypeBuilder
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
 import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
-import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryHints._
@@ -68,6 +66,7 @@ class STIdxStrategy extends Strategy with Logging {
     val cfPlanner       = IndexSchema.buildColumnFamilyPlanner(iqp.schema)
 
     output(s"Scanning ST index table for feature type ${featureType.getTypeName}")
+    output(s"Filter: ${query.getFilter}")
 
     // TODO: Select only the geometry filters which involve the indexed geometry type.
     // https://geomesa.atlassian.net/browse/GEOMESA-200
@@ -77,7 +76,9 @@ class STIdxStrategy extends Strategy with Logging {
 
     val ecql = filterListAsAnd(ecqlFilters).map(ECQL.toCQL)
 
-    output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
+    output(s"Geometry filters: $geomFilters")
+    output(s"Temporal filters: $temporalFilters")
+    output(s"Other filters: $ecqlFilters")
 
     val tweakedGeoms = geomFilters.map(updateTopologicalFilters(_, featureType))
 
@@ -103,7 +104,7 @@ class STIdxStrategy extends Strategy with Logging {
     val geometryToCover = netGeom(collectionToCover)
     val filter = buildFilter(geometryToCover, interval)
 
-    output(s"GeomsToCover $geomsToCover.")
+    output(s"GeomsToCover: $geomsToCover")
 
     val ofilter = filterListAsAnd(tweakedGeoms ++ temporalFilters)
     if (ofilter.isEmpty) logger.warn(s"Querying Accumulo without ST filter.")
@@ -113,13 +114,9 @@ class STIdxStrategy extends Strategy with Logging {
     // set up row ranges and regular expression filter
     val qp = planQuery(filter, output, keyPlanner, cfPlanner)
 
-    output("Configuring batch scanner for ST table: \n" +
-      s"  Filter ${query.getFilter}\n" +
-      s"  STII Filter: ${ofilter.getOrElse("No STII Filter")}\n" +
-      s"  Interval:  ${oint.getOrElse("No interval")}\n" +
-      s"  Filter: ${Option(filter).getOrElse("No Filter")}\n" +
-      s"  ECQL: ${Option(ecql).getOrElse("No ecql")}\n" +
-      s"Query: ${Option(query).getOrElse("no query")}.")
+    output(s"STII Filter: ${ofilter.getOrElse("No STII Filter")}")
+    output(s"Interval:  ${oint.getOrElse("No interval")}")
+    output(s"Filter: ${Option(filter).getOrElse("No Filter")}")
 
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
@@ -224,7 +221,6 @@ class STIdxStrategy extends Strategy with Logging {
   def planQuery(filter: KeyPlanningFilter, output: ExplainerOutputType, keyPlanner: KeyPlanner, cfPlanner: ColumnFamilyPlanner): QueryPlan = {
     output(s"Planning query")
     val keyPlan = keyPlanner.getKeyPlan(filter, output)
-    output(s"Got keyplan ${keyPlan.toString.take(1000)}")
 
     val columnFamilies = cfPlanner.getColumnFamiliesToFetch(filter)
 
@@ -234,7 +230,7 @@ class STIdxStrategy extends Strategy with Logging {
       case _ => Seq(new org.apache.accumulo.core.data.Range())
     }
 
-    output(s"Setting ${accRanges.size} ranges.")
+    output(s"Total ranges: ${accRanges.size}")
 
     // always try to set a RowID regular expression
     //@TODO this is broken/disabled as a result of the KeyTier
@@ -247,7 +243,7 @@ class STIdxStrategy extends Strategy with Logging {
     // if you have a list of distinct column-family entries, fetch them
     val cf = columnFamilies match {
       case KeyList(keys) =>
-        output(s"Settings ${keys.size} column fams: $keys.")
+        output(s"ColumnFamily Planner: ${keys.size} : ${keys.take(20)}")
         keys.map { cf => new Text(cf) }
 
       case _ =>

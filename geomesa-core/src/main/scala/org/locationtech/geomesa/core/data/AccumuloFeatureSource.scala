@@ -24,6 +24,7 @@ import org.locationtech.geomesa.core.process.knn.KNNVisitor
 import org.locationtech.geomesa.core.process.proximity.ProximityVisitor
 import org.locationtech.geomesa.core.process.query.QueryVisitor
 import org.locationtech.geomesa.core.process.tube.TubeVisitor
+import org.locationtech.geomesa.core.process.unique.AttributeVisitor
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -74,8 +75,7 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
 class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featureName: String)
   extends AccumuloAbstractFeatureSource
 
-class AccumuloFeatureCollection(source: SimpleFeatureSource,
-                                query: Query)
+class AccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
   extends DefaultFeatureResults(source, query) {
 
   val ds  = source.getDataStore.asInstanceOf[AccumuloDataStore]
@@ -84,16 +84,18 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource,
     if(query.getHints.containsKey(TRANSFORMS)) query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
     else super.getSchema
 
-  override def accepts(visitor: FeatureVisitor, progress: ProgressListener) = visitor match {
-    // TODO: implement min/max iterators
-    case v: MinVisitor       => v.setValue(new DateTime(2000,1,1,0,0).toDate)
-    case v: MaxVisitor       => v.setValue(new DateTime().toDate)
-    case v: BoundsVisitor    => v.reset(ds.getBounds(query))
-    case v: TubeVisitor      => v.setValue(v.tubeSelect(source, query))
-    case v: ProximityVisitor => v.setValue(v.proximitySearch(source, query))
-    case v: QueryVisitor     => v.setValue(v.query(source, query))
-    case v: KNNVisitor       => v.setValue(v.kNNSearch(source,query))
-    case _                   => super.accepts(visitor, progress)
-  }
+  override def accepts(visitor: FeatureVisitor, progress: ProgressListener) =
+    visitor match {
+      // TODO GEOMESA-421 implement min/max iterators
+      case v: MinVisitor       => v.setValue(new DateTime(2000,1,1,0,0).toDate)
+      case v: MaxVisitor       => v.setValue(new DateTime().toDate)
+      case v: BoundsVisitor    => v.reset(ds.getBounds(query))
+      case v: TubeVisitor      => v.setValue(v.tubeSelect(source, query))
+      case v: ProximityVisitor => v.setValue(v.proximitySearch(source, query))
+      case v: QueryVisitor     => v.setValue(v.query(source, query))
+      case v: KNNVisitor       => v.setValue(v.kNNSearch(source,query))
+      case v: AttributeVisitor => v.setValue(v.unique(source, query))
+      case _                   => super.accepts(visitor, progress)
+    }
 
 }

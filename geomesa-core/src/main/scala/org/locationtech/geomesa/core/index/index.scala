@@ -17,7 +17,8 @@
 package org.locationtech.geomesa.core
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
+import org.geotools.data.Query
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -25,6 +26,7 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.FeatureId
+
 
 /**
  * These are package-wide constants.
@@ -92,6 +94,19 @@ package object index {
   }
 
   type ExplainerOutputType = ( => String) => Unit
+
+  object ExplainerOutputType {
+
+    def toString(r: AccRange) = {
+      val first = if (r.isStartKeyInclusive) "[" else "("
+      val last =  if (r.isEndKeyInclusive) "]" else ")"
+      val start = Option(r.getStartKey).map(_.toStringNoTime).getOrElse("-inf")
+      val end = Option(r.getEndKey).map(_.toStringNoTime).getOrElse("+inf")
+      first + start + ", " + end + last
+    }
+
+    def toString(q: Query) = q.toString.replaceFirst("\\n\\s*", " ").replaceAll("\\n\\s*", ", ")
+  }
 
   object ExplainPrintln extends ExplainerOutputType {
     override def apply(v1: => String): Unit = println(v1)

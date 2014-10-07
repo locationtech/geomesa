@@ -15,7 +15,7 @@ To build this module, run ```mvn clean package``` from the module folder.
 Once the module is build, you can run it with the following command:
 
 <pre>
-java -cp target/geomesa-minicluster-accumulo1.5-1.0.0-SNAPSHOT.jar:data/ \
+java -cp target/geomesa-minicluster-accumulo1.5-1.0.0-SNAPSHOT-shaded.jar:data/ \
   org.locationtech.geomesa.core.integration.MiniCluster -t &lt;data_type&gt;
 </pre>
 

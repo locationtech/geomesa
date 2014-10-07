@@ -59,11 +59,13 @@ object AccumuloFeatureStore {
           val origAttr = origSFT.getDescriptor(p.getPropertyName)
           val ab = new AttributeTypeBuilder()
           ab.init(origAttr)
-          if(origAttr.isInstanceOf[GeometryDescriptor]) {
+          val descriptor = if (origAttr.isInstanceOf[GeometryDescriptor]) {
             ab.buildDescriptor(name, ab.buildGeometryType())
           } else {
             ab.buildDescriptor(name, ab.buildType())
           }
+          descriptor.getUserData.putAll(origAttr.getUserData)
+          descriptor
 
         case f: FunctionExpressionImpl  =>
           val clazz = f.getFunctionName.getReturn.getType

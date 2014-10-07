@@ -19,8 +19,7 @@ package org.locationtech.geomesa.core.index
 
 import java.util.Map.Entry
 
-import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.{BatchScanner, Scanner, IteratorSetting}
+import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
@@ -29,12 +28,12 @@ import org.geotools.temporal.`object`.DefaultPeriod
 import org.locationtech.geomesa.core.DEFAULT_FILTER_PROPERTY_NAME
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.data.tables.{RecordTable, AttributeTable}
+import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.core.util.{SelfClosingIterator, BatchMultiScanner}
+import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
@@ -42,7 +41,7 @@ import org.opengis.filter.{Filter, PropertyIsEqualTo, PropertyIsLike, _}
 
 import scala.collection.JavaConversions._
 
-trait AttributeIdxStrategy extends Strategy with Logging {
+trait AttributeIdxStrategy extends Strategy {
 
   /**
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
@@ -54,18 +53,21 @@ trait AttributeIdxStrategy extends Strategy with Logging {
                    attributeName: String,
                    range: AccRange,
                    output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    output(s"Searching the attribute table with filter ${query.getFilter}")
 
     output(s"Scanning attribute table for feature type ${featureType.getTypeName}")
-    val attrScanner = acc.createAttrIdxScanner(featureType)
+    output(s"Range: ${ExplainerOutputType.toString(range)}")
+    output(s"Filter: ${query.getFilter}")
 
-    logger.trace(s"Attribute Scan Range: ${range.toString}")
+    val attrScanner = acc.createAttrIdxScanner(featureType)
     attrScanner.setRange(range)
 
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
     val (temporalFilters, nonSTFilters) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
 
-    output(s"The geom filters are $geomFilters.\nThe temporal filters are $temporalFilters.")
+    output(s"Geometry filters: $geomFilters")
+    output(s"Temporal filters: $temporalFilters")
+    output(s"Other filters: $nonSTFilters")
+
     val oFilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters)
     val oNonStFilters: Option[Filter] = nonSTFilters.map(_ => recomposeAnd(nonSTFilters)).headOption
 
@@ -125,6 +127,13 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     attrScanner.addScanIterator(cfg)
 
     output(s"AttributeIndexIterator: ${cfg.toString }")
+
+    // if this is a unique attribute request, add the skipping iterator to speed up response
+    if (query.getHints.containsKey(GEOMESA_UNIQUE)) {
+      val uCfg = configureUniqueAttributeIterator(opts)
+      attrScanner.addScanIterator(uCfg)
+      output(s"UniqueAttributeIterator: ${uCfg.toString }")
+    }
 
     // there won't be any non-date/time-filters if the index only iterator has been selected
     SelfClosingIterator(attrScanner)
@@ -205,6 +214,13 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     configureFeatureEncoding(cfg, encoding)
     cfg
   }
+
+  private def configureUniqueAttributeIterator(opts: Map[String, String]) =
+    // needs to be applied *after* the AttributeIndexIterator
+    new IteratorSetting(iteratorPriority_AttributeUniqueIterator,
+      "uniqueAttrIterator",
+      classOf[UniqueAttributeIterator].getCanonicalName,
+      opts)
 
   private def configureAttributeFilteringIterator(featureType: SimpleFeatureType, opts: Map[String, String]) = {
     val cfg = new IteratorSetting(iteratorPriority_AttributeIndexFilteringIterator,
