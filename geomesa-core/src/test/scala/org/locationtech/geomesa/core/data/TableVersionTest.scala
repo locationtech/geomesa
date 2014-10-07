@@ -6,6 +6,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
+import org.apache.hadoop.io.Text
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.Hints
@@ -157,7 +158,7 @@ class TableVersionTest extends Specification {
       val connector = instance.getConnector(badParams("user"), new PasswordToken(badParams("password").getBytes))
       val scanner = connector.createScanner(badParams("tableName"), new Authorizations())
       scanner.iterator.foreach { entry =>
-        if (entry.getKey.getColumnFamily == FEATURE_ENCODING_CF)
+        if (entry.getKey.getColumnFamily == FEATURE_ENCODING_KEY)
           entry.getValue.toString mustEqual FeatureEncoding.TEXT.toString
       }
       scanner.close()
@@ -173,7 +174,7 @@ class TableVersionTest extends Specification {
       val scanner2 = connector.createScanner(badParams("tableName"), new Authorizations())
       var hasEncodingMeta = false
       scanner2.iterator.foreach { entry =>
-        hasEncodingMeta |= entry.getKey.getColumnFamily.equals(FEATURE_ENCODING_CF)
+        hasEncodingMeta |= entry.getKey.getColumnFamily.equals(new Text(FEATURE_ENCODING_KEY))
       }
       hasEncodingMeta must beTrue
 
@@ -214,7 +215,7 @@ class TableVersionTest extends Specification {
       val connector = instance.getConnector(newManualParams("user"), new PasswordToken(newManualParams("password").getBytes))
       val scanner = connector.createScanner(newManualParams("tableName"), new Authorizations())
       scanner.iterator.foreach { entry =>
-        entry.getKey.getColumnFamily should not(equalTo(FEATURE_ENCODING_CF))
+        entry.getKey.getColumnFamily should not(equalTo(FEATURE_ENCODING_KEY))
       }
       scanner.close
 
@@ -251,8 +252,8 @@ class TableVersionTest extends Specification {
       val scanner2 = connector.createScanner(newManualParams("tableName"), new Authorizations())
       var hasEncodingMeta = false
       scanner2.iterator.foreach { entry =>
-        hasEncodingMeta |= entry.getKey.getColumnFamily.equals(FEATURE_ENCODING_CF)
-        if (entry.getKey.getColumnFamily == FEATURE_ENCODING_CF) {
+        hasEncodingMeta |= entry.getKey.getColumnFamily.equals(new Text(FEATURE_ENCODING_KEY))
+        if (entry.getKey.getColumnFamily == new Text(FEATURE_ENCODING_KEY)) {
           entry.getValue.toString mustEqual FeatureEncoding.TEXT.toString
         }
       }

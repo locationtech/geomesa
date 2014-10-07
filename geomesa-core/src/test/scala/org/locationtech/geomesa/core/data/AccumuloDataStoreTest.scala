@@ -753,7 +753,7 @@ class AccumuloDataStoreTest extends Specification {
      * @param sftName the name of the SimpleFeatureType
      */
     def getScannerResults(ds: AccumuloDataStore, sftName: String): Option[String] = {
-      val scanner = ds.createCatalogScanner
+      val scanner = ds.connector.createScanner(ds.catalogTable, ds.authorizationsProvider.getAuthorizations)
       scanner.setRange(new Range(s"${METADATA_TAG }_$sftName"))
 
       val name = "version-" + sftName
