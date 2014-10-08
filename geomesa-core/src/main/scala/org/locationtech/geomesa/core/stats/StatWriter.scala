@@ -120,9 +120,12 @@ object StatWriter extends Runnable with Logging {
       statsForClass.groupBy(_.table).foreach { case (table, statsForTable) =>
         checkTable(table, connector)
         val writer = connector.createBatchWriter(table, batchWriterConfig)
-        writer.addMutations(statsForTable.map(stw => transform.statToMutation(stw.stat)).asJava)
-        writer.flush()
-        writer.close()
+        try {
+          writer.addMutations(statsForTable.map(stw => transform.statToMutation(stw.stat)).asJava)
+          writer.flush()
+        } finally {
+          writer.close()
+        }
       }
     }
 
