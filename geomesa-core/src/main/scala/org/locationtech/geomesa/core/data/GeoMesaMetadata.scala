@@ -79,7 +79,7 @@ class AccumuloBackedMetadata(connector: Connector,
                           mutation: Mutation,
                           key: String,
                           value: String) {
-    mutation.put(new Text(key), EMPTY_COLQ, System.currentTimeMillis(), new Value(value.getBytes))
+    mutation.put(new Text(key), EMPTY_COLQ, new Value(value.getBytes))
     // also pre-fetch into the cache
     if (!value.isEmpty) {
       metaDataCache.put((featureName, key), Some(value))
@@ -108,8 +108,11 @@ class AccumuloBackedMetadata(connector: Connector,
    * @param numThreads the number of concurrent threads to spawn for querying
    */
   override def delete(featureName: String, numThreads: Int): Unit = {
-    val range = new Range(s"${METADATA_TAG}_$featureName")
-    val deleter = connector.createBatchDeleter(catalogTable, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+    val range = new Range(getMetadataRowKey(featureName))
+    val deleter = connector.createBatchDeleter(catalogTable,
+                                               authorizationsProvider.getAuthorizations,
+                                               numThreads,
+                                               metadataBWConfig)
     deleter.setRanges(List(range))
     deleter.delete()
     deleter.close()
@@ -148,7 +151,7 @@ class AccumuloBackedMetadata(connector: Connector,
    */
   override def readRequiredNoCache(featureName: String, key: String): Option[String] = {
     val scanner = createCatalogScanner
-    scanner.setRange(new Range(s"${METADATA_TAG}_$featureName"))
+    scanner.setRange(new Range(getMetadataRowKey(featureName)))
     scanner.fetchColumn(new Text(key), EMPTY_COLQ)
 
     SelfClosingIterator(scanner).map(_.getValue.toString).toList.headOption
