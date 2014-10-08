@@ -116,11 +116,6 @@
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-test</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-epsg-hsql</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>

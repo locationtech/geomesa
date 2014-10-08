@@ -17,11 +17,11 @@
 package org.locationtech.geomesa.core.index
 
 import org.apache.accumulo.core.security.ColumnVisibility
-import org.geotools.data._
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -33,7 +33,7 @@ class AttributeTableTest extends Specification {
 
   val geotimeAttributes = org.locationtech.geomesa.core.index.spec
   val sftName = "mutableType"
-  val sft = DataUtilities.createType(sftName, s"name:String,age:Integer,$geotimeAttributes")
+  val sft = SimpleFeatureTypes.createType(sftName, s"name:String,age:Integer,$geotimeAttributes")
   sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
     "AttributeTable" should {
