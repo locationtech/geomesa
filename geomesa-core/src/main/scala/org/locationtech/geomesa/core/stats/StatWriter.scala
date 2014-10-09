@@ -47,7 +47,8 @@ trait StatWriter {
    *
    * @param stat
    */
-  def writeStat(stat: Stat, statTable: String): Unit = StatWriter.queueStat(stat, TableInstance(connector, statTable))
+  def writeStat(stat: Stat, statTable: String): Unit =
+    StatWriter.queueStat(stat, TableInstance(connector, statTable))
 }
 
 /**
