@@ -261,15 +261,9 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
-                <artifactId>gt-epsg-hsql</artifactId>
+                <artifactId>gt-epsg-wkt</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <artifactId>jgridshift</artifactId>
-                        <groupId>jgridshift</groupId>
-                     </exclusion>
-                </exclusions>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>commons-pool</groupId>
