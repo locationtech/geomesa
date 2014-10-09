@@ -26,7 +26,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
-import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
+import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -35,8 +35,10 @@ trait StatWriter {
 
   def connector: Connector
 
-  // start the background thread now that we have a connector to use
-  StatWriter.startIfNeeded(connector)
+  // start the background thread
+  if(!connector.isInstanceOf[MockConnector]) {
+    StatWriter.startIfNeeded()
+  }
 
   /**
    * Writes a stat to accumulo. This implementation adds the stat to a bounded queue, which should
@@ -44,7 +46,7 @@ trait StatWriter {
    *
    * @param stat
    */
-  def writeStat(stat: Stat, statTable: String): Unit = StatWriter.queueStat(stat, statTable)
+  def writeStat(stat: Stat, statTable: String): Unit = StatWriter.queueStat(stat, statTable, connector)
 }
 
 /**
@@ -65,9 +67,8 @@ object StatWriter extends Runnable with Logging {
 
   private val queue = Queues.newLinkedBlockingQueue[StatToWrite](batchSize)
 
-  private val tableCache = new mutable.HashMap[String, Boolean] with mutable.SynchronizedMap[String, Boolean]
-
-  private var connector: Connector = null
+  private val tableCache = new mutable.HashMap[(Connector, String), Boolean]
+                               with mutable.SynchronizedMap[(Connector, String), Boolean]
 
   sys.addShutdownHook {
     executor.shutdownNow()
@@ -75,21 +76,15 @@ object StatWriter extends Runnable with Logging {
 
   /**
    * Starts the background thread for writing stats, if it hasn't already been started
-   *
-   * @param connector
    */
-  private def startIfNeeded(connector: Connector) {
+  private def startIfNeeded() {
     if (running.compareAndSet(false, true)) {
-      this.connector = connector
-      if(!connector.isInstanceOf[MockConnector]) {
-        // we want to wait between invocations to give more stats a chance to queue up
-        executor.scheduleWithFixedDelay(this, writeDelayMillis, writeDelayMillis, TimeUnit.MILLISECONDS)
-      }
+      // we want to wait between invocations to give more stats a chance to queue up
+      executor.scheduleWithFixedDelay(this, writeDelayMillis, writeDelayMillis, TimeUnit.MILLISECONDS)
     }
   }
 
-  private[stats] case class StatToWrite(stat: Stat,
-                                        table: String)
+  private[stats] case class StatToWrite(stat: Stat, table: String, connector: Connector)
 
   /**
    * Queues a stat for writing. We don't want to affect memory and accumulo performance too much...
@@ -97,8 +92,8 @@ object StatWriter extends Runnable with Logging {
    *
    * @param stat
    */
-  private def queueStat(stat: Stat, table: String): Unit =
-    if (!queue.offer(StatToWrite(stat, table))) {
+  private def queueStat(stat: Stat, table: String, connector: Connector): Unit =
+    if (!queue.offer(StatToWrite(stat, table, connector))) {
       logger.debug("Stat queue is full - stat being dropped")
     }
 
@@ -106,25 +101,26 @@ object StatWriter extends Runnable with Logging {
    * Writes the stats.
    *
    * @param statsToWrite
-   * @param connector
    */
-  def write(statsToWrite: Iterable[StatToWrite], connector: Connector): Unit =
-    statsToWrite.groupBy(_.stat.getClass).foreach { case (clas, statsForClass) =>
-      // get the appropriate transform for this type of stat
-      val transform = clas match {
-        case c if c == classOf[QueryStat] => QueryStatTransform.asInstanceOf[StatTransform[Stat]]
-        case _ => throw new RuntimeException("Not implemented")
-      }
+  def write(statsToWrite: Iterable[StatToWrite]): Unit =
+    statsToWrite.groupBy(_.connector).foreach { case (connector, statsForConnector) =>
+      statsForConnector.groupBy(_.stat.getClass).foreach { case (clas, statsForClass) =>
+        // get the appropriate transform for this type of stat
+        val transform = clas match {
+          case c if c == classOf[QueryStat] => QueryStatTransform.asInstanceOf[StatTransform[Stat]]
+          case _ => throw new RuntimeException("Not implemented")
+        }
 
-      // write data by table
-      statsForClass.groupBy(_.table).foreach { case (table, statsForTable) =>
-        checkTable(table, connector)
-        val writer = connector.createBatchWriter(table, batchWriterConfig)
-        try {
-          writer.addMutations(statsForTable.map(stw => transform.statToMutation(stw.stat)).asJava)
-          writer.flush()
-        } finally {
-          writer.close()
+        // write data by table
+        statsForClass.groupBy(_.table).foreach { case (table, statsForTable) =>
+          checkTable(table, connector)
+          val writer = connector.createBatchWriter(table, batchWriterConfig)
+          try {
+            writer.addMutations(statsForTable.map(stw => transform.statToMutation(stw.stat)).asJava)
+            writer.flush()
+          } finally {
+            writer.close()
+          }
         }
       }
     }
@@ -135,10 +131,14 @@ object StatWriter extends Runnable with Logging {
    * @return
    */
   private def checkTable(table: String, connector: Connector) =
-    tableCache.getOrElseUpdate(table, {
+    tableCache.getOrElseUpdate((connector, table), {
       val tableOps = connector.tableOperations()
       if (!tableOps.exists(table)) {
-        tableOps.create(table, true, TimeType.LOGICAL)
+        try {
+          tableOps.create(table, true, TimeType.LOGICAL)
+        } catch {
+          case e: TableExistsException => // this can happen with multiple threads
+        }
       }
       true
     })
@@ -150,10 +150,15 @@ object StatWriter extends Runnable with Logging {
       // drain out any other stats that have been queued while sleeping
       val stats = collection.mutable.ListBuffer(head)
       queue.drainTo(stats.asJava)
-      write(stats, connector)
+      write(stats)
     } catch {
-      case e: InterruptedException => // thread has been terminated
-      case e: Exception => logger.error("Error in stat writing thread:", e)
+      case e: InterruptedException =>
+        // normal thread termination, just propagate the interrupt
+        Thread.currentThread().interrupt()
+      case e: Exception =>
+        // re-throw the error to shut down the executor service
+        logger.error("Error in stat writing thread:", e)
+        throw e
     }
   }
 }
