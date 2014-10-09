@@ -23,7 +23,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.stats.StatWriter.StatToWrite
+import org.locationtech.geomesa.core.stats.StatWriter.{TableInstance, StatToWrite}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -41,7 +41,7 @@ class StatReaderTest extends Specification {
   val auths = new Authorizations()
 
   def writeStat(stats: Seq[Stat], tableName: String) =
-    StatWriter.write(stats.map(s => StatToWrite(s, tableName, connector)))
+    StatWriter.write(stats.map(s => StatToWrite(s, TableInstance(connector, tableName))))
 
   "QueryStatReader" should {
 
