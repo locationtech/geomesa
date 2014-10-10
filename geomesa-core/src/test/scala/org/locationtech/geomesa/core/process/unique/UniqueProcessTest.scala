@@ -79,7 +79,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val features = fs.getFeatures()
 
       val process = new UniqueProcess
-      val results = process.execute(features, "name", null, null, null, pl)
+      val results = process.execute(features, "name", null, null, null, null, pl)
 
       val names = SelfClosingIterator(results.features()).map(_.getAttribute("value")).toList
       names must contain(exactly[Any]("alice", "bill", "bob", "charles"))
@@ -89,7 +89,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val features = fs.getFeatures(CQL.toFilter("name LIKE 'b%'"))
 
       val process = new UniqueProcess
-      val results = process.execute(features, "name", null, null, null, pl)
+      val results = process.execute(features, "name", null, null, null, null, pl)
 
       val names = SelfClosingIterator(results.features()).map(_.getAttribute("value")).toList
       names must contain(exactly[Any]("bill", "bob"))
@@ -99,7 +99,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val features = fs.getFeatures()
 
       val process = new UniqueProcess
-      val results = process.execute(features, "name", CQL.toFilter("name LIKE 'b%'"), null, null, pl)
+      val results = process.execute(features, "name", CQL.toFilter("name LIKE 'b%'"), null, null, null, pl)
 
       val names = SelfClosingIterator(results.features()).map(_.getAttribute("value")).toList
       names must contain(exactly[Any]("bill", "bob"))
@@ -109,7 +109,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val features = fs.getFeatures(CQL.toFilter("name LIKE 'b%'"))
 
       val process = new UniqueProcess
-      val results = process.execute(features, "name", CQL.toFilter("weight > 25"), null, null, pl)
+      val results = process.execute(features, "name", CQL.toFilter("weight > 25"), null, null, null, pl)
 
       val names = SelfClosingIterator(results.features()).map(_.getAttribute("value")).toList
       names must contain(exactly[Any]("bob"))
@@ -119,7 +119,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val features = fs.getFeatures()
 
       val process = new UniqueProcess
-      val results = process.execute(features, "name", null, null, null, pl)
+      val results = process.execute(features, "name", null, null, null, null, pl)
 
       val uniques = SelfClosingIterator(results.features()).toList
       val names = uniques.map(_.getAttribute("value"))
@@ -133,11 +133,63 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val features = fs.getFeatures()
 
       val process = new UniqueProcess
-      val results = process.execute(features, "name", null, null, true, pl)
+      val results = process.execute(features, "name", null, true, null, null, pl)
 
       val uniques = SelfClosingIterator(results.features()).toList
       val names = uniques.map(_.getAttribute("value")).toList
       names should contain(exactly[Any]("alice", "bill", "bob", "charles"))
+
+      val counts = uniques.map(_.getAttribute("count")).toList
+      counts should contain(exactly[Any](1L, 2L, 2L, 3L))
+
+      val alice = uniques.find(_.getAttribute("value") == "alice").map(_.getAttribute("count"))
+      alice must beSome(2)
+
+      val bill = uniques.find(_.getAttribute("value") == "bill").map(_.getAttribute("count"))
+      bill must beSome(3)
+
+      val charles = uniques.find(_.getAttribute("value") == "charles").map(_.getAttribute("count"))
+      charles must beSome(2)
+    }
+
+    "sort by value" in {
+      val features = fs.getFeatures()
+
+      val process = new UniqueProcess
+      val results = process.execute(features, "name", null, true, "DESC", null, pl)
+
+      val uniques = SelfClosingIterator(results.features()).toList
+      val names = uniques.map(_.getAttribute("value")).toList
+      names(0) mustEqual("charles")
+      names(1) mustEqual("bob")
+      names(2) mustEqual("bill")
+      names(3) mustEqual("alice")
+
+      val counts = uniques.map(_.getAttribute("count")).toList
+      counts should contain(exactly[Any](1L, 2L, 2L, 3L))
+
+      val alice = uniques.find(_.getAttribute("value") == "alice").map(_.getAttribute("count"))
+      alice must beSome(2)
+
+      val bill = uniques.find(_.getAttribute("value") == "bill").map(_.getAttribute("count"))
+      bill must beSome(3)
+
+      val charles = uniques.find(_.getAttribute("value") == "charles").map(_.getAttribute("count"))
+      charles must beSome(2)
+    }
+
+    "sort by histogram" in {
+      val features = fs.getFeatures()
+
+      val process = new UniqueProcess
+      val results = process.execute(features, "name", null, true, "DESC", true, pl)
+
+      val uniques = SelfClosingIterator(results.features()).toList
+      val names = uniques.map(_.getAttribute("value")).toList
+      names(0) mustEqual("bill")
+      names(1) mustEqual("alice")
+      names(2) mustEqual("charles")
+      names(3) mustEqual("bob")
 
       val counts = uniques.map(_.getAttribute("count")).toList
       counts should contain(exactly[Any](1L, 2L, 2L, 3L))

@@ -51,10 +51,12 @@ class UniqueProcess extends VectorProcess with Logging {
     attribute: String,
     @DescribeParameter(name = "filter", min = 0, description = "The filter to apply to the feature collection")
     filter: Filter,
-    @DescribeParameter(name = "sort", min = 0, description = "Sort results")
-    sort: String,
     @DescribeParameter(name = "histogram", min = 0, description = "Create a histogram of attribute values")
     histogram: java.lang.Boolean,
+    @DescribeParameter(name = "sort", min = 0, description = "Sort results - allowed to be ASC or DESC")
+    sort: String,
+    @DescribeParameter(name = "sortByCount", min = 0, description = "Sort by histogram counts instead of attribute values")
+    sortByCount: java.lang.Boolean,
     progressListener: ProgressListener): SimpleFeatureCollection = {
 
     if (features.isInstanceOf[ReTypingFeatureCollection]) {
@@ -69,12 +71,13 @@ class UniqueProcess extends VectorProcess with Logging {
         .getOrElse(throw new IllegalArgumentException(s"Attribute $attribute does not exist in feature schema."))
 
     val hist = Option(histogram).map(_.booleanValue).getOrElse(false)
+    val sortBy = Option(sortByCount).map(_.booleanValue).getOrElse(false)
 
     val visitor = new AttributeVisitor(features, attributeDescriptor.getLocalName, Option(filter), hist)
     features.accepts(visitor, progressListener)
     val uniqueValues = visitor.uniqueValues.toMap
 
-    createReturnCollection(uniqueValues, attributeDescriptor.getType.getBinding, Option(sort), hist)
+    createReturnCollection(uniqueValues, attributeDescriptor.getType.getBinding, hist, Option(sort), sortBy)
   }
 
   /**
@@ -82,14 +85,16 @@ class UniqueProcess extends VectorProcess with Logging {
    *
    * @param uniqueValues
    * @param binding
-   * @param sort
    * @param histogram
+   * @param sort
+   * @param sortByCount
    * @return
    */
   def createReturnCollection(uniqueValues: Map[Any, Long],
                              binding: Class[_],
+                             histogram: Boolean,
                              sort: Option[String],
-                             histogram: Boolean): SimpleFeatureCollection = {
+                             sortByCount: Boolean): SimpleFeatureCollection = {
 
     val sftb = new SimpleFeatureTypeBuilder
     sftb.add("value", binding)
@@ -105,8 +110,13 @@ class UniqueProcess extends VectorProcess with Logging {
 
     // if sorting was requested do it here, otherwise return results in iterator order
     val sorted = sort.map { s =>
-      val ordering = if (s.equalsIgnoreCase("desc")) Ordering[String].reverse else Ordering[String]
-      uniqueValues.iterator.toList.sortBy(_._1.toString)(ordering)
+      if (sortByCount) {
+        val ordering = if (s.equalsIgnoreCase("desc")) Ordering[Long].reverse else Ordering[Long]
+        uniqueValues.iterator.toList.sortBy(_._2)(ordering)
+      } else {
+        val ordering = if (s.equalsIgnoreCase("desc")) Ordering[String].reverse else Ordering[String]
+        uniqueValues.iterator.toList.sortBy(_._1.toString)(ordering)
+      }
     }.getOrElse(uniqueValues.iterator)
 
     // histogram includes extra 'count' attribute
