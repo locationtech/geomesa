@@ -119,7 +119,9 @@ class Export(config: ExportArguments, password: String) extends Logging with Acc
                       else if (config.attributes.isDefined) config.attributes
                       else None
     //Split attributes by "," meanwhile allowing to escape it by "\,".
-    attributesO.foreach(attributes => q.setPropertyNames(attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ","))))
+    attributesO.foreach { attributes =>
+      q.setPropertyNames(attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ",")))
+    }
 
     // get the feature store used to query the GeoMesa data
     val fs = ds.getFeatureSource(config.featureName).asInstanceOf[AccumuloFeatureStore]
