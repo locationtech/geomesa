@@ -42,7 +42,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, _}
 import org.locationtech.geomesa.core.iterators.TestData
 import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
-import org.locationtech.geomesa.core.util.CloseableIterator
+import org.locationtech.geomesa.core.util.{SelfClosingIterator, CloseableIterator}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -244,6 +244,35 @@ class AccumuloDataStoreTest extends Specification {
         }
 
         "and correct result" >> { "fid-1=testType|POINT (45 49)|hellotestType" mustEqual DataUtilities.encodeFeature(f) }
+      }
+
+      "handle transformations with dtg and geom" in {
+        val sftName = "transformtest5"
+        val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+        sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+        ds.createSchema(sft)
+
+        val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+        // create a feature
+        val geom = WKTUtils.read("POINT(45.0 49.0)")
+        val dtg = new Date(0)
+        val builder = new SimpleFeatureBuilder(sft, featureFactory)
+        builder.addAll(List("testType", dtg, geom))
+        val liveFeature = builder.buildFeature("fid-1")
+
+        // make sure we ask the system to re-use the provided feature-ID
+        liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        val featureCollection = new DefaultFeatureCollection(sftName, sft)
+        featureCollection.add(liveFeature)
+        fs.addFeatures(featureCollection)
+
+        val query = new Query(sftName, Filter.INCLUDE, List("dtg", "geom").toArray)
+        val results = SelfClosingIterator(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())).toList
+        results must haveSize(1)
+        results(0).getAttribute("dtg") mustEqual(dtg)
+        results(0).getAttribute("geom") mustEqual(geom)
+        results(0).getAttribute("name") must beNull
       }
 
       "handle setPropertyNames transformations" in {

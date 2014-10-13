@@ -30,7 +30,7 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
 import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
-import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
+import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
@@ -169,16 +169,8 @@ class STIdxStrategy extends Strategy with Logging {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),classOf[IndexIterator])
     IndexIterator.setOptions(cfg, schema, filter)
-    val ab = new AttributeTypeBuilder()
-    val builder = new SimpleFeatureTypeBuilder()
-    builder.setName(featureType.getName)
-    builder.add(featureType.getGeometryDescriptor)
-    builder.setDefaultGeometry(featureType.getGeometryDescriptor.getLocalName)
-    // dtg attribute is optional -- if it exists add it to the builder
-    getDtgDescriptor(featureType).foreach ( builder.add(_) )
-    val testType = builder.buildFeatureType()
-     // dtg attribute is optional -- if it exists add the pointer to UserData
-    getDtgFieldName(featureType).foreach ( testType.getUserData.put(SF_PROPERTY_START_TIME,_) )
+    // the transform will have already been set in the query hints
+    val testType = query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
     configureFeatureType(cfg, testType)
     configureFeatureEncoding(cfg, featureEncoding)
     cfg

@@ -26,7 +26,8 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
-import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
+import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
+import org.locationtech.geomesa.core.stats.StatWriter.TableInstance
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -35,8 +36,10 @@ trait StatWriter {
 
   def connector: Connector
 
-  // start the background thread now that we have a connector to use
-  StatWriter.startIfNeeded(connector)
+  // start the background thread
+  if(!connector.isInstanceOf[MockConnector]) {
+    StatWriter.startIfNeeded()
+  }
 
   /**
    * Writes a stat to accumulo. This implementation adds the stat to a bounded queue, which should
@@ -44,7 +47,8 @@ trait StatWriter {
    *
    * @param stat
    */
-  def writeStat(stat: Stat, statTable: String): Unit = StatWriter.queueStat(stat, statTable)
+  def writeStat(stat: Stat, statTable: String): Unit =
+    StatWriter.queueStat(stat, TableInstance(connector, statTable))
 }
 
 /**
@@ -65,9 +69,8 @@ object StatWriter extends Runnable with Logging {
 
   private val queue = Queues.newLinkedBlockingQueue[StatToWrite](batchSize)
 
-  private val tableCache = new mutable.HashMap[String, Boolean] with mutable.SynchronizedMap[String, Boolean]
-
-  private var connector: Connector = null
+  private val tableCache = new mutable.HashMap[TableInstance, Boolean]
+                               with mutable.SynchronizedMap[TableInstance, Boolean]
 
   sys.addShutdownHook {
     executor.shutdownNow()
@@ -75,21 +78,13 @@ object StatWriter extends Runnable with Logging {
 
   /**
    * Starts the background thread for writing stats, if it hasn't already been started
-   *
-   * @param connector
    */
-  private def startIfNeeded(connector: Connector) {
+  private def startIfNeeded() {
     if (running.compareAndSet(false, true)) {
-      this.connector = connector
-      if(!connector.isInstanceOf[MockConnector]) {
-        // we want to wait between invocations to give more stats a chance to queue up
-        executor.scheduleWithFixedDelay(this, writeDelayMillis, writeDelayMillis, TimeUnit.MILLISECONDS)
-      }
+      // we want to wait between invocations to give more stats a chance to queue up
+      executor.scheduleWithFixedDelay(this, writeDelayMillis, writeDelayMillis, TimeUnit.MILLISECONDS)
     }
   }
-
-  private[stats] case class StatToWrite(stat: Stat,
-                                        table: String)
 
   /**
    * Queues a stat for writing. We don't want to affect memory and accumulo performance too much...
@@ -97,7 +92,7 @@ object StatWriter extends Runnable with Logging {
    *
    * @param stat
    */
-  private def queueStat(stat: Stat, table: String): Unit =
+  private def queueStat(stat: Stat, table: TableInstance): Unit =
     if (!queue.offer(StatToWrite(stat, table))) {
       logger.debug("Stat queue is full - stat being dropped")
     }
@@ -106,22 +101,22 @@ object StatWriter extends Runnable with Logging {
    * Writes the stats.
    *
    * @param statsToWrite
-   * @param connector
    */
-  def write(statsToWrite: Iterable[StatToWrite], connector: Connector): Unit =
-    statsToWrite.groupBy(_.stat.getClass).foreach { case (clas, statsForClass) =>
+  def write(statsToWrite: Iterable[StatToWrite]): Unit =
+    statsToWrite.groupBy(s => StatGroup(s.table, s.stat.getClass)).foreach { case (group, stats) =>
       // get the appropriate transform for this type of stat
-      val transform = clas match {
+      val transform = group.clas match {
         case c if c == classOf[QueryStat] => QueryStatTransform.asInstanceOf[StatTransform[Stat]]
         case _ => throw new RuntimeException("Not implemented")
       }
-
-      // write data by table
-      statsForClass.groupBy(_.table).foreach { case (table, statsForTable) =>
-        checkTable(table, connector)
-        val writer = connector.createBatchWriter(table, batchWriterConfig)
-        writer.addMutations(statsForTable.map(stw => transform.statToMutation(stw.stat)).asJava)
+      // create the table if necessary
+      checkTable(group.table)
+      // write to the table
+      val writer = group.table.connector.createBatchWriter(group.table.name, batchWriterConfig)
+      try {
+        writer.addMutations(stats.map(stw => transform.statToMutation(stw.stat)).asJava)
         writer.flush()
+      } finally {
         writer.close()
       }
     }
@@ -131,11 +126,15 @@ object StatWriter extends Runnable with Logging {
    * @param table
    * @return
    */
-  private def checkTable(table: String, connector: Connector) =
+  private def checkTable(table: TableInstance) =
     tableCache.getOrElseUpdate(table, {
-      val tableOps = connector.tableOperations()
-      if (!tableOps.exists(table)) {
-        tableOps.create(table, true, TimeType.LOGICAL)
+      val tableOps = table.connector.tableOperations()
+      if (!tableOps.exists(table.name)) {
+        try {
+          tableOps.create(table.name, true, TimeType.LOGICAL)
+        } catch {
+          case e: TableExistsException => // unlikely, but this can happen with multiple jvms
+        }
       }
       true
     })
@@ -147,10 +146,20 @@ object StatWriter extends Runnable with Logging {
       // drain out any other stats that have been queued while sleeping
       val stats = collection.mutable.ListBuffer(head)
       queue.drainTo(stats.asJava)
-      write(stats, connector)
+      write(stats)
     } catch {
-      case e: InterruptedException => // thread has been terminated
-      case e: Exception => logger.error("Error in stat writing thread:", e)
+      case e: InterruptedException =>
+        // normal thread termination, just propagate the interrupt
+        Thread.currentThread().interrupt()
+      case e: Exception =>
+        logger.error("Error in stat writing - stopping stat writer thread:", e)
+        executor.shutdown()
     }
   }
+
+  private[stats] case class StatToWrite(stat: Stat, table: TableInstance)
+
+  private[stats] case class TableInstance(connector: Connector, name: String)
+
+  private[stats] case class StatGroup(table: TableInstance, clas: Class[_ <: Stat])
 }
