@@ -27,9 +27,7 @@ class Convert2ViewerFunctionTest extends Specification {
   "Convert2ViewerFunction" should {
 
     "encode and decode simple attributes" in {
-      val initial = EncodedValues(45.0f, 49.0f,
-                                  System.currentTimeMillis(),
-                                  Some("1200"))
+      val initial = BasicValues(45.0f, 49.0f, System.currentTimeMillis(), Some("1200"))
       val encoded = Convert2ViewerFunction.encode(initial)
       encoded must haveLength(16)
       val decoded = Convert2ViewerFunction.decode(encoded)
@@ -40,9 +38,7 @@ class Convert2ViewerFunctionTest extends Specification {
     }
 
     "encode and decode optional simple attributes" in {
-      val initial = EncodedValues(45.0f, 49.0f,
-                                  System.currentTimeMillis(),
-                                  None)
+      val initial = BasicValues(45.0f, 49.0f, System.currentTimeMillis(), None)
       val encoded = Convert2ViewerFunction.encode(initial)
       encoded must haveLength(16)
       val decoded = Convert2ViewerFunction.decode(encoded)
@@ -53,32 +49,36 @@ class Convert2ViewerFunctionTest extends Specification {
     }
 
     "encode and decode extended attributes" in {
-      val initial = EncodedValues(45.0f, 49.0f,
-                                  System.currentTimeMillis(),
-                                  Some("1200"),
-                                  Some("label"))
+      val initial = ExtendedValues(45.0f,
+                                   49.0f,
+                                   System.currentTimeMillis(),
+                                   Some("1200"),
+                                   Some("label"))
       val encoded = Convert2ViewerFunction.encode(initial)
       encoded must haveLength(24)
       val decoded = Convert2ViewerFunction.decode(encoded)
+      decoded must beAnInstanceOf[ExtendedValues]
       decoded.lat mustEqual(initial.lat)
       decoded.lon mustEqual(initial.lon)
       Math.abs(decoded.dtg - initial.dtg) must beLessThan(1000L) // dates get truncated to nearest second
       decoded.trackId mustEqual(initial.trackId)
-      decoded.label mustEqual(initial.label)
+      decoded.asInstanceOf[ExtendedValues].label mustEqual(initial.label)
     }
 
     "truncate long labels" in {
-      val initial = EncodedValues(45.0f, 49.0f,
-                                  System.currentTimeMillis(),
-                                  Some("track that is too long"),
-                                  Some("label that is too long"))
+      val initial = ExtendedValues(45.0f,
+                                   49.0f,
+                                   System.currentTimeMillis(),
+                                   Some("track that is too long"),
+                                   Some("label that is too long"))
       val encoded = Convert2ViewerFunction.encode(initial)
       val decoded = Convert2ViewerFunction.decode(encoded)
+      decoded must beAnInstanceOf[ExtendedValues]
       decoded.lat mustEqual(initial.lat)
       decoded.lon mustEqual(initial.lon)
       Math.abs(decoded.dtg - initial.dtg) must beLessThan(1000L) // dates get truncated to nearest second
       decoded.trackId.get mustEqual(initial.trackId.get.substring(0, 4))
-      decoded.label.get mustEqual(initial.label.get.substring(0, 8))
+      decoded.asInstanceOf[ExtendedValues].label.get mustEqual(initial.label.get.substring(0, 8))
     }
   }
 }
