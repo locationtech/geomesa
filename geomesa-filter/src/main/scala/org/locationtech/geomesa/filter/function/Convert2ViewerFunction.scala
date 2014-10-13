@@ -41,7 +41,7 @@ class Convert2ViewerFunction
     val id    = getExpression(0).evaluate(obj).asInstanceOf[String]
     val geom  = getExpression(1).evaluate(obj).asInstanceOf[Point]
     val dtg   = dtg2Long(getExpression(2).evaluate(obj))
-    Base64.encodeBytes(encode(EncodedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, None, Some(id))))
+    Base64.encodeBytes(encode(ExtendedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, None, Some(id))))
   }
 
   private def dtg2Long(d: Any): Long = d match {
@@ -69,15 +69,33 @@ object Convert2ViewerFunction {
    * @param values
    * @return
    */
-  def encode(values: EncodedValues): Array[Byte] = {
-    val numBytes = if (values.label.isDefined) 24 else 16
-    val buf = ByteBuffer.allocate(numBytes).order(ByteOrder.LITTLE_ENDIAN)
-    putOption(buf, values.trackId, 4)
-    buf.putInt((values.dtg / 1000).toInt)
-    buf.putFloat(values.lat)
-    buf.putFloat(values.lon)
-    values.label.foreach(_ => putOption(buf, values.label, 8))
-    buf.array()
+  def encode(values: EncodedValues): Array[Byte] =
+    values match {
+      case BasicValues(lat, lon, dtg, trackId) =>
+        val buf = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN)
+        put(buf, lat, lon, dtg, trackId)
+        buf.array()
+      case ExtendedValues(lat, lon, dtg, trackId, label) =>
+        val buf = ByteBuffer.allocate(24).order(ByteOrder.LITTLE_ENDIAN)
+        put(buf, lat, lon, dtg, trackId)
+        putOption(buf, label, 8)
+        buf.array()
+    }
+
+  /**
+   * Fills in the basic values
+   *
+   * @param buffer
+   * @param lat
+   * @param lon
+   * @param dtg
+   * @param trackId
+   */
+  private def put(buffer: ByteBuffer, lat: Float, lon: Float, dtg: Long, trackId: Option[String]): Unit = {
+    putOption(buffer, trackId, 4)
+    buffer.putInt((dtg / 1000).toInt)
+    buffer.putFloat(lat)
+    buffer.putFloat(lon)
   }
 
   /**
@@ -131,13 +149,27 @@ object Convert2ViewerFunction {
     val time = buf.getInt * 1000L
     val lat = buf.getFloat
     val lon = buf.getFloat
-    val label = if (encoded.length > 16) getOption(buf, 8) else None
-    EncodedValues(lat, lon, time, trackId, label)
+    if (encoded.length > 16) {
+      val label = getOption(buf, 8)
+      ExtendedValues(lat, lon, time, trackId, label)
+    } else {
+      BasicValues(lat, lon, time, trackId)
+    }
   }
 }
 
-case class EncodedValues(lat: Float,
-                         lon: Float,
-                         dtg: Long,
-                         trackId: Option[String] = None,
-                         label: Option[String] = None)
+sealed trait EncodedValues {
+  def lat: Float
+  def lon: Float
+  def dtg: Long
+  def trackId: Option[String]
+}
+
+case class BasicValues(lat: Float, lon: Float, dtg: Long, trackId: Option[String] = None)
+    extends EncodedValues
+
+case class ExtendedValues(lat: Float,
+                          lon: Float,
+                          dtg: Long,
+                          trackId: Option[String] = None,
+                          label: Option[String] = None) extends EncodedValues
