@@ -185,7 +185,6 @@ class AccumuloBackedMetadata(connector: Connector,
     writeMutations(mutation)
   }
 
-
   /**
    * Scans metadata rows and pulls out the different feature types in the table
    *
