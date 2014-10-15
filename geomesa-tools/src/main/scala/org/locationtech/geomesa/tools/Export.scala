@@ -115,8 +115,13 @@ class Export(config: ExportArguments, password: String) extends Logging with Acc
     val q = new Query(config.featureName, filter)
 
     q.setMaxFeatures(config.maxFeatures.getOrElse(Query.DEFAULT_MAX))
-    if (overrideAttributes.isDefined) { q.setPropertyNames(overrideAttributes.get.split(',')) }
-    else if (config.attributes.isDefined) { q.setPropertyNames(config.attributes.get.split(',')) }
+    val attributesO = if (overrideAttributes.isDefined) overrideAttributes
+                      else if (config.attributes.isDefined) config.attributes
+                      else None
+    //Split attributes by "," meanwhile allowing to escape it by "\,".
+    attributesO.foreach { attributes =>
+      q.setPropertyNames(attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ",")))
+    }
 
     // get the feature store used to query the GeoMesa data
     val fs = ds.getFeatureSource(config.featureName).asInstanceOf[AccumuloFeatureStore]

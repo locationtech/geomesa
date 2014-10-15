@@ -67,11 +67,11 @@ class SVExport(load: LoadAttributes, params: Map[_,_]) extends Logging {
    */
   def writeFeatures(features: SimpleFeatureIterator): Unit = {
 
-    val attributesArray = if (load.attributes == null) { Array[String]() } else { load.attributes.split(',') }
-    val idAttributeArray = if (load.idAttribute == null) { List() } else { List(load.idAttribute) }
+    val attributesArray = if (load.attributes == null) Array[String]() else load.attributes.split("""(?<!\\),""")
+    val idAttributeArray = if (load.idAttribute == null) List() else List(load.idAttribute)
 
     val attributeTypes = idAttributeArray ++ attributesArray
-    val attributes = attributeTypes.map(_.split(":")(0))
+    val attributes = attributeTypes.map(_.split(":")(0).split("=").head.trim)
 
     var outputPath: File = null
     do {

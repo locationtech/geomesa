@@ -111,14 +111,20 @@ Specify the catalog table to use with `-c` or `--catalog`.
 Specify the feature to export with `-f` or `--feature-name`.  
 Specify the export format with `-o` or `--format`. The supported export formats are csv, gml, geojson, and shp.
 #### Optional flags:
-To retrieve specific attributes from each feature, use `-a` or `--attributes` followed by a String of comma-separated attribute names.  
-To set a maximum number of features to return, use `-m` or `--maxFeatures` followed by the maximum number of features.  
+To set a maximum number of features to return, use `-m` or `--maxFeatures` followed by the maximum number of features.
 To run an ECQL query, use `-q` or `--query` followed by the query filter string.  
-To export to stdOut, use `-s` or `--stdout`. This is useful for piping output.
+To export to stdOut, use `-s` or `--stdout`. This is useful for piping output.  
+To retrieve a subset of attributes or transformed values from each feature, use `-a` or `--attributes` followed by a
+String of comma-separated expressions with each in the format
+`attribute[=filter_function_expression]|derived-attribute=filter_function_expression`. `filter_function_expression` is
+an expression of filter function applied to attributes, literals and filter functions, i.e. can be nested. Filter
+function list can be found at [here]([http://docs.geoserver.org/latest/en/user/filter/function_reference.html#filter-function-reference]).
+Any comma (,) in a `filter_function_expression` has to be escaped by `\,`.
 #### Example commands:
-    geomesa export -u username -p password -c test_catalog -f test_feature -a "geom,text,user_name" -o csv -q "include" -m 100  
+    geomesa export -u username -p password -c test_catalog -f test_feature -a "geom,text,user_name" -o csv -q "include" -m 100
     geomesa export -u username -p password -c test_catalog -f test_feature -a "geom,text,user_name" -o gml -q "user_name='JohnSmith'"
-           
+    geomesa export -u username -p password -c test_catalog -f test_featurel -a "user_name,buf=buffer(geom\, 2)"
+    -o csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
 ### ingest
 Ingests CSV, TSV, and SHP files from the local file system and HDFS. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
 For lat/lon column ingest, the sft spec must include an additional geometry attribute in the sft beyond the number of columns in the file such as: `*geom:Point`.
@@ -198,4 +204,4 @@ Specify the table suffix (attr_idx, st_idx, or records) with `-s` or `--suffix`.
     geomesa tableconf list -u username -p password -c test_catalog -f test_feature -s st_idx
     geomesa tableconf describe -u username -p password -c test_catalog -f test_feature --param table.bloom.enabled -s attr_idx
     geomesa tableconf update -u username -p password -c test_catalog -f test_feature --table.bloom.enabled -n true -s records
-    
+
