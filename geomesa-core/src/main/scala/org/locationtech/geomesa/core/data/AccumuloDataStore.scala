@@ -25,9 +25,8 @@ import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken
-import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
+import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.file.keyfunctor.{ColumnFamilyFunctor, RowFunctor}
-import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
 import org.geotools.data._
@@ -42,7 +41,6 @@ import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, S
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
-import org.locationtech.geomesa.core.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, NonGeomAttributeSpec}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -108,17 +106,15 @@ class AccumuloDataStore(val connector: Connector,
   private val validated = new mutable.HashMap[String, String]()
                               with mutable.SynchronizedMap[String, String]
 
-  private val metaDataCache = new mutable.HashMap[(String, Text), Option[String]]()
-                                  with mutable.SynchronizedMap[(String, Text), Option[String]]
+  private val metadata: GeoMesaMetadata =
+    new AccumuloBackedMetadata(connector, catalogTable, writeVisibilities, authorizationsProvider)
 
   private val visibilityCheckCache = new mutable.HashMap[(String, String), Boolean]()
                                          with mutable.SynchronizedMap[(String, String), Boolean]
 
   // TODO memory should be configurable
-  private val metadataBWConfig =
+  private val defaultBWConfig =
     new BatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(writeThreads)
-
-  private val MetadataRowKeyRegex = (METADATA_TAG + """_(.*)""").r
 
   private val tableOps = connector.tableOperations()
 
@@ -134,11 +130,6 @@ class AccumuloDataStore(val connector: Connector,
                             fe: FeatureEncoding,
                             spatioTemporalSchemaValue: String,
                             maxShard: Int) {
-
-    val featureName = getFeatureName(sft)
-
-    // the mutation we'll be writing to
-    val mutation = getMetadataMutation(featureName)
 
     // compute the metadata values
     val attributesValue = SimpleFeatureTypes.encodeType(sft)
@@ -161,31 +152,26 @@ class AccumuloDataStore(val connector: Connector,
     val dtgFieldValue               = dtgValue.getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
     val tableSharingValue           = core.index.getTableSharing(sft).toString
 
-    // store each metadata in the associated column family
-    val attributeMap = Map(ATTRIBUTES_CF        -> attributesValue,
-                           SCHEMA_CF            -> spatioTemporalSchemaValue,
-                           DTGFIELD_CF          -> dtgFieldValue,
-                           FEATURE_ENCODING_CF  -> featureEncodingValue,
-                           VISIBILITIES_CF      -> writeVisibilities,
-                           ST_IDX_TABLE_CF      -> spatioTemporalIdxTableValue,
-                           ATTR_IDX_TABLE_CF    -> attrIdxTableValue,
-                           RECORD_TABLE_CF      -> recordTableValue,
-                           QUERIES_TABLE_CF     -> queriesTableValue,
-                           SHARED_TABLES_CF     -> tableSharingValue)
+    // store each metadata in the associated key
+    val attributeMap = Map(ATTRIBUTES_KEY        -> attributesValue,
+                           SCHEMA_KEY            -> spatioTemporalSchemaValue,
+                           DTGFIELD_KEY          -> dtgFieldValue,
+                           FEATURE_ENCODING_KEY  -> featureEncodingValue,
+                           VISIBILITIES_KEY      -> writeVisibilities,
+                           ST_IDX_TABLE_KEY      -> spatioTemporalIdxTableValue,
+                           ATTR_IDX_TABLE_KEY    -> attrIdxTableValue,
+                           RECORD_TABLE_KEY      -> recordTableValue,
+                           QUERIES_TABLE_KEY     -> queriesTableValue,
+                           SHARED_TABLES_KEY     -> tableSharingValue)
 
-    attributeMap.foreach { case (cf, value) =>
-      putMetadata(featureName, mutation, cf, value)
-    }
+    val featureName = getFeatureName(sft)
+    metadata.insert(featureName, attributeMap)
 
     // write out a visibilities protected entry that we can use to validate that a user can see
     // data in this store
     if (!writeVisibilities.isEmpty) {
-      mutation.put(VISIBILITIES_CHECK_CF, EMPTY_COLQ, new ColumnVisibility(writeVisibilities),
-                    new Value(writeVisibilities.getBytes))
+      metadata.insert(featureName, VISIBILITIES_CHECK_KEY, writeVisibilities, writeVisibilities)
     }
-
-    // write out the mutation
-    writeMutations(mutation)
   }
 
   /**
@@ -207,9 +193,9 @@ class AccumuloDataStore(val connector: Connector,
     if (!ok) {
       throw new IllegalArgumentException("Attribute spec is not consistent with existing spec")
     }
-    val mutation = getMetadataMutation(featureName)
-    putMetadata(featureName, mutation, ATTRIBUTES_CF, attributes)
-    writeMutations(mutation)
+
+    metadata.insert(featureName, ATTRIBUTES_KEY, attributes)
+
     // reconfigure the splits on the attribute table
     configureAttrIdxTable(getSchema(featureName), getAttrIdxTableName(featureName))
   }
@@ -226,7 +212,7 @@ class AccumuloDataStore(val connector: Connector,
    * Read Record table name from store metadata
    */
   def getRecordTableForType(featureName: String): String =
-    readRequiredMetadataItem(featureName, RECORD_TABLE_CF)
+    metadata.readRequired(featureName, RECORD_TABLE_KEY)
 
   /**
    * Read SpatioTemporal Index table name from store metadata
@@ -239,7 +225,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   def getSpatioTemporalIdxTableName(featureName: String): String =
     if (catalogTableFormat(featureName)) {
-      readRequiredMetadataItem(featureName, ST_IDX_TABLE_CF)
+      metadata.readRequired(featureName, ST_IDX_TABLE_KEY)
     } else {
       catalogTable
     }
@@ -254,7 +240,7 @@ class AccumuloDataStore(val connector: Connector,
    * Read Attribute Index table name from store metadata
    */
   def getAttrIdxTableName(featureName: String): String =
-    readRequiredMetadataItem(featureName, ATTR_IDX_TABLE_CF)
+    metadata.readRequired(featureName, ATTR_IDX_TABLE_KEY)
 
   /**
    * Read Queries table name from store metadata
@@ -262,7 +248,7 @@ class AccumuloDataStore(val connector: Connector,
    * @return
    */
   def getQueriesTableName(featureType: SimpleFeatureType): String =
-    Try(readRequiredMetadataItem(featureType.getTypeName, QUERIES_TABLE_CF)) match {
+    Try(metadata.readRequired(featureType.getTypeName, QUERIES_TABLE_KEY)) match {
       case Success(queriesTableName) => queriesTableName
       // For backwards compatibility with existing tables that do not have queries table metadata
       case Failure(t) if t.getMessage.contains("Unable to find required metadata property") =>
@@ -277,14 +263,9 @@ class AccumuloDataStore(val connector: Connector,
   private[this] def writeAndReturnMissingQueryTableMetadata(sft: SimpleFeatureType): String = {
     val featureName = getFeatureName(sft)
 
-    // the mutation we'll be writing to
-    val mutation = getMetadataMutation(featureName)
     val queriesTableValue = formatQueriesTableName(catalogTable, sft)
 
-    putMetadata(featureName, mutation, QUERIES_TABLE_CF, queriesTableValue)
-
-    // write out the mutation
-    writeMutations(mutation)
+    metadata.insert(featureName, QUERIES_TABLE_KEY, queriesTableValue)
 
     queriesTableValue
   }
@@ -294,8 +275,8 @@ class AccumuloDataStore(val connector: Connector,
    * Read SpatioTemporal Index table name from store metadata
    */
   def getSpatioTemporalMaxShard(sft: SimpleFeatureType): Int = {
-    val indexSchemaFmt = readMetadataItem(sft.getTypeName, SCHEMA_CF)
-      .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for $SCHEMA_CF"))
+    val indexSchemaFmt = metadata.read(sft.getTypeName, SCHEMA_KEY)
+      .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for $SCHEMA_KEY"))
     val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
     val indexSchema = IndexSchema(indexSchemaFmt, sft, fe)
     indexSchema.maxShard
@@ -313,7 +294,7 @@ class AccumuloDataStore(val connector: Connector,
     catalogTableFormat(featureType.getTypeName)
 
   def catalogTableFormat(featureName: String): Boolean =
-    readMetadataItem(featureName, ST_IDX_TABLE_CF).nonEmpty
+    metadata.read(featureName, ST_IDX_TABLE_KEY).nonEmpty
 
   def createTablesForType(featureType: SimpleFeatureType, maxShard: Int) {
     val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(catalogTable, featureType)
@@ -439,7 +420,7 @@ class AccumuloDataStore(val connector: Connector,
    * @param numThreads the number of concurrent threads to spawn for querying during metadata deletion
    */
   def removeSchema(featureName: String, numThreads: Int = 1) =
-    if (readMetadataItem(featureName, ST_IDX_TABLE_CF).nonEmpty) {
+    if (metadata.read(featureName, ST_IDX_TABLE_KEY).nonEmpty) {
       val featureType = getSchema(featureName)
 
       if (core.index.getTableSharing(featureType)) {
@@ -448,8 +429,8 @@ class AccumuloDataStore(val connector: Connector,
         deleteStandAloneTables(featureType)
       }
 
-      deleteMetadata(featureName, numThreads)
-      expireMetadataFromCache(featureName)
+      metadata.delete(featureName, numThreads)
+      metadata.expireCache(featureName)
     } else {
       // TODO: Apply the SpatioTemporalTable.deleteFeaturesFromTable here?
       // https://geomesa.atlassian.net/browse/GEOMESA-360
@@ -465,16 +446,16 @@ class AccumuloDataStore(val connector: Connector,
       Math.max(MIN_QUERY_THREADS, getSpatioTemporalMaxShard(sft))))
 
     val stBatchDeleter =
-      connector.createBatchDeleter(stTableName, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+      connector.createBatchDeleter(stTableName, authorizationsProvider.getAuthorizations, numThreads, defaultBWConfig)
 
     SpatioTemporalTable.deleteFeaturesFromTable(connector, stBatchDeleter, sft)
 
     val atBatchDeleter =
-      connector.createBatchDeleter(attrTableName, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+      connector.createBatchDeleter(attrTableName, authorizationsProvider.getAuthorizations, numThreads, defaultBWConfig)
     AttributeTable.deleteFeaturesFromTable(connector, atBatchDeleter, sft)
 
     val recordBatchDeleter =
-      connector.createBatchDeleter(recordTableName, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
+      connector.createBatchDeleter(recordTableName, authorizationsProvider.getAuthorizations, numThreads, defaultBWConfig)
     RecordTable.deleteFeaturesFromTable(connector, recordBatchDeleter, sft)
   }
 
@@ -486,11 +467,6 @@ class AccumuloDataStore(val connector: Connector,
       getRecordTableForType(sft)
     ).filter(tableOps.exists).foreach(tableOps.delete)
 
-  private def expireMetadataFromCache(featureName: String) =
-    metaDataCache.keys
-      .filter { case (fn, cf) => fn == featureName }
-      .foreach(metaDataCache.remove)
-
   /**
    * GeoTools API createSchema() method for a featureType...creates tables with
    * ${numTabletServers} splits. To control the number of splits use the
@@ -501,69 +477,13 @@ class AccumuloDataStore(val connector: Connector,
   override def createSchema(featureType: SimpleFeatureType) = createSchema(featureType, DEFAULT_MAX_SHARD)
 
   /**
-   * Handles creating a mutation for writing metadata
-   *
-   * @param featureName
-   * @return
-   */
-  private def getMetadataMutation(featureName: String) = new Mutation(getMetadataRowKey(featureName))
-
-  /**
-   * Handles encoding metadata into a mutation.
-   *
-   * @param featureName
-   * @param mutation
-   * @param columnFamily
-   * @param value
-   */
-  private def putMetadata(featureName: String,
-                          mutation: Mutation,
-                          columnFamily: Text,
-                          value: String) {
-    mutation.put(columnFamily, EMPTY_COLQ, System.currentTimeMillis(), new Value(value.getBytes))
-    // also pre-fetch into the cache
-    if (!value.isEmpty) {
-      metaDataCache.put((featureName, columnFamily), Some(value))
-    }
-  }
-
-  /**
-   * Handles writing mutations
-   *
-   * @param mutations
-   */
-  private def writeMutations(mutations: Mutation*): Unit = {
-    val writer = connector.createBatchWriter(catalogTable, metadataBWConfig)
-    for (mutation <- mutations) {
-      writer.addMutation(mutation)
-    }
-    writer.flush()
-    writer.close()
-  }
-
-  /**
-   * Handles deleting metadata from the catalog by using the Range obtained from the METADATA_TAG and featureName
-   * and setting that as the Range to be handled and deleted by Accumulo's BatchDeleter
-   *
-   * @param featureName the name of the table to query and delete from
-   * @param numThreads the number of concurrent threads to spawn for querying
-   */
-  private def deleteMetadata(featureName: String, numThreads: Int): Unit = {
-    val range = new Range(s"${METADATA_TAG}_$featureName")
-    val deleter = connector.createBatchDeleter(catalogTable, authorizationsProvider.getAuthorizations, numThreads, metadataBWConfig)
-    deleter.setRanges(List(range))
-    deleter.delete()
-    deleter.close()
-  }
-
-  /**
    * Validates the configuration of this data store instance against the stored configuration in
    * Accumulo, if any. This is used to ensure that the visibilities (in particular) do not change
    * from one instance to the next. This will fill in any missing metadata that may occur in an
    * older (0.1.0) version of a table.
    */
   protected def validateMetadata(featureName: String): Unit = {
-    readMetadataItem(featureName, ATTRIBUTES_CF)
+    metadata.read(featureName, ATTRIBUTES_KEY)
       .getOrElse(throw new RuntimeException(s"Feature '$featureName' has not been initialized. Please call 'createSchema' first."))
 
     val ok = validated.getOrElseUpdate(featureName, checkMetadata(featureName))
@@ -602,9 +522,9 @@ class AccumuloDataStore(val connector: Connector,
    */
   private def checkVisibilitiesMetadata(featureName: String): Option[String] = {
     // validate that visibilities have not changed
-    val storedVisibilities = readMetadataItem(featureName, VISIBILITIES_CF).getOrElse("")
+    val storedVisibilities = metadata.read(featureName, VISIBILITIES_KEY).getOrElse("")
     if (storedVisibilities != writeVisibilities) {
-      Some(s"$VISIBILITIES_CF = '$writeVisibilities', should be '$storedVisibilities'")
+      Some(s"$VISIBILITIES_KEY = '$writeVisibilities', should be '$storedVisibilities'")
     } else {
       None
     }
@@ -618,12 +538,10 @@ class AccumuloDataStore(val connector: Connector,
   def checkFeatureEncodingMetadata(featureName: String): Unit = {
     // for feature encoding, we are more lenient - we will use whatever is stored in the table,
     // or default to 'text' for backwards compatibility
-    if (readMetadataItem(featureName, FEATURE_ENCODING_CF).getOrElse("").isEmpty) {
+    if (metadata.read(featureName, FEATURE_ENCODING_KEY).getOrElse("").isEmpty) {
       // if there is nothing in the table, it means the table was created with an older version of
       // geomesa - we'll update the data in the table to be 1.0 compliant
-      val mutation = getMetadataMutation(featureName)
-      putMetadata(featureName, mutation, FEATURE_ENCODING_CF, FeatureEncoding.TEXT.toString)
-      writeMutations(mutation)
+      metadata.insert(featureName, FEATURE_ENCODING_KEY, FeatureEncoding.TEXT.toString)
     }
   }
 
@@ -634,7 +552,7 @@ class AccumuloDataStore(val connector: Connector,
    * @param featureName
    */
   protected def checkWritePermissions(featureName: String): Unit = {
-    val visibilities = readMetadataItem(featureName, VISIBILITIES_CF).getOrElse("")
+    val visibilities = metadata.read(featureName, VISIBILITIES_KEY).getOrElse("")
     // if no visibilities set, no need to check
     if (!visibilities.isEmpty) {
       // create a key for the user's auths that we will use to check the cache
@@ -660,58 +578,11 @@ class AccumuloDataStore(val connector: Connector,
     visibilityCheckCache.getOrElse((featureName, authString), {
       // check the 'visibilities check' metadata - it has visibilities applied, so if the user
       // can read that row, then they can read any data in the data store
-      val visCheck = readMetadataItemNoCache(featureName, VISIBILITIES_CHECK_CF)
+      val visCheck = metadata.readRequiredNoCache(featureName, VISIBILITIES_CHECK_KEY)
                       .isInstanceOf[Some[String]]
       visibilityCheckCache.put((featureName, authString), visCheck)
       visCheck
     })
-  }
-
-  /**
-   * Creates the row id for a metadata entry
-   *
-   * @param featureName
-   * @return
-   */
-  private def getMetadataRowKey(featureName: String) = new Text(METADATA_TAG + "_" + featureName)
-
-  /**
-   * Reads metadata from cache or scans if not available
-   *
-   * @param featureName
-   * @param colFam
-   * @return
-   */
-  private def readMetadataItem(featureName: String, colFam: Text): Option[String] =
-    metaDataCache.getOrElseUpdate((featureName, colFam), readMetadataItemNoCache(featureName, colFam))
-
-  private def readRequiredMetadataItem(featureName: String, colFam: Text): String =
-    readMetadataItem(featureName, colFam)
-      .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for $colFam"))
-
-  private def readRequiredMetadataItem(featureType: SimpleFeatureType, colFam: Text): String =
-    readRequiredMetadataItem(featureType.getTypeName, colFam)
-
-  /**
-   * Create an Accumulo Scanner to the Catalog table to query Metadata for this store
-   */
-  def createCatalogScanner = connector.createScanner(catalogTable, authorizationsProvider.getAuthorizations)
-
-  /**
-   * Gets metadata by scanning the table, without the local cache
-   *
-   * Read metadata using scheme:  ~METADATA_featureName metadataFieldName: insertionTimestamp metadataValue
-   *
-   * @param featureName
-   * @param colFam
-   * @return
-   */
-  private def readMetadataItemNoCache(featureName: String, colFam: Text): Option[String] = {
-    val scanner = createCatalogScanner
-    scanner.setRange(new Range(s"${METADATA_TAG}_$featureName"))
-    scanner.fetchColumn(colFam, EMPTY_COLQ)
-
-    SelfClosingIterator(scanner).map(_.getValue.toString).toList.headOption
   }
 
   /**
@@ -721,48 +592,12 @@ class AccumuloDataStore(val connector: Connector,
    */
   override def getTypeNames: Array[String] =
     if (tableOps.exists(catalogTable)) {
-      readTypesFromMetadata
+      metadata.getFeatureTypes
     }
     else {
       Array()
     }
 
-  /**
-   * Scans metadata rows and pulls out the different feature types in the table
-   *
-   * @return
-   */
-  private def readTypesFromMetadata: Array[String] = {
-    val scanner = createCatalogScanner
-    scanner.setRange(new Range(METADATA_TAG, METADATA_TAG_END))
-    // restrict to just schema cf so we only get 1 hit per feature
-    scanner.fetchColumnFamily(SCHEMA_CF)
-    val resultItr = new Iterator[String] {
-      val src = scanner.iterator()
-
-      def hasNext = {
-        val next = src.hasNext
-        if (!next) {
-          scanner.close()
-        }
-        next
-      }
-
-      def next() = src.next().getKey.getRow.toString
-    }
-    resultItr.toArray.map(getFeatureNameFromMetadataRowKey)
-  }
-
-  /**
-   * Reads the feature name from a given metadata row key
-   *
-   * @param rowKey
-   * @return
-   */
-  private def getFeatureNameFromMetadataRowKey(rowKey: String): String = {
-    val MetadataRowKeyRegex(featureName) = rowKey
-    featureName
-  }
 
   // NB:  By default, AbstractDataStore is "isWriteable".  This means that createFeatureSource returns
   // a featureStore
@@ -778,7 +613,7 @@ class AccumuloDataStore(val connector: Connector,
    * @return
    */
   def getIndexSchemaFmt(featureName: String) =
-    readMetadataItem(featureName, SCHEMA_CF).getOrElse(EMPTY_STRING)
+    metadata.read(featureName, SCHEMA_KEY).getOrElse(EMPTY_STRING)
 
   /**
    * Reads the attributes out of the metadata
@@ -787,20 +622,20 @@ class AccumuloDataStore(val connector: Connector,
    * @return
    */
   private def getAttributes(featureName: String) =
-    readMetadataItem(featureName, ATTRIBUTES_CF).getOrElse(EMPTY_STRING)
+    metadata.read(featureName, ATTRIBUTES_KEY).getOrElse(EMPTY_STRING)
 
   /**
    * Reads the feature encoding from the metadata. Defaults to TEXT if there is no metadata.
    */
   def getFeatureEncoding(sft: SimpleFeatureType): FeatureEncoding = {
-    val encodingString = readMetadataItem(sft.getTypeName, FEATURE_ENCODING_CF)
+    val encodingString = metadata.read(sft.getTypeName, FEATURE_ENCODING_KEY)
                          .getOrElse(FeatureEncoding.TEXT.toString)
     FeatureEncoding.withName(encodingString)
   }
 
   // We assume that they want the bounds for everything.
   override def getBounds(query: Query): ReferencedEnvelope = {
-    val env = readMetadataItem(query.getTypeName, BOUNDS_CF).getOrElse(WHOLE_WORLD_BOUNDS)
+    val env = metadata.read(query.getTypeName, BOUNDS_KEY).getOrElse(WHOLE_WORLD_BOUNDS)
     val minMaxXY = env.split(":")
     val curBounds = minMaxXY.size match {
       case 4 => env
@@ -827,7 +662,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   def writeBounds(featureName: String, bounds: ReferencedEnvelope) {
     // prepare to write out properties to the Accumulo SHP-file table
-    val newbounds = readMetadataItem(featureName, BOUNDS_CF) match {
+    val newbounds = metadata.read(featureName, BOUNDS_KEY) match {
       case Some(env) => getNewBounds(env, featureName, bounds)
       case None      => bounds
     }
@@ -835,9 +670,7 @@ class AccumuloDataStore(val connector: Connector,
     val minMaxXY = List(newbounds.getMinX, newbounds.getMaxX, newbounds.getMinY, newbounds.getMaxY)
     val encoded = minMaxXY.mkString(":")
 
-    val mutation = getMetadataMutation(featureName)
-    putMetadata(featureName, mutation, BOUNDS_CF, encoded)
-    writeMutations(mutation)
+    metadata.insert(featureName, BOUNDS_KEY, encoded)
   }
 
   private def getNewBounds(env: String, featureName: String, bounds: ReferencedEnvelope) = {
@@ -861,11 +694,11 @@ class AccumuloDataStore(val connector: Connector,
         null
       case attributes                       =>
         val sft = SimpleFeatureTypes.createType(featureName, attributes)
-        val dtgField = readMetadataItem(featureName, DTGFIELD_CF)
+        val dtgField = metadata.read(featureName, DTGFIELD_KEY)
           .getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
-        val indexSchema = readMetadataItem(featureName, SCHEMA_CF).orNull
+        val indexSchema = metadata.read(featureName, SCHEMA_KEY).orNull
         // If no data is written, we default to 'false' in order to support old tables.
-        val sharingBoolean = readMetadataItem(featureName, SHARED_TABLES_CF).getOrElse("false")
+        val sharingBoolean = metadata.read(featureName, SHARED_TABLES_KEY).getOrElse("false")
 
         sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
         sft.getUserData.put(core.index.SF_PROPERTY_END_TIME, dtgField)
