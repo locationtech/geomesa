@@ -63,23 +63,25 @@ object Utils {
 }
 
 case class FeatureArguments(username: String = null,
-                          password: Option[String] = None,
-                          mode: String = null,
-                          spec: String = null,
-                          dtField: Option[String] = None,
-                          method: String = "local",
-                          featureName: String = null,
-                          catalog: String = null,
-                          query: String = null,
-                          param: String = null,
-                          newValue: String = null,
-                          suffix: String = null,
-                          instanceName: Option[String] = None,
-                          zookeepers: Option[String] = None,
-                          visibilities: Option[String] = None,
-                          auths: Option[String] = None,
-                          toStdOut: Boolean = false,
-                          forceDelete: Boolean = false)
+                            password: Option[String] = None,
+                            mode: String = null,
+                            spec: String = null,
+                            dtField: Option[String] = None,
+                            method: String = "local",
+                            featureName: String = null,
+                            catalog: String = null,
+                            query: String = null,
+                            param: String = null,
+                            newValue: String = null,
+                            suffix: String = null,
+                            instanceName: Option[String] = None,
+                            zookeepers: Option[String] = None,
+                            visibilities: Option[String] = None,
+                            auths: Option[String] = None,
+                            toStdOut: Boolean = false,
+                            forceDelete: Boolean = false,
+                            maxShards: Option[Int] = None,
+                            sharedTable: Option[Boolean] = Some(true))
 
 
 case class ExportArguments(username: String = null,
@@ -116,12 +118,13 @@ case class IngestArguments(username: String = null,
                            dtField: Option[String] = None,
                            dtFormat: Option[String] = None,
                            file: String = null,
-                           featureName: Option[String] = None,
+                           featureName: String = null,
                            lonAttribute: Option[String] = None,
                            latAttribute: Option[String] = None,
                            doHash: Boolean = false,
                            maxShards: Option[Int] = None,
-                           dryRun: Boolean = false)
+                           dryRun: Boolean = false,
+                           sharedTable: Option[Boolean] = Some(true))
 
 
 /* get password trait */

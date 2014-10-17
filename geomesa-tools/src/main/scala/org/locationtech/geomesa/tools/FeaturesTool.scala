@@ -21,8 +21,6 @@ import org.geotools.data._
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader}
 import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -92,27 +90,10 @@ class FeaturesTool(config: FeatureArguments, password: String) extends Logging w
   }
 
   def createFeature() {
-    logger.info(s"Creating '${config.featureName}' on catalog table '${config.catalog}' with spec " +
-      s"'${config.spec}'. Just a few moments...")
-    if (ds.getSchema(config.featureName) == null) {
-      val sft = SimpleFeatureTypes.createType(config.featureName, config.spec)
-      if (config.dtField.orNull != null) {
-        sft.getUserData.put(SF_PROPERTY_START_TIME, config.dtField.get)
-      }
-      ds.createSchema(sft)
-      if (ds.getSchema(config.featureName) != null) {
-        logger.info(s"Feature '${config.featureName}' on catalog table '${config.catalog}' with spec " +
-          s"'${config.spec}' successfully created.")
-      } else {
-        logger.error(s"There was an error creating feature '${config.featureName}' on catalog table " +
-          s"'${config.catalog}' with spec '${config.spec}'. Please check that all arguments are correct " +
-          "in the previous command.")
-      }
-    } else {
-      logger.error(s"A feature named '${config.featureName}' already exists in the data store with " +
-        s"catalog table '${config.catalog}'.")
-      sys.exit()
-    }
+    FeatureCreator.createFeature(
+      ds, config.spec, config.featureName, config.dtField, config.sharedTable, config.catalog, config.maxShards
+    )
+    sys.exit()
   }
 
   def deleteFeature() {

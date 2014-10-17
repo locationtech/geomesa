@@ -40,7 +40,7 @@ object ShpIngest extends Logging {
     val ds = DataStoreFinder.getDataStore(dsConf)
 
     val targetTypeName =
-      if(config.featureName.isDefined && !config.featureName.get.equals(featureTypeName)) config.featureName.get
+      if(config.featureName != null) config.featureName
       else featureTypeName
 
     if(ds.getSchema(targetTypeName) != null) {

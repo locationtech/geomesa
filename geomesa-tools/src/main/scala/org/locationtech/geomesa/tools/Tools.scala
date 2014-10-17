@@ -20,6 +20,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 object Tools extends App with Logging with GetPassword {
   val parser = new scopt.OptionParser[FeatureArguments]("geomesa-tools") {
     implicit val optionStringRead: scopt.Read[Option[String]] = scopt.Read.reads(Option[String])
+    implicit val optionBooleanRead: scopt.Read[Option[Boolean]] = scopt.Read.reads(b => Option(b.toBoolean))
+    implicit val optionIntRead: scopt.Read[Option[Int]] = scopt.Read.reads(i => Option(i.toInt))
     def catalogOpt = opt[String]('c', "catalog").action { (s, c) =>
       c.copy(catalog = s) } required()
     def featureOpt = opt[String]('f', "feature-name").action { (s, c) =>
@@ -42,6 +44,11 @@ object Tools extends App with Logging with GetPassword {
       c.copy(suffix = s) } required()
     def paramOpt = opt[String]("param").action { (s, c) =>
       c.copy(param = s) } required()
+    //Todo: shared-tables or share-tables?
+    def sharingOpt = opt[Option[Boolean]]("shared-tables") action { (x, c) =>
+      c.copy(sharedTable = x) } text "Set the Accumulo table sharing (default true)" optional()
+    def shardOpt = opt[Option[Int]]("shards") action { (i, c) =>
+      c.copy(maxShards = i) } text "Accumulo number of shards to use (optional)" optional()
 
     def describe = cmd("describe") action { (_, c) =>
       c.copy(mode = "describe") } text "Describe the specified feature" children(
@@ -110,7 +117,9 @@ object Tools extends App with Logging with GetPassword {
       instanceNameOpt,
       zookeepersOpt,
       visibilitiesOpt,
-      authsOpt
+      authsOpt,
+      sharingOpt,
+      shardOpt
       )
 
     def tableconf = cmd("tableconf") action { (_, c) =>
@@ -149,6 +158,7 @@ object Tools extends App with Logging with GetPassword {
         zookeepersOpt,
         visibilitiesOpt,
         authsOpt
+        // Todo: maybe here add sharingTable opt and shards opt?
         )
       )
     head("GeoMesa Tools", "1.0")
@@ -175,6 +185,7 @@ object Tools extends App with Logging with GetPassword {
    * out that usage text. If a suitable command isn't found, it will show the default usage texts for geomesa-tools.
    */
   def printHelp(): Unit = {
+    //Todo: update help to include shards and shared table args where needed
     val usernameHelp = buildHelpText(Some('u'), "username", required = true, "the Accumulo username")
     val passwordHelp = buildHelpText(Some('p'), "password", required = false,
       "the Accumulo password. This can also be provided after entering a command")
