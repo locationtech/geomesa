@@ -70,7 +70,7 @@ import scala.collection.JavaConversions._
     }
 
     "should support renaming the feature type" >> {
-      val ingestConf = IngestArguments(file = shpFile.getAbsolutePath, featureName = Some("changed"))
+      val ingestConf = IngestArguments(file = shpFile.getAbsolutePath, featureName = "changed")
       ShpIngest.doIngest(ingestConf, dsConf)
 
       val fs = ds.getFeatureSource("changed")
