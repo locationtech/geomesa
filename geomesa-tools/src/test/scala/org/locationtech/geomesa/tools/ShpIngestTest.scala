@@ -6,10 +6,11 @@ import java.util.Date
 import com.google.common.io.Files
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data.shapefile.ShapefileDataStoreFactory
-import org.geotools.data.{DataStoreFinder, DataUtilities, Transaction}
+import org.geotools.data.{DataStoreFinder, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -28,7 +29,7 @@ import scala.collection.JavaConversions._
     val shpUrl = shpFile.toURI.toURL
     val params = Map("url" -> shpUrl)
     val shpStore = shpStoreFactory.createNewDataStore(params)
-    val schema = DataUtilities.createType("shpingestns", "shpingest", "age:Integer,dtg:Date,*geom:Point:srid=4326")
+    val schema = SimpleFeatureTypes.createType("shpingest", "age:Integer,dtg:Date,*geom:Point:srid=4326")
     shpStore.createSchema(schema)
     val data =
       List(

@@ -77,9 +77,11 @@ object SimpleFeatureTypes {
 
   case class GeomAttributeSpec(name: String, clazz: Class[_], index: Boolean, srid: Int, default: Boolean) extends AttributeSpec {
     override def toAttribute: AttributeDescriptor = {
+      if (srid != 4326) {
+        throw new IllegalArgumentException(s"Invalid SRID '$srid'. Only 4326 is supported.")
+      }
       val b = new AttributeTypeBuilder()
-      val crs = Try(CRS.decode(s"EPSG:$srid")).getOrElse(DefaultGeographicCRS.WGS84)
-      b.binding(clazz).userData("index", index).crs(crs).buildDescriptor(name)
+      b.binding(clazz).userData("index", index).crs(DefaultGeographicCRS.WGS84).buildDescriptor(name)
     }
 
     override def toSpec = {

@@ -260,18 +260,6 @@
                 <version>${gt.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-epsg-hsql</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <artifactId>jgridshift</artifactId>
-                        <groupId>jgridshift</groupId>
-                     </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
                 <groupId>commons-pool</groupId>
                 <artifactId>commons-pool</artifactId>
                 <version>1.6</version>

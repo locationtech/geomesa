@@ -791,7 +791,7 @@ class AccumuloDataStoreTest extends Specification {
         "000000013400000015000000000140468000000000004046800000000000000001349ccf6e18",
         "000000013500000015000000000140468000000000004046800000000000000001349ccf6e18").map {v =>
         hex.decode(v.getBytes)}
-      val sft = DataUtilities.createType(sftName, s"name:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,$geotimeAttributes")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
       val instance = new MockInstance(params("instanceId"))
