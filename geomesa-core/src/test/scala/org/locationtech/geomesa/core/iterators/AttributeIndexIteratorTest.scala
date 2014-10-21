@@ -44,50 +44,32 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexIteratorTest extends Specification {
+class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
-  val sftName = "AttributeIndexIteratorTest"
-  val spec = "name:String:index=true,age:Integer:index=true,dtg:Date:index=true,*geom:Geometry:srid=4326"
-  val sft = SimpleFeatureTypes.createType(sftName, spec)
-  index.setDtgDescriptor(sft, "dtg")
+  val spec = "name:String:index=true,age:Integer:index=true,scars:List[String]:index=true,dtg:Date:index=true,*geom:Geometry:srid=4326"
 
-  val sdf = new SimpleDateFormat("yyyyMMdd")
-  sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))
-  val dateToIndex = sdf.parse("20140102")
+  val dateToIndex = {
+    val sdf = new SimpleDateFormat("yyyyMMdd")
+    sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))
+    sdf.parse("20140102")
+  }
 
-  def createStore: AccumuloDataStore =
-  // the specific parameter values should not matter, as we
-  // are requesting a mock data store connection to Accumulo
-    DataStoreFinder.getDataStore(Map(
-      "instanceId"        -> "mycloud",
-      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"              -> "myuser",
-      "password"          -> "mypassword",
-      "auths"             -> "A,B,C",
-      "tableName"         -> "AttributeIndexIteratorTest",
-      "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
-
-  val ds = createStore
-
-  ds.createSchema(sft)
-  val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
-
-  val featureCollection = new DefaultFeatureCollection(sftName, sft)
-
-  List("a", "b", "c", "d", null).foreach { name =>
-    List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-      val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
-      sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-      sf.setAttribute("dtg", dateToIndex)
-      sf.setAttribute("age", i)
-      sf.setAttribute("name", name)
-      sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-      featureCollection.add(sf)
+  override def getTestFeatures() = {
+    List("a", "b", "c", "d", null).flatMap { name =>
+      List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
+        val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
+        sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
+        sf.setAttribute("dtg", dateToIndex)
+        sf.setAttribute("age", i)
+        sf.setAttribute("name", name)
+        sf.setAttribute("scars", Seq("face"))
+        sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+        sf
+      }
     }
   }
 
-  fs.addFeatures(featureCollection)
-  fs.flush()
+  populateFeatures
 
   val ff = CommonFactoryFinder.getFilterFactory2
 
@@ -100,7 +82,7 @@ class AttributeIndexIteratorTest extends Specification {
       conn.tableOperations.create(table, true, TimeType.LOGICAL)
 
       val bw = conn.createBatchWriter(table, new BatchWriterConfig)
-      featureCollection.foreach { feature =>
+      getTestFeatures().foreach { feature =>
         val muts = AttributeTable.getAttributeIndexMutations(feature,
                                                              sft.getAttributeDescriptors,
                                                              new ColumnVisibility(), "")
@@ -114,7 +96,8 @@ class AttributeIndexIteratorTest extends Specification {
                                      GEOMESA_ITERATORS_SFT_NAME -> sftName)
       val is = new IteratorSetting(40, classOf[AttributeIndexIterator], opts)
       scanner.addScanIterator(is)
-      scanner.setRange(new ARange(AttributeTable.getAttributeIndexRow("", "name", Some("b"))))
+      val range = AttributeTable.getAttributeIndexRows("", sft.getDescriptor("name"), Some("b")).head
+      scanner.setRange(new ARange(range))
       scanner.iterator.size mustEqual 4
     }
 
@@ -129,15 +112,17 @@ class AttributeIndexIteratorTest extends Specification {
     }
 
     "be selected for appropriate queries" in {
-      val filters = List("name = 'b'",
-           "name < 'b'",
-           "name > 'b'",
-           "name is NULL",
-           "dtg TEQUALS 2014-01-01T12:30:00.000Z",
-           "dtg = '2014-01-01T12:30:00.000Z'",
-           "dtg BETWEEN '2012-01-01T12:00:00.000Z' AND '2013-01-01T12:00:00.000Z'",
-           "age < 10",
-           "name = 'b' AND BBOX(geom, 30, 30, 50, 50)")
+      val filters = List(
+        "name = 'b'",
+        "name < 'b'",
+        "name > 'b'",
+        "name is NULL",
+        "dtg TEQUALS 2014-01-01T12:30:00.000Z",
+        "dtg = '2014-01-01T12:30:00.000Z'",
+        "dtg BETWEEN '2012-01-01T12:00:00.000Z' AND '2013-01-01T12:00:00.000Z'",
+        "age < 10",
+        "name = 'b' AND BBOX(geom, 30, 30, 50, 50)"
+      )
       forall(filters) { filter => checkExplainStrategy(filter) }
     }
 
@@ -148,8 +133,12 @@ class AttributeIndexIteratorTest extends Specification {
     }.pendingUntilFixed("GEOMESA-394 AttributeIndexIterator should be able to handle attribute + date queries")
 
     "not be selected for inappropriate queries" in {
-      List("name = 'b' AND age = 3").foreach { filter =>
-        val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg"))
+      val filters = Map(
+        "name = 'b' AND age = 3" -> None,
+        "scars = 'face'" -> Some("scars")
+      )
+      filters.foreach { case (filter, prop) =>
+        val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg") ++ prop)
         val explain = new ExplainString()
         ds.getFeatureReader(sftName, query).explainQuery(o = explain)
         val output = explain.toString()

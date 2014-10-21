@@ -43,6 +43,7 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, NonGeomAttributeSpec}
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
@@ -337,8 +338,8 @@ class AccumuloDataStore(val connector: Connector,
     val indexedAttrs = SimpleFeatureTypes.getIndexedAttributes(featureType)
     if (!indexedAttrs.isEmpty) {
       val prefix = index.getTableSharingPrefix(featureType)
-      val prefixFn = AttributeTable.getAttributeIndexRowPrefix(prefix, _: String)
-      val names = indexedAttrs.map(_.getLocalName).map(prefixFn).map(new Text(_))
+      val prefixFn = AttributeTable.getAttributeIndexRowPrefix(prefix, _: AttributeDescriptor)
+      val names = indexedAttrs.map(prefixFn).map(new Text(_))
       val splits = ImmutableSortedSet.copyOf(names.toArray)
       tableOps.addSplits(attributeIndexTable, splits)
     }

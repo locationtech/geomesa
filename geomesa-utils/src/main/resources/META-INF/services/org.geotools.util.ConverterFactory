@@ -1,1 +1,2 @@
 org.locationtech.geomesa.utils.geotools.JodaConverterFactory
+org.locationtech.geomesa.utils.geotools.ScalaCollectionsConverterFactory
