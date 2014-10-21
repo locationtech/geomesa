@@ -39,7 +39,7 @@ import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.index.{IndexSchemaBuilder, _}
+import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.TestData
 import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import org.locationtech.geomesa.core.util.{SelfClosingIterator, CloseableIterator}
@@ -53,6 +53,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
+import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification {
@@ -175,6 +176,7 @@ class AccumuloDataStoreTest extends Specification {
           "and there are no results" >> { features.hasNext should be equalTo false }
         }
       }
+
       "process a DWithin query correctly" in {
         // create the data store
         val sftName = "dwithintest"
@@ -208,6 +210,55 @@ class AccumuloDataStoreTest extends Specification {
 
         "with correct result" >> { f.getID mustEqual "fid-1" }
         "and no more results" >> { features.hasNext must beFalse }
+      }
+
+      "process an OR query correctly" in {
+        val sftName = "ortest"
+        val sft = SimpleFeatureTypes.createType(sftName, s"NAME:String,dtg:Date,*geom:Point:srid=4326")
+        sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+        ds.createSchema(sft)
+
+        val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+        {
+          val randVal: (Double, Double) => Double = {
+            val r = new Random(System.nanoTime())
+            (low, high) => {
+              (r.nextDouble() * (high - low)) + low
+            }
+          }
+          val fc = new DefaultFeatureCollection(sftName, sft)
+          for (i <- 0 until 1000) {
+            val lat = randVal(-0.001, 0.001)
+            val lon = randVal(-0.001, 0.001)
+            val geom = WKTUtils.read(s"POINT($lat $lon)")
+            val builder = new SimpleFeatureBuilder(sft, featureFactory)
+            builder.addAll(List("testType", null, geom))
+            val feature = builder.buildFeature(s"fid-$i")
+            feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            fc.add(feature)
+          }
+          fs.addFeatures(fc)
+        }
+
+        val geomFactory = JTSFactoryFinder.getGeometryFactory
+        val urq = ff.dwithin(ff.property("geom"), ff.literal(geomFactory.createPoint(new Coordinate( 0.0005,  0.0005))), 150.0, "meters")
+        val llq = ff.dwithin(ff.property("geom"), ff.literal(geomFactory.createPoint(new Coordinate(-0.0005, -0.0005))), 150.0, "meters")
+        val orq = ff.or(urq, llq)
+        val andq = ff.and(urq, llq)
+        val urQuery  = new Query(sftName,  urq)
+        val llQuery  = new Query(sftName,  llq)
+        val orQuery  = new Query(sftName,  orq)
+        val andQuery = new Query(sftName, andq)
+
+        val urNum  = fs.getFeatures( urQuery).features.length
+        val llNum  = fs.getFeatures( llQuery).features.length
+        val orNum  = fs.getFeatures( orQuery).features.length
+        val andNum = fs.getFeatures(andQuery).features.length
+
+        "obeying inclusion-exclusion principle" >> {
+          (urNum + llNum) mustEqual (orNum + andNum)
+        }
       }
 
       "handle transformations" in {
