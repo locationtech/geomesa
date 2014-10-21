@@ -28,7 +28,6 @@ class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
 
   val model = storeEditForm.getModel
   setDefaultModel(model)
-  val storeInfo = storeEditForm.getModelObject.asInstanceOf[CoverageStoreInfo]
   val paramsModel = new PropertyModel(model, "connectionParameters")
   val instanceId = addTextPanel(paramsModel, new Param("instanceId", classOf[String], "The Accumulo Instance ID", false))
   val zookeepers = addTextPanel(paramsModel, new Param("zookeepers", classOf[String], "Zookeepers", false))
@@ -40,8 +39,16 @@ class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
   val columnQualifier = addTextPanel(paramsModel, new Param("columnQualifier", classOf[String], "The Accumulo Column Qualifier", false))
   val resolution = addTextPanel(paramsModel, new Param("resolution", classOf[String], "Resolution", false))
 
-  val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, resolution, user, password, authTokens, tableName, columnFamily, columnQualifier)
-  dependentFormComponents.map(_.setOutputMarkupId(true))
+  val dependentFormComponents = Array[FormComponent[_]](instanceId,
+                                                        zookeepers,
+                                                        resolution,
+                                                        user,
+                                                        password,
+                                                        authTokens,
+                                                        tableName,
+                                                        columnFamily,
+                                                        columnQualifier)
+  dependentFormComponents.foreach(_.setOutputMarkupId(true))
 
   storeEditForm.add(new IFormValidator() {
     def getDependentFormComponents = dependentFormComponents
