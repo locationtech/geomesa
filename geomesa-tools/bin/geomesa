@@ -20,15 +20,37 @@ GEOMESA_OPTS="-Duser.timezone=UTC"
 GEOMESA_CP=""
 JAVA_LIBRARY_PATH=""
 
-# GEOMESA paths, GEOMESA_LIB should live inside GEOMESA_HOME, but can be pointed elsewhere
-# this is checked down below
-if [ -n "$GEOMESA_HOME" ]; then
-    if [ -z "$GEOMESA_LIB" ]; then
-        GEOMESA_LIB=${GEOMESA_HOME}/lib
-    fi
-fi
+function defineGeoMesaHome ()
+{  # Defines the GEOMESA_HOME and updates the PATH.
+   SOURCE="${BASH_SOURCE[0]}"
+   while [ -h "${SOURCE}" ]; do # resolve $SOURCE until the file is no longer a symlink
+      bin="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
+      SOURCE="$(readlink "${SOURCE}")"
+      [[ "${SOURCE}" != /* ]] && SOURCE="${bin}/${SOURCE}" # if $SOURCE was a relative symlink, we
+                                                           # need to resolve it relative to the
+                                                           # path where the symlink file was located
 
-# ACCUMULO paths
+   done
+   bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
+   export GEOMESA_HOME="$bin"
+   export PATH=${GEOMESA_HOME}/bin:$PATH
+}
+
+function defineGeoMesaLib ()
+{
+  # GEOMESA paths, GEOMESA_LIB should live inside GEOMESA_HOME, but can be pointed elsewhere
+  # this is checked down below
+  if [ -n "$GEOMESA_HOME" ]; then
+      if [ -z "$GEOMESA_LIB" ]; then
+          GEOMESA_LIB=${GEOMESA_HOME}/lib
+      fi
+  fi
+}
+
+# first call to defineGeoMesaLib, for case when user did set GEOMESA_HOME outside of script
+defineGeoMesaLib
+
+# ACCUMULO paths, user can hard set these, or rely on this script to find set them via
 if [ -n "$ACCUMULO_HOME" ]; then
     if [ -z "$ACCUMULO_LIB" ]; then
         ACCUMULO_LIB=${ACCUMULO_HOME}/lib
@@ -110,8 +132,10 @@ fi
 
 # Check environment variables before running anything, warn user on issues:
 if [[ (-z "$GEOMESA_HOME") ]]; then
-    echo "Error: Please ensure GEOMESA_HOME is set before running geomesa-tools."
-    echo "Please run 'geomesa configure' to temporarily specify this path or set it manually before running geomesa-tools again."
+    echo "Warning: GEOMESA_HOME is not set, assuming defaults."
+    defineGeoMesaHome
+    # call defineGeoMesaLib again since we just defined GEOMESA_HOME
+    defineGeoMesaLib
 fi
 
 # Check if environment variables for Accumulo and Hadoop are set, warn user if there is a problem.
@@ -150,19 +174,10 @@ fi
 # else is running actual commands in the tools
 
 if  [[ $1 = configure ]]; then
-    SOURCE="${BASH_SOURCE[0]}"
-    while [ -h "${SOURCE}" ]; do # resolve $SOURCE until the file is no longer a symlink
-       bin="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
-       SOURCE="$(readlink "${SOURCE}")"
-       [[ "${SOURCE}" != /* ]] && SOURCE="${bin}/${SOURCE}" # if $SOURCE was a relative symlink, we
-                                                            # need to resolve it relative to the
-                                                            # path where the symlink file was located
-
-    done
-    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
-    echo "Setting GEOMESA_HOME to "$bin""
-    export GEOMESA_HOME="$bin"
-    export PATH=${GEOMESA_HOME}/bin:$PATH
+    defineGeoMesaHome
+    echo "To persist the configuration please update your bashrc file to include: "
+    echo "export GEOMESA_HOME="$GEOMESA_HOME""
+    echo "export PATH=\${GEOMESA_HOME}/bin:\$PATH"
 elif [[ $1 = classpath ]]; then
     for element in ${CLASSPATH//:/ } ; do
         echo ${element}
