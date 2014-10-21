@@ -11,7 +11,9 @@ import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.Try
+import scala.util.parsing.combinator.JavaTokenParsers
 
 object SimpleFeatureTypes {
 
@@ -45,8 +47,12 @@ object SimpleFeatureTypes {
   private def encodeNonGeomDescriptor(attr: AttributeDescriptor): String = {
     val name = attr.getLocalName
     val binding = typeEncode(attr.getType.getBinding)
-    val indexed = Try(attr.getUserData.get("index").asInstanceOf[lang.Boolean].booleanValue()).getOrElse(java.lang.Boolean.FALSE)
-    s"$name:$binding:index=$indexed"
+    val subBinding = Option(attr.getUserData.get("subtype"))
+        .flatMap(o => Try(o.asInstanceOf[java.util.List[Class[_]]].map(typeEncode(_)).mkString("[", "][", "]")).toOption)
+        .getOrElse("")
+    val indexed = Try(attr.getUserData.get("index").asInstanceOf[lang.Boolean].booleanValue())
+        .getOrElse(java.lang.Boolean.FALSE)
+    s"$name:$binding$subBinding:index=$indexed"
   }
 
   private def encodeGeometryDescriptor(sft: SimpleFeatureType, gd: GeometryDescriptor): String = {
@@ -65,10 +71,13 @@ object SimpleFeatureTypes {
     def toSpec: String
   }
 
-  case class NonGeomAttributeSpec(name: String, clazz: Class[_], index: Boolean) extends AttributeSpec {
+  case class NonGeomAttributeSpec(name: String, clazz: Class[_], subClass: Seq[Class[_]], index: Boolean) extends AttributeSpec {
     override def toAttribute: AttributeDescriptor = {
-      val b = new AttributeTypeBuilder()
-      b.binding(clazz).userData("index", index).buildDescriptor(name)
+      val b = new AttributeTypeBuilder().binding(clazz).userData("index", index)
+      if (!subClass.isEmpty) {
+        b.userData("subtype", subClass.asJava)
+      }
+      b.buildDescriptor(name)
     }
 
     override def toSpec = s"$name:${typeEncode(clazz)}:index=$index"
@@ -90,6 +99,7 @@ object SimpleFeatureTypes {
   }
 
   object AttributeSpec {
+
     private def parseKV(s: String): (String, String) =
       s.split("=") match { case Array(k, v) => k -> v }
 
@@ -101,19 +111,50 @@ object SimpleFeatureTypes {
       GeomAttributeSpec(attrName, clazz, indexed, srid, default = defaultGeom)
     }
 
-    def buildNonGeomSpec(name: String, clazz: Class[_], opts: Map[String, String]) = {
+    def buildNonGeomSpec(name: String, clazz: Class[_], subClass: Seq[Class[_]], opts: Map[String, String]) = {
       val indexed = Try(opts("index").toBoolean).getOrElse(false)
-      NonGeomAttributeSpec(name, clazz, indexed)
+      NonGeomAttributeSpec(name, clazz, subClass, indexed)
     }
 
     def apply(spec: String): AttributeSpec = {
-      val name :: clazz :: xs = spec.split(":").toList
+      val name :: classString :: xs = spec.split(":").toList
+      val clas = parseClass(classString)
       val opts = xs.map(parseKV).toMap
-      typeMap(clazz) match {
-        case c if classOf[Geometry].isAssignableFrom(c) => buildGeomSpec(name, c, opts)
-        case c => buildNonGeomSpec(name, c, opts)
+      if (classOf[Geometry].isAssignableFrom(clas.main)) {
+        buildGeomSpec(name, clas.main, opts)
+      } else {
+        buildNonGeomSpec(name, clas.main, clas.subtypes, opts)
       }
     }
+
+    /**
+     * Converts a string from a spec into a concrete class, plus any type classes.
+     *
+     * @param classString
+     * @return
+     */
+    def parseClass(classString: String): ParsedClass =
+      if (simpleTypeMap.contains(classString)) {
+        ParsedClass(simpleTypeMap(classString))
+      } else {
+        val parseResult = ParseClassStrings.parseAll(ParseClassStrings.classDef, classString)
+        if (!parseResult.successful) {
+          throw new IllegalArgumentException(s"Invalid attribute type: $classString")
+        }
+        val classDef = parseResult.get
+        val complexType = complexTypeMap.get(classDef.main)
+            .getOrElse(throw new IllegalArgumentException(s"Invalid attribute type: ${classDef.main}"))
+        val subClasses = if (classDef.subtypes.isEmpty) {
+          (1 to complexType.getTypeParameters.size).map(_ => classOf[String])
+        } else {
+          classDef.subtypes.map(parseClass).map(_.main).toSeq
+        }
+        if (subClasses.size != complexType.getTypeParameters.size) {
+          throw new IllegalArgumentException(s"Invalid number of type parameters for type ${classDef.main}. " +
+              s"Expected ${complexType.getTypeParameters.size}, found ${subClasses.size}")
+        }
+        ParsedClass(complexType, subClasses)
+      }
 
     def toAttributes(spec: String): Array[AttributeSpec] = spec.split(",").map(AttributeSpec(_))
 
@@ -121,25 +162,27 @@ object SimpleFeatureTypes {
   }
 
   private val typeEncode: Map[Class[_], String] = Map(
-    classOf[java.lang.String]   -> "String",
-    classOf[java.lang.Integer]  -> "Integer",
-    classOf[java.lang.Double]   -> "Double",
-    classOf[java.lang.Long]     -> "Long",
-    classOf[java.lang.Float]    -> "Float",
-    classOf[java.lang.Boolean]  -> "Boolean",
-    classOf[UUID]               -> "UUID",
-    classOf[Geometry]           -> "Geometry",
-    classOf[Point]              -> "Point",
-    classOf[LineString]         -> "LineString",
-    classOf[Polygon]            -> "Polygon",
-    classOf[MultiPoint]         -> "MultiPoint",
-    classOf[MultiLineString]    -> "MultiLineString",
-    classOf[MultiPolygon]       -> "MultiPolygon",
-    classOf[GeometryCollection] -> "GeometryCollection",
-    classOf[Date]               -> "Date"
+    classOf[java.lang.String]    -> "String",
+    classOf[java.lang.Integer]   -> "Integer",
+    classOf[java.lang.Double]    -> "Double",
+    classOf[java.lang.Long]      -> "Long",
+    classOf[java.lang.Float]     -> "Float",
+    classOf[java.lang.Boolean]   -> "Boolean",
+    classOf[UUID]                -> "UUID",
+    classOf[Geometry]            -> "Geometry",
+    classOf[Point]               -> "Point",
+    classOf[LineString]          -> "LineString",
+    classOf[Polygon]             -> "Polygon",
+    classOf[MultiPoint]          -> "MultiPoint",
+    classOf[MultiLineString]     -> "MultiLineString",
+    classOf[MultiPolygon]        -> "MultiPolygon",
+    classOf[GeometryCollection]  -> "GeometryCollection",
+    classOf[Date]                -> "Date",
+    classOf[java.util.List[_]]   -> "List",
+    classOf[java.util.Map[_, _]] -> "Map"
   )
-  
-  private val typeMap = Map(
+
+  private val simpleTypeMap = Map(
     "String"              -> classOf[java.lang.String],
     "java.lang.String"    -> classOf[java.lang.String],
     "string"              -> classOf[java.lang.String],
@@ -174,4 +217,35 @@ object SimpleFeatureTypes {
     "GeometryCollection"  -> classOf[GeometryCollection],
     "Date"                -> classOf[Date]
   )
+
+  private val complexTypeMap = Map(
+    "List"            -> classOf[java.util.List[_]],
+    "java.util.List"  -> classOf[java.util.List[_]],
+    "list"            -> classOf[java.util.List[_]],
+    "Map"             -> classOf[java.util.Map[_, _]],
+    "java.util.Map"   -> classOf[java.util.Map[_, _]],
+    "map"             -> classOf[java.util.Map[_, _]]
+  )
 }
+
+/**
+ * Parses class strings from simple feature type specifications. Will match strings of the form:
+ *
+ * String
+ * java.lang.String
+ * java.util.List[String]
+ * Map[String][Int]
+ *
+ */
+object ParseClassStrings extends JavaTokenParsers {
+
+  def classDef: Parser[ParsedClassString] = classIdentifier~rep(parameterizedType) ^^
+      { case main~sub => ParsedClassString(main, sub) }
+
+  def classIdentifier: Parser[String] = "(\\w|\\.)+".r
+  def parameterizedType: Parser[String] = "["~>classIdentifier<~"]"
+}
+
+case class ParsedClassString(main: String, subtypes: Seq[String] = Seq.empty)
+
+case class ParsedClass(main: Class[_], subtypes: Seq[Class[_]] = Seq.empty)

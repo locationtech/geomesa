@@ -30,6 +30,7 @@ import org.locationtech.geomesa.core.data.tables.AttributeTable._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.`type`.AttributeDescriptor
 
 import scala.util.{Failure, Success}
 
@@ -50,7 +51,7 @@ class AttributeIndexIterator extends SortedKeyValueIterator[Key, Value] with Log
   // the following fields get filled in during init
   var dtgFieldName: Option[String] = null
   var attributeRowPrefix: String = null
-  var attributeType: Option[Class[_]] = null
+  var attributeType: Option[AttributeDescriptor] = null
   var featureBuilder: SimpleFeatureBuilder = null
   var featureEncoder: SimpleFeatureEncoder = null
 
@@ -74,7 +75,6 @@ class AttributeIndexIterator extends SortedKeyValueIterator[Key, Value] with Log
     // if we're retrieving the attribute, we need the class in order to decode it
     attributeType = Option(options.get(GEOMESA_ITERATORS_ATTRIBUTE_NAME))
         .flatMap(n => Option(featureType.getDescriptor(n)))
-        .map(_.getType.getBinding)
 
     // default to text if not found for backwards compatibility
     val encoding = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
