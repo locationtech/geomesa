@@ -33,6 +33,9 @@ import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.sort.{SortBy, SortOrder}
+
+import scala.reflect.ClassTag
 
 object QueryPlanner {
   val iteratorPriority_RowRegex                        = 0
@@ -180,9 +183,36 @@ case class QueryPlanner(schema: String,
         DensityIterator.expandFeature(decoder.decode(kv.getValue))
       }
     } else {
-      accumuloIterator.map { kv => decoder.decode(kv.getValue) }
+      val features = accumuloIterator.map { kv => decoder.decode(kv.getValue) }
+      if(query.getSortBy != null && query.getSortBy.length > 0) sort(features, query.getSortBy)
+      else features
     }
   }
+
+  private def sort(features: CloseableIterator[SimpleFeature],
+                   sortBy: Array[SortBy]): CloseableIterator[SimpleFeature] = {
+    val sortOrdering = sortBy.map {
+      case SortBy.NATURAL_ORDER => Ordering.by[SimpleFeature, String](_.getID)
+      case SortBy.REVERSE_ORDER => Ordering.by[SimpleFeature, String](_.getID).reverse
+      case sb                   =>
+        val prop = sb.getPropertyName.getPropertyName
+        val ord  = attributeToComparable(prop)
+        if(sb.getSortOrder == SortOrder.DESCENDING) ord.reverse
+        else ord
+    }
+    val comp: (SimpleFeature, SimpleFeature) => Boolean =
+      if(sortOrdering.length == 1) {
+        // optimized case for one ordering
+        val ret = sortOrdering.head
+        (l, r) => ret.compare(l, r) < 0
+      }  else {
+        (l, r) => sortOrdering.map(_.compare(l, r)).find(_ != 0).getOrElse(0) < 0
+      }
+    CloseableIterator(features.toList.sortWith(comp).iterator)
+  }
+
+  def attributeToComparable[T <: Comparable[T]](prop: String)(implicit ct: ClassTag[T]): Ordering[SimpleFeature] =
+      Ordering.by[SimpleFeature, T](_.getAttribute(prop).asInstanceOf[T])
 
   // This function calculates the SimpleFeatureType of the returned SFs.
   private def getReturnSFT(query: Query): SimpleFeatureType =

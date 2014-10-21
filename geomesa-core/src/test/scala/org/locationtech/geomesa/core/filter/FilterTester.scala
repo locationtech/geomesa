@@ -4,8 +4,8 @@ import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
+import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -186,9 +186,7 @@ object FilterTester extends AccumuloDataStoreTest with Logging {
 
     fs
   }
-  val fs1 = getFeatureStore(ds, sft, mediumDataFeatures)
-  val fs2 = getFeatureStore(ds, sft2, mediumDataFeatures2)
-
+  val fs1 = buildFeatureSource()
   val afr = ds.getFeatureReader(sft.getTypeName)
 }
 

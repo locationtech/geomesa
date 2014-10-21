@@ -56,7 +56,7 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
       override def isOffsetSupported = false
       override def isReliableFIDSupported = true
       override def isUseProvidedFIDSupported = true
-      override def supportsSorting(sortAttributes: Array[SortBy]) = false
+      override def supportsSorting(sortAttributes: Array[SortBy]) = true
     }
 
   protected def getFeaturesNoCache(query: Query): SimpleFeatureCollection = {
