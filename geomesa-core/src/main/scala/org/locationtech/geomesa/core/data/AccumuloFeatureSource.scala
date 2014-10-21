@@ -16,7 +16,9 @@
 
 package org.locationtech.geomesa.core.data
 
+import com.google.common.cache.{CacheBuilder, CacheLoader}
 import org.geotools.data._
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.joda.time.DateTime
@@ -25,11 +27,16 @@ import org.locationtech.geomesa.core.process.proximity.ProximityVisitor
 import org.locationtech.geomesa.core.process.query.QueryVisitor
 import org.locationtech.geomesa.core.process.tube.TubeVisitor
 import org.opengis.feature.FeatureVisitor
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.opengis.filter.sort.SortBy
 import org.opengis.util.ProgressListener
 
 trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
+  self =>
+
+  import org.locationtech.geomesa.utils.geotools.Conversions._
+
   val dataStore: AccumuloDataStore
   val featureName: String
 
@@ -41,34 +48,24 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
 
   def getDataStore: AccumuloDataStore = dataStore
 
-  override def getCount(query: Query) = {
-    val reader = getFeatures(query).features
-    var count = 0
-    while (reader.hasNext) {
-      reader.next()
-      count += 1
-    }
-    reader.close()
-    count
-  }
+  override def getCount(query: Query) = getFeaturesNoCache(query).features().size
 
-  override def getQueryCapabilities() = {
-    new QueryCapabilities(){
+  override def getQueryCapabilities =
+    new QueryCapabilities() {
       override def isOffsetSupported = false
-
       override def isReliableFIDSupported = true
-
       override def isUseProvidedFIDSupported = true
+      override def supportsSorting(sortAttributes: Array[SortBy]) = false
     }
-  }
 
-  override def getFeatures(query: Query): SimpleFeatureCollection = {
+  protected def getFeaturesNoCache(query: Query): SimpleFeatureCollection = {
     AccumuloDataStore.setQueryTransforms(query, getSchema)
-    new AccumuloFeatureCollection(this, query)
+    new AccumuloFeatureCollection(self, query)
   }
 
-  override def getFeatures(filter: Filter): SimpleFeatureCollection =
-    getFeatures(new Query(getSchema().getTypeName, filter))
+  override def getFeatures(query: Query): SimpleFeatureCollection = getFeaturesNoCache(query)
+
+  override def getFeatures(filter: Filter): SimpleFeatureCollection = getFeatures(new Query(getSchema().getTypeName, filter))
 }
 
 class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featureName: String)
@@ -96,4 +93,26 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource,
     case _                   => super.accepts(visitor, progress)
   }
 
+  override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = super.reader()
+}
+
+trait CachingFeatureSource extends AccumuloAbstractFeatureSource {
+  self: AccumuloAbstractFeatureSource =>
+
+  private val featureCache =
+    CacheBuilder.newBuilder().build(
+      new CacheLoader[Query, SimpleFeatureCollection] {
+        override def load(query: Query): SimpleFeatureCollection = {
+          val accFC = self.getFeaturesNoCache(query)
+          new ListFeatureCollection(accFC)
+        }
+      })
+
+  override def getFeatures(query: Query): SimpleFeatureCollection = {
+    // geotools bug in Query.hashCode
+    if(query.getStartIndex == null) query.setStartIndex(0)
+    featureCache.get(query)
+  }
+
+  override def getCount(query: Query): Int = getFeatures(query).size()
 }

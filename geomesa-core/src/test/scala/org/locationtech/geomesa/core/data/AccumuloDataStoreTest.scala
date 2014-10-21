@@ -703,6 +703,29 @@ class AccumuloDataStoreTest extends Specification {
       }
     }
 
+    "support caching for improved WFS performance due to count/getFeatures" >> {
+      val table = "testing_caching_featureSource"
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId"        -> "mycloud",
+        "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"              -> "myuser",
+        "password"          -> "mypassword",
+        "tableName"         -> table,
+        "caching"           -> true,
+        "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
+
+      val sftName = "testingCaching"
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,numattr:Integer:index=false,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+
+      val mockInstance = new MockInstance("mycloud")
+      val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
+
+      "typeOf feature source must be ListFeatureCollection" >> {
+        val fc = ds.getFeatureSource(sftName).getFeatures(Filter.INCLUDE)
+        fc must haveClass[ListFeatureCollection]
+      }
+    }
     "hex encode multibyte chars as multiple underscore + hex" in {
       val table = "testing_chinese_features"
       val ds = DataStoreFinder.getDataStore(Map(

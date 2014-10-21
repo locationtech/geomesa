@@ -132,6 +132,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
+        cachingParam.lookUp(params).asInstanceOf[Boolean],
         featureEncoding) with StatWriter
     } else {
       new AccumuloDataStore(connector,
@@ -142,6 +143,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
+        cachingParam.lookUp(params).asInstanceOf[Boolean],
         featureEncoding)
     }
   }
@@ -192,6 +194,7 @@ object AccumuloDataStoreFactory {
     val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false)
     val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false)
     val statsParam          = new Param("collectStats", classOf[String], "Toggle collection of statistics", false)
+    val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false)
     val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
     val featureEncParam     = new Param("featureEncoding", classOf[String], "The feature encoding format (text or avro). Default is Avro", false, "avro")
   }
