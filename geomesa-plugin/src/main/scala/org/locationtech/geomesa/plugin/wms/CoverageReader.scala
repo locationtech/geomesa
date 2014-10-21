@@ -40,7 +40,7 @@ import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, Two
 import org.opengis.geometry.Envelope
 import org.opengis.parameter.{GeneralParameterValue, InvalidParameterValueException}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.Random
 
 
@@ -81,9 +81,11 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
   lazy val metaData: Map[String,String] = {
     val scanner: Scanner = connector.createScanner(table, auths)
     scanner.setRange(new org.apache.accumulo.core.data.Range(metaRow))
-    scanner.iterator()
-    .map(entry => (entry.getKey.getColumnFamily.toString, entry.getKey.getColumnQualifier.toString))
-    .toMap
+    scanner
+      .iterator()
+      .asScala
+      .map(entry => (entry.getKey.getColumnFamily.toString, entry.getKey.getColumnQualifier.toString))
+      .toMap
   }
 
   /**
@@ -107,34 +109,28 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
     val gg = paramsMap(AbstractGridFormat.READ_GRIDGEOMETRY2D.getName.toString).asInstanceOf[Parameter[GridGeometry2D]].getValue
     val env = gg.getEnvelope
 
-    val timeParam = parameters.find(_.getDescriptor.getName.getCode == "TIME")
-      .flatMap(_.asInstanceOf[Parameter[JList[AnyRef]]].getValue match {
-      case null =>  None
-      case c => c.get(0) match {
-        case null                 => None
-        case date: Date           => Some(date)
-        case dateRange: DateRange => Some(dateRange)
-        case x                    =>
-          throw new InvalidParameterValueException(s"Invalid value for parameter TIME: ${x.toString}", "TIME", x)
-      }}
-    )
+    val timeParam: Option[Either[Date, DateRange]] =
+      parameters
+        .find { _.getDescriptor.getName.getCode == AbstractGridFormat.TIME.getName.toString }
+        .flatMap { case p: Parameter[JList[AnyRef]] => p.getValue.asScala.lift(0) }
+        .map {
+          case date: Date => Left(date)
+          case dateRange: DateRange => Right(dateRange)
+          case x => throw new InvalidParameterValueException(s"Invalid value for parameter TIME: ${x.toString}", "TIME", x)
+        }
 
     val tile = getImage(timeParam, env, gg.getGridRange2D.getSpan(0), gg.getGridRange2D.getSpan(1))
     this.coverageFactory.create(coverageName, tile, env)
   }
 
 
-  def getImage(timeParam: Any, env: Envelope, xDim:Int, yDim:Int) = {
+  def getImage(timeParam: Option[Either[Date, DateRange]], env: Envelope, xDim:Int, yDim:Int) = {
     val min = Array(Math.max(env.getMinimum(0), -180) + .00000001, Math.max(env.getMinimum(1), -90) + .00000001)
     val max = Array(Math.min(env.getMaximum(0), 180) - .00000001, Math.min(env.getMaximum(1), 90) - .00000001)
     val bbox = BoundingBox(Bounds(min(0), max(0)), Bounds(min(1), max(1)))
     val ghBbox = TwoGeoHashBoundingBox(bbox,getGeohashPrecision)
-    val xdim = math.max(1, math.min(xDim, math.round(ghBbox.bbox.longitudeSize /
-                                                     ghBbox.ur.bbox.longitudeSize - 1)
-                                          .asInstanceOf[Int]))
-    val ydim = math.max(1, math.min(yDim, math.round(ghBbox.bbox.latitudeSize /
-                                                     ghBbox.ur.bbox.latitudeSize - 1)
-                                          .asInstanceOf[Int]))
+    val xdim = math.max(1, math.min(xDim, math.round(ghBbox.bbox.longitudeSize / ghBbox.ur.bbox.longitudeSize - 1).toInt))
+    val ydim = math.max(1, math.min(yDim, math.round(ghBbox.bbox.latitudeSize / ghBbox.ur.bbox.latitudeSize - 1).toInt))
 
     val bufferList: List[Array[Byte]] =
       getScanBuffers(bbox, timeParam, xdim, ydim).map(_.getValue.get()).toList ++ List(Array.ofDim[Byte](xdim*ydim))
@@ -147,30 +143,26 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
     ImageUtils.drawImage(Array(buffer),xdim, ydim)
   }
 
-  def getScanBuffers(bbox: BoundingBox, timeParam: Any, xDim:Int, yDim:Int) = {
+  def getScanBuffers(bbox: BoundingBox, timeParam: Option[Either[Date, DateRange]], xDim:Int, yDim:Int) = {
     val scanner = connector.createBatchScanner(table, auths, 10)
     scanner.fetchColumn(new Text(columnFamily), new Text(columnQualifier))
-
-    val ranges = BoundingBoxUtil.getRangesByRow(BoundingBox.getGeoHashesFromBoundingBox(bbox))
-
+    val ranges = BoundingBoxUtil.getRangesByRow(BoundingBox.getGeoHashesFromBoundingBox(bbox)).asJavaCollection
     scanner.setRanges(ranges)
+
     timeParam match {
-      case date: Date => {
-        TimestampSetIterator.setupIterator(scanner, date.getTime/1000)
-      }
-      case dateRange: DateRange => {
+      case Some(Left(date)) =>
+        TimestampSetIterator.setupIterator(scanner, date.getTime / 1000)
+      case Some(Right(dateRange)) =>
         val startDate = dateRange.getMinValue
         val endDate = dateRange.getMaxValue
         TimestampRangeIterator.setupIterator(scanner, startDate, endDate)
-      }
-      case _ => {
+      case None =>
         val name = "version-" + Random.alphanumeric.take(5)
         val cfg = new IteratorSetting(2, name, classOf[VersioningIterator])
         VersioningIterator.setMaxVersions(cfg, 1)
         scanner.addScanIterator(cfg)
-      }
-
     }
+
     AggregatingKeyIterator.setupAggregatingKeyIterator(scanner,
                                                        1000,
                                                        classOf[SurfaceAggregatingIterator],
@@ -216,11 +208,18 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
       val scanner: Scanner = connector.createScanner(table, auths)
       scanner.setRange(new org.apache.accumulo.core.data.Range("~METADATA"))
       scanner.fetchColumn(new Text(columnFamily), new Text("count"))
-      val dtListString = scanner.iterator()
-        .map(entry => entry.getKey.getTimestamp * 1000L)
-        .map(millis => new DateTime(millis, DateTimeZone.forID("UTC")))
-        .map(dt => GeoServerDateFormat.print(dt))
-        .toList.distinct.mkString(",")
+
+      val dtListString =
+        scanner
+          .iterator()
+          .asScala
+          .map(entry => entry.getKey.getTimestamp * 1000L)
+          .map(millis => new DateTime(millis, DateTimeZone.forID("UTC")))
+          .map(dt => GeoServerDateFormat.print(dt))
+          .toList
+          .distinct
+          .mkString(",")
+
       // ensure that at least one (albeit, dummy) date is returned
       if (dtListString.trim.length < 1) DefaultDateString else dtListString
     }
