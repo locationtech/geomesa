@@ -32,17 +32,8 @@ class CoverageFormat extends AbstractGridFormat {
   mInfo.put("docURL", "http://www.ccri.com")
   mInfo.put("version", "2.0")
 
-  val spinozaParam = DefaultParameterDescriptor.create("SPINOZA",
-    "A hack to have at least one required parameter",
-    classOf[java.lang.Boolean],
-    java.lang.Boolean.TRUE,
-    true)
-
-  // NB:  We need the "true" for required so that GS actually uses this parameter.
-  val timeParam = DefaultParameterDescriptor.create("TIME", "A list of time objects", classOf[JList[_]], null, true)
-
   val parameterDescriptors =
-    Array[GeneralParameterDescriptor](AbstractGridFormat.READ_GRIDGEOMETRY2D, spinozaParam, timeParam)
+    Array[GeneralParameterDescriptor](AbstractGridFormat.READ_GRIDGEOMETRY2D, AbstractGridFormat.TIME)
 
   val defaultParameterGroup = new DefaultParameterDescriptorGroup(mInfo, parameterDescriptors)
 
