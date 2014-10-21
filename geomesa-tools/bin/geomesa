@@ -20,7 +20,7 @@ GEOMESA_OPTS="-Duser.timezone=UTC"
 GEOMESA_CP=""
 JAVA_LIBRARY_PATH=""
 
-# GEOMESA paths, GEOMESA_LIB shold live inside GEOMESA_HOME, but can be pointed elsewhere
+# GEOMESA paths, GEOMESA_LIB should live inside GEOMESA_HOME, but can be pointed elsewhere
 # this is checked down below
 if [ -n "$GEOMESA_HOME" ]; then
     if [ -z "$GEOMESA_LIB" ]; then
