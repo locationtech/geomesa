@@ -16,6 +16,8 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import java.util.{Collection => JCollection, Map => JMap}
+
 import com.vividsolutions.jts.geom._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
@@ -73,6 +75,9 @@ object Conversions {
   import scala.collection.JavaConversions._
   implicit class RichAttributeDescriptor(val attr: AttributeDescriptor) extends AnyVal {
     def isIndexed = attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]
+    def isCollection = classOf[JCollection[_]].isAssignableFrom(attr.getType.getBinding)
+    def isMap = classOf[JMap[_, _]].isAssignableFrom(attr.getType.getBinding)
+    def isMultiValued = isCollection || isMap
   }
 }
 
@@ -92,4 +97,59 @@ class JodaConverterFactory extends ConverterFactory {
           df.parseDateTime(source.asInstanceOf[String]).toDate.asInstanceOf[T]
       }
     } else null.asInstanceOf[Converter]
+}
+
+class ScalaCollectionsConverterFactory extends ConverterFactory {
+
+  def createConverter(source: Class[_], target: Class[_], hints: Hints): Converter =
+    if (classOf[Seq[_]].isAssignableFrom(source)
+        && classOf[java.util.List[_]].isAssignableFrom(target)) {
+      new ListToListConverter(true)
+    } else if (classOf[java.util.List[_]].isAssignableFrom(source)
+        && classOf[Seq[_]].isAssignableFrom(target)) {
+      new ListToListConverter(false)
+    } else if (classOf[Map[_, _]].isAssignableFrom(source)
+        && classOf[java.util.Map[_, _]].isAssignableFrom(target)) {
+      new MapToMapConverter(true)
+    } else if (classOf[java.util.Map[_, _]].isAssignableFrom(source)
+        && classOf[Map[_, _]].isAssignableFrom(target)) {
+      new MapToMapConverter(false)
+    } else {
+      null
+    }
+}
+
+/**
+ * Convert between scala and java lists
+ *
+ * @param scalaToJava
+ */
+class ListToListConverter(scalaToJava: Boolean) extends Converter {
+
+  import scala.collection.JavaConverters._
+
+  override def convert[T](source: scala.Any, target: Class[T]): T =
+    if (scalaToJava) {
+      source.asInstanceOf[Seq[_]].asJava.asInstanceOf[T]
+    } else {
+      source.asInstanceOf[java.util.List[_]].asScala.asInstanceOf[T]
+    }
+
+}
+
+/**
+ * Convert between scala and java maps
+ *
+ * @param scalaToJava
+ */
+class MapToMapConverter(scalaToJava: Boolean) extends Converter {
+
+  import scala.collection.JavaConverters._
+
+  override def convert[T](source: scala.Any, target: Class[T]): T =
+    if (scalaToJava) {
+      source.asInstanceOf[Map[_, _]].asJava.asInstanceOf[T]
+    } else {
+      source.asInstanceOf[java.util.Map[_, _]].asScala.asInstanceOf[T]
+    }
 }

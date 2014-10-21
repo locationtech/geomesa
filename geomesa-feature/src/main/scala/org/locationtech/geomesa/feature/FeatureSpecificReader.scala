@@ -74,15 +74,17 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   def buildSet(clazz: Class[_], name: String, deserializer: ASFDeserializer): (AvroSimpleFeature, Decoder) => Unit = {
     val decoded = decodeAttributeName(name)
     clazz match {
-      case cls if classOf[java.lang.String].isAssignableFrom(cls)  => deserializer.setString(_, decoded, _)
-      case cls if classOf[java.lang.Integer].isAssignableFrom(cls) => deserializer.setInt(_, decoded, _)
-      case cls if classOf[java.lang.Long].isAssignableFrom(cls)    => deserializer.setLong(_, decoded, _)
-      case cls if classOf[java.lang.Double].isAssignableFrom(cls)  => deserializer.setDouble(_, decoded, _)
-      case cls if classOf[java.lang.Float].isAssignableFrom(cls)   => deserializer.setFloat(_, decoded, _)
-      case cls if classOf[java.lang.Boolean].isAssignableFrom(cls) => deserializer.setBool(_, decoded, _)
-      case cls if classOf[UUID].isAssignableFrom(cls)              => deserializer.setUUID(_, decoded, _)
-      case cls if classOf[Date].isAssignableFrom(cls)              => deserializer.setDate(_, decoded, _)
-      case cls if classOf[Geometry].isAssignableFrom(cls)          => deserializer.setGeometry(_, decoded, _)
+      case cls if classOf[java.lang.String].isAssignableFrom(cls)    => deserializer.setString(_, decoded, _)
+      case cls if classOf[java.lang.Integer].isAssignableFrom(cls)   => deserializer.setInt(_, decoded, _)
+      case cls if classOf[java.lang.Long].isAssignableFrom(cls)      => deserializer.setLong(_, decoded, _)
+      case cls if classOf[java.lang.Double].isAssignableFrom(cls)    => deserializer.setDouble(_, decoded, _)
+      case cls if classOf[java.lang.Float].isAssignableFrom(cls)     => deserializer.setFloat(_, decoded, _)
+      case cls if classOf[java.lang.Boolean].isAssignableFrom(cls)   => deserializer.setBool(_, decoded, _)
+      case cls if classOf[UUID].isAssignableFrom(cls)                => deserializer.setUUID(_, decoded, _)
+      case cls if classOf[Date].isAssignableFrom(cls)                => deserializer.setDate(_, decoded, _)
+      case cls if classOf[Geometry].isAssignableFrom(cls)            => deserializer.setGeometry(_, decoded, _)
+      case cls if classOf[java.util.List[_]].isAssignableFrom(cls)   => deserializer.setList(_, decoded, _)
+      case cls if classOf[java.util.Map[_, _]].isAssignableFrom(cls) => deserializer.setMap(_, decoded, _)
     }
   }
 

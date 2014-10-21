@@ -19,7 +19,7 @@ package org.locationtech.geomesa.core.index
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.tables.AttributeTable
+import org.locationtech.geomesa.core.data.tables.{AttributeIndexRow, AttributeTable}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -27,6 +27,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
+import scala.util.Success
 
 @RunWith(classOf[JUnitRunner])
 class AttributeTableTest extends Specification {
@@ -73,6 +74,12 @@ class AttributeTableTest extends Specification {
         mutations.size mustEqual descriptors.size()
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(true)).foreach
+      }
+
+      "decode attribute index rows" in {
+        val row = AttributeTable.getAttributeIndexRows("prefix", sft.getDescriptor("age"), Some(23)).head
+        val decoded = AttributeTable.decodeAttributeIndexRow("prefix", sft.getDescriptor("age"), row)
+        decoded mustEqual(Success(AttributeIndexRow("age", 23)))
       }
     }
 

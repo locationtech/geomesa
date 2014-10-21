@@ -16,6 +16,8 @@
 
 package org.locationtech.geomesa.core
 
+import java.util.{List => JList}
+
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.geotools.data.Query
@@ -24,9 +26,9 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.DateTime
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.FeatureId
-
 
 /**
  * These are package-wide constants.
@@ -77,7 +79,6 @@ package object index {
   def getTableSharingPrefix(sft: SimpleFeatureType): String =
     if(getTableSharing(sft)) s"${sft.getTypeName}~"
     else                     ""
-
 
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)

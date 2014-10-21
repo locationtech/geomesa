@@ -18,7 +18,9 @@ package org.locationtech.geomesa.core.index
 
 
 import java.util.Map.Entry
+import java.util.{Collection => JCollection, Map => JMap}
 
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.hadoop.io.Text
@@ -34,14 +36,17 @@ import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
+import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.filter.{Filter, PropertyIsEqualTo, PropertyIsLike, _}
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
-trait AttributeIdxStrategy extends Strategy {
+trait AttributeIdxStrategy extends Strategy with Logging {
 
   /**
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
@@ -77,7 +82,7 @@ trait AttributeIdxStrategy extends Strategy {
 
     val opts = oFilter.map(f => DEFAULT_FILTER_PROPERTY_NAME -> ECQL.toCQL(f)).toMap
 
-    iteratorChoice.iterator match {
+    val iter = iteratorChoice.iterator match {
       case IndexOnlyIterator =>
         indexOnlyIterator(attrScanner,
                           featureType,
@@ -99,6 +104,19 @@ trait AttributeIdxStrategy extends Strategy {
                            oNonStFilters,
                            opts,
                            output)
+    }
+
+    // wrap with a de-duplicator if the attribute could have multiple values, and it won't be
+    // de-duped by the query planner
+    if (!IndexSchema.mayContainDuplicates(featureType)
+        && featureType.getDescriptor(attributeName).isMultiValued) {
+      val returnSft = Option(query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
+          .getOrElse(featureType)
+      val decoder = SimpleFeatureDecoder(returnSft, iqp.featureEncoding)
+      val deduper = new DeDuplicatingIterator(iter, (_: Key, value: Value) => decoder.extractFeatureId(value))
+      SelfClosingIterator(deduper)
+    } else {
+      iter
     }
   }
 
@@ -242,21 +260,34 @@ trait AttributeIdxStrategy extends Strategy {
    * @return
    */
   def getEncodedAttrIdxRow(sft: SimpleFeatureType, prop: String, value: Any): String = {
+    val descriptor = sft.getDescriptor(prop)
     // the class type as defined in the SFT
-    val expectedBinding = sft.getDescriptor(prop).getType.getBinding
+    val expectedBinding = descriptor.getType.getBinding
     // the class type of the literal pulled from the query
     val actualBinding = value.getClass
     val typedValue =
-      if (expectedBinding.equals(actualBinding)) {
+      if (expectedBinding == actualBinding) {
         value
+      } else if (descriptor.isCollection) {
+        // we need to encode with the collection type
+        SimpleFeatureTypes.getCollectionType(descriptor) match {
+          case Some(collectionType) if collectionType == actualBinding => Seq(value).asJava
+          case Some(collectionType) if collectionType != actualBinding =>
+            Seq(AttributeTable.convertType(value, actualBinding, collectionType)).asJava
+        }
+      } else if (descriptor.isMap) {
+        // TODO GEOMESA-454 - support querying against map attributes
+        Map.empty.asJava
       } else {
-        // type mismatch, encoding won't work b/c class is stored as part of the row
+        // type mismatch, encoding won't work b/c value is wrong class
         // try to convert to the appropriate class
         AttributeTable.convertType(value, actualBinding, expectedBinding)
       }
 
     val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
-    AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, Some(typedValue))
+    // grab the first encoded row - right now there will only ever be a single item in the seq
+    // eventually we may support searching a whole collection at once
+    AttributeTable.getAttributeIndexRows(rowIdPrefix, descriptor, Some(typedValue)).head
   }
 
   /**
@@ -305,36 +336,38 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
 
   override def execute(acc: AccumuloConnectorCreator,
                        iqp: QueryPlanner,
-                       featureType: SimpleFeatureType,
+                       sft: SimpleFeatureType,
                        query: Query,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val (strippedQuery, filter) = partitionFilter(query, featureType)
+    val (strippedQuery, filter) = partitionFilter(query, sft)
     val (prop, range) =
       filter match {
         case f: PropertyIsEqualTo =>
           val (prop, lit, _) = checkOrder(f.getExpression1, f.getExpression2)
-          (prop, AccRange.exact(getEncodedAttrIdxRow(featureType, prop, lit)))
+          (prop, AccRange.exact(getEncodedAttrIdxRow(sft, prop, lit)))
 
         case f: TEquals =>
           val (prop, lit, _) = checkOrder(f.getExpression1, f.getExpression2)
-          (prop, AccRange.exact(getEncodedAttrIdxRow(featureType, prop, lit)))
+          (prop, AccRange.exact(getEncodedAttrIdxRow(sft, prop, lit)))
 
         case f: PropertyIsNil =>
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-          val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
-          (prop, AccRange.exact(AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, None)))
+          val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+          val exact = AttributeTable.getAttributeIndexRows(rowIdPrefix, sft.getDescriptor(prop), None).head
+          (prop, AccRange.exact(exact))
 
         case f: PropertyIsNull =>
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-          val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
-          (prop, AccRange.exact(AttributeTable.getAttributeIndexRow(rowIdPrefix, prop, None)))
+          val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+          val exact = AttributeTable.getAttributeIndexRows(rowIdPrefix, sft.getDescriptor(prop), None).head
+          (prop, AccRange.exact(exact))
 
         case _ =>
           val msg = s"Unhandled filter type in equals strategy: ${filter.getClass.getName}"
           throw new RuntimeException(msg)
       }
 
-    attrIdxQuery(acc, strippedQuery, iqp, featureType, prop, range, output)
+    attrIdxQuery(acc, strippedQuery, iqp, sft, prop, range, output)
   }
 }
 
@@ -415,31 +448,33 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
     attrIdxQuery(acc, strippedQuery, iqp, featureType, prop, range, output)
   }
 
-  private def greaterThanRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
-    val start = new Text(getEncodedAttrIdxRow(featureType, prop, lit))
-    val end = AccRange.followingPrefix(new Text(AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)))
+  private def greaterThanRange(sft: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val rowIdPrefix = getTableSharingPrefix(sft)
+    val start = new Text(getEncodedAttrIdxRow(sft, prop, lit))
+    val endPrefix = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop))
+    val end = AccRange.followingPrefix(new Text(endPrefix))
     new AccRange(start, false, end, false)
   }
 
-  private def greaterThanOrEqualRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
-    val start = new Text(getEncodedAttrIdxRow(featureType, prop, lit))
-    val end = AccRange.followingPrefix(new Text(AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)))
+  private def greaterThanOrEqualRange(sft: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val rowIdPrefix = getTableSharingPrefix(sft)
+    val start = new Text(getEncodedAttrIdxRow(sft, prop, lit))
+    val endPrefix = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop))
+    val end = AccRange.followingPrefix(new Text(endPrefix))
     new AccRange(start, true, end, false)
   }
 
-  private def lessThanRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
-    val start = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)
-    val end = getEncodedAttrIdxRow(featureType, prop, lit)
+  private def lessThanRange(sft: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val rowIdPrefix = getTableSharingPrefix(sft)
+    val start = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop))
+    val end = getEncodedAttrIdxRow(sft, prop, lit)
     new AccRange(start, false, end, false)
   }
 
-  private def lessThanOrEqualRange(featureType: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
-    val start = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, prop)
-    val end = getEncodedAttrIdxRow(featureType, prop, lit)
+  private def lessThanOrEqualRange(sft: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
+    val rowIdPrefix = getTableSharingPrefix(sft)
+    val start = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop))
+    val end = getEncodedAttrIdxRow(sft, prop, lit)
     new AccRange(start, false, end, true)
   }
 }

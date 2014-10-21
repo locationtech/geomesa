@@ -31,7 +31,9 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.{SimpleFeatureEncoder, AccumuloDataStore}
+import org.locationtech.geomesa.core.data.tables.AttributeTable
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, SimpleFeatureEncoder}
+import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -46,8 +48,9 @@ class AttributeIndexStrategyTest extends Specification {
 
   val sftName = "AttributeIndexStrategyTest"
   val spec = "name:String:index=true,age:Integer:index=true,count:Long:index=true," +
-               "weight:Double:index=true,height:Float:index=true,admin:Boolean:index=true," +
-               "geom:Geometry:srid=4326,dtg:Date:index=true"
+      "weight:Double:index=true,height:Float:index=true,admin:Boolean:index=true," +
+      "geom:Geometry:srid=4326,dtg:Date:index=true," +
+      "fingers:List[String]:index=true,toes:List[Double]:index=true"
   val sft = SimpleFeatureTypes.createType(sftName, spec)
   sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
@@ -72,24 +75,25 @@ class AttributeIndexStrategyTest extends Specification {
                             height: Float,
                             admin: Boolean,
                             geom: Geometry,
-                            dtg: Date)
+                            dtg: Date,
+                            fingers: List[String],
+                            toes: List[Double])
 
   val geom = WKTUtils.read("POINT(45.0 49.0)")
 
-  Seq(TestAttributes("alice",   20,   1, 5.0, 10.0F, true,  geom, dtFormat.parse("20120101 12:00:00")),
-      TestAttributes("bill",    21,   2, 6.0, 11.0F, false, geom, dtFormat.parse("20130101 12:00:00")),
-      TestAttributes("bob",     30,   3, 6.0, 12.0F, false, geom, dtFormat.parse("20140101 12:00:00")),
-      TestAttributes("charles", null, 4, 7.0, 12.0F, false, geom, dtFormat.parse("20140101 12:30:00")))
+  Seq(TestAttributes("alice",   20,   1, 5.0, 10.0F, true,  geom, dtFormat.parse("20120101 12:00:00"),
+        List("index"), List(1.0)),
+      TestAttributes("bill",    21,   2, 6.0, 11.0F, false, geom, dtFormat.parse("20130101 12:00:00"),
+        List("ring", "middle"), List(1.0, 2.0)),
+      TestAttributes("bob",     30,   3, 6.0, 12.0F, false, geom, dtFormat.parse("20140101 12:00:00"),
+        List("index", "thumb", "pinkie"), List(3.0, 2.0, 5.0)),
+      TestAttributes("charles", null, 4, 7.0, 12.0F, false, geom, dtFormat.parse("20140101 12:30:00"),
+        List("thumb", "ring", "index", "pinkie", "middle"), List()))
   .foreach { entry =>
     val feature = builder.buildFeature(entry.name)
     feature.setDefaultGeometry(entry.geom)
-    feature.setAttribute("name", entry.name)
-    feature.setAttribute("age", entry.age)
-    feature.setAttribute("count", entry.count)
-    feature.setAttribute("weight", entry.weight)
-    feature.setAttribute("height", entry.height)
-    feature.setAttribute("admin", entry.admin)
-    feature.setAttribute("dtg", entry.dtg)
+    feature.setAttributes(entry.productIterator.toArray.asInstanceOf[Array[AnyRef]])
+
     // make sure we ask the system to re-use the provided feature-ID
     feature.getUserData().asScala(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
     featureCollection.add(feature)
@@ -106,15 +110,19 @@ class AttributeIndexStrategyTest extends Specification {
   def execute(strategy: AttributeIdxStrategy, filter: String): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))
     val results = strategy.execute(ds, queryPlanner, sft, query, ExplainNull)
-    queryPlanner.adaptIterator(results, query).map(_.getAttribute("name").toString).toList
+    // adapt iterator no longer de-dupes, add dedupe wrapper
+    queryPlanner.adaptIterator(results, query).map(_.getAttribute("name").toString).toSet.toList
   }
 
   "AttributeIndexStrategy" should {
     "print values" in {
       skipped("used for debugging")
       val scanner = connector.createScanner(ds.getAttrIdxTableName(sftName), new Authorizations())
-      scanner.setRange(AccRange.prefix("dtg"))
+      val prefix = AttributeTable.getAttributeIndexRowPrefix(index.getTableSharingPrefix(sft),
+        sft.getDescriptor("fingers"))
+      scanner.setRange(AccRange.prefix(prefix))
       scanner.asScala.foreach(println)
+      println
       success
     }
 
@@ -249,6 +257,18 @@ class AttributeIndexStrategyTest extends Specification {
       val features = execute(strategy, "age is NULL")
       features must have size(1)
       features must contain("charles")
+    }
+
+    "correctly query on lists of strings" in {
+      val features = execute(strategy, "fingers = 'index'")
+      features must have size(3)
+      features must contain("alice", "bob", "charles")
+    }
+
+    "correctly query on lists of doubles" in {
+      val features = execute(strategy, "toes = 2.0")
+      features must have size(2)
+      features must contain("bill", "bob")
     }
   }
 
@@ -523,6 +543,62 @@ class AttributeIndexStrategyTest extends Specification {
       }
       "after" >> {
         execute(strategy, "2013-01-01T12:30:00.000Z BEFORE dtg") should throwA[CQLException]
+      }
+    }
+
+    "correctly query on lists of strings" in {
+      "lt" >> {
+        val features = execute(strategy, "fingers<'middle'")
+        features must have size(3)
+        features must contain("alice", "bob", "charles")
+      }
+      "gt" >> {
+        val features = execute(strategy, "fingers>'middle'")
+        features must have size(3)
+        features must contain("bill", "bob", "charles")
+      }
+      "lte" >> {
+        val features = execute(strategy, "fingers<='middle'")
+        features must have size(4)
+        features must contain("alice", "bill", "bob", "charles")
+      }
+      "gte" >> {
+        val features = execute(strategy, "fingers>='middle'")
+        features must have size(3)
+        features must contain("bill", "bob", "charles")
+      }
+      "between (inclusive)" >> {
+        val features = execute(strategy, "fingers BETWEEN 'pinkie' AND 'thumb'")
+        features must have size(3)
+        features must contain("bill", "bob", "charles")
+      }
+    }
+
+    "correctly query on lists of doubles" in {
+      "lt" >> {
+        val features = execute(strategy, "toes<2.0")
+        features must have size(2)
+        features must contain("alice", "bill")
+      }
+      "gt" >> {
+        val features = execute(strategy, "toes>2.0")
+        features must have size(1)
+        features must contain("bob")
+      }
+      "lte" >> {
+        val features = execute(strategy, "toes<=2.0")
+        features must have size(3)
+        features must contain("alice", "bill", "bob")
+      }
+      "gte" >> {
+        val features = execute(strategy, "toes>=2.0")
+        features must have size(2)
+        features must contain("bill", "bob")
+      }
+      "between (inclusive)" >> {
+        val features = execute(strategy, "toes BETWEEN 1.5 AND 2.5")
+        features must have size(2)
+        features must contain("bill", "bob")
       }
     }
   }

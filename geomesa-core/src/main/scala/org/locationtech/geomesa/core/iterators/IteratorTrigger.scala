@@ -1,5 +1,7 @@
 package org.locationtech.geomesa.core.iterators
 
+import java.util.{Collection => JCollection}
+
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.process.vector.TransformProcess
@@ -7,6 +9,7 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -117,7 +120,10 @@ object IteratorTrigger {
     val theDefinitions = TransformProcess.toDefinition(transformDefs).asScala
     val attributeNames = schema.indexAttributeNames ++ indexedAttribute
     // check that, for each definition, the expression is simply the name of an index attribute in the schema
-    theDefinitions.forall { aDef => attributeNames.contains(aDef.expression.toString) }
+    // multi-valued attributes only get partially encoded in the index
+    theDefinitions.map(_.expression.toString).forall { aDef =>
+      attributeNames.contains(aDef) && !schema.getDescriptor(aDef).isMultiValued
+    }
   }
 
   /**
@@ -149,3 +155,4 @@ object IteratorTrigger {
     }
   }
 }
+
