@@ -98,7 +98,7 @@ case class QueryPlanner(schema: String,
     if(isDensity) {
       val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
       val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
-      val mixedQuery = DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
+      val mixedQuery = DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
       if (duplicatableData) {
         deduplicate(Seq(mixedQuery))
       } else {
