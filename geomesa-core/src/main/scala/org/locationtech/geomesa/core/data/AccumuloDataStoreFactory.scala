@@ -121,7 +121,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         .map(FeatureEncoding.withName)
         .getOrElse(FeatureEncoding.AVRO)
 
-    val collectStats = !useMock && Try(statsParam.lookUp(params).asInstanceOf[String].toBoolean).getOrElse(true)
+    val collectStats = !useMock && Try(statsParam.lookUp(params).asInstanceOf[java.lang.Boolean] == true).getOrElse(true)
 
     if (collectStats) {
       new AccumuloDataStore(connector,
@@ -132,6 +132,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
+        cachingParam.lookUp(params).asInstanceOf[Boolean],
         featureEncoding) with StatWriter
     } else {
       new AccumuloDataStore(connector,
@@ -142,6 +143,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
+        cachingParam.lookUp(params).asInstanceOf[Boolean],
         featureEncoding)
     }
   }
@@ -162,9 +164,19 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
   override def getDescription = "Feature Data store for accumulo"
 
   override def getParametersInfo =
-    Array(instanceIdParam, zookeepersParam, userParam, passwordParam,
-        authsParam, visibilityParam, tableNameParam)
+    Array(
+      instanceIdParam,
+      zookeepersParam,
+      userParam,
+      passwordParam,
+      authsParam,
+      visibilityParam,
+      tableNameParam,
+      statsParam,
+      cachingParam
+    )
 
+  val pi = getParametersInfo
   def canProcess(params: JMap[String,Serializable]) =
     params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
 
@@ -191,7 +203,8 @@ object AccumuloDataStoreFactory {
     val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false)
     val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false)
     val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false)
-    val statsParam          = new Param("collectStats", classOf[String], "Toggle collection of statistics", false)
+    val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false, java.lang.Boolean.TRUE)
+    val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false, java.lang.Boolean.TRUE)
     val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
     val featureEncParam     = new Param("featureEncoding", classOf[String], "The feature encoding format (text or avro). Default is Avro", false, "avro")
   }
@@ -213,7 +226,7 @@ object AccumuloDataStoreFactory {
     job
   }
 
-  def getMRAccumuloConnectionParams(conf: Configuration): JMap[String,AnyRef] =
+  def getMRAccumuloConnectionParams(conf: Configuration): JMap[String, AnyRef] =
     Map(zookeepersParam.key   -> conf.get(ZOOKEEPERS),
       instanceIdParam.key     -> conf.get(INSTANCE_ID),
       userParam.key           -> conf.get(ACCUMULO_USER),

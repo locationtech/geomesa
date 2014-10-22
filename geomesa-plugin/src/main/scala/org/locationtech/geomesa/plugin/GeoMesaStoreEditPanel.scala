@@ -1,11 +1,11 @@
 package org.locationtech.geomesa.plugin
 
 import org.apache.wicket.behavior.SimpleAttributeModifier
-import org.apache.wicket.markup.html.form.{Form, FormComponent}
+import org.apache.wicket.markup.html.form.{CheckBox, Form, FormComponent}
 import org.apache.wicket.markup.html.panel.Panel
 import org.apache.wicket.model.{IModel, ResourceModel}
 import org.geoserver.web.data.store.StoreEditPanel
-import org.geoserver.web.data.store.panel.{ParamPanel, PasswordParamPanel, TextParamPanel}
+import org.geoserver.web.data.store.panel.{CheckBoxParamPanel, ParamPanel, PasswordParamPanel, TextParamPanel}
 import org.geoserver.web.util.MapModel
 import org.geotools.data.DataAccessFactory.Param
 
