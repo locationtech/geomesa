@@ -40,7 +40,7 @@ import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, Two
 import org.opengis.geometry.Envelope
 import org.opengis.parameter.{GeneralParameterValue, InvalidParameterValueException}
 
-import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.util.Random
 
 
@@ -83,7 +83,6 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
     scanner.setRange(new org.apache.accumulo.core.data.Range(metaRow))
     scanner
       .iterator()
-      .asScala
       .map(entry => (entry.getKey.getColumnFamily.toString, entry.getKey.getColumnQualifier.toString))
       .toMap
   }
@@ -112,7 +111,7 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
     val timeParam: Option[Either[Date, DateRange]] =
       parameters
         .find { _.getDescriptor.getName.getCode == AbstractGridFormat.TIME.getName.toString }
-        .flatMap { case p: Parameter[JList[AnyRef]] => p.getValue.asScala.lift(0) }
+        .flatMap { case p: Parameter[JList[AnyRef]] => p.getValue.lift(0) }
         .map {
           case date: Date => Left(date)
           case dateRange: DateRange => Right(dateRange)
@@ -146,7 +145,7 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
   def getScanBuffers(bbox: BoundingBox, timeParam: Option[Either[Date, DateRange]], xDim:Int, yDim:Int) = {
     val scanner = connector.createBatchScanner(table, auths, 10)
     scanner.fetchColumn(new Text(columnFamily), new Text(columnQualifier))
-    val ranges = BoundingBoxUtil.getRangesByRow(BoundingBox.getGeoHashesFromBoundingBox(bbox)).asJavaCollection
+    val ranges = BoundingBoxUtil.getRangesByRow(BoundingBox.getGeoHashesFromBoundingBox(bbox))
     scanner.setRanges(ranges)
 
     timeParam match {
@@ -212,7 +211,6 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
       val dtListString =
         scanner
           .iterator()
-          .asScala
           .map(entry => entry.getKey.getTimestamp * 1000L)
           .map(millis => new DateTime(millis, DateTimeZone.forID("UTC")))
           .map(dt => GeoServerDateFormat.print(dt))
