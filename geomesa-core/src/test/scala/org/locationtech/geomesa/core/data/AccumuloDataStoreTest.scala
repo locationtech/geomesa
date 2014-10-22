@@ -290,7 +290,7 @@ class AccumuloDataStoreTest extends Specification {
         val f = features.next()
 
         "with matching schema" >> {
-          "name:String:index=false,*geom:Point:srid=4326:index=false,derived:String:index=false" mustEqual
+          "name:String:index=false,*geom:Point:srid=4326:index=true,derived:String:index=false" mustEqual
             SimpleFeatureTypes.encodeType(results.getSchema)
         }
 
@@ -388,7 +388,7 @@ class AccumuloDataStoreTest extends Specification {
         val f = features.next()
 
         "with matching schemas" >> {
-          "name:String:index=false,*geom:Point:srid=4326:index=false,derived:String:index=false" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
+          "name:String:index=false,*geom:Point:srid=4326:index=true,derived:String:index=false" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
         }
 
         "and correct results" >> {
@@ -426,7 +426,7 @@ class AccumuloDataStoreTest extends Specification {
         val f = features.next()
 
         "with matching schemas" >> {
-          "name:String:index=false,*geom:Point:srid=4326:index=false" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
+          "name:String:index=false,*geom:Point:srid=4326:index=true" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
         }
 
         "and correct results" >> {
@@ -1021,8 +1021,8 @@ class AccumuloDataStoreTest extends Specification {
     }
 
     "update metadata for indexed attributes" in {
-      val originalSchema = "name:String:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=false"
-      val updatedSchema = "name:String:index=true,dtg:Date:index=false,*geom:Point:srid=4326:index=false"
+      val originalSchema = "name:String:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true"
+      val updatedSchema = "name:String:index=true,dtg:Date:index=false,*geom:Point:srid=4326:index=true"
       val ds = createStore
       val sft = SimpleFeatureTypes.createType("test", originalSchema)
       ds.createSchema(sft)
@@ -1032,17 +1032,10 @@ class AccumuloDataStoreTest extends Specification {
     }
 
     "prevent changing schema types" in {
-      val originalSchema = "name:String:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=false"
+      val originalSchema = "name:String:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true"
       val ds = createStore
       val sft = SimpleFeatureTypes.createType("test", originalSchema)
       ds.createSchema(sft)
-
-      "prevent changing indexing of geometry attributes" in {
-        val updatedSchema = "name:String,dtg:Date,*geom:Point:srid=4326:index=true"
-        ds.updateIndexedAttributes("test", updatedSchema) should throwA[IllegalArgumentException]
-        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema("test"))
-        retrievedSchema mustEqual originalSchema
-      }
 
       "prevent changing default geometry" in {
         val updatedSchema = "name:String,dtg:Date,geom:Point:srid=4326"

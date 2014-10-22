@@ -6,7 +6,6 @@ import java.util.{Date, UUID}
 import com.vividsolutions.jts.geom._
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -95,8 +94,8 @@ object SimpleFeatureTypes {
       s.split("=") match { case Array(k, v) => k -> v }
 
     def buildGeomSpec(name: String, clazz: Class[_], opts: Map[String, String]) = {
-      val indexed = Try(opts("index").toBoolean).getOrElse(false)
       val defaultGeom = name.startsWith("*")
+      val indexed = defaultGeom || Try(opts("index").toBoolean).getOrElse(false)
       val attrName = if(defaultGeom) name.drop(1) else name
       val srid = Try(opts("srid").toInt).getOrElse(4326)
       GeomAttributeSpec(attrName, clazz, indexed, srid, default = defaultGeom)

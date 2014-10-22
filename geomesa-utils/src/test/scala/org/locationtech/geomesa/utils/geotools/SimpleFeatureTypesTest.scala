@@ -55,6 +55,12 @@ class SimpleFeatureTypesTest extends Specification {
       val indexed = SimpleFeatureTypes.getIndexedAttributes(sft)
       indexed.map(_.getLocalName) must containTheSameElementsAs(List("dtg", "geom"))
     }
+
+    "set index=true for a default geometry" >> {
+      val sft = SimpleFeatureTypes.createType("testing", "id:Integer:index=false,dtg:Date:index=true,*geom:Point:srid=4326:index=false")
+      val indexed = SimpleFeatureTypes.getIndexedAttributes(sft).map(_.getLocalName)
+      indexed must contain("geom")
+    }
   }
 
 
