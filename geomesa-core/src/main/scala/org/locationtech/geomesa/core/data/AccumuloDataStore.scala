@@ -70,6 +70,7 @@ class AccumuloDataStore(val connector: Connector,
                         val queryThreadsConfig: Option[Int] = None,
                         val recordThreadsConfig: Option[Int] = None,
                         val writeThreadsConfig: Option[Int] = None,
+                        val cachingConfig: Boolean = false,
                         val featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
     extends AbstractDataStore(true) with AccumuloConnectorCreator with Logging {
 
@@ -603,7 +604,8 @@ class AccumuloDataStore(val connector: Connector,
   // a featureStore
   override def getFeatureSource(featureName: String): SimpleFeatureSource = {
     validateMetadata(featureName)
-    new AccumuloFeatureStore(this, featureName)
+    if(!cachingConfig) new AccumuloFeatureStore(this, featureName)
+    else new AccumuloFeatureStore(this, featureName) with CachingFeatureSource
   }
 
   /**
