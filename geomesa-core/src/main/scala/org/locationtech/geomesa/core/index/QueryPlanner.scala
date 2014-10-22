@@ -200,8 +200,15 @@ case class QueryPlanner(schema: String,
         if(sb.getSortOrder == SortOrder.DESCENDING) ord.reverse
         else ord
     }
-    val sorted = features.toList.sortWith { (l, r) => sortOrdering.map(_.compare(l, r)).find(_ != 0).getOrElse(0) < 0 }
-    CloseableIterator(sorted.iterator)
+    val comp: (SimpleFeature, SimpleFeature) => Boolean =
+      if(sortOrdering.length == 1) {
+        // optimized case for one ordering
+        val ret = sortOrdering.head
+        (l, r) => ret.compare(l, r) < 0
+      }  else {
+        (l, r) => sortOrdering.map(_.compare(l, r)).find(_ != 0).getOrElse(0) < 0
+      }
+    CloseableIterator(features.toList.sortWith(comp).iterator)
   }
 
   def attributeToComparable[T <: Comparable[T]](prop: String)(implicit ct: ClassTag[T]): Ordering[SimpleFeature] =
