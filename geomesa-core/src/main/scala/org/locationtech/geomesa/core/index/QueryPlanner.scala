@@ -88,19 +88,37 @@ case class QueryPlanner(schema: String,
 
     val ff = CommonFactoryFinder.getFilterFactory2
     val isDensity = query.getHints.containsKey(BBOX_KEY)
-    val queries: Iterator[Query] =
-      if(isDensity) {
-        val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
-        val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
-        Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
-      } else {
-        splitQueryOnOrs(query, output)
-      }
+    val duplicatableData = IndexSchema.mayContainDuplicates(featureType)
 
-    queries.ciFlatMap(configureScanners(acc, sft, _, isDensity, output))
+    def flatten(queries: Seq[Query]): CloseableIterator[Entry[Key, Value]] =
+      queries.toIterator.ciFlatMap(configureScanners(acc, sft, _, isDensity, output))
+    // in some cases, where duplicates may appear in overlapping queries or the data itself, remove them
+    def deduplicate(queries: Seq[Query]): CloseableIterator[Entry[Key, Value]] = {
+      val flatQueries = flatten(queries)
+      val decoder = SimpleFeatureDecoder(getReturnSFT(query), featureEncoding)
+      new DeDuplicatingIterator(flatQueries, (key: Key, value: Value) => decoder.extractFeatureId(value))
+    }
+
+    if(isDensity) {
+      val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
+      val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
+      val mixedQuery = DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
+      if (duplicatableData) {
+        deduplicate(Seq(mixedQuery))
+      } else {
+        flatten(Seq(mixedQuery))
+      }
+    } else {
+      val rawQueries = splitQueryOnOrs(query, output)
+      if (rawQueries.length > 1 || duplicatableData) {
+        deduplicate(rawQueries)
+      } else {
+        flatten(rawQueries)
+      }
+    }
   }
   
-  def splitQueryOnOrs(query: Query, output: ExplainerOutputType): Iterator[Query] = {
+  def splitQueryOnOrs(query: Query, output: ExplainerOutputType): Seq[Query] = {
     val originalFilter = query.getFilter
     output(s"Original filter: $originalFilter")
 
@@ -113,11 +131,11 @@ case class QueryPlanner(schema: String,
     // Let's just check quickly to see if we can eliminate any duplicates.
     val filters = splitFilters.distinct
 
-    filters.map { filter =>
+    filters.map(filter => {
       val q = new Query(query)
       q.setFilter(filter)
       q
-    }.toIterator
+    })
   }
 
   /**
@@ -155,20 +173,14 @@ case class QueryPlanner(schema: String,
     val returnSFT = getReturnSFT(query)
     val decoder = SimpleFeatureDecoder(returnSFT, featureEncoding)
 
-    // the final iterator may need duplicates removed
-    val uniqKVIter: CloseableIterator[Entry[Key,Value]] =
-      if (IndexSchema.mayContainDuplicates(featureType))
-        new DeDuplicatingIterator(accumuloIterator, (key: Key, value: Value) => decoder.extractFeatureId(value))
-      else accumuloIterator
-
     // Decode according to the SFT return type.
     // if this is a density query, expand the map
     if (query.getHints.containsKey(DENSITY_KEY)) {
-      uniqKVIter.flatMap { kv: Entry[Key, Value] =>
+      accumuloIterator.flatMap { kv: Entry[Key, Value] =>
         DensityIterator.expandFeature(decoder.decode(kv.getValue))
       }
     } else {
-      uniqKVIter.map { kv => decoder.decode(kv.getValue) }
+      accumuloIterator.map { kv => decoder.decode(kv.getValue) }
     }
   }
 
