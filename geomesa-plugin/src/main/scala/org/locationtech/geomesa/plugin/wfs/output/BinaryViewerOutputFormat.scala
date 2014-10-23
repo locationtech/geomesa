@@ -37,7 +37,6 @@ import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIt
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConverters._
-import scala.util.Try
 
 /**
  * Output format for wfs requests that encodes features into a binary format.
@@ -133,17 +132,16 @@ class BinaryViewerOutputFormat(gs: GeoServer)
    * @return
    */
   private def getDateField(getFeature: Operation): Option[String] =
-    getTypeName(getFeature).map(_.getLocalPart).flatMap { name =>
-      val sft = for {
-        layer     <- Try(gs.getCatalog.getLayerByName(name))
-        storeId   <- Try(layer.getResource.getStore.getId)
-        dataStore <- Try(gs.getCatalog.getDataStore(storeId).getDataStore(null).asInstanceOf[DataStore])
-        schema    <- Try(dataStore.getSchema(name))
-      } yield {
-        schema
-      }
-      sft.toOption.flatMap(getDtgFieldName)
-    }
+    for {
+      tn        <- getTypeName(getFeature)
+      name      =  tn.getLocalPart
+      layer     <- Option(gs.getCatalog.getLayerByName(name))
+      storeId   =  layer.getResource.getStore.getId
+      dataStore =  gs.getCatalog.getDataStore(storeId).getDataStore(null).asInstanceOf[DataStore]
+      schema    <- Option(dataStore.getSchema(name))
+      dtgField  <- getDtgFieldName(schema)
+    } yield dtgField
+
 }
 
 object BinaryViewerOutputFormat extends Logging {
