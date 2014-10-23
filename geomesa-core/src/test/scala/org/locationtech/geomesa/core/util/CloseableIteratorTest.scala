@@ -40,5 +40,13 @@ class CloseableIteratorTest extends Specification {
         ei.close() should not(throwA[NullPointerException])
       }
     }
+
+    "not smash the stack in ciFlatMap" >> {
+      val f: Int => CloseableIterator[Int] = n =>
+        if (n < 50000) CloseableIterator.empty
+        else CloseableIterator(List(n).iterator)
+      val ci = CloseableIterator((1 to 50000).iterator)
+      ci.ciFlatMap(f).length should be equalTo 1
+    }
   }
 }
