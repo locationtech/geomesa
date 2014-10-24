@@ -115,3 +115,27 @@ case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends T
   def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = lf.map { _.formatString(gh, dt, sf) }.mkString(sep)
 }
 
+/**
+ * Responsible for representing the resolution using a unit-less number in scientific notation
+ * should probably ensure the mantissa has only on digit to the left of the decimal point.
+ *
+ * should it be taking a double or a string?
+ * @param number
+ */
+case class ScientificNotationTextFormatter(number: Double) extends TextFormatter {
+  val numBits: Int = number.toString.length
+  val fmt = "%e".format(_: Double)
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = fmt(number)
+}
+
+
+/**
+ * Responsible for represnting the Band Number of a given raster
+ * have the bandNumber correspond to a description in the meta-data?
+ * like band 1 is RGB or is Elevation or is R or B or G?
+ * @param bandName
+ */
+case class RasterBandTextFormatter(bandName: String) extends TextFormatter {
+  val numBits: Int = bandName.length
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = bandName
+}
