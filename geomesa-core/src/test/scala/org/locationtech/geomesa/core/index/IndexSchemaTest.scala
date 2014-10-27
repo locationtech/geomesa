@@ -93,8 +93,7 @@ class IndexSchemaTest extends Specification {
       matched must beTrue
     }
 
-
-    //    "parse a valid string containing Band CF" in {
+//    "parse a valid string containing Band CF" in {
 //      val s = "%~#s%0,1#gh%99#r::%~#s%1,5#gh%RGB#b::%~#s%5,2#gh%15#id"
 //      val matched = IndexSchema.buildColumnFamilyPlanner(s) match {
 //        case ColumnFamilyPlanner(List(GeoHashKeyPlanner(1,5), BandPlanner("RGB")),"~") => true
