@@ -140,9 +140,9 @@ object AttributeTable extends GeoMesaTable with Logging {
     for {
       suffix <- Try(row.substring(rowIdPrefix.length))
       separator = suffix.indexOf(NULLBYTE)
-      name <- Try(suffix.substring(0, separator))
-      encodedValue <- Try(suffix.substring(separator + 1))
-      decodedValue <- Try(decode(encodedValue, descriptor))
+      name = suffix.substring(0, separator)
+      encodedValue = suffix.substring(separator + 1)
+      decodedValue = decode(encodedValue, descriptor)
     } yield {
       AttributeIndexRow(name, decodedValue)
     }
