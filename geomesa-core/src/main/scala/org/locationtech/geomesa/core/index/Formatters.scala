@@ -130,7 +130,7 @@ case class ScientificNotationTextFormatter(number: Double) extends TextFormatter
 
 
 /**
- * Responsible for represnting the Band Number of a given raster
+ * Responsible for representing the Band Number of a given raster
  * have the bandNumber correspond to a description in the meta-data?
  * like band 1 is RGB or is Elevation or is R or B or G?
  * @param bandName
