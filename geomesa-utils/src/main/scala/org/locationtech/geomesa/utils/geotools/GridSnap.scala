@@ -36,18 +36,22 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
    * @param i the index of a grid column
    * @return the X ordinate of the column
    */
-  def x(i: Int) =
-    if (i >= xSize - 1) env.getMaxX
-    else env.getMinX + i * dx
+  def x(i: Int) = i match {
+    case v if v >= xSize - 1 => env.getMaxX
+    case v if v < 0 => env.getMinX
+    case v => env.getMinX + i * dx
+  }
 
   /**
    * Computes the Y ordinate of the i'th grid row.
    * @param j the index of a grid row
    * @return the Y ordinate of the row
    */
-  def y(j: Int) =
-    if (j >= ySize - 1) env.getMaxY()
-    else env.getMinY + j * dy
+  def y(j: Int) = j match {
+    case v if v >= ySize - 1 => env.getMaxY
+    case v if v < 0 => env.getMinY
+    case v => env.getMinY + j * dy
+  }
 
   /**
    * Computes the column index of an X ordinate.

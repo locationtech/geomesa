@@ -76,6 +76,17 @@ class GridSnapTest extends Specification with Logging {
       samePointLength should be equalTo 1
     }
 
+    "check corner cases where GridSnap is given below minimum coordinates of the grid" in {
+      val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
+      val gridSnap = new GridSnap(bbox, 100, 100)
+
+      val iReturn = gridSnap.i(bbox.getMinX - 1)
+      val jReturn = gridSnap.j(bbox.getMinY - 1)
+      iReturn should be equalTo -1
+      jReturn should be equalTo -1
+      gridSnap.x(iReturn) should be equalTo bbox.getMinX
+      gridSnap.y(jReturn) should be equalTo bbox.getMinY
+    }
   }
 
 }
