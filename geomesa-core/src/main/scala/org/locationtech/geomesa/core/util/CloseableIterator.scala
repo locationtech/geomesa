@@ -10,6 +10,7 @@ import org.opengis.feature.Feature
 import org.opengis.feature.`type`.FeatureType
 import org.opengis.feature.simple.SimpleFeature
 
+import scala.annotation.tailrec
 import scala.collection.Iterator
 import scala.collection.JavaConversions._
 
@@ -19,15 +20,11 @@ object CloseableIterator {
   // In order to use 'map' and 'flatMap', we provide an implicit promoting wrapper.
   implicit def iteratorToCloseable[A](iter: Iterator[A]) = apply(iter)
 
-  val empty: CloseableIterator[Nothing] = apply(Iterator.empty)
-
-  val noop: () => Unit = () => {}
-
   // This apply method provides us with a simple interface for creating new CloseableIterators.
-  def apply[A](iter: Iterator[A], closeIter: () => Unit = noop) = new CloseableIterator[A] {
+  def apply[A](iter: Iterator[A], closeIter: => Unit = {}) = new CloseableIterator[A] {
     def hasNext = iter.hasNext
     def next()  = iter.next()
-    def close() = closeIter()
+    def close() = closeIter
   }
 
   // This apply method provides us with a simple interface for creating new CloseableIterators.
@@ -42,6 +39,8 @@ object CloseableIterator {
     def next()  = iter.next()
     def close() = iter.close()
   }
+
+  val empty: CloseableIterator[Nothing] = apply(Iterator.empty)
 }
 
 import org.locationtech.geomesa.core.util.CloseableIterator.empty
@@ -51,7 +50,7 @@ trait CloseableIterator[+A] extends Iterator[A] {
 
   def close(): Unit
 
-  override def map[B](f: A => B): CloseableIterator[B] = CloseableIterator(super.map(f), self.close)
+  override def map[B](f: A => B): CloseableIterator[B] = CloseableIterator(super.map(f), self.close())
 
   // NB: Since we wish to be able to close the iterator currently in use, we can't call out to super.flatMap.
   def ciFlatMap[B](f: A => CloseableIterator[B]): CloseableIterator[B] = new SelfClosingIterator[B] {
@@ -59,17 +58,17 @@ trait CloseableIterator[+A] extends Iterator[A] {
 
     // Add in the 'SelfClosing' behavior.
     def hasNext: Boolean = {
-      val iterHasNext = innerHasNext
+      @tailrec
+      def loopUntilHasNext: Boolean =
+        cur.hasNext || self.hasNext && {
+          if (cur != empty) cur.close()
+          cur = f(self.next())
+          loopUntilHasNext
+        }
+
+      val iterHasNext = loopUntilHasNext
       if(!iterHasNext) close()
       iterHasNext
-    }
-
-    private def innerHasNext: Boolean =
-      cur.hasNext || self.hasNext && { advanceClosing(); hasNext }
-
-    private def advanceClosing() = {
-      if (cur != empty) cur.close()
-      cur = f(self.next())
     }
 
     def next(): B = (if (hasNext) cur else empty).next()
