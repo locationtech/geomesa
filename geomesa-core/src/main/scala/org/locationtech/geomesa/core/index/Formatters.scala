@@ -20,7 +20,6 @@ import org.apache.hadoop.io.Text
 import org.joda.time.DateTime
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeature
-
 import scala.util.hashing.MurmurHash3
 
 trait TextFormatter {
@@ -123,9 +122,9 @@ case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends T
  * @param number
  */
 case class ScientificNotationTextFormatter(number: Double) extends TextFormatter {
-  val numBits: Int = number.toString.length
-  val fmt = "%e".format(_: Double)
-  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = fmt(number)
+  val fmtdStr: String = lexiEncodeDoubleToString(number)
+  val numBits: Int = fmtdStr.length
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = fmtdStr
 }
 
 

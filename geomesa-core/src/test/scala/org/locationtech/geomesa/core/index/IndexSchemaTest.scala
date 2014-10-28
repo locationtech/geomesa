@@ -58,7 +58,8 @@ class IndexSchemaTest extends Specification {
     }
 
     "parse a valid string containing a positive resolution and positive exponent" in {
-      val s = "%~#s%1.000000e+02#ires%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id"
+      val res = 1.000000e+02
+      val s = s"%~#s%${lexiEncodeDoubleToString(res)}#ires%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id"
       val matched = IndexSchema.buildKeyPlanner(s) match {
         case CompositePlanner(List(ResolutionPlanner(100.0), GeoHashKeyPlanner(0,1), RandomPartitionPlanner(99)),"~") => true
         case _ => false
@@ -67,7 +68,8 @@ class IndexSchemaTest extends Specification {
     }
 
     "parse a valid string containing a negative resolution and positive exponent" in {
-      val s = "%~#s%-1.000000e+02#ires%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id"
+      val res = -1.000000e+02
+      val s = s"%~#s%${lexiEncodeDoubleToString(res)}#ires%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id"
       val matched = IndexSchema.buildKeyPlanner(s) match {
         case CompositePlanner(List(ResolutionPlanner(-100.0), GeoHashKeyPlanner(0,1), RandomPartitionPlanner(99)),"~") => true
         case _ => false
@@ -76,7 +78,8 @@ class IndexSchemaTest extends Specification {
     }
 
     "parse a valid string containing a positive resolution and negative exponent" in {
-      val s = "%~#s%1.000000e-02#ires%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id"
+      val res = 1.000000e-02
+      val s = s"%~#s%${lexiEncodeDoubleToString(res)}#ires%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id"
       val matched = IndexSchema.buildKeyPlanner(s) match {
         case CompositePlanner(List(ResolutionPlanner(0.01), GeoHashKeyPlanner(0,1), RandomPartitionPlanner(99)),"~") => true
         case _ => false
@@ -85,7 +88,8 @@ class IndexSchemaTest extends Specification {
     }
 
     "parse a valid string containing a negative resolution and negative exponent" in {
-      val s = "%~#s%-1.000000e-02#ires%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id"
+      val res = -1.000000e-02
+      val s = s"%~#s%${lexiEncodeDoubleToString(res)}#ires%0,1#gh%99#r::%~#s%1,5#gh::%~#s%5,2#gh%15#id"
       val matched = IndexSchema.buildKeyPlanner(s) match {
         case CompositePlanner(List(ResolutionPlanner(-0.01), GeoHashKeyPlanner(0,1), RandomPartitionPlanner(99)),"~") => true
         case _ => false
@@ -245,7 +249,7 @@ class IndexSchemaTest extends Specification {
       val maxShard = 31
       val name = "test"
       val res = 100.0
-      val oldSchema = s"%~#s%$maxShard#r%$name#cstr%1.000000e+02#ires%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
+      val oldSchema = s"%~#s%$maxShard#r%$name#cstr%${lexiEncodeDoubleToString(res)}#ires%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
 
       val schema = new IndexSchemaBuilder("~")
         .randomNumber(maxShard)
@@ -267,7 +271,7 @@ class IndexSchemaTest extends Specification {
       val name = "test"
       val res = 100.0
       val band = "RGB"
-      val oldSchema = s"%~#s%$maxShard#r%$name#cstr%1.000000e+02#ires%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh%$band#b::%~#s%#id"
+      val oldSchema = s"%~#s%$maxShard#r%$name#cstr%${lexiEncodeDoubleToString(res)}#ires%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh%$band#b::%~#s%#id"
 
       val schema = new IndexSchemaBuilder("~")
         .randomNumber(maxShard)

@@ -171,9 +171,9 @@ object IndexSchema extends RegexParsers {
 
   // An Image Resolution encoder. '1.8e+10#ires' would yield something
   // this may not be workable
-  def resolutionPattern = pattern("^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?".r, RESOLUTION_CODE)
+  def resolutionPattern = pattern("[^%#]+".r, RESOLUTION_CODE)
   def resolutionEncoder: Parser[ScientificNotationTextFormatter] = resolutionPattern ^^ {
-    case d => ScientificNotationTextFormatter(d.toDouble)
+    case d => ScientificNotationTextFormatter(lexiDecodeStringToDouble(d))
   }
 
   // A Band encoder. 'RGB#b' would yield RGB
@@ -309,7 +309,7 @@ object IndexSchema extends RegexParsers {
   }
 
   def resolutionKeyPlanner: Parser[ResolutionPlanner] = resolutionPattern ^^ {
-    case d => ResolutionPlanner(d.toDouble)
+    case d => ResolutionPlanner(lexiDecodeStringToDouble(d))
   }
 
   def bandKeyPlanner: Parser[BandPlanner] = bandPattern ^^ {
@@ -447,7 +447,7 @@ class IndexSchemaBuilder(separator: String) {
    * @param res
    * @return the schema builder instance
    */
-  def resolution(res: Double): IndexSchemaBuilder = append(RESOLUTION_CODE, "%e".format(res))
+  def resolution(res: Double): IndexSchemaBuilder = append(RESOLUTION_CODE, lexiEncodeDoubleToString(res))
 
   /**
    * Add a Band Value

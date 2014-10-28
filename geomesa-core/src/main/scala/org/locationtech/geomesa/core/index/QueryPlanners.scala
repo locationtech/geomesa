@@ -340,7 +340,7 @@ case class ConstStringPlanner(cstr: String) extends KeyPlanner {
 }
 
 case class ResolutionPlanner(ires: Double) extends KeyPlanner {
-  def getKeyPlan(filter:KeyPlanningFilter, output: ExplainerOutputType) = KeyListTiered(List("%e".format(ires)))
+  def getKeyPlan(filter:KeyPlanningFilter, output: ExplainerOutputType) = KeyListTiered(List(lexiEncodeDoubleToString(ires)))
 }
 
 case class BandPlanner(band: String) extends KeyPlanner {
