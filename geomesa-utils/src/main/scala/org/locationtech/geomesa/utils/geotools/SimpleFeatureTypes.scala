@@ -73,7 +73,7 @@ object SimpleFeatureTypes {
     }
   }
 
-  trait AttributeSpec {
+  sealed trait AttributeSpec {
     def name: String
 
     def clazz: Class[_]
@@ -85,7 +85,17 @@ object SimpleFeatureTypes {
     def toSpec: String
   }
 
-  case class SimpleAttributeSpec(name: String, clazz: Class[_], index: Boolean) extends AttributeSpec {
+  implicit class AttributeCopyable(val attrSpec: AttributeSpec) extends AnyVal {
+    def copy(): AttributeSpec = attrSpec match {
+      case o: SimpleAttributeSpec => o.copy()
+      case o: GeomAttributeSpec   => o.copy()
+      case o: ListAttributeSpec   => o.copy()
+      case o: MapAttributeSpec    => o.copy()
+    }
+  }
+
+  sealed trait NonGeomAttributeSpec extends AttributeSpec
+  case class SimpleAttributeSpec(name: String, clazz: Class[_], index: Boolean) extends NonGeomAttributeSpec {
     override def toAttribute: AttributeDescriptor = {
       val b = new AttributeTypeBuilder().binding(clazz).userData("index", index)
       b.buildDescriptor(name)
@@ -94,7 +104,7 @@ object SimpleFeatureTypes {
     override def toSpec = s"$name:${typeEncode(clazz)}:index=$index"
   }
 
-  case class ListAttributeSpec(name: String, subClass: Class[_], index: Boolean) extends AttributeSpec {
+  case class ListAttributeSpec(name: String, subClass: Class[_], index: Boolean) extends NonGeomAttributeSpec {
     val clazz = classOf[java.util.List[_]]
 
     override def toAttribute: AttributeDescriptor = {
@@ -106,7 +116,7 @@ object SimpleFeatureTypes {
     override def toSpec = s"$name:List[${subClass.getSimpleName}]:index=$index"
   }
 
-  case class MapAttributeSpec(name: String, keyClass: Class[_], valueClass: Class[_], index: Boolean) extends AttributeSpec {
+  case class MapAttributeSpec(name: String, keyClass: Class[_], valueClass: Class[_], index: Boolean) extends NonGeomAttributeSpec {
     val clazz = classOf[java.util.Map[_, _]]
 
     override def toAttribute: AttributeDescriptor = {
@@ -262,7 +272,7 @@ object SimpleFeatureTypes {
     def option                = (ident <~ "=") ~ "[^:,]*".r ^^ { case k ~ v => (k, v) }
 
     // builds a map of key/values
-    def options               = repsep(option, ":") ^^ { kvs => kvs.toMap }
+    def options               = repsep(option, SEP) ^^ { kvs => kvs.toMap }
 
     // options map or empty map if no options specified
     def optionsOrEmptyMap     = (SEP ~> options).? ^^ {
