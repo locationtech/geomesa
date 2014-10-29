@@ -23,7 +23,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.stats.StatWriter.{TableInstance, StatToWrite}
+import org.locationtech.geomesa.core.stats.StatWriter.{StatToWrite, TableInstance}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

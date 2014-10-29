@@ -3,8 +3,6 @@ package org.locationtech.geomesa.core.filter
 import org.locationtech.geomesa.core.filter.FilterUtils._
 import org.opengis.filter._
 
-import scala.collection.immutable.IndexedSeq
-
 object TestFilters {
 
   val baseFilters: Seq[Filter] =

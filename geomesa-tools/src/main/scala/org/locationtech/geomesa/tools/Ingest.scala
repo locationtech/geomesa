@@ -18,6 +18,7 @@ package org.locationtech.geomesa.tools
 
 import java.io.File
 import java.net.URLEncoder
+
 import com.twitter.scalding.{Args, Hdfs, Local, Mode}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.Connector
@@ -26,6 +27,7 @@ import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.tools.Utils.IngestParams
+
 import scala.collection.JavaConversions._
 import scala.io.Source
 import scala.util.{Failure, Success, Try}

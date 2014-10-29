@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Commonwealth Computer Research, Inc.
+ * Copyright 2014 Commonwealth Computer Research, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.apache.wicket.markup.html.form.{Form, FormComponent}
 import org.apache.wicket.markup.html.image.Image
 import org.apache.wicket.model.PropertyModel
 import org.geoserver.web.GeoServerBasePage
-import org.geotools.data.DataAccessFactory.Param
 import org.locationtech.geomesa.plugin.GeoMesaStoreEditPanel
 
 class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])

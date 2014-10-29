@@ -144,7 +144,7 @@ object IndexEntryDecoder {
   }
 }
 
-import IndexEntryDecoder._
+import org.locationtech.geomesa.core.index.IndexEntryDecoder._
 
 case class IndexEntryDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
   def decode(key: Key) = {

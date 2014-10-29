@@ -22,7 +22,6 @@ import org.geotools.data.DataUtilities
 import org.geotools.geometry.jts.GeometryBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.plugin.process.DBSCANProcess
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification

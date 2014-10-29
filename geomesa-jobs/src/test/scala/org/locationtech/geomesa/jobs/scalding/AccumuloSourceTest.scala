@@ -16,9 +16,7 @@
 
 package org.locationtech.geomesa.jobs
 
-import java.io.File
-
-import com.twitter.scalding.{Hdfs, Write, Read}
+import com.twitter.scalding.{Hdfs, Read, Write}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.hadoop.conf.Configuration
@@ -27,7 +25,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.jobs.scalding._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloSourceTest extends Specification {

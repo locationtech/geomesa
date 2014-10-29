@@ -16,14 +16,13 @@
 
 package org.locationtech.geomesa.feature
 
-import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
 import com.vividsolutions.jts.io.WKBWriter
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Field
 import org.apache.avro.Schema.Type._
-import org.apache.avro.io.{BinaryEncoder, DatumWriter, Encoder}
+import org.apache.avro.io.{DatumWriter, Encoder}
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.feature.AvroSimpleFeatureUtils._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

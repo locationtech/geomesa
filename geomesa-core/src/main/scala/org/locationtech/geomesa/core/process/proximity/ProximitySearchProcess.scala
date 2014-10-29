@@ -94,7 +94,7 @@ class ProximityVisitor(inputFeatures: SimpleFeatureCollection,
   def dwithinFilters(requestedUnit: String) = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
 
-    import scala.collection.JavaConversions._
+import scala.collection.JavaConversions._
 
     val geomProperty = ff.property(dataFeatures.getSchema.getGeometryDescriptor.getName)
     val geomFilters = inputFeatures.features().map { sf =>

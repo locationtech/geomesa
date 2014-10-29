@@ -22,7 +22,7 @@ import org.apache.commons.math3.ml.clustering.{Clusterable, DBSCANClusterer}
 import org.apache.commons.math3.ml.distance.DistanceMeasure
 import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.geometry.jts.{JTS, GeometryBuilder, JTSFactoryFinder}
+import org.geotools.geometry.jts.{GeometryBuilder, JTSFactoryFinder}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -31,8 +31,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
-import com.vividsolutions.jts.geom.Point
-import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 
 @DescribeProcess(
   title = "Density Based Spatial Clustering of Applications with Noise",

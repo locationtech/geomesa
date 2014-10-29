@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Commonwealth Computer Research, Inc.
+ * Copyright 2014 Commonwealth Computer Research, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.METADATA_TAG
-import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.TestData._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

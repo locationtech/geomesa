@@ -17,13 +17,13 @@
 package org.locationtech.geomesa.core.data.tables
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.{Connector, BatchDeleter, BatchWriter}
+import org.apache.accumulo.core.client.{BatchDeleter, BatchWriter, Connector}
 import org.apache.accumulo.core.data
-import org.apache.accumulo.core.data.{Mutation, Value, Key}
+import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.core.index.{IndexEntryEncoder, IndexSchema}
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import org.locationtech.geomesa.core.index.{IndexEntryEncoder, IndexSchema, _}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
 import scala.collection.JavaConverters._
 
 object SpatioTemporalTable extends Logging {

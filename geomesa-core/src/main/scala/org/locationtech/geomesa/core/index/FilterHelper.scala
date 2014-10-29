@@ -18,17 +18,17 @@ package org.locationtech.geomesa.core.index
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Point, Polygon}
+import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Polygon}
 import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.{And, PropertyIsBetween, Filter}
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial._
-import org.opengis.filter.temporal.{During, Before, After}
+import org.opengis.filter.temporal.{After, Before, During}
+import org.opengis.filter.{And, Filter, PropertyIsBetween}
 import org.opengis.temporal.Period
 
 import scala.collection.JavaConversions._

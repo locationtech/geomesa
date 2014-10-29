@@ -21,6 +21,7 @@ import org.geotools.data._
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureReader}
 import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
+
 import scala.collection.JavaConversions._
 import scala.util.Try
 

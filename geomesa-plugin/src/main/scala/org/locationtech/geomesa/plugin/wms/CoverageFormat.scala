@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Commonwealth Computer Research, Inc.
+ * Copyright 2014 Commonwealth Computer Research, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.{List => JList}
 
 import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.factory.Hints
-import org.geotools.parameter.{DefaultParameterDescriptor, DefaultParameterDescriptorGroup, ParameterGroup}
+import org.geotools.parameter.{DefaultParameterDescriptorGroup, ParameterGroup}
 import org.opengis.parameter.GeneralParameterDescriptor
 
 class CoverageFormat extends AbstractGridFormat {

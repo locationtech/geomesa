@@ -18,7 +18,6 @@
 
 package org.locationtech.geomesa.core.integration.data
 
-import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
