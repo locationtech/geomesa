@@ -20,6 +20,7 @@ import org.apache.accumulo.core.data.Key
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.utils.geohash.GeoHash
 
+
 trait Decoder[T] {
   def decode(key: Key): T
 }
@@ -42,4 +43,12 @@ case class DateDecoder(orderSeq: Seq[TextExtractor], fs: String) extends Extract
 
 case class IdDecoder(orderedSeq: Seq[TextExtractor]) extends ExtractingDecoder[String] {
   def decode(key: Key): String = seqExtract(orderedSeq, key).replaceAll("_+$", "")
+}
+
+case class ScientificNotationDecoder(orderSeq: Seq[TextExtractor]) extends ExtractingDecoder[Double] {
+  def decode(key: Key): Double = lexiDecodeStringToDouble(seqExtract(orderSeq, key))
+}
+
+case class RasterBandDecoder(orderSeq: Seq[TextExtractor]) extends ExtractingDecoder[String] {
+  def decode(key: Key): String = seqExtract(orderSeq, key)
 }

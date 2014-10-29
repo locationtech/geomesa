@@ -19,7 +19,6 @@ package org.locationtech.geomesa.core.index
 import org.geotools.data.DataUtilities
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -44,4 +43,25 @@ class FormattersTest extends Specification {
       shardNumbers.size must be equalTo 1
     }
   }
+
+  "ScientificNotationTextFormatter" should {
+    val testNumber = 123456789
+    val scientificNumberFormatter = ScientificNotationTextFormatter(testNumber)
+
+    "map a double to a string representation" in {
+      val scientificText = scientificNumberFormatter.formatString(null, null, null)
+      scientificText must be equalTo "1.234568e+08"
+    }
+  }
+
+  "RasterBandTextFormatter" should {
+    val testBand = "RGB"
+    val bandTextFormatter = RasterBandTextFormatter(testBand)
+
+    "map a string band name to the same string representation" in {
+      val bandText = bandTextFormatter.formatString(null, null, null)
+      bandText must be equalTo "RGB"
+    }
+  }
+
 }
