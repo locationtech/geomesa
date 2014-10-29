@@ -41,8 +41,9 @@ import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, S
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
+import org.locationtech.geomesa.data.TableSplitter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{NonGeomAttributeSpec, SimpleAttributeSpec}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -183,8 +184,8 @@ class AccumuloDataStore(val connector: Connector,
    * @param attributes
    */
   def updateIndexedAttributes(featureName: String, attributes: String): Unit = {
-    val existing = SimpleFeatureTypes.parse(getAttributes(featureName))
-    val updated = SimpleFeatureTypes.parse(attributes)
+    val FeatureSpec(existing, _) = SimpleFeatureTypes.parse(getAttributes(featureName))
+    val FeatureSpec(updated, _)  = SimpleFeatureTypes.parse(attributes)
     // check that the only changes are to non-geometry index flags
     val ok = existing.length == updated.length &&
       existing.zip(updated).forall { case (e, u) => e == u ||
@@ -305,11 +306,9 @@ class AccumuloDataStore(val connector: Connector,
 
     List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach(ensureTableExists)
 
-    if (!connector.isInstanceOf[MockConnector]) {
-      configureRecordTable(featureType, recordTable)
-      configureAttrIdxTable(featureType, attributeIndexTable)
-      configureSpatioTemporalIdxTable(maxShard, featureType, spatioTemporalIdxTable)
-    }
+    configureRecordTable(featureType, recordTable)
+    configureAttrIdxTable(featureType, attributeIndexTable)
+    configureSpatioTemporalIdxTable(maxShard, featureType, spatioTemporalIdxTable)
   }
 
   private def ensureTableExists(table: String) =
@@ -324,10 +323,13 @@ class AccumuloDataStore(val connector: Connector,
   def configureRecordTable(featureType: SimpleFeatureType, recordTable: String): Unit = {
     val prefix = index.getTableSharingPrefix(featureType)
     val prefixFn = RecordTable.getRowKey(prefix, _: String)
-    // if using UUID as FeatureID, configure splits with hex characters
-    val hexSplits = "0123456789abcdefABCDEF".map(_.toString).map(prefixFn).map(new Text(_))
-    val splits = ImmutableSortedSet.copyOf(hexSplits.toArray)
-    tableOps.addSplits(recordTable, splits)
+    val splitterClazz = featureType.getUserData.getOrElse(SimpleFeatureTypes.TABLE_SPLITTER, classOf[HexSplitter].getCanonicalName).asInstanceOf[String]
+    val clazz = Class.forName(splitterClazz)
+    val splitter = clazz.newInstance().asInstanceOf[TableSplitter]
+    val splitterOptions = featureType.getUserData.getOrElse(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS, Map.empty[String, String]).asInstanceOf[Map[String, String]]
+    val splits = splitter.getSplits(splitterOptions)
+    val sortedSplits = ImmutableSortedSet.copyOf(splits.map(_.toString).map(prefixFn).map(new Text(_)))
+    tableOps.addSplits(recordTable, sortedSplits)
     // enable the row functor as the feature ID is stored in the Row ID
     tableOps.setProperty(recordTable, "table.bloom.key.functor", classOf[RowFunctor].getCanonicalName)
     tableOps.setProperty(recordTable, "table.bloom.enabled", "true")

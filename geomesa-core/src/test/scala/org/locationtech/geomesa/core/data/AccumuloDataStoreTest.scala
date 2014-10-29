@@ -26,6 +26,7 @@ import org.apache.accumulo.core.data.{Mutation, Range}
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
+import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
@@ -159,6 +160,18 @@ class AccumuloDataStoreTest extends Specification {
           "where schema matches" >> { results.getSchema should be equalTo sft }
           "and there are no results" >> { features.hasNext should be equalTo false }
         }
+      }
+
+      "create a schema with custom record splitting options" >> {
+        val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options=fmt:%02d,min:0,max:99"
+        val sft = SimpleFeatureTypes.createType("customsplit", spec)
+        org.locationtech.geomesa.core.index.setTableSharing(sft, false)
+        ds.createSchema(sft)
+        val recTable = ds.getRecordTableForType(sft)
+        val splits = ds.connector.tableOperations().listSplits(recTable)
+        splits.size() must be equalTo 100
+        splits.head must be equalTo new Text("00")
+        splits.last must be equalTo new Text("99")
       }
 
       "process a DWithin query correctly" in {
@@ -760,6 +773,7 @@ class AccumuloDataStoreTest extends Specification {
         fc must haveClass[ListFeatureCollection]
       }
     }
+
     "hex encode multibyte chars as multiple underscore + hex" in {
       val table = "testing_chinese_features"
       val ds = DataStoreFinder.getDataStore(Map(
@@ -1149,7 +1163,6 @@ class AccumuloDataStoreTest extends Specification {
     bw.flush
     bw.close
   }
-
 
   def getFeatures(sft: SimpleFeatureType) = (0 until 6).map { i =>
     val builder = new SimpleFeatureBuilder(sft, featureFactory)
