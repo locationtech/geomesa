@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.core.iterators
 
 import java.text.SimpleDateFormat
-import java.util.{Date, TimeZone}
+import java.util.{Collections, Date, TimeZone}
 
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -62,7 +62,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
         sf.setAttribute("dtg", dateToIndex)
         sf.setAttribute("age", i)
         sf.setAttribute("name", name)
-        sf.setAttribute("scars", Seq("face"))
+        sf.setAttribute("scars", Collections.singletonList("face"))
         sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
         sf
       }

@@ -32,11 +32,12 @@ import org.apache.wicket.markup.html.panel.Fragment
 import org.apache.wicket.model.{Model, PropertyModel}
 import org.apache.wicket.{AttributeModifier, PageParameters, ResourceReference}
 import org.geoserver.web.GeoServerBasePage
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.jobs.index.AttributeIndexJob
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, GeomAttributeSpec, NonGeomAttributeSpec}
 
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -68,15 +69,11 @@ class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage wit
   }
 
   def initUi(dataStore: AccumuloDataStore, spec: String) = {
-    val attributes = AttributeSpec.toAttributes(spec)
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
+    val attributes = SimpleFeatureTypes.parse(spec)
 
     // create a copy of the original attributes since the original gets modified by wicket
-    val copy = attributes.map { a =>
-      a match {
-        case a: GeomAttributeSpec => a.copy()
-        case a: NonGeomAttributeSpec => a.copy()
-      }
-    }
+    val copy = attributes.map { a => a.copy() }
 
     // modal form for uploading an xml config
     val modalWindow = new ModalWindow("modalConfirm")
@@ -169,7 +166,11 @@ class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage wit
           run match {
             case Success(_) =>
               // if the job was successful, update the schema stored in the metadata
-              ds.updateIndexedAttributes(sft.getTypeName, AttributeSpec.toString(attributes))
+              val sftb = new SimpleFeatureTypeBuilder()
+              sftb.setName(sft.getTypeName)
+              sftb.addAll(attributes.map(_.toAttribute))
+              val newSFT = sftb.buildFeatureType()
+              ds.updateIndexedAttributes(sft.getTypeName, SimpleFeatureTypes.encodeType(newSFT))
             case Failure(e) =>
               // set error message in page for user to see
               getSession().error(s"Failed to index attributes: ${e.getMessage}")

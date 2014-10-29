@@ -35,8 +35,15 @@ import scala.collection.JavaConverters._
 @RunWith(classOf[JUnitRunner])
 class ComplexFeatureTest extends Specification with TestWithDataStore {
 
-  override def spec = "names:List[String],fingers:List[String],skills:Map[String][Integer]," +
-      "metadata:Map[Double][String],dtg:Date,*geom:Point:srid=4326"
+  override def spec =
+    """
+      |names:List[String],
+      |fingers:List[String],
+      |skills:Map[String,Integer],
+      |metadata:Map[Double,String],
+      |dtg:Date,
+      |*geom:Point:srid=4326
+    """.stripMargin
 
   override def getTestFeatures() = {
     // create and add a feature

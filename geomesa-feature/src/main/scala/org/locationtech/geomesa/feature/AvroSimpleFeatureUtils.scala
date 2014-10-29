@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.feature
 
 import java.nio.ByteBuffer
-import java.util.{Locale, Date, UUID}
+import java.util.{Date, Locale, UUID}
 
 import com.google.common.collect.Maps
 import com.vividsolutions.jts.geom.Geometry
@@ -118,11 +118,12 @@ object AvroSimpleFeatureUtils {
 
         case t if ad.isCollection => (v: AnyRef) =>
           encodeList(v.asInstanceOf[java.util.List[_]],
-            ad.getUserData.get("subtype").asInstanceOf[java.util.List[Class[_]]].head)
+            ad.getUserData.get("subtype").asInstanceOf[Class[_]])
 
         case t if ad.isMap => (v: AnyRef) =>
-          val bindings = ad.getUserData.get("subtype").asInstanceOf[java.util.List[Class[_]]]
-          encodeMap(v.asInstanceOf[java.util.Map[_, _]], bindings(0), bindings(1))
+          val keyclass   = ad.getUserData.get("keyclass").asInstanceOf[Class[_]]
+          val valueclass = ad.getUserData.get("valueclass").asInstanceOf[Class[_]]
+          encodeMap(v.asInstanceOf[java.util.Map[_, _]], keyclass, valueclass)
 
         case _ =>
           (v: AnyRef) =>

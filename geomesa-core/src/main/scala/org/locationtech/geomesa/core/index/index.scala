@@ -30,8 +30,6 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.FeatureId
 
-import scala.collection.JavaConverters._
-
 /**
  * These are package-wide constants.
  */
@@ -81,12 +79,6 @@ package object index {
   def getTableSharingPrefix(sft: SimpleFeatureType): String =
     if(getTableSharing(sft)) s"${sft.getTypeName}~"
     else                     ""
-
-  def setCollectionType(ad: AttributeDescriptor, typ: Seq[Class[_]]): Unit =
-    ad.getUserData.put("subtype", typ.asJava)
-
-  def getCollectionType(ad: AttributeDescriptor): Seq[Class[_]] =
-    Option(ad.getUserData.get("subtype")).map(_.asInstanceOf[JList[Class[_]]].asScala).getOrElse(Seq.empty)
 
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)

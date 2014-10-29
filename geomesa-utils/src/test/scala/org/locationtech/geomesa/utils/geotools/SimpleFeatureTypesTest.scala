@@ -34,6 +34,13 @@ class SimpleFeatureTypesTest extends Specification {
       (sft.getGeometryDescriptor.getCoordinateReferenceSystem must not).beNull
     }
 
+    "handle Int vs. Integer lexicographical ordering" >> {
+      val sft1 = SimpleFeatureTypes.createType("testing1", "foo:Int,*geom:Point:index=true")
+      val sft2 = SimpleFeatureTypes.createType("testing2", "foo:Integer,*geom:Point:index=true")
+      sft1.getAttributeCount must beEqualTo(2)
+      sft2.getAttributeCount must beEqualTo(2)
+    }
+
     "handle no index attribute" >> {
       val sft = SimpleFeatureTypes.createType("testing", "id:Integer,*geom:Point:index=true")
       sft.getDescriptor("id").getUserData.containsKey("index") must beTrue
@@ -104,21 +111,21 @@ class SimpleFeatureTypesTest extends Specification {
         sft.getAttributeCount mustEqual(4)
         sft.getDescriptor("metadata") must not beNull
 
-        sft.getDescriptor("metadata").getType.getBinding mustEqual(classOf[java.util.Map[_, _]])
+        sft.getDescriptor("metadata").getType.getBinding mustEqual classOf[java.util.Map[_, _]]
 
         val spec = SimpleFeatureTypes.encodeType(sft)
-        spec mustEqual "id:Integer:index=false,metadata:Map[String][String]:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true"
+        spec mustEqual "id:Integer:index=false,metadata:Map[String,String]:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true"
       }
 
       "with defined values" >> {
-        val sft = SimpleFeatureTypes.createType("testing", "id:Integer,metadata:Map[Double][String],dtg:Date,*geom:Point:srid=4326")
+        val sft = SimpleFeatureTypes.createType("testing", "id:Integer,metadata:Map[Double,String],dtg:Date,*geom:Point:srid=4326")
         sft.getAttributeCount mustEqual(4)
         sft.getDescriptor("metadata") must not beNull
 
-        sft.getDescriptor("metadata").getType.getBinding mustEqual(classOf[java.util.Map[_, _]])
+        sft.getDescriptor("metadata").getType.getBinding mustEqual classOf[java.util.Map[_, _]]
 
         val spec = SimpleFeatureTypes.encodeType(sft)
-        spec mustEqual "id:Integer:index=false,metadata:Map[Double][String]:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true"
+        spec mustEqual "id:Integer:index=false,metadata:Map[Double,String]:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true"
       }
 
       "fail for illegal value format" >> {
@@ -127,42 +134,10 @@ class SimpleFeatureTypesTest extends Specification {
       }
 
       "fail for illegal value classes" >> {
-        val spec = "id:Integer,metadata:Map[String][FAKE],dtg:Date,*geom:Point:srid=4326"
+        val spec = "id:Integer,metadata:Map[String,FAKE],dtg:Date,*geom:Point:srid=4326"
         SimpleFeatureTypes.createType("testing", spec) should throwAn[IllegalArgumentException]
       }
     }
   }
 
-  "ParseClassStrings" should {
-    "parse simple classes" >> {
-      val result = ParseClassStrings.parseAll(ParseClassStrings.classDef, "String")
-      result.isEmpty mustEqual(false)
-      val parsed = result.get
-      parsed mustEqual(ParsedClassString("String"))
-    }
-    "parse fully qualified classes" >> {
-      val result = ParseClassStrings.parseAll(ParseClassStrings.classDef, "java.lang.String")
-      result.isEmpty mustEqual(false)
-      val parsed = result.get
-      parsed mustEqual(ParsedClassString("java.lang.String"))
-    }
-    "parse list types" >> {
-      val result = ParseClassStrings.parseAll(ParseClassStrings.classDef, "List[String]")
-      result.isEmpty mustEqual(false)
-      val parsed = result.get
-      parsed mustEqual(ParsedClassString("List", Seq("String")))
-    }
-    "parse fully qualified list types" >> {
-      val result = ParseClassStrings.parseAll(ParseClassStrings.classDef, "java.util.List[java.lang.String]")
-      result.isEmpty mustEqual(false)
-      val parsed = result.get
-      parsed mustEqual(ParsedClassString("java.util.List", Seq("java.lang.String")))
-    }
-    "parse map types" >> {
-      val result = ParseClassStrings.parseAll(ParseClassStrings.classDef, "Map[String][Int]")
-      result.isEmpty mustEqual(false)
-      val parsed = result.get
-      parsed mustEqual(ParsedClassString("Map", Seq("String", "Int")))
-    }
-  }
 }

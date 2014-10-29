@@ -82,9 +82,7 @@ class AvroSimpleFeatureTest extends Specification {
       prop.getName.getLocalPart mustEqual("a")
       prop.getValue mustEqual(1)
     }
-  }
 
-  "AvroSimpleFeature" should {
     "properly validate a correct object" in {
       val sft = SimpleFeatureTypes.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 
@@ -150,9 +148,7 @@ class AvroSimpleFeatureTest extends Specification {
 
       f.validate must not(throwA [org.opengis.feature.IllegalAttributeException])
     }
-  }
 
-  "AvroSimpleFeature" should {
     "give back a null when an attribute doesn't exist" in {
 
       // Verify that AvroSimpleFeature returns null for attributes that do not exist like SimpleFeatureImpl
@@ -195,5 +191,6 @@ class AvroSimpleFeatureTest extends Specification {
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getProperty("b").getValue should beNull
     }
+
   }
 }

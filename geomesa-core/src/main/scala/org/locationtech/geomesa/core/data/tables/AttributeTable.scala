@@ -27,9 +27,9 @@ import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index.IndexEntry
 import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeature
 
@@ -180,7 +180,7 @@ object AttributeTable extends GeoMesaTable with Logging {
   def decode(encoded: String, descriptor: AttributeDescriptor): Any = {
     if (descriptor.isCollection) {
       // get the alias from the type of values in the collection
-      val alias = index.getCollectionType(descriptor).map(_.getSimpleName.toLowerCase(Locale.US)).head
+      val alias = SimpleFeatureTypes.getCollectionType(descriptor).map(_.getSimpleName.toLowerCase(Locale.US)).head
       Seq(typeRegistry.decode(alias, encoded)).asJava
     } else if (descriptor.isMap) {
       // TODO GEOMESA-454 - support querying against map attributes

@@ -27,6 +27,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.temporal.`object`.DefaultPeriod
+import org.locationtech.geomesa.core.DEFAULT_FILTER_PROPERTY_NAME
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable}
@@ -35,8 +36,8 @@ import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
-import org.locationtech.geomesa.core.{DEFAULT_FILTER_PROPERTY_NAME, index}
 import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
@@ -264,24 +265,24 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     val expectedBinding = descriptor.getType.getBinding
     // the class type of the literal pulled from the query
     val actualBinding = value.getClass
-    val typedValue = if (expectedBinding == actualBinding) {
-      value
-    } else if (descriptor.isCollection) {
-      // we need to encode with the collection type
-      val collectionType = index.getCollectionType(descriptor).head
-      if (collectionType == actualBinding) {
-        Seq(value).asJava
+    val typedValue =
+      if (expectedBinding == actualBinding) {
+        value
+      } else if (descriptor.isCollection) {
+        // we need to encode with the collection type
+        SimpleFeatureTypes.getCollectionType(descriptor) match {
+          case Some(collectionType) if collectionType == actualBinding => Seq(value).asJava
+          case Some(collectionType) if collectionType != actualBinding =>
+            Seq(AttributeTable.convertType(value, actualBinding, collectionType)).asJava
+        }
+      } else if (descriptor.isMap) {
+        // TODO GEOMESA-454 - support querying against map attributes
+        Map.empty.asJava
       } else {
-        Seq(AttributeTable.convertType(value, actualBinding, collectionType)).asJava
+        // type mismatch, encoding won't work b/c value is wrong class
+        // try to convert to the appropriate class
+        AttributeTable.convertType(value, actualBinding, expectedBinding)
       }
-    } else if (descriptor.isMap) {
-      // TODO GEOMESA-454 - support querying against map attributes
-      Map.empty.asJava
-    } else {
-      // type mismatch, encoding won't work b/c value is wrong class
-      // try to convert to the appropriate class
-      AttributeTable.convertType(value, actualBinding, expectedBinding)
-    }
 
     val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
     // grab the first encoded row - right now there will only ever be a single item in the seq

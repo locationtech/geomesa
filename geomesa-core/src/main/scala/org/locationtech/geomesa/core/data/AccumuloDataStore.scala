@@ -42,7 +42,7 @@ import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeSpec, NonGeomAttributeSpec}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{NonGeomAttributeSpec, SimpleAttributeSpec}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -183,8 +183,8 @@ class AccumuloDataStore(val connector: Connector,
    * @param attributes
    */
   def updateIndexedAttributes(featureName: String, attributes: String): Unit = {
-    val existing = AttributeSpec.toAttributes(getAttributes(featureName))
-    val updated = AttributeSpec.toAttributes(attributes)
+    val existing = SimpleFeatureTypes.parse(getAttributes(featureName))
+    val updated = SimpleFeatureTypes.parse(attributes)
     // check that the only changes are to non-geometry index flags
     val ok = existing.length == updated.length &&
       existing.zip(updated).forall { case (e, u) => e == u ||
