@@ -163,7 +163,7 @@ class AccumuloDataStoreTest extends Specification {
       }
 
       "create a schema with custom record splitting options" >> {
-        val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options=fmt:%02d,min:0,max:99"
+        val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options=fmt:%02d,min:0,max:99"
         val sft = SimpleFeatureTypes.createType("customsplit", spec)
         org.locationtech.geomesa.core.index.setTableSharing(sft, false)
         ds.createSchema(sft)

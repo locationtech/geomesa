@@ -140,7 +140,7 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "handle splitter and splitter options" >> {
-      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options=fmt:%02d,min:0,max:99"
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options=fmt:%02d,min:0,max:99"
       val sft = SimpleFeatureTypes.createType("test", spec)
       sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
       val opts = sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS).asInstanceOf[Map[String, String]]

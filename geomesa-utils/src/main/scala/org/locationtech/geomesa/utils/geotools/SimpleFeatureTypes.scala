@@ -14,7 +14,7 @@ import scala.util.parsing.combinator.JavaTokenParsers
 
 object SimpleFeatureTypes {
 
-  val TABLE_SPLITTER         = "table.splitter"
+  val TABLE_SPLITTER         = "table.splitter.class"
   val TABLE_SPLITTER_OPTIONS = "table.splitter.options"
 
   def createType(nameSpec: String, spec: String): SimpleFeatureType = {
