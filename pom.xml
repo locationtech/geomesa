@@ -87,6 +87,11 @@
     </profiles>
 
     <distributionManagement>
+        <repository>
+            <id>repo.locationtech.org</id>
+            <name>GeoMesa Repository - Releases</name>
+            <url>https://repo.locationtech.org/content/repositories/geomesa-releases/</url>
+        </repository>
         <snapshotRepository>
             <id>repo.locationtech.org</id>
             <name>GeoMesa Repository - Snapshots</name>
