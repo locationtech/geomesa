@@ -70,7 +70,7 @@ class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage wit
 
   def initUi(dataStore: AccumuloDataStore, spec: String) = {
     import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
-    val attributes = SimpleFeatureTypes.parse(spec)
+    val FeatureSpec(attributes, _) = SimpleFeatureTypes.parse(spec)
 
     // create a copy of the original attributes since the original gets modified by wicket
     val copy = attributes.map { a => a.copy() }

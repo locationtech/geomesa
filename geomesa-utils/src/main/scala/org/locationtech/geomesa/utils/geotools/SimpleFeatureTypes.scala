@@ -6,7 +6,6 @@ import com.vividsolutions.jts.geom._
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -14,6 +13,9 @@ import scala.collection.JavaConversions._
 import scala.util.parsing.combinator.JavaTokenParsers
 
 object SimpleFeatureTypes {
+
+  val TABLE_SPLITTER         = "table.splitter.class"
+  val TABLE_SPLITTER_OPTIONS = "table.splitter.options"
 
   def createType(nameSpec: String, spec: String): SimpleFeatureType = {
     val (namespace, name) =
@@ -23,7 +25,7 @@ object SimpleFeatureTypes {
         case _ => throw new IllegalArgumentException(s"Invalid feature name: $nameSpec")
       }
 
-    val attributeSpecs = parse(spec)
+    val FeatureSpec(attributeSpecs, opts) = parse(spec)
 
     val geomAttributes = attributeSpecs.collect { case g: GeomAttributeSpec => g }
     val defaultGeom = geomAttributes.find(_.default).orElse(geomAttributes.headOption)
@@ -32,7 +34,9 @@ object SimpleFeatureTypes {
     b.setName(name)
     b.addAll(attributeSpecs.map(_.toAttribute))
     defaultGeom.foreach { dg => b.setDefaultGeometry(dg.name)}
-    b.buildFeatureType()
+    val sft = b.buildFeatureType()
+    opts.map(_.decorateSFT(sft))
+    sft
   }
 
   def setCollectionType(ad: AttributeDescriptor, typ: Class[_]): Unit =
@@ -144,6 +148,19 @@ object SimpleFeatureTypes {
     }
   }
 
+  sealed trait FeatureOption {
+    def decorateSFT(sft: SimpleFeatureType): Unit
+  }
+
+  case class Splitter(splitterClazz: String, options: Map[String, String]) extends FeatureOption {
+    override def decorateSFT(sft: SimpleFeatureType): Unit = {
+      sft.getUserData.put(TABLE_SPLITTER, splitterClazz)
+      sft.getUserData.put(TABLE_SPLITTER_OPTIONS, options)
+    }
+  }
+
+  case class FeatureSpec(attributes: Seq[AttributeSpec], opts: Seq[FeatureOption])
+
   private val typeEncode: Map[Class[_], String] = Map(
     classOf[java.lang.String]    -> "String",
     classOf[java.lang.Integer]   -> "Integer",
@@ -204,7 +221,7 @@ object SimpleFeatureTypes {
     "GeometryCollection" -> classOf[GeometryCollection]
   )
 
-  private class AttributeParser extends JavaTokenParsers {
+  private class SpecParser extends JavaTokenParsers {
     /*
      Valid specs can have attributes that look like the following:
         "id:Integer:opt1=v1,*geom:Geometry:srid=4326,ct:List[String]:index=true,mt:Map[String,Double]:index=false"
@@ -269,7 +286,7 @@ object SimpleFeatureTypes {
     def attrType              = simpleType | geometryType | complexType
 
     // converts options into key/values
-    def option                = (ident <~ "=") ~ "[^:,]*".r ^^ { case k ~ v => (k, v) }
+    def option                = (ident <~ "=") ~ "[^:,;]*".r ^^ { case k ~ v => (k, v) }
 
     // builds a map of key/values
     def options               = repsep(option, SEP) ^^ { kvs => kvs.toMap }
@@ -312,12 +329,23 @@ object SimpleFeatureTypes {
     // any attribute
     def attribute             = geometryAttribute | complexAttribute | simpleAttribute
 
+    // "table.splitter=org.locationtech.geomesa.data.DigitSplitter,table.splitter.options=fmt:%02d,"
+    def splitter              = (TABLE_SPLITTER ~ "=") ~> "[^,]*".r
+    def splitterOption        = ("[^,:]*".r <~ ":") ~ "[^,]*".r ^^ { case k ~ v => (k, v) }
+    def splitterOptions       = (TABLE_SPLITTER_OPTIONS ~ "=") ~> repsep(splitterOption, ",") ^^ { opts => opts.toMap }
+
+    def featureOptions        = (splitter <~ ",") ~ splitterOptions.? ^^ {
+      case splitter ~ opts => Splitter(splitter, opts.getOrElse(Map.empty[String, String]))
+    }
+
     // a full SFT spec
-    def spec                  = repsep(attribute, ",") ^^ { attrs => attrs }
+    def spec                  = repsep(attribute, ",") ~ (";" ~> featureOptions).? ^^ {
+      case attrs ~ fOpts => FeatureSpec(attrs, fOpts.toSeq)
+    }
 
     def strip(s: String) = s.stripMargin('|').replaceAll("\\s*", "")
 
-    def parse(s: String): Seq[AttributeSpec] = parse(spec, strip(s)) match {
+    def parse(s: String): FeatureSpec = parse(spec, strip(s)) match {
       case Success(t, r)   if r.atEnd => t
       case Error(msg, r)   if r.atEnd => throw new IllegalArgumentException(msg)
       case Failure(msg, r) if r.atEnd => throw new IllegalArgumentException(msg)
@@ -325,7 +353,6 @@ object SimpleFeatureTypes {
     }
   }
 
-  private val parsers = ObjectPoolFactory(new AttributeParser, 10)
-  def parse(s: String): Seq[AttributeSpec] = parsers.withResource { parser => parser.parse(s) }
+  def parse(s: String): FeatureSpec = new SpecParser().parse(s)
 
 }
