@@ -44,4 +44,8 @@ package object core {
   val GEOMESA_ITERATORS_TRANSFORM_SCHEMA    = "geomesa.iterators.transform.schema"
   val GEOMESA_ITERATORS_IS_DENSITY_TYPE     = "geomesa.iterators.is-density-type"
 
+  val RASTER_FEATURE_TYPE = "geomesa.raster.feature.type"
+  val RASTER_SCHEMA_NAME  = "geomesa.raster.index.schema"
+  val RASTER_FEATURE_NAME = "geomesa.raster.index.feature"
+
 }
