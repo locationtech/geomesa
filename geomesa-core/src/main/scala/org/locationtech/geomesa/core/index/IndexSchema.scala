@@ -370,7 +370,7 @@ object IndexSchema extends RegexParsers {
   def getIndexMetadataDecoder(s: String) = {
     val geohashDecoder    = buildGeohashDecoder(s)
     val dateDecoder       = buildDateDecoder(s)
-    IndexMetadataDecoder(geohashDecoder, dateDecoder)
+    IndexCQMetadataDecoder(geohashDecoder, dateDecoder)
   }
 }
 

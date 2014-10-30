@@ -195,15 +195,16 @@ case class IndexEntryDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDe
   }
 }
 
-object IndexMetadataDecoder {
+object IndexCQMetadataDecoder {
   val metaBuilder = new ThreadLocal[SimpleFeatureBuilder] {
     override def initialValue(): SimpleFeatureBuilder = new SimpleFeatureBuilder(indexSFT)
   }
 }
 
-import IndexMetadataDecoder._
+import IndexCQMetadataDecoder._
 
-case class IndexMetadataDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
+case class IndexCQMetadataDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
+  // are we grabbing the right stuff from the key?
   def decode(key: Key) = {
     val builder = metaBuilder.get
     builder.reset()

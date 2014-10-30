@@ -23,17 +23,14 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.DateTime
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 import scala.util.Try
 
 
-class RasterFeatureIterator extends SortedKeyValueIterator[Key, Value] with Logging {
+class RasterFilteringIterator extends SortedKeyValueIterator[Key, Value] with Logging {
 
   protected var rasterSource: SortedKeyValueIterator[Key, Value] = null
   protected var topKey: Key = null
@@ -43,10 +40,7 @@ class RasterFeatureIterator extends SortedKeyValueIterator[Key, Value] with Logg
   protected var nextFeature: SimpleFeature = null
 
   protected var filter: org.opengis.filter.Filter = null
-  protected var featureBuilder: SimpleFeatureBuilder = null
-  protected var featureEncoder: SimpleFeatureEncoder = null
-
-  protected var decoder: IndexMetadataDecoder = null
+  protected var decoder: IndexCQMetadataDecoder = null
   protected var testSimpleFeature: SimpleFeature = null
   protected var dateAttributeName: Option[String] = None
 
@@ -69,12 +63,9 @@ class RasterFeatureIterator extends SortedKeyValueIterator[Key, Value] with Logg
     dateAttributeName = getDtgFieldName(featureType)
 
     // default to text if not found for backwards compatibility
-    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
 
-    featureEncoder = SimpleFeatureEncoder(featureType, encodingOpt)
-    featureBuilder = AvroSimpleFeatureFactory.featureBuilder(featureType)
-    decoder        = IndexSchema.getIndexMetadataDecoder(schemaEncoding)
+    decoder  = IndexSchema.getIndexMetadataDecoder(schemaEncoding)
 
     if (options.containsKey(DEFAULT_FILTER_PROPERTY_NAME)) {
       val filterString  = options.get(DEFAULT_FILTER_PROPERTY_NAME)
@@ -95,9 +86,29 @@ class RasterFeatureIterator extends SortedKeyValueIterator[Key, Value] with Logg
     // do we care about the DecodedCQMetadata at this point at all?
     val rasterSourceTopKey = rasterSource.getTopKey
     val rasterSourceTopVal = rasterSource.getTopValue
+    // what else is needed here?
     nextKey = new Key(rasterSourceTopKey)
     nextValue = new Value(rasterSourceTopVal)
   }
+
+  /**
+   * Position the index-source.  Consequently, updates the data-source.
+   *
+   * @param range
+   * @param columnFamilies
+   * @param inclusive
+   */
+  def seek(range: Range, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {
+    // move the source iterator to the right starting spot
+    rasterSource.seek(range, columnFamilies, inclusive)
+    // find the first index-entry that is inside the search polygon
+    // (use the current entry, if it's already inside the search polygon)
+    findTop()
+    // pre-fetch the next entry, if one exists
+    // (the idea is to always be one entry ahead)
+    if (nextKey != null) next()
+  }
+
 
   def findTop(): Unit = {
     // clear out the reference to the next entry
@@ -146,26 +157,10 @@ class RasterFeatureIterator extends SortedKeyValueIterator[Key, Value] with Logg
   }
 
   /**
-   * Position the index-source.  Consequently, updates the data-source.
-   *
-   * @param range
-   * @param columnFamilies
-   * @param inclusive
-   */
-  def seek(range: Range, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {
-    // move the source iterator to the right starting spot
-    rasterSource.seek(range, columnFamilies, inclusive)
-    // find the first index-entry that is inside the search polygon
-    // (use the current entry, if it's already inside the search polygon)
-    findTop()
-    // pre-fetch the next entry, if one exists
-    // (the idea is to always be one entry ahead)
-    if (nextKey != null) next()
-  }
-
-  /**
    * Attempt to decode the given key.  This should only succeed in the cases
    * where the key corresponds to an index-entry (not a data-entry).
+   *
+   * todo: fix, This is not utilizing the CQ meta data!
    */
   def decodeKey(key:Key): Option[SimpleFeature] = Try(decoder.decode(key)).toOption
 
@@ -217,33 +212,4 @@ class RasterFeatureIterator extends SortedKeyValueIterator[Key, Value] with Logg
 
 }
 
-object RasterFeatureIterator extends IteratorHelpers {
-  import org.locationtech.geomesa.core.iterators.IteratorTrigger.IndexAttributeNames
-
-  /**
-   * Converts values taken from the Index Value to a SimpleFeature, using the passed SimpleFeatureBuilder
-   * Note that the ID, taken from the index, is preserved
-   * Also note that the SimpleFeature's other attributes may not be fully parsed and may be left as null;
-   * the SimpleFeatureFilteringIterator *may* remove the extraneous attributes later in the Iterator stack
-   */
-  def encodeIndexMetadataToSF(featureBuilder: SimpleFeatureBuilder, id: String,
-                              geom: Geometry, dtgMillis: Option[Long]): SimpleFeature = {
-    val theType = featureBuilder.getFeatureType
-    val dtgDate = dtgMillis.map{time => new DateTime(time).toDate}
-    // Build and fill the Feature. This offers some performance gain over building and then setting the attributes.
-    featureBuilder.buildFeature(id, attributeArray(theType, geom, dtgDate ))
-  }
-
-  /**
-   * Construct and fill an array of the SimpleFeature's attribute values
-   */
-  def attributeArray(theType: SimpleFeatureType, geomValue: Geometry, date: Option[java.util.Date]) = {
-    val attrArray = new Array[AnyRef](theType.getAttributeCount)
-    // always set the mandatory geo element
-    attrArray(theType.indexOf(theType.geoName)) = geomValue
-    // if dtgDT exists, attempt to fill the elements corresponding to the start and/or end times
-    date.map{time => (theType.startTimeName ++ theType.endTimeName).map{name =>attrArray(theType.indexOf(name)) = time}}
-    attrArray
-  }
-
-}
+object RasterFilteringIterator extends IteratorHelpers { }
