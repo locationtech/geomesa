@@ -27,7 +27,6 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
-import scala.util.Try
 
 
 class RasterFilteringIterator extends SortedKeyValueIterator[Key, Value] with Logging {
@@ -40,7 +39,6 @@ class RasterFilteringIterator extends SortedKeyValueIterator[Key, Value] with Lo
   protected var nextFeature: SimpleFeature = null
 
   protected var filter: org.opengis.filter.Filter = null
-  protected var decoder: IndexCQMetadataDecoder = null
   protected var testSimpleFeature: SimpleFeature = null
   protected var dateAttributeName: Option[String] = None
 
@@ -62,11 +60,6 @@ class RasterFilteringIterator extends SortedKeyValueIterator[Key, Value] with Lo
 
     dateAttributeName = getDtgFieldName(featureType)
 
-    // default to text if not found for backwards compatibility
-    val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
-
-    decoder  = IndexSchema.getIndexMetadataDecoder(schemaEncoding)
-
     if (options.containsKey(DEFAULT_FILTER_PROPERTY_NAME)) {
       val filterString  = options.get(DEFAULT_FILTER_PROPERTY_NAME)
       filter = ECQL.toFilter(filterString)
@@ -86,7 +79,7 @@ class RasterFilteringIterator extends SortedKeyValueIterator[Key, Value] with Lo
     // do we care about the DecodedCQMetadata at this point at all?
     val rasterSourceTopKey = rasterSource.getTopKey
     val rasterSourceTopVal = rasterSource.getTopValue
-    // what else is needed here?
+    // what else is needed here? something probably done to each val
     nextKey = new Key(rasterSourceTopKey)
     nextValue = new Value(rasterSourceTopVal)
   }
@@ -109,26 +102,22 @@ class RasterFilteringIterator extends SortedKeyValueIterator[Key, Value] with Lo
     if (nextKey != null) next()
   }
 
-
   def findTop(): Unit = {
     // clear out the reference to the next entry
     nextKey = null
     nextValue = null
     while (nextValue == null && rasterSource.hasTop && rasterSource.getTopKey != null) {
-      // only consider this raster entry if we can decode the metadata
-      decodeKey(rasterSource.getTopKey).map { decodedKey =>
-        // the value contains the full-resolution geometry and time; use them
-        lazy val decodedMetadata = IndexEntry.decodeIndexCQMetadata(rasterSource.getTopKey)
-        lazy val isSTAcceptable = wrappedSTFilter(decodedMetadata.geom, decodedMetadata.dtgMillis)
-        // see whether this box is acceptable
-        // (the tests are ordered from fastest to slowest to take advantage of
-        // short-circuit evaluation)
-        if (isIdUnique(decodedMetadata.id) && isSTAcceptable) {
-          // stash this ID
-          rememberId(decodedMetadata.id)
-          // use our seekData function to seek to next key
-          seekData(decodedMetadata)
-        }
+      // the value contains the full-resolution geometry and time; use them
+      lazy val decodedMetadata = IndexEntry.decodeIndexCQMetadata(rasterSource.getTopKey)
+      lazy val isSTAcceptable = wrappedSTFilter(decodedMetadata.geom, decodedMetadata.dtgMillis)
+      // see whether this box is acceptable
+      // (the tests are ordered from fastest to slowest to take advantage of
+      // short-circuit evaluation)
+      if (isIdUnique(decodedMetadata.id) && isSTAcceptable) {
+        // stash this ID
+        rememberId(decodedMetadata.id)
+        // use our seekData function to seek to next key
+        seekData(decodedMetadata)
       }
       // once you are done with the current nextKey/nextValue, move forward
       // you MUST advance to the next key
@@ -155,14 +144,6 @@ class RasterFilteringIterator extends SortedKeyValueIterator[Key, Value] with Lo
       findTop()
     }
   }
-
-  /**
-   * Attempt to decode the given key.  This should only succeed in the cases
-   * where the key corresponds to an index-entry (not a data-entry).
-   *
-   * todo: fix, This is not utilizing the CQ meta data!
-   */
-  def decodeKey(key:Key): Option[SimpleFeature] = Try(decoder.decode(key)).toOption
 
   def deepCopy(env: IteratorEnvironment) =
     throw new UnsupportedOperationException("RFI does not support deepCopy.")
