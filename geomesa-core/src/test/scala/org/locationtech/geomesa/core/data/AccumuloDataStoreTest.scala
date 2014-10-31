@@ -31,8 +31,8 @@ import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.feature.{DefaultFeatureCollection, NameImpl}
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.process.vector.TransformProcess
@@ -429,6 +429,25 @@ class AccumuloDataStoreTest extends Specification {
         "and correct results" >> {
           "fid-1=testType|POINT (45 49)" mustEqual DataUtilities.encodeFeature(f)
         }
+      }
+
+      "handle requests with namespaces" in {
+        // create the data store
+        val ns = "mytestns"
+        val sftName = "namespacetest"
+        val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+        sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+        ds.createSchema(sft)
+
+        val schemaWithoutNs = ds.getSchema(sftName)
+
+        schemaWithoutNs.getName.getNamespaceURI must beNull
+        schemaWithoutNs.getName.getLocalPart mustEqual sftName
+
+        val schemaWithNs = ds.getSchema(new NameImpl(ns, sftName))
+
+        schemaWithNs.getName.getNamespaceURI mustEqual ns
+        schemaWithNs.getName.getLocalPart mustEqual sftName
       }
     }
 
@@ -1050,6 +1069,7 @@ class AccumuloDataStoreTest extends Specification {
         res.head must beGreaterThan(res(1))
       }
     }
+
   }
 
   def buildTestIndexSchemaFormat(featureName: String) = new IndexSchemaBuilder("~").randomNumber(3).constant(featureName).geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build()
