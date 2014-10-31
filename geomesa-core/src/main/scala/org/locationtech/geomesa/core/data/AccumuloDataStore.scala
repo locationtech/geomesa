@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSortedSet
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
-import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.file.keyfunctor.{ColumnFamilyFunctor, RowFunctor}
@@ -32,6 +31,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
+import org.geotools.feature.NameImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.core
@@ -44,7 +44,7 @@ import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.data.TableSplitter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}
-import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
@@ -184,7 +184,7 @@ class AccumuloDataStore(val connector: Connector,
    * @param attributes
    */
   def updateIndexedAttributes(featureName: String, attributes: String): Unit = {
-    val FeatureSpec(existing, _) = SimpleFeatureTypes.parse(getAttributes(featureName))
+    val FeatureSpec(existing, _) = SimpleFeatureTypes.parse(getAttributes(featureName).getOrElse(""))
     val FeatureSpec(updated, _)  = SimpleFeatureTypes.parse(attributes)
     // check that the only changes are to non-geometry index flags
     val ok = existing.length == updated.length &&
@@ -605,11 +605,17 @@ class AccumuloDataStore(val connector: Connector,
 
   // NB:  By default, AbstractDataStore is "isWriteable".  This means that createFeatureSource returns
   // a featureStore
-  override def getFeatureSource(featureName: String): SimpleFeatureSource = {
-    validateMetadata(featureName)
-    if(!cachingConfig) new AccumuloFeatureStore(this, featureName)
-    else new AccumuloFeatureStore(this, featureName) with CachingFeatureSource
+  override def getFeatureSource(typeName: Name): SimpleFeatureSource = {
+    validateMetadata(typeName.getLocalPart)
+    if (cachingConfig) {
+      new AccumuloFeatureStore(this, typeName) with CachingFeatureSource
+    } else {
+      new AccumuloFeatureStore(this, typeName)
+    }
   }
+
+  override def getFeatureSource(typeName: String): SimpleFeatureSource =
+    getFeatureSource(new NameImpl(typeName))
 
   /**
    * Reads the index schema format out of the metadata
@@ -627,7 +633,7 @@ class AccumuloDataStore(val connector: Connector,
    * @return
    */
   private def getAttributes(featureName: String) =
-    metadata.read(featureName, ATTRIBUTES_KEY).getOrElse(EMPTY_STRING)
+    metadata.read(featureName, ATTRIBUTES_KEY)
 
   /**
    * Reads the feature encoding from the metadata. Defaults to TEXT if there is no metadata.
@@ -693,24 +699,24 @@ class AccumuloDataStore(val connector: Connector,
    * @return the corresponding feature type (schema) for this feature name,
    *         or NULL if this feature name does not appear to exist
    */
-  override def getSchema(featureName: String): SimpleFeatureType =
-    getAttributes(featureName) match {
-      case attributes if attributes.isEmpty =>
-        null
-      case attributes                       =>
-        val sft = SimpleFeatureTypes.createType(featureName, attributes)
-        val dtgField = metadata.read(featureName, DTGFIELD_KEY)
-          .getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
-        val indexSchema = metadata.read(featureName, SCHEMA_KEY).orNull
-        // If no data is written, we default to 'false' in order to support old tables.
-        val sharingBoolean = metadata.read(featureName, SHARED_TABLES_KEY).getOrElse("false")
+  override def getSchema(featureName: String): SimpleFeatureType = getSchema(new NameImpl(featureName))
 
-        sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
-        sft.getUserData.put(core.index.SF_PROPERTY_END_TIME, dtgField)
-        sft.getUserData.put(core.index.SFT_INDEX_SCHEMA, indexSchema)
-        core.index.setTableSharing(sft, new java.lang.Boolean(sharingBoolean))
-        sft
-    }
+  override def getSchema(name: Name): SimpleFeatureType = {
+    val featureName = name.getLocalPart
+    getAttributes(featureName).map { attributes =>
+      val sft = SimpleFeatureTypes.createType(name.getURI, attributes)
+      val dtgField = metadata.read(featureName, DTGFIELD_KEY).getOrElse(core.DEFAULT_DTG_PROPERTY_NAME)
+      val indexSchema = metadata.read(featureName, SCHEMA_KEY).orNull
+      // If no data is written, we default to 'false' in order to support old tables.
+      val sharingBoolean = metadata.read(featureName, SHARED_TABLES_KEY).getOrElse("false")
+
+      sft.getUserData.put(core.index.SF_PROPERTY_START_TIME, dtgField)
+      sft.getUserData.put(core.index.SF_PROPERTY_END_TIME, dtgField)
+      sft.getUserData.put(core.index.SFT_INDEX_SCHEMA, indexSchema)
+      core.index.setTableSharing(sft, new java.lang.Boolean(sharingBoolean))
+      sft
+    }.orNull
+  }
 
   // Implementation of Abstract method
   def getFeatureReader(featureName: String): AccumuloFeatureReader = getFeatureReader(featureName, Query.ALL)

@@ -28,6 +28,7 @@ import org.locationtech.geomesa.core.process.query.QueryVisitor
 import org.locationtech.geomesa.core.process.tube.TubeVisitor
 import org.locationtech.geomesa.core.process.unique.AttributeVisitor
 import org.opengis.feature.FeatureVisitor
+import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortBy
@@ -39,7 +40,7 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
   val dataStore: AccumuloDataStore
-  val featureName: String
+  val featureName: Name
 
   def addFeatureListener(listener: FeatureListener) {}
 
@@ -69,7 +70,7 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
   override def getFeatures(filter: Filter): SimpleFeatureCollection = getFeatures(new Query(getSchema().getTypeName, filter))
 }
 
-class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featureName: String)
+class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featureName: Name)
   extends AccumuloAbstractFeatureSource
 
 class AccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)

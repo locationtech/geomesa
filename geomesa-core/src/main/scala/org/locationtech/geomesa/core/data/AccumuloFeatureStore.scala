@@ -26,12 +26,12 @@ import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess.Definition
 import org.opengis.feature.GeometryAttribute
-import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
+import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.identity.FeatureId
 
-class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: String)
+class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Name)
     extends AbstractFeatureStore with AccumuloAbstractFeatureSource {
   override def addFeatures(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]): JList[FeatureId] = {
     writeBounds(collection.getBounds)
@@ -40,7 +40,7 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: St
 
   def writeBounds(envelope: ReferencedEnvelope) {
     if(envelope != null)
-      dataStore.writeBounds(featureName, envelope)
+      dataStore.writeBounds(featureName.getLocalPart, envelope)
   }
 }
 

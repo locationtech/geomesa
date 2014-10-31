@@ -18,12 +18,12 @@ object SimpleFeatureTypes {
   val TABLE_SPLITTER_OPTIONS = "table.splitter.options"
 
   def createType(nameSpec: String, spec: String): SimpleFeatureType = {
-    val (namespace, name) =
-      nameSpec.split(":").toList match {
-        case n :: Nil => (null, n)
-        case ns :: n :: Nil => (ns, n)
-        case _ => throw new IllegalArgumentException(s"Invalid feature name: $nameSpec")
-      }
+    val nsIndex = nameSpec.lastIndexOf(':')
+    val (namespace, name) = if (nsIndex == -1 || nsIndex == nameSpec.length - 1) {
+      (null, nameSpec)
+    } else {
+      (nameSpec.substring(0, nsIndex), nameSpec.substring(nsIndex + 1))
+    }
 
     val FeatureSpec(attributeSpecs, opts) = parse(spec)
 

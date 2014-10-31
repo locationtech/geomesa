@@ -23,9 +23,29 @@ class SimpleFeatureTypesTest extends Specification {
         val geomDescriptor = sft.getGeometryDescriptor
         geomDescriptor.getLocalName must be equalTo "geom"
       }
-
       "encode an sft properly" >> {
         SimpleFeatureTypes.encodeType(sft) must be equalTo "id:Integer:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true"
+      }
+    }
+
+    "handle namespaces" >> {
+      "simple ones" >> {
+        val sft = SimpleFeatureTypes.createType("ns:testing", "dtg:Date,*geom:Point:srid=4326")
+        sft.getName.getLocalPart mustEqual "testing"
+        sft.getName.getNamespaceURI mustEqual "ns"
+        sft.getTypeName mustEqual("testing")
+      }
+      "complex ones" >> {
+        val sft = SimpleFeatureTypes.createType("http://geomesa/ns:testing", "dtg:Date,*geom:Point:srid=4326")
+        sft.getName.getLocalPart mustEqual "testing"
+        sft.getName.getNamespaceURI mustEqual "http://geomesa/ns"
+        sft.getTypeName mustEqual("testing")
+      }
+      "invalid ones" >> {
+        val sft = SimpleFeatureTypes.createType("http://geomesa/ns:testing:", "dtg:Date,*geom:Point:srid=4326")
+        sft.getName.getLocalPart mustEqual "http://geomesa/ns:testing:"
+        sft.getName.getNamespaceURI must beNull
+        sft.getTypeName mustEqual("http://geomesa/ns:testing:")
       }
     }
 
