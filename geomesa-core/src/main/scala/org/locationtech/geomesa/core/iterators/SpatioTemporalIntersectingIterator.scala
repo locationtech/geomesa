@@ -17,6 +17,7 @@
 package org.locationtech.geomesa.core.iterators
 
 import java.util.{Date, HashSet => JHashSet}
+
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
@@ -31,6 +32,7 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
+
 import scala.collection.JavaConverters._
 
 case class Attribute(name: Text, value: Text)
