@@ -67,9 +67,6 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
 
     featureBuilder = AvroSimpleFeatureFactory.featureBuilder(featureType)
 
-    val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
-    decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
-
     if (options.containsKey(DEFAULT_FILTER_PROPERTY_NAME)) {
       val filterString  = options.get(DEFAULT_FILTER_PROPERTY_NAME)
       filter = ECQL.toFilter(filterString)
