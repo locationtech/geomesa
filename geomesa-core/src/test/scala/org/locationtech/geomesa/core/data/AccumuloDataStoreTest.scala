@@ -1069,7 +1069,6 @@ class AccumuloDataStoreTest extends Specification {
         res.head must beGreaterThan(res(1))
       }
     }
-
   }
 
   def buildTestIndexSchemaFormat(featureName: String) = new IndexSchemaBuilder("~").randomNumber(3).constant(featureName).geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build()
