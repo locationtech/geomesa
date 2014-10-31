@@ -36,7 +36,6 @@ class RasterFilteringIterator extends SortedKeyValueIterator[Key, Value] with Lo
   protected var topValue: Value = null
   protected var nextKey: Key = null
   protected var nextValue: Value = null
-  protected var nextFeature: SimpleFeature = null
 
   protected var filter: org.opengis.filter.Filter = null
   protected var testSimpleFeature: SimpleFeature = null
@@ -74,14 +73,12 @@ class RasterFilteringIterator extends SortedKeyValueIterator[Key, Value] with Lo
     this.rasterSource = source.deepCopy(env)
   }
 
-  def seekData(decodedMetadata: IndexEntry.DecodedCQMetadata): Unit = {
-    // Is this needed?
-    // do we care about the DecodedCQMetadata at this point at all?
+  def seekData(): Unit = {
+    // Is this needed? do we care about the DecodedCQMetadata at this point at all?
     val rasterSourceTopKey = rasterSource.getTopKey
-    val rasterSourceTopVal = rasterSource.getTopValue
     // what else is needed here? something probably done to each val
     nextKey = new Key(rasterSourceTopKey)
-    nextValue = new Value(rasterSourceTopVal)
+    nextValue = rasterSource.getTopValue
   }
 
   /**
@@ -117,7 +114,7 @@ class RasterFilteringIterator extends SortedKeyValueIterator[Key, Value] with Lo
         // stash this ID
         rememberId(decodedMetadata.id)
         // use our seekData function to seek to next key
-        seekData(decodedMetadata)
+        seekData()
       }
       // once you are done with the current nextKey/nextValue, move forward
       // you MUST advance to the next key
