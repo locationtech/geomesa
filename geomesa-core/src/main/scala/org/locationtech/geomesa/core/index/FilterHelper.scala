@@ -18,14 +18,14 @@ package org.locationtech.geomesa.core.index
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Point, Polygon}
+import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Polygon}
 import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.{And, PropertyIsBetween, Filter}
+import org.opengis.filter._
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{During, Before, After}
@@ -131,6 +131,7 @@ object FilterHelper {
   def extractTemporal(filters: Seq[Filter]) = {
     def extractInterval(filter: Filter): Interval = {
       filter match {
+        // NB: Interval semantics correspond to "at or after"
         case after: After =>
           val end = after.getExpression2.evaluate(null, classOf[Date])
           new Interval(new DateTime(end), IndexSchema.maxDateTime)
@@ -146,7 +147,23 @@ object FilterHelper {
           val start = between.getLowerBoundary.evaluate(null, classOf[Date])
           val end = between.getUpperBoundary.evaluate(null, classOf[Date])
           new Interval(start.getTime, end.getTime)
-        case a: Any => throw new Exception(s"Expected temporal filters.  Processing an $a from $filters.")
+          // add new handlers for temporal <, <=, >, >= here.
+        case lt: PropertyIsLessThan =>
+          val start = lt.getExpression2.evaluate(null, classOf[Date])
+          new Interval(IndexSchema.minDateTime, new DateTime(start))
+        // NB: Interval semantics correspond to <
+        case le: PropertyIsLessThanOrEqualTo =>
+          val start = le.getExpression2.evaluate(null, classOf[Date])
+          new Interval(IndexSchema.minDateTime, new DateTime(start))
+        // NB: Interval semantics correspond to >=
+        case gt: PropertyIsGreaterThan =>
+          val end = gt.getExpression2.evaluate(null, classOf[Date])
+          new Interval(new DateTime(end), IndexSchema.maxDateTime)
+        case ge: PropertyIsGreaterThanOrEqualTo =>
+          val end = ge.getExpression2.evaluate(null, classOf[Date])
+          new Interval(new DateTime(end), IndexSchema.maxDateTime)
+        case a: Any =>
+          throw new Exception(s"Expected temporal filters.  Processing an $a from $filters.")
       }
     }
 
