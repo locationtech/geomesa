@@ -23,6 +23,10 @@ import org.locationtech.geomesa.data.TableSplitter
 import scala.collection.JavaConversions._
 
 class DigitSplitter extends TableSplitter {
+  /**
+   * @param options allowed options are "fmt", "min", and "max"
+   * @return
+   */
   override def getSplits(options: util.Map[String, String]): Array[Text] = {
     val fmt = options.getOrElse("fmt", "%01d")
     val min = options.getOrElse("min", "0").toInt
