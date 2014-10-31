@@ -41,6 +41,8 @@ import org.opengis.filter.Filter
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator}
 
+import scala.util.Try
+
 class STIdxStrategy extends Strategy with Logging {
 
   def execute(acc: AccumuloConnectorCreator,
@@ -48,12 +50,22 @@ class STIdxStrategy extends Strategy with Logging {
               featureType: SimpleFeatureType,
               query: Query,
               output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val bs = acc.createSTIdxScanner(featureType)
-    val qp = buildSTIdxQueryPlan(query, iqp, featureType, output)
-    configureBatchScanner(bs, qp)
-    // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
-    //  we wrap our calls in a SelfClosingBatchScanner.
-    SelfClosingBatchScanner(bs)
+    val tryScanner = Try {
+      val bs = acc.createSTIdxScanner(featureType)
+      val qp = buildSTIdxQueryPlan(query, iqp, featureType, output)
+      configureBatchScanner(bs, qp)
+      // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
+      //  we wrap our calls in a SelfClosingBatchScanner.
+      SelfClosingBatchScanner(bs)
+    }
+    val scanner = tryScanner.recover {
+      case e: Throwable =>
+        logger.warn(s"Error in creating scanner: $e")
+        // since GeoTools would eat the error and return no records anyway,
+        // there's no harm in returning an empty iterator.
+        SelfClosingIterator[Entry[Key, Value]](Iterator.empty)
+    }
+    scanner.get
   }
 
   def buildSTIdxQueryPlan(query: Query,
@@ -68,11 +80,13 @@ class STIdxStrategy extends Strategy with Logging {
     output(s"Scanning ST index table for feature type ${featureType.getTypeName}")
     output(s"Filter: ${query.getFilter}")
 
+     val dtgField = getDtgFieldName(featureType)
+
     // TODO: Select only the geometry filters which involve the indexed geometry type.
     // https://geomesa.atlassian.net/browse/GEOMESA-200
     // Simiarly, we should only extract temporal filters for the index date field.
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter)
-    val (temporalFilters, ecqlFilters) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
+    val (temporalFilters, ecqlFilters) = partitionTemporal(otherFilters, dtgField)
 
     val ecql = filterListAsAnd(ecqlFilters).map(ECQL.toCQL)
 
@@ -99,7 +113,7 @@ class STIdxStrategy extends Strategy with Logging {
       case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
     }
 
-    val temporal = extractTemporal(temporalFilters)
+    val temporal = extractTemporal(dtgField)(temporalFilters)
     val interval = netInterval(temporal)
     val geometryToCover = netGeom(collectionToCover)
     val filter = buildFilter(geometryToCover, interval)

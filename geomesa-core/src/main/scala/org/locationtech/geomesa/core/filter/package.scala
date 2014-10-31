@@ -45,7 +45,7 @@ package object filter {
   /**
    *
    * @param x: An arbitrary @org.opengis.filter.Filter
-   * @return   A List[List[Filter]] where the inner List of Filters are to be joined by
+   * @return   A List[ List[Filter] ] where the inner List of Filters are to be joined by
    *           Ands and the outer list combined by Ors.
    */
   private[core] def logicDistribution(x: Filter): List[List[Filter]] = x match {
@@ -94,7 +94,7 @@ package object filter {
   def partitionGeom(filter: Filter) = partitionSubFilters(filter, spatialFilters)
 
   def partitionTemporal(filters: Seq[Filter], dtgAttr: Option[String]): (Seq[Filter], Seq[Filter]) =
-    filters.partition(temporalFilters(_, dtgAttr))
+    dtgAttr.map { dtga => filters.partition(temporalFilters(dtga)) }.getOrElse((Seq(), filters))
 
   def partitionID(filter: Filter) = partitionSubFilters(filter, filterIsId)
 
@@ -114,26 +114,43 @@ package object filter {
 
   // This function identifies filters which are either BinaryTemporal or between filters.
   // Either way, we only want to use filters which use the indexed date attribute.
-  def temporalFilters(f: Filter, dtgAttr: Option[String]): Boolean =
-    filterIsApplicableTemporal(f, dtgAttr) || filterIsBetween(f, dtgAttr)
+  def temporalFilters(dtgAttr: String): Filter => Boolean = {
+    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter
+    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter.ops
+
+    def eitherSideIsAttribute[B](b: B)(implicit bf: BinaryFilter[B]) =
+      dtgAttr == b.left.toString || dtgAttr == b.right.toString
+
+    def filterIsApplicableTemporal: Filter => Boolean = {
+      // TEQUALS can't convert to ECQL, so don't consider it here
+      case _: TEquals => false
+      case bto: BinaryTemporalOperator => eitherSideIsAttribute(bto)
+      case _ => false
+    }
+
+    def filterIsBetween: Filter => Boolean = {
+      case between: PropertyIsBetween => dtgAttr == between.getExpression.toString
+      case _ => false
+    }
+
+    def filterIsComparisonTemporal: Filter => Boolean = {
+      case lt: PropertyIsLessThan             => eitherSideIsAttribute(lt)
+      case le: PropertyIsLessThanOrEqualTo    => eitherSideIsAttribute(le)
+      case gt: PropertyIsGreaterThan          => eitherSideIsAttribute(gt)
+      case ge: PropertyIsGreaterThanOrEqualTo => eitherSideIsAttribute(ge)
+      case _ => false
+    }
+
+    f => filterIsApplicableTemporal(f) ||
+         filterIsBetween(f) ||
+         filterIsComparisonTemporal(f)
+  }
+
 
   def filterIsId(f: Filter): Boolean =
     f match {
       case _: Id => true
       case _     => false
-    }
-
-  def filterIsApplicableTemporal(f: Filter, dtgAttr: Option[String]) =
-    f match {
-      // TEQUALS can't convert to ECQL, so don't consider it here
-      case bto: BinaryTemporalOperator if !f.isInstanceOf[TEquals] => dtgAttr.exists(_ == bto.getExpression1.toString)
-      case _ => false
-    }
-
-  def filterIsBetween(f: Filter, dtgAttr: Option[String]): Boolean =
-    f match {
-      case between: PropertyIsBetween => dtgAttr.exists(_ == between.getExpression.toString)
-      case _ => false
     }
 
 

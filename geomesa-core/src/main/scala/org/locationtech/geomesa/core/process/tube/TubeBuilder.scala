@@ -132,7 +132,7 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
     val buffered = buffer(transformed, bufferDistance)
     val sortedTube = buffered.toSeq.sortBy { sf => getStartTime(sf).getTime }
 
-    println(sortedTube.size)
+    logger.debug(s"sorted tube size: ${sortedTube.size}")
     timeBinAndUnion(sortedTube, maxBins)
   }
 }
