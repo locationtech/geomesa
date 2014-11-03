@@ -22,6 +22,7 @@ import com.vividsolutions.jts.geom.{Geometry, Polygon}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.Query
+import org.joda.time.Interval
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
@@ -133,6 +134,24 @@ trait Strategy {
       val polygon = if (geometryToCover == null) null else geometryToCover.getEnvelope.asInstanceOf[Polygon]
 
       DensityIterator.configure(cfg, polygon, width, height)
+
+      cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
+      configureFeatureEncoding(cfg, featureEncoding)
+      configureFeatureType(cfg, featureType)
+
+      Some(cfg)
+    }
+    else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)){
+      val clazz = classOf[TemporalDensityIterator]
+
+      val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
+        "topfilter-" + randomPrintableString(5),
+        clazz)
+
+      val interval = query.getHints.get(TIME_INTERVAL_KEY).asInstanceOf[Interval]
+      val buckets = query.getHints.get(TIME_BUCKETS_KEY).asInstanceOf[Int]
+
+      TemporalDensityIterator.configure(cfg, interval, buckets)
 
       cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
       configureFeatureEncoding(cfg, featureEncoding)
