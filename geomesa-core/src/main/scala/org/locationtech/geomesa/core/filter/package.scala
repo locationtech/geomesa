@@ -94,10 +94,7 @@ package object filter {
   def partitionGeom(filter: Filter) = partitionSubFilters(filter, spatialFilters)
 
   def partitionTemporal(filters: Seq[Filter], dtgAttr: Option[String]): (Seq[Filter], Seq[Filter]) =
-    dtgAttr match {
-      case None => (Seq(), filters)
-      case Some(dtga) => filters.partition(temporalFilters(dtga))
-    }
+    dtgAttr.map { dtga => filters.partition(temporalFilters(dtga)) }.getOrElse((Seq(), filters))
 
   def partitionID(filter: Filter) = partitionSubFilters(filter, filterIsId)
 

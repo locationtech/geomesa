@@ -30,8 +30,19 @@ class FilterHelperTest extends Specification with Logging {
   val dtFieldName = "dtg"
   val dtp = ff.property(dtFieldName)
 
-  def before(dt: DateTime): Filter = ff.before(dtp, dt2lit(dt))
-  def after(dt: DateTime): Filter = ff.after(dtp, dt2lit(dt))
+  def fAfterDate(dt: DateTime): Filter = ff.after(dtp, dt2lit(dt))
+  def fDateAfter(dt: DateTime): Filter = ff.after(dt2lit(dt), dtp)
+  def fBeforeDate(dt: DateTime): Filter = ff.before(dtp, dt2lit(dt))
+  def fDateBefore(dt: DateTime): Filter = ff.before(dt2lit(dt), dtp)
+
+  def fLTDate(dt: DateTime): Filter = ff.less(dtp, dt2lit(dt))
+  def fDateLT(dt: DateTime): Filter = ff.less(dt2lit(dt), dtp)
+  def fGTDate(dt: DateTime): Filter = ff.greater(dtp, dt2lit(dt))
+  def fDateGT(dt: DateTime): Filter = ff.greater(dt2lit(dt), dtp)
+  def fLEDate(dt: DateTime): Filter = ff.lessOrEqual(dtp, dt2lit(dt))
+  def fDateLE(dt: DateTime): Filter = ff.lessOrEqual(dt2lit(dt), dtp)
+  def fGEDate(dt: DateTime): Filter = ff.greaterOrEqual(dtp, dt2lit(dt))
+  def fDateGE(dt: DateTime): Filter = ff.greaterOrEqual(dt2lit(dt), dtp)
 
   def during(dt1: DateTime, dt2: DateTime): Filter = ff.during(dtp, dts2lit(dt1, dt2))
   def during(dtTuple: (DateTime, DateTime)): Filter = during(dtTuple._1, dtTuple._2)
@@ -60,20 +71,34 @@ class FilterHelperTest extends Specification with Logging {
   }
 
   "extractTemporal " should {
-    "return 0000 to date for Before filters" in {
+    "return 0000 to date for all Before-date and date-After filters" in {
       forall(dts) { dt =>
-        val extractedInterval = extractDT(Seq(before(dt)))
         val expectedInterval = beforeInterval(dt)
-        extractedInterval must equalTo(expectedInterval)
+        extractDT(Seq(fBeforeDate(dt))) must equalTo(expectedInterval)
+        extractDT(Seq(fDateAfter(dt)))  must equalTo(expectedInterval)
+        extractDT(Seq(fLTDate(dt)))     must equalTo(expectedInterval)
+        extractDT(Seq(fLEDate(dt)))     must equalTo(expectedInterval)
+        extractDT(Seq(fDateGT(dt)))     must equalTo(expectedInterval)
+        extractDT(Seq(fDateGE(dt)))     must equalTo(expectedInterval)
       }
     }
 
-    "return date to 9999 for After filters" in {
+    "return date to 9999 for After-date and date-Before filters" in {
       forall(dts) { dt =>
-        val filter = after(dt)
-        val extractedInterval = extractDT(Seq(filter))
         val expectedInterval = afterInterval(dt)
-        println(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
+        extractDT(Seq(fDateBefore(dt))) must equalTo(expectedInterval)
+        extractDT(Seq(fAfterDate(dt)))  must equalTo(expectedInterval)
+        extractDT(Seq(fDateLT(dt)))     must equalTo(expectedInterval)
+        extractDT(Seq(fDateLE(dt)))     must equalTo(expectedInterval)
+        extractDT(Seq(fGTDate(dt)))     must equalTo(expectedInterval)
+        extractDT(Seq(fGEDate(dt)))     must equalTo(expectedInterval)
+      }
+    }
+
+    "return date to 9999 for date-Before filters" in {
+      forall(dts) { dt =>
+        val extractedInterval = extractDT(Seq(fDateBefore(dt)))
+        val expectedInterval = afterInterval(dt)
         extractedInterval must equalTo(expectedInterval)
       }
     }
@@ -128,8 +153,8 @@ class FilterHelperTest extends Specification with Logging {
 
     "return appropriate interval for 'and's of before/after and between/during filters" in {
       forall(dtAndDtPairs) { case (dt, dtPair) =>
-        val afterDtFilter = after(dt)
-        val beforeDtFilter = before(dt)
+        val afterDtFilter = fAfterDate(dt)
+        val beforeDtFilter = fBeforeDate(dt)
 
         val afterDtInterval = afterInterval(dt)
         val beforeDtInterval = beforeInterval(dt)
