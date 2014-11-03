@@ -26,9 +26,9 @@ import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
-import org.opengis.filter.expression.{Literal, PropertyName}
+import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.spatial._
-import org.opengis.filter.temporal.{During, Before, After}
+import org.opengis.filter.temporal.{BinaryTemporalOperator, During, Before, After}
 import org.opengis.temporal.Period
 
 import scala.collection.JavaConversions._
@@ -128,46 +128,76 @@ object FilterHelper {
   }
 
   // NB: This method assumes that the filters represent a collection of 'and'ed temporal filters.
-  def extractTemporal(filters: Seq[Filter]) = {
-    def extractInterval(filter: Filter): Interval = {
-      filter match {
-        // NB: Interval semantics correspond to "at or after"
-        case after: After =>
-          val end = after.getExpression2.evaluate(null, classOf[Date])
-          new Interval(new DateTime(end), IndexSchema.maxDateTime)
-        case before: Before =>
-          val start = before.getExpression2.evaluate(null, classOf[Date])
-          new Interval(IndexSchema.minDateTime, new DateTime(start))
-        case during: During =>
-          val p = during.getExpression2.evaluate(null, classOf[Period])
-          val start = p.getBeginning.getPosition.getDate
-          val end = p.getEnding.getPosition.getDate
-          new Interval(start.getTime, end.getTime)
-        case between: PropertyIsBetween =>
-          val start = between.getLowerBoundary.evaluate(null, classOf[Date])
-          val end = between.getUpperBoundary.evaluate(null, classOf[Date])
-          new Interval(start.getTime, end.getTime)
-          // add new handlers for temporal <, <=, >, >= here.
-        case lt: PropertyIsLessThan =>
-          val start = lt.getExpression2.evaluate(null, classOf[Date])
-          new Interval(IndexSchema.minDateTime, new DateTime(start))
-        // NB: Interval semantics correspond to <
-        case le: PropertyIsLessThanOrEqualTo =>
-          val start = le.getExpression2.evaluate(null, classOf[Date])
-          new Interval(IndexSchema.minDateTime, new DateTime(start))
-        // NB: Interval semantics correspond to >=
-        case gt: PropertyIsGreaterThan =>
-          val end = gt.getExpression2.evaluate(null, classOf[Date])
-          new Interval(new DateTime(end), IndexSchema.maxDateTime)
-        case ge: PropertyIsGreaterThanOrEqualTo =>
-          val end = ge.getExpression2.evaluate(null, classOf[Date])
-          new Interval(new DateTime(end), IndexSchema.maxDateTime)
-        case a: Any =>
-          throw new Exception(s"Expected temporal filters.  Processing an $a from $filters.")
+  def extractTemporal(dtFieldName: Option[String]): Seq[Filter] => Interval = {
+    object BinaryFilter {
+      implicit object BTOIsBinaryFilter extends BinaryFilter[BinaryTemporalOperator] {
+        def left(bto: BinaryTemporalOperator): Expression = bto.getExpression1
+        def right(bto: BinaryTemporalOperator): Expression = bto.getExpression2
+      }
+
+      implicit object BCOIsBinaryFilter extends BinaryFilter[BinaryComparisonOperator] {
+        def left(bco: BinaryComparisonOperator): Expression = bco.getExpression1
+        def right(bco: BinaryComparisonOperator): Expression = bco.getExpression2
       }
     }
 
-    filters.map(extractInterval).fold(IndexSchema.everywhen)( _.overlap(_))
+    trait BinaryFilter[-B] {
+      def left(b: B): Expression
+      def right(b: B): Expression
+    }
+
+    def endpointFromBinaryFilter[B: BinaryFilter](b: B, dtfn: String) = {
+      val exprToDT: Expression => DateTime = ex => new DateTime(ex.evaluate(null, classOf[Date]))
+      val ev = implicitly[BinaryFilter[B]]
+      if (ev.left(b).toString == dtfn) { // the left side is the field name; the right is the endpoint
+        Right(exprToDT(ev.right(b)))
+      } else {                                  // the right side is the field name; the left is the endpoint
+        Left(exprToDT(ev.left(b)))
+      }
+    }
+
+    def intervalFromAfterLike[B: BinaryFilter](b: B, dtfn: String) =
+      endpointFromBinaryFilter(b, dtfn) match {
+        case Right(dt) => new Interval(dt, IndexSchema.maxDateTime)
+        case Left(dt)  => new Interval(IndexSchema.minDateTime, dt)
+      }
+
+    def intervalFromBeforeLike[B: BinaryFilter](b: B, dtfn: String) =
+      endpointFromBinaryFilter(b, dtfn) match {
+        case Right(dt) => new Interval(IndexSchema.minDateTime, dt)
+        case Left(dt)  => new Interval(dt, IndexSchema.maxDateTime)
+      }
+
+    def extractInterval(dtfn: String): Filter => Interval = {
+      case during: During =>
+        val p = during.getExpression2.evaluate(null, classOf[Period])
+        val start = p.getBeginning.getPosition.getDate
+        val end = p.getEnding.getPosition.getDate
+        new Interval(start.getTime, end.getTime)
+      case between: PropertyIsBetween =>
+        val start = between.getLowerBoundary.evaluate(null, classOf[Date])
+        val end = between.getUpperBoundary.evaluate(null, classOf[Date])
+        new Interval(start.getTime, end.getTime)
+      // NB: Interval semantics correspond to "at or after"
+      case after: After =>                        intervalFromAfterLike(after, dtfn)
+      case before: Before =>                      intervalFromBeforeLike(before, dtfn)
+
+      case lt: PropertyIsLessThan =>              intervalFromBeforeLike(lt, dtfn)
+      // NB: Interval semantics correspond to <
+      case le: PropertyIsLessThanOrEqualTo =>     intervalFromBeforeLike(le, dtfn)
+      // NB: Interval semantics correspond to >=
+      case gt: PropertyIsGreaterThan =>           intervalFromAfterLike(gt, dtfn)
+      case ge: PropertyIsGreaterThanOrEqualTo =>  intervalFromAfterLike(ge, dtfn)
+      case a: Any =>
+        throw new Exception(s"Expected temporal filters.  Received an $a.")
+    }
+
+    dtFieldName match {
+      case None =>
+        _ => IndexSchema.everywhen
+      case Some(dtfn) =>
+        filters => filters.map(extractInterval(dtfn)).fold(IndexSchema.everywhen)( _.overlap(_))
+    }
   }
 
   def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = filters match {

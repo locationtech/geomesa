@@ -27,7 +27,8 @@ class FilterHelperTest extends Specification with Logging {
   val dtPairs: Seq[(DateTime, DateTime)] = dts.combinations(2).map(sortDates).toSeq
   val dtAndDtPairs = for( dt <- dts; dtPair <- dtPairs) yield (dt, dtPair)
 
-  val dtp = ff.property("dtg")
+  val dtFieldName = "dtg"
+  val dtp = ff.property(dtFieldName)
 
   def before(dt: DateTime): Filter = ff.before(dtp, dt2lit(dt))
   def after(dt: DateTime): Filter = ff.after(dtp, dt2lit(dt))
@@ -42,11 +43,13 @@ class FilterHelperTest extends Specification with Logging {
   def afterInterval(dt: DateTime): Interval   = new Interval(dt, max)
   def beforeInterval(dt: DateTime): Interval  = new Interval(min, dt)
 
+  val extractDT = extractTemporal(Some(dtFieldName))
+
   def extractInterval(fs: String): Interval = {
     val filter = ECQL.toFilter(fs)
 
     val filters = decomposeAnd(filter)
-    extractTemporal(filters)
+    extractDT(filters)
   }
 
   def sortDates(dates: Seq[DateTime]): (DateTime, DateTime) = {
@@ -59,7 +62,7 @@ class FilterHelperTest extends Specification with Logging {
   "extractTemporal " should {
     "return 0000 to date for Before filters" in {
       forall(dts) { dt =>
-        val extractedInterval = extractTemporal(Seq(before(dt)))
+        val extractedInterval = extractDT(Seq(before(dt)))
         val expectedInterval = beforeInterval(dt)
         extractedInterval must equalTo(expectedInterval)
       }
@@ -68,7 +71,7 @@ class FilterHelperTest extends Specification with Logging {
     "return date to 9999 for After filters" in {
       forall(dts) { dt =>
         val filter = after(dt)
-        val extractedInterval = extractTemporal(Seq(filter))
+        val extractedInterval = extractDT(Seq(filter))
         val expectedInterval = afterInterval(dt)
         println(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)
@@ -80,7 +83,7 @@ class FilterHelperTest extends Specification with Logging {
 
         val filter = during(start, end)
 
-        val extractedInterval = extractTemporal(Seq(filter))
+        val extractedInterval = extractDT(Seq(filter))
         val expectedInterval = new Interval(start, end)
         println(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)
@@ -92,7 +95,7 @@ class FilterHelperTest extends Specification with Logging {
 
         val filter = between(start, end)
 
-        val extractedInterval = extractTemporal(Seq(filter))
+        val extractedInterval = extractDT(Seq(filter))
         val expectedInterval = new Interval(start, end)
         println(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)
@@ -109,10 +112,10 @@ class FilterHelperTest extends Specification with Logging {
         val mixedFilters1 = Seq(during(t1), between(t2))
         val mixedFilters2 = Seq(between(t1), during(t2))
 
-        val extractedBetweenInterval = extractTemporal(betweenFilters)
-        val extractedDuringInterval = extractTemporal(duringFilters)
-        val extractedMixed1Interval = extractTemporal(mixedFilters1)
-        val extractedMixed2Interval = extractTemporal(mixedFilters2)
+        val extractedBetweenInterval = extractDT(betweenFilters)
+        val extractedDuringInterval = extractDT(duringFilters)
+        val extractedMixed1Interval = extractDT(mixedFilters1)
+        val extractedMixed2Interval = extractDT(mixedFilters2)
 
         val expectedInterval = interval(t1).overlap(interval(t2))
         println(s"Extracted interval $extractedBetweenInterval from filters ${betweenFilters.map(ECQL.toCQL)}")
@@ -135,19 +138,19 @@ class FilterHelperTest extends Specification with Logging {
         val duringFilter = during(dtPair)
         val pairInterval = interval(dtPair)
 
-        val afterAndBetween = extractTemporal(Seq(afterDtFilter, betweenFilter))
+        val afterAndBetween = extractDT(Seq(afterDtFilter, betweenFilter))
         val afterAndBetweenInterval = afterDtInterval.overlap(pairInterval)
         afterAndBetween must equalTo(afterAndBetweenInterval)
 
-        val beforeAndBetween = extractTemporal(Seq(beforeDtFilter, betweenFilter))
+        val beforeAndBetween = extractDT(Seq(beforeDtFilter, betweenFilter))
         val beforeAndBetweenInterval = beforeDtInterval.overlap(pairInterval)
         beforeAndBetween must equalTo(beforeAndBetweenInterval)
 
-        val afterAndDuring = extractTemporal(Seq(afterDtFilter, duringFilter))
+        val afterAndDuring = extractDT(Seq(afterDtFilter, duringFilter))
         val afterAndDuringInterval = afterDtInterval.overlap(pairInterval)
         afterAndDuring must equalTo(afterAndDuringInterval)
 
-        val beforeAndDuring = extractTemporal(Seq(beforeDtFilter, duringFilter))
+        val beforeAndDuring = extractDT(Seq(beforeDtFilter, duringFilter))
         val beforeAndDuringInterval = beforeDtInterval.overlap(pairInterval)
         beforeAndDuring must equalTo(beforeAndDuringInterval)
       }
