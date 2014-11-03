@@ -129,30 +129,15 @@ object FilterHelper {
 
   // NB: This method assumes that the filters represent a collection of 'and'ed temporal filters.
   def extractTemporal(dtFieldName: Option[String]): Seq[Filter] => Interval = {
-    object BinaryFilter {
-      implicit object BTOIsBinaryFilter extends BinaryFilter[BinaryTemporalOperator] {
-        def left(bto: BinaryTemporalOperator): Expression = bto.getExpression1
-        def right(bto: BinaryTemporalOperator): Expression = bto.getExpression2
-      }
-
-      implicit object BCOIsBinaryFilter extends BinaryFilter[BinaryComparisonOperator] {
-        def left(bco: BinaryComparisonOperator): Expression = bco.getExpression1
-        def right(bco: BinaryComparisonOperator): Expression = bco.getExpression2
-      }
-    }
-
-    trait BinaryFilter[-B] {
-      def left(b: B): Expression
-      def right(b: B): Expression
-    }
+    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter
+    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter.ops
 
     def endpointFromBinaryFilter[B: BinaryFilter](b: B, dtfn: String) = {
       val exprToDT: Expression => DateTime = ex => new DateTime(ex.evaluate(null, classOf[Date]))
-      val ev = implicitly[BinaryFilter[B]]
-      if (ev.left(b).toString == dtfn) { // the left side is the field name; the right is the endpoint
-        Right(exprToDT(ev.right(b)))
-      } else {                                  // the right side is the field name; the left is the endpoint
-        Left(exprToDT(ev.left(b)))
+      if (b.left.toString == dtfn) {
+        Right(exprToDT(b.right))  // the left side is the field name; the right is the endpoint
+      } else {
+        Left(exprToDT(b.left))    // the right side is the field name; the left is the endpoint
       }
     }
 

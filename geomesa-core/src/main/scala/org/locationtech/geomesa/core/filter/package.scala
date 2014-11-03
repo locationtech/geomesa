@@ -115,10 +115,16 @@ package object filter {
   // This function identifies filters which are either BinaryTemporal or between filters.
   // Either way, we only want to use filters which use the indexed date attribute.
   def temporalFilters(dtgAttr: String): Filter => Boolean = {
+    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter
+    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter.ops
+
+    def eitherSideIsAttribute[B](b: B)(implicit bf: BinaryFilter[B]) =
+      dtgAttr == b.left.toString || dtgAttr == b.right.toString
+
     def filterIsApplicableTemporal: Filter => Boolean = {
       // TEQUALS can't convert to ECQL, so don't consider it here
       case _: TEquals => false
-      case bto: BinaryTemporalOperator => dtgAttr == bto.getExpression1.toString
+      case bto: BinaryTemporalOperator => eitherSideIsAttribute(bto)
       case _ => false
     }
 
@@ -127,17 +133,17 @@ package object filter {
       case _ => false
     }
 
-    def filterIsComparison: Filter => Boolean = {
-      case lt: PropertyIsLessThan             => dtgAttr == lt.getExpression1.toString
-      case le: PropertyIsLessThanOrEqualTo    => dtgAttr == le.getExpression1.toString
-      case gt: PropertyIsGreaterThan          => dtgAttr == gt.getExpression1.toString
-      case ge: PropertyIsGreaterThanOrEqualTo => dtgAttr == ge.getExpression1.toString
+    def filterIsComparisonTemporal: Filter => Boolean = {
+      case lt: PropertyIsLessThan             => eitherSideIsAttribute(lt)
+      case le: PropertyIsLessThanOrEqualTo    => eitherSideIsAttribute(le)
+      case gt: PropertyIsGreaterThan          => eitherSideIsAttribute(gt)
+      case ge: PropertyIsGreaterThanOrEqualTo => eitherSideIsAttribute(ge)
       case _ => false
     }
 
     f => filterIsApplicableTemporal(f) ||
          filterIsBetween(f) ||
-         filterIsComparison(f)
+         filterIsComparisonTemporal(f)
   }
 
 

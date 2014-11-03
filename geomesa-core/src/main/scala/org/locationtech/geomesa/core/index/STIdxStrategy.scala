@@ -41,6 +41,8 @@ import org.opengis.filter.Filter
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator}
 
+import scala.util.Try
+
 class STIdxStrategy extends Strategy with Logging {
 
   def execute(acc: AccumuloConnectorCreator,
@@ -48,12 +50,22 @@ class STIdxStrategy extends Strategy with Logging {
               featureType: SimpleFeatureType,
               query: Query,
               output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val bs = acc.createSTIdxScanner(featureType)
-    val qp = buildSTIdxQueryPlan(query, iqp, featureType, output)
-    configureBatchScanner(bs, qp)
-    // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
-    //  we wrap our calls in a SelfClosingBatchScanner.
-    SelfClosingBatchScanner(bs)
+    val tryScanner = Try {
+      val bs = acc.createSTIdxScanner(featureType)
+      val qp = buildSTIdxQueryPlan(query, iqp, featureType, output)
+      configureBatchScanner(bs, qp)
+      // NB: Since we are (potentially) gluing multiple batch scanner iterators together,
+      //  we wrap our calls in a SelfClosingBatchScanner.
+      SelfClosingBatchScanner(bs)
+    }
+    val scanner = tryScanner.recover {
+      case e: Throwable =>
+        logger.warn(s"Error in creating scanner: $e")
+        // since GeoTools would eat the error and return no records anyway,
+        // there's no harm in returning an empty iterator.
+        SelfClosingIterator[Entry[Key, Value]](Iterator.empty)
+    }
+    scanner.get
   }
 
   def buildSTIdxQueryPlan(query: Query,
