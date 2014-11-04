@@ -64,9 +64,10 @@ object SimpleFeatureTypes {
   def encodeType(sft: SimpleFeatureType): String =
     sft.getAttributeDescriptors.map { ad => AttributeSpecFactory.fromAttributeDescriptor(sft, ad).toSpec }.mkString(",")
 
-
-  def getIndexedAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] =
-    sft.getAttributeDescriptors.filter(_.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean])
+  def getSecondaryIndexedAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] =
+    sft.getAttributeDescriptors
+      .filter(_.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean])
+      .filterNot(_.isInstanceOf[GeometryDescriptor])
 
   object AttributeSpecFactory {
     def fromAttributeDescriptor(sft: SimpleFeatureType, ad: AttributeDescriptor) = ad.getType match {

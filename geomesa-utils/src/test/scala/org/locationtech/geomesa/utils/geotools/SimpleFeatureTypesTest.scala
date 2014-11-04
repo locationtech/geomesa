@@ -92,16 +92,15 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getName.getNamespaceURI must be equalTo "foo"
     }
 
-    "return the indexed attributes" >> {
+    "return the indexed attributes (not including the default geometry)" >> {
       val sft = SimpleFeatureTypes.createType("testing", "id:Integer:index=false,dtg:Date:index=true,*geom:Point:srid=4326:index=true")
-      val indexed = SimpleFeatureTypes.getIndexedAttributes(sft)
-      indexed.map(_.getLocalName) must containTheSameElementsAs(List("dtg", "geom"))
+      val indexed = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
+      indexed.map(_.getLocalName) must containTheSameElementsAs(List("dtg"))
     }
 
     "set index=true for a default geometry" >> {
       val sft = SimpleFeatureTypes.createType("testing", "id:Integer:index=false,dtg:Date:index=true,*geom:Point:srid=4326:index=false")
-      val indexed = SimpleFeatureTypes.getIndexedAttributes(sft).map(_.getLocalName)
-      indexed must contain("geom")
+      sft.getGeometryDescriptor.getUserData.get("index").asInstanceOf[Boolean] must beTrue
     }
 
     "handle list types" >> {
