@@ -18,13 +18,17 @@ package org.locationtech.geomesa.core.iterators
 import java.util.{Date, UUID, Map => JMap}
 
 import org.apache.accumulo.core.client.{IteratorSetting, ScannerBase}
+import org.apache.accumulo.core.client.mapreduce.InputFormatBase
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SkippingIterator, SortedKeyValueIterator}
+import org.apache.hadoop.mapreduce.Job
 import org.locationtech.geomesa.core.iterators.TimestampRangeIterator._
 
 import scala.collection.JavaConverters._
 
 object TimestampRangeIterator {
+  private val defaultPriority = 1
+
   def setupIterator(scanner: ScannerBase, startTime: Date, endTime: Date, priority: Int) {
     val iteratorName: String = "tri-" + UUID.randomUUID.toString
     val cfg = new IteratorSetting(priority, iteratorName, classOf[TimestampRangeIterator])
@@ -34,7 +38,19 @@ object TimestampRangeIterator {
   }
 
   def setupIterator(scanner: ScannerBase, startTime: Date, endTime: Date) {
-    setupIterator(scanner, startTime, endTime, 1)
+    setupIterator(scanner, startTime, endTime, defaultPriority)
+  }
+
+  def setupIterator(job: Job, startTime: Date, endTime: Date, priority: Int) {
+    val iteratorName: String = "tri-" + UUID.randomUUID.toString
+    val cfg = new IteratorSetting(priority, iteratorName, classOf[TimestampRangeIterator])
+    cfg.addOptions(Map(startOption -> (startTime.getTime / 1000).toString,
+                       endOption   -> (endTime.getTime / 1000).toString).asJava)
+    InputFormatBase.addIterator(job.getConfiguration, cfg)
+  }
+
+  def setupIterator(job: Job, startTime: Date, endTime: Date) {
+    setupIterator(job, startTime, endTime, defaultPriority)
   }
 
   var startOption: String = "startOption"
