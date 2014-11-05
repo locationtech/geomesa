@@ -30,23 +30,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-process</artifactId>
-                <version>${gt.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-coverage</artifactId>
-                <version>${gt.version}</version>
-                <scope>provided</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -132,6 +115,18 @@
             <groupId>org.geotools.ogc</groupId>
             <artifactId>net.opengis.wfs</artifactId>
             <version>${gt.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- excluded due to license issues -->
+                    <groupId>javax.media</groupId>
+                    <artifactId>jai_core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-coverage</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
