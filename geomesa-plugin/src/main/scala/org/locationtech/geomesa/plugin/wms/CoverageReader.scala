@@ -156,7 +156,7 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
         val endDate = dateRange.getMaxValue
         TimestampRangeIterator.setupIterator(scanner, startDate, endDate)
       case None =>
-        val name = "version-" + Random.alphanumeric.take(5)
+        val name = "version-" + Random.alphanumeric.take(5).mkString
         val cfg = new IteratorSetting(2, name, classOf[VersioningIterator])
         VersioningIterator.setMaxVersions(cfg, 1)
         scanner.addScanIterator(cfg)
