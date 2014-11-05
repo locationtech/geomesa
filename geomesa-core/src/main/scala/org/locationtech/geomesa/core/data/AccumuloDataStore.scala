@@ -337,7 +337,7 @@ class AccumuloDataStore(val connector: Connector,
 
   // configure splits for each of the attribute names
   def configureAttrIdxTable(featureType: SimpleFeatureType, attributeIndexTable: String): Unit = {
-    val indexedAttrs = SimpleFeatureTypes.getIndexedAttributes(featureType)
+    val indexedAttrs = SimpleFeatureTypes.getSecondaryIndexedAttributes(featureType)
     if (!indexedAttrs.isEmpty) {
       val prefix = index.getTableSharingPrefix(featureType)
       val prefixFn = AttributeTable.getAttributeIndexRowPrefix(prefix, _: AttributeDescriptor)
