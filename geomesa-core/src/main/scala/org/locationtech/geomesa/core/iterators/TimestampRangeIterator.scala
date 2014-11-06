@@ -27,6 +27,8 @@ import org.locationtech.geomesa.core.iterators.TimestampRangeIterator._
 import scala.collection.JavaConverters._
 
 object TimestampRangeIterator {
+  private val defaultPriority = 1
+
   def setupIterator(scanner: ScannerBase, startTime: Date, endTime: Date, priority: Int) {
     val iteratorName: String = "tri-" + UUID.randomUUID.toString
     val cfg = new IteratorSetting(priority, iteratorName, classOf[TimestampRangeIterator])
@@ -36,7 +38,7 @@ object TimestampRangeIterator {
   }
 
   def setupIterator(scanner: ScannerBase, startTime: Date, endTime: Date) {
-    setupIterator(scanner, startTime, endTime, 1)
+    setupIterator(scanner, startTime, endTime, defaultPriority)
   }
 
   def setupIterator(job: Job, startTime: Date, endTime: Date, priority: Int) {
@@ -48,7 +50,7 @@ object TimestampRangeIterator {
   }
 
   def setupIterator(job: Job, startTime: Date, endTime: Date) {
-    setupIterator(job, startTime, endTime, 1)
+    setupIterator(job, startTime, endTime, defaultPriority)
   }
 
   var startOption: String = "startOption"

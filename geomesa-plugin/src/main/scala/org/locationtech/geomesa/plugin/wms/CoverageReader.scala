@@ -152,11 +152,7 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
 
   def getScanBuffers(bbox: BoundingBox, timeParam: Option[Either[Date, DateRange]], xDim:Int, yDim:Int) = {
     val scanner = connector.createBatchScanner(table, auths, 10)
-    for{column <- columns
-        (columnFamily: String, columnQualifier: String) = column
-    } {
-      scanner.fetchColumn(new Text(columnFamily), new Text(columnQualifier))
-    }
+    columns.foreach{ case (cf: String, cq: String) => scanner.fetchColumn(new Text(cf), new Text(cq))}
 
     val ranges = BoundingBoxUtil.getRangesByRow(BoundingBox.getGeoHashesFromBoundingBox(bbox))
     scanner.setRanges(ranges)
@@ -219,11 +215,8 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
       // entries to scan for timestamps
       val scanner: Scanner = connector.createScanner(table, auths)
       scanner.setRange(new org.apache.accumulo.core.data.Range("~METADATA"))
-      for{column <- columns
-          (columnFamily: String, _) = column
-      } {
-        scanner.fetchColumn(new Text(columnFamily), new Text("count"))
-      }
+      columns.foreach{ case (cf: String, _) => scanner.fetchColumn(new Text(cf), new Text("count"))}
+
       val dtListString =
         scanner
           .iterator()
