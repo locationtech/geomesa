@@ -47,6 +47,8 @@ object QueryPlanner {
   val iteratorPriority_SpatioTemporalIterator          = 200
   val iteratorPriority_SimpleFeatureFilteringIterator  = 300
   val iteratorPriority_AnalysisIterator                = 400
+
+  val zeroPoint = (new GeometryFactory()).createPoint(new Coordinate(0,0))
 }
 
 case class QueryPlanner(schema: String,
@@ -100,7 +102,7 @@ case class QueryPlanner(schema: String,
         Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
       case true => splitQueryOnOrs(query, output)
     }
-    
+
     queries.ciFlatMap(configureScanners(acc, sft, _, (isDensity || isTemporalDensity ), output))
   }
 
@@ -185,7 +187,8 @@ case class QueryPlanner(schema: String,
       val featureBuilder = AvroSimpleFeatureFactory.featureBuilder(returnSFT)
       featureBuilder.reset()
       featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
-      featureBuilder.add(WKTUtils.read("Point(0 0)")) //BAD BAD BAD BAD BAD OKAY
+
+      featureBuilder.add(QueryPlanner.zeroPoint) //Filler value as Feature requires a geometry
       val result = featureBuilder.buildFeature(null)
 
       //TODO is this right? How do I wrap the sf in a closeable iterator?
