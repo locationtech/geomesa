@@ -121,7 +121,7 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
     if(topSourceKey != null) {
       featureBuilder.reset()
       featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(result))
-      featureBuilder.add(WKTUtils.read("Point(0 0)")) //BAD BAD BAD BAD BAD OKAY
+      featureBuilder.add(TemporalDensityIterator.zeroPoint) //Filler value as Feature requires a geometry
       val feature = featureBuilder.buildFeature(Random.nextString(6))
       topTemporalDensityKey = Some(topSourceKey)
       topTemporalDensityValue = Some(new Value(temporalDensityFeatureEncoder.encode(feature)))
@@ -165,6 +165,9 @@ object TemporalDensityIterator extends Logging {
   val BUCKETS_KEY = "geomesa.temporal.density.buckets"
   val ENCODED_TIME_SERIES: String = "timeseries"
   val TEMPORAL_DENSITY_FEATURE_STRING = s"$ENCODED_TIME_SERIES:String,geom:Geometry"
+
+  val zeroPoint = (new GeometryFactory()).createPoint(new Coordinate(0,0))
+
 
   type TimeSeries = collection.mutable.HashMap[DateTime, Long]
 
