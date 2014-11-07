@@ -80,7 +80,7 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
     simpleFeatureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
     simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
-    dateTimeFieldName = getDtgFieldName(simpleFeatureType).get // BAD
+    dateTimeFieldName = getDtgFieldName(simpleFeatureType).getOrElse ( throw new IllegalArgumentException("dtg field required"))
 
     // default to text if not found for backwards compatibility
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
