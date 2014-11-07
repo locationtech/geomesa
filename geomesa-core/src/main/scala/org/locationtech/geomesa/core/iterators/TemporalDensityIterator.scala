@@ -69,11 +69,6 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
 
   var dateTimeFieldName: String = null
 
-  if (other != null && env != null) {
-    source = other.source.deepCopy(env)
-    simpleFeatureType = other.simpleFeatureType
-  }
-
   def this() = this(null, null)
 
   def init(source: SortedKeyValueIterator[Key, Value],

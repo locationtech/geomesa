@@ -90,22 +90,20 @@ case class QueryPlanner(schema: String,
     val ff = CommonFactoryFinder.getFilterFactory2
     val isDensity = query.getHints.containsKey(BBOX_KEY)
     val isTemporalDensity = query.getHints.containsKey(TIME_BUCKETS_KEY)
-    val queries: Iterator[Query] =
-      if(isDensity) {
+    val queries: Iterator[Query] = true match {
+      case `isDensity` =>
         val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
         val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
         Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
-      }
-      else if(isTemporalDensity){
+      case `isTemporalDensity` =>
         val q1 = new Query(featureType.getTypeName)
         Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
-        } else {
-        splitQueryOnOrs(query, output)
-      }
-    val isADensity = isTemporalDensity || isDensity
-    queries.ciFlatMap(configureScanners(acc, sft, _, isADensity, output))
+      case true => splitQueryOnOrs(query, output)
+    }
+    
+    queries.ciFlatMap(configureScanners(acc, sft, _, (isDensity || isTemporalDensity ), output))
   }
-  
+
   def splitQueryOnOrs(query: Query, output: ExplainerOutputType): Iterator[Query] = {
     val originalFilter = query.getFilter
     output(s"Originalfilter is $originalFilter")
@@ -188,7 +186,7 @@ case class QueryPlanner(schema: String,
       featureBuilder.reset()
       featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
       featureBuilder.add(WKTUtils.read("Point(0 0)")) //BAD BAD BAD BAD BAD OKAY
-      val result = featureBuilder.buildFeature(Random.nextString(6))
+      val result = featureBuilder.buildFeature(null)
 
       //TODO is this right? How do I wrap the sf in a closeable iterator?
       List(result).iterator
