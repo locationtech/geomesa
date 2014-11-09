@@ -91,19 +91,16 @@ case class QueryPlanner(schema: String,
                   output: ExplainerOutputType = log): CloseableIterator[Entry[Key,Value]] = {
     val ff = CommonFactoryFinder.getFilterFactory2
     val isDensity = query.getHints.containsKey(BBOX_KEY)
-    val isTemporalDensity = query.getHints.containsKey(TIME_BUCKETS_KEY)
-    val queries: Iterator[Query] = true match {
-      case `isDensity` =>
+    val queries: Iterator[Query] =
+      if(isDensity) {
         val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
         val q1 = new Query(featureType.getTypeName, ff.bbox(ff.property(featureType.getGeometryDescriptor.getLocalName), env))
         Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
-      case `isTemporalDensity` =>
-        val q1 = new Query(featureType.getTypeName)
-        Iterator(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
-      case true => splitQueryOnOrs(query, output)
-    }
+      } else {
+        splitQueryOnOrs(query, output)
+      }
 
-    queries.ciFlatMap(configureScanners(acc, sft, _, (isDensity || isTemporalDensity ), output))
+    queries.ciFlatMap(configureScanners(acc, sft, _, isDensity, output))
   }
 
   def splitQueryOnOrs(query: Query, output: ExplainerOutputType): Iterator[Query] = {
