@@ -26,7 +26,6 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
  */
 object GeometryUtils {
 
-  val geoCalc = new GeodeticCalculator(DefaultGeographicCRS.WGS84)
   val geoFactory = JTSFactoryFinder.getGeometryFactory
 
   /** Convert meters to dec degrees based on widest point in dec degrees of circles at bounding box corners */

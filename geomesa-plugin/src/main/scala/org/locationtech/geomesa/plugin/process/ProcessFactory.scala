@@ -34,8 +34,5 @@ class ProcessFactory
     classOf[ProximitySearchProcess],
     classOf[QueryProcess],
     classOf[KNearestNeighborSearchProcess],
-    classOf[DBSCANProcess],
     classOf[UniqueProcess]
   )
-
-
