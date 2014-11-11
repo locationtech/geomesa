@@ -69,7 +69,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   extends SimpleFeatureWriter
           with Logging {
 
-  val indexedAttributes = SimpleFeatureTypes.getIndexedAttributes(featureType)
+  val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(featureType)
 
   val connector = ds.connector
 

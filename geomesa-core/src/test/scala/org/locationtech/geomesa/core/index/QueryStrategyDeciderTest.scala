@@ -20,6 +20,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.filter.TestFilters._
+import org.locationtech.geomesa.core.util.SftBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -30,22 +31,22 @@ import scala.reflect.ClassTag
 @RunWith(classOf[JUnitRunner])
 class QueryStrategyDeciderTest extends Specification {
 
-  val sftIndex = SimpleFeatureTypes.createType("feature",
-      "id:Integer:index=false," +
-      "*geom:Point:srid=4326:index=true," +
-      "dtg:Date," +
-      "attr1:String:index=false," +
-      "attr2:String:index=true," +
-      "dtgNonIdx:Date:index=false")
-  val sftNonIndex = SimpleFeatureTypes.createType("featureNonIndex",
-      "id:Integer," +
-      "*geom:Point:srid=4326," +
-      "dtg:Date," +
-      "attr1:String," +
-      "attr2:String")
+  val sftIndex = new SftBuilder()
+    .intType("id")
+    .point("geom", default=true, index=true)
+    .date("dtg", default=true)
+    .stringType("attr1")
+    .stringType("attr2", true)
+    .date("dtgNonIdx")
+    .build("feature")
 
-  sftIndex.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
-  sftNonIndex.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+  val sftNonIndex = new SftBuilder()
+    .intType("id")
+    .point("geom", default=true)
+    .date("dtg", default=true)
+    .stringType("attr1")
+    .stringType("attr2")
+    .build("featureNonIndex")
 
   def getStrategy(filterString: String, isCatalogTable: Boolean = true): Strategy = {
     val sft = if (isCatalogTable) sftIndex else sftNonIndex

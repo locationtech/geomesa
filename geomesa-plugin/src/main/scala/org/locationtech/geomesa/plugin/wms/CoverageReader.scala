@@ -55,14 +55,21 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
 
   logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
 
-  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)/(.*)/(.*)#resolution=([0-9]*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
-  val FORMAT(user, password, instanceId, table, columnFamily, columnQualifier, resolutionStr, zookeepers, authtokens) = url
+  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#columns=(.*)#resolution=([0-9]*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
+  val FORMAT(user, password, instanceId, table, columnsStr, resolutionStr, zookeepers, authtokens) = url
 
-  logger.debug(s"extracted user $user, password ********, instance id $instanceId, table $table, column family $columnFamily, " +
-               s"column qualifier $columnQualifier, resolution $resolutionStr, zookeepers $zookeepers, auths ********")
+  logger.debug(s"extracted user $user, password ********, instance id $instanceId, table $table, columns $columnsStr, " +
+               s"resolution $resolutionStr, zookeepers $zookeepers, auths ********")
 
-  coverageName = table + ":" + columnFamily + ":" + columnQualifier
-  val metaRow = new Text("~" + columnFamily + "~" + columnQualifier)
+  coverageName = table + ":" + columnsStr
+  val columns = columnsStr.split(",").map(_.split(":").take(2) match {
+    case Array(columnFamily, columnQualifier, _) => (columnFamily, columnQualifier)
+    case Array(columnFamily) => (columnFamily, "")
+    case _ =>
+  })
+  val metaRows = columns.map{
+    case (columnFamily, columnQualifier) => new Text("~" + columnFamily + "~" + columnQualifier)
+  }
 
   this.crs = AbstractGridFormat.getDefaultCRS
   this.originalEnvelope = new GeneralEnvelope(Array(-180.0, -90.0), Array(180.0, 90.0))
@@ -80,11 +87,12 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
 
   lazy val metaData: Map[String,String] = {
     val scanner: Scanner = connector.createScanner(table, auths)
-    scanner.setRange(new org.apache.accumulo.core.data.Range(metaRow))
-    scanner
-      .iterator()
-      .map(entry => (entry.getKey.getColumnFamily.toString, entry.getKey.getColumnQualifier.toString))
-      .toMap
+    for(metaRow <- metaRows) {
+      scanner.setRange(new org.apache.accumulo.core.data.Range(metaRow))
+    }
+    scanner.iterator()
+    .map(entry => (entry.getKey.getColumnFamily.toString, entry.getKey.getColumnQualifier.toString))
+    .toMap
   }
 
   /**
@@ -144,7 +152,8 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
 
   def getScanBuffers(bbox: BoundingBox, timeParam: Option[Either[Date, DateRange]], xDim:Int, yDim:Int) = {
     val scanner = connector.createBatchScanner(table, auths, 10)
-    scanner.fetchColumn(new Text(columnFamily), new Text(columnQualifier))
+    columns.foreach{ case (cf: String, cq: String) => scanner.fetchColumn(new Text(cf), new Text(cq))}
+
     val ranges = BoundingBoxUtil.getRangesByRow(BoundingBox.getGeoHashesFromBoundingBox(bbox))
     scanner.setRanges(ranges)
 
@@ -156,7 +165,7 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
         val endDate = dateRange.getMaxValue
         TimestampRangeIterator.setupIterator(scanner, startDate, endDate)
       case None =>
-        val name = "version-" + Random.alphanumeric.take(5)
+        val name = "version-" + Random.alphanumeric.take(5).mkString
         val cfg = new IteratorSetting(2, name, classOf[VersioningIterator])
         VersioningIterator.setMaxVersions(cfg, 1)
         scanner.addScanIterator(cfg)
@@ -206,7 +215,7 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
       // entries to scan for timestamps
       val scanner: Scanner = connector.createScanner(table, auths)
       scanner.setRange(new org.apache.accumulo.core.data.Range("~METADATA"))
-      scanner.fetchColumn(new Text(columnFamily), new Text("count"))
+      columns.foreach{ case (cf: String, _) => scanner.fetchColumn(new Text(cf), new Text("count"))}
 
       val dtListString =
         scanner

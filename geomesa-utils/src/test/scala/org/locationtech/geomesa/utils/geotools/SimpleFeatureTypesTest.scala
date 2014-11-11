@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.locationtech.geomesa.utils.geotools
 
 import org.junit.runner.RunWith
@@ -77,16 +92,15 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getName.getNamespaceURI must be equalTo "foo"
     }
 
-    "return the indexed attributes" >> {
+    "return the indexed attributes (not including the default geometry)" >> {
       val sft = SimpleFeatureTypes.createType("testing", "id:Integer:index=false,dtg:Date:index=true,*geom:Point:srid=4326:index=true")
-      val indexed = SimpleFeatureTypes.getIndexedAttributes(sft)
-      indexed.map(_.getLocalName) must containTheSameElementsAs(List("dtg", "geom"))
+      val indexed = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
+      indexed.map(_.getLocalName) must containTheSameElementsAs(List("dtg"))
     }
 
     "set index=true for a default geometry" >> {
       val sft = SimpleFeatureTypes.createType("testing", "id:Integer:index=false,dtg:Date:index=true,*geom:Point:srid=4326:index=false")
-      val indexed = SimpleFeatureTypes.getIndexedAttributes(sft).map(_.getLocalName)
-      indexed must contain("geom")
+      sft.getGeometryDescriptor.getUserData.get("index").asInstanceOf[Boolean] must beTrue
     }
 
     "handle list types" >> {

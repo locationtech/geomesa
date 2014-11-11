@@ -16,9 +16,9 @@
 
 package org.locationtech.geomesa.plugin.wms
 
-import java.awt.Point
+import java.awt.color.ColorSpace
 import java.awt.image._
-import javax.media.jai.{PlanarImage, RasterFactory}
+import java.awt.{Point, Transparency}
 
 import org.locationtech.geomesa.utils.geohash.{GeoHash, TwoGeoHashBoundingBox}
 
@@ -84,14 +84,19 @@ object ImageUtils {
 
   def drawImage(buffer: Array[Array[Byte]], xdim: Int, ydim: Int): BufferedImage = {
     val dbuffer: DataBufferByte = new DataBufferByte(buffer, xdim * ydim)
-    val sampleModel: SampleModel = RasterFactory.createBandedSampleModel(DataBuffer.TYPE_BYTE,
-                                                                         xdim,
-                                                                         ydim,
-                                                                         1)
-    val colorModel: ColorModel = PlanarImage.createColorModel(sampleModel)
-    val raster: WritableRaster = RasterFactory.createWritableRaster(sampleModel,
-                                                                    dbuffer,
-                                                                    new Point(0, 0))
+    val sampleModel = new BandedSampleModel(DataBuffer.TYPE_BYTE,
+                                            xdim,
+                                            ydim,
+                                            1)
+    val colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_GRAY),
+                                             null,
+                                             false,
+                                             false,
+                                             Transparency.OPAQUE,
+                                             DataBuffer.TYPE_BYTE)
+    val raster = Raster.createWritableRaster(sampleModel,
+                                             dbuffer,
+                                             new Point(0, 0))
     new BufferedImage(colorModel, raster, false, null)
   }
 }
