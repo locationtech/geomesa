@@ -94,6 +94,10 @@
             <artifactId>slf4j-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.scalanlp</groupId>
+            <artifactId>breeze_2.10</artifactId>
+        </dependency>
 
         <!-- provided dependencies -->
         <dependency>

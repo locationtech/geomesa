@@ -1,7 +1,6 @@
 package org.locationtech.geomesa.core.index
 
 import java.nio.ByteBuffer
-
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
@@ -13,7 +12,6 @@ import org.locationtech.geomesa.core.data.{DATA_CQ, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geohash.{GeoHash, GeohashUtils}
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.SimpleFeature
-
 import scala.collection.JavaConversions._
 
 object IndexEntry {
@@ -55,15 +53,30 @@ object IndexEntry {
     val encodedDtg = entry.dt.map(dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array()).getOrElse(Array[Byte]())
 
     new Value(
-               ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
-               ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
-               encodedDtg)
+      ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
+        ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
+        encodedDtg)
   }
 
-  def decodeIndexValue(v: Value): DecodedIndexValue = {
-    val buf = v.get()
-    val idLength = ByteBuffer.wrap(buf, 0, 4).getInt
-    val (idPortion, geomDatePortion) = buf.drop(4).splitAt(idLength)
+  // the metadata CQ consists of the feature's:
+  // 1.  ID
+  // 2.  WKB-encoded geometry
+  // 3.  start-date/time
+  def encodeIndexCQMetadataKey(entry: SimpleFeature): Key = {
+    val encodedId = entry.sid.getBytes
+    val encodedGeom = WKBUtils.write(entry.geometry)
+    val encodedDtg = entry.dt.map(dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array()).getOrElse(Array[Byte]())
+    val EMPTY_BYTES = Array.emptyByteArray
+    val cqByteArray = ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
+      ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
+      encodedDtg
+
+    new Key(EMPTY_BYTES, EMPTY_BYTES, cqByteArray, EMPTY_BYTES, Long.MaxValue)
+  }
+
+  def byteArrayToDecodedIndexValue(b: Array[Byte]): DecodedIndexValue = {
+    val idLength = ByteBuffer.wrap(b, 0, 4).getInt
+    val (idPortion, geomDatePortion) = b.drop(4).splitAt(idLength)
     val id = new String(idPortion)
     val geomLength = ByteBuffer.wrap(geomDatePortion, 0, 4).getInt
     if(geomLength < (geomDatePortion.length - 4)) {
@@ -74,7 +87,34 @@ object IndexEntry {
     }
   }
 
+  def byteArrayToDecodedMetadata(b: Array[Byte]): DecodedCQMetadata = {
+    // This will need to conform to some decided CQ format ie: gh(x,y) ~ metadata
+    // meta data being: id, geom, and time. below time is optional, may want to eliminate this choice
+    val idLength = ByteBuffer.wrap(b, 0, 4).getInt
+    val (idPortion, geomDatePortion) = b.drop(4).splitAt(idLength)
+    val id = new String(idPortion)
+    val geomLength = ByteBuffer.wrap(geomDatePortion, 0, 4).getInt
+    if(geomLength < (geomDatePortion.length - 4)) {
+      val (l,r) = geomDatePortion.drop(4).splitAt(geomLength)
+      DecodedCQMetadata(id, WKBUtils.read(l), Some(ByteBuffer.wrap(r).getLong))
+    } else {
+      DecodedCQMetadata(id, WKBUtils.read(geomDatePortion.drop(4)), None)
+    }
+  }
+
+  def decodeIndexValue(v: Value): DecodedIndexValue = {
+    val buf = v.get()
+    byteArrayToDecodedIndexValue(buf)
+  }
+
   case class DecodedIndexValue(id: String, geom: Geometry, dtgMillis: Option[Long])
+
+  def decodeIndexCQMetadata(k: Key): DecodedCQMetadata = {
+    val cqd = k.getColumnQualifierData.toArray
+    byteArrayToDecodedMetadata(cqd)
+  }
+
+  case class DecodedCQMetadata(id: String, geom: Geometry, dtgMillis: Option[Long])
 }
 
 case class IndexEntryEncoder(rowf: TextFormatter,
@@ -144,11 +184,29 @@ object IndexEntryDecoder {
   }
 }
 
-import org.locationtech.geomesa.core.index.IndexEntryDecoder._
+import IndexEntryDecoder._
 
 case class IndexEntryDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
   def decode(key: Key) = {
     val builder = localBuilder.get
+    builder.reset()
+    builder.addAll(List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))))
+    builder.buildFeature("")
+  }
+}
+
+object IndexCQMetadataDecoder {
+  val metaBuilder = new ThreadLocal[SimpleFeatureBuilder] {
+    override def initialValue(): SimpleFeatureBuilder = new SimpleFeatureBuilder(indexSFT)
+  }
+}
+
+import IndexCQMetadataDecoder._
+
+case class IndexCQMetadataDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
+  // are we grabbing the right stuff from the key?
+  def decode(key: Key) = {
+    val builder = metaBuilder.get
     builder.reset()
     builder.addAll(List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))))
     builder.buildFeature("")
