@@ -194,8 +194,8 @@ class SpatioTemporalIntersectingIterator
 
     while (nextValue == null && indexSource.hasTop && indexSource.getTopKey != null) {
       // the value contains the full-resolution geometry and time; use them
-      lazy val decodedValue = IndexEntry.decodeIndexValue(indexSource.getTopValue)
-      lazy val isSTAcceptable = wrappedSTFilter(decodedValue.geom, decodedValue.dtgMillis)
+      val decodedValue = IndexEntry.decodeIndexValue(indexSource.getTopValue)
+      def isSTAcceptable = wrappedSTFilter(decodedValue.geom, decodedValue.dtgMillis)
       // see whether this box is acceptable
       // (the tests are ordered from fastest to slowest to take advantage of
       // short-circuit evaluation)
