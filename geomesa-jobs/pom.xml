@@ -51,6 +51,13 @@
         <dependency>
             <groupId>com.twitter</groupId>
             <artifactId>scalding-core_2.10</artifactId>
+            <exclusions>
+                <exclusion>
+                    <!-- excluded due to license issues -->
+                    <artifactId>objenesis</artifactId>
+                    <groupId>org.objenesis</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jgrapht</groupId>
@@ -59,6 +66,18 @@
         <dependency>
             <groupId>org.jgrapht</groupId>
             <artifactId>jgrapht-ext</artifactId>
+            <exclusions>
+                <exclusion>
+                    <!-- excluded due to license issues -->
+                    <groupId>jgraph</groupId>
+                    <artifactId>jgraph</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- excluded due to license issues -->
+                    <groupId>org.tinyjee.jgraphx</groupId>
+                    <artifactId>jgraphx</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
