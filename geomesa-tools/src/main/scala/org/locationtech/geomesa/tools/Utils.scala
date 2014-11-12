@@ -126,6 +126,20 @@ case class IngestArguments(username: String = null,
                            dryRun: Boolean = false,
                            sharedTable: Option[Boolean] = Some(true))
 
+case class IngestRasterArguments(username: String = null,
+                                 password: Option[String] = None,
+                                 instanceName: Option[String] = None,
+                                 zookeepers: Option[String] = None,
+                                 table: String = null,
+                                 auths: Option[String] = None,
+                                 visibilities: Option[String] = None,
+                                 timeStr: Option[String] = None,
+                                 file: String = null,
+                                 rasterName: String = null,
+                                 maxShards: Option[Int] = None,
+                                 writeMemory: Option[Long] = None,
+                                 writeThreads: Option[Int] = None,
+                                 queryThreads: Option[Int] = None)
 
 /* get password trait */
 trait GetPassword {
