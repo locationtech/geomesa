@@ -474,6 +474,11 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-raster-accumulo1.5</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-tools-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
