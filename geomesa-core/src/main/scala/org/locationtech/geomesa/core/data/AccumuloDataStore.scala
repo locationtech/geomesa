@@ -732,14 +732,14 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   /* create a general purpose writer that is capable of insert, deletes, and updates */
-  override def createFeatureWriter(typeName: String, transaction: Transaction): SFFeatureWriter = {
+  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): SFFeatureWriter = {
     validateMetadata(typeName)
     checkWritePermissions(typeName)
     val sft = getSchema(typeName)
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
     val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
     val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe)
-    new ModifyAccumuloFeatureWriter(sft, encoder, connector, fe, writeVisibilities, this)
+    new ModifyAccumuloFeatureWriter(sft, encoder, connector, fe, writeVisibilities, filter, this)
   }
 
   /* optimized for GeoTools API to return writer ONLY for appending (aka don't scan table) */
