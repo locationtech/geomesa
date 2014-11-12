@@ -23,8 +23,8 @@ import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.mapred.{RecordWriter, Reporter}
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
-import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureWriter
+import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
@@ -32,6 +32,7 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
 object AccumuloFeatureWriter {
 
@@ -159,10 +160,12 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
                                   connector: Connector,
                                   encoder: SimpleFeatureEncoder,
                                   visibility: String,
+                                  filter: Filter,
                                   dataStore: AccumuloDataStore)
   extends AccumuloFeatureWriter(featureType, indexEncoder, encoder, dataStore, visibility) {
 
-  val reader = dataStore.getFeatureReader(featureType.getName.toString)
+  val reader = dataStore.getFeatureReader(featureType.getTypeName, new Query(featureType.getTypeName, filter))
+
   var live: SimpleFeature = null      /* feature to let user modify   */
   var original: SimpleFeature = null  /* feature returned from reader */
 

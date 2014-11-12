@@ -1010,6 +1010,38 @@ class AccumuloDataStoreTest extends Specification {
         retrievedSchema mustEqual originalSchema
       }
     }
+
+    "Provide a feature update implementation" >> {
+      val sftName = "featureUpdateTest"
+      val sft = SimpleFeatureTypes.createType(sftName, "name:String,dtg:Date,*geom:Point:srid=4326")
+      val ds = DataStoreFinder.getDataStore(Map(
+        "instanceId"        -> "mycloud",
+        "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        "user"              -> "myuser",
+        "password"          -> "mypassword",
+        "tableName"         -> sftName,
+        "useMock"           -> "true"))
+      ds.createSchema(sft)
+      val builder = AvroSimpleFeatureFactory.featureBuilder(ds.getSchema(sftName))
+      val features = (0 until 6).map { i =>
+        builder.reset()
+        builder.set("geom", WKTUtils.read("POINT(45.0 45.0)"))
+        builder.set("dtg", "2012-01-02T05:06:07.000Z")
+        builder.set("name",i.toString)
+        val sf = builder.buildFeature(i.toString)
+        sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+        sf
+      }
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      fs.addFeatures(new ListFeatureCollection(sft, features))
+
+      val filter = ff.id(ff.featureId("2"))
+      val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
+      writer must beAnInstanceOf[ModifyAccumuloFeatureWriter]
+      writer.hasNext must beTrue
+      writer.next.getID mustEqual "2"
+      writer.hasNext must beFalse
+    }
   }
 
   "AccumuloFeatureStore" should {
