@@ -59,8 +59,6 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     val rasterGrid: GridCoverage2D = rasterReader.read(null)
 
     cs.saveRaster(rasterGrid, rasterMetadata)
-
-//    GeoserverClientService.registerSurface(rasterName, None, config)
   }
 
   /**
