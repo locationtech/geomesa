@@ -65,9 +65,10 @@ class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
   })
 
   def parseConnectionParametersFromURL(url: String): JMap[String, String] = {
+    import org.locationtech.geomesa.plugin.wms.CoverageReader.FORMAT
+
     val params = new JMap[String, String]
     if (url != null && url.startsWith("accumulo:")) {
-      val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#columns=(.*)#resolution=([0-9]*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
       val FORMAT(user, password, instanceId, table, columns, resolution, zookeepers, authtokens) = url
       params.put("user", user)
       params.put("password", password)
