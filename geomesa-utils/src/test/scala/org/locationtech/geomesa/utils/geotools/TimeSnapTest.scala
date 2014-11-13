@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-
 package org.locationtech.geomesa.utils.geotools
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom._
+import org.joda.time.{DateTime, Duration, Interval}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.joda.time.{DateTime, Interval, Duration}
 
 @RunWith(classOf[JUnitRunner])
 class TimeSnapTest extends Specification with Logging {

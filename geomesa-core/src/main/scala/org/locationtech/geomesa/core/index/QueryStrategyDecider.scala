@@ -39,9 +39,9 @@ object QueryStrategyDecider {
 
   def chooseNewStrategy(sft: SimpleFeatureType, query: Query): Strategy = {
     val filter = query.getFilter
-    val isDensity = query.getHints.containsKey(BBOX_KEY)
+    val isADensity = query.getHints.containsKey(BBOX_KEY) || query.getHints.contains(TIME_BUCKETS_KEY)
 
-    if (isDensity) {
+    if (isADensity) {
       // TODO GEOMESA-322 use other strategies with density iterator
       new STIdxStrategy
     } else {
@@ -50,14 +50,14 @@ object QueryStrategyDecider {
       attributeStrategy.getOrElse {
         filter match {
           case idFilter: Id => new RecordIdxStrategy
-          case and: And => processAnd(isDensity, sft, and)
+          case and: And => processAnd(isADensity, sft, and)
           case cql          => new STIdxStrategy
         }
       }
     }
   }
 
-  private def processAnd(isDensity: Boolean, sft: SimpleFeatureType, and: And): Strategy = {
+  private def processAnd(isADensity: Boolean, sft: SimpleFeatureType, and: And): Strategy = {
     val children: util.List[Filter] = decomposeAnd(and)
 
     def determineStrategy(attr: Filter, st: Filter): Strategy = {
