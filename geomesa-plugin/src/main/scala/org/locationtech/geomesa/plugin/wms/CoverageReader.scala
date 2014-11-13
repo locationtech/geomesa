@@ -47,6 +47,7 @@ import scala.util.Random
 object CoverageReader {
   val GeoServerDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   val DefaultDateString = GeoServerDateFormat.print(new DateTime(DateTimeZone.forID("UTC")))
+  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#columns=(.*)#resolution=([0-9]*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
 }
 
 import org.locationtech.geomesa.plugin.wms.CoverageReader._
@@ -55,7 +56,6 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
 
   logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
 
-  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#columns=(.*)#resolution=([0-9]*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
   val FORMAT(user, password, instanceId, table, columnsStr, resolutionStr, zookeepers, authtokens) = url
 
   logger.debug(s"extracted user $user, password ********, instance id $instanceId, table $table, columns $columnsStr, " +

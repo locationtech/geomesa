@@ -16,6 +16,8 @@
 
 package org.locationtech.geomesa.plugin.wms
 
+import java.util.{HashMap => JMap}
+
 import org.apache.wicket.markup.html.form.validation.IFormValidator
 import org.apache.wicket.markup.html.form.{Form, FormComponent}
 import org.apache.wicket.model.PropertyModel
@@ -29,6 +31,7 @@ class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
   val model = storeEditForm.getModel
   setDefaultModel(model)
   val storeInfo = storeEditForm.getModelObject.asInstanceOf[CoverageStoreInfo]
+  storeInfo.getConnectionParameters.putAll(parseConnectionParametersFromURL(storeInfo.getURL))
   val paramsModel = new PropertyModel(model, "connectionParameters")
   val instanceId = addTextPanel(paramsModel, new Param("instanceId", classOf[String], "The Accumulo Instance ID", false))
   val zookeepers = addTextPanel(paramsModel, new Param("zookeepers", classOf[String], "Zookeepers", false))
@@ -60,4 +63,22 @@ class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
       storeInfo.setURL(sb.toString())
     }
   })
+
+  def parseConnectionParametersFromURL(url: String): JMap[String, String] = {
+    import org.locationtech.geomesa.plugin.wms.CoverageReader.FORMAT
+
+    val params = new JMap[String, String]
+    if (url != null && url.startsWith("accumulo:")) {
+      val FORMAT(user, password, instanceId, table, columns, resolution, zookeepers, authtokens) = url
+      params.put("user", user)
+      params.put("password", password)
+      params.put("instanceId", instanceId)
+      params.put("tableName", table)
+      params.put("columns", columns)
+      params.put("resolution", resolution)
+      params.put("zookeepers", zookeepers)
+      params.put("authTokens", authtokens)
+    }
+    params
+  }
 }
