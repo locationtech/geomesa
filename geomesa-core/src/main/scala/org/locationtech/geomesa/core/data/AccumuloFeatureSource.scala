@@ -17,6 +17,7 @@
 package org.locationtech.geomesa.core.data
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
@@ -27,6 +28,7 @@ import org.locationtech.geomesa.core.process.proximity.ProximityVisitor
 import org.locationtech.geomesa.core.process.query.QueryVisitor
 import org.locationtech.geomesa.core.process.tube.TubeVisitor
 import org.locationtech.geomesa.core.process.unique.AttributeVisitor
+import org.locationtech.geomesa.core.util.TryLoggingFailure
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -34,7 +36,7 @@ import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortBy
 import org.opengis.util.ProgressListener
 
-trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
+trait AccumuloAbstractFeatureSource extends AbstractFeatureSource with Logging with TryLoggingFailure {
   self =>
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -65,9 +67,10 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource {
     new AccumuloFeatureCollection(self, query)
   }
 
-  override def getFeatures(query: Query): SimpleFeatureCollection = getFeaturesNoCache(query)
+  override def getFeatures(query: Query): SimpleFeatureCollection = tryLoggingFailures(getFeaturesNoCache(query))
 
-  override def getFeatures(filter: Filter): SimpleFeatureCollection = getFeatures(new Query(getSchema().getTypeName, filter))
+  override def getFeatures(filter: Filter): SimpleFeatureCollection =
+    tryLoggingFailures(getFeatures(new Query(getSchema().getTypeName, filter)))
 }
 
 class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featureName: Name)
