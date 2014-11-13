@@ -60,7 +60,7 @@ object IteratorTrigger {
   def chooseIterator(ecqlPredicate: Option[String], query: Query, sourceSFT: SimpleFeatureType): IteratorConfig = {
     val filter = ecqlPredicate.map(ECQL.toFilter)
     if (useIndexOnlyIterator(filter, query, sourceSFT)) {
-      IteratorConfig(IndexOnlyIterator, false)
+      IteratorConfig(IndexOnlyIterator, true)
     } else {
       IteratorConfig(SpatioTemporalIterator, useSimpleFeatureFilteringIterator(filter, query))
     }
