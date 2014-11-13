@@ -31,7 +31,7 @@ class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
   val model = storeEditForm.getModel
   setDefaultModel(model)
   val storeInfo = storeEditForm.getModelObject.asInstanceOf[CoverageStoreInfo]
-  storeInfo.getConnectionParameters.putAll(parseConnectionParametersFromURL(storeInfo))
+  storeInfo.getConnectionParameters.putAll(parseConnectionParametersFromURL(storeInfo.getURL))
   val paramsModel = new PropertyModel(model, "connectionParameters")
   val instanceId = addTextPanel(paramsModel, new Param("instanceId", classOf[String], "The Accumulo Instance ID", false))
   val zookeepers = addTextPanel(paramsModel, new Param("zookeepers", classOf[String], "Zookeepers", false))
@@ -64,9 +64,8 @@ class CoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
     }
   })
 
-  def parseConnectionParametersFromURL(storeInfo: CoverageStoreInfo): JMap[String, String] = {
+  def parseConnectionParametersFromURL(url: String): JMap[String, String] = {
     val params = new JMap[String, String]
-    val url = storeInfo.getURL
     if (url != null && url.startsWith("accumulo:")) {
       val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#columns=(.*)#resolution=([0-9]*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
       val FORMAT(user, password, instanceId, table, columns, resolution, zookeepers, authtokens) = url
