@@ -15,27 +15,27 @@
  */
 package org.locationtech.geomesa.raster.ingest
 
-import org.geotools.referencing.crs.DefaultGeographicCRS
-import com.typesafe.scalalogging.slf4j.Logging
-import org.geotools.factory.Hints
-import org.geotools.geometry.Envelope2D
-import org.joda.time.{DateTimeZone, DateTime}
-import org.joda.time.format.DateTimeFormat
-import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
-import org.locationtech.geomesa.utils.geohash.GeoHash
+import java.awt.RenderingHints
 import java.io.File
 import java.util.UUID
-import javax.media.jai.{JAI, ImageLayout}
-import java.awt.RenderingHints
-import org.geotools.coverageio.gdal.dted.DTEDReader
-import org.geotools.coverage.grid.GridCoverage2D
-import org.geotools.gce.geotiff.GeoTiffReader
-import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
-import akka.actor.ActorSystem
-import com.typesafe.config.ConfigFactory
-import org.apache.accumulo.core.client.BatchWriterConfig
+import javax.media.jai.{ImageLayout, JAI}
+
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Coordinate, Point}
+import org.apache.accumulo.core.client.BatchWriterConfig
+import org.geotools.coverage.grid.GridCoverage2D
+import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
+import org.geotools.coverageio.gdal.dted.DTEDReader
+import org.geotools.factory.Hints
+import org.geotools.gce.geotiff.GeoTiffReader
+import org.geotools.geometry.Envelope2D
+import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.{DateTime, DateTimeZone}
+import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
+import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.referencing.crs.CoordinateReferenceSystem
+
 import scala.util.Try
 
 class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCoverageStore) extends Logging {
@@ -60,7 +60,7 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
 
     cs.saveRaster(rasterGrid, rasterMetadata)
 
-    GeoserverClientService.registerSurface(rasterName, None, config)
+//    GeoserverClientService.registerSurface(rasterName, None, config)
   }
 
   /**
@@ -145,33 +145,4 @@ object IngestRasterParams {
   val TIME                = "geomesa-tools.ingest.time"
   val RASTER_NAME         = "geomesa-tools.raster.name"
   val TABLE               = "geomesa-tools.raster.table"
-}
-
-object ActorSystemGenerator {
-  def getActorSystem(name: String, configStr: String): ActorSystem = {
-    val config = ConfigFactory.parseString(conf())
-    ActorSystem(name, config)
-  }
-
-  def conf() = s"""
-    akka {
-      actor {
-        default-dispatcher {
-          executor = fork-join-executor
-          fork-join-executor {
-            parallelism-min = 8
-            parallelism-factor = 3
-            parallelism-max = 64
-          }
-          thread-pool-executor {
-            core-pool-size-min = 8
-            core-pool-size-factor = 3
-            core-pool-size-max = 64
-            max-pool-size-min = 8
-            max-pool-size-factor = 3
-            max-pool-size-max = 64
-          }
-        }
-      }
-    }"""
 }

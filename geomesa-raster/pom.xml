@@ -29,12 +29,6 @@
     <artifactId>geomesa-raster-accumulo1.5</artifactId>
     <name>GeoMesa Raster - [Accumulo 1.5.x]</name>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <akka.version>2.2.3</akka.version>
-        <httpcomponents.version>4.2.3</httpcomponents.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -88,21 +82,6 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-hsql</artifactId>
             <version>${gt.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_2.10</artifactId>
-            <version>${akka.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <version>${httpcomponents.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${httpcomponents.version}</version>
         </dependency>
     </dependencies>
 

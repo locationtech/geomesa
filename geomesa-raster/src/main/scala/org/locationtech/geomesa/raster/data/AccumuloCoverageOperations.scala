@@ -64,29 +64,28 @@ class AccumuloCoverageOperations(connector: Connector,
    */
   def writeMutations(mutations: Mutation*): Unit = {
     val writer = connector.createBatchWriter(coverageTable, bwConfig)
-    for (mutation <- mutations) {
-      writer.addMutation(mutation)
-    }
+    mutations.foreach { m => writer.addMutation(m) }
     writer.flush()
     writer.close()
   }
 
-  def ensureTableExists(tableName: String) =
+  def ensureTableExists(tableName: String) = {
+    val user = connector.whoami
+    val defaultVisibilities = authorizationsProvider.getAuthorizations.toString.replaceAll(",", "&")
     if (!tableOps.exists(tableName)) {
       try {
         tableOps.create(tableName)
-        CoverageTableConfig.settings.foreach { case (key, value) =>
+        CoverageTableConfig.settings(defaultVisibilities).foreach { case (key, value) =>
           tableOps.setProperty(tableName, key, value)
         }
-        CoverageTableConfig.permissions.foreach { case (user, perms) =>
-          perms.split(",").foreach { p =>
-            securityOps.grantTablePermission(user, tableName, TablePermission.valueOf(p))
-          }
+        CoverageTableConfig.permissions.split(",").foreach { p =>
+          securityOps.grantTablePermission(user, tableName, TablePermission.valueOf(p))
         }
       } catch {
         case e: TableExistsException => // this can happen with multiple threads but shouldn't cause any issues
       }
     }
+  }
 }
 
 object AccumuloCoverageOperations {

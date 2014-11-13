@@ -76,14 +76,12 @@ object AccumuloCoverageStore {
 }
 
 object CoverageTableConfig {
-  val settings: Map[String, String] = Map (
-    "table.security.scan.visibility.default" -> "S&USA",
+  def settings(visibilities: String): Map[String, String] = Map (
+    "table.security.scan.visibility.default" -> visibilities,
     "table.iterator.majc.vers.opt.maxVersions" -> "2147483647",
     "table.iterator.minc.vers.opt.maxVersions" -> "2147483647",
     "table.iterator.scan.vers.opt.maxVersions" -> "2147483647",
     "table.split.threshold" -> "16M"
   )
-  val permissions: Map[String, String] = Map (
-   "root" -> "BULK_IMPORT,READ,WRITE,ALERT_TABLE"
-  )
+  val permissions = "BULK_IMPORT,READ,WRITE,ALTER_TABLE"
 }
