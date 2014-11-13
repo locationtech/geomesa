@@ -131,6 +131,8 @@ object IndexSchema extends RegexParsers with Logging {
   val RANDOM_CODE = "r"
   val SEPARATOR_CODE = "s"
   val ID_CODE = "id"
+  val RESOLUTION_CODE = "ires"
+  val BAND_CODE = "b"
   val PART_DELIMITER = "::"
 
   def pattern[T](p: => Parser[T], code: String): Parser[T] = CODE_START ~> p <~ (CODE_END + code)
@@ -168,9 +170,24 @@ object IndexSchema extends RegexParsers with Logging {
     case str => ConstantTextFormatter(str)
   }
 
+  // An Image Resolution encoder. '1.8e+10#ires' would yield something
+  // this may not be workable
+  def resolutionPattern = pattern("[^%#]+".r, RESOLUTION_CODE)
+  def resolutionEncoder: Parser[ScientificNotationTextFormatter] = resolutionPattern ^^ {
+    case d => ScientificNotationTextFormatter(lexiDecodeStringToDouble(d))
+  }
+
+  // A Band encoder. 'RGB#b' would yield RGB
+  //  We match any string other that does *not* contain % or # since we use those for delimiters
+  def bandPattern = pattern("[^%#]+".r, BAND_CODE)
+  def bandEncoder: Parser[RasterBandTextFormatter] = bandPattern ^^ {
+    case b => RasterBandTextFormatter(b)
+  }
+
   // a key element consists of a separator and any number of random partitions, geohashes, and dates
   def keypart: Parser[CompositeTextFormatter] =
-    (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) ^^ {
+    (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder | resolutionEncoder | bandEncoder)) ^^
+    {
       case sep ~ xs => CompositeTextFormatter(xs, sep)
     }
 
@@ -292,8 +309,16 @@ object IndexSchema extends RegexParsers with Logging {
     case o ~ b => GeoHashKeyPlanner(o, b)
   }
 
+  def resolutionKeyPlanner: Parser[ResolutionPlanner] = resolutionPattern ^^ {
+    case d => ResolutionPlanner(lexiDecodeStringToDouble(d))
+  }
+
+  def bandKeyPlanner: Parser[BandPlanner] = bandPattern ^^ {
+    case b => BandPlanner(b)
+  }
+
   def keyPlanner: Parser[KeyPlanner] =
-    sep ~ rep(constStringPlanner | datePlanner | randPartitionPlanner | geohashKeyPlanner) <~ "::.*".r ^^ {
+    sep ~ rep(constStringPlanner | datePlanner | randPartitionPlanner | geohashKeyPlanner | resolutionKeyPlanner | bandKeyPlanner) <~ "::.*".r ^^ {
       case sep ~ list => CompositePlanner(list, sep)
     }
 
@@ -303,7 +328,7 @@ object IndexSchema extends RegexParsers with Logging {
   }
 
 
-  def geohashColumnFamilyPlanner: Parser[GeoHashColumnFamilyPlanner] = (keypart ~ PART_DELIMITER) ~> (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) <~ (PART_DELIMITER ~ keypart) ^^ {
+  def geohashColumnFamilyPlanner: Parser[GeoHashColumnFamilyPlanner] = (keypart ~ PART_DELIMITER) ~> (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder | bandKeyPlanner)) <~ (PART_DELIMITER ~ keypart) ^^ {
     case sep ~ xs => xs.find(tf => tf match {
       case gh: GeoHashTextFormatter => true
       case _ => false
@@ -414,6 +439,29 @@ class IndexSchemaBuilder(separator: String) {
       append(ID_CODE)
     }
   }
+
+  /**
+   * Add an Raster Resolution Value
+   *
+   * @return the schema builder instance
+   */
+  def resolution(): IndexSchemaBuilder = append(RESOLUTION_CODE, 0.0)
+
+  /**
+   * Adds a resolution value.
+   *
+   * @param res
+   * @return the schema builder instance
+   */
+  def resolution(res: Double): IndexSchemaBuilder = append(RESOLUTION_CODE, lexiEncodeDoubleToString(res))
+
+  /**
+   * Add a Band Value
+   *
+   * @param band
+   * @return the schema builder instance
+   */
+  def band(band: String): IndexSchemaBuilder = append(BAND_CODE, band)
 
   /**
    * End the current part of the schema format. Schemas consist of (in order) key part, column

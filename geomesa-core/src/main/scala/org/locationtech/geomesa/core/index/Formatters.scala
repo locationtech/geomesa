@@ -20,7 +20,6 @@ import org.apache.hadoop.io.Text
 import org.joda.time.DateTime
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeature
-
 import scala.util.hashing.MurmurHash3
 
 trait TextFormatter {
@@ -115,3 +114,27 @@ case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends T
   def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = lf.map { _.formatString(gh, dt, sf) }.mkString(sep)
 }
 
+/**
+ * Responsible for representing the resolution using a unit-less number in scientific notation
+ * should probably ensure the mantissa has only on digit to the left of the decimal point.
+ *
+ * should it be taking a double or a string?
+ * @param number
+ */
+case class ScientificNotationTextFormatter(number: Double) extends TextFormatter {
+  val fmtdStr: String = lexiEncodeDoubleToString(number)
+  val numBits: Int = fmtdStr.length
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = fmtdStr
+}
+
+
+/**
+ * Responsible for representing the Band Number of a given raster
+ * have the bandNumber correspond to a description in the meta-data?
+ * like band 1 is RGB or is Elevation or is R or B or G?
+ * @param bandName
+ */
+case class RasterBandTextFormatter(bandName: String) extends TextFormatter {
+  val numBits: Int = bandName.length
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = bandName
+}
