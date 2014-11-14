@@ -19,14 +19,13 @@ package org.locationtech.geomesa.core.index
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Geometry, GeometryCollection, Polygon}
+import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.Interval
 import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
@@ -35,7 +34,7 @@ import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
+import org.locationtech.geomesa.core.util.{FilterHelpers, SelfClosingBatchScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
@@ -43,7 +42,7 @@ import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator}
 
 import scala.util.Try
 
-class STIdxStrategy extends Strategy with Logging {
+class STIdxStrategy extends Strategy with Logging with FilterHelpers {
 
   def execute(acc: AccumuloConnectorCreator,
               iqp: QueryPlanner,
@@ -201,35 +200,6 @@ class STIdxStrategy extends Strategy with Logging {
     configureFeatureType(cfg, featureType)
     if (isDensity) cfg.addOption(GEOMESA_ITERATORS_IS_DENSITY_TYPE, "isDensity")
     cfg
-  }
-
-  def buildFilter(geom: Geometry, interval: Interval): KeyPlanningFilter =
-    (IndexSchema.somewhere(geom), IndexSchema.somewhen(interval)) match {
-      case (None, None)       =>    AcceptEverythingFilter
-      case (None, Some(i))    =>
-        if (i.getStart == i.getEnd) DateFilter(i.getStart)
-        else                        DateRangeFilter(i.getStart, i.getEnd)
-      case (Some(p), None)    =>    SpatialFilter(p)
-      case (Some(p), Some(i)) =>
-        if (i.getStart == i.getEnd) SpatialDateFilter(p, i.getStart)
-        else                        SpatialDateRangeFilter(p, i.getStart, i.getEnd)
-    }
-
-  def netPolygon(poly: Polygon): Polygon = poly match {
-    case null => null
-    case p if p.covers(IndexSchema.everywhere) =>
-      IndexSchema.everywhere
-    case p if IndexSchema.everywhere.covers(p) => p
-    case _ => poly.intersection(IndexSchema.everywhere).
-      asInstanceOf[Polygon]
-  }
-
-  def netGeom(geom: Geometry): Geometry =
-    Option(geom).map(_.intersection(IndexSchema.everywhere)).orNull
-
-  def netInterval(interval: Interval): Interval = interval match {
-    case null => null
-    case _    => IndexSchema.everywhen.overlap(interval)
   }
 
   def planQuery(filter: KeyPlanningFilter, output: ExplainerOutputType, keyPlanner: KeyPlanner, cfPlanner: ColumnFamilyPlanner): QueryPlan = {
