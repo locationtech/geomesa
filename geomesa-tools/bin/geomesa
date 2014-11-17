@@ -191,6 +191,10 @@ else
         java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Ingest --help
     elif [[ $1 = ingest ]]; then
         java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Ingest "${@:2}"
+    elif [[ $1 = ingestRaster ]] && [[ (-z "$2") || ($2 = --help)  || ($2 = -help) || ($2 = help) ]]; then
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.IngestRaster --help
+    elif [[ $1 = ingestRaster ]]; then
+        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.IngestRaster "${@:2}"
     elif [[ $1 = export ]]; then
         java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Export "${@:2}"
     elif [ -n "$*" ]; then
