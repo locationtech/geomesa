@@ -20,7 +20,6 @@ import org.apache.accumulo.core.data.Key
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.utils.geohash.GeoHash
 
-
 trait Decoder[T] {
   def decode(key: Key): T
 }

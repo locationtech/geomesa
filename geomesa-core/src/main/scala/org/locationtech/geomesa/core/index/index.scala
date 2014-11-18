@@ -132,7 +132,7 @@ package object index {
     }
   }
 
-  val doubleAlias = "double"//Double.getClass.getSimpleName.toLowerCase(Locale.US)
+  val doubleAlias = "double"
 
   def lexiEncodeDoubleToString(number: Double): String = LexiTypeEncoders.LEXI_TYPES.encode(number)
 

@@ -115,10 +115,8 @@ case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends T
 }
 
 /**
- * Responsible for representing the resolution using a unit-less number in scientific notation
- * should probably ensure the mantissa has only on digit to the left of the decimal point.
+ * Responsible for representing the resolution by encoding a double lexicographically.
  *
- * should it be taking a double or a string?
  * @param number
  */
 case class ScientificNotationTextFormatter(number: Double) extends TextFormatter {
@@ -127,11 +125,9 @@ case class ScientificNotationTextFormatter(number: Double) extends TextFormatter
   def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = fmtdStr
 }
 
-
 /**
- * Responsible for representing the Band Number of a given raster
- * have the bandNumber correspond to a description in the meta-data?
- * like band 1 is RGB or is Elevation or is R or B or G?
+ * Responsible for representing the Band Name of a given raster.
+ *
  * @param bandName
  */
 case class RasterBandTextFormatter(bandName: String) extends TextFormatter {
