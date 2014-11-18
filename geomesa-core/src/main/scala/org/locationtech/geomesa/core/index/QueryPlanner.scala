@@ -30,7 +30,7 @@ import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.iterators.TemporalDensityIterator._
 import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIterator, TemporalDensityIterator}
 import org.locationtech.geomesa.core.util.CloseableIterator._
-import org.locationtech.geomesa.core.util.{CloseableIterator, FilterHelpers, SelfClosingIterator}
+import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -53,7 +53,7 @@ object QueryPlanner {
 
 case class QueryPlanner(schema: String,
                         featureType: SimpleFeatureType,
-                        featureEncoding: FeatureEncoding) extends ExplainingLogging with FilterHelpers {
+                        featureEncoding: FeatureEncoding) extends ExplainingLogging with IndexFilterHelpers {
 
   // As a pre-processing step, we examine the query/filter and split it into multiple queries.
   // TODO: Work to make the queries non-overlapping.

@@ -34,7 +34,7 @@ import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.core.util.{FilterHelpers, SelfClosingBatchScanner, SelfClosingIterator}
+import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
@@ -42,7 +42,7 @@ import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator}
 
 import scala.util.Try
 
-class STIdxStrategy extends Strategy with Logging with FilterHelpers {
+class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 
   def execute(acc: AccumuloConnectorCreator,
               iqp: QueryPlanner,
