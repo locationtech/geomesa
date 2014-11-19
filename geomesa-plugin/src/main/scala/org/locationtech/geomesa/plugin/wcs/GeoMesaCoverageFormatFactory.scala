@@ -21,10 +21,10 @@ import java.util.Collections
 
 import org.geotools.coverage.grid.io.{AbstractGridFormat, GridFormatFactorySpi}
 
-class AccumuloCoverageFormatFactory extends GridFormatFactorySpi {
+class GeoMesaCoverageFormatFactory extends GridFormatFactorySpi {
   def isAvailable = true
 
-  def createFormat(): AbstractGridFormat = new AccumuloCoverageFormat
+  def createFormat(): AbstractGridFormat = new GeoMesaCoverageFormat
 
   def getImplementationHints: java.util.Map[RenderingHints.Key, _] = Collections.emptyMap()
 
