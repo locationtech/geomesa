@@ -1,10 +1,8 @@
 package org.locationtech.geomesa.plugin.wcs
 
 import java.awt.image._
-import java.awt.{AlphaComposite, Color, Graphics2D, Point, Rectangle}
-import java.io.{ByteArrayInputStream, ObjectInputStream, ObjectOutputStream, ByteArrayOutputStream}
+import java.awt.{Point, Rectangle}
 import java.util.{Date, List => JList}
-import javax.media.jai.remote.SerializableRenderedImage
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
@@ -25,12 +23,14 @@ import org.geotools.util.{DateRange, Utilities}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.IndexEntry
-import org.locationtech.geomesa.core.iterators.{AggregatingKeyIterator, SurfaceAggregatingIterator, TimestampRangeIterator, TimestampSetIterator}
+import org.locationtech.geomesa.core.iterators.{AggregatingKeyIterator, SurfaceAggregatingIterator}
 import org.locationtech.geomesa.core.util.{BoundingBoxUtil, SelfClosingBatchScanner}
+import org.locationtech.geomesa.plugin.ImageUtils
+import org.locationtech.geomesa.plugin.ImageUtils._
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, TwoGeoHashBoundingBox}
 import org.opengis.coverage.grid.GridCoverage
 import org.opengis.geometry.Envelope
-import org.opengis.parameter.{GeneralParameterValue, InvalidParameterValueException}
+import org.opengis.parameter.GeneralParameterValue
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
@@ -133,8 +133,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
       scanner.addScanIterator(cfg)
       scanner.fetchColumnFamily(new Text(""))
     })(_.map(entry => {
-      //      rasterDeserialize(entry.getValue.get)
-      imageDeserialize(entry.getValue.get)
+      rasterImageDeserialize(entry.getValue.get)
     })).toList.head
   }
 
@@ -148,30 +147,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     }
   }
 
-  def imageSerialize(coverage: GridCoverage2D): Array[Byte] = {
-    val buffer: ByteArrayOutputStream = new ByteArrayOutputStream
-    val out: ObjectOutputStream = new ObjectOutputStream(buffer)
-    val serializableImage = new SerializableRenderedImage(coverage.getRenderedImage, true)
-    try {
-      out.writeObject(serializableImage)
-    } finally {
-      out.close
-    }
-    buffer.toByteArray
-  }
-
-  def imageDeserialize(imageBytes: Array[Byte]): RenderedImage = {
-    val in: ObjectInputStream = new ObjectInputStream(new ByteArrayInputStream(imageBytes))
-    var read: RenderedImage = null
-    try {
-      read = in.readObject().asInstanceOf[RenderedImage]
-    } finally {
-      in.close
-    }
-    read
-  }
-
-  def getCoverages(timeParam: Option[Either[Date, DateRange]], env: Envelope, gridGeometry: GridGeometry2D): Iterator[GridCoverage2D] = {
+  def getCoverages(env: Envelope, gridGeometry: GridGeometry2D): Iterator[GridCoverage2D] = {
     val xDim = gridGeometry.getGridRange2D.getSpan(0)
     val yDim = gridGeometry.getGridRange2D.getSpan(1)
     val min = Array(Math.max(env.getMinimum(0), -180) + .00000001, Math.max(env.getMinimum(1), -90) + .00000001)
@@ -183,7 +159,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     val xdim = math.max(1, math.min(xDim, math.round(ghBbox.bbox.longitudeSize / rescaleX).toInt))
     val ydim = math.max(1, math.min(yDim, math.round(ghBbox.bbox.latitudeSize / rescaleY).toInt))
 
-    val scanBuffers = getScanBuffers(bbox, timeParam, xdim, ydim)
+    val scanBuffers = getScanBuffers(bbox, xdim, ydim)
     val bufferList: List[Array[Byte]] = scanBuffers.map(_.getValue.get()).toList
     val geomList: List[Geometry] = scanBuffers.map(e => IndexEntry.decodeIndexCQMetadata(e.getKey).geom).toList
     val coverageList = new ListBuffer[GridCoverage2D]()
@@ -200,38 +176,12 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     coverageList.toIterator
   }
 
-  def mosaicGridCoverages(coverageList: Iterator[GridCoverage], width: Int = 256, height: Int = 256, env: Envelope, startImage: BufferedImage = null) = {
-    val image = if (startImage == null) { getEmptyImage(width, height) } else { startImage }
-    while (coverageList.hasNext) {
-      val coverage = coverageList.next()
-      val coverageEnv = coverage.getEnvelope
-      val coverageImage = coverage.getRenderedImage
-      val posx = ((coverageEnv.getMinimum(0) - env.getMinimum(0)) / 1.0).asInstanceOf[Int]
-      val posy = ((env.getMaximum(1) - coverageEnv.getMaximum(1)) / 1.0).asInstanceOf[Int]
-      image.getRaster.setDataElements(posx, posy, coverageImage.getData)
-    }
-    image
-  }
-
-  def getScanBuffers(bbox: BoundingBox, timeParam: Option[Either[Date, DateRange]], xDim: Int, yDim: Int) = {
+  def getScanBuffers(bbox: BoundingBox, xDim: Int, yDim: Int) = {
     val scanner = connector.createBatchScanner(table, auths, 10)
     scanner.fetchColumn(new Text(""), new Text(s"$rasterName~$timeStampString"))
 
     val ranges = BoundingBoxUtil.getRangesByRow(BoundingBox.getGeoHashesFromBoundingBox(bbox))
     scanner.setRanges(ranges)
-
-    timeParam match {
-      case Some(Left(date)) => TimestampSetIterator.setupIterator(scanner, date.getTime / 1000)
-      case Some(Right(dateRange)) =>
-        val startDate = dateRange.getMinValue
-        val endDate = dateRange.getMaxValue
-        TimestampRangeIterator.setupIterator(scanner, startDate, endDate)
-      case None =>
-        val name = "version-" + Random.alphanumeric.take(5).mkString
-        val cfg = new IteratorSetting(2, name, classOf[VersioningIterator])
-        VersioningIterator.setMaxVersions(cfg, 1)
-        scanner.addScanIterator(cfg)
-    }
 
     AggregatingKeyIterator.setupAggregatingKeyIterator(scanner,
       1000,
@@ -247,15 +197,17 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     SelfClosingBatchScanner(scanner)
   }
 
-  def getEmptyImage(width: Int = 256, height: Int = 256) = {
-    val emptyImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
-    val g2D = emptyImage.getGraphics.asInstanceOf[Graphics2D]
-    val save = g2D.getColor
-    g2D.setColor(Color.WHITE)
-    g2D.setComposite(AlphaComposite.Clear)
-    g2D.fillRect(0, 0, emptyImage.getWidth, emptyImage.getHeight)
-    g2D.setColor(save)
-    emptyImage
+  def mosaicGridCoverages(coverageList: Iterator[GridCoverage], width: Int = 256, height: Int = 256, env: Envelope, startImage: BufferedImage = null) = {
+    val image = if (startImage == null) { getEmptyImage(width, height) } else { startImage }
+    while (coverageList.hasNext) {
+      val coverage = coverageList.next()
+      val coverageEnv = coverage.getEnvelope
+      val coverageImage = coverage.getRenderedImage
+      val posx = ((coverageEnv.getMinimum(0) - env.getMinimum(0)) / 1.0).asInstanceOf[Int]
+      val posy = ((env.getMaximum(1) - coverageEnv.getMaximum(1)) / 1.0).asInstanceOf[Int]
+      image.getRaster.setDataElements(posx, posy, coverageImage.getData)
+    }
+    image
   }
 
   import org.geotools.coverage.grid.io.GridCoverage2DReader._
