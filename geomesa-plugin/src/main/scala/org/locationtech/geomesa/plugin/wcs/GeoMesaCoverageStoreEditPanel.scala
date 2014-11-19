@@ -75,13 +75,13 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
 
     val params = new JMap[String, String]
     if (url != null && url.startsWith("accumulo:")) {
-      val FORMAT(user, password, instanceId, table, columns, geohash, resolution, zookeepers, timeStamp, rasterName, authtokens) = url
+      val FORMAT(user, password, instanceId, table, columnsStr, geohash, resolutionStr, timeStamp, rasterName, zookeepers, authtokens) = url
       params.put("user", user)
       params.put("password", password)
       params.put("instanceId", instanceId)
       params.put("tableName", table)
-      params.put("columns", columns)
-      params.put("resolution", resolution)
+      params.put("columns", columnsStr)
+      params.put("resolution", resolutionStr)
       params.put("zookeepers", zookeepers)
       params.put("timeStamp", timeStamp)
       params.put("rasterName", rasterName)
