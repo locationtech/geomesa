@@ -151,7 +151,7 @@ class STIdxStrategy extends Strategy with Logging {
                      featureEncoding: FeatureEncoding): IteratorSetting = {
     iteratorConfig.iterator match {
       case IndexOnlyIterator =>
-        configureIndexIterator(ofilter, query, schema, featureEncoding, featureType)
+        configureIndexIterator(ofilter, query, schema, featureEncoding, featureType, !iteratorConfig.useSFFI)
       case SpatioTemporalIterator =>
         val isDensity = query.getHints.containsKey(DENSITY_KEY)
         configureSpatioTemporalIntersectingIterator(ofilter, featureType, schema, isDensity)
@@ -176,11 +176,19 @@ class STIdxStrategy extends Strategy with Logging {
                              query: Query,
                              schema: String,
                              featureEncoding: FeatureEncoding,
-                             featureType: SimpleFeatureType): IteratorSetting = {
+                             featureType: SimpleFeatureType,
+                             applyDirectTransform: Boolean): IteratorSetting = {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),classOf[IndexIterator])
     IndexIterator.setOptions(cfg, schema, filter)
-    configureFeatureType(cfg, featureType)
+    if (applyDirectTransform) {
+      // apply the transform directly to the index iterator
+      val testType = query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
+      configureFeatureType(cfg, testType)
+    } else {
+      // we need to evaluate the original feature before transforming, SFFI will be applied for the transform
+      configureFeatureType(cfg, featureType)
+    }
     configureFeatureEncoding(cfg, featureEncoding)
     cfg
   }

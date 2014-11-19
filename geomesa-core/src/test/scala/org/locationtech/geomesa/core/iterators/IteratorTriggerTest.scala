@@ -17,6 +17,7 @@
 package org.locationtech.geomesa.core.iterators
 
 import org.geotools.data.Query
+import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
@@ -76,6 +77,12 @@ class IteratorTriggerTest extends Specification {
 
     val anotherTrivialFilterString = "(INCLUDE)"
 
+    val spatialFilterString =
+      "WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
+
+    val spatialTemporalFilterString =
+      "WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (dtg before 2010-08-08T23:59:59Z)"
+
     val extraAttributeFilterString =
       "WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (attr2 like '2nd___')"
 
@@ -86,6 +93,9 @@ class IteratorTriggerTest extends Specification {
       "WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND (dtg between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')"
 
     // transforms for testing
+    val geomTransformToIndex = {
+      Array("geom")
+    }
     val simpleTransformToIndex = {
       Array("geom", "dtg")
     }
@@ -116,6 +126,15 @@ class IteratorTriggerTest extends Specification {
       val aQuery = TestTable.sampleQuery(ECQL.toFilter(ecqlPred), transformText)
       val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType)
       IteratorTrigger.useSimpleFeatureFilteringIterator(modECQLPred, aQuery)
+    }
+
+    /**
+     * Function for use in testing chooseIterator
+     */
+    def chooseIteratorTest(ecqlPred: String, transformText: Array[String]): IteratorConfig = {
+      val aQuery = TestTable.sampleQuery(ECQL.toFilter(ecqlPred), transformText)
+      val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType).map(CQL.toCQL)
+      IteratorTrigger.chooseIterator(modECQLPred, aQuery, TestTable.testFeatureType)
     }
   }
     "useIndexOnlyIterator" should {
@@ -173,6 +192,11 @@ class IteratorTriggerTest extends Specification {
         val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.reducibleFilterString, TriggerTest.simpleTransformToIndex)
         isTriggered must beTrue
       }
+
+      "be run when transforms overlap filters" in {
+        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.spatialTemporalFilterString, TriggerTest.geomTransformToIndex)
+        isTriggered must beTrue
+      }
     }
 
 
@@ -196,11 +220,66 @@ class IteratorTriggerTest extends Specification {
       val isTriggered = TriggerTest.useSimpleFeatureFilteringIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.nullTransform)
       isTriggered must beFalse
    }
+
+    "not be run when transforms overlap filters" in {
+      val choice = TriggerTest.chooseIteratorTest(TriggerTest.spatialTemporalFilterString, TriggerTest.simpleTransformToIndex)
+      choice.useSFFI must beFalse
+    }
+
+    "not be run for geom transform and filter" in {
+      val choice = TriggerTest.chooseIteratorTest(TriggerTest.spatialFilterString, TriggerTest.geomTransformToIndex)
+      choice.useSFFI must beFalse
+    }
+
+    "be run when transforms don't overlap filters" in {
+      val choice = TriggerTest.chooseIteratorTest(TriggerTest.spatialTemporalFilterString, TriggerTest.geomTransformToIndex)
+      choice.useSFFI must beTrue
+    }
   }
 
   "IteratorTrigger" should {
     "accept INCLUDE as a pass through filter" in {
       IteratorTrigger.passThroughFilter(Filter.INCLUDE) mustEqual(true)
+    }
+
+    "determine overlap between transforms and filters" >> {
+      val sft = SimpleFeatureTypes.createType("overlaptest", "name:String,dtg:Date,*geom:Point:srid=4326")
+
+      def testOverlap(filter: String, attributes: Array[String]) = {
+        val query = new Query("overlaptest", ECQL.toFilter(filter), attributes)
+        AccumuloDataStore.setQueryTransforms(query, sft)
+        IteratorTrigger.doTransformsCoverFilters(query)
+      }
+
+      "for single geom attribute" >> {
+        val result = testOverlap("BBOX(geom, -180, -90, 180, 90)", Array("geom"))
+        result must beTrue
+      }
+      "for multiple overlapping attributes" >> {
+        val filter = "BBOX(geom, -180, -90, 180, 90) AND dtg = 2010-08-08T23:59:59Z OR name = 'joe'"
+        val attributes = Array("geom", "dtg", "name")
+        val result = testOverlap(filter, attributes)
+        result must beTrue
+      }
+      "for missing attributes" >> {
+        val filter = "BBOX(geom, -180, -90, 180, 90) AND dtg = 2010-08-08T23:59:59Z OR name = 'joe'"
+        val attributes = Array("geom", "dtg")
+        val result = testOverlap(filter, attributes)
+        result must beFalse
+      }
+      "for non overlapping transforms" >> {
+        val filter = "BBOX(geom, -180, -90, 180, 90) AND dtg = 2010-08-08T23:59:59Z"
+        val attributes = Array("geom")
+        val result = testOverlap(filter, attributes)
+        result must beFalse
+      }
+      "for non-included geoms" >> {
+        // geom will always get added to the transforms
+        val filter = "BBOX(geom, -180, -90, 180, 90) AND dtg = 2010-08-08T23:59:59Z"
+        val attributes = Array("dtg")
+        val result = testOverlap(filter, attributes)
+        result must beTrue
+      }
     }
   }
 

@@ -12,6 +12,7 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+import org.opengis.filter.expression.PropertyName
 
 import scala.collection.JavaConverters._
 
@@ -60,7 +61,7 @@ object IteratorTrigger {
   def chooseIterator(ecqlPredicate: Option[String], query: Query, sourceSFT: SimpleFeatureType): IteratorConfig = {
     val filter = ecqlPredicate.map(ECQL.toFilter)
     if (useIndexOnlyIterator(filter, query, sourceSFT)) {
-      IteratorConfig(IndexOnlyIterator, true)
+      IteratorConfig(IndexOnlyIterator, !doTransformsCoverFilters(query))
     } else {
       IteratorConfig(SpatioTemporalIterator, useSimpleFeatureFilteringIterator(filter, query))
     }
@@ -92,6 +93,13 @@ object IteratorTrigger {
 
     // require both to be true
     (isIndexTransform ++ isPassThroughFilter ++ notDensity).forall {_ == true}
+  }
+
+  def doTransformsCoverFilters(query: Query): Boolean = {
+    val filterAttributes = getFilterAttributes(query.getFilter)
+    val transforms = TransformProcess.toDefinition(query.getHints.get(TRANSFORMS).asInstanceOf[String]).asScala
+        .map(_.expression.asInstanceOf[PropertyName].getPropertyName)
+    filterAttributes.forall(transforms.contains(_))
   }
 
   /**
