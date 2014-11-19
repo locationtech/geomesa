@@ -23,6 +23,7 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.joda.time.Interval
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
@@ -53,7 +54,35 @@ object QueryPlanner {
 
 case class QueryPlanner(schema: String,
                         featureType: SimpleFeatureType,
-                        featureEncoding: FeatureEncoding) extends ExplainingLogging with IndexFilterHelpers {
+                        featureEncoding: FeatureEncoding) extends ExplainingLogging {
+  def buildFilter(geom: Geometry, interval: Interval): KeyPlanningFilter =
+    (IndexSchema.somewhere(geom), IndexSchema.somewhen(interval)) match {
+      case (None, None)       =>    AcceptEverythingFilter
+      case (None, Some(i))    =>
+        if (i.getStart == i.getEnd) DateFilter(i.getStart)
+        else                        DateRangeFilter(i.getStart, i.getEnd)
+      case (Some(p), None)    =>    SpatialFilter(p)
+      case (Some(p), Some(i)) =>
+        if (i.getStart == i.getEnd) SpatialDateFilter(p, i.getStart)
+        else                        SpatialDateRangeFilter(p, i.getStart, i.getEnd)
+    }
+
+  def netPolygon(poly: Polygon): Polygon = poly match {
+    case null => null
+    case p if p.covers(IndexSchema.everywhere) =>
+      IndexSchema.everywhere
+    case p if IndexSchema.everywhere.covers(p) => p
+    case _ => poly.intersection(IndexSchema.everywhere).
+      asInstanceOf[Polygon]
+  }
+
+  def netGeom(geom: Geometry): Geometry =
+    Option(geom).map(_.intersection(IndexSchema.everywhere)).orNull
+
+  def netInterval(interval: Interval): Interval = interval match {
+    case null => null
+    case _    => IndexSchema.everywhen.overlap(interval)
+  }
 
   // As a pre-processing step, we examine the query/filter and split it into multiple queries.
   // TODO: Work to make the queries non-overlapping.
