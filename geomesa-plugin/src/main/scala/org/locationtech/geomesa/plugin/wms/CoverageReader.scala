@@ -36,6 +36,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.iterators.{AggregatingKeyIterator, SurfaceAggregatingIterator, TimestampRangeIterator, TimestampSetIterator}
 import org.locationtech.geomesa.core.util.{BoundingBoxUtil, SelfClosingBatchScanner}
+import org.locationtech.geomesa.plugin.ImageUtils
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, TwoGeoHashBoundingBox}
 import org.opengis.geometry.Envelope
 import org.opengis.parameter.{GeneralParameterValue, InvalidParameterValueException}
