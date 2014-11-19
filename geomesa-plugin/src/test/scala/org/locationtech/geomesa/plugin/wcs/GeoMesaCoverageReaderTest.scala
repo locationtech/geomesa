@@ -18,7 +18,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloCoverageReaderTest extends Specification {
+class GeoMesaCoverageReaderTest extends Specification {
   val white = Array[Int] (255, 255, 255)
   val black = Array[Int] (0, 0, 0)
 
@@ -53,7 +53,7 @@ class AccumuloCoverageReaderTest extends Specification {
 
   def getImageFromGridCoverages(gridCoverageIterator: Iterator[GridCoverage2D], width: Int, height: Int): BufferedImage = {
     val envTotal =  new ReferencedEnvelope(width * -1, width, height * -1, height, DefaultGeographicCRS.WGS84)
-    val acr = new AccumuloCoverageReader("accumulo://root:secret@dcloud/wcs_coverage#columns=jw9bntest1_31_c99a#resolution=31#zookeepers=dzoo1,dzoo2,dzoo3#auths=S,USA", null)
+    val acr = new GeoMesaCoverageReader("accumulo://root:secret@dcloud/wcs_coverage#columns=jw9bntest16_e83f43cd-3411-4a26-ba38-d60841c8ac5e#geohash=9q8#resolution=13#timeStamp=1416336521#rasterName=jw9bntest16_e83f43cd-3411-4a26-ba38-d60841c8ac5e#zookeepers=dzoo1,dzoo2,dzoo3#auths=S,USA", null)
     acr.mosaicGridCoverages(gridCoverageIterator, width * 2, height * 2, envTotal)
   }
 
@@ -64,7 +64,7 @@ class AccumuloCoverageReaderTest extends Specification {
     baos.toByteArray
   }
 
-  "AccumuloCoverageReader" should {
+  "GeoMesaCoverageReader" should {
     "mosaic GridCoverages appropriately for 4 10x10 grid coverages" in {
       val width = 10
       val height = 10

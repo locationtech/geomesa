@@ -9,12 +9,12 @@ import org.geotools.parameter.{DefaultParameterDescriptorGroup, ParameterGroup}
 import org.opengis.coverage.grid.Format
 import org.opengis.parameter.GeneralParameterDescriptor
 
-class AccumuloCoverageFormat extends AbstractGridFormat() with Format {
+class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
   mInfo = new java.util.HashMap[String, String]()
-  mInfo.put("name", "New Accumulo Coverage Format")
-  mInfo.put("description", "Serve tile imagery from Accumulo tables with a specific format")
+  mInfo.put("name", "Geomesa Coverage Format")
+  mInfo.put("description", "Serve tile imagery from GeoMesa tables with a specific format")
   mInfo.put("vendor", "CCRI")
-  mInfo.put("docURL", "http://www.ccri.com")
+  mInfo.put("docURL", "http://www.geomesa.org")
   mInfo.put("version", "1.0")
   val parameterDescriptors = Array[GeneralParameterDescriptor](READ_GRIDGEOMETRY2D, TIME)
   val defaultParameterGroup = new DefaultParameterDescriptorGroup(mInfo, parameterDescriptors)
@@ -24,8 +24,8 @@ class AccumuloCoverageFormat extends AbstractGridFormat() with Format {
 
   override def getReader(source: AnyRef) = getReader(source, null)
   override def getReader(source: AnyRef, hints: Hints) = source match {
-    case file: File => new AccumuloCoverageReader(file.getPath, hints)
-    case path: String => new AccumuloCoverageReader(path, hints)
+    case file: File => new GeoMesaCoverageReader(file.getPath, hints)
+    case path: String => new GeoMesaCoverageReader(path, hints)
     case unk => throw new Exception(s"unexpected data type for reader source: ${Option(unk).map(_.getClass.getName).getOrElse("null")}")
   }
   override def accepts(input: AnyRef) = true

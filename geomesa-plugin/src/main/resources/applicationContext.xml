@@ -48,12 +48,12 @@
                   value="org.locationtech.geomesa.plugin.wms.CoverageStoreEditPanel"/>
     </bean>
 
-    <bean id="accumuloCoverageStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
-        <property name="id" value="accumuloCoverageStorePanel"/>
-        <property name="factoryClass" value="org.locationtech.geomesa.plugin.wcs.AccumuloCoverageFormat"/>
+    <bean id="GeoMesaCoverageStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
+        <property name="id" value="GeoMesaCoverageStorePanel"/>
+        <property name="factoryClass" value="org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageFormat"/>
         <property name="iconBase" value="org.geoserver.web.GeoServerApplication"/>
         <property name="icon" value="img/icons/geosilk/database_raster.png"/>
-        <property name="componentClass" value="org.locationtech.geomesa.plugin.wcs.AccumuloCoverageStoreEditPanel"/>
+        <property name="componentClass" value="org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageStoreEditPanel"/>
     </bean>
 
     <bean id="geomesaProcessFactory" class="org.locationtech.geomesa.plugin.wps.GeomesaProcessFactory">
