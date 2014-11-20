@@ -186,7 +186,8 @@ class STIdxStrategy extends Strategy with Logging {
       val testType = query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
       configureFeatureType(cfg, testType)
     } else {
-      // we need to evaluate the original feature before transforming, SFFI will be applied for the transform
+      // we need to evaluate the original feature before transforming
+      // SFFI must be applied later for the transform
       configureFeatureType(cfg, featureType)
     }
     configureFeatureEncoding(cfg, featureEncoding)

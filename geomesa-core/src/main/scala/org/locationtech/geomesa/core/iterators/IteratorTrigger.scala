@@ -95,6 +95,12 @@ object IteratorTrigger {
     (isIndexTransform ++ isPassThroughFilter ++ notDensity).forall {_ == true}
   }
 
+  /**
+   * Tests whether the requested transforms are a super-set of the attributes being filtered on.
+   *
+   * @param query
+   * @return
+   */
   def doTransformsCoverFilters(query: Query): Boolean = {
     val filterAttributes = getFilterAttributes(query.getFilter)
     val transforms = TransformProcess.toDefinition(query.getHints.get(TRANSFORMS).asInstanceOf[String]).asScala
