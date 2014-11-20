@@ -26,12 +26,11 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.core.iterators.IteratorHelpers
+import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.raster.index.RasterIndexEntry
 import org.locationtech.geomesa.raster.index.RasterIndexEntry.DecodedCQMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
-
 
 class RasterFilteringIterator extends Filter with Logging {
 
