@@ -1,18 +1,17 @@
 package org.locationtech.geomesa.core
 
-import java.io.File
 import java.net.URI
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Geometry}
-import org.geotools.data.shapefile.ShapefileDataStoreFactory
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.feature.{FeatureCollection, DefaultFeatureCollection, FeatureCollections}
+import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.core.util.SftBuilder
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -41,41 +40,43 @@ package object csv extends Logging {
       sftb.build(name)
     }
 
-    def parseLine(csvLine: String): Try[Map[String, String]] = {
+    def parseLine(csvLine: String): Try[Seq[String]] = {
       val entries = csvLine.split(",")
-      if (entries.size == fields.size) {
-        Success((fields zip entries).toMap)
-      } else {
-        Failure(new Exception(s"Found ${entries.size} entries in line; expected ${fields.size}\nError parsing line: $csvLine"))
+      for {
+        _ <- require(entries.size == fields.size, s"Found ${entries.size} entries in line, expected ${fields.size}\nError parsing line: $csvLine")
+      } yield {
+        entries
       }
     }
 
-    def parseEntries(stringData: Map[String, String]): Try[Map[String, Any]] = {
+    def parseEntries(stringData: Seq[String]): Try[Map[String, Any]] = {
       def verifySize(entries: Map[String, String]): Try[Unit] =
         if (entries.size == types.size) {
           Failure(new Exception(s"Expected ${types.size} entries but received ${entries.size}"))
         } else { Success(()) }
 
-      val getParser: Char => Try[Parsable[_]] = tchar => Try {
-                                                               parsers.find(_.typeChar == tchar)
-                                                               .getOrElse(throw new Exception(s"Cannot find parser for type character $tchar"))
-                                                             }
+      val getParser: Char => Try[Parsable[_]] = {
+        def findParser(char: Char): Parsable[_] =
+          parsers.find(_.typeChar == char)
+          .getOrElse(throw new Exception(s"Cannot find parser for type character $char"))
 
-      val parseEntry: ((String, String), Char) => Try[(String, Any)] = { (entry, typeHint) =>
-        val (name, datum) = entry
+        val memo = mutable.Map[Char, Parsable[_]]()
+        tchar => Try { memo.getOrElseUpdate(tchar, findParser(tchar)) }
+      }
 
+      def parseEntry(name: String, datum: String, typeChar: Char): Try[(String, Any)] =
         for {
-          parser <- getParser(typeHint)
+          parser <- getParser(typeChar)
           parsed <- parser.parse(datum)
         } yield {
           (name, parsed)
         }
-      }
 
       def parseLoop(entries: Map[String, String]): Try[Map[String, Any]] = {
         @tailrec
         def loop(entries: Seq[((String, String), Char)], acc: Map[String, Any]): Try[Map[String, Any]] = {
           if (entries.isEmpty) { Success(acc) } else {
+            val ((name, datum), typeChar) = entries.head
             parseEntry.tupled(entries.head) match {
               case Success(parsedPair) => loop(entries.tail, acc + parsedPair)
               case Failure(ex) => Failure(ex) // would be nice to flatmap this but we lose the tailrec optimization!
@@ -191,19 +192,31 @@ package object csv extends Logging {
     // need to build shapefile now
   }
 
-  def typeData(rawData: Seq[String]): Try[Seq[Char]] =
-    rawData.foldLeft[Try[Seq[Char]]](Success(Seq[Char]()))
-    { case (trytypes, datum) =>
+  def typeData(rawData: Seq[String]): Try[Seq[Char]] = {
+    def tryAllParsers(datum: String) = {
+      @tailrec
+      def tryParsers(ps: Seq[Parsable[_]]): Try[(Any, Char)] = {
+        if (ps.isEmpty) {
+          Failure[(Any, Char)](new IllegalArgumentException(s"Could not parse $datum as any known data type"))
+        } else {
+          ps.head.parse(datum) match {
+            case s@Success(_) => s
+            case Failure(_) => tryParsers(ps.tail)
+          }
+        }
+      }
+      tryParsers(parsers)
+    }
+    
+    rawData.foldLeft[Try[Seq[Char]]](Success(Seq[Char]())) { case (trytypes, datum) =>
       for {
         types <- trytypes
-        (_, vtype) <- parsers.foldLeft[Try[(Any, Char)]](Failure[(Any, Char)](new Exception))
-                      { case (result, parser) =>
-                        result orElse parser.parseAndType(datum)
-                      }
+        (_, vtype) <- tryAllParsers(datum)
       } yield {
         types :+ vtype
       }
-    }
+                                                           }
+  }
 
   // should we handle the exception here, log the failure, and return a blank string?
   // what's the canonical Geomesa Way to handle exceptions in web services?
