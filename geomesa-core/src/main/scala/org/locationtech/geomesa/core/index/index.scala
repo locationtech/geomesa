@@ -132,10 +132,8 @@ package object index {
     }
   }
 
-  val doubleAlias = "double"
-
   def lexiEncodeDoubleToString(number: Double): String = LexiTypeEncoders.LEXI_TYPES.encode(number)
 
-  def lexiDecodeStringToDouble(str: String): Double = LexiTypeEncoders.LEXI_TYPES.decode(doubleAlias, str).asInstanceOf[Double]
+  def lexiDecodeStringToDouble(str: String): Double = LexiTypeEncoders.LEXI_TYPES.decode("double", str).asInstanceOf[Double]
 }
 

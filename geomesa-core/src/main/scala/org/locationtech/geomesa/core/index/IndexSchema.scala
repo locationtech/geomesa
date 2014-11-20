@@ -170,8 +170,7 @@ object IndexSchema extends RegexParsers with Logging {
     case str => ConstantTextFormatter(str)
   }
 
-  // An Image Resolution encoder. '1.8e+10#ires' would yield something
-  // this may not be workable
+  // An Image Resolution encoder.
   def resolutionPattern = pattern("[^%#]+".r, RESOLUTION_CODE)
   def resolutionEncoder: Parser[ScientificNotationTextFormatter] = resolutionPattern ^^ {
     case d => ScientificNotationTextFormatter(lexiDecodeStringToDouble(d))
