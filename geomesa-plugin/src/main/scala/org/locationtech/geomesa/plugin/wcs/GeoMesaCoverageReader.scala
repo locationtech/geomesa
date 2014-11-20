@@ -2,7 +2,7 @@ package org.locationtech.geomesa.plugin.wcs
 
 import java.awt.image._
 import java.awt.{Point, Rectangle}
-import java.util.{Date, List => JList}
+import java.util.{Date}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
@@ -25,7 +25,6 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.IndexEntry
 import org.locationtech.geomesa.core.iterators.{AggregatingKeyIterator, SurfaceAggregatingIterator}
 import org.locationtech.geomesa.core.util.{BoundingBoxUtil, SelfClosingBatchScanner}
-import org.locationtech.geomesa.plugin.ImageUtils
 import org.locationtech.geomesa.plugin.ImageUtils._
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, TwoGeoHashBoundingBox}
 import org.opengis.coverage.grid.GridCoverage
@@ -131,7 +130,6 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
       val cfg = new IteratorSetting(2, name, classOf[VersioningIterator])
       VersioningIterator.setMaxVersions(cfg, 1)
       scanner.addScanIterator(cfg)
-      scanner.fetchColumnFamily(new Text(""))
     })(_.map(entry => {
       rasterImageDeserialize(entry.getValue.get)
     })).toList.head
