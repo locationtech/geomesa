@@ -1,7 +1,11 @@
 package org.locationtech.geomesa.raster.util
 
+import java.awt.image.RenderedImage
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
+
+import org.geotools.coverage.grid.GridCoverageFactory
+import org.opengis.geometry.Envelope
 
 object RasterUtils {
   val doubleSize = 8
@@ -31,5 +35,11 @@ object RasterUtils {
   val utf8Charset = Charset.forName("UTF-8")
   implicit def stringToBytes(s: String): Array[Byte] = s.getBytes(utf8Charset)
   implicit def bytesToString(bs: Array[Byte]): String = new String(bs, utf8Charset)
+
+  val defaultGridCoverageFactory = new GridCoverageFactory
+
+  def renderedImageToGridCoverage2d(name: String, image: RenderedImage, env: Envelope) =
+    defaultGridCoverageFactory.create(name, image, env)
+
 }
 

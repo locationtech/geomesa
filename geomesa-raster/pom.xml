@@ -31,6 +31,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.scalanlp</groupId>
+            <artifactId>breeze_2.10</artifactId>
+            <version>0.10</version>
+        </dependency>
+        <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-accumulo1.5</artifactId>
         </dependency>
