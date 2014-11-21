@@ -10,12 +10,18 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.core.util.SftBuilder
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.annotation.tailrec
-import scala.collection.mutable
+import scala.collection.generic.CanBuildFrom
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 package object csv extends Logging {
+  def tryTraverse[A, B, M[_] <: TraversableOnce[_]](in: M[A])(fn: A => Try[B])
+                                                   (implicit cbf: CanBuildFrom[M[A], B, M[B]]): Try[M[B]] =
+    in.foldLeft(Try(cbf(in))) { (tr, a) =>
+      for (r <- tr; b <- fn(a.asInstanceOf[A])) yield r += b
+                              }.map(_.result())
+
+
   abstract class Schema(name: String, fields: Seq[String], types: Seq[Char], tField: String) {
     { // Schema must satisfy these to be well-formed
       require(types.size == fields.size, s"Number of types (${types.size}) must equal number of fields (${types.size})")
@@ -43,56 +49,36 @@ package object csv extends Logging {
     def parseLine(csvLine: String): Try[Seq[String]] = {
       val entries = csvLine.split(",")
       for {
-        _ <- require(entries.size == fields.size, s"Found ${entries.size} entries in line, expected ${fields.size}\nError parsing line: $csvLine")
+        _ <- Try { require(entries.size == fields.size,
+                           s"Found ${entries.size} entries in line, expected ${fields.size}\nError parsing line: $csvLine")
+                 }
       } yield {
         entries
       }
     }
 
     def parseEntries(stringData: Seq[String]): Try[Map[String, Any]] = {
-      def verifySize(entries: Map[String, String]): Try[Unit] =
+      def verifySize(entries: Seq[String]): Try[Unit] =
         if (entries.size == types.size) {
           Failure(new Exception(s"Expected ${types.size} entries but received ${entries.size}"))
         } else { Success(()) }
 
-      val getParser: Char => Try[Parsable[_]] = {
-        def findParser(char: Char): Parsable[_] =
-          parsers.find(_.typeChar == char)
-          .getOrElse(throw new Exception(s"Cannot find parser for type character $char"))
+      def getParser(char: Char): Try[Parsable[_]] =
+        Try { Parsable.parserMap.getOrElse(char, throw new Exception(s"Cannot find parser for type character $char")) }
 
-        val memo = mutable.Map[Char, Parsable[_]]()
-        tchar => Try { memo.getOrElseUpdate(tchar, findParser(tchar)) }
-      }
-
-      def parseEntry(name: String, datum: String, typeChar: Char): Try[(String, Any)] =
-        for {
-          parser <- getParser(typeChar)
-          parsed <- parser.parse(datum)
-        } yield {
-          (name, parsed)
-        }
-
-      def parseLoop(entries: Map[String, String]): Try[Map[String, Any]] = {
-        @tailrec
-        def loop(entries: Seq[((String, String), Char)], acc: Map[String, Any]): Try[Map[String, Any]] = {
-          if (entries.isEmpty) { Success(acc) } else {
-            val ((name, datum), typeChar) = entries.head
-            parseEntry.tupled(entries.head) match {
-              case Success(parsedPair) => loop(entries.tail, acc + parsedPair)
-              case Failure(ex) => Failure(ex) // would be nice to flatmap this but we lose the tailrec optimization!
-              // really this should be written already as Try.sequence but nope!
-            }
-          }
-        }
-
-        loop(entries.toSeq zip types, Map())
-      }
+      def tryParse(entries: Seq[String]): Try[Seq[Any]] =
+        tryTraverse(entries.toSeq zip types) { case (datum, typeChar) =>
+            for {
+              parser <- getParser(typeChar)
+              parsed <- parser.parse(datum)
+            } yield parsed
+                                             }
 
       for {
-        _ <- verifySize(stringData)
-        parsedEntries <- parseLoop(stringData)
+        _             <- verifySize(stringData)
+        parsedEntries <- tryParse(stringData)
       } yield {
-        parsedEntries
+        (fields zip parsedEntries).toMap
       }
     }
 
@@ -126,18 +112,6 @@ package object csv extends Logging {
         (spatialData, entries - (latField, lonField))
       }
   }
-
-  import Parsable._
-
-  // need a sequence of which ones to try, and in which order; Int comes before Double; String comes last
-  val parsers: Seq[Parsable[_]] =
-    Seq(
-         IntIsParsable,
-         DoubleIsParsable,
-         TimeIsParsable,
-         GeometryIsParsable,
-         StringIsParsable
-       )
 
   def buildFeatureCollection(lines: Stream[String], schema: Schema): DefaultFeatureCollection = {
     val ft = schema.ft
@@ -193,29 +167,13 @@ package object csv extends Logging {
   }
 
   def typeData(rawData: Seq[String]): Try[Seq[Char]] = {
-    def tryAllParsers(datum: String) = {
-      @tailrec
-      def tryParsers(ps: Seq[Parsable[_]]): Try[(Any, Char)] = {
-        if (ps.isEmpty) {
-          Failure[(Any, Char)](new IllegalArgumentException(s"Could not parse $datum as any known data type"))
-        } else {
-          ps.head.parse(datum) match {
-            case s@Success(_) => s
-            case Failure(_) => tryParsers(ps.tail)
-          }
-        }
+    def tryAllParsers(datum: String): Try[(Any, Char)] =
+      Parsable.parsers.view.map(_.parseAndType(datum)).collectFirst { case Success(x) => x } match {
+        case Some(x) => Success(x)
+        case None    => Failure(new IllegalArgumentException(s"Could not parse $datum as any known type"))
       }
-      tryParsers(parsers)
-    }
-    
-    rawData.foldLeft[Try[Seq[Char]]](Success(Seq[Char]())) { case (trytypes, datum) =>
-      for {
-        types <- trytypes
-        (_, vtype) <- tryAllParsers(datum)
-      } yield {
-        types :+ vtype
-      }
-                                                           }
+
+    tryTraverse(rawData)(tryAllParsers(_).map(_._2))
   }
 
   // should we handle the exception here, log the failure, and return a blank string?
@@ -225,10 +183,7 @@ package object csv extends Logging {
     val header = csvLines.next().split(",") // mostly unused in guessing types
     val firstDataLine = csvLines.next().split(",")
     for {
-      _ <- Try {
-                 require(firstDataLine.size == header.size,
-                         "Malformed CSV; data lines must have the same number of entries as header line")
-               }
+      _     <- Try { require(firstDataLine.size == header.size, "Malformed CSV; data lines must have the same number of entries as header line") }
       types <- typeData(firstDataLine)
     } yield {
       types

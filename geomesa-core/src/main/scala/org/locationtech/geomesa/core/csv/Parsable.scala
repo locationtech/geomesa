@@ -10,27 +10,20 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import scala.util.{Failure, Success, Try}
 
 object Parsable {
-  implicit object StringIsParsable extends Parsable[String] {
-    val typeChar = 's'
-    def parse(datum: String): Try[String] = Success(datum)
-  }
-
   implicit object IntIsParsable extends Parsable[Int] {
+    val priority = 0
     val typeChar = 'i'
     def parse(datum: String): Try[Int] = Try(datum.toInt)
   }
 
   implicit object DoubleIsParsable extends Parsable[Double] {
+    val priority = 1
     val typeChar = 'd'
     def parse(datum: String): Try[Double] = Try(datum.toDouble)
   }
 
-  implicit object GeometryIsParsable extends Parsable[Geometry] {
-    val typeChar = 'g'
-    def parse(datum: String): Try[Geometry] = Try { WKTUtils.read(datum) }
-  }
-
   implicit object TimeIsParsable extends Parsable[Date] {
+    val priority = 2
     val timePatterns = Seq("YYYY-MM-DD'T'HH:mm:ss",
                            "YYYY-MM-DD'T'HH:mm:ssZ",
                            "YYYY-MM-DD'T'HH:mm:ss.sss",
@@ -50,9 +43,31 @@ object Parsable {
       parseUsingFormats(timeFormats).map(_.toDate)
     }
   }
+
+  implicit object GeometryIsParsable extends Parsable[Geometry] {
+    val priority = 3
+    val typeChar = 'g'
+    def parse(datum: String): Try[Geometry] = Try { WKTUtils.read(datum) }
+  }
+
+  implicit object StringIsParsable extends Parsable[String] {
+    val priority = 4
+    val typeChar = 's'
+    def parse(datum: String): Try[String] = Success(datum)
+  }
+
+  lazy val parsers: Seq[Parsable[_]] =
+    Seq(IntIsParsable,
+        DoubleIsParsable,
+        TimeIsParsable,
+        GeometryIsParsable,
+        StringIsParsable).sortBy(_.priority)
+  lazy val parserMap: Map[Char, Parsable[_]] =
+    parsers.map(p => (p.typeChar, p)).toMap
 }
 
-trait Parsable[A] {
+sealed trait Parsable[A] {
+  def priority: Int
   def parse(datum: String): Try[A]
   def typeChar: Char
   def parseAndType(datum: String): Try[(A, Char)] = parse(datum).map((_, typeChar))
