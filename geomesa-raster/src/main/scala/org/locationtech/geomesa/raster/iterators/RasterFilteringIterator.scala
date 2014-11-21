@@ -28,7 +28,7 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.IteratorHelpers
 import org.locationtech.geomesa.raster.index.RasterIndexEntry
-import org.locationtech.geomesa.raster.index.RasterIndexEntry.DecodedCQMetadata
+import org.locationtech.geomesa.raster.index.RasterIndexEntry.DecodedIndex
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 
@@ -86,7 +86,7 @@ class RasterFilteringIterator extends Filter with Logging {
   }
 
   override def accept(k: Key, v: Value): Boolean = {
-    val DecodedCQMetadata(_, geom, dtgOpt) = RasterIndexEntry.decodeIndexCQMetadata(k)
+    val DecodedIndex(_, geom, dtgOpt) = RasterIndexEntry.decodeIndexCQMetadata(k)
     wrappedSTFilter(geom, dtgOpt)
   }
 

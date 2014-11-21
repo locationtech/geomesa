@@ -21,51 +21,39 @@ import java.nio.ByteBuffer
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.Key
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.text.WKBUtils
-import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 
 object RasterIndexEntry extends IndexHelpers {
 
-  // the metadata CQ consists of the feature's:
-  // 1.  ID
-  // 2.  WKB-encoded geometry
+  // the metadata CQ consists of the raster feature's:
+  // 1.  Raster ID
+  // 2.  WKB-encoded footprint geometry of the Raster (true envelope)
   // 3.  start-date/time
-  def encodeIndexCQMetadataKey(entry: SimpleFeature): Key = {
-    val encodedId = entry.sid.getBytes
-    val encodedGeom = WKBUtils.write(entry.geometry)
-    val encodedDtg = entry.dt.map(dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array()).getOrElse(Array[Byte]())
-    val EMPTY_BYTES = Array.emptyByteArray
-    val cqByteArray = ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
-      ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
-      encodedDtg
-
-    new Key(EMPTY_BYTES, EMPTY_BYTES, cqByteArray, EMPTY_BYTES, Long.MaxValue)
+  def encodeIndexCQMetadata(uniqId: String, geometry: Geometry, dtg: Option[DateTime]) = {
+    val encodedId   = uniqId.getBytes
+    val encodedGeom = WKBUtils.write(geometry)
+    val encodedDtg  = dtg.map { d => ByteBuffer.allocate(8).putLong(d.getMillis).array() } .getOrElse(Array[Byte]())
+    
+    val cqByteArray = ByteBuffer.allocate(4).putInt(encodedId.length).array() ++
+                      encodedId ++
+                      ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++
+                      encodedGeom ++
+                      encodedDtg
+    cqByteArray
   }
 
-  def byteArrayToDecodedMetadata(b: Array[Byte]): DecodedCQMetadata = {
-    // This will need to conform to some decided CQ format ie: gh(x,y) ~ metadata
-    // meta data being: id, geom, and time. below time is optional, may want to eliminate this choice
-    val idLength = ByteBuffer.wrap(b, 0, 4).getInt
-    val (idPortion, geomDatePortion) = b.drop(4).splitAt(idLength)
-    val id = new String(idPortion)
-    val geomLength = ByteBuffer.wrap(geomDatePortion, 0, 4).getInt
-    if(geomLength < (geomDatePortion.length - 4)) {
-      val (l,r) = geomDatePortion.drop(4).splitAt(geomLength)
-      DecodedCQMetadata(id, WKBUtils.read(l), Some(ByteBuffer.wrap(r).getLong))
-    } else {
-      DecodedCQMetadata(id, WKBUtils.read(geomDatePortion.drop(4)), None)
-    }
+  def decodeIndexCQMetadata(k: Key): DecodedIndex = {
+    decodeIndexCQMetadata(k.getColumnQualifierData.toArray)
   }
 
-  def decodeIndexCQMetadata(k: Key): DecodedCQMetadata = {
-    val cqd = k.getColumnQualifierData.toArray
-    byteArrayToDecodedMetadata(cqd)
+  def decodeIndexCQMetadata(cq: Array[Byte]): DecodedIndex = {
+    byteArrayToDecodedIndex(cq)
   }
 
-  case class DecodedCQMetadata(id: String, geom: Geometry, dtgMillis: Option[Long])
 }
 
 object RasterIndexEntryCQMetadataDecoder {
@@ -76,12 +64,12 @@ object RasterIndexEntryCQMetadataDecoder {
 
 import org.locationtech.geomesa.raster.index.RasterIndexEntryCQMetadataDecoder._
 
-case class RasterIndexEntryCQMetadataDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
-  // are we grabbing the right stuff from the key?
+case class RasterIndexEntryCQMetadataDecoder(geomDecoder: GeometryDecoder,
+                                             dtDecoder: Option[DateDecoder[ColumnQualifierExtractor]]) {
   def decode(key: Key) = {
     val builder = metaBuilder.get
     builder.reset()
-    builder.addAll(List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))))
+    builder.addAll(List(geomDecoder.decode(key), dtDecoder.map { _.decode(key) } ))
     builder.buildFeature("")
   }
 }

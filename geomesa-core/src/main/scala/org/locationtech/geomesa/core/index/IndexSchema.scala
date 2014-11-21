@@ -24,8 +24,6 @@ import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.util._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.util.parsing.combinator.RegexParsers
-
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)
 //
@@ -139,7 +137,7 @@ object IndexSchema extends SchemaHelpers with Logging {
       }
   }}
 
-  def buildDateDecoder(s: String): Option[DateDecoder] = parse(dateDecoderParser, s).get
+  def buildDateDecoder(s: String): Option[DateDecoder[AbstractExtractor]] = parse(dateDecoderParser, s).get
 
   // builds a geohash decoder to extract the entire geohash from the parts of the index key
   def ghDecoderParser = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
