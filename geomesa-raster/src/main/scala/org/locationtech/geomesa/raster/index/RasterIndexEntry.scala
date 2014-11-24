@@ -56,11 +56,14 @@ object RasterIndexEntry extends IndexHelpers {
   }
 
   def decodeIndexCQMetadata(k: Key): DecodedCQMetadata = {
-    val cqd = k.getColumnQualifierData.toArray
-    byteArrayToDecodedCQMetadata(cqd)
+    decodeIndexCQMetadata(k.getColumnQualifierData.toArray)
   }
 
-  case class DecodedCQMetadata(id: String, footprint: Geometry, dtgMillis: Long)
+  def decodeIndexCQMetadata(cq: Array[Byte]): DecodedCQMetadata = {
+    byteArrayToDecodedCQMetadata(cq)
+  }
+
+  case class DecodedCQMetadata(id: String, geom: Geometry, dtgMillis: Long)
 }
 
 object RasterIndexEntryCQMetadataDecoder {
