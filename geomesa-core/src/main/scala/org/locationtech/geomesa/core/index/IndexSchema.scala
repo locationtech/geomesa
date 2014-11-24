@@ -24,8 +24,6 @@ import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.util._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.util.parsing.combinator.RegexParsers
-
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)
 //

@@ -19,6 +19,6 @@ package org.locationtech.geomesa.raster
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 package object index {
-  val rasterSpec = "geom:Geometry:srid=4326,footprint:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
+  val rasterSpec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val rasterIndexSFT = SimpleFeatureTypes.createType("geomesa-raster-idx", rasterSpec)
 }
