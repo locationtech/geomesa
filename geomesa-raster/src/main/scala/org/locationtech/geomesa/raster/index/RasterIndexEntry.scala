@@ -71,11 +71,11 @@ object RasterIndexEntryCQMetadataDecoder {
 
 import org.locationtech.geomesa.raster.index.RasterIndexEntryCQMetadataDecoder._
 
-case class RasterIndexEntryCQMetadataDecoder(ghDecoder: GeohashCQDecoder, dtDecoder: Option[DateCQDecoder]) {
+case class RasterIndexEntryCQMetadataDecoder(geomDecoder: GeometryCQDecoder, dtDecoder: Option[DateCQDecoder]) {
   def decode(key: Key) = {
     val builder = metaBuilder.get
     builder.reset()
-    builder.addAll(List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))))
+    builder.addAll(List(geomDecoder.decode(key), dtDecoder.map(_.decode(key))))
     builder.buildFeature("")
   }
 }
