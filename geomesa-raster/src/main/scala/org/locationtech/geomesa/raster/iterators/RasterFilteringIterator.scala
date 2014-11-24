@@ -86,8 +86,8 @@ class RasterFilteringIterator extends Filter with Logging {
   }
 
   override def accept(k: Key, v: Value): Boolean = {
-    val DecodedCQMetadata(_, geom, dtgOpt) = RasterIndexEntry.decodeIndexCQMetadata(k)
-    wrappedSTFilter(geom, dtgOpt)
+    val DecodedCQMetadata(_, geom, _, dtgOpt) = RasterIndexEntry.decodeIndexCQMetadata(k)
+    wrappedSTFilter(geom, Some(dtgOpt))
   }
 
 }

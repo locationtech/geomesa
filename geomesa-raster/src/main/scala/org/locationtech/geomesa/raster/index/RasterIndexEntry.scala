@@ -23,7 +23,6 @@ import org.apache.accumulo.core.data.Key
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.text.WKBUtils
 
 import scala.collection.JavaConversions._
@@ -35,10 +34,9 @@ object RasterIndexEntry extends IndexHelpers {
   // 2.  Raster ID
   // 3.  WKB-encoded footprint geometry of the Raster (true envelope)
   // 4.  start-date/time
-  def encodeIndexCQMetadata(uniqId: String, mbGH: GeoHash, geometry: Geometry, dtg: DateTime) = {
+  def encodeIndexCQMetadata(mbGH: Geometry, uniqId: String, geometry: Geometry, dtg: DateTime) = {
     val encodedId = uniqId.getBytes
-    //val encodedGH = WKBUtils.write(mbGH.geom)
-    val encodedGH = mbGH.toBinaryString.getBytes
+    val encodedGH = WKBUtils.write(mbGH)
     val encodedFootprint = WKBUtils.write(geometry)
     val encodedDtg = ByteBuffer.allocate(8).putLong(dtg.getMillis).array()
     
@@ -57,8 +55,7 @@ object RasterIndexEntry extends IndexHelpers {
     // meta data being: id, geom, and time.
     val ghLength = ByteBuffer.wrap(b, 0, 4).getInt
     val (ghPortion, idGeomDatePortion) = b.drop(4).splitAt(ghLength)
-    //val mbgh = GeohashUtils.reconstructGeohashFromGeometry(WKBUtils.read(ghPortion))
-    val mbgh = GeoHash.fromBinaryString(new String(ghPortion))
+    val mbgh = WKBUtils.read(ghPortion)
     val idLength = ByteBuffer.wrap(idGeomDatePortion, 0, 4).getInt
     val (idPortion, geomDatePortion) = b.drop(4).splitAt(idLength)
     val id = new String(idPortion)
@@ -72,7 +69,7 @@ object RasterIndexEntry extends IndexHelpers {
     byteArrayToDecodedCQMetadata(cqd)
   }
 
-  case class DecodedCQMetadata(id: String, mbgh: GeoHash, footprint: Geometry, dtgMillis: Long)
+  case class DecodedCQMetadata(id: String, mbgh: Geometry, footprint: Geometry, dtgMillis: Long)
 }
 
 object RasterIndexEntryCQMetadataDecoder {
