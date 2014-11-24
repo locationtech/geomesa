@@ -24,6 +24,8 @@ import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.util._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.util.parsing.combinator.RegexParsers
+
 // A secondary index consists of interleaved elements of a composite key stored in
 // Accumulo's key (row, column family, and column qualifier)
 //
@@ -86,7 +88,8 @@ object IndexSchema extends SchemaHelpers with Logging {
 
   // a key element consists of a separator and any number of random partitions, geohashes, and dates
   def keypart: Parser[CompositeTextFormatter] =
-    (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) ^^ {
+    (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder | resolutionEncoder | bandEncoder)) ^^
+    {
       case sep ~ xs => CompositeTextFormatter(xs, sep)
     }
 
@@ -166,8 +169,16 @@ object IndexSchema extends SchemaHelpers with Logging {
     case o ~ b => GeoHashKeyPlanner(o, b)
   }
 
+  def resolutionKeyPlanner: Parser[ResolutionPlanner] = resolutionPattern ^^ {
+    case d => ResolutionPlanner(lexiDecodeStringToDouble(d))
+  }
+
+  def bandKeyPlanner: Parser[BandPlanner] = bandPattern ^^ {
+    case b => BandPlanner(b)
+  }
+
   def keyPlanner: Parser[KeyPlanner] =
-    sep ~ rep(constStringPlanner | datePlanner | randPartitionPlanner | geohashKeyPlanner) <~ "::.*".r ^^ {
+    sep ~ rep(constStringPlanner | datePlanner | randPartitionPlanner | geohashKeyPlanner | resolutionKeyPlanner | bandKeyPlanner) <~ "::.*".r ^^ {
       case sep ~ list => CompositePlanner(list, sep)
     }
 
@@ -176,7 +187,7 @@ object IndexSchema extends SchemaHelpers with Logging {
     case fail: NoSuccess => throw new Exception(fail.msg)
   }
 
-  def geohashColumnFamilyPlanner: Parser[GeoHashColumnFamilyPlanner] = (keypart ~ PART_DELIMITER) ~> (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) <~ (PART_DELIMITER ~ keypart) ^^ {
+  def geohashColumnFamilyPlanner: Parser[GeoHashColumnFamilyPlanner] = (keypart ~ PART_DELIMITER) ~> (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder | bandKeyPlanner)) <~ (PART_DELIMITER ~ keypart) ^^ {
     case sep ~ xs => xs.find(tf => tf match {
       case gh: GeoHashTextFormatter => true
       case _ => false
@@ -287,6 +298,29 @@ class IndexSchemaBuilder(separator: String) {
       append(ID_CODE)
     }
   }
+
+  /**
+   * Add an Raster Resolution Value
+   *
+   * @return the schema builder instance
+   */
+  def resolution(): IndexSchemaBuilder = append(RESOLUTION_CODE, 0.0)
+
+  /**
+   * Adds a resolution value.
+   *
+   * @param res
+   * @return the schema builder instance
+   */
+  def resolution(res: Double): IndexSchemaBuilder = append(RESOLUTION_CODE, lexiEncodeDoubleToString(res))
+
+  /**
+   * Add a Band Value
+   *
+   * @param band
+   * @return the schema builder instance
+   */
+  def band(band: String): IndexSchemaBuilder = append(BAND_CODE, band)
 
   /**
    * End the current part of the schema format. Schemas consist of (in order) key part, column

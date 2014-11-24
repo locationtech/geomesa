@@ -41,6 +41,8 @@ trait SchemaHelpers extends RegexParsers {
   val RANDOM_CODE = "r"
   val SEPARATOR_CODE = "s"
   val ID_CODE = "id"
+  val RESOLUTION_CODE = "ires"
+  val BAND_CODE = "b"
   val PART_DELIMITER = "::"
 
   def somewhen(interval: Interval): Option[Interval] =
@@ -124,6 +126,21 @@ trait SchemaHelpers extends RegexParsers {
   def datePlanner: Parser[DatePlanner] = datePattern ^^ {
     case fmt => DatePlanner(DateTimeFormat.forPattern(fmt))
   }
+
+  // An Image Resolution encoder.
+  def resolutionPattern = pattern("[^%#]+".r, RESOLUTION_CODE)
+  def resolutionEncoder: Parser[ScientificNotationTextFormatter] = resolutionPattern ^^ {
+    case d => ScientificNotationTextFormatter(lexiDecodeStringToDouble(d))
+  }
+
+  // A Band encoder. 'RGB#b' would yield RGB
+  //  We match any string other that does *not* contain % or # since we use those for delimiters
+  def bandPattern = pattern("[^%#]+".r, BAND_CODE)
+  def bandEncoder: Parser[RasterBandTextFormatter] = bandPattern ^^ {
+    case b => RasterBandTextFormatter(b)
+  }
+
+
 
   // extracts an entire date encoder from a key part
   @tailrec
