@@ -95,6 +95,10 @@
             <groupId>org.calrissian.mango</groupId>
             <artifactId>mango-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+        </dependency>
 
         <!-- provided dependencies -->
         <dependency>

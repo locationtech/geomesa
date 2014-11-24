@@ -1,9 +1,11 @@
 package org.locationtech.geomesa.core
 
+import java.io.File
 import java.net.URI
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Geometry}
+import org.apache.commons.csv.CSVFormat
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -21,6 +23,15 @@ package object csv extends Logging {
       for (r <- tr; b <- fn(a.asInstanceOf[A])) yield r += b
                               }.map(_.result())
 
+  val parser =
+    CSVFormat.newFormat(',')
+    .withQuote('"')
+    .withEscape('\\')
+    .withIgnoreEmptyLines(true)
+    .withCommentMarker('#')
+    .withIgnoreSurroundingSpaces(true)
+    .withSkipHeaderRecord(true)
+    .withRecordSeparator('\n')
 
   abstract class Schema(name: String, fields: Seq[String], types: Seq[Char], tField: String) {
     { // Schema must satisfy these to be well-formed
@@ -178,8 +189,8 @@ package object csv extends Logging {
 
   // should we handle the exception here, log the failure, and return a blank string?
   // what's the canonical Geomesa Way to handle exceptions in web services?
-  def guessTypes(csvPath: URI): Try[Seq[Char]] = {
-    val csvLines = Source.fromFile(csvPath).getLines()
+  def guessTypes(csvFile: File): Try[Seq[Char]] = {
+    val csvLines = Source.fromFile(csvFile).getLines()
     val header = csvLines.next().split(",") // mostly unused in guessing types
     val firstDataLine = csvLines.next().split(",")
     for {
