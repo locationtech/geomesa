@@ -2,7 +2,7 @@ package org.locationtech.geomesa.plugin.wcs
 
 import java.awt.image._
 import java.awt.{Point, Rectangle}
-import java.util.{Date}
+import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
@@ -22,10 +22,10 @@ import org.geotools.referencing.CRS
 import org.geotools.util.{DateRange, Utilities}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.core.index.IndexEntry
 import org.locationtech.geomesa.core.iterators.{AggregatingKeyIterator, SurfaceAggregatingIterator}
 import org.locationtech.geomesa.core.util.{BoundingBoxUtil, SelfClosingBatchScanner}
 import org.locationtech.geomesa.plugin.ImageUtils._
+import org.locationtech.geomesa.raster.index.RasterIndexEntry
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, TwoGeoHashBoundingBox}
 import org.opengis.coverage.grid.GridCoverage
 import org.opengis.geometry.Envelope
@@ -99,30 +99,13 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     val min = Array(Math.max(env.getMinimum(0), -180) + .00000001, Math.max(env.getMinimum(1), -90) + .00000001)
     val max = Array(Math.min(env.getMaximum(0), 180) - .00000001, Math.min(env.getMaximum(1), 90) - .00000001)
     val bbox = BoundingBox(Bounds(min(0), max(0)), Bounds(min(1), max(1)))
-
-//    val timeParam: Option[Either[Date, DateRange]] =
-//      parameters
-//        .find(_.getDescriptor.getName.getCode == AbstractGridFormat.TIME.getName.toString)
-//        .flatMap({ case p: Parameter[JList[AnyRef]] => p.getValue.lift(0) })
-//        .map({
-//        case date: Date => Left(date)
-//        case dateRange: DateRange => Right(dateRange)
-//        case x => throw new InvalidParameterValueException(s"Invalid value for parameter TIME: ${x.toString}", "TIME", x)
-//      })
-//
-//    val coverageIterator = getCoverages(timeParam, env, gridGeometry)
-//    val coverages = coverageIterator.toList
-//    val coverage = if (coverages.toList.size > 0) {
-//      mosaicGridCoverages(coverageIterator, gridGeometry.getGridRange2D.getWidth.toInt, gridGeometry.getGridRange2D.getHeight.toInt, env)
-//    } else {
-//      getEmptyImage()
-//    }
-//    this.coverageFactory.create(coverageName, coverage, env)
-    val image = getChunk(geohash, getGeohashPrecision, None)
+    
+    val chunks = getChunks(geohash, getGeohashPrecision, None, bbox)
+    val image = mosaicGridCoverages(chunks, env = env)
     this.coverageFactory.create(coverageName, image, env)
   }
 
-  def getChunk(geohash: String, iRes: Int, timeParam: Option[Either[Date, DateRange]]): RenderedImage = {
+  def getChunks(geohash: String, iRes: Int, timeParam: Option[Either[Date, DateRange]], bbox: BoundingBox): Iterator[GridCoverage] = {
     withScanner(scanner => {
       val row = new Text(s"~$iRes~$geohash")
       scanner.setRange(new org.apache.accumulo.core.data.Range(row))
@@ -131,8 +114,10 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
       VersioningIterator.setMaxVersions(cfg, 1)
       scanner.addScanIterator(cfg)
     })(_.map(entry => {
-      rasterImageDeserialize(entry.getValue.get)
-    })).toList.head
+      this.coverageFactory.create(coverageName,
+        rasterImageDeserialize(entry.getValue.get),
+        new ReferencedEnvelope(RasterIndexEntry.decodeIndexCQMetadata(entry.getKey).geom.getEnvelopeInternal, CRS.decode("EPSG:4326")))
+    })).toIterator
   }
 
   protected def withScanner[A](configure: Scanner => Unit)(f: Scanner => A): A = {
@@ -159,7 +144,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
 
     val scanBuffers = getScanBuffers(bbox, xdim, ydim)
     val bufferList: List[Array[Byte]] = scanBuffers.map(_.getValue.get()).toList
-    val geomList: List[Geometry] = scanBuffers.map(e => IndexEntry.decodeIndexCQMetadata(e.getKey).geom).toList
+    val geomList: List[Geometry] = scanBuffers.map(e => RasterIndexEntry.decodeIndexCQMetadata(e.getKey).geom).toList
     val coverageList = new ListBuffer[GridCoverage2D]()
     bufferList.zipWithIndex.foreach({ case (raster, idx) =>
       val dbuffer = new DataBufferByte(raster, xdim * ydim)
