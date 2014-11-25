@@ -25,8 +25,9 @@ class SpringScalatraBootstrap
   def init(): Unit = {
     val richCtx = new RichServletContext(servletContext)
     val servlets = applicationContext.getBeansOfType(classOf[GeoMesaScalatraServlet])
-    servlets.values().foreach { s =>
-      richCtx.mount(s, s"/$rootPath/${s.root}")
+    for ((name, servlet) <- servlets) {
+      println(s"Mounting servlet bean '$name' at path '/$rootPath/${servlet.root}'")
+      richCtx.mount(servlet, s"/$rootPath/${servlet.root}/*")
     }
   }
 }
