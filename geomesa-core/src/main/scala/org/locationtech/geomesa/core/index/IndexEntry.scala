@@ -87,7 +87,7 @@ object IndexEntryDecoder {
 
 import org.locationtech.geomesa.core.index.IndexEntryDecoder._
 
-case class IndexEntryDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
+case class IndexEntryDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder[AbstractExtractor]]) {
   def decode(key: Key) = {
     val builder = localBuilder.get
     builder.reset()
@@ -125,16 +125,16 @@ trait IndexHelpers {
     def setEndTime(time: DateTime)   = setTime(dtgEndField, time)
   }
 
-  def byteArrayToDecodedIndexValue(b: Array[Byte]): DecodedIndexValue = {
+  def byteArrayToDecodedIndex(b: Array[Byte]): DecodedIndex = {
     val idLength = ByteBuffer.wrap(b, 0, 4).getInt
     val (idPortion, geomDatePortion) = b.drop(4).splitAt(idLength)
     val id = new String(idPortion)
     val geomLength = ByteBuffer.wrap(geomDatePortion, 0, 4).getInt
     if(geomLength < (geomDatePortion.length - 4)) {
       val (l,r) = geomDatePortion.drop(4).splitAt(geomLength)
-      DecodedIndexValue(id, WKBUtils.read(l), Some(ByteBuffer.wrap(r).getLong))
+      DecodedIndex(id, WKBUtils.read(l), Some(ByteBuffer.wrap(r).getLong))
     } else {
-      DecodedIndexValue(id, WKBUtils.read(geomDatePortion.drop(4)), None)
+      DecodedIndex(id, WKBUtils.read(geomDatePortion.drop(4)), None)
     }
   }
 
@@ -153,10 +153,11 @@ trait IndexHelpers {
         encodedDtg)
   }
 
-  def decodeIndexValue(v: Value): DecodedIndexValue = {
+  def decodeIndexValue(v: Value): DecodedIndex = {
     val buf = v.get()
-    byteArrayToDecodedIndexValue(buf)
+    byteArrayToDecodedIndex(buf)
   }
 
-  case class DecodedIndexValue(id: String, geom: Geometry, dtgMillis: Option[Long])
+  case class DecodedIndex(id: String, geom: Geometry, dtgMillis: Option[Long])
+
 }
