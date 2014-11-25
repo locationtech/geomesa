@@ -93,7 +93,7 @@ trait Strategy {
       "sffilter-" + randomPrintableString(5),
       classOf[SimpleFeatureFilteringIterator])
 
-    cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
+    //cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
     configureFeatureEncoding(cfg, featureEncoding)
     configureTransforms(query,cfg)
     configureFeatureType(cfg, simpleFeatureType)
