@@ -64,7 +64,7 @@ object RasterIndexEntryCQMetadataDecoder {
 
 import org.locationtech.geomesa.raster.index.RasterIndexEntryCQMetadataDecoder._
 
-case class RasterIndexEntryCQMetadataDecoder(geomDecoder: GeometryDecoder[ColumnQualifierExtractor],
+case class RasterIndexEntryCQMetadataDecoder(geomDecoder: GeometryDecoder,
                                              dtDecoder: Option[DateDecoder[ColumnQualifierExtractor]]) {
   def decode(key: Key) = {
     val builder = metaBuilder.get

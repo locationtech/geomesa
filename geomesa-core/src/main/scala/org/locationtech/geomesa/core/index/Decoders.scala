@@ -36,11 +36,6 @@ case class GeohashDecoder(orderedSeq: Seq[TextExtractor]) extends ExtractingDeco
     GeoHash(seqExtract(orderedSeq, key).takeWhile(c => c != '.'))
 }
 
-case class GeometryDecoder[T <: TextExtractor](orderedSeq: Seq[T]) extends ExtractingDecoder[Geometry] {
-  def decode(key: Key): Geometry =
-    WKBUtils.read(seqExtract(orderedSeq, key).takeWhile(c => c != '.'))
-}
-
 case class DateDecoder[T <: TextExtractor](orderSeq: Seq[T], fs: String) extends ExtractingDecoder[DateTime] {
   DateTimeZone.setDefault(DateTimeZone.forID("UTC"))
   val parser = org.joda.time.format.DateTimeFormat.forPattern(fs)
@@ -49,6 +44,11 @@ case class DateDecoder[T <: TextExtractor](orderSeq: Seq[T], fs: String) extends
 
 case class IdDecoder(orderedSeq: Seq[TextExtractor]) extends ExtractingDecoder[String] {
   def decode(key: Key): String = seqExtract(orderedSeq, key).replaceAll("_+$", "")
+}
+
+case class GeometryDecoder(orderedSeq: Seq[ColumnQualifierExtractor]) extends ExtractingDecoder[Geometry] {
+  def decode(key: Key): Geometry =
+    WKBUtils.read(seqExtract(orderedSeq, key).takeWhile(c => c != '.'))
 }
 
 case class ScientificNotationDecoder(orderSeq: Seq[TextExtractor]) extends ExtractingDecoder[Double] {

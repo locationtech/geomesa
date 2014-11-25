@@ -57,6 +57,28 @@ class RasterIndexEntryTest extends Specification {
       dt must be equalTo now
     }
 
+    "encode and decode Raster meta-data properly when there is no datetime" in {
+      val wkt = "POLYGON ((10 0, 10 10, 0 10, 0 0, 10 0))"
+      val id = "Feature0123456789"
+      val geom = WKTUtils.read(wkt)
+      val dt: Option[DateTime] = None
+
+      // output encoded meta data
+      val cqMetaData = RasterIndexEntry.encodeIndexCQMetadata(id, geom, dt)
+
+      // convert CQ Array[Byte] to Key (a key with everything as a null except CQ)
+      val keyWithCq = makeKey(cqMetaData)
+
+      // decode metadata from key
+      val decoded = RasterIndexEntry.decodeIndexCQMetadata(keyWithCq)
+
+      // requirements
+      decoded must not equalTo null
+      decoded.id must be equalTo id
+      WKTUtils.write(decoded.geom) must be equalTo wkt
+      dt.isDefined must beFalse
+    }
+
   }
 
 }
