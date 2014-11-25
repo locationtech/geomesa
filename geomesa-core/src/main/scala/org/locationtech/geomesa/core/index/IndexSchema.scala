@@ -137,7 +137,7 @@ object IndexSchema extends SchemaHelpers with Logging {
       }
   }}
 
-  def buildDateDecoder(s: String): Option[DateDecoder] = parse(dateDecoderParser, s).get
+  def buildDateDecoder(s: String): Option[DateDecoder[AbstractExtractor]] = parse(dateDecoderParser, s).get
 
   // builds a geohash decoder to extract the entire geohash from the parts of the index key
   def ghDecoderParser = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {

@@ -33,10 +33,10 @@ object RasterIndexEntry extends IndexHelpers {
   // 1.  Raster ID
   // 2.  WKB-encoded footprint geometry of the Raster (true envelope)
   // 3.  start-date/time
-  def encodeIndexCQMetadata(uniqId: String, geometry: Geometry, dtg: DateTime) = {
+  def encodeIndexCQMetadata(uniqId: String, geometry: Geometry, dtg: Option[DateTime]) = {
     val encodedId = uniqId.getBytes
     val encodedFootprint = WKBUtils.write(geometry)
-    val encodedDtg = ByteBuffer.allocate(8).putLong(dtg.getMillis).array()
+    val encodedDtg = dtg.map(d => ByteBuffer.allocate(8).putLong(d.getMillis).array()).getOrElse(Array[Byte]())
     
     val cqByteArray = ByteBuffer.allocate(4).putInt(encodedId.length).array() ++
                       encodedId ++
@@ -46,24 +46,14 @@ object RasterIndexEntry extends IndexHelpers {
     cqByteArray
   }
 
-  def byteArrayToDecodedCQMetadata(b: Array[Byte]): DecodedCQMetadata = {
-    val idLength = ByteBuffer.wrap(b, 0, 4).getInt
-    val (idPortion, geomDatePortion) = b.drop(4).splitAt(idLength)
-    val id = new String(idPortion)
-    val geomLength = ByteBuffer.wrap(geomDatePortion, 0, 4).getInt
-    val (l,r) = geomDatePortion.drop(4).splitAt(geomLength)
-    DecodedCQMetadata(id, WKBUtils.read(l), ByteBuffer.wrap(r).getLong)
-  }
-
-  def decodeIndexCQMetadata(k: Key): DecodedCQMetadata = {
+  def decodeIndexCQMetadata(k: Key): DecodedIndex = {
     decodeIndexCQMetadata(k.getColumnQualifierData.toArray)
   }
 
-  def decodeIndexCQMetadata(cq: Array[Byte]): DecodedCQMetadata = {
-    byteArrayToDecodedCQMetadata(cq)
+  def decodeIndexCQMetadata(cq: Array[Byte]): DecodedIndex = {
+    byteArrayToDecodedIndex(cq)
   }
 
-  case class DecodedCQMetadata(id: String, geom: Geometry, dtgMillis: Long)
 }
 
 object RasterIndexEntryCQMetadataDecoder {
@@ -74,7 +64,8 @@ object RasterIndexEntryCQMetadataDecoder {
 
 import org.locationtech.geomesa.raster.index.RasterIndexEntryCQMetadataDecoder._
 
-case class RasterIndexEntryCQMetadataDecoder(geomDecoder: GeometryCQDecoder, dtDecoder: Option[DateCQDecoder]) {
+case class RasterIndexEntryCQMetadataDecoder(geomDecoder: GeometryDecoder[ColumnQualifierExtractor],
+                                             dtDecoder: Option[DateDecoder[ColumnQualifierExtractor]]) {
   def decode(key: Key) = {
     val builder = metaBuilder.get
     builder.reset()

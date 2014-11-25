@@ -27,9 +27,7 @@ trait Decoder[T] {
 }
 
 abstract class ExtractingDecoder[T] extends Decoder[T] {
-  def seqExtract(seq: Seq[TextExtractor], key: Key): String =
-    seq.map { _.extract(key) }.mkString
-  def cqfExtract(seq: Seq[ColumnQualifierExtractor], key: Key): String =
+  def seqExtract[T <: TextExtractor](seq: Seq[T], key: Key): String =
     seq.map { _.extract(key) }.mkString
 }
 
@@ -38,21 +36,15 @@ case class GeohashDecoder(orderedSeq: Seq[TextExtractor]) extends ExtractingDeco
     GeoHash(seqExtract(orderedSeq, key).takeWhile(c => c != '.'))
 }
 
-case class GeometryCQDecoder(orderedSeq: Seq[ColumnQualifierExtractor]) extends ExtractingDecoder[Geometry] {
+case class GeometryDecoder[T <: TextExtractor](orderedSeq: Seq[T]) extends ExtractingDecoder[Geometry] {
   def decode(key: Key): Geometry =
-    WKBUtils.read(cqfExtract(orderedSeq, key).takeWhile(c => c != '.'))
+    WKBUtils.read(seqExtract(orderedSeq, key).takeWhile(c => c != '.'))
 }
 
-case class DateDecoder(orderSeq: Seq[TextExtractor], fs: String) extends ExtractingDecoder[DateTime] {
+case class DateDecoder[T <: TextExtractor](orderSeq: Seq[T], fs: String) extends ExtractingDecoder[DateTime] {
   DateTimeZone.setDefault(DateTimeZone.forID("UTC"))
   val parser = org.joda.time.format.DateTimeFormat.forPattern(fs)
   def decode(key: Key): DateTime = parser.parseDateTime(seqExtract(orderSeq, key))
-}
-
-case class DateCQDecoder(orderSeq: Seq[ColumnQualifierExtractor], fs: String) extends ExtractingDecoder[DateTime] {
-  DateTimeZone.setDefault(DateTimeZone.forID("UTC"))
-  val parser = org.joda.time.format.DateTimeFormat.forPattern(fs)
-  def decode(key: Key): DateTime = parser.parseDateTime(cqfExtract(orderSeq, key))
 }
 
 case class IdDecoder(orderedSeq: Seq[TextExtractor]) extends ExtractingDecoder[String] {
