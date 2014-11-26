@@ -2,19 +2,20 @@ package org.locationtech.geomesa.web.csv
 
 import java.io.File
 import java.util.UUID
-import javax.servlet.http.HttpServletRequest
-
-import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
-import org.scalatra._
-import org.scalatra.servlet.{SizeConstraintExceededException, MultipartConfig, FileUploadSupport}
 
 import scala.collection.mutable
 import scala.concurrent.Future
-import scala.util.{Success, Try, Failure}
+import scala.util.{Failure, Success, Try}
+
+import javax.servlet.http.HttpServletRequest
+import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
+import org.scalatra._
+import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 
 class CSVEndpoint
   extends GeoMesaScalatraServlet
           with FileUploadSupport {
+
 
   // This overridden method is purely about diagnosing the errors in routing a sub-servlet under geoserver
   // it should be removed before anything gets merged into geomesa.
@@ -108,7 +109,7 @@ class CSVEndpoint
   // dummied here to build; should be handled by csv ingest code in core/tools
   def ingestCSV(csvPath: File, schema: String): Try[File] =
     Success {
-              new File(csvPath.getParentFile,
-                       csvPath.getName.replace(".csv", ".shp"))
-            }
+      new File(csvPath.getParentFile,
+        csvPath.getName.replace(".csv", ".shp"))
+    }
 }

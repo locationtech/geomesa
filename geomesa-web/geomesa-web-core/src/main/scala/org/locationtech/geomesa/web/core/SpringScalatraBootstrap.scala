@@ -1,6 +1,7 @@
 package org.locationtech.geomesa.web.core
 
 import javax.servlet.ServletContext
+import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
 
 import org.scalatra.ScalatraServlet
 import org.scalatra.servlet.RichServletContext
@@ -12,6 +13,12 @@ import scala.collection.JavaConversions._
 
 trait GeoMesaScalatraServlet extends ScalatraServlet {
   def root: String
+
+
+  override def handle(req: HttpServletRequest, res: HttpServletResponse): Unit = req match {
+    case r: HttpServletRequestWrapper => super.handle(r.getRequest.asInstanceOf[HttpServletRequest], res)
+    case _ => super.handle(req, res)
+  }
 }
 
 class SpringScalatraBootstrap

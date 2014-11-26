@@ -21,17 +21,17 @@ package object csv extends Logging {
                                                    (implicit cbf: CanBuildFrom[M[A], B, M[B]]): Try[M[B]] =
     in.foldLeft(Try(cbf(in))) { (tr, a) =>
       for (r <- tr; b <- fn(a.asInstanceOf[A])) yield r += b
-                              }.map(_.result())
+    }.map(_.result())
 
   val parser =
     CSVFormat.newFormat(',')
-    .withQuote('"')
-    .withEscape('\\')
-    .withIgnoreEmptyLines(true)
-    .withCommentMarker('#')
-    .withIgnoreSurroundingSpaces(true)
-    .withSkipHeaderRecord(true)
-    .withRecordSeparator('\n')
+      .withQuote('"')
+      .withEscape('\\')
+      .withIgnoreEmptyLines(true)
+      .withCommentMarker('#')
+      .withIgnoreSurroundingSpaces(true)
+      .withSkipHeaderRecord(true)
+      .withRecordSeparator('\n')
 
   abstract class Schema(name: String, fields: Seq[String], types: Seq[Char], tField: String) {
     { // Schema must satisfy these to be well-formed
@@ -59,38 +59,32 @@ package object csv extends Logging {
 
     def parseLine(csvLine: String): Try[Seq[String]] = {
       val entries = csvLine.split(",")
-      for {
-        _ <- Try { require(entries.size == fields.size,
-                           s"Found ${entries.size} entries in line, expected ${fields.size}\nError parsing line: $csvLine")
-                 }
-      } yield {
+      Try {
+        require(entries.size == fields.size, s"Found ${entries.size} entries in line, expected ${fields.size}\nError parsing line: $csvLine")
         entries
       }
     }
 
     def parseEntries(stringData: Seq[String]): Try[Map[String, Any]] = {
       def verifySize(entries: Seq[String]): Try[Unit] =
-        if (entries.size == types.size) {
-          Failure(new Exception(s"Expected ${types.size} entries but received ${entries.size}"))
-        } else { Success(()) }
+        if (entries.size == types.size) Failure(new Exception(s"Expected ${types.size} entries but received ${entries.size}"))
+        else Success(())
 
       def getParser(char: Char): Try[Parsable[_]] =
         Try { Parsable.parserMap.getOrElse(char, throw new Exception(s"Cannot find parser for type character $char")) }
 
       def tryParse(entries: Seq[String]): Try[Seq[Any]] =
         tryTraverse(entries.toSeq zip types) { case (datum, typeChar) =>
-            for {
-              parser <- getParser(typeChar)
-              parsed <- parser.parse(datum)
-            } yield parsed
-                                             }
+          for {
+            parser <- getParser(typeChar)
+            parsed <- parser.parse(datum)
+          } yield parsed
+        }
 
       for {
         _             <- verifySize(stringData)
         parsedEntries <- tryParse(stringData)
-      } yield {
-        (fields zip parsedEntries).toMap
-      }
+      } yield fields.zip(parsedEntries).toMap
     }
 
     def extractGeometry(fields: Map[String, Any]): Try[(Geometry, Map[String, Any])]
@@ -103,9 +97,7 @@ package object csv extends Logging {
       for {
         spatialEntry <- Try { entries.getOrElse(gField, throw new Exception(s"Cannot find spatial field $gField")) }
         spatialData  <- Try { spatialEntry.asInstanceOf[Geometry] }
-      } yield {
-        (spatialData, entries - gField)
-      }
+      } yield (spatialData, entries - gField)
   }
 
   class LatLonSchema(name: String, fields: Seq[String], types: Seq[Char], tField: String, latField: String, lonField: String)
@@ -184,7 +176,7 @@ package object csv extends Logging {
         case None    => Failure(new IllegalArgumentException(s"Could not parse $datum as any known type"))
       }
 
-    tryTraverse(rawData)(tryAllParsers(_).map(_._2))
+    tryTraverse(rawData)(tryAllParsers(_).map { case (_, c) => c })
   }
 
   // should we handle the exception here, log the failure, and return a blank string?
@@ -196,8 +188,6 @@ package object csv extends Logging {
     for {
       _     <- Try { require(firstDataLine.size == header.size, "Malformed CSV; data lines must have the same number of entries as header line") }
       types <- typeData(firstDataLine)
-    } yield {
-      types
-    }
+    } yield types
   }
 }
