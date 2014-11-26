@@ -20,7 +20,6 @@ import org.apache.hadoop.io.Text
 import org.joda.time.DateTime
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeature
-
 import scala.util.hashing.MurmurHash3
 
 trait TextFormatter {
@@ -115,3 +114,23 @@ case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends T
   def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = lf.map { _.formatString(gh, dt, sf) }.mkString(sep)
 }
 
+/**
+ * Responsible for representing the resolution by encoding a double lexicographically.
+ *
+ * @param number
+ */
+case class ScientificNotationTextFormatter(number: Double) extends TextFormatter {
+  val fmtdStr: String = lexiEncodeDoubleToString(number)
+  val numBits: Int = fmtdStr.length
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = fmtdStr
+}
+
+/**
+ * Responsible for representing the Band Name of a given raster.
+ *
+ * @param bandName
+ */
+case class RasterBandTextFormatter(bandName: String) extends TextFormatter {
+  val numBits: Int = bandName.length
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = bandName
+}

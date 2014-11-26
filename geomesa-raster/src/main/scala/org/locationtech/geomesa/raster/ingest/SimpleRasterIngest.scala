@@ -33,7 +33,6 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
-import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
