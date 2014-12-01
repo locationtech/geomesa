@@ -281,35 +281,35 @@ class SVIngestTest extends Specification{
     }
 
     "properly write the features from a valid CSV" in {
-      val path = Tools.getClass.getResource("/test_valid.csv")
+      val path = Runner.getClass.getResource("/test_valid.csv")
       val ingest = new SVIngest(new Args(csvNormParams))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
     }
 
     "properly write the features from a valid TSV" in {
-      val path = Tools.getClass.getResource("/test_valid.tsv")
+      val path = Runner.getClass.getResource("/test_valid.tsv")
       val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.FORMAT, List("TSV"))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
     }
 
     "properly write the features from a valid CSV containing WKT geometries" in {
-      val path = Tools.getClass.getResource("/test_valid_wkt.csv")
+      val path = Runner.getClass.getResource("/test_valid_wkt.csv")
       val ingest = new SVIngest(new Args(csvWktParams))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
     }
 
     "properly write the features from a valid TSV containing WKT geometries" in {
-      val path = Tools.getClass.getResource("/test_valid_wkt.tsv")
+      val path = Runner.getClass.getResource("/test_valid_wkt.tsv")
       val ingest = new SVIngest(new Args(csvWktParams.updated(IngestParams.FORMAT, List("TSV"))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
     }
 
     "properly write the features from a valid CSV with no date/time" in {
-      val path = Tools.getClass.getResource("/test_valid_nd.csv")
+      val path = Runner.getClass.getResource("/test_valid_nd.csv")
       val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.DT_FORMAT, List.empty)
         .updated(IngestParams.DT_FIELD, List.empty)
         .updated(IngestParams.SFT_SPEC, List("fid:Double,lon:Double,lat:Double,*geom:Point:srid=4326"))))
@@ -318,7 +318,7 @@ class SVIngestTest extends Specification{
     }
 
     "properly write the features from a valid TSV with no date/time" in {
-      val path = Tools.getClass.getResource("/test_valid_nd.tsv")
+      val path = Runner.getClass.getResource("/test_valid_nd.tsv")
       val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.DT_FORMAT, List.empty)
         .updated(IngestParams.DT_FIELD, List.empty).updated(IngestParams.FORMAT, List("TSV"))
         .updated(IngestParams.SFT_SPEC, List("fid:Double,lon:Double,lat:Double,*geom:Point:srid=4326"))))
@@ -347,7 +347,7 @@ class SVIngestTest extends Specification{
     }
 
     "properly write a subset of features from a valid CSV" in {
-      val path = Tools.getClass.getResource("/test_valid.csv")
+      val path = Runner.getClass.getResource("/test_valid.csv")
       val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.SFT_SPEC,
         List("time:Date,lon:Double,lat:Double,*geom:Point:srid=4326")) ++ Map(IngestParams.COLS -> List("1-3"))))
 
@@ -355,7 +355,7 @@ class SVIngestTest extends Specification{
     }
 
     "properly write a subset of features from a valid TSV" in {
-      val path = Tools.getClass.getResource("/test_valid.tsv")
+      val path = Runner.getClass.getResource("/test_valid.tsv")
       val ingest = new SVIngest(new Args(csvNormParams.updated(IngestParams.SFT_SPEC,
         List("time:Date,lon:Double,lat:Double,*geom:Point:srid=4326")).updated(IngestParams.FORMAT, List("TSV"))
         ++ Map(IngestParams.COLS -> List("1-3"))))
@@ -364,7 +364,7 @@ class SVIngestTest extends Specification{
     }
 
     "properly write the features from a valid CSV containing WKT geometries" in {
-      val path = Tools.getClass.getResource("/test_valid_wkt.csv")
+      val path = Runner.getClass.getResource("/test_valid_wkt.csv")
       val ingest = new SVIngest(new Args(csvWktParams.updated(IngestParams.SFT_SPEC,
         List("time:Date,*geom:Point:srid=4326")) ++ Map(IngestParams.COLS -> List("1-2"))))
 
@@ -372,7 +372,7 @@ class SVIngestTest extends Specification{
     }
 
     "properly write the features from a valid TSV containing WKT geometries" in {
-      val path = Tools.getClass.getResource("/test_valid_wkt.tsv")
+      val path = Runner.getClass.getResource("/test_valid_wkt.tsv")
       val ingest = new SVIngest(new Args(csvWktParams.updated(IngestParams.SFT_SPEC,
         List("time:Date,*geom:Point:srid=4326")).updated(IngestParams.FORMAT, List("TSV"))
         ++ Map(IngestParams.COLS -> List("1-2"))))
