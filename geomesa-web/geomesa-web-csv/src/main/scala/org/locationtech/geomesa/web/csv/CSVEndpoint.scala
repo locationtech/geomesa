@@ -9,6 +9,7 @@ import scala.util.{Failure, Success, Try}
 
 import javax.servlet.http.HttpServletRequest
 import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
+import org.locationtech.geomesa.core.csv
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 
@@ -65,15 +66,15 @@ class CSVEndpoint
     case e: SizeConstraintExceededException => RequestEntityTooLarge("Uploaded file too large!")
   }
 
-  import scala.concurrent.ExecutionContext.Implicits.global
-
   object Record {
     def apply(localFile: File): Record =
-      Record(localFile, guessTypes(localFile), None)
+      Record(localFile, csv.guessTypes(localFile), None)
   }
-  case class Record(csvFile: File, inferredSchemaF: Future[String], shapefile: Option[File]) {
-    def inferredSchema: Try[String] =
+  case class Record(csvFile: File, inferredSchemaF: Future[csv.TypeSchema], shapefile: Option[File]) {
+    def inferredTS: Try[csv.TypeSchema] =
       inferredSchemaF.value.getOrElse(Failure(new Exception("Inferred schema not available yet")))
+    def inferredName: Try[String] = inferredTS.map(_.name)
+    def inferredSchema: Try[String] = inferredTS.map(_.schema)
   }
   val records = mutable.Map[String, Record]()
 
@@ -85,20 +86,20 @@ class CSVEndpoint
     Ok(uuid)
   }
 
-  // dummied here to build; should be handled by csv type-guessing code in core
-  def guessTypes(csvPath: File) = Future { "types!" }
-
   get("/:csvid.csv/types") {
-    records(params("csvid")).inferredSchema
-                            .getOrElse("")  // what's the Right Thing to Do with exceptions?
+    records(params("csvid")).inferredTS match {
+      case Success(ts) => Ok(s"${ts.name}\n${ts.schema}")
+      case Failure(ex) => NotFound(body = ex, reason = ex.getMessage)
+    }
   }
 
   post("/:csvid.shp") {
     val csvId = params("csvid")
     val tryShpURI = for {
       record    <- Try { records(csvId) }
+      name      <- Try { params("name") }   orElse record.inferredName
       schema    <- Try { params("schema") } orElse record.inferredSchema
-      shapefile <- ingestCSV(record.csvFile, schema)
+      shapefile <- ingestCSV(record.csvFile, name, schema)
     } yield {
       records.update(csvId, record.copy(shapefile = Some(shapefile)))
       csvId + ".shp"
@@ -107,7 +108,7 @@ class CSVEndpoint
   }
 
   // dummied here to build; should be handled by csv ingest code in core/tools
-  def ingestCSV(csvPath: File, schema: String): Try[File] =
+  def ingestCSV(csvPath: File, name: String, schema: String): Try[File] =
     Success {
       new File(csvPath.getParentFile,
         csvPath.getName.replace(".csv", ".shp"))

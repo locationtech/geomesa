@@ -1,18 +1,21 @@
 package org.locationtech.geomesa.core
 
-import java.io.File
+import java.io.{File, FileReader, Reader}
 import java.net.URI
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Geometry}
-import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.{CSVParser, CSVFormat}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.core.util.SftBuilder
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.collection.JavaConversions._
 import scala.collection.generic.CanBuildFrom
+import scala.concurrent.Future
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -169,25 +172,63 @@ package object csv extends Logging {
     // need to build shapefile now
   }
 
-  def typeData(rawData: Seq[String]): Try[Seq[Char]] = {
+  // this can probably be cleaned up and simplified now that parsers don't need to do double duty...
+  def typeData(rawData: TraversableOnce[String]): Try[Seq[Char]] = {
     def tryAllParsers(datum: String): Try[(Any, Char)] =
       Parsable.parsers.view.map(_.parseAndType(datum)).collectFirst { case Success(x) => x } match {
         case Some(x) => Success(x)
         case None    => Failure(new IllegalArgumentException(s"Could not parse $datum as any known type"))
       }
 
-    tryTraverse(rawData)(tryAllParsers(_).map { case (_, c) => c })
+    tryTraverse(rawData)(tryAllParsers(_).map { case (_, c) => c }).map(_.toSeq)
   }
 
-  // should we handle the exception here, log the failure, and return a blank string?
-  // what's the canonical Geomesa Way to handle exceptions in web services?
-  def guessTypes(csvFile: File): Try[Seq[Char]] = {
-    val csvLines = Source.fromFile(csvFile).getLines()
-    val header = csvLines.next().split(",") // mostly unused in guessing types
-    val firstDataLine = csvLines.next().split(",")
-    for {
-      _     <- Try { require(firstDataLine.size == header.size, "Malformed CSV; data lines must have the same number of entries as header line") }
-      types <- typeData(firstDataLine)
-    } yield types
+  case class TypeSchema(name: String, schema: String)
+
+  import scala.concurrent.ExecutionContext.Implicits.global
+
+  def guessTypes(csvFile: File): Future[TypeSchema] = {
+    val name = csvFile.getName.replace(".csv","")
+    val reader = new FileReader(csvFile)
+    val guess = guessTypes(name, reader)
+    reader.close()
+    guess
   }
+
+  def guessTypes(name: String, csvReader: Reader, format: CSVFormat = CSVFormat.DEFAULT): Future[TypeSchema] =
+    Future {
+             val records = new CSVParser(csvReader, format).iterator
+             (for {
+               header    <- Try { records.next }
+               record    <- Try { records.next }
+               typeChars <- typeData(record.iterator)
+             } yield {
+               val sftb = new SftBuilder
+               var defaultDateSet = false
+               var defaultGeomSet = false
+               for ((field, c) <- header.iterator.zip(typeChars.iterator)) { c match {
+                 case 'i' =>
+                   sftb.intType(field)
+                 case 'd' =>
+                   sftb.doubleType(field)
+                 case 't' =>
+                   if (defaultDateSet) sftb.date(field)
+                   else {
+                     sftb.date(field, default = true)
+                     defaultDateSet = true
+                   }
+                 case 'g' =>
+                   if (defaultGeomSet) sftb.geometry(field)
+                   else {
+                     sftb.geometry(field, default = true)
+                     defaultGeomSet = true
+                   }
+                 case 's' =>
+                   sftb.stringType(field)
+               }}
+
+               val sft = sftb.build(name)
+               TypeSchema(name, SimpleFeatureTypes.encodeType(sft))
+             }).get
+           }
 }
