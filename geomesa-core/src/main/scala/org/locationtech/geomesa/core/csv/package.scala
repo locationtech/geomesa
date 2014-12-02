@@ -190,8 +190,7 @@ package object csv extends Logging {
   def guessTypes(csvFile: File): Future[TypeSchema] = {
     val name = csvFile.getName.replace(".csv","")
     val reader = new FileReader(csvFile)
-    val guess = guessTypes(name, reader)
-    reader.close()
+    val guess = for (g <- guessTypes(name, reader)) yield { reader.close(); g }
     guess
   }
 
