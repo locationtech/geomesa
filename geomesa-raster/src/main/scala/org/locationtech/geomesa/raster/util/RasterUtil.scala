@@ -59,16 +59,5 @@ object RasterUtils {
     }
     read
   }
-
-  def rasterSerialize(coverage: GridCoverage2D): Array[Byte] = {
-    val buffer: ByteArrayOutputStream = new ByteArrayOutputStream
-    val out: ObjectOutputStream = new ObjectOutputStream(buffer)
-    try {
-      out.writeObject(coverage)
-    } finally {
-      out.close
-    }
-    buffer.toByteArray
-  }
 }
 
