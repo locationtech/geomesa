@@ -91,8 +91,7 @@ class SVExport(load: LoadAttributes, params: Map[_,_]) extends Logging {
     features.foreach { sf =>
       val map = scala.collection.mutable.Map.empty[String, Object]
 
-      val attrs = if (attributeTypes.size > 0) { attributeTypes } else { sf.getProperties.map(property => property.getName.toString) }
-
+      val attrs = if (attributes.size > 0) { attributes } else { sf.getProperties.map(property => property.getName.toString) }
       if (count == 0) {
         load.format.toLowerCase match {
           case "tsv" => fr.println(attrs.mkString("\t"))
