@@ -30,7 +30,7 @@
     <name>GeoMesa Raster - [Accumulo 1.5.x]</name>
 
     <properties>
-        <httpcomponents.version>4.2.3</httpcomponents.version>
+        <httpcomponents.version>4.2.5</httpcomponents.version>
     </properties>
 
     <dependencies>
