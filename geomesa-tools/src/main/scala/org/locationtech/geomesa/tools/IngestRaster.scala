@@ -44,6 +44,7 @@ class IngestRaster() extends Logging with AccumuloProperties {
       "user" -> config.username,
       "password" -> password,
       "tableName" -> config.table,
+      "geoserverConfig" -> config.geoserverReg,
       "auths" -> config.auths,
       "visibilities" -> config.visibilities,
       "maxShard" -> config.maxShards,
@@ -72,15 +73,15 @@ class IngestRaster() extends Logging with AccumuloProperties {
       IngestRasterParams.FILE_PATH -> Some(config.file),
       IngestRasterParams.FILE_TYPE -> Some(IngestRaster.getFileExtension(config.file)),
       IngestRasterParams.RASTER_NAME -> Some(config.rasterName),
-      IngestRasterParams.TIME -> config.timeStr,
-      IngestRasterParams.GEOSERVER_REG -> config.geoserverReg,
-      IngestRasterParams.VISIBILITIES -> Some(cs.writeVisibilities),
-      IngestRasterParams.ACCUMULO_INSTANCE -> Some(config.instanceName.getOrElse(instanceName)),
-      IngestRasterParams.ZOOKEEPERS -> Some(config.zookeepers.getOrElse(zookeepers)),
-      IngestRasterParams.ACCUMULO_USER -> Some(config.username),
-      IngestRasterParams.ACCUMULO_PASSWORD -> Some(password),
-      IngestRasterParams.TABLE -> Some(config.table),
-      IngestRasterParams.AUTHORIZATIONS -> Some(cs.authorizationsProvider.getAuthorizations.toString)
+      IngestRasterParams.TIME -> config.timeStr
+//      IngestRasterParams.GEOSERVER_REG -> config.geoserverReg,
+//      IngestRasterParams.VISIBILITIES -> Some(cs.getVisibility),
+//      IngestRasterParams.ACCUMULO_INSTANCE -> Some(config.instanceName.getOrElse(instanceName)),
+//      IngestRasterParams.ZOOKEEPERS -> Some(config.zookeepers.getOrElse(zookeepers)),
+//      IngestRasterParams.ACCUMULO_USER -> Some(config.username),
+//      IngestRasterParams.ACCUMULO_PASSWORD -> Some(password),
+//      IngestRasterParams.TABLE -> Some(config.table),
+//      IngestRasterParams.AUTHORIZATIONS -> Some(cs.getAuths)
     )
 
     val ingester = new SimpleRasterIngest(args, cs)

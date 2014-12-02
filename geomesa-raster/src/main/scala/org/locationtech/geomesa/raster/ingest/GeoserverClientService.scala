@@ -1,29 +1,18 @@
-/**
- * Copyright (c) Commonwealth Computer Research, Inc. 2006 - 2012
- * All Rights Reserved, www.ccri.com
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
  *
- * Developed under contracts for:
- * US Army / RDECOM / CERDEC / I2WD and
- * SBIR Contract for US Navy / Office of Naval Research
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This code may contain SBIR protected information.  Contact CCRi prior to
- * distribution.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Begin SBIR Data Rights Statement
- * Contract No.:  N00014-08-C-0254
- * Contractor Name:  Commonwealth Computer Research, Inc
- * Contractor Address:  1422 Sachem Pl, Unit #1, Charlottesville, VA 22901
- * Expiration of SBIR Data Rights Period:  5/9/2017
- * The Government's rights to use, modify, reproduce, release, perform, display,
- * or disclose technical data or computer software marked with this legend are
- * restricted during the period shown as provided in paragraph (b)(4) of the
- * Rights in Noncommercial Technical Data and Computer Software--Small Business
- * Innovative Research (SBIR) Program clause contained in the above identified
- * contract. No restrictions apply after the expiration date shown above. Any
- * reproduction of technical data, computer software, or portions thereof
- * marked with this legend must also reproduce the markings.
- * End SBIR Data Rights Statement
- **/
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.locationtech.geomesa.raster.ingest
 
@@ -36,11 +25,16 @@ import org.apache.http.message.BasicHeader
 import org.apache.http.params.{BasicHttpParams, HttpConnectionParams, HttpParams}
 import org.apache.http.util.EntityUtils
 
-class GeoserverClientService(userName: String,
-                             password: String,
-                             geoserverUrl: String,
-                             namespace: String) extends Logging {
-  val credentials = new UsernamePasswordCredentials(userName, password)
+/**
+ * This class provides service for registering rasters onto Geoserver.
+ *
+ * @param config Configurations contains info for connecting to Geoserver and info
+ *   of building connection to data source used by geoserver plugin to get coverage data.
+ */
+class GeoserverClientService(config: Map[String, String]) extends Logging {
+  val credentials = new UsernamePasswordCredentials(config("user"), config("password"))
+  val geoserverUrl = config("url")
+  val namespace = config("namespace")
   val restURL = s"$geoserverUrl/rest"
   val namespaceUrl = s"http://$namespace"
   val layersUrl = s"$restURL/layers"
@@ -51,21 +45,20 @@ class GeoserverClientService(userName: String,
   val globalStylesUrl = s"$restURL/styles"
   val coverageFormatName = "New Accumulo Coverage Format"
 
-  def registrationData(rasterId: String, geohash: String, iRes: Int, styleName: String, connectConfig: Map[String, Option[String]]):
-    RegistrationData = {
-    val url = coverageURL(rasterId, geohash, iRes, connectConfig)
+  def registrationData(rasterId: String, geohash: String, iRes: Int, styleName: String): RegistrationData = {
+    val url = coverageURL(rasterId, geohash, iRes, config)
     val coverageName = rasterId
-    val storeName = connectConfig(IngestRasterParams.TABLE).get + ":" + coverageName
+    val storeName = config(IngestRasterParams.TABLE) + ":" + coverageName
     RegistrationData(url, storeName, coverageName, styleName)
   }
 
-  def coverageURL(rasterId: String, geohash: String, iRes: Int, params: Map[String, Option[String]]): String = {
-    val zookeepers = params(IngestRasterParams.ZOOKEEPERS).get
-    val instance = params(IngestRasterParams.ACCUMULO_INSTANCE).get
-    val tableName = params(IngestRasterParams.TABLE).get
-    val user = params(IngestRasterParams.ACCUMULO_USER).get
-    val password = params(IngestRasterParams.ACCUMULO_PASSWORD).get
-    val auths = params(IngestRasterParams.AUTHORIZATIONS).get
+  def coverageURL(rasterId: String, geohash: String, iRes: Int, params: Map[String, String]): String = {
+    val zookeepers = params(IngestRasterParams.ZOOKEEPERS)
+    val instance = params(IngestRasterParams.ACCUMULO_INSTANCE)
+    val tableName = params(IngestRasterParams.TABLE)
+    val user = params(IngestRasterParams.ACCUMULO_USER)
+    val password = params(IngestRasterParams.ACCUMULO_PASSWORD)
+    val auths = params(IngestRasterParams.AUTHORIZATIONS)
 
     s"accumulo://$user:$password@$instance/" +
       s"$tableName#columns=$rasterId#geohash=$geohash#resolution=$iRes#zookeepers=$zookeepers#auths=$auths"
@@ -76,9 +69,8 @@ class GeoserverClientService(userName: String,
                      description: String,
                      geohash: String,
                      iRes: Int,
-                     styleName: Option[String],
-                     connectConfig: Map[String, Option[String]]) {
-    val regData = registrationData(rasterId, geohash, iRes, styleName.getOrElse(defaultStyleName), connectConfig)
+                     styleName: Option[String]) {
+    val regData = registrationData(rasterId, geohash, iRes, styleName.getOrElse(defaultStyleName))
     regData match {
       case RegistrationData(url, storeName, coverageName, styleName) =>
         registerWorkspaceIfNotRegistered

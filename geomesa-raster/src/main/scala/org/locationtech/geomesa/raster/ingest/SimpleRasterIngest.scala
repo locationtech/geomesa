@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.locationtech.geomesa.raster.ingest
 
 import java.awt.RenderingHints
@@ -32,8 +33,10 @@ import org.geotools.geometry.Envelope2D
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
+import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
-import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.raster.feature.Raster
+import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.util.Try
@@ -58,28 +61,20 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     val rasterReader = getReader(file, fileType)
     val rasterGrid: GridCoverage2D = rasterReader.read(null)
 
-    cs.saveRaster(rasterGrid, rasterMetadata)
+    val envelope = rasterGrid.getEnvelope2D
+    val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
+    val mbgh = getMBGH(bbox)
+    val raster = new Raster(index.string2id(rasterName))
+    raster.setBand("0")
+    raster.setChunk(rasterGrid.getRenderedImage)
+    raster.setResolution(rasterReader.getResolutionLevels.head(0))
+    raster.setBoundingBox(bbox)
+    raster.setDataType(rasterGrid.getSampleDimensions.head.getSampleDimensionType.name)
+    raster.setTime(ingestTime)
+    raster.setMbgh(mbgh)
+    raster.setUnits("degree")
 
-    //Register raster to Geoserver if specified
-    config(IngestRasterParams.GEOSERVER_REG).foreach(geoserverRegConfig => {
-      //geoserverRegConfig has format: user=USER,password=PASS,url=http://localhost:8080/geoserver,namespace=NAMESPACE
-      val regParams: Map[String, String] =
-        geoserverRegConfig.split(",").map(_.split("=") match {
-          case Array(s1, s2) => (s1, s2)
-          case _ => logger.error("Failed in registering raster to Geoserver: wrong parameters.")
-            sys.exit()
-        }).toMap
-      val (user, password, url, namespace) = (regParams("user"), regParams("password"), regParams("url"), regParams("namespace"))
-      val gClientService = new GeoserverClientService(user, password, url, namespace)
-      gClientService.registerRasterStyles()
-      gClientService.registerRaster(rasterMetadata.id,
-                                    rasterMetadata.id,
-                                    s"Raster from $fileType data",
-                                    rasterMetadata.mbgh.hash,
-                                    rasterMetadata.mbgh.prec,
-                                    None,
-                                    config)
-    })
+    cs.saveRaster(raster)
   }
 
   /**
@@ -105,7 +100,10 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     null
   }
 
-  def getMBGH(minX: Double, minY: Double, maxX: Double, maxY: Double): GeoHash =
+  def getMBGH(bbox: BoundingBox): GeoHash =
+    getMBGH(bbox.getMinX, bbox.getMaxX, bbox.getMinY, bbox.getMaxY)
+
+  def getMBGH(minX: Double, maxX: Double, minY: Double, maxY: Double): GeoHash =
     getMBGH(GeoHash.factory.createPoint(new Coordinate(minX, minY)),
             GeoHash.factory.createPoint(new Coordinate(maxX, maxY)))
 

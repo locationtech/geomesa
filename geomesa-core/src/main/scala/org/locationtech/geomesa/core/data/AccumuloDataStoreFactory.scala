@@ -205,6 +205,7 @@ object AccumuloDataStoreFactory {
     val shardsParam         = new Param("shards", classOf[Integer], "Accumulo number of shards to use for writing coverage data", false)
     val writeMemoryParam    = new Param("writeMemory", classOf[Integer], "The memory allocation to use for writing records", false)
     val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false)
+    val geoserverParam      = new Param("geoserverConfig", classOf[String], "Configuration of geoserver for registering rasters", false)
     val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false, java.lang.Boolean.TRUE)
     val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false, java.lang.Boolean.TRUE)
     val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)

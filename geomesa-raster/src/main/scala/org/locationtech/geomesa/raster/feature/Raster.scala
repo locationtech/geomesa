@@ -18,21 +18,15 @@ package org.locationtech.geomesa.raster.feature
 
 import java.awt.image.RenderedImage
 
-import org.geotools.coverage.grid.GridCoverage2D
-import org.geotools.geometry.Envelope2D
-import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.DateTime
-import org.locationtech.geomesa.raster.util.RasterUtils.renderedImageToGridCoverage2d
-import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.raster.util.RasterUtils
+import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.opengis.filter.identity.FeatureId
-import org.opengis.geometry.{BoundingBox, Envelope}
 
-class GeomesaRasterFeature(id: FeatureId) extends Serializable {
-  
+class Raster(id: FeatureId) extends Serializable {
   private var cachedChunk = None: Option[RenderedImage]
-  private var envelope = None: Option[Envelope2D]
-  private var mbGeoHash = None: Option[GeoHash]
-  private var cachedGC = None: Option[GridCoverage2D]
+  private var bbox = None: Option[BoundingBox]
+  private var mbgh = None: Option[GeoHash]
   private var band = None: Option[String]
   private var resolution = None: Option[Double]
   private var units = None: Option[String]
@@ -44,8 +38,8 @@ class GeomesaRasterFeature(id: FeatureId) extends Serializable {
   def setUnits(u: String) = units = Some(u)
   def setDataType(dType: String) = dataType = Some(dType)
 
-  def setMbGeoHash(mbgh: GeoHash) = mbGeoHash = Some(mbgh)
-  def getMbGeoHash = mbGeoHash match {
+  def setMbgh(mbGeoHash: GeoHash) = mbgh = Some(mbGeoHash)
+  def getMbgh = mbgh match {
     case Some(m) => m
     case _       => throw UninitializedFieldError("Error, no minimum bounding box geohash")
   }
@@ -56,16 +50,10 @@ class GeomesaRasterFeature(id: FeatureId) extends Serializable {
     case _ => throw UninitializedFieldError("Error, no timestamp")
   }
   
-  def setEnvelope(env: Envelope2D) = envelope = Some(env)
-  def setEnvelope(env: Envelope) = envelope = Some(new Envelope2D(env))
-
-  def getEnvelope: Envelope = envelope.asInstanceOf[Envelope]
-  def getEnvelope2D = envelope
-
-  def getBounds: BoundingBox = getEnvelope2D match {
-    case Some(e) =>
-      new ReferencedEnvelope(e, e.getCoordinateReferenceSystem)
-    case _ => throw UninitializedFieldError("Error, no envelope")
+  def setBoundingBox(boundingBox: BoundingBox) = bbox = Some(boundingBox)
+  def getBounds: BoundingBox = bbox match {
+    case Some(box) => box
+    case _ => throw UninitializedFieldError("Error, no boundingbox")
   }
 
   def setChunk(chunk: RenderedImage) = cachedChunk = Some(chunk)
@@ -74,18 +62,10 @@ class GeomesaRasterFeature(id: FeatureId) extends Serializable {
     case _ => throw UninitializedFieldError("Error, no raster data available ")
   }
 
-  // Gets the GC2d if Some(gc) exists, else call the method that optionally sets it and return Some(gc) or None
-  def getGridCoverage2d = cachedGC match {
-    case Some(gc) => gc
-    case _ => setSomeGridCoverage
-  }
+  def encodeValue = RasterUtils.imageSerialize(getChunk)
 
-  private def setSomeGridCoverage = (cachedChunk, envelope) match {
-    case (Some(c), Some(e)) =>
-      cachedGC = Some(renderedImageToGridCoverage2d(getID, getChunk, getEnvelope))
-      cachedGC
-    case _ => None
-  }
+  def encodeMetaData = ???
+
 
   def getIdentifier = id
   def getID = id.getID
