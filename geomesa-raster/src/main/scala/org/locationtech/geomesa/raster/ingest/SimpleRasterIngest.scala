@@ -59,6 +59,29 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     val rasterGrid: GridCoverage2D = rasterReader.read(null)
 
     cs.saveRaster(rasterGrid, rasterMetadata)
+
+    //Register raster to Geoserver if specified
+    config(IngestRasterParams.GEOSERVER_REG).foreach(geoserverRegConfig => {
+      //geoserverRegConfig has format: user=USER,password=PASS,url=http://localhost:8080/geoserver,namespace=NAMESPACE
+      val regParams: Map[String, String] =
+        geoserverRegConfig.split(",").map(_.split("=") match {
+          case Array(s1, s2) => (s1, s2)
+          case _ => logger.error("Failed in registering raster to Geoserver: wrong parameters.")
+            sys.exit()
+        }).toMap
+      val (user, password, url, namespace) = (regParams("user"), regParams("password"), regParams("url"), regParams("namespace"))
+      val gClientService = new GeoserverClientService(user, password, url, namespace)
+      gClientService.registerRasterStyles()
+      gClientService.registerRaster(rasterMetadata.id,
+                                    rasterName,
+                                    ingestTime.getMillis,
+                                    rasterMetadata.id,
+                                    s"Raster from $fileType data",
+                                    rasterMetadata.mbgh.hash,
+                                    rasterMetadata.mbgh.prec,
+                                    None,
+                                    config)
+    })
   }
 
   /**
@@ -131,16 +154,17 @@ case class RasterMetadata(id: String,
                           band: Int = 0)
 
 object IngestRasterParams {
-  val ACCUMULO_INSTANCE   = "geomesa-tools.ingest.instance"
-  val ZOOKEEPERS          = "geomesa-tools.ingest.zookeepers"
-  val ACCUMULO_MOCK       = "geomesa-tools.ingest.useMock"
-  val ACCUMULO_USER       = "geomesa-tools.ingest.user"
-  val ACCUMULO_PASSWORD   = "geomesa-tools.ingest.password"
-  val AUTHORIZATIONS      = "geomesa-tools.ingest.authorizations"
-  val VISIBILITIES        = "geomesa-tools.ingest.visibilities"
-  val FILE_PATH           = "geomesa-tools.ingest.path"
-  val FILE_TYPE           = "geomesa-tools.ingest.filetype"
-  val TIME                = "geomesa-tools.ingest.time"
-  val RASTER_NAME         = "geomesa-tools.raster.name"
-  val TABLE               = "geomesa-tools.raster.table"
+  val ACCUMULO_INSTANCE   = "geomesa-tools.ingestraster.instance"
+  val ZOOKEEPERS          = "geomesa-tools.ingestraster.zookeepers"
+  val ACCUMULO_MOCK       = "geomesa-tools.ingestraster.useMock"
+  val ACCUMULO_USER       = "geomesa-tools.ingestraster.user"
+  val ACCUMULO_PASSWORD   = "geomesa-tools.ingestraster.password"
+  val AUTHORIZATIONS      = "geomesa-tools.ingestraster.authorizations"
+  val VISIBILITIES        = "geomesa-tools.ingestraster.visibilities"
+  val FILE_PATH           = "geomesa-tools.ingestraster.path"
+  val FILE_TYPE           = "geomesa-tools.ingestraster.filetype"
+  val TIME                = "geomesa-tools.ingestraster.time"
+  val GEOSERVER_REG       = "geomesa-tools.ingestraster.geoserver.reg"
+  val RASTER_NAME         = "geomesa-tools.ingestraster.name"
+  val TABLE               = "geomesa-tools.ingestraster.table"
 }

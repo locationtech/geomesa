@@ -73,6 +73,7 @@ class IngestRaster() extends Logging with AccumuloProperties {
       IngestRasterParams.FILE_TYPE -> Some(IngestRaster.getFileExtension(config.file)),
       IngestRasterParams.RASTER_NAME -> Some(config.rasterName),
       IngestRasterParams.TIME -> config.timeStr,
+      IngestRasterParams.GEOSERVER_REG -> config.geoserverReg,
       IngestRasterParams.VISIBILITIES -> Some(cs.writeVisibilities),
       IngestRasterParams.ACCUMULO_INSTANCE -> Some(config.instanceName.getOrElse(instanceName)),
       IngestRasterParams.ZOOKEEPERS -> Some(config.zookeepers.getOrElse(zookeepers)),
@@ -122,6 +123,8 @@ object IngestRaster extends App with Logging with GetPassword {
       c.copy(rasterName = s) } text "the name of the feature" required()
     opt[String]("file").action { (s, c) =>
       c.copy(file = s) } text "the file to be ingested" required()
+    opt[Option[String]]('g', "geoserverReg") action { (s, c) =>
+      c.copy(geoserverReg = s) } text "Geoserver registration info (optional)" optional()
     help("help").text("show help command")
     success
   }

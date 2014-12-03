@@ -205,7 +205,7 @@ object RasterIndexCQMetadataDecoder {
 
 import org.locationtech.geomesa.raster.index.RasterIndexCQMetadataDecoder._
 
-case class RasterIndexCQMetadataDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
+case class RasterIndexCQMetadataDecoder[T <: TextExtractor](ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder[T]]) {
   // are we grabbing the right stuff from the key?
   def decode(key: Key) = {
     val builder = metaBuilder.get
@@ -223,7 +223,7 @@ object RasterIndexDecoder {
 
 import org.locationtech.geomesa.raster.index.RasterIndexDecoder._
 
-case class RasterIndexDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
+case class RasterIndexDecoder[T <: TextExtractor](ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder[T]]) {
   def decode(key: Key) = {
     val builder = localBuilder.get
     builder.reset()

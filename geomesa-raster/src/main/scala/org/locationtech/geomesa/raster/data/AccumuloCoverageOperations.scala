@@ -52,14 +52,12 @@ class AccumuloCoverageOperations(connector: Connector,
     new Text(s"${rm.id}~$timeStampString")
   }
 
-  private def encodeValue(raster: GridCoverage2D): Value = {
-    //TODO: Replace with aannex's encoding method
-    new Value(RasterUtils.doubleToBytes(1.0D))
-  }
+  private def encodeValue(raster: GridCoverage2D): Value =
+    new Value(RasterUtils.imageSerialize(raster))
 
   def dateToAccTimestamp(dt: DateTime): Long =  dt.getMillis / 1000
 
-  def saveChunk(raster: GridCoverage2D, rm: RasterMetadata, visibilities: String): Unit = {
+  def saveChunk(raster: GridCoverage2D, rm: RasterMetadata, visibilities: String) {
     writeMutations(createMutation(raster, rm, visibilities))
   }
 
@@ -79,14 +77,14 @@ class AccumuloCoverageOperations(connector: Connector,
    *
    * @param mutations
    */
-  def writeMutations(mutations: Mutation*): Unit = {
+  def writeMutations(mutations: Mutation*) {
     val writer = connector.createBatchWriter(coverageTable, bwConfig)
     mutations.foreach { m => writer.addMutation(m) }
     writer.flush()
     writer.close()
   }
 
-  def ensureTableExists(tableName: String) = {
+  def ensureTableExists(tableName: String) {
     val user = connector.whoami
     val defaultVisibilities = authorizationsProvider.getAuthorizations.toString.replaceAll(",", "&")
     if (!tableOps.exists(tableName)) {
