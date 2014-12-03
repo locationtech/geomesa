@@ -37,9 +37,9 @@ val feature = "featname"
 val params = Map(
   "instanceId" -> "inst",
   "zookeepers" -> "zoo1,zoo2,zoo3",
-  "user" -> "user",
-  "password" -> "pass",
-  "tableName" -> "geomesa_catalog")
+  "user"       -> "user",
+  "password"   -> "pass",
+  "tableName"  -> "geomesa_catalog")
 val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
 // We'll grab everything...but usually you want some CQL filter here (e.g. bbox)
