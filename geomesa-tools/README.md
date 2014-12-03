@@ -228,7 +228,7 @@ The file type is inferred from the extension of the file, so ensure that the for
     geomesa ingest [options] filename
 
     geomesa ingest -u username -p password -c geomesa_catalog -f somefeaturename -s fid:Double,dtg:Date,*geom:Geometry 
-    --dtg dtg --dtformat "MM/dd/yyyy HH:mm:ss" hdsf:///some/hdfs/path/to/file.csv
+    --dtg dtg --dtformat "MM/dd/yyyy HH:mm:ss" hdfs:///some/hdfs/path/to/file.csv
     
     geomesa ingest -u username -p password -c geomesa_catalog  -a someAuths -v someVis --shards 42 -f somefeaturename
      -s fid:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
