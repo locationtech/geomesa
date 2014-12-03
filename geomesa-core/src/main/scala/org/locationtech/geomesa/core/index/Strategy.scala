@@ -22,6 +22,7 @@ import com.vividsolutions.jts.geom.{Geometry, Polygon}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.Query
+import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
@@ -32,6 +33,7 @@ import org.locationtech.geomesa.core.iterators.{FEATURE_ENCODING, _}
 import org.locationtech.geomesa.core.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -51,6 +53,10 @@ trait Strategy {
 
   def configureFeatureEncoding(cfg: IteratorSetting, featureEncoding: FeatureEncoding) {
     cfg.addOption(FEATURE_ENCODING, featureEncoding.toString)
+  }
+
+  def configureFilter(cfg: IteratorSetting, filter: Option[Filter]) {
+    filter.foreach { f => cfg.addOption(DEFAULT_FILTER_PROPERTY_NAME, ECQL.toCQL(f)) }
   }
 
   def configureFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) {

@@ -16,11 +16,9 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import java.util.{Date, HashSet => JHashSet}
+import java.util.{HashSet => JHashSet}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom._
-import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ArrayByteSequence, ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
@@ -30,8 +28,6 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter._
 
 import scala.collection.JavaConverters._
 
@@ -53,8 +49,7 @@ case class Attribute(name: Text, value: Text)
  */
 class SpatioTemporalIntersectingIterator
   extends SortedKeyValueIterator[Key, Value]
-  with Logging {
-
+  with Logging with WrappedSTFilter {
 
   protected var indexSource: SortedKeyValueIterator[Key, Value] = null
   protected var dataSource: SortedKeyValueIterator[Key, Value] = null
@@ -64,9 +59,7 @@ class SpatioTemporalIntersectingIterator
   protected var nextValue: Value = null
   protected var curId: Text = null
 
-  protected var filter: org.opengis.filter.Filter = null
-  protected var testSimpleFeature: SimpleFeature = null
-  protected var dateAttributeName: Option[String] = None
+
 
   protected var deduplicate: Boolean = false
 
@@ -133,25 +126,6 @@ class SpatioTemporalIntersectingIterator
       if (id!=null && !inMemoryIdCache.contains(id) && inMemoryIdCache.size < maxInMemoryIdCacheEntries)
         inMemoryIdCache.add(id)
     } else _ => Unit
-
-
-  // NB: This is duplicated in the AIFI.  Consider refactoring.
-  lazy val wrappedSTFilter: (Geometry, Option[Long]) => Boolean = {
-    if (filter != null && testSimpleFeature != null) {
-      (geom: Geometry, olong: Option[Long]) => {
-        testSimpleFeature.setDefaultGeometry(geom)
-        for {
-          dateAttribute <- dateAttributeName
-          long <- olong
-        } {
-          testSimpleFeature.setAttribute(dateAttribute, new Date(long))
-        }
-        filter.evaluate(testSimpleFeature)
-      }
-    } else {
-      (_, _) => true
-    }
-  }
 
   // data rows are the only ones with "SimpleFeatureAttribute" in the ColQ
   // (if we expand on the idea of separating out attributes more, we will need
@@ -284,15 +258,4 @@ class SpatioTemporalIntersectingIterator
   }
 
   def deepCopy(env: IteratorEnvironment) = throw new UnsupportedOperationException("STII does not support deepCopy.")
-}
-
-object SpatioTemporalIntersectingIterator extends IteratorHelpers
-
-/**
- *  This trait contains many methods and values of general use to companion Iterator objects
- */
-trait IteratorHelpers  {
-  def setOptions(cfg: IteratorSetting, filter: Option[Filter]) {
-    filter.foreach { f => cfg.addOption(DEFAULT_FILTER_PROPERTY_NAME, ECQL.toCQL(f)) }
-  }
 }
