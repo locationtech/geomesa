@@ -15,11 +15,12 @@
  */
 package org.locationtech.geomesa.tools
 
-import java.io.File
+import java.io.{InputStream, File}
 import java.net.URLEncoder
 
 import com.twitter.scalding.{Args, Hdfs, Local, Mode}
 import org.apache.accumulo.core.client.Connector
+import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.jobs.JobUtils
@@ -44,7 +45,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
     // setup ingest
     val hdfsMode = if (getMode(params.files(0)) == Modes.Hdfs) Hdfs(strict = true, conf) else Local(strictSources = true)
     val arguments = Mode.putMode(hdfsMode, getScaldingArgs())
-    val job = new SVIngest(arguments)
+    val job = new DelimitedIngestJob(arguments)
     val flow = job.buildFlow
 
     //block until job is completed.
@@ -53,25 +54,27 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
   }
 
   def ingestLibJars = {
-    val defaultLibJarsFile = "org/locationtech/geomesa/tools/ingest-libjars.list"
-    val url = Try(getClass.getClassLoader.getResource(defaultLibJarsFile))
-    val source = url.map(Source.fromURL)
-    val lines = source.map(_.getLines().toList)
-    source.foreach(_.close())
-    lines.get
+    val is = getClass.getClassLoader.getResourceAsStream("org/locationtech/geomesa/tools/ingest-libjars.list")
+    try {
+      IOUtils.readLines(is)
+    } catch {
+      case e: Exception => throw new Exception("Error reading ingest libjars: "+e.getMessage, e)
+    } finally {
+      IOUtils.closeQuietly(is)
+    }
   }
 
   def ingestJarSearchPath: Iterator[() => Seq[File]] =
     Iterator(() => JobUtils.getJarsFromEnvironment("GEOMESA_HOME"),
       () => JobUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
-      () => JobUtils.getJarsFromClasspath(classOf[SVIngest]),
+      () => JobUtils.getJarsFromClasspath(classOf[DelimitedIngestJob]),
       () => JobUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
       () => JobUtils.getJarsFromClasspath(classOf[Connector]))
 
   def getScaldingArgs(): Args = {
-    val singleArgs = List(classOf[SVIngest].getCanonicalName, getModeFlag(params.files(0)))
+    val singleArgs = List(classOf[DelimitedIngestJob].getCanonicalName, getModeFlag(params.files(0)))
 
-    val requiredKvArgs: List[(String, String)] = List(
+    val requiredKvArgs: Map[String, String] = Map(
       IngestParams.FILE_PATH         -> params.files(0).getPath,
       IngestParams.SFT_SPEC          -> URLEncoder.encode(params.spec, "UTF-8"),
       IngestParams.CATALOG_TABLE     -> params.catalog,
@@ -85,18 +88,21 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
       IngestParams.IS_TEST_INGEST    -> false.toString
     )
 
-    val optionalKvArgs: List[(String, String)] = List(
-      IngestParams.COLS              -> Option(params.columns),
-      IngestParams.DT_FORMAT         -> Option(params.dtFormat),
-      IngestParams.ID_FIELDS         -> Option(params.idFields),
-      IngestParams.DT_FIELD          -> Option(params.dtgField),
-      IngestParams.LON_ATTRIBUTE     -> Option(params.lon),
-      IngestParams.LAT_ATTRIBUTE     -> Option(params.lat),
-      IngestParams.AUTHORIZATIONS    -> Option(params.auths),
-      IngestParams.VISIBILITIES      -> Option(params.visibilities),
-      IngestParams.INDEX_SCHEMA_FMT  -> Option(params.indexSchema),
-      IngestParams.SHARDS            -> Option(params.numShards)
-    ).filter(p => p._2.nonEmpty).map { case (k, o) => k -> o.get.toString }
+    val optionalKvArgs: Map[String, String] =
+      List(
+        IngestParams.COLS              -> Option(params.columns),
+        IngestParams.DT_FORMAT         -> Option(params.dtFormat),
+        IngestParams.ID_FIELDS         -> Option(params.idFields),
+        IngestParams.DT_FIELD          -> Option(params.dtgField),
+        IngestParams.LON_ATTRIBUTE     -> Option(params.lon),
+        IngestParams.LAT_ATTRIBUTE     -> Option(params.lat),
+        IngestParams.AUTHORIZATIONS    -> Option(params.auths),
+        IngestParams.VISIBILITIES      -> Option(params.visibilities),
+        IngestParams.INDEX_SCHEMA_FMT  -> Option(params.indexSchema),
+        IngestParams.SHARDS            -> Option(params.numShards))
+      .filter(p => p._2.nonEmpty)
+      .map { case (k,o) => k -> o.get.toString }
+      .toMap
 
     if ( !optionalKvArgs.contains(IngestParams.DT_FIELD) ) {
       // assume user has no date field to use and that there is no column of data signifying it.
@@ -104,7 +110,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
         s"GeoMesa is defaulting to the system time for ingested features.")
     }
 
-    val kvArgs = (requiredKvArgs ++ optionalKvArgs).map { case (k,v) => List(s"--$k", v)}.flatten
+    val kvArgs = (requiredKvArgs ++ optionalKvArgs).map { case (k,v) => List(s"--$k", v)}.flatten.toList
     Args(singleArgs ++ kvArgs)
   }
 }

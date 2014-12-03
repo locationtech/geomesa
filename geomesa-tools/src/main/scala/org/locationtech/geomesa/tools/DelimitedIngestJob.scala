@@ -38,7 +38,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Try
 import scala.util.parsing.combinator.JavaTokenParsers
 
-class SVIngest(args: Args) extends Job(args) with Logging {
+class DelimitedIngestJob(args: Args) extends Job(args) with Logging {
   import scala.collection.JavaConversions._
 
   var lineNumber            = 0

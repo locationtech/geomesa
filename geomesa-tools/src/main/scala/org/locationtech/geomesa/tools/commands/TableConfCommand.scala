@@ -19,8 +19,8 @@ import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.TableNotFoundException
 import org.apache.accumulo.core.client.admin.TableOperations
-import org.locationtech.geomesa.core.data.{TableSuffix, AccumuloDataStore}
-import org.locationtech.geomesa.tools.{DataStoreHelper, Runner}
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, TableSuffix}
+import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.Runner.mkSubCommand
 import org.locationtech.geomesa.tools.commands.TableConfCommand._
 
@@ -35,7 +35,7 @@ class TableConfCommand(parent: JCommander) extends Command with Logging {
 
   mkSubCommand(jcTableConf, ListSubCommand, tcListParams)
   mkSubCommand(jcTableConf, DescribeSubCommand, tcDescParams)
-  mkSubCommand(jcTableConf, UpdateDommand, tcUpdateParams)
+  mkSubCommand(jcTableConf, UpdateCommand, tcUpdateParams)
 
   def execute() = {
     jcTableConf.getParsedCommand match {
@@ -44,7 +44,7 @@ class TableConfCommand(parent: JCommander) extends Command with Logging {
         implicit val tableOps = ds.connector.tableOperations()
         implicit val tableName = getTableName(tcListParams)
 
-        logger.info(s"Gathering the configuration parameters for table $tableName")
+        logger.info(s"Gathering the configuration parameters for table: $tableName")
         getProperties().foreach(println)
 
       case DescribeSubCommand =>
@@ -52,15 +52,15 @@ class TableConfCommand(parent: JCommander) extends Command with Logging {
         implicit val tableOps = ds.connector.tableOperations()
         implicit val tableName = getTableName(tcDescParams)
 
-        logger.info(s"Finding the value for '${tcDescParams.param}' on table $tableName")
+        logger.info(s"Finding the value for '${tcDescParams.param}' on table: $tableName")
         val prop = getProp(tcDescParams.param)
         if (prop.nonEmpty) {
           println(prop)
         } else {
-          throw new Exception(s"Parameter '${tcDescParams.param}' not found in table $tableName")
+          throw new Exception(s"Parameter '${tcDescParams.param}' not found in table: $tableName")
         }
 
-      case UpdateDommand =>
+      case UpdateCommand =>
         implicit val ds = new DataStoreHelper(tcUpdateParams).ds
         implicit val tableOps = ds.connector.tableOperations()
         implicit val tableName = getTableName(tcUpdateParams)
@@ -119,7 +119,7 @@ object TableConfCommand {
   val Command            = "tableconf"
   val ListSubCommand     = "list"
   val DescribeSubCommand = "describe"
-  val UpdateDommand      = "update"
+  val UpdateCommand      = "update"
 
   @Parameters(commandDescription = "Perform table configuration operations")
   class TableConfParams {}

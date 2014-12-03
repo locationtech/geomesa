@@ -85,7 +85,7 @@ object Runner extends Logging {
     out.append("Usage: geomesa [command] [command options]\n")
     out.append("  Commands:\n")
     val maxLen = jc.getCommands.map(_._1).map(_.length).max + 4
-    jc.getCommands.map(_._1).foreach { command =>
+    jc.getCommands.map(_._1).toSeq.sorted.foreach { command =>
       val spaces = " " * (maxLen - command.length)
       out.append(s"    $command$spaces${jc.getCommandDescription(command)}\n")
     }

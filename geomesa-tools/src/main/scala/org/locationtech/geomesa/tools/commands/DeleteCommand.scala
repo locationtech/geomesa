@@ -38,8 +38,7 @@ class DeleteCommand(parent: JCommander) extends Command with Logging {
       }
 
     if (confirmed) {
-      logger.info(s"Deleting '$catalog:$feature'. This will take longer " +
-        "than other commands to complete. Just a few moments...")
+      logger.info(s"Deleting '$catalog:$feature'")
       try {
         val ds = new DataStoreHelper(params).ds
         ds.removeSchema(feature)

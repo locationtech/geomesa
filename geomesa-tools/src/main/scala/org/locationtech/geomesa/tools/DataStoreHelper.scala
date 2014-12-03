@@ -23,25 +23,25 @@ import org.locationtech.geomesa.tools.commands.GeoMesaParams
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Success, Try}
 
-
 class DataStoreHelper(params: GeoMesaParams) extends AccumuloProperties {
   lazy val instance = Option(params.instance).getOrElse(instanceName)
   lazy val zookeepersString = Option(params.zookeepers).getOrElse(zookeepersProp)
 
-  lazy val ds: AccumuloDataStore = Try({
-    DataStoreFinder.getDataStore(
-      Map[String, String](
-        dsParams.instanceIdParam.getName   -> instance,
-        dsParams.zookeepersParam.getName   -> zookeepersString,
-        dsParams.userParam.getName         -> params.user,
-        dsParams.passwordParam.getName     -> getPassword(params.password),
-        dsParams.tableNameParam.getName    -> params.catalog,
-        dsParams.visibilityParam.getName   -> Option(params.visibilities).orNull,
-        dsParams.authsParam.getName        -> Option(params.auths).orNull,
-        dsParams.mockParam.getName         -> params.useMock.toString)
-      ).asInstanceOf[AccumuloDataStore]
-    }) match {
-    case Success(value) => value
-    case Failure(ex)    => throw new Exception("Cannot connect to Accumulo. Please check your configuration and try again...params are ", ex)
-  }
+  lazy val paramMap = Map[String, String](
+    dsParams.instanceIdParam.getName -> instance,
+    dsParams.zookeepersParam.getName -> zookeepersString,
+    dsParams.userParam.getName       -> params.user,
+    dsParams.passwordParam.getName   -> getPassword(params.password),
+    dsParams.tableNameParam.getName  -> params.catalog,
+    dsParams.visibilityParam.getName -> Option(params.visibilities).orNull,
+    dsParams.authsParam.getName      -> Option(params.auths).orNull,
+    dsParams.mockParam.getName       -> params.useMock.toString)
+
+  lazy val ds: AccumuloDataStore =
+    Try({ DataStoreFinder.getDataStore(paramMap).asInstanceOf[AccumuloDataStore] }) match {
+      case Success(value) => value
+      case Failure(ex)    =>
+        val paramMsg = paramMap.map { case (k,v) => s"$k=$v" }.mkString(",")
+        throw new Exception(s"Cannot connect to Accumulo. Please check your configuration: $paramMsg", ex)
+    }
 }

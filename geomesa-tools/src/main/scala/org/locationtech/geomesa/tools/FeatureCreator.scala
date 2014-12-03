@@ -36,9 +36,7 @@ object FeatureCreator extends Logging {
       Option(params.dtgField),
       Option(params.useSharedTables),
       params.catalog,
-      toScalaOpt(params.numShards))
-
-  def toScalaOpt(jInt: Integer): Option[Int] = if (jInt == null) None else Some(jInt)
+      Option(params.numShards))
 
   def createFeature(ds: AccumuloDataStore,
                     sftspec: String,
@@ -46,7 +44,7 @@ object FeatureCreator extends Logging {
                     dtField: Option[String],
                     sharedTable: Option[Boolean],
                     catalog: String,
-                    maxShards: Option[Int] = None): Unit = {
+                    maxShards: Option[Integer] = None): Unit = {
     logger.info(s"Creating '$featureName' on catalog table '$catalog' with spec " +
       s"'$sftspec'. Just a few moments...")
 
