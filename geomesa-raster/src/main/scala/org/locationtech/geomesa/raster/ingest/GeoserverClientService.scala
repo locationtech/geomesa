@@ -38,17 +38,28 @@ class GeoserverClientService(userName: String,
   val defaultStyleName: String = "default_palette_red"
   val geoserverRegistrationTimeout: Int = 10000
   val globalStylesUrl = s"$restURL/styles"
-  val coverageFormatName = "New Accumulo Coverage Format"
+  val coverageFormatName = "Geomesa Coverage Format"
 
-  def registrationData(rasterId: String, geohash: String, iRes: Int, styleName: String, connectConfig: Map[String, Option[String]]):
+  def registrationData(rasterId: String,
+                       rasterName: String,
+                       timeStamp: Long,
+                       geohash: String,
+                       iRes: Int,
+                       styleName: String,
+                       connectConfig: Map[String, Option[String]]):
     RegistrationData = {
-    val url = coverageURL(rasterId, geohash, iRes, connectConfig)
+    val url = coverageURL(rasterId, rasterName, timeStamp, geohash, iRes, connectConfig)
     val coverageName = rasterId
     val storeName = connectConfig(IngestRasterParams.TABLE).get + ":" + coverageName
     RegistrationData(url, storeName, coverageName, styleName)
   }
 
-  def coverageURL(rasterId: String, geohash: String, iRes: Int, params: Map[String, Option[String]]): String = {
+  def coverageURL(rasterId: String,
+                  rasterName: String,
+                  timeStamp: Long,
+                  geohash: String,
+                  iRes: Int,
+                  params: Map[String, Option[String]]): String = {
     val zookeepers = params(IngestRasterParams.ZOOKEEPERS).get
     val instance = params(IngestRasterParams.ACCUMULO_INSTANCE).get
     val tableName = params(IngestRasterParams.TABLE).get
@@ -56,18 +67,26 @@ class GeoserverClientService(userName: String,
     val password = params(IngestRasterParams.ACCUMULO_PASSWORD).get
     val auths = params(IngestRasterParams.AUTHORIZATIONS).get
 
-    s"accumulo://$user:$password@$instance/" +
-      s"$tableName#columns=$rasterId#geohash=$geohash#resolution=$iRes#zookeepers=$zookeepers#auths=$auths"
+    s"accumulo://$user:$password@$instance/$tableName#columns=$rasterId#geohash=$geohash#resolution=$iRes" +
+     s"#timeStamp=$timeStamp#rasterName=$rasterName#zookeepers=$zookeepers#auths=$auths"
   }
 
   def registerRaster(rasterId: String,
+                     rasterName: String,
+                     timeStamp: Long,
                      title: String,
                      description: String,
                      geohash: String,
                      iRes: Int,
                      styleName: Option[String],
                      connectConfig: Map[String, Option[String]]) {
-    val regData = registrationData(rasterId, geohash, iRes, styleName.getOrElse(defaultStyleName), connectConfig)
+    val regData = registrationData(rasterId,
+                                   rasterName,
+                                   timeStamp,
+                                   geohash,
+                                   iRes,
+                                   styleName.getOrElse(defaultStyleName),
+                                   connectConfig)
     regData match {
       case RegistrationData(url, storeName, coverageName, styleName) =>
         registerWorkspaceIfNotRegistered

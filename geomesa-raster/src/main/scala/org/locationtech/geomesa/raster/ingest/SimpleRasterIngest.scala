@@ -73,6 +73,8 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
       val gClientService = new GeoserverClientService(user, password, url, namespace)
       gClientService.registerRasterStyles()
       gClientService.registerRaster(rasterMetadata.id,
+                                    rasterName,
+                                    ingestTime.getMillis,
                                     rasterMetadata.id,
                                     s"Raster from $fileType data",
                                     rasterMetadata.mbgh.hash,
