@@ -54,8 +54,7 @@ case class Attribute(name: Text, value: Text)
  */
 class SpatioTemporalIntersectingIterator
   extends SortedKeyValueIterator[Key, Value]
-  with Logging {
-
+  with Logging with IteratorHelpers {
 
   protected var indexSource: SortedKeyValueIterator[Key, Value] = null
   protected var dataSource: SortedKeyValueIterator[Key, Value] = null
@@ -66,13 +65,8 @@ class SpatioTemporalIntersectingIterator
   protected var nextValue: Value = null
   protected var curId: Text = null
 
-  protected var filter: org.opengis.filter.Filter = null
-  protected var testSimpleFeature: SimpleFeature = null
-  protected var dateAttributeName: Option[String] = None
-
   // Used by aggregators that extend STII
   protected var curFeature: SimpleFeature = null
-
   protected var deduplicate: Boolean = false
 
   // each batch-scanner thread maintains its own (imperfect!) list of the
@@ -141,25 +135,6 @@ class SpatioTemporalIntersectingIterator
       if (id!=null && !inMemoryIdCache.contains(id) && inMemoryIdCache.size < maxInMemoryIdCacheEntries)
         inMemoryIdCache.add(id)
     } else _ => Unit
-
-
-  // NB: This is duplicated in the AIFI.  Consider refactoring.
-  lazy val wrappedSTFilter: (Geometry, Option[Long]) => Boolean = {
-    if (filter != null && testSimpleFeature != null) {
-      (geom: Geometry, olong: Option[Long]) => {
-        testSimpleFeature.setDefaultGeometry(geom)
-        for {
-          dateAttribute <- dateAttributeName
-          long <- olong
-        } {
-          testSimpleFeature.setAttribute(dateAttribute, new Date(long))
-        }
-        filter.evaluate(testSimpleFeature)
-      }
-    } else {
-      (_, _) => true
-    }
-  }
 
   // data rows are the only ones with "SimpleFeatureAttribute" in the ColQ
   // (if we expand on the idea of separating out attributes more, we will need
@@ -312,8 +287,31 @@ object SpatioTemporalIntersectingIterator extends IteratorHelpers
  *  This trait contains many methods and values of general use to companion Iterator objects
  */
 trait IteratorHelpers  {
+
+  var filter: org.opengis.filter.Filter = null
+  var testSimpleFeature: SimpleFeature = null
+  var dateAttributeName: Option[String] = None
+
   def setOptions(cfg: IteratorSetting, schema: String, filter: Option[Filter]) {
     cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
     filter.foreach { f => cfg.addOption(DEFAULT_FILTER_PROPERTY_NAME, ECQL.toCQL(f)) }
   }
+
+  lazy val wrappedSTFilter: (Geometry, Option[Long]) => Boolean = {
+    if (filter != null && testSimpleFeature != null) {
+      (geom: Geometry, olong: Option[Long]) => {
+        testSimpleFeature.setDefaultGeometry(geom)
+        for {
+          dateAttribute <- dateAttributeName
+          long <- olong
+        } {
+          testSimpleFeature.setAttribute(dateAttribute, new Date(long))
+        }
+        filter.evaluate(testSimpleFeature)
+      }
+    } else {
+      (_, _) => true
+    }
+  }
+
 }
