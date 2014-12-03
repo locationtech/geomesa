@@ -42,22 +42,23 @@ import scala.collection.JavaConversions._
 object GeoMesaSpark {
 
   def init(conf: SparkConf, ds: DataStore): SparkConf = {
-    val typeOptions = ds.getTypeNames.map { typeName =>
-      val spec = SimpleFeatureTypes.encodeType(ds.getSchema(typeName))
-      s"-Dgeomesa.types.$typeName=$spec"
-    }.mkString(" ")
-    conf.set("spark.executor.extraJavaOptions", typeOptions)
+    val typeOptions = ds.getTypeNames.map { t => (t, SimpleFeatureTypes.encodeType(ds.getSchema(t))) }
+    typeOptions.foreach { case (k,v) => System.setProperty(typeProp(k), v) }
+    val extraOpts = typeOptions.map { case (k,v) => jOpt(k, v) }.mkString(" ")
+    
+    conf.set("spark.executor.extraJavaOptions", extraOpts)
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf.set("spark.kryo.registrator", classOf[KryoAvroSimpleFeatureBridge].getCanonicalName)
   }
+  
+  def typeProp(typeName: String) = s"geomesa.types.$typeName"
+  def jOpt(typeName: String, spec: String) = s"-D${typeProp(typeName)}=$spec"
 
   def rdd(conf: Configuration, sc: SparkContext, ds: AccumuloDataStore, query: Query): RDD[SimpleFeature] = {
     val typeName = query.getTypeName
     val sft = ds.getSchema(typeName)
     val spec = SimpleFeatureTypes.encodeType(sft)
     val encoder = SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft))
-    val decoder = SimpleFeatureDecoder(sft, ds.getFeatureEncoding(sft))
-
     val indexSchema = IndexSchema(ds.getIndexSchemaFmt(typeName), sft, encoder)
 
     val planner = new STIdxStrategy
@@ -68,14 +69,13 @@ object GeoMesaSpark {
 
     InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, ds.getSpatioTemporalIdxTableName(sft))
     InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
-    InputConfigurator.setOfflineTableScan(classOf[AccumuloInputFormat], conf, true)
     qp.iterators.foreach { is => InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, is) }
 
     val rdd = sc.newAPIHadoopRDD(conf, classOf[AccumuloInputFormat], classOf[Key], classOf[Value])
 
     rdd.mapPartitions { iter =>
       val sft = SimpleFeatureTypes.createType(typeName, spec)
-      val encoder = new AvroFeatureEncoder(sft)
+      val decoder = new AvroFeatureDecoder(sft)
       iter.map { case (k: Key, v: Value) => decoder.decode(v) }
     }
   }
@@ -102,7 +102,8 @@ class KryoAvroSimpleFeatureBridge extends KryoRegistrator {
         val typeCache = CacheBuilder.newBuilder().build(
           new CacheLoader[String, SimpleFeatureType] {
             override def load(key: String): SimpleFeatureType = {
-              val spec = System.getProperty(s"geomesa.types.$key")
+              val spec = System.getProperty(GeoMesaSpark.typeProp(key))
+              if (spec == null) throw new IllegalArgumentException(s"Couldn't find property geomesa.types.$key")
               SimpleFeatureTypes.createType(key, spec)
             }
           })
