@@ -225,14 +225,16 @@ The file type is inferred from the extension of the file, so ensure that the for
 *Note* the header if present is not parsed by Ingest for information, it is assumed that all lines are valid entries.
 
 #### Usage
+    geomesa ingest [options] filename
+
     geomesa ingest -u username -p password -c geomesa_catalog -f somefeaturename -s fid:Double,dtg:Date,*geom:Geometry 
-    --dtg dtg --dtformat "MM/dd/yyyy HH:mm:ss" --file hdsf:///some/hdfs/path/to/file.csv
+    --dtg dtg --dtformat "MM/dd/yyyy HH:mm:ss" hdsf:///some/hdfs/path/to/file.csv
     
     geomesa ingest -u username -p password -c geomesa_catalog  -a someAuths -v someVis --shards 42 -f somefeaturename
      -s fid:Double,dtg:Date,lon:Double,lat:Double,*geom:Point --datetime dtg --dtformat "MM/dd/yyyy HH:mm:ss" 
-     --idfields fid,dtg --hash --lon lon --lat lat --file /some/local/path/to/file.tsv
+     --idfields fid,dtg --hash --lon lon --lat lat /some/local/path/to/file.tsv
      
-    geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName --file /some/path/to/file.shp
+    geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
 
 with the following parameters:
  
