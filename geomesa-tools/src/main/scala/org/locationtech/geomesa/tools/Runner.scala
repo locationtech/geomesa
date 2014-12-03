@@ -23,8 +23,6 @@ import scala.collection.JavaConversions._
 
 object Runner extends Logging {
 
-  object MainArgs {}
-
   def main(args: Array[String]): Unit = {
     val jc = new JCommander()
     jc.setProgramName("geomesa")
