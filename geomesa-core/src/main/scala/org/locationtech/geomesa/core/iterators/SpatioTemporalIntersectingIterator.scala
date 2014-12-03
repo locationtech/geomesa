@@ -34,7 +34,6 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
 
 import scala.collection.JavaConverters._
-import scala.util.Try
 
 case class Attribute(name: Text, value: Text)
 
@@ -59,7 +58,6 @@ class SpatioTemporalIntersectingIterator
 
   protected var indexSource: SortedKeyValueIterator[Key, Value] = null
   protected var dataSource: SortedKeyValueIterator[Key, Value] = null
-  protected var decoder: IndexEntryDecoder = null
   protected var topKey: Key = null
   protected var topValue: Value = null
   protected var nextKey: Key = null
@@ -69,9 +67,6 @@ class SpatioTemporalIntersectingIterator
   protected var filter: org.opengis.filter.Filter = null
   protected var testSimpleFeature: SimpleFeature = null
   protected var dateAttributeName: Option[String] = None
-
-  // Used by aggregators that extend STII
-  protected var curFeature: SimpleFeature = null
 
   protected var deduplicate: Boolean = false
 
@@ -89,9 +84,6 @@ class SpatioTemporalIntersectingIterator
     featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
     dateAttributeName = getDtgFieldName(featureType)
-
-    val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
-    decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
 
     if (options.containsKey(DEFAULT_FILTER_PROPERTY_NAME)) {
       val filterString  = options.get(DEFAULT_FILTER_PROPERTY_NAME)
@@ -189,12 +181,6 @@ class SpatioTemporalIntersectingIterator
   }
 
   /**
-   * Attempt to decode the given key.  This should only succeed in the cases
-   * where the key corresponds to an index-entry (not a data-entry).
-   */
-  def decodeKey(key:Key): Option[SimpleFeature] = Try(decoder.decode(key)).toOption
-
-  /**
    * Advances the index-iterator to the next qualifying entry, and then
    * updates the data-iterator to match what ID the index-iterator found
    */
@@ -207,23 +193,17 @@ class SpatioTemporalIntersectingIterator
     skipDataEntries(indexSource)
 
     while (nextValue == null && indexSource.hasTop && indexSource.getTopKey != null) {
-      // only consider this index entry if we could fully decode the key
-      decodeKey(indexSource.getTopKey).map { decodedKey =>
-        curFeature = decodedKey
-        // the value contains the full-resolution geometry and time; use them
-        lazy val decodedValue = IndexEntry.decodeIndexValue(indexSource.getTopValue)
-        lazy val isSTAcceptable = wrappedSTFilter(decodedValue.geom, decodedValue.dtgMillis)
-
-        // see whether this box is acceptable
-        // (the tests are ordered from fastest to slowest to take advantage of
-        // short-circuit evaluation)
-        if (isIdUnique(decodedValue.id) && isSTAcceptable) {
-          // stash this ID
-          rememberId(decodedValue.id)
-
-          // advance the data-iterator to its corresponding match
-          seekData(decodedValue)
-        }
+      // the value contains the full-resolution geometry and time; use them
+      val decodedValue = IndexEntry.decodeIndexValue(indexSource.getTopValue)
+      def isSTAcceptable = wrappedSTFilter(decodedValue.geom, decodedValue.dtgMillis)
+      // see whether this box is acceptable
+      // (the tests are ordered from fastest to slowest to take advantage of
+      // short-circuit evaluation)
+      if (isIdUnique(decodedValue.id) && isSTAcceptable) {
+        // stash this ID
+        rememberId(decodedValue.id)
+        // advance the data-iterator to its corresponding match
+        seekData(decodedValue)
       }
 
       // you MUST advance to the next key
@@ -312,8 +292,7 @@ object SpatioTemporalIntersectingIterator extends IteratorHelpers
  *  This trait contains many methods and values of general use to companion Iterator objects
  */
 trait IteratorHelpers  {
-  def setOptions(cfg: IteratorSetting, schema: String, filter: Option[Filter]) {
-    cfg.addOption(DEFAULT_SCHEMA_NAME, schema)
+  def setOptions(cfg: IteratorSetting, filter: Option[Filter]) {
     filter.foreach { f => cfg.addOption(DEFAULT_FILTER_PROPERTY_NAME, ECQL.toCQL(f)) }
   }
 }

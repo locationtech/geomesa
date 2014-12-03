@@ -178,7 +178,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
                              featureType: SimpleFeatureType): IteratorSetting = {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),classOf[IndexIterator])
-    IndexIterator.setOptions(cfg, schema, filter)
+    IndexIterator.setOptions(cfg, filter)
     // the transform will have already been set in the query hints
     val testType = query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
     configureFeatureType(cfg, testType)
@@ -196,7 +196,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),
       classOf[SpatioTemporalIntersectingIterator])
-    SpatioTemporalIntersectingIterator.setOptions(cfg, schema, filter)
+    SpatioTemporalIntersectingIterator.setOptions(cfg, filter)
     configureFeatureType(cfg, featureType)
     if (isDensity) cfg.addOption(GEOMESA_ITERATORS_IS_DENSITY_TYPE, "isDensity")
     cfg
