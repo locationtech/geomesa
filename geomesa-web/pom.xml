@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>geomesa-accumulo1.5</artifactId>
+        <groupId>org.locationtech.geomesa</groupId>
+        <version>1.0.0-rc.2-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>geomesa-web-accumulo1.5</artifactId>
+    <name>GeoMesa Web [Accumulo 1.5.x]</name>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra_2.10</artifactId>
+                <version>${scalatra.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>3.1.4.RELEASE</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>3.1.0.RELEASE</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core</artifactId>
+                <version>3.1.0.RELEASE</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>servlet-api</artifactId>
+                <version>2.5</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <properties>
+        <scalatra.version>2.3.0</scalatra.version>
+    </properties>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>geomesa-web-core</module>
+        <module>geomesa-web-csv</module>
+    </modules>
+
+</project>
