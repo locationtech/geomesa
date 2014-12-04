@@ -1,8 +1,9 @@
 package org.locationtech.geomesa.core.csv
 
 import java.util.Date
+import java.lang.{Integer => jInt, Double => jDouble}
 
-import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.geom.{Point, Geometry}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormatter, DateTimeFormat}
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -10,16 +11,16 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import scala.util.{Failure, Success, Try}
 
 object Parsable {
-  implicit object IntIsParsable extends Parsable[Int] {
+  implicit object IntIsParsable extends Parsable[jInt] {
     val priority = 0
     val typeChar = 'i'
-    def parse(datum: String): Try[Int] = Try(datum.toInt)
+    def parse(datum: String): Try[jInt] = Try(new jInt(datum.toInt))
   }
 
-  implicit object DoubleIsParsable extends Parsable[Double] {
+  implicit object DoubleIsParsable extends Parsable[jDouble] {
     val priority = 1
     val typeChar = 'd'
-    def parse(datum: String): Try[Double] = Try(datum.toDouble)
+    def parse(datum: String): Try[jDouble] = Try(new jDouble(datum.toDouble))
   }
 
   implicit object TimeIsParsable extends Parsable[Date] {
@@ -44,10 +45,10 @@ object Parsable {
     }
   }
 
-  implicit object GeometryIsParsable extends Parsable[Geometry] {
+  implicit object PointIsParsable extends Parsable[Point] {
     val priority = 3
-    val typeChar = 'g'
-    def parse(datum: String): Try[Geometry] = Try { WKTUtils.read(datum) }
+    val typeChar = 'p'
+    def parse(datum: String): Try[Point] = Try { WKTUtils.read(datum).asInstanceOf[Point] }
   }
 
   implicit object StringIsParsable extends Parsable[String] {
@@ -56,17 +57,17 @@ object Parsable {
     def parse(datum: String): Try[String] = Success(datum)
   }
 
-  lazy val parsers: Seq[Parsable[_]] =
+  lazy val parsers: Seq[Parsable[_ <: AnyRef]] =
     Seq(IntIsParsable,
         DoubleIsParsable,
         TimeIsParsable,
-        GeometryIsParsable,
+        PointIsParsable,
         StringIsParsable).sortBy(_.priority)
-  lazy val parserMap: Map[Char, Parsable[_]] =
+  lazy val parserMap: Map[Char, Parsable[_ <: AnyRef]] =
     parsers.map(p => (p.typeChar, p)).toMap
 }
 
-sealed trait Parsable[A] {
+sealed trait Parsable[A <: AnyRef] {
   def priority: Int
   def parse(datum: String): Try[A]
   def typeChar: Char

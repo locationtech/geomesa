@@ -1,14 +1,16 @@
 package org.locationtech.geomesa.core
 
-import java.io.{File, FileReader, Reader}
-import java.net.URI
+import java.io._
+import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Geometry}
-import org.apache.commons.csv.{CSVParser, CSVFormat}
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.feature.DefaultFeatureCollection
+import org.apache.commons.csv.CSVFormat
+import org.geotools.data.DefaultTransaction
+import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
+import org.geotools.data.simple.{SimpleFeatureStore, SimpleFeatureCollection}
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.feature.DefaultFeatureCollection
+import org.locationtech.geomesa.core.csv.Parsable._
 import org.locationtech.geomesa.core.util.SftBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
@@ -20,157 +22,34 @@ import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 package object csv extends Logging {
+  // a couple things to make Try work better
   def tryTraverse[A, B, M[_] <: TraversableOnce[_]](in: M[A])(fn: A => Try[B])
                                                    (implicit cbf: CanBuildFrom[M[A], B, M[B]]): Try[M[B]] =
     in.foldLeft(Try(cbf(in))) { (tr, a) =>
       for (r <- tr; b <- fn(a.asInstanceOf[A])) yield r += b
     }.map(_.result())
 
-  val parser =
-    CSVFormat.newFormat(',')
-      .withQuote('"')
-      .withEscape('\\')
-      .withIgnoreEmptyLines(true)
-      .withCommentMarker('#')
-      .withIgnoreSurroundingSpaces(true)
-      .withSkipHeaderRecord(true)
-      .withRecordSeparator('\n')
-
-  abstract class Schema(name: String, fields: Seq[String], types: Seq[Char], tField: String) {
-    { // Schema must satisfy these to be well-formed
-      require(types.size == fields.size, s"Number of types (${types.size}) must equal number of fields (${types.size})")
-      val tfIdx = fields indexOf tField
-      require(tfIdx != -1, s"Requested temporal field $tField not present")
-      require(types(tfIdx) == 't', s"Requested temporal field $tField is not temporal")
+  implicit class TryOps[A](val t: Try[A]) extends AnyVal {
+    def eventually[Ignore](effect: => Ignore): Try[A] = {
+      val ignoring = (_: Any) => { effect; t }
+      t.transform(ignoring, ignoring)
     }
+  }
 
-    lazy val ft: SimpleFeatureType = {
-      val sftb = new SftBuilder
-      for ((field, typeChar) <- fields zip types) {
-        typeChar match {
-          case 'i' => sftb.intType(field)
-          case 'd' => sftb.doubleType(field)
-          case 't' => sftb.date(field)
-          case 'g' => sftb.geometry(field)
-          case 's' => sftb.stringType(field)
-        }
-      }
-      sftb.withDefaultDtg(tField)
+  case class TypeSchema(name: String, schema: String)
 
-      sftb.build(name)
+  import scala.concurrent.ExecutionContext.Implicits.global
+
+  def guessTypes(csvFile: File): Future[TypeSchema] =
+    for {       // Future{} ensures we're working in the Future monad
+      filename <- Future { csvFile.getName }
+      typename <- Future { filename.substring(0, filename.length - 4) } // assumes a filename ending in ".csv"
+      reader   <- Future { Source.fromFile(csvFile).bufferedReader() }
+      guess    <- guessTypes(typename, reader)
+    } yield {
+      reader.close()
+      guess
     }
-
-    def parseLine(csvLine: String): Try[Seq[String]] = {
-      val entries = csvLine.split(",")
-      Try {
-        require(entries.size == fields.size, s"Found ${entries.size} entries in line, expected ${fields.size}\nError parsing line: $csvLine")
-        entries
-      }
-    }
-
-    def parseEntries(stringData: Seq[String]): Try[Map[String, Any]] = {
-      def verifySize(entries: Seq[String]): Try[Unit] =
-        if (entries.size == types.size) Failure(new Exception(s"Expected ${types.size} entries but received ${entries.size}"))
-        else Success(())
-
-      def getParser(char: Char): Try[Parsable[_]] =
-        Try { Parsable.parserMap.getOrElse(char, throw new Exception(s"Cannot find parser for type character $char")) }
-
-      def tryParse(entries: Seq[String]): Try[Seq[Any]] =
-        tryTraverse(entries.toSeq zip types) { case (datum, typeChar) =>
-          for {
-            parser <- getParser(typeChar)
-            parsed <- parser.parse(datum)
-          } yield parsed
-        }
-
-      for {
-        _             <- verifySize(stringData)
-        parsedEntries <- tryParse(stringData)
-      } yield fields.zip(parsedEntries).toMap
-    }
-
-    def extractGeometry(fields: Map[String, Any]): Try[(Geometry, Map[String, Any])]
-  }
-
-  class GeomSchema(name: String, fields: Seq[String], types: Seq[Char], tField: String, gField: String)
-    extends Schema(name: String, fields: Seq[String], types: Seq[Char], tField: String) {
-
-    def extractGeometry(entries: Map[String, Any]): Try[(Geometry, Map[String, Any])] =
-      for {
-        spatialEntry <- Try { entries.getOrElse(gField, throw new Exception(s"Cannot find spatial field $gField")) }
-        spatialData  <- Try { spatialEntry.asInstanceOf[Geometry] }
-      } yield (spatialData, entries - gField)
-  }
-
-  class LatLonSchema(name: String, fields: Seq[String], types: Seq[Char], tField: String, latField: String, lonField: String)
-    extends Schema(name: String, fields: Seq[String], types: Seq[Char], tField: String) {
-    val gf = new GeometryFactory()
-
-    def extractGeometry(entries: Map[String, Any]): Try[(Geometry, Map[String, Any])] =
-      for {
-        latEntry <- Try { entries.getOrElse(latField, throw new Exception(s"Cannot find latitude field $latField")) }
-        lat      <- Try { latEntry.asInstanceOf[Double] }
-        lonEntry <- Try { entries.getOrElse(lonField, throw new Exception(s"Cannot find longitude field $lonField")) }
-        lon      <- Try { lonEntry.asInstanceOf[Double] }
-      } yield {
-        val spatialData = gf.createPoint(new Coordinate(lon, lat))
-        (spatialData, entries - (latField, lonField))
-      }
-  }
-
-  def buildFeatureCollection(lines: Stream[String], schema: Schema): DefaultFeatureCollection = {
-    val ft = schema.ft
-    val featureFactory = CommonFactoryFinder.getFeatureFactory(null)
-    val builder = new SimpleFeatureBuilder(ft, featureFactory)
-    val fc = new DefaultFeatureCollection()
-    for ((line, idx) <- lines.zipWithIndex) {
-      val feature = for {
-        parsedLine <- schema.parseLine(line)
-        parsedEntries <- schema.parseEntries(parsedLine)
-        (spatial, otherEntries) <- schema.extractGeometry(parsedEntries)
-      } yield { // doesn't handle geometry yet!
-        builder.reset()
-        for ((name, value) <- otherEntries) {
-          builder.set(name, value)
-        }
-        builder.buildFeature(idx.toString)
-      }
-      feature match {
-        case Success(f)  => fc.add(f)
-        case Failure(ex) => logger.warn(s"Failed to parse CSV line as feature:\n$line")
-      }
-    }
-    fc
-  }
-
-//  not done yet
-//  def buildShapefile(fc: FeatureCollection): File = {
-//    val newFile = getNewShapeFile(file)
-//    val dataStoreFactory = new ShapefileDataStoreFactory()
-//  }
-
-  def readCSV(csvPath: URI, name: String, types: Seq[Char], temporalField: String, spatialField: String) {
-    val sb = (name: String, header: Seq[String], types: Seq[Char], tField: String) =>
-      new GeomSchema(name, header, types, tField, spatialField)
-    readCSV(csvPath, name, types, temporalField, sb)
-  }
-
-  def readCSV(csvPath: URI, name: String, types: Seq[Char], temporalField: String, latField: String, lonField: String) {
-    val sb = (name: String, header: Seq[String], types: Seq[Char], tField: String) =>
-      new LatLonSchema(name, header, types, tField, latField, lonField)
-    readCSV(csvPath, name, types, temporalField, sb)
-  }
-
-  type SchemaBuilder = (String, Seq[String], Seq[Char], String) => Schema
-
-  def readCSV(csvPath: URI, name: String, types: Seq[Char], temporalField: String, sb: SchemaBuilder) {
-    val csvLines = Source.fromFile(csvPath).getLines()
-    val header = csvLines.next().split(",")
-    val schema = sb(name, header, types, temporalField)
-    val fc = buildFeatureCollection(csvLines.toStream, schema)
-    // need to build shapefile now
-  }
 
   // this can probably be cleaned up and simplified now that parsers don't need to do double duty...
   def typeData(rawData: TraversableOnce[String]): Try[Seq[Char]] = {
@@ -183,20 +62,9 @@ package object csv extends Logging {
     tryTraverse(rawData)(tryAllParsers(_).map { case (_, c) => c }).map(_.toSeq)
   }
 
-  case class TypeSchema(name: String, schema: String)
-
-  import scala.concurrent.ExecutionContext.Implicits.global
-
-  def guessTypes(csvFile: File): Future[TypeSchema] = {
-    val name = csvFile.getName.replace(".csv","")
-    val reader = new FileReader(csvFile)
-    val guess = for (g <- guessTypes(name, reader)) yield { reader.close(); g }
-    guess
-  }
-
   def guessTypes(name: String, csvReader: Reader, format: CSVFormat = CSVFormat.DEFAULT): Future[TypeSchema] =
     Future {
-             val records = new CSVParser(csvReader, format).iterator
+             val records = format.parse(csvReader).iterator
              (for {
                header    <- Try { records.next }
                record    <- Try { records.next }
@@ -211,23 +79,114 @@ package object csv extends Logging {
                  case 'd' =>
                    sftb.doubleType(field)
                  case 't' =>
-                   if (defaultDateSet) sftb.date(field)
-                   else {
-                     sftb.date(field, default = true)
+                   sftb.date(field)
+                   if (!defaultDateSet) {
+                     sftb.withDefaultDtg(field)
                      defaultDateSet = true
                    }
-                 case 'g' =>
+                 case 'p' =>
                    if (defaultGeomSet) sftb.geometry(field)
                    else {
-                     sftb.geometry(field, default = true)
+                     sftb.point(field, default = true)
                      defaultGeomSet = true
                    }
                  case 's' =>
                    sftb.stringType(field)
                }}
 
-               val sft = sftb.build(name)
-               TypeSchema(name, SimpleFeatureTypes.encodeType(sft))
+               TypeSchema(name, sftb.getSpec())
              }).get
            }
+
+  val fieldParserMap =
+    Map[Class[_], Parsable[_ <: AnyRef]](
+      classOf[java.lang.Integer]                 -> IntIsParsable,
+      classOf[java.lang.Double]                  -> DoubleIsParsable,
+      classOf[java.util.Date]                    -> TimeIsParsable,
+      classOf[com.vividsolutions.jts.geom.Point] -> PointIsParsable,
+      classOf[java.lang.String]                  -> StringIsParsable
+                              )
+
+  private def buildFeatureCollection(csvFile: File, sft: SimpleFeatureType): Try[SimpleFeatureCollection] = {
+    val reader = Source.fromFile(csvFile).bufferedReader()
+    val records = CSVFormat.DEFAULT.parse(reader).iterator()
+    records.next()  // burn off the header
+    val fct = Try {
+      val fc = new DefaultFeatureCollection
+      val fb = new SimpleFeatureBuilder(sft)
+      val fieldParsers = for (t <- sft.getTypes) yield { fieldParserMap(t.getBinding) }
+      for (record <- records) {
+        fb.reset()
+        val fieldVals =
+          tryTraverse(record.iterator.toIterable.zip(fieldParsers)) { case (v, p) => p.parse(v) }.get.toArray
+        fb.addAll(fieldVals)
+        val f = fb.buildFeature(null)
+        fc.add(f)
+      }
+      fc
+        }
+    fct.eventually(reader.close())
+    fct
+  }
+
+  private def shpDataStore(shpFile: File, sft: SimpleFeatureType): Try[ShapefileDataStore] =
+    Try {
+          val dsFactory = new ShapefileDataStoreFactory
+          val params =
+            Map("url" -> shpFile.toURI.toURL,
+                "create spatial index" -> java.lang.Boolean.TRUE)
+          val shpDS = dsFactory.createNewDataStore(params).asInstanceOf[ShapefileDataStore]
+          shpDS.createSchema(sft)
+          shpDS
+        }
+  
+  private def writeFeatures(fc: SimpleFeatureCollection, shpFS: SimpleFeatureStore): Try[Unit] = {
+    val transaction = new DefaultTransaction("create")
+    shpFS.setTransaction(transaction)
+    Try { shpFS.addFeatures(fc); transaction.commit() } recover {
+      case ex => transaction.rollback(); throw ex
+    } eventually { transaction.close() }
+  }
+
+  private def writeZipFile(shpFile: File): Try[File] = {
+    def byteStream(in: InputStream): Stream[Int] = { in.read() #:: byteStream(in) }
+    val makeFile: String => File = {
+      val shpFileDir  = shpFile.getParent
+      val shpFileName = shpFile.getName
+      val shpFileRoot = shpFileName.substring(0, shpFileName.length - 4)
+      ext => new File(shpFileDir, s"$shpFileRoot.$ext")
+    }
+
+    val files = for (ext <- Seq("dbf", "fix", "prj", "shp", "shx")) yield { makeFile(ext) }
+    val zipFile = makeFile("zip")
+
+    def writeZipData = {
+      val zip = new ZipOutputStream(new FileOutputStream(zipFile))
+      Try {
+            for (file <- files) {
+              zip.putNextEntry(new ZipEntry(file.getName))
+              val in = new FileInputStream(file.getCanonicalFile)
+              (Try {byteStream(in).takeWhile(_ > -1).toList.foreach(zip.write)} eventually in.close()).get
+              zip.closeEntry()
+            }
+          } eventually zip.close()
+    }
+
+    for (_ <- writeZipData) yield { zipFile }
+  }
+
+  def ingestCSV(csvFile: File, name: String, schema: String): Try[File] =
+    for {
+      sft     <- Try { SimpleFeatureTypes.createType(name, schema) }
+      fc      <- buildFeatureCollection(csvFile, sft)
+      shpFile <- Try {
+                       val csvFileName = csvFile.getName
+                       val shpFileRoot = csvFileName.substring(0, csvFileName.length - 4)
+                       new File(csvFile.getParentFile, s"$shpFileRoot.shp")
+                     }
+      shpDS   <- shpDataStore(shpFile, sft)
+      shpFS   <- Try { shpDS.getFeatureSource(name).asInstanceOf[SimpleFeatureStore] }
+      _       <- writeFeatures(fc, shpFS)
+      zipFile <- writeZipFile(shpFile)
+    } yield zipFile
 }

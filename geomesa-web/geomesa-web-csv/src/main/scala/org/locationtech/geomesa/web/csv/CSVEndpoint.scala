@@ -3,11 +3,12 @@ package org.locationtech.geomesa.web.csv
 import java.io.File
 import java.util.UUID
 
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.commons.io.FilenameUtils
 
 import scala.collection.mutable
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
 import org.locationtech.geomesa.core.csv
@@ -16,7 +17,8 @@ import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintE
 
 class CSVEndpoint
   extends GeoMesaScalatraServlet
-          with FileUploadSupport {
+          with FileUploadSupport
+          with Logging {
   override val root: String = "csv"
 
   // caps file size at 3MB (from Scalatra examples); what is more realistic for us?
@@ -38,7 +40,7 @@ class CSVEndpoint
   val records = mutable.Map[String, Record]()
 
   post("/") {
-    val response =
+    val idResponse =
       for (fileItem <- Try { fileParams("csvfile") }) yield {
         val uuid = UUID.randomUUID.toString
         val csvFile = File.createTempFile(FilenameUtils.removeExtension(fileItem.name),".csv")
@@ -47,12 +49,15 @@ class CSVEndpoint
         Ok(uuid)
       }
 
-    response.recover { case ex => NotAcceptable(body = ex, reason = ex.getMessage) }
-            .get
+    idResponse.recover { case ex =>
+      logger.warn("Error uploading CSV", ex)
+      NotAcceptable(body = ex, reason = ex.getMessage)
+                       }
+              .get
   }
 
   get("/:csvid.csv/types") {
-    val response =
+    val schemaResponse =
       for {
         record                       <- Try { records(params("csvid")) }
         csv.TypeSchema(name, schema) <- record.inferredTS
@@ -60,28 +65,48 @@ class CSVEndpoint
         Ok(s"$name\n$schema")
       }
 
-    response.recover { case ex => NotFound(body = ex, reason = ex.getMessage) }
-            .get
+    schemaResponse.recover { case ex =>
+      logger.warn("Error inferring types", ex)
+      NotFound(body = ex, reason = ex.getMessage)
+                           }
+                  .get
   }
 
   post("/:csvid.shp") {
     val csvId = params("csvid")
-    val tryShpURI = for {
+    val urlResponse = for {
       record    <- Try { records(csvId) }
       name      <- Try { params("name") }   orElse record.inferredName
       schema    <- Try { params("schema") } orElse record.inferredSchema
-      shapefile <- ingestCSV(record.csvFile, name, schema)
+      shapefile <- csv.ingestCSV(record.csvFile, name, schema)
     } yield {
       records.update(csvId, record.copy(shapefile = Some(shapefile)))
-      csvId + ".shp"
+      Ok(csvId + ".shp")
     }
-    tryShpURI.getOrElse("") // what's the Right Thing to Do with exceptions?
+
+    urlResponse.recover { case ex =>
+      logger.warn("Error creating shapefile", ex)
+      NotAcceptable(body = ex, reason = ex.getMessage)
+                        }
+               .get
   }
 
-  // dummied here to build; should be handled by csv ingest code in core/tools
-  def ingestCSV(csvPath: File, name: String, schema: String): Try[File] =
-    Success {
-      new File(csvPath.getParentFile,
-        csvPath.getName.replace(".csv", ".shp"))
+  get("/:csvid.shp") {
+    val csvId = params("csvid")
+    val fileResponse = for (record <- Try { records(csvId) }) yield {
+      record.shapefile match {
+        case Some(shpFile) =>
+          contentType = "application/octet-stream"
+          response.setHeader("Content-Disposition", s"attachment; filename=${shpFile.getName}")
+          Ok(shpFile)
+        case None => NotFound("Shapefile content has not been created")
+      }
     }
+
+    fileResponse.recover { case ex =>
+      logger.warn("Error retrieving shapefile", ex)
+      NotFound(body = ex, reason = ex.getMessage)
+                         }
+                .get
+  }
 }
