@@ -1,9 +1,12 @@
 package org.locationtech.geomesa.core
 
 import java.io._
+import java.lang.{Double => jDouble, Integer => jInt}
+import java.util.Date
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.apache.commons.csv.CSVFormat
 import org.geotools.data.DefaultTransaction
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
@@ -100,14 +103,28 @@ package object csv extends Logging {
 
   val fieldParserMap =
     Map[Class[_], Parsable[_ <: AnyRef]](
-      classOf[java.lang.Integer]                 -> IntIsParsable,
-      classOf[java.lang.Double]                  -> DoubleIsParsable,
-      classOf[java.util.Date]                    -> TimeIsParsable,
-      classOf[com.vividsolutions.jts.geom.Point] -> PointIsParsable,
-      classOf[java.lang.String]                  -> StringIsParsable
+      classOf[jInt]    -> IntIsParsable,
+      classOf[jDouble] -> DoubleIsParsable,
+      classOf[Date]    -> TimeIsParsable,
+      classOf[Point]   -> PointIsParsable,
+      classOf[String]  -> StringIsParsable
                               )
 
-  private def buildFeatureCollection(csvFile: File, sft: SimpleFeatureType): Try[SimpleFeatureCollection] = {
+  val gf = new GeometryFactory
+
+  private def buildFeatureCollection(csvFile: File,
+                                     sft: SimpleFeatureType,
+                                     latlonFields: Option[(String, String)]): Try[SimpleFeatureCollection] = {
+    def idxOfField(fname: String) = {
+      sft.getType(fname)
+      val idx = sft.indexOf(fname)
+      if (idx > -1) {
+        val t = sft.getType(idx)
+        if (t.getBinding == classOf[java.lang.Double]) Success(idx)
+        else Failure(new IllegalArgumentException(s"field $fname is not a Double field"))
+      } else Failure(new IllegalArgumentException(s"could not find field $fname"))
+    }
+
     val reader = Source.fromFile(csvFile).bufferedReader()
     val records = CSVFormat.DEFAULT.parse(reader).iterator()
     records.next()  // burn off the header
@@ -115,11 +132,19 @@ package object csv extends Logging {
       val fc = new DefaultFeatureCollection
       val fb = new SimpleFeatureBuilder(sft)
       val fieldParsers = for (t <- sft.getTypes) yield { fieldParserMap(t.getBinding) }
+      val latlonIdx = for ((latf, lonf) <- latlonFields) yield {
+        (for (lati <- idxOfField(latf); loni <- idxOfField(lonf)) yield (lati, loni)).get
+      }
       for (record <- records) {
         fb.reset()
         val fieldVals =
           tryTraverse(record.iterator.toIterable.zip(fieldParsers)) { case (v, p) => p.parse(v) }.get.toArray
         fb.addAll(fieldVals)
+        for ((lati, loni) <- latlonIdx) {
+          val lat = fieldVals(lati).asInstanceOf[jDouble] // should be Doubles, as verifie
+          val lon = fieldVals(loni).asInstanceOf[jDouble]
+          fb.add(gf.createPoint(new Coordinate(lon, lat)))
+        }
         val f = fb.buildFeature(null)
         fc.add(f)
       }
@@ -175,10 +200,13 @@ package object csv extends Logging {
     for (_ <- writeZipData) yield { zipFile }
   }
 
-  def ingestCSV(csvFile: File, name: String, schema: String): Try[File] =
+  def ingestCSV(csvFile: File,
+                name: String,
+                schema: String,
+                latlonFields: Option[(String, String)] = None): Try[File] =
     for {
       sft     <- Try { SimpleFeatureTypes.createType(name, schema) }
-      fc      <- buildFeatureCollection(csvFile, sft)
+      fc      <- buildFeatureCollection(csvFile, sft, latlonFields)
       shpFile <- Try {
                        val csvFileName = csvFile.getName
                        val shpFileRoot = csvFileName.substring(0, csvFileName.length - 4)

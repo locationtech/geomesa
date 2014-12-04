@@ -72,13 +72,16 @@ class CSVEndpoint
                   .get
   }
 
+  // for lat/lon geometry, add a new geometry field to the end of the requested schema
+  // and specify the latField and lonField in request parameters
   post("/:csvid.shp") {
     val csvId = params("csvid")
+    val latlonFields = for (latf <- params.get("latField"); lonf <- params.get("lonField")) yield (latf, lonf)
     val urlResponse = for {
       record    <- Try { records(csvId) }
       name      <- Try { params("name") }   orElse record.inferredName
       schema    <- Try { params("schema") } orElse record.inferredSchema
-      shapefile <- csv.ingestCSV(record.csvFile, name, schema)
+      shapefile <- csv.ingestCSV(record.csvFile, name, schema, latlonFields)
     } yield {
       records.update(csvId, record.copy(shapefile = Some(shapefile)))
       Ok(csvId + ".shp")
