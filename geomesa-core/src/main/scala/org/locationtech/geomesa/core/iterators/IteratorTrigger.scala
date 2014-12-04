@@ -12,6 +12,7 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+import org.opengis.filter.expression.PropertyName
 
 import scala.collection.JavaConverters._
 
@@ -60,7 +61,10 @@ object IteratorTrigger {
   def chooseIterator(ecqlPredicate: Option[String], query: Query, sourceSFT: SimpleFeatureType): IteratorConfig = {
     val filter = ecqlPredicate.map(ECQL.toFilter)
     if (useIndexOnlyIterator(filter, query, sourceSFT)) {
-      IteratorConfig(IndexOnlyIterator, false)
+      // if the transforms cover the filtered attributes, we can do the transform directly in the index iterator
+      // otherwise, we need to apply the SFFI to do the transform after the filter is applied
+      val useSFFI = !doTransformsCoverFilters(query)
+      IteratorConfig(IndexOnlyIterator, useSFFI)
     } else {
       IteratorConfig(SpatioTemporalIterator, useSimpleFeatureFilteringIterator(filter, query))
     }
@@ -92,6 +96,20 @@ object IteratorTrigger {
 
     // require both to be true
     (isIndexTransform ++ isPassThroughFilter ++ notDensity).forall {_ == true}
+  }
+
+  /**
+   * Tests whether the attributes being filtered on are a subset of the attribute transforms requested.
+   *
+   * @param query
+   * @return
+   */
+  def doTransformsCoverFilters(query: Query): Boolean = {
+    val filterAttributes = getFilterAttributes(query.getFilter)
+    val transformString = query.getHints.get(TRANSFORMS).asInstanceOf[String]
+    val transforms = TransformProcess.toDefinition(transformString).asScala
+        .map(_.expression.asInstanceOf[PropertyName].getPropertyName)
+    filterAttributes.forall(transforms.contains(_))
   }
 
   /**

@@ -16,10 +16,9 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import java.util.{Date, Map => JMap}
+import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{Filter, IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -28,31 +27,8 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index.IndexEntry.DecodedIndexValue
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeature
 
-class AttributeIndexFilteringIterator extends Filter with Logging {
-
-  protected var filter: org.opengis.filter.Filter = null
-  protected var testSimpleFeature: SimpleFeature = null
-  protected var dateAttributeName: Option[String] = None
-
-  // NB: This is duplicated code from the STII.  Consider refactoring.
-  lazy val wrappedSTFilter: (Geometry, Option[Long]) => Boolean = {
-    if (filter != null && testSimpleFeature != null) {
-      (geom: Geometry, olong: Option[Long]) => {
-        testSimpleFeature.setDefaultGeometry(geom)
-        for {
-          dateAttribute <- dateAttributeName
-          long <- olong
-        } {
-          testSimpleFeature.setAttribute(dateAttribute, new Date(long))
-        }
-        filter.evaluate(testSimpleFeature)
-      }
-    } else {
-      (_, _) => true
-    }
-  }
+class AttributeIndexFilteringIterator extends Filter with Logging with WrappedSTFilter {
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: JMap[String, String],
