@@ -35,25 +35,25 @@ INST=INSTANCE
 ZOO=zoo1,zoo2,zoo3
 ACC_OPTS="-u $USER -p $PASS -i $INST -z $ZOO"
 
-geomesa create $ACC_OPTS -c ${CREATE_CATALOG} -f ${CREATE_FEATURENAME} -s ${SPEC} --dtg dtg
+geomesa create $ACC_OPTS -c ${CREATE_CATALOG} -fn ${CREATE_FEATURENAME} -s ${SPEC} -dt dtg
 geomesa list $ACC_OPTS -c ${CATALOG}
-geomesa describe $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME}
-geomesa explain $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} -q include
+geomesa describe $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME}
+geomesa explain $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -q include
 
 # export to std out in various formats
-geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} -o csv -m ${MAXFEATURES}
-geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} -o tsv -m ${MAXFEATURES}
-geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} -o json -m ${MAXFEATURES}
-geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} -o gml -m ${MAXFEATURES}
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt csv -max ${MAXFEATURES}
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt tsv -max ${MAXFEATURES}
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt json -max ${MAXFEATURES}
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt gml -max ${MAXFEATURES}
 
 # export to files (includes shape file)
-geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} -o csv -m ${MAXFEATURES} --file /tmp/csv.out
-geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} -o tsv -m ${MAXFEATURES} --file /tmp/tsv.out
-geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} -o json -m ${MAXFEATURES} --file /tmp/json.out
-geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} -o gml -m ${MAXFEATURES} --file /tmp/gml.out
-geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} -o shp -m ${MAXFEATURES} --file /tmp/out.shp
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt csv -max ${MAXFEATURES} -o /tmp/csv.out
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt tsv -max ${MAXFEATURES} -o /tmp/tsv.out
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt json -max ${MAXFEATURES} -o /tmp/json.out
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt gml -max ${MAXFEATURES} -o /tmp/gml.out
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt shp -max ${MAXFEATURES} -o /tmp/out.shp
 
 # clean up previous temp feature
-geomesa delete $ACC_OPTS --force -c ${CREATE_CATALOG} -f ${CREATE_FEATURENAME}
+geomesa delete $ACC_OPTS --force -c ${CREATE_CATALOG} -fn ${CREATE_FEATURENAME}
 geomesa list $ACC_OPTS -c ${CREATE_CATALOG}
 
