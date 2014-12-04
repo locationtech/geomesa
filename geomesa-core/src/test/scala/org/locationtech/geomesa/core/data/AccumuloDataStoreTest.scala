@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.core.data
 
+import java.text.SimpleDateFormat
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Coordinate
@@ -278,7 +279,7 @@ class AccumuloDataStoreTest extends Specification {
         featureCollection.add(liveFeature)
         fs.addFeatures(featureCollection)
 
-        val query = new Query("transformtest", Filter.INCLUDE,
+        val query = new Query(sftName, Filter.INCLUDE,
           Array("name", "derived=strConcat('hello',name)", "geom"))
 
         // Let's read out what we wrote.
@@ -324,7 +325,7 @@ class AccumuloDataStoreTest extends Specification {
       }
 
       "handle setPropertyNames transformations" in {
-        val sftName = "transformtest0"
+        val sftName = "transformtest7"
         val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
         sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
         ds.createSchema(sft)
@@ -376,7 +377,7 @@ class AccumuloDataStoreTest extends Specification {
         featureCollection.add(liveFeature)
         fs.addFeatures(featureCollection)
 
-        val query = new Query("transformtest", Filter.INCLUDE,
+        val query = new Query(sftName, Filter.INCLUDE,
           Array("name", "derived=strConcat(attr,name)", "geom"))
 
         // Let's read out what we wrote.
@@ -414,8 +415,7 @@ class AccumuloDataStoreTest extends Specification {
         featureCollection.add(liveFeature)
         fs.addFeatures(featureCollection)
 
-        val query = new Query("transformtest", Filter.INCLUDE,
-          Array("name", "geom"))
+        val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom"))
 
         // Let's read out what we wrote.
         val results = fs.getFeatures(query)
@@ -428,6 +428,43 @@ class AccumuloDataStoreTest extends Specification {
 
         "and correct results" >> {
           "fid-1=testType|POINT (45 49)" mustEqual DataUtilities.encodeFeature(f)
+        }
+      }
+
+      "handle transformations with filters on other attributes" in {
+        // create the data store
+        val sftName = "test4transform"
+        val sft = SimpleFeatureTypes.createType(sftName, s"name:String,attr:String,dtg:Date,*geom:Point:srid=4326")
+        sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+        ds.createSchema(sft)
+
+        val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+        // create a feature
+        val geom = WKTUtils.read("POINT(50.0 49.0)")
+        val builder = new SimpleFeatureBuilder(sft, featureFactory)
+        builder.addAll(List("testType", "v1", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse("2014-01-01T12:30:00.000+0000"), geom))
+        val liveFeature = builder.buildFeature("fid-1xxx")
+
+        // make sure we ask the system to re-use the provided feature-ID
+        liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        val featureCollection = new DefaultFeatureCollection(sftName, sft)
+        featureCollection.add(liveFeature)
+        fs.addFeatures(featureCollection)
+
+        val query = new Query(sftName,
+                              CQL.toFilter("bbox(geom,-180,-90,180,90) AND dtg BETWEEN '2013-01-01T00:00:00.000Z' AND '2015-01-02T00:00:00.000Z'"),
+                              Array("geom"))
+
+        // Let's read out what we wrote.
+        val results = fs.getFeatures(query)
+        val features = results.features
+        "return the data" >> {
+          features.hasNext must beTrue
+        }
+        "with correct results" >> {
+          val f = features.next()
+          DataUtilities.encodeFeature(f) mustEqual "fid-1xxx=POINT (50 49)"
         }
       }
 

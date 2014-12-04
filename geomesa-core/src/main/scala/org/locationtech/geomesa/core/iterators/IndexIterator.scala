@@ -102,7 +102,7 @@ class IndexIterator extends SpatioTemporalIntersectingIterator with SortedKeyVal
     throw new UnsupportedOperationException("IndexIterator does not support deepCopy.")
 }
 
-object IndexIterator extends IteratorHelpers {
+object IndexIterator {
   import org.locationtech.geomesa.core.iterators.IteratorTrigger.IndexAttributeNames
 
   /**
