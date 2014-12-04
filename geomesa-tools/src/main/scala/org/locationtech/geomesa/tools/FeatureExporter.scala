@@ -45,7 +45,8 @@ class GeoJsonExport(writer: Writer) extends FeatureExporter {
 
   val featureJson = new FeatureJSON()
 
-  override def write(features: SimpleFeatureCollection) = featureJson.writeFeatureCollection(features, writer)
+  override def write(features: SimpleFeatureCollection) =
+    featureJson.writeFeatureCollection(features, writer)
 
   override def flush() = writer.flush()
   override def close() = {
@@ -91,13 +92,16 @@ object ShapefileExport {
     // When exporting to Shapefile, we must rename the Geometry Attribute Descriptor to "the_geom", per
     // the requirements of Geotools' ShapefileDataStore and ShapefileFeatureWriter. The easiest way to do this
     // is transform the attribute when retrieving the SimpleFeatureCollection.
-    val attrDescriptors = sft.getAttributeDescriptors.map(_.getLocalName).mkString(",")
+    val attrs = sft.getAttributeDescriptors.map(_.getLocalName)
     val geomDescriptor = sft.getGeometryDescriptor.getLocalName
-    if (attrDescriptors.contains(geomDescriptor)) {
-      attrDescriptors.replace(geomDescriptor, s"the_geom=$geomDescriptor")
-    } else {
-      attrDescriptors.concat(s",the_geom=$geomDescriptor")
-    }
+    val modifiedAttrs =
+      if (attrs.contains(geomDescriptor)) {
+        attrs.updated(attrs.indexOf(geomDescriptor), s"the_geom=$geomDescriptor")
+      } else {
+       attrs ++ List(s"the_geom=$geomDescriptor")
+      }
+
+    modifiedAttrs.mkString(",")
   }
 }
 
@@ -146,25 +150,29 @@ class DelimitedExport(writer: Writer,
 
   val getGeom: SimpleFeature => Option[Geometry] =
     (sf: SimpleFeature) =>
-      latAttribute match {
-        case None => None
-        case Some(attr) =>
+      (latAttribute, lonAttribute) match {
+        case (Some(a), Some(b)) =>
           val lat = sf.getAttribute(latAttribute.get).toString.toDouble
           val lon = sf.getAttribute(lonAttribute.get).toString.toDouble
           Some(geometryFactory.createPoint(new Coordinate(lon, lat)))
+        case (Some(lat), _) =>
+          logger.warn("Lattitude attribute provided by no longitude attribute provided...ignoring attribute overrides")
+          None
+        case ( _, Some(lon)) =>
+          logger.warn("Longitude attribute provided by no lattitude attribute provided...ignoring attribute overrides")
+          None
+        case (_, _) => None
       }
 
   val getDate: SimpleFeature => Option[Date] =
     (sf: SimpleFeature) =>
-      dtgAttribute match {
-        case None       => None
-        case Some(attr) =>
-          val date = sf.getAttribute(attr)
-          if (date.isInstanceOf[Date]) {
-            Some(date.asInstanceOf[Date])
-          } else {
-            Some(dateFormat.parse(date.toString))
-          }
+      dtgAttribute.map { attr =>
+        val date = sf.getAttribute(attr)
+        if (date.isInstanceOf[Date]) {
+          date.asInstanceOf[Date]
+        } else {
+          dateFormat.parse(date.toString)
+        }
       }
 
   def writeFeature(sf: SimpleFeature, writer: Writer, attrNames: Seq[String], idField: Option[String]) = {
@@ -177,8 +185,8 @@ class DelimitedExport(writer: Writer,
     if (idField.nonEmpty && attrMap.getOrElse(idField.get, "").toString.isEmpty) attrMap.put(idField.get, sf.getID)
 
     // update geom and date as needed
-    getGeom(sf).map { geom => attrMap("*geom") = geom }
-    getDate(sf).map { date => attrMap("dtg") = date }
+    getGeom(sf).foreach { geom => attrMap("*geom") = geom }
+    getDate(sf).foreach { date => attrMap("dtg") = date }
 
     // toString, escape, and join with delimiter
     val escapedStrings = attrNames.map { n => escape(stringify(attrMap.getOrElse(n, null))) }

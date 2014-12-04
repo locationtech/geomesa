@@ -29,15 +29,7 @@ class DeleteCommand(parent: JCommander) extends Command with Logging {
     val feature = params.featureName
     val catalog = params.catalog
 
-    val confirmed =
-      if (params.forceDelete) {
-        true
-      } else {
-        println(s"Delete '$feature' from catalog table '$catalog'? (yes/no): ")
-        System.console().readLine().toLowerCase().trim == "yes"
-      }
-
-    if (confirmed) {
+    if (params.forceDelete || promptConfirm(feature, catalog)) {
       logger.info(s"Deleting '$catalog:$feature'")
       try {
         val ds = new DataStoreHelper(params).ds
@@ -50,10 +42,10 @@ class DeleteCommand(parent: JCommander) extends Command with Logging {
         }
       } catch {
         case e: Exception =>
-          logger.error("Error deleting feature '$catalog:$feature': "+e.getMessage, e)
+          logger.error(s"Error deleting feature '$catalog:$feature': "+e.getMessage, e)
       }
     } else {
-      logger.info("Deleted feature '$catalog:$feature' cancelled")
+      logger.info(s"Cancelled deletion of feature '$catalog:$feature'")
     }
 
   }
@@ -63,9 +55,18 @@ class DeleteCommand(parent: JCommander) extends Command with Logging {
 object DeleteCommand {
   val Command = "delete"
 
+  def promptConfirm(feature: String, catalog: String) =
+    if (System.console() != null) {
+      print(s"Delete '$feature' from catalog table '$catalog'? (yes/no): ")
+      System.console().readLine().toLowerCase().trim == "yes"
+    } else {
+      throw new IllegalStateException("Unable to confirm feature deletion via console..." +
+        "Please ensure stdout is not redirected or --force flag is set")
+    }
+
   @Parameters(commandDescription = "Delete a feature's data and definition from a GeoMesa catalog")
   class DeleteParams extends FeatureParams {
-    @Parameter(names = Array("--force"), description = "Force deletion of feature without prompt", required = false)
+    @Parameter(names = Array("-f", "--force"), description = "Force deletion of feature without prompt", required = false)
     var forceDelete: Boolean = false
   }
 }

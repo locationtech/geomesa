@@ -43,7 +43,12 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
     JobUtils.setLibJars(conf, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
 
     // setup ingest
-    val hdfsMode = if (getMode(params.files(0)) == Modes.Hdfs) Hdfs(strict = true, conf) else Local(strictSources = true)
+    val hdfsMode =
+      if (getMode(params.files(0)) == Modes.Hdfs) {
+        Hdfs(strict = true, conf)
+      } else {
+        Local(strictSources = true)
+      }
     val arguments = Mode.putMode(hdfsMode, getScaldingArgs())
     val job = new DelimitedIngestJob(arguments)
     val flow = job.buildFlow
@@ -110,7 +115,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
         s"GeoMesa is defaulting to the system time for ingested features.")
     }
 
-    val kvArgs = (requiredKvArgs ++ optionalKvArgs).map { case (k,v) => List(s"--$k", v)}.flatten.toList
+    val kvArgs = (requiredKvArgs ++ optionalKvArgs).flatMap { case (k,v) => List(s"--$k", v) }
     Args(singleArgs ++ kvArgs)
   }
 }

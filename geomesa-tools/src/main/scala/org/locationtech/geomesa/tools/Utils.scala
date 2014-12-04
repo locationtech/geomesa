@@ -65,12 +65,12 @@ object Utils {
     def getFileExtension(f: File) = {
       val name = f.getName.toLowerCase
       name match {
-        case csv if name.endsWith(CSV)   => CSV
-        case tsv if name.endsWith(TSV)   => TSV
-        case shp if name.endsWith(SHP)   => SHP
-        case json if name.endsWith(JSON) => JSON
-        case gml if name.endsWith(GML)   => GML
-        case _                           => "unknown"
+        case _ if name.endsWith(CSV)  => CSV
+        case _ if name.endsWith(TSV)  => TSV
+        case _ if name.endsWith(SHP)  => SHP
+        case _ if name.endsWith(JSON) => JSON
+        case _ if name.endsWith(GML)  => GML
+        case _                        => "unknown"
       }
     }
 

@@ -49,28 +49,28 @@ object IngestCommand {
 
   @Parameters(commandDescription = "Ingest a file of various formats into GeoMesa")
   class IngestParameters extends CreateFeatureParams {
-    @Parameter(names = Array("--indexSchema"), description = "GeoMesa index schema format string")
+    @Parameter(names = Array("-is", "--indexSchema"), description = "GeoMesa index schema format string")
     var indexSchema: String = null
 
-    @Parameter(names = Array("--cols", "--columns"), description = "the set of column indexes to be ingested, must match the SimpleFeatureType spec")
+    @Parameter(names = Array("-cols", "--columns"), description = "the set of column indexes to be ingested, must match the SimpleFeatureType spec")
     var columns: String = null
 
-    @Parameter(names = Array("--dtFormat"), description = "format string for the date time field")
+    @Parameter(names = Array("-dtf", "--dtFormat"), description = "format string for the date time field")
     var dtFormat: String = null
 
-    @Parameter(names = Array("--idFields"), description = "the set of attributes to combine together to create a unique id for the feature (comma separated)")
+    @Parameter(names = Array("-id", "--idFields"), description = "the set of attributes to combine together to create a unique id for the feature (comma separated)")
     var idFields: String = null
 
-    @Parameter(names = Array("--hash"), description = "flag to toggle using md5hash as the feature id")
+    @Parameter(names = Array("-h", "--hash"), description = "flag to toggle using md5hash as the feature id")
     var hash: Boolean = false
 
-    @Parameter(names = Array("--lat"), description = "name of the latitude field in the SimpleFeatureType if ingesting point data")
+    @Parameter(names = Array("-lat", "--latAttribute"), description = "name of the latitude field in the SimpleFeatureType if ingesting point data")
     var lat: String = null
 
-    @Parameter(names = Array("--lon"), description = "name of the longitude field in the SimpleFeatureType if ingesting point data")
+    @Parameter(names = Array("-lon", "--lonAttribute"), description = "name of the longitude field in the SimpleFeatureType if ingesting point data")
     var lon: String = null
 
-    @Parameter(names = Array("--format"), description = "format of incoming data (csv | tsv | shp) to override file extension recognition")
+    @Parameter(names = Array("-fmt", "--format"), description = "format of incoming data (csv | tsv | shp) to override file extension recognition")
     var format: String = null
 
     // TODO GEOMESA-528 enable ingest of multiple files

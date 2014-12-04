@@ -78,7 +78,7 @@ object Runner extends Logging {
     override def execute() = println(commandUsage(jc))
   }
 
-  def commandUsage(jc :JCommander) = {
+  def commandUsage(jc: JCommander) = {
     val out = new StringBuilder()
     out.append("Usage: geomesa [command] [command options]\n")
     out.append("  Commands:\n")

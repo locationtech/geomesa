@@ -21,8 +21,7 @@ import com.beust.jcommander.{Parameters, JCommander, Parameter}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.filter.text.cql2.CQL
-import org.joda.time.DateTime
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.AccumuloFeatureStore
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats._
@@ -83,21 +82,13 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
   }
 
   def getFeatureCollection(overrideAttributes: Option[String] = None): SimpleFeatureCollection = {
-    val filter = Option(params.cqlFilter).map(CQL.toFilter).getOrElse(Filter.INCLUDE)
+    val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
     val q = new Query(params.featureName, filter)
-    q.setMaxFeatures(Option(params.maxFeatures).getOrElse(Query.DEFAULT_MAX.asInstanceOf[Integer]).toInt)
+    Option(params.maxFeatures).foreach(q.setMaxFeatures(_))
 
-    val attributesO =
-      if (overrideAttributes.isDefined) {
-        overrideAttributes
-      } else if (Option(params.attributes).isDefined) {
-        Some(params.attributes)
-      } else {
-        None
-      }
-
-    //Split attributes by "," meanwhile allowing to escape it by "\,".
-    attributesO.foreach { attributes =>
+    // If there are override attributes given as an arg or via command line params
+    // split attributes by "," meanwhile allowing to escape it by "\,".
+    overrideAttributes.orElse(Option(params.attributes)).foreach { attributes =>
       q.setPropertyNames(attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ",")))
     }
 
@@ -132,32 +123,32 @@ object ExportCommand {
 
   @Parameters(commandDescription = "Export a GeoMesa feature")
   class ExportParameters extends OptionalCqlFilterParameters {
-    @Parameter(names = Array("-o", "--format"), description = "Format to export (csv|tsv|gml|json|shp)")
+    @Parameter(names = Array("-fmt", "--format"), description = "Format to export (csv|tsv|gml|json|shp)")
     var format: String = "csv"
 
-    @Parameter(names = Array("-m", "--maxFeatures"), description = "Maximum number of features to return. default: Long.MaxValue")
+    @Parameter(names = Array("-max", "--maxFeatures"), description = "Maximum number of features to return. default: Long.MaxValue")
     var maxFeatures: Integer = Int.MaxValue
 
-    @Parameter(names = Array("--attrs"), description = "Attributes from feature to export " +
+    @Parameter(names = Array("-at", "--attributes"), description = "Attributes from feature to export " +
       "(comma-separated)...Comma-separated expressions with each in the format " +
       "attribute[=filter_function_expression]|derived-attribute=filter_function_expression. " +
       "filter_function_expression is an expression of filter function applied to attributes, literals " +
       "and filter functions, i.e. can be nested")
     var attributes: String = null
 
-    @Parameter(names = Array("--id"), description = "name of the id attribute to export")
+    @Parameter(names = Array("-id", "--idAttribute"), description = "name of the id attribute to export")
     var idAttribute: String = null
 
-    @Parameter(names = Array("--lat"), description = "name of the latitude attribute to export")
+    @Parameter(names = Array("-lat", "--latAttribute"), description = "name of the latitude attribute to export")
     var latAttribute: String = null
 
-    @Parameter(names = Array("--lon"), description = "name of the longitude attribute to export")
+    @Parameter(names = Array("-lon", "--lonAttribute"), description = "name of the longitude attribute to export")
     var lonAttribute: String = null
 
-    @Parameter(names = Array("--dtg"), description = "name of the date attribute to export")
+    @Parameter(names = Array("-dt", "--dtAttribute"), description = "name of the date attribute to export")
     var dateAttribute: String = null
 
-    @Parameter(names = Array("--file"), description = "name of the file to output to instead of std out")
+    @Parameter(names = Array("-o", "--output"), description = "name of the file to output to instead of std out")
     var file: File = null
   }
 }

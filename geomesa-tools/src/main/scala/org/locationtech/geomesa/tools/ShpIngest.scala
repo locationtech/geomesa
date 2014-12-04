@@ -72,7 +72,7 @@ class ShpIngest(params: IngestParameters) extends Logging {
 
 object ShpIngest {
 
-  // todo copy Hints if necessary?
+  // todo copy Hints if necessary? GEOMESA-534
   def copyFeature(from: SimpleFeature, to: SimpleFeature): Unit = {
     from.getAttributes.zipWithIndex.foreach { case (attr, idx) => to.setAttribute(idx, attr) }
     to.setDefaultGeometry(from.getDefaultGeometry)

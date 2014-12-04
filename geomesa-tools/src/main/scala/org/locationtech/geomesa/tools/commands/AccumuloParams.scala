@@ -36,7 +36,7 @@ class AccumuloParams {
   @Parameter(names = Array("-v", "--visibilities"), description = "Accumulo scan visibilities")
   var visibilities: String = null
 
-  @Parameter(names = Array("--mock"), description = "Run everything with a mock accumulo instance instead of a real one")
+  @Parameter(names = Array("-mc", "--mock"), description = "Run everything with a mock accumulo instance instead of a real one")
   var useMock: Boolean = false
 }
 
@@ -45,17 +45,17 @@ class GeoMesaParams extends AccumuloParams {
   var catalog: String = null
 }
 
-class FeatureParams extends GeoMesaParams{
-  @Parameter(names = Array("-f", "--feature-name"), description = "Simple Feature Type name on which to operate", required = true)
+class FeatureParams extends GeoMesaParams {
+  @Parameter(names = Array("-fn", "--feature-name"), description = "Simple Feature Type name on which to operate", required = true)
   var featureName: String = null
 }
 
-class RequiredCqlFilterParameters extends FeatureParams{
+class RequiredCqlFilterParameters extends FeatureParams {
   @Parameter(names = Array("-q", "--cql"), description = "CQL predicate", required = true)
   var cqlFilter: String = null
 }
 
-class OptionalCqlFilterParameters extends FeatureParams{
+class OptionalCqlFilterParameters extends FeatureParams {
   @Parameter(names = Array("-q", "--cql"), description = "CQL predicate")
   var cqlFilter: String = null
 }
@@ -64,12 +64,12 @@ class CreateFeatureParams extends FeatureParams {
   @Parameter(names = Array("-s", "--spec"), description = "SimpleFeatureType specification", required = true)
   var spec: String = null
 
-  @Parameter(names = Array("--dtg"), description = "DateTime field name to use as the default dtg")
+  @Parameter(names = Array("-dt", "--dtg"), description = "DateTime field name to use as the default dtg")
   var dtgField: String = null
 
-  @Parameter(names = Array("--useSharedTables"), description = "Use shared tables in Accumulo for feature storage")
+  @Parameter(names = Array("-st", "--useSharedTables"), description = "Use shared tables in Accumulo for feature storage")
   var useSharedTables: Boolean = false
 
-  @Parameter(names = Array("--shards"), description = "Number of shards to use for the storage tables (defaults to number of tservers)")
+  @Parameter(names = Array("-sh", "--shards"), description = "Number of shards to use for the storage tables (defaults to number of tservers)")
   var numShards: Integer = null
 }
