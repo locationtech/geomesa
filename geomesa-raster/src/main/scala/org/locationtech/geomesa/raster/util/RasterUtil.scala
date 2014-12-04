@@ -1,7 +1,12 @@
 package org.locationtech.geomesa.raster.util
 
+import java.awt.image.RenderedImage
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import javax.media.jai.remote.SerializableRenderedImage
+
+import org.geotools.coverage.grid.GridCoverage2D
 
 object RasterUtils {
   val doubleSize = 8
@@ -31,5 +36,28 @@ object RasterUtils {
   val utf8Charset = Charset.forName("UTF-8")
   implicit def stringToBytes(s: String): Array[Byte] = s.getBytes(utf8Charset)
   implicit def bytesToString(bs: Array[Byte]): String = new String(bs, utf8Charset)
+
+  def imageSerialize(coverage: GridCoverage2D): Array[Byte] = {
+    val buffer: ByteArrayOutputStream = new ByteArrayOutputStream
+    val out: ObjectOutputStream = new ObjectOutputStream(buffer)
+    val serializableImage = new SerializableRenderedImage(coverage.getRenderedImage, true)
+    try {
+      out.writeObject(serializableImage)
+    } finally {
+      out.close
+    }
+    buffer.toByteArray
+  }
+
+  def imageDeserialize(imageBytes: Array[Byte]): RenderedImage = {
+    val in: ObjectInputStream = new ObjectInputStream(new ByteArrayInputStream(imageBytes))
+    var read: RenderedImage = null
+    try {
+      read = in.readObject.asInstanceOf[RenderedImage]
+    } finally {
+      in.close
+    }
+    read
+  }
 }
 
