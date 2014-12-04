@@ -78,9 +78,9 @@ class DelimitedIngestJobTest extends Specification{
       IngestParams.IS_TEST_INGEST -> List("true"))
   }
 
-  def currentCatalog = f"SVIngestTestTableUnique$id%d"
+  def currentCatalog = f"DelimitedIngestTestTableUnique$id%d"
 
-  "SVIngest" should {
+  "DelimitedIngest" should {
     "properly add attributes to an AvroSimpleFeature from a comma-delimited string" in {
       val ingest = new DelimitedIngestJob(new Args(csvNormParams))
       val testString = "1325409954,2013-07-17,-90.368732,35.3155"
