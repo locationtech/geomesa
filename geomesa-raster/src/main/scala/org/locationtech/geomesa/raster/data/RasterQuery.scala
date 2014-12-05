@@ -25,18 +25,18 @@ import org.locationtech.geomesa.utils.geohash.BoundingBox
  *
  * @param bbox Bounding box defines geometric area of desired raster
  * @param resolution Desired resolution of grid
- * @param startTimeO Optional earliest ingestion time of rasters
- * @param endTimeO Optional latest ingestion time of rasters
+ * @param startTime Optional earliest ingestion time of rasters
+ * @param endTime Optional latest ingestion time of rasters
  */
 case class RasterQuery(bbox: BoundingBox,
                        resolution: String,
-                       startTimeO: Option[DateTime],
-                       endTimeO: Option[DateTime]) {
+                       startTime: Option[DateTime],
+                       endTime: Option[DateTime]) {
   def encodeBbox(): String =
     s"${bbox.getMinX},${bbox.getMinY},${bbox.getMaxX},${bbox.getMaxY}"
 
-  def encodeTime(timeO: Option[DateTime]): String = timeO match {
-    case Some(time) => s"${dateToAccTimestamp(time)}"
+  def encodeTime(time: Option[DateTime]): String = time match {
+    case Some(t) => s"${dateToAccTimestamp(t)}"
     case _ => ""
   }
 
