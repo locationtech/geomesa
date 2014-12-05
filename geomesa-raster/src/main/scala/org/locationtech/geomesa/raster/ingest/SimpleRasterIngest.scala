@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.locationtech.geomesa.raster.ingest
 
 import java.awt.RenderingHints
@@ -21,7 +22,6 @@ import java.util.UUID
 import javax.media.jai.{ImageLayout, JAI}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Coordinate, Point}
 import org.apache.accumulo.core.client.BatchWriterConfig
 import org.geotools.coverage.grid.GridCoverage2D
 import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
@@ -33,8 +33,8 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
-import org.locationtech.geomesa.raster.util.RasterUtils
-import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.raster.feature.Raster
+import org.locationtech.geomesa.utils.geohash.{GeohashUtils, BoundingBox, GeoHash}
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.util.Try
@@ -59,67 +59,29 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     val rasterReader = getReader(file, fileType)
     val rasterGrid: GridCoverage2D = rasterReader.read(null)
 
-    cs.saveRaster(rasterGrid, rasterMetadata)
+    val envelope = rasterGrid.getEnvelope2D
+    val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
+    val raster = Raster(Raster.getRasterId(rasterName),
+                        rasterName,
+                        rasterGrid.getRenderedImage,
+                        bbox,
+                        rasterReader.getResolutionLevels.head(0),
+                        GeohashUtils.getMBGH(bbox),
+                        "degree",
+                        ingestTime,
+                        Some(rasterGrid.getSampleDimensions.head.getSampleDimensionType.name),
+                        Some(0))
 
-    //Register raster to Geoserver if specified
-    config(IngestRasterParams.GEOSERVER_REG).foreach(geoserverRegConfig => {
-      //geoserverRegConfig has format: user=USER,password=PASS,url=http://localhost:8080/geoserver,namespace=NAMESPACE
-      val regParams: Map[String, String] =
-        geoserverRegConfig.split(",").map(_.split("=") match {
-          case Array(s1, s2) => (s1, s2)
-          case _ => logger.error("Failed in registering raster to Geoserver: wrong parameters.")
-            sys.exit()
-        }).toMap
-      val (user, password, url, namespace) = (regParams("user"), regParams("password"), regParams("url"), regParams("namespace"))
-      val gClientService = new GeoserverClientService(user, password, url, namespace)
-      gClientService.registerRasterStyles()
-      gClientService.registerRaster(rasterMetadata.id,
-                                    rasterMetadata.id,
-                                    s"Raster from $fileType data",
-                                    rasterMetadata.mbgh.hash,
-                                    rasterMetadata.mbgh.prec,
-                                    None,
-                                    config)
-    })
+    cs.saveRaster(raster)
   }
-
-  /**
-   * Find GeoHash instance with maximum precision that covers envelope defined by two points.
-   *
-   * @param ll Low left point of bounding box
-   * @param ur Up right point of bounding box
-   * @return GeoHash instance
-   */
-  def getMBGH(ll: Point, ur: Point): GeoHash = {
-    val width = ur.getX - ll.getX
-    val height = ur.getY - ll.getY
-    require(width >= 0 && height >= 0, s"Wrong width $width and height $height of input bounding box, cannot process")
-
-    (GeoHash.MAX_PRECISION to 0 by -1).foreach(prec => {
-      val lonDelta = GeoHash.longitudeDeltaForPrecision(prec)
-      val latDelta = GeoHash.latitudeDeltaForPrecision(prec)
-      if (lonDelta >= width && latDelta >= height) {
-        val geo = GeoHash(ll.getX, ll.getY, prec)
-        if (geo.bbox.covers(ur)) return geo
-      }
-    })
-    null
-  }
-
-  def getMBGH(minX: Double, minY: Double, maxX: Double, maxY: Double): GeoHash =
-    getMBGH(GeoHash.factory.createPoint(new Coordinate(minX, minY)),
-            GeoHash.factory.createPoint(new Coordinate(maxX, maxY)))
-
-  def getRasterId(rasterName: String): String =
-    s"${rasterName}_${UUID.randomUUID.toString}"
 
   def rasterMetadataFromFile(imageFile: File, imageType: String, time: DateTime): RasterMetadata = {
     val reader = getReader(imageFile, imageType)
     val gcOrig: GridCoverage2D = reader.read(null)
     val crs = gcOrig.getCoordinateReferenceSystem2D
     val envelope = gcOrig.getEnvelope2D
-    val mbgh = getMBGH(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
-    val id = getRasterId(rasterName)
+    val mbgh = GeohashUtils.getMBGH(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
+    val id = Raster.getRasterId(rasterName)
     RasterMetadata(id, envelope, mbgh, time, imageType, crs)
   }
 

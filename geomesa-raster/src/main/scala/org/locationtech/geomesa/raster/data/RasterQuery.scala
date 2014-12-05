@@ -31,14 +31,4 @@ import org.locationtech.geomesa.utils.geohash.BoundingBox
 case class RasterQuery(bbox: BoundingBox,
                        resolution: String,
                        startTime: Option[DateTime],
-                       endTime: Option[DateTime]) {
-  def encodeBbox(): String =
-    s"${bbox.getMinX},${bbox.getMinY},${bbox.getMaxX},${bbox.getMaxY}"
-
-  def encodeTime(time: Option[DateTime]): String = time match {
-    case Some(t) => s"${dateToAccTimestamp(t)}"
-    case _ => ""
-  }
-
-  private def dateToAccTimestamp(dt: DateTime): Long =  dt.getMillis / 1000
-}
+                       endTime: Option[DateTime])

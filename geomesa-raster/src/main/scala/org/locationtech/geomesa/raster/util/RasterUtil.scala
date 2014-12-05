@@ -5,8 +5,8 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, 
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import javax.media.jai.remote.SerializableRenderedImage
-
-import org.geotools.coverage.grid.GridCoverage2D
+import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory}
+import org.opengis.geometry.Envelope
 
 object RasterUtils {
   val doubleSize = 8
@@ -37,10 +37,10 @@ object RasterUtils {
   implicit def stringToBytes(s: String): Array[Byte] = s.getBytes(utf8Charset)
   implicit def bytesToString(bs: Array[Byte]): String = new String(bs, utf8Charset)
 
-  def imageSerialize(coverage: GridCoverage2D): Array[Byte] = {
+  def imageSerialize(image: RenderedImage): Array[Byte] = {
     val buffer: ByteArrayOutputStream = new ByteArrayOutputStream
     val out: ObjectOutputStream = new ObjectOutputStream(buffer)
-    val serializableImage = new SerializableRenderedImage(coverage.getRenderedImage, true)
+    val serializableImage = new SerializableRenderedImage(image, true)
     try {
       out.writeObject(serializableImage)
     } finally {
@@ -60,15 +60,9 @@ object RasterUtils {
     read
   }
 
-  def rasterSerialize(coverage: GridCoverage2D): Array[Byte] = {
-    val buffer: ByteArrayOutputStream = new ByteArrayOutputStream
-    val out: ObjectOutputStream = new ObjectOutputStream(buffer)
-    try {
-      out.writeObject(coverage)
-    } finally {
-      out.close
-    }
-    buffer.toByteArray
-  }
+  val defaultGridCoverageFactory = new GridCoverageFactory
+
+  def renderedImageToGridCoverage2d(name: String, image: RenderedImage, env: Envelope): GridCoverage2D =
+    defaultGridCoverageFactory.create(name, image, env)
 }
 

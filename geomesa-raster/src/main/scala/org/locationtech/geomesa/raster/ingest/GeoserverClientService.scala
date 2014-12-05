@@ -25,11 +25,16 @@ import org.apache.http.message.BasicHeader
 import org.apache.http.params.{BasicHttpParams, HttpConnectionParams, HttpParams}
 import org.apache.http.util.EntityUtils
 
-class GeoserverClientService(userName: String,
-                             password: String,
-                             geoserverUrl: String,
-                             namespace: String) extends Logging {
-  val credentials = new UsernamePasswordCredentials(userName, password)
+/**
+ * This class provides service for registering rasters onto Geoserver.
+ *
+ * @param config Configurations contains info for connecting to Geoserver and info
+ *   of building connection to data source used by geoserver plugin to get coverage data.
+ */
+class GeoserverClientService(config: Map[String, String]) extends Logging {
+  val credentials = new UsernamePasswordCredentials(config("user"), config("password"))
+  val geoserverUrl = config("url")
+  val namespace = config("namespace")
   val restURL = s"$geoserverUrl/rest"
   val namespaceUrl = s"http://$namespace"
   val layersUrl = s"$restURL/layers"
@@ -38,42 +43,58 @@ class GeoserverClientService(userName: String,
   val defaultStyleName: String = "default_palette_red"
   val geoserverRegistrationTimeout: Int = 10000
   val globalStylesUrl = s"$restURL/styles"
-  val coverageFormatName = "New Accumulo Coverage Format"
 
-  def registrationData(rasterId: String, geohash: String, iRes: Int, styleName: String, connectConfig: Map[String, Option[String]]):
-    RegistrationData = {
-    val url = coverageURL(rasterId, geohash, iRes, connectConfig)
+  def registrationData(rasterId: String,
+                       rasterName: String,
+                       timeStamp: Long,
+                       geohash: String,
+                       iRes: Int,
+                       styleName: String):
+  RegistrationData = {
+    val url = coverageURL(rasterId, rasterName, timeStamp, geohash, iRes, config)
     val coverageName = rasterId
-    val storeName = connectConfig(IngestRasterParams.TABLE).get + ":" + coverageName
+    val storeName = config(IngestRasterParams.TABLE) + ":" + coverageName
     RegistrationData(url, storeName, coverageName, styleName)
   }
 
-  def coverageURL(rasterId: String, geohash: String, iRes: Int, params: Map[String, Option[String]]): String = {
-    val zookeepers = params(IngestRasterParams.ZOOKEEPERS).get
-    val instance = params(IngestRasterParams.ACCUMULO_INSTANCE).get
-    val tableName = params(IngestRasterParams.TABLE).get
-    val user = params(IngestRasterParams.ACCUMULO_USER).get
-    val password = params(IngestRasterParams.ACCUMULO_PASSWORD).get
-    val auths = params(IngestRasterParams.AUTHORIZATIONS).get
+  def coverageURL(rasterId: String,
+                  rasterName: String,
+                  timeStamp: Long,
+                  geohash: String,
+                  iRes: Int,
+                  params: Map[String, String]): String = {
+    val zookeepers = params(IngestRasterParams.ZOOKEEPERS)
+    val instance = params(IngestRasterParams.ACCUMULO_INSTANCE)
+    val tableName = params(IngestRasterParams.TABLE)
+    val user = params(IngestRasterParams.ACCUMULO_USER)
+    val password = params(IngestRasterParams.ACCUMULO_PASSWORD)
+    val auths = params(IngestRasterParams.AUTHORIZATIONS)
 
-    s"accumulo://$user:$password@$instance/" +
-      s"$tableName#columns=$rasterId#geohash=$geohash#resolution=$iRes#zookeepers=$zookeepers#auths=$auths"
+    s"accumulo://$user:$password@$instance/$tableName#columns=$rasterId#geohash=$geohash#resolution=$iRes" +
+      s"#timeStamp=$timeStamp#rasterName=$rasterName#zookeepers=$zookeepers#auths=$auths"
   }
 
   def registerRaster(rasterId: String,
+                     rasterName: String,
+                     timeStamp: Long,
                      title: String,
                      description: String,
                      geohash: String,
                      iRes: Int,
-                     styleName: Option[String],
-                     connectConfig: Map[String, Option[String]]) {
-    val regData = registrationData(rasterId, geohash, iRes, styleName.getOrElse(defaultStyleName), connectConfig)
+                     styleName: Option[String]) {
+    val regData = registrationData(rasterId,
+                                   rasterName,
+                                   timeStamp,
+                                   geohash,
+                                   iRes,
+                                   styleName.getOrElse(defaultStyleName))
     regData match {
       case RegistrationData(url, storeName, coverageName, styleName) =>
         registerWorkspaceIfNotRegistered
         if (!isCoverageRegistered(coverageName) && !isCoverageRegistered(storeName)) {
-        registerCoverageStore(storeName, url)
-        registerCoverage(storeName, title, description, coverageName)
+          logger.debug(s"Register raster layer ($url) to Geoserver: $geoserverUrl")
+          registerCoverageStore(storeName, url)
+          registerCoverage(storeName, title, description, coverageName)
           modifyDefaultStyle(coverageName, styleName)
         }
     }
@@ -275,7 +296,7 @@ class GeoserverClientService(userName: String,
     logger.debug(s"Registering coverage store:  name $name; URL $url")
     post(coverageStoresURL,
       ContentType.TEXT_XML,
-      coverageStoreBody(name, coverageFormatName, true, namespace, url))
+      coverageStoreBody(name, GeoserverClientService.coverageFormatName, true, namespace, url))
   }
 
   def coverageStoreBody(name: String,
@@ -403,6 +424,10 @@ class GeoserverClientService(userName: String,
     }
 
   }
+}
+
+object GeoserverClientService {
+  val coverageFormatName = "Geomesa Coverage Format"
 }
 
 case class RegistrationData(url: String, storeName: String, coverageName: String, styleName: String)
