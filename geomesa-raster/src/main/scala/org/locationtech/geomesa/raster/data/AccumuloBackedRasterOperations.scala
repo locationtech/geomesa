@@ -87,8 +87,8 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   private def getCF(raster: Raster): Text = new Text("")
 
   private def getCQ(raster: Raster): Text = {
-    val timeStampString = dateToAccTimestamp(raster.getTime).toString
-    new Text(s"${raster.getID}~$timeStampString")
+    val timeStampString = dateToAccTimestamp(raster.time).toString
+    new Text(s"${raster.id}~$timeStampString")
   }
 
   /**
@@ -106,8 +106,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
    * @param value Value obtained from Accumulo table
    * @return byte array
    */
-  private def decodeValue(value: Value): Raster =
-    null
+  private def decodeValue(value: Value): Raster =  ???
 
   private def dateToAccTimestamp(dt: DateTime): Long =  dt.getMillis / 1000
 
@@ -118,10 +117,10 @@ class AccumuloBackedRasterOperations(val connector: Connector,
    * @return Mutation instance
    */
   private def createMutation(raster: Raster): Mutation = {
-    val mutation = new Mutation(getRow(raster.getMbgh))
+    val mutation = new Mutation(getRow(raster.mbgh))
     val colFam = getCF(raster)
     val colQual = getCQ(raster)
-    val timestamp: Long = dateToAccTimestamp(raster.getTime)
+    val timestamp: Long = dateToAccTimestamp(raster.time)
     val colVis = new ColumnVisibility(writeVisibilities)
     val value = encodeValue(raster)
     mutation.put(colFam, colQual, colVis, timestamp, value)
@@ -151,10 +150,10 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     if (!tableOps.exists(tableName)) {
       try {
         tableOps.create(tableName)
-        CoverageTableConfig.settings(defaultVisibilities).foreach { case (key, value) =>
+        RasterTableConfig.settings(defaultVisibilities).foreach { case (key, value) =>
           tableOps.setProperty(tableName, key, value)
         }
-        CoverageTableConfig.permissions.split(",").foreach { p =>
+        RasterTableConfig.permissions.split(",").foreach { p =>
           securityOps.grantTablePermission(user, tableName, TablePermission.valueOf(p))
         }
       } catch {
@@ -194,7 +193,7 @@ object AccumuloBackedRasterOperations {
                                          queryThreadsConfig)
 }
 
-object CoverageTableConfig {
+object RasterTableConfig {
   def settings(visibilities: String): Map[String, String] = Map (
     "table.security.scan.visibility.default" -> visibilities,
     "table.iterator.majc.vers.opt.maxVersions" -> "2147483647",

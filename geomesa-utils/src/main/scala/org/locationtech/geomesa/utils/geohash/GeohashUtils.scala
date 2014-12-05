@@ -359,6 +359,36 @@ object GeohashUtils
   }
 
   /**
+   * Find GeoHash instance with maximum precision that covers envelope defined by two points.
+   *
+   * @param ll Low left point of bounding box
+   * @param ur Up right point of bounding box
+   * @return GeoHash instance
+   */
+  def getMBGH(ll: Point, ur: Point): GeoHash = {
+    val width = ur.getX - ll.getX
+    val height = ur.getY - ll.getY
+    require(width >= 0 && height >= 0, s"Wrong width $width and height $height of input bounding box, cannot process")
+
+    (GeoHash.MAX_PRECISION to 0 by -1).foreach(prec => {
+      val lonDelta = GeoHash.longitudeDeltaForPrecision(prec)
+      val latDelta = GeoHash.latitudeDeltaForPrecision(prec)
+      if (lonDelta >= width && latDelta >= height) {
+        val geo = GeoHash(ll.getX, ll.getY, prec)
+        if (geo.bbox.covers(ur)) return geo
+      }
+    })
+    null
+  }
+
+  def getMBGH(bbox: BoundingBox): GeoHash =
+    getMBGH(bbox.getMinX, bbox.getMaxX, bbox.getMinY, bbox.getMaxY)
+
+  def getMBGH(minX: Double, maxX: Double, minY: Double, maxY: Double): GeoHash =
+    getMBGH(GeoHash.factory.createPoint(new Coordinate(minX, minY)),
+      GeoHash.factory.createPoint(new Coordinate(maxX, maxY)))
+
+  /**
    * Conataints the constraints that are used to guide the search for a bits-
    * resolution on a given geometry.
    *

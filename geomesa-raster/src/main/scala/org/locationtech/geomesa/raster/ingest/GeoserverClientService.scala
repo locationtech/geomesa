@@ -43,7 +43,6 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
   val defaultStyleName: String = "default_palette_red"
   val geoserverRegistrationTimeout: Int = 10000
   val globalStylesUrl = s"$restURL/styles"
-  val coverageFormatName = "Geomesa Coverage Format"
 
   def registrationData(rasterId: String,
                        rasterName: String,
@@ -93,6 +92,7 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
       case RegistrationData(url, storeName, coverageName, styleName) =>
         registerWorkspaceIfNotRegistered
         if (!isCoverageRegistered(coverageName) && !isCoverageRegistered(storeName)) {
+          logger.debug(s"Register raster layer ($url) to Geoserver: $geoserverUrl")
           registerCoverageStore(storeName, url)
           registerCoverage(storeName, title, description, coverageName)
           modifyDefaultStyle(coverageName, styleName)
@@ -296,7 +296,7 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
     logger.debug(s"Registering coverage store:  name $name; URL $url")
     post(coverageStoresURL,
       ContentType.TEXT_XML,
-      coverageStoreBody(name, coverageFormatName, true, namespace, url))
+      coverageStoreBody(name, GeoserverClientService.coverageFormatName, true, namespace, url))
   }
 
   def coverageStoreBody(name: String,
@@ -424,6 +424,10 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
     }
 
   }
+}
+
+object GeoserverClientService {
+  val coverageFormatName = "Geomesa Coverage Format"
 }
 
 case class RegistrationData(url: String, storeName: String, coverageName: String, styleName: String)

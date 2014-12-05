@@ -30,15 +30,10 @@
     <name>GeoMesa Raster - [Accumulo 1.5.x]</name>
 
     <properties>
-        <httpcomponents.version>4.2.3</httpcomponents.version>
+        <httpcomponents.version>4.2.5</httpcomponents.version>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.scalanlp</groupId>
-            <artifactId>breeze_2.10</artifactId>
-            <version>0.10</version>
-        </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-accumulo1.5</artifactId>

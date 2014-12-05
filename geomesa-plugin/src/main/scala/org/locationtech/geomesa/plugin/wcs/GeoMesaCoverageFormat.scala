@@ -6,12 +6,13 @@ import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.coverage.grid.io.AbstractGridFormat._
 import org.geotools.factory.Hints
 import org.geotools.parameter.{DefaultParameterDescriptorGroup, ParameterGroup}
+import org.locationtech.geomesa.raster.ingest.GeoserverClientService
 import org.opengis.coverage.grid.Format
 import org.opengis.parameter.GeneralParameterDescriptor
 
 class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
   mInfo = new java.util.HashMap[String, String]()
-  mInfo.put("name", "Geomesa Coverage Format")
+  mInfo.put("name", GeoserverClientService.coverageFormatName)
   mInfo.put("description", "Serve tile imagery from GeoMesa tables with a specific format")
   mInfo.put("vendor", "CCRI")
   mInfo.put("docURL", "http://www.geomesa.org")

@@ -17,58 +17,26 @@
 package org.locationtech.geomesa.raster.feature
 
 import java.awt.image.RenderedImage
+import java.util.UUID
 
 import org.joda.time.DateTime
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 
-class Raster(id: String) extends Serializable {
-  private var cachedChunk = None: Option[RenderedImage]
-  private var bbox = None: Option[BoundingBox]
-  private var mbgh = None: Option[GeoHash]
-  private var band = None: Option[String]
-  private var resolution = None: Option[Double]
-  private var units = None: Option[String]
-  private var dataType = None: Option[String]
-  private var timeStamp = None: Option[DateTime]
+case class Raster(id: String,
+                  name: String,
+                  chunk: RenderedImage,
+                  bbox: BoundingBox,
+                  resolution: Double,
+                  mbgh: GeoHash,
+                  unit: String,
+                  time: DateTime,
+                  dataType: Option[String],
+                  band: Option[Int]) {
+  def encodeValue = RasterUtils.imageSerialize(chunk)
+}
 
-  def setBand(b: String) = band = Some(b)
-  def setResolution(d: Double) = resolution = Some(d)
-  def setUnits(u: String) = units = Some(u)
-  def setDataType(dType: String) = dataType = Some(dType)
-
-  def setMbgh(mbGeoHash: GeoHash) = mbgh = Some(mbGeoHash)
-  def getMbgh = mbgh match {
-    case Some(m) => m
-    case _       => throw UninitializedFieldError("Error, no minimum bounding box geohash")
-  }
-
-  def setTime(time: DateTime) = timeStamp = Some(time)
-  def getTime = timeStamp match {
-    case Some(t) => t
-    case _ => throw UninitializedFieldError("Error, no timestamp")
-  }
-  
-  def setBoundingBox(boundingBox: BoundingBox) = bbox = Some(boundingBox)
-  def getBounds: BoundingBox = bbox match {
-    case Some(box) => box
-    case _ => throw UninitializedFieldError("Error, no boundingbox")
-  }
-
-  def setChunk(chunk: RenderedImage) = cachedChunk = Some(chunk)
-  def getChunk: RenderedImage = cachedChunk match {
-    case Some(image) => image
-    case _ => throw UninitializedFieldError("Error, no raster data available ")
-  }
-
-  def encodeValue = RasterUtils.imageSerialize(getChunk)
-
-  def encodeMetaData = ???
-
-  def getID = id
-  def getName = getID
-  def getBand = band
-  def getResolution = resolution
-  def getUnits = units
-
+object Raster {
+  def getRasterId(rasterName: String): String =
+    s"${rasterName}_${UUID.randomUUID.toString}"
 }

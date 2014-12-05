@@ -66,19 +66,19 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
   def registerToGeoserver(raster: Raster) {
     geoserverClientServiceO.foreach { geoserverClientService => {
       registerToGeoserver(raster, geoserverClientService)
-      logger.debug(s"Register raster ${raster.getID} to geoserver at ${geoserverClientService.geoserverUrl}")
+      logger.debug(s"Register raster ${raster.id} to geoserver at ${geoserverClientService.geoserverUrl}")
     }}
   }
 
   private def registerToGeoserver(raster: Raster, geoserverClientService: GeoserverClientService) {
     geoserverClientService.registerRasterStyles()
-    geoserverClientService.registerRaster(raster.getID,
-                                          raster.getName,
-                                          raster.getTime.getMillis,
-                                          raster.getID,
+    geoserverClientService.registerRaster(raster.id,
+                                          raster.name,
+                                          raster.time.getMillis,
+                                          raster.id,
                                           "Raster data",
-                                          raster.getMbgh.hash,
-                                          raster.getMbgh.prec,
+                                          raster.mbgh.hash,
+                                          raster.mbgh.prec,
                                           None)
   }
 }
