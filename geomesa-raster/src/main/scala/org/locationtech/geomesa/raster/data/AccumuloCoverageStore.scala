@@ -17,71 +17,128 @@
 
 package org.locationtech.geomesa.raster.data
 
+import java.io.Serializable
+import java.util.{Map => JMap}
+
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client._
-import org.geotools.coverage.grid.GridCoverage2D
+import org.apache.accumulo.core.client.Connector
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.core.security.AuthorizationsProvider
-import org.locationtech.geomesa.raster.ingest.RasterMetadata
+import org.locationtech.geomesa.raster.feature.Raster
+import org.locationtech.geomesa.raster.ingest.{IngestRasterParams, GeoserverClientService}
+
+import scala.util.Try
+
+trait CoverageStore {
+  def getAuths(): String
+  def getVisibility(): String
+  def saveRaster(raster: Raster): Unit
+  def registerToGeoserver(raster: Raster): Unit
+}
 
 /**
- * @param connector Accumulo connector
- * @param coverageTable Table name in Accumulo to store coverage data
- * @param authorizationsProvider Provides the authorizations used to access data
- * @param writeVisibilities Visibilities applied to any data written by this store
- * @param queryThreadsConfig Threads number used for querying data
- * @param writeMemoryConfig Memory allocation for writing data
- * @param writeThreadsConfig Threads number used for writing data
  *
+ *  This class handles operations on a coverage, including cutting coverage into chunks
+ *  and resembling chunks to a coverage, saving/retrieving coverage to/from data source,
+ *  and registering coverage to Geoserver.
  *
- *  This class handles coverage DataStores which stores coverage data to and queries coverages
- *  from Accumulo Tables.
+ * @param rasterStore Raster store instance
+ * @param geoserverClientServiceO Optional Geoserver client instance
  */
-class AccumuloCoverageStore(val connector: Connector,
-                            val coverageTable: String,
-                            val authorizationsProvider: AuthorizationsProvider,
-                            val writeVisibilities: String,
-                            val shardsConfig: Option[Int] = None,
-                            val writeMemoryConfig: Option[Long] = None,
-                            val writeThreadsConfig: Option[Int] = None,
-                            val queryThreadsConfig: Option[Int] = None)
-  extends Logging {
-  //By default having at least as many shards as tservers provides optimal parallelism in queries
-  val shards = shardsConfig.getOrElse(connector.instanceOperations().getTabletServers.size())
-  val writeMemory = writeMemoryConfig.getOrElse(10000L)
-  val writeThreads = writeThreadsConfig.getOrElse(10)
-  val bwConfig: BatchWriterConfig =
-    new BatchWriterConfig().setMaxMemory(writeMemory).setMaxWriteThreads(writeThreads)
-
-  val coverageOps: AccumuloCoverageOperations =
-    new AccumuloCoverageOperations(connector,
-                                   coverageTable,
-                                   writeVisibilities,
-                                   authorizationsProvider,
-                                   shards,
-                                   bwConfig,
-                                   writeMemory,
-                                   writeThreads)
+class AccumuloCoverageStore(val rasterStore: RasterStore,
+                            val geoserverClientServiceO: Option[GeoserverClientService] = None)
+  extends CoverageStore with Logging {
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
-  coverageOps.ensureTableExists(coverageTable)
+  rasterStore.ensureTableExists()
 
+  def getAuths() = rasterStore.getAuths
 
-  def saveRaster(raster: GridCoverage2D, rm: RasterMetadata) =
-    coverageOps.saveChunk(raster, rm, writeVisibilities)
+  def getVisibility() = rasterStore.getVisibility
+
+  def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = rasterStore.getRasters(rasterQuery)
+
+  def saveRaster(raster: Raster) = {
+    rasterStore.putRaster(raster)
+    registerToGeoserver(raster)
+  }
+
+  def registerToGeoserver(raster: Raster) {
+    geoserverClientServiceO.foreach { geoserverClientService => {
+      registerToGeoserver(raster, geoserverClientService)
+      logger.debug(s"Register raster ${raster.getID} to geoserver at ${geoserverClientService.geoserverUrl}")
+    }}
+  }
+
+  private def registerToGeoserver(raster: Raster, geoserverClientService: GeoserverClientService) {
+    geoserverClientService.registerRasterStyles()
+    geoserverClientService.registerRaster(raster.getID,
+                                          raster.getName,
+                                          raster.getTime.getMillis,
+                                          raster.getID,
+                                          "Raster data",
+                                          raster.getMbgh.hash,
+                                          raster.getMbgh.prec,
+                                          None)
+  }
 }
 
-object AccumuloCoverageStore {
+object AccumuloCoverageStore extends Logging {
+  import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory._
+  import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
+  import org.locationtech.geomesa.raster.AccumuloStoreHelper
+
+  def apply(config: JMap[String, Serializable]): AccumuloCoverageStore = {
+    val visibility = AccumuloStoreHelper.getVisibility(config)
+    val tableName = tableNameParam.lookUp(config).asInstanceOf[String]
+    val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(config).asInstanceOf[String])
+    val connector =
+      if (config.containsKey(connParam.key)) connParam.lookUp(config).asInstanceOf[Connector]
+      else AccumuloStoreHelper.buildAccumuloConnector(config, useMock)
+    val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(config, connector)
+    val collectStats = !useMock && Try(statsParam.lookUp(config).asInstanceOf[java.lang.Boolean] == true).getOrElse(false)
+
+    val shardsConfig = shardsParam.lookupOpt(config)
+    val writeMemoryConfig = writeMemoryParam.lookupOpt(config)
+    val writeThreadsConfig = writeThreadsParam.lookupOpt(config)
+    val queryThreadsConfig = queryThreadsParam.lookupOpt(config)
+
+    val rasterOps =
+      AccumuloBackedRasterOperations(connector,
+                                     tableName,
+                                     authorizationsProvider,
+                                     visibility,
+                                     shardsConfig,
+                                     writeMemoryConfig,
+                                     writeThreadsConfig,
+                                     queryThreadsConfig,
+                                     collectStats)
+
+    val dsConnectConfig: Map[String, String] = Map(
+      IngestRasterParams.ACCUMULO_INSTANCE -> instanceIdParam.lookUp(config).asInstanceOf[String],
+      IngestRasterParams.ZOOKEEPERS -> zookeepersParam.lookUp(config).asInstanceOf[String],
+      IngestRasterParams.ACCUMULO_USER -> userParam.lookUp(config).asInstanceOf[String],
+      IngestRasterParams.ACCUMULO_PASSWORD -> passwordParam.lookUp(config).asInstanceOf[String],
+      IngestRasterParams.TABLE -> tableName,
+      IngestRasterParams.AUTHORIZATIONS -> authorizationsProvider.getAuthorizations.toString
+    )
+
+    val geoserverConfig = geoserverParam.lookUp(config).asInstanceOf[String]
+    val geoserverClientServiceO: Option[GeoserverClientService] =
+      if (geoserverConfig == null) None
+      else {
+        val gsConnectConfig: Map[String, String] =
+          geoserverConfig.split(",").map(_.split("=") match {
+            case Array(s1, s2) => (s1, s2)
+            case _ =>
+              logger.error("Failed to instantiate Geoserver client service: wrong parameters.")
+              sys.exit()
+          }).toMap
+        Some(new GeoserverClientService(dsConnectConfig ++ gsConnectConfig))
+      }
+
+    new AccumuloCoverageStore(new RasterStore(rasterOps), geoserverClientServiceO)
+  }
+
 }
 
-object CoverageTableConfig {
-  def settings(visibilities: String): Map[String, String] = Map (
-    "table.security.scan.visibility.default" -> visibilities,
-    "table.iterator.majc.vers.opt.maxVersions" -> "2147483647",
-    "table.iterator.minc.vers.opt.maxVersions" -> "2147483647",
-    "table.iterator.scan.vers.opt.maxVersions" -> "2147483647",
-    "table.split.threshold" -> "16M"
-  )
-  val permissions = "BULK_IMPORT,READ,WRITE,ALTER_TABLE"
-}
