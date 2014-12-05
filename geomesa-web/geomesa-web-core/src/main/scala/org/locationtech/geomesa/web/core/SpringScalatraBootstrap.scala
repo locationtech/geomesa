@@ -14,7 +14,6 @@ import scala.collection.JavaConversions._
 trait GeoMesaScalatraServlet extends ScalatraServlet {
   def root: String
 
-
   override def handle(req: HttpServletRequest, res: HttpServletResponse): Unit = req match {
     case r: HttpServletRequestWrapper => super.handle(r.getRequest.asInstanceOf[HttpServletRequest], res)
     case _ => super.handle(req, res)

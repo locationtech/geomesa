@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.core
 
 import java.io._
@@ -7,7 +23,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
-import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.{CSVRecord, CSVFormat}
 import org.geotools.data.DefaultTransaction
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.simple.{SimpleFeatureStore, SimpleFeatureCollection}
@@ -16,7 +32,7 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.locationtech.geomesa.core.csv.Parsable._
 import org.locationtech.geomesa.core.util.SftBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.collection.generic.CanBuildFrom
@@ -112,54 +128,65 @@ package object csv extends Logging {
 
   val gf = new GeometryFactory
 
-  private def buildFeatureCollection(csvFile: File,
-                                     sft: SimpleFeatureType,
-                                     latlonFields: Option[(String, String)]): Try[SimpleFeatureCollection] = {
-    def idxOfField(fname: String) = {
-      sft.getType(fname)
-      val idx = sft.indexOf(fname)
-      if (idx > -1) {
-        val t = sft.getType(idx)
-        if (t.getBinding == classOf[java.lang.Double]) Success(idx)
-        else Failure(new IllegalArgumentException(s"field $fname is not a Double field"))
-      } else Failure(new IllegalArgumentException(s"could not find field $fname"))
-    }
-
+  protected[csv] def buildFeatureCollection(csvFile: File,
+                                            sft: SimpleFeatureType,
+                                            latlonFields: Option[(String, String)]): Try[SimpleFeatureCollection] = {
     val reader = Source.fromFile(csvFile).bufferedReader()
-    val records = CSVFormat.DEFAULT.parse(reader).iterator()
-    records.next()  // burn off the header
-    val fct = Try {
-      val fc = new DefaultFeatureCollection
-      val fb = new SimpleFeatureBuilder(sft)
-      val fieldParsers = for (t <- sft.getTypes) yield { fieldParserMap(t.getBinding) }
+    buildFeatureCollection(reader, sft, latlonFields).eventually(reader.close())
+  }
+
+  protected[csv] def buildFeatureCollection(reader: Reader,
+                                            sft: SimpleFeatureType,
+                                            latlonFields: Option[(String, String)]): Try[SimpleFeatureCollection] =
+    Try {
+      def idxOfField(fname: String) = {
+        sft.getType(fname)
+        val idx = sft.indexOf(fname)
+        if (idx > -1) {
+          val t = sft.getType(idx)
+          if (t.getBinding == classOf[java.lang.Double]) Success(idx)
+          else Failure(new IllegalArgumentException(s"field $fname is not a Double field"))
+        } else Failure(new IllegalArgumentException(s"could not find field $fname"))
+      }
+
       val latlonIdx = for ((latf, lonf) <- latlonFields) yield {
         (for (lati <- idxOfField(latf); loni <- idxOfField(lonf)) yield (lati, loni)).get
       }
-      for (record <- records) {
-        fb.reset()
-        val fieldVals =
-          tryTraverse(record.iterator.toIterable.zip(fieldParsers)) { case (v, p) => p.parse(v) }.get.toArray
-        fb.addAll(fieldVals)
-        for ((lati, loni) <- latlonIdx) {
-          val lat = fieldVals(lati).asInstanceOf[jDouble] // should be Doubles, as verifie
-          val lon = fieldVals(loni).asInstanceOf[jDouble]
-          fb.add(gf.createPoint(new Coordinate(lon, lat)))
+      val fb = new SimpleFeatureBuilder(sft)
+      val fieldParsers = for (t <- sft.getTypes) yield { fieldParserMap(t.getBinding) }
+
+      def buildFeature(record: CSVRecord): Option[SimpleFeature] =
+        Try {
+          fb.reset()
+          val fieldVals =
+            tryTraverse(record.iterator.toIterable.zip(fieldParsers)) { case (v, p) => p.parse(v) }.get.toArray
+          fb.addAll(fieldVals)
+          for ((lati, loni) <- latlonIdx) {
+            val lat = fieldVals(lati).asInstanceOf[jDouble] // should be Doubles, as verified
+            val lon = fieldVals(loni).asInstanceOf[jDouble] // when determining latlonIdx
+            fb.add(gf.createPoint(new Coordinate(lon, lat)))
+          }
+          fb.buildFeature(null)
+        } match {
+          case Success(f)  => Some(f)
+          case Failure(ex) => logger.info(s"Failed to parse CSV record:\n$record"); None
         }
-        val f = fb.buildFeature(null)
-        fc.add(f)
-      }
+
+      val fc = new DefaultFeatureCollection
+      for {
+        record <- CSVFormat.DEFAULT.parse(reader).iterator()
+        f      <- buildFeature(record) // logs and discards lines that fail to parse but keeps processing
+      } fc.add(f)
       fc
-        }
-    fct.eventually(reader.close())
-    fct
-  }
+    }
+
+  private val dsFactory = new ShapefileDataStoreFactory
 
   private def shpDataStore(shpFile: File, sft: SimpleFeatureType): Try[ShapefileDataStore] =
     Try {
-          val dsFactory = new ShapefileDataStoreFactory
           val params =
             Map("url" -> shpFile.toURI.toURL,
-                "create spatial index" -> java.lang.Boolean.TRUE)
+                "create spatial index" -> java.lang.Boolean.FALSE)
           val shpDS = dsFactory.createNewDataStore(params).asInstanceOf[ShapefileDataStore]
           shpDS.createSchema(sft)
           shpDS
@@ -208,10 +235,10 @@ package object csv extends Logging {
       sft     <- Try { SimpleFeatureTypes.createType(name, schema) }
       fc      <- buildFeatureCollection(csvFile, sft, latlonFields)
       shpFile <- Try {
-                       val csvFileName = csvFile.getName
-                       val shpFileRoot = csvFileName.substring(0, csvFileName.length - 4)
-                       new File(csvFile.getParentFile, s"$shpFileRoot.shp")
-                     }
+                   val csvFileName = csvFile.getName
+                   val shpFileRoot = csvFileName.substring(0, csvFileName.length - 4)
+                   new File(csvFile.getParentFile, s"$shpFileRoot.shp")
+                 }
       shpDS   <- shpDataStore(shpFile, sft)
       shpFS   <- Try { shpDS.getFeatureSource(name).asInstanceOf[SimpleFeatureStore] }
       _       <- writeFeatures(fc, shpFS)

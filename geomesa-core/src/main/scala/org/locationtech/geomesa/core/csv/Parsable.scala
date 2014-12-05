@@ -1,9 +1,25 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.core.csv
 
 import java.util.Date
 import java.lang.{Integer => jInt, Double => jDouble}
 
-import com.vividsolutions.jts.geom.{Point, Geometry}
+import com.vividsolutions.jts.geom.Point
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormatter, DateTimeFormat}
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -25,10 +41,10 @@ object Parsable {
 
   implicit object TimeIsParsable extends Parsable[Date] {
     val priority = 2
-    val timePatterns = Seq("YYYY-MM-DD'T'HH:mm:ss",
-                           "YYYY-MM-DD'T'HH:mm:ssZ",
-                           "YYYY-MM-DD'T'HH:mm:ss.sss",
-                           "YYYY-MM-DD'T'HH:mm:ss.sssZ")
+    val timePatterns = Seq("YYYY-MM-dd'T'HH:mm:ss",
+                           "YYYY-MM-dd'T'HH:mm:ssZ",
+                           "YYYY-MM-dd'T'HH:mm:ss.sss",
+                           "YYYY-MM-dd'T'HH:mm:ss.sssZ")
 
     val timeFormats = timePatterns.map(DateTimeFormat.forPattern _ andThen (_.withZoneUTC))
 

@@ -21,8 +21,8 @@ class CSVEndpoint
           with Logging {
   override val root: String = "csv"
 
-  // caps file size at 3MB (from Scalatra examples); what is more realistic for us?
-  configureMultipartHandling(MultipartConfig(maxFileSize = Some(3*1024*1024)))
+  // caps CSV file size at 10MB
+  configureMultipartHandling(MultipartConfig(maxFileSize = Some(10*1024*1024)))
   error {
     case e: SizeConstraintExceededException => RequestEntityTooLarge("Uploaded file too large!")
   }
@@ -52,8 +52,7 @@ class CSVEndpoint
     idResponse.recover { case ex =>
       logger.warn("Error uploading CSV", ex)
       NotAcceptable(body = ex, reason = ex.getMessage)
-                       }
-              .get
+    }.get
   }
 
   get("/:csvid.csv/types") {
@@ -68,8 +67,7 @@ class CSVEndpoint
     schemaResponse.recover { case ex =>
       logger.warn("Error inferring types", ex)
       NotFound(body = ex, reason = ex.getMessage)
-                           }
-                  .get
+    }.get
   }
 
   // for lat/lon geometry, add a new geometry field to the end of the requested schema
@@ -90,8 +88,7 @@ class CSVEndpoint
     urlResponse.recover { case ex =>
       logger.warn("Error creating shapefile", ex)
       NotAcceptable(body = ex, reason = ex.getMessage)
-                        }
-               .get
+    }.get
   }
 
   get("/:csvid.shp") {
@@ -109,7 +106,6 @@ class CSVEndpoint
     fileResponse.recover { case ex =>
       logger.warn("Error retrieving shapefile", ex)
       NotFound(body = ex, reason = ex.getMessage)
-                         }
-                .get
+    }.get
   }
 }
