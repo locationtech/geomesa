@@ -41,15 +41,7 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
     val fmt = params.format.toLowerCase()
     val features = getFeatureCollection(fmt)
     val exporter: FeatureExporter = fmt match {
-      case CSV | TSV       =>
-        new DelimitedExport(
-          getWriter(),
-          fmt,
-          Option(params.attributes),
-          Option(params.idAttribute),
-          Option(params.latAttribute),
-          Option(params.lonAttribute),
-          Option(params.dateAttribute))
+      case CSV | TSV       => DelimitedExport(getWriter(), params)
       case SHP             => new ShapefileExport(getFile())
       case GeoJson | JSON  => new GeoJsonExport(getWriter())
       case GML             => new GmlExport(getOutputStream())

@@ -30,6 +30,7 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureStore}
 import org.geotools.geojson.feature.FeatureJSON
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.tools.Utils.Formats
+import org.locationtech.geomesa.tools.commands.ExportCommand.ExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 
@@ -221,4 +222,15 @@ class DelimitedExport(writer: Writer,
     writer.close()
   }
 
+}
+
+object DelimitedExport {
+  def apply(writer: Writer, params: ExportParameters) =
+    new DelimitedExport(writer,
+      params.format.toLowerCase(),
+      Option(params.attributes),
+      Option(params.idAttribute),
+      Option(params.latAttribute),
+      Option(params.lonAttribute),
+      Option(params.dateAttribute))
 }
