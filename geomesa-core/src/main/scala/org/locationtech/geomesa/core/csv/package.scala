@@ -24,6 +24,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.apache.commons.csv.{CSVRecord, CSVFormat}
+import org.apache.commons.io.FilenameUtils
 import org.geotools.data.DefaultTransaction
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.simple.{SimpleFeatureStore, SimpleFeatureCollection}
@@ -61,9 +62,8 @@ package object csv extends Logging {
 
   def guessTypes(csvFile: File, hasHeader: Boolean): Future[TypeSchema] =
     for {       // Future{} ensures we're working in the Future monad
-      filename <- Future { csvFile.getName }
-      typename <- Future { filename.substring(0, filename.length - 4) } // assumes a filename ending in ".csv"
-      reader   <- Future { Source.fromFile(csvFile).bufferedReader() }
+      typename <- Future { FilenameUtils.getBaseName(csvFile.getName) }
+      reader   =  Source.fromFile(csvFile).bufferedReader()
       guess    <- guessTypes(typename, reader, hasHeader)
     } yield {
       reader.close()
@@ -221,14 +221,14 @@ package object csv extends Logging {
 
   private def writeZipFile(shpFile: File): Try[File] = {
     def byteStream(in: InputStream): Stream[Int] = { in.read() #:: byteStream(in) }
-    val makeFile: String => File = {
-      val shpFileDir  = shpFile.getParent
-      val shpFileName = shpFile.getName
-      val shpFileRoot = shpFileName.substring(0, shpFileName.length - 4)
-      ext => new File(shpFileDir, s"$shpFileRoot.$ext")
-    }
 
-    val files = for (ext <- Seq("dbf", "fix", "prj", "shp", "shx")) yield { makeFile(ext) }
+    val dir  = shpFile.getParent
+    val rootName = FilenameUtils.getBaseName(shpFile.getName)
+
+    def makeFile(ext: String): File = { new File(dir, s"$rootName.$ext") }
+
+    val extensions = Seq("dbf", "fix", "prj", "shp", "shx")
+    val files = extensions.map(makeFile)
     val zipFile = makeFile("zip")
 
     def writeZipData = {
@@ -254,11 +254,7 @@ package object csv extends Logging {
     for {
       sft     <- Try { SimpleFeatureTypes.createType(name, schema) }
       fc      <- buildFeatureCollection(csvFile, hasHeader, sft, latlonFields)
-      shpFile <- Try {
-                   val csvFileName = csvFile.getName
-                   val shpFileRoot = csvFileName.substring(0, csvFileName.length - 4)
-                   new File(csvFile.getParentFile, s"$shpFileRoot.shp")
-                 }
+      shpFile <- Try { new File(csvFile.getParentFile, s"${FilenameUtils.getBaseName(csvFile.getName)}.shp") }
       shpDS   <- shpDataStore(shpFile, sft)
       shpFS   <- Try { shpDS.getFeatureSource(name).asInstanceOf[SimpleFeatureStore] }
       _       <- writeFeatures(fc, shpFS)
