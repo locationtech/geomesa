@@ -157,7 +157,6 @@ trait IndexHelpers {
     val buf = v.get()
     byteArrayToDecodedIndex(buf)
   }
-
-  case class DecodedIndex(id: String, geom: Geometry, dtgMillis: Option[Long])
-
 }
+
+case class DecodedIndex(id: String, geom: Geometry, dtgMillis: Option[Long])

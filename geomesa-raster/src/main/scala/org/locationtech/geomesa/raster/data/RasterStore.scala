@@ -1,5 +1,7 @@
 package org.locationtech.geomesa.raster.data
 
+import java.awt.image.RenderedImage
+
 import org.locationtech.geomesa.raster.feature.Raster
 
 /**

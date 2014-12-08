@@ -1,6 +1,7 @@
 package org.locationtech.geomesa.plugin.wcs
 
 import java.awt.Rectangle
+import java.awt.image.RenderedImage
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.coverage.CoverageFactoryFinder
@@ -76,7 +77,10 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     rastersToCoverage(rasters)
   }
 
-  def rastersToCoverage(rasters: Iterator[feature.Raster]): GridCoverage2D = ???
+  def rastersToCoverage(rasters: Iterator[feature.Raster]): GridCoverage2D = {
+    val raster = rasters.next // Mosaic
+    this.coverageFactory.create(coverageName, raster.chunk, raster.envelope)
+  }
 
   // TODO: JNH: Consider spinning this out as a with just the purpose of parsing GPV[]
   // NOTE: We need the resolutionStr from this class
