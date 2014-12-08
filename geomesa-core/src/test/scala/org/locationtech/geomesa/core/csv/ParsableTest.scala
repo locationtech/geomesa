@@ -19,46 +19,39 @@ package org.locationtech.geomesa.core.csv
 import java.lang.{Integer => jInt, Double => jDouble}
 
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormatter
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.csv.Parsable._
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.scalacheck.Prop
-import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Success
 
 @RunWith(classOf[JUnitRunner])
-class ParsableTest extends Specification with ScalaCheck {
-  import CSVTestUtils.{randomDate, randomFormat}
+class ParsableTest extends Specification {
 
-  val intParsable    = Prop.forAll { (i: Int)    =>
-    val s = i.toString
-    IntIsParsable.parse(s)        == Success(new jInt(i))
-                                   }
-  val doubleParsable = Prop.forAll { (d: Double) =>
-    val s = d.toString
-    DoubleIsParsable.parse(s)     == Success(new jDouble(d))
-                                   }
-  val timeParsable   = Prop.forAll { (d: DateTime, f: DateTimeFormatter) =>
-    val s = f.print(d)
-    TimeIsParsable.parse(s)
-                  .map(_.getTime / 1000) == Success(d.getMillis / 1000)
-                                   }
-  val pointParsable  = Prop.forAll { (lat: Double, lon: Double) =>
-    val s = s"POINT($lon $lat)"
-    PointIsParsable.parse(s)      == Success(WKTUtils.read(s))
-                                   }
-  val stringParsable = Prop.forAll { (s: String) =>
-    StringIsParsable.parse(s)     == Success(s)
-                                   }
+  val i = 1
+  val d = 1.0
+  val time = new DateTime
+  val pointStr = s"POINT($lon $lat)"
+  val s = "argle"
 
   override def is =
-    "IntIsParsable"    ! check { intParsable } ^
-    "DoubleIsParsable" ! check { doubleParsable } ^
-    "TimeIsParsable"   ! check { timeParsable } ^
-    "PointIsParsable"  ! check { pointParsable } ^
-    "StringIsParsable" ! check { stringParsable }
+    "IntIsParsable"    ! check {
+      IntIsParsable.parse(i.toString) == Success(new jInt(i))
+    } ^
+    "DoubleIsParsable" ! check {
+      DoubleIsParsable.parse(d.toString) == Success(new jDouble(d))
+    } ^
+    "TimeIsParsable"   ! check {
+      TimeIsParsable.timeFormats.forall(f =>
+        TimeIsParsable.parse(f.print(time)).map(_.getTime / 1000) == Success(time.getMillis / 1000)
+      )
+    } ^
+    "PointIsParsable"  ! check {
+      PointIsParsable.parse(pointStr) == Success(WKTUtils.read(pointStr))
+    } ^
+    "StringIsParsable" ! check {
+      StringIsParsable.parse(s) == Success(s)
+    }
 }
