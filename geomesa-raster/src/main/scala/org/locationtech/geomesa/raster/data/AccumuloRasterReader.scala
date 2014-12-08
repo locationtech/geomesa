@@ -15,7 +15,7 @@
  */
 package org.locationtech.geomesa.raster.data
 
-//TODO: WCS: implement this
+//TODO: WCS: implement this, or remove it if seperation is not needed
 class AccumuloRasterReader(tableName) = {
     ???
     // confirm table exists
@@ -25,6 +25,14 @@ class AccumuloRasterReader(tableName) = {
     // get raster encoder
     private val indexSchema = IndexSchema(indexSchemaFmt, rasterEncoder)
     // get the query plan
-    indexSchema.planner
+    private val planner = indexSchema.planner
+    //
+    def getPlanner(rQuery: RasterQuery) = {
+    ???
+    //configureBatchScanners
+    //configureIteratorStack
+
+}
+
 }
 
