@@ -11,7 +11,7 @@ import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.plugin.ImageUtils
+import org.locationtech.geomesa.raster.util.RasterUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -54,7 +54,7 @@ class GeoMesaCoverageReaderTest extends Specification {
 
   def getImageFromGridCoverages(gridCoverageIterator: Iterator[GridCoverage2D], width: Int, height: Int): BufferedImage = {
     val envTotal =  new ReferencedEnvelope(width * -1, width, height * -1, height, DefaultGeographicCRS.WGS84)
-    ImageUtils.mosaicGridCoverages(gridCoverageIterator, width * 2, height * 2, envTotal)
+    RasterUtils.mosaicGridCoverages(gridCoverageIterator, width * 2, height * 2, envTotal)
   }
 
   def getImageByteArray(imageName: String): Array[Byte] = {
@@ -71,9 +71,10 @@ class GeoMesaCoverageReaderTest extends Specification {
       val gridCoverageIterator = getTestGridCoverages(width, height)
       val image = getImageFromGridCoverages(gridCoverageIterator, width, height)
       val randString = Random.alphanumeric.take(5).mkString
-      ImageIO.write(image, "png", new File(s"test-$randString.png"))
+      val tempFile = File.createTempFile(s"test-$randString", ".png")
+      ImageIO.write(image, "png", tempFile)
       val checkImage = getImageByteArray("src/test/resources/wcs/test-10-10.png")
-      val newImage = getImageByteArray(s"test-$randString.png")
+      val newImage = getImageByteArray(tempFile.getAbsolutePath)
       ArrayUtil.equals(checkImage, newImage) must beTrue
     }
 
@@ -83,9 +84,10 @@ class GeoMesaCoverageReaderTest extends Specification {
       val gridCoverageIterator = getTestGridCoverages(width, height)
       val image = getImageFromGridCoverages(gridCoverageIterator, width, height)
       val randString = Random.alphanumeric.take(5).mkString
-      ImageIO.write(image, "png", new File(s"test-$randString.png"))
+      val tempFile = File.createTempFile(s"test-$randString", ".png")
+      ImageIO.write(image, "png", tempFile)
       val checkImage = getImageByteArray("src/test/resources/wcs/test-100-100.png")
-      val newImage = getImageByteArray(s"test-$randString.png")
+      val newImage = getImageByteArray(tempFile.getAbsolutePath)
       ArrayUtil.equals(checkImage, newImage) must beTrue
     }
 
@@ -95,9 +97,10 @@ class GeoMesaCoverageReaderTest extends Specification {
       val gridCoverageIterator = getTestGridCoverages(width, height)
       val image = getImageFromGridCoverages(gridCoverageIterator, width, height)
       val randString = Random.alphanumeric.take(5).mkString
-      ImageIO.write(image, "png", new File(s"test-$randString.png"))
+      val tempFile = File.createTempFile(s"test-$randString", ".png")
+      ImageIO.write(image, "png", tempFile)
       val checkImage = getImageByteArray("src/test/resources/wcs/test-1000-1000.png")
-      val newImage = getImageByteArray(s"test-$randString.png")
+      val newImage = getImageByteArray(tempFile.getAbsolutePath)
       ArrayUtil.equals(checkImage, newImage) must beTrue
     }
   }
