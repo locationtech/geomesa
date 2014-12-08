@@ -65,6 +65,9 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   private val tableOps = connector.tableOperations()
   private val securityOps = connector.securityOperations
 
+  //TODO: WCS: this needs to be implemented
+  //lazy val aRasterReader = new AccumuloRasterReader(tableName)
+
   def getAuths() = authorizationsProvider.getAuthorizations.toString
 
   def getVisibility() = writeVisibilities
@@ -77,8 +80,18 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     writeMutations(createMutation(raster))
   }
 
-  //TODO: needs to be implemented
-  def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = ???
+  //TODO: WCS: needs to be implemented
+  def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
+    ???
+    // take the rasterQuery and determine hwo to query accumulo
+    // this should setup the batch scanner and iterators
+    //val planner = aRasterReader.getQueryPlan(rasterQuery)
+    // this should execute the planner
+    //val accumuloIterator = planner.getIterator()
+    // this should translate the Accumulo Iterator (which returns a Iterator[K,V]) into Iterator[Raster]
+    //adaptIterator(accumuloIterator)
+  }
+
 
   def ensureTableExists() = ensureTableExists(coverageTable)
 
@@ -203,3 +216,5 @@ object RasterTableConfig {
   )
   val permissions = "BULK_IMPORT,READ,WRITE,ALTER_TABLE"
 }
+
+//TODO: WCS: Implement AccumuloRasterReader
