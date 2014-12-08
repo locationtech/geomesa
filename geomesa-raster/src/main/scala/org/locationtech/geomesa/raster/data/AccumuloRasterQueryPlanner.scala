@@ -5,6 +5,7 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.core.index.QueryPlan
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 
+// TODO: Constructor needs info to create Row Formatter
 class AccumuloRasterQueryPlanner extends Logging {
 
   def getQueryPlan(rq: RasterQuery): QueryPlan = {
@@ -13,6 +14,7 @@ class AccumuloRasterQueryPlanner extends Logging {
     val res = rq.resolution
 
     val rows = hashes.map { gh =>
+      // TODO: Use Row Formatter?
       new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"))
     }
 

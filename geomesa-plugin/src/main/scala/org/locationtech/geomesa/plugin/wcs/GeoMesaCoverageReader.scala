@@ -1,7 +1,6 @@
 package org.locationtech.geomesa.plugin.wcs
 
 import java.awt.Rectangle
-import java.awt.image.RenderedImage
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.coverage.CoverageFactoryFinder
@@ -78,7 +77,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   }
 
   def rastersToCoverage(rasters: Iterator[feature.Raster]): GridCoverage2D = {
-    val raster = rasters.next // Mosaic
+    val raster = rasters.next // TODO: Mosaic
     this.coverageFactory.create(coverageName, raster.chunk, raster.envelope)
   }
 

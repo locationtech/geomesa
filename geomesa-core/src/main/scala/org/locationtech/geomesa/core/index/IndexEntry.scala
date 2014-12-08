@@ -16,7 +16,9 @@ import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 
-object IndexEntry extends IndexHelpers { }
+object IndexEntry extends IndexHelpers {
+
+}
 
 case class IndexEntryEncoder(rowf: TextFormatter,
                              cff: TextFormatter,

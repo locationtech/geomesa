@@ -69,7 +69,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   val bwConfig: BatchWriterConfig =
     new BatchWriterConfig().setMaxMemory(writeMemory).setMaxWriteThreads(writeThreads)
 
-  lazy val queryPlanner: AccumuloRasterQueryPlanner = ???
+  lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner
 
   private val tableOps = connector.tableOperations()
   private val securityOps = connector.securityOperations
@@ -155,7 +155,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
    * @param value Value obtained from Accumulo table
    * @return byte array
    */
-  private def decodeValue(value: Value): Raster =  ???
+  private def decodeValue(value: Value): Raster =  ???   // TODO:
 
   private def dateToAccTimestamp(dt: DateTime): Long =  dt.getMillis / 1000
 

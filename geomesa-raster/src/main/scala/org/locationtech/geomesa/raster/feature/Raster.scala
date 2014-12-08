@@ -23,9 +23,8 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.CRS
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index.DecodedIndex
-import org.locationtech.geomesa.core.index.IndexHelpers.DecodedIndex
 import org.locationtech.geomesa.raster.util.RasterUtils
-import org.locationtech.geomesa.utils.geohash.{GeohashUtils, BoundingBox, GeoHash}
+import org.locationtech.geomesa.utils.geohash.GeohashUtils
 
 //case class Raster(id: String,
 //                  name: String,
@@ -42,12 +41,10 @@ case class Raster(chunk: RenderedImage, metadata: DecodedIndex) {
   def id = metadata.id
   def name = metadata.id
   def time = new DateTime(metadata.dtgMillis.getOrElse(0L))
-  // TODO: Make this work.
-  def mbgh = ??? // GeohashUtils.getMinimumBoundingGeohash(metadata.geom.getEnvelopeInternal)
 
-  def envelope = {
-    new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, CRS.decode("EPSG:4326"))
-  }
+  def mbgh = GeohashUtils.getMBGH(metadata.geom.getEnvelopeInternal)
+
+  def envelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, CRS.decode("EPSG:4326"))
 
   def encodeValue = RasterUtils.imageSerialize(chunk)
 }

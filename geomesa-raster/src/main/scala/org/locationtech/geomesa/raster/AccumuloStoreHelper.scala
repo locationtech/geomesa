@@ -117,7 +117,7 @@ object AccumuloStoreHelper {
 
     // update the authorizations in the parameters and then configure the auth provider
     // we copy the map so as not to modify the original
-    val modifiedParams = params ++ Map(authsParam.key -> auths.mkString(","))
+    val modifiedParams = Map(authsParam.key -> auths.mkString(","))
     authorizationsProvider.configure(modifiedParams)
     authorizationsProvider
   }
