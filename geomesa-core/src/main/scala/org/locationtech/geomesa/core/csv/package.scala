@@ -99,38 +99,38 @@ package object csv extends Logging {
                  hasHeader: Boolean = true,
                  format: CSVFormat = CSVFormat.DEFAULT): Future[TypeSchema] =
     Future {
-             val records = format.parse(csvReader).iterator
-             (for {
-               (header, record) <- sampleRecords(records, hasHeader)
-               typeChars        <- typeData(record.iterator)
-             } yield {
-               val sftb = new SftBuilder
-               var defaultDateSet = false
-               var defaultGeomSet = false
-               for ((field, c) <- header.zip(typeChars)) { c match {
-                 case 'i' =>
-                   sftb.intType(field)
-                 case 'd' =>
-                   sftb.doubleType(field)
-                 case 't' =>
-                   sftb.date(field)
-                   if (!defaultDateSet) {
-                     sftb.withDefaultDtg(field)
-                     defaultDateSet = true
-                   }
-                 case 'p' =>
-                   if (defaultGeomSet) sftb.geometry(field)
-                   else {
-                     sftb.point(field, default = true)
-                     defaultGeomSet = true
-                   }
-                 case 's' =>
-                   sftb.stringType(field)
-               }}
+      val records = format.parse(csvReader).iterator
+      (for {
+        (header, record) <- sampleRecords(records, hasHeader)
+        typeChars        <- typeData(record.iterator)
+      } yield {
+        val sftb = new SftBuilder
+        var defaultDateSet = false
+        var defaultGeomSet = false
+        for ((field, c) <- header.zip(typeChars)) { c match {
+          case 'i' =>
+            sftb.intType(field)
+          case 'd' =>
+            sftb.doubleType(field)
+          case 't' =>
+            sftb.date(field)
+            if (!defaultDateSet) {
+              sftb.withDefaultDtg(field)
+              defaultDateSet = true
+            }
+          case 'p' =>
+            if (defaultGeomSet) sftb.geometry(field)
+            else {
+              sftb.point(field, default = true)
+              defaultGeomSet = true
+            }
+          case 's' =>
+            sftb.stringType(field)
+        }}
 
-               TypeSchema(name, sftb.getSpec())
-             }).get
-           }
+        TypeSchema(name, sftb.getSpec())
+      }).get
+    }
 
   val fieldParserMap =
     Map[Class[_], Parsable[_ <: AnyRef]](
@@ -139,7 +139,7 @@ package object csv extends Logging {
       classOf[Date]    -> TimeIsParsable,
       classOf[Point]   -> PointIsParsable,
       classOf[String]  -> StringIsParsable
-                              )
+  )
 
   val gf = new GeometryFactory
 
