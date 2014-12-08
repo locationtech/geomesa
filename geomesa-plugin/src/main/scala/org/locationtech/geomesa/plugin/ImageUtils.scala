@@ -105,17 +105,6 @@ object ImageUtils {
     new BufferedImage(colorModel, raster, false, null)
   }
 
-  def getEmptyImage(width: Int = 256, height: Int = 256) = {
-    val emptyImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
-    val g2D = emptyImage.getGraphics.asInstanceOf[Graphics2D]
-    val save = g2D.getColor
-    g2D.setColor(Color.WHITE)
-    g2D.setComposite(AlphaComposite.Clear)
-    g2D.fillRect(0, 0, emptyImage.getWidth, emptyImage.getHeight)
-    g2D.setColor(save)
-    emptyImage
-  }
-
   def imageSerialize(coverage: GridCoverage2D): Array[Byte] = {
     val buffer: ByteArrayOutputStream = new ByteArrayOutputStream
     val out: ObjectOutputStream = new ObjectOutputStream(buffer)
@@ -137,18 +126,5 @@ object ImageUtils {
       in.close()
     }
     read
-  }
-
-  def mosaicGridCoverages(coverageList: Iterator[GridCoverage], width: Int = 256, height: Int = 256, env: Envelope, startImage: BufferedImage = null) = {
-    val image = if (startImage == null) { getEmptyImage(width, height) } else { startImage }
-    while (coverageList.hasNext) {
-      val coverage = coverageList.next()
-      val coverageEnv = coverage.getEnvelope
-      val coverageImage = coverage.getRenderedImage
-      val posx = ((coverageEnv.getMinimum(0) - env.getMinimum(0)) / 1.0).asInstanceOf[Int]
-      val posy = ((env.getMaximum(1) - coverageEnv.getMaximum(1)) / 1.0).asInstanceOf[Int]
-      image.getRaster.setDataElements(posx, posy, coverageImage.getData)
-    }
-    image
   }
 }
