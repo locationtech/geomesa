@@ -34,6 +34,16 @@ object AccumuloStoreHelper {
     if (visStr == null) "" else visStr
   }
 
+  def buildAccumuloConnector(user: String,
+                             password: String,
+                             instance: String,
+                             zookeepers: String,
+                             useMock: Boolean = false): Connector = {
+    val authToken = new PasswordToken(password.getBytes)
+    if(useMock) new MockInstance(instance).getConnector(user, authToken)
+    else new ZooKeeperInstance(instance, zookeepers).getConnector(user, authToken)
+  }
+
   def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): Connector = {
     val zookeepers = zookeepersParam.lookUp(params).asInstanceOf[String]
     val instance = instanceIdParam.lookUp(params).asInstanceOf[String]
@@ -68,7 +78,10 @@ object AccumuloStoreHelper {
 
   def getAuthorizationsProvider(params: JMap[String,Serializable], connector: Connector): AuthorizationsProvider = {
     val auths = getAuthorizations(params, connector)
+    getAuthorizationsProvider(auths, connector)
+  }
 
+  def getAuthorizationsProvider(auths: Seq[String], connector: Connector): AuthorizationsProvider = {
     // if the user specifies an auth provider to use, try to use that impl
     val authProviderSystemProperty = Option(System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY))
 

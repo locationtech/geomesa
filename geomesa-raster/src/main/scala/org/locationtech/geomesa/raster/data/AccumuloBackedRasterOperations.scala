@@ -16,11 +16,12 @@
 
 package org.locationtech.geomesa.raster.data
 
-import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
+import org.apache.accumulo.core.client.{BatchScanner, BatchWriterConfig, Connector, TableExistsException}
 import org.apache.accumulo.core.data.{Mutation, Value}
 import org.apache.accumulo.core.security.{ColumnVisibility, TablePermission}
 import org.apache.hadoop.io.Text
 import org.joda.time.DateTime
+import org.locationtech.geomesa.core.index.QueryPlan
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.core.stats.StatWriter
 import org.locationtech.geomesa.raster.feature.Raster
@@ -62,6 +63,8 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   val bwConfig: BatchWriterConfig =
     new BatchWriterConfig().setMaxMemory(writeMemory).setMaxWriteThreads(writeThreads)
 
+  lazy val queryPlanner: AccumuloRasterQueryPlanner = ???
+
   private val tableOps = connector.tableOperations()
   private val securityOps = connector.securityOperations
 
@@ -73,16 +76,25 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   def getVisibility() = writeVisibilities
 
   def putRasters(rasters: Seq[Raster]) {
-    rasters.foreach{ putRaster(_) }
+    rasters.foreach { putRaster(_) }
   }
 
   def putRaster(raster: Raster) {
     writeMutations(createMutation(raster))
   }
 
+  def configureBatchScanner(bs: BatchScanner, qp: QueryPlan) {
+    qp.iterators.foreach { i => bs.addScanIterator(i) }
+    bs.setRanges(qp.ranges)
+    qp.cf.foreach { c => bs.fetchColumnFamily(c) }
+  }
+
   //TODO: WCS: needs to be implemented
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
-    ???
+    val plan = queryPlanner.getQueryPlan(rasterQuery)
+
+
+
     // take the rasterQuery and determine hwo to query accumulo
     // this should setup the batch scanner and iterators
     //val planner = aRasterReader.getQueryPlan(rasterQuery)

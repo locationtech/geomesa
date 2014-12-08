@@ -18,6 +18,7 @@ package org.locationtech.geomesa.raster.data
 
 import org.joda.time.DateTime
 import org.locationtech.geomesa.utils.geohash.BoundingBox
+import org.opengis.parameter.GeneralParameterValue
 
 /**
  * This class contains parameters needed to create query to
@@ -32,3 +33,4 @@ case class RasterQuery(bbox: BoundingBox,
                        resolution: String,
                        startTime: Option[DateTime],
                        endTime: Option[DateTime])
+

@@ -45,6 +45,7 @@ trait Strategy {
               query: Query,
               output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]]
 
+  // JNH: Move this out into an Accumulo utils blah, blah.
   def configureBatchScanner(bs: BatchScanner, qp: QueryPlan) {
     qp.iterators.foreach { i => bs.addScanIterator(i) }
     bs.setRanges(qp.ranges)
