@@ -95,7 +95,7 @@ class CSVPackageTest
       implicit val records = Arbitrary { Gen.nonEmptyListOf(Arbitrary.arbitrary[GeomSFTRecord]) }
       val parsesGeomCSV = Prop.forAll { (records: List[GeomSFTRecord]) =>
         val csv = records.map(_.csvLine).mkString(s"$geomCSVHeader\n","\n","")
-        val fc = buildFeatureCollection(new StringReader(csv), geomSFT, None).
+        val fc = buildFeatureCollection(new StringReader(csv), true, geomSFT, None).
                  recover {case ex => logger.error("failed to parse", ex); throw ex }.
                  get
         fc.size mustEqual records.size
@@ -108,12 +108,25 @@ class CSVPackageTest
       implicit val records = Arbitrary { Gen.nonEmptyListOf(Arbitrary.arbitrary[LatLonSFTRecord]) }
       val parsesLatLonCSV = Prop.forAll { (records: List[LatLonSFTRecord]) =>
         val csv = records.map(_.csvLine).mkString(s"$latlonCSVHeader\n","\n","")
-        val fc = buildFeatureCollection(new StringReader(csv), latlonSFT, Some(("lat","lon"))).
+        val fc = buildFeatureCollection(new StringReader(csv), true, latlonSFT, Some(("lat","lon"))).
                  recover {case ex => logger.error("failed to parse", ex); throw ex }.
                  get
         fc.size mustEqual records.size
                                   }
       check(parsesLatLonCSV)
+    }
+
+    "parse CSVs without headers" >> {
+      import CSVTestUtils.{GeomSFTRecord, geomCSVHeader, geomSFT, geomSFTRecord}
+      implicit val records = Arbitrary { Gen.nonEmptyListOf(Arbitrary.arbitrary[GeomSFTRecord]) }
+      val parsesGeomCSV = Prop.forAll { (records: List[GeomSFTRecord]) =>
+        val csv = records.map(_.csvLine).mkString("\n")
+        val fc = buildFeatureCollection(new StringReader(csv), false, geomSFT, None).
+                 recover {case ex => logger.error("failed to parse", ex); throw ex }.
+                 get
+        fc.size mustEqual records.size
+                                      }
+      check(parsesGeomCSV)
     }
   }
 }

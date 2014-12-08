@@ -18,7 +18,7 @@ package org.locationtech.geomesa.core
 
 import java.io._
 import java.lang.{Double => jDouble, Integer => jInt}
-import java.util.Date
+import java.util.{Date, Iterator => jIterator}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -59,12 +59,12 @@ package object csv extends Logging {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  def guessTypes(csvFile: File): Future[TypeSchema] =
+  def guessTypes(csvFile: File, hasHeader: Boolean): Future[TypeSchema] =
     for {       // Future{} ensures we're working in the Future monad
       filename <- Future { csvFile.getName }
       typename <- Future { filename.substring(0, filename.length - 4) } // assumes a filename ending in ".csv"
       reader   <- Future { Source.fromFile(csvFile).bufferedReader() }
-      guess    <- guessTypes(typename, reader)
+      guess    <- guessTypes(typename, reader, hasHeader)
     } yield {
       reader.close()
       guess
@@ -81,18 +81,33 @@ package object csv extends Logging {
     tryTraverse(rawData)(tryAllParsers(_).map { case (_, c) => c }).map(_.toSeq)
   }
 
-  def guessTypes(name: String, csvReader: Reader, format: CSVFormat = CSVFormat.DEFAULT): Future[TypeSchema] =
+  def sampleRecords(records: jIterator[CSVRecord], hasHeader: Boolean): Try[(Seq[String], CSVRecord)] =
+    Try {
+      if (hasHeader) {
+        val header = records.next
+        val record = records.next
+        (header.toSeq, record)
+      } else {
+        val record = records.next
+        val header = Seq.tabulate(record.size()) { n => s"C$n" }
+        (header, record)
+      }
+    }
+
+  def guessTypes(name: String,
+                 csvReader: Reader,
+                 hasHeader: Boolean = true,
+                 format: CSVFormat = CSVFormat.DEFAULT): Future[TypeSchema] =
     Future {
              val records = format.parse(csvReader).iterator
              (for {
-               header    <- Try { records.next }
-               record    <- Try { records.next }
-               typeChars <- typeData(record.iterator)
+               (header, record) <- sampleRecords(records, hasHeader)
+               typeChars        <- typeData(record.iterator)
              } yield {
                val sftb = new SftBuilder
                var defaultDateSet = false
                var defaultGeomSet = false
-               for ((field, c) <- header.iterator.zip(typeChars.iterator)) { c match {
+               for ((field, c) <- header.zip(typeChars)) { c match {
                  case 'i' =>
                    sftb.intType(field)
                  case 'd' =>
@@ -129,13 +144,15 @@ package object csv extends Logging {
   val gf = new GeometryFactory
 
   protected[csv] def buildFeatureCollection(csvFile: File,
+                                            hasHeader: Boolean,
                                             sft: SimpleFeatureType,
                                             latlonFields: Option[(String, String)]): Try[SimpleFeatureCollection] = {
     val reader = Source.fromFile(csvFile).bufferedReader()
-    buildFeatureCollection(reader, sft, latlonFields).eventually(reader.close())
+    buildFeatureCollection(reader, hasHeader, sft, latlonFields).eventually(reader.close())
   }
 
   protected[csv] def buildFeatureCollection(reader: Reader,
+                                            hasHeader: Boolean,
                                             sft: SimpleFeatureType,
                                             latlonFields: Option[(String, String)]): Try[SimpleFeatureCollection] =
     Try {
@@ -173,8 +190,10 @@ package object csv extends Logging {
         }
 
       val fc = new DefaultFeatureCollection
+      val records = CSVFormat.DEFAULT.parse(reader).iterator()
+      if (hasHeader) { records.next } // burn off header rather than try (and fail) to parse it.
       for {
-        record <- CSVFormat.DEFAULT.parse(reader).iterator()
+        record <- records
         f      <- buildFeature(record) // logs and discards lines that fail to parse but keeps processing
       } fc.add(f)
       fc
@@ -228,12 +247,13 @@ package object csv extends Logging {
   }
 
   def ingestCSV(csvFile: File,
+                hasHeader: Boolean,
                 name: String,
                 schema: String,
                 latlonFields: Option[(String, String)] = None): Try[File] =
     for {
       sft     <- Try { SimpleFeatureTypes.createType(name, schema) }
-      fc      <- buildFeatureCollection(csvFile, sft, latlonFields)
+      fc      <- buildFeatureCollection(csvFile, hasHeader, sft, latlonFields)
       shpFile <- Try {
                    val csvFileName = csvFile.getName
                    val shpFileRoot = csvFileName.substring(0, csvFileName.length - 4)

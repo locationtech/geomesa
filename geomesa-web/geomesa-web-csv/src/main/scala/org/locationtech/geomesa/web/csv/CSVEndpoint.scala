@@ -28,10 +28,13 @@ class CSVEndpoint
   }
 
   object Record {
-    def apply(localFile: File): Record =
-      Record(localFile, csv.guessTypes(localFile), None)
+    def apply(localFile: File, hasHeader: Boolean): Record =
+      Record(localFile, csv.guessTypes(localFile, hasHeader), None, hasHeader)
   }
-  case class Record(csvFile: File, inferredSchemaF: Future[csv.TypeSchema], shapefile: Option[File]) {
+  case class Record(csvFile: File,
+                    inferredSchemaF: Future[csv.TypeSchema],
+                    shapefile: Option[File],
+                    hasHeader: Boolean) {
     def inferredTS: Try[csv.TypeSchema] =
       inferredSchemaF.value.getOrElse(Failure(new Exception("Inferred schema not available yet")))
     def inferredName: Try[String] = inferredTS.map(_.name)
@@ -45,7 +48,8 @@ class CSVEndpoint
         val uuid = UUID.randomUUID.toString
         val csvFile = File.createTempFile(FilenameUtils.removeExtension(fileItem.name),".csv")
         fileItem.write(csvFile)
-        records += uuid -> Record(csvFile)
+        val hasHeader = params.get("hasHeader").map(_.toBoolean).getOrElse(true)
+        records += uuid -> Record(csvFile, hasHeader)
         Ok(uuid)
       }
 
@@ -79,7 +83,7 @@ class CSVEndpoint
       record    <- Try { records(csvId) }
       name      <- Try { params("name") }   orElse record.inferredName
       schema    <- Try { params("schema") } orElse record.inferredSchema
-      shapefile <- csv.ingestCSV(record.csvFile, name, schema, latlonFields)
+      shapefile <- csv.ingestCSV(record.csvFile, record.hasHeader, name, schema, latlonFields)
     } yield {
       records.update(csvId, record.copy(shapefile = Some(shapefile)))
       Ok(csvId + ".shp")
