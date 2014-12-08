@@ -20,10 +20,9 @@ import java.io.StringReader
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormatter
 import org.junit.runner.RunWith
-import org.scalacheck.{Gen, Arbitrary, Prop}
-import org.specs2.ScalaCheck
+import org.locationtech.geomesa.core.csv.Parsable.TimeIsParsable
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -33,7 +32,6 @@ import scala.concurrent.duration.{Duration, MINUTES}
 @RunWith(classOf[JUnitRunner])
 class CSVPackageTest
   extends Specification
-          with ScalaCheck
           with Logging {
 
   "guessTypes" should {
@@ -41,92 +39,86 @@ class CSVPackageTest
       Await.result(guessTypes(name, new StringReader(csv)), Duration(1, MINUTES)).schema
 
     "recognize int-parsable columns" >> {
-      val recognizesInts = Prop.forAll { (i: Int) =>
-        val csv = s"int\n$i"
-        val schema = getSchema("inttest", csv)
-        schema mustEqual "int:Integer"
-                                       }
-      check(recognizesInts)
+      val csv = "int\n1"
+      val schema = getSchema("inttest", csv)
+      schema mustEqual "int:Integer"
     }
 
     "recognize double-parsable columns" >> {
-      val recognizesDoubles = Prop.forAll { (d: Double) =>
-        val csv = s"double\n$d"
-        val schema = getSchema("doubletest", csv)
-        schema mustEqual "double:Double"
-                                          }
-      check(recognizesDoubles)
+      val csv = "double\n1.0"
+      val schema = getSchema("doubletest", csv)
+      schema mustEqual "double:Double"
     }
 
     "recognize time-parsable columns" >> {
-      import org.locationtech.geomesa.core.csv.CSVTestUtils.{randomDate, randomFormat}
-      val recognizesTimes = Prop.forAll { (date: DateTime, format: DateTimeFormatter) =>
-        val csv = s"time\n${format.print(date)}"
+      val time = new DateTime
+      TimeIsParsable.timeFormats.forall { format =>
+        val csv = s"time\n${format.print(time)}"
         val schema = getSchema("timetest", csv)
         schema mustEqual "time:Date"
-                                        }
-      check(recognizesTimes)
+      }
     }
 
     "recognize point-parsable columns" >> {
-      val recognizesPoints = Prop.forAll { (lat: Double, lon: Double) =>
-        val csv = s"point\nPOINT($lon $lat)"
-        val schema = getSchema("pointtest", csv)
-        schema mustEqual "*point:Point:srid=4326:index=true"
-                                         }
-      check(recognizesPoints)
+      val csv = "point\nPOINT(0.0 0.0)"
+      val schema = getSchema("pointtest", csv)
+      schema mustEqual "*point:Point:srid=4326:index=true"
     }
 
     "recognize string-parsable columns" >> {
-      import org.locationtech.geomesa.core.csv.CSVTestUtils.randomString
-      val recognizesStrings = Prop.forAll { (s: String) =>
-        val csv = s"string\n$s"
-        val schema = getSchema("stringtest", csv)
-        schema mustEqual "string:String"
-                                          }
-      check(recognizesStrings)
+      val csv = "string\nargle"
+      val schema = getSchema("stringtest", csv)
+      schema mustEqual "string:String"
     }
 
   }
 
   "buildFeatureCollection" should {
-    "parse CSVs using WKTs" >> {
-      import CSVTestUtils.{GeomSFTRecord, geomCSVHeader, geomSFT, geomSFTRecord}
-      implicit val records = Arbitrary { Gen.nonEmptyListOf(Arbitrary.arbitrary[GeomSFTRecord]) }
-      val parsesGeomCSV = Prop.forAll { (records: List[GeomSFTRecord]) =>
-        val csv = records.map(_.csvLine).mkString(s"$geomCSVHeader\n","\n","")
-        val fc = buildFeatureCollection(new StringReader(csv), true, geomSFT, None).
-                 recover {case ex => logger.error("failed to parse", ex); throw ex }.
-                 get
-        fc.size mustEqual records.size
-                                  }
-      check(parsesGeomCSV)
-    }
+    val geomSchema = "int:Integer, double:Double, time:Date,* point:Point:srid=4326:index=true, string:String"
+    val geomSFT = SimpleFeatureTypes.createType("geomType", geomSchema)
+    val geomCSVHeader = "int,double,time,point,string"
+    val geomCSVLines = Seq(
+      "1,1.0,2014-12-08T16:18:31.031+0000,POINT(0.1 1.2),argle",
+      "2,3.0,2014-12-08T16:18:31.031+0000,POINT(2.5 8.1),bargle",
+      "5,8.0,2014-12-08T16:18:31.031+0000,POINT(3.2 1.3),foo",
+      "2,3.0,2014-12-08T16:18:31.031+0000,POINT(4.5 5.8),bar",
+      "1,7.0,2014-12-08T16:18:31.031+0000,POINT(9.1 4.4),baz"
+    )
+    val geomCSVBody = geomCSVLines.mkString("\n")
+    val geomCSV = s"$geomCSVHeader\n$geomCSVBody"
 
-    "parse CSVs using LatLon" >> {
-      import CSVTestUtils.{LatLonSFTRecord, latlonCSVHeader, latlonSFT, latlonSFTRecord}
-      implicit val records = Arbitrary { Gen.nonEmptyListOf(Arbitrary.arbitrary[LatLonSFTRecord]) }
-      val parsesLatLonCSV = Prop.forAll { (records: List[LatLonSFTRecord]) =>
-        val csv = records.map(_.csvLine).mkString(s"$latlonCSVHeader\n","\n","")
-        val fc = buildFeatureCollection(new StringReader(csv), true, latlonSFT, Some(("lat","lon"))).
-                 recover {case ex => logger.error("failed to parse", ex); throw ex }.
-                 get
-        fc.size mustEqual records.size
-                                  }
-      check(parsesLatLonCSV)
+    "parse CSVs using WKTs" >> {
+      val fc = buildFeatureCollection(new StringReader(geomCSV), true, geomSFT, None).
+               recover {case ex => logger.error("failed to parse", ex); throw ex }.
+               get
+      fc.size mustEqual geomCSVLines.size
     }
 
     "parse CSVs without headers" >> {
-      import CSVTestUtils.{GeomSFTRecord, geomCSVHeader, geomSFT, geomSFTRecord}
-      implicit val records = Arbitrary { Gen.nonEmptyListOf(Arbitrary.arbitrary[GeomSFTRecord]) }
-      val parsesGeomCSV = Prop.forAll { (records: List[GeomSFTRecord]) =>
-        val csv = records.map(_.csvLine).mkString("\n")
-        val fc = buildFeatureCollection(new StringReader(csv), false, geomSFT, None).
-                 recover {case ex => logger.error("failed to parse", ex); throw ex }.
-                 get
-        fc.size mustEqual records.size
-                                      }
-      check(parsesGeomCSV)
+      val fc = buildFeatureCollection(new StringReader(geomCSVBody), false, geomSFT, None).
+               recover {case ex => logger.error("failed to parse", ex); throw ex }.
+               get
+      fc.size mustEqual geomCSVLines.size
+    }
+
+    val latlonSchema = "lat:Double, lon:Double, time:Date,* point:Point:srid=4326:index=true"
+    val latlonSFT = SimpleFeatureTypes.createType("latlonType", latlonSchema)
+    val latlonCSVHeader = "lat,lon,time"
+    val latlonCSVLines = Seq(
+      "0.1,1.2,2014-12-08T16:18:31.031+0000",
+      "2.5,8.1,2014-12-08T16:18:31.031+0000",
+      "3.2,1.3,2014-12-08T16:18:31.031+0000",
+      "4.5,5.8,2014-12-08T16:18:31.031+0000",
+      "9.1,4.4,2014-12-08T16:18:31.031+0000"
+                          )
+    val latlonCSVBody = latlonCSVLines.mkString("\n")
+    val latlonCSV = s"$latlonCSVHeader\n$latlonCSVBody"
+
+    "parse CSVs using LatLon" >> {
+      val fc = buildFeatureCollection(new StringReader(latlonCSV), true, latlonSFT, Some(("lat","lon"))).
+               recover {case ex => logger.error("failed to parse", ex); throw ex }.
+               get
+      fc.size mustEqual latlonCSVLines.size
     }
   }
 }

@@ -33,25 +33,25 @@ class ParsableTest extends Specification {
   val i = 1
   val d = 1.0
   val time = new DateTime
-  val pointStr = s"POINT($lon $lat)"
+  val pointStr = s"POINT(0.0 0.0)"
   val s = "argle"
 
   override def is =
-    "IntIsParsable"    ! check {
+    "IntIsParsable"    ! {
       IntIsParsable.parse(i.toString) == Success(new jInt(i))
     } ^
-    "DoubleIsParsable" ! check {
+    "DoubleIsParsable" ! {
       DoubleIsParsable.parse(d.toString) == Success(new jDouble(d))
     } ^
-    "TimeIsParsable"   ! check {
+    "TimeIsParsable"   ! {
       TimeIsParsable.timeFormats.forall(f =>
         TimeIsParsable.parse(f.print(time)).map(_.getTime / 1000) == Success(time.getMillis / 1000)
       )
     } ^
-    "PointIsParsable"  ! check {
+    "PointIsParsable"  ! {
       PointIsParsable.parse(pointStr) == Success(WKTUtils.read(pointStr))
     } ^
-    "StringIsParsable" ! check {
+    "StringIsParsable" ! {
       StringIsParsable.parse(s) == Success(s)
     }
 }
