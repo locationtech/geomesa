@@ -45,6 +45,8 @@ trait Strategy {
               query: Query,
               output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]]
 
+  // TODO: WCS: Factor out configureBatchScanner into another trait for use with raster data
+  // GEOMESA-563
   def configureBatchScanner(bs: BatchScanner, qp: QueryPlan) {
     qp.iterators.foreach { i => bs.addScanIterator(i) }
     bs.setRanges(qp.ranges)

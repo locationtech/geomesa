@@ -42,18 +42,28 @@ import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageReader._
 
 class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridCoverage2DReader() with Logging {
 
+  //TODO: WCS: Implement function/class for parsing our "new" url
+  // right now we want to extract the table name and magnification like this "dataSource_mag"
+  // later, if the magnification is not provided in the URL, we should estimate it later in the read() method
+
+  // JNH: This todo is for Jake.
   logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
+
   val FORMAT(user, password, instanceId, table, geohash, resolutionStr, timeStamp, rasterName, zookeepers, authtokens) = url
+
   logger.debug(s"extracted user $user, password ********, instance id $instanceId, table $table, zookeepers $zookeepers, auths ********")
 
   coverageName = table + ":" + rasterName
 
+
+
+  // TODO: Either this is needed for rasterToCoverages or remove it.
   this.crs = AbstractGridFormat.getDefaultCRS
   this.originalEnvelope = new GeneralEnvelope(Array(-180.0, -90.0), Array(180.0, 90.0))
   this.originalEnvelope.setCoordinateReferenceSystem(this.crs)
   this.originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
   this.coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(this.hints)
-
+  // TODO: Provide writeVisibilites??  Sort out read visibilites
   val coverageStoreParams = Map[java.lang.String, java.io.Serializable](
     "instanceId" -> instanceId,
     "zookeepers" -> zookeepers,
@@ -82,8 +92,16 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
 
   def getGeohashPrecision = resolutionStr.toInt
 
+
   def read(parameters: Array[GeneralParameterValue]): GridCoverage2D = {
     val params = new GeoMesaCoverageQueryParams(parameters)
+    //TODO: WCS: Generate RasterQueryObject here and use it with getRasters
+    /** it would look like this
+      *  val rq = RasterQuery(params.bbox, params.accResolution.toString, None, None)
+      *  val rasters: Iterator[feature.Raster] = coverageStore.getRasters(rq)
+      *  then convert from feature.Raster to what is needed,
+      *  and then mosiac, etc.
+      */
     val image = coverageStore.getChunk(geohash, getGeohashPrecision)
 
     /**

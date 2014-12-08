@@ -26,6 +26,9 @@ import org.apache.accumulo.core.client.{Connector, Scanner}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory._
+import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
+import org.locationtech.geomesa.raster.AccumuloStoreHelper
 import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.raster.ingest.{GeoserverClientService, IngestRasterParams}
 import org.locationtech.geomesa.raster.util.RasterUtils._
@@ -56,7 +59,7 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
   extends CoverageStore with Logging {
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
-
+  //TODO: WCS: remove if no longer needed
   rasterStore.ensureTableExists()
 
   def getAuths = rasterStore.getAuths
@@ -133,9 +136,25 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
 }
 
 object AccumuloCoverageStore extends Logging {
-  import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory._
-  import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
-  import org.locationtech.geomesa.raster.AccumuloStoreHelper
+   //TODO: WCS: ensure that this is as clean as possible -- GEOMESA-567
+   def apply(username: String,
+             password: String,
+             instanceId: String,
+             zookeepers: String,
+             tableName: String,
+             auths: String,
+             writeVisibilities: String): AccumuloCoverageStore = {
+
+     val rs = RasterStore(username,
+             password,
+             instanceId,
+             zookeepers,
+             tableName,
+             auths,
+             writeVisibilities)
+
+     new AccumuloCoverageStore(rs, None)
+   }
 
   def apply(config: JMap[String, Serializable]): AccumuloCoverageStore = {
     val visibility = AccumuloStoreHelper.getVisibility(config)
@@ -152,6 +171,8 @@ object AccumuloCoverageStore extends Logging {
     val writeThreadsConfig = writeThreadsParam.lookupOpt(config)
     val queryThreadsConfig = queryThreadsParam.lookupOpt(config)
 
+    // TODO: WCS: refactor by using companion object of RasterStore if appropriate
+    // GEOMESA-567
     val rasterOps =
       AccumuloBackedRasterOperations(connector,
                                      tableName,
@@ -183,7 +204,7 @@ object AccumuloCoverageStore extends Logging {
               logger.error("Failed to instantiate Geoserver client service: wrong parameters.")
               sys.exit()
           }).toMap
-        Some(new GeoserverClientService(dsConnectConfig ++ gsConnectConfig))
+        Some(new GeoserverClientService(gsConnectConfig))
       }
 
     new AccumuloCoverageStore(new RasterStore(rasterOps), geoserverClientServiceO)

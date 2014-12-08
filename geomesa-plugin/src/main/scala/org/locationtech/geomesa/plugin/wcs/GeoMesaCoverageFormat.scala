@@ -38,7 +38,8 @@ class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
   mInfo.put("vendor", "CCRI")
   mInfo.put("docURL", "http://www.geomesa.org")
   mInfo.put("version", "1.0")
-  val parameterDescriptors = Array[GeneralParameterDescriptor](READ_GRIDGEOMETRY2D, RESOLUTION)
+
+  val parameterDescriptors = Array[GeneralParameterDescriptor](READ_GRIDGEOMETRY2D, RESOLUTION, TIME)
   val defaultParameterGroup = new DefaultParameterDescriptorGroup(mInfo, parameterDescriptors)
 
   readParameters = new ParameterGroup(defaultParameterGroup)

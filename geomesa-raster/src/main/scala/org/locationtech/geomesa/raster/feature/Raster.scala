@@ -19,20 +19,36 @@ package org.locationtech.geomesa.raster.feature
 import java.awt.image.RenderedImage
 import java.util.UUID
 
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.referencing.CRS
 import org.joda.time.DateTime
+import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.util.RasterUtils
-import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
+import org.locationtech.geomesa.utils.geohash.GeohashUtils
 
-case class Raster(id: String,
-                  name: String,
-                  chunk: RenderedImage,
-                  bbox: BoundingBox,
-                  resolution: Double,
-                  mbgh: GeoHash,
-                  unit: String,
-                  time: DateTime,
-                  dataType: Option[String],
-                  band: Option[Int]) {
+//case class Raster(id: String,
+//                  name: String,
+//                  chunk: RenderedImage,
+//                  bbox: BoundingBox,
+//                  resolution: Double,
+//                  mbgh: GeoHash,
+//                  unit: String,
+//                  time: DateTime,
+//                  dataType: Option[String],
+//                  band: Option[Int]) {
+
+// TODO: WCS: clean up this class and document
+// GEOMESA-569
+
+case class Raster(chunk: RenderedImage, metadata: DecodedIndex) {
+  def id = metadata.id
+  def name = metadata.id
+  def time = new DateTime(metadata.dtgMillis.getOrElse(0L))
+
+  def mbgh = GeohashUtils.getMBGH(metadata.geom.getEnvelopeInternal)
+
+  def envelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, CRS.decode("EPSG:4326"))
+
   def encodeValue = RasterUtils.imageSerialize(chunk)
 }
 
