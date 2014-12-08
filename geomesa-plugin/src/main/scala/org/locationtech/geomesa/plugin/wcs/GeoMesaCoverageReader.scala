@@ -39,6 +39,10 @@ import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageReader._
 
 class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridCoverage2DReader() with Logging {
 
+  //TODO: WCS: Implement function/class for parsing our "new" url
+  // right now we want to extract the table name and magnification like this "dataSource_mag"
+  // later, if the magnification is not provided in the URL, we should estimate it later in the read() method
+
   logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
 
   val FORMAT(user, password, instanceId, table, columnsStr, geohash, resolutionStr, timeStamp, rasterName, zookeepers, authtokens) = url
@@ -58,6 +62,12 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   this.originalEnvelope.setCoordinateReferenceSystem(this.crs)
   this.originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
   this.coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(this.hints)
+
+  // TODO: WCS: most of all of this should be pushed to the RasterStore or CoverageStore bits
+  // Once we have the table name we *should* have enough to create a RasterStore
+  // so we do something like
+  // val coverageStore =   AccumuloCoverageStore(configs)
+  // EXCEPT PERHAPS WE NEED A COVERAGESOURCE INSTEAD (READ ONLY)?
 
   val zkInstance = new ZooKeeperInstance(instanceId, zookeepers)
   val connector = zkInstance.getConnector(user, new PasswordToken(password.getBytes))
@@ -87,13 +97,18 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   def getGeohashPrecision = resolutionStr.toInt
 
   def read(parameters: Array[GeneralParameterValue]): GridCoverage2D = {
+    //TODO: WCS: the GeneralParameterValue parsing should be done within a specialized class
+    // that class should have the vals below as member vals
+    // that class should also create a RasterQuery as another member val
     val paramsMap = parameters.map(gpv => (gpv.getDescriptor.getName.getCode, gpv)).toMap
     val gridGeometry = paramsMap(AbstractGridFormat.READ_GRIDGEOMETRY2D.getName.toString).asInstanceOf[Parameter[GridGeometry2D]].getValue
     val env = gridGeometry.getEnvelope
     val min = Array(Math.max(env.getMinimum(0), -180) + .00000001, Math.max(env.getMinimum(1), -90) + .00000001)
     val max = Array(Math.min(env.getMaximum(0), 180) - .00000001, Math.min(env.getMaximum(1), 90) - .00000001)
     val bbox = BoundingBox(Bounds(min(0), max(0)), Bounds(min(1), max(1)))
-
+    //TODO: WCS: I think getChunk should be a function method of our CoverageStore
+    // one of its arguments should be the GeneralParameterValue parsing object from above
+    // so we want something like this val image=coverageStore.getChunks(requestParameters)
     val image = getChunk(geohash, getGeohashPrecision, None)
 
     /**
@@ -119,6 +134,23 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
         rasterImageDeserialize(entry.getValue.get)
     })).head
   }
+
+  /**
+   * TODO: WCS: We'd like getChunks to call out to getRasters
+   *
+   * so
+   *
+   * def getChunks(requestParameters) = {
+   *    val rasterIter = coverageStore.getRasters(requestParameters.rasterQuery)
+   *    chunkIter = rasterIter.map{raster => rasterToChunk(raster)}
+   *
+   * }
+   *
+   * The rest of this iterator code should be moved into RasterStore
+   *
+   */
+
+
 
   /**
    * Included for when mosaicing and final key structure are utilized
