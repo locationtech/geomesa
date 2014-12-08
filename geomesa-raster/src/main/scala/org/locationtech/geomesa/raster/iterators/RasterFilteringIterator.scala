@@ -27,7 +27,6 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.raster.index.RasterIndexEntry
-import org.locationtech.geomesa.raster.index.RasterIndexEntry.DecodedIndex
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 class RasterFilteringIterator extends Filter with WrappedSTFilter with Logging {

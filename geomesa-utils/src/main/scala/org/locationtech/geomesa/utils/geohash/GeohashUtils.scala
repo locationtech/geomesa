@@ -381,6 +381,9 @@ object GeohashUtils
     null
   }
 
+  def getMBGH(env: Envelope): GeoHash =
+    GeohashUtils.getMBGH(env.getMinX, env.getMaxX, env.getMinY, env.getMaxY)
+
   def getMBGH(bbox: BoundingBox): GeoHash =
     getMBGH(bbox.getMinX, bbox.getMaxX, bbox.getMinY, bbox.getMaxY)
 

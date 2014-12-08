@@ -24,7 +24,6 @@ import org.apache.accumulo.core.iterators.{Filter, IteratorEnvironment, SortedKe
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.index.IndexEntry.DecodedIndex
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 

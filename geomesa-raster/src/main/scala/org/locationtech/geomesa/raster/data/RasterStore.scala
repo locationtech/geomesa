@@ -1,5 +1,7 @@
 package org.locationtech.geomesa.raster.data
 
+import java.awt.image.RenderedImage
+
 import org.locationtech.geomesa.raster.feature.Raster
 
 /**
@@ -16,6 +18,9 @@ class RasterStore(val rasterOps: RasterOperations) {
 
   def getVisibility() = rasterOps.getVisibility
 
+  // TODO: WCS: This needs to fleshed out to perform any general query planning, etc.
+  // anything general should be performed here,
+  // while anything AccumuloSpecific should be done in AccumuloBackedRasterOperations
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = rasterOps.getRasters(rasterQuery)
 
   def putRaster(raster: Raster) = rasterOps.putRaster(raster)
