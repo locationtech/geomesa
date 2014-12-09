@@ -29,7 +29,7 @@ import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.commands.ExportCommand.{Command, ExportParameters}
 import org.opengis.filter.Filter
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class ExportCommand(parent: JCommander) extends Command with Logging {
 
@@ -89,9 +89,11 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
     val fs = new DataStoreHelper(params).ds.getFeatureSource(params.featureName).asInstanceOf[AccumuloFeatureStore]
 
     // and execute the query
-    Try(fs.getFeatures(q)).getOrElse{
-      throw new Exception("Error: Could not create a SimpleFeatureCollection to export. Please ensure " +
-        "that all arguments are correct in the previous command.")
+    Try(fs.getFeatures(q)) match {
+      case Success(fc) => fc
+      case Failure(ex) =>
+        throw new Exception("Error: Could not create a SimpleFeatureCollection to export. Please ensure " +
+        "that all arguments are correct in the previous command.", ex)
     }
   }
 
