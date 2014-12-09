@@ -37,11 +37,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-plugin-accumulo1.5</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
         </dependency>
