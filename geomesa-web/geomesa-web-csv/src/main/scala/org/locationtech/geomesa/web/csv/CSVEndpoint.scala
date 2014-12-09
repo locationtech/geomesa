@@ -113,15 +113,23 @@ class CSVEndpoint
     }.get
   }
 
+  private def cleanup(csvId: String) {
+    for (record <- records.get(csvId)) {
+      record.csvFile.delete()
+      record.shapefile.foreach(_.delete())
+    }
+    records -= csvId
+  }
+
   post("/:csvid.csv/delete") {
     val csvId = params("csvid")
-    records -= csvId
+    cleanup(csvId)
     Ok()
   }
 
   delete("/:csvid.csv") {
     val csvId = params("csvid")
-    records -= csvId
+    cleanup(csvId)
     Ok()
   }
 }

@@ -139,7 +139,7 @@ package object csv extends Logging {
       classOf[Date]    -> TimeIsParsable,
       classOf[Point]   -> PointIsParsable,
       classOf[String]  -> StringIsParsable
-  )
+    )
 
   val gf = new GeometryFactory
 
@@ -203,13 +203,13 @@ package object csv extends Logging {
 
   private def shpDataStore(shpFile: File, sft: SimpleFeatureType): Try[ShapefileDataStore] =
     Try {
-          val params =
-            Map("url" -> shpFile.toURI.toURL,
-                "create spatial index" -> java.lang.Boolean.FALSE)
-          val shpDS = dsFactory.createNewDataStore(params).asInstanceOf[ShapefileDataStore]
-          shpDS.createSchema(sft)
-          shpDS
-        }
+      val params =
+        Map("url" -> shpFile.toURI.toURL,
+            "create spatial index" -> java.lang.Boolean.FALSE)
+      val shpDS = dsFactory.createNewDataStore(params).asInstanceOf[ShapefileDataStore]
+      shpDS.createSchema(sft)
+      shpDS
+    }
   
   private def writeFeatures(fc: SimpleFeatureCollection, shpFS: SimpleFeatureStore): Try[Unit] = {
     val transaction = new DefaultTransaction("create")
@@ -225,25 +225,26 @@ package object csv extends Logging {
     val dir  = shpFile.getParent
     val rootName = FilenameUtils.getBaseName(shpFile.getName)
 
-    def makeFile(ext: String): File = { new File(dir, s"$rootName.$ext") }
-
     val extensions = Seq("dbf", "fix", "prj", "shp", "shx")
-    val files = extensions.map(makeFile)
-    val zipFile = makeFile("zip")
+    val files = extensions.map(ext => new File(dir, s"$rootName.$ext"))
+    val zipFile = new File(dir, s"$rootName.zip")
 
     def writeZipData = {
       val zip = new ZipOutputStream(new FileOutputStream(zipFile))
       Try {
-            for (file <- files) {
-              zip.putNextEntry(new ZipEntry(file.getName))
-              val in = new FileInputStream(file.getCanonicalFile)
-              (Try {byteStream(in).takeWhile(_ > -1).toList.foreach(zip.write)} eventually in.close()).get
-              zip.closeEntry()
-            }
-          } eventually zip.close()
+        for (file <- files) {
+          zip.putNextEntry(new ZipEntry(file.getName))
+          val in = new FileInputStream(file.getCanonicalFile)
+          (Try {byteStream(in).takeWhile(_ > -1).toList.foreach(zip.write)} eventually in.close()).get
+          zip.closeEntry()
+        }
+      } eventually zip.close()
     }
 
-    for (_ <- writeZipData) yield { zipFile }
+    for (_ <- writeZipData) yield {
+      for (file <- files) file.delete()
+      zipFile
+    }
   }
 
   def ingestCSV(csvFile: File,
