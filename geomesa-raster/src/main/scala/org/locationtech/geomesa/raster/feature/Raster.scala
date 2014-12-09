@@ -39,8 +39,7 @@ import org.locationtech.geomesa.utils.geohash.GeohashUtils
 
 // TODO: WCS: clean up this class and document
 // GEOMESA-569
-
-case class Raster(chunk: RenderedImage, metadata: DecodedIndex) {
+case class Raster(chunk: RenderedImage, metadata: DecodedIndex, resolution: Double) {
   def id = metadata.id
   def name = metadata.id
   def time = new DateTime(metadata.dtgMillis.getOrElse(0L))

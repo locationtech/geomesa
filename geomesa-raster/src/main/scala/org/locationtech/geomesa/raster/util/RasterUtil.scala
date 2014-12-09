@@ -1,11 +1,18 @@
 package org.locationtech.geomesa.raster.util
 
-import java.awt.image.RenderedImage
+import java.awt.image.{WritableRaster, BufferedImage, RenderedImage}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import javax.media.jai.remote.SerializableRenderedImage
 import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory}
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.joda.time.DateTime
+import org.locationtech.geomesa.core.index.DecodedIndex
+import org.locationtech.geomesa.raster.data.{RasterQuery, RasterStore}
+import org.locationtech.geomesa.raster.feature.Raster
+import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.opengis.geometry.Envelope
 
 object RasterUtils {
@@ -64,5 +71,44 @@ object RasterUtils {
 
   def renderedImageToGridCoverage2d(name: String, image: RenderedImage, env: Envelope): GridCoverage2D =
     defaultGridCoverageFactory.create(name, image, env)
+
+  // stolen from elsewhere
+  def getNewImage(width: Int, height: Int, color: Array[Int]): BufferedImage = {
+    val image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
+    val wr = image.getRaster
+    var h = 0
+    var w = 0
+    for (h <- 1 until height) {
+      for (w <- 1 until width) {
+        wr.setPixel(w, h, color)
+      }
+    }
+    image
+  }
+
+  def imageToCoverage(width: Int, height: Int, img: WritableRaster, env: ReferencedEnvelope, cf: GridCoverageFactory) = {
+    cf.create("testRaster", img, env)
+  }
+
+  def createRasterStore(tableName: String) = {
+    val rs = RasterStore("user", "pass", "testInstance", "zk", tableName, "SUSA", "SUSA", true)
+    rs
+  }
+
+  def generateQuery(minX: Int, maxX:Int, minY: Int, maxY: Int, res: Double = 10.0) = {
+    val bb = BoundingBox(new ReferencedEnvelope(minX, maxX, minY, maxY, DefaultGeographicCRS.WGS84))
+    new RasterQuery(bb, res, None, None)
+  }
+
+  def generateTestRaster(minX: Int, maxX:Int, minY: Int, maxY: Int, w: Int = 256, h: Int = 256, res: Double = 10.0) = {
+    val ingestTime = new DateTime()
+    val env = new ReferencedEnvelope(minX, maxX, minY, maxY, DefaultGeographicCRS.WGS84)
+    val bbox = BoundingBox(env)
+    val metadata = DecodedIndex(Raster.getRasterId("testRaster"), bbox.geom, Option(ingestTime.getMillis))
+    val image = getNewImage(w, h, Array[Int](255, 255, 255))
+    val coverage = imageToCoverage(w, h, image.getRaster(), env, defaultGridCoverageFactory)
+    new Raster(coverage.getRenderedImage, metadata, res)
+  }
+
 }
 
