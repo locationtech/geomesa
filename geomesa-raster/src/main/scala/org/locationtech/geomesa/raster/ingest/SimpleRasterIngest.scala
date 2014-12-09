@@ -40,56 +40,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.util.Try
 
-class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCoverageStore) extends Logging {
-
-  lazy val path             = config(IngestRasterParams.FILE_PATH).get
-  lazy val fileType         = config(IngestRasterParams.FILE_TYPE).get
-  lazy val rasterName       = config(IngestRasterParams.RASTER_NAME).get
-  lazy val visibilities     = config(IngestRasterParams.VISIBILITIES).get
-
-  val bwConfig =
-    new BatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(1)
-
-  val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-
-  def runIngestTask() = Try {
-    val file = new File(path)
-    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
-    val rasterMetadata = rasterMetadataFromFile(file, fileType, ingestTime)
-
-    val rasterReader = getReader(file, fileType)
-    val rasterGrid: GridCoverage2D = rasterReader.read(null)
-
-    val envelope = rasterGrid.getEnvelope2D
-    val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
-
-    val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Option(ingestTime.getMillis))
-
-    val raster = Raster(rasterGrid.getRenderedImage, metadata)
-
-//    val raster = Raster(Raster.getRasterId(rasterName),
-//                        rasterName,
-//                        rasterGrid.getRenderedImage,
-//                        bbox,
-//                        rasterReader.getResolutionLevels.head(0),
-//                        GeohashUtils.getMBGH(bbox),
-//                        "degree",
-//                        ingestTime,
-//                        Some(rasterGrid.getSampleDimensions.head.getSampleDimensionType.name),
-//                        Some(0))
-
-    cs.saveRaster(raster)
-  }
-
-  def rasterMetadataFromFile(imageFile: File, imageType: String, time: DateTime): RasterMetadata = {
-    val reader = getReader(imageFile, imageType)
-    val gcOrig: GridCoverage2D = reader.read(null)
-    val crs = gcOrig.getCoordinateReferenceSystem2D
-    val envelope = gcOrig.getEnvelope2D
-    val mbgh = GeohashUtils.getMBGH(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
-    val id = Raster.getRasterId(rasterName)
-    RasterMetadata(id, envelope, mbgh, time, imageType, crs)
-  }
+object SimpleRasterIngest {
 
   def getReader(imageFile: File, imageType: String): AbstractGridCoverage2DReader = {
     imageType match {
@@ -110,7 +61,65 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     hints.add(new RenderingHints(JAI.KEY_IMAGE_LAYOUT, l))
     new DTEDReader(imageFile, hints)
   }
+
+  def rasterMetadataFromFile(rasterName: String, imageFile: File, imageType: String, time: DateTime): RasterMetadata = {
+    val reader = getReader(imageFile, imageType)
+    val gcOrig: GridCoverage2D = reader.read(null)
+    val crs = gcOrig.getCoordinateReferenceSystem2D
+    val envelope = gcOrig.getEnvelope2D
+    val mbgh = GeohashUtils.getMBGH(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
+    val id = Raster.getRasterId(rasterName)
+    RasterMetadata(id, envelope, mbgh, time, imageType, crs)
+  }
 }
+
+import SimpleRasterIngest._
+
+class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCoverageStore) extends Logging {
+
+  lazy val path = config(IngestRasterParams.FILE_PATH).get
+  lazy val fileType = config(IngestRasterParams.FILE_TYPE).get
+  lazy val rasterName = config(IngestRasterParams.RASTER_NAME).get
+  lazy val visibilities = config(IngestRasterParams.VISIBILITIES).get
+
+  val bwConfig =
+    new BatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(1)
+
+  val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+
+  def runIngestTask() = Try {
+    val file = new File(path)
+    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
+    val rasterMetadata = rasterMetadataFromFile(rasterName, file, fileType, ingestTime)
+
+    val rasterReader = getReader(file, fileType)
+    val rasterGrid: GridCoverage2D = rasterReader.read(null)
+
+    val envelope = rasterGrid.getEnvelope2D
+    val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
+
+    val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Option(ingestTime.getMillis))
+
+    val raster = Raster(rasterGrid.getRenderedImage, metadata)
+
+    //    val raster = Raster(Raster.getRasterId(rasterName),
+    //                        rasterName,
+    //                        rasterGrid.getRenderedImage,
+    //                        bbox,
+    //                        rasterReader.getResolutionLevels.head(0),
+    //                        GeohashUtils.getMBGH(bbox),
+    //                        "degree",
+    //                        ingestTime,
+    //                        Some(rasterGrid.getSampleDimensions.head.getSampleDimensionType.name),
+    //                        Some(0))
+
+    cs.saveRaster(raster)
+  }
+
+
+
+}
+
 
 case class RasterMetadata(id: String,
                           envelope: Envelope2D,

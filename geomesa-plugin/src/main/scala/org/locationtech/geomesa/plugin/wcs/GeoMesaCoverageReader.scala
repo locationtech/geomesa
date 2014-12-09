@@ -12,7 +12,7 @@ import org.geotools.parameter.Parameter
 import org.geotools.util.Utilities
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.raster.data.{AccumuloCoverageStore, RasterQuery}
+import org.locationtech.geomesa.raster.data.{RasterStore, AccumuloCoverageStore, RasterQuery}
 import org.locationtech.geomesa.raster.feature
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds}
 import org.opengis.parameter.GeneralParameterValue
@@ -68,7 +68,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   def getGeohashPrecision = resolutionStr.toInt
 
   // TODO: Provide writeVisibilites??  Sort out read visibilites
-  val ars: AccumuloCoverageStore = AccumuloCoverageStore(user, password, instanceId, zookeepers, table, authtokens, "")
+  val ars: RasterStore = RasterStore(user, password, instanceId, zookeepers, table, authtokens, "")
 
   def read(parameters: Array[GeneralParameterValue]): GridCoverage2D = {
     logger.debug(s"READ: $parameters")
