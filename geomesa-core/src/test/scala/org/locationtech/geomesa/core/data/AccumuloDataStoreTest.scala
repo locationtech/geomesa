@@ -1074,10 +1074,22 @@ class AccumuloDataStoreTest extends Specification {
 
       val filter = ff.id(ff.featureId("2"))
       val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
-      writer must beAnInstanceOf[ModifyAccumuloFeatureWriter]
       writer.hasNext must beTrue
-      writer.next.getID mustEqual "2"
+      val feat = writer.next
+      feat.getID mustEqual "2"
+      feat.getAttribute("name") mustEqual "2"
+      feat.setAttribute("name", "2-updated")
+      writer.write()
       writer.hasNext must beFalse
+      writer.close()
+
+      val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
+      reader.hasNext must beTrue
+      val updated = reader.next()
+      reader.hasNext must beFalse
+      reader.close()
+      updated.getID mustEqual("2")
+      updated.getAttribute("name") mustEqual "2-updated"
     }
   }
 
