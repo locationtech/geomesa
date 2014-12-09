@@ -49,6 +49,11 @@ package object csv extends Logging {
       for (r <- tr; b <- fn(a.asInstanceOf[A])) yield r += b
     }.map(_.result())
 
+  def tryOption[A, B](in: Option[A])(fn: A => Try[B]): Try[Option[B]] = in match {
+    case None    => Success(None)
+    case Some(a) => fn(a).map(Some.apply)
+  }
+
   implicit class TryOps[A](val t: Try[A]) extends AnyVal {
     def eventually[Ignore](effect: => Ignore): Try[A] = {
       val ignoring = (_: Any) => { effect; t }
@@ -154,50 +159,99 @@ package object csv extends Logging {
   protected[csv] def buildFeatureCollection(reader: Reader,
                                             hasHeader: Boolean,
                                             sft: SimpleFeatureType,
-                                            latlonFields: Option[(String, String)]): Try[SimpleFeatureCollection] =
-    Try {
-      def idxOfField(fname: String) = {
-        sft.getType(fname)
-        val idx = sft.indexOf(fname)
-        if (idx > -1) {
-          val t = sft.getType(idx)
-          if (t.getBinding == classOf[java.lang.Double]) Success(idx)
-          else Failure(new IllegalArgumentException(s"field $fname is not a Double field"))
-        } else Failure(new IllegalArgumentException(s"could not find field $fname"))
+                                            latlonFields: Option[(String, String)]): Try[DefaultFeatureCollection] = {
+    def idxOfField(fname: String) = {
+      sft.getType(fname)
+      val idx = sft.indexOf(fname)
+      if (idx > -1) {
+        val t = sft.getType(idx)
+        if (t.getBinding == classOf[java.lang.Double]) Success(idx)
+        else Failure(new IllegalArgumentException(s"field $fname is not a Double field"))
+      } else Failure(new IllegalArgumentException(s"could not find field $fname"))
+    }
+
+    val latlonIdx: Try[Option[(Int, Int)]] = tryOption(latlonFields) { case (latf, lonf) =>
+      for (lati <- idxOfField(latf); loni <- idxOfField(lonf)) yield (lati, loni)
+    }
+
+    def buildFeature(record: CSVRecord,
+                     fb: SimpleFeatureBuilder,
+                     parsers: Seq[Parsable[_<:AnyRef]],
+                     lli: Option[(Int, Int)]): Option[SimpleFeature] =
+      Try {
+            fb.reset()
+            val fieldVals =
+              tryTraverse(record.iterator.toIterable.zip(parsers)) { case (v, p) => p.parse(v) }.get.toArray
+            fb.addAll(fieldVals)
+            for ((lati, loni) <- lli) {
+              val lat = fieldVals(lati).asInstanceOf[jDouble] // should be Doubles, as verified
+              val lon = fieldVals(loni).asInstanceOf[jDouble] // when determining latlonIdx
+              fb.add(gf.createPoint(new Coordinate(lon, lat)))
+            }
+            fb.buildFeature(null)
+          } match {
+        case Success(f)  => Some(f)
+        case Failure(ex) => logger.info(s"Failed to parse CSV record:\n$record"); None
       }
 
-      val latlonIdx = for ((latf, lonf) <- latlonFields) yield {
-        (for (lati <- idxOfField(latf); loni <- idxOfField(lonf)) yield (lati, loni)).get
-      }
-      val fb = new SimpleFeatureBuilder(sft)
-      val fieldParsers = for (t <- sft.getTypes) yield { fieldParserMap(t.getBinding) }
-
-      def buildFeature(record: CSVRecord): Option[SimpleFeature] =
-        Try {
-          fb.reset()
-          val fieldVals =
-            tryTraverse(record.iterator.toIterable.zip(fieldParsers)) { case (v, p) => p.parse(v) }.get.toArray
-          fb.addAll(fieldVals)
-          for ((lati, loni) <- latlonIdx) {
-            val lat = fieldVals(lati).asInstanceOf[jDouble] // should be Doubles, as verified
-            val lon = fieldVals(loni).asInstanceOf[jDouble] // when determining latlonIdx
-            fb.add(gf.createPoint(new Coordinate(lon, lat)))
-          }
-          fb.buildFeature(null)
-        } match {
-          case Success(f)  => Some(f)
-          case Failure(ex) => logger.info(s"Failed to parse CSV record:\n$record"); None
-        }
-
+    for {
+      lli     <- latlonIdx
+      fb      <- Try { new SimpleFeatureBuilder(sft) }
+      parsers <- Try { for (t <- sft.getTypes) yield { fieldParserMap(t.getBinding) } }
+    } yield {
       val fc = new DefaultFeatureCollection
       val records = CSVFormat.DEFAULT.parse(reader).iterator()
       if (hasHeader) { records.next } // burn off header rather than try (and fail) to parse it.
       for {
         record <- records
-        f      <- buildFeature(record) // logs and discards lines that fail to parse but keeps processing
+        f      <- buildFeature(record, fb, parsers, lli) // logs and discards lines that fail to parse but keeps processing
       } fc.add(f)
       fc
     }
+  }
+//    Try {
+//      def idxOfField(fname: String) = {
+//        sft.getType(fname)
+//        val idx = sft.indexOf(fname)
+//        if (idx > -1) {
+//          val t = sft.getType(idx)
+//          if (t.getBinding == classOf[java.lang.Double]) Success(idx)
+//          else Failure(new IllegalArgumentException(s"field $fname is not a Double field"))
+//        } else Failure(new IllegalArgumentException(s"could not find field $fname"))
+//      }
+//
+//      val latlonIdx = for ((latf, lonf) <- latlonFields) yield {
+//        (for (lati <- idxOfField(latf); loni <- idxOfField(lonf)) yield (lati, loni)).get
+//      }
+//      val fb = new SimpleFeatureBuilder(sft)
+//      val fieldParsers = for (t <- sft.getTypes) yield { fieldParserMap(t.getBinding) }
+//
+//      def buildFeature(record: CSVRecord): Option[SimpleFeature] =
+//        Try {
+//          fb.reset()
+//          val fieldVals =
+//            tryTraverse(record.iterator.toIterable.zip(fieldParsers)) { case (v, p) => p.parse(v) }.get.toArray
+//          fb.addAll(fieldVals)
+//          for ((lati, loni) <- latlonIdx) {
+//            val lat = fieldVals(lati).asInstanceOf[jDouble] // should be Doubles, as verified
+//            val lon = fieldVals(loni).asInstanceOf[jDouble] // when determining latlonIdx
+//            fb.add(gf.createPoint(new Coordinate(lon, lat)))
+//          }
+//          fb.buildFeature(null)
+//        } match {
+//          case Success(f)  => Some(f)
+//          case Failure(ex) => logger.info(s"Failed to parse CSV record:\n$record"); None
+//        }
+//
+//      val fc = new DefaultFeatureCollection
+//      val records = CSVFormat.DEFAULT.parse(reader).iterator()
+//      if (hasHeader) { records.next } // burn off header rather than try (and fail) to parse it.
+//      for {
+//        record <- records
+//        f      <- buildFeature(record) // logs and discards lines that fail to parse but keeps processing
+//      } fc.add(f)
+//      fc
+//    }
 
   private val dsFactory = new ShapefileDataStoreFactory
 
