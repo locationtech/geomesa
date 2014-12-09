@@ -36,7 +36,7 @@ class RasterStoreTest extends Specification {
   def createAndFillRasterStore = {
 
     //val rs = RasterStore("user", "pass", getClass.toString, "zk", getClass.toString, "S,USA", "S,USA", true)
-    val rs = RasterStore("user", "pass", getClass.toString, "zk", getClass.toString, "SUSA", "SUSA", true)
+    val rs = RasterStore("user", "pass", "testInstance", "zk", "testTable", "SUSA", "SUSA", true)
 
     val rasterName = "testRaster"
 
@@ -56,12 +56,12 @@ class RasterStoreTest extends Specification {
 
     val raster = new Raster(coverage.getRenderedImage, metadata)
 
-    rs.ensureTableExists()
     rs.putRaster(raster)
     rs
   }
   def generateQuery = {
-    ???
+    val bb = BoundingBox(new ReferencedEnvelope(0, 50, 0, 50, DefaultGeographicCRS.WGS84))
+    new RasterQuery(bb, "10", None, None)
   }
 
   // stolen from elsewhere
@@ -86,7 +86,9 @@ class RasterStoreTest extends Specification {
     "create a Raster Store" in {
       val theStore = createAndFillRasterStore
       theStore must beAnInstanceOf[RasterStore]
-      //val theIterator = theStore.getRasters()
+      val theIterator = theStore.getRasters(generateQuery)
+      val theRaster = theIterator.next()
+      theRaster must beAnInstanceOf[Raster]
     }
   }
 

@@ -136,8 +136,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   private def getCF(raster: Raster): Text = new Text("")
 
   private def getCQ(raster: Raster): Text = {
-    val timeStampString = dateToAccTimestamp(raster.time).toString
-    new Text(s"${raster.id}~$timeStampString")
+    new Text(RasterIndexEntry.encodeIndexCQMetadata(raster.id, raster.metadata.geom, Some(raster.time)))
   }
 
   /**

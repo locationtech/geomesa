@@ -41,7 +41,8 @@ object RasterStore {
     val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(auths.split(","), conn)
 
     val rasterOps = new AccumuloBackedRasterOperations(conn, tableName, authorizationsProvider, writeVisibilities)
-
+    // this will actually create the Accumulo Table
+    rasterOps.ensureTableExists()
     // NB: JNH: Skipping the shards/writeMemory/writeThreads/queryThreadsParams
     new RasterStore(rasterOps)
   }
