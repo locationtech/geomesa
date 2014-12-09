@@ -14,7 +14,8 @@ class AccumuloRasterQueryPlanner extends Logging {
     val res = rq.resolution
 
     val rows = hashes.map { gh =>
-      // TODO: Use Row Formatter?
+      // TODO: Use Row Formatter here
+      // GEOMESA-555
       new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"))
     }
 

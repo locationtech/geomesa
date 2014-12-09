@@ -132,6 +132,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   def ensureTableExists() = ensureTableExists(coverageTable)
 
   //TODO: WCS: change to our row id format in RasterIndexSchema (which needs to be created)
+  // GEOMESA-555
   private def getRow(ras: Raster) = {
     val fauxRes = 10
     new Text(s"~${fauxRes}~${ras.mbgh.hash}")
