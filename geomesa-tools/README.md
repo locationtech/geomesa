@@ -93,7 +93,10 @@ Due to licensing restrictions, a necessary dependency (jai-core) for shape file 
     
 This library can be downloaded from your local nexus repo or `http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib.zip`
 
-To install, copy the jai_core.jar and jai_code.jar into $GEOMESA_HOME/lib/
+To install, copy the jai_core.jar and jai_code.jar into `$GEOMESA_HOME/lib/`
+
+Optionally there is a script bundled as `$GEOMESA_HOME/bin/geomesa-install-jai` that will attempt to wget and install 
+the jai libraries
 
 ###Logging configuration
 GeoMesa tools comes bundled by default with an slf4j implementation that is installed to the $GEOMESA_HOME/lib directory

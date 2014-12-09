@@ -75,6 +75,7 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
 
   def getFeatureCollection(overrideAttributes: Option[String] = None): SimpleFeatureCollection = {
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+    logger.info(s"Applying CQL filter ${filter.toString}")
     val q = new Query(params.featureName, filter)
     Option(params.maxFeatures).foreach(q.setMaxFeatures(_))
 
@@ -104,7 +105,7 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
   
   def getFile(): File = Option(params.file) match {
     case Some(file) => file
-    case None       => throw new Exception("Error: --file option required")
+    case None       => throw new Exception("Error: -o or --output for file-based output is required for shapefile export (stdout not supported for shape files)")
   }
 
   def usefile = Option(params.file).nonEmpty

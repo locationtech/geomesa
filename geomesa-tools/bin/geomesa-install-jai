@@ -1,0 +1,29 @@
+#! /usr/bin/env bash
+#
+# Copyright 2014 Commonwealth Computer Research, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Check environment variables before running anything, warn user on issues:
+if [[ (-z "$GEOMESA_HOME") ]]; then
+    echo "Error: GEOMESA_HOME environmental variable not found...install geomesa or define GEOMESA_HOME and try again"
+    exit
+else
+    echo "Trying to install Java Advanced Imaging (jai) from http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib.zip to $GEOMESA_HOME"
+    wget -O /tmp/jai-1_1_3-lib.zip http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib.zip \
+      && unzip -j -d $GEOMESA_HOME/lib/ /tmp/jai-1_1_3-lib.zip '*.jar' \
+      && rm /tmp/jai-1_1_3-lib.zip -f \
+      && chmod 0755 $GEOMESA_HOME/lib/jai_codec.jar $GEOMESA_HOME/lib/jai_core.jar \
+      && echo "Successfully installed jai to $GEOMESA_HOME"
+fi
