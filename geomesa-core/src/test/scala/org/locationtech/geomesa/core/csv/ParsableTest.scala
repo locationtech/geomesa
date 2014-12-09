@@ -20,6 +20,7 @@ import java.lang.{Integer => jInt, Double => jDouble}
 
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.csv.DMS.North
 import org.locationtech.geomesa.core.csv.Parsable._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -32,9 +33,15 @@ class ParsableTest extends Specification {
 
   val i = 1
   val d = 1.0
+  val dms = DMS(38,4,31.17,North)
   val time = new DateTime
-  val pointStr = s"POINT(0.0 0.0)"
+  val pointStr = "POINT(0.0 0.0)"
+  val dmsPtStr = "38:04:31.17N -78:29:42.32E"
+  val dmsPtX = -78.495089
+  val dmsPtY =  38.075325
   val s = "argle"
+
+  val eps = 0.000001
 
   override def is =
     "IntIsParsable"    ! {
@@ -43,6 +50,9 @@ class ParsableTest extends Specification {
     "DoubleIsParsable" ! {
       DoubleIsParsable.parse(d.toString) == Success(new jDouble(d))
     } ^
+    "DoubleIsParsable handles DMS" ! {
+      DoubleIsParsable.parse(dms.toString) == Success(new jDouble(dms.toDouble))
+    } ^
     "TimeIsParsable"   ! {
       TimeIsParsable.timeFormats.forall(f =>
         TimeIsParsable.parse(f.print(time)).map(_.getTime / 1000) == Success(time.getMillis / 1000)
@@ -50,6 +60,11 @@ class ParsableTest extends Specification {
     } ^
     "PointIsParsable"  ! {
       PointIsParsable.parse(pointStr) == Success(WKTUtils.read(pointStr))
+    } ^
+    "PointIsParsable handles DMS" ! {
+      val Success(resultPt) = PointIsParsable.parse(dmsPtStr)
+      math.abs(resultPt.getX - dmsPtX) < eps
+      math.abs(resultPt.getY - dmsPtY) < eps
     } ^
     "StringIsParsable" ! {
       StringIsParsable.parse(s) == Success(s)

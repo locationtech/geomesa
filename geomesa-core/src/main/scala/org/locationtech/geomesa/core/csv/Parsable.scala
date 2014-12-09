@@ -36,7 +36,8 @@ object Parsable {
   implicit object DoubleIsParsable extends Parsable[jDouble] {
     val priority = 1
     val typeChar = 'd'
-    def parse(datum: String): Try[jDouble] = Try(new jDouble(datum.toDouble))
+    def parse(datum: String): Try[jDouble] =
+      Try(datum.toDouble) orElse Try(DMS(datum).toDouble) map { new jDouble(_) }
   }
 
   implicit object TimeIsParsable extends Parsable[Date] {
@@ -64,7 +65,22 @@ object Parsable {
   implicit object PointIsParsable extends Parsable[Point] {
     val priority = 3
     val typeChar = 'p'
-    def parse(datum: String): Try[Point] = Try { WKTUtils.read(datum).asInstanceOf[Point] }
+    def parseWKT(datum: String) = Try { WKTUtils.read(datum).asInstanceOf[Point] }
+    def parseDMS(datum: String) = {
+      import DMS.{LatHemi, LonHemi}
+      for {
+        List(c1, c2) <- Try { DMS.regex.findAllIn(datum).map(DMS.apply).toList }
+      } yield {
+        (c1.hemisphere, c2.hemisphere) match {
+          case (_: LatHemi, _: LonHemi) => parseWKT(s"POINT(${c2.toDouble} ${c1.toDouble})").get
+          case (_: LonHemi, _: LatHemi) => parseWKT(s"POINT(${c1.toDouble} ${c2.toDouble})").get
+          case _ => throw new IllegalArgumentException("Need one coordinate in each direction")
+        }
+      }
+
+    }
+    def parse(datum: String): Try[Point] = parseWKT(datum) orElse parseDMS(datum)
+
   }
 
   implicit object StringIsParsable extends Parsable[String] {
