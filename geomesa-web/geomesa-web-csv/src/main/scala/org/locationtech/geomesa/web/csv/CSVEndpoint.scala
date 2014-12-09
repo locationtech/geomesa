@@ -112,4 +112,16 @@ class CSVEndpoint
       NotFound(body = ex, reason = ex.getMessage)
     }.get
   }
+
+  post("/:csvid.csv/delete") {
+    val csvId = params("csvid")
+    records -= csvId
+    Ok()
+  }
+
+  delete("/:csvid.csv") {
+    val csvId = params("csvid")
+    records -= csvId
+    Ok()
+  }
 }
