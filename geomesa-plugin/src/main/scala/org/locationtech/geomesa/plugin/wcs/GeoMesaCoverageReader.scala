@@ -71,6 +71,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   val ars: AccumuloCoverageStore = AccumuloCoverageStore(user, password, instanceId, zookeepers, table, authtokens, "")
 
   def read(parameters: Array[GeneralParameterValue]): GridCoverage2D = {
+    logger.debug(s"READ: $parameters")
     val rq = getRQ(parameters)
     val rasters: Iterator[feature.Raster] = ars.getRasters(rq)
     rastersToCoverage(rasters)
