@@ -32,6 +32,7 @@ import org.geotools.geometry.Envelope2D
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
+import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
 import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.utils.geohash.{GeohashUtils, BoundingBox, GeoHash}
@@ -61,16 +62,21 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
 
     val envelope = rasterGrid.getEnvelope2D
     val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
-    val raster = Raster(Raster.getRasterId(rasterName),
-                        rasterName,
-                        rasterGrid.getRenderedImage,
-                        bbox,
-                        rasterReader.getResolutionLevels.head(0),
-                        GeohashUtils.getMBGH(bbox),
-                        "degree",
-                        ingestTime,
-                        Some(rasterGrid.getSampleDimensions.head.getSampleDimensionType.name),
-                        Some(0))
+
+    val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Option(ingestTime.getMillis))
+
+    val raster = Raster(rasterGrid.getRenderedImage, metadata)
+
+//    val raster = Raster(Raster.getRasterId(rasterName),
+//                        rasterName,
+//                        rasterGrid.getRenderedImage,
+//                        bbox,
+//                        rasterReader.getResolutionLevels.head(0),
+//                        GeohashUtils.getMBGH(bbox),
+//                        "degree",
+//                        ingestTime,
+//                        Some(rasterGrid.getSampleDimensions.head.getSampleDimensionType.name),
+//                        Some(0))
 
     cs.saveRaster(raster)
   }

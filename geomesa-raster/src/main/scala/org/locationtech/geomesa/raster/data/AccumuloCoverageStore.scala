@@ -17,14 +17,18 @@
 
 package org.locationtech.geomesa.raster.data
 
+import java.awt.image.RenderedImage
 import java.io.Serializable
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.Connector
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory._
+import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
+import org.locationtech.geomesa.raster.AccumuloStoreHelper
 import org.locationtech.geomesa.raster.feature.Raster
-import org.locationtech.geomesa.raster.ingest.{IngestRasterParams, GeoserverClientService}
+import org.locationtech.geomesa.raster.ingest.{GeoserverClientService, IngestRasterParams}
 
 import scala.util.Try
 
@@ -84,9 +88,23 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
 }
 
 object AccumuloCoverageStore extends Logging {
-  import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory._
-  import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
-  import org.locationtech.geomesa.raster.AccumuloStoreHelper
+
+   def apply(username: String,
+             password: String,
+             instanceId: String,
+             zookeepers: String,
+             tableName: String,
+             auths: String,
+             writeVisibilities: String): AccumuloCoverageStore = {
+
+     val conn = AccumuloStoreHelper.buildAccumuloConnector(username, password, instanceId, zookeepers)
+     val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(auths.split(","), conn)
+
+     val rasterOps = new AccumuloBackedRasterOperations(conn, tableName, authorizationsProvider, writeVisibilities)
+
+     // NB: JNH: Skipping the shards/writeMemory/writeThreads/queryThreadsParams
+     new AccumuloCoverageStore(new RasterStore(rasterOps), None)
+   }
 
   def apply(config: JMap[String, Serializable]): AccumuloCoverageStore = {
     val visibility = AccumuloStoreHelper.getVisibility(config)
@@ -134,7 +152,7 @@ object AccumuloCoverageStore extends Logging {
               logger.error("Failed to instantiate Geoserver client service: wrong parameters.")
               sys.exit()
           }).toMap
-        Some(new GeoserverClientService(dsConnectConfig ++ gsConnectConfig))
+        Some(new GeoserverClientService(gsConnectConfig))
       }
 
     new AccumuloCoverageStore(new RasterStore(rasterOps), geoserverClientServiceO)
