@@ -12,7 +12,7 @@ import org.geotools.parameter.Parameter
 import org.geotools.util.Utilities
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.raster.data.{RasterStore, AccumuloCoverageStore, RasterQuery}
+import org.locationtech.geomesa.raster.data.{RasterQuery, RasterStore}
 import org.locationtech.geomesa.raster.feature
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds}
 import org.opengis.parameter.GeneralParameterValue
@@ -91,7 +91,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     val min = Array(Math.max(env.getMinimum(0), -180) + .00000001, Math.max(env.getMinimum(1), -90) + .00000001)
     val max = Array(Math.min(env.getMaximum(0), 180) - .00000001, Math.min(env.getMaximum(1), 90) - .00000001)
     val bbox = BoundingBox(Bounds(min(0), max(0)), Bounds(min(1), max(1)))
-    RasterQuery(bbox, resolutionStr, None, None)
+    RasterQuery(bbox, resolutionStr.toDouble, None, None)
   }
 
 }
