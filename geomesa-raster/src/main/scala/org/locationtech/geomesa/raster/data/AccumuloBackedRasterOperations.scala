@@ -131,7 +131,11 @@ class AccumuloBackedRasterOperations(val connector: Connector,
 
   def ensureTableExists() = ensureTableExists(coverageTable)
 
-  private def getRow(geo: GeoHash) = new Text(s"~${geo.prec}~${geo.hash}")
+  //TODO: WCS: change to our row id format in RasterIndexSchema (which needs to be created)
+  private def getRow(ras: Raster) = {
+    val fauxRes = 10
+    new Text(s"~${fauxRes}~${ras.mbgh.hash}")
+  }
 
   private def getCF(raster: Raster): Text = new Text("")
 
@@ -165,7 +169,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
    * @return Mutation instance
    */
   private def createMutation(raster: Raster): Mutation = {
-    val mutation = new Mutation(getRow(raster.mbgh))
+    val mutation = new Mutation(getRow(raster))
     val colFam = getCF(raster)
     val colQual = getCQ(raster)
     val timestamp: Long = dateToAccTimestamp(raster.time)
