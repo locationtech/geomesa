@@ -26,21 +26,21 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 
 import scala.util.{Failure, Success, Try}
 
-object Parsable {
-  implicit object IntIsParsable extends Parsable[jInt] {
+object CSVParser {
+  implicit object IntParser extends CSVParser[jInt] {
     val priority = 0
     val typeChar = 'i'
     def parse(datum: String): Try[jInt] = Try(new jInt(datum.toInt))
   }
 
-  implicit object DoubleIsParsable extends Parsable[jDouble] {
+  implicit object DoubleParser extends CSVParser[jDouble] {
     val priority = 1
     val typeChar = 'd'
     def parse(datum: String): Try[jDouble] =
       Try(datum.toDouble) orElse Try(DMS(datum).toDouble) map { new jDouble(_) }
   }
 
-  implicit object TimeIsParsable extends Parsable[Date] {
+  implicit object TimeParser extends CSVParser[Date] {
     val priority = 2
     val timePatterns = Seq("YYYY-MM-dd'T'HH:mm:ss",
                            "YYYY-MM-dd'T'HH:mm:ssZ",
@@ -62,7 +62,7 @@ object Parsable {
     }
   }
 
-  implicit object PointIsParsable extends Parsable[Point] {
+  implicit object PointParser extends CSVParser[Point] {
     val priority = 3
     val typeChar = 'p'
     def parseWKT(datum: String) = Try { WKTUtils.read(datum).asInstanceOf[Point] }
@@ -83,23 +83,23 @@ object Parsable {
 
   }
 
-  implicit object StringIsParsable extends Parsable[String] {
+  implicit object StringParser extends CSVParser[String] {
     val priority = 4
     val typeChar = 's'
     def parse(datum: String): Try[String] = Success(datum)
   }
 
-  lazy val parsers: Seq[Parsable[_ <: AnyRef]] =
-    Seq(IntIsParsable,
-        DoubleIsParsable,
-        TimeIsParsable,
-        PointIsParsable,
-        StringIsParsable).sortBy(_.priority)
-  lazy val parserMap: Map[Char, Parsable[_ <: AnyRef]] =
+  lazy val parsers: Seq[CSVParser[_ <: AnyRef]] =
+    Seq(IntParser,
+        DoubleParser,
+        TimeParser,
+        PointParser,
+        StringParser).sortBy(_.priority)
+  lazy val parserMap: Map[Char, CSVParser[_ <: AnyRef]] =
     parsers.map(p => (p.typeChar, p)).toMap
 }
 
-sealed trait Parsable[A <: AnyRef] {
+sealed trait CSVParser[A <: AnyRef] {
   def priority: Int
   def parse(datum: String): Try[A]
   def typeChar: Char

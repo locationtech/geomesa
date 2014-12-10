@@ -8,7 +8,7 @@ import org.apache.commons.io.FilenameUtils
 
 import scala.collection.mutable
 import scala.concurrent.Future
-import scala.util.{Failure, Try}
+import scala.util.{Success, Failure}
 
 import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
 import org.locationtech.geomesa.core.csv
@@ -34,72 +34,72 @@ class CSVEndpoint
       Record(localFile, Future(csv.guessTypes(localFile, hasHeader)), None, hasHeader)
   }
   case class Record(csvFile: File,
-                    inferredSchemaF: Future[Try[csv.TypeSchema]],
+                    inferredSchemaF: Future[csv.TypeSchema],
                     shapefile: Option[File],
                     hasHeader: Boolean) {
-    def inferredTS: Try[csv.TypeSchema] =
-      inferredSchemaF.value.getOrElse(Failure(new Exception("Inferred schema not available yet"))).flatten
-    def inferredName: Try[String] = inferredTS.map(_.name)
-    def inferredSchema: Try[String] = inferredTS.map(_.schema)
+    def inferredTS: csv.TypeSchema =
+      inferredSchemaF.value.
+      getOrElse(throw new Exception("Inferred schema not available yet")) match {
+        case Success(ts) => ts
+        case Failure(ex) => throw ex
+      }
+    def inferredName: String = inferredTS.name
+    def inferredSchema: String = inferredTS.schema
   }
   val records = mutable.Map[String, Record]()
 
   post("/") {
-    val idResponse =
-      for (fileItem <- Try { fileParams("csvfile") }) yield {
-        val uuid = UUID.randomUUID.toString
-        val csvFile = File.createTempFile(FilenameUtils.removeExtension(fileItem.name),".csv")
-        fileItem.write(csvFile)
-        val hasHeader = params.get("hasHeader").map(_.toBoolean).getOrElse(true)
-        records += uuid -> Record(csvFile, hasHeader)
-        Ok(uuid)
-      }
-
-    idResponse.recover { case ex =>
-      logger.warn("Error uploading CSV", ex)
-      NotAcceptable(body = ex, reason = ex.getMessage)
-    }.get
+    try {
+      val fileItem = fileParams("csvfile")
+      val uuid = UUID.randomUUID.toString
+      val csvFile = File.createTempFile(FilenameUtils.removeExtension(fileItem.name), ".csv")
+      fileItem.write(csvFile)
+      val hasHeader = params.get("hasHeader").map(_.toBoolean).getOrElse(true)
+      records += uuid -> Record(csvFile, hasHeader)
+      Ok(uuid)
+    } catch {
+      case ex: Throwable =>
+        logger.warn("Error uploading CSV", ex)
+        NotAcceptable(body = ex, reason = ex.getMessage)
+    }
   }
 
   get("/:csvid.csv/types") {
-    val schemaResponse =
-      for {
-        record                       <- Try { records(params("csvid")) }
-        csv.TypeSchema(name, schema) <- record.inferredTS
-      } yield {
-        Ok(s"$name\n$schema")
-      }
-
-    schemaResponse.recover { case ex =>
-      logger.warn("Error inferring types", ex)
-      NotFound(body = ex, reason = ex.getMessage)
-    }.get
+    try {
+      val record = records(params("csvid"))
+      val csv.TypeSchema(name, schema) = record.inferredTS
+      Ok(s"$name\n$schema")
+    } catch {
+      case ex: Throwable =>
+        logger.warn("Error inferring types", ex)
+        NotFound(body = ex, reason = ex.getMessage)
+    }
   }
 
   // for lat/lon geometry, add a new geometry field to the end of the requested schema
   // and specify the latField and lonField in request parameters
   post("/:csvid.shp") {
-    val csvId = params("csvid")
-    val latlonFields = for (latf <- params.get("latField"); lonf <- params.get("lonField")) yield (latf, lonf)
-    val urlResponse = for {
-      record    <- Try { records(csvId) }
-      name      <- Try { params("name") }   orElse record.inferredName
-      schema    <- Try { params("schema") } orElse record.inferredSchema
-      shapefile <- csv.ingestCSV(record.csvFile, record.hasHeader, name, schema, latlonFields)
-    } yield {
+    try {
+      val csvId = params("csvid")
+      val latlonFields = for (latf <- params.get("latField"); lonf <- params.get("lonField")) yield (latf, lonf)
+      val record = records(csvId)
+      val name = params.getOrElse("name", record.inferredName)
+      val schema = params.getOrElse("schema", record.inferredSchema)
+      val shapefile = csv.ingestCSV(record.csvFile, record.hasHeader, name, schema, latlonFields)
+      for (shpFile <- record.shapefile) { shpFile.delete() }  // clear if one exists already
       records.update(csvId, record.copy(shapefile = Some(shapefile)))
       Ok(csvId + ".shp")
+    } catch {
+      case ex: Throwable =>
+        logger.warn("Error creating shapefile", ex)
+        NotAcceptable(body = ex, reason = ex.getMessage)
     }
-
-    urlResponse.recover { case ex =>
-      logger.warn("Error creating shapefile", ex)
-      NotAcceptable(body = ex, reason = ex.getMessage)
-    }.get
   }
 
   get("/:csvid.shp") {
-    val csvId = params("csvid")
-    val fileResponse = for (record <- Try { records(csvId) }) yield {
+    try {
+      val csvId = params("csvid")
+      val record = records(csvId)
       record.shapefile match {
         case Some(shpFile) =>
           contentType = "application/octet-stream"
@@ -107,12 +107,11 @@ class CSVEndpoint
           Ok(shpFile)
         case None => NotFound("Shapefile content has not been created")
       }
+    } catch {
+      case ex: Throwable =>
+        logger.warn("Error retrieving shapefile", ex)
+        NotFound(body = ex, reason = ex.getMessage)
     }
-
-    fileResponse.recover { case ex =>
-      logger.warn("Error retrieving shapefile", ex)
-      NotFound(body = ex, reason = ex.getMessage)
-    }.get
   }
 
   private def cleanup(csvId: String) {

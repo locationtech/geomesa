@@ -30,117 +30,90 @@ import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactor
 import org.geotools.data.simple.{SimpleFeatureStore, SimpleFeatureCollection}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.feature.DefaultFeatureCollection
-import org.locationtech.geomesa.core.csv.Parsable._
+import org.locationtech.geomesa.core.csv.CSVParser._
 import org.locationtech.geomesa.core.util.SftBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
-import scala.collection.generic.CanBuildFrom
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
+import scala.util.Success
 
 package object csv extends Logging {
-  // a couple things to make Try work better
-  def tryTraverse[A, B, M[_] <: TraversableOnce[_]](in: M[A])(fn: A => Try[B])
-                                                   (implicit cbf: CanBuildFrom[M[A], B, M[B]]): Try[M[B]] =
-    in.foldLeft(Try(cbf(in))) { (tr, a) =>
-      for (r <- tr; b <- fn(a.asInstanceOf[A])) yield r += b
-    }.map(_.result())
-
-  def tryOption[A, B](in: Option[A])(fn: A => Try[B]): Try[Option[B]] = in match {
-    case None    => Success(None)
-    case Some(a) => fn(a).map(Some.apply)
-  }
-
-  implicit class TryOps[A](val t: Try[A]) extends AnyVal {
-    def eventually[Ignore](effect: => Ignore): Try[A] = {
-      val ignoring = (_: Any) => { effect; t }
-      t.transform(ignoring, ignoring)
-    }
-  }
-
   case class TypeSchema(name: String, schema: String)
 
-  def guessTypes(csvFile: File, hasHeader: Boolean): Try[TypeSchema] = {
-    val typename = FilenameUtils.getBaseName(csvFile.getName)
-    for {
-      reader <- Try {Source.fromFile(csvFile).bufferedReader()}
-      guess <- guessTypes(typename, reader, hasHeader)
-    } yield {
-      reader.close()
-      guess
-    }
-  }
-
   // this can probably be cleaned up and simplified now that parsers don't need to do double duty...
-  def typeData(rawData: TraversableOnce[String]): Try[Seq[Char]] = {
-    def tryAllParsers(datum: String): Try[(Any, Char)] =
-      Parsable.parsers.view.map(_.parseAndType(datum)).collectFirst { case Success(x) => x } match {
-        case Some(x) => Success(x)
-        case None    => Failure(new IllegalArgumentException(s"Could not parse $datum as any known type"))
+  def typeData(rawData: TraversableOnce[String]): Seq[Char] = {
+    def tryAllParsers(datum: String): Char =
+      CSVParser.parsers.view.map(_.parseAndType(datum)).collectFirst { case Success(x) => x } match {
+        case Some(x) => x._2
+        case None    => 's'   // should get to this anyway as StringParser is guaranteed to succeed
       }
 
-    tryTraverse(rawData)(tryAllParsers(_).map { case (_, c) => c }).map(_.toSeq)
+    rawData.map(tryAllParsers).toSeq
   }
-
-  def sampleRecords(records: jIterator[CSVRecord], hasHeader: Boolean): Try[(Seq[String], CSVRecord)] =
-    Try {
-      if (hasHeader) {
-        val header = records.next
-        val record = records.next
-        (header.toSeq, record)
-      } else {
-        val record = records.next
-        val header = Seq.tabulate(record.size()) { n => s"C$n" }
-        (header, record)
-      }
+  
+  def sampleRecords(records: jIterator[CSVRecord], hasHeader: Boolean): (Seq[String], CSVRecord) =
+    if (hasHeader) {
+      val header = records.next
+      val record = records.next
+      (header.toSeq, record)
+    } else {
+      val record = records.next
+      val header = Seq.tabulate(record.size()) { n => s"C$n" }
+      (header, record)
     }
 
   def guessTypes(name: String,
                  csvReader: Reader,
                  hasHeader: Boolean = true,
-                 format: CSVFormat = CSVFormat.DEFAULT): Try[TypeSchema] = {
-      val records = format.parse(csvReader).iterator
-      for {
-        (header, record) <- sampleRecords(records, hasHeader)
-        typeChars        <- typeData(record.iterator)
-      } yield {
-        val sftb = new SftBuilder
-        var defaultDateSet = false
-        var defaultGeomSet = false
-        for ((field, c) <- header.zip(typeChars)) { c match {
-          case 'i' =>
-            sftb.intType(field)
-          case 'd' =>
-            sftb.doubleType(field)
-          case 't' =>
-            sftb.date(field)
-            if (!defaultDateSet) {
-              sftb.withDefaultDtg(field)
-              defaultDateSet = true
-            }
-          case 'p' =>
-            if (defaultGeomSet) sftb.geometry(field)
-            else {
-              sftb.point(field, default = true)
-              defaultGeomSet = true
-            }
-          case 's' =>
-            sftb.stringType(field)
-        }}
+                 format: CSVFormat = CSVFormat.DEFAULT): TypeSchema = {
+    val records = format.parse(csvReader).iterator
+    val (header, record) = sampleRecords(records, hasHeader)
+    val typeChars = typeData(record.iterator)
 
-        TypeSchema(name, sftb.getSpec())
-      }
-    }
+    val sftb = new SftBuilder
+    var defaultDateSet = false
+    var defaultGeomSet = false
+    for ((field, c) <- header.zip(typeChars)) { c match {
+      case 'i' =>
+        sftb.intType(field)
+      case 'd' =>
+        sftb.doubleType(field)
+      case 't' =>
+        sftb.date(field)
+        if (!defaultDateSet) {
+          sftb.withDefaultDtg(field)
+          defaultDateSet = true
+        }
+      case 'p' =>
+        if (defaultGeomSet) sftb.geometry(field)
+        else {
+          sftb.point(field, default = true)
+          defaultGeomSet = true
+        }
+      case 's' =>
+        sftb.stringType(field)
+    }}
+
+    TypeSchema(name, sftb.getSpec())
+  }
+
+  def guessTypes(csvFile: File, hasHeader: Boolean): TypeSchema = {
+    val typename = FilenameUtils.getBaseName(csvFile.getName)
+    val reader = Source.fromFile(csvFile).bufferedReader()
+    val guess = guessTypes(typename, reader, hasHeader)
+    reader.close()
+    guess
+  }
 
   val fieldParserMap =
-    Map[Class[_], Parsable[_ <: AnyRef]](
-      classOf[jInt]    -> IntIsParsable,
-      classOf[jDouble] -> DoubleIsParsable,
-      classOf[Date]    -> TimeIsParsable,
-      classOf[Point]   -> PointIsParsable,
-      classOf[String]  -> StringIsParsable
+    Map[Class[_], CSVParser[_ <: AnyRef]](
+      classOf[jInt]    -> IntParser,
+      classOf[jDouble] -> DoubleParser,
+      classOf[Date]    -> TimeParser,
+      classOf[Point]   -> PointParser,
+      classOf[String]  -> StringParser
     )
 
   val gf = new GeometryFactory
@@ -148,129 +121,89 @@ package object csv extends Logging {
   protected[csv] def buildFeatureCollection(csvFile: File,
                                             hasHeader: Boolean,
                                             sft: SimpleFeatureType,
-                                            latlonFields: Option[(String, String)]): Try[SimpleFeatureCollection] = {
+                                            latlonFields: Option[(String, String)]): SimpleFeatureCollection = {
     val reader = Source.fromFile(csvFile).bufferedReader()
-    buildFeatureCollection(reader, hasHeader, sft, latlonFields).eventually(reader.close())
+    try {
+      buildFeatureCollection(reader, hasHeader, sft, latlonFields)
+    } finally {
+      reader.close()
+    }
   }
 
+  def buildFeature(record: CSVRecord,
+                   fb: SimpleFeatureBuilder,
+                   parsers: Seq[CSVParser[_<:AnyRef]],
+                   lli: Option[(Int, Int)]): Option[SimpleFeature] =
+    try {
+      fb.reset()
+      val fieldVals = record.iterator.toIterable.zip(parsers).
+                      map { case (v, p) => p.parse(v).get }.toArray
+      fb.addAll(fieldVals)
+      for ((lati, loni) <- lli) {
+        val lat = fieldVals(lati).asInstanceOf[jDouble] // should be Doubles, as verified
+        val lon = fieldVals(loni).asInstanceOf[jDouble] // when determining latlonIdx
+        fb.add(gf.createPoint(new Coordinate(lon, lat)))
+      }
+      Some(fb.buildFeature(null))
+    } catch {
+      case ex: Throwable => logger.info(s"Failed to parse CSV record:\n$record"); None
+    }
+
+  // if the types in sft do not match the data in the reader, the resulting FeatureCollection will be empty.
   protected[csv] def buildFeatureCollection(reader: Reader,
                                             hasHeader: Boolean,
                                             sft: SimpleFeatureType,
-                                            latlonFields: Option[(String, String)]): Try[DefaultFeatureCollection] = {
-    def idxOfField(fname: String) = {
+                                            latlonFields: Option[(String, String)]): SimpleFeatureCollection = {
+    def idxOfField(fname: String): Int = {
       sft.getType(fname)
       val idx = sft.indexOf(fname)
       if (idx > -1) {
         val t = sft.getType(idx)
-        if (t.getBinding == classOf[java.lang.Double]) Success(idx)
-        else Failure(new IllegalArgumentException(s"field $fname is not a Double field"))
-      } else Failure(new IllegalArgumentException(s"could not find field $fname"))
+        if (t.getBinding == classOf[java.lang.Double]) idx
+        else throw new IllegalArgumentException(s"field $fname is not a Double field")
+      } else throw new IllegalArgumentException(s"could not find field $fname")
     }
 
-    val latlonIdx: Try[Option[(Int, Int)]] = tryOption(latlonFields) { case (latf, lonf) =>
-      for (lati <- idxOfField(latf); loni <- idxOfField(lonf)) yield (lati, loni)
-    }
-
-    def buildFeature(record: CSVRecord,
-                     fb: SimpleFeatureBuilder,
-                     parsers: Seq[Parsable[_<:AnyRef]],
-                     lli: Option[(Int, Int)]): Option[SimpleFeature] =
-      Try {
-            fb.reset()
-            val fieldVals =
-              tryTraverse(record.iterator.toIterable.zip(parsers)) { case (v, p) => p.parse(v) }.get.toArray
-            fb.addAll(fieldVals)
-            for ((lati, loni) <- lli) {
-              val lat = fieldVals(lati).asInstanceOf[jDouble] // should be Doubles, as verified
-              val lon = fieldVals(loni).asInstanceOf[jDouble] // when determining latlonIdx
-              fb.add(gf.createPoint(new Coordinate(lon, lat)))
-            }
-            fb.buildFeature(null)
-          } match {
-        case Success(f)  => Some(f)
-        case Failure(ex) => logger.info(s"Failed to parse CSV record:\n$record"); None
-      }
-
+    val latlonIdx = latlonFields.map { case (latf, lonf) => (idxOfField(latf), idxOfField(lonf)) }
+    val fb = new SimpleFeatureBuilder(sft)
+    val parsers = sft.getTypes.map { t => fieldParserMap(t.getBinding) }
+    val fc = new DefaultFeatureCollection
+    val records = CSVFormat.DEFAULT.parse(reader).iterator()
+    if (hasHeader) { records.next } // burn off header rather than try (and fail) to parse it.
     for {
-      lli     <- latlonIdx
-      fb      <- Try { new SimpleFeatureBuilder(sft) }
-      parsers <- Try { for (t <- sft.getTypes) yield { fieldParserMap(t.getBinding) } }
-    } yield {
-      val fc = new DefaultFeatureCollection
-      val records = CSVFormat.DEFAULT.parse(reader).iterator()
-      if (hasHeader) { records.next } // burn off header rather than try (and fail) to parse it.
-      for {
-        record <- records
-        f      <- buildFeature(record, fb, parsers, lli) // logs and discards lines that fail to parse but keeps processing
-      } fc.add(f)
-      fc
-    }
+      record <- records
+      f      <- buildFeature(record, fb, parsers, latlonIdx) // logs and discards lines that fail to parse but keeps processing
+    } fc.add(f)
+    fc
   }
-//    Try {
-//      def idxOfField(fname: String) = {
-//        sft.getType(fname)
-//        val idx = sft.indexOf(fname)
-//        if (idx > -1) {
-//          val t = sft.getType(idx)
-//          if (t.getBinding == classOf[java.lang.Double]) Success(idx)
-//          else Failure(new IllegalArgumentException(s"field $fname is not a Double field"))
-//        } else Failure(new IllegalArgumentException(s"could not find field $fname"))
-//      }
-//
-//      val latlonIdx = for ((latf, lonf) <- latlonFields) yield {
-//        (for (lati <- idxOfField(latf); loni <- idxOfField(lonf)) yield (lati, loni)).get
-//      }
-//      val fb = new SimpleFeatureBuilder(sft)
-//      val fieldParsers = for (t <- sft.getTypes) yield { fieldParserMap(t.getBinding) }
-//
-//      def buildFeature(record: CSVRecord): Option[SimpleFeature] =
-//        Try {
-//          fb.reset()
-//          val fieldVals =
-//            tryTraverse(record.iterator.toIterable.zip(fieldParsers)) { case (v, p) => p.parse(v) }.get.toArray
-//          fb.addAll(fieldVals)
-//          for ((lati, loni) <- latlonIdx) {
-//            val lat = fieldVals(lati).asInstanceOf[jDouble] // should be Doubles, as verified
-//            val lon = fieldVals(loni).asInstanceOf[jDouble] // when determining latlonIdx
-//            fb.add(gf.createPoint(new Coordinate(lon, lat)))
-//          }
-//          fb.buildFeature(null)
-//        } match {
-//          case Success(f)  => Some(f)
-//          case Failure(ex) => logger.info(s"Failed to parse CSV record:\n$record"); None
-//        }
-//
-//      val fc = new DefaultFeatureCollection
-//      val records = CSVFormat.DEFAULT.parse(reader).iterator()
-//      if (hasHeader) { records.next } // burn off header rather than try (and fail) to parse it.
-//      for {
-//        record <- records
-//        f      <- buildFeature(record) // logs and discards lines that fail to parse but keeps processing
-//      } fc.add(f)
-//      fc
-//    }
 
   private val dsFactory = new ShapefileDataStoreFactory
 
-  private def shpDataStore(shpFile: File, sft: SimpleFeatureType): Try[ShapefileDataStore] =
-    Try {
-      val params =
-        Map("url" -> shpFile.toURI.toURL,
-            "create spatial index" -> java.lang.Boolean.FALSE)
-      val shpDS = dsFactory.createNewDataStore(params).asInstanceOf[ShapefileDataStore]
-      shpDS.createSchema(sft)
-      shpDS
-    }
-  
-  private def writeFeatures(fc: SimpleFeatureCollection, shpFS: SimpleFeatureStore): Try[Unit] = {
-    val transaction = new DefaultTransaction("create")
-    shpFS.setTransaction(transaction)
-    Try { shpFS.addFeatures(fc); transaction.commit() } recover {
-      case ex => transaction.rollback(); throw ex
-    } eventually { transaction.close() }
+  private def shpDataStore(shpFile: File, sft: SimpleFeatureType): ShapefileDataStore = {
+    val params =
+      Map("url" -> shpFile.toURI.toURL,
+          "create spatial index" -> java.lang.Boolean.FALSE)
+    val shpDS = dsFactory.createNewDataStore(params).asInstanceOf[ShapefileDataStore]
+    shpDS.createSchema(sft)
+    shpDS
   }
 
-  private def writeZipFile(shpFile: File): Try[File] = {
+  private def writeFeatures(fc: SimpleFeatureCollection, shpFS: SimpleFeatureStore) {
+    val transaction = new DefaultTransaction("create")
+    shpFS.setTransaction(transaction)
+    try {
+      shpFS.addFeatures(fc)
+      transaction.commit()
+    } catch {
+      case ex: Throwable =>
+        transaction.rollback()
+        throw ex
+    } finally {
+      transaction.close()
+    }
+  }
+
+  private def writeZipFile(shpFile: File): File = {
     def byteStream(in: InputStream): Stream[Int] = { in.read() #:: byteStream(in) }
 
     val dir  = shpFile.getParent
@@ -280,36 +213,37 @@ package object csv extends Logging {
     val files = extensions.map(ext => new File(dir, s"$rootName.$ext"))
     val zipFile = new File(dir, s"$rootName.zip")
 
-    def writeZipData = {
-      val zip = new ZipOutputStream(new FileOutputStream(zipFile))
-      Try {
-        for (file <- files) {
-          zip.putNextEntry(new ZipEntry(file.getName))
-          val in = new FileInputStream(file.getCanonicalFile)
-          (Try {byteStream(in).takeWhile(_ > -1).toList.foreach(zip.write)} eventually in.close()).get
-          zip.closeEntry()
+    val zip = new ZipOutputStream(new FileOutputStream(zipFile))
+    try {
+      for (file <- files if file.exists) {
+        zip.putNextEntry(new ZipEntry(file.getName))
+        val in = new FileInputStream(file.getCanonicalFile)
+        try {
+          byteStream(in).takeWhile(_ > -1).toList.foreach(zip.write)
+        } finally {
+          in.close()
         }
-      } eventually zip.close()
+        zip.closeEntry()
+      }
+    } finally {
+      zip.close()
     }
 
-    for (_ <- writeZipData) yield {
-      for (file <- files) file.delete()
-      zipFile
-    }
+    for (file <- files) file.delete()
+    zipFile
   }
 
   def ingestCSV(csvFile: File,
                 hasHeader: Boolean,
                 name: String,
                 schema: String,
-                latlonFields: Option[(String, String)] = None): Try[File] =
-    for {
-      sft     <- Try { SimpleFeatureTypes.createType(name, schema) }
-      fc      <- buildFeatureCollection(csvFile, hasHeader, sft, latlonFields)
-      shpFile <- Try { new File(csvFile.getParentFile, s"${FilenameUtils.getBaseName(csvFile.getName)}.shp") }
-      shpDS   <- shpDataStore(shpFile, sft)
-      shpFS   <- Try { shpDS.getFeatureSource(name).asInstanceOf[SimpleFeatureStore] }
-      _       <- writeFeatures(fc, shpFS)
-      zipFile <- writeZipFile(shpFile)
-    } yield zipFile
+                latlonFields: Option[(String, String)] = None): File = {
+    val sft = SimpleFeatureTypes.createType(name, schema)
+    val fc = buildFeatureCollection(csvFile, hasHeader, sft, latlonFields)
+    val shpFile = new File(csvFile.getParentFile, s"${FilenameUtils.getBaseName(csvFile.getName)}.shp")
+    val shpDS = shpDataStore(shpFile, sft)
+    val shpFS = shpDS.getFeatureSource(name).asInstanceOf[SimpleFeatureStore]
+    writeFeatures(fc, shpFS)
+    writeZipFile(shpFile)
+  }
 }

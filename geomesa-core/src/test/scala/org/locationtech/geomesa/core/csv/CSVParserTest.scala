@@ -21,7 +21,7 @@ import java.lang.{Integer => jInt, Double => jDouble}
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.csv.DMS.North
-import org.locationtech.geomesa.core.csv.Parsable._
+import org.locationtech.geomesa.core.csv.CSVParser._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -29,7 +29,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Success
 
 @RunWith(classOf[JUnitRunner])
-class ParsableTest extends Specification {
+class CSVParserTest extends Specification {
 
   val i = 1
   val d = 1.0
@@ -45,28 +45,28 @@ class ParsableTest extends Specification {
 
   override def is =
     "IntIsParsable"    ! {
-      IntIsParsable.parse(i.toString) == Success(new jInt(i))
+      IntParser.parse(i.toString) == Success(new jInt(i))
     } ^
     "DoubleIsParsable" ! {
-      DoubleIsParsable.parse(d.toString) == Success(new jDouble(d))
+      DoubleParser.parse(d.toString) == Success(new jDouble(d))
     } ^
     "DoubleIsParsable handles DMS" ! {
-      DoubleIsParsable.parse(dms.toString) == Success(new jDouble(dms.toDouble))
+      DoubleParser.parse(dms.toString) == Success(new jDouble(dms.toDouble))
     } ^
     "TimeIsParsable"   ! {
-      TimeIsParsable.timeFormats.forall(f =>
-        TimeIsParsable.parse(f.print(time)).map(_.getTime / 1000) == Success(time.getMillis / 1000)
+      TimeParser.timeFormats.forall(f =>
+        TimeParser.parse(f.print(time)).map(_.getTime / 1000) == Success(time.getMillis / 1000)
       )
     } ^
     "PointIsParsable"  ! {
-      PointIsParsable.parse(pointStr) == Success(WKTUtils.read(pointStr))
+      PointParser.parse(pointStr) == Success(WKTUtils.read(pointStr))
     } ^
     "PointIsParsable handles DMS" ! {
-      val Success(resultPt) = PointIsParsable.parse(dmsPtStr)
+      val Success(resultPt) = PointParser.parse(dmsPtStr)
       math.abs(resultPt.getX - dmsPtX) < eps
       math.abs(resultPt.getY - dmsPtY) < eps
     } ^
     "StringIsParsable" ! {
-      StringIsParsable.parse(s) == Success(s)
+      StringParser.parse(s) == Success(s)
     }
 }

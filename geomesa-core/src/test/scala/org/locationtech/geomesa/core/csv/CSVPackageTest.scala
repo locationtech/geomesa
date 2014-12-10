@@ -21,7 +21,7 @@ import java.io.StringReader
 import com.typesafe.scalalogging.slf4j.Logging
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.csv.Parsable.TimeIsParsable
+import org.locationtech.geomesa.core.csv.CSVParser.TimeParser
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -32,7 +32,7 @@ class CSVPackageTest
           with Logging {
 
   "guessTypes" should {
-    def getSchema(name: String, csv: String) = guessTypes(name, new StringReader(csv)).get.schema
+    def getSchema(name: String, csv: String) = guessTypes(name, new StringReader(csv)).schema
 
     "recognize int-parsable columns" >> {
       val csv = "int\n1"
@@ -48,7 +48,7 @@ class CSVPackageTest
 
     "recognize time-parsable columns" >> {
       val time = new DateTime
-      TimeIsParsable.timeFormats.forall { format =>
+      TimeParser.timeFormats.forall { format =>
         val csv = s"time\n${format.print(time)}"
         val schema = getSchema("timetest", csv)
         schema mustEqual "time:Date"
@@ -84,16 +84,12 @@ class CSVPackageTest
     val geomCSV = s"$geomCSVHeader\n$geomCSVBody"
 
     "parse CSVs using WKTs" >> {
-      val fc = buildFeatureCollection(new StringReader(geomCSV), true, geomSFT, None).
-               recover {case ex => logger.error("failed to parse", ex); throw ex }.
-               get
+      val fc = buildFeatureCollection(new StringReader(geomCSV), true, geomSFT, None)
       fc.size mustEqual geomCSVLines.size
     }
 
     "parse CSVs without headers" >> {
-      val fc = buildFeatureCollection(new StringReader(geomCSVBody), false, geomSFT, None).
-               recover {case ex => logger.error("failed to parse", ex); throw ex }.
-               get
+      val fc = buildFeatureCollection(new StringReader(geomCSVBody), false, geomSFT, None)
       fc.size mustEqual geomCSVLines.size
     }
 
@@ -111,9 +107,7 @@ class CSVPackageTest
     val latlonCSV = s"$latlonCSVHeader\n$latlonCSVBody"
 
     "parse CSVs using LatLon" >> {
-      val fc = buildFeatureCollection(new StringReader(latlonCSV), true, latlonSFT, Some(("lat","lon"))).
-               recover {case ex => logger.error("failed to parse", ex); throw ex }.
-               get
+      val fc = buildFeatureCollection(new StringReader(latlonCSV), true, latlonSFT, Some(("lat","lon")))
       fc.size mustEqual latlonCSVLines.size
     }
   }
