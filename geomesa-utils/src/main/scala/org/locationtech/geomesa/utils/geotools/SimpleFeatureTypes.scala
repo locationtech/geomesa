@@ -79,7 +79,8 @@ object SimpleFeatureTypes {
           ad.getLocalName,
           ad.getType.getBinding,
           ad.getUserData.getOrElse("index", false).asInstanceOf[Boolean],
-          if(ad.asInstanceOf[GeometryDescriptor].getCoordinateReferenceSystem.equals(DefaultGeographicCRS.WGS84)) 4326 else -1,
+          if(ad.asInstanceOf[GeometryDescriptor].getCoordinateReferenceSystem != null
+            &&ad.asInstanceOf[GeometryDescriptor].getCoordinateReferenceSystem.equals(DefaultGeographicCRS.WGS84)) 4326 else -1,
           sft.getGeometryDescriptor.equals(ad)
         )
 

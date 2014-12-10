@@ -131,7 +131,7 @@ class DelimitedExport(writer: Writer,
 
     val attrNames =
       if (attributeTypes.nonEmpty) {
-        attributeTypes
+        attributeTypes.map(_.split(":")(0).split("=").head.trim)
       } else {
         features.getSchema.getAttributeDescriptors.map(_.getLocalName)
       }

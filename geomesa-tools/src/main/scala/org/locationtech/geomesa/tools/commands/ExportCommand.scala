@@ -69,7 +69,7 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
           }
         getFeatureCollection(Some(schemaString))
 
-      case _ => getFeatureCollection(Option(params.attributes))
+      case _ => getFeatureCollection()
     }
   }
 
@@ -86,6 +86,9 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
       logger.info("split attrs: " + splitAttrs.mkString(" "))
       q.setPropertyNames(splitAttrs)
     }
+
+    import scala.collection.JavaConversions._
+    logger.info(q.getProperties.map(_.getPropertyName).mkString(" | "))
 
     // get the feature store used to query the GeoMesa data
     val fs = new DataStoreHelper(params).ds.getFeatureSource(params.featureName).asInstanceOf[AccumuloFeatureStore]
