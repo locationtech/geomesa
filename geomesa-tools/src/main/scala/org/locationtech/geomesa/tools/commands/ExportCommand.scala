@@ -17,7 +17,7 @@ package org.locationtech.geomesa.tools.commands
 
 import java.io._
 
-import com.beust.jcommander.{Parameters, JCommander, Parameter}
+import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
@@ -75,7 +75,7 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
 
   def getFeatureCollection(overrideAttributes: Option[String] = None): SimpleFeatureCollection = {
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
-    logger.info(s"Applying CQL filter ${filter.toString}")
+    logger.debug(s"Applying CQL filter ${filter.toString}")
     val q = new Query(params.featureName, filter)
     Option(params.maxFeatures).foreach(q.setMaxFeatures(_))
 
@@ -83,12 +83,9 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
     // split attributes by "," meanwhile allowing to escape it by "\,".
     overrideAttributes.orElse(Option(params.attributes)).foreach { attributes =>
       val splitAttrs = attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ","))
-      logger.info("split attrs: " + splitAttrs.mkString(" "))
+      logger.debug("Attributes used for query transform: " + splitAttrs.mkString("|"))
       q.setPropertyNames(splitAttrs)
     }
-
-    import scala.collection.JavaConversions._
-    logger.info(q.getProperties.map(_.getPropertyName).mkString(" | "))
 
     // get the feature store used to query the GeoMesa data
     val fs = new DataStoreHelper(params).ds.getFeatureSource(params.featureName).asInstanceOf[AccumuloFeatureStore]
