@@ -20,11 +20,12 @@ if [[ (-z "$GEOMESA_HOME") ]]; then
     echo "Error: GEOMESA_HOME environmental variable not found...install geomesa or define GEOMESA_HOME and try again"
     exit
 else
-    read -r -p "Java Advanced Imaging (jai) is LGPL licensed and is not distributed with GeoMesa...are you sure you want to install it? [Y/n]" $confirm
-    $confirm = ${$confirm,,} #lowercasing
-    if [[ $confirm =~ ^(yes|y) ) ]]; then
-        echo "Trying to install Java Advanced Imaging (jai) from http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib.zip to $GEOMESA_HOME"
-        wget -O /tmp/jai-1_1_3-lib.zip http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib.zip \
+    url='http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib.zip'
+    read -r -p "Java Advanced Imaging (jai) is LGPL licensed and is not distributed with GeoMesa...are you sure you want to install it from $url ? [Y/n]" confirm
+    $confirm=${confirm,,} #lowercasing
+    if [[ $confirm =~ ^(yes|y) ]]; then
+        echo "Trying to install Java Advanced Imaging (jai) from $url to $GEOMESA_HOME"
+        wget -O /tmp/jai-1_1_3-lib.zip $url \
             && unzip -j -d $GEOMESA_HOME/lib/ /tmp/jai-1_1_3-lib.zip '*.jar' \
             && rm /tmp/jai-1_1_3-lib.zip -f \
             && chmod 0755 $GEOMESA_HOME/lib/jai_codec.jar $GEOMESA_HOME/lib/jai_core.jar \

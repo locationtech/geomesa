@@ -82,7 +82,9 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
     // If there are override attributes given as an arg or via command line params
     // split attributes by "," meanwhile allowing to escape it by "\,".
     overrideAttributes.orElse(Option(params.attributes)).foreach { attributes =>
-      q.setPropertyNames(attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ",")))
+      val splitAttrs = attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ","))
+      logger.info("split attrs: " + splitAttrs.mkString(" "))
+      q.setPropertyNames(splitAttrs)
     }
 
     // get the feature store used to query the GeoMesa data
