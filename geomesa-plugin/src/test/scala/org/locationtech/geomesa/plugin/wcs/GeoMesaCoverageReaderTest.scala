@@ -63,45 +63,29 @@ class GeoMesaCoverageReaderTest extends Specification {
     ImageIO.write(checkImage, "png", baos)
     baos.toByteArray
   }
+  
+  def runMosaicTest(width: Int , height: Int) = {
+    val gridCoverageIterator = getTestGridCoverages(width, height)
+    val image = getImageFromGridCoverages(gridCoverageIterator, width, height)
+    val randString = Random.alphanumeric.take(5).mkString
+    val tempFile = File.createTempFile(s"test-$randString", ".png")
+    ImageIO.write(image, "png", tempFile)
+    val checkImage = getImageByteArray(s"src/test/resources/wcs/test-$width-$height.png")
+    val newImage = getImageByteArray(tempFile.getAbsolutePath)
+    ArrayUtil.equals(checkImage, newImage) must beTrue
+  }
 
   "GeoMesaCoverageReader" should {
     "mosaic GridCoverages appropriately for 4 10x10 grid coverages" in {
-      val width = 10
-      val height = 10
-      val gridCoverageIterator = getTestGridCoverages(width, height)
-      val image = getImageFromGridCoverages(gridCoverageIterator, width, height)
-      val randString = Random.alphanumeric.take(5).mkString
-      val tempFile = File.createTempFile(s"test-$randString", ".png")
-      ImageIO.write(image, "png", tempFile)
-      val checkImage = getImageByteArray("src/test/resources/wcs/test-10-10.png")
-      val newImage = getImageByteArray(tempFile.getAbsolutePath)
-      ArrayUtil.equals(checkImage, newImage) must beTrue
+      runMosaicTest(10, 10)
     }
 
     "mosaic GridCoverages appropriately for 4 100x100 grid coverages" in {
-      val width = 100
-      val height = 100
-      val gridCoverageIterator = getTestGridCoverages(width, height)
-      val image = getImageFromGridCoverages(gridCoverageIterator, width, height)
-      val randString = Random.alphanumeric.take(5).mkString
-      val tempFile = File.createTempFile(s"test-$randString", ".png")
-      ImageIO.write(image, "png", tempFile)
-      val checkImage = getImageByteArray("src/test/resources/wcs/test-100-100.png")
-      val newImage = getImageByteArray(tempFile.getAbsolutePath)
-      ArrayUtil.equals(checkImage, newImage) must beTrue
+      runMosaicTest(100, 100)
     }
 
     "mosaic GridCoverages appropriately for 4 1000x1000 grid coverages" in {
-      val width = 1000
-      val height = 1000
-      val gridCoverageIterator = getTestGridCoverages(width, height)
-      val image = getImageFromGridCoverages(gridCoverageIterator, width, height)
-      val randString = Random.alphanumeric.take(5).mkString
-      val tempFile = File.createTempFile(s"test-$randString", ".png")
-      ImageIO.write(image, "png", tempFile)
-      val checkImage = getImageByteArray("src/test/resources/wcs/test-1000-1000.png")
-      val newImage = getImageByteArray(tempFile.getAbsolutePath)
-      ArrayUtil.equals(checkImage, newImage) must beTrue
+      runMosaicTest(1000, 1000)
     }
   }
 }
