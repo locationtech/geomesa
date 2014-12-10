@@ -19,7 +19,14 @@ class AccumuloRasterQueryPlanner extends Logging {
       new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"))
     }
 
-    // TODO: Configure Iterators and any ColumnFamilies
+    // TODO: WCS:: Configure Iterators and any ColumnFamilies
+    // planQuery from STIdxStrategy has much of what is needed
+    // we need a simplified implementation
+    // TODO: WCS: Configure RasterFilteringIterator here for use in the QueryPlan
+    // this will entail the generation of a Seq[IteratorSetting]
+    // ticket is GEOMESA-558
     QueryPlan(Seq(), rows, Seq())
+
+
   }
 }
