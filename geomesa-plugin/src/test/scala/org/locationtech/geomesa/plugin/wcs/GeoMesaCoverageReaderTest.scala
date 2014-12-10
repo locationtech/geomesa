@@ -63,14 +63,14 @@ class GeoMesaCoverageReaderTest extends Specification {
     ImageIO.write(checkImage, "png", baos)
     baos.toByteArray
   }
-  
+
   def runMosaicTest(width: Int , height: Int) = {
     val gridCoverageIterator = getTestGridCoverages(width, height)
     val image = getImageFromGridCoverages(gridCoverageIterator, width, height)
     val randString = Random.alphanumeric.take(5).mkString
     val tempFile = File.createTempFile(s"test-$randString", ".png")
     ImageIO.write(image, "png", tempFile)
-    val checkImage = getImageByteArray(s"src/test/resources/wcs/test-$width-$height.png")
+    val checkImage = getImageByteArray(this.getClass.getClassLoader.getResource(s"wcs/test-$width-$height.png").getPath)
     val newImage = getImageByteArray(tempFile.getAbsolutePath)
     ArrayUtil.equals(checkImage, newImage) must beTrue
   }
