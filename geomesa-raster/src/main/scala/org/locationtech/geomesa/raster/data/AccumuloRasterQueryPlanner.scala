@@ -9,8 +9,12 @@ import org.locationtech.geomesa.utils.geohash.BoundingBox
 class AccumuloRasterQueryPlanner extends Logging {
 
   def getQueryPlan(rq: RasterQuery): QueryPlan = {
+
+    // TODO: WCS: Improve this if possible
+    // ticket is GEOMESA-560
     val hashes = BoundingBox.getGeoHashesFromBoundingBox(rq.bbox)
     logger.debug(s"Planner: BBox: ${rq.bbox} has geohashes: $hashes ")
+
     val res = rq.resolution
 
     val rows = hashes.map { gh =>
@@ -19,9 +23,6 @@ class AccumuloRasterQueryPlanner extends Logging {
       new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"))
     }
 
-    // TODO: WCS:: Configure Iterators and any ColumnFamilies
-    // planQuery from STIdxStrategy has much of what is needed
-    // we need a simplified implementation
     // TODO: WCS: Configure RasterFilteringIterator here for use in the QueryPlan
     // this will entail the generation of a Seq[IteratorSetting]
     // ticket is GEOMESA-558

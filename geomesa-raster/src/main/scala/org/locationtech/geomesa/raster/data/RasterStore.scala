@@ -38,6 +38,7 @@ object RasterStore {
             useMock: Boolean = false): RasterStore = {
 
     val conn = AccumuloStoreHelper.buildAccumuloConnector(username, password, instanceId, zookeepers, useMock)
+
     val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(auths.split(","), conn)
 
     val rasterOps = new AccumuloBackedRasterOperations(conn, tableName, authorizationsProvider, writeVisibilities)

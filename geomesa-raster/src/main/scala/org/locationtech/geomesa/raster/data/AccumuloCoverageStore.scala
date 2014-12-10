@@ -97,13 +97,23 @@ object AccumuloCoverageStore extends Logging {
              auths: String,
              writeVisibilities: String): AccumuloCoverageStore = {
 
-     val conn = AccumuloStoreHelper.buildAccumuloConnector(username, password, instanceId, zookeepers)
-     val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(auths.split(","), conn)
+     //val conn = AccumuloStoreHelper.buildAccumuloConnector(username, password, instanceId, zookeepers)
 
-     val rasterOps = new AccumuloBackedRasterOperations(conn, tableName, authorizationsProvider, writeVisibilities)
+     //val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(auths.split(","), conn)
+
+     //val rasterOps = new AccumuloBackedRasterOperations(conn, tableName, authorizationsProvider, writeVisibilities)
 
      // NB: JNH: Skipping the shards/writeMemory/writeThreads/queryThreadsParams
-     new AccumuloCoverageStore(new RasterStore(rasterOps), None)
+
+     val rs = RasterStore(username,
+             password,
+             instanceId,
+             zookeepers,
+             tableName,
+             auths,
+             writeVisibilities)
+
+     new AccumuloCoverageStore(rs, None)
    }
 
   def apply(config: JMap[String, Serializable]): AccumuloCoverageStore = {

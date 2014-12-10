@@ -46,7 +46,7 @@ trait RasterOperations {
  * read data from /write data to Accumulo tables.
  *
  * @param connector
- * @param coverageTable
+ * @param rasterTable
  * @param authorizationsProvider
  * @param writeVisibilities
  * @param shardsConfig
@@ -55,7 +55,7 @@ trait RasterOperations {
  * @param queryThreadsConfig
  */
 class AccumuloBackedRasterOperations(val connector: Connector,
-                                     val coverageTable: String,
+                                     val rasterTable: String,
                                      val authorizationsProvider: AuthorizationsProvider,
                                      val writeVisibilities: String,
                                      shardsConfig: Option[Int] = None,
@@ -89,31 +89,27 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     writeMutations(createMutation(raster))
   }
 
-  // TODO: Factor out
+  // TODO: WCS: use factored out implementation
+  // GEOMESA-563
   def configureBatchScanner(bs: BatchScanner, qp: QueryPlan) {
-
     qp.iterators.foreach { i => bs.addScanIterator(i) }
     bs.setRanges(qp.ranges)
     qp.cf.foreach { c => bs.fetchColumnFamily(c) }
   }
 
-
-  // TODO: Change to Raster??
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
-    val batchScanner = connector.createBatchScanner(coverageTable, authorizationsProvider.getAuthorizations, 20)
+    //TODO: WCS: Abstract number of threads
+    val numQThreads = 20
+    val batchScanner = connector.createBatchScanner(rasterTable, authorizationsProvider.getAuthorizations, numQThreads)
     val plan = queryPlanner.getQueryPlan(rasterQuery)
-
-    // TODO: Abstract number of threads
     configureBatchScanner(batchScanner, plan)
-    adaptorIterator(batchScanner.iterator)
+    adaptIterator(batchScanner.iterator)
   }
 
-  // TODO: Change to Raster??
-  def adaptorIterator(iter: java.util.Iterator[Entry[Key, Value]]): Iterator[Raster] = {
+  def adaptIterator(iter: java.util.Iterator[Entry[Key, Value]]): Iterator[Raster] = {
     iter.map { entry =>
       val renderedImage: RenderedImage = rasterImageDeserialize(entry.getValue.get)
       val metadata: DecodedIndex = RasterIndexEntry.decodeIndexCQMetadata(entry.getKey)
-
       Raster(renderedImage, metadata)
     }
   }
@@ -129,7 +125,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     read
   }
 
-  def ensureTableExists() = ensureTableExists(coverageTable)
+  def ensureTableExists() = ensureTableExists(rasterTable)
 
   //TODO: WCS: change to our row id format in RasterIndexSchema (which needs to be created)
   // GEOMESA-555
@@ -138,6 +134,8 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     new Text(s"~${fauxRes}~${ras.mbgh.hash}")
   }
 
+  //TODO: WCS: add band value to Raster and insert it into the CF here
+  // GEOMESA-561
   private def getCF(raster: Raster): Text = new Text("")
 
   private def getCQ(raster: Raster): Text = {
@@ -159,7 +157,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
    * @param value Value obtained from Accumulo table
    * @return byte array
    */
-  private def decodeValue(value: Value): Raster =  ???   // TODO:
+  private def decodeValue(value: Value): Raster =  ???   // TODO: WCS: remove this if no longer needed
 
   private def dateToAccTimestamp(dt: DateTime): Long =  dt.getMillis / 1000
 
@@ -173,6 +171,8 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     val mutation = new Mutation(getRow(raster))
     val colFam = getCF(raster)
     val colQual = getCQ(raster)
+    // TODO: WCS: determine if this is wise/useful
+    // GEOMESA-562
     val timestamp: Long = dateToAccTimestamp(raster.time)
     val colVis = new ColumnVisibility(writeVisibilities)
     val value = encodeValue(raster)
@@ -186,7 +186,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
    * @param mutations
    */
   private def writeMutations(mutations: Mutation*) {
-    val writer = connector.createBatchWriter(coverageTable, bwConfig)
+    val writer = connector.createBatchWriter(rasterTable, bwConfig)
     mutations.foreach { m => writer.addMutation(m) }
     writer.flush()
     writer.close()
@@ -198,6 +198,9 @@ class AccumuloBackedRasterOperations(val connector: Connector,
    * @param tableName
    */
   private def ensureTableExists(tableName: String) {
+    // TODO: WCS: ensure that this does not duplicate what is done in AccumuloDataStore
+    // Perhaps consolidate with different default configurations
+    // GEOMESA-564
     val user = connector.whoami
     val defaultVisibilities = authorizationsProvider.getAuthorizations.toString.replaceAll(",", "&")
     if (!tableOps.exists(tableName)) {
@@ -247,6 +250,7 @@ object AccumuloBackedRasterOperations {
 }
 
 object RasterTableConfig {
+  //TODO: WCS: document settings --  GEOMESA-565
   def settings(visibilities: String): Map[String, String] = Map (
     "table.security.scan.visibility.default" -> visibilities,
     "table.iterator.majc.vers.opt.maxVersions" -> "2147483647",
@@ -256,5 +260,3 @@ object RasterTableConfig {
   )
   val permissions = "BULK_IMPORT,READ,WRITE,ALTER_TABLE"
 }
-
-//TODO: WCS: Implement AccumuloRasterReader
