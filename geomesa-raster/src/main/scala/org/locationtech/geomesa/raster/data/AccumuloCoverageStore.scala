@@ -53,7 +53,7 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
   extends CoverageStore with Logging {
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
-
+  //TODO: WCS: remove if no longer needed
   rasterStore.ensureTableExists()
 
   def getAuths() = rasterStore.getAuths
@@ -88,7 +88,7 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
 }
 
 object AccumuloCoverageStore extends Logging {
-
+   //TODO: WCS: ensure that this is as clean as possible -- GEOMESA-567
    def apply(username: String,
              password: String,
              instanceId: String,
@@ -96,14 +96,6 @@ object AccumuloCoverageStore extends Logging {
              tableName: String,
              auths: String,
              writeVisibilities: String): AccumuloCoverageStore = {
-
-     //val conn = AccumuloStoreHelper.buildAccumuloConnector(username, password, instanceId, zookeepers)
-
-     //val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(auths.split(","), conn)
-
-     //val rasterOps = new AccumuloBackedRasterOperations(conn, tableName, authorizationsProvider, writeVisibilities)
-
-     // NB: JNH: Skipping the shards/writeMemory/writeThreads/queryThreadsParams
 
      val rs = RasterStore(username,
              password,
@@ -131,6 +123,8 @@ object AccumuloCoverageStore extends Logging {
     val writeThreadsConfig = writeThreadsParam.lookupOpt(config)
     val queryThreadsConfig = queryThreadsParam.lookupOpt(config)
 
+    // TODO: WCS: refactor by using companion object of RasterStore if appropriate
+    // GEOMESA-567
     val rasterOps =
       AccumuloBackedRasterOperations(connector,
                                      tableName,
