@@ -30,7 +30,5 @@ class AccumuloRasterQueryPlanner extends Logging {
     // TODO: WCS: setup a CFPlanner to match against a list of strings
     // ticket is GEOMESA-559
     QueryPlan(Seq(), rows, Seq())
-
-
   }
 }

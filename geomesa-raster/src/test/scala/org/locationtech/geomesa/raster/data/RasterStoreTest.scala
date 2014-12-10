@@ -1,41 +1,29 @@
 package org.locationtech.geomesa.raster.data
 
-import java.awt._
-import java.awt.color.ColorSpace
 import java.awt.image._
-import java.io._
-import javax.imageio.ImageIO
-import javax.media.jai.remote.SerializableRenderedImage
 
-import com.vividsolutions.jts.geom.Geometry
 import org.geotools.coverage.CoverageFactoryFinder
-import org.geotools.coverage.grid.{GridCoverageFactory, GridCoverage2D}
+import org.geotools.coverage.grid.GridCoverageFactory
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-//import org.jaitools.imageutils.ImageUtils
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.index.DecodedIndex
-//import org.locationtech.geomesa.plugin.ImageUtils
 import org.locationtech.geomesa.raster.feature.Raster
-import org.locationtech.geomesa.raster.ingest.SimpleRasterIngest._
-import org.locationtech.geomesa.utils.geohash.{GeoHash, TwoGeoHashBoundingBox, BoundingBox}
-import org.opengis.coverage.grid.GridCoverage
-import org.opengis.geometry.Envelope
+import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.mutable.ListBuffer
-
-
-
+//TODO: WCS: Improve this integration test by dealing with issues ID'd below
+// GEOMESA-571
 @RunWith(classOf[JUnitRunner])
 class RasterStoreTest extends Specification {
 
+  //TODO: WCS: refactor to separate the creation of the RasterStore, creation of multiple images and insertion
+  //           into separate functions.
   def createAndFillRasterStore = {
 
-    //val rs = RasterStore("user", "pass", getClass.toString, "zk", getClass.toString, "S,USA", "S,USA", true)
     val rs = RasterStore("user", "pass", "testInstance", "zk", "testTable", "SUSA", "SUSA", true)
 
     val rasterName = "testRaster"
@@ -65,6 +53,7 @@ class RasterStoreTest extends Specification {
   }
 
   // stolen from elsewhere
+  // TODO: WCS: import defintion from elsewhere
   def getNewImage(width: Int, height: Int, color: Array[Int]): BufferedImage = {
     val image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
     val wr = image.getRaster
@@ -77,10 +66,12 @@ class RasterStoreTest extends Specification {
     }
     image
   }
-
+  // stolen from elsewhere
+  // TODO: WCS: import definition from elsewhere
   def imageToCoverage(width: Int, height: Int, img: WritableRaster, env: ReferencedEnvelope, cf: GridCoverageFactory) = {
     cf.create("testRaster", img, env)
   }
+  //TODO: WCS: need tests to show finding one image, no images and several images,
 
   "RasterStore" should {
     "create a Raster Store" in {
@@ -91,9 +82,4 @@ class RasterStoreTest extends Specification {
       theRaster must beAnInstanceOf[Raster]
     }
   }
-
-
-
-
-
 }

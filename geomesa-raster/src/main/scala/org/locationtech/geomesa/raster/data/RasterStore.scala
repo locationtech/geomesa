@@ -19,9 +19,6 @@ class RasterStore(val rasterOps: RasterOperations) {
 
   def getVisibility() = rasterOps.getVisibility
 
-  // TODO: WCS: This needs to fleshed out to perform any general query planning, etc.
-  // anything general should be performed here,
-  // while anything AccumuloSpecific should be done in AccumuloBackedRasterOperations
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = rasterOps.getRasters(rasterQuery)
 
   def putRaster(raster: Raster) = rasterOps.putRaster(raster)
@@ -44,7 +41,8 @@ object RasterStore {
     val rasterOps = new AccumuloBackedRasterOperations(conn, tableName, authorizationsProvider, writeVisibilities)
     // this will actually create the Accumulo Table
     rasterOps.ensureTableExists()
-    // NB: JNH: Skipping the shards/writeMemory/writeThreads/queryThreadsParams
+    // TODO: WCS: Configure the shards/writeMemory/writeThreads/queryThreadsParams
+    // GEOMESA-568
     new RasterStore(rasterOps)
   }
 }

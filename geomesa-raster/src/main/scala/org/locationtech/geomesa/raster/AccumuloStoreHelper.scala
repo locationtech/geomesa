@@ -25,6 +25,8 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.locationtech.geomesa.core.security._
 import scala.collection.JavaConversions._
 
+//TODO: WCS: refactor this and AccumuloDataStoreFactory to remove duplication, etc...
+// GEOMESA-570
 object AccumuloStoreHelper {
   import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory._
   import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._

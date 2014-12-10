@@ -102,17 +102,6 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
 
     val raster = Raster(rasterGrid.getRenderedImage, metadata)
 
-    //    val raster = Raster(Raster.getRasterId(rasterName),
-    //                        rasterName,
-    //                        rasterGrid.getRenderedImage,
-    //                        bbox,
-    //                        rasterReader.getResolutionLevels.head(0),
-    //                        GeohashUtils.getMBGH(bbox),
-    //                        "degree",
-    //                        ingestTime,
-    //                        Some(rasterGrid.getSampleDimensions.head.getSampleDimensionType.name),
-    //                        Some(0))
-
     cs.saveRaster(raster)
   }
 

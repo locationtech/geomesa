@@ -37,6 +37,9 @@ import org.locationtech.geomesa.utils.geohash.GeohashUtils
 //                  dataType: Option[String],
 //                  band: Option[Int]) {
 
+// TODO: WCS: clean up this class and document
+// GEOMESA-569
+
 case class Raster(chunk: RenderedImage, metadata: DecodedIndex) {
   def id = metadata.id
   def name = metadata.id
