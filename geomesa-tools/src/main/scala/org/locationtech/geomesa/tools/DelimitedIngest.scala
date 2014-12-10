@@ -15,7 +15,7 @@
  */
 package org.locationtech.geomesa.tools
 
-import java.io.{InputStream, File}
+import java.io.File
 import java.net.URLEncoder
 
 import com.twitter.scalding.{Args, Hdfs, Local, Mode}
@@ -30,8 +30,6 @@ import org.locationtech.geomesa.tools.Utils.{IngestParams, Modes}
 import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
 
 import scala.collection.JavaConversions._
-import scala.io.Source
-import scala.util.Try
 
 class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
 
@@ -80,7 +78,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
     val singleArgs = List(classOf[DelimitedIngestJob].getCanonicalName, getModeFlag(params.files(0)))
 
     val requiredKvArgs: Map[String, String] = Map(
-      IngestParams.FILE_PATH         -> params.files(0).getPath,
+      IngestParams.FILE_PATH         -> params.files(0),
       IngestParams.SFT_SPEC          -> URLEncoder.encode(params.spec, "UTF-8"),
       IngestParams.CATALOG_TABLE     -> params.catalog,
       IngestParams.ZOOKEEPERS        -> Option(params.zookeepers).getOrElse(zookeepersProp),

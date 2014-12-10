@@ -15,10 +15,9 @@
  */
 package org.locationtech.geomesa.tools.commands
 
-import java.io.File
 import java.util
 
-import com.beust.jcommander.{Parameters, JCommander, Parameter}
+import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools._
@@ -37,7 +36,7 @@ class IngestCommand(parent: JCommander) extends Command with Logging {
       case CSV | TSV => new DelimitedIngest(params).run()
       case SHP       => new ShpIngest(params).run()
       case _         =>
-        logger.error("Error: File format not supported for file " + params.files(0).getPath + ". Supported formats" +
+        logger.error("Error: File format not supported for file " + params.files(0) + ". Supported formats" +
           "are csv,tsv,shp")
     }
   }
@@ -75,6 +74,6 @@ object IngestCommand {
 
     // TODO GEOMESA-528 enable ingest of multiple files
     @Parameter(description = "<file>...", required = true)
-    var files: java.util.List[File] = new util.ArrayList[File]()
+    var files: java.util.List[String] = new util.ArrayList[String]()
   }
 }

@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.{BufferedReader, File, InputStreamReader}
+import java.io.{BufferedReader, InputStreamReader}
 import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -62,17 +62,15 @@ object Utils {
     val GeoJson = "geojson"
     val GML     = "gml"
 
-    def getFileExtension(f: File) = {
-      val name = f.getName.toLowerCase
+    def getFileExtension(name: String) =
       name match {
-        case _ if name.endsWith(CSV)  => CSV
-        case _ if name.endsWith(TSV)  => TSV
-        case _ if name.endsWith(SHP)  => SHP
-        case _ if name.endsWith(JSON) => JSON
-        case _ if name.endsWith(GML)  => GML
-        case _                        => "unknown"
+        case _ if name.toLowerCase.endsWith(CSV)  => CSV
+        case _ if name.toLowerCase.endsWith(TSV)  => TSV
+        case _ if name.toLowerCase.endsWith(SHP)  => SHP
+        case _ if name.toLowerCase.endsWith(JSON) => JSON
+        case _ if name.toLowerCase.endsWith(GML)  => GML
+        case _                                    => "unknown"
       }
-    }
 
     val All = List(CSV, TSV, SHP, JSON, GeoJson, GML)
   }
@@ -81,8 +79,8 @@ object Utils {
     val Local = "local"
     val Hdfs  = "hdfs"
 
-    def getMode(f: File) = if (f.getName.toLowerCase.trim.startsWith("hdfs://")) Hdfs else Local
-    def getModeFlag(f: File) = "--" + getMode(f)
+    def getMode(filename: String) = if (filename.toLowerCase.trim.startsWith("hdfs://")) Hdfs else Local
+    def getModeFlag(filename: String) = "--" + getMode(filename)
   }
 
 }

@@ -16,12 +16,13 @@
 
 package org.locationtech.geomesa.tools
 
+import java.io.File
+
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.shapefile.ShapefileDataStoreFactory
 import org.geotools.data.{DataStoreFinder, Transaction}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.ShpIngest._
 import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -35,7 +36,7 @@ class ShpIngest(params: IngestParameters) extends Logging {
    * @return true or false indicating the success of the ingest
    */
   def run() = {
-    val fileUrl = params.files(0).toURI.toURL
+    val fileUrl = new File(params.files(0)).toURI.toURL
     val shpParams = Map(ShapefileDataStoreFactory.URLP.getName -> fileUrl)
     val shpDataStore = DataStoreFinder.getDataStore(shpParams)
     val featureTypeName = shpDataStore.getTypeNames.head
