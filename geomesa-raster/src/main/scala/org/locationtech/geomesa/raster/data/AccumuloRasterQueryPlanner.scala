@@ -25,6 +25,9 @@ class AccumuloRasterQueryPlanner extends Logging {
     // TODO: WCS: Configure RasterFilteringIterator here for use in the QueryPlan
     // this will entail the generation of a Seq[IteratorSetting]
     // ticket is GEOMESA-558
+
+    // TODO: WCS: setup a CFPlanner to match against a list of strings
+    // ticket is GEOMESA-559
     QueryPlan(Seq(), rows, Seq())
 
 

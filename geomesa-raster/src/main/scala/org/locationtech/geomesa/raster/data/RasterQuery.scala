@@ -33,4 +33,5 @@ case class RasterQuery(bbox: BoundingBox,
                        resolution: String,
                        startTime: Option[DateTime],
                        endTime: Option[DateTime])
-
+// TODO: WCS: include a list of bands as an optional parameter
+// ticket is GEOMESA-559
