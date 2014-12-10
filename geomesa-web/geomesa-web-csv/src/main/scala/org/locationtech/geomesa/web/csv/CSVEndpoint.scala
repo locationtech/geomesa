@@ -28,15 +28,17 @@ class CSVEndpoint
   }
 
   object Record {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
     def apply(localFile: File, hasHeader: Boolean): Record =
-      Record(localFile, csv.guessTypes(localFile, hasHeader), None, hasHeader)
+      Record(localFile, Future(csv.guessTypes(localFile, hasHeader)), None, hasHeader)
   }
   case class Record(csvFile: File,
-                    inferredSchemaF: Future[csv.TypeSchema],
+                    inferredSchemaF: Future[Try[csv.TypeSchema]],
                     shapefile: Option[File],
                     hasHeader: Boolean) {
     def inferredTS: Try[csv.TypeSchema] =
-      inferredSchemaF.value.getOrElse(Failure(new Exception("Inferred schema not available yet")))
+      inferredSchemaF.value.getOrElse(Failure(new Exception("Inferred schema not available yet"))).flatten
     def inferredName: Try[String] = inferredTS.map(_.name)
     def inferredSchema: Try[String] = inferredTS.map(_.schema)
   }

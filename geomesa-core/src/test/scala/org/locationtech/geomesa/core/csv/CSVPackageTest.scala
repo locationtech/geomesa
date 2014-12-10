@@ -26,17 +26,13 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.concurrent.Await
-import scala.concurrent.duration.{Duration, MINUTES}
-
 @RunWith(classOf[JUnitRunner])
 class CSVPackageTest
   extends Specification
           with Logging {
 
   "guessTypes" should {
-    def getSchema(name: String, csv: String) =
-      Await.result(guessTypes(name, new StringReader(csv)), Duration(1, MINUTES)).schema
+    def getSchema(name: String, csv: String) = guessTypes(name, new StringReader(csv)).get.schema
 
     "recognize int-parsable columns" >> {
       val csv = "int\n1"

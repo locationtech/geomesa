@@ -37,7 +37,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.collection.generic.CanBuildFrom
-import scala.concurrent.Future
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -63,17 +62,16 @@ package object csv extends Logging {
 
   case class TypeSchema(name: String, schema: String)
 
-  import scala.concurrent.ExecutionContext.Implicits.global
-
-  def guessTypes(csvFile: File, hasHeader: Boolean): Future[TypeSchema] =
-    for {       // Future{} ensures we're working in the Future monad
-      typename <- Future { FilenameUtils.getBaseName(csvFile.getName) }
-      reader   =  Source.fromFile(csvFile).bufferedReader()
-      guess    <- guessTypes(typename, reader, hasHeader)
+  def guessTypes(csvFile: File, hasHeader: Boolean): Try[TypeSchema] = {
+    val typename = FilenameUtils.getBaseName(csvFile.getName)
+    for {
+      reader <- Try {Source.fromFile(csvFile).bufferedReader()}
+      guess <- guessTypes(typename, reader, hasHeader)
     } yield {
       reader.close()
       guess
     }
+  }
 
   // this can probably be cleaned up and simplified now that parsers don't need to do double duty...
   def typeData(rawData: TraversableOnce[String]): Try[Seq[Char]] = {
@@ -102,10 +100,9 @@ package object csv extends Logging {
   def guessTypes(name: String,
                  csvReader: Reader,
                  hasHeader: Boolean = true,
-                 format: CSVFormat = CSVFormat.DEFAULT): Future[TypeSchema] =
-    Future {
+                 format: CSVFormat = CSVFormat.DEFAULT): Try[TypeSchema] = {
       val records = format.parse(csvReader).iterator
-      (for {
+      for {
         (header, record) <- sampleRecords(records, hasHeader)
         typeChars        <- typeData(record.iterator)
       } yield {
@@ -134,7 +131,7 @@ package object csv extends Logging {
         }}
 
         TypeSchema(name, sftb.getSpec())
-      }).get
+      }
     }
 
   val fieldParserMap =
