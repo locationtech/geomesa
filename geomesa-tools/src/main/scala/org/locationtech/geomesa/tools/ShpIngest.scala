@@ -32,9 +32,6 @@ import scala.collection.JavaConversions._
 
 class ShpIngest(params: IngestParameters) extends Logging {
 
-  /**
-   * @return true or false indicating the success of the ingest
-   */
   def run() = {
     val fileUrl = new File(params.files(0)).toURI.toURL
     val shpParams = Map(ShapefileDataStoreFactory.URLP.getName -> fileUrl)
@@ -46,27 +43,28 @@ class ShpIngest(params: IngestParameters) extends Logging {
 
     val targetTypeName = if (params.featureName != null) params.featureName else featureTypeName
 
-    if(ds.getSchema(targetTypeName) != null) {
-      logger.error("Type name already exists")
-      false
+    if (ds.getSchema(targetTypeName) != null) {
+      throw new Exception(s"Type name $targetTypeName already exists in data store...shape file ingest cannot continue")
     }
-    else {
-      // create the new feature type
-      val builder = new SimpleFeatureTypeBuilder()
-      builder.init(featureSource.getSchema)
-      builder.setName(targetTypeName)
-      val targetType = builder.buildFeatureType()
 
-      ds.createSchema(targetType)
-      val writer = ds.getFeatureWriterAppend(targetTypeName, Transaction.AUTO_COMMIT)
+    // create the new feature type
+    val builder = new SimpleFeatureTypeBuilder()
+    builder.init(featureSource.getSchema)
+    builder.setName(targetTypeName)
+    val targetType = builder.buildFeatureType()
+
+    ds.createSchema(targetType)
+    val writer = ds.getFeatureWriterAppend(targetTypeName, Transaction.AUTO_COMMIT)
+    try {
       featureSource.getFeatures.features.foreach { f =>
         val toWrite = writer.next()
         copyFeature(f, toWrite)
         writer.write()
       }
+    } finally {
       writer.close()
-      true
     }
+
   }
 
 }

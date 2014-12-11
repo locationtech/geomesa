@@ -48,8 +48,8 @@ class DescribeCommand(parent: JCommander) extends Command with Logging {
         sb.append(": ")
         sb.append(attr.getType.getBinding.getSimpleName)
 
-        if (extractDtgField(sft) == name)      sb.append(" (Time-index)")
-        if (sft.getGeometryDescriptor == attr) sb.append(" (Geo-index)")
+        if (extractDtgField(sft) == name)      sb.append(" (ST-Time-index)")
+        if (sft.getGeometryDescriptor == attr) sb.append(" (ST-Geo-index)")
         if (isIndexed(attr))                   sb.append(" (Indexed)")
         if (attr.getDefaultValue != null)      sb.append("- Default Value: ", attr.getDefaultValue)
 
