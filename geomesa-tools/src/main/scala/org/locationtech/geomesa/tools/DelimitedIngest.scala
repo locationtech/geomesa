@@ -86,7 +86,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
       IngestParams.ACCUMULO_USER     -> params.user,
       IngestParams.ACCUMULO_PASSWORD -> getPassword(params.password),
       IngestParams.DO_HASH           -> params.hash.toString,
-      IngestParams.FORMAT            -> getFileExtension(params.files(0)),
+      IngestParams.FORMAT            -> Option(params.format).getOrElse(getFileExtension(params.files(0))),
       IngestParams.FEATURE_NAME      -> params.featureName,
       IngestParams.IS_TEST_INGEST    -> false.toString
     )
