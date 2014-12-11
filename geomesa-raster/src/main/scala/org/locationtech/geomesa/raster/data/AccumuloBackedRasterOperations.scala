@@ -129,6 +129,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
 
   //TODO: WCS: change to our row id format in RasterIndexSchema (which needs to be created)
   private def getRow(ras: Raster) = {
+    val encoded = ScientificNotationTextFormatter
     new Text(s"~${lexiEncodeDoubleToString(ras.resolution)}~${ras.mbgh.hash}")
   }
 
@@ -149,7 +150,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   private def encodeValue(raster: Raster): Value =
     new Value(raster.encodeValue)
 
-  /**
+  /**f
    * Deserialize value in byte array to Raster instance
    *
    * @param value Value obtained from Accumulo table
