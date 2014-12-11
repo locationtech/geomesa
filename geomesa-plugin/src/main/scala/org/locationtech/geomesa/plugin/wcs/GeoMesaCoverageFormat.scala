@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.plugin.wcs
 
 import java.io.File
@@ -5,10 +21,15 @@ import java.io.File
 import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.coverage.grid.io.AbstractGridFormat._
 import org.geotools.factory.Hints
-import org.geotools.parameter.{DefaultParameterDescriptorGroup, ParameterGroup}
+import org.geotools.parameter.{DefaultParameterDescriptor, DefaultParameterDescriptorGroup, ParameterGroup}
+import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageFormat._
 import org.locationtech.geomesa.raster.ingest.GeoserverClientService
 import org.opengis.coverage.grid.Format
 import org.opengis.parameter.GeneralParameterDescriptor
+
+object GeoMesaCoverageFormat {
+  val RESOLUTION = new DefaultParameterDescriptor[String]("RESOLUTION", classOf[String], null, null)
+}
 
 class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
   mInfo = new java.util.HashMap[String, String]()
@@ -17,7 +38,7 @@ class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
   mInfo.put("vendor", "CCRI")
   mInfo.put("docURL", "http://www.geomesa.org")
   mInfo.put("version", "1.0")
-  val parameterDescriptors = Array[GeneralParameterDescriptor](READ_GRIDGEOMETRY2D, TIME)
+  val parameterDescriptors = Array[GeneralParameterDescriptor](READ_GRIDGEOMETRY2D, RESOLUTION)
   val defaultParameterGroup = new DefaultParameterDescriptorGroup(mInfo, parameterDescriptors)
 
   readParameters = new ParameterGroup(defaultParameterGroup)
