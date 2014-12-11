@@ -37,6 +37,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}
 
 import scala.reflect.ClassTag
+import scala.util.parsing.json.JSONObject
 
 object QueryPlanner {
   val iteratorPriority_RowRegex                        = 0
@@ -159,14 +160,17 @@ case class QueryPlanner(schema: String,
       }
     } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
       val timeSeriesStrings = accumuloIterator.map { kv =>
-        decoder.decode(kv.getValue).getAttribute(ENCODED_TIME_SERIES).toString
+        decoder.decode(kv.getValue).getAttribute(TIME_SERIES).toString
       }
 
       val summedTimeSeries = timeSeriesStrings.map(decodeTimeSeries).reduce(combineTimeSeries)
 
       val featureBuilder = AvroSimpleFeatureFactory.featureBuilder(returnSFT)
       featureBuilder.reset()
-      featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
+      if (query.getHints.containsKey(RETURN_ENCODED))
+        featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
+      else
+        featureBuilder.add(timeSeriesToJSON(summedTimeSeries))
 
       featureBuilder.add(QueryPlanner.zeroPoint) //Filler value as Feature requires a geometry
       val result = featureBuilder.buildFeature(null)
