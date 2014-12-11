@@ -16,20 +16,18 @@
 
 package org.locationtech.geomesa.raster.data
 
-import java.awt.image.RenderedImage
-import java.io.{ByteArrayInputStream, ObjectInputStream}
 import java.util.Map.Entry
 
 import org.apache.accumulo.core.client.{BatchScanner, BatchWriterConfig, Connector, TableExistsException}
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
-import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility, TablePermission}
-import org.apache.hadoop.io.Text
+import org.apache.accumulo.core.security.{Authorizations, TablePermission}
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.core.stats.StatWriter
+import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.feature.Raster
-import org.locationtech.geomesa.raster.index.RasterIndexEntry
+import org.locationtech.geomesa.raster.index.RasterIndexSchema
 
 import scala.collection.JavaConversions._
 
@@ -70,6 +68,8 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   val writeThreads = writeThreadsConfig.getOrElse(10)
   val bwConfig: BatchWriterConfig =
     new BatchWriterConfig().setMaxMemory(writeMemory).setMaxWriteThreads(writeThreads)
+
+  val encoder = RasterIndexSchema(s"%~#s%${lexiEncodeDoubleToString(10.0)}#ires%0,3#gh") // TODO: Sort this RasterIndexSchema Out
 
   lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner("") //TODO: make this point to default schema
 
@@ -113,55 +113,10 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   }
 
   def adaptIterator(iter: java.util.Iterator[Entry[Key, Value]], res: Double): Iterator[Raster] = {
-    iter.map { entry =>
-      val renderedImage: RenderedImage = rasterImageDeserialize(entry.getValue.get)
-      val metadata: DecodedIndex = RasterIndexEntry.decodeIndexCQMetadata(entry.getKey)
-      Raster(renderedImage, metadata, res)
-    }
-  }
-
-  def rasterImageDeserialize(imageBytes: Array[Byte]): RenderedImage = {
-    val in: ObjectInputStream = new ObjectInputStream(new ByteArrayInputStream(imageBytes))
-    var read: RenderedImage = null
-    try {
-      read = in.readObject().asInstanceOf[RenderedImage]
-    } finally {
-      in.close()
-    }
-    read
+    iter.map { entry => encoder.decode((entry.getKey, entry.getValue)) }
   }
 
   def ensureTableExists() = ensureTableExists(rasterTable)
-
-  //TODO: WCS: change to our row id format in RasterIndexSchema (which needs to be created)
-  private def getRow(ras: Raster) = {
-    new Text(s"~${lexiEncodeDoubleToString(ras.resolution)}~${ras.mbgh.hash}")
-  }
-
-  //TODO: WCS: add band value to Raster and insert it into the CF here
-  // GEOMESA-561
-  private def getCF(raster: Raster): Text = new Text("")
-
-  private def getCQ(raster: Raster): Text = {
-    new Text(RasterIndexEntry.encodeIndexCQMetadata(raster.id, raster.metadata.geom, Some(raster.time)))
-  }
-
-  /**
-   * Serialize Raster instance to byte array
-   *
-   * @param raster Raster instance
-   * @return Value
-   */
-  private def encodeValue(raster: Raster): Value =
-    new Value(raster.encodeValue)
-
-  /**
-   * Deserialize value in byte array to Raster instance
-   *
-   * @param value Value obtained from Accumulo table
-   * @return byte array
-   */
-  private def decodeValue(value: Value): Raster =  ???   // TODO: WCS: remove this if no longer needed
 
   private def dateToAccTimestamp(dt: DateTime): Long =  dt.getMillis / 1000
 
@@ -172,15 +127,15 @@ class AccumuloBackedRasterOperations(val connector: Connector,
    * @return Mutation instance
    */
   private def createMutation(raster: Raster): Mutation = {
-    val mutation = new Mutation(getRow(raster))
-    val colFam = getCF(raster)
-    val colQual = getCQ(raster)
+    val pair = encoder.encode(raster, writeVisibilities)
+    val mutation = new Mutation(pair._1.getRow)
+    val colFam   = pair._1.getColumnFamily
+    val colQual  = pair._1.getColumnQualifier
+    val colVis   = pair._1.getColumnVisibilityParsed
     // TODO: WCS: determine if this is wise/useful
     // GEOMESA-562
     val timestamp: Long = dateToAccTimestamp(raster.time)
-    val colVis = new ColumnVisibility(writeVisibilities)
-    val value = encodeValue(raster)
-    mutation.put(colFam, colQual, colVis, timestamp, value)
+    mutation.put(colFam, colQual, colVis, timestamp, pair._2)
     mutation
   }
 

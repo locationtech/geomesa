@@ -10,6 +10,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators._
+import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.iterators.RasterFilteringIterator
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -31,6 +32,7 @@ case class AccumuloRasterQueryPlanner(schema: String) extends Logging with Index
     logger.debug(s"Planner: BBox: ${rq.bbox} has geohashes: $hashes, and has encoded Resolution: $res")
 
     val rows = hashes.map { gh =>
+      // TODO: leverage the RasterIndexSchema to construct the range.
       new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"))
     }
 
@@ -65,4 +67,12 @@ case class AccumuloRasterQueryPlanner(schema: String) extends Logging with Index
     new ReferencedEnvelope(env.getMinX, env.getMaxX, env.getMinY, env.getMaxY, DefaultGeographicCRS.WGS84)
   }
 
+}
+
+case class ResolutionPlanner(ires: Double) extends KeyPlanner {
+  def getKeyPlan(filter:KeyPlanningFilter, output: ExplainerOutputType) = KeyListTiered(List(lexiEncodeDoubleToString(ires)))
+}
+
+case class BandPlanner(band: String) extends KeyPlanner {
+  def getKeyPlan(filter:KeyPlanningFilter, output: ExplainerOutputType) = KeyListTiered(List(band))
 }
