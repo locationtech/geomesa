@@ -10,11 +10,15 @@ import org.locationtech.geomesa.raster.feature.Raster
  */
 class RasterStore(val rasterOps: RasterOperations) {
 
-  def ensureTableExists() = rasterOps.ensureTableExists
+  def ensureTableExists() = rasterOps.ensureTableExists()
 
-  def getAuths() = rasterOps.getAuths
+  def getAuths = rasterOps.getAuths()
 
-  def getVisibility() = rasterOps.getVisibility
+  def getVisibility = rasterOps.getVisibility()
+
+  def getConnector = rasterOps.getConnector()
+
+  def getTable = rasterOps.getTable
 
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = rasterOps.getRasters(rasterQuery)
 

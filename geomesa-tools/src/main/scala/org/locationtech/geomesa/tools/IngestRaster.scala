@@ -61,7 +61,7 @@ class IngestRaster() extends Logging with AccumuloProperties {
       case "TIFF" | "DTED" =>
         ingest(config, password)
       case _ =>
-        logger.error(s"Error: file format not supportedh. Supported formats include: TIF, TIFF and DT{0,1,2}. " +
+        logger.error(s"Error: file format not supported. Supported formats include: TIF, TIFF and DT{0,1,2}. " +
           s"No coverage ingested.")
     }
   }
