@@ -826,7 +826,7 @@ class AccumuloDataStoreTest extends Specification {
 
       "typeOf feature source must be ListFeatureCollection" >> {
         val fc = ds.getFeatureSource(sftName).getFeatures(Filter.INCLUDE)
-        fc must haveClass[ListFeatureCollection]
+        fc must haveClass[CachingAccumuloFeatureCollection]
       }
     }
 
