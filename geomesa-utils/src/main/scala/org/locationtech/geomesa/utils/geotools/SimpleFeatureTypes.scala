@@ -21,12 +21,14 @@ import java.util.{Date, UUID}
 import com.vividsolutions.jts.geom._
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 import scala.util.parsing.combinator.JavaTokenParsers
+import scala.util.Try
 
 object SimpleFeatureTypes {
 
@@ -79,7 +81,7 @@ object SimpleFeatureTypes {
           ad.getLocalName,
           ad.getType.getBinding,
           ad.getUserData.getOrElse("index", false).asInstanceOf[Boolean],
-          if(ad.asInstanceOf[GeometryDescriptor].getCoordinateReferenceSystem.equals(DefaultGeographicCRS.WGS84)) 4326 else -1,
+          4326,
           sft.getGeometryDescriptor.equals(ad)
         )
 
@@ -152,11 +154,9 @@ object SimpleFeatureTypes {
 
   case class GeomAttributeSpec(name: String, clazz: Class[_], index: Boolean, srid: Int, default: Boolean) extends AttributeSpec {
     override def toAttribute: AttributeDescriptor = {
-      if (!(srid == 4326 || srid == -1)) {
-        throw new IllegalArgumentException(s"Invalid SRID '$srid'. Only 4326 is supported.")
-      }
       val b = new AttributeTypeBuilder()
-      b.binding(clazz).userData("index", index).crs(DefaultGeographicCRS.WGS84).buildDescriptor(name)
+      val crs = Try(CRS.decode(s"EPSG:$srid")).getOrElse(DefaultGeographicCRS.WGS84)
+      b.binding(clazz).userData("index", index).crs(crs).buildDescriptor(name)
     }
 
     override def toSpec = {

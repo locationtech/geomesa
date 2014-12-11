@@ -27,8 +27,11 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => ARange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.commons.codec.binary.Base64
+import org.codehaus.jackson.`type`.TypeReference
+import org.codehaus.jackson.map.ObjectMapper
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.joda.time.format.{DateTimeFormat}
 import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
@@ -37,7 +40,9 @@ import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, TimeSnap}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.collection.JavaConversions
 import scala.util.Random
+import scala.util.parsing.json.{JSONObject}
 
 class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvironment) extends SortedKeyValueIterator[Key, Value] {
 
@@ -156,8 +161,8 @@ object TemporalDensityIterator extends Logging {
 
   val INTERVAL_KEY = "geomesa.temporal.density.bounds"
   val BUCKETS_KEY = "geomesa.temporal.density.buckets"
-  val ENCODED_TIME_SERIES: String = "timeseries"
-  val TEMPORAL_DENSITY_FEATURE_STRING = s"$ENCODED_TIME_SERIES:String,geom:Geometry"
+  val TIME_SERIES: String = "timeseries"
+  val TEMPORAL_DENSITY_FEATURE_STRING = s"$TIME_SERIES:String,geom:Geometry"
 
   val zeroPoint = new GeometryFactory().createPoint(new Coordinate(0,0))
 
@@ -193,6 +198,24 @@ object TemporalDensityIterator extends Logging {
       resultTS.put(key, ts1.getOrElse(key, 0L) + ts2.getOrElse(key,0L))
     }
     resultTS
+  }
+
+  def timeSeriesToJSON(ts : TimeSeries) : String = {
+    val jsonMap = ts.toMap map { case (k, v) => (k.toString("yyyy-MM-dd'T'HH:mm:ss.SSSZ") -> v)}
+    val timeSeriesJSON = new JSONObject(jsonMap).toString()
+    timeSeriesJSON
+  }
+
+  def jsonToTimeSeries(ts : String) : TimeSeries = {
+    val objMapper: ObjectMapper = new ObjectMapper();
+    val map: ju.Map[String, Long] = objMapper.readValue(ts, new TypeReference[ju.HashMap[String, java.lang.Long]](){});
+    val ret = new collection.mutable.HashMap[DateTime, Long]()
+    for ((k,v) <- JavaConversions.mapAsScalaMap(map)){
+      val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+      val dateTime = df.parseDateTime(k);
+      ret.put(dateTime, v)
+    }
+    ret
   }
 
   def encodeTimeSeries(timeSeries: TimeSeries): String = {

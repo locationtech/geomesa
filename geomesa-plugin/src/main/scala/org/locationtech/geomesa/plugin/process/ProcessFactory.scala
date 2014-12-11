@@ -22,6 +22,7 @@ import org.geotools.text.Text
 import org.locationtech.geomesa.core.process.knn.KNearestNeighborSearchProcess
 import org.locationtech.geomesa.core.process.proximity.ProximitySearchProcess
 import org.locationtech.geomesa.core.process.query.QueryProcess
+import org.locationtech.geomesa.core.process.temporalDensity.TemporalDensityProcess
 import org.locationtech.geomesa.core.process.tube.TubeSelectProcess
 import org.locationtech.geomesa.core.process.unique.UniqueProcess
 
@@ -30,6 +31,7 @@ class ProcessFactory
     Text.text("GeoMesa Process Factory"),
     "geomesa",
     classOf[DensityProcess],
+    classOf[TemporalDensityProcess],
     classOf[TubeSelectProcess],
     classOf[ProximitySearchProcess],
     classOf[QueryProcess],
