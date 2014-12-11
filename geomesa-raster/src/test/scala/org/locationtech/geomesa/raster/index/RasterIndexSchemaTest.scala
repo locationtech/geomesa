@@ -18,6 +18,8 @@ package org.locationtech.geomesa.raster.index
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.raster._
+import org.locationtech.geomesa.raster.data.ResolutionPlanner
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

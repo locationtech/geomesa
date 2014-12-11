@@ -20,6 +20,8 @@ package org.locationtech.geomesa.raster.index
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.raster._
+import org.locationtech.geomesa.raster.data.{BandPlanner, ResolutionPlanner}
 import org.locationtech.geomesa.raster.feature.Raster
 
 case class RasterIndexSchema(encoder: RasterIndexEntryEncoder,
@@ -38,6 +40,19 @@ case class RasterIndexSchema(encoder: RasterIndexEntryEncoder,
 }
 
 object RasterIndexSchema extends SchemaHelpers with Logging {
+
+  // An Image Resolution encoder.
+  def resolutionPattern = pattern("[^%#]+".r, RESOLUTION_CODE)
+  def resolutionEncoder: Parser[ScientificNotationTextFormatter] = resolutionPattern ^^ {
+    case d => ScientificNotationTextFormatter(lexiDecodeStringToDouble(d))
+  }
+
+  // A Band encoder. 'RGB#b' would yield RGB
+  //  We match any string other that does *not* contain % or # since we use those for delimiters
+  def bandPattern = pattern("[^%#]+".r, BAND_CODE)
+  def bandEncoder: Parser[RasterBandTextFormatter] = bandPattern ^^ {
+    case b => RasterBandTextFormatter(b)
+  }
 
   // a key element consists of a separator and any number of random partitions, geohashes, and dates
   override def keypart: Parser[CompositeTextFormatter] =

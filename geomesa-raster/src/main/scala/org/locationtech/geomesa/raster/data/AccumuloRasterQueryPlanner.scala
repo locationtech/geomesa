@@ -10,6 +10,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators._
+import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.iterators.RasterFilteringIterator
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -64,4 +65,12 @@ case class AccumuloRasterQueryPlanner(schema: String) extends Logging with Index
     new ReferencedEnvelope(env.getMinX, env.getMaxX, env.getMinY, env.getMaxY, DefaultGeographicCRS.WGS84)
   }
 
+}
+
+case class ResolutionPlanner(ires: Double) extends KeyPlanner {
+  def getKeyPlan(filter:KeyPlanningFilter, output: ExplainerOutputType) = KeyListTiered(List(lexiEncodeDoubleToString(ires)))
+}
+
+case class BandPlanner(band: String) extends KeyPlanner {
+  def getKeyPlan(filter:KeyPlanningFilter, output: ExplainerOutputType) = KeyListTiered(List(band))
 }

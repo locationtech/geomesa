@@ -51,10 +51,3 @@ case class GeometryDecoder(orderedSeq: Seq[ColumnQualifierExtractor]) extends Ex
     WKBUtils.read(seqExtract(orderedSeq, key).takeWhile(c => c != '.'))
 }
 
-case class ScientificNotationDecoder(orderSeq: Seq[TextExtractor]) extends ExtractingDecoder[Double] {
-  def decode(key: Key): Double = lexiDecodeStringToDouble(seqExtract(orderSeq, key))
-}
-
-case class RasterBandDecoder(orderSeq: Seq[TextExtractor]) extends ExtractingDecoder[String] {
-  def decode(key: Key): String = seqExtract(orderSeq, key)
-}
