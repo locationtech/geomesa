@@ -28,6 +28,7 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.core.stats.StatWriter
+import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.raster.index.RasterIndexEntry
 
@@ -129,7 +130,6 @@ class AccumuloBackedRasterOperations(val connector: Connector,
 
   //TODO: WCS: change to our row id format in RasterIndexSchema (which needs to be created)
   private def getRow(ras: Raster) = {
-    val encoded = ScientificNotationTextFormatter
     new Text(s"~${lexiEncodeDoubleToString(ras.resolution)}~${ras.mbgh.hash}")
   }
 
@@ -150,7 +150,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   private def encodeValue(raster: Raster): Value =
     new Value(raster.encodeValue)
 
-  /**f
+  /**
    * Deserialize value in byte array to Raster instance
    *
    * @param value Value obtained from Accumulo table
@@ -230,22 +230,22 @@ object AccumuloBackedRasterOperations {
             collectStats: Boolean): AccumuloBackedRasterOperations  =
     if (collectStats)
       new AccumuloBackedRasterOperations(connector,
-                                         tableName,
-                                         authorizationsProvider,
-                                         visibility,
-                                         shardsConfig,
-                                         writeMemoryConfig,
-                                         writeThreadsConfig,
-                                         queryThreadsConfig) with StatWriter
+        tableName,
+        authorizationsProvider,
+        visibility,
+        shardsConfig,
+        writeMemoryConfig,
+        writeThreadsConfig,
+        queryThreadsConfig) with StatWriter
     else
       new AccumuloBackedRasterOperations(connector,
-                                         tableName,
-                                         authorizationsProvider,
-                                         visibility,
-                                         shardsConfig,
-                                         writeMemoryConfig,
-                                         writeThreadsConfig,
-                                         queryThreadsConfig)
+        tableName,
+        authorizationsProvider,
+        visibility,
+        shardsConfig,
+        writeMemoryConfig,
+        writeThreadsConfig,
+        queryThreadsConfig)
 }
 
 object RasterTableConfig {

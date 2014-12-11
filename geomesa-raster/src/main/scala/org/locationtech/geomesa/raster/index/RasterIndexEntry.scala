@@ -27,6 +27,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.utils.text.WKBUtils
 
