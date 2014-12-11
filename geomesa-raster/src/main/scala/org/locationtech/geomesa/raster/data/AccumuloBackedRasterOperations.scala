@@ -18,7 +18,7 @@ package org.locationtech.geomesa.raster.data
 
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
 import org.apache.accumulo.core.data.{Mutation, Value}
-import org.apache.accumulo.core.security.{ColumnVisibility, TablePermission}
+import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility, TablePermission}
 import org.apache.hadoop.io.Text
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
@@ -27,9 +27,11 @@ import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.utils.geohash.GeoHash
 
 trait RasterOperations {
+  def getTable(): String
   def ensureTableExists(): Unit
-  def getAuths(): String
+  def getAuths(): Authorizations
   def getVisibility(): String
+  def getConnector(): Connector
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster]
   def putRaster(raster: Raster): Unit
 }
@@ -65,9 +67,13 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   private val tableOps = connector.tableOperations()
   private val securityOps = connector.securityOperations
 
-  def getAuths() = authorizationsProvider.getAuthorizations.toString
+  def getAuths() = authorizationsProvider.getAuthorizations
 
   def getVisibility() = writeVisibilities
+
+  def getConnector() = connector
+
+  def getTable() = coverageTable
 
   def putRasters(rasters: Seq[Raster]) {
     rasters.foreach{ putRaster(_) }

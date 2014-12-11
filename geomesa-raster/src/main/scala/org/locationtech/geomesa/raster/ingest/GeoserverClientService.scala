@@ -70,7 +70,7 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
     val password = params(IngestRasterParams.ACCUMULO_PASSWORD)
     val auths = params(IngestRasterParams.AUTHORIZATIONS)
 
-    s"accumulo://$user:$password@$instance/$tableName#columns=$rasterId#geohash=$geohash#resolution=$iRes" +
+    s"accumulo://$user:$password@$instance/$tableName#geohash=$geohash#resolution=$iRes" +
       s"#timeStamp=$timeStamp#rasterName=$rasterName#zookeepers=$zookeepers#auths=$auths"
   }
 

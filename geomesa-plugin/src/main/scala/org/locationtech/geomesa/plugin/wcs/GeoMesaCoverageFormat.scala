@@ -5,19 +5,27 @@ import java.io.File
 import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.coverage.grid.io.AbstractGridFormat._
 import org.geotools.factory.Hints
-import org.geotools.parameter.{DefaultParameterDescriptorGroup, ParameterGroup}
+import org.geotools.parameter.{DefaultParameterDescriptor, DefaultParameterDescriptorGroup, ParameterGroup}
 import org.locationtech.geomesa.raster.ingest.GeoserverClientService
 import org.opengis.coverage.grid.Format
-import org.opengis.parameter.GeneralParameterDescriptor
+import org.opengis.parameter.{GeneralParameterDescriptor, ParameterDescriptor}
+
+object GeoMesaCoverageFormat {
+  val RESOLUTION: ParameterDescriptor[String] = new DefaultParameterDescriptor[String]("RESOLUTION", classOf[String], null, null)
+  val MAGNIFICATION: ParameterDescriptor[String] = new DefaultParameterDescriptor[String]("MAGNIFICATION", classOf[String], null, null)
+  val COVERAGE_NAME: ParameterDescriptor[String] = new DefaultParameterDescriptor[String]("COVERAGE_NAME", classOf[String], null, null)
+}
 
 class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
+  import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageFormat._
+
   mInfo = new java.util.HashMap[String, String]()
   mInfo.put("name", GeoserverClientService.coverageFormatName)
   mInfo.put("description", "Serve tile imagery from GeoMesa tables with a specific format")
   mInfo.put("vendor", "CCRI")
   mInfo.put("docURL", "http://www.geomesa.org")
   mInfo.put("version", "1.0")
-  val parameterDescriptors = Array[GeneralParameterDescriptor](READ_GRIDGEOMETRY2D, TIME)
+  val parameterDescriptors = Array[GeneralParameterDescriptor](READ_GRIDGEOMETRY2D, RESOLUTION, MAGNIFICATION, COVERAGE_NAME)
   val defaultParameterGroup = new DefaultParameterDescriptorGroup(mInfo, parameterDescriptors)
 
   readParameters = new ParameterGroup(defaultParameterGroup)
