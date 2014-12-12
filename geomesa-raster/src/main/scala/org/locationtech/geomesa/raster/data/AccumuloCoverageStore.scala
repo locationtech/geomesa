@@ -17,7 +17,6 @@
 
 package org.locationtech.geomesa.raster.data
 
-import java.awt.image.RenderedImage
 import java.io.Serializable
 import java.util.{Map => JMap}
 
