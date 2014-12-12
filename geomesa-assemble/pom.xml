@@ -70,6 +70,16 @@
             <artifactId>geomesa-compute-accumulo1.5</artifactId>
             <classifier>shaded</classifier>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

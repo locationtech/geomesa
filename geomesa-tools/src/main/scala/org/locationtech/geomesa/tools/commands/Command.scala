@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.locationtech.geomesa.tools
+package org.locationtech.geomesa.tools.commands
 
-import java.io.OutputStream
-
-import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.geojson.feature.FeatureJSON
-
-class GeoJsonExport {
-
-  val featureJson = new FeatureJSON()
-
-  def write(features: SimpleFeatureCollection, output: OutputStream) {
-    featureJson.writeFeatureCollection(features, output)
-  }
+trait Command {
+  def execute()
 }
