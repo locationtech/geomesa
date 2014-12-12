@@ -140,9 +140,9 @@ To create a new feature on a specified catalog table, use the `create` command.
            tservers)
       * -s, --spec
            SimpleFeatureType specification
-        -st, --useSharedTables
-           Use shared tables in Accumulo for feature storage
-           Default: false
+        -st, --use-shared-tables
+           Use shared tables in Accumulo for feature storage (true/false)
+           Default: true
       * -u, --user
            Accumulo user name
         -v, --visibilities
@@ -205,7 +205,7 @@ To describe the attributes of a feature on a specified catalog table, use the `d
         -i, --instance
            Accumulo instance name
         -mc, --mock
-           Run everything with a mock accumulo instance instead of a real one
+           Run everything with a mock accumulo instance instead of a real one (true/false)
            Default: false
         -p, --password
            Accumulo password (will prompt if not supplied)
@@ -273,22 +273,22 @@ To export features, use the `export` command.
            Catalog table name for GeoMesa
         -q, --cql
            CQL predicate
-        -dt, --dtAttribute
+        -dt, --dt-attribute
            name of the date attribute to export
       * -fn, --feature-name
            Simple Feature Type name on which to operate
         -fmt, --format
            Format to export (csv|tsv|gml|json|shp)
            Default: csv
-        -id, --idAttribute
+        -id, --id-attribute
            name of the id attribute to export
         -i, --instance
            Accumulo instance name
-        -lat, --latAttribute
+        -lat, --lat-attribute
            name of the latitude attribute to export
-        -lon, --lonAttribute
+        -lon, --lon-attribute
            name of the longitude attribute to export
-        -max, --maxFeatures
+        -max, --max-features
            Maximum number of features to return. default: Long.MaxValue
            Default: 2147483647
         -mc, --mock
@@ -336,7 +336,7 @@ The file type is inferred from the extension of the file, so ensure that the for
         -cols, --columns
            the set of column indexes to be ingested, must match the
            SimpleFeatureType spec
-        -dtf, --dtFormat
+        -dtf, --dt-format
            format string for the date time field
         -dt, --dtg
            DateTime field name to use as the default dtg
@@ -348,17 +348,17 @@ The file type is inferred from the extension of the file, so ensure that the for
         -h, --hash
            flag to toggle using md5hash as the feature id
            Default: false
-        -id, --idFields
+        -id, --id-fields
            the set of attributes to combine together to create a unique id for the
            feature (comma separated)
-        -is, --indexSchema
+        -is, --index-schema
            GeoMesa index schema format string
         -i, --instance
            Accumulo instance name
-        -lat, --latAttribute
+        -lat, --lat-attribute
            name of the latitude field in the SimpleFeatureType if ingesting point
            data
-        -lon, --lonAttribute
+        -lon, --lon-attribute
            name of the longitude field in the SimpleFeatureType if ingesting point
            data
         -mc, --mock
@@ -371,9 +371,9 @@ The file type is inferred from the extension of the file, so ensure that the for
            tservers)
       * -s, --spec
            SimpleFeatureType specification
-        -st, --useSharedTables
-           Use shared tables in Accumulo for feature storage
-           Default: false
+        -st, --use-shared-tables
+           Use shared tables in Accumulo for feature storage (true/false)
+           Default: true
       * -u, --user
            Accumulo user name
         -v, --visibilities

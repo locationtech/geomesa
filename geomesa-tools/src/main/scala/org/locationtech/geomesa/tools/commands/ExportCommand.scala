@@ -123,7 +123,7 @@ object ExportCommand {
     @Parameter(names = Array("-fmt", "--format"), description = "Format to export (csv|tsv|gml|json|shp)")
     var format: String = "csv"
 
-    @Parameter(names = Array("-max", "--maxFeatures"), description = "Maximum number of features to return. default: Long.MaxValue")
+    @Parameter(names = Array("-max", "--max-features"), description = "Maximum number of features to return. default: Long.MaxValue")
     var maxFeatures: Integer = Int.MaxValue
 
     @Parameter(names = Array("-at", "--attributes"), description = "Attributes from feature to export " +
@@ -133,16 +133,16 @@ object ExportCommand {
       "and filter functions, i.e. can be nested")
     var attributes: String = null
 
-    @Parameter(names = Array("-id", "--idAttribute"), description = "name of the id attribute to export")
+    @Parameter(names = Array("-id", "--id-attribute"), description = "name of the id attribute to export")
     var idAttribute: String = null
 
-    @Parameter(names = Array("-lat", "--latAttribute"), description = "name of the latitude attribute to export")
+    @Parameter(names = Array("-lat", "--lat-attribute"), description = "name of the latitude attribute to export")
     var latAttribute: String = null
 
-    @Parameter(names = Array("-lon", "--lonAttribute"), description = "name of the longitude attribute to export")
+    @Parameter(names = Array("-lon", "--lon-attribute"), description = "name of the longitude attribute to export")
     var lonAttribute: String = null
 
-    @Parameter(names = Array("-dt", "--dtAttribute"), description = "name of the date attribute to export")
+    @Parameter(names = Array("-dt", "--dt-attribute"), description = "name of the date attribute to export")
     var dateAttribute: String = null
 
     @Parameter(names = Array("-o", "--output"), description = "name of the file to output to instead of std out")

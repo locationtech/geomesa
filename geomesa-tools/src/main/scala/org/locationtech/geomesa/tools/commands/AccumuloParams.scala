@@ -36,7 +36,7 @@ class AccumuloParams {
   @Parameter(names = Array("-v", "--visibilities"), description = "Accumulo scan visibilities")
   var visibilities: String = null
 
-  @Parameter(names = Array("-mc", "--mock"), description = "Run everything with a mock accumulo instance instead of a real one")
+  @Parameter(names = Array("-mc", "--mock"), description = "Run everything with a mock accumulo instance instead of a real one (true/false)", arity = 1)
   var useMock: Boolean = false
 }
 
@@ -67,8 +67,8 @@ class CreateFeatureParams extends FeatureParams {
   @Parameter(names = Array("-dt", "--dtg"), description = "DateTime field name to use as the default dtg")
   var dtgField: String = null
 
-  @Parameter(names = Array("-st", "--useSharedTables"), description = "Use shared tables in Accumulo for feature storage")
-  var useSharedTables: Boolean = false
+  @Parameter(names = Array("-st", "--use-shared-tables"), description = "Use shared tables in Accumulo for feature storage (true/false)", arity = 1)
+  var useSharedTables: Boolean = true //default to true in line with datastore
 
   @Parameter(names = Array("-sh", "--shards"), description = "Number of shards to use for the storage tables (defaults to number of tservers)")
   var numShards: Integer = null
