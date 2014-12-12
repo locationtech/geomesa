@@ -93,15 +93,16 @@ object RasterIndexSchema extends SchemaHelpers with Logging {
 
   // builds the encoder from a string representation
   def buildKeyEncoder(s: String): RasterIndexEntryEncoder = {
-    val (rowf, cff, cqf) = parse(formatter, s).get
-    RasterIndexEntryEncoder(rowf, cff, cqf)
+    //val (rowf, cff, cqf) = parse(formatter, s).get
+    RasterIndexEntryEncoder(null, null, null)
   }
 
   // builds a RasterIndexSchema
   def apply(s: String): RasterIndexSchema = {
     val keyEncoder     = buildKeyEncoder(s)
-    val geohashDecoder = buildGeohashDecoder(s)
-    val keyPlanner     = buildKeyPlanner(s) // TODO: establish if this is needed, or any Planner components?
+    // TODO: WCS figure out what decoders/planners we need here if any
+    //val geohashDecoder = buildGeohashDecoder(s)
+    //val keyPlanner     = buildKeyPlanner(s) // TODO: establish if this is needed, or any Planner components?
     val indexEntryDecoder = RasterIndexEntryDecoder()
     RasterIndexSchema(keyEncoder, indexEntryDecoder)
   }
