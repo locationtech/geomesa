@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.core.csv
 
+// TODO: replace with org.geotools.measure.AngleFormat
 object DMS {
   object Hemisphere {
     def apply(char: Char): Hemisphere = char.toUpper match {
