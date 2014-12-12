@@ -50,7 +50,7 @@ object FeatureCreator extends Logging {
 
     if (ds.getSchema(featureName) == null) {
 
-      logger.info("\tCreating GeoMesa tables...")
+      logger.info("Creating GeoMesa tables...")
 
       val sft = SimpleFeatureTypes.createType(featureName, sftspec)
       if (dtField.orNull != null) {
@@ -68,11 +68,11 @@ object FeatureCreator extends Logging {
 
       if (ds.getSchema(featureName) != null) {
         logger.info(s"Feature '$featureName' on catalog table '$catalog' with spec " +
-          s"'$spec' successfully created.")
+          s"'$sftspec' successfully created.")
         println(s"Created feature $featureName")
       } else {
         logger.error(s"There was an error creating feature '$featureName' on catalog table " +
-          s"'$catalog' with spec '$spec'. Please check that all arguments are correct " +
+          s"'$catalog' with spec '$sftspec'. Please check that all arguments are correct " +
           "in the previous command.")
       }
     } else {
