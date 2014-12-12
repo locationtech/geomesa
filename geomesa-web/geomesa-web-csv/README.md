@@ -24,3 +24,51 @@
     > curl <GEOSERVER_ROOT>/geomesa/csv/c0c16ad7-5707-428b-9a28-d3f8aca86589.csv/types
     
     java.util.NoSuchElementException: key not found: c0c16ad7-5707-428b-9a28-d3f8aca86589
+
+# Example WPS XML for geoserver ingest request
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <wps:Execute version="1.0.0" service="WPS"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xmlns="http://www.opengis.net/wps/1.0.0"
+     xmlns:wps="http://www.opengis.net/wps/1.0.0"
+     xmlns:ows="http://www.opengis.net/ows/1.1"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+      <ows:Identifier>geomesa:Import</ows:Identifier>
+      <wps:DataInputs>
+        <wps:Input>
+          <ows:Identifier>features</ows:Identifier>
+          <wps:Reference mimeType="application/zip" xlink:href="http://localhost:9090/geoserver/geomesa/CSVID.shp" method="GET"/>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>workspace</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>test-workspace</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>store</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>test-store</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>name</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>test-name</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>numShards</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>test-numshards</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+      </wps:DataInputs>
+      <wps:ResponseForm>
+        <wps:RawDataOutput>
+          <ows:Identifier>layerName</ows:Identifier>
+        </wps:RawDataOutput>
+      </wps:ResponseForm>
+    </wps:Execute>
