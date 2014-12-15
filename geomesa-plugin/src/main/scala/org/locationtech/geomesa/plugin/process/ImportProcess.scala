@@ -1,6 +1,6 @@
 package org.locationtech.geomesa.plugin.process
 
-import org.geoserver.catalog.{Catalog, CatalogBuilder, DataStoreInfo}
+import org.geoserver.catalog.{Keyword, Catalog, CatalogBuilder, DataStoreInfo}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.process.ProcessException
@@ -8,6 +8,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.plugin.wps.GeomesaProcess
 
+import scala.collection.JavaConversions._
 
 @DescribeProcess(
   title = "Geomesa Bulk Import",
@@ -40,6 +41,11 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
                name: String,
 
                @DescribeParameter(
+                 name = "keywords",
+                 description = "List of (comma-separated) keywords for layer")
+               keywordStr: String,
+
+               @DescribeParameter(
                  name = "numShards",
                  min = 0,
                  max= 1,
@@ -65,6 +71,8 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
     // import the layer into geoserver
     catalogBuilder.setStore(storeInfo)
     val typeInfo = catalogBuilder.buildFeatureType(targetType.getName)
+    // this is Very Ugly but FeatureTypeInfo exposes no other access to Keywords
+    typeInfo.getKeywords.addAll(keywordStr.split(",").map(new Keyword(_)).toSeq)
     catalogBuilder.setupBounds(typeInfo)
 
     val layerInfo = catalogBuilder.buildLayer(typeInfo)
