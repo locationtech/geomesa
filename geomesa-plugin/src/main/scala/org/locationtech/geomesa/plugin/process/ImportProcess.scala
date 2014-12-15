@@ -42,6 +42,7 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
 
                @DescribeParameter(
                  name = "keywords",
+                 min = 0,
                  description = "List of (comma-separated) keywords for layer")
                keywordStr: String,
 
@@ -72,7 +73,9 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
     catalogBuilder.setStore(storeInfo)
     val typeInfo = catalogBuilder.buildFeatureType(targetType.getName)
     // this is Very Ugly but FeatureTypeInfo exposes no other access to Keywords
-    typeInfo.getKeywords.addAll(keywordStr.split(",").map(new Keyword(_)).toSeq)
+    for (ks <- Option(keywordStr)) {
+      typeInfo.getKeywords.addAll(ks.split(",").map(new Keyword(_)).toSeq)
+    }
     catalogBuilder.setupBounds(typeInfo)
 
     val layerInfo = catalogBuilder.buildLayer(typeInfo)
