@@ -28,6 +28,8 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.util.NullProgressListener
 import org.joda.time.Interval
 import org.locationtech.geomesa.core.index.QueryHints
+import org.locationtech.geomesa.core.iterators.TemporalDensityIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 
@@ -78,8 +80,8 @@ class TemporalDensityVisitor(features: SimpleFeatureCollection, interval: Interv
   extends FeatureCalc
           with Logging {
 
-  // JNH: Schema should be the schema from the TDI.
-  val manualVisitResults = new DefaultFeatureCollection(null, features.getSchema)
+    val retType = SimpleFeatureTypes.createType(features.getSchema.getTypeName, TemporalDensityIterator.TEMPORAL_DENSITY_FEATURE_STRING)
+    val manualVisitResults = new DefaultFeatureCollection(null, retType)
 
  //  Called for non AccumuloFeatureCollections
    def visit(feature: Feature): Unit = {
