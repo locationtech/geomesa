@@ -20,29 +20,40 @@
 # all commands are working properly. Change the variables at the top to suit
 # your testing needs and run from the command line.
 
-USERNAME=username
-PASSWORD=password
+USER=USER_HERE
+PASS=PASSWORD_HERE
 CREATE_CATALOG=test_catalog
 CREATE_FEATURENAME=test_feature
 SPEC=fid:String:index=true,dtg:Date,geom:Point:srid=4326
-CATALOG=test_catalog
-FEATURENAME=test_feature
+CATALOG=geomesa_catalog
+FEATURENAME=FEATURE_HERE
 MAXFEATURES=100
 
-set -x
-geomesa create -u ${USERNAME} -p ${PASSWORD} -c ${CREATE_CATALOG} -f ${CREATE_FEATURENAME} -s ${SPEC} -d dtg
-geomesa list -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG}
-geomesa describe -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME}
-geomesa explain -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -q include
-geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o csv -m ${MAXFEATURES}
-geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o csv -s -m ${MAXFEATURES}
-geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o tsv -m ${MAXFEATURES}
-geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o tsv -s -m ${MAXFEATURES}
-geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o geojson -m ${MAXFEATURES}
-geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o geojson -s -m ${MAXFEATURES}
-geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o gml -m ${MAXFEATURES}
-geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o gml -s -m ${MAXFEATURES}
-geomesa export -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG} -f ${FEATURENAME} -o shp -m ${MAXFEATURES}
-geomesa delete -u ${USERNAME} -p ${PASSWORD} --force -c ${CREATE_CATALOG} -f ${CREATE_FEATURENAME}
-geomesa list -u ${USERNAME} -p ${PASSWORD} -c ${CREATE_CATALOG}
-geomesa list -u ${USERNAME} -p ${PASSWORD} -c ${CATALOG}
+# Helper opts for accumulo. These can optionally be supplied from the 
+# ACCUMULO_HOME configuration by excluding the arguments from the geomesa command
+INST=INSTANCE
+ZOO=zoo1,zoo2,zoo3
+ACC_OPTS="-u $USER -p $PASS -i $INST -z $ZOO"
+
+geomesa create $ACC_OPTS -c ${CREATE_CATALOG} -fn ${CREATE_FEATURENAME} -s ${SPEC} -dt dtg
+geomesa list $ACC_OPTS -c ${CATALOG}
+geomesa describe $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME}
+geomesa explain $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -q include
+
+# export to std out in various formats
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt csv -max ${MAXFEATURES}
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt tsv -max ${MAXFEATURES}
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt json -max ${MAXFEATURES}
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt gml -max ${MAXFEATURES}
+
+# export to files (includes shape file)
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt csv -max ${MAXFEATURES} -o /tmp/csv.out
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt tsv -max ${MAXFEATURES} -o /tmp/tsv.out
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt json -max ${MAXFEATURES} -o /tmp/json.out
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt gml -max ${MAXFEATURES} -o /tmp/gml.out
+geomesa export $ACC_OPTS -c ${CATALOG} -fn ${FEATURENAME} -fmt shp -max ${MAXFEATURES} -o /tmp/out.shp
+
+# clean up previous temp feature
+geomesa delete $ACC_OPTS --force -c ${CREATE_CATALOG} -fn ${CREATE_FEATURENAME}
+geomesa list $ACC_OPTS -c ${CREATE_CATALOG}
+

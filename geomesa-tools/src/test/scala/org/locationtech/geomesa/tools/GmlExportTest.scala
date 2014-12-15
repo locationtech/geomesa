@@ -54,7 +54,10 @@ class GmlExportTest extends Specification {
 
     "should properly export to GML" >> {
       val out = new ByteArrayOutputStream()
-      new GmlExport().write(featureCollection, out)
+      val gml = new GmlExport(out)
+      gml.write(featureCollection)
+      gml.close()
+
       val xml = XML.loadString(new String(out.toByteArray))
       val feat = xml \ "featureMember" \ "GmlExportTest"
       feat must not beNull

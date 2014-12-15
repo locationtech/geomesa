@@ -59,7 +59,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     }
     val scanner = tryScanner.recover {
       case e: Throwable =>
-        logger.warn(s"Error in creating scanner: $e")
+        logger.warn(s"Error in creating scanner: $e", e)
         // since GeoTools would eat the error and return no records anyway,
         // there's no harm in returning an empty iterator.
         SelfClosingIterator[Entry[Key, Value]](Iterator.empty)

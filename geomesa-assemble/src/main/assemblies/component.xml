@@ -63,6 +63,12 @@
             <filtered>true</filtered>
         </file>
         <file>
+            <source>../geomesa-tools/bin/geomesa-install-jai</source>
+            <outputDirectory>bin</outputDirectory>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+        </file>
+        <file>
             <source>../geomesa-tools/bin/geomesa-test-script.sh</source>
             <outputDirectory>bin</outputDirectory>
             <fileMode>0755</fileMode>
