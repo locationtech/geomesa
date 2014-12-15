@@ -81,4 +81,9 @@ import scala.collection.JavaConversions._
       .map { _.getName.toString }
       .getOrElse(DEFAULT_DTG_PROPERTY_NAME)
 
+  object TableSuffix {
+    val STIdx   = "st_idx"
+    val Records = "records"
+    val AttrIdx = "attr_idx"
+  }
 }

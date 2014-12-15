@@ -21,6 +21,7 @@ import java.util.{Map => JMap}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
 import org.locationtech.geomesa.raster.ingest._
+import org.locationtech.geomesa.tools.Utils.IngestRasterArguments
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Success}
 
@@ -40,7 +41,7 @@ class IngestRaster() extends Logging with AccumuloProperties {
   def getAccumuloCoverageStoreConf(config: IngestRasterArguments, password: String): JMap[String, Serializable] =
     mapAsJavaMap(Map(
       "instanceId" -> config.instanceName.getOrElse(instanceName),
-      "zookeepers" -> config.zookeepers.getOrElse(zookeepers),
+      "zookeepers" -> config.zookeepers.getOrElse(zookeepersProp),
       "user" -> config.username,
       "password" -> password,
       "tableName" -> config.table,
@@ -124,7 +125,7 @@ object IngestRaster extends App with Logging with GetPassword {
 
   try {
     parser.parse(args, IngestRasterArguments()).map { config =>
-      val pw = password(config.password)
+      val pw = config.password.get
       val ingestRaster = new IngestRaster()
       ingestRaster.defineIngestJob(config, pw)
     } getOrElse {

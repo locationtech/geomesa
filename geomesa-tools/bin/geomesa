@@ -117,7 +117,7 @@ for home in ${hadoopDirs[*]}; do
       fi
     done
   else
-    echo "Could not find directory $home. Either check to see that this directory exists and has
+    echo >&2  "Could not find directory $home. Either check to see that this directory exists and has
       the appropriate Hadoop JARs, or edit this script directly to specify an alternate location for the
       Hadoop JARs."
   fi
@@ -132,7 +132,7 @@ fi
 
 # Check environment variables before running anything, warn user on issues:
 if [[ (-z "$GEOMESA_HOME") ]]; then
-    echo "Warning: GEOMESA_HOME is not set, assuming defaults."
+    echo >&2 "Warning: GEOMESA_HOME is not set, assuming defaults."
     defineGeoMesaHome
     # call defineGeoMesaLib again since we just defined GEOMESA_HOME
     defineGeoMesaLib
@@ -140,31 +140,31 @@ fi
 
 # Check if environment variables for Accumulo and Hadoop are set, warn user if there is a problem.
 if [[ (-z "$ACCUMULO_HOME") || (-z "$HADOOP_HOME") ]]; then
-    echo ""
-    echo "Warning: you have not set ACCUMULO_HOME and/or HADOOP_HOME as environment variables."
-    echo "GeoMesa tools will not run without the appropriate Accumulo and Hadoop jars in the tools classpath."
-    echo "Please ensure that those jars are present in the classpath by running 'geomesa classpath' ."
-    echo "To take corrective action, please place the necessary jar files in the lib directory of geomesa-tools."
-    echo ""
+    echo >&2 ""
+    echo >&2 "Warning: you have not set ACCUMULO_HOME and/or HADOOP_HOME as environment variables."
+    echo >&2 "GeoMesa tools will not run without the appropriate Accumulo and Hadoop jars in the tools classpath."
+    echo >&2 "Please ensure that those jars are present in the classpath by running 'geomesa classpath' ."
+    echo >&2 "To take corrective action, please place the necessary jar files in the lib directory of geomesa-tools."
+    echo >&2 ""
 fi
 
 # Check if the CONF directories for accumulo and hadoop are set, warn user if there is a problem
 if [[ (-z "$ACCUMULO_CONF_DIR") || (-z "$HADOOP_CONF_DIR")]]; then
-    echo ""
-    echo "Warning: you have not set ACCUMULO_CONF_DIR and/or HADOOP_CONF_DIR as environment variables."
-    echo "GeoMesa tools looks for these folders relative to the paths of the ACCUMULO_HOME and HADOOP_HOME environment variables."
-    echo "GeoMesa tools can run without these variables set, however the user will be required to provide the additional instanceId and zookeepers parameters."
-    echo "To take corrective action, please set these environment variable to the appropriate locations"
-    echo ""
+    echo >&2 ""
+    echo >&2 "Warning: you have not set ACCUMULO_CONF_DIR and/or HADOOP_CONF_DIR as environment variables."
+    echo >&2 "GeoMesa tools looks for these folders relative to the paths of the ACCUMULO_HOME and HADOOP_HOME environment variables."
+    echo >&2 "GeoMesa tools can run without these variables set, however the user will be required to provide the additional instanceId and zookeepers parameters."
+    echo >&2 "To take corrective action, please set these environment variable to the appropriate locations"
+    echo >&2 ""
 fi
 
 # Check if GEOMESA_LIB is actually set, warn the user that tools won't work without this path being correct
 if [ -z "$GEOMESA_LIB" ]; then
-    echo ""
-    echo "Error: the GEOMESA_LIB variable is not set."
-    echo "Please ensure that you set GEOMESA_HOME, so that this script can point to where it expects the lib folder to be,"
-    echo "or set the GEOMESA_LIB manually to point to a folder containing the necessary Jar files."
-    echo ""
+    echo >&2 ""
+    echo >&2 "Error: the GEOMESA_LIB variable is not set."
+    echo >&2 "Please ensure that you set GEOMESA_HOME, so that this script can point to where it expects the lib folder to be,"
+    echo >&2 "or set the GEOMESA_LIB manually to point to a folder containing the necessary Jar files."
+    echo >&2 ""
 fi
 
 # Geomesa tools setup completed, below we parse user arguments
@@ -187,19 +187,5 @@ else
         GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"
         shift 1
     fi
-    if [[ $1 = ingest ]] && [[ (-z "$2") || ($2 = --help)  || ($2 = -help) || ($2 = help) ]]; then
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Ingest --help
-    elif [[ $1 = ingest ]]; then
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Ingest "${@:2}"
-    elif [[ $1 = ingestRaster ]] && [[ (-z "$2") || ($2 = --help)  || ($2 = -help) || ($2 = help) ]]; then
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.IngestRaster --help
-    elif [[ $1 = ingestRaster ]]; then
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.IngestRaster "${@:2}"
-    elif [[ $1 = export ]]; then
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Export "${@:2}"
-    elif [ -n "$*" ]; then
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Tools "$@"
-    else
-        java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Tools --help
-    fi
+    java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Runner "$@"
 fi
