@@ -27,15 +27,16 @@ object Runner extends Logging {
     val jc = new JCommander()
     jc.setProgramName("geomesa")
 
-    val tableConf = new TableConfCommand(jc)
-    val listCom   = new ListCommand(jc)
-    val export    = new ExportCommand(jc)
-    val delete    = new DeleteCommand(jc)
-    val describe  = new DescribeCommand(jc)
-    val ingest    = new IngestCommand(jc)
-    val create    = new CreateCommand(jc)
-    val explain   = new ExplainCommand(jc)
-    val help      = new HelpCommand(jc)
+    val tableConf    = new TableConfCommand(jc)
+    val listCom      = new ListCommand(jc)
+    val export       = new ExportCommand(jc)
+    val delete       = new DeleteCommand(jc)
+    val describe     = new DescribeCommand(jc)
+    val ingest       = new IngestCommand(jc)
+    val ingestRaster = new IngestRasterCommand(jc)
+    val create       = new CreateCommand(jc)
+    val explain      = new ExplainCommand(jc)
+    val help         = new HelpCommand(jc)
 
     try {
       jc.parse(args.toArray: _*)
@@ -48,16 +49,17 @@ object Runner extends Logging {
 
     val command: Command =
       jc.getParsedCommand match {
-        case TableConfCommand.Command => tableConf
-        case ListCommand.Command      => listCom
-        case ExportCommand.Command    => export
-        case DeleteCommand.Command    => delete
-        case DescribeCommand.Command  => describe
-        case IngestCommand.Command    => ingest
-        case CreateCommand.Command    => create
-        case ExplainCommand.Command   => explain
-        case HelpCommand.Command      => help
-        case _                        => new DefaultCommand(jc)
+        case TableConfCommand.Command       => tableConf
+        case ListCommand.Command            => listCom
+        case ExportCommand.Command          => export
+        case DeleteCommand.Command          => delete
+        case DescribeCommand.Command        => describe
+        case IngestCommand.Command          => ingest
+        case IngestRasterCommand.Command    => ingestRaster
+        case CreateCommand.Command          => create
+        case ExplainCommand.Command         => explain
+        case HelpCommand.Command            => help
+        case _                              => new DefaultCommand(jc)
       }
 
     try {

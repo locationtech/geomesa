@@ -11,33 +11,22 @@ import org.opengis.coverage.grid.GridCoverage
 import org.opengis.geometry.Envelope
 
 object RasterUtils {
-  val doubleSize = 8
-  implicit def doubleToBytes(d: Double): Array[Byte] = {
-    val bytes = new Array[Byte](doubleSize)
-    ByteBuffer.wrap(bytes).putDouble(d)
-    bytes
-  }
-  implicit def bytesToDouble(bs: Array[Byte]): Double = ByteBuffer.wrap(bs).getDouble
 
-  val intSize = 4
-  implicit def intToBytes(i: Int): Array[Byte] = {
-    val bytes = new Array[Byte](intSize)
-    ByteBuffer.wrap(bytes).putInt(i)
-    bytes
+  object IngestRasterParams {
+    val ACCUMULO_INSTANCE   = "geomesa-tools.ingestraster.instance"
+    val ZOOKEEPERS          = "geomesa-tools.ingestraster.zookeepers"
+    val ACCUMULO_MOCK       = "geomesa-tools.ingestraster.useMock"
+    val ACCUMULO_USER       = "geomesa-tools.ingestraster.user"
+    val ACCUMULO_PASSWORD   = "geomesa-tools.ingestraster.password"
+    val AUTHORIZATIONS      = "geomesa-tools.ingestraster.authorizations"
+    val VISIBILITIES        = "geomesa-tools.ingestraster.visibilities"
+    val FILE_PATH           = "geomesa-tools.ingestraster.path"
+    val FORMAT              = "geomesa-tools.ingestraster.format"
+    val TIME                = "geomesa-tools.ingestraster.time"
+    val GEOSERVER_REG       = "geomesa-tools.ingestraster.geoserver.reg"
+    val RASTER_NAME         = "geomesa-tools.ingestraster.name"
+    val TABLE               = "geomesa-tools.ingestraster.table"
   }
-  implicit def bytesToInt(bs: Array[Byte]): Int = ByteBuffer.wrap(bs).getInt
-
-  val longSize = 8
-  implicit def longToBytes(l: Long): Array[Byte] = {
-    val bytes = new Array[Byte](longSize)
-    ByteBuffer.wrap(bytes).putLong(l)
-    bytes
-  }
-  implicit def bytesToLong(bs: Array[Byte]): Long = ByteBuffer.wrap(bs).getLong
-
-  val utf8Charset = Charset.forName("UTF-8")
-  implicit def stringToBytes(s: String): Array[Byte] = s.getBytes(utf8Charset)
-  implicit def bytesToString(bs: Array[Byte]): String = new String(bs, utf8Charset)
 
   def imageSerialize(image: RenderedImage): Array[Byte] = {
     val buffer: ByteArrayOutputStream = new ByteArrayOutputStream

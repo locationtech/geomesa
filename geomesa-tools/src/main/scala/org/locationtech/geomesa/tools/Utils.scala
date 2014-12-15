@@ -57,19 +57,26 @@ object Utils {
   object Formats {
     val CSV     = "csv"
     val TSV     = "tsv"
+    val TIFF    = "tiff"
+    val DTED    = "dted"
     val SHP     = "shp"
     val JSON    = "json"
     val GeoJson = "geojson"
     val GML     = "gml"
 
     def getFileExtension(name: String) =
-      name match {
-        case _ if name.toLowerCase.endsWith(CSV)  => CSV
-        case _ if name.toLowerCase.endsWith(TSV)  => TSV
-        case _ if name.toLowerCase.endsWith(SHP)  => SHP
-        case _ if name.toLowerCase.endsWith(JSON) => JSON
-        case _ if name.toLowerCase.endsWith(GML)  => GML
-        case _                                    => "unknown"
+      name.toLowerCase match {
+        case _ if name.endsWith(CSV)  => CSV
+        case _ if name.endsWith("tif") ||
+                  name.endsWith("tiff") => TIFF
+        case _ if name.endsWith("dt0") ||
+                  name.endsWith("dt1") ||
+                  name.endsWith("dt2")=> DTED
+        case _ if name.endsWith(TSV)  => TSV
+        case _ if name.endsWith(SHP)  => SHP
+        case _ if name.endsWith(JSON) => JSON
+        case _ if name.endsWith(GML)  => GML
+        case _                        => "unknown"
       }
 
     val All = List(CSV, TSV, SHP, JSON, GeoJson, GML)
@@ -82,22 +89,6 @@ object Utils {
     def getMode(filename: String) = if (filename.toLowerCase.trim.startsWith("hdfs://")) Hdfs else Local
     def getModeFlag(filename: String) = "--" + getMode(filename)
   }
-
-case class IngestRasterArguments(username: String = null,
-                                 password: Option[String] = None,
-                                 instanceName: Option[String] = None,
-                                 zookeepers: Option[String] = None,
-                                 table: String = null,
-                                 auths: Option[String] = None,
-                                 visibilities: Option[String] = None,
-                                 timeStr: Option[String] = None,
-                                 file: String = null,
-                                 rasterName: String = null,
-                                 geoserverReg: Option[String] = None,
-                                 maxShards: Option[Int] = None,
-                                 writeMemory: Option[Long] = None,
-                                 writeThreads: Option[Int] = None,
-                                 queryThreads: Option[Int] = None)
 }
 
 /* get password trait */
