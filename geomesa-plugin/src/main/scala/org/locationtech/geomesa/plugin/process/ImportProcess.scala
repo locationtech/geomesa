@@ -1,5 +1,7 @@
 package org.locationtech.geomesa.plugin.process
 
+import java.{util => ju}
+
 import org.geoserver.catalog.{Keyword, Catalog, CatalogBuilder, DataStoreInfo}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -43,8 +45,9 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
                @DescribeParameter(
                  name = "keywords",
                  min = 0,
+                 collectionType = classOf[String],
                  description = "List of (comma-separated) keywords for layer")
-               keywordStr: String,
+               keywordStrs: ju.List[String],
 
                @DescribeParameter(
                  name = "numShards",
@@ -73,9 +76,11 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
     catalogBuilder.setStore(storeInfo)
     val typeInfo = catalogBuilder.buildFeatureType(targetType.getName)
     // this is Very Ugly but FeatureTypeInfo exposes no other access to Keywords
-    for (ks <- Option(keywordStr)) {
-      typeInfo.getKeywords.addAll(ks.split(",").map(new Keyword(_)).toSeq)
-    }
+    val kws = for {
+      ks <- Option(keywordStrs).getOrElse(new ju.ArrayList[String]())
+      kw <- ks.split(",")
+    } yield new Keyword(kw)
+    typeInfo.getKeywords.addAll(kws)
     catalogBuilder.setupBounds(typeInfo)
 
     val layerInfo = catalogBuilder.buildLayer(typeInfo)
