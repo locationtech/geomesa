@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa-accumulo1.5</artifactId>
-    <version>1.0.0-rc.2-SNAPSHOT</version>
+    <version>1.0.0-rc.3-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>GeoMesa - [Accumulo 1.5.x]</name>
 
