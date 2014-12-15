@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.raster.data
 
 import org.joda.time.DateTime
-import org.locationtech.geomesa.utils.geohash.{BoundingBox => GeoMesaBBox}
+import org.locationtech.geomesa.utils.geohash.BoundingBox
 
 /**
  * This class contains parameters needed to create query to
@@ -28,7 +28,7 @@ import org.locationtech.geomesa.utils.geohash.{BoundingBox => GeoMesaBBox}
  * @param startTime Optional earliest ingestion time of rasters
  * @param endTime Optional latest ingestion time of rasters
  */
-case class RasterQuery(bbox: GeoMesaBBox,
+case class RasterQuery(bbox: BoundingBox,
                        resolution: Double,
                        startTime: Option[DateTime],
                        endTime: Option[DateTime])

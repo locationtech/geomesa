@@ -29,6 +29,7 @@ case class AccumuloRasterQueryPlanner(schema: String) extends Logging with Index
     logger.debug(s"Planner: BBox: ${rq.bbox} has geohashes: $hashes, and has encoded Resolution: $res")
 
     val rows = hashes.map { gh =>
+      // TODO: leverage the RasterIndexSchema to construct the range.
       new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"))
     }
 
