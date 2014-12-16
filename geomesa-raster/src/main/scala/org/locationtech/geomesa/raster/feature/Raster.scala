@@ -44,7 +44,7 @@ case class Raster(chunk: RenderedImage, metadata: DecodedIndex, resolution: Doub
   def name = metadata.id
   def time = new DateTime(metadata.dtgMillis.getOrElse(0L), DateTimeZone.forID("UTC"))
 
-  def mbgh = GeohashUtils.getMBGH(metadata.geom.getEnvelopeInternal)
+  def mbgh = GeohashUtils.getClosestAcceptableGeoHash(metadata.geom.getEnvelopeInternal)
 
   def envelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, CRS.decode("EPSG:4326"))
 

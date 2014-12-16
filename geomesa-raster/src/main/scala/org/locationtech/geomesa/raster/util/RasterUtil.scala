@@ -13,7 +13,7 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.{RasterQuery, RasterStore}
 import org.locationtech.geomesa.raster.feature.Raster
-import org.locationtech.geomesa.utils.geohash.BoundingBox
+import org.locationtech.geomesa.utils.geohash.{GeoHash, BoundingBox}
 import org.opengis.geometry.Envelope
 
 import scala.reflect.runtime.universe._
@@ -122,6 +122,10 @@ object RasterUtils {
 
   def generateTestRasterFromBoundingBox(bbox: BoundingBox, w: Int = 256, h: Int = 256, res: Double = 10.0): Raster = {
     generateTestRaster(bbox.minLon, bbox.maxLon, bbox.minLat, bbox.maxLat, w, h, res)
+  }
+
+  def generateTestRasterFromGeoHash(gh: GeoHash, w: Int = 256, h: Int = 256, res: Double = 10.0): Raster = {
+    generateTestRasterFromBoundingBox(gh.bbox, w, h, res)
   }
 
 }
