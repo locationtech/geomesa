@@ -37,7 +37,7 @@ package object index {
   val MAX_DATE = new DateTime(Long.MaxValue)
 
   val SF_PROPERTY_GEOMETRY   = "geomesa_index_geometry"
-  val SF_PROPERTY_START_TIME = "geomesa_index_start_time"
+  val SF_PROPERTY_START_TIME = SimpleFeatureTypes.DEFAULT_DATE_FIELD
   val SF_PROPERTY_END_TIME   = "geomesa_index_end_time"
   val SFT_INDEX_SCHEMA       = "geomesa_index_schema"
   val SF_TABLE_SHARING       = "geomesa_table_sharing"

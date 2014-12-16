@@ -32,6 +32,7 @@ object SimpleFeatureTypes {
 
   val TABLE_SPLITTER         = "table.splitter.class"
   val TABLE_SPLITTER_OPTIONS = "table.splitter.options"
+  val DEFAULT_DATE_FIELD     = "geomesa_index_start_time"
 
   def createType(nameSpec: String, spec: String): SimpleFeatureType = {
     val nsIndex = nameSpec.lastIndexOf(':')
@@ -45,12 +46,15 @@ object SimpleFeatureTypes {
 
     val geomAttributes = attributeSpecs.collect { case g: GeomAttributeSpec => g }
     val defaultGeom = geomAttributes.find(_.default).orElse(geomAttributes.headOption)
+    val dateAttributes = attributeSpecs.collect { case s: SimpleAttributeSpec if s.clazz == classOf[Date] => s }
+    val defaultDate = dateAttributes.headOption // TODO GEOMESA-594 allow for setting default date field
     val b = new SimpleFeatureTypeBuilder()
     b.setNamespaceURI(namespace)
     b.setName(name)
     b.addAll(attributeSpecs.map(_.toAttribute))
     defaultGeom.foreach { dg => b.setDefaultGeometry(dg.name)}
     val sft = b.buildFeatureType()
+    defaultDate.foreach(dt => sft.getUserData.put(DEFAULT_DATE_FIELD, dt.name))
     opts.map(_.decorateSFT(sft))
     sft
   }
@@ -72,7 +76,12 @@ object SimpleFeatureTypes {
   object AttributeSpecFactory {
     def fromAttributeDescriptor(sft: SimpleFeatureType, ad: AttributeDescriptor) = ad.getType match {
       case t if simpleTypeMap.contains(t.getBinding.getSimpleName) =>
-        SimpleAttributeSpec(ad.getLocalName, ad.getType.getBinding, ad.getUserData.getOrElse("index", false).asInstanceOf[Boolean])
+        SimpleAttributeSpec(
+          ad.getLocalName,
+          ad.getType.getBinding,
+          ad.getUserData.getOrElse("index", false).asInstanceOf[Boolean],
+          ad.getUserData.getOrElse("stidx", false).asInstanceOf[Boolean]
+        )
 
       case t if geometryTypeMap.contains(t.getBinding.getSimpleName) =>
         GeomAttributeSpec(
@@ -102,9 +111,17 @@ object SimpleFeatureTypes {
 
     def index: Boolean
 
+    def encodeInStIdx: Boolean
+
     def toAttribute: AttributeDescriptor
 
     def toSpec: String
+
+    protected def getIndexSpec = {
+      val idx = if (index) s":index=$index" else ""
+      val stidx = if (encodeInStIdx) s":stidx=$encodeInStIdx" else ""
+      idx + stidx
+    }
   }
 
   implicit class AttributeCopyable(val attrSpec: AttributeSpec) extends AnyVal {
@@ -117,52 +134,78 @@ object SimpleFeatureTypes {
   }
 
   sealed trait NonGeomAttributeSpec extends AttributeSpec
-  case class SimpleAttributeSpec(name: String, clazz: Class[_], index: Boolean) extends NonGeomAttributeSpec {
+
+  case class SimpleAttributeSpec(name: String, clazz: Class[_], index: Boolean, encodeInStIdx: Boolean)
+      extends NonGeomAttributeSpec {
     override def toAttribute: AttributeDescriptor = {
-      val b = new AttributeTypeBuilder().binding(clazz).userData("index", index)
-      b.buildDescriptor(name)
+      new AttributeTypeBuilder()
+          .binding(clazz)
+          .userData("index", index)
+          .userData("stidx", encodeInStIdx)
+          .buildDescriptor(name)
     }
 
-    override def toSpec = s"$name:${typeEncode(clazz)}:index=$index"
+    override def toSpec = s"$name:${typeEncode(clazz)}$getIndexSpec"
   }
 
   case class ListAttributeSpec(name: String, subClass: Class[_], index: Boolean) extends NonGeomAttributeSpec {
     val clazz = classOf[java.util.List[_]]
+    val encodeInStIdx = false // we only allow simple types in the ST IDX
 
     override def toAttribute: AttributeDescriptor = {
-      val b = new AttributeTypeBuilder().binding(clazz).userData("index", index)
-      b.userData("subtype", subClass)
-      b.buildDescriptor(name)
+      new AttributeTypeBuilder()
+          .binding(clazz)
+          .userData("index", index)
+          .userData("stidx", encodeInStIdx)
+          .userData("subtype", subClass)
+          .buildDescriptor(name)
     }
 
-    override def toSpec = s"$name:List[${subClass.getSimpleName}]:index=$index"
+    override def toSpec = {
+      s"$name:List[${subClass.getSimpleName}]$getIndexSpec"
+    }
   }
 
-  case class MapAttributeSpec(name: String, keyClass: Class[_], valueClass: Class[_], index: Boolean) extends NonGeomAttributeSpec {
+  case class MapAttributeSpec(name: String, keyClass: Class[_], valueClass: Class[_], index: Boolean)
+      extends NonGeomAttributeSpec {
     val clazz = classOf[java.util.Map[_, _]]
+    val encodeInStIdx = false // we only allow simple types in the ST IDX
 
     override def toAttribute: AttributeDescriptor = {
-      val b = new AttributeTypeBuilder().binding(clazz).userData("index", index)
-      b.userData("keyclass", keyClass)
-      b.userData("valueclass", valueClass)
-      b.buildDescriptor(name)
+      new AttributeTypeBuilder()
+          .binding(clazz)
+          .userData("index", index)
+          .userData("stidx", encodeInStIdx)
+          .userData("keyclass", keyClass)
+          .userData("valueclass", valueClass)
+          .buildDescriptor(name)
     }
 
-    override def toSpec = s"$name:Map[${keyClass.getSimpleName},${valueClass.getSimpleName}]:index=$index"
+    override def toSpec =
+      s"$name:Map[${keyClass.getSimpleName},${valueClass.getSimpleName}]$getIndexSpec"
   }
 
-  case class GeomAttributeSpec(name: String, clazz: Class[_], index: Boolean, srid: Int, default: Boolean) extends AttributeSpec {
+  case class GeomAttributeSpec(name: String, clazz: Class[_], index: Boolean, srid: Int, default: Boolean)
+      extends AttributeSpec {
+    val encodeInStIdx = default
+
     override def toAttribute: AttributeDescriptor = {
       if (!(srid == 4326 || srid == -1)) {
         throw new IllegalArgumentException(s"Invalid SRID '$srid'. Only 4326 is supported.")
       }
       val b = new AttributeTypeBuilder()
-      b.binding(clazz).userData("index", index).crs(DefaultGeographicCRS.WGS84).buildDescriptor(name)
+      b.binding(clazz)
+          .userData("index", index)
+          .userData("stidx", encodeInStIdx)
+          .crs(DefaultGeographicCRS.WGS84)
+          .buildDescriptor(name)
     }
 
     override def toSpec = {
       val star = if (default) "*" else ""
-      s"$star$name:${typeEncode(clazz)}:srid=$srid:index=$index"
+      val idx = if (index) s":index=$index" else ""
+      val stidx = if (encodeInStIdx) s":stidx=$encodeInStIdx" else ""
+      s"$star$name:${typeEncode(clazz)}:srid=$srid$getIndexSpec"
     }
   }
 
@@ -330,7 +373,8 @@ object SimpleFeatureTypes {
     def simpleAttribute       = (name ~ SEP ~ simpleType ~ optionsOrEmptyMap) ^^ {
       case Name(n, default) ~ SEP ~ SimpleAttributeType(t) ~ options =>
         val indexed = options.getOrElse("index", "false").toBoolean
-        SimpleAttributeSpec(n, simpleTypeMap(t), indexed)
+        val stIndexed = options.getOrElse("stidx", "false").toBoolean
+        SimpleAttributeSpec(n, simpleTypeMap(t), indexed, stIndexed)
     }
 
     // builds a NonGeomAttributeSpec for complex types

@@ -16,9 +16,10 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import java.util.{HashSet => JHashSet}
+import java.util.{HashSet => JHashSet, Date}
 
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{ArrayByteSequence, ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
@@ -58,8 +59,7 @@ class SpatioTemporalIntersectingIterator
   protected var nextKey: Key = null
   protected var nextValue: Value = null
   protected var curId: Text = null
-
-
+  protected var indexEncoder: IndexValueEncoder = null
 
   protected var deduplicate: Boolean = false
 
@@ -75,6 +75,8 @@ class SpatioTemporalIntersectingIterator
 
     val featureType = SimpleFeatureTypes.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
     featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+
+    indexEncoder = IndexValueEncoder(featureType)
 
     dateAttributeName = getDtgFieldName(featureType)
 
@@ -168,16 +170,16 @@ class SpatioTemporalIntersectingIterator
 
     while (nextValue == null && indexSource.hasTop && indexSource.getTopKey != null) {
       // the value contains the full-resolution geometry and time; use them
-      val decodedValue = IndexEntry.decodeIndexValue(indexSource.getTopValue)
-      def isSTAcceptable = wrappedSTFilter(decodedValue.geom, decodedValue.dtgMillis)
+      val indexValue = indexEncoder.decode(indexSource.getTopValue.get)
+      def isSTAcceptable = wrappedSTFilter(indexValue.geom, indexValue.date.map(_.getTime))
       // see whether this box is acceptable
       // (the tests are ordered from fastest to slowest to take advantage of
       // short-circuit evaluation)
-      if (isIdUnique(decodedValue.id) && isSTAcceptable) {
+      if (isIdUnique(indexValue.id) && isSTAcceptable) {
         // stash this ID
-        rememberId(decodedValue.id)
+        rememberId(indexValue.id)
         // advance the data-iterator to its corresponding match
-        seekData(decodedValue)
+        seekData(indexValue)
       }
 
       // you MUST advance to the next key
@@ -196,7 +198,7 @@ class SpatioTemporalIntersectingIterator
    * data-iterator.  This is *IMPORTANT*, as otherwise we do not emit rows
    * that honor the SortedKeyValueIterator expectation, and Bad Things Happen.
    */
-  def seekData(indexValue: IndexEntry.DecodedIndexValue) {
+  def seekData(indexValue: DecodedIndexValue) {
     val nextId = indexValue.id
     curId = new Text(nextId)
     val indexSourceTopKey = indexSource.getTopKey

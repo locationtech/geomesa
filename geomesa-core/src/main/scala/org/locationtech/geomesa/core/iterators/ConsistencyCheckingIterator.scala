@@ -21,11 +21,11 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.core.index.IndexEntry
+import org.locationtech.geomesa.core.data.DATA_CQ
+import org.locationtech.geomesa.core.index.IndexValueEncoder
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-class ConsistencyCheckingIterator
-  extends SortedKeyValueIterator[Key, Value]
-          with Logging {
+class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] with Logging {
 
   import scala.collection.JavaConverters._
 
@@ -45,6 +45,11 @@ class ConsistencyCheckingIterator
     this.dataSource = source.deepCopy(env)
   }
 
+  val indexValueEncoder = {
+    val sft = SimpleFeatureTypes.createType("ConsistencyCheckingIterator", "*geom:Geometry:srid=4326")
+    IndexValueEncoder(sft)
+  }
+
   def hasTop = nextKey != null || topKey != null
 
   def getTopKey = topKey
@@ -56,13 +61,12 @@ class ConsistencyCheckingIterator
     // clear out the reference to the next entry
     nextKey = null
 
-    def isData = indexSource.getTopKey.getRow().toString.startsWith("~") ||
-      indexSource.getTopKey.getColumnFamily().toString.startsWith("|data|")
+    def isData = indexSource.getTopKey.getColumnQualifier == DATA_CQ
 
     while (nextKey == null && indexSource.hasTop && !isData) {
       logger.trace(s"Checking ${indexSource.getTopKey}")
       nextKey = indexSource.getTopKey
-      curId = IndexEntry.decodeIndexValue(indexSource.getTopValue).id
+      curId = indexValueEncoder.decode(indexSource.getTopValue.get).id
 
       val dataSeekKey = new Key(indexSource.getTopKey.getRow, new Text(curId))
       val range = new Range(dataSeekKey, null)

@@ -101,33 +101,31 @@ class SftBuilderTest extends Specification {
     }
 
     "set default dtg correctly" >> {
-      val sft = new SftBuilder()
-        .date("foobar", false, true)
-        .build("foobar")
+      new SftBuilder()
+        .date("foobar", default = true)
+        .build("foobar").getUserData.get(SF_PROPERTY_START_TIME) mustEqual "foobar"
 
-      val sft2 = new SftBuilder()
+      new SftBuilder()
         .date("foobar")
         .withDefaultDtg("foobar")
-        .build("foobar")
+        .build("foobar").getUserData.get(SF_PROPERTY_START_TIME) mustEqual "foobar"
 
-      val sft3 = new SftBuilder()
+      new SftBuilder()
         .date("foobar")
         .date("dtg")
         .withDefaultDtg("foobar")
-        .build("foobar")
+        .build("foobar").getUserData.get(SF_PROPERTY_START_TIME) mustEqual "foobar"
 
-      val sft4 = new SftBuilder()
+      new SftBuilder()
         .date("dtg")
         .date("foobar")
         .withDefaultDtg("foobar")
-        .build("foobar")
+        .build("foobar").getUserData.get(SF_PROPERTY_START_TIME) mustEqual "foobar"
 
-      val sft5 = new SftBuilder()
+      new SftBuilder()
         .date("dtg")
-        .date("foobar", default=true)
-        .build("foobar")
-
-      List(sft, sft2, sft3, sft4, sft5) forall { _.getUserData.get(SF_PROPERTY_START_TIME) mustEqual "foobar" }
+        .date("foobar", default = true)
+        .build("foobar").getUserData.get(SF_PROPERTY_START_TIME) mustEqual "foobar"
     }
 
     "build lists" >> {
@@ -232,9 +230,9 @@ class SftBuilderTest extends Specification {
       val builder = new SftBuilder()
         .geometry("geom")
         .point("foobar", default = true)
-        .multiLineString("mls", index=true)
+        .multiLineString("mls")
 
-      builder.getSpec() mustEqual "geom:Geometry:srid=4326,*foobar:Point:srid=4326:index=true,mls:MultiLineString:srid=4326:index=true"
+      builder.getSpec() mustEqual "geom:Geometry:srid=4326,*foobar:Point:srid=4326:index=true:stidx=true,mls:MultiLineString:srid=4326"
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 3

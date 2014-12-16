@@ -58,7 +58,7 @@ class CSVPackageTest
     "recognize point-parsable columns" >> {
       val csv = "point\nPOINT(0.0 0.0)"
       val schema = getSchema("pointtest", csv)
-      schema mustEqual "*point:Point:srid=4326:index=true"
+      schema mustEqual "*point:Point:srid=4326:index=true:stidx=true"
     }
 
     "recognize string-parsable columns" >> {
