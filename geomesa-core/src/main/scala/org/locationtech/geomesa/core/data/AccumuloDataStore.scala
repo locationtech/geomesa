@@ -829,7 +829,7 @@ object AccumuloDataStore {
    * @return
    */
   def formatRecordTableName(catalogTable: String, featureType: SimpleFeatureType) =
-    formatTableName(catalogTable, featureType, "records")
+    formatTableName(catalogTable, featureType, TableSuffix.Records)
 
   /**
    * Format spatio-temoral index table name for Accumulo...table name is stored in metadata for other usage
@@ -839,7 +839,7 @@ object AccumuloDataStore {
    * @return
    */
   def formatSpatioTemporalIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
-    formatTableName(catalogTable, featureType, "st_idx")
+    formatTableName(catalogTable, featureType, TableSuffix.STIdx)
 
   /**
    * Format attribute index table name for Accumulo...table name is stored in metadata for other usage
@@ -849,7 +849,7 @@ object AccumuloDataStore {
    * @return
    */
   def formatAttrIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
-    formatTableName(catalogTable, featureType, "attr_idx")
+    formatTableName(catalogTable, featureType, TableSuffix.AttrIdx)
 
   /**
    * Format queries table name for Accumulo...table name is stored in metadata for other usage

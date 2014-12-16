@@ -23,53 +23,58 @@ import org.geotools.data.shapefile.ShapefileDataStoreFactory
 import org.geotools.data.{DataStoreFinder, Transaction}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.tools.ShpIngest._
+import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 
-object ShpIngest extends Logging {
-  
-  def doIngest(config: IngestArguments, dsConf: Map[String, _]): Boolean = {
-    val fileUrl = new File(config.file).toURI.toURL
-    val params = Map(ShapefileDataStoreFactory.URLP.getName -> fileUrl)
-    val shpDataStore = DataStoreFinder.getDataStore(params)
+class ShpIngest(params: IngestParameters) extends Logging {
+
+  def run() = {
+    val fileUrl = new File(params.files(0)).toURI.toURL
+    val shpParams = Map(ShapefileDataStoreFactory.URLP.getName -> fileUrl)
+    val shpDataStore = DataStoreFinder.getDataStore(shpParams)
     val featureTypeName = shpDataStore.getTypeNames.head
-    val feature = shpDataStore.getFeatureSource(featureTypeName)
+    val featureSource = shpDataStore.getFeatureSource(featureTypeName)
 
-    val ds = DataStoreFinder.getDataStore(dsConf)
+    val ds = new DataStoreHelper(params).ds
 
-    val targetTypeName =
-      if(config.featureName != null) config.featureName
-      else featureTypeName
+    val targetTypeName = if (params.featureName != null) params.featureName else featureTypeName
 
-    if(ds.getSchema(targetTypeName) != null) {
-      logger.error("Type name already exists")
-      false
+    if (ds.getSchema(targetTypeName) != null) {
+      throw new Exception(s"Type name $targetTypeName already exists in data store...shape file ingest cannot continue")
     }
-    else {
-      // create the new feature type
-      val sftb = new SimpleFeatureTypeBuilder()
-      sftb.init(feature.getSchema)
-      sftb.setName(targetTypeName)
-      val targetType = sftb.buildFeatureType()
 
-      ds.createSchema(targetType)
-      val writer = ds.getFeatureWriterAppend(targetTypeName, Transaction.AUTO_COMMIT)
-      feature.getFeatures.features().foreach { f =>
+    // create the new feature type
+    val builder = new SimpleFeatureTypeBuilder()
+    builder.init(featureSource.getSchema)
+    builder.setName(targetTypeName)
+    val targetType = builder.buildFeatureType()
+
+    ds.createSchema(targetType)
+    val writer = ds.getFeatureWriterAppend(targetTypeName, Transaction.AUTO_COMMIT)
+    try {
+      featureSource.getFeatures.features.foreach { f =>
         val toWrite = writer.next()
         copyFeature(f, toWrite)
         writer.write()
       }
+    } finally {
       writer.close()
-      true
     }
+
   }
 
+}
+
+object ShpIngest {
+
+  // todo copy Hints if necessary? GEOMESA-534
   def copyFeature(from: SimpleFeature, to: SimpleFeature): Unit = {
     from.getAttributes.zipWithIndex.foreach { case (attr, idx) => to.setAttribute(idx, attr) }
     to.setDefaultGeometry(from.getDefaultGeometry)
     to.getIdentifier.asInstanceOf[FeatureIdImpl].setID(from.getID)
   }
-  
 }

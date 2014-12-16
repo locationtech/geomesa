@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa-accumulo1.5</artifactId>
-    <version>1.0.0-rc.2-SNAPSHOT</version>
+    <version>1.0.0-rc.3-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>GeoMesa - [Accumulo 1.5.x]</name>
 
@@ -35,6 +35,7 @@
         <module>geomesa-compute</module>
         <module>geomesa-assemble</module>
         <module>geomesa-raster</module>
+        <module>geomesa-web</module>
     </modules>
 
     <properties>
@@ -42,7 +43,6 @@
         <geoserver.version>2.5.2</geoserver.version>
         <gt.version>11.2</gt.version>
         <jts.version>1.13</jts.version>
-        <scopt.version>3.2.0</scopt.version>
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
         <breeze.version>0.10</breeze.version>
 
@@ -545,9 +545,9 @@
                 <version>3.3</version>
             </dependency>
             <dependency>
-                <groupId>com.github.scopt</groupId>
-                <artifactId>scopt_2.10</artifactId>
-                <version>${scopt.version}</version>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.4</version>
             </dependency>
             <dependency>
                 <groupId>commons-cli</groupId>
@@ -803,6 +803,11 @@
                 <artifactId>jline</artifactId>
                 <version>1.0</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.beust</groupId>
+                <artifactId>jcommander</artifactId>
+                <version>1.32</version>
             </dependency>
 
             <!-- test dependencies -->
