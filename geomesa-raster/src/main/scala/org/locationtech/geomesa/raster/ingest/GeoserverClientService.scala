@@ -335,6 +335,7 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
       <abstract>{ description }</abstract>
       <name>{ name }</name>
       <srs>{ srs }</srs>
+      <nativeFormat> { GeoserverClientService.coverageFormatName }</nativeFormat>
       <nativeBoundingBox>
         <minx>{ nativeBoundingBox.minx }</minx>
         <maxx>{ nativeBoundingBox.maxx }</maxx>
@@ -359,6 +360,12 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
         </entry>
         <entry key="cachingEnabled">false</entry>
       </metadata>
+      <parameters>
+        <entry>
+          <string>RESOLUTION</string>
+          <string>1.0</string>
+        </entry>
+      </parameters>
     </coverage>.toString()
 
   def modifyDefaultStyle(name: String, style: String) {

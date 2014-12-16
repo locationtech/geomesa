@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.plugin.wcs
 
 import org.geotools.coverage.grid.GridGeometry2D
-import org.geotools.coverage.grid.io.{AbstractGridFormat, OverviewPolicy}
+import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.parameter.Parameter
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds}
 import org.opengis.parameter.GeneralParameterValue
@@ -38,7 +38,8 @@ class GeoMesaCoverageQueryParams(parameters: Array[GeneralParameterValue]) {
   val height = gridGeometry.getGridRange2D.getHeight
   val resX = (envelope.getMaximum(0) - envelope.getMinimum(0)) / width
   val resY = (envelope.getMaximum(1) - envelope.getMinimum(1)) / height
-  val accResolution = paramsMap(GeoMesaCoverageFormat.RESOLUTION.getName.toString)
+  val accResolution = Option(paramsMap(GeoMesaCoverageFormat.RESOLUTION.getName.toString))
+                      .getOrElse(GeoMesaCoverageFormat.RESOLUTION.getDefaultValue)
                       .asInstanceOf[Parameter[String]].getValue.toDouble
   val min = Array(Math.max(envelope.getMinimum(0), -180) + .00000001,
                   Math.max(envelope.getMinimum(1), -90) + .00000001)
