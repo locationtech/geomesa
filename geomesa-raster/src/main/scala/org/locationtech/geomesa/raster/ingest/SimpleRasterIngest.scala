@@ -18,7 +18,6 @@ package org.locationtech.geomesa.raster.ingest
 
 import java.awt.RenderingHints
 import java.io.File
-import java.util.UUID
 import javax.media.jai.{ImageLayout, JAI}
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -35,7 +34,8 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
 import org.locationtech.geomesa.raster.feature.Raster
-import org.locationtech.geomesa.utils.geohash.{GeohashUtils, BoundingBox, GeoHash}
+import org.locationtech.geomesa.raster.ingest.SimpleRasterIngest._
+import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash, GeohashUtils}
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.util.Try
@@ -69,11 +69,10 @@ object SimpleRasterIngest {
     val envelope = gcOrig.getEnvelope2D
     val mbgh = GeohashUtils.getMBGH(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
     val id = Raster.getRasterId(rasterName)
-    RasterMetadata(id, envelope, mbgh, time, imageType, crs)
+    val res = 1.0 //TODO: get the resolution from the reader or from the gridcoverage
+    RasterMetadata(id, envelope, mbgh, time, res, imageType, crs)
   }
 }
-
-import SimpleRasterIngest._
 
 class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCoverageStore) extends Logging {
 
@@ -99,8 +98,7 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
 
     val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Option(ingestTime.getMillis))
-
-    val raster = Raster(rasterGrid.getRenderedImage, metadata)
+    val raster = Raster(rasterGrid.getRenderedImage, metadata, rasterMetadata.resolution)
 
     cs.saveRaster(raster)
   }
@@ -114,6 +112,7 @@ case class RasterMetadata(id: String,
                           envelope: Envelope2D,
                           mbgh: GeoHash, //Minimum bounding box GeoHash
                           time: DateTime,
+                          resolution: Double,
                           fileType: String,
                           crs: CoordinateReferenceSystem = DefaultGeographicCRS.WGS84,
                           band: Int = 0)

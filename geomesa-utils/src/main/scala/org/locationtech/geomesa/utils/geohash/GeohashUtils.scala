@@ -77,8 +77,8 @@ object GeohashUtils
 
     def getNextChildren(parent:BitSet, oldPrecision:Int) : List[BitSet] =
       Range(0, getNumChildren).map { i =>
-      // compute bit-set corresponding to this integer,
-      // and add it to the left-shifted version of the parent
+        // compute bit-set corresponding to this integer,
+        // and add it to the left-shifted version of the parent
         val bitString = i.toBinaryString
 
         Range(0, numBitsIncrement).foldLeft(parent) { case (bs, j) =>
@@ -257,7 +257,7 @@ object GeohashUtils
     } else {
       VincentyModel.getDistanceBetweenTwoPoints(point, defaultGeometryFactory.createPoint(
         new Coordinate(Math.toDegrees(closestPoint.point.getX),
-                       Math.toDegrees(closestPoint.point.getY))
+          Math.toDegrees(closestPoint.point.getY))
       ))
     }
   }
@@ -314,18 +314,18 @@ object GeohashUtils
           defaultGeometryFactory.createPoint(new Coordinate(m, lat))
         )
         val startAndEndpoints = Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(minLon, lat)),
-                                           defaultGeometryFactory.createPoint(new Coordinate(maxLon, lat)))
+          defaultGeometryFactory.createPoint(new Coordinate(maxLon, lat)))
         minima ++ startAndEndpoints
       }
 
       def getPointsToTryAlongLongitude(lon: Double): Seq[Point] = {
         val minima = getLocalMinimumAlongLongitude(lon).withFilter(m => m > minLat && m < maxLat)
-                                                       .withFilter(!_.isNaN)
-                                                       .map( m =>
+          .withFilter(!_.isNaN)
+          .map( m =>
           defaultGeometryFactory.createPoint(new Coordinate(lon, m))
-        )
+          )
         val startAndEndpoints = Seq[Point](defaultGeometryFactory.createPoint(new Coordinate(lon, minLat)),
-                                           defaultGeometryFactory.createPoint(new Coordinate(lon, maxLat)))
+          defaultGeometryFactory.createPoint(new Coordinate(lon, maxLat)))
         minima ++ startAndEndpoints
       }
 
@@ -370,7 +370,7 @@ object GeohashUtils
     val height = ur.getY - ll.getY
     require(width >= 0 && height >= 0, s"Wrong width $width and height $height of input bounding box, cannot process")
 
-    (GeoHash.MAX_PRECISION to 0 by -1).foreach(prec => {
+    (60 to 0 by -5).foreach(prec => {
       val lonDelta = GeoHash.longitudeDeltaForPrecision(prec)
       val latDelta = GeoHash.latitudeDeltaForPrecision(prec)
       if (lonDelta >= width && latDelta >= height) {
@@ -390,6 +390,23 @@ object GeohashUtils
   def getMBGH(minX: Double, maxX: Double, minY: Double, maxY: Double): GeoHash =
     getMBGH(GeoHash.factory.createPoint(new Coordinate(minX, minY)),
       GeoHash.factory.createPoint(new Coordinate(maxX, maxY)))
+
+  def getClosestAcceptableGeoHash(env: Envelope): GeoHash = {
+    getClosestAcceptableGeoHash(BoundingBox(env))
+  }
+
+  def getClosestAcceptableGeoHash(bbox: BoundingBox): GeoHash = {
+    val prec = calculatePrecision(bbox)
+    getClosestAcceptableGeoHash(bbox, prec)
+  }
+
+  def getClosestAcceptableGeoHash(bbox: BoundingBox, r: Int): GeoHash = GeoHash(bbox.getCentroid, r)
+
+  def calculatePrecision(bbox: BoundingBox): Int = {
+    val dx = bbox.maxLon - bbox.minLon
+    val dy = bbox.maxLat - bbox.minLat
+    math.round(math.log(360/dx) /math.log(2) + math.log(180/dy) /math.log(2)).toInt
+  }
 
   /**
    * Conataints the constraints that are used to guide the search for a bits-
@@ -478,7 +495,7 @@ object GeohashUtils
 
       // consider candidate resolutions
       val (maxBits, numBoxes) = resolutions.foldLeft(resolutions.minBitsResolution, 0L){(res, bits) =>
-      // at this resolution -- odds only -- how many boxes as our original MBR become?
+        // at this resolution -- odds only -- how many boxes as our original MBR become?
         val newBits = bits - ghMBR.prec
         val numBoxes : Long = 1L << newBits.asInstanceOf[Long]
 
@@ -757,11 +774,11 @@ object GeohashUtils
                         maxSize: Int = 100,
                         resolutions: ResolutionRange = new ResolutionRange(0, 40, 5),
                         relaxFit: Boolean = true): List[GeoHash] =
-    // quick hit to avoid wasting time for single points
+  // quick hit to avoid wasting time for single points
     targetGeom match {
       case point: Point => List(GeoHash(point.getX, point.getY, resolutions.maxBitsResolution))
       case gc: GeometryCollection => (0 until gc.getNumGeometries).toList.flatMap { i =>
-       decomposeGeometry(gc.getGeometryN(i), maxSize, resolutions, relaxFit)
+        decomposeGeometry(gc.getGeometryN(i), maxSize, resolutions, relaxFit)
       }.distinct
       case _ =>
         val safeGeom = getInternationalDateLineSafeGeometry(targetGeom)
@@ -862,7 +879,7 @@ object GeohashUtils
    *     can stop as soon as we know that all possible children are known
    *     to be inside the target geometry; that is, if a 13-bit GeoHash
    *     is covered by the target, then we know that all 15-bit GeoHashes
-  *     that are its children will also be covered by the target
+   *     that are its children will also be covered by the target
    * 3.  if we ever find a GeoHash that is entirely covered by the target
    *     geometry whose precision is no more than 5 times the "offset"
    *     parameter's number of bits, then we can stop, because all possible
@@ -914,10 +931,10 @@ object GeohashUtils
       val entailedSize =
         if (hasEverythingPrefix) maxKeys
         else Math.min(
-            1 << usedBits,
-            prefixes.foldLeft(0)((sumSoFar, prefix) => {
-              sumSoFar + (1 << Math.min(usedBits, maxBits - prefix.length))
-            }))
+          1 << usedBits,
+          prefixes.foldLeft(0)((sumSoFar, prefix) => {
+            sumSoFar + (1 << Math.min(usedBits, maxBits - prefix.length))
+          }))
 
       // is there any prefix wholly contained within the target geometry
       // that uses fewer than 5*offset bits?  if so, then all possible

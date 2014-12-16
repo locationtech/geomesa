@@ -25,12 +25,12 @@ import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.accumulo.core.security.{ColumnVisibility, TablePermission}
 import org.apache.hadoop.io.Text
 import org.joda.time.DateTime
-import org.locationtech.geomesa.core.index.{DecodedIndex, QueryPlan}
+import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.core.stats.StatWriter
 import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.raster.index.RasterIndexEntry
-import org.locationtech.geomesa.utils.geohash.GeoHash
+
 import scala.collection.JavaConversions._
 
 trait RasterOperations {
@@ -69,7 +69,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   val bwConfig: BatchWriterConfig =
     new BatchWriterConfig().setMaxMemory(writeMemory).setMaxWriteThreads(writeThreads)
 
-  lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner
+  lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner("") //TODO: make this point to default schema
 
   private val tableOps = connector.tableOperations()
   private val securityOps = connector.securityOperations
@@ -103,14 +103,14 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     val batchScanner = connector.createBatchScanner(rasterTable, authorizationsProvider.getAuthorizations, numQThreads)
     val plan = queryPlanner.getQueryPlan(rasterQuery)
     configureBatchScanner(batchScanner, plan)
-    adaptIterator(batchScanner.iterator)
+    adaptIterator(batchScanner.iterator, rasterQuery.resolution)
   }
 
-  def adaptIterator(iter: java.util.Iterator[Entry[Key, Value]]): Iterator[Raster] = {
+  def adaptIterator(iter: java.util.Iterator[Entry[Key, Value]], res: Double): Iterator[Raster] = {
     iter.map { entry =>
       val renderedImage: RenderedImage = rasterImageDeserialize(entry.getValue.get)
       val metadata: DecodedIndex = RasterIndexEntry.decodeIndexCQMetadata(entry.getKey)
-      Raster(renderedImage, metadata)
+      Raster(renderedImage, metadata, res)
     }
   }
 
@@ -128,10 +128,8 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   def ensureTableExists() = ensureTableExists(rasterTable)
 
   //TODO: WCS: change to our row id format in RasterIndexSchema (which needs to be created)
-  // GEOMESA-555
   private def getRow(ras: Raster) = {
-    val fauxRes = 10
-    new Text(s"~${fauxRes}~${ras.mbgh.hash}")
+    new Text(s"~${lexiEncodeDoubleToString(ras.resolution)}~${ras.mbgh.hash}")
   }
 
   //TODO: WCS: add band value to Raster and insert it into the CF here
