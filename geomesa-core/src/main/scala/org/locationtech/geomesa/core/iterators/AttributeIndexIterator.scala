@@ -54,6 +54,7 @@ class AttributeIndexIterator extends SortedKeyValueIterator[Key, Value] with Log
   var attributeType: Option[AttributeDescriptor] = null
   var featureBuilder: SimpleFeatureBuilder = null
   var featureEncoder: SimpleFeatureEncoder = null
+  var indexEncoder: IndexValueEncoder = null
 
   var filterTest: (Geometry, Option[Long]) => Boolean = (_, _) => true
 
@@ -69,6 +70,8 @@ class AttributeIndexIterator extends SortedKeyValueIterator[Key, Value] with Log
     val featureType = SimpleFeatureTypes
         .createType(options.get(GEOMESA_ITERATORS_SFT_NAME), simpleFeatureTypeSpec)
     featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+
+    indexEncoder = IndexValueEncoder(featureType)
 
     dtgFieldName = getDtgFieldName(featureType)
     attributeRowPrefix = index.getTableSharingPrefix(featureType)
@@ -136,17 +139,14 @@ class AttributeIndexIterator extends SortedKeyValueIterator[Key, Value] with Log
     while (topValue.isEmpty && indexSource.hasTop) {
 
       // the value contains the full-resolution geometry and time
-      val decodedValue = IndexEntry.decodeIndexValue(indexSource.getTopValue)
+      val decodedValue = indexEncoder.decode(indexSource.getTopValue.get)
 
-      if (filterTest(decodedValue.geom, decodedValue.dtgMillis)) {
+      if (filterTest(decodedValue.geom, decodedValue.date.map(_.getTime))) {
         // current entry matches our filter - update the key and value
         // copy the key because reusing it is UNSAFE
         topKey = Some(new Key(indexSource.getTopKey))
         // using the already decoded index value, generate a SimpleFeature
-        val sf = IndexIterator.encodeIndexValueToSF(featureBuilder,
-                                                    decodedValue.id,
-                                                    decodedValue.geom,
-                                                    decodedValue.dtgMillis)
+        val sf = IndexIterator.encodeIndexValueToSF(featureBuilder, decodedValue)
 
         // if they requested the attribute value, decode it from the row key
         if (attributeType.isDefined) {

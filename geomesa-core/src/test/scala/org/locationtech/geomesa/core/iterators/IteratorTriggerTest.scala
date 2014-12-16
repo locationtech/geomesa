@@ -25,6 +25,7 @@ import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -40,7 +41,7 @@ class IteratorTriggerTest extends Specification {
     val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
 
     val testFeatureTypeSpec: String = {
-      "POINT:String," + "LINESTRING:String," + "POLYGON:String," + "attr2:String," + spec
+      s"POINT:String,LINESTRING:String,POLYGON:String,attr1:String:$OPT_INDEX_VALUE=true,attr2:String," + spec
     }
 
     val testFeatureType: SimpleFeatureType = {
@@ -108,6 +109,9 @@ class IteratorTriggerTest extends Specification {
     val simpleTransformToIndexPlusAnother = {
       Array("geom", "dtg", "attr2")
     }
+    val extraTransformToIndex = {
+      Array("geom", "dtg", "attr1")
+    }
     val nullTransform = null
 
     /**
@@ -156,6 +160,11 @@ class IteratorTriggerTest extends Specification {
       "not be run when requesting a non-index attribute" in {
         val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.simpleTransformToIndexPlusAnother)
         isTriggered must beFalse
+      }
+
+      "be run when requesting an extra indexed attribute" in {
+        val isTriggered = TriggerTest.useIndexOnlyIteratorTest(TriggerTest.anotherTrivialFilterString, TriggerTest.extraTransformToIndex)
+        isTriggered must beTrue
       }
 
       "not be run when requesting all attributes via a null transform" in {
