@@ -660,8 +660,8 @@ class AccumuloDataStore(val connector: Connector,
     stringToReferencedEnvelope(curBounds, crs)
   }
 
-  def getTimeBounds(query: Query): Interval = {
-    metadata.read(query.getTypeName, TEMPORAL_BOUNDS_KEY)
+  def getTimeBounds(typeName: String): Interval = {
+    metadata.read(typeName, TEMPORAL_BOUNDS_KEY)
       .map(stringToTimeBounds)
       .getOrElse(ALL_TIME_BOUNDS)
   }
@@ -715,15 +715,25 @@ class AccumuloDataStore(val connector: Connector,
   def writeTemporalBounds(featureName: String, timeBounds: Interval) {
     val newTimeBounds = metadata.read(featureName, TEMPORAL_BOUNDS_KEY) match {
       case Some(currentTimeBoundsString) => getNewTimeBounds(currentTimeBoundsString, timeBounds)
-      case None                          => timeBounds
+      case None                          => Some(timeBounds)
     }
 
-    val encoded = s"${newTimeBounds.getStartMillis}:${newTimeBounds.getEndMillis}"
-
-    metadata.insert(featureName, TEMPORAL_BOUNDS_KEY, encoded)
+    // Only write expanded bounds.
+    newTimeBounds.foreach { newBounds =>
+      val encoded = s"${newBounds.getStartMillis}:${newBounds.getEndMillis}"
+      metadata.insert(featureName, TEMPORAL_BOUNDS_KEY, encoded)
+    }
   }
 
-  def getNewTimeBounds(current: String, newBounds: Interval) = stringToTimeBounds(current).expandByInterval(newBounds)
+  def getNewTimeBounds(current: String, newBounds: Interval): Option[Interval] = {
+    val currentTimeBounds = stringToTimeBounds(current)
+    val expandedTimeBounds = currentTimeBounds.expandByInterval(newBounds)
+    if (!currentTimeBounds.equals(expandedTimeBounds)) {
+      Some(expandedTimeBounds)
+    } else {
+      None
+    }
+  }
 
   /**
    * Implementation of abstract method

@@ -88,8 +88,8 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener) =
     visitor match {
       // TODO GEOMESA-421 implement min/max iterators
-      case v: MinVisitor        => v.setValue(ds.getTimeBounds(query).getStart.toDate)
-      case v: MaxVisitor        => v.setValue(ds.getTimeBounds(query).getEnd.toDate)
+      case v: MinVisitor       => v.setValue(ds.getTimeBounds(query.getTypeName).getStart.toDate)
+      case v: MaxVisitor       => v.setValue(ds.getTimeBounds(query.getTypeName).getEnd.toDate)
       case v: BoundsVisitor    => v.reset(ds.getBounds(query))
       case v: TubeVisitor      => v.setValue(v.tubeSelect(source, query))
       case v: ProximityVisitor => v.setValue(v.proximitySearch(source, query))
@@ -102,7 +102,8 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
   override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = super.reader()
 }
 
-class CachingAccumuloFeatureCollection(source: SimpleFeatureSource, query: Query) extends AccumuloFeatureCollection(source, query) {
+class CachingAccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
+    extends AccumuloFeatureCollection(source, query) {
   lazy val internalFeatures = super.features()
 
   override def features = internalFeatures

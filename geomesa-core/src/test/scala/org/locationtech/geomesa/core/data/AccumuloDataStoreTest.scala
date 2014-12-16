@@ -1095,7 +1095,7 @@ class AccumuloDataStoreTest extends Specification {
       (result must not).beNull
     }
 
-    "support sorting" >> {
+    "support sorting and handle time bounds" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
@@ -1104,21 +1104,37 @@ class AccumuloDataStoreTest extends Specification {
       fs.getQueryCapabilities.supportsSorting(Array(SortBy.NATURAL_ORDER)) must beTrue
       fs.getQueryCapabilities.supportsSorting(Array(ff.sort("dtg", SortOrder.ASCENDING))) must beTrue
 
+      val defaultInterval = ds.getTimeBounds(sft.getTypeName)
+      defaultInterval.getStartMillis must be equalTo 0
+
       val sfBuilder = new SimpleFeatureBuilder(sft)
       sfBuilder.reset()
-      sfBuilder.addAll(List("johndoe", new DateTime("2014-01-01").toDate, gf.createPoint(new Coordinate(0, 0))))
+      val date1 = new DateTime("2014-01-02").toDate
+      sfBuilder.addAll(List("johndoe", date1, gf.createPoint(new Coordinate(0, 0))))
       val f1 = sfBuilder.buildFeature("f1")
 
+      fs.addFeatures(DataUtilities.collection(List(f1)))
+
+      val secondInterval = ds.getTimeBounds(sft.getTypeName)
+      secondInterval.getStartMillis must be equalTo date1.getTime
+      secondInterval.getEndMillis must be equalTo date1.getTime
+
       sfBuilder.reset()
-      sfBuilder.addAll(List("johndoe", new DateTime("2014-01-03").toDate, gf.createPoint(new Coordinate(0, 0))))
+      val date2 = new DateTime("2014-01-03").toDate
+      sfBuilder.addAll(List("johndoe", date2, gf.createPoint(new Coordinate(0, 0))))
       val f2 = sfBuilder.buildFeature("f2")
 
       sfBuilder.reset()
-      sfBuilder.addAll(List("johndoe", new DateTime("2014-01-02").toDate, gf.createPoint(new Coordinate(0, 0))))
+      val date3 = new DateTime("2014-01-01").toDate
+      sfBuilder.addAll(List("johndoe", date3 , gf.createPoint(new Coordinate(0, 0))))
       val f3 = sfBuilder.buildFeature("f3")
 
-      fs.addFeatures(DataUtilities.collection(List(f1, f2, f3)))
+      fs.addFeatures(DataUtilities.collection(List(f2, f3)))
       fs.flush()
+
+      val thirdInterval = ds.getTimeBounds(sft.getTypeName)
+      thirdInterval.getStartMillis must be equalTo date3.getTime
+      thirdInterval.getEndMillis must be equalTo date2.getTime
 
       "ascending on date" >> {
         val dtgAscendingQ = new Query("test", Filter.INCLUDE)
@@ -1138,7 +1154,6 @@ class AccumuloDataStoreTest extends Specification {
         res.head must beGreaterThan(res(1))
       }
     }
-
   }
 
   def buildTestIndexSchemaFormat(featureName: String) = new IndexSchemaBuilder("~").randomNumber(3).constant(featureName).geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build()
