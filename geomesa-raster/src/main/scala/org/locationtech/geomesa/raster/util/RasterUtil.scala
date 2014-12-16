@@ -1,10 +1,11 @@
 package org.locationtech.geomesa.raster.util
 
-import java.awt.image.{WritableRaster, BufferedImage, RenderedImage}
+import java.awt.image.{BufferedImage, RenderedImage, WritableRaster}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import javax.media.jai.remote.SerializableRenderedImage
+
 import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -14,6 +15,8 @@ import org.locationtech.geomesa.raster.data.{RasterQuery, RasterStore}
 import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.opengis.geometry.Envelope
+
+import scala.reflect.runtime.universe._
 
 object RasterUtils {
   val doubleSize = 8
@@ -72,21 +75,28 @@ object RasterUtils {
   def renderedImageToGridCoverage2d(name: String, image: RenderedImage, env: Envelope): GridCoverage2D =
     defaultGridCoverageFactory.create(name, image, env)
 
-  // stolen from elsewhere
-  def getNewImage(width: Int, height: Int, color: Array[Int]): BufferedImage = {
-    val image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
+  val white = Array[Int] (255, 255, 255)
+  val black = Array[Int] (0, 0, 0)
+
+  def getNewImage[T: TypeTag](w: Int, h: Int, fill: Array[T], imageType: Int = BufferedImage.TYPE_BYTE_GRAY): BufferedImage = {
+    val image = new BufferedImage(w, h, imageType)
     val wr = image.getRaster
-    var h = 0
-    var w = 0
-    for (h <- 1 until height) {
-      for (w <- 1 until width) {
-        wr.setPixel(w, h, color)
-      }
+    val setPixel: (Int, Int) => Unit = typeOf[T] match {
+      case t if t =:= typeOf[Int]    =>
+        (i, j) => wr.setPixel(j, i, fill.asInstanceOf[Array[Int]])
+      case t if t =:= typeOf[Float]  =>
+        (i, j) => wr.setPixel(j, i, fill.asInstanceOf[Array[Float]])
+      case t if t =:= typeOf[Double] =>
+        (i, j) => wr.setPixel(j, i, fill.asInstanceOf[Array[Double]])
+      case _                         =>
+        throw new IllegalArgumentException(s"Error, cannot handle Arrays of type: ${typeOf[T]}")
     }
+
+    for (i <- 1 until h; j <- 1 until w) { setPixel(i, j) }
     image
   }
 
-  def imageToCoverage(width: Int, height: Int, img: WritableRaster, env: ReferencedEnvelope, cf: GridCoverageFactory) = {
+  def imageToCoverage(img: WritableRaster, env: ReferencedEnvelope, cf: GridCoverageFactory) = {
     cf.create("testRaster", img, env)
   }
 
@@ -95,19 +105,23 @@ object RasterUtils {
     rs
   }
 
-  def generateQuery(minX: Int, maxX:Int, minY: Int, maxY: Int, res: Double = 10.0) = {
+  def generateQuery(minX: Double, maxX: Double, minY: Double, maxY: Double, res: Double = 10.0) = {
     val bb = BoundingBox(new ReferencedEnvelope(minX, maxX, minY, maxY, DefaultGeographicCRS.WGS84))
     new RasterQuery(bb, res, None, None)
   }
 
-  def generateTestRaster(minX: Int, maxX:Int, minY: Int, maxY: Int, w: Int = 256, h: Int = 256, res: Double = 10.0) = {
+  def generateTestRaster(minX: Double, maxX: Double, minY: Double, maxY: Double, w: Int = 256, h: Int = 256, res: Double = 10.0): Raster = {
     val ingestTime = new DateTime()
     val env = new ReferencedEnvelope(minX, maxX, minY, maxY, DefaultGeographicCRS.WGS84)
     val bbox = BoundingBox(env)
     val metadata = DecodedIndex(Raster.getRasterId("testRaster"), bbox.geom, Option(ingestTime.getMillis))
     val image = getNewImage(w, h, Array[Int](255, 255, 255))
-    val coverage = imageToCoverage(w, h, image.getRaster(), env, defaultGridCoverageFactory)
+    val coverage = imageToCoverage(image.getRaster(), env, defaultGridCoverageFactory)
     new Raster(coverage.getRenderedImage, metadata, res)
+  }
+
+  def generateTestRasterFromBoundingBox(bbox: BoundingBox, w: Int = 256, h: Int = 256, res: Double = 10.0): Raster = {
+    generateTestRaster(bbox.minLon, bbox.maxLon, bbox.minLat, bbox.maxLat, w, h, res)
   }
 
 }

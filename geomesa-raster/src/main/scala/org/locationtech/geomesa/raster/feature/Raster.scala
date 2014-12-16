@@ -21,7 +21,7 @@ import java.util.UUID
 
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.CRS
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
@@ -42,7 +42,7 @@ import org.locationtech.geomesa.utils.geohash.GeohashUtils
 case class Raster(chunk: RenderedImage, metadata: DecodedIndex, resolution: Double) {
   def id = metadata.id
   def name = metadata.id
-  def time = new DateTime(metadata.dtgMillis.getOrElse(0L))
+  def time = new DateTime(metadata.dtgMillis.getOrElse(0L), DateTimeZone.forID("UTC"))
 
   def mbgh = GeohashUtils.getMBGH(metadata.geom.getEnvelopeInternal)
 
