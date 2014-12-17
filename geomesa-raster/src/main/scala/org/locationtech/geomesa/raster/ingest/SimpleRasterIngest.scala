@@ -32,7 +32,7 @@ import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
 import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
-import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeohashUtils}
+import org.locationtech.geomesa.utils.geohash.BoundingBox
 
 import scala.util.Try
 
@@ -74,17 +74,20 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
 
   def runIngestTask() = Try {
     val file = new File(path)
-    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
+    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime).getOrElse(new DateTime(DateTimeZone.UTC))
 
     val rasterReader = getReader(file, fileType)
     val rasterGrid: GridCoverage2D = rasterReader.read(null)
 
     val envelope = rasterGrid.getEnvelope2D
+
     val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
 
     val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Option(ingestTime.getMillis))
 
-    val raster = Raster(rasterGrid.getRenderedImage, metadata)
+    val res = 1.0  //TODO: get the resolution from the reader or from the gridcoverage
+
+    val raster = Raster(rasterGrid.getRenderedImage, metadata, res)
 
     cs.saveRaster(raster)
 

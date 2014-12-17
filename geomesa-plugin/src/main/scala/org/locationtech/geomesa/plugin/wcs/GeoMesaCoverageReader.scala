@@ -97,7 +97,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     val params = new GeoMesaCoverageQueryParams(parameters)
     //TODO: WCS: Generate RasterQueryObject here and use it with getRasters
     /** it would look like this
-      *  val rq = RasterQuery(params.bbox, params.accResolution.toString, None, None)
+      *  val rq = RasterQuery(params.bbox, params.accResolution, None, None)
       *  val rasters: Iterator[feature.Raster] = coverageStore.getRasters(rq)
       *  then convert from feature.Raster to what is needed,
       *  and then mosiac, etc.
