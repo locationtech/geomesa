@@ -21,6 +21,7 @@ import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.FeatureWriter
 import org.geotools.factory.Hints.ClassKey
+import org.joda.time.{DateTime, Interval}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 package object data {
@@ -43,7 +44,8 @@ import scala.collection.JavaConversions._
 
   // Metadata keys
   val ATTRIBUTES_KEY         = "attributes"
-  val BOUNDS_KEY             = "bounds"
+  val SPATIAL_BOUNDS_KEY     = "bounds"
+  val TEMPORAL_BOUNDS_KEY    = "time.bounds"
   val SCHEMA_KEY             = "schema"
   val DTGFIELD_KEY           = "dtgfield"
   val FEATURE_ENCODING_KEY   = "featureEncoding"
@@ -65,6 +67,7 @@ import scala.collection.JavaConversions._
   val EMPTY_COLF           = new Text(EMPTY_STRING)
   val EMPTY_COLQ           = new Text(EMPTY_STRING)
   val WHOLE_WORLD_BOUNDS   = "-180.0:180.0:-90.0:90.0"
+  val ALL_TIME_BOUNDS      = new Interval(new DateTime(0l), new DateTime())  // Epoch till now
 
   // SimpleFeature Hints
   val TRANSFORMS           = new ClassKey(classOf[String])
@@ -76,8 +79,7 @@ import scala.collection.JavaConversions._
 
   def extractDtgField(sft: SimpleFeatureType) =
     sft.getAttributeDescriptors
-      .filter { _.getUserData.contains(SF_PROPERTY_START_TIME) }
-      .headOption
+      .find { _.getUserData.contains(SF_PROPERTY_START_TIME) }
       .map { _.getName.toString }
       .getOrElse(DEFAULT_DTG_PROPERTY_NAME)
 
