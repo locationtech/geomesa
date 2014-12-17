@@ -20,7 +20,6 @@ import java.util.{List => JList}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
-import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.data.Query
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.filter.identity.FeatureIdImpl
@@ -136,8 +135,5 @@ package object index {
     }
   }
 
-  def lexiEncodeDoubleToString(number: Double): String = LexiTypeEncoders.LEXI_TYPES.encode(number)
-
-  def lexiDecodeStringToDouble(str: String): Double = LexiTypeEncoders.LEXI_TYPES.decode("double", str).asInstanceOf[Double]
 }
 

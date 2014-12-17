@@ -72,7 +72,6 @@ trait SchemaHelpers extends RegexParsers {
       case g: Geometry => innerSomewhere(g)
     }
 
-
   def pattern[T](p: => Parser[T], code: String): Parser[T] = CODE_START ~> p <~ (CODE_END + code)
 
   // A separator character, typically '%~#s' would indicate that elements are to be separated
@@ -127,20 +126,42 @@ trait SchemaHelpers extends RegexParsers {
     case fmt => DatePlanner(DateTimeFormat.forPattern(fmt))
   }
 
-  // An Image Resolution encoder.
-  def resolutionPattern = pattern("[^%#]+".r, RESOLUTION_CODE)
-  def resolutionEncoder: Parser[ScientificNotationTextFormatter] = resolutionPattern ^^ {
-    case d => ScientificNotationTextFormatter(lexiDecodeStringToDouble(d))
+  def geohashKeyPlanner: Parser[GeoHashKeyPlanner] = geohashPattern ^^ {
+    case o ~ b => GeoHashKeyPlanner(o, b)
   }
 
-  // A Band encoder. 'RGB#b' would yield RGB
-  //  We match any string other that does *not* contain % or # since we use those for delimiters
-  def bandPattern = pattern("[^%#]+".r, BAND_CODE)
-  def bandEncoder: Parser[RasterBandTextFormatter] = bandPattern ^^ {
-    case b => RasterBandTextFormatter(b)
+  // a key element consists of a separator and any number of random partitions, geohashes, and dates
+  def keypart: Parser[CompositeTextFormatter] =
+    (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder )) ^^
+      {
+        case sep ~ xs => CompositeTextFormatter(xs, sep)
+      }
+
+  // the column qualifier must end with an ID-encoder
+  def cqpart: Parser[CompositeTextFormatter] =
+    phrase(sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder) ~ idEncoder) ^^ {
+      case sep ~ xs ~ id => CompositeTextFormatter(xs :+ id, sep)
+    }
+
+  // An index key is three keyparts, one for row, colf, and colq
+  def formatter = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
+    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => (rowf, cff, cqf)
   }
 
+  // builds a geohash decoder to extract the entire geohash from the parts of the index key
+  def ghDecoderParser = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
+    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => {
+      val (roffset, (ghoffset, rbits)) = extractGeohashEncoder(rowf.lf, 0, rowf.sep.length)
+      val (cfoffset, (ghoffset2, cfbits)) = extractGeohashEncoder(cff.lf, 0, cff.sep.length)
+      val (cqoffset, (ghoffset3, cqbits)) = extractGeohashEncoder(cqf.lf, 0, cqf.sep.length)
+      val l = List((ghoffset, RowExtractor(roffset, rbits)),
+        (ghoffset2, ColumnFamilyExtractor(cfoffset, cfbits)),
+        (ghoffset3, ColumnQualifierExtractor(cqoffset, cqbits)))
+      GeohashDecoder(l.sortBy { case (off, _) => off }.map { case (_, e) => e })
+    }
+  }
 
+  def buildGeohashDecoder(s: String): GeohashDecoder = parse(ghDecoderParser, s).get
 
   // extracts an entire date encoder from a key part
   @tailrec
