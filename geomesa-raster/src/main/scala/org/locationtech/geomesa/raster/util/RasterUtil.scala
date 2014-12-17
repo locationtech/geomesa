@@ -1,9 +1,10 @@
 package org.locationtech.geomesa.raster.util
 
+import java.awt.image.{BufferedImage, RenderedImage, WritableRaster}
 import java.awt.{AlphaComposite, Color, Graphics2D}
-import java.awt.image.{WritableRaster, BufferedImage, RenderedImage}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import javax.media.jai.remote.SerializableRenderedImage
+
 import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -11,8 +12,7 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.{RasterQuery, RasterStore}
 import org.locationtech.geomesa.raster.feature.Raster
-import org.locationtech.geomesa.utils.geohash.{GeoHash, BoundingBox}
-import org.opengis.coverage.grid.GridCoverage
+import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.opengis.geometry.Envelope
 
 import scala.reflect.runtime.universe._
@@ -73,17 +73,22 @@ object RasterUtils {
     g2D.setColor(save)
     emptyImage
   }
-
-  def mosaicGridCoverages(coverageList: Iterator[GridCoverage], width: Int = 256, height: Int = 256, env: Envelope, startImage: BufferedImage = null) = {
-    val image = if (startImage == null) { getEmptyImage(width, height) } else { startImage }
-    while (coverageList.hasNext) {
-      val coverage = coverageList.next()
-      val coverageEnv = coverage.getEnvelope
-      val coverageImage = coverage.getRenderedImage
-      val posx = ((coverageEnv.getMinimum(0) - env.getMinimum(0)) / 1.0).asInstanceOf[Int]
-      val posy = ((env.getMaximum(1) - coverageEnv.getMaximum(1)) / 1.0).asInstanceOf[Int]
-      image.getRaster.setDataElements(posx, posy, coverageImage.getData)
-    }
+  // TODO: WCS: GEOMESA-598 Replace with an Iterator[Raster] if appropriate
+  def mosaicRasters(rasters:List[Raster], width: Int, height: Int, env: Envelope, resx: Double, resy: Double) = {
+    val rescaleX: Double = resx / (env.getSpan(0) / width)
+    val rescaleY: Double = resy / (env.getSpan(1) / height)
+    val newWidth: Double = width / rescaleX
+    val newHeight: Double = height / rescaleY
+    val imageWidth = Math.max(Math.round(newWidth), 1).toInt
+    val imageHeight = Math.max(Math.round(newHeight), 1).toInt
+    val image = getEmptyImage(imageWidth, imageHeight)
+    rasters.foreach({ raster =>
+      val coverageEnv = raster.envelope
+      val coverageImage = raster.chunk
+      val dx = ((coverageEnv.getMinimum(0) - env.getMinimum(0)) / resx).toInt
+      val dy = ((env.getMaximum(1) - coverageEnv.getMaximum(1)) / resy).toInt
+      image.getRaster.setRect(dx, dy, coverageImage.getData)
+    })
     image
   }
   //TODO: WCS: Split off functions useful for just tests into a separate object, which includes classes from here on down
