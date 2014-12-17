@@ -16,7 +16,6 @@ class RichIntervalTest extends Specification {
     val dt4 = new DateTime("2012-04-04T04:00:00", DateTimeZone.UTC)
     val dt5 = new DateTime("2012-05-05T05:00:00", DateTimeZone.UTC)
 
-
     val int12 = new Interval(dt1, dt2)
     val int13 = new Interval(dt1, dt3)
 
