@@ -195,8 +195,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
 
   override def remove() =
     if (original != null) {
-      removers.foreach { r => r(original)}
-      multiBWWriter.flush()
+      removers.foreach { r => r(original) }
     }
 
   override def hasNext = reader.hasNext

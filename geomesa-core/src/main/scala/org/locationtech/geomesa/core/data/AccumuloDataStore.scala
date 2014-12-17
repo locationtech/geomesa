@@ -17,7 +17,7 @@
 
 package org.locationtech.geomesa.core.data
 
-import java.util.{Map => JMap}
+import java.util.{Map => JMap, Date}
 
 import com.google.common.collect.ImmutableSortedSet
 import com.typesafe.scalalogging.slf4j.Logging
@@ -35,6 +35,7 @@ import org.geotools.feature.NameImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core
 import org.locationtech.geomesa.core.data.AccumuloDataStore._
 import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
@@ -45,6 +46,7 @@ import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.data.TableSplitter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}
+import org.locationtech.geomesa.utils.time.Time._
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -647,7 +649,7 @@ class AccumuloDataStore(val connector: Connector,
 
   // We assume that they want the bounds for everything.
   override def getBounds(query: Query): ReferencedEnvelope = {
-    val env = metadata.read(query.getTypeName, BOUNDS_KEY).getOrElse(WHOLE_WORLD_BOUNDS)
+    val env = metadata.read(query.getTypeName, SPATIAL_BOUNDS_KEY).getOrElse(WHOLE_WORLD_BOUNDS)
     val minMaxXY = env.split(":")
     val curBounds = minMaxXY.size match {
       case 4 => env
@@ -656,6 +658,19 @@ class AccumuloDataStore(val connector: Connector,
     val sft = getSchema(query.getTypeName)
     val crs = sft.getCoordinateReferenceSystem
     stringToReferencedEnvelope(curBounds, crs)
+  }
+
+  def getTimeBounds(typeName: String): Interval = {
+    metadata.read(typeName, TEMPORAL_BOUNDS_KEY)
+      .map(stringToTimeBounds)
+      .getOrElse(ALL_TIME_BOUNDS)
+  }
+
+  def stringToTimeBounds(value: String): Interval = {
+    val longs = value.split(":").map(java.lang.Long.parseLong)
+    require(longs(0) <= longs(1))
+    require(longs.length == 2)
+    new Interval(longs(0), longs(1))
   }
 
   private def stringToReferencedEnvelope(string: String,
@@ -667,14 +682,14 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   /**
-   * Writes bounds for this feature
+   * Writes spatial bounds for this feature
    *
    * @param featureName
    * @param bounds
    */
-  def writeBounds(featureName: String, bounds: ReferencedEnvelope) {
+  def writeSpatialBounds(featureName: String, bounds: ReferencedEnvelope) {
     // prepare to write out properties to the Accumulo SHP-file table
-    val newbounds = metadata.read(featureName, BOUNDS_KEY) match {
+    val newbounds = metadata.read(featureName, SPATIAL_BOUNDS_KEY) match {
       case Some(env) => getNewBounds(env, bounds)
       case None      => bounds
     }
@@ -682,13 +697,42 @@ class AccumuloDataStore(val connector: Connector,
     val minMaxXY = List(newbounds.getMinX, newbounds.getMaxX, newbounds.getMinY, newbounds.getMaxY)
     val encoded = minMaxXY.mkString(":")
 
-    metadata.insert(featureName, BOUNDS_KEY, encoded)
+    metadata.insert(featureName, SPATIAL_BOUNDS_KEY, encoded)
   }
 
   private def getNewBounds(env: String, bounds: ReferencedEnvelope) = {
     val oldBounds = stringToReferencedEnvelope(env, DefaultGeographicCRS.WGS84)
     oldBounds.expandToInclude(bounds)
     oldBounds
+  }
+
+  /**
+   * Writes temporal bounds for this feature
+   *
+   * @param featureName
+   * @param timeBounds
+   */
+  def writeTemporalBounds(featureName: String, timeBounds: Interval) {
+    val newTimeBounds = metadata.read(featureName, TEMPORAL_BOUNDS_KEY) match {
+      case Some(currentTimeBoundsString) => getNewTimeBounds(currentTimeBoundsString, timeBounds)
+      case None                          => Some(timeBounds)
+    }
+
+    // Only write expanded bounds.
+    newTimeBounds.foreach { newBounds =>
+      val encoded = s"${newBounds.getStartMillis}:${newBounds.getEndMillis}"
+      metadata.insert(featureName, TEMPORAL_BOUNDS_KEY, encoded)
+    }
+  }
+
+  def getNewTimeBounds(current: String, newBounds: Interval): Option[Interval] = {
+    val currentTimeBounds = stringToTimeBounds(current)
+    val expandedTimeBounds = currentTimeBounds.expandByInterval(newBounds)
+    if (!currentTimeBounds.equals(expandedTimeBounds)) {
+      Some(expandedTimeBounds)
+    } else {
+      None
+    }
   }
 
   /**
@@ -763,8 +807,8 @@ class AccumuloDataStore(val connector: Connector,
   def createSpatioTemporalIdxScanner(sft: SimpleFeatureType, numThreads: Int): BatchScanner = {
     logger.trace(s"Creating ST batch scanner with $numThreads threads")
     if (catalogTableFormat(sft)) {
-      connector.createBatchScanner(getSpatioTemporalIdxTableName(sft), 
-                                   authorizationsProvider.getAuthorizations, 
+      connector.createBatchScanner(getSpatioTemporalIdxTableName(sft),
+                                   authorizationsProvider.getAuthorizations,
                                    numThreads)
     } else {
       connector.createBatchScanner(catalogTable, authorizationsProvider.getAuthorizations, numThreads)
