@@ -32,7 +32,7 @@ import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
 import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
-import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeohashUtils}
+import org.locationtech.geomesa.utils.geohash.BoundingBox
 
 import scala.util.Try
 
