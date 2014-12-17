@@ -24,6 +24,7 @@ import org.apache.http.impl.client.{BasicCredentialsProvider, DefaultHttpClient}
 import org.apache.http.message.BasicHeader
 import org.apache.http.params.{BasicHttpParams, HttpConnectionParams, HttpParams}
 import org.apache.http.util.EntityUtils
+import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 
 /**
  * This class provides service for registering rasters onto Geoserver.

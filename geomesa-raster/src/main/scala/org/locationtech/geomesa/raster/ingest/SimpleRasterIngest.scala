@@ -18,25 +18,21 @@ package org.locationtech.geomesa.raster.ingest
 
 import java.awt.RenderingHints
 import java.io.File
-import java.util.UUID
 import javax.media.jai.{ImageLayout, JAI}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.BatchWriterConfig
 import org.geotools.coverage.grid.GridCoverage2D
 import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
 import org.geotools.coverageio.gdal.dted.DTEDReader
 import org.geotools.factory.Hints
 import org.geotools.gce.geotiff.GeoTiffReader
-import org.geotools.geometry.Envelope2D
-import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
 import org.locationtech.geomesa.raster.feature.Raster
-import org.locationtech.geomesa.utils.geohash.{GeohashUtils, BoundingBox, GeoHash}
-import org.opengis.referencing.crs.CoordinateReferenceSystem
+import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
+import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeohashUtils}
 
 import scala.util.Try
 
@@ -44,8 +40,8 @@ object SimpleRasterIngest {
 
   def getReader(imageFile: File, imageType: String): AbstractGridCoverage2DReader = {
     imageType match {
-      case "TIFF" => getTiffReader(imageFile)
-      case "DTED" => getDtedReader(imageFile)
+      case "tiff" => getTiffReader(imageFile)
+      case "dted" => getDtedReader(imageFile)
       case _ => throw new Exception("Image type is not supported.")
     }
   }
@@ -62,15 +58,6 @@ object SimpleRasterIngest {
     new DTEDReader(imageFile, hints)
   }
 
-  def rasterMetadataFromFile(rasterName: String, imageFile: File, imageType: String, time: DateTime): RasterMetadata = {
-    val reader = getReader(imageFile, imageType)
-    val gcOrig: GridCoverage2D = reader.read(null)
-    val crs = gcOrig.getCoordinateReferenceSystem2D
-    val envelope = gcOrig.getEnvelope2D
-    val mbgh = GeohashUtils.getMBGH(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
-    val id = Raster.getRasterId(rasterName)
-    RasterMetadata(id, envelope, mbgh, time, imageType, crs)
-  }
 }
 
 import SimpleRasterIngest._
@@ -78,19 +65,16 @@ import SimpleRasterIngest._
 class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCoverageStore) extends Logging {
 
   lazy val path = config(IngestRasterParams.FILE_PATH).get
-  lazy val fileType = config(IngestRasterParams.FILE_TYPE).get
+  lazy val fileType = config(IngestRasterParams.FORMAT).get
   lazy val rasterName = config(IngestRasterParams.RASTER_NAME).get
   lazy val visibilities = config(IngestRasterParams.VISIBILITIES).get
 
-  val bwConfig =
-    new BatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(1)
 
   val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
   def runIngestTask() = Try {
     val file = new File(path)
     val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
-    val rasterMetadata = rasterMetadataFromFile(rasterName, file, fileType, ingestTime)
 
     val rasterReader = getReader(file, fileType)
     val rasterGrid: GridCoverage2D = rasterReader.read(null)
@@ -103,33 +87,6 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     val raster = Raster(rasterGrid.getRenderedImage, metadata)
 
     cs.saveRaster(raster)
+
   }
-
-
-
-}
-
-
-case class RasterMetadata(id: String,
-                          envelope: Envelope2D,
-                          mbgh: GeoHash, //Minimum bounding box GeoHash
-                          time: DateTime,
-                          fileType: String,
-                          crs: CoordinateReferenceSystem = DefaultGeographicCRS.WGS84,
-                          band: Int = 0)
-
-object IngestRasterParams {
-  val ACCUMULO_INSTANCE   = "geomesa-tools.ingestraster.instance"
-  val ZOOKEEPERS          = "geomesa-tools.ingestraster.zookeepers"
-  val ACCUMULO_MOCK       = "geomesa-tools.ingestraster.useMock"
-  val ACCUMULO_USER       = "geomesa-tools.ingestraster.user"
-  val ACCUMULO_PASSWORD   = "geomesa-tools.ingestraster.password"
-  val AUTHORIZATIONS      = "geomesa-tools.ingestraster.authorizations"
-  val VISIBILITIES        = "geomesa-tools.ingestraster.visibilities"
-  val FILE_PATH           = "geomesa-tools.ingestraster.path"
-  val FILE_TYPE           = "geomesa-tools.ingestraster.filetype"
-  val TIME                = "geomesa-tools.ingestraster.time"
-  val GEOSERVER_REG       = "geomesa-tools.ingestraster.geoserver.reg"
-  val RASTER_NAME         = "geomesa-tools.ingestraster.name"
-  val TABLE               = "geomesa-tools.ingestraster.table"
 }

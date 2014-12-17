@@ -30,7 +30,7 @@ import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory._
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.raster.AccumuloStoreHelper
 import org.locationtech.geomesa.raster.feature.Raster
-import org.locationtech.geomesa.raster.ingest.{GeoserverClientService, IngestRasterParams}
+import org.locationtech.geomesa.raster.ingest.GeoserverClientService
 import org.locationtech.geomesa.raster.util.RasterUtils._
 
 import scala.collection.JavaConversions._

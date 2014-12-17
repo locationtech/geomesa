@@ -61,12 +61,12 @@ class AccumuloBackedRasterOperations(val connector: Connector,
                                      val authorizationsProvider: AuthorizationsProvider,
                                      val writeVisibilities: String,
                                      shardsConfig: Option[Int] = None,
-                                     writeMemoryConfig: Option[Long] = None,
+                                     writeMemoryConfig: Option[String] = None,
                                      writeThreadsConfig: Option[Int] = None,
                                      queryThreadsConfig: Option[Int] = None) extends RasterOperations {
   //By default having at least as many shards as tservers provides optimal parallelism in queries
   val shards = shardsConfig.getOrElse(connector.instanceOperations().getTabletServers.size())
-  val writeMemory = writeMemoryConfig.getOrElse(10000L)
+  val writeMemory = writeMemoryConfig.getOrElse("10000").toLong
   val writeThreads = writeThreadsConfig.getOrElse(10)
   val bwConfig: BatchWriterConfig =
     new BatchWriterConfig().setMaxMemory(writeMemory).setMaxWriteThreads(writeThreads)
@@ -231,7 +231,7 @@ object AccumuloBackedRasterOperations {
             authorizationsProvider: AuthorizationsProvider,
             visibility: String,
             shardsConfig: Option[Int],
-            writeMemoryConfig: Option[Long],
+            writeMemoryConfig: Option[String],
             writeThreadsConfig: Option[Int],
             queryThreadsConfig: Option[Int],
             collectStats: Boolean): AccumuloBackedRasterOperations  =

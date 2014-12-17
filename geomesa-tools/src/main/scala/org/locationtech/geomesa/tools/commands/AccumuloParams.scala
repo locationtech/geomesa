@@ -73,3 +73,30 @@ class CreateFeatureParams extends FeatureParams {
   @Parameter(names = Array("-sh", "--shards"), description = "Number of shards to use for the storage tables (defaults to number of tservers)")
   var numShards: Integer = null
 }
+
+class RasterParams extends AccumuloParams {
+  @Parameter(names = Array("-r", "--raster-name"), description = "Raster name on which to operate", required = true)
+  var rasterName: String = null
+
+  @Parameter(names = Array("-t", "--raster-table"), description = "Accumulo table for storing raster data", required = true)
+  var table: String = null
+}
+
+trait GeoserverParams {
+  @Parameter(names = Array("-g", "--geoserverConfig"), description = "Geoserver configuration info")
+  var geoserverConf: String = null
+}
+
+class CreateRasterParams extends RasterParams with GeoserverParams {
+  @Parameter(names = Array("-wm", "--writeMemory"), description = "Memory allocation for ingestion operation")
+  var writeMemory: String = null
+
+  @Parameter(names = Array("-wt", "--writeThreads"), description = "Threads for writing raster data")
+  var writeThreads: Integer = null
+
+  @Parameter(names = Array("-qt", "--queryThreads"), description = "Threads for quering raster data")
+  var queryThreads: Integer = null
+
+  @Parameter(names = Array("-sh", "--shards"), description = "Number of shards to use for the storage tables (defaults to number of tservers)")
+  var numShards: Integer = null
+}

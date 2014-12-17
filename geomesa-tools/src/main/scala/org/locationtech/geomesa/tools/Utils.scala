@@ -29,47 +29,54 @@ import scala.xml.XML
 object Utils {
 
   object IngestParams {
-    val ACCUMULO_INSTANCE = "geomesa.tools.ingest.instance"
-    val ZOOKEEPERS = "geomesa.tools.ingest.zookeepers"
-    val ACCUMULO_MOCK = "geomesa.tools.ingest.useMock"
-    val ACCUMULO_USER = "geomesa.tools.ingest.user"
-    val ACCUMULO_PASSWORD = "geomesa.tools.ingest.password"
-    val AUTHORIZATIONS = "geomesa.tools.ingest.authorizations"
-    val VISIBILITIES = "geomesa.tools.ingest.visibilities"
-    val SHARDS = "geomesa.tools.ingest.shards"
-    val INDEX_SCHEMA_FMT = "geomesa.tools.ingest.indexSchemaFormat"
-    val SKIP_HEADER = "geomesa.tools.ingest.skipHeader"
-    val DO_HASH = "geomesa.tools.ingest.doHash"
-    val DT_FORMAT = "geomesa.tools.ingest.dtFormat"
-    val ID_FIELDS = "geomesa.tools.ingest.idFields"
-    val DT_FIELD = "geomesa.tools.ingest.dtField"
-    val FILE_PATH = "geomesa.tools.ingest.path"
-    val FORMAT = "geomesa.tools.ingest.delimiter"
-    val LON_ATTRIBUTE = "geomesa.tools.ingest.lonAttribute"
-    val LAT_ATTRIBUTE = "geomesa.tools.ingest.latAttribute"
-    val FEATURE_NAME = "geomesa.tools.feature.name"
-    val CATALOG_TABLE = "geomesa.tools.feature.tables.catalog"
-    val SFT_SPEC = "geomesa.tools.feature.sftspec"
-    val COLS = "geomesa.tools.ingest.cols"
-    val IS_TEST_INGEST = "geomesa.tools.ingest.runIngest"
+    val ACCUMULO_INSTANCE   = "geomesa.tools.ingest.instance"
+    val ZOOKEEPERS          = "geomesa.tools.ingest.zookeepers"
+    val ACCUMULO_MOCK       = "geomesa.tools.ingest.useMock"
+    val ACCUMULO_USER       = "geomesa.tools.ingest.user"
+    val ACCUMULO_PASSWORD   = "geomesa.tools.ingest.password"
+    val AUTHORIZATIONS      = "geomesa.tools.ingest.authorizations"
+    val VISIBILITIES        = "geomesa.tools.ingest.visibilities"
+    val SHARDS              = "geomesa.tools.ingest.shards"
+    val INDEX_SCHEMA_FMT    = "geomesa.tools.ingest.indexSchemaFormat"
+    val SKIP_HEADER         = "geomesa.tools.ingest.skipHeader"
+    val DO_HASH             = "geomesa.tools.ingest.doHash"
+    val DT_FORMAT           = "geomesa.tools.ingest.dtFormat"
+    val ID_FIELDS           = "geomesa.tools.ingest.idFields"
+    val DT_FIELD            = "geomesa.tools.ingest.dtField"
+    val FILE_PATH           = "geomesa.tools.ingest.path"
+    val FORMAT              = "geomesa.tools.ingest.delimiter"
+    val LON_ATTRIBUTE       = "geomesa.tools.ingest.lonAttribute"
+    val LAT_ATTRIBUTE       = "geomesa.tools.ingest.latAttribute"
+    val FEATURE_NAME        = "geomesa.tools.feature.name"
+    val CATALOG_TABLE       = "geomesa.tools.feature.tables.catalog"
+    val SFT_SPEC            = "geomesa.tools.feature.sftspec"
+    val COLS                = "geomesa.tools.ingest.cols"
+    val IS_TEST_INGEST      = "geomesa.tools.ingest.runIngest"
   }
 
   object Formats {
-    val CSV = "csv"
-    val TSV = "tsv"
-    val SHP = "shp"
-    val JSON = "json"
+    val CSV     = "csv"
+    val TSV     = "tsv"
+    val TIFF    = "tiff"
+    val DTED    = "dted"
+    val SHP     = "shp"
+    val JSON    = "json"
     val GeoJson = "geojson"
     val GML = "gml"
 
     def getFileExtension(name: String) =
-      name match {
-        case _ if name.toLowerCase.endsWith(CSV) => CSV
-        case _ if name.toLowerCase.endsWith(TSV) => TSV
-        case _ if name.toLowerCase.endsWith(SHP) => SHP
-        case _ if name.toLowerCase.endsWith(JSON) => JSON
-        case _ if name.toLowerCase.endsWith(GML) => GML
-        case _ => "unknown"
+      name.toLowerCase match {
+        case _ if name.endsWith(CSV)  => CSV
+        case _ if name.endsWith("tif") ||
+                  name.endsWith("tiff") => TIFF
+        case _ if name.endsWith("dt0") ||
+                  name.endsWith("dt1") ||
+                  name.endsWith("dt2")=> DTED
+        case _ if name.endsWith(TSV)  => TSV
+        case _ if name.endsWith(SHP)  => SHP
+        case _ if name.endsWith(JSON) => JSON
+        case _ if name.endsWith(GML)  => GML
+        case _                        => "unknown"
       }
 
     val All = List(CSV, TSV, SHP, JSON, GeoJson, GML)
