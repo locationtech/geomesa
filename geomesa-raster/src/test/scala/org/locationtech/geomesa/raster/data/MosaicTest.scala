@@ -5,9 +5,6 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
 import breeze.util.ArrayUtil
-import com.vividsolutions.jts.geom.Envelope
-import org.geotools.coverage.CoverageFactoryFinder
-import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
@@ -22,10 +19,8 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-//TODO: WCS: Improve this integration test by dealing with issues ID'd below
-// GEOMESA-571
 @RunWith(classOf[JUnitRunner])
-class RasterStoreTest extends Specification {
+class MosaicTest extends Specification {
 
   sequential
 
@@ -39,29 +34,6 @@ class RasterStoreTest extends Specification {
                                    "SUSA",
                                    "SUSA",
                                    useMock = true)
-
-  //TODO: WCS: refactor to separate the creation of the RasterStore, creation of multiple images and insertion
-  //           into separate functions.
-  //TODO: WCS: need tests to show finding one image, no images and several images
-  def createAndFillRasterStore = {
-    val rs = getRasterStore
-    val rasterName = "testRaster"
-    val ingestTime = new DateTime()
-    val coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(new Hints())
-    val env = new ReferencedEnvelope(0, 50, 0, 50, DefaultGeographicCRS.WGS84)
-    val bbox = BoundingBox(env)
-    val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Option(ingestTime.getMillis))
-    val image = getNewImage(500, 500, Array[Int](255, 255, 255))
-    val coverage = coverageFactory.create("testRaster", image.getRaster, env)
-    val raster = new Raster(coverage.getRenderedImage, metadata, 1.0)
-    rs.putRaster(raster)
-    rs
-  }
-
-  def generateQuery(envelope: Envelope) = {
-    val bb = BoundingBox(envelope)
-    new RasterQuery(bb, 1.0, None, None)
-  }
 
   def getNewImage(width: Int, height: Int, color: Array[Int]): BufferedImage = {
     val image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
@@ -119,23 +91,12 @@ class RasterStoreTest extends Specification {
     val ingestRasters = getTestRasters(width, height, bbox)
     val rs = getRasterStore
     ingestRasters.foreach(rs.putRaster)
-    val rq = generateQuery(envelope)
+    //1.0 is used as a fake resolution for this mock Accumulo test
+    val rq = new RasterQuery(BoundingBox(envelope), 1.0, None, None)
     val queryRasters = rs.getRasters(rq).toList
     val ingestImageByteArray = getImageByteArray(ingestRasters, width, height, envelope, resX, resY)
     val queryImageByteArray = getImageByteArray(queryRasters, width, height, envelope, resX, resY)
     ArrayUtil.equals(ingestImageByteArray, queryImageByteArray) must beTrue
-  }
-
-  "RasterStore" should {
-    "create a Raster Store" in {
-      val theStore = createAndFillRasterStore
-      theStore must beAnInstanceOf[RasterStore]
-      val theIterator = theStore.getRasters(
-        generateQuery(new ReferencedEnvelope(0, 50, 0, 50, DefaultGeographicCRS.WGS84))
-      )
-      val theRaster = theIterator.next()
-      theRaster must beAnInstanceOf[Raster]
-    }
   }
 
   /**
