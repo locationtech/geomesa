@@ -38,13 +38,14 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
 
   override def execute() = {
 
-    val fmt = params.format.toLowerCase()
+    val fmt = params.format.toLowerCase
     val features = getFeatureCollection(fmt)
     val exporter: FeatureExporter = fmt match {
       case CSV | TSV       => DelimitedExport(getWriter(), params)
       case SHP             => new ShapefileExport(getFile())
       case GeoJson | JSON  => new GeoJsonExport(getWriter())
       case GML             => new GmlExport(getOutputStream())
+      case BIN             => BinFileExport(getOutputStream(), params)
       case _ =>
         throw new IllegalArgumentException(s"Unsupported export format. Supported formats are: ${Formats.All.mkString(",")}.")
     }
@@ -68,7 +69,8 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
             ShapefileExport.modifySchema(sft)
           }
         getFeatureCollection(Some(schemaString))
-
+      case BIN =>
+        getFeatureCollection(Some(BinFileExport.getAttributeList(params)))
       case _ => getFeatureCollection()
     }
   }
@@ -120,7 +122,7 @@ object ExportCommand {
 
   @Parameters(commandDescription = "Export a GeoMesa feature")
   class ExportParameters extends OptionalCqlFilterParameters {
-    @Parameter(names = Array("-fmt", "--format"), description = "Format to export (csv|tsv|gml|json|shp)")
+    @Parameter(names = Array("-fmt", "--format"), description = "Format to export (csv|tsv|gml|json|shp|bin)")
     var format: String = "csv"
 
     @Parameter(names = Array("-max", "--max-features"), description = "Maximum number of features to return. default: Long.MaxValue")
@@ -144,6 +146,9 @@ object ExportCommand {
 
     @Parameter(names = Array("-dt", "--dt-attribute"), description = "name of the date attribute to export")
     var dateAttribute: String = null
+
+    @Parameter(names = Array("-lbl", "--label-attribute"), description = "name of the attribute to use as a bin file label")
+    var labelAttribute: String = null
 
     @Parameter(names = Array("-o", "--output"), description = "name of the file to output to instead of std out")
     var file: File = null
