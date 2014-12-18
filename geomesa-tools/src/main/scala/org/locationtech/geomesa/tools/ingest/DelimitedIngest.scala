@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.locationtech.geomesa.tools
+package org.locationtech.geomesa.tools.ingest
 
 import java.io.File
 import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 import com.twitter.scalding.{Args, Hdfs, Local, Mode}
 import org.apache.accumulo.core.client.Connector
+import org.apache.commons.codec.binary.Hex
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.core.data.AccumuloDataStore
@@ -28,6 +30,8 @@ import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.Utils.Modes._
 import org.locationtech.geomesa.tools.Utils.{IngestParams, Modes}
 import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
+import org.locationtech.geomesa.tools.ingest.DelimitedIngest._
+import org.locationtech.geomesa.tools.{AccumuloProperties, FeatureCreator}
 
 import scala.collection.JavaConversions._
 
@@ -41,20 +45,35 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
     JobUtils.setLibJars(conf, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
 
     // setup ingest
-    val hdfsMode =
-      if (getMode(params.files(0)) == Modes.Hdfs) {
+    val mode =
+      if (getJobMode(params.files(0)) == Modes.Hdfs) {
+        logger.info("Running ingest job in HDFS Mode")
         Hdfs(strict = true, conf)
       } else {
+        logger.info("Running ingest job in Local Mode")
         Local(strictSources = true)
       }
-    val arguments = Mode.putMode(hdfsMode, getScaldingArgs())
-    val job = new DelimitedIngestJob(arguments)
+
+    validateFileArgs(mode, params)
+
+    val arguments = Mode.putMode(mode, getScaldingArgs())
+    val job = new ScaldingDelimitedIngestJob(arguments)
     val flow = job.buildFlow
 
     //block until job is completed.
     flow.complete()
     job.printStatInfo
   }
+
+  def validateFileArgs(mode: Mode, params: IngestParameters) =
+    mode match {
+      case Local(_) =>
+        if (params.files.size > 1) {
+          throw new IllegalArgumentException("Cannot ingest multiple files in Local mode..." +
+            "please provide only a single file argument")
+        }
+      case _ =>
+    }
 
   def ingestLibJars = {
     val is = getClass.getClassLoader.getResourceAsStream("org/locationtech/geomesa/tools/ingest-libjars.list")
@@ -70,15 +89,15 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
   def ingestJarSearchPath: Iterator[() => Seq[File]] =
     Iterator(() => JobUtils.getJarsFromEnvironment("GEOMESA_HOME"),
       () => JobUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
-      () => JobUtils.getJarsFromClasspath(classOf[DelimitedIngestJob]),
+      () => JobUtils.getJarsFromClasspath(classOf[ScaldingDelimitedIngestJob]),
       () => JobUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
       () => JobUtils.getJarsFromClasspath(classOf[Connector]))
 
   def getScaldingArgs(): Args = {
-    val singleArgs = List(classOf[DelimitedIngestJob].getCanonicalName, getModeFlag(params.files(0)))
+    val singleArgs = List(classOf[ScaldingDelimitedIngestJob].getCanonicalName, getModeFlag(params.files(0)))
 
     val requiredKvArgs: Map[String, String] = Map(
-      IngestParams.FILE_PATH         -> params.files(0),
+      IngestParams.FILE_PATH         -> encodeFileList(params.files.toList),
       IngestParams.SFT_SPEC          -> URLEncoder.encode(params.spec, "UTF-8"),
       IngestParams.CATALOG_TABLE     -> params.catalog,
       IngestParams.ZOOKEEPERS        -> Option(params.zookeepers).getOrElse(zookeepersProp),
@@ -102,7 +121,8 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
         IngestParams.AUTHORIZATIONS    -> Option(params.auths),
         IngestParams.VISIBILITIES      -> Option(params.visibilities),
         IngestParams.INDEX_SCHEMA_FMT  -> Option(params.indexSchema),
-        IngestParams.SHARDS            -> Option(params.numShards))
+        IngestParams.SHARDS            -> Option(params.numShards),
+        IngestParams.LIST_DELIMITER    -> Option(params.listDelimiter))
       .filter(p => p._2.nonEmpty)
       .map { case (k,o) => k -> o.get.toString }
       .toMap
@@ -116,4 +136,12 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
     val kvArgs = (requiredKvArgs ++ optionalKvArgs).flatMap { case (k,v) => List(s"--$k", v) }
     Args(singleArgs ++ kvArgs)
   }
+}
+
+object DelimitedIngest {
+  def encodeFileList(files: List[String]) =
+    files.map { s => Hex.encodeHexString(s.getBytes(StandardCharsets.UTF_8)) }.mkString(" ")
+
+  def decodeFileList(encoded: String) =
+    encoded.split(" ").map { s => new String(Hex.decodeHex(s.toCharArray)) }
 }
