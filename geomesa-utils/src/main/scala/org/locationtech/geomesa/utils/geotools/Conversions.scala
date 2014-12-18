@@ -70,6 +70,9 @@ object Conversions {
     def multiPolygon = sf.getDefaultGeometry.asInstanceOf[MultiPolygon]
     def multiPoint = sf.getDefaultGeometry.asInstanceOf[MultiPoint]
     def multiLineString = sf.getDefaultGeometry.asInstanceOf[MultiLineString]
+
+    def get[T](i: Int) = sf.getAttribute(i).asInstanceOf[T]
+    def get[T](name: String) = sf.getAttribute(name).asInstanceOf[T]
   }
 
   import scala.collection.JavaConversions._
