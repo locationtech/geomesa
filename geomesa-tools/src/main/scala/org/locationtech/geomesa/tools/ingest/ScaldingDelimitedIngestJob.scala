@@ -33,6 +33,7 @@ import org.joda.time.format.DateTimeFormat
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.{params => dsp}
 import org.locationtech.geomesa.core.index.Constants
+import org.locationtech.geomesa.jobs.scalding.MultipleUsefulTextLineFiles
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -153,7 +154,7 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
 
       case Failure(ex) =>
         failures += 1
-        logger.warn(s"Cannot ingest feature on line number: $lineNumber: ${ex.getMessage}")
+        logger.warn(s"Cannot ingest feature on line number: $lineNumber: ${ex.getMessage}", ex)
     }
 
   // Populate the fields of a SimpleFeature with a line of CSV
@@ -253,7 +254,7 @@ object ScaldingDelimitedIngestJob {
   def isList(ad: AttributeDescriptor) = classOf[java.util.List[_]].isAssignableFrom(ad.getType.getBinding)
 
   def toList(s: String, delim: Char,  ad: AttributeDescriptor) = {
-    val clazz = ad.getUserData.get("subtype").asInstanceOf[Class[_]]
+    val clazz = SimpleFeatureTypes.getCollectionType(ad).get
     if (s.isEmpty) {
      List()
     } else {
