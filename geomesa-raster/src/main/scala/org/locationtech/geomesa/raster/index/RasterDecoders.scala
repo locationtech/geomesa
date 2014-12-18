@@ -20,7 +20,7 @@ import org.apache.accumulo.core.data.Key
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.raster._
 
-case class ScientificNotationDecoder(orderSeq: Seq[TextExtractor]) extends ExtractingDecoder[Double] {
+case class DoubleDecoder(orderSeq: Seq[TextExtractor]) extends ExtractingDecoder[Double] {
   def decode(key: Key): Double = lexiDecodeStringToDouble(seqExtract(orderSeq, key))
 }
 

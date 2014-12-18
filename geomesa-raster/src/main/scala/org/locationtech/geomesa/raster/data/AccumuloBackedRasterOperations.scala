@@ -25,7 +25,6 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.core.stats.StatWriter
-import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 
@@ -69,9 +68,9 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   val bwConfig: BatchWriterConfig =
     new BatchWriterConfig().setMaxMemory(writeMemory).setMaxWriteThreads(writeThreads)
 
-  val encoder = RasterIndexSchema(s"%~#s%${lexiEncodeDoubleToString(10.0)}#ires%0,3#gh") // TODO: Sort this RasterIndexSchema Out
+  val schema = RasterIndexSchema("")
 
-  lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner("") //TODO: make this point to default schema
+  lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner(schema)
 
   private val tableOps = connector.tableOperations()
   private val securityOps = connector.securityOperations
@@ -113,7 +112,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   }
 
   def adaptIterator(iter: java.util.Iterator[Entry[Key, Value]], res: Double): Iterator[Raster] = {
-    iter.map { entry => encoder.decode((entry.getKey, entry.getValue)) }
+    iter.map { entry => schema.decode((entry.getKey, entry.getValue)) }
   }
 
   def ensureTableExists() = ensureTableExists(rasterTable)
@@ -127,15 +126,15 @@ class AccumuloBackedRasterOperations(val connector: Connector,
    * @return Mutation instance
    */
   private def createMutation(raster: Raster): Mutation = {
-    val pair = encoder.encode(raster, writeVisibilities)
-    val mutation = new Mutation(pair._1.getRow)
-    val colFam   = pair._1.getColumnFamily
-    val colQual  = pair._1.getColumnQualifier
-    val colVis   = pair._1.getColumnVisibilityParsed
+    val (key, value) = schema.encode(raster, writeVisibilities)
+    val mutation = new Mutation(key.getRow)
+    val colFam   = key.getColumnFamily
+    val colQual  = key.getColumnQualifier
+    val colVis   = key.getColumnVisibilityParsed
     // TODO: WCS: determine if this is wise/useful
     // GEOMESA-562
     val timestamp: Long = dateToAccTimestamp(raster.time)
-    mutation.put(colFam, colQual, colVis, timestamp, pair._2)
+    mutation.put(colFam, colQual, colVis, timestamp, value)
     mutation
   }
 

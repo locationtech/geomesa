@@ -27,7 +27,6 @@ import org.apache.hadoop.io.Text
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.utils.text.WKBUtils
 
@@ -96,8 +95,8 @@ case class RasterIndexEntryEncoder(rowf: TextFormatter,
   }
 
   private def getRow(ras: Raster) = {
-    val encoded = ScientificNotationTextFormatter
-    new Text(s"~${lexiEncodeDoubleToString(ras.resolution)}~${ras.mbgh.hash}")
+    val resEncoder = DoubleTextFormatter(ras.resolution)
+    new Text(s"~${resEncoder.fmtdStr}~${ras.mbgh.hash}")
   }
 
   //TODO: WCS: add band value to Raster and insert it into the CF here
@@ -129,13 +128,13 @@ object RasterIndexEntryDecoder {
 import org.locationtech.geomesa.raster.index.RasterIndexEntryDecoder._
 
 case class RasterIndexEntryDecoder() {
-  // TODO: build a GeomesaRaster, not a simplefeature
   // this should not really need any parameters for the case class, it should simply
   // construct a Raster from a Key (don't we need the value for this....)
   // maybe this is not needed at all?
   def decode(entry: KeyValuePair) = {
     val renderedImage: RenderedImage = rasterImageDeserialize(entry._2.get)
     val metadata: DecodedIndex = RasterIndexEntry.decodeIndexCQMetadata(entry._1)
-    Raster(renderedImage, metadata, 0.0)  // TODO: get the resolution from the key?
+    val res = 0.0 // TODO: WCS get the resolution from the row
+    Raster(renderedImage, metadata, 0.0)
   }
 }

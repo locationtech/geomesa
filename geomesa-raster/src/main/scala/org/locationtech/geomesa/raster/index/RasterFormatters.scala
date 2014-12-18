@@ -28,7 +28,7 @@ import org.opengis.feature.simple.SimpleFeature
  *
  * @param number
  */
-case class ScientificNotationTextFormatter(number: Double) extends TextFormatter {
+case class DoubleTextFormatter(number: Double) extends TextFormatter {
   val fmtdStr: String = lexiEncodeDoubleToString(number)
   val numBits: Int = fmtdStr.length
   def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = fmtdStr

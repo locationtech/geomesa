@@ -23,12 +23,12 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class RasterFormattersTest extends Specification {
 
-  "ScientificNotationTextFormatter" should {
+  "DoubleTextFormatter" should {
     val testNumber = 123456789
-    val scientificNumberFormatter = ScientificNotationTextFormatter(testNumber)
+    val doubleFormatter = DoubleTextFormatter(testNumber)
 
     "map a double to a string representation" in {
-      val scientificText = scientificNumberFormatter.formatString(null, null, null)
+      val scientificText = doubleFormatter.formatString(null, null, null)
       scientificText must be equalTo "c19d6f3454000000"
     }
   }

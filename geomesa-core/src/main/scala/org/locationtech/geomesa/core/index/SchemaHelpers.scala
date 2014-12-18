@@ -41,8 +41,6 @@ trait SchemaHelpers extends RegexParsers {
   val RANDOM_CODE = "r"
   val SEPARATOR_CODE = "s"
   val ID_CODE = "id"
-  val RESOLUTION_CODE = "ires"
-  val BAND_CODE = "b"
   val PART_DELIMITER = "::"
 
   def somewhen(interval: Interval): Option[Interval] =

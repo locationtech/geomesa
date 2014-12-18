@@ -41,14 +41,16 @@ case class RasterIndexSchema(encoder: RasterIndexEntryEncoder,
 
 object RasterIndexSchema extends SchemaHelpers with Logging {
 
+  val RESOLUTION_CODE = "ires"
+  val BAND_CODE = "b"
+
   // An Image Resolution encoder.
   def resolutionPattern = pattern("[^%#]+".r, RESOLUTION_CODE)
-  def resolutionEncoder: Parser[ScientificNotationTextFormatter] = resolutionPattern ^^ {
-    case d => ScientificNotationTextFormatter(lexiDecodeStringToDouble(d))
+  def resolutionEncoder: Parser[DoubleTextFormatter] = resolutionPattern ^^ {
+    case d => DoubleTextFormatter(lexiDecodeStringToDouble(d))
   }
 
   // A Band encoder. 'RGB#b' would yield RGB
-  //  We match any string other that does *not* contain % or # since we use those for delimiters
   def bandPattern = pattern("[^%#]+".r, BAND_CODE)
   def bandEncoder: Parser[RasterBandTextFormatter] = bandPattern ^^ {
     case b => RasterBandTextFormatter(b)
@@ -93,12 +95,14 @@ object RasterIndexSchema extends SchemaHelpers with Logging {
 
   // builds the encoder from a string representation
   def buildKeyEncoder(s: String): RasterIndexEntryEncoder = {
+    // TODO: WCS "s" is not used yet, fix this
     //val (rowf, cff, cqf) = parse(formatter, s).get
     RasterIndexEntryEncoder(null, null, null)
   }
 
   // builds a RasterIndexSchema
   def apply(s: String): RasterIndexSchema = {
+    // TODO: WCS "s" is not used yet, fix this
     val keyEncoder     = buildKeyEncoder(s)
     // TODO: WCS figure out what decoders/planners we need here if any
     //val geohashDecoder = buildGeohashDecoder(s)

@@ -11,6 +11,7 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.raster._
+import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.iterators.RasterFilteringIterator
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -19,7 +20,7 @@ import org.opengis.filter.Filter
 
 // TODO: Constructor needs info to create Row Formatter
 // right now the schema is not used
-case class AccumuloRasterQueryPlanner(schema: String) extends Logging with IndexFilterHelpers {
+case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging with IndexFilterHelpers {
 
   def getQueryPlan(rq: RasterQuery): QueryPlan = {
 
