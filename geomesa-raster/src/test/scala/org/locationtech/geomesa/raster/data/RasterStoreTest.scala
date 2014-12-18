@@ -59,10 +59,6 @@ class RasterStoreTest extends Specification {
   }
 
   def generateQuery(envelope: Envelope) = {
-    /**
-     * TODO: Change from fauxRes to actual resolution once we start using a real raster resolution
-     * in the Accumulo rowID
-     */
     val bb = BoundingBox(envelope)
     new RasterQuery(bb, 1.0, None, None)
   }
