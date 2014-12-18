@@ -74,13 +74,15 @@ class TemporalDensityIteratorTest extends Specification {
 
   def loadFeatures(ds: DataStore, sft: SimpleFeatureType, encodedFeatures: Array[_ <: Array[_]]): SimpleFeatureStore = {
     val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
-    val features = encodedFeatures.map {
-      e =>
-        val f = builder.buildFeature(e(0).toString, e.asInstanceOf[Array[AnyRef]])
-        f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-        f.getUserData.put(Hints.PROVIDED_FID, e(0).toString)
-        f
+
+    def decodeFeature(e: Array[_]): SimpleFeature = {
+      val f = builder.buildFeature(e(0).toString, e.asInstanceOf[Array[AnyRef]])
+      f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      f.getUserData.put(Hints.PROVIDED_FID, e(0).toString)
+      f
     }
+
+    val features = encodedFeatures.map(decodeFeature)
 
     val fs = ds.getFeatureSource("test").asInstanceOf[SimpleFeatureStore]
     fs.addFeatures(DataUtilities.collection(features))

@@ -23,6 +23,8 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.joda.time.DateTime
+import org.locationtech.geomesa.core.index.QueryHints._
+import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.getFeatureType
 import org.locationtech.geomesa.core.process.knn.KNNVisitor
 import org.locationtech.geomesa.core.process.proximity.ProximityVisitor
 import org.locationtech.geomesa.core.process.query.QueryVisitor
@@ -83,7 +85,10 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
   val ds  = source.getDataStore.asInstanceOf[AccumuloDataStore]
 
   override def getSchema: SimpleFeatureType =
-    if(query.getHints.containsKey(TRANSFORMS)) query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
+    if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY))
+      getFeatureType(source.getSchema())
+    else if(query.getHints.containsKey(TRANSFORMS))
+      query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
     else super.getSchema
 
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener) =

@@ -19,7 +19,7 @@ package org.locationtech.geomesa.core.process.temporalDensity
 import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.geotools.data.Query
+import org.geotools.data.{DataUtilities, Query}
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
@@ -28,11 +28,9 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.util.NullProgressListener
 import org.joda.time.Interval
 import org.locationtech.geomesa.core.index.QueryHints
-import org.locationtech.geomesa.core.iterators.TemporalDensityIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.getFeatureType
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
-
 
 @DescribeProcess(
   title = "Temporal Density Process",
@@ -61,7 +59,6 @@ class TemporalDensityProcess extends Logging {
                  description = "How many buckets we want to divide our time interval into.")
                buckets: Int
                ): SimpleFeatureCollection = {
-
     logger.info("Attempting Geomesa temporal density on type " + features.getClass.getName)
 
     if(features.isInstanceOf[ReTypingFeatureCollection]) {
@@ -80,13 +77,13 @@ class TemporalDensityVisitor(features: SimpleFeatureCollection, interval: Interv
   extends FeatureCalc
           with Logging {
 
-    val retType = SimpleFeatureTypes.createType(features.getSchema.getTypeName, TemporalDensityIterator.TEMPORAL_DENSITY_FEATURE_STRING)
-    val manualVisitResults = new DefaultFeatureCollection(null, retType)
+  val retType = getFeatureType(features.getSchema())
+  val manualVisitResults = new DefaultFeatureCollection(null, retType)
 
- //  Called for non AccumuloFeatureCollections
-   def visit(feature: Feature): Unit = {
-     val sf = feature.asInstanceOf[SimpleFeature]
-       manualVisitResults.add(sf)
+  //  Called for non AccumuloFeatureCollections
+  def visit(feature: Feature): Unit = {
+    val sf = feature.asInstanceOf[SimpleFeature]
+    manualVisitResults.add(sf)
   }
 
   var resultCalc: TDResult = new TDResult(manualVisitResults)
