@@ -25,6 +25,7 @@ import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -40,7 +41,7 @@ class IteratorTriggerTest extends Specification {
     val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
 
     val testFeatureTypeSpec: String = {
-      "POINT:String,LINESTRING:String,POLYGON:String,attr1:String:stidx=true,attr2:String," + spec
+      s"POINT:String,LINESTRING:String,POLYGON:String,attr1:String:$OPT_INDEX_VALUE=true,attr2:String," + spec
     }
 
     val testFeatureType: SimpleFeatureType = {

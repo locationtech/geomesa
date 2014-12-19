@@ -16,7 +16,7 @@
  *
  */
 
-package org.locationtech.geomesa.core.stats
+package org.locationtech.geomesa.utils.stats
 
 import java.util.concurrent.atomic.AtomicLong
 

@@ -21,6 +21,7 @@ import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.core
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -142,11 +143,13 @@ object IndexValueEncoder {
    * @return
    */
   private def createNew(sft: SimpleFeatureType) = {
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
     import scala.collection.JavaConversions._
+
     val schema = {
       val defaults = getDefaultSchema(sft)
       val descriptors =  sft.getAttributeDescriptors
-          .filter(d => Option(d.getUserData.get("stidx").asInstanceOf[Boolean]).getOrElse(false))
+          .filter(d => Option(d.getUserData.get(OPT_INDEX_VALUE).asInstanceOf[Boolean]).getOrElse(false))
           .map(_.getLocalName)
       if (descriptors.isEmpty) {
         defaults

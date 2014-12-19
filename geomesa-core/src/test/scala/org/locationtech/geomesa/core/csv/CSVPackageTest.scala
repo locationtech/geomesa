@@ -23,6 +23,7 @@ import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.csv.CSVParser.TimeParser
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -58,7 +59,7 @@ class CSVPackageTest
     "recognize point-parsable columns" >> {
       val csv = "point\nPOINT(0.0 0.0)"
       val schema = getSchema("pointtest", csv)
-      schema mustEqual "*point:Point:srid=4326:index=true:stidx=true"
+      schema mustEqual s"*point:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
     }
 
     "recognize string-parsable columns" >> {

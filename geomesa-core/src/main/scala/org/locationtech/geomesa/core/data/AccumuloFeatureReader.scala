@@ -19,6 +19,7 @@ package org.locationtech.geomesa.core.data
 import org.geotools.data.{FeatureReader, Query}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.stats._
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
@@ -51,14 +52,15 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
 
     dataStore match {
       case sw: StatWriter =>
-        val stat = QueryStat(sft.getTypeName,
-          System.currentTimeMillis(),
-          QueryStatTransform.filterToString(query.getFilter),
-          QueryStatTransform.hintsToString(query.getHints),
-          timings.time("planning"),
-          // planning time gets added to scan time due to lazy val... Revisit in GEOMESA-408
-          timings.time("next") + timings.time("hasNext") - timings.time("planning"),
-          timings.occurrences("next").toInt)
+        val stat =
+          QueryStat(sft.getTypeName,
+                    System.currentTimeMillis(),
+                    QueryStatTransform.filterToString(query.getFilter),
+                    QueryStatTransform.hintsToString(query.getHints),
+                    timings.time("planning"),
+                    // planning time gets added to scan time due to lazy val... Revisit in GEOMESA-408
+                    timings.time("next") + timings.time("hasNext") - timings.time("planning"),
+                    timings.occurrences("next").toInt)
         sw.writeStat(stat, dataStore.getQueriesTableName(sft))
       case _ => // do nothing
     }

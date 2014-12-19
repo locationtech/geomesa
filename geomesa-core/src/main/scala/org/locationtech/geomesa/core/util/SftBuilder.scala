@@ -21,6 +21,7 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.util.SftBuilder._
 import org.locationtech.geomesa.data.TableSplitter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Splitter
 
 import scala.collection.mutable.ListBuffer
@@ -116,8 +117,8 @@ class SftBuilder {
     this
   }
 
-  private def indexPart(index: Boolean) = if (index) Seq("index=true") else Seq.empty
-  private def stIndexPart(index: Boolean) = if (index) Seq("stidx=true") else Seq.empty
+  private def indexPart(index: Boolean) = if (index) Seq(s"$OPT_INDEX=true") else Seq.empty
+  private def stIndexPart(index: Boolean) = if (index) Seq(s"$OPT_INDEX_VALUE=true") else Seq.empty
 
   // note that SimpleFeatureTypes requires that splitter and splitter opts be ordered properly
   private def splitPart = splitterOpt.map { s =>

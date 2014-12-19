@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.core.stats
+package org.locationtech.geomesa.utils.stats
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification

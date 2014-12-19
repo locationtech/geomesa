@@ -21,6 +21,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.DigitSplitter
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -232,7 +233,7 @@ class SftBuilderTest extends Specification {
         .point("foobar", default = true)
         .multiLineString("mls")
 
-      builder.getSpec() mustEqual "geom:Geometry:srid=4326,*foobar:Point:srid=4326:index=true:stidx=true,mls:MultiLineString:srid=4326"
+      builder.getSpec() mustEqual s"geom:Geometry:srid=4326,*foobar:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true,mls:MultiLineString:srid=4326"
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 3

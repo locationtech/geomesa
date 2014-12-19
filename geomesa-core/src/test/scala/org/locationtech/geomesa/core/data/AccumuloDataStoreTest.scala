@@ -49,6 +49,7 @@ import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterato
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -289,7 +290,7 @@ class AccumuloDataStoreTest extends Specification {
         val f = features.next()
 
         "with matching schema" >> {
-          "name:String,*geom:Point:srid=4326:index=true:stidx=true,derived:String" mustEqual
+          s"name:String,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true,derived:String" mustEqual
             SimpleFeatureTypes.encodeType(results.getSchema)
         }
 
@@ -387,7 +388,7 @@ class AccumuloDataStoreTest extends Specification {
         val f = features.next()
 
         "with matching schemas" >> {
-          "name:String,*geom:Point:srid=4326:index=true:stidx=true,derived:String" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
+          s"name:String,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true,derived:String" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
         }
 
         "and correct results" >> {
@@ -424,7 +425,7 @@ class AccumuloDataStoreTest extends Specification {
         val f = features.next()
 
         "with matching schemas" >> {
-          "name:String,*geom:Point:srid=4326:index=true:stidx=true" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
+          s"name:String,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
         }
 
         "and correct results" >> {
@@ -1005,7 +1006,7 @@ class AccumuloDataStoreTest extends Specification {
 
     "update metadata for indexed attributes" in {
       val originalSchema = "name:String,dtg:Date,*geom:Point:srid=4326:index=true"
-      val updatedSchema = "name:String:index=true,dtg:Date,*geom:Point:srid=4326:index=true:stidx=true"
+      val updatedSchema = s"name:String:index=true,dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
       val ds = createStore
       val sft = SimpleFeatureTypes.createType("test", originalSchema)
       ds.createSchema(sft)
@@ -1015,7 +1016,7 @@ class AccumuloDataStoreTest extends Specification {
     }
 
     "prevent changing schema types" in {
-      val originalSchema = "name:String,dtg:Date,*geom:Point:srid=4326:index=true:stidx=true"
+      val originalSchema = s"name:String,dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
       val ds = createStore
       val sft = SimpleFeatureTypes.createType("test", originalSchema)
       ds.createSchema(sft)
@@ -1096,7 +1097,7 @@ class AccumuloDataStoreTest extends Specification {
     "Allow extra attributes in the STIDX entries" >> {
       val sftName = "STIDXExtraAttributeTest"
       val sft = SimpleFeatureTypes.createType(sftName,
-        "name:String:stidx=true,dtg:Date:stidx=true,*geom:Point:srid=4326,attr2:String")
+        s"name:String:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,*geom:Point:srid=4326,attr2:String")
       val ds = createSchema(sft)
 
       val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
@@ -1109,6 +1110,8 @@ class AccumuloDataStoreTest extends Specification {
         sf.getUserData().update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf
       }
+
+      val baseTime = features(0).getAttribute("dtg").asInstanceOf[Date].getTime
 
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
       fs.addFeatures(new ListFeatureCollection(sft, features))
@@ -1133,7 +1136,54 @@ class AccumuloDataStoreTest extends Specification {
         sf.getAttributeCount mustEqual 3
         sf.getAttribute("name") mustEqual i.toString
         sf.getAttribute("geom") mustEqual WKTUtils.read(s"POINT(45.0 4$i.0)")
-        sf.getAttribute("dtg").toString mustEqual s"Mon Jan 02 00:0$i:07 EST 2012"
+        sf.getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseTime + i * 60000
+      }
+      success
+    }
+
+    "Use IndexIterator when projecting to date/geom" >> {
+      val sftName = "STIDXExtraAttributeTest2"
+      val sft = SimpleFeatureTypes.createType(sftName,
+        s"name:String:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,*geom:Point:srid=4326,attr2:String")
+      val ds = createSchema(sft)
+
+      val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+      val features = (0 until 6).map { i =>
+        builder.set("geom", WKTUtils.read(s"POINT(45.0 4$i.0)"))
+        builder.set("dtg", s"2012-01-02T05:0$i:07.000Z")
+        builder.set("name", i.toString)
+        builder.set("attr2", "2-" + i.toString)
+        val sf = builder.buildFeature(i.toString)
+        sf.getUserData().update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf
+      }
+
+      val baseTime = features(0).getAttribute("dtg").asInstanceOf[Date].getTime
+
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      fs.addFeatures(new ListFeatureCollection(sft, features))
+
+      val query = new Query(sftName, ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 50.0)"),
+        Array("geom", "dtg"))
+      val reader = ds.getFeatureReader(sftName, query)
+
+      // verify that the IndexIterator is getting used
+      val explain = {
+        val out = new ExplainString
+        reader.explainQuery(o = out)
+        out.toString()
+      }
+      explain must contain(classOf[IndexIterator].getName)
+
+      val read = SelfClosingIterator(reader).toList
+
+      // verify that all the attributes came back
+      read must haveSize(6)
+      read.sortBy(_.getAttribute("dtg").toString).zipWithIndex.foreach { case (sf, i) =>
+        sf.getAttributeCount mustEqual 2
+        sf.getAttribute("name") must beNull
+        sf.getAttribute("geom") mustEqual WKTUtils.read(s"POINT(45.0 4$i.0)")
+        sf.getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseTime + i * 60000
       }
       success
     }

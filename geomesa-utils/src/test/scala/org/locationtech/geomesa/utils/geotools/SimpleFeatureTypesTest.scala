@@ -16,6 +16,7 @@
 package org.locationtech.geomesa.utils.geotools
 
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -39,7 +40,7 @@ class SimpleFeatureTypesTest extends Specification {
         geomDescriptor.getLocalName must be equalTo "geom"
       }
       "encode an sft properly" >> {
-        SimpleFeatureTypes.encodeType(sft) must be equalTo "id:Integer,dtg:Date,*geom:Point:srid=4326:index=true:stidx=true"
+        SimpleFeatureTypes.encodeType(sft) must be equalTo s"id:Integer,dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
       }
     }
 
@@ -113,7 +114,7 @@ class SimpleFeatureTypesTest extends Specification {
         sft.getDescriptor("names").getType.getBinding mustEqual(classOf[java.util.List[_]])
 
         val spec = SimpleFeatureTypes.encodeType(sft)
-        spec mustEqual "id:Integer,names:List[String],dtg:Date,*geom:Point:srid=4326:index=true:stidx=true"
+        spec mustEqual s"id:Integer,names:List[String],dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
       }
 
       "with defined values" >> {
@@ -124,7 +125,7 @@ class SimpleFeatureTypesTest extends Specification {
         sft.getDescriptor("names").getType.getBinding mustEqual(classOf[java.util.List[_]])
 
         val spec = SimpleFeatureTypes.encodeType(sft)
-        spec mustEqual "id:Integer,names:List[Double],dtg:Date,*geom:Point:srid=4326:index=true:stidx=true"
+        spec mustEqual s"id:Integer,names:List[Double],dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
       }
 
       "fail for illegal value format" >> {
@@ -148,7 +149,7 @@ class SimpleFeatureTypesTest extends Specification {
         sft.getDescriptor("metadata").getType.getBinding mustEqual classOf[java.util.Map[_, _]]
 
         val spec = SimpleFeatureTypes.encodeType(sft)
-        spec mustEqual "id:Integer,metadata:Map[String,String],dtg:Date,*geom:Point:srid=4326:index=true:stidx=true"
+        spec mustEqual s"id:Integer,metadata:Map[String,String],dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
       }
 
       "with defined values" >> {
@@ -159,7 +160,7 @@ class SimpleFeatureTypesTest extends Specification {
         sft.getDescriptor("metadata").getType.getBinding mustEqual classOf[java.util.Map[_, _]]
 
         val spec = SimpleFeatureTypes.encodeType(sft)
-        spec mustEqual "id:Integer,metadata:Map[Double,String],dtg:Date,*geom:Point:srid=4326:index=true:stidx=true"
+        spec mustEqual s"id:Integer,metadata:Map[Double,String],dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
       }
 
       "fail for illegal value format" >> {
@@ -185,15 +186,15 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "allow specification of ST index entry values" >> {
-      val spec = "name:String:index=true:stidx=true,dtg:Date,*geom:Point:srid=4326"
+      val spec = s"name:String:index=true:$OPT_INDEX_VALUE=true,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getDescriptor("name").getUserData.get("stidx") mustEqual(true)
+      sft.getDescriptor("name").getUserData.get(OPT_INDEX_VALUE) mustEqual(true)
     }
 
     "automatically set default geom in ST index entry" >> {
-      val spec = "name:String:index=true:stidx=true,dtg:Date,*geom:Point:srid=4326"
+      val spec = s"name:String:index=true:$OPT_INDEX_VALUE=true,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getDescriptor("geom").getUserData.get("stidx") mustEqual(true)
+      sft.getDescriptor("geom").getUserData.get(OPT_INDEX_VALUE) mustEqual(true)
     }
   }
 

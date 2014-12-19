@@ -26,6 +26,7 @@ import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -35,7 +36,7 @@ import org.specs2.runner.JUnitRunner
 class IndexValueEncoderTest extends Specification {
 
   val defaultSchema = "*geom:Geometry,dtg:Date,s:String,i:Int,d:Double,f:Float,u:UUID,l:List[String]"
-  val allSchema = "*geom:Geometry:stidx=true,dtg:Date:stidx=true,s:String:stidx=true,i:Int:stidx=true,d:Double:stidx=true,f:Float:stidx=true,u:UUID:stidx=true,l:List[String]"
+  val allSchema = s"*geom:Geometry:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String:$OPT_INDEX_VALUE=true,i:Int:$OPT_INDEX_VALUE=true,d:Double:$OPT_INDEX_VALUE=true,f:Float:$OPT_INDEX_VALUE=true,u:UUID:$OPT_INDEX_VALUE=true,l:List[String]"
   val id = "Feature0123456789"
   val geom = WKTUtils.read("POINT (-78.495356 38.075215)")
   val dt = new DateTime().toDate
@@ -55,15 +56,15 @@ class IndexValueEncoderTest extends Specification {
       IndexValueEncoder(sft).fields must containAllOf(Seq("id", "geom"))
     }
     "allow custom fields to be set" in {
-      val sft = getSft("*geom:Geometry:stidx=true,dtg:Date:stidx=true,s:String,i:Int:stidx=true,d:Double,f:Float:stidx=true,u:UUID,l:List[String]")
+      val sft = getSft(s"*geom:Geometry:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
       IndexValueEncoder(sft).fields must containAllOf(Seq("id", "geom", "dtg", "i", "f"))
     }
     "always include id,geom,dtg" in {
-      val sft = getSft("*geom:Geometry,dtg:Date,s:String,i:Int:stidx=true,d:Double,f:Float:stidx=true,u:UUID,l:List[String]")
+      val sft = getSft(s"*geom:Geometry,dtg:Date,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
       IndexValueEncoder(sft).fields must containAllOf(Seq("id", "geom", "dtg", "i", "f"))
     }
     "not allow complex types" in {
-      val sft = getSft("*geom:Geometry:stidx=true,dtg:Date:stidx=true,l:List[String]:stidx=true")
+      val sft = getSft(s"*geom:Geometry:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,l:List[String]:$OPT_INDEX_VALUE=true")
       IndexValueEncoder(sft).fields must containAllOf(Seq("id", "geom", "dtg"))
     }
 
