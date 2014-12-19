@@ -38,20 +38,12 @@ import org.opengis.filter.Filter
 import scala.collection.JavaConversions._
 import scala.util.Random
 
-trait Strategy {
+trait Strategy extends StrategyHelpers {
   def execute(acc: AccumuloConnectorCreator,
               iqp: QueryPlanner,
               featureType: SimpleFeatureType,
               query: Query,
               output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]]
-
-  // TODO: WCS: Factor out configureBatchScanner into another trait for use with raster data
-  // GEOMESA-563
-  def configureBatchScanner(bs: BatchScanner, qp: QueryPlan) {
-    qp.iterators.foreach { i => bs.addScanIterator(i) }
-    bs.setRanges(qp.ranges)
-    qp.cf.foreach { c => bs.fetchColumnFamily(c) }
-  }
 
   def configureFeatureEncoding(cfg: IteratorSetting, featureEncoding: FeatureEncoding) {
     cfg.addOption(FEATURE_ENCODING, featureEncoding.toString)
@@ -166,4 +158,14 @@ trait Strategy {
       Some(cfg)
     } else None
   }
+}
+
+trait StrategyHelpers {
+
+  def configureBatchScanner(bs: BatchScanner, qp: QueryPlan) {
+    qp.iterators.foreach { i => bs.addScanIterator(i) }
+    bs.setRanges(qp.ranges)
+    qp.cf.foreach { c => bs.fetchColumnFamily(c) }
+  }
+
 }
