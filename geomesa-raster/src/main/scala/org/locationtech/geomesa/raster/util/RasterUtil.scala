@@ -10,8 +10,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index.DecodedIndex
-import org.locationtech.geomesa.raster.data.{RasterQuery, RasterStore}
-import org.locationtech.geomesa.raster.feature.Raster
+import org.locationtech.geomesa.raster.data.{Raster, RasterQuery, RasterStore}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.opengis.geometry.Envelope
 
@@ -84,7 +83,7 @@ object RasterUtils {
     val image = getEmptyImage(imageWidth, imageHeight)
     while(rasters.hasNext) {
       val raster = rasters.next()
-      val coverageEnv = raster.envelope
+      val coverageEnv = raster.referencedEnvelope
       val coverageImage = raster.chunk
       val dx = ((coverageEnv.getMinimum(0) - env.getMinimum(0)) / resx).toInt
       val dy = ((env.getMaximum(1) - coverageEnv.getMaximum(1)) / resy).toInt

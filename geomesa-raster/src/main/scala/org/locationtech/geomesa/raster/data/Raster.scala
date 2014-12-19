@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.raster.feature
+package org.locationtech.geomesa.raster.data
 
 import java.awt.image.RenderedImage
 import java.util.UUID
@@ -26,29 +26,18 @@ import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 
-//case class Raster(id: String,
-//                  name: String,
-//                  chunk: RenderedImage,
-//                  bbox: BoundingBox,
-//                  resolution: Double,
-//                  mbgh: GeoHash,
-//                  unit: String,
-//                  time: DateTime,
-//                  dataType: Option[String],
-//                  band: Option[Int]) {
-
-// TODO: WCS: clean up this class and document
-// GEOMESA-569
 case class Raster(chunk: RenderedImage, metadata: DecodedIndex, resolution: Double) {
+
   def id = metadata.id
-  def name = metadata.id
-  def time = new DateTime(metadata.dtgMillis.getOrElse(0L), DateTimeZone.forID("UTC"))
 
-  def mbgh = GeohashUtils.getClosestAcceptableGeoHash(metadata.geom.getEnvelopeInternal)
+  lazy val time = new DateTime(metadata.dtgMillis.getOrElse(0L), DateTimeZone.forID("UTC"))
 
-  def envelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, CRS.decode("EPSG:4326"))
+  lazy val minimumBoundingGeoHash = GeohashUtils.getClosestAcceptableGeoHash(metadata.geom.getEnvelopeInternal)
 
-  def encodeValue = RasterUtils.imageSerialize(chunk)
+  lazy val referencedEnvelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, CRS.decode("EPSG:4326"))
+
+  lazy val serializedChunk = RasterUtils.imageSerialize(chunk)
+
 }
 
 object Raster {

@@ -10,7 +10,6 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.index.DecodedIndex
-import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.specs2.mutable.Specification

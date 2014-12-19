@@ -22,7 +22,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.data.{BandPlanner, ResolutionPlanner}
-import org.locationtech.geomesa.raster.feature.Raster
+import org.locationtech.geomesa.raster.data.Raster
 
 case class RasterIndexSchema(encoder: RasterIndexEntryEncoder,
                              decoder: RasterIndexEntryDecoder) {
