@@ -18,8 +18,10 @@
 package org.locationtech.geomesa.filter.function
 
 import java.nio.{ByteBuffer, ByteOrder}
+import java.util
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.apache.commons.codec.Charsets
 import org.geotools.data.Base64
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
@@ -92,24 +94,26 @@ object Convert2ViewerFunction {
    * @param trackId
    */
   private def put(buffer: ByteBuffer, lat: Float, lon: Float, dtg: Long, trackId: Option[String]): Unit = {
-    putOption(buffer, trackId, 4)
+    putOption(buffer, trackId, 4, useHash=true)
     buffer.putInt((dtg / 1000).toInt)
     buffer.putFloat(lat)
     buffer.putFloat(lon)
   }
 
   /**
-   * Puts a string into a fixed size bin, padding with spaces or truncating as needed. If value is
-   * 'None', puts 0s for each 4 byte chunk.
+   * Puts a string into a fixed size bin, padding with spaces or truncating as needed. If useHash is true,
+   * use the hash code if the string is longer than length to reduce collisions.
+   * If value is 'None', puts 0s for each 4 byte chunk.
    *
    * @param buf
    * @param value
    * @param length number of bytes to use for storing the value
+   * @param useHash use the value's hash code if it's longer than length
    */
-  private def putOption(buf: ByteBuffer, value: Option[String], length: Int): Unit =
-    value match {
-      case Some(v) =>
-        val bytes = v.getBytes
+  private def putOption(buf: ByteBuffer, value: Option[String], length: Int, useHash: Boolean = false): Unit =
+    value.map(_.getBytes(Charsets.UTF_8)) match {
+      case Some(bytes) if useHash && bytes.length > length => buf.putInt(util.Arrays.hashCode(bytes))
+      case Some(bytes) =>
         val sized =
           if (bytes.length < length) {
             bytes.padTo(length, ' '.toByte)

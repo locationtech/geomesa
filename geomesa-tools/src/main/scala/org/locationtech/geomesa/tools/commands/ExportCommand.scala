@@ -23,6 +23,7 @@ import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.AccumuloFeatureStore
+import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools._
@@ -70,6 +71,8 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
           }
         getFeatureCollection(Some(schemaString))
       case BIN =>
+        val sft = new DataStoreHelper(params).ds.getSchema(params.featureName)
+        index.getDtgFieldName(sft).foreach(BinFileExport.DEFAULT_TIME = _)
         getFeatureCollection(Some(BinFileExport.getAttributeList(params)))
       case _ => getFeatureCollection()
     }

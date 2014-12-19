@@ -237,7 +237,7 @@ object DelimitedExport {
 }
 
 object BinFileExport {
-  private val DEFAULT_TIME = "dtg"
+  var DEFAULT_TIME = "dtg"
   def getAttributeList( p: ExportParameters ): String =
     Seq(p.latAttribute, p.lonAttribute, p.idAttribute, Option(p.dateAttribute).getOrElse(DEFAULT_TIME), p.labelAttribute)
       .filter(_ != null)
@@ -291,12 +291,12 @@ class BinFileExport( os: OutputStream,
     sf: SimpleFeature => sf.getAttribute(attr).asInstanceOf[Date].getTime
   }
 
-  private val getLabel: Option[SimpleFeature => String] =
-    lblAttribute.map{ label => sf: SimpleFeature => sf.getAttribute(label).toString }
+  private val getLabel: Option[SimpleFeature => Option[String]] =
+    lblAttribute.map{ label => sf: SimpleFeature => Try(sf.getAttribute(label).toString).toOption }
 
   val featureToEncoded: ((SimpleFeature) => EncodedValues) =
     getLabel.map{ lblFunc =>
-      sf: SimpleFeature => ExtendedValues(getLat(sf), getLon(sf), getTime(sf), Some(getId(sf)), Some(lblFunc(sf)))
+      sf: SimpleFeature => ExtendedValues(getLat(sf), getLon(sf), getTime(sf), Some(getId(sf)), lblFunc(sf))
     }.getOrElse{
       sf: SimpleFeature => BasicValues(getLat(sf), getLon(sf), getTime(sf), Some(getId(sf)))
     }
