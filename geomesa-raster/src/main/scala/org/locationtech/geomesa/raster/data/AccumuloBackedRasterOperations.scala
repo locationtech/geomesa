@@ -20,7 +20,7 @@ import java.awt.image.RenderedImage
 import java.io.{ByteArrayInputStream, ObjectInputStream}
 import java.util.Map.Entry
 
-import org.apache.accumulo.core.client.{BatchScanner, BatchWriterConfig, Connector, TableExistsException}
+import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility, TablePermission}
 import org.apache.hadoop.io.Text
@@ -33,7 +33,7 @@ import org.locationtech.geomesa.raster.index.RasterIndexEntry
 
 import scala.collection.JavaConversions._
 
-trait RasterOperations {
+trait RasterOperations extends StrategyHelpers {
   def getTable(): String
   def ensureTableExists(): Unit
   def getAuths(): Authorizations
@@ -93,14 +93,6 @@ class AccumuloBackedRasterOperations(val connector: Connector,
 
   def putRaster(raster: Raster) {
     writeMutations(createMutation(raster))
-  }
-
-  // TODO: WCS: use factored out implementation
-  // GEOMESA-563
-  def configureBatchScanner(bs: BatchScanner, qp: QueryPlan) {
-    qp.iterators.foreach { i => bs.addScanIterator(i) }
-    bs.setRanges(qp.ranges)
-    qp.cf.foreach { c => bs.fetchColumnFamily(c) }
   }
 
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
