@@ -345,14 +345,6 @@ case class ConstStringPlanner(cstr: String) extends KeyPlanner {
   }
 }
 
-case class ResolutionPlanner(ires: Double) extends KeyPlanner {
-  def getKeyPlan(filter:KeyPlanningFilter, output: ExplainerOutputType) = KeyListTiered(List(lexiEncodeDoubleToString(ires)))
-}
-
-case class BandPlanner(band: String) extends KeyPlanner {
-  def getKeyPlan(filter:KeyPlanningFilter, output: ExplainerOutputType) = KeyListTiered(List(band))
-}
-
 case class DatePlanner(formatter: DateTimeFormatter) extends KeyPlanner {
   val endDates = List(9999,12,31,23,59,59,999)
   val startDates = List(0,1,1,0,0,0,0)

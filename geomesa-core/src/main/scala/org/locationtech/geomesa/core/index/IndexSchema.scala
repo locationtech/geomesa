@@ -84,24 +84,6 @@ case class IndexSchema(encoder: IndexEntryEncoder,
 
 object IndexSchema extends SchemaHelpers with Logging {
 
-  // a key element consists of a separator and any number of random partitions, geohashes, and dates
-  def keypart: Parser[CompositeTextFormatter] =
-    (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder | resolutionEncoder | bandEncoder)) ^^
-    {
-      case sep ~ xs => CompositeTextFormatter(xs, sep)
-    }
-
-  // the column qualifier must end with an ID-encoder
-  def cqpart: Parser[CompositeTextFormatter] =
-    phrase(sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder) ~ idEncoder) ^^ {
-      case sep ~ xs ~ id => CompositeTextFormatter(xs :+ id, sep)
-    }
-
-  // An index key is three keyparts, one for row, colf, and colq
-  def formatter = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
-    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => (rowf, cff, cqf)
-  }
-
   // builds the encoder from a string representation
   def buildKeyEncoder(s: String, featureEncoder: SimpleFeatureEncoder): IndexEntryEncoder = {
     val (rowf, cff, cqf) = parse(formatter, s).get
@@ -139,21 +121,6 @@ object IndexSchema extends SchemaHelpers with Logging {
 
   def buildDateDecoder(s: String): Option[DateDecoder[AbstractExtractor]] = parse(dateDecoderParser, s).get
 
-  // builds a geohash decoder to extract the entire geohash from the parts of the index key
-  def ghDecoderParser = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
-    case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => {
-      val (roffset, (ghoffset, rbits)) = extractGeohashEncoder(rowf.lf, 0, rowf.sep.length)
-      val (cfoffset, (ghoffset2, cfbits)) = extractGeohashEncoder(cff.lf, 0, cff.sep.length)
-      val (cqoffset, (ghoffset3, cqbits)) = extractGeohashEncoder(cqf.lf, 0, cqf.sep.length)
-      val l = List((ghoffset, RowExtractor(roffset, rbits)),
-        (ghoffset2, ColumnFamilyExtractor(cfoffset, cfbits)),
-        (ghoffset3, ColumnQualifierExtractor(cqoffset, cqbits)))
-      GeohashDecoder(l.sortBy { case (off, _) => off }.map { case (_, e) => e })
-    }
-  }
-
-  def buildGeohashDecoder(s: String): GeohashDecoder = parse(ghDecoderParser, s).get
-
   def idDecoderParser = keypart ~ PART_DELIMITER ~ keypart ~ PART_DELIMITER ~ cqpart ^^ {
     case rowf ~ PART_DELIMITER ~ cff ~ PART_DELIMITER ~ cqf => {
       val bits = extractIdEncoder(cqf.lf, 0, cqf.sep.length)
@@ -163,20 +130,8 @@ object IndexSchema extends SchemaHelpers with Logging {
 
   def buildIdDecoder(s: String) = parse(idDecoderParser, s).get
 
-  def geohashKeyPlanner: Parser[GeoHashKeyPlanner] = geohashPattern ^^ {
-    case o ~ b => GeoHashKeyPlanner(o, b)
-  }
-
-  def resolutionKeyPlanner: Parser[ResolutionPlanner] = resolutionPattern ^^ {
-    case d => ResolutionPlanner(lexiDecodeStringToDouble(d))
-  }
-
-  def bandKeyPlanner: Parser[BandPlanner] = bandPattern ^^ {
-    case b => BandPlanner(b)
-  }
-
   def keyPlanner: Parser[KeyPlanner] =
-    sep ~ rep(constStringPlanner | datePlanner | randPartitionPlanner | geohashKeyPlanner | resolutionKeyPlanner | bandKeyPlanner) <~ "::.*".r ^^ {
+    sep ~ rep(constStringPlanner | datePlanner | randPartitionPlanner | geohashKeyPlanner ) <~ "::.*".r ^^ {
       case sep ~ list => CompositePlanner(list, sep)
     }
 
@@ -185,7 +140,7 @@ object IndexSchema extends SchemaHelpers with Logging {
     case fail: NoSuccess => throw new Exception(fail.msg)
   }
 
-  def geohashColumnFamilyPlanner: Parser[GeoHashColumnFamilyPlanner] = (keypart ~ PART_DELIMITER) ~> (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder | bandKeyPlanner)) <~ (PART_DELIMITER ~ keypart) ^^ {
+  def geohashColumnFamilyPlanner: Parser[GeoHashColumnFamilyPlanner] = (keypart ~ PART_DELIMITER) ~> (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder )) <~ (PART_DELIMITER ~ keypart) ^^ {
     case sep ~ xs => xs.find(tf => tf match {
       case gh: GeoHashTextFormatter => true
       case _ => false
@@ -296,29 +251,6 @@ class IndexSchemaBuilder(separator: String) {
       append(ID_CODE)
     }
   }
-
-  /**
-   * Add an Raster Resolution Value
-   *
-   * @return the schema builder instance
-   */
-  def resolution(): IndexSchemaBuilder = append(RESOLUTION_CODE, 0.0)
-
-  /**
-   * Adds a resolution value.
-   *
-   * @param res
-   * @return the schema builder instance
-   */
-  def resolution(res: Double): IndexSchemaBuilder = append(RESOLUTION_CODE, lexiEncodeDoubleToString(res))
-
-  /**
-   * Add a Band Value
-   *
-   * @param band
-   * @return the schema builder instance
-   */
-  def band(band: String): IndexSchemaBuilder = append(BAND_CODE, band)
 
   /**
    * End the current part of the schema format. Schemas consist of (in order) key part, column

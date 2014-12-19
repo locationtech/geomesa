@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa
+package org.locationtech.geomesa.raster.index
 
-import org.calrissian.mango.types.LexiTypeEncoders
+import org.apache.accumulo.core.data.Key
+import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.raster._
 
-package object raster {
-  def lexiEncodeDoubleToString(number: Double): String = LexiTypeEncoders.LEXI_TYPES.encode(number)
+case class DoubleDecoder(orderSeq: Seq[TextExtractor]) extends ExtractingDecoder[Double] {
+  def decode(key: Key): Double = lexiDecodeStringToDouble(seqExtract(orderSeq, key))
+}
 
-  def lexiDecodeStringToDouble(str: String): Double = LexiTypeEncoders.LEXI_TYPES.decode("double", str).asInstanceOf[Double]
+case class RasterBandDecoder(orderSeq: Seq[TextExtractor]) extends ExtractingDecoder[String] {
+  def decode(key: Key): String = seqExtract(orderSeq, key)
 }

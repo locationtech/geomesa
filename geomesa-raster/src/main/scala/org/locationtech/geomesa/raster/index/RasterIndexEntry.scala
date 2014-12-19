@@ -16,13 +16,18 @@
 
 package org.locationtech.geomesa.raster.index
 
+import java.awt.image.RenderedImage
+import java.io.{ByteArrayInputStream, ObjectInputStream}
 import java.nio.ByteBuffer
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
-import org.apache.accumulo.core.data.Key
+import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.hadoop.io.Text
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.utils.text.WKBUtils
 
 import scala.collection.JavaConversions._
@@ -71,5 +76,65 @@ case class RasterIndexEntryCQMetadataDecoder(geomDecoder: GeometryDecoder,
     builder.reset()
     builder.addAll(List(geomDecoder.decode(key), dtDecoder.map { _.decode(key) } ))
     builder.buildFeature("")
+  }
+}
+
+case class RasterIndexEntryEncoder(rowf: TextFormatter,
+                                   cff: TextFormatter,
+                                   cqf: TextFormatter)
+  extends Logging {
+
+  def encode(raster: Raster, visibility: String = ""): KeyValuePair = {
+
+    logger.trace(s"encoding raster: $raster")
+    val vis = new Text(visibility)
+    val key = new Key(getRow(raster), getCF(raster), getCQ(raster), vis)
+    val encodedRaster = encodeValue(raster)
+
+    (key, encodedRaster)
+  }
+
+  private def getRow(ras: Raster) = {
+    val resEncoder = DoubleTextFormatter(ras.resolution)
+    new Text(s"~${resEncoder.fmtdStr}~${ras.mbgh.hash}")
+  }
+
+  //TODO: WCS: add band value to Raster and insert it into the CF here
+  // GEOMESA-561
+  private def getCF(raster: Raster): Text = new Text("")
+  
+  private def getCQ(raster: Raster): Text = {
+    new Text(RasterIndexEntry.encodeIndexCQMetadata(raster.id, raster.metadata.geom, Some(raster.time)))
+  }
+
+  private def encodeValue(raster: Raster): Value =
+    new Value(raster.encodeValue)
+
+}
+
+object RasterIndexEntryDecoder {
+  def rasterImageDeserialize(imageBytes: Array[Byte]): RenderedImage = {
+    val in: ObjectInputStream = new ObjectInputStream(new ByteArrayInputStream(imageBytes))
+    var read: RenderedImage = null
+    try {
+      read = in.readObject().asInstanceOf[RenderedImage]
+    } finally {
+      in.close()
+    }
+    read
+  }
+}
+
+import org.locationtech.geomesa.raster.index.RasterIndexEntryDecoder._
+
+case class RasterIndexEntryDecoder() {
+  // this should not really need any parameters for the case class, it should simply
+  // construct a Raster from a Key (don't we need the value for this....)
+  // maybe this is not needed at all?
+  def decode(entry: KeyValuePair) = {
+    val renderedImage: RenderedImage = rasterImageDeserialize(entry._2.get)
+    val metadata: DecodedIndex = RasterIndexEntry.decodeIndexCQMetadata(entry._1)
+    val res = 0.0 // TODO: WCS get the resolution from the row
+    Raster(renderedImage, metadata, 0.0)
   }
 }
