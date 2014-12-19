@@ -27,7 +27,6 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory._
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.raster.AccumuloStoreHelper
-import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.raster.ingest.GeoserverClientService
 import org.locationtech.geomesa.raster.util.RasterUtils._
 
@@ -84,7 +83,7 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
   private def registerToGeoserver(raster: Raster, geoserverClientService: GeoserverClientService) {
     geoserverClientService.registerRasterStyles()
     geoserverClientService.registerRaster(raster.id,
-                                          raster.name,
+                                          raster.id,
                                           raster.id,
                                           "Raster data",
                                           raster.resolution,

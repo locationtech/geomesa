@@ -29,8 +29,7 @@ import org.geotools.gce.geotiff.GeoTiffReader
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.DecodedIndex
-import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
-import org.locationtech.geomesa.raster.feature.Raster
+import org.locationtech.geomesa.raster.data.{Raster, AccumuloCoverageStore}
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 

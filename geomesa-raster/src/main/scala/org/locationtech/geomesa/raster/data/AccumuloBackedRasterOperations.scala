@@ -25,7 +25,6 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.core.stats.StatWriter
-import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 
 import scala.collection.JavaConversions._

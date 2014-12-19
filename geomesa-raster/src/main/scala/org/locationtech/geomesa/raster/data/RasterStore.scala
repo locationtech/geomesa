@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.raster.data
 
 import org.locationtech.geomesa.raster.AccumuloStoreHelper
-import org.locationtech.geomesa.raster.feature.Raster
+import org.locationtech.geomesa.raster.data.Raster
 
 /**
  * This class defines basic operations on Raster, including saving/retrieving

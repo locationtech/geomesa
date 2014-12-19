@@ -27,7 +27,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.raster.feature.Raster
+import org.locationtech.geomesa.raster.data.Raster
 import org.locationtech.geomesa.utils.text.WKBUtils
 
 import scala.collection.JavaConversions._
@@ -96,7 +96,7 @@ case class RasterIndexEntryEncoder(rowf: TextFormatter,
 
   private def getRow(ras: Raster) = {
     val resEncoder = DoubleTextFormatter(ras.resolution)
-    new Text(s"~${resEncoder.fmtdStr}~${ras.mbgh.hash}")
+    new Text(s"~${resEncoder.fmtdStr}~${ras.getMinimumBoundingGeoHash.hash}")
   }
 
   //TODO: WCS: add band value to Raster and insert it into the CF here
@@ -108,7 +108,7 @@ case class RasterIndexEntryEncoder(rowf: TextFormatter,
   }
 
   private def encodeValue(raster: Raster): Value =
-    new Value(raster.encodeValue)
+    new Value(raster.serializeChunk)
 
 }
 

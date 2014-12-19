@@ -27,8 +27,7 @@ import org.geotools.geometry.GeneralEnvelope
 import org.geotools.util.Utilities
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.raster.data.RasterStore
-import org.locationtech.geomesa.raster.feature.Raster
+import org.locationtech.geomesa.raster.data.{Raster, RasterStore}
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.opengis.parameter.GeneralParameterValue
 
