@@ -20,6 +20,7 @@ package org.locationtech.geomesa.filter.function
 import java.nio.{ByteBuffer, ByteOrder}
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.apache.commons.codec.Charsets
 import org.geotools.data.Base64
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
@@ -92,7 +93,7 @@ object Convert2ViewerFunction {
    * @param trackId
    */
   private def put(buffer: ByteBuffer, lat: Float, lon: Float, dtg: Long, trackId: Option[String]): Unit = {
-    putOption(buffer, trackId, 4)
+    buffer.putInt(trackId.map(_.hashCode).getOrElse(0))
     buffer.putInt((dtg / 1000).toInt)
     buffer.putFloat(lat)
     buffer.putFloat(lon)
@@ -109,7 +110,7 @@ object Convert2ViewerFunction {
   private def putOption(buf: ByteBuffer, value: Option[String], length: Int): Unit =
     value match {
       case Some(v) =>
-        val bytes = v.getBytes
+        val bytes = v.getBytes(Charsets.UTF_8)
         val sized =
           if (bytes.length < length) {
             bytes.padTo(length, ' '.toByte)
@@ -133,7 +134,7 @@ object Convert2ViewerFunction {
     if (bytes.forall(_ == 0)) {
       None
     } else {
-      Some(new String(bytes).trim)
+      Some(new String(bytes, Charsets.UTF_8).trim)
     }
   }
 
@@ -145,7 +146,10 @@ object Convert2ViewerFunction {
    */
   def decode(encoded: Array[Byte]): EncodedValues = {
     val buf = ByteBuffer.wrap(encoded).order(ByteOrder.LITTLE_ENDIAN)
-    val trackId = getOption(buf, 4)
+    val trackId = buf.getInt match {
+      case i if i != 0 => Some(i.toString)
+      case _           => None
+    }
     val time = buf.getInt * 1000L
     val lat = buf.getFloat
     val lon = buf.getFloat

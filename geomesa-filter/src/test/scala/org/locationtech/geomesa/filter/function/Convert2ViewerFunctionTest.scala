@@ -34,7 +34,7 @@ class Convert2ViewerFunctionTest extends Specification {
       decoded.lat mustEqual(initial.lat)
       decoded.lon mustEqual(initial.lon)
       Math.abs(decoded.dtg - initial.dtg) must beLessThan(1000L) // dates get truncated to nearest second
-      decoded.trackId mustEqual(initial.trackId)
+      decoded.trackId.get.toInt mustEqual(initial.trackId.get.hashCode)
     }
 
     "encode and decode optional simple attributes" in {
@@ -61,7 +61,7 @@ class Convert2ViewerFunctionTest extends Specification {
       decoded.lat mustEqual(initial.lat)
       decoded.lon mustEqual(initial.lon)
       Math.abs(decoded.dtg - initial.dtg) must beLessThan(1000L) // dates get truncated to nearest second
-      decoded.trackId mustEqual(initial.trackId)
+      decoded.trackId.get.toInt mustEqual(initial.trackId.get.hashCode)
       decoded.asInstanceOf[ExtendedValues].label mustEqual(initial.label)
     }
 
@@ -77,7 +77,7 @@ class Convert2ViewerFunctionTest extends Specification {
       decoded.lat mustEqual(initial.lat)
       decoded.lon mustEqual(initial.lon)
       Math.abs(decoded.dtg - initial.dtg) must beLessThan(1000L) // dates get truncated to nearest second
-      decoded.trackId.get mustEqual(initial.trackId.get.substring(0, 4))
+      decoded.trackId.get.toInt mustEqual(initial.trackId.get.hashCode)
       decoded.asInstanceOf[ExtendedValues].label.get mustEqual(initial.label.get.substring(0, 8))
     }
   }

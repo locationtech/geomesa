@@ -20,7 +20,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Coordinate, Geometry}
+import com.vividsolutions.jts.geom.{Coordinate, Geometry, Point}
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.GML
 import org.geotools.GML.Version
@@ -29,10 +29,11 @@ import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactor
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureStore}
 import org.geotools.geojson.feature.FeatureJSON
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction, EncodedValues, ExtendedValues}
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.commands.ExportCommand.ExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -227,10 +228,83 @@ class DelimitedExport(writer: Writer,
 object DelimitedExport {
   def apply(writer: Writer, params: ExportParameters) =
     new DelimitedExport(writer,
-      params.format.toLowerCase(),
+      params.format.toLowerCase,
       Option(params.attributes),
       Option(params.idAttribute),
       Option(params.latAttribute),
       Option(params.lonAttribute),
       Option(params.dateAttribute))
+}
+
+object BinFileExport {
+  var DEFAULT_TIME = "dtg"
+  def getAttributeList( p: ExportParameters ): String =
+    Seq(p.latAttribute, p.lonAttribute, p.idAttribute, Option(p.dateAttribute).getOrElse(DEFAULT_TIME), p.labelAttribute)
+      .filter(_ != null)
+      .mkString(",")
+
+  def apply(os: OutputStream, params: ExportParameters) =
+    new BinFileExport(os,
+                      Option(params.idAttribute),
+                      Option(params.latAttribute),
+                      Option(params.lonAttribute),
+                      Option(params.dateAttribute),
+                      Option(params.labelAttribute))
+}
+
+class BinFileExport( os: OutputStream,
+                     idAttribute: Option[String],
+                     latAttribute: Option[String],
+                     lonAttribute: Option[String],
+                     dtgAttribute: Option[String],
+                     lblAttribute: Option[String]) extends FeatureExporter {
+
+  private val getLat: (SimpleFeature => Float) =
+    latAttribute.map{ latField =>
+      sf: SimpleFeature => {
+        val lat = sf.getAttribute(latField)
+        Try(lat.asInstanceOf[Double].toFloat).getOrElse(lat.toString.toFloat)
+      }
+    }.getOrElse{
+      sf: SimpleFeature => sf.getDefaultGeometry.asInstanceOf[Point].getY.toFloat
+    }
+
+  private val getLon: (SimpleFeature => Float) =
+    lonAttribute.map{ lonField =>
+      sf: SimpleFeature => {
+        val lon = sf.getAttribute(lonField)
+        Try(lon.asInstanceOf[Double].toFloat).getOrElse(lon.toString.toFloat)
+      }
+    }.getOrElse{
+      sf: SimpleFeature => sf.getDefaultGeometry.asInstanceOf[Point].getX.toFloat
+    }
+
+  private val getId: (SimpleFeature => String) =
+    idAttribute.map{ idField =>
+      sf: SimpleFeature => sf.getAttribute(idField).toString
+    }.getOrElse{
+      sf: SimpleFeature => sf.getID
+    }
+
+  private val getTime: (SimpleFeature => Long) = {
+    val attr = dtgAttribute.getOrElse(BinFileExport.DEFAULT_TIME)
+    sf: SimpleFeature => sf.getAttribute(attr).asInstanceOf[Date].getTime
+  }
+
+  private val getLabel: Option[SimpleFeature => Option[String]] =
+    lblAttribute.map{ label => sf: SimpleFeature => Try(sf.getAttribute(label).toString).toOption }
+
+  val featureToEncoded: ((SimpleFeature) => EncodedValues) =
+    getLabel.map{ lblFunc =>
+      sf: SimpleFeature => ExtendedValues(getLat(sf), getLon(sf), getTime(sf), Some(getId(sf)), lblFunc(sf))
+    }.getOrElse{
+      sf: SimpleFeature => BasicValues(getLat(sf), getLon(sf), getTime(sf), Some(getId(sf)))
+    }
+
+  override def write(featureCollection: SimpleFeatureCollection) =
+    featureCollection.features().foreach(sf => os.write(Convert2ViewerFunction.encode(featureToEncoded(sf))))
+
+  override def flush() = os.flush()
+
+  override def close() = os.close()
 }
