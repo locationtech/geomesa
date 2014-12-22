@@ -62,7 +62,8 @@ object Utils {
     val SHP     = "shp"
     val JSON    = "json"
     val GeoJson = "geojson"
-    val GML = "gml"
+    val GML     = "gml"
+    val BIN     = "bin"
 
     def getFileExtension(name: String) =
       name.toLowerCase match {
@@ -76,10 +77,11 @@ object Utils {
         case _ if name.endsWith(SHP)  => SHP
         case _ if name.endsWith(JSON) => JSON
         case _ if name.endsWith(GML)  => GML
+        case _ if name.endsWith(BIN)  => BIN
         case _                        => "unknown"
       }
 
-    val All = List(CSV, TSV, SHP, JSON, GeoJson, GML)
+    val All = List(CSV, TSV, SHP, JSON, GeoJson, GML, BIN)
   }
 
   object Modes {
