@@ -43,7 +43,8 @@ class Convert2ViewerFunction
     val id    = getExpression(0).evaluate(obj).asInstanceOf[String]
     val geom  = getExpression(1).evaluate(obj).asInstanceOf[Point]
     val dtg   = dtg2Long(getExpression(2).evaluate(obj))
-    Base64.encodeBytes(encodeToByteArray(ExtendedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, None, Some(id))))
+    val values = ExtendedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, None, Some(id))
+    Base64.encodeBytes(encodeToByteArray(values))
   }
 
   private def dtg2Long(d: Any): Long = d match {
@@ -60,7 +61,7 @@ object Convert2ViewerFunction {
     override def initialValue = ByteBuffer.allocate(24).order(ByteOrder.LITTLE_ENDIAN)
     override def get = {
       val out = super.get
-      out.clear()
+      out.clear() // ready for re-use
       out
     }
   }
@@ -69,9 +70,23 @@ object Convert2ViewerFunction {
     override def initialValue = new ByteArrayOutputStream(24)
     override def get = {
       val out = super.get
-      out.reset()
+      out.reset() // ready for re-use
       out
     }
+  }
+
+  /**
+   * Reachback version is the simple version with an extra
+   *
+   * 64-bit quantity: label/reachback/whatever you want
+   *
+   * @param values
+   */
+  def encode(values: ExtendedValues, out: OutputStream): Unit = {
+    val buf = buffers.get()
+    put(buf, values.lat, values.lon, values.dtg, values.trackId)
+    putOption(buf, values.label, 8)
+    out.write(buf.array(), 0, 24)
   }
 
   /**
@@ -82,28 +97,21 @@ object Convert2ViewerFunction {
    * 32-bit float: latitude degrees (+/-90)
    * 32-bit float: longitude degrees (+/- 180)
    *
-   * Reachback version is the above with an extra
-   *
-   * 64-bit quantity: label/reachback/whatever you want
-   *
    * @param values
-   * @return
    */
-  def encode(values: EncodedValues, out: OutputStream): Unit = {
-    values match {
-      case BasicValues(lat, lon, dtg, trackId) =>
-        val buf = buffers.get()
-        put(buf, lat, lon, dtg, trackId)
-        out.write(buf.array(), 0, 16)
-      case ExtendedValues(lat, lon, dtg, trackId, label) =>
-        val buf = buffers.get()
-        put(buf, lat, lon, dtg, trackId)
-        putOption(buf, label, 8)
-        out.write(buf.array(), 0, 24)
-    }
+  def encode(values: BasicValues, out: OutputStream): Unit = {
+    val buf = buffers.get()
+    put(buf, values.lat, values.lon, values.dtg, values.trackId)
+    out.write(buf.array(), 0, 16)
   }
 
-  def encodeToByteArray(values: EncodedValues): Array[Byte] = {
+  def encodeToByteArray(values: ExtendedValues): Array[Byte] = {
+    val out = byteStreams.get()
+    encode(values, out)
+    out.toByteArray
+  }
+
+  def encodeToByteArray(values: BasicValues): Array[Byte] = {
     val out = byteStreams.get()
     encode(values, out)
     out.toByteArray
