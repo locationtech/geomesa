@@ -117,5 +117,27 @@ class Convert2ViewerFunctionTest extends Specification {
       decodedTwo.trackId.get.toInt mustEqual(two.trackId.get.hashCode)
       decodedTwo.asInstanceOf[ExtendedValues].label mustEqual(two.label)
     }
+
+    "encode faster to an output stream" in {
+      skipped("integration")
+      val times = 10000
+      val one = ExtendedValues(45.0f, 49.0f, System.currentTimeMillis(), Some("1200"), Some("label"))
+      val out = new ByteArrayOutputStream(24 * times)
+
+      // the first test run always takes a long time, even with some initialization...
+      // flip the order to get a sense of how long each takes
+      val start2 = System.currentTimeMillis()
+      val arrays = (0 to times).map(_ => Convert2ViewerFunction.encodeToByteArray(one))
+      val total2 = System.currentTimeMillis() - start2
+      println(s"array took $total2 ms")
+
+      val start = System.currentTimeMillis()
+      (0 to times).foreach(_ => Convert2ViewerFunction.encode(one, out))
+      val total = System.currentTimeMillis() - start
+      println(s"stream took $total ms")
+
+      println
+      success
+    }
   }
 }
