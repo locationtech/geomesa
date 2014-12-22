@@ -393,13 +393,16 @@ object GeohashUtils
 
   // TODO: WCS: Make the ClosestAcceptableGeoHash algorithm more robust -- GEOMESA-590
   // TODO: WCS: Using this in the rowID will require the query bounding box to be expanded
-  def getClosestAcceptableGeoHash(env: Envelope): GeoHash = {
+  def getClosestAcceptableGeoHash(env: Envelope): Option[GeoHash] = {
     getClosestAcceptableGeoHash(BoundingBox(env))
   }
 
-  def getClosestAcceptableGeoHash(bbox: BoundingBox): GeoHash = {
+  def getClosestAcceptableGeoHash(bbox: BoundingBox): Option[GeoHash] = {
     val prec = calculatePrecision(bbox)
-    getClosestAcceptableGeoHash(bbox, prec)
+    prec % 5 match {
+      case 0 => Some(getClosestAcceptableGeoHash(bbox, prec))
+      case _ => None
+    }
   }
 
   def getClosestAcceptableGeoHash(bbox: BoundingBox, r: Int): GeoHash = GeoHash(bbox.getCentroid, r)
