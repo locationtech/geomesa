@@ -145,7 +145,7 @@ class DelimitedExport(writer: Writer,
     features.features.foreach { sf =>
       writeFeature(sf, writer, attrNames, idField)
       count += 1
-      if (count % 10000 == 0) logger.info("wrote {} features", "" + count)
+      if (count % 10000 == 0) logger.debug("wrote {} features", "" + count)
     }
     logger.info(s"Exported $count features")
   }
