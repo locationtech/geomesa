@@ -104,13 +104,15 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
     }
   }
 
-  def getOutputStream(): OutputStream =
-    Option(params.file) match {
+  def getOutputStream(): OutputStream = {
+    val out = Option(params.file) match {
       case Some(file) => new FileOutputStream(file)
       case None       => System.out
     }
+    new BufferedOutputStream(out)
+  }
   
-  def getWriter(): Writer = new BufferedWriter(new OutputStreamWriter(getOutputStream()))
+  def getWriter(): Writer = new OutputStreamWriter(getOutputStream())
   
   def getFile(): File = Option(params.file) match {
     case Some(file) => file

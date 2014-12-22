@@ -107,7 +107,7 @@ class BinaryViewerOutputFormat(gs: GeoServer)
           case Some(label) => ExtendedValues(lat.toFloat, lon.toFloat, dtg, trackId, getAttributeOrId(f, label))
           case None        => BasicValues(lat.toFloat, lon.toFloat, dtg, trackId)
         }
-        bos.write(Convert2ViewerFunction.encode(values))
+        Convert2ViewerFunction.encode(values, bos)
       }
       // implicit RichSimpleFeatureIterator calls close on the feature collection for us
       bos.flush()
