@@ -28,7 +28,7 @@ import org.opengis.coverage.grid.Format
 import org.opengis.parameter.GeneralParameterDescriptor
 
 object GeoMesaCoverageFormat {
-  val RESOLUTION = new DefaultParameterDescriptor[String]("RESOLUTION", classOf[String], null, null)
+  val RESOLUTION = new DefaultParameterDescriptor[String]("RESOLUTION", classOf[String], null, "1.0")
 }
 
 class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
@@ -39,7 +39,7 @@ class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
   mInfo.put("docURL", "http://www.geomesa.org")
   mInfo.put("version", "1.0")
 
-  val parameterDescriptors = Array[GeneralParameterDescriptor](READ_GRIDGEOMETRY2D, RESOLUTION, TIME)
+  val parameterDescriptors = Array[GeneralParameterDescriptor](READ_GRIDGEOMETRY2D, RESOLUTION)
   val defaultParameterGroup = new DefaultParameterDescriptorGroup(mInfo, parameterDescriptors)
 
   readParameters = new ParameterGroup(defaultParameterGroup)

@@ -17,14 +17,12 @@
 
 package org.locationtech.geomesa.raster.data
 
-import java.awt.image.RenderedImage
 import java.io.Serializable
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.{Connector, Scanner}
+import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.security.Authorizations
-import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory._
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
@@ -33,7 +31,6 @@ import org.locationtech.geomesa.raster.feature.Raster
 import org.locationtech.geomesa.raster.ingest.GeoserverClientService
 import org.locationtech.geomesa.raster.util.RasterUtils._
 
-import scala.collection.JavaConversions._
 import scala.util.Try
 
 trait CoverageStore {
@@ -88,50 +85,10 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
     geoserverClientService.registerRasterStyles()
     geoserverClientService.registerRaster(raster.id,
                                           raster.name,
-                                          raster.time.getMillis,
                                           raster.id,
                                           "Raster data",
-                                          raster.mbgh.hash,
-                                          raster.mbgh.prec,
+                                          raster.resolution,
                                           None)
-  }
-
-  def getChunk(geohash: String, iRes: Int): RenderedImage = {
-    withScanner(scanner => {
-      val row = new Text(s"~$iRes~$geohash")
-      scanner.setRange(new org.apache.accumulo.core.data.Range(row))
-    })(_.map(entry => {
-      imageDeserialize(entry.getValue.get)
-    })).head
-  }
-
-  /**
-   * Included for when mosaicing and final key structure are utilized
-   *
-   * def getChunks(geohash: String, iRes: Int, timeParam: Option[Either[Date, DateRange]], bbox: BoundingBox): Iterator[GridCoverage] = {
-   *   withScanner(scanner => {
-   *     val row = new Text(s"~$iRes~$geohash")
-   *     scanner.setRange(new org.apache.accumulo.core.data.Range(row))
-   *     val name = "version-" + Random.alphanumeric.take(5).mkString
-   *     val cfg = new IteratorSetting(2, name, classOf[VersioningIterator])
-   *     VersioningIterator.setMaxVersions(cfg, 1)
-   *     scanner.addScanIterator(cfg)
-   *   })(_.map(entry => {
-   *     this.coverageFactory.create(coverageName,
-   *       rasterImageDeserialize(entry.getValue.get),
-   *       new ReferencedEnvelope(RasterIndexEntry.decodeIndexCQMetadata(entry.getKey).geom.getEnvelopeInternal, CRS.decode("EPSG:4326")))
-   *   })).toIterator
-   * }
-   */
-
-  protected def withScanner[A](configure: Scanner => Unit)(f: Scanner => A): A = {
-    val scanner = getConnector.createScanner(getTable, getAuths)
-    try {
-      configure(scanner)
-      f(scanner)
-    } catch {
-      case e: Exception => throw new Exception(s"Error accessing table ", e)
-    }
   }
 }
 

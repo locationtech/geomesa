@@ -34,6 +34,7 @@ class RasterFilteringIterator extends Filter with WrappedSTFilter with Logging {
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: JMap[String, String],
                     env: IteratorEnvironment) = {
+    TServerClassLoader.initClassLoader(logger)
     super.init(source, options, env)
 
     if (options.containsKey(DEFAULT_FILTER_PROPERTY_NAME) && options.containsKey(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)) {

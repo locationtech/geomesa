@@ -27,15 +27,15 @@ import org.geotools.geometry.GeneralEnvelope
 import org.geotools.util.Utilities
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
+import org.locationtech.geomesa.raster.data.RasterStore
+import org.locationtech.geomesa.raster.feature.Raster
+import org.locationtech.geomesa.raster.util.RasterUtils
 import org.opengis.parameter.GeneralParameterValue
-
-import scala.collection.JavaConversions._
 
 object GeoMesaCoverageReader {
   val GeoServerDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   val DefaultDateString = GeoServerDateFormat.print(new DateTime(DateTimeZone.forID("UTC")))
-  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#geohash=(.*)#resolution=([0-9]*)#timeStamp=(.*)#rasterName=(.*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
+  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#rasterName=(.*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
 }
 
 import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageReader._
@@ -48,14 +48,10 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
 
   // JNH: This todo is for Jake.
   logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
-
-  val FORMAT(user, password, instanceId, table, geohash, resolutionStr, timeStamp, rasterName, zookeepers, authtokens) = url
-
+  val FORMAT(user, password, instanceId, table, rasterName, zookeepers, authtokens) = url
   logger.debug(s"extracted user $user, password ********, instance id $instanceId, table $table, zookeepers $zookeepers, auths ********")
 
   coverageName = table + ":" + rasterName
-
-
 
   // TODO: Either this is needed for rasterToCoverages or remove it.
   this.crs = AbstractGridFormat.getDefaultCRS
@@ -64,15 +60,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   this.originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
   this.coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(this.hints)
   // TODO: Provide writeVisibilites??  Sort out read visibilites
-  val coverageStoreParams = Map[java.lang.String, java.io.Serializable](
-    "instanceId" -> instanceId,
-    "zookeepers" -> zookeepers,
-    "user" -> user,
-    "password" -> password,
-    "tableName" -> table,
-    "auths" -> authtokens
-  )
-  val coverageStore = AccumuloCoverageStore(coverageStoreParams)
+  val ars: RasterStore = RasterStore(user, password, instanceId, zookeepers, table, authtokens, "")
 
   /**
    * Default implementation does not allow a non-default coverage name
@@ -90,29 +78,15 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
 
   override def getFormat = new GeoMesaCoverageFormat
 
-  def getGeohashPrecision = resolutionStr.toInt
-
-
   def read(parameters: Array[GeneralParameterValue]): GridCoverage2D = {
+    logger.debug(s"READ: $parameters")
     val params = new GeoMesaCoverageQueryParams(parameters)
-    //TODO: WCS: Generate RasterQueryObject here and use it with getRasters
-    /** it would look like this
-      *  val rq = RasterQuery(params.bbox, params.accResolution, None, None)
-      *  val rasters: Iterator[feature.Raster] = coverageStore.getRasters(rq)
-      *  then convert from feature.Raster to what is needed,
-      *  and then mosiac, etc.
-      */
-    val image = coverageStore.getChunk(geohash, getGeohashPrecision)
+    val rq = params.toRasterQuery
+    rastersToCoverage(ars.getRasters(rq), params)
+  }
 
-    /**
-     * Included for when mosaicing and final key structure are utilized
-     *
-     * val image = getChunk(geohash, params.resolution.getOrElse(getGeohashPrecision))
-     * val chunks = getChunks(geohash, getGeohashPrecision, None, params.bbox)
-     * val image = mosaicGridCoverages(chunks, env = params.env)
-     * this.coverageFactory.create(coverageName, image, params.env)
-     */
-
+  def rastersToCoverage(rasters: Iterator[Raster], params: GeoMesaCoverageQueryParams): GridCoverage2D = {
+    val image = RasterUtils.mosaicRasters(rasters, params.width.toInt, params.height.toInt, params.envelope, params.resX, params.resY)
     this.coverageFactory.create(coverageName, image, params.envelope)
   }
 }
