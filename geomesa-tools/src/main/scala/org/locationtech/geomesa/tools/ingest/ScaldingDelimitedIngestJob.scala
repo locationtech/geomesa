@@ -35,11 +35,10 @@ import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.{params => ds
 import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.jobs.scalding.MultipleUsefulTextLineFiles
 import org.locationtech.geomesa.tools.Utils.IngestParams
+import org.locationtech.geomesa.tools.ingest.ScaldingDelimitedIngestJob.{isList, toList}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import ScaldingDelimitedIngestJob.toList
-import ScaldingDelimitedIngestJob.isList
 
 import scala.util.parsing.combinator.JavaTokenParsers
 import scala.util.{Failure, Success, Try}
@@ -98,6 +97,7 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
   lazy val attributes = sft.getAttributeDescriptors
   lazy val dtBuilder = dtgField.flatMap(buildDtBuilder)
   lazy val idBuilder = buildIDBuilder
+  lazy val setGeom = buildGeometrySetter
 
   // non-serializable resources.
   class Resources {
@@ -160,42 +160,75 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
   // Populate the fields of a SimpleFeature with a line of CSV
   def ingestDataToFeature(line: String, feature: SimpleFeature) = {
     val reader = CSVParser.parse(line, delim)
-    val fields: List[String] =
+    val csvFields =
       try {
-        val allFields = reader.getRecords.get(0).toList
-        if (colList.isDefined) colList.map(_.map(allFields(_))).get else allFields
+        reader.getRecords.get(0).toList
       } catch {
-        case e: Exception => throw new Exception(s"Commons CSV could not parse " +
-          s"line number: $lineNumber \n\t with value: $line")
-      } finally {
-        reader.close()
-      }
+        case e: Exception => throw new Exception(s"Could not parse " +
+          s"line number: $lineNumber with value: $line")
+      } finally { reader.close() }
 
-    val id = idBuilder(fields)
+    val sfFields = colList.map(_.map(csvFields(_))).getOrElse(csvFields)
+
+    val id = idBuilder(sfFields)
     feature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
     feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
 
     //add data
-    for (idx <- 0 until fields.length) {
+    for (idx <- 0 until sfFields.length) {
       if (isList(sft.getAttributeDescriptors.get(idx))) {
-        feature.setAttribute(idx, toList(fields(idx), listDelimiter, sft.getAttributeDescriptors.get(idx)))
+        feature.setAttribute(idx, toList(sfFields(idx), listDelimiter, sft.getAttributeDescriptors.get(idx)))
       } else {
-        feature.setAttribute(idx, fields(idx))
+        feature.setAttribute(idx, sfFields(idx))
       }
     }
-    //add datetime to feature
-    dtBuilder.foreach { dateBuilder => addDateToFeature(line, fields, feature, dateBuilder) }
 
-    // Support for point data method
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-    val lon = lonField.map(feature.get[Double](_))
-    val lat = latField.map(feature.get[Double](_))
-    (lon, lat) match {
-      case (Some(x), Some(y)) => feature.setDefaultGeometry(geomFactory.createPoint(new Coordinate(x, y)))
-      case _                  =>
+    //add datetime and geometry
+    dtBuilder.foreach { dateBuilder => addDateToFeature(line, sfFields, feature, dateBuilder) }
+    setGeom(csvFields, feature)
+  }
+
+  /**
+   * build a function that takes the list of original delimited values
+   * and the simple feature and sets the geom properly on the feature
+   */
+  def buildGeometrySetter: (Seq[String], SimpleFeature) => Unit = {
+     def lonLatInSft(lon: Option[String], lat: Option[String]) =
+       lonField.isDefined &&
+         latField.isDefined &&
+         sft.indexOf(lonField.get) != -1 &&
+         sft.indexOf(latField.get) != -1
+
+    (lonField, latField) match {
+      case (None, None)  =>
+        logger.info(s"Using wkt geometry from field index ${sft.indexOf(sft.getGeometryDescriptor.getName)}")
+        (_: Seq[String], sf: SimpleFeature) => require(sf.getDefaultGeometry != null)
+
+      case (Some(lon), Some(lat)) if lonLatInSft(lonField, latField) =>
+        logger.info(s"Using lon/lat from simple feature fields $lon/$lat")
+        (_: Seq[String], sf: SimpleFeature) => {
+          import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+          val g = geomFactory.createPoint(new Coordinate(sf.get[Double](lon), sf.get[Double](lat)))
+          sf.setDefaultGeometry(g)
+        }
+
+      case (Some(lon), Some(lat)) =>
+        logger.info(s"Using lon/lat from csv indexes ${lonField.get}/${latField.get}")
+        try {
+          val lonIdx = lon.toInt
+          val latIdx = lat.toInt
+          (allFields: Seq[String], sf: SimpleFeature) => {
+            val g = geomFactory.createPoint(new Coordinate(allFields(lonIdx).toDouble, allFields(latIdx).toDouble))
+            sf.setDefaultGeometry(g)
+          }
+        } catch {
+          case nfe: NumberFormatException =>
+            throw new IllegalArgumentException("Lon/Lat fields must either be integers " +
+              "or field names in the SFT spec", nfe)
+        }
+
+      case _ => throw new IllegalArgumentException("Unable to determine geometry mapping from csv")
     }
-    if ( feature.getDefaultGeometry == null )
-      throw new Exception(s"No valid geometry found for line number: $lineNumber,  With value of: $line")
   }
 
   def addDateToFeature(line: String,

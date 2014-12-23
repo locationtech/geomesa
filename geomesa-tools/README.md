@@ -337,7 +337,7 @@ The file type is inferred from the extension of the file, so ensure that the for
            Catalog table name for GeoMesa
         -cols, --columns
            the set of column indexes to be ingested, must match the
-           SimpleFeatureType spec
+           SimpleFeatureType spec (zero-indexed)
         -dtf, --dt-format
            format string for the date time field
         -dt, --dtg
@@ -358,11 +358,13 @@ The file type is inferred from the extension of the file, so ensure that the for
         -i, --instance
            Accumulo instance name
         -lat, --lat-attribute
-           name of the latitude field in the SimpleFeatureType if ingesting point
-           data
+           name of the latitude field in the SimpleFeature if longitude is 
+           kept in the SFT spec; otherwise defines the csv field index used to create the
+           default geometry
         -lon, --lon-attribute
-           name of the longitude field in the SimpleFeatureType if ingesting point
-           data
+           name of the longitude field in the SimpleFeature if longitude is 
+           kept in the SFT spec; otherwise defines the csv field index used to create the
+           default geometry
         -mc, --mock
            Run everything with a mock accumulo instance instead of a real one
            Default: false
@@ -385,13 +387,45 @@ The file type is inferred from the extension of the file, so ensure that the for
 
 
 #### Example commands:
-    geomesa ingest -u username -p password -c geomesa_catalog -fn somefeaturename -s fid:Double,dtg:Date,*geom:Geometry \
+
+##### Ingest CSV with single WKT (Well Known Text) geometry
+
+    # file.csv (comma separated)
+    featureId,date,geom
+    1.23623623,01/01/2014 06:30:23,POINT(2 3)
+    290.43234,01/02/2014 08:35:24,POINT(3 3)
+    3.14159,01/03/2014 18:11:56,POINT(4 5)
+
+    # ingest command
+    geomesa ingest -u username -p password -c geomesa_catalog -fn myfeature -s 'fid:Double,dtg:Date,*geom:Geometry' \
         --dtg dtg -dtf "MM/dd/yyyy HH:mm:ss" hdfs:///some/hdfs/path/to/file.csv
+
+##### Ingest lon/lat that are part of the SimpleFeatureType using a feature id made of the hash of two fields
+ 
+    # file.tsv (tab separated)
+    2.3623  01/01/2014 06:30:23 38.023 -74.0002
+    23.333  01/01/2014 06:30:23 39.424 -76.02
+    10.021  01/01/2014 06:30:23 40.325 -75.883
     
-    geomesa ingest -u username -p password -c geomesa_catalog -a someAuths -v someVis -sh 42 -fn somefeaturename
+    # ingest command
+    geomesa ingest -u username -p password -c geomesa_catalog -a someAuths -v someVis -sh 42 -fn myfeature
      -s fid:Double,dtg:Date,lon:Double,lat:Double,*geom:Point -dt dtg -dtf "MM/dd/yyyy HH:mm:ss" 
      -id fid,dtg -h -lon lon -lat lat /some/local/path/to/file.tsv
-     
+
+##### Create geometry field from the lon/lat but drop the lon/lat from the FeatureType spec - List[Int] is ingested
+
+    # file.csv (comma separated
+    "2014-01-01 22:33:44","38.023","-74.0002","5,6,7"
+    "2014-01-02 22:33:44","39.023","-78.0002",""
+    "2014-01-03 22:33:44","50.023","-73.0002","1, 2, 3"
+    
+    # ingest command
+    geomesa ingest -u username -p password -c geomesa_catalog -fn myfeature
+     -s 'dtg:Date,myList:List[Int],*geom:Point' -cols '0,3' -dt dtg -dtf "MM-dd-yyyy HH:mm:ss" 
+     -lon 1 -lat 2 /some/local/path/to/file.csv
+    
+    
+##### Ingest a shape file
     geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
 
 ### list
