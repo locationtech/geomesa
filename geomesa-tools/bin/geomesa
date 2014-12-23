@@ -15,100 +15,109 @@
 # limitations under the License.
 #
 
-GEOMESA_DEBUG_OPTS=""
 GEOMESA_OPTS="-Duser.timezone=UTC"
+GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"
 GEOMESA_CP=""
 JAVA_LIBRARY_PATH=""
 
-function defineGeoMesaHome ()
-{  # Defines the GEOMESA_HOME and updates the PATH.
-   SOURCE="${BASH_SOURCE[0]}"
-   while [ -h "${SOURCE}" ]; do # resolve $SOURCE until the file is no longer a symlink
-      bin="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
-      SOURCE="$(readlink "${SOURCE}")"
-      [[ "${SOURCE}" != /* ]] && SOURCE="${bin}/${SOURCE}" # if $SOURCE was a relative symlink, we
-                                                           # need to resolve it relative to the
-                                                           # path where the symlink file was located
+# Define GEOMESA_HOME and update the PATH if necessary.
+if [ -z "$GEOMESA_HOME" ]; then
+    SOURCE="${BASH_SOURCE[0]}"
+    # resolve $SOURCE until the file is no longer a symlink
+    while [ -h "${SOURCE}" ]; do
+        bin="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
+        SOURCE="$(readlink "${SOURCE}")"
+        # if $SOURCE was a relative symlink, we need to resolve it relative to the path where
+        # the symlink file was located
+        [[ "${SOURCE}" != /* ]] && SOURCE="${bin}/${SOURCE}"
+    done
+    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
+    export GEOMESA_HOME="$bin"
+    export PATH=${GEOMESA_HOME}/bin:$PATH
+    echo >&2 "Warning: GEOMESA_HOME is not set, using $GEOMESA_HOME"
+else
+    echo >&2 "Using GEOMESA_HOME $GEOMESA_HOME"
+fi
 
-   done
-   bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
-   export GEOMESA_HOME="$bin"
-   export PATH=${GEOMESA_HOME}/bin:$PATH
-}
-
-function defineGeoMesaLib ()
-{
-  # GEOMESA paths, GEOMESA_LIB should live inside GEOMESA_HOME, but can be pointed elsewhere
-  # this is checked down below
-  if [ -n "$GEOMESA_HOME" ]; then
-      if [ -z "$GEOMESA_LIB" ]; then
-          GEOMESA_LIB=${GEOMESA_HOME}/lib
-      fi
-  fi
-}
-
-# first call to defineGeoMesaLib, for case when user did set GEOMESA_HOME outside of script
-defineGeoMesaLib
+# GEOMESA paths, GEOMESA_LIB should live inside GEOMESA_HOME, but can be pointed elsewhere
+if [ -z "$GEOMESA_LIB" ]; then
+    GEOMESA_LIB=${GEOMESA_HOME}/lib
+fi
 
 # ACCUMULO paths, user can hard set these, or rely on this script to find set them via
 if [ -n "$ACCUMULO_HOME" ]; then
-    if [ -z "$ACCUMULO_LIB" ]; then
+    if [ -z "$ACCUMULO_LIB" -a -d "${ACCUMULO_HOME}/lib" ]; then
         ACCUMULO_LIB=${ACCUMULO_HOME}/lib
     fi
-    if [ -z "$ACCUMULO_CONF_DIR" ]; then
+    if [ -z "$ACCUMULO_CONF_DIR" -a -d "${ACCUMULO_HOME}/conf" ]; then
         ACCUMULO_CONF_DIR=${ACCUMULO_HOME}/conf
     fi
 fi
 
 # HADOOP paths, user can hard set these, or rely on this script to find set them via HADOOP_HOME
 if [ -n "$HADOOP_HOME" ]; then
-    if [ -z "$HADOOP_LIB" ]; then
+    if [ -z "$HADOOP_LIB" -a -d "${HADOOP_HOME}/lib" ]; then
         HADOOP_LIB=${HADOOP_HOME}/lib
     fi
-    if [ -z "$HADOOP_SHARE_DIR" ]; then
+    if [ -z "$HADOOP_SHARE_DIR" -a -d "${HADOOP_HOME}/share/hadoop" ]; then
         HADOOP_SHARE_DIR=${HADOOP_HOME}/share/hadoop
     fi
-    if [ -z "$HADOOP_COMMON" ]; then
+    if [ -z "$HADOOP_COMMON" -a -d "${HADOOP_HOME}/common" ]; then
         HADOOP_COMMON=${HADOOP_SHARE_DIR}/common
     fi
-    if [ -z "$HADOOP_HDFS" ]; then
+    if [ -z "$HADOOP_HDFS" -a -d "${HADOOP_HOME}/hdfs" ]; then
         HADOOP_HDFS=${HADOOP_SHARE_DIR}/hdfs
     fi
-    if [ -z "$HADOOP_MAPREDUCE" ]; then
+    if [ -z "$HADOOP_MAPREDUCE" -a -d "${HADOOP_HOME}/mapreduce" ]; then
         HADOOP_MAPREDUCE=${HADOOP_SHARE_DIR}/mapreduce
     fi
-    if [ -z "$HADOOP_YARN" ]; then
+    if [ -z "$HADOOP_YARN" -a -d "${HADOOP_HOME}/yarn" ]; then
         HADOOP_YARN=${HADOOP_SHARE_DIR}/yarn
     fi
-    if [ -z "$HADOOP_CONF_DIR" ]; then
+    if [ -z "$HADOOP_CONF_DIR" -a -d "${HADOOP_HOME}/conf" ]; then
         HADOOP_CONF_DIR=${HADOOP_HOME}/conf
     fi
 fi
 
+# Warn user about missing environment variables
+if [[ (-z "$ACCUMULO_HOME") || (-z "$HADOOP_HOME") ]]; then
+    message="Warning: you have not set ACCUMULO_HOME and/or HADOOP_HOME as environment variables."
+    message="${message}\nGeoMesa tools will not run without the appropriate Accumulo and Hadoop jars in the tools classpath."
+    message="${message}\nPlease ensure that those jars are present in the classpath by running 'geomesa classpath' ."
+    message="${message}\nTo take corrective action, please place the necessary jar files in the lib directory of geomesa-tools."
+    echo >&2 ""
+    echo -e >&2 "$message"
+    echo >&2 ""
+elif [[ (-z "$ACCUMULO_CONF_DIR") || (-z "$HADOOP_CONF_DIR")]]; then
+    message="Warning: you have not set ACCUMULO_CONF_DIR and/or HADOOP_CONF_DIR as environment variables."
+    message="${message}\nGeoMesa tools looks for these folders relative to the paths of the ACCUMULO_HOME and HADOOP_HOME environment variables."
+    message="${message}\nGeoMesa tools can run without these variables set, however the user will be required to provide the additional instanceId and zookeepers parameters."
+    message="${message}\nTo take corrective action, please set these environment variable to the appropriate locations"
+    echo >&2 ""
+    echo -e >&2 "$message"
+    echo >&2 ""
+fi
+
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up
-GHAdirs=(${GEOMESA_LIB} \
-${ACCUMULO_LIB} \
-${HADOOP_LIB} )
+GHAdirs=("$GEOMESA_LIB" "$ACCUMULO_LIB" "$HADOOP_LIB")
 for home in ${GHAdirs[*]}; do
   if [ -n "$home" ]; then
     for jar in $(find ${home} -name "*.jar"); do
       GEOMESA_CP="$GEOMESA_CP:$jar"
     done
     if [ -d "$home/native" ]; then
-      if [ -n "$JAVA_LIBRARY_PATH" ]; then
-        JAVA_LIBRARY_PATH=":$JAVA_LIBRARY_PATH"
+      if [ -z "$JAVA_LIBRARY_PATH" ]; then
+        JAVA_LIBRARY_PATH="$home/native"
+      else
+        JAVA_LIBRARY_PATH="$home/native:$JAVA_LIBRARY_PATH"
       fi
-      JAVA_LIBRARY_PATH="$home/native$JAVA_LIBRARY_PATH"
     fi
   fi
 done
 
 #Get the hadoop jars, ignoring jars with names containing slf4j and test
-hadoopDirs=(${HADOOP_COMMON} \
-${HADOOP_MAPREDUCE} \
-${HADOOP_YARN} \
-${HADOOP_HDFS} )
+hadoopDirs=("$HADOOP_COMMON" "$HADOOP_MAPREDUCE" "$HADOOP_YARN" "$HADOOP_HDFS")
 for home in ${hadoopDirs[*]}; do
   if [[ (-n "$home") && (-d ${home}) ]]; then
     for jar in $(find ${home} -name "*.jar"); do
@@ -130,43 +139,6 @@ if [ -n "$JAVA_LIBRARY_PATH" ]; then
   export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_LIBRARY_PATH"
 fi
 
-# Check environment variables before running anything, warn user on issues:
-if [[ (-z "$GEOMESA_HOME") ]]; then
-    echo >&2 "Warning: GEOMESA_HOME is not set, assuming defaults."
-    defineGeoMesaHome
-    # call defineGeoMesaLib again since we just defined GEOMESA_HOME
-    defineGeoMesaLib
-fi
-
-# Check if environment variables for Accumulo and Hadoop are set, warn user if there is a problem.
-if [[ (-z "$ACCUMULO_HOME") || (-z "$HADOOP_HOME") ]]; then
-    echo >&2 ""
-    echo >&2 "Warning: you have not set ACCUMULO_HOME and/or HADOOP_HOME as environment variables."
-    echo >&2 "GeoMesa tools will not run without the appropriate Accumulo and Hadoop jars in the tools classpath."
-    echo >&2 "Please ensure that those jars are present in the classpath by running 'geomesa classpath' ."
-    echo >&2 "To take corrective action, please place the necessary jar files in the lib directory of geomesa-tools."
-    echo >&2 ""
-fi
-
-# Check if the CONF directories for accumulo and hadoop are set, warn user if there is a problem
-if [[ (-z "$ACCUMULO_CONF_DIR") || (-z "$HADOOP_CONF_DIR")]]; then
-    echo >&2 ""
-    echo >&2 "Warning: you have not set ACCUMULO_CONF_DIR and/or HADOOP_CONF_DIR as environment variables."
-    echo >&2 "GeoMesa tools looks for these folders relative to the paths of the ACCUMULO_HOME and HADOOP_HOME environment variables."
-    echo >&2 "GeoMesa tools can run without these variables set, however the user will be required to provide the additional instanceId and zookeepers parameters."
-    echo >&2 "To take corrective action, please set these environment variable to the appropriate locations"
-    echo >&2 ""
-fi
-
-# Check if GEOMESA_LIB is actually set, warn the user that tools won't work without this path being correct
-if [ -z "$GEOMESA_LIB" ]; then
-    echo >&2 ""
-    echo >&2 "Error: the GEOMESA_LIB variable is not set."
-    echo >&2 "Please ensure that you set GEOMESA_HOME, so that this script can point to where it expects the lib folder to be,"
-    echo >&2 "or set the GEOMESA_LIB manually to point to a folder containing the necessary Jar files."
-    echo >&2 ""
-fi
-
 # Geomesa tools setup completed, below we parse user arguments
 #
 # configure runs the geomesa configuration, sets both the GEOMESA_HOME and PATH vars
@@ -184,8 +156,8 @@ elif [[ $1 = classpath ]]; then
     done
 else
     if [[ $1 = debug ]]; then
-        GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"
+        GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
         shift 1
     fi
-    java ${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Runner "$@"
+    java ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Runner "$@"
 fi

@@ -237,11 +237,15 @@ object DelimitedExport {
 }
 
 object BinFileExport {
+
   var DEFAULT_TIME = "dtg"
-  def getAttributeList( p: ExportParameters ): String =
-    Seq(p.latAttribute, p.lonAttribute, p.idAttribute, Option(p.dateAttribute).getOrElse(DEFAULT_TIME), p.labelAttribute)
-      .filter(_ != null)
-      .mkString(",")
+
+  def getAttributeList(p: ExportParameters): String = {
+    val dtg = Option(p.dateAttribute).getOrElse(DEFAULT_TIME)
+    Seq(p.latAttribute, p.lonAttribute, p.idAttribute, dtg, p.labelAttribute)
+        .filter(_ != null)
+        .mkString(",")
+  }
 
   def apply(os: OutputStream, params: ExportParameters) =
     new BinFileExport(os,
@@ -252,38 +256,38 @@ object BinFileExport {
                       Option(params.labelAttribute))
 }
 
-class BinFileExport( os: OutputStream,
-                     idAttribute: Option[String],
-                     latAttribute: Option[String],
-                     lonAttribute: Option[String],
-                     dtgAttribute: Option[String],
-                     lblAttribute: Option[String]) extends FeatureExporter {
+class BinFileExport(os: OutputStream,
+                    idAttribute: Option[String],
+                    latAttribute: Option[String],
+                    lonAttribute: Option[String],
+                    dtgAttribute: Option[String],
+                    lblAttribute: Option[String]) extends FeatureExporter {
 
   private val getLat: (SimpleFeature => Float) =
-    latAttribute.map{ latField =>
+    latAttribute.map { latField =>
       sf: SimpleFeature => {
         val lat = sf.getAttribute(latField)
         Try(lat.asInstanceOf[Double].toFloat).getOrElse(lat.toString.toFloat)
       }
-    }.getOrElse{
+    }.getOrElse {
       sf: SimpleFeature => sf.getDefaultGeometry.asInstanceOf[Point].getY.toFloat
     }
 
   private val getLon: (SimpleFeature => Float) =
-    lonAttribute.map{ lonField =>
+    lonAttribute.map { lonField =>
       sf: SimpleFeature => {
         val lon = sf.getAttribute(lonField)
         Try(lon.asInstanceOf[Double].toFloat).getOrElse(lon.toString.toFloat)
       }
-    }.getOrElse{
+    }.getOrElse {
       sf: SimpleFeature => sf.getDefaultGeometry.asInstanceOf[Point].getX.toFloat
     }
 
-  private val getId: (SimpleFeature => String) =
-    idAttribute.map{ idField =>
-      sf: SimpleFeature => sf.getAttribute(idField).toString
-    }.getOrElse{
-      sf: SimpleFeature => sf.getID
+  private val getId: (SimpleFeature => Option[String]) =
+    idAttribute.map { idField =>
+      sf: SimpleFeature => Option(sf.getAttribute(idField)).map(_.toString)
+    }.getOrElse {
+      sf: SimpleFeature => Some(sf.getID)
     }
 
   private val getTime: (SimpleFeature => Long) = {
@@ -292,17 +296,23 @@ class BinFileExport( os: OutputStream,
   }
 
   private val getLabel: Option[SimpleFeature => Option[String]] =
-    lblAttribute.map{ label => sf: SimpleFeature => Try(sf.getAttribute(label).toString).toOption }
+    lblAttribute.map { label => sf: SimpleFeature => Option(sf.getAttribute(label)).map(_.toString) }
 
-  val featureToEncoded: ((SimpleFeature) => EncodedValues) =
-    getLabel.map{ lblFunc =>
-      sf: SimpleFeature => ExtendedValues(getLat(sf), getLon(sf), getTime(sf), Some(getId(sf)), lblFunc(sf))
-    }.getOrElse{
-      sf: SimpleFeature => BasicValues(getLat(sf), getLon(sf), getTime(sf), Some(getId(sf)))
+  val encode: (SimpleFeature, OutputStream) => Unit =
+    getLabel match {
+      case Some(lblFunc) => (sf, os) => {
+        val values = ExtendedValues(getLat(sf), getLon(sf), getTime(sf), getId(sf), lblFunc(sf))
+        Convert2ViewerFunction.encode(values, os)
+      }
+
+      case None => (sf, os) => {
+        val values = BasicValues(getLat(sf), getLon(sf), getTime(sf), getId(sf))
+        Convert2ViewerFunction.encode(values, os)
+      }
     }
 
   override def write(featureCollection: SimpleFeatureCollection) =
-    featureCollection.features().foreach(sf => os.write(Convert2ViewerFunction.encode(featureToEncoded(sf))))
+    featureCollection.features().foreach(sf => encode(sf, os))
 
   override def flush() = os.flush()
 
