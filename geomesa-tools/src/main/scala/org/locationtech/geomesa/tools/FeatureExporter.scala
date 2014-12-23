@@ -298,15 +298,21 @@ class BinFileExport(os: OutputStream,
   private val getLabel: Option[SimpleFeature => Option[String]] =
     lblAttribute.map { label => sf: SimpleFeature => Option(sf.getAttribute(label)).map(_.toString) }
 
-  val featureToEncoded: ((SimpleFeature) => EncodedValues) =
-    getLabel.map { lblFunc =>
-      sf: SimpleFeature => ExtendedValues(getLat(sf), getLon(sf), getTime(sf), getId(sf), lblFunc(sf))
-    }.getOrElse {
-      sf: SimpleFeature => BasicValues(getLat(sf), getLon(sf), getTime(sf), getId(sf))
+  val encode: (SimpleFeature, OutputStream) => Unit =
+    getLabel match {
+      case Some(lblFunc) => (sf, os) => {
+        val values = ExtendedValues(getLat(sf), getLon(sf), getTime(sf), getId(sf), lblFunc(sf))
+        Convert2ViewerFunction.encode(values, os)
+      }
+
+      case None => (sf, os) => {
+        val values = BasicValues(getLat(sf), getLon(sf), getTime(sf), getId(sf))
+        Convert2ViewerFunction.encode(values, os)
+      }
     }
 
   override def write(featureCollection: SimpleFeatureCollection) =
-    featureCollection.features().foreach(sf => Convert2ViewerFunction.encode(featureToEncoded(sf), os))
+    featureCollection.features().foreach(sf => encode(sf, os))
 
   override def flush() = os.flush()
 
