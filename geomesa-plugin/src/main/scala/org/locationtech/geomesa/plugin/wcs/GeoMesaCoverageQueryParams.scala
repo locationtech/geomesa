@@ -19,6 +19,7 @@ package org.locationtech.geomesa.plugin.wcs
 import org.geotools.coverage.grid.GridGeometry2D
 import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.parameter.Parameter
+import org.locationtech.geomesa.raster.data.RasterQuery
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds}
 import org.opengis.parameter.GeneralParameterValue
 
@@ -46,4 +47,6 @@ class GeoMesaCoverageQueryParams(parameters: Array[GeneralParameterValue]) {
   val max = Array(Math.min(envelope.getMaximum(0), 180) - .00000001,
                   Math.min(envelope.getMaximum(1), 90) - .00000001)
   val bbox = BoundingBox(Bounds(min(0), max(0)), Bounds(min(1), max(1)))
+
+  def toRasterQuery: RasterQuery = RasterQuery(bbox, accResolution, None, None)
 }

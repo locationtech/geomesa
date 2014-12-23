@@ -72,7 +72,7 @@ class MosaicTest extends Specification {
     rasterList.toList
   }
 
-  def getImageByteArray(rasterList: List[Raster],
+  def getImageByteArray(rasterList: Iterator[Raster],
                         width: Int,
                         height: Int,
                         envelope: ReferencedEnvelope,
@@ -88,13 +88,13 @@ class MosaicTest extends Specification {
     val envelope = new ReferencedEnvelope(bbox.envelope, DefaultGeographicCRS.WGS84)
     val resX = (envelope.getMaximum(0) - envelope.getMinimum(0)) / (width * 2)
     val resY = (envelope.getMaximum(1) - envelope.getMinimum(1)) / (height * 2)
-    val ingestRasters = getTestRasters(width, height, bbox)
+    val ingestRastersList = getTestRasters(width, height, bbox)
     val rs = getRasterStore
-    ingestRasters.foreach(rs.putRaster)
+    ingestRastersList.foreach(rs.putRaster)
     //1.0 is used as a fake resolution for this mock Accumulo test
     val rq = new RasterQuery(BoundingBox(envelope), 1.0, None, None)
-    val queryRasters = rs.getRasters(rq).toList
-    val ingestImageByteArray = getImageByteArray(ingestRasters, width, height, envelope, resX, resY)
+    val queryRasters = rs.getRasters(rq)
+    val ingestImageByteArray = getImageByteArray(ingestRastersList.toIterator, width, height, envelope, resX, resY)
     val queryImageByteArray = getImageByteArray(queryRasters, width, height, envelope, resX, resY)
     ArrayUtil.equals(ingestImageByteArray, queryImageByteArray) must beTrue
   }

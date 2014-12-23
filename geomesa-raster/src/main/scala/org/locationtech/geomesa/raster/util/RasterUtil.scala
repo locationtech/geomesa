@@ -73,8 +73,8 @@ object RasterUtils {
     g2D.setColor(save)
     emptyImage
   }
-  // TODO: WCS: GEOMESA-598 Replace with an Iterator[Raster] if appropriate
-  def mosaicRasters(rasters:List[Raster], width: Int, height: Int, env: Envelope, resx: Double, resy: Double) = {
+
+  def mosaicRasters(rasters: Iterator[Raster], width: Int, height: Int, env: Envelope, resx: Double, resy: Double) = {
     val rescaleX: Double = resx / (env.getSpan(0) / width)
     val rescaleY: Double = resy / (env.getSpan(1) / height)
     val newWidth: Double = width / rescaleX
@@ -82,13 +82,14 @@ object RasterUtils {
     val imageWidth = Math.max(Math.round(newWidth), 1).toInt
     val imageHeight = Math.max(Math.round(newHeight), 1).toInt
     val image = getEmptyImage(imageWidth, imageHeight)
-    rasters.foreach({ raster =>
+    while(rasters.hasNext) {
+      val raster = rasters.next()
       val coverageEnv = raster.envelope
       val coverageImage = raster.chunk
       val dx = ((coverageEnv.getMinimum(0) - env.getMinimum(0)) / resx).toInt
       val dy = ((env.getMaximum(1) - coverageEnv.getMaximum(1)) / resy).toInt
       image.getRaster.setRect(dx, dy, coverageImage.getData)
-    })
+    }
     image
   }
   //TODO: WCS: Split off functions useful for just tests into a separate object, which includes classes from here on down

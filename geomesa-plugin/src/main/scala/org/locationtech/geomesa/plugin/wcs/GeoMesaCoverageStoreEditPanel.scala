@@ -24,6 +24,7 @@ import org.apache.wicket.model.PropertyModel
 import org.geoserver.catalog.CoverageStoreInfo
 import org.geotools.data.DataAccessFactory.Param
 import org.locationtech.geomesa.plugin.GeoMesaStoreEditPanel
+import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageReader.FORMAT
 
 class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
   extends GeoMesaStoreEditPanel(componentId, storeEditForm) {
@@ -39,12 +40,9 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
   val password = addPasswordPanel(paramsModel, new Param("password", classOf[String], "Password", true))
   val authTokens = addTextPanel(paramsModel, new Param("authTokens", classOf[String], "Authorizations", true))
   val tableName = addTextPanel(paramsModel, new Param("tableName", classOf[String], "The Accumulo Table Name", true))
-  val geohash = addTextPanel(paramsModel, new Param("geohash", classOf[String], "Geohash", true))
-  val resolution = addTextPanel(paramsModel, new Param("resolution", classOf[String], "Resolution", true))
-  val timeStamp = addTextPanel(paramsModel, new Param("timeStamp", classOf[String], "Timestamp", true))
   val rasterName = addTextPanel(paramsModel, new Param("rasterName", classOf[String], "Raster Name", true))
 
-  val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, resolution, user, password, authTokens, tableName, geohash, timeStamp, rasterName)
+  val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, authTokens, tableName, rasterName)
   dependentFormComponents.map(_.setOutputMarkupId(true))
 
   storeEditForm.add(new IFormValidator() {
@@ -57,9 +55,6 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
         .append(":").append(password.getValue)
         .append("@").append(instanceId.getValue)
         .append("/").append(tableName.getValue)
-        .append("#geohash=").append(geohash.getValue)
-        .append("#resolution=").append(resolution.getValue)
-        .append("#timeStamp=").append(timeStamp.getValue)
         .append("#rasterName=").append(rasterName.getValue)
         .append("#zookeepers=").append(zookeepers.getValue)
         .append("#auths=").append(authTokens.getValue)
@@ -69,21 +64,16 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
   })
 
   def parseConnectionParametersFromURL(url: String): JMap[String, String] = {
-    import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageReader.FORMAT
-
     val params = new JMap[String, String]
     if (url != null && url.startsWith("accumulo:")) {
-      val FORMAT(user, password, instanceId, table, geohash, resolutionStr, timeStamp, rasterName, zookeepers, authTokens) = url
+      val FORMAT(user, password, instanceId, table, rasterName, zookeepers, authTokens) = url
       params.put("user", user)
       params.put("password", password)
       params.put("instanceId", instanceId)
       params.put("tableName", table)
-      params.put("resolution", resolutionStr)
-      params.put("zookeepers", zookeepers)
-      params.put("timeStamp", timeStamp)
       params.put("rasterName", rasterName)
+      params.put("zookeepers", zookeepers)
       params.put("authTokens", authTokens)
-      params.put("geohash", geohash)
     }
     params
   }
