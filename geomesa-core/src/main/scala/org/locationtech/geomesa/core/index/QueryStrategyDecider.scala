@@ -31,13 +31,15 @@ import scala.collection.JavaConversions._
 
 object QueryStrategyDecider {
 
-  def chooseStrategy(isCatalogTableFormat: Boolean,
-                     sft: SimpleFeatureType,
-                     query: Query): Strategy =
+  def chooseStrategy(sft: SimpleFeatureType, query: Query, version: Int): Strategy =
     // if datastore doesn't support attr index use spatiotemporal only
-    if (isCatalogTableFormat) chooseNewStrategy(sft, query) else new STIdxStrategy
+    if (version < 1) {
+      new STIdxStrategy
+    } else {
+      chooseNewStrategy(sft, query, version)
+    }
 
-  def chooseNewStrategy(sft: SimpleFeatureType, query: Query): Strategy = {
+  def chooseNewStrategy(sft: SimpleFeatureType, query: Query, version: Int): Strategy = {
     val filter = query.getFilter
     val isADensity = query.getHints.containsKey(BBOX_KEY) || query.getHints.contains(TIME_BUCKETS_KEY)
 
@@ -50,7 +52,7 @@ object QueryStrategyDecider {
       attributeStrategy.getOrElse {
         filter match {
           case idFilter: Id => new RecordIdxStrategy
-          case and: And => processAnd(isADensity, sft, and)
+          case and: And     => processAnd(isADensity, sft, and)
           case cql          => new STIdxStrategy
         }
       }

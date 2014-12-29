@@ -128,7 +128,10 @@ object IndexValueEncoder {
 
   // gets a cached instance to avoid the initialization overhead
   // we use sft.toString, which includes the fields and type name, as a unique key
-  def apply(sft: SimpleFeatureType) = cache.get.getOrElseUpdate(sft.toString, createNew(sft))
+  def apply(sft: SimpleFeatureType) = {
+    val key = s"${sft.getTypeName}[${SimpleFeatureTypes.encodeType(sft)}]"
+    cache.get.getOrElseUpdate(key, createNew(sft))
+  }
 
   // gets the default schema, which includes ID, geom and date (if available)
   // order is important here, as it needs to match the old IndexEntry encoding

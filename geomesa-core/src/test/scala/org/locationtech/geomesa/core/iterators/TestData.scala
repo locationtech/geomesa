@@ -38,7 +38,18 @@ object TestData extends Logging {
   val wktQuery = "POLYGON((45 23, 48 23, 48 27, 45 27, 45 23))"
 
   val featureName = "feature"
-  val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
+  val schemaEncoding =
+    new IndexSchemaBuilder("~")
+      .randomNumber(10)
+      .indexOrDataFlag()
+      .constant(featureName)
+      .geoHash(0, 3)
+      .date("yyyyMMdd")
+      .nextPart()
+      .geoHash(3, 2)
+      .nextPart()
+      .id()
+      .build()
 
   def getTypeSpec(suffix: String = "2") = {
     s"POINT:String,LINESTRING:String,POLYGON:String,attr$suffix:String:index=true," + spec

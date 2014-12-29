@@ -145,7 +145,7 @@ object AttributeIndexJob {
 
     if (ds == null) {
       throw new IllegalArgumentException("Data store could not be loaded")
-    } else if (!ds.catalogTableFormat(feature)) {
+    } else if (ds.geomesaVersion(feature) < 1) {
       throw new IllegalStateException("Feature does not have an attribute index")
     }
 

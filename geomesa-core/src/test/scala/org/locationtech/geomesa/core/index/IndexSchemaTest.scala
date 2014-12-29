@@ -23,7 +23,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureEncoder, AvroSimpleFeatureFactory}
+import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
+import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, FeatureEncoding, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -68,6 +69,12 @@ class IndexSchemaTest extends Specification {
         "%~#s%foo#cstr%0,1#gh%99#r::%~#s%1,5#gh::%~#s%15#id%5,2#gh",
         dummyType, dummyEncoder))
       schema.isFailure must beTrue
+    }
+
+    "allow index/data flags" in {
+      val schema = IndexSchema("%~#s%#i%foo#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%15#id",
+        dummyType, dummyEncoder)
+      schema should not be null
     }
   }
 

@@ -22,7 +22,6 @@ import org.apache.accumulo.core.data.Key
 import org.geotools.data.Query
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
-import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.util._
 import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -129,6 +128,7 @@ object IndexSchema extends RegexParsers with Logging {
   val GEO_HASH_CODE = "gh"
   val DATE_CODE = "d"
   val CONSTANT_CODE = "cstr"
+  val INDEX_DATA_CODE = "i"
   val RANDOM_CODE = "r"
   val SEPARATOR_CODE = "s"
   val ID_CODE = "id"
@@ -140,7 +140,7 @@ object IndexSchema extends RegexParsers with Logging {
   // with a '~'
   def sep = pattern("\\W".r, SEPARATOR_CODE)
 
-  // A random partitioner.  '%999#r' would write a random value between 000 and 999 inclusive
+  // A random partitioner.  '%999#r' would write a random value between 000 and 998 inclusive
   def randPartitionPattern = pattern("\\d+".r,RANDOM_CODE)
   def randEncoder: Parser[PartitionTextFormatter] = randPartitionPattern ^^ {
     case d => PartitionTextFormatter(d.toInt)
@@ -169,9 +169,16 @@ object IndexSchema extends RegexParsers with Logging {
     case str => ConstantTextFormatter(str)
   }
 
+  // An index or data flag encoder. '%#i' is the pattern
+  //  We match the empty string
+  def indexOrDataPattern = pattern("".r, INDEX_DATA_CODE)
+  def indexOrDataEncoder: Parser[IndexOrDataTextFormatter] = indexOrDataPattern ^^ {
+    case _ => IndexOrDataTextFormatter()
+  }
+
   // a key element consists of a separator and any number of random partitions, geohashes, and dates
   def keypart: Parser[CompositeTextFormatter] =
-    (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder)) ^^ {
+    (sep ~ rep(randEncoder | geohashEncoder | dateEncoder | constantStringEncoder | indexOrDataEncoder)) ^^ {
       case sep ~ xs => CompositeTextFormatter(xs, sep)
     }
 
@@ -281,6 +288,10 @@ object IndexSchema extends RegexParsers with Logging {
     case str => ConstStringPlanner(str)
   }
 
+  def indexOrDataPlanner: Parser[IndexOrDataPlanner] = indexOrDataPattern ^^ {
+    case _ => IndexOrDataPlanner()
+  }
+
   def randPartitionPlanner: Parser[RandomPartitionPlanner] = randPartitionPattern ^^ {
     case d => RandomPartitionPlanner(d.toInt)
   }
@@ -294,7 +305,7 @@ object IndexSchema extends RegexParsers with Logging {
   }
 
   def keyPlanner: Parser[KeyPlanner] =
-    sep ~ rep(constStringPlanner | datePlanner | randPartitionPlanner | geohashKeyPlanner) <~ "::.*".r ^^ {
+    sep ~ rep(constStringPlanner | datePlanner | randPartitionPlanner | geohashKeyPlanner | indexOrDataPlanner) <~ "::.*".r ^^ {
       case sep ~ list => CompositePlanner(list, sep)
     }
 
@@ -369,6 +380,13 @@ class IndexSchemaBuilder(separator: String) {
    * @return the schema builder instance
    */
   def randomNumber(maxValue: Int): IndexSchemaBuilder = append(RANDOM_CODE, maxValue)
+
+  /**
+   * Adds an index/data flag.
+   *
+   * @return the schema builder instance
+   */
+  def indexOrDataFlag(): IndexSchemaBuilder = append(INDEX_DATA_CODE)
 
   /**
    * Adds a constant value.

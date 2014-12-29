@@ -399,7 +399,7 @@ class FeatureWritersTest extends Specification {
         val deleteFilter = CQL.toFilter("name = 'will'")
 
         val q = new Query(sft.getTypeName, deleteFilter)
-        QueryStrategyDecider.chooseStrategy(true, sft, q) must beAnInstanceOf[AttributeIdxEqualsStrategy]
+        QueryStrategyDecider.chooseStrategy(sft, q, INTERNAL_GEOMESA_VERSION) must beAnInstanceOf[AttributeIdxEqualsStrategy]
 
         import org.locationtech.geomesa.utils.geotools.Conversions._
 

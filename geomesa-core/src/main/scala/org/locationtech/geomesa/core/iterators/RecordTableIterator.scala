@@ -1,14 +1,14 @@
 /*
  * Copyright 2014 Commonwealth Computer Research, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the License);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an AS IS BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -19,31 +19,29 @@ package org.locationtech.geomesa.core.iterators
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
-import org.locationtech.geomesa.utils.stats.{AutoLoggingTimings, MethodProfiling, NoOpTimings, Timings}
+import org.locationtech.geomesa.core._
+import org.locationtech.geomesa.core.data.tables.AttributeTable._
+import org.locationtech.geomesa.core.index._
+import org.opengis.feature.`type`.AttributeDescriptor
+
+import scala.util.{Failure, Success}
 
 /**
- * This is an Index Only Iterator, to be used in situations where the data records are
- * not useful enough to pay the penalty of decoding when using the
- * SpatioTemporalIntersectingIterator.
- *
- * This iterator returns as its nextKey the key for the index. nextValue is
- * the value for the INDEX, mapped into a SimpleFeature
+ * Iterator for the record table. Applies transforms and ECQL filters.
  */
-class IndexIterator
+class RecordTableIterator
     extends HasIteratorExtensions
     with SortedKeyValueIterator[Key, Value]
-    with HasFeatureBuilder
-    with HasSpatioTemporalFilter
+    with HasFeatureType
     with HasFeatureDecoder
+    with HasEcqlFilter
     with HasTransforms
-    with HasInMemoryDeduplication
-    with MethodProfiling
     with Logging {
 
-  protected var topKey: Option[Key] = None
-  protected var topValue: Option[Value] = None
-  protected var source: SortedKeyValueIterator[Key, Value] = null
+  var source: SortedKeyValueIterator[Key, Value] = null
+
+  var topKey: Option[Key] = None
+  var topValue: Option[Value] = None
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
@@ -93,27 +91,20 @@ class IndexIterator
     // loop while there is more data and we haven't matched our filter
     while (topValue.isEmpty && source.hasTop) {
 
-      val indexKey = source.getTopKey
+      val sourceValue = source.getTopValue
+      // the value contains the full-resolution geometry and time
+      lazy val feature = featureDecoder.decode(sourceValue.get())
+      // TODO we could decode it already transformed if we check that the filters are covered
+      // evaluate the filter check
+      val meetsFilters = ecqlFilter.forall(fn => fn(feature))
 
-      if (!SpatioTemporalTable.isIndexEntry(indexKey)) {
-        // if this is a data entry, skip it
-        logger.warn("Found unexpected data entry: " + indexKey)
-      } else {
-        // the value contains the full-resolution geometry and time plus feature ID
-        val decodedValue = indexEncoder.decode(source.getTopValue.get)
-
-        // evaluate the filter checks, in least to most expensive order
-        val meetsIndexFilters = checkUniqueId.forall(fn => fn(decodedValue.id)) &&
-            stFilter.forall(fn => fn(decodedValue.geom, decodedValue.date.map(_.getTime)))
-
-        if (meetsIndexFilters) { // we hit a valid geometry, date and id
-          val transformedFeature = encodeIndexValueToSF(decodedValue)
-          // update the key and value
-          // copy the key because reusing it is UNSAFE
-          topKey = Some(indexKey)
-          topValue = transform.map(fn => new Value(fn(transformedFeature)))
-              .orElse(Some(new Value(featureEncoder.encode(transformedFeature))))
-        }
+      if (meetsFilters) {
+        // current entry matches our filter - update the key and value
+        // copy the key because reusing it is UNSAFE
+        topKey = Some(new Key(source.getTopKey))
+        // return the value or transform it as required
+        topValue = transform.map(fn => new Value(fn(feature)))
+            .orElse(Some(new Value(sourceValue)))
       }
 
       // increment the underlying iterator
@@ -122,10 +113,7 @@ class IndexIterator
   }
 
   override def deepCopy(env: IteratorEnvironment) =
-    throw new UnsupportedOperationException("IndexIterator does not support deepCopy.")
+    throw new UnsupportedOperationException("RecordTableIterator does not support deepCopy.")
 }
 
-object IndexIterator {
-  implicit val timings: Timings = new AutoLoggingTimings()
-  implicit val noOpTimings: Timings = new NoOpTimings()
-}
+

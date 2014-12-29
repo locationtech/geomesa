@@ -1,7 +1,7 @@
 package org.locationtech.geomesa.core.util
 
 import org.apache.accumulo.core.client.{BatchScanner, Scanner}
-import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
+import org.locationtech.geomesa.core.data.{AccumuloConnectorCreator, INTERNAL_GEOMESA_VERSION}
 import org.locationtech.geomesa.core.index.ExplainerOutputType
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -29,5 +29,5 @@ class ExplainingConnectorCreator(output: ExplainerOutputType) extends AccumuloCo
    */
   override def createRecordScanner(sft: SimpleFeatureType, numThreads: Int): BatchScanner = new ExplainingBatchScanner(output)
 
-  override def catalogTableFormat(sft: SimpleFeatureType): Boolean = true
+  override def geomesaVersion(sft: SimpleFeatureType): Int = INTERNAL_GEOMESA_VERSION
 }

@@ -82,6 +82,7 @@ class DWithinPredicateTest extends FilterTester {
   val filters = dwithinPointPredicates
 }
 
+@RunWith(classOf[JUnitRunner])
 class IdPredicateTest extends FilterTester {
   val filters = idPredicates
   runTest
@@ -155,12 +156,9 @@ class IdQueryTest extends Specification {
   }
 }
 
-object FilterTester extends AccumuloDataStoreTest with Logging {
+object FilterTester extends Logging {
   val mediumDataFeatures: Seq[SimpleFeature] = mediumData.map(createSF)
   val sft = mediumDataFeatures.head.getFeatureType
-
-  val sft2 = TestData.getFeatureType(typeNameSuffix = "2")
-  val mediumDataFeatures2: Seq[SimpleFeature] = mediumData.map(createSF(_, sft2))
 
   val ds = {
     DataStoreFinder.getDataStore(Map(
@@ -206,8 +204,8 @@ trait FilterTester extends Specification with Logging {
         val filterCount = mediumDataFeatures.count(filter.evaluate)
         val queryCount = fs.getFeatures(filter).size
         logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
-          s"filter hits: $filterCount query hits: $queryCount")
-        filterCount mustEqual queryCount
+            s"filter hits: $filterCount query hits: $queryCount")
+        queryCount mustEqual filterCount
       }
     }
   }

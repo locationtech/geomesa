@@ -53,7 +53,9 @@ trait TestWithDataStore {
   lazy val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
   lazy val ds = {
-    val ds = DataStoreFinder.getDataStore(Map("connector" -> connector,
+    val ds = DataStoreFinder.getDataStore(Map(
+      "connector" -> connector,
+      "caching"   -> false,
       // note the table needs to be different to prevent testing errors
       "tableName" -> sftName).asJava).asInstanceOf[AccumuloDataStore]
     ds.createSchema(sft)

@@ -28,5 +28,11 @@ trait AccumuloConnectorCreator extends Logging {
    */
   def createRecordScanner(sft: SimpleFeatureType, numThreads: Int = 0) : BatchScanner
 
-  def catalogTableFormat(sft: SimpleFeatureType): Boolean
+  /**
+   * Gets the geomesa internal version for the feature type
+   *
+   * @param sft
+   * @return
+   */
+  def geomesaVersion(sft: SimpleFeatureType): Int
 }

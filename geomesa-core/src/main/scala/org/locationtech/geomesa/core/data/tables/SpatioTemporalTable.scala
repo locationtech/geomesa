@@ -28,6 +28,18 @@ import scala.collection.JavaConverters._
 
 object SpatioTemporalTable extends Logging {
 
+  val INDEX_FLAG = "0"
+  val DATA_FLAG = "1"
+
+  val INDEX_CHECK = s"~$INDEX_FLAG~"
+  val DATA_CHECK = s"~$DATA_FLAG~"
+
+  // index rows have an index flag as part of the schema
+  def isIndexEntry(key: Key): Boolean = key.getRow.find(INDEX_CHECK) != -1
+
+  // data rows have a data flag as part of the schema
+  def isDataEntry(key: Key): Boolean = key.getRow.find(DATA_CHECK) != -1
+
   def spatioTemporalWriter(bw: BatchWriter, visibility: String, encoder: IndexEntryEncoder): SimpleFeature => Unit =
     (feature: SimpleFeature) => {
       val KVs = encoder.encode(feature, visibility)
@@ -57,32 +69,40 @@ object SpatioTemporalTable extends Logging {
     val MIN_START = "\u0000"
     val MAX_END = "~"
 
-    val schema = getIndexSchema(sft)
-      .getOrElse(throw new Exception("Cannot delete ${sft.getTypeName}.  SFT does not have its index schema stored."))
+    val schema = getIndexSchema(sft).getOrElse {
+      val msg = s"Cannot delete ${sft.getTypeName}. SFT does not have its index schema stored."
+      throw new Exception(msg)
+    }
 
     val (rowf, _,_) = IndexSchema.parse(IndexSchema.formatter, schema).get
-    rowf.lf match {
-      case Seq(pf: PartitionTextFormatter, const: ConstantTextFormatter, r@_*) =>
-        // Build ranges using pf and const!
+    val planners = rowf.lf match {
+      case Seq(pf: PartitionTextFormatter, i: IndexOrDataTextFormatter, const: ConstantTextFormatter, r@_*) =>
+        // Build ranges using pf, ip and const!
         val rpp = RandomPartitionPlanner(pf.numPartitions)
+        val ip = IndexOrDataPlanner()
         val csp = ConstStringPlanner(const.constStr)
+        Seq(rpp, ip, csp)
 
-        val planner =  CompositePlanner(Seq(rpp, csp), "~")
-        val kp = planner.getKeyPlan(AcceptEverythingFilter, ExplainPrintln)
-
-        val rs: Seq[data.Range] = kp match {
-          case KeyRanges(ranges) =>
-            ranges.map { r =>
-              new org.apache.accumulo.core.data.Range(r.start + "~" + MIN_START, r.end + "~" + MAX_END)
-            }
-          case _ => logger.error(s"Keyplanner failed to build range properly."); Seq()
-        }
-
-        bd.setRanges(rs.asJavaCollection)
-        bd.delete()
-        bd.close()
-
-      case _ => throw new RuntimeException(s"Cannot delete ${sft.getTypeName}.  SFT has the wrong schema structure..")
+      case _ =>
+        throw new RuntimeException(s"Cannot delete ${sft.getTypeName}. SFT has an invalid schema structure.")
     }
+
+    val planner =  CompositePlanner(planners, "~")
+    val keyPlans =
+      Seq(true, false).map(indexOnly => planner.getKeyPlan(AcceptEverythingFilter, indexOnly, ExplainNull))
+
+    val ranges = keyPlans.map { kp =>
+      kp match {
+        case KeyRanges(rs) => rs.map(r => new data.Range(r.start + "~" + MIN_START, r.end + "~" + MAX_END))
+        case _ =>
+          logger.error(s"Keyplanner failed to build range properly.")
+          Seq.empty
+      }
+    }.flatten
+
+    bd.setRanges(ranges.asJavaCollection)
+    bd.delete()
+    bd.close()
+
   }
 }
