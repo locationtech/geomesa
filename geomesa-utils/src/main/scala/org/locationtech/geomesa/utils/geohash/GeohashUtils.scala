@@ -397,8 +397,14 @@ object GeohashUtils
     getClosestAcceptableGeoHash(BoundingBox(env))
   }
 
+  /**
+   *
+   * @param bbox the BoundingBox to which the closest acceptable GeoHash will be derived from.
+   * @return
+   */
   def getClosestAcceptableGeoHash(bbox: BoundingBox): Option[GeoHash] = {
     val prec = calculatePrecision(bbox)
+    // The GeoHash precision must be some multiple of 5 to be correctly represented via the 32-bit GeoHash encoding
     prec % 5 match {
       case 0 => Some(getClosestAcceptableGeoHash(bbox, prec))
       case _ => None
