@@ -146,7 +146,6 @@ fi
 # else is running actual commands in the tools
 
 if  [[ $1 = configure ]]; then
-    defineGeoMesaHome
     echo "To persist the configuration please update your bashrc file to include: "
     echo "export GEOMESA_HOME="$GEOMESA_HOME""
     echo "export PATH=\${GEOMESA_HOME}/bin:\$PATH"
