@@ -79,6 +79,11 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     val rasterReader = getReader(file, fileType)
     val rasterGrid: GridCoverage2D = rasterReader.read(null)
 
+    val projection = rasterGrid.getCoordinateReferenceSystem.getName.toString
+    if (projection != "EPSG:WGS 84") {
+      throw new Exception(s"Error, Projection: $projection is unsupported.")
+    }
+
     val envelope = rasterGrid.getEnvelope2D
 
     val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
