@@ -96,7 +96,8 @@ case class RasterIndexEntryEncoder(rowf: TextFormatter,
 
   private def getRow(ras: Raster) = {
     val resEncoder = DoubleTextFormatter(ras.resolution)
-    new Text(s"~${resEncoder.fmtdStr}~${ras.mbgh.hash}")
+    val geohash = ras.mbgh.map(_.hash).getOrElse("")
+    new Text(s"~${resEncoder.fmtdStr}~$geohash")
   }
 
   //TODO: WCS: add band value to Raster and insert it into the CF here
