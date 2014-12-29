@@ -83,7 +83,7 @@ object RasterUtils {
     val image = getEmptyImage(imageWidth, imageHeight)
     while(rasters.hasNext) {
       val raster = rasters.next()
-      val coverageEnv = raster.getReferencedEnvelope
+      val coverageEnv = raster.referencedEnvelope
       val coverageImage = raster.chunk
       val dx = ((coverageEnv.getMinimum(0) - env.getMinimum(0)) / resx).toInt
       val dy = ((env.getMaximum(1) - coverageEnv.getMaximum(1)) / resy).toInt

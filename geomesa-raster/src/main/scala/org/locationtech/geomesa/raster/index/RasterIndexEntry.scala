@@ -96,7 +96,7 @@ case class RasterIndexEntryEncoder(rowf: TextFormatter,
 
   private def getRow(ras: Raster) = {
     val resEncoder = DoubleTextFormatter(ras.resolution)
-    new Text(s"~${resEncoder.fmtdStr}~${ras.getMinimumBoundingGeoHash.hash}")
+    new Text(s"~${resEncoder.fmtdStr}~${ras.minimumBoundingGeoHash.hash}")
   }
 
   //TODO: WCS: add band value to Raster and insert it into the CF here
@@ -108,7 +108,7 @@ case class RasterIndexEntryEncoder(rowf: TextFormatter,
   }
 
   private def encodeValue(raster: Raster): Value =
-    new Value(raster.serializeChunk)
+    new Value(raster.serializedChunk)
 
 }
 

@@ -30,13 +30,13 @@ case class Raster(chunk: RenderedImage, metadata: DecodedIndex, resolution: Doub
 
   def id = metadata.id
 
-  def time = new DateTime(metadata.dtgMillis.getOrElse(0L), DateTimeZone.forID("UTC"))
+  lazy val time = new DateTime(metadata.dtgMillis.getOrElse(0L), DateTimeZone.forID("UTC"))
 
-  def getMinimumBoundingGeoHash = GeohashUtils.getClosestAcceptableGeoHash(metadata.geom.getEnvelopeInternal)
+  lazy val minimumBoundingGeoHash = GeohashUtils.getClosestAcceptableGeoHash(metadata.geom.getEnvelopeInternal)
 
-  def getReferencedEnvelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, CRS.decode("EPSG:4326"))
+  lazy val referencedEnvelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, CRS.decode("EPSG:4326"))
 
-  def serializeChunk = RasterUtils.imageSerialize(chunk)
+  lazy val serializedChunk = RasterUtils.imageSerialize(chunk)
 
 }
 
