@@ -67,10 +67,11 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource with Logging w
     new AccumuloFeatureCollection(self, query)
   }
 
-  override def getFeatures(query: Query): SimpleFeatureCollection = tryLoggingFailures(getFeaturesNoCache(query))
+  override def getFeatures(query: Query): SimpleFeatureCollection =
+    tryLoggingFailures(getFeaturesNoCache(query))
 
   override def getFeatures(filter: Filter): SimpleFeatureCollection =
-    tryLoggingFailures(getFeatures(new Query(getSchema().getTypeName, filter)))
+    getFeatures(new Query(getSchema().getTypeName, filter))
 }
 
 class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featureName: Name)
