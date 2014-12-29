@@ -21,6 +21,9 @@ import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.ZooKeeperInstance
+import org.apache.commons.compress.compressors.bzip2.BZip2Utils
+import org.apache.commons.compress.compressors.gzip.GzipUtils
+import org.apache.commons.compress.compressors.xz.XZUtils
 import org.apache.hadoop.fs.Path
 
 import scala.util.{Failure, Success, Try}
@@ -31,27 +34,28 @@ object Utils {
   object IngestParams {
     val ACCUMULO_INSTANCE   = "geomesa.tools.ingest.instance"
     val ZOOKEEPERS          = "geomesa.tools.ingest.zookeepers"
-    val ACCUMULO_MOCK       = "geomesa.tools.ingest.useMock"
+    val ACCUMULO_MOCK       = "geomesa.tools.ingest.use-mock"
     val ACCUMULO_USER       = "geomesa.tools.ingest.user"
     val ACCUMULO_PASSWORD   = "geomesa.tools.ingest.password"
     val AUTHORIZATIONS      = "geomesa.tools.ingest.authorizations"
     val VISIBILITIES        = "geomesa.tools.ingest.visibilities"
     val SHARDS              = "geomesa.tools.ingest.shards"
-    val INDEX_SCHEMA_FMT    = "geomesa.tools.ingest.indexSchemaFormat"
-    val SKIP_HEADER         = "geomesa.tools.ingest.skipHeader"
-    val DO_HASH             = "geomesa.tools.ingest.doHash"
-    val DT_FORMAT           = "geomesa.tools.ingest.dtFormat"
-    val ID_FIELDS           = "geomesa.tools.ingest.idFields"
-    val DT_FIELD            = "geomesa.tools.ingest.dtField"
+    val INDEX_SCHEMA_FMT    = "geomesa.tools.ingest.index-schema-format"
+    val SKIP_HEADER         = "geomesa.tools.ingest.skip-header"
+    val DO_HASH             = "geomesa.tools.ingest.do-hash"
+    val DT_FORMAT           = "geomesa.tools.ingest.dt-format"
+    val ID_FIELDS           = "geomesa.tools.ingest.id-fields"
+    val DT_FIELD            = "geomesa.tools.ingest.dt-fields"
     val FILE_PATH           = "geomesa.tools.ingest.path"
     val FORMAT              = "geomesa.tools.ingest.delimiter"
-    val LON_ATTRIBUTE       = "geomesa.tools.ingest.lonAttribute"
-    val LAT_ATTRIBUTE       = "geomesa.tools.ingest.latAttribute"
+    val LON_ATTRIBUTE       = "geomesa.tools.ingest.lon-attribute"
+    val LAT_ATTRIBUTE       = "geomesa.tools.ingest.lat-attribute"
     val FEATURE_NAME        = "geomesa.tools.feature.name"
     val CATALOG_TABLE       = "geomesa.tools.feature.tables.catalog"
-    val SFT_SPEC            = "geomesa.tools.feature.sftspec"
+    val SFT_SPEC            = "geomesa.tools.feature.sft-spec"
     val COLS                = "geomesa.tools.ingest.cols"
-    val IS_TEST_INGEST      = "geomesa.tools.ingest.runIngest"
+    val IS_TEST_INGEST      = "geomesa.tools.ingest.is-test-ingest"
+    val LIST_DELIMITER      = "geomesa.tools.ingest.list-delimiter"
   }
 
   object Formats {
@@ -65,21 +69,26 @@ object Utils {
     val GML     = "gml"
     val BIN     = "bin"
 
-    def getFileExtension(name: String) =
-      name.toLowerCase match {
-        case _ if name.endsWith(CSV)  => CSV
-        case _ if name.endsWith("tif") ||
-                  name.endsWith("tiff") => TIFF
-        case _ if name.endsWith("dt0") ||
-                  name.endsWith("dt1") ||
-                  name.endsWith("dt2")=> DTED
-        case _ if name.endsWith(TSV)  => TSV
-        case _ if name.endsWith(SHP)  => SHP
-        case _ if name.endsWith(JSON) => JSON
-        case _ if name.endsWith(GML)  => GML
-        case _ if name.endsWith(BIN)  => BIN
-        case _                        => "unknown"
+    def getFileExtension(name: String) = {
+      val fileExtension = name match {
+        case _ if GzipUtils.isCompressedFilename(name)  => GzipUtils.getUncompressedFilename(name)
+        case _ if BZip2Utils.isCompressedFilename(name) => BZip2Utils.getUncompressedFilename(name)
+        case _ if XZUtils.isCompressedFilename(name)    => XZUtils.getUncompressedFilename(name)
+        case _ => name
       }
+
+      fileExtension match {
+        case _ if name.toLowerCase.endsWith(CSV)  => CSV
+        case _ if name.toLowerCase.endsWith(TSV)  => TSV
+        case _ if name.toLowerCase.endsWith(SHP)  => SHP
+        case _ if name.toLowerCase.endsWith(JSON) => JSON
+        case _ if name.toLowerCase.endsWith(GML)  => GML
+        case _ if name.toLowerCase.endsWith(BIN)  => BIN
+        case _ if name.toLowerCase.endsWith("tif") || name.toLowerCase.endsWith("tiff") => TIFF
+        case _ if name.toLowerCase.endsWith("dt0") || name.toLowerCase.endsWith("dt1") || name.toLowerCase.endsWith("dt2")=> DTED
+        case _ => "unknown"
+      }
+    }
 
     val All = List(CSV, TSV, SHP, JSON, GeoJson, GML, BIN)
   }
@@ -88,9 +97,9 @@ object Utils {
     val Local = "local"
     val Hdfs = "hdfs"
 
-    def getMode(filename: String) = if (filename.toLowerCase.trim.startsWith("hdfs://")) Hdfs else Local
+    def getJobMode(filename: String) = if (filename.toLowerCase.trim.startsWith("hdfs://")) Hdfs else Local
+    def getModeFlag(filename: String) = "--" + getJobMode(filename)
 
-    def getModeFlag(filename: String) = "--" + getMode(filename)
   }
 
 }

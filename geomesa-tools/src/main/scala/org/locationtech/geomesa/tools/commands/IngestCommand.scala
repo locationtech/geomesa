@@ -20,8 +20,8 @@ import java.util
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.tools.Utils.Formats._
-import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.commands.IngestCommand._
+import org.locationtech.geomesa.tools.ingest.{DelimitedIngest, ShpIngest}
 
 import scala.collection.JavaConversions._
 
@@ -72,7 +72,9 @@ object IngestCommand {
     @Parameter(names = Array("-fmt", "--format"), description = "format of incoming data (csv | tsv | shp) to override file extension recognition")
     var format: String = null
 
-    // TODO GEOMESA-528 enable ingest of multiple files
+    @Parameter(names = Array("-ld", "--list-delimiter"), description = "character(s) to delimit list features")
+    var listDelimiter: String = ","
+
     @Parameter(description = "<file>...", required = true)
     var files: java.util.List[String] = new util.ArrayList[String]()
   }

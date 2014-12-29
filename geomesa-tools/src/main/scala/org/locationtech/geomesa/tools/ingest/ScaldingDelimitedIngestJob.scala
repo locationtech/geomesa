@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.locationtech.geomesa.tools
+package org.locationtech.geomesa.tools.ingest
 
 import java.net.URLDecoder
 import java.nio.charset.Charset
 
 import com.google.common.hash.Hashing
-import com.twitter.scalding.{Args, Job, TextLine}
+import com.twitter.scalding.{Args, Hdfs, Job, Local, Mode}
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.commons.csv.{CSVFormat, CSVParser}
@@ -27,18 +27,24 @@ import org.geotools.data.{DataStoreFinder, FeatureWriter, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.util.Converters
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.{params => dsp}
 import org.locationtech.geomesa.core.index.Constants
+import org.locationtech.geomesa.jobs.scalding.MultipleUsefulTextLineFiles
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import ScaldingDelimitedIngestJob.toList
+import ScaldingDelimitedIngestJob.isList
 
-import scala.util.Try
 import scala.util.parsing.combinator.JavaTokenParsers
+import scala.util.{Failure, Success, Try}
 
-class DelimitedIngestJob(args: Args) extends Job(args) with Logging {
+class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
   import scala.collection.JavaConversions._
 
   var lineNumber            = 0
@@ -46,7 +52,7 @@ class DelimitedIngestJob(args: Args) extends Job(args) with Logging {
   var successes             = 0
 
   lazy val idFields         = args.optional(IngestParams.ID_FIELDS).orNull
-  lazy val path             = args(IngestParams.FILE_PATH)
+  lazy val pathList         = DelimitedIngest.decodeFileList(args(IngestParams.FILE_PATH))
   lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
   lazy val colList          = args.optional(IngestParams.COLS).map(ColsParser.build)
   lazy val dtgField         = args.optional(IngestParams.DT_FIELD)
@@ -57,28 +63,25 @@ class DelimitedIngestJob(args: Args) extends Job(args) with Logging {
   lazy val format           = args(IngestParams.FORMAT)
   lazy val isTestRun        = args(IngestParams.IS_TEST_INGEST).toBoolean
   lazy val featureName      = args(IngestParams.FEATURE_NAME)
-  lazy val maxShard         = args.optional(IngestParams.SHARDS).map(_.toInt)
+  lazy val listDelimiter    = args(IngestParams.LIST_DELIMITER).charAt(0)
 
   //Data Store parameters
   lazy val dsConfig =
     Map(
-      "featureName"       -> featureName,
-      "maxShard"          -> maxShard,
-      "zookeepers"        -> args(IngestParams.ZOOKEEPERS),
-      "instanceId"        -> args(IngestParams.ACCUMULO_INSTANCE),
-      "tableName"         -> args(IngestParams.CATALOG_TABLE),
-      "user"              -> args(IngestParams.ACCUMULO_USER),
-      "password"          -> args(IngestParams.ACCUMULO_PASSWORD),
-      "auths"             -> args.optional(IngestParams.AUTHORIZATIONS),
-      "visibilities"      -> args.optional(IngestParams.VISIBILITIES),
-      "indexSchemaFormat" -> args.optional(IngestParams.INDEX_SCHEMA_FMT),
-      "useMock"           -> args.optional(IngestParams.ACCUMULO_MOCK)
+      dsp.zookeepersParam.getName -> args(IngestParams.ZOOKEEPERS),
+      dsp.instanceIdParam.getName -> args(IngestParams.ACCUMULO_INSTANCE),
+      dsp.tableNameParam.getName  -> args(IngestParams.CATALOG_TABLE),
+      dsp.userParam.getName       -> args(IngestParams.ACCUMULO_USER),
+      dsp.passwordParam.getName   -> args(IngestParams.ACCUMULO_PASSWORD),
+      dsp.authsParam.getName      -> args.optional(IngestParams.AUTHORIZATIONS),
+      dsp.visibilityParam.getName -> args.optional(IngestParams.VISIBILITIES),
+      dsp.mockParam.getName       -> args.optional(IngestParams.ACCUMULO_MOCK)
     ).collect{ case (key, Some(value)) => (key, value); case (key, value: String) => (key, value) }
 
   lazy val delim = format match {
-    case s: String if s.toUpperCase == "TSV" => CSVFormat.TDF
-    case s: String if s.toUpperCase == "CSV" => CSVFormat.DEFAULT
-    case _                       => throw new Exception("Error, no format set and/or unrecognized format provided")
+    case _ if format.equalsIgnoreCase("tsv") => CSVFormat.TDF
+    case _ if format.equalsIgnoreCase("csv") => CSVFormat.DEFAULT
+    case _ => throw new IllegalArgumentException("Error, no format set and/or unrecognized format provided")
   }
 
   lazy val sft = {
@@ -104,7 +107,14 @@ class DelimitedIngestJob(args: Args) extends Job(args) with Logging {
   }
 
   def printStatInfo() {
-    logger.info(getStatInfo(successes, failures, "Ingestion finished, total features:"))
+    Mode.getMode(args) match {
+      case Some(Local(_)) =>
+        logger.info(getStatInfo(successes, failures, "Local ingest completed, total features:"))
+      case Some(Hdfs(_, _)) =>
+        logger.info("Ingest completed in HDFS mode")
+      case _ =>
+        logger.warn("Could not determine job mode")
+    }
   }
 
   def getStatInfo(successes: Int, failures: Int, pref: String): String = {
@@ -116,69 +126,70 @@ class DelimitedIngestJob(args: Args) extends Job(args) with Logging {
 
   // Check to see if this an actual ingest job or just a test.
   if (!isTestRun) {
-    TextLine(path).using(new Resources)
+    new MultipleUsefulTextLineFiles(pathList: _*).using(new Resources)
       .foreach('line) { (cres: Resources, line: String) => lineNumber += 1; ingestLine(cres.fw, line) }
   }
 
+  // TODO unit test class without having an internal helper method
   def runTestIngest(lines: Iterator[String]) = Try {
     val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
     ds.createSchema(sft)
     val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
-    lines.foreach( line => ingestLine(fw, line) )
-    fw.close()
-  }
-
-  def ingestLine(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String): Unit = {
-    val toWrite = fw.next
-    // add data from csv/tsv line to the feature
-    val addDataToFeature = ingestDataToFeature(line, toWrite)
-    // check if we have a success
-    val writeSuccess = for {
-      success <- addDataToFeature
-      write <- Try {
-        try { fw.write() }
-        catch {
-          case e: Exception => throw new Exception(s" longitude and latitudes out of valid" +
-            s" range or malformed data in line with value: $line")
-        }
-      }
-    } yield write
-    // if write was successful, update successes count and log status if needed
-    if (writeSuccess.isSuccess) {
-      successes += 1
-      if (lineNumber % 10000 == 0 && !isTestRun)
-        logger.info(getStatInfo(successes, failures, s"Ingest proceeding $line, on line number:"))
-    } else {
-      failures += 1
-      logger.info(s"Cannot ingest feature on line number: $lineNumber, due to: ${writeSuccess.failed.get.getMessage} ")
-    }
-  }
-
-  def ingestDataToFeature(line: String, feature: SimpleFeature) = Try {
-    val reader = CSVParser.parse(line, delim)
-    val fields: List[String] = try {
-      val allFields = reader.getRecords.flatten.toList
-      if (colList.isDefined) colList.map(_.map(allFields(_))).get else allFields
-    } catch {
-      case e: Exception => throw new Exception(s"Commons CSV could not parse " +
-        s"line number: $lineNumber \n\t with value: $line")
+    try {
+      lines.foreach { line => ingestLine(fw, line) }
     } finally {
-      reader.close()
+      fw.close()
     }
+  }
+
+  def ingestLine(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String): Unit =
+    Try {
+      ingestDataToFeature(line, fw.next())
+      fw.write()
+    } match {
+      case Success(_) =>
+        successes += 1
+        if (lineNumber % 10000 == 0 && !isTestRun)
+          logger.info(getStatInfo(successes, failures, s"Ingest proceeding $line, on line number:"))
+
+      case Failure(ex) =>
+        failures += 1
+        logger.warn(s"Cannot ingest feature on line number: $lineNumber: ${ex.getMessage}", ex)
+    }
+
+  // Populate the fields of a SimpleFeature with a line of CSV
+  def ingestDataToFeature(line: String, feature: SimpleFeature) = {
+    val reader = CSVParser.parse(line, delim)
+    val fields: List[String] =
+      try {
+        val allFields = reader.getRecords.get(0).toList
+        if (colList.isDefined) colList.map(_.map(allFields(_))).get else allFields
+      } catch {
+        case e: Exception => throw new Exception(s"Commons CSV could not parse " +
+          s"line number: $lineNumber \n\t with value: $line")
+      } finally {
+        reader.close()
+      }
 
     val id = idBuilder(fields)
     feature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
     feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+
     //add data
     for (idx <- 0 until fields.length) {
-      feature.setAttribute(idx, fields(idx))
+      if (isList(sft.getAttributeDescriptors.get(idx))) {
+        feature.setAttribute(idx, toList(fields(idx), listDelimiter, sft.getAttributeDescriptors.get(idx)))
+      } else {
+        feature.setAttribute(idx, fields(idx))
+      }
     }
     //add datetime to feature
     dtBuilder.foreach { dateBuilder => addDateToFeature(line, fields, feature, dateBuilder) }
 
     // Support for point data method
-    val lon = lonField.map(feature.getAttribute).map(_.asInstanceOf[Double])
-    val lat = latField.map(feature.getAttribute).map(_.asInstanceOf[Double])
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+    val lon = lonField.map(feature.get[Double](_))
+    val lat = latField.map(feature.get[Double](_))
     (lon, lat) match {
       case (Some(x), Some(y)) => feature.setDefaultGeometry(geomFactory.createPoint(new Coordinate(x, y)))
       case _                  =>
@@ -187,8 +198,10 @@ class DelimitedIngestJob(args: Args) extends Job(args) with Logging {
       throw new Exception(s"No valid geometry found for line number: $lineNumber,  With value of: $line")
   }
 
-  def addDateToFeature(line: String, fields: Seq[String], feature: SimpleFeature,
-                       dateBuilder: (AnyRef) => DateTime) {
+  def addDateToFeature(line: String,
+                       fields: Seq[String],
+                       feature: SimpleFeature,
+                       dateBuilder: (AnyRef) => DateTime) =
     try {
       val dtgFieldIndex = getAttributeIndexInLine(dtgField.get)
       val date = dateBuilder(fields(dtgFieldIndex)).toDate
@@ -197,7 +210,6 @@ class DelimitedIngestJob(args: Args) extends Job(args) with Logging {
       case e: Exception => throw new Exception(s"Could not form Date object from field " +
         s"using dt-format: $dtgFmt, With line value of: $line")
     }
-  }
 
   def getAttributeIndexInLine(attribute: String) = attributes.indexOf(sft.getDescriptor(attribute))
 
@@ -236,39 +248,54 @@ class DelimitedIngestJob(args: Args) extends Job(args) with Logging {
         }
     }
 
-  /*
-   * Parse column list input string into a sorted list of column indexes.
-   * column list input string is a list of comma-separated column-ranges. A column-range has one
-   * of following formats:
-   * 1. num - a column defined by num.
-   * 2. num1-num2- a range defined by num1 and num2.
-   * Example: "1,4-6,10,11,12" results in List(1, 4, 5, 6, 10, 11, 12)
-   */
-  object ColsParser extends JavaTokenParsers {
-    private val integer = wholeNumber ^^ { _.toInt }
-    private val singleCol =
-      integer ^^ {
-        case e if e >= 0 => List(e)
-        case _           => throw new IllegalArgumentException("Positive column numbers only")
-      }
+}
 
-    private val colRange  =
-      (singleCol <~ "-") ~ singleCol ^^ {
-        case (s::Nil) ~ (e::Nil) if s < e => Range.inclusive(s, e).toList
-        case _                            => throw new IllegalArgumentException("Invalid range")
-      }
+object ScaldingDelimitedIngestJob {
+  def isList(ad: AttributeDescriptor) = classOf[java.util.List[_]].isAssignableFrom(ad.getType.getBinding)
 
-    private val parser =
-      repsep(colRange | singleCol, ",") ^^ {
-        case l => l.flatten.sorted.distinct
-      }
-
-    def build(str: String): List[Int] = parse(parser, str) match {
-      case Success(i, _)   => i
-      case Failure(msg, _) => throw new IllegalArgumentException(msg)
-      case Error(msg, _)   => throw new IllegalArgumentException(msg)
+  def toList(s: String, delim: Char,  ad: AttributeDescriptor) = {
+    val clazz = SimpleFeatureTypes.getCollectionType(ad).get
+    if (s.isEmpty) {
+     List()
+    } else {
+      s.split(delim).map(_.trim).map { value =>
+        Converters.convert(value, clazz).asInstanceOf[AnyRef]
+      }.toList
     }
   }
+}
 
+/*
+ * Parse column list input string into a sorted list of column indexes.
+ * column list input string is a list of comma-separated column-ranges. A column-range has one
+ * of following formats:
+ * 1. num - a column defined by num.
+ * 2. num1-num2- a range defined by num1 and num2.
+ * Example: "1,4-6,10,11,12" results in List(1, 4, 5, 6, 10, 11, 12)
+ */
+object ColsParser extends JavaTokenParsers {
+  private val integer = wholeNumber ^^ { _.toInt }
+  private val singleCol =
+    integer ^^ {
+      case e if e >= 0 => List(e)
+      case _           => throw new IllegalArgumentException("Positive column numbers only")
+    }
+
+  private val colRange  =
+    (singleCol <~ "-") ~ singleCol ^^ {
+      case (s::Nil) ~ (e::Nil) if s < e => Range.inclusive(s, e).toList
+      case _                            => throw new IllegalArgumentException("Invalid range")
+    }
+
+  private val parser =
+    repsep(colRange | singleCol, ",") ^^ {
+      case l => l.flatten.sorted.distinct
+    }
+
+  def build(str: String): List[Int] = parse(parser, str) match {
+    case Success(i, _)   => i
+    case Failure(msg, _) => throw new IllegalArgumentException(msg)
+    case Error(msg, _)   => throw new IllegalArgumentException(msg)
+  }
 }
 
