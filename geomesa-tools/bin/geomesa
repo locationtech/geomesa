@@ -62,16 +62,16 @@ if [ -n "$HADOOP_HOME" ]; then
     if [ -z "$HADOOP_SHARE_DIR" -a -d "${HADOOP_HOME}/share/hadoop" ]; then
         HADOOP_SHARE_DIR=${HADOOP_HOME}/share/hadoop
     fi
-    if [ -z "$HADOOP_COMMON" -a -d "${HADOOP_HOME}/common" ]; then
+    if [ -z "$HADOOP_COMMON" -a -d "${HADOOP_SHARE_DIR}/common" ]; then
         HADOOP_COMMON=${HADOOP_SHARE_DIR}/common
     fi
-    if [ -z "$HADOOP_HDFS" -a -d "${HADOOP_HOME}/hdfs" ]; then
+    if [ -z "$HADOOP_HDFS" -a -d "${HADOOP_SHARE_DIR}/hdfs" ]; then
         HADOOP_HDFS=${HADOOP_SHARE_DIR}/hdfs
     fi
-    if [ -z "$HADOOP_MAPREDUCE" -a -d "${HADOOP_HOME}/mapreduce" ]; then
+    if [ -z "$HADOOP_MAPREDUCE" -a -d "${HADOOP_SHARE_DIR}/mapreduce" ]; then
         HADOOP_MAPREDUCE=${HADOOP_SHARE_DIR}/mapreduce
     fi
-    if [ -z "$HADOOP_YARN" -a -d "${HADOOP_HOME}/yarn" ]; then
+    if [ -z "$HADOOP_YARN" -a -d "${HADOOP_SHARE_DIR}/yarn" ]; then
         HADOOP_YARN=${HADOOP_SHARE_DIR}/yarn
     fi
     if [ -z "$HADOOP_CONF_DIR" -a -d "${HADOOP_HOME}/conf" ]; then
