@@ -61,8 +61,8 @@ object Utils {
   object Formats {
     val CSV     = "csv"
     val TSV     = "tsv"
-    val TIFF    = "tiff"
-    val DTED    = "dted"
+    val TIFF    = "geotiff"
+    val DTED    = "DTED"
     val SHP     = "shp"
     val JSON    = "json"
     val GeoJson = "geojson"
@@ -78,15 +78,18 @@ object Utils {
       }
 
       fileExtension match {
-        case _ if name.toLowerCase.endsWith(CSV)  => CSV
-        case _ if name.toLowerCase.endsWith(TSV)  => TSV
-        case _ if name.toLowerCase.endsWith(SHP)  => SHP
-        case _ if name.toLowerCase.endsWith(JSON) => JSON
-        case _ if name.toLowerCase.endsWith(GML)  => GML
-        case _ if name.toLowerCase.endsWith(BIN)  => BIN
-        case _ if name.toLowerCase.endsWith("tif") || name.toLowerCase.endsWith("tiff") => TIFF
-        case _ if name.toLowerCase.endsWith("dt0") || name.toLowerCase.endsWith("dt1") || name.toLowerCase.endsWith("dt2")=> DTED
-        case _ => "unknown"
+        case _ if fileExtension.toLowerCase.endsWith(CSV)      => CSV
+        case _ if fileExtension.toLowerCase.endsWith(TSV)      => TSV
+        case _ if fileExtension.toLowerCase.endsWith("tif") ||
+                  fileExtension.toLowerCase.endsWith("tiff")   => TIFF
+        case _ if fileExtension.toLowerCase.endsWith("dt0") ||
+                  fileExtension.toLowerCase.endsWith("dt1") ||
+                  fileExtension.toLowerCase.endsWith("dt2")    => DTED
+        case _ if fileExtension.toLowerCase.endsWith(SHP)      => SHP
+        case _ if fileExtension.toLowerCase.endsWith(JSON)     => JSON
+        case _ if fileExtension.toLowerCase.endsWith(GML)      => GML
+        case _ if fileExtension.toLowerCase.endsWith(BIN)      => BIN
+        case _                                                 => "unknown"
       }
     }
 
@@ -99,7 +102,6 @@ object Utils {
 
     def getJobMode(filename: String) = if (filename.toLowerCase.trim.startsWith("hdfs://")) Hdfs else Local
     def getModeFlag(filename: String) = "--" + getJobMode(filename)
-
   }
 
 }

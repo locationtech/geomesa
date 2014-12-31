@@ -32,6 +32,7 @@ object RasterUtils {
     val GEOSERVER_REG       = "geomesa-tools.ingestraster.geoserver.reg"
     val RASTER_NAME         = "geomesa-tools.ingestraster.name"
     val TABLE               = "geomesa-tools.ingestraster.table"
+    val PARLEVEL            = "geomesa-tools.ingestraster.parallel.level"
   }
 
   def imageSerialize(image: RenderedImage): Array[Byte] = {

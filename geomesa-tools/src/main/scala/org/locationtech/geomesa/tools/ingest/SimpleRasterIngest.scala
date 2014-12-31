@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.raster.ingest
+package org.locationtech.geomesa.tools.ingest
 
 import java.awt.RenderingHints
-import java.io.File
+import java.io.{FilenameFilter, File}
 import javax.media.jai.{ImageLayout, JAI}
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -31,16 +31,18 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.{Raster, AccumuloCoverageStore}
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
+import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 
+import scala.collection.parallel.ForkJoinTaskSupport
 import scala.util.Try
 
 object SimpleRasterIngest {
 
   def getReader(imageFile: File, imageType: String): AbstractGridCoverage2DReader = {
     imageType match {
-      case "tiff" => getTiffReader(imageFile)
-      case "dted" => getDtedReader(imageFile)
+      case TIFF => getTiffReader(imageFile)
+      case DTED => getDtedReader(imageFile)
       case _ => throw new Exception("Image type is not supported.")
     }
   }
@@ -59,7 +61,7 @@ object SimpleRasterIngest {
 
 }
 
-import SimpleRasterIngest._
+import org.locationtech.geomesa.tools.ingest.SimpleRasterIngest._
 
 class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCoverageStore) extends Logging {
 
@@ -67,14 +69,35 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
   lazy val fileType = config(IngestRasterParams.FORMAT).get
   lazy val rasterName = config(IngestRasterParams.RASTER_NAME).get
   lazy val visibilities = config(IngestRasterParams.VISIBILITIES).get
-
+  lazy val parLevel = config(IngestRasterParams.PARLEVEL).get.toInt
 
   val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
   def runIngestTask() = Try {
-    val file = new File(path)
-    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime).getOrElse(new DateTime(DateTimeZone.UTC))
+    val fileOrDir = new File(path)
+    val files =
+      (if (fileOrDir.isDirectory)
+         fileOrDir.listFiles(new FilenameFilter() {
+           override def accept(dir: File, name: String) =
+             getFileExtension(name).endsWith(fileType)
+         })
+       else Array(fileOrDir)).par
 
+    files.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(parLevel))
+    files.foreach(ingestRasterFromFile(_))
+
+    cs.geoserverClientServiceO.foreach { geoserverClientService => {
+      geoserverClientService.registerRasterStyles()
+      geoserverClientService.registerRaster(rasterName,
+                                            rasterName,
+                                            rasterName,
+                                            "Raster data",
+                                            1.0,
+                                            None)
+    }}
+  }
+
+  def ingestRasterFromFile(file: File) {
     val rasterReader = getReader(file, fileType)
     val rasterGrid: GridCoverage2D = rasterReader.read(null)
 
@@ -84,16 +107,15 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     }
 
     val envelope = rasterGrid.getEnvelope2D
-
     val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
 
-    val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Option(ingestTime.getMillis))
+    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
+    val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Some(ingestTime.getMillis))
 
     val res = 1.0  //TODO: get the resolution from the reader or from the gridcoverage
 
     val raster = Raster(rasterGrid.getRenderedImage, metadata, res)
 
     cs.saveRaster(raster)
-
   }
 }
