@@ -122,6 +122,11 @@
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-test</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javax.media</groupId>
+            <artifactId>jai_core</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 </project>

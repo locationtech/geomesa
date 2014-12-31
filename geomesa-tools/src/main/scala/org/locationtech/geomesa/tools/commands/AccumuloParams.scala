@@ -97,6 +97,7 @@ class CreateRasterParams extends RasterParams with GeoserverParams {
   @Parameter(names = Array("-qt", "--queryThreads"), description = "Threads for quering raster data")
   var queryThreads: Integer = null
 
-  @Parameter(names = Array("-sh", "--shards"), description = "Number of shards to use for the storage tables (defaults to number of tservers)")
+  @Parameter(names = Array("-sh", "--shards"), description = "Number of shards to use for the storage tables " +
+    "(defaults to number of tservers)")
   var numShards: Integer = null
 }

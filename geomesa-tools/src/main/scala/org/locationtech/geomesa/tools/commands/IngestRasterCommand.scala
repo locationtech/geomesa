@@ -20,11 +20,11 @@ import java.util.{Map => JMap}
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
-import org.locationtech.geomesa.raster.ingest.SimpleRasterIngest
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.commands.IngestRasterCommand.{Command, IngestRasterParameters}
+import org.locationtech.geomesa.tools.ingest.SimpleRasterIngest
 
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Success}
@@ -52,7 +52,8 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
       IngestRasterParams.FILE_PATH -> Some(params.file),
       IngestRasterParams.FORMAT -> Some(Option(params.format).getOrElse(getFileExtension(params.file))),
       IngestRasterParams.RASTER_NAME -> Some(params.rasterName),
-      IngestRasterParams.TIME -> Option(params.timeStamp)
+      IngestRasterParams.TIME -> Option(params.timeStamp),
+      IngestRasterParams.PARLEVEL -> Option(params.parLevel.toString)
     )
 
     val ingester = new SimpleRasterIngest(args, cs)
@@ -109,5 +110,9 @@ object IngestRasterCommand {
 
     @Parameter(names = Array("-tm", "--timestamp"), description = "Raster file to be ingested")
     var timeStamp: String = null
+
+    @Parameter(names = Array("-par", "--parallelLevel"), description = "Maximum number of threads for ingesting " +
+      "multiple raster files")
+    var parLevel: Int = 4
   }
 }
