@@ -83,18 +83,18 @@ class RasterParams extends AccumuloParams {
 }
 
 trait GeoserverParams {
-  @Parameter(names = Array("-g", "--geoserverConfig"), description = "Geoserver configuration info")
+  @Parameter(names = Array("-g", "--geoserver-config"), description = "Geoserver configuration info")
   var geoserverConf: String = null
 }
 
 class CreateRasterParams extends RasterParams with GeoserverParams {
-  @Parameter(names = Array("-wm", "--writeMemory"), description = "Memory allocation for ingestion operation")
+  @Parameter(names = Array("-wm", "--write-memory"), description = "Memory allocation for ingestion operation")
   var writeMemory: String = null
 
-  @Parameter(names = Array("-wt", "--writeThreads"), description = "Threads for writing raster data")
+  @Parameter(names = Array("-wt", "--write-threads"), description = "Threads for writing raster data")
   var writeThreads: Integer = null
 
-  @Parameter(names = Array("-qt", "--queryThreads"), description = "Threads for quering raster data")
+  @Parameter(names = Array("-qt", "--query-threads"), description = "Threads for quering raster data")
   var queryThreads: Integer = null
 
   @Parameter(names = Array("-sh", "--shards"), description = "Number of shards to use for the storage tables " +

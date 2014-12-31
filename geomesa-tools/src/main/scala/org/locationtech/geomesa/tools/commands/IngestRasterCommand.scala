@@ -111,8 +111,8 @@ object IngestRasterCommand {
     @Parameter(names = Array("-tm", "--timestamp"), description = "Raster file to be ingested")
     var timeStamp: String = null
 
-    @Parameter(names = Array("-par", "--parallelLevel"), description = "Maximum number of threads for ingesting " +
+    @Parameter(names = Array("-par", "--parallel-level"), description = "Maximum number of threads for ingesting " +
       "multiple raster files")
-    var parLevel: Int = 4
+    var parLevel: Int = 1
   }
 }
