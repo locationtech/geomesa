@@ -34,7 +34,7 @@ import org.opengis.parameter.GeneralParameterValue
 object GeoMesaCoverageReader {
   val GeoServerDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   val DefaultDateString = GeoServerDateFormat.print(new DateTime(DateTimeZone.forID("UTC")))
-  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#rasterName=(.*)#zookeepers=([^#]*)(?:#auths=)?(.*)$""".r
+  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#rasterName=(.*)#zookeepers=([^#]*)(?:#auths=)?([^#]*)(?:#visibilities=)?([^#]*)$""".r
 }
 
 import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageReader._
@@ -47,7 +47,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
 
   // JNH: This todo is for Jake.
   logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
-  val FORMAT(user, password, instanceId, table, rasterName, zookeepers, authtokens) = url
+  val FORMAT(user, password, instanceId, table, rasterName, zookeepers, auths, visibilities) = url
   logger.debug(s"extracted user $user, password ********, instance id $instanceId, table $table, zookeepers $zookeepers, auths ********")
 
   coverageName = table + ":" + rasterName
@@ -59,7 +59,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   this.originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
   this.coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(this.hints)
   // TODO: Provide writeVisibilites??  Sort out read visibilites
-  val ars: RasterStore = RasterStore(user, password, instanceId, zookeepers, table, authtokens, "")
+  val ars: RasterStore = RasterStore(user, password, instanceId, zookeepers, table, auths, "")
 
   /**
    * Default implementation does not allow a non-default coverage name
