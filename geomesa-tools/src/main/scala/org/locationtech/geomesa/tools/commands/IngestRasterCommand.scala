@@ -40,8 +40,8 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
       case TIFF | DTED =>
         ingest
       case _         =>
-        logger.error("Error: File format not supported for file " + params.file + ". Supported formats" +
-          "are tif, tiff, dt0, dt1 and dt2")
+        logger.error("Error: File format not supported for file " + params.file + ". Supported formats are GTiff and " +
+          "DTED")
     }
   }
 
@@ -101,8 +101,8 @@ object IngestRasterCommand {
 
   @Parameters(commandDescription = "Ingest a raster file of various formats into GeoMesa")
   class IngestRasterParameters extends CreateRasterParams {
-    @Parameter(names = Array("-fmt", "--format"), description = "Format of incoming raster data (tif | tiff | dt0 | " +
-      "dt1 | dt2) to override file extension recognition")
+    @Parameter(names = Array("-fmt", "--format"), description = "Format of incoming raster data (GTiff | DTED) to " +
+      "override file extension recognition")
     var format: String = null
 
     @Parameter(names = Array("-f", "--file"), description = "Raster file to be ingested", required = true)
