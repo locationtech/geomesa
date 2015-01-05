@@ -38,11 +38,12 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
   val zookeepers = addTextPanel(paramsModel, new Param("zookeepers", classOf[String], "Zookeepers", true))
   val user = addTextPanel(paramsModel, new Param("user", classOf[String], "User", true))
   val password = addPasswordPanel(paramsModel, new Param("password", classOf[String], "Password", true))
-  val authTokens = addTextPanel(paramsModel, new Param("authTokens", classOf[String], "Authorizations", true))
+  val auths = addTextPanel(paramsModel, new Param("auths", classOf[String], "Authorizations", false))
+  val visibilities = addTextPanel(paramsModel, new Param("visibilities", classOf[String], "Visibilities", false))
   val tableName = addTextPanel(paramsModel, new Param("tableName", classOf[String], "The Accumulo Table Name", true))
   val rasterName = addTextPanel(paramsModel, new Param("rasterName", classOf[String], "Raster Name", true))
 
-  val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, authTokens, tableName, rasterName)
+  val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, auths, visibilities, tableName, rasterName)
   dependentFormComponents.map(_.setOutputMarkupId(true))
 
   storeEditForm.add(new IFormValidator() {
@@ -57,7 +58,8 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
         .append("/").append(tableName.getValue)
         .append("#rasterName=").append(rasterName.getValue)
         .append("#zookeepers=").append(zookeepers.getValue)
-        .append("#auths=").append(authTokens.getValue)
+        .append("#auths=").append(auths.getValue)
+        .append("#visibiltiies=").append(visibilities.getValue)
 
       storeInfo.setURL(sb.toString())
     }
@@ -66,14 +68,15 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
   def parseConnectionParametersFromURL(url: String): JMap[String, String] = {
     val params = new JMap[String, String]
     if (url != null && url.startsWith("accumulo:")) {
-      val FORMAT(user, password, instanceId, table, rasterName, zookeepers, authTokens) = url
+      val FORMAT(user, password, instanceId, table, rasterName, zookeepers, auths, visibilities) = url
       params.put("user", user)
       params.put("password", password)
       params.put("instanceId", instanceId)
       params.put("tableName", table)
       params.put("rasterName", rasterName)
       params.put("zookeepers", zookeepers)
-      params.put("authTokens", authTokens)
+      params.put("auths", auths)
+      params.put("visibilities", visibilities)
     }
     params
   }
