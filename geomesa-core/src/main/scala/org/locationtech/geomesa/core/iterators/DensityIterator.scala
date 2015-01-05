@@ -30,9 +30,8 @@ import org.apache.commons.codec.binary.Base64
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder, ReferencedEnvelope}
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.index.{IndexEntryDecoder, IndexSchema}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, toRichSimpleFeatureIterator}
 import org.locationtech.geomesa.utils.geotools.{GridSnap, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -111,7 +110,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
       topSourceKey = source.getTopKey
       topSourceValue = source.getTopValue
 
-      val feature = originalDecoder.decode(topSourceValue)
+      val feature = originalDecoder.decode(topSourceValue.get())
       lazy val geoHashGeom = decoder.decode(topSourceKey).getDefaultGeometry.asInstanceOf[Geometry]
       geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
       geometry match {

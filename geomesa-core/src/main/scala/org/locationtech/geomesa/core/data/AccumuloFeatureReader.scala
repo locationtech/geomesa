@@ -19,6 +19,7 @@ package org.locationtech.geomesa.core.data
 import org.geotools.data.{FeatureReader, Query}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.stats.{MethodProfiling, QueryStat, QueryStatTransform, StatWriter}
+import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,

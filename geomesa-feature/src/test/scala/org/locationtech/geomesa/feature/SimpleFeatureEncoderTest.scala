@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.core.data
+package org.locationtech.geomesa.feature
 
 import com.vividsolutions.jts.geom.Point
-import org.apache.accumulo.core.data.Value
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -36,7 +33,6 @@ class SimpleFeatureEncoderTest extends Specification {
 
   val sftName = "SimpleFeatureEncoderTest"
   val sft = SimpleFeatureTypes.createType(sftName, "name:String,*geom:Point,dtg:Date")
-  sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
   val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
 
@@ -57,7 +53,7 @@ class SimpleFeatureEncoderTest extends Specification {
 
       val features = getFeatures
       val encoded = features.map(encoder.encode(_))
-      val decoded = encoded.map { bytes => decoder.decode(new Value(bytes)) }
+      val decoded = encoded.map { bytes => decoder.decode(bytes) }
       decoded.map(_.getDefaultGeometry) mustEqual(features.map(_.getDefaultGeometry))
     }
 

@@ -23,7 +23,6 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.QueryHints._
@@ -31,7 +30,8 @@ import org.locationtech.geomesa.core.iterators.TemporalDensityIterator._
 import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIterator, TemporalDensityIterator}
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, FeatureEncoding, SimpleFeatureDecoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}
@@ -74,7 +74,7 @@ case class QueryPlanner(schema: String,
     def deduplicate(queries: Seq[Query]): CloseableIterator[Entry[Key, Value]] = {
       val flatQueries = flatten(queries)
       val decoder = SimpleFeatureDecoder(getReturnSFT(query), featureEncoding)
-      new DeDuplicatingIterator(flatQueries, (key: Key, value: Value) => decoder.extractFeatureId(value))
+      new DeDuplicatingIterator(flatQueries, (key: Key, value: Value) => decoder.extractFeatureId(value.get))
     }
 
     if(isDensity) {
@@ -155,11 +155,11 @@ case class QueryPlanner(schema: String,
     // if this is a density query, expand the map
     if (query.getHints.containsKey(DENSITY_KEY)) {
       accumuloIterator.flatMap { kv =>
-        DensityIterator.expandFeature(decoder.decode(kv.getValue))
+        DensityIterator.expandFeature(decoder.decode(kv.getValue.get))
       }
     } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
       val timeSeriesStrings = accumuloIterator.map { kv =>
-        decoder.decode(kv.getValue).getAttribute(ENCODED_TIME_SERIES).toString
+        decoder.decode(kv.getValue.get).getAttribute(ENCODED_TIME_SERIES).toString
       }
 
       val summedTimeSeries = timeSeriesStrings.map(decodeTimeSeries).reduce(combineTimeSeries)
@@ -173,7 +173,7 @@ case class QueryPlanner(schema: String,
 
       List(result).iterator
     } else {
-      val features = accumuloIterator.map { kv => decoder.decode(kv.getValue) }
+      val features = accumuloIterator.map { kv => decoder.decode(kv.getValue.get) }
       if(query.getSortBy != null && query.getSortBy.length > 0) sort(features, query.getSortBy)
       else features
     }

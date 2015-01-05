@@ -25,7 +25,8 @@ import org.apache.hadoop.conf.Configuration
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, SimpleFeatureDecoder}
+import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.feature.SimpleFeatureDecoder
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.scalding.{AccumuloInputOptions, AccumuloOutputOptions, AccumuloSource, AccumuloSourceOptions, ConnectionParams}
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -120,7 +121,7 @@ object AttributeIndexJob {
    * @return
    */
   def getAttributeIndexMutation(r: JobResources, key: Key, value: Value): Seq[Mutation] = {
-    val feature = r.decoder.decode(value)
+    val feature = r.decoder.decode(value.get())
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(r.sft)
 
     AttributeTable.getAttributeIndexMutations(
