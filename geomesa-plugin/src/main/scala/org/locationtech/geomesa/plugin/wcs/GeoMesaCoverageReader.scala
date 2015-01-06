@@ -34,7 +34,7 @@ import org.opengis.parameter.GeneralParameterValue
 object GeoMesaCoverageReader {
   val GeoServerDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   val DefaultDateString = GeoServerDateFormat.print(new DateTime(DateTimeZone.forID("UTC")))
-  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#rasterName=(.*)#zookeepers=([^#]*)(?:#auths=)?([^#]*)(?:#visibilities=)?(.*)$""".r
+  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#rasterName=(.*)#zookeepers=([^#]*)(?:#auths=)?([^#]*)(?:#visibilities=)?([^#]*)$""".r
 }
 
 import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageReader._

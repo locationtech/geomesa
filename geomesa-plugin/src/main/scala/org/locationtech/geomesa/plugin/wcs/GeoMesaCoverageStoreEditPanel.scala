@@ -59,7 +59,7 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
         .append("#rasterName=").append(rasterName.getValue)
         .append("#zookeepers=").append(zookeepers.getValue)
         .append("#auths=").append(auths.getValue)
-        .append("#visibiltiies=").append(visibilities.getValue)
+        .append("#visibilities=").append(visibilities.getValue)
 
       storeInfo.setURL(sb.toString())
     }
