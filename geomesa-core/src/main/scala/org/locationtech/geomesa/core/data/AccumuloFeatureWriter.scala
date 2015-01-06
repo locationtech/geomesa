@@ -29,7 +29,7 @@ import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.{SimpleFeatureEncoder, AvroSimpleFeature, AvroSimpleFeatureFactory}
+import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -91,7 +91,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
         val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
 
         List(
-          AttributeTable.attrWriter(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility, rowIdPrefix),
+          AttributeTable.attrWriter(multiBWWriter.getBatchWriter(attrTable), featureType, indexedAttributes, visibility, rowIdPrefix),
           RecordTable.recordWriter(multiBWWriter.getBatchWriter(recTable), encoder, visibility, rowIdPrefix))
       } else {
         List.empty
@@ -185,7 +185,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
         val recTable = dataStore.getRecordTableForType(featureType)
 
         List(
-          AttributeTable.removeAttrIdx(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility, rowIdPrefix),
+          AttributeTable.removeAttrIdx(multiBWWriter.getBatchWriter(attrTable), featureType, indexedAttributes, visibility, rowIdPrefix),
           RecordTable.recordDeleter(multiBWWriter.getBatchWriter(recTable), encoder, visibility, rowIdPrefix))
       } else {
         List.empty
