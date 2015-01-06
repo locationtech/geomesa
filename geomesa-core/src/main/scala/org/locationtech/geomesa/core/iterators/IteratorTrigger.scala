@@ -52,7 +52,7 @@ object IteratorTrigger {
 
     def attributePresent(attributeKey: String): Boolean = Option(sft.getDescriptor(attributeKey)).isDefined
 
-    def indexAttributeNames = List(geoName) ++ startTimeName ++ endTimeName
+    def indexAttributeNames = IndexValueEncoder(sft).fields
   }
 
   /**
@@ -136,7 +136,7 @@ object IteratorTrigger {
                                     indexedAttribute: Option[String]): Boolean = {
     // convert to a TransformProcess Definition
     val theDefinitions = TransformProcess.toDefinition(transformDefs).asScala
-    val attributeNames = schema.indexAttributeNames ++ indexedAttribute
+    val attributeNames = IndexValueEncoder(schema).fields ++ indexedAttribute
     // check that, for each definition, the expression is simply the name of an index attribute in the schema
     // multi-valued attributes only get partially encoded in the index
     theDefinitions.map(_.expression.toString).forall { aDef =>
