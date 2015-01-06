@@ -72,8 +72,13 @@ class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
     if(isProducer) producerCache.get(entry)
     else consumerCache.get(entry)
 
-  private def createProducerFeatureSource(entry: ContentEntry): ContentFeatureSource =
-    new KafkaProducerFeatureStore(entry, schemaCache.get(entry.getTypeName), broker, null)
+  private def createProducerFeatureSource(entry: ContentEntry): ContentFeatureSource = {
+    val props = new ju.Properties()
+    props.put("metadata.broker.list", broker)
+    props.put("serializer.class", "kafka.serializer.DefaultEncoder")
+    val kafkaProducer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(props))
+    new KafkaProducerFeatureStore(entry, schemaCache.get(entry.getTypeName), broker, null, kafkaProducer)
+  }
 
   private def createConsumerFeatureSource(entry: ContentEntry): ContentFeatureSource = {
     if (createTypeNames().contains(entry.getName)) {
@@ -106,6 +111,7 @@ class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
       msg.key() == null || !msg.key().equals(schemaKey)
     }
     val spec = stream.iterator().next().message()
+    client.shutdown()
     SimpleFeatureTypes.createType(topic, new String(spec, StandardCharsets.UTF_8))
   }
 

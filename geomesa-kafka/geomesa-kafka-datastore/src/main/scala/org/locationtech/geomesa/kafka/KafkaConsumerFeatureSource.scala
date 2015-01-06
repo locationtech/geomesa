@@ -5,6 +5,7 @@ import java.util
 import java.util.Properties
 import java.util.concurrent.Executors
 
+import com.google.common.collect.Maps
 import com.google.common.eventbus.{EventBus, Subscribe}
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import com.vividsolutions.jts.index.quadtree.Quadtree
@@ -14,7 +15,7 @@ import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, Query}
 import org.geotools.feature.collection.DelegateFeatureIterator
-import org.geotools.filter.{FidFilterImpl, FidFilter}
+import org.geotools.filter.FidFilterImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -47,7 +48,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
     }
   }
 
-  val features = scala.collection.mutable.HashMap.empty[String, FeatureHolder]
+  val features = Maps.newConcurrentMap[String, FeatureHolder]()
 
   eb.register(this)
 
@@ -62,17 +63,14 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   def processNewFeatures(update: CreateOrUpdate): Unit = {
     val sf = update.f
     val id = update.id
-    if(features.contains(id)) {
-      val old = features(id)
-      qt.remove(old.env, sf)
-    }
+    Option(features.get(id)).foreach {  old => qt.remove(old.env, old.sf) }
     val env = sf.geometry.getEnvelopeInternal
     qt.insert(env, sf)
     features.put(sf.getID, FeatureHolder(sf, env))
   }
 
   def removeFeature(toDelete: Delete): Unit = {
-    features.remove(toDelete.id).foreach { holder =>
+    Option(features.remove(toDelete.id)).foreach { holder =>
       qt.remove(holder.env, holder.sf)
     }
   }
@@ -99,15 +97,16 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
       case w: Within         => within(w)
       case b: BBOX           => bbox(b)
       case id: FidFilterImpl => fid(id)
+      case _                 => throw new IllegalArgumentException("Not yet implemented")
     }
 
   type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
   type DFI = DelegateFeatureIterator[SimpleFeature]
 
-  def include(i: IncludeFilter) = new DFR(schema, new DFI(features.values.map(_.sf).iterator))
+  def include(i: IncludeFilter) = new DFR(schema, new DFI(features.valuesIterator.map(_.sf)))
 
   def fid(ids: FidFilterImpl): FR = {
-    val iter = ids.getIDs.flatMap(id => features.get(id.toString).map(_.sf)).iterator
+    val iter = ids.getIDs.flatMap(id => Option(features.get(id.toString)).map(_.sf)).iterator
     new DFR(schema, new DFI(iter))
   }
 

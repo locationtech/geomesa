@@ -1,14 +1,16 @@
 package org.locationtech.geomesa.kafka
 
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.Executors
 import java.{util => ju}
 
+import com.google.common.collect.{Lists, Queues}
 import com.vividsolutions.jts.geom.Envelope
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query}
-import org.geotools.feature.{FeatureReaderIterator, FeatureCollection}
-import org.geotools.feature.collection.{BridgeIterator, DelegateFeatureIterator}
+import org.geotools.feature.FeatureCollection
+import org.geotools.feature.collection.BridgeIterator
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -27,7 +29,8 @@ object KafkaProducerFeatureStore {
 class KafkaProducerFeatureStore(entry: ContentEntry,
                                 schema: SimpleFeatureType,
                                 broker: String,
-                                query: Query)
+                                query: Query,
+                                producer: Producer[Array[Byte], Array[Byte]])
   extends ContentFeatureStore(entry, query) {
 
   val typeName = entry.getTypeName
@@ -55,18 +58,14 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
     }
   }
 
+  type MSG = KeyedMessage[Array[Byte], Array[Byte]]
+
   override def getWriterInternal(query: Query, flags: Int) =
     new ModifyingFeatureWriter(query)
 
-  trait KafkaFeatureWriter {
-    val encoder = new AvroFeatureEncoder(schema)
-    val props = new ju.Properties()
-    props.put("metadata.broker.list", broker)
-    props.put("serializer.class", "kafka.serializer.DefaultEncoder")
-    val kafkaProducer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(props))
-  }
+  class ModifyingFeatureWriter(query: Query) extends FW {
 
-  class ModifyingFeatureWriter(query: Query) extends FW with KafkaFeatureWriter {
+    val encoder = new AvroFeatureEncoder(schema)
     private var id = 1L
     def getNextId: FeatureId = {
       val ret = id
@@ -97,15 +96,15 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
     }
     override def remove(): Unit = {
       val bytes = curFeature.getID.getBytes(StandardCharsets.UTF_8)
-      val delMsg = new KeyedMessage[Array[Byte], Array[Byte]](typeName, KafkaProducerFeatureStore.DELETE_KEY, bytes)
+      val delMsg = new MSG(typeName, KafkaProducerFeatureStore.DELETE_KEY, bytes)
       curFeature = null
-      kafkaProducer.send(delMsg)
+      producer.send(delMsg)
     }
     override def write(): Unit = {
       val encoded = encoder.encode(curFeature)
-      val msg = new KeyedMessage[Array[Byte], Array[Byte]](typeName, encoded)
+      val msg = new MSG(typeName, encoded)
       curFeature = null
-      kafkaProducer.send(msg)
+      producer.send(msg)
     }
     override def hasNext: Boolean = toModify.hasNext
     override def close(): Unit = {}
