@@ -15,7 +15,7 @@
  */
 package org.locationtech.geomesa.tools.commands
 
-import java.io.{File, Serializable}
+import java.io.Serializable
 import java.util.{Map => JMap}
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
@@ -40,8 +40,8 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
       case TIFF | DTED =>
         ingest
       case _         =>
-        logger.error("Error: File format not supported for file " + params.file + ". Supported formats are GTiff and " +
-          "DTED")
+        logger.error("Error: File format not supported for file " + params.file + ". Supported formats " +
+          "are geotiff and DTED")
     }
   }
 
@@ -101,8 +101,8 @@ object IngestRasterCommand {
 
   @Parameters(commandDescription = "Ingest a raster file of various formats into GeoMesa")
   class IngestRasterParameters extends CreateRasterParams {
-    @Parameter(names = Array("-fmt", "--format"), description = "Format of incoming raster data (GTiff | DTED) to " +
-      "override file extension recognition")
+    @Parameter(names = Array("-fmt", "--format"), description = "Format of incoming raster data " +
+      "(geotiff | DTED) to override file extension recognition")
     var format: String = null
 
     @Parameter(names = Array("-f", "--file"), description = "Raster file to be ingested", required = true)
@@ -111,8 +111,8 @@ object IngestRasterCommand {
     @Parameter(names = Array("-tm", "--timestamp"), description = "Raster file to be ingested")
     var timeStamp: String = null
 
-    @Parameter(names = Array("-par", "--parallel-level"), description = "Maximum number of threads for ingesting " +
-      "multiple raster files")
+    @Parameter(names = Array("-par", "--parallel-level"), description = "Maximum number of threads " +
+      "for ingesting multiple raster files")
     var parLevel: Int = 1
   }
 }

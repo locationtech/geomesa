@@ -61,7 +61,7 @@ object Utils {
   object Formats {
     val CSV     = "csv"
     val TSV     = "tsv"
-    val TIFF    = "GTiff"
+    val TIFF    = "geotiff"
     val DTED    = "DTED"
     val SHP     = "shp"
     val JSON    = "json"

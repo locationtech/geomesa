@@ -145,7 +145,8 @@ object AccumuloCoverageStore extends Logging {
       IngestRasterParams.ACCUMULO_USER -> userParam.lookUp(config).asInstanceOf[String],
       IngestRasterParams.ACCUMULO_PASSWORD -> passwordParam.lookUp(config).asInstanceOf[String],
       IngestRasterParams.TABLE -> tableName,
-      IngestRasterParams.AUTHORIZATIONS -> authorizationsProvider.getAuthorizations.toString
+      IngestRasterParams.AUTHORIZATIONS -> authorizationsProvider.getAuthorizations.toString,
+      IngestRasterParams.VISIBILITIES -> visibility
     )
 
     val geoserverConfig = geoserverParam.lookUp(config).asInstanceOf[String]
