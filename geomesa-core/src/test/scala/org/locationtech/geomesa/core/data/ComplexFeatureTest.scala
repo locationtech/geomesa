@@ -35,6 +35,8 @@ import scala.collection.JavaConverters._
 @RunWith(classOf[JUnitRunner])
 class ComplexFeatureTest extends Specification with TestWithDataStore {
 
+  sequential
+
   override def spec =
     """
       |names:List[String],
