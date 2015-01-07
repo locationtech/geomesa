@@ -1,10 +1,12 @@
 package org.locationtech.geomesa.raster.util
 
-import java.awt.image.{BufferedImage, RenderedImage, WritableRaster}
-import java.awt.{AlphaComposite, Color, Graphics2D}
+import java.awt.Graphics2D
+import java.awt.image.{BufferedImage, RenderedImage, WritableRaster, Raster => JRaster}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.util.{Hashtable => JHashtable}
 import javax.media.jai.remote.SerializableRenderedImage
 
+import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -62,34 +64,48 @@ object RasterUtils {
   def renderedImageToGridCoverage2d(name: String, image: RenderedImage, env: Envelope): GridCoverage2D =
     defaultGridCoverageFactory.create(name, image, env)
 
-  def getEmptyImage(width: Int = 256, height: Int = 256) = {
-    val emptyImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
-    val g2D = emptyImage.getGraphics.asInstanceOf[Graphics2D]
-    val save = g2D.getColor
-    g2D.setColor(Color.WHITE)
-    g2D.setComposite(AlphaComposite.Clear)
-    g2D.fillRect(0, 0, emptyImage.getWidth, emptyImage.getHeight)
-    g2D.setColor(save)
-    emptyImage
+  def getEmptyMosaic(width: Int, height: Int, chunk: RenderedImage): BufferedImage = {
+    val properties = new JHashtable[String, Object]
+    if (chunk.getPropertyNames != null) {
+      chunk.getPropertyNames.foreach(name => properties.put(name, chunk.getProperty(name)))
+    }
+    val colorModel = chunk.getColorModel
+    val alphaPremultiplied = colorModel.isAlphaPremultiplied
+    val sampleModel = chunk.getSampleModel.createCompatibleSampleModel(width, height)
+    val emptyRaster = JRaster.createWritableRaster(sampleModel, null)
+    val defaultColor = AbstractGridFormat.BACKGROUND_COLOR.getDefaultValue
+    val image = new BufferedImage(colorModel, emptyRaster, alphaPremultiplied, properties)
+    val g2D = image.getGraphics.asInstanceOf[Graphics2D]
+    val originalColor = g2D.getColor
+    g2D.setColor(defaultColor)
+    g2D.fillRect(0, 0, image.getWidth, image.getHeight)
+    g2D.setColor(originalColor)
+    image
   }
 
-  def mosaicRasters(rasters: Iterator[Raster], width: Int, height: Int, env: Envelope, resx: Double, resy: Double) = {
-    val rescaleX: Double = resx / (env.getSpan(0) / width)
-    val rescaleY: Double = resy / (env.getSpan(1) / height)
-    val newWidth: Double = width / rescaleX
-    val newHeight: Double = height / rescaleY
-    val imageWidth = Math.max(Math.round(newWidth), 1).toInt
-    val imageHeight = Math.max(Math.round(newHeight), 1).toInt
-    val image = getEmptyImage(imageWidth, imageHeight)
+  def setMosaicData(mosaic: BufferedImage, raster: Raster, env: Envelope, resX: Double, resY: Double) = {
+    val rasterEnv = raster.referencedEnvelope
+    val chunk = raster.chunk
+    val dx = ((rasterEnv.getMinimum(0) - env.getMinimum(0)) / resX).toInt
+    val dy = ((env.getMaximum(1) - rasterEnv.getMaximum(1)) / resY).toInt
+    mosaic.getRaster.setRect(dx, dy, chunk.getData)
+  }
+
+  def mosaicRasters(rasters: Iterator[Raster], width: Int, height: Int, env: Envelope, resX: Double, resY: Double): BufferedImage = {
+    val rescaleX = resX / (env.getSpan(0) / width)
+    val rescaleY = resY / (env.getSpan(1) / height)
+    val scaledWidth = width / rescaleX
+    val scaledHeight = height / rescaleY
+    val imageWidth = Math.max(Math.round(scaledWidth), 1).toInt
+    val imageHeight = Math.max(Math.round(scaledHeight), 1).toInt
+    val firstRaster = rasters.next()
+    val mosaic = getEmptyMosaic(imageWidth, imageHeight, firstRaster.chunk)
+    setMosaicData(mosaic, firstRaster, env, resX, resY)
     while(rasters.hasNext) {
       val raster = rasters.next()
-      val coverageEnv = raster.referencedEnvelope
-      val coverageImage = raster.chunk
-      val dx = ((coverageEnv.getMinimum(0) - env.getMinimum(0)) / resx).toInt
-      val dy = ((env.getMaximum(1) - coverageEnv.getMaximum(1)) / resy).toInt
-      image.getRaster.setRect(dx, dy, coverageImage.getData)
+      setMosaicData(mosaic, raster, env, resX, resY)
     }
-    image
+    mosaic
   }
   //TODO: WCS: Split off functions useful for just tests into a separate object, which includes classes from here on down
   val white = Array[Int] (255, 255, 255)
