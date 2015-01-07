@@ -45,8 +45,7 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
   val geoserverRegistrationTimeout: Int = 10000
   val globalStylesUrl = s"$restURL/styles"
 
-  def registrationData(rasterId: String, rasterName: String, styleName: String):
-  RegistrationData = {
+  def registrationData(rasterId: String, rasterName: String, styleName: String): RegistrationData = {
     val url = coverageURL(rasterId, rasterName, config)
     val coverageName = rasterId
     val storeName = config(IngestRasterParams.TABLE) + ":" + coverageName
