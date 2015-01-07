@@ -75,8 +75,6 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
 
   def runIngestTask() = Try {
     val fileOrDir = new File(path)
-    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
-
     val files =
       (if (fileOrDir.isDirectory)
          fileOrDir.listFiles(new FilenameFilter() {
@@ -86,21 +84,7 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
        else Array(fileOrDir)).par
 
     files.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(parLevel))
-    files.foreach { file =>
-      val rasterReader = getReader(file, fileType)
-      val rasterGrid: GridCoverage2D = rasterReader.read(null)
-
-      val envelope = rasterGrid.getEnvelope2D
-      val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
-
-      val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Some(ingestTime.getMillis))
-
-      val res = 1.0  //TODO: get the resolution from the reader or from the gridcoverage
-
-      val raster = Raster(rasterGrid.getRenderedImage, metadata, res)
-
-      cs.saveRaster(raster)
-    }
+    files.foreach(ingestRasterFromFile(_))
 
     cs.geoserverClientServiceO.foreach { geoserverClientService => {
       geoserverClientService.registerRasterStyles()
@@ -111,5 +95,22 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
                                             1.0,
                                             None)
     }}
+  }
+
+  def ingestRasterFromFile(file: File) {
+    val rasterReader = getReader(file, fileType)
+    val rasterGrid: GridCoverage2D = rasterReader.read(null)
+
+    val envelope = rasterGrid.getEnvelope2D
+    val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
+
+    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
+    val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Some(ingestTime.getMillis))
+
+    val res = 1.0  //TODO: get the resolution from the reader or from the gridcoverage
+
+    val raster = Raster(rasterGrid.getRenderedImage, metadata, res)
+
+    cs.saveRaster(raster)
   }
 }
