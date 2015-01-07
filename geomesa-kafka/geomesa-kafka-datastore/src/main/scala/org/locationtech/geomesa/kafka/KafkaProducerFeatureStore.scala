@@ -39,6 +39,7 @@ import scala.collection.JavaConversions._
 
 object KafkaProducerFeatureStore {
   val DELETE_KEY = "delete".getBytes(StandardCharsets.UTF_8)
+  val CLEAR_KEY  = "clear".getBytes(StandardCharsets.UTF_8)
 }
 
 class KafkaProducerFeatureStore(entry: ContentEntry,
@@ -72,6 +73,14 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
       ret.toList
     }
   }
+
+
+  override def removeFeatures(filter: Filter): Unit = filter match {
+    case Filter.INCLUDE => clearFeatures()
+    case _              => super.removeFeatures(filter)
+  }
+
+  def clearFeatures(): Unit = producer.send(Clear.toMsg(typeName))
 
   type MSG = KeyedMessage[Array[Byte], Array[Byte]]
 

@@ -26,6 +26,7 @@ import com.google.common.eventbus.{EventBus, Subscribe}
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import com.vividsolutions.jts.index.quadtree.Quadtree
 import kafka.consumer.{Consumer, ConsumerConfig, Whitelist}
+import kafka.producer.KeyedMessage
 import kafka.serializer.DefaultDecoder
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
@@ -167,7 +168,11 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
 sealed trait KafkaGeoMessage
 case class CreateOrUpdate(id: String, f: SimpleFeature)  extends KafkaGeoMessage
 case class Delete(id: String) extends KafkaGeoMessage
-case object Clear extends KafkaGeoMessage
+case object Clear extends KafkaGeoMessage {
+  type MSG = KeyedMessage[Array[Byte], Array[Byte]]
+  val EMPTY = Array.empty[Byte]
+  def toMsg(topic: String) = new MSG(topic, KafkaProducerFeatureStore.CLEAR_KEY, EMPTY)
+}
 
 trait FeatureProducer {
   def eventBus: EventBus
@@ -195,9 +200,14 @@ class KafkaFeatureConsumer(topic: String,
       val iter = stream.iterator()
       while (iter.hasNext) {
         val msg = iter.next()
-        if(msg.key() != null && util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.DELETE_KEY)) {
-          val id = new String(msg.message(), StandardCharsets.UTF_8)
-          deleteFeature(id)
+        if(msg.key() != null) {
+          if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.CLEAR_KEY)) {
+            clear()
+          } else {
+            // assume it is a DELETE (we don't do comparison for performance
+            val id = new String(msg.message(), StandardCharsets.UTF_8)
+            deleteFeature(id)
+          }
         } else {
           val f = featureDecoder.decode(msg.message())
           produceFeatures(f)
