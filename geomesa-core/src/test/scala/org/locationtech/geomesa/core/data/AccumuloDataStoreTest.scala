@@ -1097,6 +1097,7 @@ class AccumuloDataStoreTest extends Specification {
 
     "allow caching to be configured" in {
       val sftName = "cachingTest"
+
       DataStoreFinder.getDataStore(Map(
         "instanceId"        -> "mycloud",
         "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
@@ -1107,6 +1108,7 @@ class AccumuloDataStoreTest extends Specification {
         "useMock"           -> "true",
         "caching"           -> false,
         "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore].cachingConfig must beFalse
+
       DataStoreFinder.getDataStore(Map(
         "instanceId"        -> "mycloud",
         "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
