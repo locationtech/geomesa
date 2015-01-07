@@ -145,4 +145,3 @@ object DelimitedIngest {
   def decodeFileList(encoded: String) =
     encoded.split(" ").map { s => new String(Hex.decodeHex(s.toCharArray)) }
 }
-
