@@ -60,8 +60,10 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
     val user = params(IngestRasterParams.ACCUMULO_USER)
     val password = params(IngestRasterParams.ACCUMULO_PASSWORD)
     val auths = params(IngestRasterParams.AUTHORIZATIONS)
+    val visibilities = params(IngestRasterParams.VISIBILITIES)
 
-    s"accumulo://$user:$password@$instance/$tableName#rasterName=$rasterName#zookeepers=$zookeepers#auths=$auths"
+    s"accumulo://$user:$password@$instance/$tableName#rasterName=$rasterName#zookeepers=" +
+      s"$zookeepers#auths=$auths#visibilities=$visibilities"
   }
 
   def registerRaster(rasterId: String,
