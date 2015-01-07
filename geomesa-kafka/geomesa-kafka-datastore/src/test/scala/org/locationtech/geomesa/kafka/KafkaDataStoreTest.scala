@@ -122,6 +122,37 @@ class KafkaDataStoreTest extends Specification with Logging {
 
         Thread.sleep(500)
         consumerFC.getCount(Query.ALL) must be equalTo 0
+
+        val sf = fw.next()
+        sf.setAttributes(Array("smith", 30, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
+        sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
+        fw.write()
+
+        Thread.sleep(500)
+        consumerFC.getCount(Query.ALL) must be equalTo 1
+      }
+
+      "allow CQL queries" >> {
+        val sf = fw.next()
+        sf.setAttributes(Array("jones", 60, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
+        sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
+        fw.write()
+
+        Thread.sleep(500)
+        var res = consumerFC.getFeatures(ff.equals(ff.property("name"), ff.literal("jones")))
+        res.size() must be equalTo 1
+        res.features().next().getAttribute("name") must be equalTo "jones"
+
+        res = consumerFC.getFeatures(ff.greater(ff.property("age"), ff.literal(50)))
+        res.size() must be equalTo 1
+        res.features().next().getAttribute("name") must be equalTo "jones"
+
+        // bbox and cql
+        val spatialQ = ff.bbox("geom", -10, -10, 10, 10, "EPSG:4326")
+        val attrQ = ff.greater(ff.property("age"), ff.literal(50))
+        res = consumerFC.getFeatures(ff.and(spatialQ, attrQ))
+        res.size() must be equalTo 1
+        res.features().next().getAttribute("name") must be equalTo "jones"
       }
     }
   }

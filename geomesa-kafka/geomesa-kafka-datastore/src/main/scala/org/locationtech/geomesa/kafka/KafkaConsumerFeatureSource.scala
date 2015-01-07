@@ -30,7 +30,8 @@ import kafka.producer.KeyedMessage
 import kafka.serializer.DefaultDecoder
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
-import org.geotools.data.{FeatureReader, Query}
+import org.geotools.data.{FeatureReader, FilteringFeatureReader, Query}
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.filter.FidFilterImpl
 import org.geotools.filter.identity.FeatureIdImpl
@@ -42,7 +43,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
-import org.opengis.filter.{Filter, IncludeFilter, Or}
+import org.opengis.filter.{And, Filter, IncludeFilter, Or}
 
 import scala.collection.JavaConversions._
 
@@ -113,8 +114,10 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
       case i: IncludeFilter  => include(i)
       case w: Within         => within(w)
       case b: BBOX           => bbox(b)
+      case a: And            => and(a)
       case id: FidFilterImpl => fid(id)
-      case _                 => throw new IllegalArgumentException("Not yet implemented")
+      case _                 =>
+        new FilteringFeatureReader[SimpleFeatureType, SimpleFeature](include(Filter.INCLUDE), f)
     }
 
   type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
@@ -125,6 +128,15 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   def fid(ids: FidFilterImpl): FR = {
     val iter = ids.getIDs.flatMap(id => Option(features.get(id.toString)).map(_.sf)).iterator
     new DFR(schema, new DFI(iter))
+  }
+
+  private val ff = CommonFactoryFinder.getFilterFactory2
+  def and(a: And): FR = {
+    // assume just one spatialFilter for now, i.e. 'bbox() && attribute equals ??'
+    val (spatialFilter, others) = a.getChildren.partition(_.isInstanceOf[BinarySpatialOperator])
+    val restFilter = ff.and(others)
+    val filterIter = spatialFilter.headOption.map(getReaderForFilter).getOrElse(include(Filter.INCLUDE))
+    new FilteringFeatureReader[SimpleFeatureType, SimpleFeature](filterIter, restFilter)
   }
 
   def or(o: Or): FR = {
@@ -201,12 +213,14 @@ class KafkaFeatureConsumer(topic: String,
       while (iter.hasNext) {
         val msg = iter.next()
         if(msg.key() != null) {
-          if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.CLEAR_KEY)) {
-            clear()
-          } else {
-            // assume it is a DELETE (we don't do comparison for performance
+          if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.DELETE_KEY)) {
             val id = new String(msg.message(), StandardCharsets.UTF_8)
             deleteFeature(id)
+
+          } else if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.CLEAR_KEY)) {
+            clear()
+          } else {
+            // only other key is the SCHEMA_KEY so ingore
           }
         } else {
           val f = featureDecoder.decode(msg.message())

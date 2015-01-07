@@ -24,6 +24,7 @@ import java.{util => ju}
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.common.eventbus.EventBus
+import com.typesafe.scalalogging.slf4j.Logging
 import kafka.consumer.{Consumer, ConsumerConfig, Whitelist}
 import kafka.message.MessageAndMetadata
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
@@ -40,8 +41,18 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 
+object KafkaDataStore {
+  def writeSchema(featureType: SimpleFeatureType,
+                  topic: String,
+                  producer: Producer[Array[Byte], Array[Byte]]): Unit = {
+    val encodedSchema = SimpleFeatureTypes.encodeType(featureType).getBytes(StandardCharsets.UTF_8)
+    val schemaMsg = new KeyedMessage[Array[Byte], Array[Byte]](topic, KafkaProducerFeatureStore.SCHEMA_KEY, encodedSchema)
+    producer.send(schemaMsg)
+  }
+}
 class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
-  extends ContentDataStore {
+  extends ContentDataStore
+  with Logging {
   import scala.collection.JavaConverters._
 
   private val groupId = RandomStringUtils.randomAlphanumeric(5)
@@ -51,16 +62,13 @@ class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
     ZkUtils.getAllTopics(zkClient)
       .map(t => new NameImpl(t)).toList.asJava.asInstanceOf[java.util.List[Name]]
 
-  private val schemaKey = "schema".getBytes(StandardCharsets.UTF_8)
   override def createSchema(featureType: SimpleFeatureType) = {
     val topic = featureType.getTypeName
-    if(getTypeNames.contains(topic)) throw new IllegalArgumentException(s"Typename already taken")
+    if(getTypeNames.contains(topic)) throw new IllegalArgumentException(s"Typename already taken: $topic}")
     else {
-      val encodedSchema = SimpleFeatureTypes.encodeType(featureType).getBytes(StandardCharsets.UTF_8)
-      val schemaMsg = new KeyedMessage[Array[Byte], Array[Byte]](topic, schemaKey, encodedSchema)
-      val kafkaProducer = getKafkaProducer
-      kafkaProducer.send(schemaMsg)
-      kafkaProducer.close()
+      val producer = getKafkaProducer
+      KafkaDataStore.writeSchema(featureType, topic, producer)
+      producer.close()
     }
   }
 
@@ -111,10 +119,10 @@ class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
 
   val schemaCache =
     CacheBuilder.newBuilder().build(new CacheLoader[String, SimpleFeatureType] {
-      override def load(k: String): SimpleFeatureType = resolveTopicSchema(k)
+      override def load(k: String): SimpleFeatureType = resolveTopicSchema(k).getOrElse(throw new IllegalArgumentException("Unable to find schema"))
     })
 
-  def resolveTopicSchema(topic: String): SimpleFeatureType = {
+  def resolveTopicSchema(topic: String): Option[SimpleFeatureType] = {
     val client = Consumer.create(new ConsumerConfig(buildClientProps))
     val whitelist = new Whitelist(topic)
     val keyDecoder = new DefaultDecoder(null)
@@ -123,12 +131,21 @@ class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
       client.createMessageStreamsByFilter(whitelist, 1, keyDecoder, valueDecoder).head
 
     val iter = stream.iterator()
-    iter.dropWhile { case msg: MessageAndMetadata[Array[Byte], Array[Byte]] =>
-      msg.key() == null || !msg.key().equals(schemaKey)
+    var schemaMsg: MessageAndMetadata[Array[Byte], Array[Byte]] = null
+    while(schemaMsg == null && iter.hasNext()) {
+      val msg = iter.next()
+      if(msg.key() != null && !msg.key().equals(KafkaProducerFeatureStore.SCHEMA_KEY)) {
+        schemaMsg = msg
+      }
     }
-    val spec = stream.iterator().next().message()
-    client.shutdown()
-    SimpleFeatureTypes.createType(topic, new String(spec, StandardCharsets.UTF_8))
+    if(schemaMsg != null) {
+      val spec = schemaMsg.message()
+      client.shutdown()
+      Some(SimpleFeatureTypes.createType(topic, new String(spec, StandardCharsets.UTF_8)))
+    } else {
+      logger.warn("Did not find a schema type")
+      None
+    }
   }
 
   private def buildClientProps = {
