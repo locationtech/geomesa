@@ -73,14 +73,7 @@ object RasterUtils {
     val alphaPremultiplied = colorModel.isAlphaPremultiplied
     val sampleModel = chunk.getSampleModel.createCompatibleSampleModel(width, height)
     val emptyRaster = JRaster.createWritableRaster(sampleModel, null)
-    val defaultColor = AbstractGridFormat.BACKGROUND_COLOR.getDefaultValue
-    val image = new BufferedImage(colorModel, emptyRaster, alphaPremultiplied, properties)
-    val g2D = image.getGraphics.asInstanceOf[Graphics2D]
-    val originalColor = g2D.getColor
-    g2D.setColor(defaultColor)
-    g2D.fillRect(0, 0, image.getWidth, image.getHeight)
-    g2D.setColor(originalColor)
-    image
+    new BufferedImage(colorModel, emptyRaster, alphaPremultiplied, properties)
   }
 
   def setMosaicData(mosaic: BufferedImage, raster: Raster, env: Envelope, resX: Double, resY: Double) = {
