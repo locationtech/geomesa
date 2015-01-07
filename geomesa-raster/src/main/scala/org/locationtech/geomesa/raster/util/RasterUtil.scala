@@ -1,12 +1,10 @@
 package org.locationtech.geomesa.raster.util
 
-import java.awt.Graphics2D
 import java.awt.image.{BufferedImage, RenderedImage, WritableRaster, Raster => JRaster}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.util.{Hashtable => JHashtable}
 import javax.media.jai.remote.SerializableRenderedImage
 
-import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
