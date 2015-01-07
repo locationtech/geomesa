@@ -33,7 +33,7 @@ import org.locationtech.geomesa.core.security.SecurityUtils
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, FeatureEncoding, SimpleFeatureDecoder}
+import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}
@@ -190,7 +190,7 @@ case class QueryPlanner(schema: String,
 
     val summedTimeSeries = timeSeriesStrings.map(decodeTimeSeries).reduce(combineTimeSeries)
 
-    val featureBuilder = AvroSimpleFeatureFactory.featureBuilder(returnSFT)
+    val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
     featureBuilder.reset()
     featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
 

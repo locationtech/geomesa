@@ -57,12 +57,24 @@ class SimpleFeatureEncoderTest extends Specification {
       decoded.map(_.getDefaultGeometry) mustEqual(features.map(_.getDefaultGeometry))
     }
 
+    "encode and decode points in kryo" in {
+      val encoder = new KryoFeatureEncoder(sft, sft)
+
+      val features = getFeatures
+      val encoded = features.map(encoder.encode(_))
+      val decoded = encoded.map { bytes => encoder.decode(bytes) }
+      decoded.map(_.getDefaultGeometry) mustEqual(features.map(_.getDefaultGeometry))
+    }
+
     "have properly working apply() methods" in {
       SimpleFeatureEncoder(sft, "avro") must beAnInstanceOf[AvroFeatureEncoder]
       SimpleFeatureEncoder(sft, FeatureEncoding.AVRO) must beAnInstanceOf[AvroFeatureEncoder]
 
       SimpleFeatureEncoder(sft, "text") must beAnInstanceOf[TextFeatureEncoder]
       SimpleFeatureEncoder(sft, FeatureEncoding.TEXT) must beAnInstanceOf[TextFeatureEncoder]
+
+      SimpleFeatureEncoder(sft, "kryo") must beAnInstanceOf[KryoFeatureEncoder]
+      SimpleFeatureEncoder(sft, FeatureEncoding.KRYO) must beAnInstanceOf[KryoFeatureEncoder]
     }
   }
 
@@ -74,12 +86,18 @@ class SimpleFeatureEncoderTest extends Specification {
       SimpleFeatureDecoder(sft, "text") must beAnInstanceOf[TextFeatureDecoder]
       SimpleFeatureDecoder(sft, FeatureEncoding.TEXT) must beAnInstanceOf[TextFeatureDecoder]
 
+      SimpleFeatureDecoder(sft, FeatureEncoding.KRYO) must beAnInstanceOf[KryoFeatureEncoder]
+      SimpleFeatureDecoder(sft, "kryo") must beAnInstanceOf[KryoFeatureEncoder]
+
       val projectedSft = SimpleFeatureTypes.createType(sftName, "*geom:Point")
       SimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.AVRO) must beAnInstanceOf[ProjectingAvroFeatureDecoder]
       SimpleFeatureDecoder(sft, projectedSft, "avro") must beAnInstanceOf[ProjectingAvroFeatureDecoder]
 
       SimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.TEXT) must beAnInstanceOf[ProjectingTextDecoder]
       SimpleFeatureDecoder(sft, projectedSft, "text") must beAnInstanceOf[ProjectingTextDecoder]
+
+      SimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.KRYO) must beAnInstanceOf[KryoFeatureEncoder]
+      SimpleFeatureDecoder(sft, projectedSft, "kryo") must beAnInstanceOf[KryoFeatureEncoder]
     }
 
     "properly project features" in {
@@ -91,6 +109,23 @@ class SimpleFeatureEncoderTest extends Specification {
       val features = getFeatures
       val encoded = features.map(encoder.encode)
       val decoded = encoded.map(projectingDecoder.decode)
+      decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
+
+      forall(decoded) { sf =>
+        sf.getAttributeCount mustEqual 1
+        sf.getAttribute(0) must beAnInstanceOf[Point]
+        sf.getFeatureType mustEqual projectedSft
+      }
+    }
+
+    "properly project features in kryo" in {
+      val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
+
+      val projectingEncoder = SimpleFeatureDecoder(sft, projectedSft, "kryo").asInstanceOf[KryoFeatureEncoder]
+
+      val features = getFeatures
+      val encoded = features.map(projectingEncoder.encode)
+      val decoded = encoded.map(projectingEncoder.decode)
       decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
 
       forall(decoded) { sf =>
