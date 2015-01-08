@@ -82,22 +82,31 @@ object RasterUtils {
     mosaic.getRaster.setRect(dx, dy, chunk.getData)
   }
 
-  def mosaicRasters(rasters: Iterator[Raster], width: Int, height: Int, env: Envelope, resX: Double, resY: Double): BufferedImage = {
-    val rescaleX = resX / (env.getSpan(0) / width)
-    val rescaleY = resY / (env.getSpan(1) / height)
-    val scaledWidth = width / rescaleX
-    val scaledHeight = height / rescaleY
-    val imageWidth = Math.max(Math.round(scaledWidth), 1).toInt
-    val imageHeight = Math.max(Math.round(scaledHeight), 1).toInt
-    val firstRaster = rasters.next()
-    val mosaic = getEmptyMosaic(imageWidth, imageHeight, firstRaster.chunk)
-    setMosaicData(mosaic, firstRaster, env, resX, resY)
-    while(rasters.hasNext) {
-      val raster = rasters.next()
-      setMosaicData(mosaic, raster, env, resX, resY)
-    }
-    mosaic
+  def getEmptyImage(width: Int, height: Int): BufferedImage = {
+    new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
   }
+
+  def mosaicRasters(rasters: Iterator[Raster], width: Int, height: Int, env: Envelope, resX: Double, resY: Double): BufferedImage = {
+    if (rasters.isEmpty) {
+      getEmptyImage(width, height)
+    } else {
+      val rescaleX = resX / (env.getSpan(0) / width)
+      val rescaleY = resY / (env.getSpan(1) / height)
+      val scaledWidth = width / rescaleX
+      val scaledHeight = height / rescaleY
+      val imageWidth = Math.max(Math.round(scaledWidth), 1).toInt
+      val imageHeight = Math.max(Math.round(scaledHeight), 1).toInt
+      val firstRaster = rasters.next()
+      val mosaic = getEmptyMosaic(imageWidth, imageHeight, firstRaster.chunk)
+      setMosaicData(mosaic, firstRaster, env, resX, resY)
+      while (rasters.hasNext) {
+        val raster = rasters.next()
+        setMosaicData(mosaic, raster, env, resX, resY)
+      }
+      mosaic
+    }
+  }
+
   //TODO: WCS: Split off functions useful for just tests into a separate object, which includes classes from here on down
   val white = Array[Int] (255, 255, 255)
   val black = Array[Int] (0, 0, 0)
