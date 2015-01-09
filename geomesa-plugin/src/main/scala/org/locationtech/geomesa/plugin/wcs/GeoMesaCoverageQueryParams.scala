@@ -20,6 +20,7 @@ import org.geotools.coverage.grid.GridGeometry2D
 import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.parameter.Parameter
 import org.locationtech.geomesa.raster.data.RasterQuery
+import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds}
 import org.opengis.parameter.GeneralParameterValue
 
@@ -35,18 +36,17 @@ class GeoMesaCoverageQueryParams(parameters: Array[GeneralParameterValue]) {
                      .asInstanceOf[Parameter[GridGeometry2D]].getValue
   val envelope = gridGeometry.getEnvelope
   val dim = gridGeometry.getGridRange2D.getBounds
-  val width = gridGeometry.getGridRange2D.getWidth
-  val height = gridGeometry.getGridRange2D.getHeight
-  val resX = (envelope.getMaximum(0) - envelope.getMinimum(0)) / width
-  val resY = (envelope.getMaximum(1) - envelope.getMinimum(1)) / height
-  val accResolution = Option(paramsMap(GeoMesaCoverageFormat.RESOLUTION.getName.toString))
-                      .getOrElse(GeoMesaCoverageFormat.RESOLUTION.getDefaultValue)
-                      .asInstanceOf[Parameter[String]].getValue.toDouble
+  val rasterParams = RasterUtils.sharedRasterParams(gridGeometry, envelope)
+  val width = rasterParams.width
+  val height = rasterParams.height
+  val resX = rasterParams.resX
+  val resY = rasterParams.resY
+  val accumuloResolution = rasterParams.accumuloResolution
   val min = Array(Math.max(envelope.getMinimum(0), -180) + .00000001,
                   Math.max(envelope.getMinimum(1), -90) + .00000001)
   val max = Array(Math.min(envelope.getMaximum(0), 180) - .00000001,
                   Math.min(envelope.getMaximum(1), 90) - .00000001)
   val bbox = BoundingBox(Bounds(min(0), max(0)), Bounds(min(1), max(1)))
 
-  def toRasterQuery: RasterQuery = RasterQuery(bbox, accResolution, None, None)
+  def toRasterQuery: RasterQuery = RasterQuery(bbox, accumuloResolution, None, None)
 }

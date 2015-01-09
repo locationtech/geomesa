@@ -27,6 +27,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.raster
 import org.locationtech.geomesa.raster.data.Raster
 import org.locationtech.geomesa.utils.text.WKBUtils
 
@@ -135,7 +136,9 @@ case class RasterIndexEntryDecoder() {
   def decode(entry: KeyValuePair) = {
     val renderedImage: RenderedImage = rasterImageDeserialize(entry._2.get)
     val metadata: DecodedIndex = RasterIndexEntry.decodeIndexCQMetadata(entry._1)
-    val res = 0.0 // TODO: WCS get the resolution from the row
-    Raster(renderedImage, metadata, 0.0)
+    //TODO: move this to RasterIndexSchema
+    val res = raster.lexiDecodeStringToDouble(new String(entry._1.getRowData.toArray).split("~")
+      .toList.get(1))
+    Raster(renderedImage, metadata, res)
   }
 }

@@ -1,11 +1,11 @@
 package org.locationtech.geomesa.raster.util
 
-import java.awt.image.{BufferedImage, RenderedImage, WritableRaster, Raster => JRaster}
+import java.awt.image.{BufferedImage, Raster => JRaster, RenderedImage, WritableRaster}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.util.{Hashtable => JHashtable}
 import javax.media.jai.remote.SerializableRenderedImage
 
-import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory}
+import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory, GridGeometry2D}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
@@ -30,7 +30,6 @@ object RasterUtils {
     val FORMAT              = "geomesa-tools.ingestraster.format"
     val TIME                = "geomesa-tools.ingestraster.time"
     val GEOSERVER_REG       = "geomesa-tools.ingestraster.geoserver.reg"
-    val RASTER_NAME         = "geomesa-tools.ingestraster.name"
     val TABLE               = "geomesa-tools.ingestraster.table"
     val PARLEVEL            = "geomesa-tools.ingestraster.parallel.level"
   }
@@ -160,6 +159,14 @@ object RasterUtils {
 
   def generateTestRasterFromGeoHash(gh: GeoHash, w: Int = 256, h: Int = 256, res: Double = 10.0): Raster = {
     generateTestRasterFromBoundingBox(gh.bbox, w, h, res)
+  }
+
+  case class sharedRasterParams(gg: GridGeometry2D, envelope: Envelope) {
+    val width = gg.getGridRange2D.getWidth
+    val height = gg.getGridRange2D.getHeight
+    val resX = (envelope.getMaximum(0) - envelope.getMinimum(0)) / width
+    val resY = (envelope.getMaximum(1) - envelope.getMinimum(1)) / height
+    val accumuloResolution = math.min(resX, resY)
   }
 }
 

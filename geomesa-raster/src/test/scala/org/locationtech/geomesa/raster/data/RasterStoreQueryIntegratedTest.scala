@@ -17,7 +17,6 @@
 package org.locationtech.geomesa.raster.data
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.raster.data.Raster
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.specs2.mutable.Specification

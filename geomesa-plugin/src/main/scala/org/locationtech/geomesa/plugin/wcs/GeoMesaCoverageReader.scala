@@ -34,23 +34,17 @@ import org.opengis.parameter.GeneralParameterValue
 object GeoMesaCoverageReader {
   val GeoServerDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   val DefaultDateString = GeoServerDateFormat.print(new DateTime(DateTimeZone.forID("UTC")))
-  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#rasterName=(.*)#zookeepers=([^#]*)(?:#auths=)?([^#]*)(?:#visibilities=)?([^#]*)$""".r
+  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#zookeepers=([^#]*)(?:#auths=)?([^#]*)(?:#visibilities=)?([^#]*)$""".r
 }
 
 import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageReader._
 
 class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridCoverage2DReader() with Logging {
-
-  //TODO: WCS: Implement function/class for parsing our "new" url
-  // right now we want to extract the table name and magnification like this "dataSource_mag"
-  // later, if the magnification is not provided in the URL, we should estimate it later in the read() method
-
-  // JNH: This todo is for Jake.
   logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
-  val FORMAT(user, password, instanceId, table, rasterName, zookeepers, auths, visibilities) = url
+  val FORMAT(user, password, instanceId, table, zookeepers, auths, visibilities) = url
   logger.debug(s"extracted user $user, password ********, instance id $instanceId, table $table, zookeepers $zookeepers, auths ********")
 
-  coverageName = table + ":" + rasterName
+  coverageName = table
 
   // TODO: Either this is needed for rasterToCoverages or remove it.
   this.crs = AbstractGridFormat.getDefaultCRS
@@ -85,7 +79,8 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   }
 
   def rastersToCoverage(rasters: Iterator[Raster], params: GeoMesaCoverageQueryParams): GridCoverage2D = {
-    val image = RasterUtils.mosaicRasters(rasters, params.width.toInt, params.height.toInt, params.envelope, params.resX, params.resY)
+    val image = RasterUtils.mosaicRasters(rasters, params.width.toInt, params.height.toInt,
+      params.envelope, params.resX, params.resY)
     this.coverageFactory.create(coverageName, image, params.envelope)
   }
 }

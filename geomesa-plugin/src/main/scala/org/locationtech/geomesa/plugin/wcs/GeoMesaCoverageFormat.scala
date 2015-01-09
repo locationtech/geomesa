@@ -21,15 +21,10 @@ import java.io.File
 import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.coverage.grid.io.AbstractGridFormat._
 import org.geotools.factory.Hints
-import org.geotools.parameter.{DefaultParameterDescriptor, DefaultParameterDescriptorGroup, ParameterGroup}
-import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageFormat._
+import org.geotools.parameter.{DefaultParameterDescriptorGroup, ParameterGroup}
 import org.locationtech.geomesa.raster.ingest.GeoserverClientService
 import org.opengis.coverage.grid.Format
 import org.opengis.parameter.GeneralParameterDescriptor
-
-object GeoMesaCoverageFormat {
-  val RESOLUTION = new DefaultParameterDescriptor[String]("RESOLUTION", classOf[String], null, "1.0")
-}
 
 class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
   mInfo = new java.util.HashMap[String, String]()
@@ -39,7 +34,7 @@ class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
   mInfo.put("docURL", "http://www.geomesa.org")
   mInfo.put("version", "1.0")
 
-  val parameterDescriptors = Array[GeneralParameterDescriptor](READ_GRIDGEOMETRY2D, RESOLUTION)
+  val parameterDescriptors = Array[GeneralParameterDescriptor](READ_GRIDGEOMETRY2D)
   val defaultParameterGroup = new DefaultParameterDescriptorGroup(mInfo, parameterDescriptors)
 
   readParameters = new ParameterGroup(defaultParameterGroup)

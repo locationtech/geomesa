@@ -13,7 +13,7 @@ import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.iterators.RasterFilteringIterator
-import org.locationtech.geomesa.utils.geohash.BoundingBox
+import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash, GeohashUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -28,7 +28,8 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
     // ticket is GEOMESA-560
     // note that this will only go DOWN in GeoHash resolution -- the enumeration will miss any GeoHashes
     // that perfectly match the bbox or ones that fully contain it.
-    val hashes = BoundingBox.getGeoHashesFromBoundingBox(rq.bbox)
+    val closestAcceptableGeoHash = GeohashUtils.getClosestAcceptableGeoHash(rq.bbox).getOrElse(GeoHash("")).hash
+    val hashes = (BoundingBox.getGeoHashesFromBoundingBox(rq.bbox) :+ closestAcceptableGeoHash).toSet.toList
     val res = lexiEncodeDoubleToString(rq.resolution)
     logger.debug(s"Planner: BBox: ${rq.bbox} has geohashes: $hashes, and has encoded Resolution: $res")
 
