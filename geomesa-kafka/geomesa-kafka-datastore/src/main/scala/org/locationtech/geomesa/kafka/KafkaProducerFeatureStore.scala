@@ -16,7 +16,6 @@
 package org.locationtech.geomesa.kafka
 
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.{TimeUnit, Executors}
 import java.{util => ju}
 
 import com.vividsolutions.jts.geom.Envelope
@@ -49,17 +48,6 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
   extends ContentFeatureStore(entry, query) {
 
   val typeName = entry.getTypeName
-
-  val es = Executors.newSingleThreadScheduledExecutor()
-  private val schemaWriter =
-    new Runnable {
-      override def run(): Unit = try {
-        KafkaDataStore.writeSchema(schema, typeName, producer)
-      } catch {
-        case t: Throwable => // swallow
-      }
-    }
-  es.scheduleAtFixedRate(schemaWriter, 0, 60, TimeUnit.SECONDS)
 
   override def getBoundsInternal(query: Query) =
     ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)

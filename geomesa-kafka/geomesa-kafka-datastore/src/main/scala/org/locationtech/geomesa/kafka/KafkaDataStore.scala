@@ -18,18 +18,14 @@ package org.locationtech.geomesa.kafka
 
 import java.awt.RenderingHints.Key
 import java.io.Serializable
-import java.nio.charset.StandardCharsets
-import java.util.Properties
 import java.{util => ju}
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.common.eventbus.EventBus
 import com.typesafe.scalalogging.slf4j.Logging
-import kafka.consumer.{Consumer, ConsumerConfig, Whitelist}
-import kafka.message.MessageAndMetadata
-import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
-import kafka.serializer.DefaultDecoder
-import kafka.utils.ZkUtils
+import kafka.admin.AdminUtils
+import kafka.producer.{Producer, ProducerConfig}
+import kafka.utils.ZKStringSerializer
 import org.I0Itec.zkclient.ZkClient
 import org.I0Itec.zkclient.exception.ZkNodeExistsException
 import org.apache.commons.lang3.RandomStringUtils
@@ -42,22 +38,17 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 
-object KafkaDataStore {
-  def writeSchema(featureType: SimpleFeatureType,
-                  topic: String,
-                  producer: Producer[Array[Byte], Array[Byte]]): Unit = {
-    val encodedSchema = SimpleFeatureTypes.encodeType(featureType).getBytes(StandardCharsets.UTF_8)
-    val schemaMsg = new KeyedMessage[Array[Byte], Array[Byte]](topic, "schema".getBytes(), encodedSchema)
-    producer.send(schemaMsg)
-  }
-}
-class KafkaDataStore(broker: String, zookeepers: String, zkPath: String, isProducer: Boolean)
-  extends ContentDataStore
-  with Logging {
+class KafkaDataStore(broker: String,
+                     zookeepers: String,
+                     zkPath: String,
+                     partitions: Int,
+                     replication: Int,
+                     isProducer: Boolean) extends ContentDataStore with Logging {
+
   import scala.collection.JavaConverters._
 
-  private val groupId = RandomStringUtils.randomAlphanumeric(5)
-  val zkClient = new ZkClient(zookeepers)
+  // zkStringSerializer is required - otherwise topics won't be created correctly
+  val zkClient = new ZkClient(zookeepers, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
 
   override def createTypeNames() =
     zkClient.getChildren(zkPath).asScala.map(new NameImpl(_)).toList.asJava.asInstanceOf[java.util.List[Name]]
@@ -65,43 +56,34 @@ class KafkaDataStore(broker: String, zookeepers: String, zkPath: String, isProdu
   override def createSchema(featureType: SimpleFeatureType) = {
     val typeName = featureType.getTypeName
     val path = getZkPath(typeName)
+
     if (zkClient.exists(path)) {
       throw new IllegalArgumentException(s"Type $typeName already exists")
-    } else {
-      // create the parent path if required
-      if (!zkClient.exists(zkPath)) {
-        try {
-          zkClient.createPersistent(zkPath, true)
-        } catch {
-          case e: ZkNodeExistsException => // it's ok, something else created before we could
-          case e: Exception => throw new RuntimeException(s"Could not create path in zookeeper at $zkPath", e)
-        }
-      }
-      val data = SimpleFeatureTypes.encodeType(featureType)
+    }
+
+    // create the parent path if required
+    if (!zkClient.exists(zkPath)) {
       try {
-        zkClient.createPersistent(path, data)
+        zkClient.createPersistent(zkPath, true)
       } catch {
-        case e: ZkNodeExistsException =>
-          throw new IllegalArgumentException(s"Type $typeName already exists", e)
-        case e: Exception =>
-          throw new RuntimeException(s"Could not create path in zookeeper at $path", e)
+        case e: ZkNodeExistsException => // it's ok, something else created before we could
+        case e: Exception => throw new RuntimeException(s"Could not create path in zookeeper at $zkPath", e)
       }
     }
-    val producer = getKafkaProducer
-    KafkaDataStore.writeSchema(featureType, typeName, producer)
-    producer.close()
+    val data = SimpleFeatureTypes.encodeType(featureType)
+    try {
+      zkClient.createPersistent(path, data)
+    } catch {
+      case e: ZkNodeExistsException =>
+        throw new IllegalArgumentException(s"Type $typeName already exists", e)
+      case e: Exception =>
+        throw new RuntimeException(s"Could not create path in zookeeper at $path", e)
+    }
+
+    AdminUtils.createTopic(zkClient, typeName, partitions, replication)
   }
 
-  private def getKafkaProducer: Producer[Array[Byte], Array[Byte]] = {
-    val props = new Properties()
-    props.put("metadata.broker.list", broker)
-    props.put("serializer.class", "kafka.serializer.DefaultEncoder")
-    props.put("request.required.acks", "1")
-    props.put("producer.type", "sync")
-    new Producer[Array[Byte], Array[Byte]](new ProducerConfig(props))
-  }
-
-  def getZkPath(typeName: String) = s"$zkPath/$typeName"
+  private def getZkPath(typeName: String) = s"$zkPath/$typeName"
 
   val producerCache =
     CacheBuilder.newBuilder().build[ContentEntry, ContentFeatureSource](
@@ -138,55 +120,23 @@ class KafkaDataStore(broker: String, zookeepers: String, zkPath: String, isProdu
       val sft = schemaCache.get(topic)
       val groupId = RandomStringUtils.randomAlphanumeric(5)
       val decoder = new AvroFeatureDecoder(sft)
+      // create a producer that reads from kafka and sends to the event bus
       val producer = new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
       new KafkaConsumerFeatureSource(entry, sft, eb, null)
     } else null
   }
 
-  def resolveTopicSchema(typeName: String): Option[SimpleFeatureType] = {
-    val client = Consumer.create(new ConsumerConfig(buildClientProps))
-    val whitelist = new Whitelist(typeName)
-    val keyDecoder = new DefaultDecoder(null)
-    val valueDecoder = new DefaultDecoder(null)
-    val stream =
-      client.createMessageStreamsByFilter(whitelist, 1, keyDecoder, valueDecoder).head
-
-    val iter = stream.iterator()
-    var schemaMsg: MessageAndMetadata[Array[Byte], Array[Byte]] = null
-    while(schemaMsg == null && iter.hasNext()) {
-      val msg = iter.next()
-      if(msg.key() != null && !msg.key().equals("schema".getBytes())) {
-        schemaMsg = msg
-      }
-    }
-    if(schemaMsg != null) {
-      val spec = schemaMsg.message()
-      client.shutdown()
-      Some(SimpleFeatureTypes.createType(typeName, new String(spec, StandardCharsets.UTF_8)))
-    } else {
-      logger.warn("Did not find a schema type")
-      None
-    }
+  def resolveTopicSchema(typeName: String): Option[SimpleFeatureType] =
     Option(zkClient.readData[String](getZkPath(typeName), true))
       .map(data => SimpleFeatureTypes.createType(typeName, data))
-  }
-
-  private def buildClientProps = {
-    val props = new Properties()
-    props.put("zookeeper.connect", zookeepers)
-    props.put("group.id", groupId)
-    props.put("zookeeper.session.timeout.ms", "2000")
-    props.put("zookeeper.sync.time.ms", "1000")
-    props.put("auto.commit.interval.ms", "1000")
-    props.put("auto.offset.reset", "smallest")
-    props
-  }
 }
 
 object KafkaDataStoreFactoryParams {
   val KAFKA_BROKER_PARAM = new Param("brokers", classOf[String], "Kafka broker", true)
   val ZOOKEEPERS_PARAM   = new Param("zookeepers", classOf[String], "Zookeepers", true)
   val ZK_PATH            = new Param("zkPath", classOf[String], "Zookeeper discoverable path", false)
+  val TOPIC_PARTITIONS   = new Param("partitions", classOf[Integer], "Number of partitions to use in kafka topics", false)
+  val TOPIC_REPLICATION  = new Param("replication", classOf[Integer], "Replication factor to use in kafka topics", false)
   val IS_PRODUCER_PARAM  = new Param("isProducer", classOf[java.lang.Boolean], "Is Producer", false, false)
 }
 
@@ -203,10 +153,14 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
                      .map(p => if (p.startsWith("/")) p else "/" + p)
                      .map(p => if (p.endsWith("/")) p.substring(0, p.length - 1) else p)
                      .getOrElse("/geomesa/ds/kafka")
-    val producer =
+    val isProducer =
       if(IS_PRODUCER_PARAM.lookUp(params) == null) java.lang.Boolean.FALSE
       else IS_PRODUCER_PARAM.lookUp(params).asInstanceOf[java.lang.Boolean]
-    new KafkaDataStore(broker, zk, zkPath, producer)
+
+    val partitions  = Option(TOPIC_PARTITIONS.lookUp(params)).map(_.toString.toInt).getOrElse(1)
+    val replication = Option(TOPIC_REPLICATION.lookUp(params)).map(_.toString.toInt).getOrElse(1)
+
+    new KafkaDataStore(broker, zk, zkPath, partitions, replication, isProducer)
   }
 
   override def createNewDataStore(params: ju.Map[String, Serializable]): DataStore = ???
