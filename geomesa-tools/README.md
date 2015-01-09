@@ -358,7 +358,7 @@ The file type is inferred from the extension of the file, so ensure that the for
         -i, --instance
            Accumulo instance name
         -lat, --lat-attribute
-           name of the latitude field in the SimpleFeature if longitude is 
+           name of the latitude field in the SimpleFeature if latitude is 
            kept in the SFT spec; otherwise defines the csv field index used to create the
            default geometry
         -lon, --lon-attribute
