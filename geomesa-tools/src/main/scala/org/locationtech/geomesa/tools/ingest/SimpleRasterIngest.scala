@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.tools.ingest
 
 import java.awt.RenderingHints
-import java.io.{FilenameFilter, File}
+import java.io.{File, FilenameFilter}
 import javax.media.jai.{ImageLayout, JAI}
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -29,9 +29,10 @@ import org.geotools.gce.geotiff.GeoTiffReader
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.DecodedIndex
-import org.locationtech.geomesa.raster.data.{Raster, AccumuloCoverageStore}
+import org.locationtech.geomesa.raster.data.{AccumuloCoverageStore, Raster}
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.tools.Utils.Formats._
+import org.locationtech.geomesa.tools.ingest.SimpleRasterIngest._
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 
 import scala.collection.parallel.ForkJoinTaskSupport
@@ -60,8 +61,6 @@ object SimpleRasterIngest {
   }
 
 }
-
-import org.locationtech.geomesa.tools.ingest.SimpleRasterIngest._
 
 class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCoverageStore) extends Logging {
 
@@ -112,7 +111,12 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
     val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Some(ingestTime.getMillis))
 
-    val res = 1.0  //TODO: get the resolution from the reader or from the gridcoverage
+    val width = rasterGrid.getGridGeometry.getGridRange2D.getWidth
+    val height = rasterGrid.getGridGeometry.getGridRange2D.getHeight
+    val resX = (envelope.getMaximum(0) - envelope.getMinimum(0)) / width
+    val resY = (envelope.getMaximum(1) - envelope.getMinimum(1)) / height
+
+    val res = math.min(resX, resY)
 
     val raster = Raster(rasterGrid.getRenderedImage, metadata, res)
 

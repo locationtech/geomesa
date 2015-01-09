@@ -113,7 +113,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
       rasterStore must beAnInstanceOf[RasterStore]
       val theResults = rasterStore.getRasters(query).toList
-      theResults.length must beEqualTo(1)
+      theResults.length must beEqualTo(2)
     }
 
     "Properly filter in a raster conforming to GeoHashes via a query bbox and resolution" in {
@@ -129,7 +129,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
       rasterStore must beAnInstanceOf[RasterStore]
       val theResults = rasterStore.getRasters(query).toList
-      theResults.length must beEqualTo(1)
+      theResults.length must beEqualTo(2)
     }
 
     "Properly return a raster slightly smaller than a GeoHash via a query bbox" in {
@@ -148,7 +148,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
       rasterStore must beAnInstanceOf[RasterStore]
       val theResults = rasterStore.getRasters(query).toList
-      theResults.length must beEqualTo(1)
+      theResults.length must beEqualTo(2)
     }
 
     "Properly return a raster slightly larger than a GeoHash via a query bbox" in {
@@ -167,7 +167,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
       rasterStore must beAnInstanceOf[RasterStore]
       val theResults = rasterStore.getRasters(query).toList
-      theResults.length must beEqualTo(1)
+      theResults.length must beEqualTo(2)
     }
 
     "Properly filter out a raster conforming to GeoHashes via a query bbox and resolution" in {

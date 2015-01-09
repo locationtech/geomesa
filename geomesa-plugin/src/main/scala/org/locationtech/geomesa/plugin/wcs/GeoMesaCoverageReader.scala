@@ -85,7 +85,8 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   }
 
   def rastersToCoverage(rasters: Iterator[Raster], params: GeoMesaCoverageQueryParams): GridCoverage2D = {
-    val image = RasterUtils.mosaicRasters(rasters, params.width.toInt, params.height.toInt, params.envelope, params.resX, params.resY)
+    val image = RasterUtils.mosaicRasters(rasters, params.width.toInt, params.height.toInt,
+      params.envelope, params.resX, params.resY)
     this.coverageFactory.create(coverageName, image, params.envelope)
   }
 }

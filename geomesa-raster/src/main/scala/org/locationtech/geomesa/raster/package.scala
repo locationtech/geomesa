@@ -19,7 +19,13 @@ package org.locationtech.geomesa
 import org.calrissian.mango.types.LexiTypeEncoders
 
 package object raster {
-  def lexiEncodeDoubleToString(number: Double): String = LexiTypeEncoders.LEXI_TYPES.encode(number)
+  def lexiEncodeDoubleToString(number: Double): String = {
+    val truncatedRes = BigDecimal(number).setScale(7, BigDecimal.RoundingMode.HALF_UP).toDouble
+    LexiTypeEncoders.LEXI_TYPES.encode(truncatedRes)
+  }
 
-  def lexiDecodeStringToDouble(str: String): Double = LexiTypeEncoders.LEXI_TYPES.decode("double", str).asInstanceOf[Double]
+  def lexiDecodeStringToDouble(str: String): Double = {
+    val number = LexiTypeEncoders.LEXI_TYPES.decode("double", str).asInstanceOf[Double]
+    BigDecimal(number).setScale(7, BigDecimal.RoundingMode.HALF_UP).toDouble
+  }
 }
