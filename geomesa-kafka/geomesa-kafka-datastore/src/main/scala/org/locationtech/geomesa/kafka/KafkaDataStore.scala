@@ -31,6 +31,7 @@ import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.DefaultDecoder
 import kafka.utils.ZkUtils
 import org.I0Itec.zkclient.ZkClient
+import org.I0Itec.zkclient.exception.ZkNodeExistsException
 import org.apache.commons.lang3.RandomStringUtils
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
@@ -46,11 +47,11 @@ object KafkaDataStore {
                   topic: String,
                   producer: Producer[Array[Byte], Array[Byte]]): Unit = {
     val encodedSchema = SimpleFeatureTypes.encodeType(featureType).getBytes(StandardCharsets.UTF_8)
-    val schemaMsg = new KeyedMessage[Array[Byte], Array[Byte]](topic, KafkaProducerFeatureStore.SCHEMA_KEY, encodedSchema)
+    val schemaMsg = new KeyedMessage[Array[Byte], Array[Byte]](topic, "schema".getBytes(), encodedSchema)
     producer.send(schemaMsg)
   }
 }
-class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
+class KafkaDataStore(broker: String, zookeepers: String, zkPath: String, isProducer: Boolean)
   extends ContentDataStore
   with Logging {
   import scala.collection.JavaConverters._
@@ -59,17 +60,36 @@ class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
   val zkClient = new ZkClient(zookeepers)
 
   override def createTypeNames() =
-    ZkUtils.getAllTopics(zkClient)
-      .map(t => new NameImpl(t)).toList.asJava.asInstanceOf[java.util.List[Name]]
+    zkClient.getChildren(zkPath).asScala.map(new NameImpl(_)).toList.asJava.asInstanceOf[java.util.List[Name]]
 
   override def createSchema(featureType: SimpleFeatureType) = {
-    val topic = featureType.getTypeName
-    if(getTypeNames.contains(topic)) throw new IllegalArgumentException(s"Typename already taken: $topic}")
-    else {
-      val producer = getKafkaProducer
-      KafkaDataStore.writeSchema(featureType, topic, producer)
-      producer.close()
+    val typeName = featureType.getTypeName
+    val path = getZkPath(typeName)
+    if (zkClient.exists(path)) {
+      throw new IllegalArgumentException(s"Type $typeName already exists")
+    } else {
+      // create the parent path if required
+      if (!zkClient.exists(zkPath)) {
+        try {
+          zkClient.createPersistent(zkPath, true)
+        } catch {
+          case e: ZkNodeExistsException => // it's ok, something else created before we could
+          case e: Exception => throw new RuntimeException(s"Could not create path in zookeeper at $zkPath", e)
+        }
+      }
+      val data = SimpleFeatureTypes.encodeType(featureType)
+      try {
+        zkClient.createPersistent(path, data)
+      } catch {
+        case e: ZkNodeExistsException =>
+          throw new IllegalArgumentException(s"Type $typeName already exists", e)
+        case e: Exception =>
+          throw new RuntimeException(s"Could not create path in zookeeper at $path", e)
+      }
     }
+    val producer = getKafkaProducer
+    KafkaDataStore.writeSchema(featureType, typeName, producer)
+    producer.close()
   }
 
   private def getKafkaProducer: Producer[Array[Byte], Array[Byte]] = {
@@ -81,6 +101,8 @@ class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
     new Producer[Array[Byte], Array[Byte]](new ProducerConfig(props))
   }
 
+  def getZkPath(typeName: String) = s"$zkPath/$typeName"
+
   val producerCache =
     CacheBuilder.newBuilder().build[ContentEntry, ContentFeatureSource](
       new CacheLoader[ContentEntry, ContentFeatureSource] {
@@ -91,6 +113,11 @@ class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
       new CacheLoader[ContentEntry, ContentFeatureSource] {
         override def load(entry: ContentEntry) = createConsumerFeatureSource(entry)
       })
+  val schemaCache =
+    CacheBuilder.newBuilder().build(new CacheLoader[String, SimpleFeatureType] {
+      override def load(k: String): SimpleFeatureType =
+        resolveTopicSchema(k).getOrElse(throw new IllegalArgumentException("Unable to find schema"))
+    })
 
   override def createFeatureSource(entry: ContentEntry) =
     if(isProducer) producerCache.get(entry)
@@ -111,20 +138,14 @@ class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
       val sft = schemaCache.get(topic)
       val groupId = RandomStringUtils.randomAlphanumeric(5)
       val decoder = new AvroFeatureDecoder(sft)
-      val producer =
-        new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
-      new KafkaConsumerFeatureSource(entry, sft, eb, producer, null)
+      val producer = new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
+      new KafkaConsumerFeatureSource(entry, sft, eb, null)
     } else null
   }
 
-  val schemaCache =
-    CacheBuilder.newBuilder().build(new CacheLoader[String, SimpleFeatureType] {
-      override def load(k: String): SimpleFeatureType = resolveTopicSchema(k).getOrElse(throw new IllegalArgumentException("Unable to find schema"))
-    })
-
-  def resolveTopicSchema(topic: String): Option[SimpleFeatureType] = {
+  def resolveTopicSchema(typeName: String): Option[SimpleFeatureType] = {
     val client = Consumer.create(new ConsumerConfig(buildClientProps))
-    val whitelist = new Whitelist(topic)
+    val whitelist = new Whitelist(typeName)
     val keyDecoder = new DefaultDecoder(null)
     val valueDecoder = new DefaultDecoder(null)
     val stream =
@@ -134,18 +155,20 @@ class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
     var schemaMsg: MessageAndMetadata[Array[Byte], Array[Byte]] = null
     while(schemaMsg == null && iter.hasNext()) {
       val msg = iter.next()
-      if(msg.key() != null && !msg.key().equals(KafkaProducerFeatureStore.SCHEMA_KEY)) {
+      if(msg.key() != null && !msg.key().equals("schema".getBytes())) {
         schemaMsg = msg
       }
     }
     if(schemaMsg != null) {
       val spec = schemaMsg.message()
       client.shutdown()
-      Some(SimpleFeatureTypes.createType(topic, new String(spec, StandardCharsets.UTF_8)))
+      Some(SimpleFeatureTypes.createType(typeName, new String(spec, StandardCharsets.UTF_8)))
     } else {
       logger.warn("Did not find a schema type")
       None
     }
+    Option(zkClient.readData[String](getZkPath(typeName), true))
+      .map(data => SimpleFeatureTypes.createType(typeName, data))
   }
 
   private def buildClientProps = {
@@ -158,12 +181,12 @@ class KafkaDataStore(broker: String, zookeepers: String, isProducer: Boolean)
     props.put("auto.offset.reset", "smallest")
     props
   }
-
 }
 
 object KafkaDataStoreFactoryParams {
   val KAFKA_BROKER_PARAM = new Param("brokers", classOf[String], "Kafka broker", true)
   val ZOOKEEPERS_PARAM   = new Param("zookeepers", classOf[String], "Zookeepers", true)
+  val ZK_PATH            = new Param("zkPath", classOf[String], "Zookeeper discoverable path", false)
   val IS_PRODUCER_PARAM  = new Param("isProducer", classOf[java.lang.Boolean], "Is Producer", false, false)
 }
 
@@ -174,10 +197,16 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: ju.Map[String, Serializable]): DataStore = {
     val broker   = KAFKA_BROKER_PARAM.lookUp(params).asInstanceOf[String]
     val zk       = ZOOKEEPERS_PARAM.lookUp(params).asInstanceOf[String]
+    val zkPath   = Option(ZK_PATH.lookUp(params).asInstanceOf[String])
+                     .map(_.trim)
+                     .filterNot(_.isEmpty)
+                     .map(p => if (p.startsWith("/")) p else "/" + p)
+                     .map(p => if (p.endsWith("/")) p.substring(0, p.length - 1) else p)
+                     .getOrElse("/geomesa/ds/kafka")
     val producer =
       if(IS_PRODUCER_PARAM.lookUp(params) == null) java.lang.Boolean.FALSE
       else IS_PRODUCER_PARAM.lookUp(params).asInstanceOf[java.lang.Boolean]
-    new KafkaDataStore(broker, zk, producer)
+    new KafkaDataStore(broker, zk, zkPath, producer)
   }
 
   override def createNewDataStore(params: ju.Map[String, Serializable]): DataStore = ???

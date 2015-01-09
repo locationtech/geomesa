@@ -50,7 +50,6 @@ import scala.collection.JavaConversions._
 class KafkaConsumerFeatureSource(entry: ContentEntry,
                                  schema: SimpleFeatureType,
                                  eb: EventBus,
-                                 producer: KafkaFeatureConsumer,
                                  query: Query)
   extends ContentFeatureStore(entry, query) {
 
@@ -203,8 +202,7 @@ class KafkaFeatureConsumer(topic: String,
   private val client = Consumer.create(new ConsumerConfig(buildClientProps))
   private val whiteList = new Whitelist(topic)
   private val decoder: DefaultDecoder = new DefaultDecoder(null)
-  private val stream =
-    client.createMessageStreamsByFilter(whiteList, 1, decoder, decoder).head
+  private val stream = client.createMessageStreamsByFilter(whiteList, 1, decoder, decoder).head
 
   val es = Executors.newSingleThreadExecutor()
   es.submit(new Runnable {
@@ -216,7 +214,6 @@ class KafkaFeatureConsumer(topic: String,
           if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.DELETE_KEY)) {
             val id = new String(msg.message(), StandardCharsets.UTF_8)
             deleteFeature(id)
-
           } else if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.CLEAR_KEY)) {
             clear()
           } else {

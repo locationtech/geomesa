@@ -91,19 +91,21 @@ class KafkaDataStoreTest extends Specification with Logging {
       fw.write()
       Thread.sleep(2000)
 
-      "and be read from other data stores" >> {
-        val readSF = consumerFC.getFeatures.features().next()
+      // AND READ
+      {
+        val features = consumerFC.getFeatures.features()
+        features.hasNext must beTrue
+        val readSF = features.next()
         sf.getID must be equalTo readSF.getID
         sf.getAttribute("dtg") must be equalTo readSF.getAttribute("dtg")
-      }
 
-      "allow features to be deleted" >> {
         store.removeFeatures(ff.id(ff.featureId("1")))
         Thread.sleep(500) // ensure FC has seen the delete
         consumerFC.getCount(Query.ALL) must be equalTo 0
       }
 
-      "allow modifications of existing features" >> {
+      // AND UPDATED
+      {
         val updated = sf
         updated.setAttribute("name", "jones")
         updated.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -117,9 +119,9 @@ class KafkaDataStoreTest extends Specification with Logging {
         res.getAttribute("name") must be equalTo "jones"
       }
 
-      "allow clears" >> {
+      // AND CLEARED
+      {
         store.removeFeatures(Filter.INCLUDE)
-
         Thread.sleep(500)
         consumerFC.getCount(Query.ALL) must be equalTo 0
 
@@ -132,7 +134,8 @@ class KafkaDataStoreTest extends Specification with Logging {
         consumerFC.getCount(Query.ALL) must be equalTo 1
       }
 
-      "allow CQL queries" >> {
+      // ALLOW CQL QUERIES
+      {
         val sf = fw.next()
         sf.setAttributes(Array("jones", 60, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
         sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))

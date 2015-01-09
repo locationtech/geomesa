@@ -39,7 +39,6 @@ import scala.collection.JavaConversions._
 object KafkaProducerFeatureStore {
   val DELETE_KEY = "delete".getBytes(StandardCharsets.UTF_8)
   val CLEAR_KEY  = "clear".getBytes(StandardCharsets.UTF_8)
-  val SCHEMA_KEY = "schema".getBytes(StandardCharsets.UTF_8)
 }
 
 class KafkaProducerFeatureStore(entry: ContentEntry,
