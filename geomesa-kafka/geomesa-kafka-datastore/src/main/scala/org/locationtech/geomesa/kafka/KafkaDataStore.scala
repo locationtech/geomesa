@@ -46,8 +46,8 @@ class KafkaDataStore(broker: String,
 
   import scala.collection.JavaConversions._
 
-  // zkStringSerializer is required - otherwise topics won't be created correctly
   val zkClient = {
+    // zkStringSerializer is required - otherwise topics won't be created correctly
     val ret = new ZkClient(zookeepers, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
     if (!ret.exists(zkPath)) {
       try {
@@ -71,7 +71,6 @@ class KafkaDataStore(broker: String,
       throw new IllegalArgumentException(s"Type $typeName already exists")
     }
 
-
     val data = SimpleFeatureTypes.encodeType(featureType)
     try {
       zkClient.createPersistent(path, data)
@@ -83,9 +82,6 @@ class KafkaDataStore(broker: String,
     }
 
     AdminUtils.createTopic(zkClient, typeName, partitions, replication)
-  }
-
-  def ensureZkPathExists(): Unit = {
   }
 
   private def getZkPath(typeName: String) = s"$zkPath/$typeName"
