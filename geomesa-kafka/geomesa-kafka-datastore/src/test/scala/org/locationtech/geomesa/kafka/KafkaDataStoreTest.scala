@@ -53,15 +53,17 @@ class KafkaDataStoreTest extends Specification with Logging {
 
   "KafkaDataSource" should {
     val consumerParams = Map(
-      "brokers"     -> s"$host:$port",
+      "brokers"    -> s"$host:$port",
       "zookeepers" -> zkConnect,
+      "zkPath"     -> "/geomesa/kafka/testds",
       "isProducer" -> false)
 
     val consumerDS = DataStoreFinder.getDataStore(consumerParams)
 
     val producerParams = Map(
-      "brokers"     -> s"$host:$port",
+      "brokers"    -> s"$host:$port",
       "zookeepers" -> zkConnect,
+      "zkPath"     -> "/geomesa/kafka/testds",
       "isProducer" -> true)
 
     val producerDS = DataStoreFinder.getDataStore(producerParams)

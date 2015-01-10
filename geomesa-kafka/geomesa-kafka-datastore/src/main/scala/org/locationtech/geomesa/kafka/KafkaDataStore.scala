@@ -35,7 +35,6 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.feature.AvroFeatureDecoder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 
 class KafkaDataStore(broker: String,
@@ -45,13 +44,24 @@ class KafkaDataStore(broker: String,
                      replication: Int,
                      isProducer: Boolean) extends ContentDataStore with Logging {
 
-  import scala.collection.JavaConverters._
+  import scala.collection.JavaConversions._
 
   // zkStringSerializer is required - otherwise topics won't be created correctly
-  val zkClient = new ZkClient(zookeepers, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
+  val zkClient = {
+    val ret = new ZkClient(zookeepers, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
+    if (!ret.exists(zkPath)) {
+      try {
+        ret.createPersistent(zkPath, true)
+      } catch {
+        case e: ZkNodeExistsException => // it's ok, something else created before we could
+        case e: Exception => throw new RuntimeException(s"Could not create path in zookeeper at $zkPath", e)
+      }
+    }
+    ret
+  }
 
   override def createTypeNames() =
-    zkClient.getChildren(zkPath).asScala.map(new NameImpl(_)).toList.asJava.asInstanceOf[java.util.List[Name]]
+    zkClient.getChildren(zkPath).map(new NameImpl(_))
 
   override def createSchema(featureType: SimpleFeatureType) = {
     val typeName = featureType.getTypeName
@@ -61,15 +71,7 @@ class KafkaDataStore(broker: String,
       throw new IllegalArgumentException(s"Type $typeName already exists")
     }
 
-    // create the parent path if required
-    if (!zkClient.exists(zkPath)) {
-      try {
-        zkClient.createPersistent(zkPath, true)
-      } catch {
-        case e: ZkNodeExistsException => // it's ok, something else created before we could
-        case e: Exception => throw new RuntimeException(s"Could not create path in zookeeper at $zkPath", e)
-      }
-    }
+
     val data = SimpleFeatureTypes.encodeType(featureType)
     try {
       zkClient.createPersistent(path, data)
@@ -81,6 +83,9 @@ class KafkaDataStore(broker: String,
     }
 
     AdminUtils.createTopic(zkClient, typeName, partitions, replication)
+  }
+
+  def ensureZkPathExists(): Unit = {
   }
 
   private def getZkPath(typeName: String) = s"$zkPath/$typeName"
