@@ -23,6 +23,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.transform.TransformCreator
+import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureDecoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -55,7 +56,7 @@ class SimpleFeatureFilteringIterator(other: SimpleFeatureFilteringIterator, env:
   var transform: (SimpleFeature => Array[Byte]) = (_: SimpleFeature) => source.getTopValue.get()
 
   def evalFilter(v: Value) = {
-    Try(sourceDecoder.decode(v)) match {
+    Try(sourceDecoder.decode(v.get())) match {
       case Success(feature) =>
         nextFeature = feature
         filter.evaluate(nextFeature)

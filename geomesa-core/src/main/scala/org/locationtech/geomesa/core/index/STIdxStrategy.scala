@@ -27,7 +27,8 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
-import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.feature.FeatureEncoding
+import FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._

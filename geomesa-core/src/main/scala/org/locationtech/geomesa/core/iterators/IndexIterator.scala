@@ -23,7 +23,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureEncoder, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

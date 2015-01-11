@@ -33,7 +33,7 @@ import org.geotools.data.{DataStore, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.{IndexSchema, STIdxStrategy}
-import org.locationtech.geomesa.feature.AvroSimpleFeature
+import org.locationtech.geomesa.feature.{AvroFeatureDecoder, AvroFeatureEncoder, SimpleFeatureEncoder, AvroSimpleFeature}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -76,7 +76,7 @@ object GeoMesaSpark {
     rdd.mapPartitions { iter =>
       val sft = SimpleFeatureTypes.createType(typeName, spec)
       val decoder = new AvroFeatureDecoder(sft)
-      iter.map { case (k: Key, v: Value) => decoder.decode(v) }
+      iter.map { case (k: Key, v: Value) => decoder.decode(v.get()) }
     }
   }
 

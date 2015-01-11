@@ -31,9 +31,8 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.index.{IndexEntryDecoder, _}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, TimeSnap}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -104,7 +103,7 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
       topSourceKey = source.getTopKey
       topSourceValue = source.getTopValue //SimpleFeature
 
-      val date = originalDecoder.decode(topSourceValue).getAttribute(dateTimeFieldName).asInstanceOf[Date]
+      val date = originalDecoder.decode(topSourceValue.get()).getAttribute(dateTimeFieldName).asInstanceOf[Date]
       val dateTime = new DateTime(date.getTime)
       addResultDate(dateTime)
 

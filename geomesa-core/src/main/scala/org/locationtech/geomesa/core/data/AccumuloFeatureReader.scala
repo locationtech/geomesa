@@ -19,6 +19,7 @@ package org.locationtech.geomesa.core.data
 import org.geotools.data.{FeatureReader, Query}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.stats._
+import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
