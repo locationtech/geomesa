@@ -51,6 +51,7 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
     val args: Map[String, Option[String]] = Map(
       IngestRasterParams.FILE_PATH -> Some(params.file),
       IngestRasterParams.FORMAT -> Some(Option(params.format).getOrElse(getFileExtension(params.file))),
+      IngestRasterParams.TABLE -> Option(params.table),
       IngestRasterParams.TIME -> Option(params.timeStamp),
       IngestRasterParams.PARLEVEL -> Option(params.parLevel.toString)
     )
