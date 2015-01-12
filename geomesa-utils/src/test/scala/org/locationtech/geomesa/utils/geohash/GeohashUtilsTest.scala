@@ -150,6 +150,9 @@ class GeohashUtilsTest extends Specification with Logging {
       gh.hash.drop(offset).take(bits)
     }.toSet
 
+    // write out the computed intersecting Geohashes at this precision
+    subs.filterNot(_.contains(".")).foreach { ghs => pw.println(WKTUtils.write(GeoHash(ghs).geom) + "\t3") }
+
     logger.debug("\n[VALIDATE GEOHASH SUBS]")
     logger.debug(s"  Geometry:  " + WKTUtils.write(geom))
     logger.debug(s"  Range sought:  ($offset, $bits)")
@@ -171,7 +174,7 @@ class GeohashUtilsTest extends Specification with Logging {
         polygonCharlottesville, offset, bits)
 
       if (DEBUG_OUTPUT)
-        ghSubstrings.foreach { gh => logger.debug("[unique Charlottesville gh(2,3)] " + gh)}
+        ghSubstrings.foreach { gh => logger.debug(s"[unique Charlottesville gh($offset,$bits)] " + gh)}
 
       validateGeohashSubstrings(polygonCharlottesville, offset, bits, ghSubstrings)
 
@@ -192,6 +195,11 @@ class GeohashUtilsTest extends Specification with Logging {
 
     "compute (3,2) correctly for Charlottesville" in {
       testGeohashSubstringsInCharlottesville(3, 2) mustEqual 8
+    }
+
+    "not die when Geohash strings of more than 5 characters are requested" in {
+      testGeohashSubstringsInCharlottesville(0, 6) mustEqual 83
+      testGeohashSubstringsInCharlottesville(0, 7) mustEqual 1762
     }
   }
 
