@@ -21,11 +21,13 @@ import java.util.{Date, UUID}
 import com.vividsolutions.jts.geom._
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 import scala.util.parsing.combinator.JavaTokenParsers
 
 object SimpleFeatureTypes {
@@ -36,6 +38,9 @@ object SimpleFeatureTypes {
 
   val OPT_INDEX_VALUE        = "index-value"
   val OPT_INDEX              = "index"
+
+  // use the epsg jar if it's available (e.g. in geoserver), otherwise use the less-rich constant
+  val CRS_EPSG_4326          = Try(CRS.decode("EPSG:4326")).getOrElse(DefaultGeographicCRS.WGS84)
 
   def createType(nameSpec: String, spec: String): SimpleFeatureType = {
     val nsIndex = nameSpec.lastIndexOf(':')
@@ -208,7 +213,7 @@ object SimpleFeatureTypes {
       b.binding(clazz)
           .userData(OPT_INDEX, index)
           .userData(OPT_INDEX_VALUE, indexValue)
-          .crs(DefaultGeographicCRS.WGS84)
+          .crs(CRS_EPSG_4326)
           .buildDescriptor(name)
     }
 
