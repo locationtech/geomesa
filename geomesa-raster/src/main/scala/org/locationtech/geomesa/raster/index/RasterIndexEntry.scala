@@ -136,6 +136,7 @@ case class RasterIndexEntryDecoder() {
   def decode(entry: KeyValuePair) = {
     val renderedImage: RenderedImage = rasterImageDeserialize(entry._2.get)
     val metadata: DecodedIndex = RasterIndexEntry.decodeIndexCQMetadata(entry._1)
+    //TODO: move this to RasterIndexSchema
     val res = raster.lexiDecodeStringToDouble(new String(entry._1.getRowData.toArray).split("~")
       .toList.get(1))
     Raster(renderedImage, metadata, res)

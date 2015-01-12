@@ -75,9 +75,6 @@ class CreateFeatureParams extends FeatureParams {
 }
 
 class RasterParams extends AccumuloParams {
-  @Parameter(names = Array("-r", "--raster-name"), description = "Raster name on which to operate", required = true)
-  var rasterName: String = null
-
   @Parameter(names = Array("-t", "--raster-table"), description = "Accumulo table for storing raster data", required = true)
   var table: String = null
 }

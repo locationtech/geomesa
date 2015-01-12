@@ -29,7 +29,7 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
     // note that this will only go DOWN in GeoHash resolution -- the enumeration will miss any GeoHashes
     // that perfectly match the bbox or ones that fully contain it.
     val closestAcceptableGeoHash = GeohashUtils.getClosestAcceptableGeoHash(rq.bbox).getOrElse(GeoHash("")).hash
-    val hashes = BoundingBox.getGeoHashesFromBoundingBox(rq.bbox) :+ closestAcceptableGeoHash
+    val hashes = (BoundingBox.getGeoHashesFromBoundingBox(rq.bbox) :+ closestAcceptableGeoHash).toSet.toList
     val res = lexiEncodeDoubleToString(rq.resolution)
     logger.debug(s"Planner: BBox: ${rq.bbox} has geohashes: $hashes, and has encoded Resolution: $res")
 

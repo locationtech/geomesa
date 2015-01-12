@@ -100,10 +100,10 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     val batchScanner = connector.createBatchScanner(rasterTable, authorizationsProvider.getAuthorizations, numQThreads)
     val plan = queryPlanner.getQueryPlan(rasterQuery)
     configureBatchScanner(batchScanner, plan)
-    adaptIterator(batchScanner.iterator, rasterQuery.resolution)
+    adaptIterator(batchScanner.iterator)
   }
 
-  def adaptIterator(iter: java.util.Iterator[Entry[Key, Value]], res: Double): Iterator[Raster] = {
+  def adaptIterator(iter: java.util.Iterator[Entry[Key, Value]]): Iterator[Raster] = {
     iter.map { entry => schema.decode((entry.getKey, entry.getValue)) }
   }
 

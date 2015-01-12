@@ -30,6 +30,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.{AccumuloCoverageStore, Raster}
+import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.ingest.SimpleRasterIngest._
@@ -66,7 +67,7 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
 
   lazy val path = config(IngestRasterParams.FILE_PATH).get
   lazy val fileType = config(IngestRasterParams.FORMAT).get
-  lazy val rasterName = config(IngestRasterParams.RASTER_NAME).get
+  lazy val rasterName = config(IngestRasterParams.TABLE).get
   lazy val visibilities = config(IngestRasterParams.VISIBILITIES).get
   lazy val parLevel = config(IngestRasterParams.PARLEVEL).get.toInt
 
@@ -87,12 +88,7 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
 
     cs.geoserverClientServiceO.foreach { geoserverClientService => {
       geoserverClientService.registerRasterStyles()
-      geoserverClientService.registerRaster(rasterName,
-                                            rasterName,
-                                            rasterName,
-                                            "Raster data",
-                                            1.0,
-                                            None)
+      geoserverClientService.registerRaster(rasterName, rasterName, "Raster data", None)
     }}
   }
 
@@ -111,12 +107,7 @@ class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCovera
     val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
     val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Some(ingestTime.getMillis))
 
-    val width = rasterGrid.getGridGeometry.getGridRange2D.getWidth
-    val height = rasterGrid.getGridGeometry.getGridRange2D.getHeight
-    val resX = (envelope.getMaximum(0) - envelope.getMinimum(0)) / width
-    val resY = (envelope.getMaximum(1) - envelope.getMinimum(1)) / height
-
-    val res = math.min(resX, resY)
+    val res =  RasterUtils.sharedRasterParams(rasterGrid.getGridGeometry, envelope).accumuloResolution
 
     val raster = Raster(rasterGrid.getRenderedImage, metadata, res)
 

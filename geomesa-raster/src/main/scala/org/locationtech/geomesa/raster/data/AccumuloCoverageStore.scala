@@ -81,12 +81,7 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
 
   private def registerToGeoserver(raster: Raster, geoserverClientService: GeoserverClientService) {
     geoserverClientService.registerRasterStyles()
-    geoserverClientService.registerRaster(raster.id,
-                                          raster.id,
-                                          raster.id,
-                                          "Raster data",
-                                          raster.resolution,
-                                          None)
+    geoserverClientService.registerRaster(raster.id, raster.id, "Raster data", None)
   }
 }
 

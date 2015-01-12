@@ -17,7 +17,6 @@
 package org.locationtech.geomesa.raster.data
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.raster.data.Raster
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.specs2.mutable.Specification
@@ -113,7 +112,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
       rasterStore must beAnInstanceOf[RasterStore]
       val theResults = rasterStore.getRasters(query).toList
-      theResults.length must beEqualTo(2)
+      theResults.length must beEqualTo(1)
     }
 
     "Properly filter in a raster conforming to GeoHashes via a query bbox and resolution" in {
@@ -129,7 +128,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
       rasterStore must beAnInstanceOf[RasterStore]
       val theResults = rasterStore.getRasters(query).toList
-      theResults.length must beEqualTo(2)
+      theResults.length must beEqualTo(1)
     }
 
     "Properly return a raster slightly smaller than a GeoHash via a query bbox" in {
@@ -148,7 +147,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
       rasterStore must beAnInstanceOf[RasterStore]
       val theResults = rasterStore.getRasters(query).toList
-      theResults.length must beEqualTo(2)
+      theResults.length must beEqualTo(1)
     }
 
     "Properly return a raster slightly larger than a GeoHash via a query bbox" in {
@@ -167,7 +166,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
       rasterStore must beAnInstanceOf[RasterStore]
       val theResults = rasterStore.getRasters(query).toList
-      theResults.length must beEqualTo(2)
+      theResults.length must beEqualTo(1)
     }
 
     "Properly filter out a raster conforming to GeoHashes via a query bbox and resolution" in {

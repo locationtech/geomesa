@@ -45,14 +45,14 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
   val geoserverRegistrationTimeout: Int = 10000
   val globalStylesUrl = s"$restURL/styles"
 
-  def registrationData(rasterId: String, rasterName: String, styleName: String): RegistrationData = {
-    val url = coverageURL(rasterId, rasterName, config)
+  def registrationData(rasterId: String, styleName: String): RegistrationData = {
+    val url = coverageURL(rasterId, config)
     val coverageName = rasterId
-    val storeName = config(IngestRasterParams.TABLE) + ":" + coverageName
+    val storeName = config(IngestRasterParams.TABLE)
     RegistrationData(url, storeName, coverageName, styleName)
   }
 
-  def coverageURL(rasterId: String, rasterName: String, params: Map[String, String]): String = {
+  def coverageURL(rasterId: String, params: Map[String, String]): String = {
     val zookeepers = params(IngestRasterParams.ZOOKEEPERS)
     val instance = params(IngestRasterParams.ACCUMULO_INSTANCE)
     val tableName = params(IngestRasterParams.TABLE)
@@ -61,26 +61,19 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
     val auths = params(IngestRasterParams.AUTHORIZATIONS)
     val visibilities = params(IngestRasterParams.VISIBILITIES)
 
-    s"accumulo://$user:$password@$instance/$tableName#rasterName=$rasterName#zookeepers=" +
+    s"accumulo://$user:$password@$instance/$tableName#zookeepers=" +
       s"$zookeepers#auths=$auths#visibilities=$visibilities"
   }
 
-  def registerRaster(rasterId: String,
-                     rasterName: String,
-                     title: String,
-                     description: String,
-                     resolution: Double,
-                     styleName: Option[String]) {
-    val regData = registrationData(rasterId,
-                                   rasterName,
-                                   styleName.getOrElse(defaultStyleName))
+  def registerRaster(rasterId: String, title: String, description: String, styleName: Option[String]) {
+    val regData = registrationData(rasterId, styleName.getOrElse(defaultStyleName))
     regData match {
       case RegistrationData(url, storeName, coverageName, styleName) =>
         registerWorkspaceIfNotRegistered
         if (!isCoverageRegistered(coverageName) && !isCoverageRegistered(storeName)) {
           logger.debug(s"Register raster layer ($url) to Geoserver: $geoserverUrl")
           registerCoverageStore(storeName, url)
-          registerCoverage(storeName, title, description, coverageName, resolution)
+          registerCoverage(storeName, title, description, coverageName)
           modifyDefaultStyle(coverageName, styleName)
         }
     }
@@ -298,7 +291,7 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
       <url>{ url }</url>
     </coverageStore>.toString()
 
-  def registerCoverage(storeName: String, title:String, description: String, name:String=null, resolution: Double) {
+  def registerCoverage(storeName: String, title: String, description: String, name: String = null) {
     logger.debug(s"Registering coverage:  store $storeName; name $name")
     post(s"$coverageStoresURL/$storeName/coverages",
       ContentType.TEXT_XML,
@@ -307,8 +300,7 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
         description,
         "EPSG:4326",
         GeoserverBoundingBox.WHOLE_EARTH,
-        GeoserverBoundingBox.WHOLE_EARTH,
-        resolution))
+        GeoserverBoundingBox.WHOLE_EARTH))
   }
 
   def coverageBody(name: String,
@@ -316,8 +308,7 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
                    description: String,
                    srs: String,
                    nativeBoundingBox: GeoserverBoundingBox,
-                   latLonBoundingBox: GeoserverBoundingBox,
-                   resolution: Double) =
+                   latLonBoundingBox: GeoserverBoundingBox) =
     <coverage>
       <title>{ title }</title>
       <abstract>{ description }</abstract>
@@ -348,12 +339,6 @@ class GeoserverClientService(config: Map[String, String]) extends Logging {
         </entry>
         <entry key="cachingEnabled">false</entry>
       </metadata>
-      <parameters>
-        <entry>
-          <string>RESOLUTION</string>
-          <string>{ resolution }</string>
-        </entry>
-      </parameters>
     </coverage>.toString()
 
   def modifyDefaultStyle(name: String, style: String) {
