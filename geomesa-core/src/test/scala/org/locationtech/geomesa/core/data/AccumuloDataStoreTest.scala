@@ -675,13 +675,23 @@ class AccumuloDataStoreTest extends Specification {
         "useMock"           -> "true",
         "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
-      val sft = createSchema(sftName,
-          s"name:String:index=true,numattr:Integer,dtg:Date,*geom:Point:srid=4326",
-          dataStore = ds)
+      val sft = createSchema(sftName, dataStore = ds)
+      addDefaultPoint(sft, dataStore = ds, fid = "f1")
+      addDefaultPoint(sft, dataStore = ds, fid = "f2")
 
-      "typeOf feature source must be ListFeatureCollection" >> {
+      "typeOf feature source must be CachingAccumuloFeatureCollection" >> {
         val fc = ds.getFeatureSource(sftName).getFeatures(Filter.INCLUDE)
         fc must haveClass[CachingAccumuloFeatureCollection]
+      }
+
+      "suport getCount" >> {
+        val query = new Query(sftName, Filter.INCLUDE)
+        val fs = ds.getFeatureSource(sftName)
+        val count = fs.getCount(query)
+        count mustEqual 2
+        val features = SelfClosingIterator(fs.getFeatures(query).features()).toList
+        features must haveSize(2)
+        features.map(_.getID) must containAllOf(Seq("f1", "f2"))
       }
     }
 
