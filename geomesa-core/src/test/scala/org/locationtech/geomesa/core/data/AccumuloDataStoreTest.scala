@@ -1138,6 +1138,34 @@ class AccumuloDataStoreTest extends Specification {
       }
       success
     }
+
+    "create key plan correctly with a large bbox and a date range" in {
+      val sftName1 = "keyPlanTest1"
+      val sftName2 = "keyPlanTest2"
+
+      val sft1 = createSchema(sftName1)
+      val sft2 = createSchema(sftName2)
+
+      addDefaultPoint(sft1, fid = "fid-sft1")
+      addDefaultPoint(sft2, fid = "fid-sft2")
+
+      val filter =
+        CQL.toFilter("bbox(geom,-180,-90,180,90) AND dtg BETWEEN '1969-12-31T00:00:00.000Z' AND '1970-01-02T00:00:00.000Z'")
+      val query = new Query(sftName1, filter, Array("geom", "dtg"))
+
+      // Let's read out what we wrote.
+      val features = SelfClosingIterator(ds.getFeatureSource(sftName1).getFeatures(query).features).toList
+      features.size mustEqual 1
+      features(0).getID mustEqual "fid-sft1"
+
+      val explain = {
+        val o = new ExplainString
+        ds.getFeatureReader(sftName1, query).explainQuery(o = o)
+        o.toString()
+      }
+      println(explain)
+      explain must not contain("GeoHashKeyPlanner: KeyInvalid")
+    }
   }
 
   "AccumuloFeatureStore" should {
