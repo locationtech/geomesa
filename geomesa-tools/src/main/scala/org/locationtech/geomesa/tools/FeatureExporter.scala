@@ -17,7 +17,7 @@ package org.locationtech.geomesa.tools
 
 import java.io._
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.{TimeZone, Date}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry, Point}
@@ -119,8 +119,13 @@ class DelimitedExport(writer: Writer,
    case Formats.CSV => ","
    case Formats.TSV => "\t"
   }
-  lazy val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
   lazy val geometryFactory = JTSFactoryFinder.getGeometryFactory
+  lazy val dateFormat = {
+    val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    df.setTimeZone(TimeZone.getTimeZone("UTC"))
+    df
+  }
 
   override def write(features: SimpleFeatureCollection) = {
 
