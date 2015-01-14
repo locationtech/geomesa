@@ -19,24 +19,33 @@ package org.locationtech.geomesa.raster.data
 import java.util.Map.Entry
 
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
-import org.apache.accumulo.core.data.{Key, Mutation, Value}
+import org.apache.accumulo.core.data.{Range, Key, Mutation, Value}
 import org.apache.accumulo.core.security.{Authorizations, TablePermission}
+import org.geotools.coverage.grid.GridEnvelope2D
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.core.iterators.BBOXCombiner._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.core.stats.StatWriter
+import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
+import org.locationtech.geomesa.utils.geohash.BoundingBox
 
 import scala.collection.JavaConversions._
 
 trait RasterOperations extends StrategyHelpers {
   def getTable(): String
   def ensureTableExists(): Unit
+  def ensureBoundsTableExists(): Unit
+  def createTableStructure(): Unit
   def getAuths(): Authorizations
   def getVisibility(): String
   def getConnector(): Connector
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster]
   def putRaster(raster: Raster): Unit
+  def getBounds(): BoundingBox
+  def getAvailableResolutions(): Set[Double]
+  def getGridRange(): GridEnvelope2D
 }
 
 /**
@@ -86,12 +95,15 @@ class AccumuloBackedRasterOperations(val connector: Connector,
 
   def getTable() = rasterTable
 
+  private def getBoundsRowID = rasterTable + "_bounds"
+
   def putRasters(rasters: Seq[Raster]) {
     rasters.foreach { putRaster(_) }
   }
 
   def putRaster(raster: Raster) {
-    writeMutations(createMutation(raster))
+    writeMutations(rasterTable, createMutation(raster))
+    writeMutations(GEOMESA_RASTER_BOUNDS_TABLE, createBoundsMutation(raster))
   }
 
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
@@ -103,13 +115,73 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     adaptIterator(batchScanner.iterator)
   }
 
+  def getBounds(): BoundingBox = {
+    ensureTableExists(GEOMESA_RASTER_BOUNDS_TABLE)
+    val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, authorizationsProvider.getAuthorizations)
+    scanner.setRange(new Range(getBoundsRowID))
+    val resultingBounds = scanner.iterator()
+    if (resultingBounds.isEmpty) {
+      BoundingBox(-180, 180, -90, 90)
+    } else {
+      //TODO: add fix for stuff crossing anti-meridian, may not be an issue...
+      reduceValuesToBoundingBox(resultingBounds.map(_.getValue))
+    }
+  }
+
+  def getAvailableResolutions(): Set[Double] = {
+    ensureTableExists(GEOMESA_RASTER_BOUNDS_TABLE)
+    val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths())
+    scanner.setRange(new Range(getBoundsRowID))
+    val scanResultingCQs = scanner.iterator.toList.map(_.getKey.getColumnQualifier.toString)
+    val resultingResolutions = scanResultingCQs.length match {
+      case 0 => Set[Double]()
+      case _ => scanResultingCQs.map(lexiDecodeStringToDouble).toSet[Double]
+    }
+    resultingResolutions
+  }
+
+  def getGridRange(): GridEnvelope2D = {
+    val bounds = getBounds()
+    val resolutions = getAvailableResolutions().toSeq
+    val resolution = resolutions match {
+      case Nil => 1.0
+      case _   => resolutions.min
+    }
+    val width  = Math.abs(bounds.getWidth / resolution).toInt
+    val height = Math.abs(bounds.getHeight / resolution).toInt
+
+    new GridEnvelope2D(0, 0, width, height)
+  }
+
   def adaptIterator(iter: java.util.Iterator[Entry[Key, Value]]): Iterator[Raster] = {
     iter.map { entry => schema.decode((entry.getKey, entry.getValue)) }
   }
 
-  def ensureTableExists() = ensureTableExists(rasterTable)
+  def createTableStructure() = {
+    ensureTableExists()
+  }
+
+  def ensureTableExists() = {
+    ensureTableExists(rasterTable)
+    ensureBoundsTableExists()
+  }
+
+  def ensureBoundsTableExists() = {
+    ensureTableExists(GEOMESA_RASTER_BOUNDS_TABLE)
+    if (!tableOps.listIterators(GEOMESA_RASTER_BOUNDS_TABLE).containsKey("GEOMESA_BBOX_COMBINER")) {
+      val bboxcombinercfg =  AccumuloRasterBoundsPlanner.getBoundsScannerCfg(rasterTable)
+      tableOps.attachIterator(GEOMESA_RASTER_BOUNDS_TABLE, bboxcombinercfg)
+    }
+  }
 
   private def dateToAccTimestamp(dt: DateTime): Long =  dt.getMillis / 1000
+
+  private def createBoundsMutation(raster: Raster): Mutation = {
+    val mutation = new Mutation(getBoundsRowID)
+    val value = bboxToValue(BoundingBox(raster.metadata.geom.getEnvelopeInternal))
+    mutation.put("", lexiEncodeDoubleToString(raster.resolution), value)
+    mutation
+  }
 
   /**
    * Create Mutation instance from input Raster instance
@@ -135,8 +207,8 @@ class AccumuloBackedRasterOperations(val connector: Connector,
    *
    * @param mutations
    */
-  private def writeMutations(mutations: Mutation*) {
-    val writer = connector.createBatchWriter(rasterTable, bwConfig)
+  private def writeMutations(tableName: String, mutations: Mutation*) {
+    val writer = connector.createBatchWriter(tableName, bwConfig)
     mutations.foreach { m => writer.addMutation(m) }
     writer.flush()
     writer.close()
