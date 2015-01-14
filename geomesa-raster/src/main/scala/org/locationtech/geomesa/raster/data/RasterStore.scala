@@ -17,7 +17,6 @@
 package org.locationtech.geomesa.raster.data
 
 import org.locationtech.geomesa.raster.AccumuloStoreHelper
-import org.locationtech.geomesa.raster.data.Raster
 
 /**
  * This class defines basic operations on Raster, including saving/retrieving
@@ -28,6 +27,8 @@ import org.locationtech.geomesa.raster.data.Raster
 class RasterStore(val rasterOps: RasterOperations) {
 
   def ensureTableExists() = rasterOps.ensureTableExists()
+
+  def ensureBoundsTableExists() = rasterOps.ensureBoundsTableExists()
 
   def getAuths = rasterOps.getAuths()
 
@@ -40,6 +41,8 @@ class RasterStore(val rasterOps: RasterOperations) {
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = rasterOps.getRasters(rasterQuery)
 
   def putRaster(raster: Raster) = rasterOps.putRaster(raster)
+
+  def getBounds() = rasterOps.getBounds()
 }
 
 object RasterStore {
@@ -59,6 +62,8 @@ object RasterStore {
     val rasterOps = new AccumuloBackedRasterOperations(conn, tableName, authorizationsProvider, writeVisibilities)
     // this will actually create the Accumulo Table
     rasterOps.ensureTableExists()
+    // This will create the Bounds Table if not present.
+    rasterOps.ensureBoundsTableExists()
     // TODO: WCS: Configure the shards/writeMemory/writeThreads/queryThreadsParams
     // GEOMESA-568
     new RasterStore(rasterOps)
