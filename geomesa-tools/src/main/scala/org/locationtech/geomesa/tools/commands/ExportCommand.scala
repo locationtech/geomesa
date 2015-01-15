@@ -57,6 +57,9 @@ class ExportCommand(parent: JCommander) extends Command with Logging {
       exporter.flush()
       exporter.close()
     }
+
+    //necessary to avoid StatsWriter exception when exporting
+    Thread.sleep(1000)
   }
 
   def getFeatureCollection(fmt: String): SimpleFeatureCollection = {

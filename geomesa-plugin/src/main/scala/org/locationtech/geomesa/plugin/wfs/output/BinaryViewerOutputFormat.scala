@@ -21,7 +21,7 @@ import java.util.Date
 import javax.xml.namespace.QName
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.geom.{Geometry, LineString, Point}
 import net.opengis.wfs.{GetFeatureType => GetFeatureTypeV1, QueryType => QueryTypeV1}
 import net.opengis.wfs20.{GetFeatureType => GetFeatureTypeV2, QueryType => QueryTypeV2}
 import org.geoserver.config.GeoServer
@@ -30,13 +30,13 @@ import org.geoserver.platform.Operation
 import org.geoserver.wfs.WFSGetFeatureOutputFormat
 import org.geoserver.wfs.request.{FeatureCollectionResponse, GetFeatureRequest}
 import org.geotools.data.DataStore
-import org.geotools.data.simple.SimpleFeatureIterator
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.util.Version
+import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction, ExtendedValues}
-import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
 /**
  * Output format for wfs requests that encodes features into a binary format.
@@ -55,10 +55,9 @@ import scala.collection.JavaConverters._
  * @param gs
  */
 class BinaryViewerOutputFormat(gs: GeoServer)
-    extends WFSGetFeatureOutputFormat(gs, Set("bin", BinaryViewerOutputFormat.MIME_TYPE).asJava) {
+    extends WFSGetFeatureOutputFormat(gs, Set("bin", BinaryViewerOutputFormat.MIME_TYPE)) {
 
   import org.locationtech.geomesa.core.index.getDtgFieldName
-  import org.locationtech.geomesa.plugin.wfs.output.AxisOrder._
   import org.locationtech.geomesa.plugin.wfs.output.BinaryViewerOutputFormat._
 
   override def getMimeType(value: AnyRef, operation: Operation) = MIME_TYPE
@@ -84,51 +83,19 @@ class BinaryViewerOutputFormat(gs: GeoServer)
     // check for explicit dtg field in request, or use schema default dtg
     val dtgField = Option(request.getFormatOptions.get(DATE_FIELD).asInstanceOf[String])
         .orElse(getDateField(getFeature))
-    val sysTime = System.currentTimeMillis()
-
     // depending on srs requested and wfs versions, axis order can be flipped
     val axisOrder = checkAxisOrder(getFeature)
 
     val bos = new BufferedOutputStream(output)
 
-    val encode: (Float, Float, Long, Option[String], Option[String]) => Unit = labelField match {
-      case Some(label) => (lat, lon, dtg, track, label) =>
-          Convert2ViewerFunction.encode(ExtendedValues(lat, lon, dtg, track, label), bos)
-
-      case None => (lat, lon, dtg, track, _) =>
-        Convert2ViewerFunction.encode(BasicValues(lat, lon, dtg, track), bos)
-    }
-
-    featureCollections.getFeatures.asScala.foreach { fc =>
-      fc.features().asInstanceOf[SimpleFeatureIterator].foreach { f =>
-        val geom = f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint
-        val (lat, lon) = axisOrder match {
-          case LatLon => (geom.getX, geom.getY)
-          case LonLat => (geom.getY, geom.getX)
-        }
-        val dtg = dtgField.map(f.getAttribute(_))
-            .filter(_.isInstanceOf[Date])
-            .map(_.asInstanceOf[Date].getTime)
-            .getOrElse(sysTime)
-        val trackId = trackIdField.flatMap(getAttributeOrId(f, _))
-        val label = labelField.flatMap(getAttributeOrId(f, _))
-        encode(lat.toFloat, lon.toFloat, dtg, trackId, label)
-      }
-      // implicit RichSimpleFeatureIterator calls close on the feature collection for us
+    featureCollections.getFeatures.zip(request.getQueries).foreach { case (fc, query) =>
+      val sorted = query.getSortBy != null && !query.getSortBy.isEmpty
+      val sfc = fc.asInstanceOf[SimpleFeatureCollection]
+      encodeFeatureCollection(sfc, bos, dtgField, trackIdField, labelField, axisOrder, sorted)
       bos.flush()
     }
     // none of the implementations in geoserver call 'close' on the output stream
   }
-
-  /**
-   * Gets an optional attribute or id
-   *
-   * @param f
-   * @param attribute
-   * @return
-   */
-  private def getAttributeOrId(f: SimpleFeature, attribute: String): Option[String] =
-    if (attribute == "id") Some(f.getID) else Option(f.getAttribute(attribute)).map(_.toString)
 
   /**
    * Try to pull out the default date field from the SimpleFeatureType associated with this request
@@ -165,6 +132,124 @@ object BinaryViewerOutputFormat extends Logging {
   val srsVersionOnePlusPrefix = "urn:x-ogc:def:crs:epsg:"
   val srsNonStandardPrefix = "epsg:"
 
+  def encodeFeatureCollection(
+      fc: SimpleFeatureCollection,
+      output: OutputStream,
+      dtgField: Option[String],
+      trackIdField: Option[String],
+      labelField: Option[String],
+      axisOrder: AxisOrder,
+      sorted: Boolean) = {
+
+    val sysTime = System.currentTimeMillis
+    val isLineString = fc.getSchema.getGeometryDescriptor.getType.getBinding == classOf[LineString]
+
+    // depending on srs requested and wfs versions, axis order can be flipped
+    val getLatLon: (Point) => (Float, Float) = axisOrder match {
+      case LatLon => (p) => (p.getX.toFloat, p.getY.toFloat)
+      case LonLat => (p) => (p.getY.toFloat, p.getX.toFloat)
+    }
+    val getDtg: (SimpleFeature) => Long = dtgField match {
+      case Some(dtg) =>
+        (f) => Option(f.getAttribute(dtg).asInstanceOf[Date]).map(_.getTime).getOrElse(sysTime)
+      case None =>
+        (_) => sysTime
+    }
+    val getLineDtg: (SimpleFeature) => Option[Array[Long]] = dtgField match {
+      case Some(dtg) =>
+        (f) => Option(f.getAttribute(dtg)).map { list =>
+          if (classOf[java.util.List[_]].isAssignableFrom(list.getClass) &&
+              !list.asInstanceOf[java.util.List[_]].isEmpty &&
+              list.asInstanceOf[java.util.List[_]].get(0).getClass == classOf[Date]) {
+            list.asInstanceOf[java.util.List[Date]].map(_.getTime).toArray
+          } else {
+            logger.warn(s"Expected date attribute of type 'List[Date]', instead got '${list.getClass}'")
+            Array.empty[Long]
+          }
+        }
+      case None =>
+        (_) => None
+    }
+    val getTrackId: (SimpleFeature) => Option[String] = trackIdField match {
+      case Some(trackId) => (f) => getAttributeOrId(f, trackId)
+      case None => (_) => None
+    }
+    val getLabel: (SimpleFeature) => Option[String] = labelField match {
+      case Some(label) => (f) => getAttributeOrId(f, label)
+      case None => (_) => None
+    }
+
+    val encode: (ValuesToEncode) => Unit = labelField match {
+      case Some(label) => (v) => {
+        val toEncode = ExtendedValues(v.lat, v.lon, v.dtg, v.track, v.label)
+        Convert2ViewerFunction.encode(toEncode, output)
+      }
+      case None => (v) => {
+        val toEncode = BasicValues(v.lat, v.lon, v.dtg, v.track)
+        Convert2ViewerFunction.encode(toEncode, output)
+      }
+    }
+
+    if (isLineString) {
+      // expand the line string into individual points to encode
+      val closeableIterator = CloseableIterator(fc.features())
+      val iter = closeableIterator.flatMap { sf =>
+        val geom = sf.getDefaultGeometry.asInstanceOf[LineString]
+        val indices = (0 until geom.getNumPoints)
+        val points = indices.map(geom.getPointN(_)).toArray
+        val dates = getLineDtg(sf).filter { d =>
+          val matches = d.size == points.size
+          if (!matches) {
+            logger.warn(s"Mismatched geometries and dates for simple feature ${sf.getID} - " +
+                "defaulting to sys date")
+          }
+          matches
+        }.getOrElse(Array.fill(points.size)(sysTime))
+        val trackId = getTrackId(sf)
+        val label = getLabel(sf)
+
+        indices.map { case i =>
+          val (lat, lon) = getLatLon(points(i))
+          ValuesToEncode(lat, lon, dates(i), trackId, label)
+        }
+      }
+      if (dtgField.isDefined) {
+        // have to re-sort, since lines will have a variety of dates
+        iter.toList.sortBy(_.dtg).foreach(encode)
+      } else {
+        // no point in sorting since all will have same time anyway
+        iter.foreach(encode)
+      }
+      closeableIterator.close() // have to close explicitly since we are flatMapping
+    } else {
+      val iter = SelfClosingIterator(fc.features()).map { f =>
+        val geom = f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint
+        val (lat, lon) = getLatLon(geom)
+        val dtg = getDtg(f)
+        val trackId = getTrackId(f)
+        val label = getLabel(f)
+        ValuesToEncode(lat, lon, dtg, trackId, label)
+      }
+      if (dtgField.isDefined && sorted == false) {
+        logger.info("No query sort detected - sorting bin output")
+        iter.toList.sortBy(_.dtg).foreach(encode)
+      } else {
+        iter.foreach(encode)
+      }
+    }
+    // Feature collection has already been closed by SelfClosingIterator
+  }
+
+  /**
+   * Gets an optional attribute or id
+   *
+   * @param f
+   * @param attribute
+   * @return
+   */
+  def getAttributeOrId(f: SimpleFeature, attribute: String): Option[String] =
+    if (attribute == "id") Some(f.getID) else Option(f.getAttribute(attribute)).map(_.toString)
+
   /**
    * Determines the order of lat/lon in simple features returned by this request.
    *
@@ -193,11 +278,11 @@ object BinaryViewerOutputFormat extends Logging {
   def getTypeName(getFeature: Operation): Option[QName] = {
     val typeNamesV2 = getFeatureTypeV2(getFeature)
         .flatMap(getQueryType)
-        .map(_.getTypeNames.asScala)
+        .map(_.getTypeNames.toList)
         .getOrElse(Seq.empty)
     val typeNamesV1 = getFeatureTypeV1(getFeature)
         .flatMap(getQueryType)
-        .map(_.getTypeName.asScala)
+        .map(_.getTypeName.toList)
         .getOrElse(Seq.empty)
     val typeNames = typeNamesV2 ++ typeNamesV1
     if (typeNames.size > 1) {
@@ -259,7 +344,7 @@ object BinaryViewerOutputFormat extends Logging {
    * @return
    */
   def getQueryType(getFeatureType: GetFeatureTypeV1): Option[QueryTypeV1] =
-    getFeatureType.getQuery.iterator().asScala
+    getFeatureType.getQuery.iterator()
         .find(_.isInstanceOf[QueryTypeV1])
         .map(_.asInstanceOf[QueryTypeV1])
 
@@ -270,9 +355,11 @@ object BinaryViewerOutputFormat extends Logging {
    * @return
    */
   def getQueryType(getFeatureType: GetFeatureTypeV2): Option[QueryTypeV2] =
-    getFeatureType.getAbstractQueryExpressionGroup.iterator().asScala
+    getFeatureType.getAbstractQueryExpressionGroup.iterator()
         .find(_.getValue.isInstanceOf[QueryTypeV2])
         .map(_.getValue.asInstanceOf[QueryTypeV2])
+
+  case class ValuesToEncode(lat: Float, lon: Float, dtg: Long, track: Option[String], label: Option[String])
 }
 
 object AxisOrder extends Enumeration {
