@@ -17,7 +17,15 @@
 
 package org.locationtech.geomesa.plugin.wfs.output
 
+import java.io.ByteArrayOutputStream
+import java.text.SimpleDateFormat
+
+import org.geotools.data.collection.ListFeatureCollection
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction, ExtendedValues}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

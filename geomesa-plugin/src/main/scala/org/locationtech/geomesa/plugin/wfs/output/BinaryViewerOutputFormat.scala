@@ -17,11 +17,10 @@
 package org.locationtech.geomesa.plugin.wfs.output
 
 import java.io.{BufferedOutputStream, OutputStream}
-import java.util.Date
 import javax.xml.namespace.QName
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.geom.LineString
 import net.opengis.wfs.{GetFeatureType => GetFeatureTypeV1, QueryType => QueryTypeV1}
 import net.opengis.wfs20.{GetFeatureType => GetFeatureTypeV2, QueryType => QueryTypeV2}
 import org.geoserver.config.GeoServer
@@ -30,13 +29,11 @@ import org.geoserver.platform.Operation
 import org.geoserver.wfs.WFSGetFeatureOutputFormat
 import org.geoserver.wfs.request.{FeatureCollectionResponse, GetFeatureRequest}
 import org.geotools.data.DataStore
-import org.geotools.data.simple.SimpleFeatureIterator
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.util.Version
-import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction, ExtendedValues}
-import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
-import org.opengis.feature.simple.SimpleFeature
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
 
-import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
 /**
  * Output format for wfs requests that encodes features into a binary format.
@@ -55,10 +52,9 @@ import scala.collection.JavaConverters._
  * @param gs
  */
 class BinaryViewerOutputFormat(gs: GeoServer)
-    extends WFSGetFeatureOutputFormat(gs, Set("bin", BinaryViewerOutputFormat.MIME_TYPE).asJava) {
+    extends WFSGetFeatureOutputFormat(gs, Set("bin", BinaryViewerOutputFormat.MIME_TYPE)) {
 
   import org.locationtech.geomesa.core.index.getDtgFieldName
-  import org.locationtech.geomesa.plugin.wfs.output.AxisOrder._
   import org.locationtech.geomesa.plugin.wfs.output.BinaryViewerOutputFormat._
 
   override def getMimeType(value: AnyRef, operation: Operation) = MIME_TYPE
@@ -79,56 +75,25 @@ class BinaryViewerOutputFormat(gs: GeoServer)
 
     // format_options flags for customizing the request
     val request = GetFeatureRequest.adapt(getFeature.getParameters()(0))
-    val trackIdField = Option(request.getFormatOptions.get(TRACK_ID_FIELD).asInstanceOf[String])
-    val labelField = Option(request.getFormatOptions.get(LABEL_FIELD).asInstanceOf[String])
+    val trackId = Option(request.getFormatOptions.get(TRACK_ID_FIELD).asInstanceOf[String])
+    val label = Option(request.getFormatOptions.get(LABEL_FIELD).asInstanceOf[String])
     // check for explicit dtg field in request, or use schema default dtg
-    val dtgField = Option(request.getFormatOptions.get(DATE_FIELD).asInstanceOf[String])
-        .orElse(getDateField(getFeature))
-    val sysTime = System.currentTimeMillis()
-
+    val dtg = Option(request.getFormatOptions.get(DATE_FIELD).asInstanceOf[String])
+        .orElse(getDateField(getFeature)).getOrElse("dtg")
     // depending on srs requested and wfs versions, axis order can be flipped
     val axisOrder = checkAxisOrder(getFeature)
 
     val bos = new BufferedOutputStream(output)
 
-    val encode: (Float, Float, Long, Option[String], Option[String]) => Unit = labelField match {
-      case Some(label) => (lat, lon, dtg, track, label) =>
-          Convert2ViewerFunction.encode(ExtendedValues(lat, lon, dtg, track, label), bos)
-
-      case None => (lat, lon, dtg, track, _) =>
-        Convert2ViewerFunction.encode(BasicValues(lat, lon, dtg, track), bos)
-    }
-
-    featureCollections.getFeatures.asScala.foreach { fc =>
-      fc.features().asInstanceOf[SimpleFeatureIterator].foreach { f =>
-        val geom = f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint
-        val (lat, lon) = axisOrder match {
-          case LatLon => (geom.getX, geom.getY)
-          case LonLat => (geom.getY, geom.getX)
-        }
-        val dtg = dtgField.map(f.getAttribute(_))
-            .filter(_.isInstanceOf[Date])
-            .map(_.asInstanceOf[Date].getTime)
-            .getOrElse(sysTime)
-        val trackId = trackIdField.flatMap(getAttributeOrId(f, _))
-        val label = labelField.flatMap(getAttributeOrId(f, _))
-        encode(lat.toFloat, lon.toFloat, dtg, trackId, label)
-      }
-      // implicit RichSimpleFeatureIterator calls close on the feature collection for us
+    featureCollections.getFeatures.zip(request.getQueries).foreach { case (fc, query) =>
+      // line strings can't be sorted by point as part of the query, so we have to re-sort them
+      val sort = fc.getSchema.getGeometryDescriptor.getType.getBinding == classOf[LineString]
+      val sfc = fc.asInstanceOf[SimpleFeatureCollection]
+      BinaryOutputEncoder.encodeFeatureCollection(sfc, bos, dtg, trackId, label, None, axisOrder, sort)
       bos.flush()
     }
     // none of the implementations in geoserver call 'close' on the output stream
   }
-
-  /**
-   * Gets an optional attribute or id
-   *
-   * @param f
-   * @param attribute
-   * @return
-   */
-  private def getAttributeOrId(f: SimpleFeature, attribute: String): Option[String] =
-    if (attribute == "id") Some(f.getID) else Option(f.getAttribute(attribute)).map(_.toString)
 
   /**
    * Try to pull out the default date field from the SimpleFeatureType associated with this request
@@ -151,7 +116,8 @@ class BinaryViewerOutputFormat(gs: GeoServer)
 
 object BinaryViewerOutputFormat extends Logging {
 
-  import org.locationtech.geomesa.plugin.wfs.output.AxisOrder._
+  import org.locationtech.geomesa.filter.function.AxisOrder
+  import org.locationtech.geomesa.filter.function.AxisOrder.{LatLon, LonLat}
 
   val MIME_TYPE = "application/vnd.binary-viewer"
   val FILE_EXTENSION = "bin"
@@ -174,11 +140,11 @@ object BinaryViewerOutputFormat extends Logging {
    * @param getFeature
    * @return
    */
-  def checkAxisOrder(getFeature: Operation): AxisOrder =
+  def checkAxisOrder(getFeature: Operation): AxisOrder.AxisOrder =
     getSrs(getFeature) match {
       // if an explicit SRS is requested, that takes priority
       // SRS format associated with WFS 1.1.0 and 2.0.0 - lat is first
-      case Some(srs) if srs.toLowerCase.startsWith(srsVersionOnePlusPrefix) => LatLon
+      case Some(srs) if srs.toLowerCase.startsWith(srsVersionOnePlusPrefix) => AxisOrder.LatLon
       // SRS format associated with WFS 1.0.0 - lon is first
       case Some(srs) if srs.toLowerCase.startsWith(srsVersionOnePrefix) => LonLat
       // non-standard SRS format - geoserver puts lon first
@@ -193,11 +159,11 @@ object BinaryViewerOutputFormat extends Logging {
   def getTypeName(getFeature: Operation): Option[QName] = {
     val typeNamesV2 = getFeatureTypeV2(getFeature)
         .flatMap(getQueryType)
-        .map(_.getTypeNames.asScala)
+        .map(_.getTypeNames.toList)
         .getOrElse(Seq.empty)
     val typeNamesV1 = getFeatureTypeV1(getFeature)
         .flatMap(getQueryType)
-        .map(_.getTypeName.asScala)
+        .map(_.getTypeName.toList)
         .getOrElse(Seq.empty)
     val typeNames = typeNamesV2 ++ typeNamesV1
     if (typeNames.size > 1) {
@@ -259,7 +225,7 @@ object BinaryViewerOutputFormat extends Logging {
    * @return
    */
   def getQueryType(getFeatureType: GetFeatureTypeV1): Option[QueryTypeV1] =
-    getFeatureType.getQuery.iterator().asScala
+    getFeatureType.getQuery.iterator()
         .find(_.isInstanceOf[QueryTypeV1])
         .map(_.asInstanceOf[QueryTypeV1])
 
@@ -270,12 +236,7 @@ object BinaryViewerOutputFormat extends Logging {
    * @return
    */
   def getQueryType(getFeatureType: GetFeatureTypeV2): Option[QueryTypeV2] =
-    getFeatureType.getAbstractQueryExpressionGroup.iterator().asScala
+    getFeatureType.getAbstractQueryExpressionGroup.iterator()
         .find(_.getValue.isInstanceOf[QueryTypeV2])
         .map(_.getValue.asInstanceOf[QueryTypeV2])
-}
-
-object AxisOrder extends Enumeration {
-  type AxisOrder = Value
-  val LatLon, LonLat = Value
 }
