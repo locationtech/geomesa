@@ -160,6 +160,13 @@ class KafkaDataStoreTest extends Specification with Logging {
         res.features().next().getAttribute("name") must be equalTo "jones"
       }
     }
+
+    "return correctly from canProcess" >> {
+      import KafkaDataStoreFactoryParams._
+      val factory = new KafkaDataStoreFactory
+      factory.canProcess(Map.empty[String, Serializable]) must beFalse
+      factory.canProcess(Map(KAFKA_BROKER_PARAM.key -> "test", ZOOKEEPERS_PARAM.key -> "test")) must beTrue
+    }
   }
 
   step {

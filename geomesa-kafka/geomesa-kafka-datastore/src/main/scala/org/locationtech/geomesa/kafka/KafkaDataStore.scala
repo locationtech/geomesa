@@ -169,7 +169,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   override def getParametersInfo: Array[Param] = Array(KAFKA_BROKER_PARAM, ZOOKEEPERS_PARAM)
   override def getDisplayName: String = "Kafka Data Store"
   override def canProcess(params: ju.Map[String, Serializable]): Boolean =
-    KAFKA_BROKER_PARAM.lookUp(params) != null && ZOOKEEPERS_PARAM.lookUp(params) != null
+    params.containsKey(KAFKA_BROKER_PARAM.key) && params.containsKey(ZOOKEEPERS_PARAM.key)
 
   override def isAvailable: Boolean = true
   override def getImplementationHints: ju.Map[Key, _] = null
