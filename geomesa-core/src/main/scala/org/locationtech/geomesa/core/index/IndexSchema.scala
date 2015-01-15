@@ -20,8 +20,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Point
 import org.apache.accumulo.core.data.Key
 import org.geotools.data.Query
-import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.util._
+import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 // A secondary index consists of interleaved elements of a composite key stored in

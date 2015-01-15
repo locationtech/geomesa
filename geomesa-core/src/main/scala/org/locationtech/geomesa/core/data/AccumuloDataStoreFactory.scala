@@ -30,6 +30,7 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import org.locationtech.geomesa.core.stats.StatWriter
+import org.locationtech.geomesa.feature.FeatureEncoding
 
 import scala.collection.JavaConversions._
 import scala.util.Try

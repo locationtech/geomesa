@@ -20,6 +20,7 @@ import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.{Mutation, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.opengis.feature.simple.SimpleFeature
 
 // TODO: Implement as traits and cache results to gain flexibility and speed-up.

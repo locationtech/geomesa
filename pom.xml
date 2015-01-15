@@ -36,6 +36,7 @@
         <module>geomesa-assemble</module>
         <module>geomesa-raster</module>
         <module>geomesa-web</module>
+        <module>geomesa-kafka</module>
     </modules>
 
     <properties>
@@ -77,7 +78,7 @@
         <profile>
             <id>debug-tests</id>
             <properties>
-                <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit -Xrunjdwp:transport=dt_socket,address=5000,server=y,suspend=y</maven.test.jvmargs>
+                <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.jvmargs>
             </properties>
         </profile>
         <profile>
@@ -644,6 +645,12 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-common</artifactId>
+                <version>${hadoop.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-client</artifactId>
                 <version>${hadoop.version}</version>
                 <scope>provided</scope>
@@ -906,7 +913,7 @@
                 <configuration>
                     <jvmArgs>
                         <jvmArg>-Xms1024m</jvmArg>
-                        <jvmArg>-Xmx4096m</jvmArg>
+                        <jvmArg>-Xmx8G</jvmArg>
                         <jvmArg>-XX:MaxPermSize=1024m</jvmArg>
                     </jvmArgs>
                     <args>

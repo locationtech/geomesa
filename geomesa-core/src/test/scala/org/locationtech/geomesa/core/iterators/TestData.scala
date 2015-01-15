@@ -11,9 +11,9 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.core.data.{AccumuloFeatureStore, SimpleFeatureEncoder}
+import org.locationtech.geomesa.core.data.AccumuloFeatureStore
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.feature.{SimpleFeatureEncoder, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

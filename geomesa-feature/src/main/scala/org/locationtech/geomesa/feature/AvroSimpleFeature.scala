@@ -125,4 +125,15 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
 
   def validate() = values.zipWithIndex.foreach { case (v, idx) => Types.validate(getType.getDescriptor(idx), v) }
 
+  override def hashCode(): Int = id.hashCode()
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case other: AvroSimpleFeature =>
+      if(id.equalsExact(other.getIdentifier)) {
+        java.util.Arrays.equals(values, other.getAttributes.toArray)
+      } else false
+
+    case _ =>
+      false
+  }
 }

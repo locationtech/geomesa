@@ -40,7 +40,7 @@ class AttributeTableTest extends Specification {
     "AttributeTable" should {
 
       "encode mutations for attribute index" in {
-        val descriptors = sft.getAttributeDescriptors
+        val descriptors = (0 until sft.getAttributeCount).zip(sft.getAttributeDescriptors).toSeq
 
         val feature = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id1")
         val geom = WKTUtils.read("POINT(45.0 49.0)")
@@ -49,16 +49,14 @@ class AttributeTableTest extends Specification {
         feature.setAttribute("age",50.asInstanceOf[Any])
         feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
-        val mutations = AttributeTable.getAttributeIndexMutations(feature,
-                                                                       descriptors,
-                                                                       new ColumnVisibility(), "")
-        mutations.size mustEqual descriptors.size()
+        val mutations = AttributeTable.getAttributeIndexMutations(feature, descriptors, new ColumnVisibility(), "")
+        mutations.size mustEqual descriptors.length
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(false)).foreach
       }
 
       "encode mutations for delete attribute index" in {
-        val descriptors = sft.getAttributeDescriptors
+        val descriptors = (0 until sft.getAttributeCount).zip(sft.getAttributeDescriptors)
 
         val feature = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id1")
         val geom = WKTUtils.read("POINT(45.0 49.0)")
@@ -67,11 +65,8 @@ class AttributeTableTest extends Specification {
         feature.setAttribute("age",50.asInstanceOf[Any])
         feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
-        val mutations = AttributeTable.getAttributeIndexMutations(feature,
-                                                                       descriptors,
-                                                                       new ColumnVisibility(), "",
-                                                                       true)
-        mutations.size mustEqual descriptors.size()
+        val mutations = AttributeTable.getAttributeIndexMutations(feature, descriptors, new ColumnVisibility(), "", delete = true)
+        mutations.size mustEqual descriptors.length
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(true)).foreach
       }

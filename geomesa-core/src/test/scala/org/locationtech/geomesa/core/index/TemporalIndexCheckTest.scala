@@ -45,6 +45,7 @@ class TemporalIndexCheckTest extends Specification {
 
     "detect a valid DTG if SF_PROPERTY_START_TIME is not set" in {
       val testType = oneDTGType
+      testType.getUserData.remove(SF_PROPERTY_START_TIME)
       val dtgCandidate = TemporalIndexCheck.extractNewDTGFieldCandidate(testType)
       dtgCandidate.get must be equalTo DEFAULT_DTG_PROPERTY_NAME
     }

@@ -21,6 +21,7 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.util.SftBuilder._
 import org.locationtech.geomesa.data.TableSplitter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Splitter
 
 import scala.collection.mutable.ListBuffer
@@ -34,46 +35,47 @@ class SftBuilder {
   private var dtgFieldOpt: Option[String] = None
 
   // Primitives
-  def stringType(name: String, index: Boolean = false)  = append(name, index, "String")
-  def intType(name: String, index: Boolean = false)     = append(name, index, "Integer")
-  def longType(name: String, index: Boolean = false)    = append(name, index, "Long")
-  def floatType(name: String, index: Boolean = false)   = append(name, index, "Float")
-  def doubleType(name: String, index: Boolean = false)  = append(name, index, "Double")
-  def booleanType(name: String, index: Boolean = false) = append(name, index, "Boolean")
+  def stringType(name: String, index: Boolean = false, stIndex: Boolean = false) =
+    append(name, index, stIndex, "String")
+  def intType(name: String, index: Boolean = false, stIndex: Boolean = false) =
+    append(name, index, stIndex, "Integer")
+  def longType(name: String, index: Boolean = false, stIndex: Boolean = false) =
+    append(name, index, stIndex, "Long")
+  def floatType(name: String, index: Boolean = false, stIndex: Boolean = false) =
+    append(name, index, stIndex, "Float")
+  def doubleType(name: String, index: Boolean = false, stIndex: Boolean = false) =
+    append(name, index, stIndex, "Double")
+  def booleanType(name: String, index: Boolean = false, stIndex: Boolean = false) =
+    append(name, index, stIndex, "Boolean")
 
   // Helpful Types
-  def date(name: String, index: Boolean = false, default: Boolean = false) = {
+  def date(name: String, index: Boolean = false, stIndex: Boolean = false, default: Boolean = false) = {
     if (default) {
       withDefaultDtg(name)
     }
-    append(name, index, "Date")
+    append(name, index, stIndex, "Date")
   }
-  def uuid(name: String, index: Boolean = false) = append(name, index, "UUID")
+  def uuid(name: String, index: Boolean = false, stIndex: Boolean = false) =
+    append(name, index, stIndex, "UUID")
 
   // Single Geometries
-  def point(name: String, default: Boolean = false, index: Boolean = false) =
-    appendGeom(name, index, default, "Point")
-  def lineString(name: String, default: Boolean = false, index: Boolean = false) =
-    appendGeom(name, index, default, "LineString")
-  def polygon(name: String, default: Boolean = false, index: Boolean = false) =
-    appendGeom(name, index, default, "Polygon")
-  def geometry(name: String, default: Boolean = false, index: Boolean = false) =
-    appendGeom(name, index, default, "Geometry")
+  def point(name: String, default: Boolean = false) = appendGeom(name, default, "Point")
+  def lineString(name: String, default: Boolean = false) = appendGeom(name, default, "LineString")
+  def polygon(name: String, default: Boolean = false) = appendGeom(name, default, "Polygon")
+  def geometry(name: String, default: Boolean = false) = appendGeom(name, default, "Geometry")
 
   // Multi Geometries
-  def multiPoint(name: String, default: Boolean = false, index: Boolean = false) =
-    appendGeom(name, index, default, "MultiPoint")
-  def multiLineString(name: String, default: Boolean = false, index: Boolean = false) =
-    appendGeom(name, index, default, "MultiLineString")
-  def multiPolygon(name: String, default: Boolean = false, index: Boolean = false) =
-    appendGeom(name, index, default, "MultiPolygon")
-  def geometryCollection(name: String, default: Boolean = false, index: Boolean = false) =
-    appendGeom(name, index, default, "GeometryCollection")
+  def multiPoint(name: String, default: Boolean = false) = appendGeom(name, default, "MultiPoint")
+  def multiLineString(name: String, default: Boolean = false) = appendGeom(name, default, "MultiLineString")
+  def multiPolygon(name: String, default: Boolean = false) = appendGeom(name, default, "MultiPolygon")
+  def geometryCollection(name: String, default: Boolean = false) =
+    appendGeom(name, default, "GeometryCollection")
 
   // List and Map Types
   def mapType[K: TypeTag, V: TypeTag](name: String, index: Boolean = false) =
-    append(name, index, s"Map[${resolve(typeOf[K])},${resolve(typeOf[V])}]")
-  def listType[T: TypeTag](name: String, index: Boolean = false) = append(name, index, s"List[${resolve(typeOf[T])}]")
+    append(name, index, false, s"Map[${resolve(typeOf[K])},${resolve(typeOf[V])}]")
+  def listType[T: TypeTag](name: String, index: Boolean = false) =
+    append(name, index, false, s"List[${resolve(typeOf[T])}]")
 
   def recordSplitter(clazz: String, splitOptions: Map[String,String]) = {
     this.splitterOpt = Some(Splitter(clazz, splitOptions))
@@ -100,20 +102,23 @@ class SftBuilder {
       case t if tt == typeOf[UUID]          => "UUID"
     }
 
-  private def append(name: String, index: Boolean, typeStr: String) = {
-    val parts = List(name, typeStr) ++ indexPart(index)
+  private def append(name: String, index: Boolean, stIndex: Boolean = false, typeStr: String) = {
+    val parts = List(name, typeStr) ++ indexPart(index) ++ stIndexPart(stIndex)
     entries += parts.mkString(SepPart)
     this
   }
 
-  private def appendGeom(name: String, index: Boolean, default: Boolean, typeStr: String) = {
-    val namePart  = if (default) "*" + name else name
-    val parts     = List(namePart, typeStr, SridPart) ++ indexPart(index || default) //force index on default geom
+  private def appendGeom(name: String, default: Boolean, typeStr: String) = {
+    val namePart = if (default) "*" + name else name
+    val parts = List(namePart, typeStr, SridPart) ++
+        indexPart(default) ++ //force index on default geom
+        stIndexPart(default)
     entries += parts.mkString(SepPart)
     this
   }
 
-  private def indexPart(index: Boolean) = if (index) Some("index=true") else None
+  private def indexPart(index: Boolean) = if (index) Seq(s"$OPT_INDEX=true") else Seq.empty
+  private def stIndexPart(index: Boolean) = if (index) Seq(s"$OPT_INDEX_VALUE=true") else Seq.empty
 
   // note that SimpleFeatureTypes requires that splitter and splitter opts be ordered properly
   private def splitPart = splitterOpt.map { s =>

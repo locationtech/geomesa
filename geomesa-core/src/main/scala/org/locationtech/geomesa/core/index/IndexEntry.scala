@@ -9,7 +9,8 @@ import org.apache.hadoop.io.Text
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.{DATA_CQ, SimpleFeatureEncoder}
+import org.locationtech.geomesa.core.data.DATA_CQ
+import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.geohash.{GeoHash, GeohashUtils}
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -60,7 +61,7 @@ case class IndexEntryEncoder(rowf: TextFormatter,
     val rowIDs = keys.map(_.getRow)
     val id = new Text(featureToEncode.sid)
 
-    val indexValue = IndexEntry.encodeIndexValue(featureToEncode)
+    val indexValue = IndexValueEncoder(featureToEncode.getFeatureType).encode(featureToEncode)
     val iv = new Value(indexValue)
     // the index entries are (key, FID) pairs
     val indexEntries = keys.map { k => (k, iv) }
@@ -138,26 +139,6 @@ trait IndexHelpers {
     } else {
       DecodedIndex(id, WKBUtils.read(geomDatePortion.drop(4)), None)
     }
-  }
-
-  // the index value consists of the feature's:
-  // 1.  ID
-  // 2.  WKB-encoded geometry
-  // 3.  start-date/time
-  def encodeIndexValue(entry: SimpleFeature): Value = {
-    val encodedId = entry.sid.getBytes
-    val encodedGeom = WKBUtils.write(entry.geometry)
-    val encodedDtg = entry.dt.map { dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array() } .getOrElse(Array[Byte]())
-
-    new Value(
-      ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
-        ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
-        encodedDtg)
-  }
-
-  def decodeIndexValue(v: Value): DecodedIndex = {
-    val buf = v.get()
-    byteArrayToDecodedIndex(buf)
   }
 }
 

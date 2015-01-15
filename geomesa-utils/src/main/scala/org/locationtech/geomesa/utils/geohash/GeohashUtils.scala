@@ -929,7 +929,7 @@ object GeohashUtils
     val minBits = offset * 5
     val usedBits = bits * 5
     val allResolutions = ResolutionRange(0, Math.min(35, maxBits), 1)
-    val maxKeys = Math.min(2 << usedBits, Math.min(MAX_KEYS_IN_LIST, Int.MaxValue - 1))
+    val maxKeys = Math.min(2 << Math.min(usedBits, 29), MAX_KEYS_IN_LIST)
     val polyCentroid = cover.getCentroid
 
     // find the smallest GeoHash you can that covers the target geometry
