@@ -46,14 +46,15 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
 
   coverageName = table
 
+  val ars = RasterStore(user, password, instanceId, zookeepers, table, auths, "")
+
   // TODO: Either this is needed for rasterToCoverages or remove it.
   this.crs = AbstractGridFormat.getDefaultCRS
-  this.originalEnvelope = new GeneralEnvelope(Array(-180.0, -90.0), Array(180.0, 90.0))
+  this.originalEnvelope = getBounds()
   this.originalEnvelope.setCoordinateReferenceSystem(this.crs)
   this.originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
   this.coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(this.hints)
   // TODO: Provide writeVisibilites??  Sort out read visibilites
-  val ars: RasterStore = RasterStore(user, password, instanceId, zookeepers, table, auths, "")
 
   /**
    * Default implementation does not allow a non-default coverage name
@@ -64,6 +65,8 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     Utilities.ensureNonNull("coverageName", coverageName)
     true
   }
+
+  override def getOriginalEnvelope = this.getOriginalEnvelope
 
   override def getCoordinateReferenceSystem = this.crs
 
@@ -82,5 +85,10 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     val image = RasterUtils.mosaicRasters(rasters, params.width.toInt, params.height.toInt,
       params.envelope, params.resX, params.resY)
     this.coverageFactory.create(coverageName, image, params.envelope)
+  }
+
+  def getBounds(): GeneralEnvelope = {
+    val bbox = ars.getBounds()
+    new GeneralEnvelope(Array(bbox.minLon, bbox.minLat), Array(bbox.maxLon, bbox.maxLat))
   }
 }
