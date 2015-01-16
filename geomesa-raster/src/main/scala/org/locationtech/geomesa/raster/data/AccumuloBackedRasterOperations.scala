@@ -26,6 +26,7 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.BBOXCombiner
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.core.stats.StatWriter
+import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 
@@ -41,6 +42,7 @@ trait RasterOperations extends StrategyHelpers {
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster]
   def putRaster(raster: Raster): Unit
   def getBounds(): BoundingBox
+  def getAvailableResolutions(): Set[Double]
 }
 
 /**
@@ -125,6 +127,18 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     }
   }
 
+  def getAvailableResolutions(): Set[Double] = {
+    ensureTableExists(GEOMESA_RASTER_BOUNDS_TABLE)
+    val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, authorizationsProvider.getAuthorizations)
+    scanner.setRange(new Range(getBoundsRowID))
+    val scanResultingCQs = scanner.iterator.toList.map(_.getKey.getColumnQualifier.toString)
+    val resultingResolutions = scanResultingCQs.length match {
+      case 0 => Set[Double]()
+      case _ => scanResultingCQs.map(lexiDecodeStringToDouble).toSet[Double]
+    }
+    resultingResolutions
+  }
+
   def adaptIterator(iter: java.util.Iterator[Entry[Key, Value]]): Iterator[Raster] = {
     iter.map { entry => schema.decode((entry.getKey, entry.getValue)) }
   }
@@ -147,7 +161,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   private def createBoundsMutation(raster: Raster): Mutation = {
     val mutation = new Mutation(getBoundsRowID)
     val value = BBOXCombiner.bboxToValue(BoundingBox(raster.metadata.geom.getEnvelopeInternal))
-    mutation.put("", "", value)
+    mutation.put("", lexiEncodeDoubleToString(raster.resolution), value)
     mutation
   }
 

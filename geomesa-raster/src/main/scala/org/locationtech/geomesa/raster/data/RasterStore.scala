@@ -43,6 +43,8 @@ class RasterStore(val rasterOps: RasterOperations) {
   def putRaster(raster: Raster) = rasterOps.putRaster(raster)
 
   def getBounds() = rasterOps.getBounds()
+
+  def getAvailableResolutions() = rasterOps.getAvailableResolutions()
 }
 
 object RasterStore {

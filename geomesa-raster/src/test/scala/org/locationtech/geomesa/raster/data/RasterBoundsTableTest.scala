@@ -125,5 +125,95 @@ class RasterBoundsTableTest extends Specification{
       theBounds.minLat must beEqualTo(-90.0)
     }
 
+    "Return an empty set of resolutions for an empty table" in {
+      val tableName = getNewIteration()
+      val theStore = RasterUtils.createRasterStore(tableName)
+
+      // get bounds
+      val theResolutions = theStore.getAvailableResolutions()
+
+      theResolutions must beEmpty[Set[Double]]
+    }
+
+    "Return a set of one resolution for a table with one raster ingested" in {
+      val tableName = getNewIteration()
+      val theStore = RasterUtils.createRasterStore(tableName)
+
+      // populate the table
+      val testRaster = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 10.0)
+      theStore.putRaster(testRaster)
+
+      // get bounds
+      val theResolutions = theStore.getAvailableResolutions()
+
+      theResolutions must not(beEmpty[Set[Double]])
+      theResolutions.size must beEqualTo(1)
+      theResolutions must beEqualTo(Set(10.0))
+    }
+
+    "Return a set of one resolution for a table with duplicated rasters ingested" in {
+      val tableName = getNewIteration()
+      val theStore = RasterUtils.createRasterStore(tableName)
+
+      // populate the table
+      val testRaster1 = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 10.0)
+      theStore.putRaster(testRaster1)
+      val testRaster2 = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 10.0)
+      theStore.putRaster(testRaster2)
+
+      // get bounds
+      val theResolutions = theStore.getAvailableResolutions()
+
+      theResolutions must not(beEmpty[Set[Double]])
+      theResolutions.size must beEqualTo(1)
+      theResolutions must beEqualTo(Set(10.0))
+    }
+
+    "Return a set of one resolution for a table with multiple similar rasters ingested" in {
+      val tableName = getNewIteration()
+      val theStore = RasterUtils.createRasterStore(tableName)
+
+      // populate the table
+      val testRaster1 = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 10.0)
+      theStore.putRaster(testRaster1)
+      val testRaster2 = RasterUtils.generateTestRaster(0, -50, 0, 50, res = 10.0)
+      theStore.putRaster(testRaster2)
+      val testRaster3 = RasterUtils.generateTestRaster(0, -50, 0, -50, res = 10.0)
+      theStore.putRaster(testRaster3)
+      val testRaster4 = RasterUtils.generateTestRaster(0, 50, 0, -50, res = 10.0)
+      theStore.putRaster(testRaster4)
+
+      // get bounds
+      val theResolutions = theStore.getAvailableResolutions()
+
+      theResolutions must not(beEmpty[Set[Double]])
+      theResolutions.size must beEqualTo(1)
+      theResolutions must beEqualTo(Set(10.0))
+    }
+
+    "Return a set of many resolutions for a table with multiple rasters ingested" in {
+      val tableName = getNewIteration()
+      val theStore = RasterUtils.createRasterStore(tableName)
+
+      // populate the table
+      val testRaster1 = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 6.0)
+      theStore.putRaster(testRaster1)
+      val testRaster2 = RasterUtils.generateTestRaster(0, 40, 0, 40, res = 7.0)
+      theStore.putRaster(testRaster2)
+      val testRaster3 = RasterUtils.generateTestRaster(0, 30, 0, 30, res = 8.0)
+      theStore.putRaster(testRaster3)
+      val testRaster4 = RasterUtils.generateTestRaster(0, 20, 0, 20, res = 9.0)
+      theStore.putRaster(testRaster4)
+      val testRaster5 = RasterUtils.generateTestRaster(0, 10, 0, 10, res = 10.0)
+      theStore.putRaster(testRaster5)
+
+      // get bounds
+      val theResolutions = theStore.getAvailableResolutions()
+
+      theResolutions must not(beEmpty[Set[Double]])
+      theResolutions.size must beEqualTo(5)
+      theResolutions must beEqualTo(Set(6.0, 7.0, 8.0, 9.0, 10.0))
+    }
+
   }
 }
