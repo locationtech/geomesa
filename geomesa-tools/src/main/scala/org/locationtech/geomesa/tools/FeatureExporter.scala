@@ -254,26 +254,27 @@ object BinFileExport {
 
   def apply(os: OutputStream, params: ExportParameters) =
     new BinFileExport(os,
+                      Option(params.dateAttribute).getOrElse(DEFAULT_TIME),
                       Option(params.idAttribute),
                       Option(params.latAttribute),
                       Option(params.lonAttribute),
-                      Option(params.dateAttribute),
                       Option(params.labelAttribute))
 }
 
 class BinFileExport(os: OutputStream,
+                    dtgAttribute: String,
                     idAttribute: Option[String],
                     latAttribute: Option[String],
                     lonAttribute: Option[String],
-                    dtgAttribute: Option[String],
                     lblAttribute: Option[String]) extends FeatureExporter {
 
   import org.locationtech.geomesa.filter.function.BinaryOutputEncoder._
 
   val id = idAttribute.orElse(Some("id"))
+  val latLon = latAttribute.flatMap(lat => lonAttribute.map(lon => (lat, lon)))
 
   override def write(fc: SimpleFeatureCollection) =
-    encodeFeatureCollection(fc, os, dtgAttribute, id, lblAttribute, AxisOrder.LonLat, false)
+    encodeFeatureCollection(fc, os, dtgAttribute, id, lblAttribute, latLon, AxisOrder.LonLat, false)
 
   override def flush() = os.flush()
 

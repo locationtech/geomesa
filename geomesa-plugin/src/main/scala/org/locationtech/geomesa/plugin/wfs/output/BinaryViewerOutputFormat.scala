@@ -17,11 +17,9 @@
 package org.locationtech.geomesa.plugin.wfs.output
 
 import java.io.{BufferedOutputStream, OutputStream}
-import java.util.Date
 import javax.xml.namespace.QName
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Geometry, LineString, Point}
 import net.opengis.wfs.{GetFeatureType => GetFeatureTypeV1, QueryType => QueryTypeV1}
 import net.opengis.wfs20.{GetFeatureType => GetFeatureTypeV2, QueryType => QueryTypeV2}
 import org.geoserver.config.GeoServer
@@ -32,9 +30,7 @@ import org.geoserver.wfs.request.{FeatureCollectionResponse, GetFeatureRequest}
 import org.geotools.data.DataStore
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.util.Version
-import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.filter.function.{BinaryOutputEncoder, BasicValues, Convert2ViewerFunction, ExtendedValues}
-import org.opengis.feature.simple.SimpleFeature
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
 
 import scala.collection.JavaConversions._
 
@@ -82,7 +78,7 @@ class BinaryViewerOutputFormat(gs: GeoServer)
     val labelField = Option(request.getFormatOptions.get(LABEL_FIELD).asInstanceOf[String])
     // check for explicit dtg field in request, or use schema default dtg
     val dtgField = Option(request.getFormatOptions.get(DATE_FIELD).asInstanceOf[String])
-        .orElse(getDateField(getFeature))
+        .orElse(getDateField(getFeature)).getOrElse("dtg")
     // depending on srs requested and wfs versions, axis order can be flipped
     val axisOrder = checkAxisOrder(getFeature)
 
@@ -91,7 +87,7 @@ class BinaryViewerOutputFormat(gs: GeoServer)
     featureCollections.getFeatures.zip(request.getQueries).foreach { case (fc, query) =>
       val sorted = query.getSortBy != null && !query.getSortBy.isEmpty
       val sfc = fc.asInstanceOf[SimpleFeatureCollection]
-      BinaryOutputEncoder.encodeFeatureCollection(sfc, bos, dtgField, trackIdField, labelField, axisOrder, sorted)
+      BinaryOutputEncoder.encodeFeatureCollection(sfc, bos, dtgField, trackIdField, labelField, None, axisOrder, sorted)
       bos.flush()
     }
     // none of the implementations in geoserver call 'close' on the output stream
@@ -119,8 +115,7 @@ class BinaryViewerOutputFormat(gs: GeoServer)
 object BinaryViewerOutputFormat extends Logging {
 
   import org.locationtech.geomesa.filter.function.AxisOrder
-  import org.locationtech.geomesa.filter.function.AxisOrder.LatLon
-  import org.locationtech.geomesa.filter.function.AxisOrder.LonLat
+  import org.locationtech.geomesa.filter.function.AxisOrder.{LatLon, LonLat}
 
   val MIME_TYPE = "application/vnd.binary-viewer"
   val FILE_EXTENSION = "bin"
