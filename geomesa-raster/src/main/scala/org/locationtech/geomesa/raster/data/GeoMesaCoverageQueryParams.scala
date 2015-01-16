@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.plugin.wcs
+package org.locationtech.geomesa.raster.data
 
 import org.geotools.coverage.grid.GridGeometry2D
 import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.parameter.Parameter
-import org.locationtech.geomesa.raster.data.RasterQuery
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds}
 import org.opengis.parameter.GeneralParameterValue

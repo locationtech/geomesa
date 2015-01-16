@@ -93,7 +93,7 @@ class MosaicTest extends Specification {
                         envelope: ReferencedEnvelope,
                         resX: Double,
                         resY: Double): Array[Byte] = {
-    val image = RasterUtils.mosaicRasters(rasterList, width * 2, height * 2, envelope, resX, resY)
+    val (image, _) = RasterUtils.mosaicRasters(rasterList, width * 2, height * 2, envelope, resX, resY)
     val baos = new ByteArrayOutputStream()
     ImageIO.write(image, "png", baos)
     baos.toByteArray

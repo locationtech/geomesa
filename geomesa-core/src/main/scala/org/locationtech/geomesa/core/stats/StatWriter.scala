@@ -80,7 +80,9 @@ object StatWriter extends Runnable with Logging {
    * Starts the background thread for writing stats, if it hasn't already been started
    */
   private def startIfNeeded() {
+    logger.debug("Starting StatWriter outside If Statement")
     if (running.compareAndSet(false, true)) {
+      logger.debug("Starting StatWriter inside If Statement")
       // we want to wait between invocations to give more stats a chance to queue up
       executor.scheduleWithFixedDelay(this, writeDelayMillis, writeDelayMillis, TimeUnit.MILLISECONDS)
     }
@@ -107,6 +109,7 @@ object StatWriter extends Runnable with Logging {
       // get the appropriate transform for this type of stat
       val transform = group.clas match {
         case c if c == classOf[QueryStat] => QueryStatTransform.asInstanceOf[StatTransform[Stat]]
+        case r if r == classOf[RasterQueryStat] => RasterQueryStatTransform.asInstanceOf[StatTransform[Stat]]
         case _ => throw new RuntimeException("Not implemented")
       }
       // create the table if necessary

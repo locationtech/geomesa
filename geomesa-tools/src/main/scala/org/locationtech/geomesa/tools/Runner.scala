@@ -37,6 +37,7 @@ object Runner extends Logging {
     val create       = new CreateCommand(jc)
     val explain      = new ExplainCommand(jc)
     val help         = new HelpCommand(jc)
+    val dumpQueries  = new DumpQueriesCommand(jc)
 
     try {
       jc.parse(args.toArray: _*)
@@ -59,6 +60,7 @@ object Runner extends Logging {
         case CreateCommand.Command          => create
         case ExplainCommand.Command         => explain
         case HelpCommand.Command            => help
+        case DumpQueriesCommand.Command     => dumpQueries
         case _                              => new DefaultCommand(jc)
       }
 

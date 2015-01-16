@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.raster.data
 
+import java.awt.image.BufferedImage
 import java.util.Map.Entry
 
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
@@ -26,11 +27,13 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.BBOXCombiner._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
-import org.locationtech.geomesa.core.stats.StatWriter
+import org.locationtech.geomesa.core.stats.{RasterQueryStat, RasterQueryStatTransform, StatWriter}
 import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingScanner}
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
+import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.BoundingBox
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 
 import scala.collection.JavaConversions._
 
@@ -42,10 +45,12 @@ trait RasterOperations extends StrategyHelpers {
   def getVisibility(): String
   def getConnector(): Connector
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster]
+  def getQueryRecords(numRecords: Int): List[Array[String]]
   def putRaster(raster: Raster): Unit
   def getBounds(): BoundingBox
   def getAvailableResolutions(): Seq[Double]
   def getGridRange(): GridEnvelope2D
+  def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams): BufferedImage
 }
 
 /**
@@ -68,13 +73,16 @@ class AccumuloBackedRasterOperations(val connector: Connector,
                                      shardsConfig: Option[Int] = None,
                                      writeMemoryConfig: Option[String] = None,
                                      writeThreadsConfig: Option[Int] = None,
-                                     queryThreadsConfig: Option[Int] = None) extends RasterOperations {
+                                     queryThreadsConfig: Option[Int] = None) extends RasterOperations with MethodProfiling with StatWriter {
   //By default having at least as many shards as tservers provides optimal parallelism in queries
   val shards = shardsConfig.getOrElse(connector.instanceOperations().getTabletServers.size())
   val writeMemory = writeMemoryConfig.getOrElse("10000").toLong
   val writeThreads = writeThreadsConfig.getOrElse(10)
   val bwConfig: BatchWriterConfig =
     new BatchWriterConfig().setMaxMemory(writeMemory).setMaxWriteThreads(writeThreads)
+  //TODO: WCS: Abstract number of threads
+  val numQThreads = 20
+  implicit val timings = new TimingsImpl
 
   // TODO: WCS: GEOMESA-585 Add ability to use arbitrary schemas
   val schema = RasterIndexSchema("")
@@ -106,13 +114,37 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     writeMutations(GEOMESA_RASTER_BOUNDS_TABLE, createBoundsMutation(raster))
   }
 
+  def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams) = {
+    val rasters = getRasters(query)
+    val (image, numRasters) = profile(RasterUtils.mosaicRasters(rasters,
+                                                        params.height.toInt,
+                                                        params.width.toInt,
+                                                        params.envelope,
+                                                        params.resX,
+                                                        params.resY), "mosaic")
+    val stat = RasterQueryStat(rasterTable,
+      System.currentTimeMillis(),
+      query.toString,
+      timings.time("planning"),
+      timings.time("scanning") - timings.time("planning"),
+      timings.time("mosaic"),
+      numRasters)
+    this.writeStat(stat, s"${rasterTable}_queries")
+    image
+  }
+
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
     //TODO: WCS: Abstract number of threads
-    val numQThreads = 20
+    profile({
     val batchScanner = connector.createBatchScanner(rasterTable, authorizationsProvider.getAuthorizations, numQThreads)
-    val plan = queryPlanner.getQueryPlan(rasterQuery)
+    val plan = profile(queryPlanner.getQueryPlan(rasterQuery), "planning")
     configureBatchScanner(batchScanner, plan)
-    adaptIterator(SelfClosingBatchScanner(batchScanner))
+    adaptIterator(SelfClosingBatchScanner(batchScanner))}, "scanning")
+  }
+
+  def getQueryRecords(numRecords: Int): List[Array[String]] = {
+    val scanner = connector.createScanner(s"${rasterTable}_queries", authorizationsProvider.getAuthorizations)
+    scanner.iterator.take(numRecords).map(RasterQueryStatTransform.decodeStat).toList
   }
 
   def getBounds(): BoundingBox = {
@@ -220,17 +252,23 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     val defaultVisibilities = authorizationsProvider.getAuthorizations.toString.replaceAll(",", "&")
     if (!tableOps.exists(tableName)) {
       try {
-        tableOps.create(tableName)
-        RasterTableConfig.settings(defaultVisibilities).foreach { case (key, value) =>
-          tableOps.setProperty(tableName, key, value)
-        }
-        RasterTableConfig.permissions.split(",").foreach { p =>
-          securityOps.grantTablePermission(user, tableName, TablePermission.valueOf(p))
-        }
+        createTables(Array(tableName, s"${tableName}_queries"), user, defaultVisibilities)
       } catch {
         case e: TableExistsException => // this can happen with multiple threads but shouldn't cause any issues
       }
     }
+  }
+
+  private def createTables(tableNames: Array[String], user: String, defaultVisibilities: String) = {
+    tableNames.foreach(tableName => {
+      tableOps.create(tableName)
+      RasterTableConfig.settings(defaultVisibilities).foreach { case (key, value) =>
+        tableOps.setProperty(tableName, key, value)
+      }
+      RasterTableConfig.permissions.split(",").foreach { p =>
+        securityOps.grantTablePermission(user, tableName, TablePermission.valueOf(p))
+      }
+    })
   }
 }
 
