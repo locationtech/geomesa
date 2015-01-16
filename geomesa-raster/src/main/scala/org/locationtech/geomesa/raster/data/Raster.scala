@@ -17,12 +17,13 @@
 package org.locationtech.geomesa.raster.data
 
 import java.awt.image.RenderedImage
+import java.nio.ByteBuffer
 import java.util.UUID
 
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.CRS
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.core.index.DecodedIndex
+import org.locationtech.geomesa.core.index.{DecodedIndex, IndexEntry}
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 
@@ -38,9 +39,31 @@ case class Raster(chunk: RenderedImage, metadata: DecodedIndex, resolution: Doub
 
   lazy val serializedChunk = RasterUtils.imageSerialize(chunk)
 
+  def encodeValue = RasterUtils.imageSerialize(chunk)
+
+  def encodeToBytes(): Array[Byte] = {
+    val chunkBytes = RasterUtils.imageSerialize(chunk)
+    val metaDataBytes = metadata.toBytes
+
+    ByteBuffer.allocate(4).putInt(chunkBytes.length).array() ++ chunkBytes ++
+      ByteBuffer.allocate(4).putInt(metaDataBytes.length).array() ++ metaDataBytes ++
+      ByteBuffer.allocate(8).putDouble(resolution).array()
+  }
 }
 
 object Raster {
   def getRasterId(rasterName: String): String =
     s"${rasterName}_${UUID.randomUUID.toString}"
+
+  def apply(bytes: Array[Byte]): Raster = {
+    val chunkLength = ByteBuffer.wrap(bytes, 0, 4).getInt
+    val (chunkPortion, metaResPortion) = bytes.drop(4).splitAt(chunkLength)
+    val chunk = RasterUtils.imageDeserialize(chunkPortion)
+    val metaLength = ByteBuffer.wrap(metaResPortion, 0, 4).getInt
+    val (metaPortion, resPortion) = metaResPortion.drop(4).splitAt(metaLength)
+    val metaData = IndexEntry.byteArrayToDecodedIndex(metaPortion)
+    val resolution = ByteBuffer.wrap(resPortion).getDouble
+
+    Raster(chunk, metaData, resolution)
+  }
 }

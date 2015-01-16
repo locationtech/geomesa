@@ -27,10 +27,15 @@ object RasterUtils {
     val AUTHORIZATIONS      = "geomesa-tools.ingestraster.authorizations"
     val VISIBILITIES        = "geomesa-tools.ingestraster.visibilities"
     val FILE_PATH           = "geomesa-tools.ingestraster.path"
+    val HDFS_FILES          = "geomesa-tools.ingestraster.hdfs.files"
     val FORMAT              = "geomesa-tools.ingestraster.format"
     val TIME                = "geomesa-tools.ingestraster.time"
     val GEOSERVER_REG       = "geomesa-tools.ingestraster.geoserver.reg"
     val TABLE               = "geomesa-tools.ingestraster.table"
+    val WRITE_MEMORY        = "geomesa-tools.ingestraster.write.memory"
+    val WRITE_THREADS       = "geomesa-tools.ingestraster.write.threads"
+    val QUERY_THREADS       = "geomesa-tools.ingestraster.query.threads"
+    val SHARDS              = "geomesa-tools.ingestraster.shards"
     val PARLEVEL            = "geomesa-tools.ingestraster.parallel.level"
   }
 

@@ -10,12 +10,14 @@ jgrapht
 scalding
 scala
 chill
-kryo
 algebird
 joda
-avro
-commons-csv
 gt
 jts
 jsr
 mango
+jai_core
+jai_imageio
+jai_codec
+httpcore
+httpclient
