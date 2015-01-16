@@ -17,10 +17,10 @@ package org.locationtech.geomesa.tools
 
 import java.io._
 import java.text.SimpleDateFormat
-import java.util.{TimeZone, Date}
+import java.util.{Date, TimeZone}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Coordinate, Geometry, Point}
+import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.GML
 import org.geotools.GML.Version
@@ -29,7 +29,7 @@ import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactor
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureStore}
 import org.geotools.geojson.feature.FeatureJSON
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction, EncodedValues, ExtendedValues}
+import org.locationtech.geomesa.filter.function._
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.commands.ExportCommand.ExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -268,56 +268,12 @@ class BinFileExport(os: OutputStream,
                     dtgAttribute: Option[String],
                     lblAttribute: Option[String]) extends FeatureExporter {
 
-  private val getLat: (SimpleFeature => Float) =
-    latAttribute.map { latField =>
-      sf: SimpleFeature => {
-        val lat = sf.getAttribute(latField)
-        Try(lat.asInstanceOf[Double].toFloat).getOrElse(lat.toString.toFloat)
-      }
-    }.getOrElse {
-      sf: SimpleFeature => sf.getDefaultGeometry.asInstanceOf[Point].getY.toFloat
-    }
+  import org.locationtech.geomesa.filter.function.BinaryOutputEncoder._
 
-  private val getLon: (SimpleFeature => Float) =
-    lonAttribute.map { lonField =>
-      sf: SimpleFeature => {
-        val lon = sf.getAttribute(lonField)
-        Try(lon.asInstanceOf[Double].toFloat).getOrElse(lon.toString.toFloat)
-      }
-    }.getOrElse {
-      sf: SimpleFeature => sf.getDefaultGeometry.asInstanceOf[Point].getX.toFloat
-    }
+  val id = idAttribute.orElse(Some("id"))
 
-  private val getId: (SimpleFeature => Option[String]) =
-    idAttribute.map { idField =>
-      sf: SimpleFeature => Option(sf.getAttribute(idField)).map(_.toString)
-    }.getOrElse {
-      sf: SimpleFeature => Some(sf.getID)
-    }
-
-  private val getTime: (SimpleFeature => Long) = {
-    val attr = dtgAttribute.getOrElse(BinFileExport.DEFAULT_TIME)
-    sf: SimpleFeature => sf.getAttribute(attr).asInstanceOf[Date].getTime
-  }
-
-  private val getLabel: Option[SimpleFeature => Option[String]] =
-    lblAttribute.map { label => sf: SimpleFeature => Option(sf.getAttribute(label)).map(_.toString) }
-
-  val encode: (SimpleFeature, OutputStream) => Unit =
-    getLabel match {
-      case Some(lblFunc) => (sf, os) => {
-        val values = ExtendedValues(getLat(sf), getLon(sf), getTime(sf), getId(sf), lblFunc(sf))
-        Convert2ViewerFunction.encode(values, os)
-      }
-
-      case None => (sf, os) => {
-        val values = BasicValues(getLat(sf), getLon(sf), getTime(sf), getId(sf))
-        Convert2ViewerFunction.encode(values, os)
-      }
-    }
-
-  override def write(featureCollection: SimpleFeatureCollection) =
-    featureCollection.features().foreach(sf => encode(sf, os))
+  override def write(fc: SimpleFeatureCollection) =
+    encodeFeatureCollection(fc, os, dtgAttribute, id, lblAttribute, AxisOrder.LonLat, false)
 
   override def flush() = os.flush()
 
