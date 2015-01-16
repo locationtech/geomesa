@@ -24,7 +24,7 @@ import javax.media.jai.remote.SerializableRenderedImage
 
 import org.geotools.coverage.grid.GridGeometry2D
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.referencing.CRS
+import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.imgscalr.Scalr._
 import org.locationtech.geomesa.raster.data.Raster
 import org.opengis.geometry.Envelope
@@ -191,7 +191,11 @@ object RasterUtils {
   }
 
   def envelopeToReferencedEnvelope(e: Envelope): ReferencedEnvelope = {
-    new ReferencedEnvelope(e.getMinimum(0), e.getMaximum(0), e.getMinimum(1), e.getMaximum(1), CRS.decode("EPSG:4326"))
+    new ReferencedEnvelope(e.getMinimum(0),
+      e.getMaximum(0),
+      e.getMinimum(1),
+      e.getMaximum(1),
+      DefaultGeographicCRS.WGS84)
   }
 
   def getNewImage[T: TypeTag](w: Int, h: Int, fill: Array[T],

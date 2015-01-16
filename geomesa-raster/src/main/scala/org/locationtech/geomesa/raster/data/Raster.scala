@@ -20,7 +20,7 @@ import java.awt.image.RenderedImage
 import java.util.UUID
 
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.referencing.CRS
+import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.{DecodedIndex, IndexEntry}
 import org.locationtech.geomesa.raster.util.RasterUtils
@@ -38,7 +38,7 @@ trait Raster {
 
   lazy val minimumBoundingGeoHash = GeohashUtils.getClosestAcceptableGeoHash(metadata.geom.getEnvelopeInternal)
 
-  lazy val referencedEnvelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, CRS.decode("EPSG:4326"))
+  lazy val referencedEnvelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, DefaultGeographicCRS.WGS84 )
 
   def encodeValue = RasterUtils.imageSerialize(chunk)
 }

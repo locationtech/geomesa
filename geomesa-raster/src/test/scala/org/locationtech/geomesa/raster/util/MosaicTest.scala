@@ -19,7 +19,7 @@ package org.locationtech.geomesa.raster.util
 import java.awt.image.{BufferedImage, RenderedImage}
 
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.referencing.CRS
+import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.raster.data.Raster
@@ -43,7 +43,7 @@ class MosaicTest extends Specification {
       val testRaster2 = generateTestRaster(0, 50, 0, 50, color = white)
       val rasterSeq = Seq(testRaster1, testRaster2)
 
-      val queryEnv = new ReferencedEnvelope(-50.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-50.0, 50.0, 0.0, 50.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 512, 256, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -54,7 +54,7 @@ class MosaicTest extends Specification {
     "Mosaic four Rasters together with a Query of larger extent and finer resolution" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-60.0, 60.0, -60.0, 60.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-60.0, 60.0, -60.0, 60.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 800, 800, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -65,7 +65,7 @@ class MosaicTest extends Specification {
     "Mosaic four Rasters together with a Query of larger extent and equal resolution" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-60.0, 60.0, -60.0, 60.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-60.0, 60.0, -60.0, 60.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 614, 614, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -76,7 +76,7 @@ class MosaicTest extends Specification {
     "Mosaic four Rasters together with a Query of larger extent and courser resolution" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-60.0, 60.0, -60.0, 60.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-60.0, 60.0, -60.0, 60.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 307, 307, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -87,7 +87,7 @@ class MosaicTest extends Specification {
     "Mosaic four Rasters together with a Query of equal extent and finer resolution" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-50.0, 50.0, -50.0, 50.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-50.0, 50.0, -50.0, 50.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 800, 800, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -98,7 +98,7 @@ class MosaicTest extends Specification {
     "Mosaic four Rasters together with a Query of equal extent and equal resolution" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-50.0, 50.0, -50.0, 50.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-50.0, 50.0, -50.0, 50.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 512, 512, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -109,7 +109,7 @@ class MosaicTest extends Specification {
     "Mosaic four Rasters together with a Query of equal extent and courser resolution" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-50.0, 50.0, -50.0, 50.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-50.0, 50.0, -50.0, 50.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 64, 64, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -120,7 +120,7 @@ class MosaicTest extends Specification {
     "Mosaic four Rasters together with a Query of smaller extent and finer resolution" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-25.0, 25.0, -25.0, 25.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-25.0, 25.0, -25.0, 25.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 800, 800, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -131,7 +131,7 @@ class MosaicTest extends Specification {
     "Mosaic four Rasters together with a Query of smaller extent and equal resolution" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-25.0, 25.0, -25.0, 25.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-25.0, 25.0, -25.0, 25.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 256, 256, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -142,7 +142,7 @@ class MosaicTest extends Specification {
     "Mosaic four Rasters together with a Query of smaller extent and equal resolution offsetted" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-35.0, 15.0, -25.0, 25.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-35.0, 15.0, -25.0, 25.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 256, 256, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -153,7 +153,7 @@ class MosaicTest extends Specification {
     "Mosaic four Rasters together with a Query of smaller extent and courser resolution" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-25.0, 25.0, -25.0, 25.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-25.0, 25.0, -25.0, 25.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 64, 64, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -164,7 +164,7 @@ class MosaicTest extends Specification {
     "Mosaic several Rasters together with a Rectangular Query of wider extent" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-81.0, 87.0, -60.0, 60.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-81.0, 87.0, -60.0, 60.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 700, 500, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -175,7 +175,7 @@ class MosaicTest extends Specification {
     "Mosaic several Rasters together with a Rectangular Query of taller extent" in {
       val rasterSeq = generateFourAdjacentRaster()
 
-      val queryEnv = new ReferencedEnvelope(-30.0, 30.0, -81.0, 87.0, CRS.decode("EPSG:4326"))
+      val queryEnv = new ReferencedEnvelope(-30.0, 30.0, -81.0, 87.0, DefaultGeographicCRS.WGS84)
       val testMosaic = RasterUtils.mosaicChunks(rasterSeq.iterator, 200, 600, queryEnv)._1
 
       testMosaic must beAnInstanceOf[RenderedImage]
@@ -188,7 +188,7 @@ class MosaicTest extends Specification {
   "cropRaster" should {
 
     "not crop a raster when the cropEnv is identical to raster extent" in {
-      val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
+      val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, DefaultGeographicCRS.WGS84)
       val testRaster = generateTestRaster(0, 50, 0, 50)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
@@ -199,7 +199,7 @@ class MosaicTest extends Specification {
     }
 
     "crop a raster into a square quarter" in {
-      val cropEnv = new ReferencedEnvelope(0.0, 25.0, 0.0, 25.0, CRS.decode("EPSG:4326"))
+      val cropEnv = new ReferencedEnvelope(0.0, 25.0, 0.0, 25.0, DefaultGeographicCRS.WGS84)
       val testRaster = generateTestRaster(0, 50, 0, 50)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
@@ -210,7 +210,7 @@ class MosaicTest extends Specification {
     }
 
     "crop a raster with a offsetted cropping envelope" in {
-      val cropEnv = new ReferencedEnvelope(-10.0, 10.0, 0.0, 25.0, CRS.decode("EPSG:4326"))
+      val cropEnv = new ReferencedEnvelope(-10.0, 10.0, 0.0, 25.0, DefaultGeographicCRS.WGS84)
       val testRaster = generateTestRaster(0, 50, 0, 50)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
@@ -221,7 +221,7 @@ class MosaicTest extends Specification {
     }
 
     "crop a raster into nothing when raster is touching a corner of the cropping envelope" in {
-      val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
+      val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, DefaultGeographicCRS.WGS84)
       val testRaster = generateTestRaster(-50, 0, -50, 0)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
@@ -230,7 +230,7 @@ class MosaicTest extends Specification {
     }
 
     "crop a raster into nothing when raster is touching a vertical edge of the cropping envelope" in {
-      val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
+      val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, DefaultGeographicCRS.WGS84)
       val testRaster = generateTestRaster(-50, 0, 0, 50)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
@@ -239,7 +239,7 @@ class MosaicTest extends Specification {
     }
 
     "crop a raster into nothing when raster is touching a horizontal edge of the cropping envelope" in {
-      val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
+      val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, DefaultGeographicCRS.WGS84)
       val testRaster = generateTestRaster(0, 50, -50, 0)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
@@ -249,7 +249,7 @@ class MosaicTest extends Specification {
 
 
     "crop a raster into nothing when raster is outside cropping envelope" in {
-      val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
+      val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, DefaultGeographicCRS.WGS84)
       val testRaster = generateTestRaster(-150, -100, 0, 50)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
