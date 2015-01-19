@@ -25,6 +25,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 class IndexedSpatioTemporalFilter
     extends GeomesaFilteringIterator
     with HasFeatureType
+    with HasIndexValueDecoder
     with HasSpatioTemporalFilter
     with Logging {
 

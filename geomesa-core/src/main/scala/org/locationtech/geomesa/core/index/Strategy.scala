@@ -68,6 +68,11 @@ trait Strategy {
   def configureFeatureTypeName(cfg: IteratorSetting, featureType: String) =
     cfg.addOption(GEOMESA_ITERATORS_SFT_NAME, featureType)
 
+  def configureIndexValues(cfg: IteratorSetting, featureType: SimpleFeatureType) = {
+    val encodedSimpleFeatureType = SimpleFeatureTypes.encodeType(featureType)
+    cfg.addOption(GEOMESA_ITERATORS_SFT_INDEX_VALUE, encodedSimpleFeatureType)
+  }
+
   def configureAttributeName(cfg: IteratorSetting, attributeName: String) =
     cfg.addOption(GEOMESA_ITERATORS_ATTRIBUTE_NAME, attributeName)
 

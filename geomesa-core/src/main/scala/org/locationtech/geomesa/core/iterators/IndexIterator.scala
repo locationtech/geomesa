@@ -33,6 +33,7 @@ import org.locationtech.geomesa.utils.stats.MethodProfiling
 class IndexIterator
     extends GeomesaFilteringIterator
     with HasFeatureBuilder
+    with HasIndexValueDecoder
     with HasSpatioTemporalFilter
     with HasFeatureDecoder
     with HasTransforms

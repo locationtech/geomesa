@@ -88,6 +88,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       val scanner = connector.createScanner(table, new Authorizations())
       val opts = Map[String, String](
         GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE -> "dtg:Date,*geom:Geometry:srid=4326",
+        GEOMESA_ITERATORS_SFT_INDEX_VALUE -> spec,
         GEOMESA_ITERATORS_SFT_NAME -> sftName
       )
       val is = new IteratorSetting(40, classOf[AttributeIndexIterator], opts)

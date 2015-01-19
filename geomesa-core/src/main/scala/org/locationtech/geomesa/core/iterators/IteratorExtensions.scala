@@ -57,7 +57,6 @@ class HasIteratorExtensions extends IteratorExtensions {
 trait HasFeatureType {
 
   var featureType: SimpleFeatureType = null
-  var indexEncoder: IndexValueEncoder = null
 
   // feature type config
   def initFeatureType(options: OptionMap) = {
@@ -65,7 +64,22 @@ trait HasFeatureType {
     featureType = SimpleFeatureTypes.createType(sftName,
       options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
     featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
-    indexEncoder = IndexValueEncoder(featureType)
+  }
+}
+
+/**
+ * Provides an index value decoder
+ */
+trait HasIndexValueDecoder extends IteratorExtensions {
+
+  var indexEncoder: IndexValueEncoder = null
+
+  // index value encoder/decoder
+  abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
+    super.init(featureType, options)
+    val indexValues = SimpleFeatureTypes.createType(featureType.getTypeName,
+      options.get(GEOMESA_ITERATORS_SFT_INDEX_VALUE))
+    indexEncoder = IndexValueEncoder(indexValues)
   }
 }
 
@@ -74,7 +88,6 @@ trait HasFeatureType {
  */
 trait HasFeatureBuilder extends HasFeatureType {
 
-  import org.locationtech.geomesa.core.index.IndexValueEncoder.ID_FIELD
   import org.locationtech.geomesa.core.iterators.IteratorTrigger._
 
   private var featureBuilder: SimpleFeatureBuilder = null
@@ -102,8 +115,9 @@ trait HasFeatureBuilder extends HasFeatureType {
   def attributeArray(sft: SimpleFeatureType, indexValue: DecodedIndexValue): Array[AnyRef] = {
     val attrArray = new Array[AnyRef](sft.getAttributeCount)
     indexValue.attributes.foreach { case (name, value) =>
-      if (name != ID_FIELD) {
-        attrArray.update(sft.indexOf(name), value.asInstanceOf[AnyRef])
+      val index = sft.indexOf(name)
+      if (index != -1) {
+        attrArray.update(index, value.asInstanceOf[AnyRef])
       }
     }
     attrArray
