@@ -101,7 +101,8 @@ class RemoteRasterIngest(config: Map[String, Option[String]]) extends RasterInge
       IngestRasterParams.HDFS_FILES        -> encodeFileList(getFileList(path, conf)),
       IngestRasterParams.TABLE             -> config(IngestRasterParams.TABLE).get,
       IngestRasterParams.FORMAT            -> config(IngestRasterParams.FORMAT).get,
-      IngestRasterParams.ACCUMULO_MOCK     -> config(IngestRasterParams.ACCUMULO_MOCK).get
+      IngestRasterParams.ACCUMULO_MOCK     -> config(IngestRasterParams.ACCUMULO_MOCK).get,
+      IngestRasterParams.IS_TEST_INGEST    -> false.toString
     )
 
     val optionalKvArgs: Map[String, String] =

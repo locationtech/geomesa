@@ -28,11 +28,10 @@ class ScaldingRasterIngestJob(args: Args) extends Job(args) with RasterIngest wi
   var failures              = 0
   var successes             = 0
 
-  lazy val pathList         = DelimitedIngest.decodeFileList(args(IngestRasterParams.HDFS_FILES))
+  lazy val pathList        = DelimitedIngest.decodeFileList(args(IngestRasterParams.HDFS_FILES))
   lazy val fileType        = args(IngestRasterParams.FORMAT)
   lazy val rasterName      = args(IngestRasterParams.TABLE)
-  //TODO: make it configurable
-  lazy val isTestRun       = false
+  lazy val isTestRun       = args(IngestRasterParams.IS_TEST_INGEST).toBoolean
 
   // non-serializable resources.
   class Resources {

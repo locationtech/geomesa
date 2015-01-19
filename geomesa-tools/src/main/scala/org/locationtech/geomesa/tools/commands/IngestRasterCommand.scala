@@ -63,9 +63,9 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
           case Success(outPath) =>
             logger.info("Raster files serialization is done.")
             new RemoteRasterIngest(baseRasterIngestParams + (IngestRasterParams.FILE_PATH  -> Some(outPath))).run
+            logger.info("Remote ingestion is done.")
           case Failure(e) => throw new RuntimeException(e)
         }
-      case _ => logger.error("Unsupported ingestion mode")
     }
   }
 
@@ -111,6 +111,13 @@ class pathValidator extends IParameterValidator {
   }
 }
 
+class modeValidator extends IParameterValidator {
+  def validate(name: String, value: String): Unit = {
+    if (value.toLowerCase != "local" || value.toLowerCase != "remote")
+      throw new Exception(s"Unsupported ingestion mode: ${value}. Use either local (default) or remote.")
+  }
+}
+
 object IngestRasterCommand {
   val Command = "ingestRaster"
 
@@ -132,7 +139,7 @@ object IngestRasterCommand {
     var parLevel: Int = 1
 
     @Parameter(names = Array("-m", "--mode"), description = "Ingestion mode (local | remote, default " +
-      "to local)")
+      "to local)", validateWith = classOf[modeValidator])
     var mode: String = "local"
   }
 }

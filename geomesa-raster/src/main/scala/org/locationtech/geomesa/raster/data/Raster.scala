@@ -44,10 +44,9 @@ case class Raster(chunk: RenderedImage, metadata: DecodedIndex, resolution: Doub
   def encodeToBytes(): Array[Byte] = {
     val chunkBytes = RasterUtils.imageSerialize(chunk)
     val metaDataBytes = metadata.toBytes
+    val resolutionBytes = RasterUtils.doubleToBytes(resolution)
 
-    ByteBuffer.allocate(4).putInt(chunkBytes.length).array() ++ chunkBytes ++
-      ByteBuffer.allocate(4).putInt(metaDataBytes.length).array() ++ metaDataBytes ++
-      ByteBuffer.allocate(8).putDouble(resolution).array()
+    RasterUtils.encodeByteArrays(List(chunkBytes, metaDataBytes, resolutionBytes))
   }
 }
 
@@ -56,14 +55,12 @@ object Raster {
     s"${rasterName}_${UUID.randomUUID.toString}"
 
   def apply(bytes: Array[Byte]): Raster = {
-    val chunkLength = ByteBuffer.wrap(bytes, 0, 4).getInt
-    val (chunkPortion, metaResPortion) = bytes.drop(4).splitAt(chunkLength)
-    val chunk = RasterUtils.imageDeserialize(chunkPortion)
-    val metaLength = ByteBuffer.wrap(metaResPortion, 0, 4).getInt
-    val (metaPortion, resPortion) = metaResPortion.drop(4).splitAt(metaLength)
-    val metaData = IndexEntry.byteArrayToDecodedIndex(metaPortion)
-    val resolution = ByteBuffer.wrap(resPortion).getDouble
+    val byteArrays = RasterUtils.decodeByteArrays(bytes)
+    if (byteArrays.length != 3) throw new Exception("Decode bytes into Raster failed.")
 
+    val chunk = RasterUtils.imageDeserialize(byteArrays(0))
+    val metaData = IndexEntry.byteArrayToDecodedIndex(byteArrays(1))
+    val resolution = ByteBuffer.wrap(byteArrays(2)).getDouble
     Raster(chunk, metaData, resolution)
   }
 }

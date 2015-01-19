@@ -1,7 +1,8 @@
 package org.locationtech.geomesa.raster.util
 
-import java.awt.image.{BufferedImage, Raster => JRaster, RenderedImage, WritableRaster}
+import java.awt.image.{BufferedImage, RenderedImage, WritableRaster, Raster => JRaster}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.nio.ByteBuffer
 import java.util.{Hashtable => JHashtable}
 import javax.media.jai.remote.SerializableRenderedImage
 
@@ -14,6 +15,7 @@ import org.locationtech.geomesa.raster.data.{Raster, RasterQuery, RasterStore}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.opengis.geometry.Envelope
 
+import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 
 object RasterUtils {
@@ -37,6 +39,7 @@ object RasterUtils {
     val QUERY_THREADS       = "geomesa-tools.ingestraster.query.threads"
     val SHARDS              = "geomesa-tools.ingestraster.shards"
     val PARLEVEL            = "geomesa-tools.ingestraster.parallel.level"
+    val IS_TEST_INGEST      = "geomesa.tools.ingestraster.is-test-ingest"
   }
 
   def imageSerialize(image: RenderedImage): Array[Byte] = {
@@ -173,5 +176,34 @@ object RasterUtils {
     val resY = (envelope.getMaximum(1) - envelope.getMinimum(1)) / height
     val accumuloResolution = math.min(resX, resY)
   }
+
+  //Encode a list of byte arrays into one byte array using protocol: length | data
+  //Result is like: length[4 bytes], byte array, ... [length[4 bytes], byte array]
+  def encodeByteArrays(bas: List[Array[Byte]]): Array[Byte] =  {
+    val totalLength = bas.map(_.length).sum
+    val buffer = ByteBuffer.allocate(totalLength + 4 * bas.length)
+    bas.foreach{ ba => buffer.putInt(ba.length).put(ba) }
+    buffer.array
+  }
+
+  //Decode a byte array into a list of byte array using protocol: length | data
+  def decodeByteArrays(ba: Array[Byte]): List[Array[Byte]] = {
+    var pos = 0
+    val listBuf: ListBuffer[Array[Byte]] = new ListBuffer[Array[Byte]]()
+    while(pos + 4 <= ba.length) {
+      val length = ByteBuffer.wrap(ba, pos, 4).getInt
+      listBuf += ba.slice(pos + 4, pos + 4 + length)
+      pos = pos + 4 + length
+    }
+    listBuf.toList
+  }
+
+  val doubleSize = 8
+  def doubleToBytes(d: Double): Array[Byte] = {
+    val bytes = new Array[Byte](doubleSize)
+    ByteBuffer.wrap(bytes).putDouble(d)
+    bytes
+  }
+  def bytesToDouble(bs: Array[Byte]): Double = ByteBuffer.wrap(bs).getDouble
 }
 
