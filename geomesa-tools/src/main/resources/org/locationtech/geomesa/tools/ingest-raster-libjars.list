@@ -10,6 +10,7 @@ jgrapht
 scalding
 scala
 chill
+kryo
 algebird
 joda
 gt
