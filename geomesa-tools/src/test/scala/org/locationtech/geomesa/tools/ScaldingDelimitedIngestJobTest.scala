@@ -288,7 +288,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
       f.getAttribute(5) must beAnInstanceOf[Geometry]
     }
 
-    "throw an exception when lat/lon field names are provided in args but aren't in sft" in {
+    "throw an exception when lon/lat field names are provided in args but aren't in sft" in {
       val spec = "fid:String,username:String,userid:String,text:String,time:Date,*geom:Point:srid=4326"
       val params = csvNormParams
         .updated(IngestParams.DT_FORMAT, List("yyyy/MM/dd :HH:mm:ss:"))
@@ -328,7 +328,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
       type JList[T] = java.util.List[T]
       f.get[JList[Integer]](0).toList mustEqual List(9, 8, 7)
       f.point.getX mustEqual -78.4
-      f.point.getY mustEqual  38.0
+      f.point.getY mustEqual 38.0
 
     }
 
