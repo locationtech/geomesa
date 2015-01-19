@@ -169,21 +169,21 @@ class RasterStoreQueryIntegratedTest extends Specification {
       theResults.length must beEqualTo(1)
     }
 
-    "Properly filter out a raster conforming to GeoHashes via a query bbox and resolution" in {
-      val tableName = getNewIteration()
-      val rasterStore = RasterUtils.createRasterStore(tableName)
-
-      // general setup
-      val testRaster = RasterUtils.generateTestRasterFromGeoHash(GeoHash("s"), res = 5.0)
-      rasterStore.putRaster(testRaster)
-
-      //generate query
-      val query = RasterUtils.generateQuery(0, 50, 0, 50, res = 10.0)
-
-      rasterStore must beAnInstanceOf[RasterStore]
-      val theResults = rasterStore.getRasters(query).toList
-      theResults.length must beEqualTo(0)
-    }
+//    "Properly filter out a raster conforming to GeoHashes via a query bbox and resolution" in {
+//      val tableName = getNewIteration()
+//      val rasterStore = RasterUtils.createRasterStore(tableName)
+//
+//      // general setup
+//      val testRaster = RasterUtils.generateTestRasterFromGeoHash(GeoHash("s"), res = 5.0)
+//      rasterStore.putRaster(testRaster)
+//
+//      //generate query
+//      val query = RasterUtils.generateQuery(0, 50, 0, 50, res = 10.0)
+//
+//      rasterStore must beAnInstanceOf[RasterStore]
+//      val theResults = rasterStore.getRasters(query).toList
+//      theResults.length must beEqualTo(0)
+//    }
 
     "Properly return a group of four Rasters Conforming to GeoHashes Near (0, 0)" in {
       val tableName = getNewIteration()

@@ -117,12 +117,10 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams) = {
     val rasters = getRasters(query)
     val (image, numRasters) = profile("mosaic") {
-      RasterUtils.mosaicRasters(rasters,
+      RasterUtils.mosaicChunks(rasters,
                                 params.height.toInt,
                                 params.width.toInt,
-                                params.envelope,
-                                params.resX,
-                                params.resY)
+                                params.envelope)
     }
     val stat = RasterQueryStat(rasterTable,
       System.currentTimeMillis(),
@@ -138,9 +136,9 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
     profile("scanning") {
       val batchScanner = connector.createBatchScanner(rasterTable, authorizationsProvider.getAuthorizations, numQThreads)
-      val plan = profile(queryPlanner.getQueryPlan(rasterQuery), "planning")
+      val plan = profile(queryPlanner.getQueryPlan(rasterQuery, getAvailableResolutions.toList), "planning")
       configureBatchScanner(batchScanner, plan)
-      adaptIterator(SelfClosingBatchScanner(batchScanner))
+      adaptIteratorToChunks(SelfClosingBatchScanner(batchScanner))
     }
   }
 
@@ -163,6 +161,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   }
 
   def getAvailableResolutions(): Seq[Double] = {
+  // TODO: Consider adding resolutions + extent info  https://geomesa.atlassian.net/browse/GEOMESA-645
     ensureTableExists(GEOMESA_RASTER_BOUNDS_TABLE)
     val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths())
     scanner.setRange(new Range(getBoundsRowID))
@@ -184,7 +183,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     new GridEnvelope2D(0, 0, width, height)
   }
 
-  def adaptIterator(iter: java.util.Iterator[Entry[Key, Value]]): Iterator[Raster] = {
+  def adaptIteratorToChunks(iter: java.util.Iterator[Entry[Key, Value]]): Iterator[Raster] = {
     iter.map { entry => schema.decode((entry.getKey, entry.getValue)) }
   }
 
