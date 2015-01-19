@@ -260,6 +260,16 @@
                         <groupId>javax.media</groupId>
                         <artifactId>jai_core</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>org.jaitools</groupId>
+                        <artifactId>jt-zonalstats</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>org.jaitools</groupId>
+                        <artifactId>jt-utils</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
