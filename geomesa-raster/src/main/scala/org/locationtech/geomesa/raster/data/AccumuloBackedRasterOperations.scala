@@ -116,13 +116,14 @@ class AccumuloBackedRasterOperations(val connector: Connector,
 
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams) = {
     val rasters = getRasters(query)
-    val (image, numRasters) = profile("mosaic") {RasterUtils.mosaicRasters(rasters,
-                                                        params.height.toInt,
-                                                        params.width.toInt,
-                                                        params.envelope,
-                                                        params.resX,
-                                                        params.resY)
-                                                }
+    val (image, numRasters) = profile("mosaic") {
+      RasterUtils.mosaicRasters(rasters,
+                                params.height.toInt,
+                                params.width.toInt,
+                                params.envelope,
+                                params.resX,
+                                params.resY)
+    }
     val stat = RasterQueryStat(rasterTable,
       System.currentTimeMillis(),
       query.toString,
