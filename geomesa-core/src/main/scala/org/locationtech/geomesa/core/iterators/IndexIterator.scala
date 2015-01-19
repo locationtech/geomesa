@@ -34,6 +34,7 @@ class IndexIterator
     extends HasIteratorExtensions
     with SortedKeyValueIterator[Key, Value]
     with HasFeatureBuilder
+    with HasIndexValueDecoder
     with HasSpatioTemporalFilter
     with HasFeatureDecoder
     with HasTransforms

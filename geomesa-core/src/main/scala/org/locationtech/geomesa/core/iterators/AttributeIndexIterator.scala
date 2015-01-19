@@ -36,6 +36,7 @@ class AttributeIndexIterator
     extends HasIteratorExtensions
     with SortedKeyValueIterator[Key, Value]
     with HasFeatureBuilder
+    with HasIndexValueDecoder
     with HasFeatureDecoder
     with HasSpatioTemporalFilter
     with HasTransforms

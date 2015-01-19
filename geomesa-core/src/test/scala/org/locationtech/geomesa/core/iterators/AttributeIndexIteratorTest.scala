@@ -91,7 +91,8 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       // Scan and retrieve type = b manually with the iterator
       val scanner = conn.createScanner(table, new Authorizations())
       val opts = Map[String, String](GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE -> spec,
-                                     GEOMESA_ITERATORS_SFT_NAME -> sftName)
+                                     GEOMESA_ITERATORS_SFT_NAME -> sftName,
+                                     GEOMESA_ITERATORS_SFT_INDEX_VALUE -> spec)
       val is = new IteratorSetting(40, classOf[AttributeIndexIterator], opts)
       scanner.addScanIterator(is)
       val range = AttributeTable.getAttributeIndexRows("", sft.getDescriptor("name"), Some("b")).head

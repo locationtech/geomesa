@@ -190,6 +190,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
       configureFeatureType(cfg, featureType)
       configureTransforms(cfg, query)
     }
+    configureIndexValues(cfg, featureType)
     configureFeatureEncoding(cfg, featureEncoding)
     cfg
   }

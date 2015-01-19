@@ -25,13 +25,13 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.feature.FeatureEncoding
-import FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators.{FEATURE_ENCODING, _}
 import org.locationtech.geomesa.core.util.SelfClosingIterator
+import org.locationtech.geomesa.feature.FeatureEncoding
+import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -68,6 +68,11 @@ trait Strategy {
 
   def configureFeatureTypeName(cfg: IteratorSetting, featureType: String) =
     cfg.addOption(GEOMESA_ITERATORS_SFT_NAME, featureType)
+
+  def configureIndexValues(cfg: IteratorSetting, featureType: SimpleFeatureType) = {
+    val encodedSimpleFeatureType = SimpleFeatureTypes.encodeType(featureType)
+    cfg.addOption(GEOMESA_ITERATORS_SFT_INDEX_VALUE, encodedSimpleFeatureType)
+  }
 
   def configureAttributeName(cfg: IteratorSetting, attributeName: String) =
     cfg.addOption(GEOMESA_ITERATORS_ATTRIBUTE_NAME, attributeName)

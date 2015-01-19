@@ -26,6 +26,7 @@ class IndexedSpatioTemporalFilter
     extends HasIteratorExtensions
     with SortedKeyValueIterator[Key, Value]
     with HasFeatureType
+    with HasIndexValueDecoder
     with HasSpatioTemporalFilter
     with Logging {
 
