@@ -113,7 +113,7 @@ class pathValidator extends IParameterValidator {
 
 class modeValidator extends IParameterValidator {
   def validate(name: String, value: String): Unit = {
-    if (value.toLowerCase != "local" || value.toLowerCase != "remote")
+    if (!(value.toLowerCase == "local" || value.toLowerCase == "remote"))
       throw new Exception(s"Unsupported ingestion mode: ${value}. Use either local (default) or remote.")
   }
 }

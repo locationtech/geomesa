@@ -27,7 +27,11 @@ import org.locationtech.geomesa.core.index.{DecodedIndex, IndexEntry}
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 
-case class Raster(chunk: RenderedImage, metadata: DecodedIndex, resolution: Double) {
+trait Raster {
+  def metadata: DecodedIndex
+  def resolution: Double
+  def serializedChunk: Array[Byte]
+  def chunk: RenderedImage
 
   def id = metadata.id
 
@@ -37,20 +41,24 @@ case class Raster(chunk: RenderedImage, metadata: DecodedIndex, resolution: Doub
 
   lazy val referencedEnvelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, CRS.decode("EPSG:4326"))
 
-  lazy val serializedChunk = RasterUtils.imageSerialize(chunk)
-
   def encodeValue = RasterUtils.imageSerialize(chunk)
+}
 
-  def encodeToBytes(): Array[Byte] = {
-    val chunkBytes = RasterUtils.imageSerialize(chunk)
-    val metaDataBytes = metadata.toBytes
-    val resolutionBytes = RasterUtils.doubleToBytes(resolution)
+case class RenderedImageRaster(chunk: RenderedImage, metadata: DecodedIndex, resolution: Double) extends Raster {
+  lazy val serializedChunk: Array[Byte] = RasterUtils.imageSerialize(chunk)
+}
 
-    RasterUtils.encodeByteArrays(List(chunkBytes, metaDataBytes, resolutionBytes))
-  }
+case class ArrayBytesRaster(serializedChunk: Array[Byte], metadata: DecodedIndex, resolution: Double) extends Raster {
+  lazy val chunk: RenderedImage = RasterUtils.imageDeserialize(serializedChunk)
 }
 
 object Raster {
+  def apply(chunk: RenderedImage, metadata: DecodedIndex, resolution: Double) =
+    RenderedImageRaster(chunk, metadata, resolution)
+
+  def apply(bytes: Array[Byte], metadata: DecodedIndex, resolution: Double) =
+    ArrayBytesRaster(bytes, metadata, resolution)
+
   def getRasterId(rasterName: String): String =
     s"${rasterName}_${UUID.randomUUID.toString}"
 
@@ -58,9 +66,16 @@ object Raster {
     val byteArrays = RasterUtils.decodeByteArrays(bytes)
     if (byteArrays.length != 3) throw new Exception("Decode bytes into Raster failed.")
 
-    val chunk = RasterUtils.imageDeserialize(byteArrays(0))
     val metaData = IndexEntry.byteArrayToDecodedIndex(byteArrays(1))
     val resolution = ByteBuffer.wrap(byteArrays(2)).getDouble
-    Raster(chunk, metaData, resolution)
+    Raster(byteArrays(0), metaData, resolution)
+  }
+
+  def encodeToBytes(raster: Raster): Array[Byte] = {
+    val chunkBytes = RasterUtils.imageSerialize(raster.chunk)
+    val metaDataBytes = raster.metadata.toBytes
+    val resolutionBytes = RasterUtils.doubleToBytes(raster.resolution)
+
+    RasterUtils.encodeByteArrays(List(chunkBytes, metaDataBytes, resolutionBytes))
   }
 }

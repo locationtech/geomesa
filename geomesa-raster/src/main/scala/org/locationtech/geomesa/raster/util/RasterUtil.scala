@@ -158,7 +158,7 @@ object RasterUtils {
     val metadata = DecodedIndex(Raster.getRasterId("testRaster"), bbox.geom, Option(ingestTime.getMillis))
     val image = getNewImage(w, h, Array[Int](255, 255, 255))
     val coverage = imageToCoverage(image.getRaster, env, defaultGridCoverageFactory)
-    new Raster(coverage.getRenderedImage, metadata, res)
+    Raster(coverage.getRenderedImage, metadata, res)
   }
 
   def generateTestRasterFromBoundingBox(bbox: BoundingBox, w: Int = 256, h: Int = 256, res: Double = 10.0): Raster = {

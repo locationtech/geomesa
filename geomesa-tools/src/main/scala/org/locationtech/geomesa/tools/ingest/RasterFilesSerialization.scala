@@ -73,7 +73,7 @@ class RasterFilesSerialization(config: Map[String, Option[String]]) extends Rast
 
       val raster = Raster(rasterGrid.getRenderedImage, metadata, res)
 
-      val bytes = raster.encodeToBytes
+      val bytes = Raster.encodeToBytes(raster)
       val name = raster.id
       val outFile = s"$outPath/${raster.id}.seq"
       logger.debug("Save bytes into Hdfs file: " + outFile)
