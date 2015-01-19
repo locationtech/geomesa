@@ -1,7 +1,5 @@
 package org.locationtech.geomesa.core.index
 
-import java.nio.ByteBuffer
-
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
@@ -9,9 +7,9 @@ import org.apache.hadoop.io.Text
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.{DATA_CQ, SimpleFeatureEncoder}
+import org.locationtech.geomesa.core.data.DATA_CQ
+import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.geohash.{GeoHash, GeohashUtils}
-import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
@@ -44,37 +42,6 @@ object IndexEntry {
     def setStartTime(time: DateTime) = setTime(dtgStartField, time)
     def setEndTime(time: DateTime)   = setTime(dtgEndField, time)
   }
-
-  // the index value consists of the feature's:
-  // 1.  ID
-  // 2.  WKB-encoded geometry
-  // 3.  start-date/time
-  def encodeIndexValue(entry: SimpleFeature): Value = {
-    val encodedId = entry.sid.getBytes
-    val encodedGeom = WKBUtils.write(entry.geometry)
-    val encodedDtg = entry.dt.map(dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array()).getOrElse(Array[Byte]())
-
-    new Value(
-               ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
-               ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
-               encodedDtg)
-  }
-
-  def decodeIndexValue(v: Value): DecodedIndexValue = {
-    val buf = v.get()
-    val idLength = ByteBuffer.wrap(buf, 0, 4).getInt
-    val (idPortion, geomDatePortion) = buf.drop(4).splitAt(idLength)
-    val id = new String(idPortion)
-    val geomLength = ByteBuffer.wrap(geomDatePortion, 0, 4).getInt
-    if(geomLength < (geomDatePortion.length - 4)) {
-      val (l,r) = geomDatePortion.drop(4).splitAt(geomLength)
-      DecodedIndexValue(id, WKBUtils.read(l), Some(ByteBuffer.wrap(r).getLong))
-    } else {
-      DecodedIndexValue(id, WKBUtils.read(geomDatePortion.drop(4)), None)
-    }
-  }
-
-  case class DecodedIndexValue(id: String, geom: Geometry, dtgMillis: Option[Long])
 }
 
 case class IndexEntryEncoder(rowf: TextFormatter,
@@ -117,7 +84,7 @@ case class IndexEntryEncoder(rowf: TextFormatter,
     val rowIDs = keys.map(_.getRow)
     val id = new Text(featureToEncode.sid)
 
-    val indexValue = IndexEntry.encodeIndexValue(featureToEncode)
+    val indexValue = IndexValueEncoder(featureToEncode.getFeatureType).encode(featureToEncode)
     val iv = new Value(indexValue)
     // the index entries are (key, FID) pairs
     val indexEntries = keys.map { k => (k, iv) }

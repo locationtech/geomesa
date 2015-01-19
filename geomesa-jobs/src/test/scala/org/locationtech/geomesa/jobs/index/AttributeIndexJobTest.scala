@@ -53,20 +53,16 @@ class AttributeIndexJobTest extends Specification {
   def test(sft: SimpleFeatureType, feats: Seq[SimpleFeature]) = {
     val recScanner1 = ds.createRecordScanner(sft)
     recScanner1.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
-    val sft1Records: Seq[util.Map.Entry[Key, Value]] = recScanner1.iterator().toSeq
-
-    val attributes = Seq("attr2")
-    val attributeDescriptors: mutable.Buffer[AttributeDescriptor] = sft.getAttributeDescriptors
-      .asScala
-      .filter(ad => attributes.contains(ad.getLocalName))
+    val sft1Records = recScanner1.iterator().toSeq
 
     val r = JobResources(params, sft.getTypeName, List("attr2"))
 
-    val jobMutations1: Seq[Mutation] = sft1Records.flatMap { e =>
+    val jobMutations1 = sft1Records.flatMap { e =>
       AttributeIndexJob.getAttributeIndexMutation(r, e.getKey, e.getValue)
     }
 
-    val attrList = Seq(sft.getDescriptor("attr2"))
+    val descriptor = sft.getDescriptor("attr2")
+    val attrList = Seq((sft.indexOf(descriptor.getName), descriptor))
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
     val tableMutations1 = feats.flatMap { sf =>
       AttributeTable.getAttributeIndexMutations(sf, attrList, new ColumnVisibility(ds.writeVisibilities), prefix)

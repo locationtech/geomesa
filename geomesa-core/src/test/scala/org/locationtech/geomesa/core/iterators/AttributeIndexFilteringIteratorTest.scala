@@ -100,9 +100,10 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       conn.tableOperations.create(table, true, TimeType.LOGICAL)
 
       val bw = conn.createBatchWriter(table, new BatchWriterConfig)
+      val attributes = (0 until sft.getAttributeCount).zip(sft.getAttributeDescriptors)
       featureCollection.foreach { feature =>
         val muts = AttributeTable.getAttributeIndexMutations(feature,
-                                                             sft.getAttributeDescriptors,
+                                                             attributes,
                                                              new ColumnVisibility(), "")
         bw.addMutations(muts)
       }

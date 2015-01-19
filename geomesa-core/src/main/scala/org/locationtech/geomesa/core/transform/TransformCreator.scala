@@ -1,9 +1,8 @@
 package org.locationtech.geomesa.core.transform
 
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureEncoder}
-import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
+import org.locationtech.geomesa.feature._
+import FeatureEncoding.FeatureEncoding
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._

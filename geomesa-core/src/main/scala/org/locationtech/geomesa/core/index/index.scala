@@ -24,7 +24,7 @@ import org.geotools.data.Query
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.DateTime
+import org.joda.time.{DateTimeZone, DateTime}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.FeatureId
@@ -33,11 +33,12 @@ import org.opengis.filter.identity.FeatureId
  * These are package-wide constants.
  */
 package object index {
-  val MIN_DATE = new DateTime(Long.MinValue)
-  val MAX_DATE = new DateTime(Long.MaxValue)
+  // constrain these dates to the range GeoMesa can index (four-digit years)
+  val MIN_DATE = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.forID("UTC"))
+  val MAX_DATE = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.forID("UTC"))
 
   val SF_PROPERTY_GEOMETRY   = "geomesa_index_geometry"
-  val SF_PROPERTY_START_TIME = "geomesa_index_start_time"
+  val SF_PROPERTY_START_TIME = SimpleFeatureTypes.DEFAULT_DATE_FIELD
   val SF_PROPERTY_END_TIME   = "geomesa_index_end_time"
   val SFT_INDEX_SCHEMA       = "geomesa_index_schema"
   val SF_TABLE_SHARING       = "geomesa_table_sharing"

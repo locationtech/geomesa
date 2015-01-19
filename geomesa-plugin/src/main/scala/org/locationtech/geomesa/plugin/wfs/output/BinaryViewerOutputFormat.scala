@@ -91,6 +91,14 @@ class BinaryViewerOutputFormat(gs: GeoServer)
 
     val bos = new BufferedOutputStream(output)
 
+    val encode: (Float, Float, Long, Option[String], Option[String]) => Unit = labelField match {
+      case Some(label) => (lat, lon, dtg, track, label) =>
+          Convert2ViewerFunction.encode(ExtendedValues(lat, lon, dtg, track, label), bos)
+
+      case None => (lat, lon, dtg, track, _) =>
+        Convert2ViewerFunction.encode(BasicValues(lat, lon, dtg, track), bos)
+    }
+
     featureCollections.getFeatures.asScala.foreach { fc =>
       fc.features().asInstanceOf[SimpleFeatureIterator].foreach { f =>
         val geom = f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint
@@ -103,11 +111,8 @@ class BinaryViewerOutputFormat(gs: GeoServer)
             .map(_.asInstanceOf[Date].getTime)
             .getOrElse(sysTime)
         val trackId = trackIdField.flatMap(getAttributeOrId(f, _))
-        val values = labelField match {
-          case Some(label) => ExtendedValues(lat.toFloat, lon.toFloat, dtg, trackId, getAttributeOrId(f, label))
-          case None        => BasicValues(lat.toFloat, lon.toFloat, dtg, trackId)
-        }
-        bos.write(Convert2ViewerFunction.encode(values))
+        val label = labelField.flatMap(getAttributeOrId(f, _))
+        encode(lat.toFloat, lon.toFloat, dtg, trackId, label)
       }
       // implicit RichSimpleFeatureIterator calls close on the feature collection for us
       bos.flush()

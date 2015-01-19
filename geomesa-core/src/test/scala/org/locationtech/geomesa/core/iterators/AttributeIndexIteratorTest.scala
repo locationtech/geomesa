@@ -79,9 +79,10 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       conn.tableOperations.create(table, true, TimeType.LOGICAL)
 
       val bw = conn.createBatchWriter(table, new BatchWriterConfig)
+      val attributes = (0 until sft.getAttributeCount).zip(sft.getAttributeDescriptors)
       getTestFeatures().foreach { feature =>
         val muts = AttributeTable.getAttributeIndexMutations(feature,
-                                                             sft.getAttributeDescriptors,
+                                                             attributes,
                                                              new ColumnVisibility(), "")
         bw.addMutations(muts)
       }
