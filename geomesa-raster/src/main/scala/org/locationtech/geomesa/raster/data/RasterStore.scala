@@ -28,8 +28,6 @@ import org.locationtech.geomesa.utils.geohash.BoundingBox
  */
 class RasterStore(val rasterOps: RasterOperations) {
 
-  def ensureTableExists() = rasterOps.ensureTableExists()
-
   def ensureBoundsTableExists() = rasterOps.ensureBoundsTableExists()
 
   def createTableStructure() = rasterOps.createTableStructure()
@@ -48,7 +46,7 @@ class RasterStore(val rasterOps: RasterOperations) {
 
   def getBounds(): BoundingBox = rasterOps.getBounds()
 
-  def getAvailableResolutions(): Set[Double] = rasterOps.getAvailableResolutions()
+  def getAvailableResolutions(): Seq[Double] = rasterOps.getAvailableResolutions()
 
   def getGridRange(): GridEnvelope2D = rasterOps.getGridRange()
 }

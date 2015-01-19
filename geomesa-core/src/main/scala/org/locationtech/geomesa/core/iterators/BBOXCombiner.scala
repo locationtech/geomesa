@@ -53,6 +53,7 @@ object BBOXCombiner {
 
   def valueToBbox(value: Value): BoundingBox = {
     val wkts = value.toString.split(":")
-    BoundingBox(wktReader.get.read(wkts(0)).asInstanceOf[Point], wktReader.get.read(wkts(1)).asInstanceOf[Point])
+    val localReader = wktReader.get
+    BoundingBox(localReader.read(wkts(0)).asInstanceOf[Point], localReader.read(wkts(1)).asInstanceOf[Point])
   }
 }

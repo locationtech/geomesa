@@ -29,7 +29,6 @@ class BBOXCombinerTest extends Specification {
   def givenValue(v: Value): Value = BBOXCombiner.bboxToValue(BBOXCombiner.valueToBbox(v))
 
   "BBOXCombiner" should {
-
     "covert a number of BoundingBoxes to Values and back again" in {
       val bbox1 = BoundingBox(0, 10, 0, 10)
       val bbox2 = BoundingBox(0, 10, -10, 0)
@@ -53,8 +52,5 @@ class BBOXCombinerTest extends Specification {
       value3 must beEqualTo(givenValue(value3))
       value4 must beEqualTo(givenValue(value4))
     }
-
-
   }
-
 }

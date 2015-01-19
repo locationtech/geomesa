@@ -152,7 +152,7 @@ class RasterBoundsTableTest extends Specification{
       // get bounds
       val theResolutions = theStore.getAvailableResolutions()
 
-      theResolutions must beEmpty[Set[Double]]
+      theResolutions must beEmpty[Seq[Double]]
     }
 
     "Return a set of one resolution for a table with one raster ingested" in {
@@ -166,9 +166,9 @@ class RasterBoundsTableTest extends Specification{
       // get bounds
       val theResolutions = theStore.getAvailableResolutions()
 
-      theResolutions must not(beEmpty[Set[Double]])
+      theResolutions must not(beEmpty[Seq[Double]])
       theResolutions.size must beEqualTo(1)
-      theResolutions must beEqualTo(Set(10.0))
+      theResolutions must beEqualTo(Seq(10.0))
     }
 
     "Return a set of one resolution for a table with duplicated rasters ingested" in {
@@ -184,9 +184,9 @@ class RasterBoundsTableTest extends Specification{
       // get bounds
       val theResolutions = theStore.getAvailableResolutions()
 
-      theResolutions must not(beEmpty[Set[Double]])
+      theResolutions must not(beEmpty[Seq[Double]])
       theResolutions.size must beEqualTo(1)
-      theResolutions must beEqualTo(Set(10.0))
+      theResolutions must beEqualTo(Seq(10.0))
     }
 
     "Return a set of one resolution for a table with multiple similar rasters ingested" in {
@@ -206,9 +206,9 @@ class RasterBoundsTableTest extends Specification{
       // get bounds
       val theResolutions = theStore.getAvailableResolutions()
 
-      theResolutions must not(beEmpty[Set[Double]])
+      theResolutions must not(beEmpty[Seq[Double]])
       theResolutions.size must beEqualTo(1)
-      theResolutions must beEqualTo(Set(10.0))
+      theResolutions must beEqualTo(Seq(10.0))
     }
 
     "Return a set of many resolutions for a table with multiple rasters ingested" in {
@@ -230,9 +230,9 @@ class RasterBoundsTableTest extends Specification{
       // get bounds
       val theResolutions = theStore.getAvailableResolutions()
 
-      theResolutions must not(beEmpty[Set[Double]])
+      theResolutions must not(beEmpty[Seq[Double]])
       theResolutions.size must beEqualTo(5)
-      theResolutions must beEqualTo(Set(6.0, 7.0, 8.0, 9.0, 10.0))
+      theResolutions must beEqualTo(Seq(6.0, 7.0, 8.0, 9.0, 10.0))
     }
 
     "Return the default GridRange for an empty table" in {

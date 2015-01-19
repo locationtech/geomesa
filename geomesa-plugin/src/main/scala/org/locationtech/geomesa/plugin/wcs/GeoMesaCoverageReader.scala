@@ -74,7 +74,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
 
   override def getOriginalGridRange() = this.originalGridRange
 
-  override def getOriginalGridRange(coverageName: String) = getOriginalGridRange()
+  override def getOriginalGridRange(coverageName: String) = this.originalGridRange
 
   def read(parameters: Array[GeneralParameterValue]): GridCoverage2D = {
     logger.debug(s"READ: $parameters")

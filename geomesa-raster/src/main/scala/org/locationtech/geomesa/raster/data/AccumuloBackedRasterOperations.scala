@@ -19,7 +19,7 @@ package org.locationtech.geomesa.raster.data
 import java.util.Map.Entry
 
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
-import org.apache.accumulo.core.data.{Range, Key, Mutation, Value}
+import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.security.{Authorizations, TablePermission}
 import org.geotools.coverage.grid.GridEnvelope2D
 import org.joda.time.DateTime
@@ -35,7 +35,6 @@ import scala.collection.JavaConversions._
 
 trait RasterOperations extends StrategyHelpers {
   def getTable(): String
-  def ensureTableExists(): Unit
   def ensureBoundsTableExists(): Unit
   def createTableStructure(): Unit
   def getAuths(): Authorizations
@@ -44,7 +43,7 @@ trait RasterOperations extends StrategyHelpers {
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster]
   def putRaster(raster: Raster): Unit
   def getBounds(): BoundingBox
-  def getAvailableResolutions(): Set[Double]
+  def getAvailableResolutions(): Seq[Double]
   def getGridRange(): GridEnvelope2D
 }
 
@@ -123,26 +122,23 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     if (resultingBounds.isEmpty) {
       BoundingBox(-180, 180, -90, 90)
     } else {
-      //TODO: add fix for stuff crossing anti-meridian, may not be an issue...
+      //TODO: GEOMESA-646 anti-meridian questions
       reduceValuesToBoundingBox(resultingBounds.map(_.getValue))
     }
   }
 
-  def getAvailableResolutions(): Set[Double] = {
+  def getAvailableResolutions(): Seq[Double] = {
     ensureTableExists(GEOMESA_RASTER_BOUNDS_TABLE)
     val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths())
     scanner.setRange(new Range(getBoundsRowID))
     val scanResultingCQs = scanner.iterator.toList.map(_.getKey.getColumnQualifier.toString)
-    val resultingResolutions = scanResultingCQs.length match {
-      case 0 => Set[Double]()
-      case _ => scanResultingCQs.map(lexiDecodeStringToDouble).toSet[Double]
-    }
-    resultingResolutions
+    scanResultingCQs.toSeq.distinct.map(lexiDecodeStringToDouble)
   }
 
   def getGridRange(): GridEnvelope2D = {
     val bounds = getBounds()
-    val resolutions = getAvailableResolutions().toSeq
+    val resolutions = getAvailableResolutions()
+    // If no resolutions are available, then we have an empty table so assume 1.0 for now
     val resolution = resolutions match {
       case Nil => 1.0
       case _   => resolutions.min
@@ -158,10 +154,6 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   }
 
   def createTableStructure() = {
-    ensureTableExists()
-  }
-
-  def ensureTableExists() = {
     ensureTableExists(rasterTable)
     ensureBoundsTableExists()
   }
@@ -278,7 +270,7 @@ object RasterTableConfig {
     "table.iterator.majc.vers.opt.maxVersions" -> "2147483647",
     "table.iterator.minc.vers.opt.maxVersions" -> "2147483647",
     "table.iterator.scan.vers.opt.maxVersions" -> "2147483647",
-    "table.split.threshold" -> "16M"
+    "table.split.threshold" -> "512M"
   )
   val permissions = "BULK_IMPORT,READ,WRITE,ALTER_TABLE"
 }
