@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.core.stats
 
+import java.util.Date
 import java.util.Map.Entry
 
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
@@ -94,17 +95,23 @@ object RasterQueryStatTransform extends StatTransform[RasterQueryStat] {
     RasterQueryStat(featureName, date, rasterQuery, planTime, scanTime, mosaicTime, hits)
   }
 
-  def decodeStat(entry: Entry[Key, Value]): Array[String] = {
+  def decodeStat(entry: Entry[Key, Value]): String = {
+    val ROWID(featureName, dateString) = entry.getKey.getRow.toString
+    val decodedDate = new Date(reverseEncoder.decode(dateString)).toString
+    val cqVal = entry.getValue.toString
+
     entry.getKey.getColumnQualifier.toString match {
-      case CQ_QUERY => Array(entry.getKey.toString, entry.getValue.toString)
-      case CQ_PLANTIME => Array(entry.getKey.toString, entry.getValue.toString.stripSuffix("ms"))
-      case CQ_SCANTIME => Array(entry.getKey.toString, entry.getValue.toString.stripSuffix("ms"))
-      case CQ_MOSAICTIME => Array(entry.getKey.toString, entry.getValue.toString.stripSuffix("ms"))
-      case CQ_HITS => Array(entry.getKey.toString, entry.getValue.toString)
-      case CQ_TIME => Array(entry.getKey.toString, entry.getValue.toString)
-      case _ =>
-        logger.warn(s"Unmapped entry in query stat: ${entry.getKey.getColumnQualifier.toString}")
-        Array("", "")
+      case CQ_QUERY => statToCSVStr(decodedDate, featureName, CQ_QUERY, cqVal)
+      case CQ_PLANTIME => statToCSVStr(decodedDate, featureName, CQ_PLANTIME, cqVal)
+      case CQ_SCANTIME => statToCSVStr(decodedDate, featureName, CQ_SCANTIME, cqVal)
+      case CQ_MOSAICTIME => statToCSVStr(decodedDate, featureName, CQ_MOSAICTIME, cqVal)
+      case CQ_HITS => statToCSVStr(decodedDate, featureName, CQ_HITS, cqVal)
+      case CQ_TIME => statToCSVStr(decodedDate, featureName, CQ_TIME, cqVal)
+      case _ => statToCSVStr(decodedDate, featureName, "unmappedCQType", cqVal)
     }
+  }
+
+  def statToCSVStr(dateString: String, featureName: String, cqType: String, cqVal: String): String = {
+    s"$dateString,$featureName,$cqType,$cqVal"
   }
 }

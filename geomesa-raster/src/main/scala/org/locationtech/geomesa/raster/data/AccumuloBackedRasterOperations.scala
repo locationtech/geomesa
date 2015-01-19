@@ -45,7 +45,7 @@ trait RasterOperations extends StrategyHelpers {
   def getVisibility(): String
   def getConnector(): Connector
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster]
-  def getQueryRecords(numRecords: Int): List[Array[String]]
+  def getQueryRecords(numRecords: Int): Iterator[String]
   def putRaster(raster: Raster): Unit
   def getBounds(): BoundingBox
   def getAvailableResolutions(): Seq[Double]
@@ -116,12 +116,13 @@ class AccumuloBackedRasterOperations(val connector: Connector,
 
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams) = {
     val rasters = getRasters(query)
-    val (image, numRasters) = profile(RasterUtils.mosaicRasters(rasters,
+    val (image, numRasters) = profile("mosaic") {RasterUtils.mosaicRasters(rasters,
                                                         params.height.toInt,
                                                         params.width.toInt,
                                                         params.envelope,
                                                         params.resX,
-                                                        params.resY), "mosaic")
+                                                        params.resY)
+                                                }
     val stat = RasterQueryStat(rasterTable,
       System.currentTimeMillis(),
       query.toString,
@@ -134,17 +135,17 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   }
 
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
-    //TODO: WCS: Abstract number of threads
-    profile({
-    val batchScanner = connector.createBatchScanner(rasterTable, authorizationsProvider.getAuthorizations, numQThreads)
-    val plan = profile(queryPlanner.getQueryPlan(rasterQuery), "planning")
-    configureBatchScanner(batchScanner, plan)
-    adaptIterator(SelfClosingBatchScanner(batchScanner))}, "scanning")
+    profile("scanning") {
+      val batchScanner = connector.createBatchScanner(rasterTable, authorizationsProvider.getAuthorizations, numQThreads)
+      val plan = profile(queryPlanner.getQueryPlan(rasterQuery), "planning")
+      configureBatchScanner(batchScanner, plan)
+      adaptIterator(SelfClosingBatchScanner(batchScanner))
+    }
   }
 
-  def getQueryRecords(numRecords: Int): List[Array[String]] = {
+  def getQueryRecords(numRecords: Int): Iterator[String] = {
     val scanner = connector.createScanner(s"${rasterTable}_queries", authorizationsProvider.getAuthorizations)
-    scanner.iterator.take(numRecords).map(RasterQueryStatTransform.decodeStat).toList
+    scanner.iterator.take(numRecords).map(RasterQueryStatTransform.decodeStat)
   }
 
   def getBounds(): BoundingBox = {

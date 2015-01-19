@@ -80,9 +80,7 @@ object StatWriter extends Runnable with Logging {
    * Starts the background thread for writing stats, if it hasn't already been started
    */
   private def startIfNeeded() {
-    logger.debug("Starting StatWriter outside If Statement")
     if (running.compareAndSet(false, true)) {
-      logger.debug("Starting StatWriter inside If Statement")
       // we want to wait between invocations to give more stats a chance to queue up
       executor.scheduleWithFixedDelay(this, writeDelayMillis, writeDelayMillis, TimeUnit.MILLISECONDS)
     }

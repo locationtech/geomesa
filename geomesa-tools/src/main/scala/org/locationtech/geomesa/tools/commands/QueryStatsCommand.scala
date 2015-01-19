@@ -18,30 +18,30 @@ package org.locationtech.geomesa.tools.commands
 import java.io._
 import java.util.Date
 
-import au.com.bytecode.opencsv.CSVWriter
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import org.locationtech.geomesa.core.stats.RasterQueryStatTransform
 import org.locationtech.geomesa.raster.data.AccumuloCoverageStore
 import org.locationtech.geomesa.tools.AccumuloProperties
-import org.locationtech.geomesa.tools.commands.DumpQueriesCommand.{Command, DumpQueriesParameters}
+import org.locationtech.geomesa.tools.commands.QueryStatsCommand.{Command, QueryStatsParameters}
 
-import scala.collection.JavaConverters._
+class QueryStatsCommand(parent: JCommander) extends Command with AccumuloProperties {
 
-class DumpQueriesCommand(parent: JCommander) extends Command with AccumuloProperties {
-
-  val params = new DumpQueriesParameters()
+  val params = new QueryStatsParameters()
   parent.addCommand(Command, params)
 
   override def execute() = {
-    val queryRecords = createCoverageStore(params).getQueryRecords(params.numRecords * RasterQueryStatTransform.NUMBER_OF_CQ_DATA_TYPES)
+    val queryRecords = createCoverageStore(params)
+      .getQueryRecords(params.numRecords * RasterQueryStatTransform.NUMBER_OF_CQ_DATA_TYPES)
     val fw = getFileWriter
     val out = new BufferedWriter(fw)
-    val writer = new CSVWriter(out)
-    writer.writeAll(queryRecords.asJava)
+    queryRecords.foreach(str => {
+      out.write(str)
+      out.newLine()
+    })
     out.close()
   }
 
-  def createCoverageStore(config: DumpQueriesParameters): AccumuloCoverageStore = {
+  def createCoverageStore(config: QueryStatsParameters): AccumuloCoverageStore = {
     val password = getPassword(params.password)
     val auths = Option(params.auths)
     AccumuloCoverageStore(params.user, password,
@@ -56,20 +56,20 @@ class DumpQueriesCommand(parent: JCommander) extends Command with AccumuloProper
     val date = new Date().toString.replaceAll(" ", "_")
     Option(params.file) match {
       case Some(file) => new FileWriter(file)
-      case None => new FileWriter(s"./queryDump-$date.csv")
+      case None => new FileWriter(s"./queryStats-$date.csv")
     }
   }
 }
 
-object DumpQueriesCommand {
-  val Command = "dumpQueries"
+object QueryStatsCommand {
+  val Command = "queryStats"
 
-  @Parameters(commandDescription = "Dump the last X number of queries and time it took for each into a CSV file.")
-  class DumpQueriesParameters extends RasterParams {
+  @Parameters(commandDescription = "Export queries and statistics about the last X number of queries to a CSV file.")
+  class QueryStatsParameters extends RasterParams {
     @Parameter(names = Array("-num", "--number-of-records"), description = "Number of query records to export from Accumulo")
     var numRecords: Int = 1000
 
-    @Parameter(names = Array("-o", "--output"), description = "name of the file to output to instead of std out")
+    @Parameter(names = Array("-o", "--output"), description = "Name of the file to output to")
     var file: String = null
   }
 }

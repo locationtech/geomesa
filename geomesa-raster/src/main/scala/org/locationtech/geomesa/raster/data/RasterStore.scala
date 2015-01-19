@@ -47,7 +47,7 @@ class RasterStore(val rasterOps: RasterOperations) {
 
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = rasterOps.getRasters(rasterQuery)
 
-  def getQueryRecords(numRecords: Int): List[Array[String]] = rasterOps.getQueryRecords(numRecords)
+  def getQueryRecords(numRecords: Int): Iterator[String] = rasterOps.getQueryRecords(numRecords)
 
   def putRaster(raster: Raster) = rasterOps.putRaster(raster)
 
