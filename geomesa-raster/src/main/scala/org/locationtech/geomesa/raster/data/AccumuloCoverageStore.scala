@@ -72,6 +72,8 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
     rasterStore.putRaster(raster)
   }
 
+  def getQueryRecords(numRecords: Int): Iterator[String]  = rasterStore.getQueryRecords(numRecords)
+
   def registerToGeoserver(raster: Raster) {
     geoserverClientServiceO.foreach { geoserverClientService => {
       registerToGeoserver(raster, geoserverClientService)

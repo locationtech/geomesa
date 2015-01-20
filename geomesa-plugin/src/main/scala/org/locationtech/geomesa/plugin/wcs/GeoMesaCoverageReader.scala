@@ -25,8 +25,7 @@ import org.geotools.geometry.GeneralEnvelope
 import org.geotools.util.Utilities
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.raster.data.{Raster, RasterStore}
-import org.locationtech.geomesa.raster.util.RasterUtils
+import org.locationtech.geomesa.raster.data.{GeoMesaCoverageQueryParams, RasterStore}
 import org.opengis.parameter.GeneralParameterValue
 
 object GeoMesaCoverageReader {
@@ -80,13 +79,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     logger.debug(s"READ: $parameters")
     val params = new GeoMesaCoverageQueryParams(parameters)
     val rq = params.toRasterQuery
-    rastersToCoverage(ars.getRasters(rq), params)
-  }
-
-  def rastersToCoverage(rasters: Iterator[Raster], params: GeoMesaCoverageQueryParams): GridCoverage2D = {
-    val image = RasterUtils.mosaicRasters(rasters, params.width.toInt, params.height.toInt,
-      params.envelope, params.resX, params.resY)
-    this.coverageFactory.create(coverageName, image, params.envelope)
+    this.coverageFactory.create(coverageName, ars.getMosaicedRaster(rq, params), params.envelope)
   }
 
   def getBounds(): GeneralEnvelope = {

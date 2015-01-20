@@ -87,16 +87,16 @@ class MosaicTest extends Specification {
     rasterList.toList
   }
 
-  def getImageByteArray(rasterList: Iterator[Raster],
+  def getImageByteArrayAndCount(rasterList: Iterator[Raster],
                         width: Int,
                         height: Int,
                         envelope: ReferencedEnvelope,
                         resX: Double,
-                        resY: Double): Array[Byte] = {
-    val image = RasterUtils.mosaicRasters(rasterList, width * 2, height * 2, envelope, resX, resY)
+                        resY: Double): (Array[Byte], Int) = {
+    val (image, count) = RasterUtils.mosaicRasters(rasterList, width * 2, height * 2, envelope, resX, resY)
     val baos = new ByteArrayOutputStream()
     ImageIO.write(image, "png", baos)
-    baos.toByteArray
+    (baos.toByteArray, count)
   }
 
   def runAccumuloMosaicTest(width: Int , height: Int, bbox: BoundingBox) = {
@@ -109,8 +109,9 @@ class MosaicTest extends Specification {
     //1.0 is used as a fake resolution for this mock Accumulo test
     val rq = new RasterQuery(BoundingBox(envelope), 1.0, None, None)
     val queryRasters = rs.getRasters(rq)
-    val ingestImageByteArray = getImageByteArray(ingestRastersList.toIterator, width, height, envelope, resX, resY)
-    val queryImageByteArray = getImageByteArray(queryRasters, width, height, envelope, resX, resY)
+    val (ingestImageByteArray, ingestCount) = getImageByteArrayAndCount(ingestRastersList.toIterator, width, height, envelope, resX, resY)
+    val (queryImageByteArray, queryCount) = getImageByteArrayAndCount(queryRasters, width, height, envelope, resX, resY)
+    ingestCount must beEqualTo(queryCount)
     ArrayUtil.equals(ingestImageByteArray, queryImageByteArray) must beTrue
   }
 
