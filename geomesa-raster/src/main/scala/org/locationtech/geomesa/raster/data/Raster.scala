@@ -17,7 +17,6 @@
 package org.locationtech.geomesa.raster.data
 
 import java.awt.image.RenderedImage
-import java.nio.ByteBuffer
 import java.util.UUID
 
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -64,10 +63,8 @@ object Raster {
 
   def apply(bytes: Array[Byte]): Raster = {
     val byteArrays = RasterUtils.decodeByteArrays(bytes)
-    if (byteArrays.length != 3) throw new Exception("Decode bytes into Raster failed.")
-
     val metaData = IndexEntry.byteArrayToDecodedIndex(byteArrays(1))
-    val resolution = ByteBuffer.wrap(byteArrays(2)).getDouble
+    val resolution = RasterUtils.bytesToDouble(byteArrays(2))
     Raster(byteArrays(0), metaData, resolution)
   }
 

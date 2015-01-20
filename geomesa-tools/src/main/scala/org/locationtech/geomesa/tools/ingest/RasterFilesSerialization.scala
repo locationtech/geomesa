@@ -28,6 +28,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.Raster
+import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.utils.geohash.BoundingBox
@@ -48,7 +49,6 @@ class RasterFilesSerialization(config: Map[String, Option[String]]) extends Rast
 
   def runSerializationTask() = Try {
     val fileOrDir = new File(path)
-    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
     val outPath = s"/tmp/raster_ingest_${UUID.randomUUID.toString}"
 
     val files =
@@ -64,12 +64,18 @@ class RasterFilesSerialization(config: Map[String, Option[String]]) extends Rast
       val rasterReader = getReader(file, fileType)
       val rasterGrid: GridCoverage2D = rasterReader.read(null)
 
+      val projection = rasterGrid.getCoordinateReferenceSystem.getName.toString
+      if (projection != "EPSG:WGS 84") {
+        throw new Exception(s"Error, Projection: $projection is unsupported.")
+      }
+
       val envelope = rasterGrid.getEnvelope2D
       val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
 
+      val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
       val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Some(ingestTime.getMillis))
 
-      val res = 1.0  //TODO: get the resolution from the reader or from the gridcoverage
+      val res =  RasterUtils.sharedRasterParams(rasterGrid.getGridGeometry, envelope).accumuloResolution
 
       val raster = Raster(rasterGrid.getRenderedImage, metadata, res)
 
