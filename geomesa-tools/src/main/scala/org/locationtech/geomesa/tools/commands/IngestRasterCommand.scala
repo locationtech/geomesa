@@ -98,7 +98,7 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
   }
 }
 
-class pathValidator extends IParameterValidator {
+class PathValidator extends IParameterValidator {
   def validate(name: String, value: String) {
     if (value == null) handleError(value, "is null")
     val fileOrDir = new File(value)
@@ -111,7 +111,7 @@ class pathValidator extends IParameterValidator {
   }
 }
 
-class modeValidator extends IParameterValidator {
+class ModeValidator extends IParameterValidator {
   def validate(name: String, value: String): Unit = {
     if (!(value.toLowerCase == "local" || value.toLowerCase == "remote"))
       throw new Exception(s"Unsupported ingestion mode: ${value}. Use either local (default) or remote.")
@@ -128,7 +128,7 @@ object IngestRasterCommand {
     var format: String = null
 
     @Parameter(names = Array("-f", "--file"), description = "Single raster file or directory of " +
-      "raster files to be ingested", validateWith = classOf[pathValidator], required = true)
+      "raster files to be ingested", validateWith = classOf[PathValidator], required = true)
     var file: String = null
 
     @Parameter(names = Array("-tm", "--timestamp"), description = "Ingestion time (default to current time)")
@@ -139,7 +139,7 @@ object IngestRasterCommand {
     var parLevel: Int = 1
 
     @Parameter(names = Array("-m", "--mode"), description = "Ingestion mode (local | remote, default " +
-      "to local)", validateWith = classOf[modeValidator])
+      "to local)", validateWith = classOf[ModeValidator])
     var mode: String = "local"
   }
 }
