@@ -106,3 +106,8 @@ object SelfClosingIterator {
 object SelfClosingBatchScanner {
   def apply(bs: BatchScanner): SelfClosingIterator[Entry[Key, Value]] = SelfClosingIterator(bs.iterator, () => bs.close())
 }
+
+// This object provides a standard way to wrap Scanners in a self-closing and closeable iterator.
+object SelfClosingScanner {
+  def apply(bs: Scanner): SelfClosingIterator[Entry[Key, Value]] = SelfClosingIterator(bs.iterator, () => bs.close())
+}
