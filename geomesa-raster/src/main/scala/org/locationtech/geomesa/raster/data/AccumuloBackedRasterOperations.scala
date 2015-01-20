@@ -27,6 +27,7 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.BBOXCombiner._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.core.stats.StatWriter
+import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingScanner}
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.utils.geohash.BoundingBox
@@ -111,14 +112,14 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     val batchScanner = connector.createBatchScanner(rasterTable, authorizationsProvider.getAuthorizations, numQThreads)
     val plan = queryPlanner.getQueryPlan(rasterQuery)
     configureBatchScanner(batchScanner, plan)
-    adaptIterator(batchScanner.iterator)
+    adaptIterator(SelfClosingBatchScanner(batchScanner))
   }
 
   def getBounds(): BoundingBox = {
     ensureTableExists(GEOMESA_RASTER_BOUNDS_TABLE)
     val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, authorizationsProvider.getAuthorizations)
     scanner.setRange(new Range(getBoundsRowID))
-    val resultingBounds = scanner.iterator()
+    val resultingBounds = SelfClosingScanner(scanner)
     if (resultingBounds.isEmpty) {
       BoundingBox(-180, 180, -90, 90)
     } else {
@@ -131,7 +132,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     ensureTableExists(GEOMESA_RASTER_BOUNDS_TABLE)
     val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths())
     scanner.setRange(new Range(getBoundsRowID))
-    val scanResultingCQs = scanner.iterator.toList.map(_.getKey.getColumnQualifier.toString)
+    val scanResultingCQs = SelfClosingScanner(scanner).map(_.getKey.getColumnQualifier.toString)
     scanResultingCQs.toSeq.distinct.map(lexiDecodeStringToDouble)
   }
 
