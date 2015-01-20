@@ -20,7 +20,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
-import org.locationtech.geomesa.utils.stats.{AutoLoggingTimings, MethodProfiling, NoOpTimings, Timings}
+import org.locationtech.geomesa.utils.stats.MethodProfiling
 
 /**
  * This is an Index Only Iterator, to be used in situations where the data records are
@@ -31,8 +31,7 @@ import org.locationtech.geomesa.utils.stats.{AutoLoggingTimings, MethodProfiling
  * the value for the INDEX, mapped into a SimpleFeature
  */
 class IndexIterator
-    extends HasIteratorExtensions
-    with SortedKeyValueIterator[Key, Value]
+    extends GeomesaFilteringIterator
     with HasFeatureBuilder
     with HasIndexValueDecoder
     with HasSpatioTemporalFilter
@@ -42,91 +41,37 @@ class IndexIterator
     with MethodProfiling
     with Logging {
 
-  protected var topKey: Option[Key] = None
-  protected var topValue: Option[Value] = None
-  protected var source: SortedKeyValueIterator[Key, Value] = null
-
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment) {
-
-    TServerClassLoader.initClassLoader(logger)
-
+    super.init(source, options, env)
     initFeatureType(options)
     init(featureType, options)
-
-    this.source = source.deepCopy(env)
   }
 
-  override def hasTop = topKey.isDefined
+  override def setTopConditionally() = {
 
-  override def getTopKey = topKey.orNull
+    val indexKey = source.getTopKey
 
-  override def getTopValue = topValue.orNull
+    if (!SpatioTemporalTable.isIndexEntry(indexKey)) {
+      // if this is a data entry, skip it
+      logger.warn("Found unexpected data entry: " + indexKey)
+    } else {
+      // the value contains the full-resolution geometry and time plus feature ID
+      val decodedValue = indexEncoder.decode(source.getTopValue.get)
 
-  /**
-   * Seeks to the start of a range and fetches the top key/value
-   *
-   * @param range
-   * @param columnFamilies
-   * @param inclusive
-   */
-  override def seek(range: Range, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean) {
-    // move the source iterator to the right starting spot
-    source.seek(range, columnFamilies, inclusive)
-    findTop()
-  }
+      // evaluate the filter checks, in least to most expensive order
+      val meetsIndexFilters = checkUniqueId.forall(fn => fn(decodedValue.id)) &&
+          stFilter.forall(fn => fn(decodedValue.geom, decodedValue.date.map(_.getTime)))
 
-  /**
-   * Reads the next qualifying key/value
-   */
-  override def next() = findTop()
-
-  /**
-   * Advances the index-iterator to the next qualifying entry
-   */
-  def findTop() {
-
-    // clear out the reference to the last entry
-    topKey = None
-    topValue = None
-
-    // loop while there is more data and we haven't matched our filter
-    while (topValue.isEmpty && source.hasTop) {
-
-      val indexKey = source.getTopKey
-
-      if (!SpatioTemporalTable.isIndexEntry(indexKey)) {
-        // if this is a data entry, skip it
-        logger.warn("Found unexpected data entry: " + indexKey)
-      } else {
-        // the value contains the full-resolution geometry and time plus feature ID
-        val decodedValue = indexEncoder.decode(source.getTopValue.get)
-
-        // evaluate the filter checks, in least to most expensive order
-        val meetsIndexFilters = checkUniqueId.forall(fn => fn(decodedValue.id)) &&
-            stFilter.forall(fn => fn(decodedValue.geom, decodedValue.date.map(_.getTime)))
-
-        if (meetsIndexFilters) { // we hit a valid geometry, date and id
-          val transformedFeature = encodeIndexValueToSF(decodedValue)
-          // update the key and value
-          // copy the key because reusing it is UNSAFE
-          topKey = Some(indexKey)
-          topValue = transform.map(fn => new Value(fn(transformedFeature)))
-              .orElse(Some(new Value(featureEncoder.encode(transformedFeature))))
-        }
+      if (meetsIndexFilters) { // we hit a valid geometry, date and id
+        val transformedFeature = encodeIndexValueToSF(decodedValue)
+        // update the key and value
+        // copy the key because reusing it is UNSAFE
+        topKey = Some(indexKey)
+        topValue = transform.map(fn => new Value(fn(transformedFeature)))
+            .orElse(Some(new Value(featureEncoder.encode(transformedFeature))))
       }
-
-      // increment the underlying iterator
-      source.next()
     }
   }
-
-  override def deepCopy(env: IteratorEnvironment) =
-    throw new UnsupportedOperationException("IndexIterator does not support deepCopy.")
-}
-
-object IndexIterator {
-  implicit val timings: Timings = new AutoLoggingTimings()
-  implicit val noOpTimings: Timings = new NoOpTimings()
 }
