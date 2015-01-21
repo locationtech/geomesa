@@ -13,6 +13,7 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.{Raster, RasterQuery, RasterStore}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
+import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.geometry.Envelope
 
 import scala.collection.mutable.ListBuffer
@@ -94,9 +95,9 @@ object RasterUtils {
     new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
   }
 
-  def mosaicRasters(rasters: Iterator[Raster], width: Int, height: Int, env: Envelope, resX: Double, resY: Double): BufferedImage = {
+  def mosaicRasters(rasters: Iterator[Raster], width: Int, height: Int, env: Envelope, resX: Double, resY: Double): (BufferedImage, Int) = {
     if (rasters.isEmpty) {
-      getEmptyImage(width, height)
+      (getEmptyImage(width, height), 0)
     } else {
       val rescaleX = resX / (env.getSpan(0) / width)
       val rescaleY = resY / (env.getSpan(1) / height)
@@ -105,13 +106,15 @@ object RasterUtils {
       val imageWidth = Math.max(Math.round(scaledWidth), 1).toInt
       val imageHeight = Math.max(Math.round(scaledHeight), 1).toInt
       val firstRaster = rasters.next()
+      var count = 1
       val mosaic = getEmptyMosaic(imageWidth, imageHeight, firstRaster.chunk)
       setMosaicData(mosaic, firstRaster, env, resX, resY)
       while (rasters.hasNext) {
         val raster = rasters.next()
         setMosaicData(mosaic, raster, env, resX, resY)
+        count += 1
       }
-      mosaic
+      (mosaic, count)
     }
   }
 

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.raster.data
 
 import java.awt.image._
@@ -71,16 +87,16 @@ class MosaicTest extends Specification {
     rasterList.toList
   }
 
-  def getImageByteArray(rasterList: Iterator[Raster],
+  def getImageByteArrayAndCount(rasterList: Iterator[Raster],
                         width: Int,
                         height: Int,
                         envelope: ReferencedEnvelope,
                         resX: Double,
-                        resY: Double): Array[Byte] = {
-    val image = RasterUtils.mosaicRasters(rasterList, width * 2, height * 2, envelope, resX, resY)
+                        resY: Double): (Array[Byte], Int) = {
+    val (image, count) = RasterUtils.mosaicRasters(rasterList, width * 2, height * 2, envelope, resX, resY)
     val baos = new ByteArrayOutputStream()
     ImageIO.write(image, "png", baos)
-    baos.toByteArray
+    (baos.toByteArray, count)
   }
 
   def runAccumuloMosaicTest(width: Int , height: Int, bbox: BoundingBox) = {
@@ -93,8 +109,9 @@ class MosaicTest extends Specification {
     //1.0 is used as a fake resolution for this mock Accumulo test
     val rq = new RasterQuery(BoundingBox(envelope), 1.0, None, None)
     val queryRasters = rs.getRasters(rq)
-    val ingestImageByteArray = getImageByteArray(ingestRastersList.toIterator, width, height, envelope, resX, resY)
-    val queryImageByteArray = getImageByteArray(queryRasters, width, height, envelope, resX, resY)
+    val (ingestImageByteArray, ingestCount) = getImageByteArrayAndCount(ingestRastersList.toIterator, width, height, envelope, resX, resY)
+    val (queryImageByteArray, queryCount) = getImageByteArrayAndCount(queryRasters, width, height, envelope, resX, resY)
+    ingestCount must beEqualTo(queryCount)
     ArrayUtil.equals(ingestImageByteArray, queryImageByteArray) must beTrue
   }
 

@@ -16,8 +16,11 @@
 
 package org.locationtech.geomesa.raster.data
 
+import java.awt.image.BufferedImage
+
+import org.geotools.coverage.grid.GridEnvelope2D
 import org.locationtech.geomesa.raster.AccumuloStoreHelper
-import org.locationtech.geomesa.raster.data.Raster
+import org.locationtech.geomesa.utils.geohash.BoundingBox
 
 /**
  * This class defines basic operations on Raster, including saving/retrieving
@@ -27,7 +30,9 @@ import org.locationtech.geomesa.raster.data.Raster
  */
 class RasterStore(val rasterOps: RasterOperations) {
 
-  def ensureTableExists() = rasterOps.ensureTableExists()
+  def ensureBoundsTableExists() = rasterOps.ensureBoundsTableExists()
+
+  def createTableStructure() = rasterOps.createTableStructure()
 
   def getAuths = rasterOps.getAuths()
 
@@ -37,9 +42,20 @@ class RasterStore(val rasterOps: RasterOperations) {
 
   def getTable = rasterOps.getTable
 
+  def getMosaicedRaster(rasterQuery: RasterQuery, params: GeoMesaCoverageQueryParams): BufferedImage =
+    rasterOps.getMosaicedRaster(rasterQuery, params)
+
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = rasterOps.getRasters(rasterQuery)
 
+  def getQueryRecords(numRecords: Int): Iterator[String] = rasterOps.getQueryRecords(numRecords)
+
   def putRaster(raster: Raster) = rasterOps.putRaster(raster)
+
+  def getBounds(): BoundingBox = rasterOps.getBounds()
+
+  def getAvailableResolutions(): Seq[Double] = rasterOps.getAvailableResolutions()
+
+  def getGridRange(): GridEnvelope2D = rasterOps.getGridRange()
 }
 
 object RasterStore {
@@ -58,7 +74,7 @@ object RasterStore {
 
     val rasterOps = new AccumuloBackedRasterOperations(conn, tableName, authorizationsProvider, writeVisibilities)
     // this will actually create the Accumulo Table
-    rasterOps.ensureTableExists()
+    rasterOps.createTableStructure()
     // TODO: WCS: Configure the shards/writeMemory/writeThreads/queryThreadsParams
     // GEOMESA-568
     new RasterStore(rasterOps)

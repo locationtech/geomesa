@@ -16,13 +16,15 @@
 
 package org.locationtech.geomesa
 
+import java.math.{RoundingMode, MathContext}
+
 import org.calrissian.mango.types.LexiTypeEncoders
 
 /**
  * In these lexiEncode and -Decode functions, a double is encoded or decoded into a lexical
  * representation to be used in the rowID in the Accumulo key.
  *
- * In the lexiEncodeDoubleToString function, the double is rounded off to seven significant digits,
+ * In the lexiEncodeDoubleToString function, the double is truncated via floor() to four significant digits,
  * giving a scientific notation of #.###E0. This is to ensure that there is flexibility in the
  * precision of the bounding box given when querying for chunks. Prior to rounding the resolution,
  * it was found that even that slightest change in bounding box caused the resolution to be calculated
@@ -31,26 +33,36 @@ import org.calrissian.mango.types.LexiTypeEncoders
  * the resolution calculated upon ingest.
  *
  * Now, there is greater flexibility in specifying a bounding box and calculating a resolution because
- * we save only seven digits after the decimal point.
+ * we save only four digits after the decimal point.
  */
 package object raster {
+
+  // Sets the rounding mode to use floor() in order to minimize effects from round-off at higher precisions
+  val roundingMode =  RoundingMode.FLOOR
+
+  // Sets the scale for the floor() function and thus determines where the truncation occurs
+  val significantDigits = 4
+
+  // Defines the rules for rounding using the above
+  val mc = new MathContext(significantDigits, roundingMode)
+
   /**
-   * The double, number, is rounded off to seven significant digits and then lexiEncoded into
+   * The double, number, is truncated to a certain number of significant digits and then lexiEncoded into
    * a string representations.
    * @param number, the Double to be lexiEncoded
    */
   def lexiEncodeDoubleToString(number: Double): String = {
-    val truncatedRes = BigDecimal(number).setScale(7, BigDecimal.RoundingMode.HALF_UP).toDouble
+    val truncatedRes = BigDecimal(number).round(mc).toDouble
     LexiTypeEncoders.LEXI_TYPES.encode(truncatedRes)
   }
 
   /**
    * The string representation of a double, str, is decoded to its original Double representation
-   * and then rounded to seven significant digits to remain consistent with the lexiEncode function.
+   * and then truncated to a certain number of significant digits to remain consistent with the lexiEncode function.
    * @param str, the String representation of the Double
    */
   def lexiDecodeStringToDouble(str: String): Double = {
     val number = LexiTypeEncoders.LEXI_TYPES.decode("double", str).asInstanceOf[Double]
-    BigDecimal(number).setScale(7, BigDecimal.RoundingMode.HALF_UP).toDouble
+    BigDecimal(number).round(mc).toDouble
   }
 }

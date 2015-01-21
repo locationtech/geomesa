@@ -55,8 +55,8 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
   extends CoverageStore with Logging {
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
-  //TODO: WCS: remove if no longer needed
-  rasterStore.ensureTableExists()
+  // Ensure the Table and Bounds Table both exist
+  rasterStore.createTableStructure()
 
   def getAuths = rasterStore.getAuths
 
@@ -71,6 +71,8 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
   def saveRaster(raster: Raster) = {
     rasterStore.putRaster(raster)
   }
+
+  def getQueryRecords(numRecords: Int): Iterator[String]  = rasterStore.getQueryRecords(numRecords)
 
   def registerToGeoserver(raster: Raster) {
     geoserverClientServiceO.foreach { geoserverClientService => {
@@ -133,6 +135,9 @@ object AccumuloCoverageStore extends Logging {
                                      writeThreadsConfig,
                                      queryThreadsConfig,
                                      collectStats)
+
+    // Create Bounds Store, this is required for combiners to function
+    rasterOps.ensureBoundsTableExists()
 
     val dsConnectConfig: Map[String, String] = Map(
       IngestRasterParams.ACCUMULO_INSTANCE -> instanceIdParam.lookUp(config).asInstanceOf[String],
