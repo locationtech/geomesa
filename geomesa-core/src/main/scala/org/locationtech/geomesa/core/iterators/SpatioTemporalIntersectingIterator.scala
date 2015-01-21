@@ -64,7 +64,7 @@ class SpatioTemporalIntersectingIterator
     } else {
       if (checkUniqueId.forall(fn => fn(key.getColumnQualifier.toString))) {
         val dataValue = source.getTopValue
-        lazy val sf = featureDecoder.decode(dataValue.get)
+        val sf = featureDecoder.decode(dataValue.get)
         val meetsStFilter = stFilter.forall(fn => fn(sf.getDefaultGeometry.asInstanceOf[Geometry],
           dtgIndex.flatMap(i => Option(sf.getAttribute(i).asInstanceOf[Date]).map(_.getTime))))
         val meetsFilters =  meetsStFilter && ecqlFilter.forall(fn => fn(sf))

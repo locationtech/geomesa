@@ -26,7 +26,8 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.IteratorExtensions.OptionMap
 import org.locationtech.geomesa.core.transform.TransformCreator
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.feature.kryo.KryoSimpleFeatureFactory
+import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -100,7 +101,7 @@ trait HasFeatureBuilder extends HasFeatureType {
 
   override def initFeatureType(options: OptionMap) = {
     super.initFeatureType(options)
-    featureBuilder = AvroSimpleFeatureFactory.featureBuilder(featureType)
+    featureBuilder = KryoSimpleFeatureFactory.featureBuilder(featureType)
   }
 
   def encodeIndexValueToSF(value: DecodedIndexValue): SimpleFeature = {
@@ -149,7 +150,7 @@ trait HasFeatureDecoder extends IteratorExtensions {
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     // this encoder is for the source sft
-    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.AVRO.toString)
+    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.KRYO.toString)
     featureDecoder = SimpleFeatureDecoder(featureType, encodingOpt)
     featureEncoder = SimpleFeatureEncoder(featureType, encodingOpt)
   }
@@ -236,7 +237,7 @@ trait HasTransforms extends IteratorExtensions {
 
       transformString = Option(options.get(GEOMESA_ITERATORS_TRANSFORM))
       transformEncoding = Option(options.get(FEATURE_ENCODING)).map(FeatureEncoding.withName(_))
-          .getOrElse(FeatureEncoding.AVRO)
+          .getOrElse(FeatureEncoding.KRYO)
     }
   }
 }
