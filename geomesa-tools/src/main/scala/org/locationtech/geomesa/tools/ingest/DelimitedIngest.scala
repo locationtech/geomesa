@@ -116,6 +116,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
         IngestParams.DT_FORMAT         -> Option(params.dtFormat),
         IngestParams.ID_FIELDS         -> Option(params.idFields),
         IngestParams.DT_FIELD          -> Option(params.dtgField),
+        IngestParams.SKIP_HEADER       -> Option(params.skipHeader),
         IngestParams.LON_ATTRIBUTE     -> Option(params.lon),
         IngestParams.LAT_ATTRIBUTE     -> Option(params.lat),
         IngestParams.AUTHORIZATIONS    -> Option(params.auths),
