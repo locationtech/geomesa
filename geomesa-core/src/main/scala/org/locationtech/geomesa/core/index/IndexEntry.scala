@@ -142,4 +142,16 @@ trait IndexHelpers {
   }
 }
 
-case class DecodedIndex(id: String, geom: Geometry, dtgMillis: Option[Long])
+case class DecodedIndex(id: String, geom: Geometry, dtgMillis: Option[Long]) {
+  def toBytes(): Array[Byte] =  {
+    val encodedId = id.getBytes
+    val encodedGeom = WKBUtils.write(geom)
+    val date = dtgMillis.map{new DateTime(_, DateTimeZone.UTC)}
+    val encodedDtg = date.map { dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array() }
+                         .getOrElse(Array[Byte]())
+
+    ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
+      ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
+      encodedDtg
+  }
+}

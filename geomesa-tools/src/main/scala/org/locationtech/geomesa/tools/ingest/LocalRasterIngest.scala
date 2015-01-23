@@ -16,65 +16,34 @@
 
 package org.locationtech.geomesa.tools.ingest
 
-import java.awt.RenderingHints
-import java.io.{File, FilenameFilter}
-import javax.media.jai.{ImageLayout, JAI}
+import java.io.{FilenameFilter, File}
 
-import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.coverage.grid.GridCoverage2D
-import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
-import org.geotools.coverageio.gdal.dted.DTEDReader
-import org.geotools.factory.Hints
-import org.geotools.gce.geotiff.GeoTiffReader
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.index.DecodedIndex
-import org.locationtech.geomesa.raster.data.{AccumuloCoverageStore, Raster}
+import org.locationtech.geomesa.raster.data.Raster
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
-import org.locationtech.geomesa.tools.Utils.Formats._
-import org.locationtech.geomesa.tools.ingest.SimpleRasterIngest._
 import org.locationtech.geomesa.utils.geohash.BoundingBox
+import org.locationtech.geomesa.tools.Utils.Formats._
 
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.util.Try
 
-object SimpleRasterIngest {
-
-  def getReader(imageFile: File, imageType: String): AbstractGridCoverage2DReader = {
-    imageType match {
-      case TIFF => getTiffReader(imageFile)
-      case DTED => getDtedReader(imageFile)
-      case _ => throw new Exception("Image type is not supported.")
-    }
-  }
-
-  def getTiffReader(imageFile: File): AbstractGridCoverage2DReader = {
-    new GeoTiffReader(imageFile, new Hints(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true))
-  }
-
-  def getDtedReader(imageFile: File): AbstractGridCoverage2DReader = {
-    val l = new ImageLayout()
-    l.setTileGridXOffset(0).setTileGridYOffset(0).setTileHeight(512).setTileWidth(512)
-    val hints = new Hints
-    hints.add(new RenderingHints(JAI.KEY_IMAGE_LAYOUT, l))
-    new DTEDReader(imageFile, hints)
-  }
-
-}
-
-class SimpleRasterIngest(config: Map[String, Option[String]], cs: AccumuloCoverageStore) extends Logging {
+class LocalRasterIngest(config: Map[String, Option[String]]) extends RasterIngest {
 
   lazy val path = config(IngestRasterParams.FILE_PATH).get
   lazy val fileType = config(IngestRasterParams.FORMAT).get
   lazy val rasterName = config(IngestRasterParams.TABLE).get
-  lazy val visibilities = config(IngestRasterParams.VISIBILITIES).get
   lazy val parLevel = config(IngestRasterParams.PARLEVEL).get.toInt
+  lazy val cs = createCoverageStore(config)
 
   val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
   def runIngestTask() = Try {
     val fileOrDir = new File(path)
+
     val files =
       (if (fileOrDir.isDirectory)
          fileOrDir.listFiles(new FilenameFilter() {
