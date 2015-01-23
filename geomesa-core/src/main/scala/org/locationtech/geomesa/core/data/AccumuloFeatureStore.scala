@@ -18,11 +18,14 @@ package org.locationtech.geomesa.core.data
 
 import java.util.{List => JList}
 
+import com.google.common.collect.Lists
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data._
+import org.geotools.factory.Hints
 import org.geotools.feature._
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.FunctionExpressionImpl
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.utils.geotools.MinMaxTimeVisitor
@@ -35,11 +38,36 @@ import org.opengis.filter.identity.FeatureId
 class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Name)
     extends AbstractFeatureStore with AccumuloAbstractFeatureSource {
   override def addFeatures(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]): JList[FeatureId] = {
+    val fids = Lists.newArrayList[FeatureId]()
     if (collection.size > 0) {
       writeBounds(collection.getBounds)
       writeTimeBounds(collection)
-      super.addFeatures(collection)
-    } else new java.util.ArrayList[FeatureId]()
+
+      val fw = dataStore.getFeatureWriterAppend(featureName.getLocalPart, Transaction.AUTO_COMMIT)
+
+      val iter = collection.features()
+      while(iter.hasNext) {
+        val feature = iter.next()
+        val newFeature = fw.next()
+
+        try {
+          newFeature.setAttributes(feature.getAttributes)
+          newFeature.getUserData.putAll(feature.getUserData)
+        } catch {
+          case ex: Exception =>
+            throw new DataSourceException(s"Could not create ${featureName.getLocalPart} out of provided feature: ${feature.getID}", ex)
+        }
+
+        val useExisting = java.lang.Boolean.TRUE.equals(feature.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[java.lang.Boolean])
+        if (getQueryCapabilities().isUseProvidedFIDSupported && useExisting) {
+          newFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
+        }
+
+        fw.write()
+        fids.add(newFeature.getIdentifier)
+      }
+    }
+    fids
   }
 
   def updateTimeBounds(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]) = {

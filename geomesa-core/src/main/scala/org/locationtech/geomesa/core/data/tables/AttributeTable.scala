@@ -26,6 +26,7 @@ import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureWriterFn
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.IndexValueEncoder
 import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
@@ -45,11 +46,12 @@ object AttributeTable extends GeoMesaTable with Logging {
   def attrWriter(bw: BatchWriter,
                  sft: SimpleFeatureType,
                  indexedAttributes: Seq[AttributeDescriptor],
-                 visibility: String,
-                 rowIdPrefix: String): SimpleFeature => Unit = {
-        val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
-        val attributesToIdx = indexesOfIndexedAttributes.zip(indexedAttributes)
-    (feature: SimpleFeature) => {
+                 rowIdPrefix: String): FeatureWriterFn = {
+
+    val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
+    val attributesToIdx = indexesOfIndexedAttributes.zip(indexedAttributes)
+
+    (feature: SimpleFeature, visibility: String) => {
       val mutations = getAttributeIndexMutations(
         feature,
         attributesToIdx,
@@ -57,17 +59,19 @@ object AttributeTable extends GeoMesaTable with Logging {
         rowIdPrefix)
       bw.addMutations(mutations)
     }
+
   }
 
   /** Creates a function to remove attribute index entries for a feature **/
   def removeAttrIdx(bw: BatchWriter,
                     sft: SimpleFeatureType,
                     indexedAttributes: Seq[AttributeDescriptor],
-                    visibility: String,
-                    rowIdPrefix: String): SimpleFeature => Unit = {
+                    rowIdPrefix: String): FeatureWriterFn = {
+
     val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
     val attributesToIdx = indexesOfIndexedAttributes.zip(indexedAttributes)
-    (feature: SimpleFeature) => {
+
+    (feature: SimpleFeature, visibility: String) => {
       val mutations = getAttributeIndexMutations(
         feature,
         attributesToIdx,

@@ -20,7 +20,9 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{BatchDeleter, BatchWriter, Connector}
 import org.apache.accumulo.core.data
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
+import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureWriterFn
 import org.locationtech.geomesa.core.index.{IndexEntryEncoder, IndexSchema, _}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -28,8 +30,8 @@ import scala.collection.JavaConverters._
 
 object SpatioTemporalTable extends Logging {
 
-  def spatioTemporalWriter(bw: BatchWriter, visibility: String, encoder: IndexEntryEncoder): SimpleFeature => Unit =
-    (feature: SimpleFeature) => {
+  def spatioTemporalWriter(bw: BatchWriter, encoder: IndexEntryEncoder): FeatureWriterFn  =
+    (feature: SimpleFeature, visibility: String) => {
       val KVs = encoder.encode(feature, visibility)
       val m = KVs.groupBy { case (k, _) => k.getRow }.map { case (row, kvs) => kvsToMutations(row, kvs) }
       bw.addMutations(m.asJava)
@@ -44,9 +46,9 @@ object SpatioTemporalTable extends Logging {
   }
 
   /** Creates a function to remove spatio temporal index entries for a feature **/
-  def removeSpatioTemporalIdx(bw: BatchWriter, encoder: IndexEntryEncoder): SimpleFeature => Unit =
-    (feature: SimpleFeature) => {
-      encoder.encode(feature).foreach { case (key, _) =>
+  def removeSpatioTemporalIdx(bw: BatchWriter, encoder: IndexEntryEncoder): FeatureWriterFn =
+    (feature: SimpleFeature, visibility: String) => {
+      encoder.encode(feature, visibility).foreach { case (key, _) =>
         val m = new Mutation(key.getRow)
         m.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed)
         bw.addMutation(m)
