@@ -221,7 +221,9 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
       if (hasNext) {
         original = reader.next()
         builder.init(original)
-        builder.buildFeature(original.getID)
+        val ret = builder.buildFeature(original.getID)
+        ret.getUserData.putAll(original.getUserData)
+        ret
       } else {
         builder.buildFeature(nextFeatureId)
       }
