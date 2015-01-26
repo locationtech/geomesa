@@ -117,10 +117,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val modifiedParams = params ++ Map(authsParam.key -> auths.mkString(","))
     authorizationsProvider.configure(modifiedParams)
 
-    val featureEncoding =
-      featureEncParam.lookupOpt[String](params)
-        .map(FeatureEncoding.withName)
-        .getOrElse(FeatureEncoding.AVRO)
+    val featureEncoding = featureEncParam.lookupOpt[String](params)
+      .map(FeatureEncoding.withName)
+      .getOrElse(DEFAULT_ENCODING)
 
     val collectStats = !useMock && Try(statsParam.lookUp(params).asInstanceOf[java.lang.Boolean] == true).getOrElse(true)
 
@@ -207,7 +206,7 @@ object AccumuloDataStoreFactory {
     val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false, java.lang.Boolean.TRUE)
     val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false, java.lang.Boolean.TRUE)
     val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
-    val featureEncParam     = new Param("featureEncoding", classOf[String], "The feature encoding format (text or avro). Default is Avro", false, "avro")
+    val featureEncParam     = new Param("featureEncoding", classOf[String], "The feature encoding format (kryo, avro or text). Default is Kryo", false, "kryo")
   }
 
   import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
