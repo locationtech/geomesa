@@ -77,7 +77,7 @@ class AccumuloDataStore(val connector: Connector,
                         val recordThreadsConfig: Option[Int] = None,
                         val writeThreadsConfig: Option[Int] = None,
                         val cachingConfig: Boolean = false,
-                        val featureEncoding: FeatureEncoding = FeatureEncoding.KRYO)
+                        val featureEncoding: FeatureEncoding = DEFAULT_ENCODING)
     extends AbstractDataStore(true) with AccumuloConnectorCreator with Logging {
 
   // having at least as many shards as tservers provides optimal parallelism in queries

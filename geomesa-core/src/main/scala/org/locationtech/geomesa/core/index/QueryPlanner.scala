@@ -31,8 +31,7 @@ import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIt
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.SimpleFeatureDecoder
-import org.locationtech.geomesa.feature.kryo.KryoSimpleFeatureFactory
+import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}
@@ -165,7 +164,7 @@ case class QueryPlanner(schema: String,
 
       val summedTimeSeries = timeSeriesStrings.map(decodeTimeSeries).reduce(combineTimeSeries)
 
-      val featureBuilder = KryoSimpleFeatureFactory.featureBuilder(returnSFT)
+      val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
       featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
       featureBuilder.add(QueryPlanner.zeroPoint) //Filler value as Feature requires a geometry
       val result = featureBuilder.buildFeature(null)

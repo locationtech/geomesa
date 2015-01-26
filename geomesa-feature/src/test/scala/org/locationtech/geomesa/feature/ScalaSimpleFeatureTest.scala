@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.feature.kryo
+package org.locationtech.geomesa.feature
 
 import java.util
 
@@ -31,13 +31,13 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class KryoSimpleFeatureTest extends Specification {
+class ScalaSimpleFeatureTest extends Specification {
 
   "KryoSimpleFeature" should {
     "properly convert attributes that are set as strings" in {
       val sft = SimpleFeatureTypes.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 
-      val f = new KryoSimpleFeature("fakeid", sft)
+      val f = new ScalaSimpleFeature("fakeid", sft)
       f.setAttribute(0,"1")
       f.setAttribute(1,"2013-01-02T00:00:00.000Z")
       f.setAttribute(2,"POINT(45.0 49.0)")
@@ -53,7 +53,7 @@ class KryoSimpleFeatureTest extends Specification {
       val valueList = List("1", "POINT (45 49)", "1.01", "true", "Test String")
       val nameStringList = List("a", "geom", "d", "e", "f")
       val nameList = nameStringList.map(new NameImpl(_))
-      val f = new KryoSimpleFeature("fakeid", sft)
+      val f = new ScalaSimpleFeature("fakeid", sft)
 
       //Setup sft
       for((tempV, index) <- valueList.view.zipWithIndex) {
@@ -87,7 +87,7 @@ class KryoSimpleFeatureTest extends Specification {
     "properly validate a correct object" in {
       val sft = SimpleFeatureTypes.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 
-      val f = new KryoSimpleFeature("fakeid", sft)
+      val f = new ScalaSimpleFeature("fakeid", sft)
       f.setAttribute(0,"1")
       f.setAttribute(1,"2013-01-02T00:00:00.000Z") // this date format should be converted
       f.setAttribute(2,"POINT(45.0 49.0)")
@@ -101,7 +101,7 @@ class KryoSimpleFeatureTest extends Specification {
       for(typeName <- typeList) {
         val sft = SimpleFeatureTypes.createType(typeName, "a⬨_⬨b:Integer,☕☄crazy☄☕_☕name&such➿:Date," +
             "*geom:Point:srid=4326")
-        val f = new KryoSimpleFeature("fakeid", sft)
+        val f = new ScalaSimpleFeature("fakeid", sft)
         f.setAttribute(0,"1")
         f.setAttribute(1,"2013-01-02T00:00:00.000Z") // this date format should be converted
         f.setAttribute(2,"POINT(45.0 49.0)")
@@ -114,7 +114,7 @@ class KryoSimpleFeatureTest extends Specification {
     "fail to validate a correct object" in {
       val sft = SimpleFeatureTypes.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 
-      val f = new KryoSimpleFeature("fakeid", sft, Array("1", "2013-01-02T00:00:00.000Z", "POINT(45.0 49.0)"))
+      val f = new ScalaSimpleFeature("fakeid", sft, Array("1", "2013-01-02T00:00:00.000Z", "POINT(45.0 49.0)"))
 
       f.validate must throwA [org.opengis.feature.IllegalAttributeException]  //should throw it
     }
@@ -128,7 +128,7 @@ class KryoSimpleFeatureTest extends Specification {
       )
 
 
-      val f = new KryoSimpleFeature("fakeid", sft)
+      val f = new ScalaSimpleFeature("fakeid", sft)
       f.setAttribute("a","")
       f.setAttribute("b","")
       f.setAttribute("c","")
@@ -152,7 +152,7 @@ class KryoSimpleFeatureTest extends Specification {
 
       // Verify that KryoSimpleFeature returns null for attributes that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
-      val sf = new KryoSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
       sf.getAttribute("c") must not(throwA[NullPointerException])
       sf.getAttribute("c") should beNull
 
@@ -163,7 +163,7 @@ class KryoSimpleFeatureTest extends Specification {
     "give back a null when a property doesn't exist" in {
       // Verify that KryoSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
-      val sf = new KryoSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
       sf.getProperty("c") must not(throwA[NullPointerException])
       sf.getProperty("c") should beNull
 
@@ -173,7 +173,7 @@ class KryoSimpleFeatureTest extends Specification {
     "give back a property when a property exists but the value is null" in {
       // Verify that KryoSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
-      val sf = new KryoSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
       sf.getProperty("b") must not(throwA[NullPointerException])
       sf.getProperty("b") should not beNull
 
@@ -183,7 +183,7 @@ class KryoSimpleFeatureTest extends Specification {
     "give back a null when the property value is null" in {
       // Verify that KryoSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
-      val sf = new KryoSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
       sf.getProperty("b").getValue must not(throwA[NullPointerException])
       sf.getProperty("b").getValue should beNull
 

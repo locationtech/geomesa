@@ -31,8 +31,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder, ReferencedEnvelope}
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index.{IndexEntryDecoder, IndexSchema}
-import org.locationtech.geomesa.feature.kryo.KryoSimpleFeatureFactory
-import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.feature._
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, toRichSimpleFeatureIterator}
 import org.locationtech.geomesa.utils.geotools.{GridSnap, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -91,7 +90,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
     // Use density SFT for the encoder since we are transforming the feature into
     // a sparse matrix as the result type of this iterator
     densityFeatureEncoder = SimpleFeatureEncoder(projectedSFT, encodingOpt)
-    featureBuilder = KryoSimpleFeatureFactory.featureBuilder(projectedSFT)
+    featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(projectedSFT)
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
   }
@@ -246,7 +245,7 @@ object DensityIterator extends Logging {
   }
 
   def expandFeature(sf: SimpleFeature): Iterable[SimpleFeature] = {
-    val builder = KryoSimpleFeatureFactory.featureBuilder(densitySFT)
+    val builder = ScalaSimpleFeatureFactory.featureBuilder(densitySFT)
 
     val decodedMap = Try(decodeSparseMatrix(sf.getAttribute(ENCODED_RASTER_ATTRIBUTE).toString))
 

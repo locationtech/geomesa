@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.feature.kryo
+package org.locationtech.geomesa.feature
 
+import java.util
 import java.util.{Collection => JCollection, List => JList}
 
 import com.vividsolutions.jts.geom.Geometry
@@ -32,13 +33,13 @@ import org.opengis.geometry.BoundingBox
 import scala.collection.JavaConversions._
 
 /**
- * Simple feature implementation optimized to instantiate from kryo serialization
+ * Simple feature implementation optimized to instantiate from serialization
  *
  * @param initialId
  * @param sft
  * @param initialValues if provided, must already be converted into the appropriate types
  */
-class KryoSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValues: Array[AnyRef] = null)
+class ScalaSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValues: Array[AnyRef] = null)
     extends SimpleFeature {
 
   val featureId = new FeatureIdImpl(initialId)
@@ -76,10 +77,20 @@ class KryoSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValues
   }
 
   // following methods delegate to setAttribute to get type conversion
-  override def setAttributes(vals: JList[Object]) =
-    vals.zipWithIndex.foreach { case (v, i) => setAttribute(i, v) }
-  override def setAttributes(vals: Array[Object]) =
-    vals.zipWithIndex.foreach { case (v, i) => setAttribute(i, v) }
+  override def setAttributes(vals: JList[Object]) = {
+    var i = 0
+    while (i < vals.size) {
+      setAttribute(i, vals.get(i))
+      i += 1
+    }
+  }
+  override def setAttributes(vals: Array[Object]) = {
+    var i = 0
+    while (i < vals.length) {
+      setAttribute(i, vals(i))
+      i += 1
+    }
+  }
 
   override def getAttributeCount = values.length
   override def getAttributes: JList[Object] = values.toList
@@ -97,10 +108,18 @@ class KryoSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValues
   override def setDefaultGeometryProperty(geoAttr: GeometryAttribute) =
     if (geoAttr == null) setDefaultGeometry(null) else setDefaultGeometry(geoAttr.getValue)
 
-  override def getProperties: JCollection[Property] =
-    getAttributes.zip(sft.getAttributeDescriptors).map {
-      case(attribute, attributeDesc) => new AttributeImpl(attribute, attributeDesc, featureId)
+  override def getProperties: JCollection[Property] = {
+    val attributes = getAttributes
+    val descriptors = sft.getAttributeDescriptors
+    assert(attributes.size == descriptors.size)
+    val properties = new util.ArrayList[Property](attributes.size)
+    var i = 0
+    while (i < attributes.size) {
+      properties.add(new AttributeImpl(attributes.get(i), descriptors.get(i), featureId))
+      i += 1
     }
+    properties
+  }
   override def getProperties(name: Name) = getProperties(name.getLocalPart)
   override def getProperties(name: String) = getProperties.filter(_.getName.toString == name)
   override def getProperty(name: Name) = getProperty(name.getLocalPart)
@@ -111,20 +130,30 @@ class KryoSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValues
 
   override def getValue = getProperties
   override def setValue(newValue: Object) = setValue(newValue.asInstanceOf[JCollection[Property]])
-  override def setValue(values: JCollection[Property]) =
-    values.zipWithIndex.foreach { case (p, idx) => this.values(idx) = p.getValue }
+  override def setValue(values: JCollection[Property]) = {
+    var i = 0
+    values.foreach { p =>
+      setAttribute(i, p.getValue)
+      i += 1
+    }
+  }
 
   override def getDescriptor: AttributeDescriptor =
     new AttributeDescriptorImpl(sft, sft.getName, 0, Int.MaxValue, true, null)
 
   override def isNillable = true
 
-  override def validate() =
-    values.zipWithIndex.foreach { case (v, idx) => Types.validate(getType.getDescriptor(idx), v) }
+  override def validate() = {
+    var i = 0
+    while (i < values.length) {
+      Types.validate(sft.getDescriptor(i), values(i))
+      i += 1
+    }
+  }
 }
 
-object KryoSimpleFeature {
-  implicit class RichKryoSimpleFeature(val sf: KryoSimpleFeature) extends AnyVal {
+object ScalaSimpleFeature {
+  implicit class RichSimpleFeature(val sf: ScalaSimpleFeature) extends AnyVal {
     def getAttribute[T](name: String) = sf.getAttribute(name).asInstanceOf[T]
     def getAttribute[T](index: Int) = sf.getAttribute(index).asInstanceOf[T]
     def getGeometry() = sf.getDefaultGeometry.asInstanceOf[Geometry]

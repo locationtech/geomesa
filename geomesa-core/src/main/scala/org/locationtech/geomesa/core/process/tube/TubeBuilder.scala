@@ -10,7 +10,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.format.DateTimeFormat
 import org.locationtech.geomesa.core.index.Constants
-import org.locationtech.geomesa.feature.kryo.KryoSimpleFeatureFactory
+import org.locationtech.geomesa.feature.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -30,7 +30,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   val GEOM_PROP = "geom"
 
   val tubeType = SimpleFeatureTypes.createType("tubeType", s"$GEOM_PROP:Geometry:srid=4326,start:Date,end:Date")
-  val builder = KryoSimpleFeatureFactory.featureBuilder(tubeType)
+  val builder = ScalaSimpleFeatureFactory.featureBuilder(tubeType)
 
   // default to ISO 8601 date format
   val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");

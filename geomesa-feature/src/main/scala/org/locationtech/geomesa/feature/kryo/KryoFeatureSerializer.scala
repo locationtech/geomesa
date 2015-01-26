@@ -18,29 +18,23 @@ package org.locationtech.geomesa.feature.kryo
 
 import java.io.{InputStream, OutputStream}
 
-import com.esotericsoftware.kryo.Kryo
+import com.esotericsoftware.kryo.{Serializer, Kryo}
 import com.esotericsoftware.kryo.io.{Input, Output}
-import org.locationtech.geomesa.feature.AvroSimpleFeature
+import org.locationtech.geomesa.feature.{ScalaSimpleFeature, AvroSimpleFeature}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
  * Class for serializing and deserializing simple features. Not thread safe.
  *
- * @param sft
- * @param decodeAs
+ * @param serializer
  */
-case class KryoFeatureSerializer(sft: SimpleFeatureType, decodeAs: SimpleFeatureType) {
-
-  private val serializer = if (sft.eq(decodeAs)) {
-    new SimpleFeatureSerializer(sft)
-  } else {
-    new TransformingSimpleFeatureSerializer(sft, decodeAs)
-  }
+case class KryoFeatureSerializer(serializer: Serializer[SimpleFeature]) {
 
   private val kryo = new Kryo()
 
+  // TODO test spark
   kryo.setReferences(false)
-  kryo.register(classOf[KryoSimpleFeature], serializer,  kryo.getNextRegistrationId)
+  kryo.register(classOf[ScalaSimpleFeature], serializer,  kryo.getNextRegistrationId)
   kryo.register(classOf[KryoFeatureId], new FeatureIdSerializer(),  kryo.getNextRegistrationId)
   kryo.register(classOf[SimpleFeature], serializer,  kryo.getNextRegistrationId)
   kryo.register(classOf[AvroSimpleFeature], serializer,  kryo.getNextRegistrationId)
@@ -114,7 +108,11 @@ case class KryoFeatureSerializer(sft: SimpleFeatureType, decodeAs: SimpleFeature
 }
 
 object KryoFeatureSerializer {
-  def apply(sft: SimpleFeatureType): KryoFeatureSerializer = apply(sft, sft)
+
+  def apply(sft: SimpleFeatureType): KryoFeatureSerializer = apply(new SimpleFeatureSerializer(sft))
+
+  def apply(sft: SimpleFeatureType, decodeAs: SimpleFeatureType): KryoFeatureSerializer =
+    if (sft.eq(decodeAs)) apply(sft) else  apply(new TransformingSimpleFeatureSerializer(sft, decodeAs))
 }
 
 case class KryoFeatureId(id: String)

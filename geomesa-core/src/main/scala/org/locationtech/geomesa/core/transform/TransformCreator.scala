@@ -1,9 +1,8 @@
 package org.locationtech.geomesa.core.transform
 
 import org.geotools.process.vector.TransformProcess
+import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature._
-import FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.kryo.{KryoSimpleFeature, KryoSimpleFeatureFactory}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -26,13 +25,13 @@ object TransformCreator {
     featureEncoding match {
       case FeatureEncoding.KRYO | FeatureEncoding.AVRO =>
         (feature: SimpleFeature) => {
-          val newSf = new KryoSimpleFeature(feature.getIdentifier.getID, targetFeatureType)
+          val newSf = new ScalaSimpleFeature(feature.getIdentifier.getID, targetFeatureType)
           defs.foreach { t => newSf.setAttribute(t.name, t.expression.evaluate(feature)) }
           encoder.encode(newSf)
         }
 
       case FeatureEncoding.TEXT =>
-        val builder = KryoSimpleFeatureFactory.featureBuilder(targetFeatureType)
+        val builder = ScalaSimpleFeatureFactory.featureBuilder(targetFeatureType)
         (feature: SimpleFeature) => {
           defs.foreach { t => builder.set(t.name, t.expression.evaluate(feature)) }
           val newFeature = builder.buildFeature(feature.getID)

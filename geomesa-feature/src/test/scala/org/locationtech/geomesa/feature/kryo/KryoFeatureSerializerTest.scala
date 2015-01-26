@@ -24,6 +24,7 @@ import com.vividsolutions.jts.geom.{Point, Polygon}
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, EncoderFactory}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.feature.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
@@ -41,7 +42,7 @@ class KryoFeatureSerializerTest extends Specification {
     "correctly serialize and deserialize basic features" in {
       val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("testType", spec)
-      val sf = new KryoSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
 
       sf.setAttribute("a", "1")
       sf.setAttribute("b", "1.0")
@@ -80,7 +81,7 @@ class KryoFeatureSerializerTest extends Specification {
     "correctly serialize and deserialize collection types" in {
       val spec = "a:Integer,m:Map[String,Double],l:List[Date],dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("testType", spec)
-      val sf = new KryoSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
 
       sf.setAttribute("a", "1")
       sf.setAttribute("m", Map("test1" -> 1.0, "test2" -> 2.0))
@@ -117,7 +118,7 @@ class KryoFeatureSerializerTest extends Specification {
       val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,l:List,m:Map," +
           "dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("testType", spec)
-      val sf = new KryoSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
 
       import scala.collection.JavaConverters._
       "using byte arrays" >> {

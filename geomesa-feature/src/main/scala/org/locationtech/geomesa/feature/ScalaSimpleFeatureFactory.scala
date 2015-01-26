@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.feature.kryo
+package org.locationtech.geomesa.feature
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.utils.text.{ObjectPoolFactory, ObjectPoolUtils}
+import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
-import scala.ref.SoftReference
 
-class KryoSimpleFeatureFactory extends AbstractFeatureFactoryImpl {
+class ScalaSimpleFeatureFactory extends AbstractFeatureFactoryImpl {
 
   override def createSimpleFeature(attrs: Array[AnyRef], sft: SimpleFeatureType, id: String) = {
-    val sf = new KryoSimpleFeature(id, sft)
+    val sf = new ScalaSimpleFeature(id, sft)
     sf.setAttributes(attrs)
     sf
   }
@@ -41,27 +38,17 @@ class KryoSimpleFeatureFactory extends AbstractFeatureFactoryImpl {
 
 }
 
-object KryoSimpleFeatureFactory {
+object ScalaSimpleFeatureFactory {
 
-  import scala.collection.mutable.Map
-
-  private val hints = new Hints(Hints.FEATURE_FACTORY, classOf[KryoSimpleFeatureFactory])
+  private val hints = new Hints(Hints.FEATURE_FACTORY, classOf[ScalaSimpleFeatureFactory])
   private val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
 
-  private val cache = new ThreadLocal[Map[SimpleFeatureType, SoftReference[SimpleFeatureBuilder]]] {
-    override def initialValue = Map.empty
-  }
+  private val cache = new SoftThreadLocalCache[SimpleFeatureType, SimpleFeatureBuilder]()
 
   private def getFeatureBuilder(sft: SimpleFeatureType) =
-    cache.get.get(sft).flatMap(_.get) match {
-      case Some(builder) => builder
-      case None =>
-        val builder = new SimpleFeatureBuilder(sft, featureFactory)
-        cache.get.put(sft, new SoftReference(builder))
-        builder
-    }
+    cache.getOrElseUpdate(sft, new SimpleFeatureBuilder(sft, featureFactory))
 
-  def init() = Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[KryoSimpleFeatureFactory])
+  def init() = Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[ScalaSimpleFeatureFactory])
 
   def buildAvroFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String) = {
     val builder = getFeatureBuilder(sft)

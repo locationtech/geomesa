@@ -26,11 +26,9 @@ import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.Hints
-import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.SimpleFeatureEncoder
-import org.locationtech.geomesa.feature.kryo.{KryoSimpleFeature, KryoSimpleFeatureFactory}
+import org.locationtech.geomesa.feature.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -106,7 +104,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   /* Return a String representing nextId - use UUID.random for universal uniqueness across multiple ingest nodes */
   protected def nextFeatureId = UUID.randomUUID().toString
 
-  protected val builder = KryoSimpleFeatureFactory.featureBuilder(featureType)
+  protected val builder = ScalaSimpleFeatureFactory.featureBuilder(featureType)
 
   protected def writeToAccumulo(feature: SimpleFeature): Unit = {
     // see if there's a suggested ID to use for this feature
@@ -150,7 +148,7 @@ class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
   }
 
   def next(): SimpleFeature = {
-    currentFeature = new KryoSimpleFeature(nextFeatureId, featureType)
+    currentFeature = new ScalaSimpleFeature(nextFeatureId, featureType)
     currentFeature
   }
 
