@@ -23,7 +23,6 @@ import java.text.SimpleDateFormat
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
