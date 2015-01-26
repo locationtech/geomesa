@@ -28,6 +28,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.ListAttributeS
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.TreeSet
 
 
 object BinaryOutputEncoder extends Logging {
@@ -35,6 +36,10 @@ object BinaryOutputEncoder extends Logging {
   import org.locationtech.geomesa.filter.function.AxisOrder._
 
   case class ValuesToEncode(lat: Float, lon: Float, dtg: Long, track: Option[String], label: Option[String])
+
+  implicit val ordering = new Ordering[ValuesToEncode]() {
+    override def compare(x: ValuesToEncode, y: ValuesToEncode) = x.dtg.compareTo(y.dtg)
+  }
 
   /**
    * Encodes a feature collection to bin format
@@ -46,7 +51,7 @@ object BinaryOutputEncoder extends Logging {
    * @param labelField
    * @param latLon
    * @param axisOrder
-   * @param sorted
+   * @param sort
    */
   def encodeFeatureCollection(
       fc: SimpleFeatureCollection,
@@ -56,7 +61,7 @@ object BinaryOutputEncoder extends Logging {
       labelField: Option[String] = None,
       latLon: Option[(String, String)] = None,
       axisOrder: AxisOrder = LatLon,
-      sorted: Boolean = false) = {
+      sort: Boolean = false) = {
 
     val sft = fc.getSchema
     val isLineString = sft.getGeometryDescriptor.getType.getBinding == classOf[LineString]
@@ -158,10 +163,9 @@ object BinaryOutputEncoder extends Logging {
       }
     }
 
-    if (isLineString) {
+    val iter = if (isLineString) {
       // expand the line string into individual points to encode
-      val closeableIterator = new RichSimpleFeatureIterator(fc.features())
-      val iter = closeableIterator.flatMap { sf =>
+      new RichSimpleFeatureIterator(fc.features()).flatMap { sf =>
         val points = getLineLatLon(sf)
         val dates = getLineDtg(sf)
         if (points.size != dates.size) {
@@ -176,24 +180,21 @@ object BinaryOutputEncoder extends Logging {
           }
         }
       }
-      // have to re-sort, since lines will have a variety of dates
-      iter.toList.sortBy(_.dtg).foreach(encode)
-      // have to close explicitly since we are flatMapping
-      closeableIterator.close()
     } else {
-      val iter = new RichSimpleFeatureIterator(fc.features()).map { sf =>
+      new RichSimpleFeatureIterator(fc.features()).map { sf =>
         val (lat, lon) = getLatLon(sf)
         val dtg = getDtg(sf)
         val trackId = getTrackId(sf)
         val label = getLabel(sf)
         ValuesToEncode(lat, lon, dtg, trackId, label)
       }
-      if (sorted == false) {
-        logger.info("No query sort detected - sorting bin output")
-        iter.toList.sortBy(_.dtg).foreach(encode)
-      } else {
-        iter.foreach(encode)
-      }
+    }
+    if (sort) {
+      val set = new scala.collection.mutable.TreeSet[ValuesToEncode]()(ordering)
+      iter.foreach(set.add)
+      set.foreach(encode)
+    } else {
+      iter.foreach(encode)
     }
     // Feature collection has already been closed by SelfClosingIterator
   }

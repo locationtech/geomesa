@@ -85,9 +85,8 @@ class BinaryViewerOutputFormat(gs: GeoServer)
     val bos = new BufferedOutputStream(output)
 
     featureCollections.getFeatures.zip(request.getQueries).foreach { case (fc, query) =>
-      val sorted = query.getSortBy != null && !query.getSortBy.isEmpty
       val sfc = fc.asInstanceOf[SimpleFeatureCollection]
-      BinaryOutputEncoder.encodeFeatureCollection(sfc, bos, dtgField, trackIdField, labelField, None, axisOrder, sorted)
+      BinaryOutputEncoder.encodeFeatureCollection(sfc, bos, dtgField, trackIdField, labelField, None, axisOrder)
       bos.flush()
     }
     // none of the implementations in geoserver call 'close' on the output stream
