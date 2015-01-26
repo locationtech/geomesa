@@ -41,6 +41,11 @@
                         <groupId>net.sf.jopt-simple</groupId>
                         <artifactId>jopt-simple</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>com.yammer.metrics</groupId>
+                        <artifactId>metrics-core</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -71,11 +76,6 @@
                     <exclusion>
                         <groupId>net.sf.jopt-simple</groupId>
                         <artifactId>jopt-simple</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>com.yammer.metrics</groupId>
-                        <artifactId>metrics-core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
