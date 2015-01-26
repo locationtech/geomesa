@@ -476,6 +476,22 @@ class AccumuloDataStore(val connector: Connector,
     ).filter(tableOps.exists).foreach(tableOps.delete)
 
   /**
+   * Delete the tables associated with this datastore (index tables and catalog table)
+   */
+  def delete() = {
+    val indexTables =
+      getTypeNames.flatMap { t =>
+        Seq(getSpatioTemporalIdxTableName(t),
+            getAttrIdxTableName(t),
+            getRecordTableForType(t))
+        }.distinct
+
+    // Delete index tables first then catalog table in case of error
+    indexTables.filter(tableOps.exists).foreach(tableOps.delete)
+    tableOps.delete(catalogTable)
+  }
+
+  /**
    * GeoTools API createSchema() method for a featureType...creates tables with
    * ${numTabletServers} splits. To control the number of splits use the
    * createSchema(featureType, maxShard) method or a custom index schema format.
