@@ -100,7 +100,7 @@ case class QueryPlanner(schema: String,
     val originalFilter = query.getFilter
     output(s"Original filter: $originalFilter")
 
-    val rewrittenFilter = rewriteFilter(originalFilter)
+    val rewrittenFilter = rewriteFilterInDNF(originalFilter)
     output(s"Rewritten filter: $rewrittenFilter")
 
     val orSplitter = new OrSplittingFilter

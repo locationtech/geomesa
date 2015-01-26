@@ -52,20 +52,20 @@ class FilterPackageObjectTest extends Specification with Logging {
     }
   }
 
-  // Test logicDistribution
-  "The function 'logicDistribution'" should {
+  // Test logicDistributionDNF
+  "The function 'logicDistributionDNF'" should {
 
     "split a top-level OR into a List of single-element Lists each containing a filter" in {
-      oneLevelOrFilters.flatMap { or =>
-        val ll = logicDistribution(or)
+      (oneLevelOrFilters++oneLevelMultipleOrsFilters).flatMap { or =>
+        val ll = logicDistributionDNF(or)
         ll.map { l => l.size mustEqual 1}
       }
     }
 
-    "split a top-level AND into a a singleton List which contains a List of the ANDed filters" in {
+    "split a top-level AND into a singleton List which contains a List of the ANDed filters" in {
 
       oneLevelAndFilters.map { case (and: And) =>
-        val ll = logicDistribution(and)
+        val ll = logicDistributionDNF(and)
         ll.size mustEqual 1
 
         and.getChildren.size mustEqual ll(0).size
@@ -75,14 +75,49 @@ class FilterPackageObjectTest extends Specification with Logging {
     "not return filters with ANDs or ORs explicitly stated" in {
       // NB: The nested lists imply ANDs and ORs.
       andsOrsFilters.flatMap { filter: Filter =>
-        val ll = logicDistribution(filter)
+        val ll = logicDistributionDNF(filter)
         ll.flatten.map { l => l.isInstanceOf[BinaryLogicOperator] must beFalse}
       }
     }
 
     "take a 'simple' filter and return List(List(filter))" in {
       baseFilters.map { f =>
-        val ll = logicDistribution(f)
+        val ll = logicDistributionDNF(f)
+        ll.size mustEqual 1
+        ll(0).size mustEqual 1
+      }
+    }
+  }
+
+  // Test logicDistributionCNF
+  "The function 'logicDistributionCNF'" should {
+    "split a top-level OR into a singleton List which contains a List of the ORed filters" in {
+      oneLevelOrFilters.map { case (or: Or) =>
+        val ll = logicDistributionCNF(or)
+        ll.size mustEqual 1
+
+        or.getChildren.size mustEqual ll(0).size
+      }
+    }
+
+    "split a top-level AND into a a singleton List which contains a List of the ANDed filters" in {
+      (oneLevelAndFilters++oneLevelMultipleAndsFilters).flatMap { and =>
+        val ll = logicDistributionCNF(and)
+        ll.map { l => l.size mustEqual 1}
+      }
+    }
+
+    "not return filters with ANDs or ORs explicitly stated" in {
+      // NB: The nested lists imply ANDs and ORs.
+      andsOrsFilters.flatMap { filter: Filter =>
+        val ll = logicDistributionCNF(filter)
+        ll.flatten.map { l => l.isInstanceOf[BinaryLogicOperator] must beFalse}
+      }
+    }
+
+    "take a 'simple' filter and return List(List(filter))" in {
+      baseFilters.map { f =>
+        val ll = logicDistributionCNF(f)
         ll.size mustEqual 1
         ll(0).size mustEqual 1
       }
@@ -96,7 +131,7 @@ class FilterPackageObjectTest extends Specification with Logging {
     logger.debug(s"Filter: ${ECQL.toCQL(filter)}")
 
     "The function rewriteFilter" should {
-      val rewrittenFilter: Filter = rewriteFilter(filter)
+      val rewrittenFilter: Filter = rewriteFilterInDNF(filter)
 
       "return a Filter with at most one OR at the top" in {
         val decomp = decomposeBinary(rewrittenFilter)

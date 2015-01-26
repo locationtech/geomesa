@@ -25,8 +25,8 @@ package object filter {
    * @param filter An arbitrary filter.
    * @return       A filter in DNF (described above).
    */
-  def rewriteFilter(filter: Filter)(implicit ff: FilterFactory): Filter = {
-    val ll =  logicDistribution(filter)
+  def rewriteFilterInDNF(filter: Filter)(implicit ff: FilterFactory): Filter = {
+    val ll =  logicDistributionDNF(filter)
     if(ll.size == 1) {
       if(ll(0).size == 1) ll(0)(0)
       else ff.and(ll(0))
@@ -48,20 +48,75 @@ package object filter {
    * @return   A List[ List[Filter] ] where the inner List of Filters are to be joined by
    *           Ands and the outer list combined by Ors.
    */
-  private[core] def logicDistribution(x: Filter): List[List[Filter]] = x match {
-    case or: Or  => or.getChildren.toList.flatMap(logicDistribution)
+  private[core] def logicDistributionDNF(x: Filter): List[List[Filter]] = x match {
+    case or: Or  => or.getChildren.toList.flatMap(logicDistributionDNF)
 
     case and: And => and.getChildren.foldRight (List(List.empty[Filter])) {
       (f, dnf) => for {
-        a <- logicDistribution (f)
+        a <- logicDistributionDNF (f)
         b <- dnf
       } yield a ++ b
     }
 
     case not: Not =>
       not.getFilter match {
-        case and: And => logicDistribution(deMorgan(and))
-        case or:  Or => logicDistribution(deMorgan(or))
+        case and: And => logicDistributionDNF(deMorgan(and))
+        case or:  Or => logicDistributionDNF(deMorgan(or))
+        case f: Filter => List(List(not))
+      }
+
+    case f: Filter => List(List(f))
+  }
+
+  /**
+   * This function rewrites a org.opengis.filter.Filter in terms of a top-level AND with children filters which
+   * 1) do not contain further ANDs, (i.e., ANDs bubble up)
+   * 2) only contain at most one AND which is at the top of their 'tree'
+   *
+   * Note that this further implies that NOTs have been 'pushed down' and do have not have ANDs nor ORs as children.
+   *
+   * In boolean logic, this form is called conjunctive normal form (CNF).
+   *
+   * @param filter An arbitrary filter.
+   * @return       A filter in CNF (described above).
+   */
+  def rewriteFilterInCNF(filter: Filter)(implicit ff: FilterFactory): Filter = {
+    val ll =  logicDistributionCNF(filter)
+    if(ll.size == 1) {
+      if(ll(0).size == 1) ll(0)(0)
+      else ff.or(ll(0))
+    }
+    else  {
+      val children = ll.map { l =>
+        l.size match {
+          case 1 => l(0)
+          case _ => ff.or(l)
+        }
+      }
+      ff.and(children)
+    }
+  }
+
+  /**
+   *
+   * @param x: An arbitrary @org.opengis.filter.Filter
+   * @return   A List[ List[Filter] ] where the inner List of Filters are to be joined by
+   *           Ors and the outer list combined by Ands.
+   */
+  def logicDistributionCNF(x: Filter): List[List[Filter]] = x match {
+    case and: And => and.getChildren.toList.flatMap(logicDistributionCNF)
+
+    case or: Or => or.getChildren.foldRight (List(List.empty[Filter])) {
+      (f, cnf) => for {
+        a <- logicDistributionCNF(f)
+        b <- cnf
+      } yield a ++ b
+    }
+
+    case not: Not =>
+      not.getFilter match {
+        case and: And => logicDistributionCNF(deMorgan(and))
+        case or:  Or => logicDistributionCNF(deMorgan(or))
         case f: Filter => List(List(not))
       }
 

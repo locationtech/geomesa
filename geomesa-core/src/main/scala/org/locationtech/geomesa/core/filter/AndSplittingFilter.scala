@@ -1,14 +1,15 @@
 package org.locationtech.geomesa.core.filter
 
 import org.geotools.filter.visitor.DefaultFilterVisitor
-import org.opengis.filter._
+import org.opengis.filter.{And, Filter}
 
 import scala.collection.JavaConversions._
 
-class OrSplittingFilter extends DefaultFilterVisitor {
+// This class helps us split a Filter into pieces if there are ORs at the top.
+class AndSplittingFilter extends DefaultFilterVisitor {
 
   // This function really returns a Seq[Filter].
-  override def visit(filter: Or, data: scala.Any): AnyRef = {
+  override def visit(filter: And, data: scala.Any): AnyRef = {
     filter.getChildren.flatMap { subfilter =>
       this.visit(subfilter, data)
     }
@@ -16,7 +17,7 @@ class OrSplittingFilter extends DefaultFilterVisitor {
 
   def visit(filter: Filter, data: scala.Any): Seq[Filter] = {
     filter match {
-      case o: Or => visit(o, data).asInstanceOf[Seq[Filter]]
+      case a: And => visit(a, data).asInstanceOf[Seq[Filter]]
       case _     => Seq(filter)
     }
   }

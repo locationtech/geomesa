@@ -25,18 +25,29 @@ object TestFilters {
       "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
     )
 
+  val oneLevelMultipleAndsFilters: Seq[Filter] =
+    Seq(
+      "((INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) AND INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))) AND attr17 = val17)",
+      "(INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) AND INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) AND attr17 = val17)",
+      "(attr15 = val15 AND ((INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) AND attr37 = val37) AND attr19 = val19))"
+  )
+
   val oneLevelOrFilters: Seq[Filter] =
     Seq(
       "(INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) OR INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))))",
       "(INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) OR attr4 = val4)",
-      "(INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) OR INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) OR attr20 = val20)",
       "(INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) OR attr36 = val36)",
       "(INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) OR attr24 = val24)",
+      "(attr37 = val37 OR attr19 = val19)",
+      "(attr95 = val95 OR INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))))"
+    )
+
+  val oneLevelMultipleOrsFilters: Seq[Filter] =
+    Seq(
+      "(INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) OR INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) OR attr20 = val20)",
       "(attr100 = val100 OR INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) OR attr54 = val54)",
       "(attr19 = val19 OR attr75 = val75 OR attr72 = val72)",
-      "(attr37 = val37 OR attr19 = val19)",
-      "(attr44 = val44 OR INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) OR attr32 = val32)",
-      "(attr95 = val95 OR INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))))"
+      "(attr44 = val44 OR INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) OR attr32 = val32)"
     )
 
   val simpleNotFilters: Seq[Filter] =
