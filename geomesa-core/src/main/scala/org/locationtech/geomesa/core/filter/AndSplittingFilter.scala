@@ -5,7 +5,7 @@ import org.opengis.filter.{And, Filter}
 
 import scala.collection.JavaConversions._
 
-// This class helps us split a Filter into pieces if there are ORs at the top.
+// This class helps us split a Filter into pieces if there are ANDs at the top.
 class AndSplittingFilter extends DefaultFilterVisitor {
 
   // This function really returns a Seq[Filter].

@@ -71,11 +71,73 @@ package object filter {
   /**
    * This function rewrites a org.opengis.filter.Filter in terms of a top-level AND with children filters which
    * 1) do not contain further ANDs, (i.e., ANDs bubble up)
-   * 2) only contain at most one AND which is at the top of their 'tree'
+   * 2) only contain at most one OR which is at the top of their 'tree'
    *
    * Note that this further implies that NOTs have been 'pushed down' and do have not have ANDs nor ORs as children.
    *
    * In boolean logic, this form is called conjunctive normal form (CNF).
+   *
+   * The main use case for this function is to aid in splitting filters between a combination of a
+   * GeoMesa data store and some other data store. This is done with the AndSplittingFilter class.
+   * In the examples below, anything with "XAttr" is assumed to be a filter that CANNOT be answered
+   * through GeoMesa. In having a filter split on the AND, the portion of the filter that GeoMesa
+   * CAN answer will be applied in GeoMesa, returning a result set, and then the portion that GeoMesa CANNOT
+   * answer will be applied on that result set.
+   *
+   * Examples:
+   *  1. (
+   *       (GmAttr ILIKE 'test')
+   *       OR
+   *       (date BETWEEN '2014-01-01T10:30:00.000Z' AND '2014-01-02T10:30:00.000Z')
+   *     )
+   *      AND
+   *     (XAttr ILIKE = 'example')
+   *
+   *     Converting to CNF will allow easily splitting the filter on the AND into two children
+   *      - one child is the "GmAttr" and "date" filters that can be answered with GeoMesa
+   *      - one child is the "XAttr" filter that cannot be answered by GeoMesa
+   *
+   *      In this case, the GeoMesa child filter will be processed first, and then the "XAttr" filter will
+   *    be processed on the GeoMesa result set to return a subset of the GeoMesa results.
+   *
+   *  2. (GmAttr ILIKE 'test')
+   *      AND
+   *          (
+   *            (date BETWEEN '2014-01-01T10:30:00.000Z' AND '2014-01-02T10:30:00.000Z')
+   *             OR
+   *            (XAttr1 ILIKE = 'example1')
+   *          )
+   *      AND
+   *     (XAttr2 ILIKE = 'example2')
+   *
+   *     Converting to CNF still allows easily splitting the filter on the AND into three children
+   *      - one child is the "GmAttr" filter
+   *      - one child is the "date" OR "XAttr1" filter
+   *      - one child is the "XAttr2" filter
+   *
+   *      In this case, the "GmAttr" child will be processed first, returning a result set from GeoMesa
+   *    called RS1. Then, RS1 will be further filtered with the "date" predicate that can be handled
+   *    by GeoMesa, returning a subset of RS1 called SS1. The additional filter which cannot be answered
+   *    by GeoMesa, "XAttr1," will be applied to RS1 and return subset SS2. Finally, the final child,
+   *    the "XAttr2" filter, which cannot be answered by GeoMesa, will be applied to both SS1 and SS2 to
+   *    return SS3, a JOIN of SS1+SS2 filtered with "XAttr2."
+   *
+   *  3. (GmAttr ILIKE 'test')
+   *      OR
+   *     (XAttr ILIKE = 'example')
+   *
+   *     This is the worst-case-scenario for a query that is answered through two data stores, both
+   *     GeoMesa and some other store.
+   *
+   *     CNF converts this to:
+   *      - one child of "GmAttr" OR "XAttr"
+   *
+   *      In this case, the "GmAttr" will return a result set, RS1. The reason this is the
+   *    worst-case-scenario is because, to answer the "XAttr" portion of the query (which cannot be
+   *    answered by GeoMesa), a "Filter.INCLUDE" A.K.A a full table scan (on Accumulo) A.K.A. every
+   *    record in GeoMesa is necessary to find the results that satisfy the "XAttr" portion of the
+   *    query. This will product result set RS2. The returned results will be a JOIN of RS1+RS2.
+   *
    *
    * @param filter An arbitrary filter.
    * @return       A filter in CNF (described above).
