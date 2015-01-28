@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.{BufferedReader, InputStreamReader}
+import java.io.{BufferedReader, File, InputStreamReader}
 import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -24,7 +24,8 @@ import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.commons.compress.compressors.bzip2.BZip2Utils
 import org.apache.commons.compress.compressors.gzip.GzipUtils
 import org.apache.commons.compress.compressors.xz.XZUtils
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
 
 import scala.util.{Failure, Success, Try}
 import scala.xml.XML
@@ -104,6 +105,25 @@ object Utils {
     def getModeFlag(filename: String) = "--" + getJobMode(filename)
   }
 
+  //Recursively delete a local directory and its children
+  def deleteLocalDirectory(pathStr: String) {
+    val path = new File(pathStr)
+    if (path.exists) {
+      val files = path.listFiles
+      files.foreach { _ match {
+        case p if p.isDirectory => deleteLocalDirectory(p.getAbsolutePath)
+        case f => f.delete
+      }}
+      path.delete
+    }
+  }
+
+  //Recursively delete a HDFS directory and its children
+  def deleteHdfsDirectory(pathStr: String) {
+    val fs = FileSystem.get(new Configuration)
+    val path = new Path(pathStr)
+    fs.delete(path, true)
+  }
 }
 /* get password trait */
 trait GetPassword {

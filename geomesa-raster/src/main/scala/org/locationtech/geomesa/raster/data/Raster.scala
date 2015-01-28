@@ -62,7 +62,7 @@ object Raster {
     s"${rasterName}_${UUID.randomUUID.toString}"
 
   def apply(bytes: Array[Byte]): Raster = {
-    val byteArrays = RasterUtils.decodeByteArrays(bytes)
+    val byteArrays = RasterUtils.decodeByteArrays(bytes, 3)
     val metaData = IndexEntry.byteArrayToDecodedIndex(byteArrays(1))
     val resolution = RasterUtils.bytesToDouble(byteArrays(2))
     Raster(byteArrays(0), metaData, resolution)

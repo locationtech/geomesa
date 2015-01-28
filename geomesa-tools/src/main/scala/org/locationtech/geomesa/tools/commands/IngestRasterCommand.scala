@@ -22,13 +22,14 @@ import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.commands.IngestRasterCommand.{Command, IngestRasterParameters}
-import org.locationtech.geomesa.tools.ingest.{LocalRasterIngest, RasterFilesSerialization, RemoteRasterIngest}
+import org.locationtech.geomesa.tools.ingest.{RasterChunking, LocalRasterIngest, RasterFilesSerialization, RemoteRasterIngest}
 
 import scala.util.{Failure, Success}
 
 class IngestRasterCommand(parent: JCommander) extends Command with AccumuloProperties {
 
   val params = new IngestRasterParameters()
+  validateCommand
   parent.addCommand(Command, params)
 
   override def execute() {
@@ -42,31 +43,54 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
     }
   }
 
-  //In both modes, input raster file(s) are local files.
+  //Raster ingestion starts from local file or directory.
+  //If chunking is specified, input image is cut into chunks stored in a directory.
   //In local mode, file(s) is(are) directly ingested into an Accumulo table.
   //In remote mode, file(s) is(are) serialized and stored into HDFS as sequence file(s),
   //and a scalding job is executed to ingest sequence file(s) into an Accumulo table from HDFS.
   def ingest(mode: String) {
     val baseRasterIngestParams = getRasterIngestParams
+    val ingestPath = params.doChunk match {
+      case true =>
+        val rasterChunker =
+          new RasterChunking(baseRasterIngestParams + (IngestRasterParams.FILE_PATH -> Some(params.file)))
+        rasterChunker.runChunkTask match {
+          case Success(outDir) =>
+            logger.info("Raster chunking is done.")
+            outDir
+          case Failure(e) => throw new RuntimeException(e)
+        }
+      case _ => params.file
+    }
+
     mode.toLowerCase match {
       case "local" =>
         val simpleIngester =
-          new LocalRasterIngest(baseRasterIngestParams + (IngestRasterParams.FILE_PATH  -> Some(params.file)))
-        simpleIngester.runIngestTask() match {
+          new LocalRasterIngest(baseRasterIngestParams + (IngestRasterParams.FILE_PATH  -> Some(ingestPath)))
+        simpleIngester.runIngestTask match {
           case Success(info) => logger.info("Local ingestion is done.")
           case Failure(e) => throw new RuntimeException(e)
         }
       case "remote" =>
         val rasterSerializer =
-          new RasterFilesSerialization(baseRasterIngestParams + (IngestRasterParams.FILE_PATH  -> Some(params.file)))
-        rasterSerializer.runSerializationTask() match {
+          new RasterFilesSerialization(baseRasterIngestParams + (IngestRasterParams.FILE_PATH  -> Some(ingestPath)))
+        rasterSerializer.runSerializationTask match {
           case Success(outPath) =>
             logger.info("Raster files serialization is done.")
             new RemoteRasterIngest(baseRasterIngestParams + (IngestRasterParams.FILE_PATH  -> Some(outPath))).run
+            Utils.deleteHdfsDirectory(outPath)
             logger.info("Remote ingestion is done.")
           case Failure(e) => throw new RuntimeException(e)
         }
     }
+
+    if (params.doChunk)
+      Utils.deleteLocalDirectory(ingestPath)
+  }
+
+  def validateCommand() {
+    if (params.doChunk && new File(params.file).isDirectory)
+      throw new Exception(s"${params.file} is a directory. Please specify a file to chunk raster.")
   }
 
   def getFormat(fileOrDir: File): String = {
@@ -93,7 +117,8 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
       IngestRasterParams.WRITE_THREADS     -> Option(params.writeThreads).map(_.toString),
       IngestRasterParams.QUERY_THREADS     -> Option(params.queryThreads).map(_.toString),
       IngestRasterParams.SHARDS            -> Option(params.numShards).map(_.toString),
-      IngestRasterParams.PARLEVEL          -> Some(params.parLevel.toString)
+      IngestRasterParams.PARLEVEL          -> Some(params.parLevel.toString),
+      IngestRasterParams.CHUNKSIZE         -> Some(params.chunkSize.toString)
     )
   }
 }
@@ -121,7 +146,7 @@ class ModeValidator extends IParameterValidator {
 object IngestRasterCommand {
   val Command = "ingestRaster"
 
-  @Parameters(commandDescription = "Ingest a raster file or files in a directory into GeoMesa")
+  @Parameters(commandDescription = "Ingest a raster file or raster files in a directory into GeoMesa")
   class IngestRasterParameters extends CreateRasterParams {
     @Parameter(names = Array("-fmt", "--format"), description = "Format of incoming raster data " +
       "(geotiff | DTED) to override file extension recognition")
@@ -136,10 +161,16 @@ object IngestRasterCommand {
 
     @Parameter(names = Array("-par", "--parallel-level"), description = "Maximum number of local " +
       "threads for ingesting multiple raster files (default to 1)")
-    var parLevel: Int = 1
+    var parLevel: Integer = 1
 
     @Parameter(names = Array("-m", "--mode"), description = "Ingestion mode (local | remote, default " +
       "to local)", validateWith = classOf[ModeValidator])
     var mode: String = "local"
+
+    @Parameter(names = Array("-ck", "--chunk"), description = "Create raster chunks before ingestion")
+    var doChunk: Boolean = false
+
+    @Parameter(names = Array("-cs", "--chunk-size"), description = "Desired size (in kilobytes) of each chunk")
+    var chunkSize: Integer = 600
   }
 }

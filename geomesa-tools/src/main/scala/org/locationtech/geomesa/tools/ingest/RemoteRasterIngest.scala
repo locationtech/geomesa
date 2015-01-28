@@ -33,10 +33,10 @@ import org.locationtech.geomesa.tools.Utils.Modes._
 import scala.collection.JavaConversions._
 
 class RemoteRasterIngest(config: Map[String, Option[String]]) extends RasterIngest with Logging {
-  lazy val rasterName = config(IngestRasterParams.TABLE).get
-  lazy val cs = createCoverageStore(config)
+  val rasterName = config(IngestRasterParams.TABLE).get
+  val cs = createCoverageStore(config)
 
-  def run(): Unit = {
+  def run() {
     val conf = new Configuration()
     JobUtils.setLibJars(conf, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
 
@@ -66,7 +66,7 @@ class RemoteRasterIngest(config: Map[String, Option[String]]) extends RasterInge
       val fileStatus: Array[FileStatus] = hdfs.listStatus(hdfsPath)
       val paths: Array[Path] = FileUtil.stat2Paths(fileStatus)
       paths.map(_.toString).toList
-    } else List(hdfsPath.toString)
+    } else List(path)
   }
 
   def ingestLibJars = {
