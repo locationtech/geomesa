@@ -63,7 +63,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     true
   }
 
-  override def getOriginalEnvelope = this.getOriginalEnvelope
+  override def getOriginalEnvelope = getBounds
 
   override def getCoordinateReferenceSystem = this.crs
 
