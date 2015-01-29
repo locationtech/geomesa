@@ -2,8 +2,29 @@ A configurable and extensible library for converting data into SimpleFeatures
 
 ## Overview
 
-Converters for various different data formats (delimited text, Avro, fixed width)
-can be configured and instantiated using the ```SimpleFeatureConverters``` factory.
+Converters for various different data formats (currently supported: delimited text, Avro, fixed width) can be configured and instantiated using the ```SimpleFeatureConverters``` factory and a target ```SimpleFeatureType```.  The converter allows the specification of fields extracted from the data and transformations on those fields.  Syntax of transformations is very much like ```awk``` syntax.  Fields with names that correspond to attribute names in the ```SimpleFeatureType``` will be directly populated in the result SimpleFeature.  Fields that do not align with attributes in the ```SimpleFeatureType``` are assumed to be intermediate fields used for deriving attributes.  Fields can reference other fields by name for building up complex attributes.
 
+## Example usage
+
+Suppose you have a ```SimpleFeatureType``` with the following schema: ```phrase:String,dtg:Date,geom:Point:srid=4326``` and comma-separated data as shown below.
+
+    first,hello,2015-01-01T00:00:00.000Z,45.0,45.0
+    second,world,2015-01-01T00:00:00.000Z,45.0,45.0                                                                                                                                                                    
+The first two fields should be concatenated together to form the phrase, the third field should be parsed as a date, and the last two fields should be formed into a ```Point``` geometry.  The following configuration file defines an appropriate converter for taking this csv data and transforming it into our ```SimpleFeatureType```.  
+
+     converter = { 
+      type         = "delimited-text",
+      format       = "DEFAULT",
+      id-field     = "md5($0)",
+      fields = [
+        { name = "phrase", transform = "concat($1, $2)" },
+        { name = "lat",    transform = "$4::double" },
+        { name = "lon",    transform = "$5::double" },
+        { name = "dtg",    transform = "date('yyyy-MM-ddTHH:mm:ss.SSSZ', $3)" },
+        { name = "geom",   transform = "point($lat, $lon)" }
+      ]
+     }
+
+The ```id``` of the ```SimpleFeature``` is formed from an md5 hash of the entire record (```$0``` is the original data) and the other fields are formed from appropriate transforms.
 
 
