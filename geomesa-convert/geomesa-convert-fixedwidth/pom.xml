@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-convert-fixedwidth</artifactId>
+    <artifactId>geomesa-convert-fixedwidth-accumulo1.5</artifactId>
     <name>GeoMesa Convert Fixed Width - [Accumulo 1.5.x]</name>
 
     <dependencies>

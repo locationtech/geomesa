@@ -4,6 +4,7 @@ import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.{Coordinate, Point}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -25,7 +26,8 @@ class FixedWidthConverterTest extends Specification {
         | }
       """.stripMargin)
 
-    val converter = SimpleFeatureConverters.build[String](conf)
+    val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+    val converter = SimpleFeatureConverters.build[String](sft, conf)
 
     "process fixed with data" >> {
       val data =
