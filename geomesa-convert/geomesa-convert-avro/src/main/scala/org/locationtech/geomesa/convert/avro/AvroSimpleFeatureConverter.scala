@@ -26,7 +26,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
-class Avro2SimpleFeatureConverterBuilder extends SimpleFeatureConverterFactory[Array[Byte]] {
+class AvroSimpleFeatureConverterFactory extends SimpleFeatureConverterFactory[Array[Byte]] {
 
   override def canProcess(conf: Config): Boolean = canProcessType(conf, "avro")
 
@@ -37,12 +37,12 @@ class Avro2SimpleFeatureConverterBuilder extends SimpleFeatureConverterFactory[A
     val fields = buildFields(conf.getConfigList("fields"))
     val idBuilder = buildIdBuilder(conf.getString("id-field"))
 
-    new Avro2SimpleFeatureConverter(avroSchema, reader, targetSFT, fields, idBuilder)
+    new AvroSimpleFeatureConverter(avroSchema, reader, targetSFT, fields, idBuilder)
   }
 
 }
 
-class Avro2SimpleFeatureConverter(avroSchema: Schema,
+class AvroSimpleFeatureConverter(avroSchema: Schema,
                                   reader: GenericDatumReader[GenericRecord],
                                   val targetSFT: SimpleFeatureType,
                                   val inputFields: IndexedSeq[Field],
