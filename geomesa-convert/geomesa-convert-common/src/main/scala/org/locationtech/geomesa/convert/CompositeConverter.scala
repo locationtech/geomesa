@@ -9,16 +9,14 @@ import scala.collection.JavaConversions._
 class CompositeConverterFactory[I] extends SimpleFeatureConverterFactory[I] {
   override def canProcess(conf: Config): Boolean = canProcessType(conf, "composite-converter")
 
-  override def buildConverter(conf: Config): SimpleFeatureConverter[I] = buildCompositeConverter(conf)
-
-  def buildCompositeConverter(conf: Config): CompositeConverter[I] = {
+  override def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[I] = {
     val converters: Seq[(Predicate, SimpleFeatureConverter[I])] =
       conf.getConfigList("converters").map { c =>
         val pred = Transformers.parsePred(c.getString("predicate"))
-        val converter = SimpleFeatureConverters.build[I](conf.getConfig(c.getString("converter")))
+        val converter = SimpleFeatureConverters.build[I](sft, conf.getConfig(c.getString("converter")))
         (pred, converter)
       }
-    new CompositeConverter[I](findTargetSFT(conf.getString("type-name")), converters)
+    new CompositeConverter[I](sft, converters)
   }
 
 }

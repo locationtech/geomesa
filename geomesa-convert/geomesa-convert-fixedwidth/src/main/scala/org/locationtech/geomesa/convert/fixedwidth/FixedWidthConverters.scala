@@ -18,9 +18,8 @@ class FixedWidthConverterFactory extends SimpleFeatureConverterFactory[String] {
 
   override def canProcess(conf: Config): Boolean = canProcessType(conf, "fixed-width")
 
-  def buildConverter(conf: Config): FixedWidthConverter = {
+  def buildConverter(targetSFT: SimpleFeatureType, conf: Config): FixedWidthConverter = {
     val fields    = buildFields(conf.getConfigList("fields"))
-    val targetSFT = findTargetSFT(conf.getString("type-name"))
     val idBuilder = buildIdBuilder(conf.getString("id-field"))
     new FixedWidthConverter(targetSFT, idBuilder, fields)
   }

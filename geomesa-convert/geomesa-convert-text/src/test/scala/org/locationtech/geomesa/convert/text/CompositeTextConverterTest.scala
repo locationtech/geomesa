@@ -3,6 +3,7 @@ package org.locationtech.geomesa.convert.text
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -57,7 +58,8 @@ class CompositeTextConverterTest extends Specification {
     """.stripMargin)
 
   "be built from a conf" >> {
-    val converter = SimpleFeatureConverters.build[String](conf)
+    val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+    val converter = SimpleFeatureConverters.build[String](sft, conf)
     converter must not beNull
 
     "and process some data" >> {

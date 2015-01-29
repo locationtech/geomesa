@@ -6,6 +6,7 @@ import com.google.common.io.Resources
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -36,8 +37,9 @@ class DelimitedTextConverterTest extends Specification {
         | }
       """.stripMargin)
 
+    val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
     "be built from a conf" >> {
-      val converter = SimpleFeatureConverters.build[String](conf)
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not beNull
 
       "and process some data" >> {
@@ -65,7 +67,8 @@ class DelimitedTextConverterTest extends Specification {
           |   ]
           | }
         """.stripMargin)
-      val converter = SimpleFeatureConverters.build[String](conf)
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not beNull
       val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))).toList
       converter.close()
@@ -94,7 +97,8 @@ class DelimitedTextConverterTest extends Specification {
       import scala.collection.JavaConversions._
       val data = Resources.readLines(Resources.getResource("messydata.csv"), StandardCharsets.UTF_8)
 
-      val converter = SimpleFeatureConverters.build[String](conf)
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not beNull
       val res = converter.processInput(data.iterator()).toList
       converter.close()

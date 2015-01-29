@@ -5,7 +5,7 @@ import org.apache.avro.Schema
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory}
 import org.locationtech.geomesa.convert.Transformers.Expr
-import org.locationtech.geomesa.convert.{Field, SimpleFeatureConverterFactory, ToSimpleFeatureConverter}
+import org.locationtech.geomesa.convert.{Field, SimpleFeatureConverter, SimpleFeatureConverterFactory, ToSimpleFeatureConverter}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -14,18 +14,16 @@ class Avro2SimpleFeatureConverterBuilder extends SimpleFeatureConverterFactory[A
 
   override def canProcess(conf: Config): Boolean = canProcessType(conf, "avro")
 
-  def apply(conf: Config): Avro2SimpleFeatureConverter = {
+  override def buildConverter(targetSFT: SimpleFeatureType, conf: Config): SimpleFeatureConverter[Array[Byte]] = {
     val avroSchemaPath = conf.getString("schema")
     val avroSchema = new org.apache.avro.Schema.Parser().parse(getClass.getResourceAsStream(avroSchemaPath))
     val reader = new GenericDatumReader[GenericRecord](avroSchema)
     val fields = buildFields(conf.getConfigList("fields"))
-    val targetSFT = findTargetSFT(conf.getString("sft"))
     val idBuilder = buildIdBuilder(conf.getString("id-field"))
 
     new Avro2SimpleFeatureConverter(avroSchema, reader, targetSFT, fields, idBuilder)
   }
 
-  override def buildConverter(conf: Config): ToSimpleFeatureConverter[Array[Byte]] = apply(conf)
 }
 
 class Avro2SimpleFeatureConverter(avroSchema: Schema,

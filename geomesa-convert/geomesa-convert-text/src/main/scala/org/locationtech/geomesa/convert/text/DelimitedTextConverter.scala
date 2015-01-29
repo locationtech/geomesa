@@ -4,7 +4,7 @@ import java.io.{PipedReader, PipedWriter}
 
 import com.google.common.collect.ObjectArrays
 import com.typesafe.config.Config
-import org.apache.commons.csv.{QuoteMode, CSVFormat}
+import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert.{Field, SimpleFeatureConverterFactory, ToSimpleFeatureConverter}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -15,13 +15,11 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
 
   override def canProcess(conf: Config): Boolean = canProcessType(conf, "delimited-text")
 
-  def buildConverter(conf: Config): DelimitedTextConverter = apply(conf)
-
   val QUOTED                    = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.ALL)
   val QUOTE_ESCAPE              = CSVFormat.DEFAULT.withEscape('"')
   val QUOTED_WITH_QUOTE_ESCAPE  = QUOTE_ESCAPE.withQuoteMode(QuoteMode.ALL)
 
-  def apply(conf: Config): DelimitedTextConverter = {
+  def buildConverter(targetSFT: SimpleFeatureType, conf: Config): DelimitedTextConverter = {
     val format    = conf.getString("format") match {
       case "DEFAULT"                  => CSVFormat.DEFAULT
       case "EXCEL"                    => CSVFormat.EXCEL
@@ -34,7 +32,6 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
       case _ => throw new IllegalArgumentException("Unknown delimited text format")
     }
     val fields    = buildFields(conf.getConfigList("fields"))
-    val targetSFT = findTargetSFT(conf.getString("type-name"))
     val idBuilder = buildIdBuilder(conf.getString("id-field"))
     new DelimitedTextConverter(format, targetSFT, idBuilder, fields)
   }

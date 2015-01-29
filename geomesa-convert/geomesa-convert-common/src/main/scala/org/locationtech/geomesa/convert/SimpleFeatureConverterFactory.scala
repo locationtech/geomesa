@@ -3,7 +3,7 @@ package org.locationtech.geomesa.convert
 
 import javax.imageio.spi.ServiceRegistry
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -26,7 +26,7 @@ trait SimpleFeatureConverterFactory[I] {
 
   def canProcessType(conf: Config, name: String) = Try { conf.getString("type").equals(name) }.getOrElse(false)
 
-  def buildConverter(conf: Config): SimpleFeatureConverter[I]
+  def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[I]
 
   def buildFields(fields: Seq[Config]): IndexedSeq[Field] =
     fields.map { f =>
@@ -36,12 +36,6 @@ trait SimpleFeatureConverterFactory[I] {
     }.toIndexedSeq
 
   def buildIdBuilder(t: String) = Transformers.parseTransform(t)
-
-  def findTargetSFT(name: String): SimpleFeatureType = {
-    val fileName = s"sft_${name}.conf"
-    val conf = ConfigFactory.load(fileName)
-    buildSpec(conf)
-  }
 
   def buildSpec(c: Config) = {
     val typeName         = c.getString("type-name")
@@ -66,11 +60,11 @@ trait SimpleFeatureConverterFactory[I] {
 object SimpleFeatureConverters {
   val providers = ServiceRegistry.lookupProviders(classOf[SimpleFeatureConverterFactory[_]]).toList
 
-  def build[I](conf: Config) = {
+  def build[I](sft: SimpleFeatureType, conf: Config) = {
     val converterConfig = conf.getConfig("converter")
     providers
       .find(_.canProcess(converterConfig))
-      .map(_.buildConverter(converterConfig).asInstanceOf[SimpleFeatureConverter[I]])
+      .map(_.buildConverter(sft, converterConfig).asInstanceOf[SimpleFeatureConverter[I]])
       .getOrElse(throw new IllegalArgumentException("Cannot find factory"))
   }
 }

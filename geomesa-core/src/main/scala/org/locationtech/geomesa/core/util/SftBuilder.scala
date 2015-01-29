@@ -21,8 +21,7 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.util.SftBuilder._
 import org.locationtech.geomesa.data.TableSplitter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Splitter
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{Splitter, _}
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe.{Type => UType, _}
@@ -73,9 +72,9 @@ class SftBuilder {
 
   // List and Map Types
   def mapType[K: TypeTag, V: TypeTag](name: String, index: Boolean = false) =
-    append(name, index, false, s"Map[${resolve(typeOf[K])},${resolve(typeOf[V])}]")
+    append(name, index, stIndex = false, s"Map[${resolve(typeOf[K])},${resolve(typeOf[V])}]")
   def listType[T: TypeTag](name: String, index: Boolean = false) =
-    append(name, index, false, s"List[${resolve(typeOf[T])}]")
+    append(name, index, stIndex = false, s"List[${resolve(typeOf[T])}]")
 
   def recordSplitter(clazz: String, splitOptions: Map[String,String]) = {
     this.splitterOpt = Some(Splitter(clazz, splitOptions))
@@ -130,7 +129,7 @@ class SftBuilder {
 
   // public accessors
   /** Get the type spec string associated with this builder...doesn't include dtg info */
-  def getSpec() = {
+  def getSpec = {
     val entryLst = List(entries.mkString(SepEntry))
     val splitLst = splitPart.map(List(_)).getOrElse(List())
     (entryLst ++ splitLst).mkString(";")
@@ -138,7 +137,7 @@ class SftBuilder {
 
   /** builds a SimpleFeatureType object from this builder */
   def build(nameSpec: String) = {
-    val sft = SimpleFeatureTypes.createType(nameSpec, this.getSpec)
+    val sft = SimpleFeatureTypes.createType(nameSpec, getSpec)
     dtgFieldOpt.map(sft.getUserData.put(SF_PROPERTY_START_TIME, _))
     sft
   }
@@ -149,7 +148,7 @@ object SftBuilder {
 
   // Note: not for general use - only for use with SimpleFeatureTypes parsing (doesn't escape separator characters)
   def encodeMap(opts: Map[String,String], kvSep: String, entrySep: String) =
-    opts.map { case (k, v) => (k + kvSep + v) }.mkString(entrySep)
+    opts.map { case (k, v) => k + kvSep + v }.mkString(entrySep)
 
   val SridPart = "srid=4326"
   val SepPart  = ":"
