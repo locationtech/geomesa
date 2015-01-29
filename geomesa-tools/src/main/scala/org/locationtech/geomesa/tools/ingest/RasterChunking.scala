@@ -92,25 +92,27 @@ class RasterChunking(config: Map[String, Option[String]]) extends RasterIngest {
       case _ =>
         val (ghMinX, ghMinY, ghMaxX, ghMaxY) = (gh.bbox.ll.getX, gh.bbox.ll.getY, gh.bbox.ur.getX, gh.bbox.ur.getY)
         val (rMinX, rMinY, rMaxX, rMaxY) = (bbox.ll.getX, bbox.ll.getY, bbox.ur.getX, bbox.ur.getY)
-        Some(getCropLocation(ghMinX, rMinX, rMaxX, stepX),
-          getCropLocation(ghMaxX, rMinX, rMaxX, stepX),
-          getCropLocation(ghMinY, rMinY, rMaxY, stepY),
-          getCropLocation(ghMaxY, rMinY, rMaxY, stepY))
+        Some(getCropLocation(ghMinX, rMinX, rMaxX, stepX, false),
+             getCropLocation(ghMaxX, rMinX, rMaxX, stepX, true),
+             getCropLocation(ghMinY, rMinY, rMaxY, stepY, false),
+             getCropLocation(ghMaxY, rMinY, rMaxY, stepY, true))
     }
   }
 
-  //Get coordination used for cropping operation
-  //Cropped image tends to expand 1 pixel at low and high directions for
-  //both x-dimension and y-dimension when cropping bounds doesn't match
-  //the 2-D grid defined by original raster
+  //Get location on raster grid for cropping operation
   def getCropLocation(coor: Double,
                       minCoor: Double,
                       maxCoor: Double,
-                      step: Double): Double = {
+                      step: Double,
+                      isMax: Boolean): Double = {
     val steps = ((coor - minCoor) / step).toInt
     val calCoor = {
       val tmpCoor = minCoor + step * steps.toDouble
-      if (coor - tmpCoor > 0.5 * step) tmpCoor + step
+      //NO DUPLICATION: With the following line, adjacent chunks have no overlapped edge.
+      if (coor - tmpCoor > 0.5D * step) tmpCoor + step
+      //DUPLICATION POSSIBLE: With the following line, adjacent chunks may have one edge
+      //(width = 1) overlapped.
+//      if (isMax && coor - tmpCoor > 0D) tmpCoor + step
       else tmpCoor
     }
     Math.min(Math.max(calCoor, minCoor), maxCoor)
