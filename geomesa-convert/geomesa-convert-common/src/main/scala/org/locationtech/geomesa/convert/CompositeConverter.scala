@@ -50,11 +50,11 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
     }
 
   // noop
-  override def processSingleInput(i: I): SimpleFeature = null
+  override def processSingleInput(i: I): Option[SimpleFeature] = null
 
   implicit val ec = new EvaluationContext(Map(), Array())
   def processIfValid(input: I, pred: Predicate, conv: SimpleFeatureConverter[I]) =
-    if(pred.eval(input)) Some(conv.processSingleInput(input)) else None
+    if(pred.eval(input)) conv.processSingleInput(input) else None
 }
 
 

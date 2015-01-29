@@ -47,7 +47,7 @@ class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
     "properly convert a GenericRecord to a SimpleFeature" >> {
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
       val converter = SimpleFeatureConverters.build[Array[Byte]](sft, conf)
-      val sf = converter.processSingleInput(bytes)
+      val sf = converter.processSingleInput(bytes).get
       sf.getAttributeCount must be equalTo 1
     }
   }

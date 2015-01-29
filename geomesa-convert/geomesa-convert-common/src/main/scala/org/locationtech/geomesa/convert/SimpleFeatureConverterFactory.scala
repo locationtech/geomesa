@@ -20,12 +20,13 @@ package org.locationtech.geomesa.convert
 import javax.imageio.spi.ServiceRegistry
 
 import com.typesafe.config.Config
+import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait Field {
   def name: String
@@ -51,7 +52,7 @@ trait SimpleFeatureConverterFactory[I] {
     }.toIndexedSeq
 
   def buildIdBuilder(t: String) = Transformers.parseTransform(t)
-  
+
 }
 
 object SimpleFeatureConverters {
@@ -69,11 +70,12 @@ object SimpleFeatureConverters {
 trait SimpleFeatureConverter[I] {
   def targetSFT: SimpleFeatureType
   def processInput(is: Iterator[I]): Iterator[SimpleFeature]
-  def processSingleInput(i: I): SimpleFeature
+  def processSingleInput(i: I): Option[SimpleFeature]
   def close(): Unit = {}
 }
 
-trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] {
+trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging {
+  def logErrors: Boolean = false
   def targetSFT: SimpleFeatureType
   def inputFields: IndexedSeq[Field]
   def idBuilder: Expr
@@ -84,7 +86,8 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] {
 
   implicit val ctx = new EvaluationContext(fieldNameMap, null)
 
-  def convert(t: Array[Any], reuse: Array[Any], sfAttrReuse: Array[Any]): Try[SimpleFeature] = Try {
+  def convert(t: Array[Any], reuse: Array[Any], sfAttrReuse: Array[Any]): SimpleFeature =
+  {
     val attributes =
       if(reuse == null) Array.ofDim[Any](inputFields.length)
       else reuse
@@ -109,11 +112,16 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] {
   val reuse = Array.ofDim[Any](inputFields.length)
   val sfAttrReuse = Array.ofDim[Any](targetSFT.getAttributeCount)
 
-  def processSingleInput(i: I): Try[SimpleFeature] =
-    convert(fromInputType(i), reuse, sfAttrReuse)
+  def processSingleInput(i: I): Option[SimpleFeature] =
+    Try { convert(fromInputType(i), reuse, sfAttrReuse) } match {
+      case Success(s) => Some(s)
+      case Failure(t) =>
+        logger.debug("Failed to parse input", t)
+        None
+    }
 
   def processInput(is: Iterator[I]): Iterator[SimpleFeature] =
-    is.flatMap { s => processSingleInput(s).toOption }
+    is.flatMap { s => processSingleInput(s) }
 
   val indexes =
     targetSFT.getAttributeDescriptors.flatMap { attr =>

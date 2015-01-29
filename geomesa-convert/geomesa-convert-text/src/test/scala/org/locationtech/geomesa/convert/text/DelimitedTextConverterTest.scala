@@ -35,6 +35,7 @@ class DelimitedTextConverterTest extends Specification {
       """
         |1,hello,45.0,45.0
         |2,world,90.0,90.0
+        |willfail,hello
       """.stripMargin
 
     val conf = ConfigFactory.parseString(
