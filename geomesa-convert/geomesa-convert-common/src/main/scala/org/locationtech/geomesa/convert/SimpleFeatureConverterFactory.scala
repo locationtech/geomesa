@@ -81,8 +81,10 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] {
   val fieldNameMap = inputFields.zipWithIndex.map { case (f, idx) => (f.name, idx)}.toMap
 
   val featureFactory = new AvroSimpleFeatureFactory
+
   implicit val ctx = new EvaluationContext(fieldNameMap, null)
-  def convert(t: Array[Any], reuse: Array[Any], sfAttrReuse: Array[Any]): SimpleFeature = {
+
+  def convert(t: Array[Any], reuse: Array[Any], sfAttrReuse: Array[Any]): Try[SimpleFeature] = Try {
     val attributes =
       if(reuse == null) Array.ofDim[Any](inputFields.length)
       else reuse
@@ -107,11 +109,11 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] {
   val reuse = Array.ofDim[Any](inputFields.length)
   val sfAttrReuse = Array.ofDim[Any](targetSFT.getAttributeCount)
 
-  def processSingleInput(i: I): SimpleFeature =
+  def processSingleInput(i: I): Try[SimpleFeature] =
     convert(fromInputType(i), reuse, sfAttrReuse)
 
   def processInput(is: Iterator[I]): Iterator[SimpleFeature] =
-    is.map { s => processSingleInput(s) }
+    is.flatMap { s => processSingleInput(s).toOption }
 
   val indexes =
     targetSFT.getAttributeDescriptors.flatMap { attr =>
