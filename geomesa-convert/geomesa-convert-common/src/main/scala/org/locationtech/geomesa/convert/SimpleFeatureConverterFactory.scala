@@ -22,7 +22,6 @@ import javax.imageio.spi.ServiceRegistry
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -52,25 +51,7 @@ trait SimpleFeatureConverterFactory[I] {
     }.toIndexedSeq
 
   def buildIdBuilder(t: String) = Transformers.parseTransform(t)
-
-  def buildSpec(c: Config) = {
-    val typeName         = c.getString("type-name")
-    val fields           = c.getConfigList("attributes")
-
-    val fieldSpecs = fields.map { case field =>
-      val name    = field.getString("name")
-      val default = Try { field.getBoolean("default") }.map(_ => "*").getOrElse("")
-      val typ     = field.getString("type")
-      val srid    = if (field.hasPath("srid")) s":srid=${field.getString("srid")}" else ""
-      val index   = if (field.hasPath("index")) s":index=${field.getBoolean("index")}" else ""
-      val stIdx   = if (field.hasPath("index-value")) s":index-value=${field.getBoolean("index-value")}" else ""
-      s"$default$name:$typ$srid$index$stIdx"
-    }
-
-    val spec = fieldSpecs.mkString(",")
-    val sft = SimpleFeatureTypes.createType(typeName, spec)
-    sft
-  }
+  
 }
 
 object SimpleFeatureConverters {

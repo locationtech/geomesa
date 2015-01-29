@@ -32,7 +32,6 @@ class FixedWidthConverterTest extends Specification {
       """
         | converter = {
         |   type      = "fixed-width"
-        |   type-name = "testsft"
         |   id-field  = "uuid()"
         |   fields = [
         |     { name = "lat",  transform = "$0::double", start = 1, width = 2 },

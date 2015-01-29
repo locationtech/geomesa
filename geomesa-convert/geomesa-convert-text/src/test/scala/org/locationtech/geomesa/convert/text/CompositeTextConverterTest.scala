@@ -36,7 +36,6 @@ class CompositeTextConverterTest extends Specification {
     """
       | converter = {
       |   type         = "composite-converter",
-      |   type-name    = "testsft",
       |   converters = [
       |     { converter = "first",   predicate = "strEq('1', substr($0, 0, 1))" },
       |     { converter = "second",  predicate = "strEq('2',  substr($0, 0, 1))" }
@@ -44,7 +43,6 @@ class CompositeTextConverterTest extends Specification {
       |   first = {
       |     converter = {
       |       type         = "delimited-text",
-      |       type-name    = "testsft"
       |       format       = "DEFAULT",
       |       id-field     = "concat('first', $1)",
       |       fields = [
@@ -59,7 +57,6 @@ class CompositeTextConverterTest extends Specification {
       |   second = {
       |     converter = {
       |       type         = "delimited-text",
-      |       type-name    = "testsft"
       |       format       = "DEFAULT",
       |       id-field     = "concat('second', $1)",
       |       fields = [

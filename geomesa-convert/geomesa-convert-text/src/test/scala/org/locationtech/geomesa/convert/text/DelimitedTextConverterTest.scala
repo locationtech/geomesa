@@ -41,7 +41,6 @@ class DelimitedTextConverterTest extends Specification {
       """
         | converter = {
         |   type         = "delimited-text",
-        |   type-name    = "testsft",
         |   format       = "DEFAULT",
         |   id-field     = "md5(string2bytes($0))",
         |   fields = [
@@ -72,7 +71,6 @@ class DelimitedTextConverterTest extends Specification {
         """
           | converter = {
           |   type         = "delimited-text",
-          |   type-name    = "testsft",
           |   format       = "TDF",
           |   id-field     = "md5(string2bytes($0))",
           |   fields = [
@@ -98,7 +96,6 @@ class DelimitedTextConverterTest extends Specification {
         """
           | converter = {
           |   type         = "delimited-text",
-          |   type-name    = "testsft",
           |   format       = "EXCEL",
           |   id-field     = "md5(string2bytes($0))",
           |   fields = [
