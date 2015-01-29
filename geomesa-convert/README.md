@@ -27,6 +27,34 @@ The first two fields should be concatenated together to form the phrase, the thi
 
 The ```id``` of the ```SimpleFeature``` is formed from an md5 hash of the entire record (```$0``` is the original data) and the other fields are formed from appropriate transforms.
 
+## Transformation functions
+
+Currently supported transformation functions are listed below.
+
+### String functions
+ * ```stripQuotes```
+ * ```trim```
+ * ```capitalize```
+ * ```lowercase```
+ * ```regexReplace```
+ * ```concat```
+ * ```substr```
+ * ```strlen```
+
+### Date functions
+ * ```now```
+ * ```date```
+ * ```isodate```
+ * ```isodatetime```
+ * ```dateHourMinuteSecondMillis```
+
+ 
+### Geometry functions
+ * ```point```
+
+### Avro Path functions
+ * ```avroPath```
+
 ## Extending the converter library
 
 There are two ways to extend the converter library - adding new transformation functions and adding new data formats.
