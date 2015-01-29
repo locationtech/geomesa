@@ -62,7 +62,7 @@ case class IndexEntryEncoder(rowf: TextFormatter,
   // the maximum number of sub-units into which a geometry may be decomposed
   lazy val maximumDecompositions: Int = 5
 
-  def encode(featureToEncode: SimpleFeature, visibility: String = ""): List[KeyValuePair] = {
+  def encode(featureToEncode: SimpleFeature, visibility: String): List[KeyValuePair] = {
 
     logger.trace(s"encoding feature: $featureToEncode")
 

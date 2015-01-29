@@ -75,7 +75,7 @@ class TubeSelectProcessTest extends Specification {
 
       // get back type b from tube
       val ts = new TubeSelectProcess()
-      val results = ts.execute(tubeFeatures, features, null, 1, 1, 0, 5, null)
+      val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, null)
 
       val f = results.features()
       while (f.hasNext) {
@@ -109,7 +109,7 @@ class TubeSelectProcessTest extends Specification {
       }
 
       // write the feature to the store
-      val res = fs.addFeatures(featureCollection)
+      fs.addFeatures(featureCollection)
 
       // tube features
       val tubeFeatures = fs.getFeatures(CQL.toFilter("type = 'a'"))
@@ -119,7 +119,7 @@ class TubeSelectProcessTest extends Specification {
 
       // get back type b from tube
       val ts = new TubeSelectProcess()
-      val results = ts.execute(tubeFeatures, features, null, 1, 1, 0, 5, null)
+      val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, null)
 
       val f = results.features()
       while (f.hasNext) {
@@ -169,7 +169,7 @@ class TubeSelectProcessTest extends Specification {
       val ts = new TubeSelectProcess()
 
       // 110 m/s times 1000 seconds is just 100km which is under 1 degree
-      val results = ts.execute(tubeFeatures, features, null, 110, 1000, 0, 5, null)
+      val results = ts.execute(tubeFeatures, features, null, 110L, 1000L, 0.0, 5, null)
 
       val f = results.features()
       while (f.hasNext) {
@@ -201,7 +201,7 @@ class TubeSelectProcessTest extends Specification {
 
       // this time we use 112km which is just over 1 degree so we should pick up additional features
       // but with buffer overlap since the features in the collection are 1 degrees apart
-      val results = ts.execute(tubeFeatures, features, null, 112, 1000, 0, 5, null)
+      val results = ts.execute(tubeFeatures, features, null, 112L, 1000L, 0.0, 5, null)
 
       val f = results.features()
       while (f.hasNext) {
@@ -275,7 +275,7 @@ class TubeSelectProcessTest extends Specification {
 
       // get back type b from tube
       val ts = new TubeSelectProcess()
-      val results = ts.execute(tubeFeatures, features, null, 112, 1, 0, 5, null)
+      val results = ts.execute(tubeFeatures, features, null, 112L, 1L, 0.0, 5, null)
 
       val f = results.features()
       while (f.hasNext) {

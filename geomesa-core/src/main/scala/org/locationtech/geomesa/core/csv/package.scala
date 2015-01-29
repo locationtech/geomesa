@@ -39,8 +39,9 @@ import scala.collection.JavaConversions._
 import scala.io.Source
 import scala.util.Success
 
+case class TypeSchema(name: String, schema: String)
 package object csv extends Logging {
-  case class TypeSchema(name: String, schema: String)
+
 
   // this can probably be cleaned up and simplified now that parsers don't need to do double duty...
   def typeData(rawData: TraversableOnce[String]): Seq[Char] = {
