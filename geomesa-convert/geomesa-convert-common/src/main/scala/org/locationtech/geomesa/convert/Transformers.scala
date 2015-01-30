@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.convert
 
 import java.nio.charset.StandardCharsets
-import java.util.UUID
+import java.util.{Date, UUID}
 import javax.imageio.spi.ServiceRegistry
 
 import com.google.common.hash.Hashing
@@ -44,8 +44,9 @@ object Transformers extends JavaTokenParsers {
     private val CLOSE_PAREN = ")"
 
     def string      = "'" ~> "[^']+".r <~ "'".r ^^ { s => LitString(s) }
-    def int         = wholeNumber ^^ { i => LitInt(i.toInt) }
+    def int         = wholeNumber ^^   { i => LitInt(i.toInt) }
     def double      = decimalNumber ^^ { d => LitDouble(d.toDouble) }
+    def long        = wholeNumber ^^   { l => LitLong(l.toLong) }
     def lit         = string | int | double
     def wholeRecord = "$0" ^^ { _ => WholeRecord }
     def regexExpr   = string <~ "::r" ^^ { case LitString(s) => RegexExpr(s) }
@@ -60,36 +61,26 @@ object Transformers extends JavaTokenParsers {
     def strEq       = ("strEq" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
       case l ~ "," ~ r => StrEQ(l, r)
     }
-    def intEq       = ("intEq" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => IntEQ(l, r)
-    }
-    def intLTEq     = ("intLTEq" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => IntLTEQ(l, r)
-    }
-    def intLT       = ("intLT" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => IntLT(l, r)
-    }
-    def intGTEq     = ("intGTEq" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => IntGTEQ(l, r)
-    }
-    def intGT       = ("intGT" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => IntGT(l, r)
-    }
-    def dEq       = ("dEq" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => DEQ(l, r)
-    }
-    def dLTEq     = ("dLTEq" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => DLTEQ(l, r)
-    }
-    def dLT       = ("dLT" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => DLT(l, r)
-    }
-    def dGTEq     = ("dGTEq" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => DGTEQ(l, r)
-    }
-    def dGT       = ("dGT" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => DGT(l, r)
-    }
+    def numericPredicate[I](fn: String, predBuilder: (Expr, Expr) => BinaryPredicate[I])       =
+      (fn ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
+        case l ~ "," ~ r => predBuilder(l, r)
+      }
+    def intEq     = numericPredicate("intEq", IntEQ)
+    def intLTEq   = numericPredicate("intLTEq", IntLTEQ)
+    def intLT     = numericPredicate("intLT", IntLT)
+    def intGTEq   = numericPredicate("intGTEq", IntGTEQ)
+    def intGT     = numericPredicate("intGT", IntGT)
+    def longEq    = numericPredicate("longEq", LonEQ)
+    def longLTEq  = numericPredicate("longLTEq", LonLTEQ)
+    def longLT    = numericPredicate("longLT", LonLT)
+    def longGTEq  = numericPredicate("longGTEq", LonGTEQ)
+    def longGT    = numericPredicate("longGT", LonGT)
+    def dEq       = numericPredicate("dEq", DEQ)
+    def dLTEq     = numericPredicate("dLTEq", DLTEQ)
+    def dLT       = numericPredicate("dLT", DLT)
+    def dGTEq     = numericPredicate("dGTEq", DGTEQ)
+    def dGT       = numericPredicate("dGT", DGT)
+
     def binaryPred  = strEq | intEq | intLTEq | intLT | intGTEq | intGT | dEq | dLTEq | dLT | dGTEq | dGT
     def andPred     = ("and" ~ OPEN_PAREN) ~> (pred ~ "," ~ pred) <~ CLOSE_PAREN ^^ {
       case l ~ "," ~ r => And(l, r)
@@ -122,6 +113,7 @@ object Transformers extends JavaTokenParsers {
 
   case class LitString(value: String) extends Lit[String]
   case class LitInt(value: Integer) extends Lit[Integer]
+  case class LitLong(value: Long) extends Lit[Long]
   case class LitDouble(value: java.lang.Double) extends Lit[java.lang.Double]
   case class Cast2Int(e: Expr) extends Expr {
     override def eval(args: Any*)(implicit ctx: EvaluationContext): Any = e.eval(args: _*).asInstanceOf[String].toInt
@@ -129,6 +121,9 @@ object Transformers extends JavaTokenParsers {
 
   case class Cast2Double(e: Expr) extends Expr {
     override def eval(args: Any*)(implicit ctx: EvaluationContext): Any = e.eval(args: _*).asInstanceOf[String].toDouble
+  }
+  case class Cast2Long(e: Expr) extends Expr {
+    override def eval(args: Any*)(implicit ctx: EvaluationContext): Any = e.eval(args: _*).asInstanceOf[String].toLong
   }
 
   case object WholeRecord extends Expr {
@@ -175,6 +170,11 @@ object Transformers extends JavaTokenParsers {
   val IntLT    = buildPred[Int](_ < _)
   val IntGTEQ  = buildPred[Int](_ >= _)
   val IntGT    = buildPred[Int](_ > _)
+  val LonEQ    = buildPred[Long](_ == _)
+  val LonLTEQ  = buildPred[Long](_ <= _)
+  val LonLT    = buildPred[Long](_ < _)
+  val LonGTEQ  = buildPred[Long](_ >= _)
+  val LonGT    = buildPred[Long](_ > _)
   val DEQ      = buildPred[Double](_ == _)
   val DLTEQ    = buildPred[Double](_ <= _)
   val DLT      = buildPred[Double](_ < _)
@@ -238,13 +238,14 @@ class StringFunctionFactory extends TransformerFunctionFactory {
 class DateFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFn] =
-    Seq(now, customFormatDateParser, isodate, isodatetime, dateHourMinuteSecondMillis)
+    Seq(now, customFormatDateParser, isodate, isodatetime, dateHourMinuteSecondMillis, millisToDate)
 
   val now = TransformerFn("now") { args => DateTime.now.toDate }
   val customFormatDateParser = CustomFormatDateParser()
   val isodate = StandardDateParser("isodate", ISODateTimeFormat.basicDate())
   val isodatetime = StandardDateParser("isodatetime", ISODateTimeFormat.basicDateTime())
   val dateHourMinuteSecondMillis = StandardDateParser("dateHourMinuteSecondMillis", ISODateTimeFormat.dateHourMinuteSecondMillis())
+  val millisToDate = TransformerFn("millisToDate") { args => new Date(args(0).asInstanceOf[Long]) }
 
   case class StandardDateParser(name: String, format: DateTimeFormatter) extends TransformerFn {
     override def eval(args: Any*): Any = format.parseDateTime(args(0).toString).toDate
