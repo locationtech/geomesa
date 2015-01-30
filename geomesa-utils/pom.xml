@@ -87,6 +87,10 @@
             <groupId>com.typesafe</groupId>
             <artifactId>scalalogging-slf4j_2.10</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+        </dependency>
 
         <!-- test dependencies -->
         <dependency>

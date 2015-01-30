@@ -97,7 +97,7 @@ package object csv extends Logging {
         sftb.stringType(field)
     }}
 
-    TypeSchema(name, sftb.getSpec())
+    TypeSchema(name, sftb.getSpec)
   }
 
   def guessTypes(csvFile: File, hasHeader: Boolean): TypeSchema = {

@@ -18,11 +18,13 @@ package org.locationtech.geomesa.utils.geotools
 
 import java.util.{Date, UUID}
 
+import com.typesafe.config.{Config, ConfigFactory}
 import com.vividsolutions.jts.geom._
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser.{ListAttributeType, MapAttributeType, SimpleAttributeType}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -42,17 +44,48 @@ object SimpleFeatureTypes {
   // use the epsg jar if it's available (e.g. in geoserver), otherwise use the less-rich constant
   val CRS_EPSG_4326          = Try(CRS.decode("EPSG:4326")).getOrElse(DefaultGeographicCRS.WGS84)
 
+  def createType(conf: Config): SimpleFeatureType = {
+    val nameSpec = conf.getString("type-name")
+    val (namespace, name) = buildTypeName(nameSpec)
+    val specParser = new SpecParser
+
+    val fields = getFieldConfig(conf).map { fc => buildField(fc, specParser) }
+    createType(namespace, name, fields, Seq())
+  }
+
+  def getFieldConfig(conf: Config): Seq[Config] =
+    if(conf.hasPath("fields")) conf.getConfigList("fields")
+    else conf.getConfigList("attributes")
+
+  def buildField(conf: Config, specParser: SpecParser): AttributeSpec = conf.getString("type") match {
+    case t if simpleTypeMap.contains(t)   => SimpleAttributeSpec(conf)
+    case t if geometryTypeMap.contains(t) => GeomAttributeSpec(conf)
+
+    case t if specParser.parse(specParser.listType, t).successful =>
+      ListAttributeSpec(conf)
+
+    case t if specParser.parse(specParser.mapType, t).successful =>
+      MapAttributeSpec(conf)
+  }
+
   def createType(nameSpec: String, spec: String): SimpleFeatureType = {
+    val (namespace, name) = buildTypeName(nameSpec)
+    val FeatureSpec(attributeSpecs, opts) = parse(spec)
+    createType(namespace, name, attributeSpecs, opts)
+  }
+
+  def buildTypeName(nameSpec: String): (String, String) = {
     val nsIndex = nameSpec.lastIndexOf(':')
     val (namespace, name) = if (nsIndex == -1 || nsIndex == nameSpec.length - 1) {
       (null, nameSpec)
     } else {
       (nameSpec.substring(0, nsIndex), nameSpec.substring(nsIndex + 1))
     }
+    (namespace, name)
+  }
 
-    val FeatureSpec(attributeSpecs, opts) = parse(spec)
-
-    val geomAttributes = attributeSpecs.collect { case g: GeomAttributeSpec => g }
+  def createType(namespace: String, name: String, attributeSpecs: Seq[AttributeSpec], opts: Seq[FeatureOption]): SimpleFeatureType = {
+    val geomAttributes = attributeSpecs.collect { case g: GeomAttributeSpec => g}
     val defaultGeom = geomAttributes.find(_.default).orElse(geomAttributes.headOption)
     val dateAttributes = attributeSpecs.collect {
       case s: SimpleAttributeSpec if s.clazz == classOf[Date] => s
@@ -149,6 +182,22 @@ object SimpleFeatureTypes {
 
   sealed trait NonGeomAttributeSpec extends AttributeSpec
 
+  object SimpleAttributeSpec {
+    import java.lang.{Boolean => JBool}
+
+    private val fallback = ConfigFactory.parseMap(Map[String, AnyRef]("index" -> JBool.FALSE, "indexValue" -> JBool.FALSE))
+
+    def apply(in: Config): SimpleAttributeSpec = {
+      val conf = in.withFallback(fallback)
+
+      val name       = conf.getString("name")
+      val attrType   = conf.getString("type")
+      val index      = conf.getBoolean("index")
+      val indexValue = conf.getBoolean("index")
+      SimpleAttributeSpec(name, simpleTypeMap(attrType), index, indexValue)
+    }
+  }
+
   case class SimpleAttributeSpec(name: String, clazz: Class[_], index: Boolean, indexValue: Boolean)
       extends NonGeomAttributeSpec {
     override def toAttribute: AttributeDescriptor = {
@@ -160,6 +209,19 @@ object SimpleFeatureTypes {
     }
 
     override def toSpec = s"$name:${typeEncode(clazz)}$getIndexSpec"
+  }
+
+  object ListAttributeSpec {
+    import java.lang.{Boolean => JBool}
+    private val fallback = ConfigFactory.parseMap(Map[String, AnyRef]("index" -> JBool.FALSE, "indexValue" -> JBool.FALSE))
+    private val specParser = new SpecParser
+    def apply(in: Config): ListAttributeSpec = {
+      val conf          = in.withFallback(fallback)
+      val name          = conf.getString("name")
+      val attributeType = specParser.parse(specParser.listType, conf.getString("type")).getOrElse(ListAttributeType(SimpleAttributeType("string")))
+      val index         = conf.getBoolean("index")
+      ListAttributeSpec(name, simpleTypeMap(attributeType.p.t), index)
+    }
   }
 
   case class ListAttributeSpec(name: String, subClass: Class[_], index: Boolean) extends NonGeomAttributeSpec {
@@ -178,6 +240,20 @@ object SimpleFeatureTypes {
 
     override def toSpec = {
       s"$name:List[${subClass.getSimpleName}]$getIndexSpec"
+    }
+  }
+
+  object MapAttributeSpec {
+    import java.lang.{Boolean => JBool}
+    private val fallback = ConfigFactory.parseMap(Map[String, AnyRef]("index" -> JBool.FALSE, "indexValue" -> JBool.FALSE))
+    private val specParser = new SpecParser
+    private val defaultType = MapAttributeType(SimpleAttributeType("string"), SimpleAttributeType("string"))
+    def apply(in: Config): MapAttributeSpec = {
+      val conf          = in.withFallback(fallback)
+      val name          = conf.getString("name")
+      val attributeType = specParser.parse(specParser.mapType, conf.getString("type")).getOrElse(defaultType)
+      val index         = conf.getBoolean("index")
+      MapAttributeSpec(name, simpleTypeMap(attributeType.kt.t), simpleTypeMap(attributeType.vt.t), index)
     }
   }
 
@@ -201,6 +277,24 @@ object SimpleFeatureTypes {
       s"$name:Map[${keyClass.getSimpleName},${valueClass.getSimpleName}]$getIndexSpec"
   }
 
+  object GeomAttributeSpec {
+    import java.lang.{Boolean => JBool}
+
+    private val fallback = ConfigFactory.parseMap(
+      Map[String, AnyRef]("index" -> JBool.FALSE, "indexValue" -> JBool.FALSE, "srid" -> Integer.valueOf(4326), "default" -> JBool.FALSE))
+
+    def apply(in: Config): GeomAttributeSpec = {
+      val conf = in.withFallback(fallback)
+
+      val name       = conf.getString("name")
+      val attrType   = conf.getString("type")
+      val index      = conf.getBoolean("index")
+      val srid       = conf.getInt("srid")
+      val default    = conf.getBoolean("default")
+      GeomAttributeSpec(name, geometryTypeMap(attrType), index, srid, default)
+    }
+  }
+
   case class GeomAttributeSpec(name: String, clazz: Class[_], index: Boolean, srid: Int, default: Boolean)
       extends AttributeSpec {
     val indexValue = default
@@ -219,8 +313,6 @@ object SimpleFeatureTypes {
 
     override def toSpec = {
       val star = if (default) "*" else ""
-      val idx = if (index) s":$OPT_INDEX=$index" else ""
-      val stidx = if (indexValue) s":$OPT_INDEX_VALUE=$indexValue" else ""
       s"$star$name:${typeEncode(clazz)}:srid=$srid$getIndexSpec"
     }
   }
@@ -298,20 +390,25 @@ object SimpleFeatureTypes {
     "GeometryCollection" -> classOf[GeometryCollection]
   )
 
-  private class SpecParser extends JavaTokenParsers {
-    /*
-     Valid specs can have attributes that look like the following:
-        "id:Integer:opt1=v1:opt2=v2,*geom:Geometry:srid=4326,ct:List[String]:index=true,mt:Map[String,Double]:index=false"
-     */
+  private val listTypeMap = Seq("list", "List", "java.util.List").map { n => (n, classOf[java.util.List[_]]) }.toMap
+  private val mapTypeMap  = Seq("map", "Map", "java.util.Map").map { n => (n, classOf[java.util.Map[_, _]]) }.toMap
 
-    private val SEP = ":"
-
+  object SpecParser {
     case class Name(s: String, default: Boolean = false)
     sealed trait AttributeType
     case class GeometryAttributeType(t: String) extends AttributeType
     case class SimpleAttributeType(t: String) extends AttributeType
     case class ListAttributeType(p: SimpleAttributeType) extends AttributeType
     case class MapAttributeType(kt: SimpleAttributeType, vt: SimpleAttributeType) extends AttributeType
+  }
+  private class SpecParser extends JavaTokenParsers {
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser._
+    /*
+     Valid specs can have attributes that look like the following:
+        "id:Integer:opt1=v1:opt2=v2,*geom:Geometry:srid=4326,ct:List[String]:index=true,mt:Map[String,Double]:index=false"
+     */
+
+    private val SEP = ":"
 
     def nonDefaultAttributeName  = """[^:,]+""".r ^^ { n => Name(n) }  // simple name
     def defaultAttributeName     = ("*" ~ nonDefaultAttributeName) ^^ {         // for *geom
@@ -340,10 +437,10 @@ object SimpleFeatureTypes {
         .reduce(_ | _) ^^ { case g => GeometryAttributeType(g) }
 
     // valid lists
-    def listTypeOuter         = "List" | "list" | "java.util.List"
+    def listTypeOuter: Parser[String]         = listTypeMap.keys.map(literal).reduce(_ | _)
 
     // valid maps
-    def mapTypeOuter          = "Map"  | "map"  | "java.util.Map"
+    def mapTypeOuter: Parser[String]          = mapTypeMap.keys.map(literal).reduce(_ | _)
 
     // list type matches "List[String]" or "List" (which defaults to parameterized type String)
     def listType              = listTypeOuter ~> ("[" ~> simpleType <~ "]").? ^^ {
