@@ -142,7 +142,7 @@ class ModeValidator extends IParameterValidator {
 object IngestRasterCommand {
   val Command = "ingestRaster"
 
-  @Parameters(commandDescription = "Ingest a raster file or files in a directory into GeoMesa")
+  @Parameters(commandDescription = "Ingest a raster file or raster files in a directory into GeoMesa")
   class IngestRasterParameters extends CreateRasterParams {
     @Parameter(names = Array("-fmt", "--format"), description = "Format of incoming raster data " +
       "(geotiff | DTED) to override file extension recognition")
