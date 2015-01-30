@@ -194,7 +194,6 @@ case class QueryPlanner(schema: String,
     featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
     featureBuilder.add(QueryPlanner.zeroPoint) //Filler value as Feature requires a geometry
     val result = featureBuilder.buildFeature(null)
-    val result = featureBuilder.buildFeature(null)
 
     List(result).iterator
   }
