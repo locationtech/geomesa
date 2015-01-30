@@ -27,7 +27,7 @@ import scala.concurrent.Future
 import scala.util.{Success, Failure}
 
 import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
-import org.locationtech.geomesa.core.csv
+import org.locationtech.geomesa.core.{TypeSchema, csv}
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 
@@ -50,10 +50,10 @@ class CSVEndpoint
       Record(localFile, Future(csv.guessTypes(localFile, hasHeader)), None, hasHeader)
   }
   case class Record(csvFile: File,
-                    inferredSchemaF: Future[csv.TypeSchema],
+                    inferredSchemaF: Future[TypeSchema],
                     shapefile: Option[File],
                     hasHeader: Boolean) {
-    def inferredTS: csv.TypeSchema =
+    def inferredTS: TypeSchema =
       inferredSchemaF.value.
       getOrElse(throw new Exception("Inferred schema not available yet")) match {
         case Success(ts) => ts
@@ -83,7 +83,7 @@ class CSVEndpoint
   get("/:csvid.csv/types") {
     try {
       val record = records(params("csvid"))
-      val csv.TypeSchema(name, schema) = record.inferredTS
+      val TypeSchema(name, schema) = record.inferredTS
       Ok(s"$name\n$schema")
     } catch {
       case ex: Throwable =>

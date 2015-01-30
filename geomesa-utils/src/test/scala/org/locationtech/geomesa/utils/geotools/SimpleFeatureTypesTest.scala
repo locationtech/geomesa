@@ -15,6 +15,7 @@
  */
 package org.locationtech.geomesa.utils.geotools
 
+import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.specs2.mutable.Specification
@@ -195,6 +196,25 @@ class SimpleFeatureTypesTest extends Specification {
       val spec = s"name:String:index=true:$OPT_INDEX_VALUE=true,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test", spec)
       sft.getDescriptor("geom").getUserData.get(OPT_INDEX_VALUE) mustEqual(true)
+    }
+
+    "build from conf" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "testconf"
+          |  fields = [
+          |    { name = "testStr",  type = "string"       , index = true  },
+          |    { name = "testList", type = "List[String]" , index = false },
+          |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+          |  ]
+          |}
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(conf)
+      sft.getAttributeCount must be equalTo 3
+      sft.getGeometryDescriptor.getName.getLocalPart must be equalTo "geom"
+      sft.getTypeName must be equalTo "testconf"
     }
   }
 

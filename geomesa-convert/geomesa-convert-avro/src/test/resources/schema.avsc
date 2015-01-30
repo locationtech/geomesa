@@ -1,0 +1,36 @@
+{
+  "namespace": "org.locationtech",
+  "type": "record",
+  "name": "CompositeMessage",
+  "fields": [
+    { "name": "content",
+      "type": [
+         {
+           "name": "TObj",
+           "type": "record",
+           "fields": [
+             {
+               "name": "kvmap",
+               "type": {
+                  "type": "array",
+                  "items": {
+                    "name": "kvpair",
+                    "type": "record",
+                    "fields": [
+                      { "name": "k", "type": "string" },
+                      { "name": "v", "type": ["string", "double", "int", "null"] }
+                    ]
+                  }
+               }
+             }
+           ]
+         },
+         {
+            "name": "OtherObject",
+            "type": "record",
+            "fields": [{ "name": "id", "type": "int"}]
+         }
+      ]
+   }
+  ]
+}

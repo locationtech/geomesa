@@ -67,6 +67,7 @@ import scala.collection.JavaConversions._
   val EMPTY_VALUE          = new Value(Array[Byte]())
   val EMPTY_COLF           = new Text(EMPTY_STRING)
   val EMPTY_COLQ           = new Text(EMPTY_STRING)
+  val EMPTY_VIZ            = new Text(EMPTY_STRING)
   val WHOLE_WORLD_BOUNDS   = "-180.0:180.0:-90.0:90.0"
   val ALL_TIME_BOUNDS      = new Interval(new DateTime(0l), new DateTime())  // Epoch till now
 

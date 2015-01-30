@@ -35,25 +35,25 @@ class SftBuilderTest extends Specification {
 
   "SpecBuilder" >> {
     "build simple types" >> {
-      val spec = new SftBuilder().intType("i").longType("l").floatType("f").doubleType("d").stringType("s").getSpec()
+      val spec = new SftBuilder().intType("i").longType("l").floatType("f").doubleType("d").stringType("s").getSpec
       spec mustEqual "i:Integer,l:Long,f:Float,d:Double,s:String"
     }
 
     "handle date and uuid types" >> {
-      val spec = new SftBuilder().date("d").uuid("u").getSpec()
+      val spec = new SftBuilder().date("d").uuid("u").getSpec
       spec mustEqual "d:Date,u:UUID"
     }
 
     "provide index when set to true" >> {
       val spec = new SftBuilder()
-        .intType("i",true)
-        .longType("l",true)
-        .floatType("f",true)
-        .doubleType("d",true)
-        .stringType("s",true)
-        .date("dt",true)
-        .uuid("u",true)
-        .getSpec()
+        .intType("i",    index = true)
+        .longType("l",   index = true)
+        .floatType("f",  index = true)
+        .doubleType("d", index = true)
+        .stringType("s", index = true)
+        .date("dt",      index = true)
+        .uuid("u",       index = true)
+        .getSpec
       val expected = "i:Integer,l:Long,f:Float,d:Double,s:String,dt:Date,u:UUID".split(",").map(_+":index=true").mkString(",")
       spec mustEqual expected
     }
@@ -84,7 +84,7 @@ class SftBuilderTest extends Specification {
         opts("max") must be equalTo "99"
       }
 
-      List(sft1, sft2) forall(test)
+      List(sft1, sft2) forall test
     }
 
     // Example of fold...also can do more complex things like zipping to automatically build SFTs
@@ -94,7 +94,7 @@ class SftBuilderTest extends Specification {
       }
 
       val expected = ('a' to 'z').map{ c => c.toString + ":" + "String" }.mkString(",")
-      spec.getSpec() mustEqual expected
+      spec.getSpec mustEqual expected
 
       val sft = spec.build("foobar")
       sft.getAttributeCount mustEqual 26
@@ -150,7 +150,7 @@ class SftBuilderTest extends Specification {
           "u" -> "UUID"
         ).map { case (k,v) => s"$k:List[$v]" }.mkString(",")
 
-      builder.getSpec() mustEqual expected
+      builder.getSpec mustEqual expected
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 7
@@ -179,7 +179,7 @@ class SftBuilderTest extends Specification {
           "u" -> "UUID"
         ).map { case (k,v) => s"$k:List[$v]" }.mkString(",")
 
-      builder.getSpec() mustEqual expected
+      builder.getSpec mustEqual expected
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 7
@@ -207,7 +207,7 @@ class SftBuilderTest extends Specification {
           "u" -> "UUID"
         ).map { case (k,v) => s"$k:Map[$v,$v]" }.mkString(",")
 
-      builder.getSpec() mustEqual expected
+      builder.getSpec mustEqual expected
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 7
@@ -220,7 +220,7 @@ class SftBuilderTest extends Specification {
         .mapType[Long,UUID]("b")
         .mapType[Date,Float]("c")
 
-      builder.getSpec() mustEqual "a:Map[Int,String],b:Map[Long,UUID],c:Map[Date,Float]"
+      builder.getSpec mustEqual "a:Map[Int,String],b:Map[Long,UUID],c:Map[Date,Float]"
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 3
@@ -233,7 +233,7 @@ class SftBuilderTest extends Specification {
         .point("foobar", default = true)
         .multiLineString("mls")
 
-      builder.getSpec() mustEqual s"geom:Geometry:srid=4326,*foobar:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true,mls:MultiLineString:srid=4326"
+      builder.getSpec mustEqual s"geom:Geometry:srid=4326,*foobar:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true,mls:MultiLineString:srid=4326"
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 3

@@ -31,11 +31,12 @@
         <module>geomesa-plugin</module>
         <module>geomesa-filter</module>
         <module>geomesa-feature</module>
+        <module>geomesa-kafka</module>
+        <module>geomesa-convert</module>
         <module>geomesa-tools</module>
         <module>geomesa-compute</module>
         <module>geomesa-assemble</module>
         <module>geomesa-web</module>
-        <module>geomesa-kafka</module>
     </modules>
 
     <properties>
@@ -66,7 +67,7 @@
         <dist.dev>dev</dist.dev>
 
         <!-- testing properties -->
-        <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit</maven.test.jvmargs>
+        <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit</maven.test.jvmargs>
         <fork.mode>once</fork.mode>
         <avro.version>1.7.5</avro.version>
         <accumuloSuffix>accumulo1.5</accumuloSuffix>
@@ -259,6 +260,16 @@
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
                         <artifactId>jai_core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>org.jaitools</groupId>
+                        <artifactId>jt-zonalstats</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>org.jaitools</groupId>
+                        <artifactId>jt-utils</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -615,6 +626,12 @@
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
+            <dependency>
+                <!-- transitive dependency versioned due to license issues -->
+                <groupId>xml-apis</groupId>
+                <artifactId>xml-apis</artifactId>
+                <version>1.3.04</version>
+            </dependency>
 
             <!-- provided dependencies -->
             <dependency>
@@ -847,6 +864,11 @@
               <version>${accumulo.version}</version>
               <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>com.typesafe</groupId>
+                <artifactId>config</artifactId>
+                <version>1.2.1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -913,6 +935,7 @@
                     <jvmArgs>
                         <jvmArg>-Xms1024m</jvmArg>
                         <jvmArg>-Xmx8G</jvmArg>
+                        <jvmArg>-Duser.timezone=UTC</jvmArg>
                         <jvmArg>-XX:MaxPermSize=1024m</jvmArg>
                     </jvmArgs>
                     <args>

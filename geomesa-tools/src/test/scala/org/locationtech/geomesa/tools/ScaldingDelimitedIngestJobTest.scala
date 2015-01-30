@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.tools
 
-import java.util.regex.MatchResult
 import java.util.{Date, UUID}
 
 import com.twitter.scalding.Args
@@ -27,6 +26,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params
+import org.locationtech.geomesa.core.util.SftBuilder
 import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.tools.ingest.{ColsParser, ScaldingDelimitedIngestJob}
@@ -261,11 +261,22 @@ class ScaldingDelimitedIngestJobTest extends Specification{
 
     "properly add attributes to an AvroSimpleFeature from a tab-delimited string with" +
       " a Point WKT geometry and non-standard dtformat" in {
-      val ingest = new ScaldingDelimitedIngestJob(new Args(
-        csvNormParams.updated(IngestParams.DT_FORMAT, List("yyyy/MM/dd :HH:mm:ss:")).updated(IngestParams.FORMAT, List("TSV"))
-        .updated(IngestParams.SFT_SPEC, List("fid:String,username:String,userid:String,text:String,time:Date,*geom:Point:srid=4326"))))
+      val spec = new SftBuilder()
+        .stringType("fid")
+        .stringType("username")
+        .stringType("userid")
+        .stringType("text")
+        .date("time", default = true)
+        .point("geom", default = true)
+        .getSpec
+      val params = (csvNormParams - IngestParams.LAT_ATTRIBUTE - IngestParams.LON_ATTRIBUTE)
+        .updated(IngestParams.DT_FORMAT, List("yyyy/MM/dd :HH:mm:ss:"))
+        .updated(IngestParams.FORMAT, List("TSV"))
+        .updated(IngestParams.SFT_SPEC, List(spec))
+
+      val ingest = new ScaldingDelimitedIngestJob(new Args(params))
       val testString = "0000\tgeomesa user\t823543\tGeoMesa rules!\t2014/08/13 :06:06:06:\tPoint(-78.4 38.0)"
-      val sft = SimpleFeatureTypes.createType("test_type", "fid:String,username:String,userid:String,text:String,time:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType("test_type", spec)
       val f = new AvroSimpleFeature(new FeatureIdImpl("test_type"), sft)
       ingest.ingestDataToFeature(testString, f)
 
@@ -275,6 +286,50 @@ class ScaldingDelimitedIngestJobTest extends Specification{
       f.getAttribute(3) must beAnInstanceOf[java.lang.String]
       f.getAttribute(4) must beAnInstanceOf[java.util.Date]
       f.getAttribute(5) must beAnInstanceOf[Geometry]
+    }
+
+    "throw an exception when lon/lat field names are provided in args but aren't in sft" in {
+      val spec = "fid:String,username:String,userid:String,text:String,time:Date,*geom:Point:srid=4326"
+      val params = csvNormParams
+        .updated(IngestParams.DT_FORMAT, List("yyyy/MM/dd :HH:mm:ss:"))
+        .updated(IngestParams.FORMAT, List("TSV"))
+        .updated(IngestParams.SFT_SPEC, List(spec))
+
+      csvNormParams.keys must contain(IngestParams.LAT_ATTRIBUTE)
+      csvNormParams.keys must contain(IngestParams.LON_ATTRIBUTE)
+
+      val ingest = new ScaldingDelimitedIngestJob(new Args(params))
+      val testString = "0000\tgeomesa user\t823543\tGeoMesa rules!\t2014/08/13 :06:06:06:\tPoint(-78.4 38.0)"
+      val sft = SimpleFeatureTypes.createType("test_type", spec)
+      val f = new AvroSimpleFeature(new FeatureIdImpl("test_type"), sft)
+      ingest.ingestDataToFeature(testString, f) must throwAn[IllegalArgumentException]
+    }
+
+    "drop lon/lat from ingest to create a point geom only" in {
+      val spec = "vec:List[Int],time:Date,*geom:Point:srid=4326"
+      val params = csvNormParams
+        .updated(IngestParams.DT_FORMAT, List("yyyy/MM/dd HH:mm:ss"))
+        .updated(IngestParams.FORMAT, List("csv"))
+        .updated(IngestParams.SFT_SPEC, List(spec))
+        .updated(IngestParams.LON_ATTRIBUTE, List("1"))
+        .updated(IngestParams.LAT_ATTRIBUTE, List("2"))
+        .updated(IngestParams.COLS, List("0,3"))
+
+      val ingest = new ScaldingDelimitedIngestJob(new Args(params))
+      val testString = List(
+        "9,8,7",
+        "-78.4",
+        "38.0",
+        "2014/08/13 06:06:06").map("\"" + _ + "\"").mkString(",")
+      val sft = SimpleFeatureTypes.createType("test_type", spec)
+      val f = new AvroSimpleFeature(new FeatureIdImpl("test_type"), sft)
+      ingest.ingestDataToFeature(testString, f)
+
+      type JList[T] = java.util.List[T]
+      f.get[JList[Integer]](0).toList mustEqual List(9, 8, 7)
+      f.point.getX mustEqual -78.4
+      f.point.getY mustEqual 38.0
+
     }
 
     "properly write the features from a valid CSV" in {
@@ -375,6 +430,37 @@ class ScaldingDelimitedIngestJobTest extends Specification{
         ++ Map(IngestParams.COLS -> List("1-2"))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
+    }
+
+    "ingest using lat/lon to set default geom without lat/lon attributes in sft" in {
+      def doTest(testFileName: String, format: String, featureName: String) = {
+        val path = Runner.getClass.getResource(testFileName)
+        val ingest = new ScaldingDelimitedIngestJob(new Args(csvNormParams
+          .updated(IngestParams.SFT_SPEC, List("i:Integer,*geom:Point:srid=4326"))
+          .updated(IngestParams.FORMAT, List(format))
+          .updated(IngestParams.FEATURE_NAME, List(featureName))
+          .updated(IngestParams.LON_ATTRIBUTE, List("3"))
+          .updated(IngestParams.LAT_ATTRIBUTE, List("4"))
+          .updated(IngestParams.COLS, List("0"))))
+
+        ingest.runTestIngest(Source.fromFile(path.toURI).getLines) must beASuccessfulTry
+
+        val geoms = ds.getFeatureSource(featureName).getFeatures.features().map { sf =>
+          sf.get[Integer]("i") -> (sf.point.getX, sf.point.getY)
+        }.toMap
+
+        (1 to 6).zip(Seq(
+          (-90.368732, 35.3155),
+          (-70.970585, 42.36211),
+          (-97.599004, 30.50901),
+          (-89.901051, 38.56421),
+          (-117.051022, 32.61654),
+          (-118.027531, 34.07623)))
+        .map { case (idx, xy) => geoms(idx) mustEqual xy }
+      }
+      doTest("/test_list.csv", "csv", "csvFeature")
+      doTest("/test_list.tsv", "tsv", "tsvFeature")
+      success
     }
 
     "write a list and handle spaces, empty lists, and single element lists...and a pipe for list delimiter!" in {
