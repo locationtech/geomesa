@@ -22,7 +22,15 @@ import org.apache.avro.util.Utf8
 import scala.collection.JavaConversions._
 import scala.util.parsing.combinator.RegexParsers
 
-object AvroPath extends RegexParsers {
+object AvroPath {
+  def apply(s: String) = new AvroPath(s)
+}
+
+class AvroPath(s: String) extends RegexParsers {
+  val path = build(s)
+
+  def eval(r: AnyRef) = path.eval(r)
+
   sealed trait Expr {
     def eval(r: AnyRef): Option[AnyRef]
   }
@@ -79,10 +87,9 @@ object AvroPath extends RegexParsers {
 
   def expr = schemaTypeName | arrayRecord | pathExpr
 
-  def apply(s: String) = parse(rep1(expr), s) match {
+  def build(s: String) = parse(rep1(expr), s) match {
     case Success(t, _) => CompositeExpr(t)
     case _ => null
-
   }
 
 }

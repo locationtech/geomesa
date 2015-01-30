@@ -65,12 +65,8 @@ To add new transformation functions, create a ```TransformationFunctionFactory``
 
 ```scala
 class SHAFunctionFactory extends TransformerFunctionFactory {
-  override def functions: Seq[String] = Seq("sha256")
-  override def build(name: String): TransformerFn = name match {
-    case "sha256" => new TransformerFn {
-        override def eval(args: Any*): Any = Hashing.sha256().hashBytes(args(0).asInstanceOf[Array[Byte]])
-    }
-  }
+  override def functions = Seq(sha256)
+  val sha256fn = TransformerFn("sha256") { args => Hashing.sha256().hashBytes(args(0).asInstanceOf[Array[Byte]]) }
 }
 ```
 

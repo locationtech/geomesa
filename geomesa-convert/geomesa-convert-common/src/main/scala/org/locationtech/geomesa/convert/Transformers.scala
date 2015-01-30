@@ -34,9 +34,9 @@ import scala.util.parsing.combinator.JavaTokenParsers
 
 object Transformers extends JavaTokenParsers {
 
-  val functionMap = mutable.HashMap[String, TransformerFunctionFactory]()
+  val functionMap = mutable.HashMap[String, TransformerFn]()
   ServiceRegistry.lookupProviders(classOf[TransformerFunctionFactory]).foreach { factory =>
-    factory.functions.foreach { f => functionMap.put(f, factory) }
+    factory.functions.foreach { f => functionMap.put(f.name, f) }
   }
 
   object TransformerParser {
@@ -55,7 +55,7 @@ object Transformers extends JavaTokenParsers {
     def fieldLookup = "$" ~> ident ^^ { i => FieldLookup(i) }
     def fnName      = ident ^^ { n => LitString(n) }
     def fn          = (fnName <~ OPEN_PAREN) ~ (repsep(transformExpr, ",") <~ CLOSE_PAREN) ^^ {
-      case LitString(name) ~ e => FunctionExpr(functionMap(name).build(name), e)
+      case LitString(name) ~ e => FunctionExpr(functionMap(name).getInstance, e)
     }
     def strEq       = ("strEq" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
       case l ~ "," ~ r => StrEQ(l, r)
@@ -199,83 +199,61 @@ object Transformers extends JavaTokenParsers {
 
 }
 
+object TransformerFn {
+  def apply(n: String)(f: (Any*) => Any) =
+    new TransformerFn {
+      override def eval(args: Any*): Any = f(args: _*)
+      override def name: String = n
+  }
+}
+
 trait TransformerFn {
+  def name: String
   def eval(args: Any*): Any
+  // some transformers cache arguments that don't change, override getInstance in order
+  // to return a new transformer that can cache args
+  def getInstance: TransformerFn = this
 }
 
 trait TransformerFunctionFactory {
-  def functions: Seq[String]
-  def build(name: String): TransformerFn
+  def functions: Seq[TransformerFn]
 }
 
 class StringFunctionFactory extends TransformerFunctionFactory {
 
-  override def functions: Seq[String] =
-    Seq("stripQuotes", "trim", "capitalize", "lowercase", "regexReplace", "concat", "substr", "strlen")
+  override def functions: Seq[TransformerFn] =
+    Seq(stripQuotes, strLen, trim, capitalize, lowercase, regexReplace, concat, substr)
 
-  def build(name: String) = name match {
-    case "stripQuotes" =>
-      val f: (Any*) => Any = args => args(0).asInstanceOf[String].replaceAll("\"", "")
-      StringFn(f)
+  val stripQuotes  = TransformerFn("stripQuotes")  { args => args(0).asInstanceOf[String].replaceAll("\"", "") }
+  val strLen       = TransformerFn("strlen")       { args => args(0).asInstanceOf[String].length }
+  val trim         = TransformerFn("trim")         { args => args(0).asInstanceOf[String].trim }
+  val capitalize   = TransformerFn("capitalize")   { args => args(0).asInstanceOf[String].capitalize }
+  val lowercase    = TransformerFn("lowercase")    { args => args(0).asInstanceOf[String].toLowerCase }
+  val regexReplace = TransformerFn("regexReplace") { args => args(0).asInstanceOf[Regex].replaceAllIn(args(2).asInstanceOf[String], args(1).asInstanceOf[String]) }
+  val concat       = TransformerFn("concat")       { args => args(0).asInstanceOf[String] + args(1).asInstanceOf[String] }
+  val substr       = TransformerFn("substr")       { args => args(0).asInstanceOf[String].substring(args(1).asInstanceOf[Int], args(2).asInstanceOf[Int]) }
 
-    case "strlen" =>
-      val f: (Any*) => Any = args => args(0).asInstanceOf[String].length
-      StringFn(f)
-
-    case "trim" =>
-      val f: (Any*) => Any = args => args(0).asInstanceOf[String].trim
-      StringFn(f)
-
-    case "capitalize" =>
-      val f: (Any*) => Any = args => args(0).asInstanceOf[String].capitalize
-      StringFn(f)
-
-    case "lowercase" =>
-      val f: (Any*) => Any = args => args(0).asInstanceOf[String].toLowerCase
-      StringFn(f)
-
-    case "regexReplace" =>
-      val f: (Any*) => Any = args => args(0).asInstanceOf[Regex].replaceAllIn(args(2).asInstanceOf[String], args(1).asInstanceOf[String])
-      StringFn(f)
-
-    case "concat" =>
-      val f: (Any*) => Any = args => args(0).asInstanceOf[String] + args(1).asInstanceOf[String]
-      StringFn(f)
-
-    case "substr" =>
-      val f: (Any*) => Any = args => args(0).asInstanceOf[String].substring(args(1).asInstanceOf[Int], args(2).asInstanceOf[Int])
-      StringFn(f)
-
-    case e =>
-      println(e)
-      null
-  }
-
-  case class StringFn(f: (Any*) => Any) extends TransformerFn {
-    override def eval(args: Any*): Any = f(args: _*)
-  }
 }
 
 class DateFunctionFactory extends TransformerFunctionFactory {
-  override def functions: Seq[String] = Seq("now", "date", "isodate", "isodatetime", "dateHourMinuteSecondMillis")
 
-  override def build(name: String): TransformerFn = name match {
-    case "now"                         => Now
-    case "date"                        => new CustomFormatDateParser
-    case "isodate"                     => StandardDateParser(ISODateTimeFormat.basicDate())
-    case "isodatetime"                 => StandardDateParser(ISODateTimeFormat.basicDateTime())
-    case "dateHourMinuteSecondMillis"  => StandardDateParser(ISODateTimeFormat.dateHourMinuteSecondMillis())
-  }
+  override def functions: Seq[TransformerFn] =
+    Seq(now, customFormatDateParser, isodate, isodatetime, dateHourMinuteSecondMillis)
 
-  case object Now extends TransformerFn {
-    override def eval(args: Any*): Any = DateTime.now().toDate
-  }
+  val now = TransformerFn("now") { args => DateTime.now.toDate }
+  val customFormatDateParser = CustomFormatDateParser()
+  val isodate = StandardDateParser("isodate", ISODateTimeFormat.basicDate())
+  val isodatetime = StandardDateParser("isodatetime", ISODateTimeFormat.basicDateTime())
+  val dateHourMinuteSecondMillis = StandardDateParser("dateHourMinuteSecondMillis", ISODateTimeFormat.dateHourMinuteSecondMillis())
 
-  case class StandardDateParser(format: DateTimeFormatter) extends TransformerFn {
+  case class StandardDateParser(name: String, format: DateTimeFormatter) extends TransformerFn {
     override def eval(args: Any*): Any = format.parseDateTime(args(0).toString).toDate
   }
 
-  class CustomFormatDateParser(var format: DateTimeFormatter = null) extends TransformerFn {
+  case class CustomFormatDateParser(var format: DateTimeFormatter = null) extends TransformerFn {
+    val name = "date"
+    override def getInstance: CustomFormatDateParser = CustomFormatDateParser()
+
     override def eval(args: Any*): Any = {
       if(format == null) format = DateTimeFormat.forPattern(args(0).asInstanceOf[String])
       format.parseDateTime(args(1).asInstanceOf[String]).toDate
@@ -284,44 +262,28 @@ class DateFunctionFactory extends TransformerFunctionFactory {
 }
 
 class GeometryFunctionFactory extends TransformerFunctionFactory {
-  override def functions: Seq[String] = Seq("point")
+  override def functions = Seq(pointParserFn)
 
-  override def build(name: String): TransformerFn = name match {
-    case "point" => PointParserFn
+  val gf = JTSFactoryFinder.getGeometryFactory
+  val pointParserFn = TransformerFn("point") { args =>
+    gf.createPoint(new Coordinate(args(0).asInstanceOf[Double], args(1).asInstanceOf[Double]))
   }
-  
-  case object PointParserFn extends TransformerFn {
-    val gf = JTSFactoryFinder.getGeometryFactory
-    override def eval(args: Any*): Any = 
-      gf.createPoint(new Coordinate(args(0).asInstanceOf[Double], args(1).asInstanceOf[Double]))
-  }
-  
+
 }
 
 class IdFunctionFactory extends TransformerFunctionFactory {
-  override def functions: Seq[String] = Seq("md5", "uuid", "base64", "string2bytes")
+  override def functions = Seq(string2Bytes, MD5, uuidFn, base64)
 
-  override def build(name: String): TransformerFn = name match {
-    case "md5"          => MD5()
-    case "uuid"         => UUIDFn()
-    case "base64"       => Base64Encode()
-    case "string2bytes" => String2Bytes()
-  }
+  val string2Bytes = TransformerFn("string2bytes") { args => args(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8) }
 
-  case class String2Bytes() extends TransformerFn {
-    override def eval(args: Any*): Any = args(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8)
-  }
+  case object MD5 extends TransformerFn {
 
-  case class MD5() extends TransformerFn {
+    override def name: String = "md5"
     val hasher = Hashing.md5()
     override def eval(args: Any*): Any = hasher.hashBytes(args(0).asInstanceOf[Array[Byte]]).toString
   }
 
-  case class UUIDFn() extends TransformerFn {
-    override def eval(args: Any*): Any = UUID.randomUUID().toString
-  }
+  val uuidFn = TransformerFn("uuid")   { args => UUID.randomUUID().toString }
+  val base64 = TransformerFn("base64") { args => Base64.encodeBase64URLSafeString(args(0).asInstanceOf[Array[Byte]]) }
 
-  case class Base64Encode() extends TransformerFn {
-    override def eval(args: Any*): Any = Base64.encodeBase64URLSafeString(args(0).asInstanceOf[Array[Byte]])
-  }
 }
