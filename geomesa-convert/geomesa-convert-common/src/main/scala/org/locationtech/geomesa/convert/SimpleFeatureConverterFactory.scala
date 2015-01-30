@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.convert
 
-
 import javax.imageio.spi.ServiceRegistry
 
 import com.typesafe.config.Config
@@ -63,7 +62,7 @@ object SimpleFeatureConverters {
     providers
       .find(_.canProcess(converterConfig))
       .map(_.buildConverter(sft, converterConfig).asInstanceOf[SimpleFeatureConverter[I]])
-      .getOrElse(throw new IllegalArgumentException("Cannot find factory"))
+      .getOrElse(throw new IllegalArgumentException(s"Cannot find factory for ${sft.getTypeName}"))
   }
 }
 
@@ -81,28 +80,43 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   def idBuilder: Expr
   def fromInputType(i: I): Array[Any]
   val fieldNameMap = inputFields.zipWithIndex.map { case (f, idx) => (f.name, idx)}.toMap
-
   val featureFactory = new AvroSimpleFeatureFactory
+  val nfields = inputFields.length
+
+  val indexes =
+    targetSFT.getAttributeDescriptors.flatMap { attr =>
+      val targetIdx = targetSFT.indexOf(attr.getName)
+      val attrName  = attr.getLocalName
+      val inputIdx  = inputFields.indexWhere { f => f.name.equals(attrName) }
+
+      if(inputIdx == -1) None
+      else               Some((targetIdx, inputIdx))
+
+    }.toIndexedSeq
+
+  val nattributes = indexes.length
 
   implicit val ctx = new EvaluationContext(fieldNameMap, null)
 
-  def convert(t: Array[Any], reuse: Array[Any], sfAttrReuse: Array[Any]): SimpleFeature =
-  {
+  def convert(t: Array[Any], reuse: Array[Any], sfAttrReuse: Array[Any]): SimpleFeature = {
+    import spire.syntax.cfor._
+
     val attributes =
       if(reuse == null) Array.ofDim[Any](inputFields.length)
       else reuse
     ctx.computedFields = attributes
 
-    inputFields.zipWithIndex.foreach { case (field, i) =>
-      attributes(i) = field.eval(t: _*)
+    cfor(0)(_ < nfields, _ + 1) { i =>
+      attributes(i) = inputFields(i).eval(t: _*)
     }
 
     val sfAttributes =
       if(sfAttrReuse == null) Array.ofDim[Any](targetSFT.getAttributeCount)
       else sfAttrReuse
 
-    indexes.foreach { case (targetIndex: Int, inputIndex: Int) =>
-      sfAttributes(targetIndex) = attributes(inputIndex)
+    cfor(0)(_ < nattributes, _ + 1) { i =>
+      val (targetIdx, inputIdx) = indexes(i)
+      sfAttributes(targetIdx) = attributes(inputIdx)
     }
 
     val id = idBuilder.eval(t: _*).asInstanceOf[String]
@@ -123,15 +137,5 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   def processInput(is: Iterator[I]): Iterator[SimpleFeature] =
     is.flatMap { s => processSingleInput(s) }
 
-  val indexes =
-    targetSFT.getAttributeDescriptors.flatMap { attr =>
-      val targetIdx = targetSFT.indexOf(attr.getName)
-      val attrName  = attr.getLocalName
-      val inputIdx  = inputFields.indexWhere { f => f.name.equals(attrName) }
-
-      if(inputIdx == -1) None
-      else               Some((targetIdx, inputIdx))
-
-    }
 
 }
