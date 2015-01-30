@@ -37,7 +37,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
   "RasterStore" should {
     "create an empty RasterStore and return nothing" in {
       val tableName = getNewIteration()
-      val rasterStore = RasterUtils.createRasterStore(tableName)
+      val rasterStore = RasterUtils.createMockRasterStore(tableName)
 
       //generate query
       val query = RasterUtils.generateQuery(0, 50, 0, 50)
@@ -49,7 +49,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
     "create a Raster Store, populate it and run a query" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate store
       val testRaster = RasterUtils.generateTestRaster(0, 50, 0, 50)
@@ -66,7 +66,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
     "Properly filter in a raster via a query bbox" in {
       val tableName = getNewIteration()
-      val rasterStore = RasterUtils.createRasterStore(tableName)
+      val rasterStore = RasterUtils.createMockRasterStore(tableName)
 
       // general setup
       val testRaster = RasterUtils.generateTestRasterFromGeoHash(GeoHash("s"))
@@ -83,7 +83,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
     "Properly filter out a raster via a query bbox" in {
       val tableName = getNewIteration()
-      val rasterStore = RasterUtils.createRasterStore(tableName)
+      val rasterStore = RasterUtils.createMockRasterStore(tableName)
 
       // general setup
       val testRaster = RasterUtils.generateTestRasterFromGeoHash(GeoHash("d"))
@@ -99,7 +99,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
     "Properly filter out a raster via a query bbox and maintain a valid raster in the results" in {
       val tableName = getNewIteration()
-      val rasterStore = RasterUtils.createRasterStore(tableName)
+      val rasterStore = RasterUtils.createMockRasterStore(tableName)
 
       // general setup
       val testRaster1 = RasterUtils.generateTestRasterFromGeoHash(GeoHash("s"))
@@ -117,7 +117,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
     "Properly filter in a raster conforming to GeoHashes via a query bbox and resolution" in {
       val tableName = getNewIteration()
-      val rasterStore = RasterUtils.createRasterStore(tableName)
+      val rasterStore = RasterUtils.createMockRasterStore(tableName)
 
       // general setup
       val testRaster = RasterUtils.generateTestRasterFromGeoHash(GeoHash("s"), res = 5.0)
@@ -133,7 +133,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
     "Properly return a raster slightly smaller than a GeoHash via a query bbox" in {
       val tableName = getNewIteration()
-      val rasterStore = RasterUtils.createRasterStore(tableName)
+      val rasterStore = RasterUtils.createMockRasterStore(tableName)
 
       // general setup
       val gh = GeoHash("dqcjr")
@@ -152,7 +152,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
     "Properly return a raster slightly larger than a GeoHash via a query bbox" in {
       val tableName = getNewIteration()
-      val rasterStore = RasterUtils.createRasterStore(tableName)
+      val rasterStore = RasterUtils.createMockRasterStore(tableName)
 
       // general setup
       val gh = GeoHash("dqcjr")
@@ -169,25 +169,25 @@ class RasterStoreQueryIntegratedTest extends Specification {
       theResults.length must beEqualTo(1)
     }
 
-//    "Properly filter out a raster conforming to GeoHashes via a query bbox and resolution" in {
-//      val tableName = getNewIteration()
-//      val rasterStore = RasterUtils.createRasterStore(tableName)
-//
-//      // general setup
-//      val testRaster = RasterUtils.generateTestRasterFromGeoHash(GeoHash("s"), res = 5.0)
-//      rasterStore.putRaster(testRaster)
-//
-//      //generate query
-//      val query = RasterUtils.generateQuery(0, 50, 0, 50, res = 10.0)
-//
-//      rasterStore must beAnInstanceOf[RasterStore]
-//      val theResults = rasterStore.getRasters(query).toList
-//      theResults.length must beEqualTo(0)
-//    }
+    "Properly filter out a raster conforming to GeoHashes via a query bbox and resolution" in {
+      val tableName = getNewIteration()
+      val rasterStore = RasterUtils.createMockRasterStore(tableName)
+
+      // general setup
+      val testRaster = RasterUtils.generateTestRasterFromGeoHash(GeoHash("s"), res = 5.0)
+      rasterStore.putRaster(testRaster)
+
+      //generate query
+      val query = RasterUtils.generateQuery(0, 50, 0, 50, res = 10.0)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(0)
+    }.pendingUntilFixed
 
     "Properly return a group of four Rasters Conforming to GeoHashes Near (0, 0)" in {
       val tableName = getNewIteration()
-      val rasterStore = RasterUtils.createRasterStore(tableName)
+      val rasterStore = RasterUtils.createMockRasterStore(tableName)
 
       // general setup
       val bbox1 = GeoHash("7").bbox
@@ -213,7 +213,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
 
     "Properly return a group of four Small Rasters Conforming to GeoHashes" in {
       val tableName = getNewIteration()
-      val rasterStore = RasterUtils.createRasterStore(tableName)
+      val rasterStore = RasterUtils.createMockRasterStore(tableName)
 
       // general setup
       val bbox1 = GeoHash("dqb0m").bbox

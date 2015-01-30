@@ -232,7 +232,7 @@ object RasterUtils {
     cf.create("testRaster", img, env)
   }
 
-  def createRasterStore(tableName: String) = {
+  def createMockRasterStore(tableName: String) = {
     val rs = RasterStore("user", "pass", "testInstance", "zk", tableName, "", "", true)
     rs
   }

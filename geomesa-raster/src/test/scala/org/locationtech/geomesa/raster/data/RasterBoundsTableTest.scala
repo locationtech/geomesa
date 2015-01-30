@@ -38,7 +38,7 @@ class RasterBoundsTableTest extends Specification{
   "RasterStore" should {
     "return the bounds of a empty table as the whole world" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // get bounds
       val theBounds = theStore.getBounds()
@@ -49,7 +49,7 @@ class RasterBoundsTableTest extends Specification{
 
     "return the bounds of a table with a single raster" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate store
       val testRaster = RasterUtils.generateTestRaster(0, 50, 0, 50)
@@ -67,7 +67,7 @@ class RasterBoundsTableTest extends Specification{
 
     "return the bounds of a table with two identical rasters" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate store
       val testRaster1 = RasterUtils.generateTestRaster(0, 50, 0, 50)
@@ -87,7 +87,7 @@ class RasterBoundsTableTest extends Specification{
 
     "return the bounds of a table with two adjacent rasters" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate store
       val testRaster1 = RasterUtils.generateTestRaster(0, 50, 0, 50)
@@ -107,7 +107,7 @@ class RasterBoundsTableTest extends Specification{
 
     "return the bounds of a table with two adjacent rasters at different resolutions" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate store
       val testRaster1 = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 1.0)
@@ -127,7 +127,7 @@ class RasterBoundsTableTest extends Specification{
 
     "return the bounds of a table with two non-adjacent rasters" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate store
       val testRaster1 = RasterUtils.generateTestRaster(-180, -170, -90, -80)
@@ -147,7 +147,7 @@ class RasterBoundsTableTest extends Specification{
 
     "Return an empty set of resolutions for an empty table" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // get bounds
       val theResolutions = theStore.getAvailableResolutions()
@@ -157,7 +157,7 @@ class RasterBoundsTableTest extends Specification{
 
     "Return a set of one resolution for a table with one raster ingested" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate the table
       val testRaster = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 10.0)
@@ -173,7 +173,7 @@ class RasterBoundsTableTest extends Specification{
 
     "Return a set of one resolution for a table with duplicated rasters ingested" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate the table
       val testRaster1 = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 10.0)
@@ -191,7 +191,7 @@ class RasterBoundsTableTest extends Specification{
 
     "Return a set of one resolution for a table with multiple similar rasters ingested" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate the table
       val testRaster1 = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 10.0)
@@ -213,7 +213,7 @@ class RasterBoundsTableTest extends Specification{
 
     "Return a set of many resolutions for a table with multiple rasters ingested" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate the table
       val testRaster1 = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 6.0)
@@ -237,7 +237,7 @@ class RasterBoundsTableTest extends Specification{
 
     "Return the default GridRange for an empty table" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // get GridRange
       val theGridRange = theStore.getGridRange()
@@ -248,7 +248,7 @@ class RasterBoundsTableTest extends Specification{
 
     "Return the correct GridRange for a table with one Raster with specific resolution" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate the table
       val testRaster = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 1.0)
@@ -263,7 +263,7 @@ class RasterBoundsTableTest extends Specification{
 
     "Return the correct GridRange for a table with four Rasters with specific resolution" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate the table
       val testRaster1 = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 1.0)
@@ -284,7 +284,7 @@ class RasterBoundsTableTest extends Specification{
 
     "Return the correct GridRange for a table of an image pyramid, defaulting to highest resolution" in {
       val tableName = getNewIteration()
-      val theStore = RasterUtils.createRasterStore(tableName)
+      val theStore = RasterUtils.createMockRasterStore(tableName)
 
       // populate the table
       val testRaster1 = RasterUtils.generateTestRaster(0, 50, 0, 50, res = 50.0 / 256)
