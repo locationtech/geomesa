@@ -63,7 +63,6 @@ class DelimitedTextConverter(format: CSVFormat,
   val reader = new PipedReader(writer)
   val parser = format.parse(reader).iterator()
   val nInputFields = inputFields.length
-  val inputTypeReuse = Array.ofDim[Any](nInputFields+1)
 
   def fromInputType(string: String): Array[Any] = {
     import spire.syntax.cfor._
@@ -71,11 +70,13 @@ class DelimitedTextConverter(format: CSVFormat,
     writer.write(string)
     writer.write(format.getRecordSeparator)
     val rec = parser.next()
-    inputTypeReuse(0) = string
-    cfor(1)(_ <= nInputFields, _ + 1) { i =>
-      inputTypeReuse(i) = rec.get(i)
+    val len = rec.size()
+    val ret = Array.ofDim[Any](len + 1)
+    ret(0) = string
+    cfor(0)(_ < len, _ + 1) { i =>
+      ret(i+1) = rec.get(i)
     }
-    inputTypeReuse
+    ret
   }
 
   override def close(): Unit = {
