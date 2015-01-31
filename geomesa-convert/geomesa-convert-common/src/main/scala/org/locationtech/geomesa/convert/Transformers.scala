@@ -200,9 +200,9 @@ object Transformers extends JavaTokenParsers {
 }
 
 object TransformerFn {
-  def apply(n: String)(f: (Any*) => Any) =
+  def apply(n: String)(f: Seq[Any] => Any) =
     new TransformerFn {
-      override def eval(args: Any*): Any = f(args: _*)
+      override def eval(args: Any*): Any = f(args)
       override def name: String = n
   }
 }
