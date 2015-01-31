@@ -18,7 +18,6 @@ package org.locationtech.geomesa.convert.text
 
 import java.io.{PipedReader, PipedWriter}
 
-import com.google.common.collect.ObjectArrays
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.locationtech.geomesa.convert.Transformers.Expr
@@ -63,13 +62,20 @@ class DelimitedTextConverter(format: CSVFormat,
   val writer = new PipedWriter()
   val reader = new PipedReader(writer)
   val parser = format.parse(reader).iterator()
+  val nInputFields = inputFields.length
+  val inputTypeReuse = Array.ofDim[Any](nInputFields+1)
 
   def fromInputType(string: String): Array[Any] = {
+    import spire.syntax.cfor._
+
     writer.write(string)
     writer.write(format.getRecordSeparator)
     val rec = parser.next()
-    val splitIter = (0 until inputFields.length).map { i => rec.get(i) }.toArray
-    ObjectArrays.concat(string, splitIter).asInstanceOf[Array[Any]]
+    inputTypeReuse(0) = string
+    cfor(1)(_ <= nInputFields, _ + 1) { i =>
+      inputTypeReuse(i) = rec.get(i)
+    }
+    inputTypeReuse
   }
 
   override def close(): Unit = {
