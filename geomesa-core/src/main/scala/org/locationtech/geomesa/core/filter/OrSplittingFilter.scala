@@ -21,7 +21,6 @@ import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 
-// This class helps us split a Filter into pieces if there are ORs at the top.
 class OrSplittingFilter extends DefaultFilterVisitor {
 
   // This function really returns a Seq[Filter].
