@@ -1,11 +1,14 @@
 package org.locationtech.geomesa.raster.util
 
 import java.awt.image.{BufferedImage, RenderedImage, WritableRaster, Raster => JRaster}
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.io._
 import java.nio.ByteBuffer
 import java.util.{Hashtable => JHashtable}
 import javax.media.jai.remote.SerializableRenderedImage
 
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.Path
+import org.apache.hadoop.io.{BytesWritable, IOUtils, SequenceFile}
 import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory, GridGeometry2D}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -13,7 +16,6 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.{Raster, RasterQuery, RasterStore}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.geometry.Envelope
 
 import scala.collection.mutable.ListBuffer
@@ -40,6 +42,7 @@ object RasterUtils {
     val QUERY_THREADS       = "geomesa-tools.ingestraster.query.threads"
     val SHARDS              = "geomesa-tools.ingestraster.shards"
     val PARLEVEL            = "geomesa-tools.ingestraster.parallel.level"
+    val CHUNKSIZE           = "geomesa-tools.ingestraster.chunk.size"
     val IS_TEST_INGEST      = "geomesa.tools.ingestraster.is-test-ingest"
   }
 
@@ -178,6 +181,26 @@ object RasterUtils {
     val resX = (envelope.getMaximum(0) - envelope.getMinimum(0)) / width
     val resY = (envelope.getMaximum(1) - envelope.getMinimum(1)) / height
     val accumuloResolution = math.min(resX, resY)
+  }
+
+  def saveBytesToHdfsFile(name: String, bytes: Array[Byte], outFile: String, conf: Configuration) {
+    val outPath = new Path(outFile)
+    val key = new BytesWritable
+    val value = new BytesWritable
+    var writer: SequenceFile.Writer = null
+
+    try {
+      val optPath = SequenceFile.Writer.file(outPath)
+      val optKey =  SequenceFile.Writer.keyClass(key.getClass)
+      val optVal =  SequenceFile.Writer.valueClass(value.getClass)
+      writer = SequenceFile.createWriter(conf, optPath, optKey, optVal)
+      writer.append(new BytesWritable(name.getBytes), new BytesWritable(bytes))
+    } catch {
+      case e: Exception =>
+        System.out.println("Cannot write to Hdfs sequence file: " + e.getMessage())
+    } finally {
+      IOUtils.closeStream(writer)
+    }
   }
 
   //Encode a list of byte arrays into one byte array using protocol: length | data
