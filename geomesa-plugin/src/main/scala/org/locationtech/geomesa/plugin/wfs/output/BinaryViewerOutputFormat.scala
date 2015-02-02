@@ -20,6 +20,7 @@ import java.io.{BufferedOutputStream, OutputStream}
 import javax.xml.namespace.QName
 
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.LineString
 import net.opengis.wfs.{GetFeatureType => GetFeatureTypeV1, QueryType => QueryTypeV1}
 import net.opengis.wfs20.{GetFeatureType => GetFeatureTypeV2, QueryType => QueryTypeV2}
 import org.geoserver.config.GeoServer
@@ -74,10 +75,10 @@ class BinaryViewerOutputFormat(gs: GeoServer)
 
     // format_options flags for customizing the request
     val request = GetFeatureRequest.adapt(getFeature.getParameters()(0))
-    val trackIdField = Option(request.getFormatOptions.get(TRACK_ID_FIELD).asInstanceOf[String])
-    val labelField = Option(request.getFormatOptions.get(LABEL_FIELD).asInstanceOf[String])
+    val trackId = Option(request.getFormatOptions.get(TRACK_ID_FIELD).asInstanceOf[String])
+    val label = Option(request.getFormatOptions.get(LABEL_FIELD).asInstanceOf[String])
     // check for explicit dtg field in request, or use schema default dtg
-    val dtgField = Option(request.getFormatOptions.get(DATE_FIELD).asInstanceOf[String])
+    val dtg = Option(request.getFormatOptions.get(DATE_FIELD).asInstanceOf[String])
         .orElse(getDateField(getFeature)).getOrElse("dtg")
     // depending on srs requested and wfs versions, axis order can be flipped
     val axisOrder = checkAxisOrder(getFeature)
@@ -85,8 +86,10 @@ class BinaryViewerOutputFormat(gs: GeoServer)
     val bos = new BufferedOutputStream(output)
 
     featureCollections.getFeatures.zip(request.getQueries).foreach { case (fc, query) =>
+      // line strings can't be sorted by point as part of the query, so we have to re-sort them
+      val sort = fc.getSchema.getGeometryDescriptor.getType.getBinding == classOf[LineString]
       val sfc = fc.asInstanceOf[SimpleFeatureCollection]
-      BinaryOutputEncoder.encodeFeatureCollection(sfc, bos, dtgField, trackIdField, labelField, None, axisOrder)
+      BinaryOutputEncoder.encodeFeatureCollection(sfc, bos, dtg, trackId, label, None, axisOrder, sort)
       bos.flush()
     }
     // none of the implementations in geoserver call 'close' on the output stream
