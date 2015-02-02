@@ -45,6 +45,7 @@ class DelimitedTextConverterTest extends Specification {
         |   format       = "DEFAULT",
         |   id-field     = "md5(string2bytes($0))",
         |   fields = [
+        |     { name = "oneup",  transform = "$1" },
         |     { name = "phrase", transform = "concat($1, $2)" },
         |     { name = "lat",    transform = "$3::double" },
         |     { name = "lon",    transform = "$4::double" },
@@ -58,12 +59,17 @@ class DelimitedTextConverterTest extends Specification {
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not beNull
 
+      val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
+      converter.close()
+
       "and process some data" >> {
-        val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
         res.size must be equalTo 2
-        converter.close()
         res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
         res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
+      }
+
+      "handle more derived fields than input fields" >> {
+        res(0).getAttribute("oneup").asInstanceOf[String] must be equalTo "1"
       }
     }
 

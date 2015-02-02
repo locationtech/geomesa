@@ -84,6 +84,9 @@
                                     </filters>
                                     <transformers>
                                         <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                        <transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+                                            <resource>applicationContext.xml</resource>
+                                        </transformer>
                                     </transformers>
                                 </configuration>
                             </execution>

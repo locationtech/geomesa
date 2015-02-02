@@ -190,7 +190,7 @@ object BinaryOutputEncoder extends Logging {
       }
     }
     if (sort) {
-      val set = new scala.collection.mutable.TreeSet[ValuesToEncode]()(ordering)
+      val set = new scala.collection.mutable.TreeSet[ValuesToEncode]()
       iter.foreach(set.add)
       set.foreach(encode)
     } else {

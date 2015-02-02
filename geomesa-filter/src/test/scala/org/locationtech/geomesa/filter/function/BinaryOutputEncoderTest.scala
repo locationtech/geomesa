@@ -38,12 +38,13 @@ class BinaryOutputEncoderTest extends Specification {
     "encode a point feature collection" in {
       val sft = SimpleFeatureTypes.createType("bintest",
         "track:String,label:String,lat:Double,lon:Double,dtg:Date,geom:Point:srid=4326")
-      val date = dateFormat.parse("2014-01-01 08:00:00")
+      val baseDtg = dateFormat.parse("2014-01-01 08:09:00").getTime
 
       val fc = new ListFeatureCollection(sft)
       val builder = new SimpleFeatureBuilder(sft)
       (0 until 4).foreach { i =>
         val point = WKTUtils.read(s"POINT (45 5$i)")
+        val date = dateFormat.parse(s"2014-01-01 08:0${9-i}:00")
         builder.addAll(Array(s"1234-$i", s"label-$i", 45 + i, 50, date, point).asInstanceOf[Array[AnyRef]])
         fc.add(builder.buildFeature(s"$i"))
       }
@@ -55,7 +56,7 @@ class BinaryOutputEncoderTest extends Specification {
         val encoded = out.toByteArray
         (0 until 4).foreach { i =>
           val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 24, (i + 1) * 24))
-          decoded.dtg mustEqual date.getTime
+          decoded.dtg mustEqual baseDtg - 60 * 1000 * i
           decoded.lat mustEqual 45
           decoded.lon mustEqual 50 + i
           decoded.trackId mustEqual Some(s"1234-$i").map(_.hashCode.toString)
@@ -71,7 +72,7 @@ class BinaryOutputEncoderTest extends Specification {
         val encoded = out.toByteArray
         (0 until 4).foreach { i =>
           val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 16, (i + 1) * 16))
-          decoded.dtg mustEqual date.getTime
+          decoded.dtg mustEqual baseDtg - 60 * 1000 * i
           decoded.lat mustEqual 45
           decoded.lon mustEqual 50 + i
           decoded.trackId mustEqual Some(s"1234-$i").map(_.hashCode.toString)
@@ -87,7 +88,7 @@ class BinaryOutputEncoderTest extends Specification {
         val encoded = out.toByteArray
         (0 until 4).foreach { i =>
           val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 16, (i + 1) * 16))
-          decoded.dtg mustEqual date.getTime
+          decoded.dtg mustEqual baseDtg - 60 * 1000 * i
           decoded.lat mustEqual 45
           decoded.lon mustEqual 50 + i
           decoded.trackId mustEqual Some(s"$i").map(_.hashCode.toString)
@@ -103,7 +104,7 @@ class BinaryOutputEncoderTest extends Specification {
         val encoded = out.toByteArray
         (0 until 4).foreach { i =>
           val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 16, (i + 1) * 16))
-          decoded.dtg mustEqual date.getTime
+          decoded.dtg mustEqual baseDtg - 60 * 1000 * i
           decoded.lat mustEqual 45 + i
           decoded.lon mustEqual 50
           decoded.trackId mustEqual Some(s"1234-$i").map(_.hashCode.toString)
@@ -118,7 +119,7 @@ class BinaryOutputEncoderTest extends Specification {
         "track:String,label:String,dtg:Date,dates:List[Date],geom:LineString:srid=4326")
       val line = WKTUtils.read("LINESTRING(45 50, 46 51, 47 52, 50 55)")
       val date = dateFormat.parse("2014-01-01 08:00:00")
-      val dates = (0 until 4).map(i => dateFormat.parse(s"2014-01-01 08:00:0$i"))
+      val dates = (0 until 4).map(i => dateFormat.parse(s"2014-01-01 08:00:0${9-i}"))
 
       val fc = new ListFeatureCollection(sft)
       val builder = new SimpleFeatureBuilder(sft)
@@ -153,6 +154,22 @@ class BinaryOutputEncoderTest extends Specification {
           decoded.dtg mustEqual dates(i).getTime
           decoded.lat mustEqual line.getCoordinates()(i).x.toFloat
           decoded.lon mustEqual line.getCoordinates()(i).y.toFloat
+          decoded.trackId mustEqual Some("1234-0").map(_.hashCode.toString)
+          decoded must beAnInstanceOf[BasicValues]
+        }
+        success
+      }
+
+      "with sorting" >> {
+        val out = new ByteArrayOutputStream()
+        BinaryOutputEncoder
+            .encodeFeatureCollection(fc, out, "dates", Some("track"), None, None, AxisOrder.LatLon, true)
+        val encoded = out.toByteArray
+        (0 until 4).foreach { i =>
+          val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 16, (i + 1) * 16))
+          decoded.dtg mustEqual dates(3 - i).getTime
+          decoded.lat mustEqual line.getCoordinates()(3 - i).x.toFloat
+          decoded.lon mustEqual line.getCoordinates()(3 - i).y.toFloat
           decoded.trackId mustEqual Some("1234-0").map(_.hashCode.toString)
           decoded must beAnInstanceOf[BasicValues]
         }
