@@ -21,8 +21,6 @@ import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
-import org.apache.hadoop.io.{BytesWritable, IOUtils, SequenceFile}
 import org.geotools.coverage.grid.GridCoverage2D
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}

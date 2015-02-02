@@ -36,7 +36,7 @@ class RemoteRasterIngest(config: Map[String, Option[String]]) extends RasterInge
   lazy val rasterName = config(IngestRasterParams.TABLE).get
   lazy val cs = createCoverageStore(config)
 
-  def run(): Unit = {
+  def run() {
     val conf = new Configuration()
     JobUtils.setLibJars(conf, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
 

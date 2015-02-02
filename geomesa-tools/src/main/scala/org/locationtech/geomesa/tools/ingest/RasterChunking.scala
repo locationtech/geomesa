@@ -22,6 +22,7 @@ import breeze.numerics.ceil
 import org.geotools.coverage.grid.GridCoverage2D
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash, GeohashUtils}
+import com.typesafe.scalalogging.slf4j.Logging
 
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.sys.process._
@@ -52,11 +53,13 @@ class RasterChunking(config: Map[String, Option[String]]) extends RasterIngest {
     val rasterReader = getReader(new File(file), fileType)
     val rasterGrid: GridCoverage2D = rasterReader.read(null)
     val envelope = rasterGrid.getEnvelope2D
-    val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
+    val (minX, minY, maxX, maxY) =
+      RasterChunking.checkAndModifyBounds(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
+    val bbox = BoundingBox(minX, maxX, minY, maxY)
     val (gridStepX, gridStepY) = RasterChunking.getSteps(rasterGrid)
     val chunkPrec = RasterChunking.GetGeoHashPrecisionBySize(rasterGrid, size)
-    val llGh = GeoHash(envelope.getMinX, envelope.getMinY, chunkPrec)
-    val urGh = GeoHash(envelope.getMaxX, envelope.getMaxY, chunkPrec)
+    val llGh = GeoHash(minX, minY, chunkPrec)
+    val urGh = GeoHash(maxX, maxY, chunkPrec)
     val (llX, llY, urX, urY) = (llGh.getPoint.getX, llGh.getPoint.getY, urGh.getPoint.getX, urGh.getPoint.getY)
     val (deltaX, deltaY) = ((llGh.bbox.ur.getX - llGh.bbox.ll.getX), (llGh.bbox.ur.getY - llGh.bbox.ll.getY))
     val (stepsX, stepsY) = (Math.ceil((urX - llX) / deltaX).toInt, Math.ceil((urY - llY) / deltaY).toInt)
@@ -70,7 +73,7 @@ class RasterChunking(config: Map[String, Option[String]]) extends RasterIngest {
       } yield (i, j)).par
     indexes.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(parLevel))
 
-    indexes.foreach{ case (i, j) =>
+    indexes.foreach { case (i, j) =>
       val geoHash = GeoHash(llX + deltaX * i, llY + deltaY * j, chunkPrec)
       getChunkBounds(geoHash, bbox, gridStepX, gridStepY).foreach { case (minX, maxX, minY, maxY) =>
         if (maxX > minX && maxY > minY) {
@@ -119,7 +122,12 @@ class RasterChunking(config: Map[String, Option[String]]) extends RasterIngest {
   }
 }
 
-object RasterChunking {
+object RasterChunking extends Logging {
+  val BOUND_MIN_X = -180.0
+  val BOUND_MIN_Y = -90.0
+  val BOUND_MAX_X = 180.0
+  val BOUND_MAX_Y = 89.999999
+
   //Get precision of geohashe with size no larger than given bound
   def GetGeoHashPrecisionBySize(rasterGrid: GridCoverage2D, size: Double): Int = {
     val envelope = rasterGrid.getEnvelope2D
@@ -156,4 +164,11 @@ object RasterChunking {
   //Get total amount of points on the grid defined by given GeoHash
   def getGridSize(gh: GeoHash, stepX: Double, stepY: Double): Int =
     ceil((gh.bbox.ur.getX - gh.bbox.ll.getX) / stepX).toInt * ceil((gh.bbox.ur.getY - gh.bbox.ll.getY) / stepY).toInt
+
+  //Check if input bounds are beyond bounds limits and adjust bounds if they are
+  def checkAndModifyBounds(minX: Double, minY: Double, maxX: Double, maxY: Double): (Double, Double, Double, Double) = {
+    if (minX < BOUND_MIN_X || minY < BOUND_MIN_Y || maxX > BOUND_MAX_X || maxY > BOUND_MAX_Y)
+      logger.info(s"Warning: Raster bounds ($minX, $minY, $maxX, $maxY) are beyond bound limits.")
+    (Math.max(minX, BOUND_MIN_X), Math.max(minY, BOUND_MIN_Y), Math.min(maxX, BOUND_MAX_X), Math.min(maxY, BOUND_MAX_Y))
+  }
 }

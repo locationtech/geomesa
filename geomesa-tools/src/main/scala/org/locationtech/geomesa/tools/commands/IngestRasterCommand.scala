@@ -78,10 +78,14 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
           case Success(outPath) =>
             logger.info("Raster files serialization is done.")
             new RemoteRasterIngest(baseRasterIngestParams + (IngestRasterParams.FILE_PATH  -> Some(outPath))).run
+            Utils.deleteHdfsDirectory(outPath)
             logger.info("Remote ingestion is done.")
           case Failure(e) => throw new RuntimeException(e)
         }
     }
+
+    if (params.doChunk)
+      Utils.deleteLocalDirectory(ingestPath)
   }
 
   def validateCommand() {
