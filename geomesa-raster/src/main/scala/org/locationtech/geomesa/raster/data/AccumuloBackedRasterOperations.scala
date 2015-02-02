@@ -82,7 +82,6 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     new BatchWriterConfig().setMaxMemory(writeMemory).setMaxWriteThreads(writeThreads)
   //TODO: WCS: Abstract number of threads
   val numQThreads = 20
-  implicit val timings = new TimingsImpl
 
   // TODO: WCS: GEOMESA-585 Add ability to use arbitrary schemas
   val schema = RasterIndexSchema("")
@@ -115,15 +114,18 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   }
 
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams) = {
-    val rasters = getRasters(query)
-    val (image, numRasters) = profile("mosaic") {
+    implicit val timings = new TimingsImpl
+    val rasters = getRastersWithTiming(query)
+
+
+    val (image, numRasters) = profile("mosaic") (
       RasterUtils.mosaicRasters(rasters,
                                 params.height.toInt,
                                 params.width.toInt,
                                 params.envelope,
                                 params.resX,
                                 params.resY)
-    }
+    )
     val stat = RasterQueryStat(rasterTable,
       System.currentTimeMillis(),
       query.toString,
@@ -135,13 +137,22 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     image
   }
 
-  def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
+  def getRastersWithTiming(rasterQuery: RasterQuery)(implicit timings: TimingsImpl): Iterator[Raster] = {
     profile("scanning") {
       val batchScanner = connector.createBatchScanner(rasterTable, authorizationsProvider.getAuthorizations, numQThreads)
       val plan = profile(queryPlanner.getQueryPlan(rasterQuery), "planning")
       configureBatchScanner(batchScanner, plan)
       adaptIterator(SelfClosingBatchScanner(batchScanner))
     }
+  }
+
+  def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
+
+      val batchScanner = connector.createBatchScanner(rasterTable, authorizationsProvider.getAuthorizations, numQThreads)
+      val plan = queryPlanner.getQueryPlan(rasterQuery)//, "planning")
+      configureBatchScanner(batchScanner, plan)
+      adaptIterator(SelfClosingBatchScanner(batchScanner))
+
   }
 
   def getQueryRecords(numRecords: Int): Iterator[String] = {
