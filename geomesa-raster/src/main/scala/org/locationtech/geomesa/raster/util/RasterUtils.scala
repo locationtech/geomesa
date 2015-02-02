@@ -16,34 +16,23 @@
 
 package org.locationtech.geomesa.raster.util
 
-import java.awt.image.{BufferedImage, Raster => JRaster, RenderedImage, WritableRaster}
+import java.awt.image.{BufferedImage, Raster => JRaster, RenderedImage}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.nio.ByteBuffer
 import java.util.{Hashtable => JHashtable}
 import javax.media.jai.remote.SerializableRenderedImage
 
-import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory, GridGeometry2D}
+import org.geotools.coverage.grid.GridGeometry2D
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.CRS
-import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.imgscalr.Scalr._
-import org.joda.time.DateTime
-import org.locationtech.geomesa.core.index.DecodedIndex
-import org.locationtech.geomesa.raster.data.{Raster, RasterQuery, RasterStore}
-import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
+import org.locationtech.geomesa.raster.data.Raster
 import org.opengis.geometry.Envelope
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 
 object RasterUtils {
-
-  //TODO: WCS: Split off functions useful for just tests into a separate object, which includes classes from here on down
-  val white     = Array[Int] (255, 255, 255)
-  val lightGray = Array[Int] (200, 200, 200)
-  val gray      = Array[Int] (128, 128, 128)
-  val darkGray  = Array[Int] (54, 54, 54)
-  val black     = Array[Int] (0, 0, 0)
 
   object IngestRasterParams {
     val ACCUMULO_INSTANCE   = "geomesa-tools.ingestraster.instance"
@@ -90,11 +79,6 @@ object RasterUtils {
     read
   }
 
-  val defaultGridCoverageFactory = new GridCoverageFactory
-
-  def renderedImageToGridCoverage2d(name: String, image: RenderedImage, env: Envelope): GridCoverage2D =
-    defaultGridCoverageFactory.create(name, image, env)
-
   def allocateBufferedImage(width: Int, height: Int, chunk: RenderedImage): BufferedImage = {
     val properties = new JHashtable[String, Object]
     if (chunk.getPropertyNames != null) {
@@ -134,6 +118,7 @@ object RasterUtils {
   }
 
   def mosaicChunks(chunks: Iterator[Raster], queryWidth: Int, queryHeight: Int, queryEnv: Envelope): (BufferedImage, Int) = {
+    // TODO: Add check for Iterator with only a single Raster. https://geomesa.atlassian.net/browse/GEOMESA-671
     if (chunks.isEmpty) {
       (getEmptyImage(queryWidth, queryHeight, BufferedImage.TYPE_BYTE_GRAY), 0)
     } else {
@@ -226,40 +211,6 @@ object RasterUtils {
 
     for (i <- 0 until h; j <- 0 until w) { setPixel(i, j) }
     image
-  }
-
-  def imageToCoverage(img: WritableRaster, env: ReferencedEnvelope, cf: GridCoverageFactory) = {
-    cf.create("testRaster", img, env)
-  }
-
-  def createMockRasterStore(tableName: String) = {
-    val rs = RasterStore("user", "pass", "testInstance", "zk", tableName, "", "", true)
-    rs
-  }
-
-  def generateQuery(minX: Double, maxX: Double, minY: Double, maxY: Double, res: Double = 10.0) = {
-    val bb = BoundingBox(new ReferencedEnvelope(minX, maxX, minY, maxY, DefaultGeographicCRS.WGS84))
-    new RasterQuery(bb, res, None, None)
-  }
-
-  def generateTestRaster(minX: Double, maxX: Double, minY: Double, maxY: Double,
-                         w: Int = 256, h: Int = 256, res: Double = 10.0,
-                         color: Array[Int] = white): Raster = {
-    val ingestTime = new DateTime()
-    val env = new ReferencedEnvelope(minX, maxX, minY, maxY, DefaultGeographicCRS.WGS84)
-    val bbox = BoundingBox(env)
-    val metadata = DecodedIndex(Raster.getRasterId("testRaster"), bbox.geom, Option(ingestTime.getMillis))
-    val image = getNewImage(w, h, color)
-    val coverage = imageToCoverage(image.getRaster, env, defaultGridCoverageFactory)
-    Raster(coverage.getRenderedImage, metadata, res)
-  }
-
-  def generateTestRasterFromBoundingBox(bbox: BoundingBox, w: Int = 256, h: Int = 256, res: Double = 10.0): Raster = {
-    generateTestRaster(bbox.minLon, bbox.maxLon, bbox.minLat, bbox.maxLat, w, h, res)
-  }
-
-  def generateTestRasterFromGeoHash(gh: GeoHash, w: Int = 256, h: Int = 256, res: Double = 10.0): Raster = {
-    generateTestRasterFromBoundingBox(gh.bbox, w, h, res)
   }
 
   case class sharedRasterParams(gg: GridGeometry2D, envelope: Envelope) {

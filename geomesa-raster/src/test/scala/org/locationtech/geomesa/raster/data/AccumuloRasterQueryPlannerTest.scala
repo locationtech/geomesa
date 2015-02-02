@@ -17,9 +17,9 @@
 package org.locationtech.geomesa.raster.data
 
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
-import org.locationtech.geomesa.raster.util.RasterUtils
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -58,7 +58,7 @@ class AccumuloRasterQueryPlannerTest extends Specification {
   }
 
   def runTest(size: Int, expectedResolution: Double): MatchResult[Double] = {
-    val q1 = RasterUtils.generateQuery(0, 45, 0, 45, 45.0/size)
+    val q1 = generateQuery(0, 45, 0, 45, 45.0/size)
     val qp = arqp.getQueryPlan(q1, availableResolutions)
 
     val rangeString = qp.ranges.head.getStartKey.getRow.toString

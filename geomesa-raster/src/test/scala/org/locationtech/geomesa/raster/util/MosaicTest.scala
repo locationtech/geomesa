@@ -21,6 +21,7 @@ import java.awt.image.{BufferedImage, RenderedImage}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.raster.data.Raster
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -29,17 +30,17 @@ import org.specs2.runner.JUnitRunner
 class MosaicTest extends Specification {
 
   def generateFourAdjacentRaster(): Seq[Raster] = {
-    val testRaster1 = RasterUtils.generateTestRaster(-50, 0, 0, 50, color = RasterUtils.lightGray)
-    val testRaster2 = RasterUtils.generateTestRaster(0, 50, 0, 50, color = RasterUtils.darkGray)
-    val testRaster3 = RasterUtils.generateTestRaster(0, 50, -50, 0, color = RasterUtils.lightGray)
-    val testRaster4 = RasterUtils.generateTestRaster(-50, 0, -50, 0, color = RasterUtils.darkGray)
+    val testRaster1 = generateTestRaster(-50, 0, 0, 50, color = lightGray)
+    val testRaster2 = generateTestRaster(0, 50, 0, 50, color = darkGray)
+    val testRaster3 = generateTestRaster(0, 50, -50, 0, color = lightGray)
+    val testRaster4 = generateTestRaster(-50, 0, -50, 0, color = darkGray)
     Seq(testRaster1, testRaster2, testRaster3, testRaster4)
   }
 
   "Mosaic Chunks" should {
     "Mosaic two adjacent Rasters together with a Query of equal extent and equal resolution" in {
-      val testRaster1 = RasterUtils.generateTestRaster(-50, 0, 0, 50, color = RasterUtils.darkGray)
-      val testRaster2 = RasterUtils.generateTestRaster(0, 50, 0, 50, color = RasterUtils.white)
+      val testRaster1 = generateTestRaster(-50, 0, 0, 50, color = darkGray)
+      val testRaster2 = generateTestRaster(0, 50, 0, 50, color = white)
       val rasterSeq = Seq(testRaster1, testRaster2)
 
       val queryEnv = new ReferencedEnvelope(-50.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
@@ -188,7 +189,7 @@ class MosaicTest extends Specification {
 
     "not crop a raster when the cropEnv is identical to raster extent" in {
       val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
-      val testRaster = RasterUtils.generateTestRaster(0, 50, 0, 50)
+      val testRaster = generateTestRaster(0, 50, 0, 50)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
 
@@ -199,7 +200,7 @@ class MosaicTest extends Specification {
 
     "crop a raster into a square quarter" in {
       val cropEnv = new ReferencedEnvelope(0.0, 25.0, 0.0, 25.0, CRS.decode("EPSG:4326"))
-      val testRaster = RasterUtils.generateTestRaster(0, 50, 0, 50)
+      val testRaster = generateTestRaster(0, 50, 0, 50)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
 
@@ -210,7 +211,7 @@ class MosaicTest extends Specification {
 
     "crop a raster with a offsetted cropping envelope" in {
       val cropEnv = new ReferencedEnvelope(-10.0, 10.0, 0.0, 25.0, CRS.decode("EPSG:4326"))
-      val testRaster = RasterUtils.generateTestRaster(0, 50, 0, 50)
+      val testRaster = generateTestRaster(0, 50, 0, 50)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
 
@@ -221,7 +222,7 @@ class MosaicTest extends Specification {
 
     "crop a raster into nothing when raster is touching a corner of the cropping envelope" in {
       val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
-      val testRaster = RasterUtils.generateTestRaster(-50, 0, -50, 0)
+      val testRaster = generateTestRaster(-50, 0, -50, 0)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
 
@@ -230,7 +231,7 @@ class MosaicTest extends Specification {
 
     "crop a raster into nothing when raster is touching a vertical edge of the cropping envelope" in {
       val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
-      val testRaster = RasterUtils.generateTestRaster(-50, 0, 0, 50)
+      val testRaster = generateTestRaster(-50, 0, 0, 50)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
 
@@ -239,7 +240,7 @@ class MosaicTest extends Specification {
 
     "crop a raster into nothing when raster is touching a horizontal edge of the cropping envelope" in {
       val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
-      val testRaster = RasterUtils.generateTestRaster(0, 50, -50, 0)
+      val testRaster = generateTestRaster(0, 50, -50, 0)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
 
@@ -249,7 +250,7 @@ class MosaicTest extends Specification {
 
     "crop a raster into nothing when raster is outside cropping envelope" in {
       val cropEnv = new ReferencedEnvelope(0.0, 50.0, 0.0, 50.0, CRS.decode("EPSG:4326"))
-      val testRaster = RasterUtils.generateTestRaster(-150, -100, 0, 50)
+      val testRaster = generateTestRaster(-150, -100, 0, 50)
 
       val croppedRaster = RasterUtils.cropRaster(testRaster, cropEnv)
 
