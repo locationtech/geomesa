@@ -37,9 +37,10 @@ import org.opengis.filter.Filter
 
 // TODO: Constructor needs info to create Row Formatter
 // right now the schema is not used
+// TODO: Consider adding resolutions + extent info  https://geomesa.atlassian.net/browse/GEOMESA-645
 case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging with IndexFilterHelpers {
 
-  def getQueryPlan(rq: RasterQuery): QueryPlan = {
+  def getQueryPlan(rq: RasterQuery, availableResolutions: List[Double]): QueryPlan = {
 
     // TODO: WCS: Improve this if possible
     // ticket is GEOMESA-560
@@ -47,8 +48,8 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
     // that perfectly match the bbox or ones that fully contain it.
     val closestAcceptableGeoHash = GeohashUtils.getClosestAcceptableGeoHash(rq.bbox).getOrElse(GeoHash("")).hash
     val hashes = (BoundingBox.getGeoHashesFromBoundingBox(rq.bbox) :+ closestAcceptableGeoHash).toSet.toList
-    val res = lexiEncodeDoubleToString(rq.resolution)
-    logger.debug(s"Planner: BBox: ${rq.bbox} has geohashes: $hashes, and has encoded Resolution: $res")
+    val res = getLexicodedResolution(rq.resolution, availableResolutions)
+    logger.debug(s"RasterQueryPlanner: BBox: ${rq.bbox} has geohashes: $hashes, and has encoded Resolution: $res")
 
     val rows = hashes.map { gh =>
       // TODO: leverage the RasterIndexSchema to construct the range.
@@ -63,6 +64,27 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
     // TODO: WCS: setup a CFPlanner to match against a list of strings
     // ticket is GEOMESA-559
     QueryPlan(Seq(cfg), rows, Seq())
+  }
+
+  def getLexicodedResolution(suggestedResolution: Double, availableResolutions: List[Double]): String =
+    lexiEncodeDoubleToString(getResolution(suggestedResolution, availableResolutions))
+
+  def getResolution(suggestedResolution: Double, availableResolutions: List[Double]): Double = {
+    logger.debug(s"RasterQueryPlanner: trying to get resolution $suggestedResolution " +
+      s"from available Resolutions: ${availableResolutions.sorted}")
+    val ret = availableResolutions match {
+      case empty if availableResolutions.isEmpty   => 1.0
+      case one if availableResolutions.length == 1 => availableResolutions.head
+      case _                                       =>
+            val lowerResolutions = availableResolutions.filter(_ <= suggestedResolution)
+            logger.debug(s"RasterQueryPlanner: Picking a resolution from: $lowerResolutions")
+            lowerResolutions match {
+              case Nil => availableResolutions.min
+              case _ => lowerResolutions.max
+            }
+    }
+    logger.debug(s"RasterQueryPlanner: Decided to use resolution: $ret")
+    ret
   }
 
   def constructFilter(ref: ReferencedEnvelope, featureType: SimpleFeatureType): Filter = {

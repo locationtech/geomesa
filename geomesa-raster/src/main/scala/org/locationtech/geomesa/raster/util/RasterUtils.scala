@@ -1,19 +1,32 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.raster.util
 
-import java.awt.image.{BufferedImage, RenderedImage, WritableRaster, Raster => JRaster}
+import java.awt.image.{BufferedImage, Raster => JRaster, RenderedImage}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.nio.ByteBuffer
 import java.util.{Hashtable => JHashtable}
 import javax.media.jai.remote.SerializableRenderedImage
 
-import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory, GridGeometry2D}
+import org.geotools.coverage.grid.GridGeometry2D
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.DateTime
-import org.locationtech.geomesa.core.index.DecodedIndex
-import org.locationtech.geomesa.raster.data.{Raster, RasterQuery, RasterStore}
-import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.geotools.referencing.CRS
+import org.imgscalr.Scalr._
+import org.locationtech.geomesa.raster.data.Raster
 import org.opengis.geometry.Envelope
 
 import scala.collection.mutable.ListBuffer
@@ -66,12 +79,7 @@ object RasterUtils {
     read
   }
 
-  val defaultGridCoverageFactory = new GridCoverageFactory
-
-  def renderedImageToGridCoverage2d(name: String, image: RenderedImage, env: Envelope): GridCoverage2D =
-    defaultGridCoverageFactory.create(name, image, env)
-
-  def getEmptyMosaic(width: Int, height: Int, chunk: RenderedImage): BufferedImage = {
+  def allocateBufferedImage(width: Int, height: Int, chunk: RenderedImage): BufferedImage = {
     val properties = new JHashtable[String, Object]
     if (chunk.getPropertyNames != null) {
       chunk.getPropertyNames.foreach(name => properties.put(name, chunk.getProperty(name)))
@@ -83,46 +91,111 @@ object RasterUtils {
     new BufferedImage(colorModel, emptyRaster, alphaPremultiplied, properties)
   }
 
-  def setMosaicData(mosaic: BufferedImage, raster: Raster, env: Envelope, resX: Double, resY: Double) = {
-    val rasterEnv = raster.referencedEnvelope
-    val chunk = raster.chunk
-    val dx = ((rasterEnv.getMinimum(0) - env.getMinimum(0)) / resX).toInt
-    val dy = ((env.getMaximum(1) - rasterEnv.getMaximum(1)) / resY).toInt
-    mosaic.getRaster.setRect(dx, dy, chunk.getData)
+  def renderedImageToBufferedImage(r: RenderedImage): BufferedImage = {
+    val properties = new JHashtable[String, Object]
+    if (r.getPropertyNames != null) {
+      r.getPropertyNames.foreach(name => properties.put(name, r.getProperty(name)))
+    }
+    val colorModel = r.getColorModel
+    val alphaPremultiplied = colorModel.isAlphaPremultiplied
+    val sampleModel = r.getSampleModel
+    new BufferedImage(colorModel, r.copyData(null), alphaPremultiplied, properties)
   }
 
-  def getEmptyImage(width: Int, height: Int): BufferedImage = {
-    new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
+  def getEmptyImage(width: Int, height: Int, imageType: Int): BufferedImage = {
+    new BufferedImage(width, height, imageType)
   }
 
-  def mosaicRasters(rasters: Iterator[Raster], width: Int, height: Int, env: Envelope, resX: Double, resY: Double): (BufferedImage, Int) = {
-    if (rasters.isEmpty) {
-      (getEmptyImage(width, height), 0)
-    } else {
-      val rescaleX = resX / (env.getSpan(0) / width)
-      val rescaleY = resY / (env.getSpan(1) / height)
-      val scaledWidth = width / rescaleX
-      val scaledHeight = height / rescaleY
-      val imageWidth = Math.max(Math.round(scaledWidth), 1).toInt
-      val imageHeight = Math.max(Math.round(scaledHeight), 1).toInt
-      val firstRaster = rasters.next()
-      var count = 1
-      val mosaic = getEmptyMosaic(imageWidth, imageHeight, firstRaster.chunk)
-      setMosaicData(mosaic, firstRaster, env, resX, resY)
-      while (rasters.hasNext) {
-        val raster = rasters.next()
-        setMosaicData(mosaic, raster, env, resX, resY)
-        count += 1
-      }
-      (mosaic, count)
+  def writeToMosaic(mosaic: BufferedImage, raster: Raster, env: Envelope, resX: Double, resY: Double) = {
+    val croppedRaster = cropRaster(raster, env)
+    croppedRaster.map { cropped =>
+      val rasterEnv = raster.referencedEnvelope.intersection(envelopeToReferencedEnvelope(env))
+      val originX = Math.floor((rasterEnv.getMinX - env.getMinimum(0)) / resX).toInt
+      val originY = Math.floor((env.getMaximum(1) - rasterEnv.getMaxY) / resY).toInt
+      mosaic.getRaster.setRect(originX, originY, cropped.getData)
+      cropped.flush()
     }
   }
 
-  //TODO: WCS: Split off functions useful for just tests into a separate object, which includes classes from here on down
-  val white = Array[Int] (255, 255, 255)
-  val black = Array[Int] (0, 0, 0)
+  def mosaicChunks(chunks: Iterator[Raster], queryWidth: Int, queryHeight: Int, queryEnv: Envelope): (BufferedImage, Int) = {
+    // TODO: Add check for Iterator with only a single Raster. https://geomesa.atlassian.net/browse/GEOMESA-671
+    if (chunks.isEmpty) {
+      (getEmptyImage(queryWidth, queryHeight, BufferedImage.TYPE_BYTE_GRAY), 0)
+    } else {
+      var count = 1
+      val firstRaster = chunks.next()
+      val accumuloRasterXRes = firstRaster.referencedEnvelope.getSpan(0) / firstRaster.chunk.getWidth
+      val accumuloRasterYRes = firstRaster.referencedEnvelope.getSpan(1) / firstRaster.chunk.getHeight
+      val mosaicX = (queryEnv.getSpan(0) / accumuloRasterXRes).toInt
+      val mosaicY = (queryEnv.getSpan(1) / accumuloRasterYRes).toInt
+      if (mosaicX <= 0 || mosaicY <= 0) {
+        (getEmptyImage(1, 1, BufferedImage.TYPE_BYTE_GRAY), count)
+      } else {
+        val mosaic = allocateBufferedImage(mosaicX, mosaicY, firstRaster.chunk)
+        writeToMosaic(mosaic, firstRaster, queryEnv, accumuloRasterXRes, accumuloRasterYRes)
+        while (chunks.hasNext) {
+          writeToMosaic(mosaic, chunks.next(), queryEnv, accumuloRasterXRes, accumuloRasterYRes)
+          count += 1
+        }
+        (scaleBufferedImage(queryWidth, queryHeight, mosaic), count)
+      }
+    }
+  }
 
-  def getNewImage[T: TypeTag](w: Int, h: Int, fill: Array[T], imageType: Int = BufferedImage.TYPE_BYTE_GRAY): BufferedImage = {
+  def scaleBufferedImage(newWidth: Int, newHeight: Int, image: BufferedImage): BufferedImage = {
+    if (image.getWidth == newWidth && image.getHeight == newHeight) {
+      image
+    } else {
+      val result = resize(image, Method.SPEED, Mode.FIT_EXACT, newWidth, newHeight, null)
+      image.flush()
+      result
+    }
+  }
+
+  def cropRaster(raster: Raster, cropEnv: Envelope): Option[BufferedImage] = {
+    val rasterEnv = raster.referencedEnvelope
+    val intersection = rasterEnv.intersection(envelopeToReferencedEnvelope(cropEnv))
+    if (intersection.equals(rasterEnv)) {
+      Some(renderedImageToBufferedImage(raster.chunk))
+    } else {
+      intersection match {
+        case valid if intersection.getArea > 0.0 =>
+          val chunkXRes = rasterEnv.getWidth / raster.chunk.getWidth
+          val chunkYRes = rasterEnv.getHeight / raster.chunk.getHeight
+          val uLX = Math.max(Math.floor((intersection.getMinX - rasterEnv.getMinimum(0)) / chunkXRes).toInt, 0)
+          val uLY = Math.max(Math.floor((rasterEnv.getMaximum(1) - intersection.getMaxY) / chunkYRes).toInt, 0)
+          val wTemp = Math.max(Math.ceil(intersection.getWidth / chunkXRes).toInt, 0)
+          val w = if(wTemp + uLX > raster.chunk.getWidth) {
+            raster.chunk.getWidth - uLX
+          } else {
+            wTemp
+          }
+          val hTemp = Math.max(Math.ceil(intersection.getHeight / chunkYRes).toInt, 0)
+          val h = if(hTemp + uLY > raster.chunk.getHeight) {
+            raster.chunk.getHeight - uLY
+          } else {
+            hTemp
+          }
+          val b = renderedImageToBufferedImage(raster.chunk)
+          val result = bufferCrop(b, uLX, uLY, w, h)
+          Some(result)
+        case _                                   => None
+      }
+    }
+  }
+
+  def bufferCrop(src: BufferedImage, ulx: Int, uly: Int, w: Int, h: Int): BufferedImage = {
+    val result = src.getSubimage(ulx, uly, w, h)
+    src.flush()
+    result
+  }
+
+  def envelopeToReferencedEnvelope(e: Envelope): ReferencedEnvelope = {
+    new ReferencedEnvelope(e.getMinimum(0), e.getMaximum(0), e.getMinimum(1), e.getMaximum(1), CRS.decode("EPSG:4326"))
+  }
+
+  def getNewImage[T: TypeTag](w: Int, h: Int, fill: Array[T],
+                              imageType: Int = BufferedImage.TYPE_BYTE_GRAY): BufferedImage = {
     val image = new BufferedImage(w, h, imageType)
     val wr = image.getRaster
     val setPixel: (Int, Int) => Unit = typeOf[T] match {
@@ -136,40 +209,8 @@ object RasterUtils {
         throw new IllegalArgumentException(s"Error, cannot handle Arrays of type: ${typeOf[T]}")
     }
 
-    for (i <- 1 until h; j <- 1 until w) { setPixel(i, j) }
+    for (i <- 0 until h; j <- 0 until w) { setPixel(i, j) }
     image
-  }
-
-  def imageToCoverage(img: WritableRaster, env: ReferencedEnvelope, cf: GridCoverageFactory) = {
-    cf.create("testRaster", img, env)
-  }
-
-  def createRasterStore(tableName: String) = {
-    val rs = RasterStore("user", "pass", "testInstance", "zk", tableName, "SUSA", "SUSA", true)
-    rs
-  }
-
-  def generateQuery(minX: Double, maxX: Double, minY: Double, maxY: Double, res: Double = 10.0) = {
-    val bb = BoundingBox(new ReferencedEnvelope(minX, maxX, minY, maxY, DefaultGeographicCRS.WGS84))
-    new RasterQuery(bb, res, None, None)
-  }
-
-  def generateTestRaster(minX: Double, maxX: Double, minY: Double, maxY: Double, w: Int = 256, h: Int = 256, res: Double = 10.0): Raster = {
-    val ingestTime = new DateTime()
-    val env = new ReferencedEnvelope(minX, maxX, minY, maxY, DefaultGeographicCRS.WGS84)
-    val bbox = BoundingBox(env)
-    val metadata = DecodedIndex(Raster.getRasterId("testRaster"), bbox.geom, Option(ingestTime.getMillis))
-    val image = getNewImage(w, h, Array[Int](255, 255, 255))
-    val coverage = imageToCoverage(image.getRaster, env, defaultGridCoverageFactory)
-    Raster(coverage.getRenderedImage, metadata, res)
-  }
-
-  def generateTestRasterFromBoundingBox(bbox: BoundingBox, w: Int = 256, h: Int = 256, res: Double = 10.0): Raster = {
-    generateTestRaster(bbox.minLon, bbox.maxLon, bbox.minLat, bbox.maxLat, w, h, res)
-  }
-
-  def generateTestRasterFromGeoHash(gh: GeoHash, w: Int = 256, h: Int = 256, res: Double = 10.0): Raster = {
-    generateTestRasterFromBoundingBox(gh.bbox, w, h, res)
   }
 
   case class sharedRasterParams(gg: GridGeometry2D, envelope: Envelope) {
@@ -177,7 +218,7 @@ object RasterUtils {
     val height = gg.getGridRange2D.getHeight
     val resX = (envelope.getMaximum(0) - envelope.getMinimum(0)) / width
     val resY = (envelope.getMaximum(1) - envelope.getMinimum(1)) / height
-    val accumuloResolution = math.min(resX, resY)
+    val suggestedQueryResolution = math.min(resX, resY)
   }
 
   //Encode a list of byte arrays into one byte array using protocol: length | data
@@ -207,6 +248,7 @@ object RasterUtils {
     ByteBuffer.wrap(bytes).putDouble(d)
     bytes
   }
+
   def bytesToDouble(bs: Array[Byte]): Double = ByteBuffer.wrap(bs).getDouble
 }
 
