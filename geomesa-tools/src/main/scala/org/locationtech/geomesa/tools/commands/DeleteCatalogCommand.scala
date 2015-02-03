@@ -29,7 +29,7 @@ class DeleteCatalogCommand (parent: JCommander) extends CommandWithCatalog(paren
       ds.delete()
       println(s"Deleted catalog $catalog")
     } else {
-      logger.info(s"Cancelled deletion")
+      logger.info(s"Cancelled deletion.")
     }
   }
 }

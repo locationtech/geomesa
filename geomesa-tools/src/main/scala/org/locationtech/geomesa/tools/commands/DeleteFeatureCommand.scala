@@ -27,7 +27,7 @@ class DeleteFeatureCommand(parent: JCommander) extends CommandWithCatalog(parent
 
   override def execute() = {
     if (Option(params.pattern).isEmpty && Option(params.featureName).isEmpty) {
-      throw new IllegalArgumentException("Error: Must provide either featureName or pattern to delete")
+      throw new IllegalArgumentException("Error: Must provide either featureName or pattern to delete.")
     }
 
     val features = getFeatureList()
@@ -36,10 +36,10 @@ class DeleteFeatureCommand(parent: JCommander) extends CommandWithCatalog(parent
         if (params.force || promptConfirm(features)) {
           removeAll(features)
         } else {
-          logger.info(s"Cancelled deletion")
+          logger.info(s"Cancelled deletion.")
         }
       case Failure(ex) =>
-        println(s"Feature validation failed on error: ${ex.getMessage}")
+        println(s"Feature validation failed on error: ${ex.getMessage}.")
         logger.error(ex.getMessage)
     }
   }
@@ -51,7 +51,7 @@ class DeleteFeatureCommand(parent: JCommander) extends CommandWithCatalog(parent
           println(s"Deleted feature $f")
         case Failure(ex) =>
           println(s"Failure deleting feature $f")
-          logger.error(s"Failure deleting feature $f", ex)
+          logger.error(s"Failure deleting feature $f.", ex)
       }
     }
   }
@@ -60,7 +60,7 @@ class DeleteFeatureCommand(parent: JCommander) extends CommandWithCatalog(parent
     Try {
       ds.removeSchema(feature)
       if (ds.getNames.contains(feature)) {
-        throw new Exception(s"There was an error deleting feature '$catalog:$feature'")
+        throw new Exception(s"There was an error deleting feature '$catalog:$feature'.")
       }
     }
 
@@ -71,13 +71,13 @@ class DeleteFeatureCommand(parent: JCommander) extends CommandWithCatalog(parent
 
   def validate(features: List[String]) = Try {
     if (features.isEmpty) {
-      throw new IllegalArgumentException("No features found from pattern or feature name")
+      throw new IllegalArgumentException("No features found from pattern or feature name.")
     }
 
     val validFeatures = ds.getTypeNames
     features.foreach { f =>
       if (!validFeatures.contains(f)) {
-        throw new IllegalArgumentException(s"Feature $f does not exist in catalog $catalog")
+        throw new IllegalArgumentException(s"Feature $f does not exist in catalog $catalog.")
       }
     }
   }
