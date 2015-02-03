@@ -208,7 +208,7 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
         logger.info(s"Using lon/lat from simple feature fields $lon/$lat")
         (_: Seq[String], sf: SimpleFeature) => {
           import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-          val g = geomFactory.createPoint(new Coordinate(sf.get[Double](lon), sf.get[Double](lat)))
+          val g = geomFactory.createPoint(new Coordinate(sf.getDouble(lon), sf.getDouble(lat)))
           sf.setDefaultGeometry(g)
         }
 
