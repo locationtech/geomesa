@@ -128,7 +128,10 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
   // Check to see if this an actual ingest job or just a test.
   if (!isTestRun) {
     new MultipleUsefulTextLineFiles(pathList: _*).using(new Resources)
-      .foreach('line) { (cres: Resources, line: String) => lineNumber += 1; ingestLine(cres.fw, line, skipHeader) }
+      .foreach('line) { (cres: Resources, line: String) =>
+          lineNumber += 1
+          if (lineNumber > 1 || !skipHeader)
+            ingestLine(cres.fw, line) }
   }
 
   // TODO unit test class without having an internal helper method
@@ -154,17 +157,8 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
           logger.info(getStatInfo(successes, failures, s"Ingest proceeding $line, on line number:"))
 
       case Failure(ex) =>
-        if (lineNumber == 1) {
-          if (!skipHeader) {
-            // log a warning and suggest command line arg
-            logger.warn(s"Cannot ingest feature on line number $lineNumber")
-            logger.warn(s"If this line contains column headers, consider using the command line option --skip-header")
-          }
-          // else we're fine, continue/skip, no messages needed
-        } else {
-          failures += 1
-          logger.warn(s"Cannot ingest feature on line number: $lineNumber: ${ex.getMessage}", ex)
-        }
+        failures += 1
+        logger.warn(s"Cannot ingest feature on line number: $lineNumber: ${ex.getMessage}", ex)
     }
 
   // Populate the fields of a SimpleFeature with a line of CSV

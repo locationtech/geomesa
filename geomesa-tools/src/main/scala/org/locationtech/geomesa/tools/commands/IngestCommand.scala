@@ -79,7 +79,7 @@ object IngestCommand {
       "to override file extension recognition")
     var format: String = null
 
-    @Parameter(names = Array("-skH", "--skip-header"), description = "flag to skip the first line (header) of a csv/tsv data file")
+    @Parameter(names = Array("--skip-header"), description = "flag to skip the first line (header) of a csv/tsv data file")
     var skipHeader: Boolean = false
 
     @Parameter(names = Array("-ld", "--list-delimiter"), description = "character(s) to delimit list features")
