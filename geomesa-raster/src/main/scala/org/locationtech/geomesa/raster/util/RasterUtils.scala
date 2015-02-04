@@ -216,13 +216,15 @@ object RasterUtils {
   }
 
   //Decode a byte array into a list of byte array using protocol: length | data
-  def decodeByteArrays(ba: Array[Byte]): List[Array[Byte]] = {
+  def decodeByteArrays(ba: Array[Byte], numToExtract: Int): List[Array[Byte]] = {
     var pos = 0
+    var num = 1
     val listBuf: ListBuffer[Array[Byte]] = new ListBuffer[Array[Byte]]()
-    while(pos + 4 <= ba.length) {
+    while(num <= numToExtract && pos + 4 <= ba.length) {
       val length = ByteBuffer.wrap(ba, pos, 4).getInt
       listBuf += ba.slice(pos + 4, pos + 4 + length)
       pos = pos + 4 + length
+      num += 1
     }
     listBuf.toList
   }
