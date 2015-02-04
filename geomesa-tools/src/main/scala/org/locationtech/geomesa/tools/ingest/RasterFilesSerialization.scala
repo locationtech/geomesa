@@ -47,7 +47,7 @@ class RasterFilesSerialization(config: Map[String, Option[String]]) extends Rast
 
   def runSerializationTask() = Try {
     val fileOrDir = new File(path)
-    val outPath = s"/tmp/raster_ingest_${UUID.randomUUID.toString}"
+    val outFile = s"/tmp/raster_ingest_${UUID.randomUUID.toString}.seq"
 
     val files =
       (if (fileOrDir.isDirectory)
@@ -57,6 +57,7 @@ class RasterFilesSerialization(config: Map[String, Option[String]]) extends Rast
          })
        else Array(fileOrDir)).par
 
+    val seqWriter = RasterUtils.getSequenceFileWriter(outFile, conf)
     files.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(parLevel))
     files.foreach { file =>
       val rasterReader = getReader(file, fileType)
@@ -79,10 +80,10 @@ class RasterFilesSerialization(config: Map[String, Option[String]]) extends Rast
 
       val bytes = Raster.encodeToBytes(raster)
       val name = raster.id
-      val outFile = s"$outPath/${raster.id}.seq"
-      logger.debug("Save bytes into Hdfs file: " + outFile)
-      RasterUtils.saveBytesToHdfsFile(name, bytes, outFile, conf)
+      logger.debug(s"Save bytes of raster $name into Hdfs file: $outFile")
+      RasterUtils.saveBytesToHdfsFile(name, bytes, seqWriter)
     }
-    outPath
+    RasterUtils.closeSequenceWriter(seqWriter)
+    outFile
   }
 }

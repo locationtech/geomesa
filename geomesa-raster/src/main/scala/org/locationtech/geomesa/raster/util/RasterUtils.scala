@@ -183,24 +183,27 @@ object RasterUtils {
     val accumuloResolution = math.min(resX, resY)
   }
 
-  def saveBytesToHdfsFile(name: String, bytes: Array[Byte], outFile: String, conf: Configuration) {
+  def getSequenceFileWriter(outFile: String, conf: Configuration): SequenceFile.Writer = {
     val outPath = new Path(outFile)
     val key = new BytesWritable
     val value = new BytesWritable
-    var writer: SequenceFile.Writer = null
-
     try {
       val optPath = SequenceFile.Writer.file(outPath)
       val optKey =  SequenceFile.Writer.keyClass(key.getClass)
       val optVal =  SequenceFile.Writer.valueClass(value.getClass)
-      writer = SequenceFile.createWriter(conf, optPath, optKey, optVal)
-      writer.append(new BytesWritable(name.getBytes), new BytesWritable(bytes))
+      SequenceFile.createWriter(conf, optPath, optKey, optVal)
     } catch {
       case e: Exception =>
-        System.out.println("Cannot write to Hdfs sequence file: " + e.getMessage())
-    } finally {
-      IOUtils.closeStream(writer)
+        throw new Exception("Cannot create writer on Hdfs sequence file: " + e.getMessage())
     }
+  }
+
+  def saveBytesToHdfsFile(name: String, bytes: Array[Byte], writer: SequenceFile.Writer) {
+    writer.append(new BytesWritable(name.getBytes), new BytesWritable(bytes))
+  }
+
+  def closeSequenceWriter(writer:  SequenceFile.Writer) {
+    IOUtils.closeStream(writer)
   }
 
   //Encode a list of byte arrays into one byte array using protocol: length | data
