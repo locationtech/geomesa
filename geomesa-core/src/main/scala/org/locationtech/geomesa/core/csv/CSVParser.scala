@@ -19,53 +19,61 @@ package org.locationtech.geomesa.core.csv
 import java.util.Date
 import java.lang.{Integer => jInt, Double => jDouble}
 
-import com.vividsolutions.jts.geom.Point
+import com.vividsolutions.jts.geom._
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormatter, DateTimeFormat}
+import org.locationtech.geomesa.core.util.SftBuilder
 import org.locationtech.geomesa.utils.text.WKTUtils
 
+import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 object CSVParser {
+
   implicit object IntParser extends CSVParser[jInt] {
     val priority = 0
-    val typeChar = 'i'
-    def parse(datum: String): Try[jInt] = Try(new jInt(datum.toInt))
+    def parse(datum: String) = Try(new jInt(datum.toInt))
+    def buildSpec(builder: SftBuilder, field: String, default: Boolean = false) = builder.intType(field)
   }
 
   implicit object DoubleParser extends CSVParser[jDouble] {
     val priority = 1
-    val typeChar = 'd'
-    def parse(datum: String): Try[jDouble] =
-      Try(datum.toDouble) orElse Try(DMS(datum).toDouble) map { new jDouble(_) }
+    def parse(datum: String) =
+      Try(new jDouble(datum.toDouble)).orElse(Try(DMS(datum).toDouble).map(new jDouble(_)))
+    def buildSpec(builder: SftBuilder, field: String, default: Boolean = false) = builder.doubleType(field)
   }
 
   implicit object TimeParser extends CSVParser[Date] {
     val priority = 2
+
     val timePatterns = Seq("YYYY-MM-dd'T'HH:mm:ss",
                            "YYYY-MM-dd'T'HH:mm:ssZ",
                            "YYYY-MM-dd'T'HH:mm:ss.sss",
                            "YYYY-MM-dd'T'HH:mm:ss.sssZ")
+    val timeFormats = timePatterns.map(p => DateTimeFormat.forPattern(p).withZoneUTC)
 
-    val timeFormats = timePatterns.map(DateTimeFormat.forPattern _ andThen (_.withZoneUTC))
-
-    val typeChar = 't'
-    def parse(datum: String): Try[Date] = {
-      def parseUsingFormats(formats: Seq[DateTimeFormatter]): Try[DateTime] = {
-        if (formats.isEmpty) {
-          Failure(new Exception(s"""Failed to parse "$datum" as time using formats ${timePatterns.mkString(",")}"""))
-        } else {
-          Try(formats.head parseDateTime datum) orElse parseUsingFormats(formats.tail)
-        }
+    @tailrec
+    def parseUsingFormats(datum: String, formats: Seq[DateTimeFormatter]): Try[DateTime] =
+      if (formats.isEmpty) {
+        Failure(new Exception(s"""Failed to parse "$datum" as time using formats ${timePatterns.mkString(",")}"""))
+      } else {
+        val t = Try(formats.head.parseDateTime(datum))
+        if (t.isSuccess) t else parseUsingFormats(datum, formats.tail)
       }
-      parseUsingFormats(timeFormats).map(_.toDate)
+
+    def parse(datum: String) = parseUsingFormats(datum, timeFormats).map(_.toDate)
+    def buildSpec(builder: SftBuilder, field: String, default: Boolean = false) = {
+      builder.date(field)
+      if (default) {
+        builder.withDefaultDtg(field)
+      }
     }
   }
 
   implicit object PointParser extends CSVParser[Point] {
     val priority = 3
-    val typeChar = 'p'
-    def parseWKT(datum: String) = Try { WKTUtils.read(datum).asInstanceOf[Point] }
+    override val isGeom = true
+    def parseWKT(datum: String) = Try(WKTUtils.read(datum).asInstanceOf[Point])
     def parseDMS(datum: String) = {
       import DMS.{LatHemi, LonHemi}
       for {
@@ -79,29 +87,83 @@ object CSVParser {
       }
 
     }
-    def parse(datum: String): Try[Point] = parseWKT(datum) orElse parseDMS(datum)
+    def parse(datum: String) = parseWKT(datum).orElse(parseDMS(datum))
+    def buildSpec(builder: SftBuilder, field: String, default: Boolean = false) =
+      builder.point(field, default = default)
+  }
 
+  implicit object LineStringParser extends CSVParser[LineString] {
+    val priority = 4
+    override val isGeom = true
+    def parse(datum: String) = Try(WKTUtils.read(datum).asInstanceOf[LineString])
+    def buildSpec(builder: SftBuilder, field: String, default: Boolean = false) =
+      builder.lineString(field, default = default)
+  }
+
+  implicit object PolygonParser extends CSVParser[Polygon] {
+    val priority = 5
+    override val isGeom = true
+    def parse(datum: String) = Try(WKTUtils.read(datum).asInstanceOf[Polygon])
+    def buildSpec(builder: SftBuilder, field: String, default: Boolean = false) =
+      builder.polygon(field, default = default)
+  }
+
+  implicit object MultiPointParser extends CSVParser[MultiPoint] {
+    val priority = 6
+    override val isGeom = true
+    def parse(datum: String) = Try(WKTUtils.read(datum).asInstanceOf[MultiPoint])
+    def buildSpec(builder: SftBuilder, field: String, default: Boolean = false) =
+      builder.multiPoint(field, default = default)
+  }
+
+  implicit object MultiLineStringParser extends CSVParser[MultiLineString] {
+    val priority = 7
+    override val isGeom = true
+    def parse(datum: String) = Try(WKTUtils.read(datum).asInstanceOf[MultiLineString])
+    def buildSpec(builder: SftBuilder, field: String, default: Boolean = false) =
+      builder.multiLineString(field, default = default)
+  }
+
+  implicit object MultiPolygonParser extends CSVParser[MultiPolygon] {
+    val priority = 8
+    override val isGeom = true
+    def parse(datum: String) = Try(WKTUtils.read(datum).asInstanceOf[MultiPolygon])
+    def buildSpec(builder: SftBuilder, field: String, default: Boolean = false) =
+      builder.multiPolygon(field, default = default)
+  }
+
+  implicit object GeometryParser extends CSVParser[Geometry] {
+    val priority = 9
+    override val isGeom = true
+    def parse(datum: String) = Try(WKTUtils.read(datum))
+    def buildSpec(builder: SftBuilder, field: String, default: Boolean = false) =
+      builder.geometry(field, default = default)
   }
 
   implicit object StringParser extends CSVParser[String] {
-    val priority = 4
-    val typeChar = 's'
-    def parse(datum: String): Try[String] = Success(datum)
+    val priority = 10
+    def parse(datum: String) = Success(datum)
+    def buildSpec(builder: SftBuilder, field: String, default: Boolean = false) =
+      builder.stringType(field)
   }
 
   lazy val parsers: Seq[CSVParser[_ <: AnyRef]] =
     Seq(IntParser,
         DoubleParser,
         TimeParser,
+        LineStringParser,
+        PolygonParser,
+        MultiLineStringParser,
+        MultiPointParser,
+        MultiPolygonParser,
+        GeometryParser,
         PointParser,
         StringParser).sortBy(_.priority)
-  lazy val parserMap: Map[Char, CSVParser[_ <: AnyRef]] =
-    parsers.map(p => (p.typeChar, p)).toMap
 }
 
 sealed trait CSVParser[A <: AnyRef] {
   def priority: Int
   def parse(datum: String): Try[A]
-  def typeChar: Char
-  def parseAndType(datum: String): Try[(A, Char)] = parse(datum).map((_, typeChar))
+  def buildSpec(builder: SftBuilder, field: String, default: Boolean = false)
+  def isGeom: Boolean = false
 }

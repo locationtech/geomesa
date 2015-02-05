@@ -43,30 +43,61 @@ class CSVParserTest extends Specification {
 
   val eps = 0.000001
 
-  override def is =
-    "IntIsParsable"    ! {
-      IntParser.parse(i.toString) == Success(new jInt(i))
-    } ^
-    "DoubleIsParsable" ! {
-      DoubleParser.parse(d.toString) == Success(new jDouble(d))
-    } ^
-    "DoubleIsParsable handles DMS" ! {
-      DoubleParser.parse(dms.toString) == Success(new jDouble(dms.toDouble))
-    } ^
-    "TimeIsParsable"   ! {
-      TimeParser.timeFormats.forall(f =>
-        TimeParser.parse(f.print(time)).map(_.getTime / 1000) == Success(time.getMillis / 1000)
-      )
-    } ^
-    "PointIsParsable"  ! {
-      PointParser.parse(pointStr) == Success(WKTUtils.read(pointStr))
-    } ^
-    "PointIsParsable handles DMS" ! {
-      val Success(resultPt) = PointParser.parse(dmsPtStr)
-      math.abs(resultPt.getX - dmsPtX) < eps
-      math.abs(resultPt.getY - dmsPtY) < eps
-    } ^
-    "StringIsParsable" ! {
-      StringParser.parse(s) == Success(s)
+  "CSVParser" should {
+    "parse ints" in {
+      IntParser.parse(i.toString) must beASuccessfulTry(new jInt(i))
     }
+    "parse doubles" in {
+      DoubleParser.parse(d.toString) must beASuccessfulTry(new jDouble(d))
+    }
+    "parse doubles in DMS" in {
+      DoubleParser.parse(dms.toString) must beASuccessfulTry(new jDouble(dms.toDouble))
+    }
+    "parse times"   in {
+      TimeParser.timeFormats.forall(f =>
+        TimeParser.parse(f.print(time)).map(_.getTime / 1000) must beASuccessfulTry(time.getMillis / 1000)
+      )
+    }
+    "parse points"  in {
+      PointParser.parse(pointStr) must beASuccessfulTry(WKTUtils.read(pointStr))
+    }
+    "parse points in DMS" in {
+      val Success(resultPt) = PointParser.parse(dmsPtStr)
+      math.abs(resultPt.getX - dmsPtX) must beLessThan(eps)
+      math.abs(resultPt.getY - dmsPtY) must beLessThan(eps)
+    }
+    "parse LineStrings"  in {
+      val wkt = "LINESTRING(0 2, 2 0, 8 6)"
+      val geom = WKTUtils.read(wkt)
+      LineStringParser.parse(wkt) must beASuccessfulTry(geom)
+    }
+    "parse Polygons"  in {
+      val wkt = "POLYGON((20 10, 30 0, 40 10, 30 20, 20 10))"
+      val geom = WKTUtils.read(wkt)
+      PolygonParser.parse(wkt) must beASuccessfulTry(geom)
+    }
+    "parse MultiLineStrings"  in {
+      val wkt = "MULTILINESTRING((0 2, 2 0, 8 6),(0 2, 2 0, 8 6))"
+      val geom = WKTUtils.read(wkt)
+      MultiLineStringParser.parse(wkt) must beASuccessfulTry(geom)
+    }
+    "parse MultiPoints"  in {
+      val wkt = "MULTIPOINT(0 0, 2 2)"
+      val geom = WKTUtils.read(wkt)
+      MultiPointParser.parse(wkt) must beASuccessfulTry(geom)
+    }
+    "parse MultiPolygons"  in {
+      val wkt = "MULTIPOLYGON(((-1 0, 0 1, 1 0, 0 -1, -1 0)), ((-2 6, 1 6, 1 3, -2 3, -2 6)), ((-1 5, 2 5, 2 2, -1 2, -1 5)))"
+      val geom = WKTUtils.read(wkt)
+      MultiPolygonParser.parse(wkt) must beASuccessfulTry(geom)
+    }
+    "parse Geometries"  in {
+      val wkt = "POINT(1 1)"
+      val geom = WKTUtils.read(wkt)
+      GeometryParser.parse(wkt) must beASuccessfulTry(geom)
+    }
+    "parse strings" in {
+      StringParser.parse(s) must beASuccessfulTry(s)
+    }
+  }
 }
