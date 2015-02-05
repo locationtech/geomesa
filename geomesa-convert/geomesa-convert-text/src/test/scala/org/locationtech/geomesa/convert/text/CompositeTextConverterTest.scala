@@ -29,6 +29,7 @@ class CompositeTextConverterTest extends Specification {
   val data =
     """
       |1,hello,45.0,45.0
+      |asfastofail,f
       |2,world,90.0,90.0
     """.stripMargin
 
