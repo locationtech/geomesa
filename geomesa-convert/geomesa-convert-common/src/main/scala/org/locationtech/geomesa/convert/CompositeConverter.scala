@@ -41,12 +41,9 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
                                converters: Seq[(Predicate, SimpleFeatureConverter[I])])
   extends SimpleFeatureConverter[I] {
 
-  // to maintain laziness
-  val convView = converters.view
-
   override def processInput(is: Iterator[I]): Iterator[SimpleFeature] =
-    is.map { input =>
-      convView.flatMap { case (pred, conv) =>  processIfValid(input, pred, conv) }.head
+    is.flatMap { input =>
+      converters.view.flatMap { case (pred, conv) =>  processIfValid(input, pred, conv) }.headOption
     }
 
   // noop
