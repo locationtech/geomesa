@@ -17,6 +17,7 @@
 package org.locationtech.geomesa.raster.data
 
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.raster.RasterTestsUtils
 import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.specs2.mutable.Specification
@@ -219,6 +220,246 @@ class RasterStoreQueryIntegratedTest extends Specification {
       rasterStore must beAnInstanceOf[RasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(4)
+    }
+
+    "Properly return one raster in a QLevel 1 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.quadrant1
+      RasterTestsUtils.generateQuadTreeLevelRasters(1).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }.pendingUntilFixed
+
+    "Properly return one raster in a QLevel 2 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(2, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(2).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }.pendingUntilFixed
+
+    "Properly return one raster in a QLevel 3 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(3, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(3).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 4 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(4, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(4).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 5 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(5, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(5).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 6 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(6, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(6).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 7 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(7, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(7).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 8 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(8, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(8).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 9 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(9, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(9).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 10 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(10, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(10).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 11 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(11, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(11).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 12 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(12, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(12).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 13 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(13, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(13).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 14 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(14, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(14).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
+    }
+
+    "Properly return one raster in a QLevel 15 bounding box" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val qbbox = RasterTestsUtils.generateSubQuadrant(15, RasterTestsUtils.quadrant1, 1)
+      RasterTestsUtils.generateQuadTreeLevelRasters(15).map(rasterStore.putRaster)
+
+      //generate query
+      val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(1)
     }
 
   }

@@ -37,6 +37,11 @@ object RasterTestsUtils {
   val darkGray  = Array[Int] (54, 54, 54)
   val black     = Array[Int] (0, 0, 0)
 
+  val quadrant1 = BoundingBox(-90.0, -67.5, 22.5, 45.0)
+  val quadrant2 = BoundingBox(-112.5, -90.0, 22.5, 45.0)
+  val quadrant3 = BoundingBox(-112.5, -90.0, 0, 22.5)
+  val quadrant4 = BoundingBox(-90.0, -67.5, 0, 22.5)
+
   val defaultGridCoverageFactory = new GridCoverageFactory
 
   def createMockRasterStore(tableName: String) = {
@@ -75,5 +80,47 @@ object RasterTestsUtils {
 
   def renderedImageToGridCoverage2d(name: String, image: RenderedImage, env: Envelope): GridCoverage2D =
     defaultGridCoverageFactory.create(name, image, env)
+
+  def generateTestRastersFromBBoxes(bboxes: List[BoundingBox]): List[Raster] = {
+    bboxes.map(generateTestRasterFromBoundingBox(_))
+  }
+
+  def generateQuadTreeLevelRasters(level: Int,
+                                   q1: BoundingBox = quadrant1,
+                                   q2: BoundingBox = quadrant2,
+                                   q3: BoundingBox = quadrant3,
+                                   q4: BoundingBox = quadrant4): List[Raster] = level match {
+    case lowBound if level <= 1  =>
+      generateTestRastersFromBBoxes(List(q1, q2, q3, q4))
+    case highBound if level > 30 =>
+      val bboxList = List(generateSubQuadrant(30, q1, 1),
+        generateSubQuadrant(30, q2, 2),
+        generateSubQuadrant(30, q3, 3),
+        generateSubQuadrant(30, q4, 4))
+      generateTestRastersFromBBoxes(bboxList)
+    case _                       =>
+      val bboxList = List(generateSubQuadrant(level, q1, 1),
+        generateSubQuadrant(level, q2, 2),
+        generateSubQuadrant(level, q3, 3),
+        generateSubQuadrant(level, q4, 4))
+      generateTestRastersFromBBoxes(bboxList)
+  }
+
+  def generateSubQuadrant(level: Int, b: BoundingBox, q: Int): BoundingBox = {
+    val delta = getDelta(level)
+    q match {
+     case 1 =>
+       BoundingBox(b.ll.getX, b.ll.getX + delta, b.ll.getY, b.ll.getY + delta)
+     case 2 =>
+       BoundingBox(b.ur.getX - delta, b.ur.getX, b.ll.getY, b.ll.getY + delta)
+     case 3 =>
+       BoundingBox(b.ur.getX - delta, b.ur.getX, b.ur.getY - delta, b.ur.getY)
+     case 4 =>
+       BoundingBox(b.ll.getX, b.ll.getX + delta, b.ur.getY - delta, b.ur.getY)
+     case _ => b
+    }
+  }
+
+  private def getDelta(level: Int): Double = 45.0 / Math.pow(2, level)
 
 }

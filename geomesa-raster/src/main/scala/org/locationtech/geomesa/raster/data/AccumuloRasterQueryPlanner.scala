@@ -75,10 +75,12 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
     val r = {hashes.map { gh =>
       // TODO: leverage the RasterIndexSchema to construct the range.
       // Step 2:  We will pad our scan ranges for each GeoHash we are descending.
-      new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"), new Text(s"~$res~$gh~"))
-    } ++ dotted.map { gh =>
-      new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"), new Text(s"~$res~$gh~"))
+      //new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"), new Text(s"~$res~$gh~"))
+      new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"))
     }}.distinct
+//    } ++ dotted.map { gh =>
+//      new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"), new Text(s"~$res~$gh~"))
+//    }}.distinct
 
     // of the Ranges enumerated, get the merge of the overlapping Ranges
     val rows = org.apache.accumulo.core.data.Range.mergeOverlapping(r)
