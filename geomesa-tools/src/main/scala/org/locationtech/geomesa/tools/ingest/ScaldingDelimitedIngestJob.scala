@@ -130,8 +130,9 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
     new MultipleUsefulTextLineFiles(pathList: _*).using(new Resources)
       .foreach('line) { (cres: Resources, line: String) =>
           lineNumber += 1
-          if (lineNumber > 1 || !skipHeader)
-            ingestLine(cres.fw, line) }
+          if (lineNumber > 1 || !skipHeader) {
+            ingestLine(cres.fw, line)
+          }}
   }
 
   // TODO unit test class without having an internal helper method
