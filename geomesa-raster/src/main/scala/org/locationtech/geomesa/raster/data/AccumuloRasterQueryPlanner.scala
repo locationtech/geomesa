@@ -89,7 +89,7 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
     // Between the two approaches, we get more 'bigger' tiles and we get more smaller tiles.
 
     // setup the RasterFilteringIterator
-    val cfg = new IteratorSetting(9001, "raster-filtering-iterator", classOf[RasterFilteringIterator])
+    val cfg = new IteratorSetting(90, "raster-filtering-iterator", classOf[RasterFilteringIterator])
     configureRasterFilter(cfg, constructFilter(getReferencedEnvelope(rq.bbox), indexSFT))
     configureRasterMetadataFeatureType(cfg, indexSFT)
 
