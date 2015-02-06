@@ -40,7 +40,7 @@ This should print out the following usage text:
         export       Export a GeoMesa feature
         help         Show help
         ingest       Ingest a file of various formats into GeoMesa
-        ingestRaster Ingest a raster file or raster files in a directory into GeoMesa
+        ingestraster Ingest a raster file or raster files in a directory into GeoMesa
         list         List GeoMesa features for a given catalog
         tableconf    Perform table configuration operations
                 
@@ -395,12 +395,12 @@ The file type is inferred from the extension of the file, so ensure that the for
      
     geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
 
-### ingestRaster
-To ingest one or multiple raster image files into Geomesa, use the `ingestRaster` command. Input files, Geotiff or
+### ingestraster
+To ingest one or multiple raster image files into Geomesa, use the `ingestraster` command. Input files, Geotiff or
 DTED, are located on local file system. If chunking (only works for single file) is specified by option `-ck`,
 input file is cut into chunks by size in kilobytes (option `-cs or --chunk-size`) and chunks are ingested. Ingestion
-is done in local or remote mode (by option `-m or --mode`, default is local). In local mode, files are ingested
-directly from local host into Accumulo tables. In remote mode, raster files are serialized and stored in a HDFS
+is done in local or distributed mode (by option `-m or --mode`, default is local). In local mode, files are ingested
+directly from local host into Accumulo tables. In distributed mode, raster files are serialized and stored in a HDFS
 directory from where they are ingested. Optionally, ingested raster files as a coverage can be registered to a
 GeoServer by option `-g or --geoserver-config`.
 
@@ -411,9 +411,9 @@ EPSG:4326 raster files before ingestion. An example of doing conversion with GDA
 input_file out_file`.
 
 ####Usage (required options denoted with star):
-    $ geomesa help ingestRaster
+    $ geomesa help ingestraster
     Ingest a raster file or files in a directory into GeoMesa
-    Usage: ingestRaster [options]
+    Usage: ingestraster [options]
       Options:
         -a, --auths
            Accumulo authorizations
@@ -437,7 +437,7 @@ input_file out_file`.
            (true/false)
            Default: false
         -m, --mode
-           Ingestion mode (local | remote, default to local)
+           Ingestion mode (local | distributed, default to local)
            Default: local
         -par, --parallel-level
            Maximum number of local threads for ingesting multiple raster files
@@ -467,11 +467,11 @@ input_file out_file`.
 
 
 #### Example commands:
-    geomesa ingestRaster -u username -p password -t geomesa_raster -f /some/local/path/to/raster.tif
+    geomesa ingestraster -u username -p password -t geomesa_raster -f /some/local/path/to/raster.tif
 
-    geomesa ingestRaster -u username -p password -t geomesa_raster -ck -cs 1000 -m remote -f /some/path/to/raster.tif
+    geomesa ingestraster -u username -p password -t geomesa_raster -ck -cs 1000 -m distributed -f /some/path/to/raster.tif
 
-    geomesa ingestRaster -u username -p password -t geomesa_raster -fmt DTED -par 8 -f /some/local/path/to/raster_dir
+    geomesa ingestraster -u username -p password -t geomesa_raster -fmt DTED -par 8 -f /some/local/path/to/raster_dir
      -g "user=USERNAME,password=PASS,url=http://GEOSERVER:8080/geoserver,namespace=RASTER"
 
 ### list

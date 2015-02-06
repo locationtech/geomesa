@@ -33,11 +33,11 @@ object Runner extends Logging {
     val delete       = new DeleteCommand(jc)
     val describe     = new DescribeCommand(jc)
     val ingest       = new IngestCommand(jc)
-    val ingestRaster = new IngestRasterCommand(jc)
+    val ingestraster = new IngestRasterCommand(jc)
     val create       = new CreateCommand(jc)
     val explain      = new ExplainCommand(jc)
     val help         = new HelpCommand(jc)
-    val queryStats   = new QueryStatsCommand(jc)
+    val querystats   = new QueryStatsCommand(jc)
 
     try {
       jc.parse(args.toArray: _*)
@@ -56,11 +56,11 @@ object Runner extends Logging {
         case DeleteCommand.Command          => delete
         case DescribeCommand.Command        => describe
         case IngestCommand.Command          => ingest
-        case IngestRasterCommand.Command    => ingestRaster
+        case IngestRasterCommand.Command    => ingestraster
         case CreateCommand.Command          => create
         case ExplainCommand.Command         => explain
         case HelpCommand.Command            => help
-        case QueryStatsCommand.Command      => queryStats
+        case QueryStatsCommand.Command      => querystats
         case _                              => new DefaultCommand(jc)
       }
 

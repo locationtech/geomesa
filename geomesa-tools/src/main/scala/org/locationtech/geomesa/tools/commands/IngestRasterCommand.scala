@@ -46,7 +46,7 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
   //Raster ingestion starts from local file or directory.
   //If chunking is specified, input image is cut into chunks stored in a directory.
   //In local mode, file(s) is(are) directly ingested into an Accumulo table.
-  //In remote mode, file(s) is(are) serialized and stored into HDFS as sequence file(s),
+  //In distributed mode, file(s) is(are) serialized and stored into HDFS as sequence file(s),
   //and a scalding job is executed to ingest sequence file(s) into an Accumulo table from HDFS.
   def ingest(mode: String) {
     val baseRasterIngestParams = getRasterIngestParams
@@ -71,7 +71,7 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
           case Success(info) => logger.info("Local ingestion is done.")
           case Failure(e) => throw new RuntimeException(e)
         }
-      case "remote" =>
+      case "distributed" =>
         val rasterSerializer =
           new RasterFilesSerialization(baseRasterIngestParams + (IngestRasterParams.FILE_PATH  -> Some(ingestPath)))
         rasterSerializer.runSerializationTask match {
@@ -138,13 +138,13 @@ class PathValidator extends IParameterValidator {
 
 class ModeValidator extends IParameterValidator {
   def validate(name: String, value: String): Unit = {
-    if (!(value.toLowerCase == "local" || value.toLowerCase == "remote"))
-      throw new Exception(s"Unsupported ingestion mode: ${value}. Use either local (default) or remote.")
+    if (!(value.toLowerCase == "local" || value.toLowerCase == "distributed"))
+      throw new Exception(s"Unsupported ingestion mode: ${value}. Use either local (default) or distributed.")
   }
 }
 
 object IngestRasterCommand {
-  val Command = "ingestRaster"
+  val Command = "ingestraster"
 
   @Parameters(commandDescription = "Ingest a raster file or raster files in a directory into GeoMesa")
   class IngestRasterParameters extends CreateRasterParams {
@@ -163,7 +163,7 @@ object IngestRasterCommand {
       "threads for ingesting multiple raster files (default to 1)")
     var parLevel: Integer = 1
 
-    @Parameter(names = Array("-m", "--mode"), description = "Ingestion mode (local | remote, default " +
+    @Parameter(names = Array("-m", "--mode"), description = "Ingestion mode (local | distributed, default " +
       "to local)", validateWith = classOf[ModeValidator])
     var mode: String = "local"
 
