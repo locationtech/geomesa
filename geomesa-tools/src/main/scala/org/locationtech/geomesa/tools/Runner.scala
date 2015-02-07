@@ -33,7 +33,7 @@ object Runner extends Logging {
       new TableConfCommand(jc),
       new ListCommand(jc),
       new ExportCommand(jc),
-      new DeleteFeatureCommand(jc),
+      new RemoveSchemaCommand(jc),
       new DeleteCatalogCommand(jc),
       new DescribeCommand(jc),
       new IngestCommand(jc),

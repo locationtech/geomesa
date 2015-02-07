@@ -153,12 +153,12 @@ To create a new feature on a specified catalog table, use the `create` command.
 #### Example command:
     geomesa create -u username -p password -c test_create -i instname -z zoo1,zoo2,zoo3 -fn testing -s fid:String:index=true,dtg:Date,geom:Point:srid=4326 -dt dtg
 
-### deletefeature
-To delete a feature on a specified catalog table, use the `deletefeature` command.
+### removeschema
+To remove a feature type and it's associated data from a catalog table, use the `removeschema` command.
 
 ####Usage (required options denoted with star):
-    $ geomesa help deletefeature
-    Usage: deletefeature [options]
+    $ geomesa help removeschema
+    Usage: removeschema [options]
       Options:
         -a, --auths
            Accumulo authorizations
@@ -189,8 +189,8 @@ To delete a feature on a specified catalog table, use the `deletefeature` comman
 
     
 ####Example:
-    geomesa deletefeature -u username -p password -i instname -z zoo1,zoo2,zoo3 -c test_catalog -fn testfeature1
-    geomesa deletefeature -u username -p password -i instname -z zoo1,zoo2,zoo3 -c test_catalog -pt 'testfeatures\d+'
+    geomesa removeschema -u username -p password -i instname -z zoo1,zoo2,zoo3 -c test_catalog -fn testfeature1
+    geomesa removeschema -u username -p password -i instname -z zoo1,zoo2,zoo3 -c test_catalog -pt 'testfeatures\d+'
 
 ### deletecatalog
 To delete a GeoMesa catalog completely (and all features in it) use the `deletecatalog` command.
