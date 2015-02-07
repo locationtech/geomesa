@@ -476,7 +476,7 @@ class AccumuloDataStore(val connector: Connector,
     ).filter(tableOps.exists).foreach(tableOps.delete)
 
   /**
-   * Delete the tables associated with this datastore (index tables and catalog table)
+   * Delete everything (all tables) associated with this datastore (index tables and catalog table)
    */
   def delete() = {
     val indexTables =
