@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.core
 
 import org.geotools.factory.CommonFactoryFinder
@@ -25,8 +41,8 @@ package object filter {
    * @param filter An arbitrary filter.
    * @return       A filter in DNF (described above).
    */
-  def rewriteFilter(filter: Filter)(implicit ff: FilterFactory): Filter = {
-    val ll =  logicDistribution(filter)
+  def rewriteFilterInDNF(filter: Filter)(implicit ff: FilterFactory): Filter = {
+    val ll =  logicDistributionDNF(filter)
     if(ll.size == 1) {
       if(ll(0).size == 1) ll(0)(0)
       else ff.and(ll(0))
@@ -48,20 +64,137 @@ package object filter {
    * @return   A List[ List[Filter] ] where the inner List of Filters are to be joined by
    *           Ands and the outer list combined by Ors.
    */
-  private[core] def logicDistribution(x: Filter): List[List[Filter]] = x match {
-    case or: Or  => or.getChildren.toList.flatMap(logicDistribution)
+  private[core] def logicDistributionDNF(x: Filter): List[List[Filter]] = x match {
+    case or: Or  => or.getChildren.toList.flatMap(logicDistributionDNF)
 
     case and: And => and.getChildren.foldRight (List(List.empty[Filter])) {
       (f, dnf) => for {
-        a <- logicDistribution (f)
+        a <- logicDistributionDNF (f)
         b <- dnf
       } yield a ++ b
     }
 
     case not: Not =>
       not.getFilter match {
-        case and: And => logicDistribution(deMorgan(and))
-        case or:  Or => logicDistribution(deMorgan(or))
+        case and: And => logicDistributionDNF(deMorgan(and))
+        case or:  Or => logicDistributionDNF(deMorgan(or))
+        case f: Filter => List(List(not))
+      }
+
+    case f: Filter => List(List(f))
+  }
+
+  /**
+   * This function rewrites a org.opengis.filter.Filter in terms of a top-level AND with children filters which
+   * 1) do not contain further ANDs, (i.e., ANDs bubble up)
+   * 2) only contain at most one OR which is at the top of their 'tree'
+   *
+   * Note that this further implies that NOTs have been 'pushed down' and do have not have ANDs nor ORs as children.
+   *
+   * In boolean logic, this form is called conjunctive normal form (CNF).
+   *
+   * The main use case for this function is to aid in splitting filters between a combination of a
+   * GeoMesa data store and some other data store. This is done with the AndSplittingFilter class.
+   * In the examples below, anything with "XAttr" is assumed to be a filter that CANNOT be answered
+   * through GeoMesa. In having a filter split on the AND, the portion of the filter that GeoMesa
+   * CAN answer will be applied in GeoMesa, returning a result set, and then the portion that GeoMesa CANNOT
+   * answer will be applied on that result set.
+   *
+   * Examples:
+   *  1. (
+   *       (GmAttr ILIKE 'test')
+   *       OR
+   *       (date BETWEEN '2014-01-01T10:30:00.000Z' AND '2014-01-02T10:30:00.000Z')
+   *     )
+   *      AND
+   *     (XAttr ILIKE = 'example')
+   *
+   *     Converting to CNF will allow easily splitting the filter on the AND into two children
+   *      - one child is the "GmAttr" and "date" filters that can be answered with GeoMesa
+   *      - one child is the "XAttr" filter that cannot be answered by GeoMesa
+   *
+   *      In this case, the GeoMesa child filter will be processed first, and then the "XAttr" filter will
+   *    be processed on the GeoMesa result set to return a subset of the GeoMesa results.
+   *
+   *  2. (GmAttr ILIKE 'test')
+   *      AND
+   *          (
+   *            (date BETWEEN '2014-01-01T10:30:00.000Z' AND '2014-01-02T10:30:00.000Z')
+   *             OR
+   *            (XAttr1 ILIKE = 'example1')
+   *          )
+   *      AND
+   *     (XAttr2 ILIKE = 'example2')
+   *
+   *     Converting to CNF still allows easily splitting the filter on the AND into three children
+   *      - one child is the "GmAttr" filter
+   *      - one child is the "date" OR "XAttr1" filter
+   *      - one child is the "XAttr2" filter
+   *
+   *      In this case, the "GmAttr" child will be processed first, returning a result set from GeoMesa
+   *    called RS1. Then, RS1 will be further filtered with the "date" predicate that can be handled
+   *    by GeoMesa, returning a subset of RS1 called SS1. The additional filter which cannot be answered
+   *    by GeoMesa, "XAttr1," will be applied to RS1 and return subset SS2. Finally, the final child,
+   *    the "XAttr2" filter, which cannot be answered by GeoMesa, will be applied to both SS1 and SS2 to
+   *    return SS3, a JOIN of SS1+SS2 filtered with "XAttr2."
+   *
+   *  3. (GmAttr ILIKE 'test')
+   *      OR
+   *     (XAttr ILIKE = 'example')
+   *
+   *     This is the worst-case-scenario for a query that is answered through two data stores, both
+   *     GeoMesa and some other store.
+   *
+   *     CNF converts this to:
+   *      - one child of "GmAttr" OR "XAttr"
+   *
+   *      In this case, the "GmAttr" will return a result set, RS1. The reason this is the
+   *    worst-case-scenario is because, to answer the "XAttr" portion of the query (which cannot be
+   *    answered by GeoMesa), a "Filter.INCLUDE" A.K.A a full table scan (on Accumulo) A.K.A. every
+   *    record in GeoMesa is necessary to find the results that satisfy the "XAttr" portion of the
+   *    query. This will product result set RS2. The returned results will be a JOIN of RS1+RS2.
+   *
+   *
+   * @param filter An arbitrary filter.
+   * @return       A filter in CNF (described above).
+   */
+  def rewriteFilterInCNF(filter: Filter)(implicit ff: FilterFactory): Filter = {
+    val ll =  logicDistributionCNF(filter)
+    if(ll.size == 1) {
+      if(ll(0).size == 1) ll(0)(0)
+      else ff.or(ll(0))
+    }
+    else  {
+      val children = ll.map { l =>
+        l.size match {
+          case 1 => l(0)
+          case _ => ff.or(l)
+        }
+      }
+      ff.and(children)
+    }
+  }
+
+  /**
+   *
+   * @param x: An arbitrary @org.opengis.filter.Filter
+   * @return   A List[ List[Filter] ] where the inner List of Filters are to be joined by
+   *           Ors and the outer list combined by Ands.
+   */
+  def logicDistributionCNF(x: Filter): List[List[Filter]] = x match {
+    case and: And => and.getChildren.toList.flatMap(logicDistributionCNF)
+
+    case or: Or => or.getChildren.foldRight (List(List.empty[Filter])) {
+      (f, cnf) => for {
+        a <- logicDistributionCNF(f)
+        b <- cnf
+      } yield a ++ b
+    }
+
+    case not: Not =>
+      not.getFilter match {
+        case and: And => logicDistributionCNF(deMorgan(and))
+        case or:  Or => logicDistributionCNF(deMorgan(or))
         case f: Filter => List(List(not))
       }
 

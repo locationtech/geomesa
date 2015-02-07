@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa-accumulo1.5</artifactId>
-    <version>1.0.0-rc.3-SNAPSHOT</version>
+    <version>1.0.0-rc.4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>GeoMesa - [Accumulo 1.5.x]</name>
 
@@ -31,11 +31,12 @@
         <module>geomesa-plugin</module>
         <module>geomesa-filter</module>
         <module>geomesa-feature</module>
+        <module>geomesa-kafka</module>
+        <module>geomesa-convert</module>
         <module>geomesa-tools</module>
         <module>geomesa-compute</module>
         <module>geomesa-assemble</module>
         <module>geomesa-web</module>
-        <module>geomesa-kafka</module>
     </modules>
 
     <properties>
@@ -66,7 +67,7 @@
         <dist.dev>dev</dist.dev>
 
         <!-- testing properties -->
-        <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit</maven.test.jvmargs>
+        <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit</maven.test.jvmargs>
         <fork.mode>once</fork.mode>
         <avro.version>1.7.5</avro.version>
         <accumuloSuffix>accumulo1.5</accumuloSuffix>
@@ -858,6 +859,11 @@
               <version>${accumulo.version}</version>
               <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>com.typesafe</groupId>
+                <artifactId>config</artifactId>
+                <version>1.2.1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -924,6 +930,7 @@
                     <jvmArgs>
                         <jvmArg>-Xms1024m</jvmArg>
                         <jvmArg>-Xmx8G</jvmArg>
+                        <jvmArg>-Duser.timezone=UTC</jvmArg>
                         <jvmArg>-XX:MaxPermSize=1024m</jvmArg>
                     </jvmArgs>
                     <args>

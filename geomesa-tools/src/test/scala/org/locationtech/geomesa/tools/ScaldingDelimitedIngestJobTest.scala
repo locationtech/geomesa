@@ -268,7 +268,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
         .stringType("text")
         .date("time", default = true)
         .point("geom", default = true)
-        .getSpec()
+        .getSpec
       val params = (csvNormParams - IngestParams.LAT_ATTRIBUTE - IngestParams.LON_ATTRIBUTE)
         .updated(IngestParams.DT_FORMAT, List("yyyy/MM/dd :HH:mm:ss:"))
         .updated(IngestParams.FORMAT, List("TSV"))

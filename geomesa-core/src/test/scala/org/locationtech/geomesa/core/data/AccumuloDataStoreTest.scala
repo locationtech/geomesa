@@ -1107,7 +1107,7 @@ class AccumuloDataStoreTest extends Specification {
         builder.set("name", i.toString)
         builder.set("attr2", "2-" + i.toString)
         val sf = builder.buildFeature(i.toString)
-        sf.getUserData().update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.getUserData.update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf
       }
 
@@ -1154,7 +1154,7 @@ class AccumuloDataStoreTest extends Specification {
         builder.set("name", i.toString)
         builder.set("attr2", "2-" + i.toString)
         val sf = builder.buildFeature(i.toString)
-        sf.getUserData().update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.getUserData.update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf
       }
 
