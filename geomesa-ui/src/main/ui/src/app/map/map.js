@@ -1,39 +1,43 @@
 angular.module('geomesa.map', [])
 
-    .directive('geomesaMap', [function () {
+    .directive('geomesaMap', ['$http', function ($http) {
+
         return {
             restrict: 'E',
             scope: {
                 map: '=?',
                 api: '=',
+                cards: '=',
                 selectedPoint: '='
             },
+
             link: function (scope, element, attrs) {
-                var baseLayer = L.tileLayer.provider('Stamen.TonerLite'),
-                    //wmsLayer = L.tileLayer.wms("http://dgeo:8080/geoserver/sf/wms", {
-                    wmsLayer = L.tileLayer.wms("localhost:8080/wcs/cite/wms", {
-                        layers: 'cite::QuickStart',
-                        format: 'image/png',
-                        transparent: true
+                scope.cards = [
+                    {
+                        Start: ' Click a data point to view it\'s attributes.'
+                    }
+                ];
+
+                var baseLayer = new ol.layer.Tile({
+                        source: new ol.source.MapQuest({layer: 'osm'})
+                    }),
+                    wmsSource = new ol.source.TileWMS({
+                        url: 'http://geomesa:8080/geoserver/geomesa/wms',
+                        params: {LAYERS: 'QuickStart'}
+                    }),
+                        wmsLayer = new ol.layer.Tile({
+                        source: wmsSource
+                    }),
+                    olView = new ol.View({
+                        center: ol.proj.transform([37.41, 8.82], 'EPSG:4326', 'EPSG:3857'),
+                        zoom : 4,
+                        maxResolution : 40075016.68557849 / screen.width,
                     });
 
-                scope.map = L.map(element[0], {
-                    //center: L.latLng(40.279957,-74.73862),
-                    center: L.latLng(-38.09, -76.85),
-                    zoom: 8,
-                    maxZoom: 18,
-                    minZoom: 3,
-                    attributionControl: false,
-                    layers: [baseLayer, wmsLayer]
-                });
-
-                scope.map.on('click', function (evt) {
-                    scope.$apply(function () {
-                        scope.selectedPoint = {
-                            lat: evt.latlng.lat,
-                            lng: evt.latlng.lng
-                        };
-                    });
+                scope.map = new ol.Map({
+                    target: element[0],
+                    layers: [baseLayer, wmsLayer],
+                    view: olView
                 });
 
                 scope.api = {
@@ -42,6 +46,20 @@ angular.module('geomesa.map', [])
                     }
                 };
 
+                scope.map.on('singleclick', function(evt) {
+                    var viewResolution = olView.getResolution();
+                    var url = wmsSource.getGetFeatureInfoUrl(
+                        evt.coordinate, viewResolution, 'EPSG:3857',
+                        {'INFO_FORMAT': 'application/json', FEATURE_COUNT: 50}
+                    );
+                    $http.get(url).success(function(data, status, headers, config) {
+                        if (data.features.length){
+                            scope.cards = data.features;
+                        }
+                    }).error(function(data, status, headers, config) {
+                        console.log('Error getting data with getFeatureInfo.');
+                    });
+                }); 
             }
         };
     }]);
