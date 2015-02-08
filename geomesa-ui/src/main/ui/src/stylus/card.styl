@@ -1,0 +1,45 @@
+.cards
+    position absolute
+    height 50%
+    bottom 30px
+    right 30px
+    width 25%
+    background-color #fff
+    box-shadow -2px 2px 5px 2px rgba(0,0,0,0.3)
+    overflow hidden
+    .panel-footer
+        height 60px
+        text-align center
+    .panel-body
+        height calc(100% - 60px)
+        position relative
+    .card
+        display inline-block
+        position absolute
+        top 5px
+        right 5px
+        left 5px
+        bottom 30px
+        opacity 1
+        margin 0
+        overflow auto
+        transition left 1s linear 0s, right 1s linear 0s, opacity 1s linear 0s
+        &.left
+            left -100%
+            right 100%
+            opacity 0
+            transition left 1s linear 0s, right 1s linear 0s, opacity 1s linear 0s
+        &.right
+            left 100%
+            right -100%
+            opacity 0
+            transition left 1s linear 0s, right 1s linear 0s, opacity 1s linear 0s
+        .card-row
+            width 100%
+    .page-info
+        height 30px
+        position absolute
+        bottom 0
+        left 5px
+        right 5px
+        text-align center
