@@ -313,7 +313,31 @@ object AccumuloBackedRasterOperations {
 }
 
 object RasterTableConfig {
-  //TODO: WCS: document settings --  GEOMESA-565
+  /**
+   * documentation for raster table settings:
+   *
+   * table.security.scan.visibility.default
+   * - The default visibility for the table
+   *
+   * table.iterator.majc.vers.opt.maxVersions
+   * - Versioning iterator setting
+   * - max versions, major compaction
+   *
+   * table.iterator.minc.vers.opt.maxVersions
+   * - Versioning iterator setting
+   * - max versions, minor compaction
+   *
+   * table.iterator.scan.vers.opt.maxVersions
+   * - Versioning iterator setting
+   * - max versions, scan time
+   *
+   * table.split.threshold
+   * - The split threshold for the table, when reached
+   * - Accumulo splits the table into tablets of this size.
+   *
+   * @param visibilities
+   * @return
+   */
   def settings(visibilities: String): Map[String, String] = Map (
     "table.security.scan.visibility.default" -> visibilities,
     "table.iterator.majc.vers.opt.maxVersions" -> "2147483647",
