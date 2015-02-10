@@ -30,15 +30,13 @@ import org.locationtech.geomesa.raster.AccumuloStoreHelper
 import org.locationtech.geomesa.raster.ingest.GeoserverClientService
 import org.locationtech.geomesa.raster.util.RasterUtils._
 
-import scala.util.Try
-
 trait CoverageStore {
   def getAuths: Authorizations
   def getVisibility: String
   def getConnector: Connector
   def getTable: String
   def saveRaster(raster: Raster): Unit
-  def registerToGeoserver(raster: Raster): Unit
+  def registerToGeoServer(raster: Raster): Unit
 }
 
 /**
@@ -48,10 +46,10 @@ trait CoverageStore {
  *  and registering coverage to Geoserver.
  *
  * @param rasterStore Raster store instance
- * @param geoserverClientServiceO Optional Geoserver client instance
+ * @param geoserverClientService Optional GeoServer client instance
  */
 class AccumuloCoverageStore(val rasterStore: RasterStore,
-                            val geoserverClientServiceO: Option[GeoserverClientService] = None)
+                            val geoserverClientService: Option[GeoserverClientService] = None)
   extends CoverageStore with Logging {
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
@@ -68,102 +66,82 @@ class AccumuloCoverageStore(val rasterStore: RasterStore,
 
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = rasterStore.getRasters(rasterQuery)
 
-  def saveRaster(raster: Raster) = {
-    rasterStore.putRaster(raster)
-  }
+  def saveRaster(raster: Raster) = rasterStore.putRaster(raster)
 
   def getQueryRecords(numRecords: Int): Iterator[String]  = rasterStore.getQueryRecords(numRecords)
 
-  def registerToGeoserver(raster: Raster) {
-    geoserverClientServiceO.foreach { geoserverClientService => {
-      registerToGeoserver(raster, geoserverClientService)
+  def registerToGeoServer(raster: Raster) {
+    geoserverClientService.foreach { geoserverClientService => {
+      registerToGeoServer(raster, geoserverClientService)
       logger.debug(s"Register raster ${raster.id} to geoserver at ${geoserverClientService.geoserverUrl}")
     }}
   }
 
-  private def registerToGeoserver(raster: Raster, geoserverClientService: GeoserverClientService) {
+  private def registerToGeoServer(raster: Raster, geoserverClientService: GeoserverClientService) {
     geoserverClientService.registerRasterStyles()
     geoserverClientService.registerRaster(raster.id, raster.id, "Raster data", None)
   }
 }
 
 object AccumuloCoverageStore extends Logging {
-   //TODO: WCS: ensure that this is as clean as possible -- GEOMESA-567
-   def apply(username: String,
-             password: String,
-             instanceId: String,
-             zookeepers: String,
-             tableName: String,
-             auths: String,
-             writeVisibilities: String): AccumuloCoverageStore = {
+  def apply(username: String,
+            password: String,
+            instanceId: String,
+            zookeepers: String,
+            tableName: String,
+            auths: String,
+            writeVisibilities: String): AccumuloCoverageStore = {
 
-     val rs = RasterStore(username,
-             password,
-             instanceId,
-             zookeepers,
-             tableName,
-             auths,
-             writeVisibilities)
+    val rs = RasterStore(username, password, instanceId, zookeepers,
+                         tableName, auths, writeVisibilities)
 
-     new AccumuloCoverageStore(rs, None)
-   }
+    new AccumuloCoverageStore(rs, None)
+  }
 
   def apply(config: JMap[String, Serializable]): AccumuloCoverageStore = {
+    val userName = userParam.lookUp(config).asInstanceOf[String]
+    val password = passwordParam.lookUp(config).asInstanceOf[String]
+    val instanceId = instanceIdParam.lookUp(config).asInstanceOf[String]
+    val zookeepers = zookeepersParam.lookUp(config).asInstanceOf[String]
+    val authorizations = AccumuloStoreHelper.getAuthorization(config)
     val visibility = AccumuloStoreHelper.getVisibility(config)
     val tableName = tableNameParam.lookUp(config).asInstanceOf[String]
     val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(config).asInstanceOf[String])
-    val connector =
-      if (config.containsKey(connParam.key)) connParam.lookUp(config).asInstanceOf[Connector]
-      else AccumuloStoreHelper.buildAccumuloConnector(config, useMock)
-    val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(config, connector)
-    val collectStats = !useMock && Try(statsParam.lookUp(config).asInstanceOf[java.lang.Boolean] == true).getOrElse(false)
-
     val shardsConfig = shardsParam.lookupOpt(config)
     val writeMemoryConfig = writeMemoryParam.lookupOpt(config)
     val writeThreadsConfig = writeThreadsParam.lookupOpt(config)
     val queryThreadsConfig = queryThreadsParam.lookupOpt(config)
 
-    // TODO: WCS: refactor by using companion object of RasterStore if appropriate
-    // GEOMESA-567
-    val rasterOps =
-      AccumuloBackedRasterOperations(connector,
-                                     tableName,
-                                     authorizationsProvider,
-                                     visibility,
-                                     shardsConfig,
-                                     writeMemoryConfig,
-                                     writeThreadsConfig,
-                                     queryThreadsConfig,
-                                     collectStats)
-
-    // Create Bounds Store, this is required for combiners to function
-    rasterOps.ensureBoundsTableExists()
+    val rasterStore = RasterStore(userName, password, instanceId, zookeepers,
+                                  tableName, visibility, authorizations, useMock,
+                                  shardsConfig, writeMemoryConfig, writeThreadsConfig,
+                                  queryThreadsConfig)
 
     val dsConnectConfig: Map[String, String] = Map(
-      IngestRasterParams.ACCUMULO_INSTANCE -> instanceIdParam.lookUp(config).asInstanceOf[String],
-      IngestRasterParams.ZOOKEEPERS -> zookeepersParam.lookUp(config).asInstanceOf[String],
-      IngestRasterParams.ACCUMULO_USER -> userParam.lookUp(config).asInstanceOf[String],
-      IngestRasterParams.ACCUMULO_PASSWORD -> passwordParam.lookUp(config).asInstanceOf[String],
-      IngestRasterParams.TABLE -> tableName,
-      IngestRasterParams.AUTHORIZATIONS -> authorizationsProvider.getAuthorizations.toString,
-      IngestRasterParams.VISIBILITIES -> visibility
+      IngestRasterParams.ACCUMULO_INSTANCE -> instanceId,
+      IngestRasterParams.ZOOKEEPERS        -> zookeepers,
+      IngestRasterParams.ACCUMULO_USER     -> userName,
+      IngestRasterParams.ACCUMULO_PASSWORD -> password,
+      IngestRasterParams.TABLE             -> tableName,
+      IngestRasterParams.AUTHORIZATIONS    -> authorizations,
+      IngestRasterParams.VISIBILITIES      -> visibility
     )
 
-    val geoserverConfig = geoserverParam.lookUp(config).asInstanceOf[String]
-    val geoserverClientServiceO: Option[GeoserverClientService] =
-      if (geoserverConfig == null) None
-      else {
+    val GeoServerConfig = geoserverParam.lookUp(config).asInstanceOf[Option[String]]
+    val GeoServerClientService: Option[GeoserverClientService] = GeoServerConfig match {
+      case Some(gsconfig) =>
         val gsConnectConfig: Map[String, String] =
-          geoserverConfig.split(",").map(_.split("=") match {
+          gsconfig.split(",").map(_.split("=") match {
             case Array(s1, s2) => (s1, s2)
             case _ =>
               logger.error("Failed to instantiate Geoserver client service: wrong parameters.")
               sys.exit()
           }).toMap
         Some(new GeoserverClientService(dsConnectConfig ++ gsConnectConfig))
-      }
+      case _              => None
+    }
 
-    new AccumuloCoverageStore(new RasterStore(rasterOps), geoserverClientServiceO)
+    new AccumuloCoverageStore(rasterStore, GeoServerClientService)
   }
 
 }
