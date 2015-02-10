@@ -43,7 +43,7 @@ object Transformers extends JavaTokenParsers {
     private val OPEN_PAREN  = "("
     private val CLOSE_PAREN = ")"
 
-    def string      = "'" ~> "[^']+".r <~ "'".r ^^ { s => LitString(s) }
+    def string      = "'" ~> "[^']*".r <~ "'".r ^^ { s => LitString(s) }
     def int         = wholeNumber ^^   { i => LitInt(i.toInt) }
     def double      = decimalNumber ^^ { d => LitDouble(d.toDouble) }
     def long        = wholeNumber ^^   { l => LitLong(l.toLong) }
@@ -81,7 +81,12 @@ object Transformers extends JavaTokenParsers {
     def dGTEq     = numericPredicate("dGTEq", DGTEQ)
     def dGT       = numericPredicate("dGT", DGT)
 
-    def binaryPred  = strEq | intEq | intLTEq | intLT | intGTEq | intGT | dEq | dLTEq | dLT | dGTEq | dGT
+    def binaryPred  =
+      strEq |
+        intEq  | intLTEq  | intLT  | intGTEq  | intGT  |
+        dEq    | dLTEq    | dLT    | dGTEq    | dGT    |
+        longEq | longLTEq | longLT | longGTEq | longGT
+
     def andPred     = ("and" ~ OPEN_PAREN) ~> (pred ~ "," ~ pred) <~ CLOSE_PAREN ^^ {
       case l ~ "," ~ r => And(l, r)
     }

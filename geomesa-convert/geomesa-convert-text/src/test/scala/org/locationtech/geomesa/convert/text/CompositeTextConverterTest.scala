@@ -28,9 +28,10 @@ class CompositeTextConverterTest extends Specification {
 
   val data =
     """
-      |1,hello,45.0,45.0
+      |1  ,hello,45.0,45.0
       |asfastofail,f
-      |2,world,90.0,90.0
+      |3
+      |2  ,world,90.0,90.0
     """.stripMargin
 
   val conf = ConfigFactory.parseString(
@@ -38,14 +39,14 @@ class CompositeTextConverterTest extends Specification {
       | converter = {
       |   type         = "composite-converter",
       |   converters = [
-      |     { converter = "first",   predicate = "strEq('1', substr($0, 0, 1))" },
-      |     { converter = "second",  predicate = "strEq('2',  substr($0, 0, 1))" }
+      |     { converter = "first",   predicate = "strEq('1', trim(substr($0, 0, 2)))" },
+      |     { converter = "second",  predicate = "strEq('2', trim(substr($0, 0, 2)))" }
       |   ]
       |   first = {
       |     converter = {
       |       type         = "delimited-text",
       |       format       = "DEFAULT",
-      |       id-field     = "concat('first', $1)",
+      |       id-field     = "concat('first', trim($1))",
       |       fields = [
       |         { name = "phrase", transform = "concat($1, $2)" },
       |         { name = "lat",    transform = "$3::double" },
@@ -59,7 +60,7 @@ class CompositeTextConverterTest extends Specification {
       |     converter = {
       |       type         = "delimited-text",
       |       format       = "DEFAULT",
-      |       id-field     = "concat('second', $1)",
+      |       id-field     = "concat('second', trim($1))",
       |       fields = [
       |         { name = "phrase", transform = "concat($1, $2)" },
       |         { name = "lat",    transform = "$3::double" },
