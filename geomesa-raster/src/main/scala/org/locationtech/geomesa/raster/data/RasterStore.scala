@@ -66,17 +66,23 @@ object RasterStore {
             tableName: String,
             auths: String,
             writeVisibilities: String,
-            useMock: Boolean = false): RasterStore = {
+            useMock: Boolean = false,
+            shardsConfig: Option[Int] = None,
+            writeMemoryConfig: Option[String] = None,
+            writeThreadsConfig: Option[Int] = None,
+            queryThreadsConfig: Option[Int] = None): RasterStore = {
 
     val conn = AccumuloStoreHelper.buildAccumuloConnector(username, password, instanceId, zookeepers, useMock)
 
     val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(auths.split(","), conn)
 
-    val rasterOps = new AccumuloBackedRasterOperations(conn, tableName, authorizationsProvider, writeVisibilities)
-    // this will actually create the Accumulo Table
-    rasterOps.createTableStructure()
     // TODO: WCS: Configure the shards/writeMemory/writeThreads/queryThreadsParams
     // GEOMESA-568
+    val rasterOps = new AccumuloBackedRasterOperations(conn, tableName, authorizationsProvider, writeVisibilities,
+                        shardsConfig, writeMemoryConfig, writeThreadsConfig, queryThreadsConfig)
+    // this will actually create the Accumulo Table
+    rasterOps.createTableStructure()
+
     new RasterStore(rasterOps)
   }
 }
