@@ -80,8 +80,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
   val writeThreads = writeThreadsConfig.getOrElse(10)
   val bwConfig: BatchWriterConfig =
     new BatchWriterConfig().setMaxMemory(writeMemory).setMaxWriteThreads(writeThreads)
-  //TODO: WCS: Abstract number of threads
-  val numQThreads = 20
+  val numQThreads = queryThreadsConfig.getOrElse(20)
 
   // TODO: WCS: GEOMESA-585 Add ability to use arbitrary schemas
   val schema = RasterIndexSchema("")
@@ -290,18 +289,8 @@ object AccumuloBackedRasterOperations {
             shardsConfig: Option[Int],
             writeMemoryConfig: Option[String],
             writeThreadsConfig: Option[Int],
-            queryThreadsConfig: Option[Int],
-            collectStats: Boolean): AccumuloBackedRasterOperations  =
-    if (collectStats)
-      new AccumuloBackedRasterOperations(connector,
-                                         tableName,
-                                         authorizationsProvider,
-                                         visibility,
-                                         shardsConfig,
-                                         writeMemoryConfig,
-                                         writeThreadsConfig,
-                                         queryThreadsConfig) with StatWriter
-    else
+            queryThreadsConfig: Option[Int]): AccumuloBackedRasterOperations  =
+
       new AccumuloBackedRasterOperations(connector,
                                          tableName,
                                          authorizationsProvider,
