@@ -49,6 +49,7 @@ class DelimitedTextConverterTest extends Specification {
         |     { name = "phrase", transform = "concat($1, $2)" },
         |     { name = "lat",    transform = "$3::double" },
         |     { name = "lon",    transform = "$4::double" },
+        |     { name = "lit",    transform = "'hello'" },
         |     { name = "geom",   transform = "point($lat, $lon)" }
         |   ]
         | }
