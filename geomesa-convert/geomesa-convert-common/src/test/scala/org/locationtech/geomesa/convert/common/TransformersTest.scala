@@ -93,6 +93,11 @@ class TransformersTest extends Specification {
           exp.eval("", "20150101").asInstanceOf[Date] must be equalTo testDate
         }
 
+        "datetime" >> {
+          val exp = Transformers.parseTransform("datetime($1)")
+          exp.eval("", "2015-01-01T00:00:00.000Z").asInstanceOf[Date] must be equalTo testDate
+        }
+
         "isodate" >> {
           val exp = Transformers.parseTransform("isodate($1)")
           exp.eval("", "20150101").asInstanceOf[Date] must be equalTo testDate

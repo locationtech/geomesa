@@ -243,10 +243,11 @@ class StringFunctionFactory extends TransformerFunctionFactory {
 class DateFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFn] =
-    Seq(now, customFormatDateParser, isodate, isodatetime, dateHourMinuteSecondMillis, millisToDate)
+    Seq(now, customFormatDateParser, datetime, isodate, isodatetime, dateHourMinuteSecondMillis, millisToDate)
 
   val now = TransformerFn("now") { args => DateTime.now.toDate }
   val customFormatDateParser = CustomFormatDateParser()
+  val datetime = StandardDateParser("datetime", ISODateTimeFormat.dateTime())
   val isodate = StandardDateParser("isodate", ISODateTimeFormat.basicDate())
   val isodatetime = StandardDateParser("isodatetime", ISODateTimeFormat.basicDateTime())
   val dateHourMinuteSecondMillis = StandardDateParser("dateHourMinuteSecondMillis", ISODateTimeFormat.dateHourMinuteSecondMillis())
