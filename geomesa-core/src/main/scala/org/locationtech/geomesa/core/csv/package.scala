@@ -22,7 +22,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import java.util.{Date, Iterator => jIterator}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Coordinate, Geometry, GeometryFactory, Point}
+import com.vividsolutions.jts.geom._
 import org.apache.commons.csv.{CSVFormat, CSVRecord}
 import org.apache.commons.io.FilenameUtils
 import org.geotools.data.DefaultTransaction
@@ -99,12 +99,17 @@ package object csv extends Logging {
   }
 
   protected[csv] def getParser[A](clas: Class[A]) = clas match {
-    case c if c.isAssignableFrom(classOf[jInt])     => IntParser
-    case c if c.isAssignableFrom(classOf[jDouble])  => DoubleParser
-    case c if c.isAssignableFrom(classOf[Date])     => TimeParser
-    case c if c.isAssignableFrom(classOf[Point])    => PointParser
-    case c if c.isAssignableFrom(classOf[Geometry]) => GeometryParser
-    case c if c.isAssignableFrom(classOf[String])   => StringParser
+    case c if c.isAssignableFrom(classOf[jInt])            => IntParser
+    case c if c.isAssignableFrom(classOf[jDouble])         => DoubleParser
+    case c if c.isAssignableFrom(classOf[Date])            => TimeParser
+    case c if c.isAssignableFrom(classOf[Point])           => PointParser
+    case c if c.isAssignableFrom(classOf[LineString])      => LineStringParser
+    case c if c.isAssignableFrom(classOf[Polygon])         => PolygonParser
+    case c if c.isAssignableFrom(classOf[MultiPoint])      => MultiPointParser
+    case c if c.isAssignableFrom(classOf[MultiLineString]) => MultiLineStringParser
+    case c if c.isAssignableFrom(classOf[MultiPolygon])    => MultiPolygonParser
+    case c if c.isAssignableFrom(classOf[Geometry])        => GeometryParser
+    case c if c.isAssignableFrom(classOf[String])          => StringParser
     case _ => StringParser
   }
 
@@ -160,9 +165,12 @@ package object csv extends Logging {
     val fc = new DefaultFeatureCollection
     val records = CSVFormat.DEFAULT.parse(reader).iterator()
     if (hasHeader) { records.next } // burn off header rather than try (and fail) to parse it.
-    records.foreach { record =>
+    for {
+      record  <- records
       // logs and discards lines that fail to parse but keeps processing
-      buildFeature(record, fb, parsers, latlonIdx).foreach(fc.add)
+      feature <- buildFeature(record, fb, parsers, latlonIdx)
+    } {
+      fc.add(feature)
     }
     fc
   }
