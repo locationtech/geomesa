@@ -27,6 +27,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators._
+import org.locationtech.geomesa.core.process.knn.TouchingGeoHashes
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.iterators.RasterFilteringIterator
@@ -48,20 +49,16 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
     for {
       i <- (1 to len-1).iterator
       hash <- set.map(_.take(i)).distinct
-      newStr = hash.take(i)
-    } yield newStr
+    } yield hash.take(i)
   }
 
   def getQueryPlan(rq: RasterQuery, availableResolutions: List[Double]): QueryPlan = {
-
-    // TODO: WCS: Improve this if possible
-    // ticket is GEOMESA-560
-    // note that this will only go DOWN in GeoHash resolution -- the enumeration will miss any GeoHashes
-    // that perfectly match the bbox or ones that fully contain it.
     val closestAcceptableGeoHash = GeohashUtils.getClosestAcceptableGeoHash(rq.bbox)
     val bboxHashes = BoundingBox.getGeoHashesFromBoundingBox(rq.bbox)
     val hashes = closestAcceptableGeoHash match {
-      case Some(gh) => (bboxHashes :+ closestAcceptableGeoHash.get.hash).distinct
+      case Some(gh) =>
+        val touching = TouchingGeoHashes.touching(gh).map(_.hash)
+        (bboxHashes ++ touching :+ closestAcceptableGeoHash.get.hash).distinct
       case        _ => bboxHashes.toList
     }
 
@@ -70,14 +67,14 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
 
     // Tricks:
     //  Step 1: We will 'dot' our GeoHashes.
-    val dotted = shorten(hashes).toList.distinct
+    //val dotted = shorten(hashes).toList.distinct
 
-    val r = {hashes.map { gh =>
+    val r = hashes.map { gh =>
       // TODO: leverage the RasterIndexSchema to construct the range.
       // Step 2:  We will pad our scan ranges for each GeoHash we are descending.
       //new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"), new Text(s"~$res~$gh~"))
       new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"))
-    }}.distinct
+    }.distinct
 //    } ++ dotted.map { gh =>
 //      new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"), new Text(s"~$res~$gh~"))
 //    }}.distinct
