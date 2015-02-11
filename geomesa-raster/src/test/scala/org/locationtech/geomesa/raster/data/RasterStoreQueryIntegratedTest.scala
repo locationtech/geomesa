@@ -19,7 +19,7 @@ package org.locationtech.geomesa.raster.data
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.raster.RasterTestsUtils
 import org.locationtech.geomesa.raster.RasterTestsUtils._
-import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -221,6 +221,24 @@ class RasterStoreQueryIntegratedTest extends Specification {
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(4)
     }
+
+    "Do the correct thing when querying the whole world" in {
+      val tableName = getNewIteration()
+      val rasterStore = createMockRasterStore(tableName)
+
+      // general setup
+      val wholeWorld = BoundingBox(-180.0, 180, -90.0, 90.0)
+      val allFiveCharacterHashes = BoundingBox.getGeoHashesFromBoundingBox(wholeWorld)
+      val testRasters = allFiveCharacterHashes.map{ hash => generateTestRasterFromBoundingBox(GeoHash(hash).bbox) }
+      testRasters.foreach(rasterStore.putRaster(_))
+
+      //generate query
+      val query = generateQuery(-180.0, 180.0, -90.0, 90.0)
+
+      rasterStore must beAnInstanceOf[RasterStore]
+      val theResults = rasterStore.getRasters(query).toList
+      theResults.length must beEqualTo(32)
+    }.pendingUntilFixed("We need to pick the correct geohashes to enumerate based on what is available")
 
     "Properly return one raster in a QLevel 1 bounding box" in {
       val tableName = getNewIteration()
