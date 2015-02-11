@@ -18,13 +18,13 @@ package org.locationtech.geomesa.tools.ingest
 import java.io.File
 import java.util.UUID
 
-import breeze.numerics.ceil
+import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.coverage.grid.GridCoverage2D
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash, GeohashUtils}
-import com.typesafe.scalalogging.slf4j.Logging
 
 import scala.collection.parallel.ForkJoinTaskSupport
+import scala.math.ceil
 import scala.sys.process._
 import scala.util.Try
 
@@ -62,7 +62,7 @@ class RasterChunking(config: Map[String, Option[String]]) extends RasterIngest {
     val urGh = GeoHash(maxX, maxY, chunkPrec)
     val (llX, llY, urX, urY) = (llGh.getPoint.getX, llGh.getPoint.getY, urGh.getPoint.getX, urGh.getPoint.getY)
     val (deltaX, deltaY) = ((llGh.bbox.ur.getX - llGh.bbox.ll.getX), (llGh.bbox.ur.getY - llGh.bbox.ll.getY))
-    val (stepsX, stepsY) = (Math.ceil((urX - llX) / deltaX).toInt, Math.ceil((urY - llY) / deltaY).toInt)
+    val (stepsX, stepsY) = (ceil((urX - llX) / deltaX).toInt, ceil((urY - llY) / deltaY).toInt)
 
     new File(outDir).mkdir
 
