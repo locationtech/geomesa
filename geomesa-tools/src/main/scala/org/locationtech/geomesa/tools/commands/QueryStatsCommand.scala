@@ -62,7 +62,7 @@ class QueryStatsCommand(parent: JCommander) extends Command with AccumuloPropert
 }
 
 object QueryStatsCommand {
-  val Command = "queryStats"
+  val Command = "querystats"
 
   @Parameters(commandDescription = "Export queries and statistics about the last X number of queries to a CSV file.")
   class QueryStatsParameters extends RasterParams {
