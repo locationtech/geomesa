@@ -78,7 +78,7 @@ class AccumuloDataStore(val connector: Connector,
                         val writeThreadsConfig: Option[Int] = None,
                         val cachingConfig: Boolean = false,
                         val featureEncoding: FeatureEncoding = DEFAULT_ENCODING)
-    extends AbstractDataStore(true) with AccumuloConnectorCreator with Logging {
+    extends AbstractDataStore(true) with AccumuloConnectorCreator with StrategyHintsProvider with Logging {
 
   // having at least as many shards as tservers provides optimal parallelism in queries
   protected [core] val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
@@ -652,16 +652,14 @@ class AccumuloDataStore(val connector: Connector,
    * @param featureName
    * @return
    */
-  private def getAttributes(featureName: String) =
-    metadata.read(featureName, ATTRIBUTES_KEY)
+  private def getAttributes(featureName: String) = metadata.read(featureName, ATTRIBUTES_KEY)
 
   /**
    * Reads the feature encoding from the metadata. Defaults to TEXT if there is no metadata.
    */
   def getFeatureEncoding(sft: SimpleFeatureType): FeatureEncoding = {
-    val encodingString = metadata.read(sft.getTypeName, FEATURE_ENCODING_KEY)
-                         .getOrElse(FeatureEncoding.TEXT.toString)
-    FeatureEncoding.withName(encodingString)
+    metadata.read(sft.getTypeName, FEATURE_ENCODING_KEY)
+      .map(FeatureEncoding.withName).getOrElse(FeatureEncoding.TEXT)
   }
 
   // We assume that they want the bounds for everything.
@@ -878,6 +876,8 @@ class AccumuloDataStore(val connector: Connector,
    * @return
    */
   private def getFeatureName(featureType: SimpleFeatureType) = featureType.getName.getLocalPart
+
+  override def strategyHints(sft: SimpleFeatureType) = new UserDataStrategyHints()
 }
 
 object AccumuloDataStore {
