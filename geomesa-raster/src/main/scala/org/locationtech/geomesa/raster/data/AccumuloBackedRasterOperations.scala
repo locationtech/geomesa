@@ -340,9 +340,9 @@ object RasterTableConfig {
    */
   def settings(visibilities: String): Map[String, String] = Map (
     "table.security.scan.visibility.default" -> visibilities,
-    "table.iterator.majc.vers.opt.maxVersions" -> "2147483647",
-    "table.iterator.minc.vers.opt.maxVersions" -> "2147483647",
-    "table.iterator.scan.vers.opt.maxVersions" -> "2147483647",
+    "table.iterator.majc.vers.opt.maxVersions" -> "1",
+    "table.iterator.minc.vers.opt.maxVersions" -> "1",
+    "table.iterator.scan.vers.opt.maxVersions" -> "1",
     "table.split.threshold" -> "512M"
   )
   val permissions = "BULK_IMPORT,READ,WRITE,ALTER_TABLE"
