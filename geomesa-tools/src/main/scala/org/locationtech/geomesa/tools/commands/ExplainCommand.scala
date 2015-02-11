@@ -30,7 +30,7 @@ class ExplainCommand(parent: JCommander) extends CommandWithCatalog(parent) with
     try {
       val q = new Query(params.featureName, ECQL.toFilter(params.cqlFilter))
       val afr = ds.getFeatureReader(q, Transaction.AUTO_COMMIT).asInstanceOf[AccumuloFeatureReader]
-      afr.explainQuery(q)
+      afr.explainQuery()
     } catch {
       case e: Exception =>
         logger.error(s"Error: Could not explain the query (${params.cqlFilter}): ${e.getMessage}", e)

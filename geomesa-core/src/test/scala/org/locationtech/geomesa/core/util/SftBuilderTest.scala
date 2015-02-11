@@ -20,6 +20,7 @@ import java.util.{Date, UUID}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.DigitSplitter
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.core.util.SftBuilder.Opts
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.opengis.feature.simple.SimpleFeatureType
@@ -51,7 +52,7 @@ class SftBuilderTest extends Specification {
         .floatType("f",  index = true)
         .doubleType("d", index = true)
         .stringType("s", index = true)
-        .date("dt",      index = true)
+        .date("dt",      Opts(index = true))
         .uuid("u",       index = true)
         .getSpec
       val expected = "i:Integer,l:Long,f:Float,d:Double,s:String,dt:Date,u:UUID".split(",").map(_+":index=true").mkString(",")
