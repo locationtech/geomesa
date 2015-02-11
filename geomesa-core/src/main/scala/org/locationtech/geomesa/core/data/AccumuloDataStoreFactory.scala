@@ -149,17 +149,6 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     }
   }
 
-  def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): (Connector, AuthenticationToken) = {
-    val zookeepers = zookeepersParam.lookUp(params).asInstanceOf[String]
-    val instance = instanceIdParam.lookUp(params).asInstanceOf[String]
-    val user = userParam.lookUp(params).asInstanceOf[String]
-    val password = passwordParam.lookUp(params).asInstanceOf[String]
-
-    val authToken = new PasswordToken(password.getBytes)
-    if(useMock) (new MockInstance(instance).getConnector(user, authToken), authToken)
-    else (new ZooKeeperInstance(instance, zookeepers).getConnector(user, authToken), authToken)
-  }
-
   override def getDisplayName = "Accumulo Feature Data Store"
 
   override def getDescription = "Feature Data store for accumulo"
@@ -187,6 +176,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 }
 
 object AccumuloDataStoreFactory {
+  import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
+
   implicit class RichParam(val p: Param) {
     def lookupOpt[A](params: JMap[String, Serializable]) =
       Option(p.lookUp(params)).asInstanceOf[Option[A]]
@@ -210,7 +201,28 @@ object AccumuloDataStoreFactory {
     val featureEncParam     = new Param("featureEncoding", classOf[String], "The feature encoding format (text or avro). Default is Avro", false, "avro")
   }
 
-  import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
+  def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): (Connector, AuthenticationToken) = {
+    val zookeepers = zookeepersParam.lookUp(params).asInstanceOf[String]
+    val instance = instanceIdParam.lookUp(params).asInstanceOf[String]
+    val user = userParam.lookUp(params).asInstanceOf[String]
+    val password = passwordParam.lookUp(params).asInstanceOf[String]
+
+    val authToken = new PasswordToken(password.getBytes)
+    if(useMock) {
+      (new MockInstance(instance).getConnector(user, authToken), authToken)
+    } else {
+      (new ZooKeeperInstance(instance, zookeepers).getConnector(user, authToken), authToken)
+    }
+  }
+
+  /**
+   * Return true/false whether or not the catalog referenced by these params exists
+   * already (aka the accumulo table has been created)
+   */
+  def catalogExists(params: JMap[String,Serializable], useMock: Boolean): Boolean = {
+    val (conn, _) = buildAccumuloConnector(params, useMock)
+    conn.tableOperations().exists(tableNameParam.lookUp(params).asInstanceOf[String])
+  }
 
   def configureJob(job: Job, params: JMap[String, Serializable]): Job = {
     val conf = job.getConfiguration

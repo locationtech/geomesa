@@ -18,21 +18,18 @@ package org.locationtech.geomesa.tools.commands
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.core.data.extractDtgField
-import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.commands.DescribeCommand._
 import org.opengis.feature.`type`.AttributeDescriptor
 
 import scala.collection.JavaConversions._
 
-class DescribeCommand(parent: JCommander) extends Command with Logging {
-
-  val params = new DescribeParameters
-  parent.addCommand(Command, params)
+class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) with Logging {
+  override val command = "describe"
+  override val params = new DescribeParameters
 
   def execute() = {
-    logger.info(s"Describing attributes of feature '${params.featureName}' from catalog table '${params.catalog}'...")
+    logger.info(s"Describing attributes of feature '${params.featureName}' from catalog table '$catalog'...")
     try {
-      val ds = new DataStoreHelper(params).ds
       val sft = ds.getSchema(params.featureName)
 
       def isIndexed(attr: AttributeDescriptor) =
@@ -66,8 +63,6 @@ class DescribeCommand(parent: JCommander) extends Command with Logging {
 }
 
 object DescribeCommand {
-  val Command = "describe"
-
   @Parameters(commandDescription = "Describe the attributes of a given feature in GeoMesa")
   class DescribeParameters extends FeatureParams {}
 }

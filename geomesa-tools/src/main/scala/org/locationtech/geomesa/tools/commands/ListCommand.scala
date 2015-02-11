@@ -17,14 +17,11 @@ package org.locationtech.geomesa.tools.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.commands.ListCommand._
 
-class ListCommand(parent: JCommander) extends Command with Logging {
-
-  val params = new ListParameters()
-  parent.addCommand(Command, params)
-  lazy val ds = new DataStoreHelper(params).ds
+class ListCommand(parent: JCommander) extends CommandWithCatalog(parent) with Logging {
+  override val command = "list"
+  override val params = new ListParameters()
 
   override def execute() = {
     logger.info("Running List Features on catalog "+params.catalog)
@@ -34,8 +31,6 @@ class ListCommand(parent: JCommander) extends Command with Logging {
 }
 
 object ListCommand {
-  val Command = "list"
-
   @Parameters(commandDescription = "List GeoMesa features for a given catalog")
   class ListParameters extends GeoMesaParams {}
 }
