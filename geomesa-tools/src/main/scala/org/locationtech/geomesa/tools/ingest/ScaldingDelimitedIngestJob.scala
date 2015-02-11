@@ -53,6 +53,7 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
   lazy val idFields         = args.optional(IngestParams.ID_FIELDS).orNull
   lazy val pathList         = DelimitedIngest.decodeFileList(args(IngestParams.FILE_PATH))
   lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
+  lazy val skipHeader       = args.optional(IngestParams.SKIP_HEADER).map(_.toBoolean).getOrElse(false)
   lazy val colList          = args.optional(IngestParams.COLS).map(ColsParser.build)
   lazy val dtgField         = args.optional(IngestParams.DT_FIELD)
   lazy val dtgFmt           = args.optional(IngestParams.DT_FORMAT)
@@ -127,7 +128,11 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
   // Check to see if this an actual ingest job or just a test.
   if (!isTestRun) {
     new MultipleUsefulTextLineFiles(pathList: _*).using(new Resources)
-      .foreach('line) { (cres: Resources, line: String) => lineNumber += 1; ingestLine(cres.fw, line) }
+      .foreach('line) { (cres: Resources, line: String) =>
+          lineNumber += 1
+          if (lineNumber > 1 || !skipHeader) {
+            ingestLine(cres.fw, line)
+          }}
   }
 
   // TODO unit test class without having an internal helper method
@@ -142,7 +147,7 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
     }
   }
 
-  def ingestLine(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String): Unit =
+  def ingestLine(fw: FeatureWriter[SimpleFeatureType, SimpleFeature], line: String, skipHeader: Boolean = false): Unit =
     Try {
       ingestDataToFeature(line, fw.next())
       fw.write()
