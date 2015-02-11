@@ -24,6 +24,7 @@ import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.RecordIdxStrategy.getRecordIdxStrategy
 import org.locationtech.geomesa.core.index.STIdxStrategy.getSTIdxStrategy
+import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Id, PropertyIsLike}
 
@@ -31,40 +32,43 @@ import scala.collection.JavaConversions._
 
 object QueryStrategyDecider {
 
-  def chooseStrategy(sft: SimpleFeatureType, query: Query, version: Int): Strategy =
-    // if datastore doesn't support attr index use spatiotemporal only
+  def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints, version: Int): Strategy = {
     if (version < 1) {
-      new STIdxStrategy
-    } else {
-      chooseNewStrategy(sft, query, version)
+      // if datastore doesn't support attr index use spatiotemporal only
+      return new STIdxStrategy
     }
 
-  def chooseNewStrategy(sft: SimpleFeatureType, query: Query, version: Int): Strategy = {
-    val filter = query.getFilter
-    val isADensity = query.getHints.containsKey(BBOX_KEY) || query.getHints.contains(TIME_BUCKETS_KEY)
-
-    if (isADensity) {
+    val isDensity = query.getHints.containsKey(BBOX_KEY) || query.getHints.contains(TIME_BUCKETS_KEY)
+    if (isDensity) {
       // TODO GEOMESA-322 use other strategies with density iterator
-      new STIdxStrategy
-    } else {
-      // check if we can use the attribute index first
-      val attributeStrategy = getAttributeIndexStrategy(filter, sft)
-      attributeStrategy.getOrElse {
-        filter match {
-          case idFilter: Id => new RecordIdxStrategy
-          case and: And     => processAnd(isADensity, sft, and)
-          case cql          => new STIdxStrategy
-        }
+      return new STIdxStrategy
+    }
+
+    val filter = query.getFilter
+    // check if we can use the attribute index first
+    val attributeStrategy = getAttributeIndexStrategy(filter, sft)
+    attributeStrategy.getOrElse {
+      filter match {
+        case idFilter: Id => new RecordIdxStrategy
+        case and: And     => processAnd(and, sft, hints)
+        case cql          => new STIdxStrategy
       }
     }
   }
 
-  private def processAnd(isADensity: Boolean, sft: SimpleFeatureType, and: And): Strategy = {
+  private def processAnd(and: And, sft: SimpleFeatureType, hints: StrategyHints): Strategy = {
     val children: util.List[Filter] = decomposeAnd(and)
 
     def determineStrategy(attr: Filter, st: Filter): Strategy = {
-      if (children.indexOf(attr) < children.indexOf(st)) { getAttributeIndexStrategy(attr, sft).get }
-      else { new STIdxStrategy }
+      val (prop, _) = AttributeIndexStrategy.getPropertyAndRange(attr, sft)
+      // check cardinality hints for attribute
+      hints.cardinality(sft.getDescriptor(prop)) match {
+        case Cardinality.LOW  => new STIdxStrategy
+        case Cardinality.HIGH => getAttributeIndexStrategy(attr, sft).get
+        // if no cardinality, use order of query
+        case _ if (children.indexOf(attr) < children.indexOf(st)) => getAttributeIndexStrategy(attr, sft).get
+        case _ => new STIdxStrategy
+      }
     }
 
     // first scan the query and identify the type of predicates present
@@ -77,7 +81,8 @@ object QueryStrategyDecider {
      *   * If an ID predicate is present, it is assumed that only a small number of IDs are requested
      *            --> The Record Index is scanned, and the other ECQL filters, if any, are then applied
      *
-     *   * If attribute filters and ST filters are present, use the ordering to choose the correct strategy
+     *   * If attribute filters and ST filters are present, use the cardinality + ordering to choose
+     *     the correct strategy
      *
      *   * If attribute filters are present, then select the correct type of AttributeIdx Strategy
      *            --> The Attribute Indices are scanned, and the other ECQL filters, if any, are then applied

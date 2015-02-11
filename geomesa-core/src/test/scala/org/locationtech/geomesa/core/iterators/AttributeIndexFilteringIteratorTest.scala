@@ -30,7 +30,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index
-import org.locationtech.geomesa.core.index.{AttributeIdxEqualsStrategy, AttributeIdxLikeStrategy, QueryStrategyDecider, STIdxStrategy}
+import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -85,6 +85,8 @@ class AttributeIndexFilteringIteratorTest extends Specification {
 
   val ff = CommonFactoryFinder.getFilterFactory2
 
+  val hints = new UserDataStrategyHints()
+
   "AttributeIndexFilteringIterator" should {
 
     "handle like queries and choose correct strategies" in {
@@ -93,26 +95,26 @@ class AttributeIndexFilteringIteratorTest extends Specification {
 
       // % should return all features
       val wildCardQuery = new Query(sftName, ff.like(ff.property("name"),"%"))
-      QueryStrategyDecider.chooseNewStrategy(sft, wildCardQuery, INTERNAL_GEOMESA_VERSION) must
+      QueryStrategyDecider.chooseStrategy(sft, wildCardQuery, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[AttributeIdxLikeStrategy]
       fs.getFeatures().features.size mustEqual 16
 
       forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter
         val leftWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter"))
-        QueryStrategyDecider.chooseNewStrategy(sft, leftWildCard, INTERNAL_GEOMESA_VERSION) must
+        QueryStrategyDecider.chooseStrategy(sft, leftWildCard, hints, INTERNAL_GEOMESA_VERSION) must
             beAnInstanceOf[STIdxStrategy]
         fs.getFeatures(leftWildCard).features.size mustEqual 4
 
         // Double wildcards should be ST
         val doubleWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter%"))
-        QueryStrategyDecider.chooseNewStrategy(sft, doubleWildCard, INTERNAL_GEOMESA_VERSION) must
+        QueryStrategyDecider.chooseStrategy(sft, doubleWildCard, hints, INTERNAL_GEOMESA_VERSION) must
             beAnInstanceOf[STIdxStrategy]
         fs.getFeatures(doubleWildCard).features.size mustEqual 4
 
         // should return the 4 features for this letter
         val rightWildcard = new Query(sftName, ff.like(ff.property("name"),s"$letter%"))
-        QueryStrategyDecider.chooseNewStrategy(sft, rightWildcard, INTERNAL_GEOMESA_VERSION) must
+        QueryStrategyDecider.chooseStrategy(sft, rightWildcard, hints, INTERNAL_GEOMESA_VERSION) must
             beAnInstanceOf[AttributeIdxLikeStrategy]
         fs.getFeatures(rightWildcard).features.size mustEqual 4
       }
@@ -122,19 +124,19 @@ class AttributeIndexFilteringIteratorTest extends Specification {
     "actually handle transforms properly and chose correct strategies for attribute indexing" in {
       // transform to only return the attribute geom - dropping dtg, age, and name
       val query = new Query(sftName, ECQL.toFilter("name = 'b'"), Array("geom"))
-      QueryStrategyDecider.chooseNewStrategy(sft, query, INTERNAL_GEOMESA_VERSION) must
+      QueryStrategyDecider.chooseStrategy(sft, query, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[AttributeIdxEqualsStrategy]
 
       val leftWildCard = new Query(sftName, ff.like(ff.property("name"), "%b"), Array("geom"))
-      QueryStrategyDecider.chooseNewStrategy(sft, leftWildCard, INTERNAL_GEOMESA_VERSION) must
+      QueryStrategyDecider.chooseStrategy(sft, leftWildCard, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[STIdxStrategy]
 
       val doubleWildCard = new Query(sftName, ff.like(ff.property("name"), "%b%"), Array("geom"))
-      QueryStrategyDecider.chooseNewStrategy(sft, doubleWildCard, INTERNAL_GEOMESA_VERSION) must
+      QueryStrategyDecider.chooseStrategy(sft, doubleWildCard, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[STIdxStrategy]
 
       val rightWildcard = new Query(sftName, ff.like(ff.property("name"), "b%"), Array("geom"))
-      QueryStrategyDecider.chooseNewStrategy(sft, rightWildcard, INTERNAL_GEOMESA_VERSION) must
+      QueryStrategyDecider.chooseStrategy(sft, rightWildcard, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[AttributeIdxLikeStrategy]
 
       forall(List(query, leftWildCard, doubleWildCard, rightWildcard)) { query =>
@@ -155,7 +157,7 @@ class AttributeIndexFilteringIteratorTest extends Specification {
     "handle corner case with attr idx, bbox, and no temporal filter" in {
       val filter = ff.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
       val query = new Query(sftName, filter, Array("geom"))
-      QueryStrategyDecider.chooseNewStrategy(sft, query, INTERNAL_GEOMESA_VERSION) must
+      QueryStrategyDecider.chooseStrategy(sft, query, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[AttributeIdxEqualsStrategy]
 
       val features = fs.getFeatures(query)

@@ -19,9 +19,11 @@ package org.locationtech.geomesa.core.index
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.data
 import org.locationtech.geomesa.core.filter.TestFilters._
 import org.locationtech.geomesa.core.util.SftBuilder
-import org.locationtech.geomesa.core.data
+import org.locationtech.geomesa.core.util.SftBuilder.Opts
+import org.locationtech.geomesa.utils.stats.Cardinality
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -37,6 +39,8 @@ class QueryStrategyDeciderTest extends Specification {
     .date("dtg", default = true)
     .stringType("attr1")
     .stringType("attr2", index = true)
+    .stringType("high", Opts(index = true, cardinality = Cardinality.HIGH))
+    .stringType("low", Opts(index = true, cardinality = Cardinality.LOW))
     .date("dtgNonIdx")
     .build("feature")
 
@@ -51,9 +55,10 @@ class QueryStrategyDeciderTest extends Specification {
   def getStrategy(filterString: String, version: Int = data.INTERNAL_GEOMESA_VERSION): Strategy = {
     val sft = if (version > 0) sftIndex else sftNonIndex
     val filter = ECQL.toFilter(filterString)
+    val hints = new UserDataStrategyHints()
     val query = new Query(sft.getTypeName)
     query.setFilter(filter)
-    QueryStrategyDecider.chooseStrategy(sft, query, version)
+    QueryStrategyDecider.chooseStrategy(sft, query, hints, version)
   }
 
   def getStrategyT[T <: Strategy](filterString: String, ct: ClassTag[T]) =
@@ -215,7 +220,6 @@ class QueryStrategyDeciderTest extends Specification {
     }
   }
 
-
   "Anded Attribute filters" should {
     "get the STIdx strategy with stIdxStrategyPredicates" in {
       forall(stIdxStrategyPredicates) { getStStrategy }
@@ -227,6 +231,20 @@ class QueryStrategyDeciderTest extends Specification {
 
     "get the attribute strategy with attrIdxStrategyPredicates" in {
       forall(attrIdxStrategyPredicates) { getAttributeIdxStrategy }
+    }
+
+    "respect high cardinality attributes regardless of order" in {
+      val attr = "high = 'test'"
+      val geom = "BBOX(geom, -10,-10,10,10)"
+      getStrategy(s"$attr AND $geom") must beAnInstanceOf[AttributeIdxEqualsStrategy]
+      getStrategy(s"$geom AND $attr") must beAnInstanceOf[AttributeIdxEqualsStrategy]
+    }
+
+    "respect low cardinality attributes regardless of order" in {
+      val attr = "low = 'test'"
+      val geom = "BBOX(geom, -10,-10,10,10)"
+      getStrategy(s"$attr AND $geom") must beAnInstanceOf[STIdxStrategy]
+      getStrategy(s"$geom AND $attr") must beAnInstanceOf[STIdxStrategy]
     }
   }
 }

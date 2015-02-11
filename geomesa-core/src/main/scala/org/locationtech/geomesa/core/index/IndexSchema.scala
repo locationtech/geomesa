@@ -81,11 +81,6 @@ case class IndexSchema(encoder: IndexEntryEncoder,
       case CompositeTextFormatter(Seq(PartitionTextFormatter(numPartitions), xs@_*), sep) => numPartitions
       case _ => 1  // couldn't find a matching partitioner
     }
-
-  // Writes out an explanation of how a query would be run.
-  def explainQuery(q: Query, output: ExplainerOutputType = log) = {
-     planner.getIterator(new ExplainingConnectorCreator(output), featureType, q, output)
-  }
 }
 
 object IndexSchema extends RegexParsers with Logging {
