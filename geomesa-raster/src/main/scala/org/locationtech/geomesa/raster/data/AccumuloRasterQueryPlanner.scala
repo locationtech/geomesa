@@ -27,37 +27,76 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators._
+import org.locationtech.geomesa.core.process.knn.TouchingGeoHashes
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.iterators.RasterFilteringIterator
-import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash, GeohashUtils}
+import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeohashUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import scala.collection.JavaConversions._
 
 // TODO: Constructor needs info to create Row Formatter
 // right now the schema is not used
 // TODO: Consider adding resolutions + extent info  https://geomesa.atlassian.net/browse/GEOMESA-645
 case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging with IndexFilterHelpers {
 
-  def getQueryPlan(rq: RasterQuery, availableResolutions: List[Double]): QueryPlan = {
+  // Dotting without the dots.
+  def shorten(set: Seq[String]): Iterator[String] = {
+    val len = set.headOption.map(_.length).getOrElse(0)
+    for {
+      i <- (1 to len-1).iterator
+      hash <- set.map(_.take(i)).distinct
+    } yield hash.take(i)
+  }
 
-    // TODO: WCS: Improve this if possible
-    // ticket is GEOMESA-560
-    // note that this will only go DOWN in GeoHash resolution -- the enumeration will miss any GeoHashes
-    // that perfectly match the bbox or ones that fully contain it.
-    val closestAcceptableGeoHash = GeohashUtils.getClosestAcceptableGeoHash(rq.bbox).getOrElse(GeoHash("")).hash
-    val hashes = (BoundingBox.getGeoHashesFromBoundingBox(rq.bbox) :+ closestAcceptableGeoHash).toSet.toList
+  def getQueryPlan(rq: RasterQuery, availableResolutions: List[Double]): QueryPlan = {
+    val closestAcceptableGeoHash = GeohashUtils.getClosestAcceptableGeoHash(rq.bbox)
+    val bboxHashes = BoundingBox.getGeoHashesFromBoundingBox(rq.bbox)
+
+    val hashes: List[String] = closestAcceptableGeoHash match {
+      case Some(gh) =>
+        if (rq.bbox.equals(gh.bbox)) {
+          List(gh.hash)
+        } else {
+          val preliminaryhashes = bboxHashes :+ gh.hash
+          if(gh.bbox.covers(rq.bbox)) {
+            preliminaryhashes.distinct
+          } else {
+            val touching = TouchingGeoHashes.touching(gh).map(_.hash)
+            (preliminaryhashes ++ touching).distinct
+          }
+        }
+      case        _ => bboxHashes.toList
+    }
+
     val res = getLexicodedResolution(rq.resolution, availableResolutions)
     logger.debug(s"RasterQueryPlanner: BBox: ${rq.bbox} has geohashes: $hashes, and has encoded Resolution: $res")
 
-    val rows = hashes.map { gh =>
+    // Tricks:
+    //  Step 1: We will 'dot' our GeoHashes.
+    //val dotted = shorten(hashes).toList.distinct
+
+    val r = hashes.map { gh =>
       // TODO: leverage the RasterIndexSchema to construct the range.
+      // Step 2:  We will pad our scan ranges for each GeoHash we are descending.
+      //new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"), new Text(s"~$res~$gh~"))
       new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"))
-    }
+    }.distinct
+//    } ++ dotted.map { gh =>
+//      new org.apache.accumulo.core.data.Range(new Text(s"~$res~$gh"), new Text(s"~$res~$gh~"))
+//    }}.distinct
+
+    // of the Ranges enumerated, get the merge of the overlapping Ranges
+    val rows = org.apache.accumulo.core.data.Range.mergeOverlapping(r)
+    println(s"Buckshot: Scanning with ranges: $rows")
+
+    // Between the two approaches, we get more 'bigger' tiles and we get more smaller tiles.
 
     // setup the RasterFilteringIterator
-    val cfg = new IteratorSetting(9001, "raster-filtering-iterator", classOf[RasterFilteringIterator])
+    val cfg = new IteratorSetting(90, "raster-filtering-iterator", classOf[RasterFilteringIterator])
     configureRasterFilter(cfg, constructFilter(getReferencedEnvelope(rq.bbox), indexSFT))
     configureRasterMetadataFeatureType(cfg, indexSFT)
 

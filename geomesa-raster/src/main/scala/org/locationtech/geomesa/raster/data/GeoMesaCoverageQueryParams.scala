@@ -47,12 +47,21 @@ class GeoMesaCoverageQueryParams(parameters: Array[GeneralParameterValue]) {
 
   def toRasterQuery: RasterQuery = RasterQuery(bbox, suggestedQueryResolution, None, None)
 
-  def correctedMaxLongitude(): Double = Math.max(Math.min(envelope.getMaximum(0), 180) - .00000001, -179.99999999)
+//  def correctedMaxLongitude(): Double = Math.max(Math.min(envelope.getMaximum(0), 180) - .00000001, -179.99999999)
+//
+//  def correctedMinLongitude(): Double = Math.min(Math.max(envelope.getMinimum(0), -180) + .00000001, 179.99999999)
+//
+//  def correctedMaxLatitude(): Double = Math.max(Math.min(envelope.getMaximum(1), 90) - .00000001, -89.99999999)
+//
+//  def correctedMinLatitude(): Double = Math.min(Math.max(envelope.getMinimum(1), -90) + .00000001, 89.99999999)
 
-  def correctedMinLongitude(): Double = Math.min(Math.max(envelope.getMinimum(0), -180) + .00000001, 179.99999999)
+  def correctedMaxLongitude(): Double = Math.max(Math.min(envelope.getMaximum(0), 180), -180.0)
 
-  def correctedMaxLatitude(): Double = Math.max(Math.min(envelope.getMaximum(1), 90) - .00000001, -89.99999999)
+  def correctedMinLongitude(): Double = Math.min(Math.max(envelope.getMinimum(0), -180), 180.0)
 
-  def correctedMinLatitude(): Double = Math.min(Math.max(envelope.getMinimum(1), -90) + .00000001, 89.99999999)
+  def correctedMaxLatitude(): Double = Math.max(Math.min(envelope.getMaximum(1), 90), -90.0)
+
+  def correctedMinLatitude(): Double = Math.min(Math.max(envelope.getMinimum(1), -90), 90.0)
+
 
 }
