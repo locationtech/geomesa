@@ -100,7 +100,7 @@ class DelimitedTextConverter(format: CSVFormat,
   }
 
   override def close(): Unit = {
-    es.shutdown()
+    es.shutdownNow()
     writer.close()
     reader.close()
   }
