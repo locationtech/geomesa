@@ -1,3 +1,4 @@
 node_modules/
 vendor/bower/
 karma.conf.js
+.DS_Store
