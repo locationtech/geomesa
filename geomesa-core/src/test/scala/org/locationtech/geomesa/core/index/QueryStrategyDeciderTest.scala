@@ -246,5 +246,17 @@ class QueryStrategyDeciderTest extends Specification {
       getStrategy(s"$attr AND $geom") must beAnInstanceOf[STIdxStrategy]
       getStrategy(s"$geom AND $attr") must beAnInstanceOf[STIdxStrategy]
     }
+
+    "respect cardinality with multiple attributes" in {
+      val attr1 = "low = 'test'"
+      val attr2 = "high = 'test'"
+      val geom = "BBOX(geom, -10,-10,10,10)"
+      getStrategy(s"$geom AND $attr1 AND $attr2") must beAnInstanceOf[AttributeIdxEqualsStrategy]
+      getStrategy(s"$geom AND $attr2 AND $attr1") must beAnInstanceOf[AttributeIdxEqualsStrategy]
+      getStrategy(s"$attr1 AND $attr2 AND $geom") must beAnInstanceOf[AttributeIdxEqualsStrategy]
+      getStrategy(s"$attr2 AND $attr1 AND $geom") must beAnInstanceOf[AttributeIdxEqualsStrategy]
+      getStrategy(s"$attr1 AND $geom AND $attr2") must beAnInstanceOf[AttributeIdxEqualsStrategy]
+      getStrategy(s"$attr2 AND $geom AND $attr1") must beAnInstanceOf[AttributeIdxEqualsStrategy]
+    }
   }
 }
