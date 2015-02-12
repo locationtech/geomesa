@@ -86,12 +86,14 @@ object QueryStrategyDecider {
     // scan the query and identify the type of predicates present
 
     // record strategy takes priority
-    val recordStrategies = filters.toStream.flatMap(f => getRecordIdxStrategy(f, sft).map(StrategyAndFilter(_, f)))
+    val recordStrategies =
+      filters.toStream.flatMap(f => getRecordIdxStrategy(f, sft).map(StrategyAndFilter(_, f)))
     if (!recordStrategies.isEmpty) {
       return recordStrategies(0).strategy
     }
 
-    val attributeStrategies = filters.flatMap(f => getAttributeIndexStrategy(f, sft).map(StrategyAndFilter(_, f)))
+    val attributeStrategies =
+      filters.flatMap(f => getAttributeIndexStrategy(f, sft).map(StrategyAndFilter(_, f)))
     // if no attribute or record strategies, use ST
     if (attributeStrategies.isEmpty) {
       return new STIdxStrategy
