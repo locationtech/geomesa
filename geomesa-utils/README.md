@@ -2,7 +2,7 @@
 
 ## Simple Feature Wrapper Generation
 Tools can generate wrapper classes for simple feature types defined in TypeSafe Config files. Your
-config files should be under src/main/resources. Add the following snipped to your pom, specifying
+config files should be under src/main/resources. Add the following snippet to your pom, specifying
 the package you would like the generated class to reside in:
 
     <build>
