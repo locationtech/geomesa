@@ -58,11 +58,11 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
 
     val hashes: List[String] = closestAcceptableGeoHash match {
       case Some(gh) =>
-        if (rq.bbox.equalsExact(gh.geom)) {
+        if (rq.bbox.equals(gh.bbox)) {
           List(gh.hash)
         } else {
           val preliminaryhashes = bboxHashes :+ gh.hash
-          if(gh.geom.contains(rq.bbox)) {
+          if(gh.bbox.covers(rq.bbox)) {
             preliminaryhashes.distinct
           } else {
             val touching = TouchingGeoHashes.touching(gh).map(_.hash)
