@@ -275,7 +275,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
         .updated(IngestParams.SFT_SPEC, List(spec))
 
       val ingest = new ScaldingDelimitedIngestJob(new Args(params))
-      val testString = "0000\tgeomesa user\t823543\tGeoMesa rules!\t2014/08/13 :06:06:06:\tPoint(-78.4 38.0)"
+      val testString = "0000\tgeomesa user\t823543\tGeoMesa rules!\t2014/08/13 :06:06:06:\tPOINT(-78.4 38.0)"
       val sft = SimpleFeatureTypes.createType("test_type", spec)
       val f = new AvroSimpleFeature(new FeatureIdImpl("test_type"), sft)
       ingest.ingestDataToFeature(testString, f)
@@ -564,7 +564,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
           "true, false, true",
           "12345678-1234-1234-1234-123456789012,00000000-0000-0000-0000-000000000000",
           "2014-01-01,2014-01-02, 2014-01-03",
-          "Point(1 2)").map(quote + _ + quote).mkString(delim)
+          "POINT(1 2)").map(quote + _ + quote).mkString(delim)
 
         val f1 = new AvroSimpleFeature(new FeatureIdImpl(featureName), sft)
         ingest.ingestDataToFeature(testString, f1)
