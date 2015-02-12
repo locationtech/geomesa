@@ -104,7 +104,7 @@ object Transformers extends JavaTokenParsers {
 
   class EvaluationContext(fieldNameMap: Map[String, Int], var computedFields: Array[Any]) {
     def indexOf(n: String) = fieldNameMap(n)
-    def lookup(i: Int) = computedFields(i)
+    def lookup(i: Int) = if(i < 0) null else computedFields(i)
   }
 
   sealed trait Expr {
