@@ -35,6 +35,11 @@ import scala.collection.JavaConverters._
 @RunWith(classOf[JUnitRunner])
 class ComplexFeatureTest extends Specification with TestWithDataStore {
 
+  // Due to the implementation of mock connectors, this test needs to be sequential.
+  // Our kryo decoding of the accumulo key/value pairs actually mutates the byte array as it
+  // decodes. The array is returned to it's original state after decoding - however, the mock
+  // connector returns the same byte array object every time for a given accumulo value. This causes
+  // serialization errors if we run the test non-sequentially.
   sequential
 
   override def spec =

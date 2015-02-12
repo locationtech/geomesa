@@ -20,8 +20,6 @@ import java.text.SimpleDateFormat
 import java.util.{Collections, Date, TimeZone}
 
 import org.apache.accumulo.core.client.admin.TimeType
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{BatchWriterConfig, IteratorSetting}
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
@@ -74,11 +72,9 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
     "implement the Accumulo iterator stack properly" in {
       val table = "AttributeIndexIteratorTest_2"
-      val instance = new MockInstance(table)
-      val conn = instance.getConnector("", new PasswordToken(""))
-      conn.tableOperations.create(table, true, TimeType.LOGICAL)
+      connector.tableOperations.create(table, true, TimeType.LOGICAL)
 
-      val bw = conn.createBatchWriter(table, new BatchWriterConfig)
+      val bw = connector.createBatchWriter(table, new BatchWriterConfig)
       val attributes = (0 until sft.getAttributeCount).zip(sft.getAttributeDescriptors)
       getTestFeatures().foreach { feature =>
         val muts = AttributeTable.getAttributeIndexMutations(feature,
@@ -89,10 +85,12 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       bw.close()
 
       // Scan and retrieve type = b manually with the iterator
-      val scanner = conn.createScanner(table, new Authorizations())
-      val opts = Map[String, String](GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE -> spec,
-                                     GEOMESA_ITERATORS_SFT_NAME -> sftName,
-                                     GEOMESA_ITERATORS_SFT_INDEX_VALUE -> spec)
+      val scanner = connector.createScanner(table, new Authorizations())
+      val opts = Map[String, String](
+        GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE -> "dtg:Date,*geom:Geometry:srid=4326",
+        GEOMESA_ITERATORS_SFT_NAME -> sftName,
+        GEOMESA_ITERATORS_SFT_INDEX_VALUE -> spec
+      )
       val is = new IteratorSetting(40, classOf[AttributeIndexIterator], opts)
       scanner.addScanIterator(is)
       val range = AttributeTable.getAttributeIndexRows("", sft.getDescriptor("name"), Some("b")).head

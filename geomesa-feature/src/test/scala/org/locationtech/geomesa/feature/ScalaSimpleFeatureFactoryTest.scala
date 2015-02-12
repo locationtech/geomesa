@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.feature.kryo
+package org.locationtech.geomesa.feature
 
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -26,17 +26,17 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class KryoSimpleFeatureFactoryTest extends Specification {
+class ScalaSimpleFeatureFactoryTest extends Specification {
 
   "GeoTools must use KryoSimpleFeatureFactory when hint is set" in {
-    KryoSimpleFeatureFactory.init
+    ScalaSimpleFeatureFactory.init
 
     val featureFactory = CommonFactoryFinder.getFeatureFactory(null)
-    featureFactory.getClass mustEqual classOf[KryoSimpleFeatureFactory]
+    featureFactory.getClass mustEqual classOf[ScalaSimpleFeatureFactory]
   }
 
   "SimpleFeatureBuilder should return an KryoSimpleFeature when using an KryoSimpleFeatureFactory" in {
-    KryoSimpleFeatureFactory.init
+    ScalaSimpleFeatureFactory.init
     val geomBuilder = new GeometryBuilder(DefaultGeographicCRS.WGS84)
     val featureFactory = CommonFactoryFinder.getFeatureFactory(null)
     val sft = SimpleFeatureTypes.createType("testkryo", "name:String,geom:Point:srid=4326")
@@ -46,7 +46,7 @@ class KryoSimpleFeatureFactoryTest extends Specification {
     builder.add(geomBuilder.createPoint(1,1))
     val feature = builder.buildFeature("id")
 
-    feature must beAnInstanceOf[KryoSimpleFeature]
+    feature must beAnInstanceOf[ScalaSimpleFeature]
   }
 
 }

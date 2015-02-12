@@ -18,37 +18,33 @@ package org.locationtech.geomesa.feature.kryo
 
 import java.io.{InputStream, OutputStream}
 
-import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
-import org.locationtech.geomesa.feature.AvroSimpleFeature
+import com.esotericsoftware.kryo.{Kryo, Serializer}
+import org.locationtech.geomesa.feature.{AvroSimpleFeature, ScalaSimpleFeature}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
  * Class for serializing and deserializing simple features. Not thread safe.
  *
- * @param sft
+ * @param serializer
  */
-case class KryoFeatureSerializer(sft: SimpleFeatureType, decodeAs: SimpleFeatureType) {
-
-  private val serializer = if (sft.eq(decodeAs)) {
-    new SimpleFeatureSerializer(sft)
-  } else {
-    new TransformingSimpleFeatureSerializer(sft, decodeAs)
-  }
+case class KryoFeatureSerializer(serializer: Serializer[SimpleFeature]) {
 
   private val kryo = new Kryo()
 
+  // TODO test spark
   kryo.setReferences(false)
-  kryo.register(classOf[SimpleFeature], serializer,  kryo.getNextRegistrationId)
-  kryo.register(classOf[KryoSimpleFeature], serializer,  kryo.getNextRegistrationId)
-  kryo.register(classOf[AvroSimpleFeature], serializer,  kryo.getNextRegistrationId)
+  kryo.register(classOf[ScalaSimpleFeature], serializer,  kryo.getNextRegistrationId)
   kryo.register(classOf[KryoFeatureId], new FeatureIdSerializer(),  kryo.getNextRegistrationId)
+  kryo.register(classOf[SimpleFeature], serializer,  kryo.getNextRegistrationId)
+  kryo.register(classOf[AvroSimpleFeature], serializer,  kryo.getNextRegistrationId)
 
   val output = new Output(1024, -1)
   val input = new Input(Array.empty[Byte])
   lazy val streamBuffer = new Array[Byte](1024)
 
   /**
+   * Serialize the feature into bytes
    *
    * @param sf
    * @return
@@ -60,6 +56,7 @@ case class KryoFeatureSerializer(sft: SimpleFeatureType, decodeAs: SimpleFeature
   }
 
   /**
+   * Serialize the feature into a byte stream
    *
    * @param sf
    * @param out
@@ -73,6 +70,8 @@ case class KryoFeatureSerializer(sft: SimpleFeatureType, decodeAs: SimpleFeature
   }
 
   /**
+   * Deserialize the feature from bytes - note that the buffer may be mutated during the read, but
+   * will be returned to normal.
    *
    * @param value
    * @return
@@ -83,6 +82,7 @@ case class KryoFeatureSerializer(sft: SimpleFeatureType, decodeAs: SimpleFeature
   }
 
   /**
+   * Deserialize the feature from a byte stream
    *
    * @param in
    * @return
@@ -95,6 +95,12 @@ case class KryoFeatureSerializer(sft: SimpleFeatureType, decodeAs: SimpleFeature
     sf
   }
 
+  /**
+   * Read only the id from a serialized feature
+   *
+   * @param value
+   * @return
+   */
   def readId(value: Array[Byte]): String = {
     input.setBuffer(value)
     kryo.readObject(input, classOf[KryoFeatureId]).id
@@ -102,7 +108,11 @@ case class KryoFeatureSerializer(sft: SimpleFeatureType, decodeAs: SimpleFeature
 }
 
 object KryoFeatureSerializer {
-  def apply(sft: SimpleFeatureType): KryoFeatureSerializer = apply(sft, sft)
+
+  def apply(sft: SimpleFeatureType): KryoFeatureSerializer = apply(new SimpleFeatureSerializer(sft))
+
+  def apply(sft: SimpleFeatureType, decodeAs: SimpleFeatureType): KryoFeatureSerializer =
+    if (sft.eq(decodeAs)) apply(sft) else apply(new TransformingSimpleFeatureSerializer(sft, decodeAs))
 }
 
 case class KryoFeatureId(id: String)

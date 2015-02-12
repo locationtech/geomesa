@@ -58,8 +58,9 @@ object SerializationTester {
         sf.setAttribute("f6", new SimpleDateFormat("yyyyMMdd").parse("20140102"))
         sf.setAttribute("f7", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])
         sf.setAttribute("f8", GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
-//        sf.setAttribute("f9", List(r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble()))
-//        sf.setAttribute("f10", Map(r.nextString(10) -> r.nextInt(), r.nextString(10) -> r.nextInt(), r.nextString(10) -> r.nextInt(), r.nextString(10) -> r.nextInt()))
+        sf.setAttribute("f9", List(r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble()))
+        sf.setAttribute("f10", Map(r.nextString(10) -> r.nextInt(),
+          r.nextString(10) -> r.nextInt(), r.nextString(10) -> r.nextInt(), r.nextString(10) -> r.nextInt()))
         list += sf
       }
       list.toList
@@ -84,16 +85,6 @@ object SerializationTester {
 //    complex attributes encode/decode kryo: 17.326 79% faster!
 
     val features = createComplicatedFeatures(5000)
-
-    def one() = {
-//      val oldBaos = new ByteArrayOutputStream()
-//      features.foreach { f =>
-//        oldBaos.reset()
-//        f.write(oldBaos)
-//        oldBaos.toByteArray
-//      }
-      5
-    }
 
     def two() = {
       val writer = new AvroSimpleFeatureWriter(features(0).getType)
@@ -136,14 +127,11 @@ object SerializationTester {
     println(two)
     println(three)
 
-//    val ones = time(1000, one)
     val twos = time(1000, two)
     val threes = time(1000, three)
 
-//    println("1: " + ones)
     println("avro: " + twos)
     println("kryo: " + threes)
-//    println("r: " + ones/twos)
-
+    println()
   }
 }

@@ -32,8 +32,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index.{IndexEntryDecoder, _}
-import org.locationtech.geomesa.feature.kryo.KryoSimpleFeatureFactory
-import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.feature._
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, TimeSnap}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -82,7 +81,7 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
     projectedSFT = SimpleFeatureTypes.createType(simpleFeatureType.getTypeName, TEMPORAL_DENSITY_FEATURE_STRING)
 
     temporalDensityFeatureEncoder = SimpleFeatureEncoder(projectedSFT, encodingOpt)
-    featureBuilder = KryoSimpleFeatureFactory.featureBuilder(projectedSFT)
+    featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(projectedSFT)
 
     val buckets = TemporalDensityIterator.getBuckets(options)
     val bounds = TemporalDensityIterator.getTimeBounds(options)

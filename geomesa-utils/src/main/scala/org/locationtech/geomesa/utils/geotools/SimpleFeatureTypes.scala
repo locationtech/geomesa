@@ -36,13 +36,17 @@ import scala.util.parsing.combinator.JavaTokenParsers
 
 object SimpleFeatureTypes {
 
-  val TABLE_SPLITTER         = "table.splitter.class"
-  val TABLE_SPLITTER_OPTIONS = "table.splitter.options"
-  val DEFAULT_DATE_FIELD     = "geomesa_index_start_time"
+  val TABLE_SPLITTER           = "table.splitter.class"
+  val TABLE_SPLITTER_OPTIONS   = "table.splitter.options"
+  val DEFAULT_DATE_FIELD       = "geomesa_index_start_time"
 
-  val OPT_INDEX_VALUE        = "index-value"
-  val OPT_INDEX              = "index"
-  val OPT_CARDINALITY        = "cardinality"
+  val OPT_INDEX_VALUE          = "index-value"
+  val OPT_INDEX                = "index"
+  val OPT_CARDINALITY          = "cardinality"
+
+  val USER_DATA_LIST_TYPE      = "subtype"
+  val USER_DATA_MAP_KEY_TYPE   = "keyclass"
+  val USER_DATA_MAP_VALUE_TYPE = "valueclass"
 
   // use the epsg jar if it's available (e.g. in geoserver), otherwise use the less-rich constant
   val CRS_EPSG_4326          = Try(CRS.decode("EPSG:4326")).getOrElse(DefaultGeographicCRS.WGS84)
@@ -106,10 +110,10 @@ object SimpleFeatureTypes {
   }
 
   def setCollectionType(ad: AttributeDescriptor, typ: Class[_]): Unit =
-    ad.getUserData.put("subtype", typ)
+    ad.getUserData.put(USER_DATA_LIST_TYPE, typ)
 
   def getCollectionType(ad: AttributeDescriptor): Option[Class[_]] =
-    Option(ad.getUserData.get("subtype")).map(_.asInstanceOf[Class[_]])
+    Option(ad.getUserData.get(USER_DATA_LIST_TYPE)).map(_.asInstanceOf[Class[_]])
 
   def setCardinality(ad: AttributeDescriptor, cardinality: Cardinality): Unit =
     ad.getUserData.put(OPT_CARDINALITY, cardinality.toString)
@@ -150,15 +154,15 @@ object SimpleFeatureTypes {
       case t if t.getBinding.equals(classOf[java.util.List[_]]) =>
         ListAttributeSpec(
           ad.getLocalName,
-          ad.getUserData.get("subtype").asInstanceOf[Class[_]],
+          ad.getUserData.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]],
           ad.getUserData.getOrElse(OPT_INDEX, false).asInstanceOf[Boolean],
           getCardinality(ad)
         )
 
       case t if t.getBinding.equals(classOf[java.util.Map[_, _]]) =>
         MapAttributeSpec(ad.getLocalName,
-          ad.getUserData.get("keyclass").asInstanceOf[Class[_]],
-          ad.getUserData.get("valueclass").asInstanceOf[Class[_]],
+          ad.getUserData.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]],
+          ad.getUserData.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]],
           ad.getUserData.getOrElse(OPT_INDEX, false).asInstanceOf[Boolean],
           getCardinality(ad)
         )
@@ -273,7 +277,7 @@ object SimpleFeatureTypes {
           .userData(OPT_INDEX, index)
           .userData(OPT_INDEX_VALUE, indexValue)
           .userData(OPT_CARDINALITY, cardinality.toString)
-          .userData("subtype", subClass)
+          .userData(USER_DATA_LIST_TYPE, subClass)
           .buildDescriptor(name)
     }
 
@@ -310,8 +314,8 @@ object SimpleFeatureTypes {
           .userData(OPT_INDEX, index)
           .userData(OPT_INDEX_VALUE, indexValue)
           .userData(OPT_CARDINALITY, cardinality.toString)
-          .userData("keyclass", keyClass)
-          .userData("valueclass", valueClass)
+          .userData(USER_DATA_MAP_KEY_TYPE, keyClass)
+          .userData(USER_DATA_MAP_VALUE_TYPE, valueClass)
           .buildDescriptor(name)
     }
 

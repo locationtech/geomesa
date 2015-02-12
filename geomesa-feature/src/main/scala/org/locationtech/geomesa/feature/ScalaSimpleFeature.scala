@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.feature.kryo
+package org.locationtech.geomesa.feature
 
+import java.util
 import java.util.{Collection => JCollection, List => JList}
 
 import com.vividsolutions.jts.geom.Geometry
@@ -32,25 +33,28 @@ import org.opengis.geometry.BoundingBox
 import scala.collection.JavaConversions._
 
 /**
- * Simple feature implementation optimized to instantiate from kryo serialization
+ * Simple feature implementation optimized to instantiate from serialization
  *
  * @param initialId
  * @param sft
  * @param initialValues if provided, must already be converted into the appropriate types
  */
-class KryoSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValues: Array[AnyRef] = null)
+class ScalaSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValues: Array[AnyRef] = null)
     extends SimpleFeature {
 
   val featureId = new FeatureIdImpl(initialId)
   val values = if (initialValues == null) Array.ofDim[AnyRef](sft.getAttributeCount) else initialValues
 
   lazy private[this] val userData  = collection.mutable.HashMap.empty[AnyRef, AnyRef]
-  lazy private[this] val geometryDescriptor = sft.getGeometryDescriptor
+  lazy private[this] val geomDesc  = sft.getGeometryDescriptor
+  lazy private[this] val geomIndex = if (geomDesc == null) -1 else sft.indexOf(geomDesc.getLocalName)
 
   override def getFeatureType = sft
   override def getType = sft
   override def getIdentifier = featureId
   override def getID = featureId.getID // this needs to reference the featureId, as it can be updated
+  override def getName: Name = sft.getName
+  override def getUserData = userData
 
   override def getAttribute(name: Name) = getAttribute(name.getLocalPart)
   override def getAttribute(name: String) = {
@@ -72,64 +76,84 @@ class KryoSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValues
     values(index) = Converters.convert(value, binding).asInstanceOf[AnyRef]
   }
 
-  override def setAttributes(vals: JList[Object]) =
-    vals.zipWithIndex.foreach { case (v, i) => setAttribute(i, v) }
-  override def setAttributes(vals: Array[Object]) =
-    vals.zipWithIndex.foreach { case (v, i) => setAttribute(i, v) }
+  // following methods delegate to setAttribute to get type conversion
+  override def setAttributes(vals: JList[Object]) = {
+    var i = 0
+    while (i < vals.size) {
+      setAttribute(i, vals.get(i))
+      i += 1
+    }
+  }
+  override def setAttributes(vals: Array[Object]) = {
+    var i = 0
+    while (i < vals.length) {
+      setAttribute(i, vals(i))
+      i += 1
+    }
+  }
 
   override def getAttributeCount = values.length
   override def getAttributes: JList[Object] = values.toList
 
-  override def getDefaultGeometry: Object =
-    if (geometryDescriptor == null) null else getAttribute(geometryDescriptor.getLocalName)
-  override def setDefaultGeometry(geo: Object) = setAttribute(geometryDescriptor.getName, geo)
+  override def getDefaultGeometry: Object = if (geomIndex == -1) null else getAttribute(geomIndex)
+  override def setDefaultGeometry(geo: Object) = setAttribute(geomIndex, geo)
 
   override def getBounds: BoundingBox = getDefaultGeometry match {
-    case g: Geometry =>
-      new ReferencedEnvelope(g.getEnvelopeInternal, sft.getCoordinateReferenceSystem)
-    case _ =>
-      new ReferencedEnvelope(sft.getCoordinateReferenceSystem)
+    case g: Geometry => new ReferencedEnvelope(g.getEnvelopeInternal, sft.getCoordinateReferenceSystem)
+    case _ => new ReferencedEnvelope(sft.getCoordinateReferenceSystem)
   }
 
-  override def getDefaultGeometryProperty: GeometryAttribute =
-    if (geometryDescriptor == null) null else new GeometryAttributeImpl(getDefaultGeometry, geometryDescriptor, null)
-
+  override def getDefaultGeometryProperty =
+    if (geomDesc == null) null else new GeometryAttributeImpl(getDefaultGeometry, geomDesc, null)
   override def setDefaultGeometryProperty(geoAttr: GeometryAttribute) =
     if (geoAttr == null) setDefaultGeometry(null) else setDefaultGeometry(geoAttr.getValue)
 
-  override def getProperties: JCollection[Property] =
-    getAttributes.zip(sft.getAttributeDescriptors).map {
-      case(attribute, attributeDescriptor) =>
-         new AttributeImpl(attribute, attributeDescriptor, featureId)
-      }
-  override def getProperties(name: Name): JCollection[Property] = getProperties(name.getLocalPart)
-  override def getProperties(name: String): JCollection[Property] = getProperties.filter(_.getName.toString == name)
-  override def getProperty(name: Name): Property = getProperty(name.getLocalPart)
-  override def getProperty(name: String): Property = {
+  override def getProperties: JCollection[Property] = {
+    val attributes = getAttributes
+    val descriptors = sft.getAttributeDescriptors
+    assert(attributes.size == descriptors.size)
+    val properties = new util.ArrayList[Property](attributes.size)
+    var i = 0
+    while (i < attributes.size) {
+      properties.add(new AttributeImpl(attributes.get(i), descriptors.get(i), featureId))
+      i += 1
+    }
+    properties
+  }
+  override def getProperties(name: Name) = getProperties(name.getLocalPart)
+  override def getProperties(name: String) = getProperties.filter(_.getName.toString == name)
+  override def getProperty(name: Name) = getProperty(name.getLocalPart)
+  override def getProperty(name: String) = {
     val descriptor = sft.getDescriptor(name)
     if (descriptor == null) null else new AttributeImpl(getAttribute(name), descriptor, featureId)
   }
 
-  override def getValue: JCollection[_ <: Property] = getProperties
-  override def setValue(newValue: Object) = setValue (newValue.asInstanceOf[JCollection[Property]])
-  override def setValue(values: JCollection[Property]) =
-    values.zipWithIndex.foreach { case (p, idx) => this.values(idx) = p.getValue }
+  override def getValue = getProperties
+  override def setValue(newValue: Object) = setValue(newValue.asInstanceOf[JCollection[Property]])
+  override def setValue(values: JCollection[Property]) = {
+    var i = 0
+    values.foreach { p =>
+      setAttribute(i, p.getValue)
+      i += 1
+    }
+  }
 
   override def getDescriptor: AttributeDescriptor =
     new AttributeDescriptorImpl(sft, sft.getName, 0, Int.MaxValue, true, null)
 
-  override def getName: Name = sft.getName
-
-  override def getUserData = userData
-
   override def isNillable = true
 
-  override def validate() =
-    values.zipWithIndex.foreach { case (v, idx) => Types.validate(getType.getDescriptor(idx), v) }
+  override def validate() = {
+    var i = 0
+    while (i < values.length) {
+      Types.validate(sft.getDescriptor(i), values(i))
+      i += 1
+    }
+  }
 }
 
-object KryoSimpleFeature {
-  implicit class RichKryoSimpleFeature(val sf: KryoSimpleFeature) extends AnyVal {
+object ScalaSimpleFeature {
+  implicit class RichSimpleFeature(val sf: ScalaSimpleFeature) extends AnyVal {
     def getAttribute[T](name: String) = sf.getAttribute(name).asInstanceOf[T]
     def getAttribute[T](index: Int) = sf.getAttribute(index).asInstanceOf[T]
     def getGeometry() = sf.getDefaultGeometry.asInstanceOf[Geometry]

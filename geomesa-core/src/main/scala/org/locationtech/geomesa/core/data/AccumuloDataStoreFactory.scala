@@ -119,7 +119,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
     val featureEncoding = featureEncParam.lookupOpt[String](params)
       .map(FeatureEncoding.withName)
-      .getOrElse(FeatureEncoding.KRYO)
+      .getOrElse(DEFAULT_ENCODING)
 
     // stats defaults to true if not specified
     val collectStats = !useMock &&
