@@ -160,7 +160,8 @@ object SimpleFeatureTypes {
         )
 
       case t if t.getBinding.equals(classOf[java.util.Map[_, _]]) =>
-        MapAttributeSpec(ad.getLocalName,
+        MapAttributeSpec(
+          ad.getLocalName,
           ad.getUserData.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]],
           ad.getUserData.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]],
           ad.getUserData.getOrElse(OPT_INDEX, false).asInstanceOf[Boolean],

@@ -71,7 +71,6 @@ class DelimitedTextConverter(format: CSVFormat,
   val writer = new PipedWriter()
   val reader = new PipedReader(writer, inputSize) // 16k records
   val parser = format.parse(reader).iterator()
-  val nInputFields = inputFields.length
 
   val es = Executors.newSingleThreadExecutor()
   es.submit(new Runnable {

@@ -42,7 +42,7 @@ object SpatioTemporalTable extends Logging {
   // data rows have a data flag as part of the schema
   def isDataEntry(key: Key): Boolean = key.getRow.find(DATA_CHECK) != -1
 
-  def spatioTemporalWriter(bw: BatchWriter, encoder: IndexEntryEncoder): FeatureWriterFn  =
+  def spatioTemporalWriter(bw: BatchWriter, encoder: IndexEntryEncoder): FeatureWriterFn =
     (feature: SimpleFeature, visibility: String) => {
       val KVs = encoder.encode(feature, visibility)
       val m = KVs.groupBy { case (k, _) => k.getRow }.map { case (row, kvs) => kvsToMutations(row, kvs) }

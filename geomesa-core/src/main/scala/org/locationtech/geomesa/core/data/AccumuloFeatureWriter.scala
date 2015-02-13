@@ -182,7 +182,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
 
     val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
 
-    val attrWriters = 
+    val attrWriters =
       if (dataStore.geomesaVersion(featureType) < 1) {
         List.empty
       } else {

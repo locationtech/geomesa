@@ -190,8 +190,8 @@ case class QueryPlanner(schema: String,
     val timeSeriesStrings = accumuloIterator.map { kv =>
       decoder.decode(kv.getValue.get).getAttribute(ENCODED_TIME_SERIES).toString
     }
-
     val summedTimeSeries = timeSeriesStrings.map(decodeTimeSeries).reduce(combineTimeSeries)
+
     val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
     featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
     featureBuilder.add(QueryPlanner.zeroPoint) //Filler value as Feature requires a geometry

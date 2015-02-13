@@ -27,7 +27,6 @@ import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
-import scala.ref.SoftReference
 
 /**
  * Kryo serialization implementation for simple features. This class shouldn't be used directly -
