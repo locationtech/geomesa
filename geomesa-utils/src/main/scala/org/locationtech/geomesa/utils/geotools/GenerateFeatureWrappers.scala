@@ -54,6 +54,13 @@ object GenerateFeatureWrappers {
 
   val className = "SimpleFeatureWrappers"
 
+  /**
+   * Builds all implicit classes in a wrapper object
+   *
+   * @param sfts
+   * @param pkg
+   * @return
+   */
   def buildAllClasses(sfts: Seq[SimpleFeatureType], pkg: String): String = {
     val sb = new StringBuilder()
     sb.append(s"package $pkg\n\n")
@@ -63,6 +70,13 @@ object GenerateFeatureWrappers {
     sb.toString()
   }
 
+  /**
+   * Builds a single implicit class
+   *
+   * @param sft
+   * @param tab
+   * @return
+   */
   def buildClass(sft: SimpleFeatureType, tab: String): String = {
     import scala.collection.JavaConversions._
 
@@ -77,11 +91,26 @@ object GenerateFeatureWrappers {
       sb.append(s"$tab  ${a.optionGetter}\n")
       sb.append(s"$tab  ${a.setter}\n")
     }
+    sb.append(
+      s"""
+        |$tab  def debug(): String = {
+        |$tab    import scala.collection.JavaConversions._
+        |$tab    val sb = new StringBuilder(s"$${sf.getType.getTypeName}:$${sf.getID}")
+        |$tab    sf.getProperties.foreach(p => sb.append(s"|$${p.getName.getLocalPart}=$${p.getValue}"))
+        |$tab    sb.toString()
+        |$tab  }
+        |""".stripMargin)
     sb.append(s"$tab}")
 
     sb.toString()
   }
 
+  /**
+   * Recursively looks for configuration files of the pattern 'format-*.conf'
+   *
+   * @param file
+   * @return
+   */
   def findFormatFiles(file: File): Seq[File] = {
     if (!file.isDirectory) {
       val name = file.getName
@@ -95,6 +124,12 @@ object GenerateFeatureWrappers {
     }
   }
 
+  /**
+   * Creates implicit wrappers for any typesafe config format files found under src/main/resources
+   *
+   * @param args (0) - base directory for the maven project
+   *             (1) - package to place the implicit classes
+   */
   def main(args: Array[String]) = {
     val basedir = args(0)
     val packageName = args(1)
