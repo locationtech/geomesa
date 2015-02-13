@@ -91,6 +91,15 @@ object GenerateFeatureWrappers {
       sb.append(s"$tab  ${a.optionGetter}\n")
       sb.append(s"$tab  ${a.setter}\n")
     }
+    sb.append(
+      s"""
+        |$tab  def debug(): String = {
+        |$tab    import scala.collection.JavaConversions._
+        |$tab    val sb = new StringBuilder(s"$${sf.getType.getTypeName}:$${sf.getID}")
+        |$tab    sf.getProperties.foreach(p => sb.append(s"|$${p.getName.getLocalPart}=$${p.getValue}"))
+        |$tab    sb.toString()
+        |$tab  }
+        |""".stripMargin)
     sb.append(s"$tab}")
 
     sb.toString()

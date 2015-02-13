@@ -20,8 +20,6 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.immutable.HashMap
-
 @RunWith(classOf[JUnitRunner])
 class GenerateFeatureWrappersTest extends Specification {
 
@@ -44,6 +42,13 @@ class GenerateFeatureWrappersTest extends Specification {
           |  def geom(): com.vividsolutions.jts.geom.Point = sf.getAttribute(2).asInstanceOf[com.vividsolutions.jts.geom.Point]
           |  def geomOpt(): Option[com.vividsolutions.jts.geom.Point] = Option(geom())
           |  def setGeom(x: com.vividsolutions.jts.geom.Point): Unit = sf.setAttribute(2, x)
+          |
+          |  def debug(): String = {
+          |    import scala.collection.JavaConversions._
+          |    val sb = new StringBuilder(s"${sf.getType.getTypeName}:${sf.getID}")
+          |    sf.getProperties.foreach(p => sb.append(s"|${p.getName.getLocalPart}=${p.getValue}"))
+          |    sb.toString()
+          |  }
           |}""".stripMargin
       template mustEqual(expected)
     }
@@ -65,6 +70,13 @@ class GenerateFeatureWrappersTest extends Specification {
           |  def geom(): com.vividsolutions.jts.geom.Point = sf.getAttribute(2).asInstanceOf[com.vividsolutions.jts.geom.Point]
           |  def geomOpt(): Option[com.vividsolutions.jts.geom.Point] = Option(geom())
           |  def setGeom(x: com.vividsolutions.jts.geom.Point): Unit = sf.setAttribute(2, x)
+          |
+          |  def debug(): String = {
+          |    import scala.collection.JavaConversions._
+          |    val sb = new StringBuilder(s"${sf.getType.getTypeName}:${sf.getID}")
+          |    sf.getProperties.foreach(p => sb.append(s"|${p.getName.getLocalPart}=${p.getValue}"))
+          |    sb.toString()
+          |  }
           |}""".stripMargin
       template mustEqual(expected)
     }
@@ -90,6 +102,13 @@ class GenerateFeatureWrappersTest extends Specification {
           |    def geom(): com.vividsolutions.jts.geom.Point = sf.getAttribute(2).asInstanceOf[com.vividsolutions.jts.geom.Point]
           |    def geomOpt(): Option[com.vividsolutions.jts.geom.Point] = Option(geom())
           |    def setGeom(x: com.vividsolutions.jts.geom.Point): Unit = sf.setAttribute(2, x)
+          |
+          |    def debug(): String = {
+          |      import scala.collection.JavaConversions._
+          |      val sb = new StringBuilder(s"${sf.getType.getTypeName}:${sf.getID}")
+          |      sf.getProperties.foreach(p => sb.append(s"|${p.getName.getLocalPart}=${p.getValue}"))
+          |      sb.toString()
+          |    }
           |  }
           |}""".stripMargin
       template mustEqual(expected)
