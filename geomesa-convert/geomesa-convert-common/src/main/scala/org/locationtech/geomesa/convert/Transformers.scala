@@ -202,6 +202,7 @@ object Transformers extends JavaTokenParsers {
   def parseTransform(s: String): Expr = parse(TransformerParser.transformExpr, s).get
   def parsePred(s: String): Predicate = parse(TransformerParser.pred, s).get
 
+
 }
 
 object TransformerFn {
