@@ -307,30 +307,6 @@ trait AttributeIdxStrategy extends Strategy with Logging {
                     s"${one.getClass.getName}, ${two.getClass.getName}"
         throw new RuntimeException(msg)
     }
-
-  // This function assumes that the query's filter object is or has an attribute-idx-satisfiable
-  //  filter.  If not, you will get a None.get exception.
-  def partitionFilter(query: Query, sft: SimpleFeatureType): (Query, Filter) = {
-
-    val filter = query.getFilter
-
-    val (indexFilter: Option[Filter], cqlFilter) = filter match {
-      case and: And =>
-        findFirst(AttributeIndexStrategy.getAttributeIndexStrategy(_, sft).isDefined)(and.getChildren)
-      case f: Filter =>
-        (Some(f), Seq())
-    }
-
-    val nonIndexFilters = filterListAsAnd(cqlFilter).getOrElse(Filter.INCLUDE)
-
-    val newQuery = new Query(query)
-    newQuery.setFilter(nonIndexFilters)
-
-    if (indexFilter.isEmpty) throw new Exception(s"Partition Filter was called on $query for filter $filter." +
-      s"\nThe AttributeIdxStrategy did not find a compatible sub-filter.")
-
-    (newQuery, indexFilter.get)
-  }
 }
 
 class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
@@ -647,28 +623,26 @@ object AttributeIndexStrategy {
   }
 
   // This function assumes that the query's filter object is or has an attribute-idx-satisfiable
-  //  filter.  If not, you will get a None.get exception.
+  //  filter.  If not, you will get an exception.
   def partitionFilter(query: Query, sft: SimpleFeatureType): (Query, Filter) = {
 
     val filter = query.getFilter
 
-    val (indexFilter: Option[Filter], cqlFilter) = filter match {
+    val (indexFilterOption: Option[Filter], cqlFilter) = filter match {
       case and: And =>
         findFirst(AttributeIndexStrategy.getAttributeIndexStrategy(_, sft).isDefined)(and.getChildren)
       case f: Filter =>
         (Some(f), Seq())
     }
 
+    val indexFilter = indexFilterOption.getOrElse(
+      throw new Exception(s"Partition Filter was called on $query for filter $filter. " +
+          "The AttributeIdxStrategy did not find a compatible sub-filter.")
+    )
     val nonIndexFilters = filterListAsAnd(cqlFilter).getOrElse(Filter.INCLUDE)
 
     val newQuery = new Query(query)
     newQuery.setFilter(nonIndexFilters)
-
-    if (indexFilter.isEmpty) {
-      throw new Exception(s"Partition Filter was called on $query for filter $filter. " +
-          "The AttributeIdxStrategy did not find a compatible sub-filter.")
-    }
-
-    (newQuery, indexFilter.get)
+    (newQuery, indexFilter)
   }
 }
