@@ -29,6 +29,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Id, PropertyIsLike}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 object QueryStrategyDecider {
 

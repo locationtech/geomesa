@@ -71,15 +71,17 @@ class DelimitedTextConverter(format: CSVFormat,
   val writer = new PipedWriter()
   val reader = new PipedReader(writer, inputSize) // 16k records
   val parser = format.parse(reader).iterator()
+  val separator = format.getRecordSeparator
 
   val es = Executors.newSingleThreadExecutor()
   es.submit(new Runnable {
     override def run(): Unit = {
       while (true) {
-        val s = q.poll(500, TimeUnit.MILLISECONDS)
+        val s = q.take()
         if(s != null) {
           writer.write(s)
-          writer.write(format.getRecordSeparator)
+          writer.write(separator)
+          writer.flush()
         }
       }
     }

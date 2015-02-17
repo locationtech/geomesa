@@ -29,6 +29,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class DelimitedTextConverterTest extends Specification {
 
+  sequential
+
   "DelimitedTextConverter" should {
 
     val data =
@@ -45,12 +47,15 @@ class DelimitedTextConverterTest extends Specification {
         |   format       = "DEFAULT",
         |   id-field     = "md5(string2bytes($0))",
         |   fields = [
-        |     { name = "oneup",  transform = "$1" },
-        |     { name = "phrase", transform = "concat($1, $2)" },
-        |     { name = "lat",    transform = "$3::double" },
-        |     { name = "lon",    transform = "$4::double" },
-        |     { name = "lit",    transform = "'hello'" },
-        |     { name = "geom",   transform = "point($lat, $lon)" }
+        |     { name = "oneup",    transform = "$1" },
+        |     { name = "phrase",   transform = "concat($1, $2)" },
+        |     { name = "lat",      transform = "$3::double" },
+        |     { name = "lon",      transform = "$4::double" },
+        |     { name = "lit",      transform = "'hello'" },
+        |     { name = "geom",     transform = "point($lat, $lon)" }
+        |     { name = "l1",       transform = "concat($lit, $lit)" }
+        |     { name = "l2",       transform = "concat($l1,  $lit)" }
+        |     { name = "l3",       transform = "concat($l2,  $lit)" }
         |   ]
         | }
       """.stripMargin)
@@ -97,6 +102,16 @@ class DelimitedTextConverterTest extends Specification {
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
       res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
+    }
+
+    "handle projecting to just the attributes in the SFT (and associated input dependencies)" >> {
+      // l3 has cascading dependencies
+      val subsft = SimpleFeatureTypes.createType("subsettest", "l3:String,geom:Point:srid=4326")
+      val conv = SimpleFeatureConverters.build[String](subsft, conf)
+      val res = conv.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
+      conv.close()
+
+      res.length must be equalTo 2
     }
 
     "handle horrible quoting and nested separators" >> {
