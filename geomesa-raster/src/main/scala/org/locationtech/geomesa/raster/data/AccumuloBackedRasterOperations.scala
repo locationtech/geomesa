@@ -290,18 +290,8 @@ object AccumuloBackedRasterOperations {
             shardsConfig: Option[Int],
             writeMemoryConfig: Option[String],
             writeThreadsConfig: Option[Int],
-            queryThreadsConfig: Option[Int],
-            collectStats: Boolean): AccumuloBackedRasterOperations  =
-    if (collectStats)
-      new AccumuloBackedRasterOperations(connector,
-                                         tableName,
-                                         authorizationsProvider,
-                                         visibility,
-                                         shardsConfig,
-                                         writeMemoryConfig,
-                                         writeThreadsConfig,
-                                         queryThreadsConfig) with StatWriter
-    else
+            queryThreadsConfig: Option[Int]): AccumuloBackedRasterOperations  =
+
       new AccumuloBackedRasterOperations(connector,
                                          tableName,
                                          authorizationsProvider,

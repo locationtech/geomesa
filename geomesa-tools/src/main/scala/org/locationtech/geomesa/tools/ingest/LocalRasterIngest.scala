@@ -55,7 +55,7 @@ class LocalRasterIngest(config: Map[String, Option[String]]) extends RasterInges
     files.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(parLevel))
     files.foreach(ingestRasterFromFile(_))
 
-    cs.geoserverClientServiceO.foreach { geoserverClientService => {
+    cs.geoserverClientService.foreach { geoserverClientService => {
       geoserverClientService.registerRasterStyles()
       geoserverClientService.registerRaster(rasterName, rasterName, "Raster data", None)
     }}

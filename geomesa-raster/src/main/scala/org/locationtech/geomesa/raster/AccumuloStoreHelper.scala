@@ -35,6 +35,11 @@ object AccumuloStoreHelper {
     val visStr = visibilityParam.lookUp(params).asInstanceOf[String]
     if (visStr == null) "" else visStr
   }
+  
+  def getAuthorization(params: JMap[String,Serializable]): String = {
+    val auths = authsParam.lookUp(params).asInstanceOf[String]
+    if (auths == null) "" else auths
+  }
 
   def buildAccumuloConnector(user: String,
                              password: String,

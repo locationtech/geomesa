@@ -53,7 +53,7 @@ class RemoteRasterIngest(config: Map[String, Option[String]]) extends RasterInge
     flow.complete()
     job.printStatInfo
 
-    cs.geoserverClientServiceO.foreach { geoserverClientService => {
+    cs.geoserverClientService.foreach { geoserverClientService => {
       geoserverClientService.registerRasterStyles()
       geoserverClientService.registerRaster(rasterName, rasterName, "Raster data", None)
     }}
