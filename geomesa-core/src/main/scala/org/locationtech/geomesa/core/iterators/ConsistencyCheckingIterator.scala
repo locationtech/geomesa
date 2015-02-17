@@ -21,13 +21,14 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.core.data.DATA_CQ
+import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
+import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable.{DATA_CHECK, INDEX_CHECK}
 import org.locationtech.geomesa.core.index.IndexValueEncoder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] with Logging {
 
-  import scala.collection.JavaConverters._
+  import scala.collection.JavaConversions._
 
   private var indexSource: SortedKeyValueIterator[Key, Value] = null
   private var dataSource: SortedKeyValueIterator[Key, Value] = null
@@ -57,32 +58,30 @@ class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] wit
   def getTopValue = topValue
 
   def findTop() {
-    logger.trace("Finding top")
+    logger.debug("Finding top")
     // clear out the reference to the next entry
     nextKey = null
 
-    def isData = indexSource.getTopKey.getColumnQualifier == DATA_CQ
-
-    while (nextKey == null && indexSource.hasTop && !isData) {
-      logger.trace(s"Checking ${indexSource.getTopKey}")
+    while (nextKey == null && indexSource.hasTop) {
       nextKey = indexSource.getTopKey
-      curId = indexValueEncoder.decode(indexSource.getTopValue.get).id
-
-      val dataSeekKey = new Key(indexSource.getTopKey.getRow, new Text(curId))
-      val range = new Range(dataSeekKey, null)
-      val colFamilies = List[ByteSequence](new ArrayByteSequence(curId.getBytes)).asJavaCollection
-      dataSource.seek(range, colFamilies, true)
-
-      if(!dataSource.hasTop || dataSource.getTopKey.getColumnFamily.toString != curId) {
-        logger.debug(s"Found an inconsistent entry: ${indexSource.getTopKey}")
-        nextKey = indexSource.getTopKey
-        indexSource.next()
-      } else {
+      if (SpatioTemporalTable.isDataEntry(nextKey)) {
         nextKey = null
-        indexSource.next()
-        while (indexSource != null && indexSource.hasTop && isData)
-          indexSource.next()
+      } else {
+        logger.debug(s"Checking $nextKey")
+        curId = indexValueEncoder.decode(indexSource.getTopValue.get).id
+
+        val dataSeekKey = new Key(new Text(nextKey.getRow.toString.replace(INDEX_CHECK, DATA_CHECK)),
+          nextKey.getColumnFamily, nextKey.getColumnQualifier)
+        dataSource.seek(new Range(dataSeekKey, null), Seq.empty[ByteSequence], false)
+
+        if (!dataSource.hasTop ||
+            dataSource.getTopKey.getColumnQualifier.toString != nextKey.getColumnQualifier.toString) {
+          logger.warn(s"Found an inconsistent entry: $nextKey")
+        } else {
+          nextKey = null
+        }
       }
+      indexSource.next()
     }
   }
 

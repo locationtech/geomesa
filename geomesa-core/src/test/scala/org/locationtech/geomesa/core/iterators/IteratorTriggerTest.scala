@@ -232,17 +232,18 @@ class IteratorTriggerTest extends Specification {
 
     "not be run when transforms overlap filters" in {
       val choice = TriggerTest.chooseIteratorTest(TriggerTest.spatialTemporalFilterString, TriggerTest.simpleTransformToIndex)
-      choice.useSFFI must beFalse
+      choice.hasTransformOrFilter must beFalse
     }
 
     "not be run for geom transform and filter" in {
       val choice = TriggerTest.chooseIteratorTest(TriggerTest.spatialFilterString, TriggerTest.geomTransformToIndex)
-      choice.useSFFI must beFalse
+      choice.hasTransformOrFilter must beFalse
     }
 
     "be run when transforms don't overlap filters" in {
       val choice = TriggerTest.chooseIteratorTest(TriggerTest.spatialTemporalFilterString, TriggerTest.geomTransformToIndex)
-      choice.useSFFI must beTrue
+      choice.iterator mustEqual IndexOnlyIterator
+      choice.transformCoversFilter must beFalse
     }
   }
 
@@ -297,12 +298,20 @@ class IteratorTriggerTest extends Specification {
   }
 
   "AttributeIndexIterator" should {
-    val sftName = "test"
-    val spec = "name:String:index=true,age:Integer:index=true,dtg:Date:index=true,*geom:Geometry:srid=4326"
-    val sft = SimpleFeatureTypes.createType(sftName, spec)
-
     "be run when requesting simple attributes" in {
+      val sftName = "AttributeIndexIteratorTriggerTest"
+      val spec = "name:String:index=true,age:Integer:index=true,dtg:Date:index=true,*geom:Geometry:srid=4326"
+      val sft = SimpleFeatureTypes.createType(sftName, spec)
       val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg", "name"))
+      AccumuloDataStore.setQueryTransforms(query, sft) // normally called by data store when getting feature reader
+      val iteratorChoice = IteratorTrigger.chooseAttributeIterator(None, query, sft, "name")
+      iteratorChoice.iterator mustEqual(IndexOnlyIterator)
+    }
+    "be run when requesting extra index-encoded attributes" in {
+      val sftName = "AttributeIndexIteratorTriggerTest"
+      val spec = "name:String:index=true,age:Integer:index-value=true,dtg:Date:index=true,*geom:Geometry:srid=4326"
+      val sft = SimpleFeatureTypes.createType(sftName, spec)
+      val query = new Query(sftName, ECQL.toFilter("name='bob'"), Array("geom", "dtg", "name", "age"))
       AccumuloDataStore.setQueryTransforms(query, sft) // normally called by data store when getting feature reader
       val iteratorChoice = IteratorTrigger.chooseAttributeIterator(None, query, sft, "name")
       iteratorChoice.iterator mustEqual(IndexOnlyIterator)

@@ -135,7 +135,7 @@ case class QueryPlanner(schema: String,
                        isADensity: Boolean,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     output(s"Transforms: ${derivedQuery.getHints.get(TRANSFORMS)}")
-    val strategy = QueryStrategyDecider.chooseStrategy(acc.catalogTableFormat(sft), sft, derivedQuery, hints)
+    val strategy = QueryStrategyDecider.chooseStrategy(sft, derivedQuery, hints, acc.geomesaVersion(sft))
 
     output(s"Strategy: ${strategy.getClass.getCanonicalName}")
     strategy.execute(acc, this, sft, derivedQuery, output)
@@ -190,13 +190,10 @@ case class QueryPlanner(schema: String,
     val timeSeriesStrings = accumuloIterator.map { kv =>
       decoder.decode(kv.getValue.get).getAttribute(ENCODED_TIME_SERIES).toString
     }
-
     val summedTimeSeries = timeSeriesStrings.map(decodeTimeSeries).reduce(combineTimeSeries)
 
     val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
-    featureBuilder.reset()
     featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
-
     featureBuilder.add(QueryPlanner.zeroPoint) //Filler value as Feature requires a geometry
     val result = featureBuilder.buildFeature(null)
 

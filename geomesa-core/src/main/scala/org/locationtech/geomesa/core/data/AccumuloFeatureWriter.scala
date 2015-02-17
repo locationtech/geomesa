@@ -87,16 +87,14 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
     val stWriter = List(SpatioTemporalTable.spatioTemporalWriter(multiBWWriter.getBatchWriter(stTable), indexEncoder))
 
     val attrWriters =
-      if (ds.catalogTableFormat(featureType)) {
-        val attrTable = ds.getAttrIdxTableName(featureType)
-        val recTable = ds.getRecordTableForType(featureType)
-        val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
-
-        List(
-          AttributeTable.attrWriter(multiBWWriter.getBatchWriter(attrTable), featureType, indexedAttributes, rowIdPrefix),
-          RecordTable.recordWriter(multiBWWriter.getBatchWriter(recTable), encoder, rowIdPrefix))
-      } else {
+      if (ds.geomesaVersion(featureType) < 1) {
         List.empty
+      } else {
+        val attrWriter = multiBWWriter.getBatchWriter(ds.getAttrIdxTableName(featureType))
+        val recWriter = multiBWWriter.getBatchWriter(ds.getRecordTableForType(featureType))
+        val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
+        List(AttributeTable.attrWriter(attrWriter, featureType, indexedAttributes, rowIdPrefix),
+             RecordTable.recordWriter(recWriter, encoder, rowIdPrefix))
       }
 
     stWriter ::: attrWriters
@@ -185,15 +183,13 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
     val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
 
     val attrWriters =
-      if (dataStore.catalogTableFormat(featureType)) {
-        val attrTable = dataStore.getAttrIdxTableName(featureType)
-        val recTable = dataStore.getRecordTableForType(featureType)
-
-        List(
-          AttributeTable.removeAttrIdx(multiBWWriter.getBatchWriter(attrTable), featureType, indexedAttributes, rowIdPrefix),
-          RecordTable.recordDeleter(multiBWWriter.getBatchWriter(recTable), encoder, rowIdPrefix))
-      } else {
+      if (dataStore.geomesaVersion(featureType) < 1) {
         List.empty
+      } else {
+        val attrWriter = multiBWWriter.getBatchWriter(dataStore.getAttrIdxTableName(featureType))
+        val recWriter = multiBWWriter.getBatchWriter(dataStore.getRecordTableForType(featureType))
+        List(AttributeTable.removeAttrIdx(attrWriter, featureType, indexedAttributes, rowIdPrefix),
+             RecordTable.recordDeleter(recWriter, encoder, rowIdPrefix))
       }
     stWriter ::: attrWriters
   }

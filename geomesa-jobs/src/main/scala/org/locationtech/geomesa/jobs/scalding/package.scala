@@ -45,5 +45,7 @@ package object scalding {
     val CATALOG_TABLE       = "geomesa.feature.tables.catalog"
     val RECORD_TABLE        = "geomesa.feature.tables.record"
     val ATTRIBUTE_TABLE     = "geomesa.feature.tables.attribute"
+    val ST_INDEX_TABLE      = "geomesa.feature.tables.stindex"
+    val SCAN_RANGES         = "geomesa.scan.ranges"
   }
 }

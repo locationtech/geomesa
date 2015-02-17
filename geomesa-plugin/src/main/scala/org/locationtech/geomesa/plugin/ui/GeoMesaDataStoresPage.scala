@@ -189,12 +189,12 @@ object GeoMesaDataStoresPage {
     val connector = dataStore.connector
 
     val tables =
-      if (dataStore.catalogTableFormat(featureName)) {
-        List(("Record Table", dataStore.getRecordTableForType(featureName)),
-             ("GeoSpatial Index", dataStore.getSpatioTemporalIdxTableName(featureName)),
-             ("Attribute Index", dataStore.getAttrIdxTableName(featureName)))
-      } else {
+      if (dataStore.geomesaVersion(featureName) < 1) {
         List(("Record Table/GeoSpatial Index", table))
+      } else {
+        List(("Record Table", dataStore.getRecordTableForType(featureName)),
+          ("GeoSpatial Index", dataStore.getSpatioTemporalIdxTableName(featureName)),
+          ("Attribute Index", dataStore.getAttrIdxTableName(featureName)))
       }
 
     tables.map { case (displayName, table) =>

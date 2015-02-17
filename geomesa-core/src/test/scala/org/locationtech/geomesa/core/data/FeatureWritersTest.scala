@@ -400,7 +400,7 @@ class FeatureWritersTest extends Specification {
 
         val hints = ds.strategyHints(sft)
         val q = new Query(sft.getTypeName, deleteFilter)
-        QueryStrategyDecider.chooseStrategy(true, sft, q, hints) must beAnInstanceOf[AttributeIdxEqualsStrategy]
+        QueryStrategyDecider.chooseStrategy(sft, q, hints, INTERNAL_GEOMESA_VERSION) must beAnInstanceOf[AttributeIdxEqualsStrategy]
 
         import org.locationtech.geomesa.utils.geotools.Conversions._
 

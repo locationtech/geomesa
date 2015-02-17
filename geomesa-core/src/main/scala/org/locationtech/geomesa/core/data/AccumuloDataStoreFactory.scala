@@ -121,7 +121,11 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       .map(FeatureEncoding.withName)
       .getOrElse(DEFAULT_ENCODING)
 
-    val collectStats = !useMock && Try(statsParam.lookUp(params).asInstanceOf[java.lang.Boolean] == true).getOrElse(true)
+    // stats defaults to true if not specified
+    val collectStats = !useMock &&
+        Option(statsParam.lookUp(params)).map(_.toString.toBoolean).forall(_ == true)
+    // caching defaults to false if not specified
+    val caching = Option(cachingParam.lookUp(params)).exists(_.toString.toBoolean)
 
     if (collectStats) {
       new AccumuloDataStore(connector,
@@ -132,7 +136,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
-        cachingParam.lookUp(params).asInstanceOf[Boolean],
+        caching,
         featureEncoding) with StatWriter
     } else {
       new AccumuloDataStore(connector,
@@ -143,7 +147,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
-        cachingParam.lookUp(params).asInstanceOf[Boolean],
+        caching,
         featureEncoding)
     }
   }
@@ -194,8 +198,8 @@ object AccumuloDataStoreFactory {
     val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false)
     val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false)
     val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false)
-    val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false, java.lang.Boolean.TRUE)
-    val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false, java.lang.Boolean.TRUE)
+    val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false)
+    val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false)
     val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
     val featureEncParam     = new Param("featureEncoding", classOf[String], "The feature encoding format (kryo, avro or text). Default is Kryo", false, "kryo")
   }

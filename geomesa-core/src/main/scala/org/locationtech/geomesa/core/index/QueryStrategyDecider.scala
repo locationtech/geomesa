@@ -33,11 +33,8 @@ import scala.collection.mutable
 
 object QueryStrategyDecider {
 
-  def chooseStrategy(isCatalogTableFormat: Boolean,
-                     sft: SimpleFeatureType,
-                     query: Query,
-                     hints: StrategyHints): Strategy = {
-    if (!isCatalogTableFormat) {
+  def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints, version: Int): Strategy = {
+    if (version < 1) {
       // if datastore doesn't support attr index use spatiotemporal only
       return new STIdxStrategy
     }

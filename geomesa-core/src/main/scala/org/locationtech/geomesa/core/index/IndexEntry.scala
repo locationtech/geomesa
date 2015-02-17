@@ -23,7 +23,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.DATA_CQ
+import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.geohash.{GeoHash, GeohashUtils}
 import org.opengis.feature.simple.SimpleFeature
@@ -92,28 +92,23 @@ case class IndexEntryEncoder(rowf: TextFormatter,
     val v = new Text(visibility)
     val dt = featureToEncode.dt.getOrElse(new DateTime()).withZone(timeZone)
 
-    // remember the resulting index-entries
-    val keys = geohashes.map { gh =>
-      val Array(r, cf, cq) = formats.map { _.format(gh, dt, featureToEncode) }
-      new Key(r, cf, cq, v)
-    }
-    val rowIDs = keys.map(_.getRow)
-    val id = new Text(featureToEncode.sid)
-
-    val indexValue = IndexValueEncoder(featureToEncode.getFeatureType).encode(featureToEncode)
-    val iv = new Value(indexValue)
-    // the index entries are (key, FID) pairs
-    val indexEntries = keys.map { k => (k, iv) }
-
-    // the (single) data value is the encoded (serialized-to-string) SimpleFeature
+    // the index value is the encoded date/time/fid
+    val indexValue = new Value(IndexValueEncoder(featureToEncode.getFeatureType).encode(featureToEncode))
+    // the data value is the encoded SimpleFeature
     val dataValue = new Value(featureEncoder.encode(featureToEncode))
 
-    // data entries are stored separately (and independently) from the index entries;
-    // each attribute gets its own data row (though currently, we use only one attribute
-    // that represents the entire, encoded feature)
-    val dataEntries = rowIDs.map { rowID =>
-      val key = new Key(rowID, id, DATA_CQ, v)
-      (key, dataValue)
+    // data entries are stored separately (and independently) from the index entries
+    // the entries are (key, value) pairs
+
+    val indexEntries = geohashes.map { gh =>
+      formats.map(_.format(gh, dt, featureToEncode, true)) match {
+        case Array(row, cf, cq) => (new Key(row, cf, cq, v), indexValue)
+      }
+    }
+    val dataEntries = geohashes.map { gh =>
+      formats.map(_.format(gh, dt, featureToEncode, false)) match {
+        case Array(row, cf, cq) => (new Key(row, cf, cq, v), dataValue)
+      }
     }
 
     (indexEntries ++ dataEntries).toList

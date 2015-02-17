@@ -117,18 +117,25 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     output(s"Setting ${ranges.size} ranges.")
 
-    val qp = QueryPlan(Seq(), ranges.toSeq, Seq())
-
     // this should be done with care, ECQL -> Filter -> CQL is NOT a unitary transform
     val ecql = combinedOFilter.map { ECQL.toCQL }
 
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
-    val sffiIterCfg = getSFFIIterCfg(iteratorConfig, featureType, ecql, schema, featureEncoding, query)
+    val cfg = if (iteratorConfig.hasTransformOrFilter) {
+      // TODO apply optimization for when transforms cover filter
+      val cfg = configureRecordTableIterator(featureType, featureEncoding, combinedOFilter, query)
+      output(s"RecordTableIterator: ${cfg.toString }")
+      Some(cfg)
+    } else {
+      None
+    }
 
     // TODO GEOMESA-322 use other strategies with density iterator
     //val topIterCfg = getTopIterCfg(query, geometryToCover, schema, featureEncoder, featureType)
 
-    qp.copy(iterators = qp.iterators ++ List(sffiIterCfg).flatten)
+    val iters = Seq(cfg).flatten
+
+    QueryPlan(iters, ranges.toSeq, Seq.empty)
   }
 }
