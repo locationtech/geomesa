@@ -24,7 +24,6 @@ import org.locationtech.geomesa.core.filter.TestFilters._
 import org.locationtech.geomesa.core.util.SftBuilder
 import org.locationtech.geomesa.core.util.SftBuilder.Opts
 import org.locationtech.geomesa.utils.stats.Cardinality
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
