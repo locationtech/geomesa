@@ -31,6 +31,7 @@ import org.geotools.coverage.grid.io.{AbstractGridCoverage2DReader, AbstractGrid
 import org.geotools.coverage.grid.{GridCoverage2D, GridEnvelope2D, GridGeometry2D}
 import org.geotools.geometry.GeneralEnvelope
 import org.geotools.parameter.Parameter
+import org.geotools.referencing.CRS
 import org.geotools.util.{DateRange, Utilities}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
@@ -71,11 +72,11 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
     case (columnFamily, columnQualifier) => new Text("~" + columnFamily + "~" + columnQualifier)
   }
 
-  this.crs = AbstractGridFormat.getDefaultCRS
-  this.originalEnvelope = new GeneralEnvelope(Array(-180.0, -90.0), Array(180.0, 90.0))
-  this.originalEnvelope.setCoordinateReferenceSystem(this.crs)
-  this.originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
-  this.coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(this.hints)
+  val crs = CRS.decode("EPSG:4326")
+  val originalEnvelope = new GeneralEnvelope(Array(-180.0, -90.0), Array(180.0, 90.0))
+  originalEnvelope.setCoordinateReferenceSystem(crs)
+  val originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
+  val coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(hints)
 
   val zkInstance = new ZooKeeperInstance(instanceId, zookeepers)
   val connector = zkInstance.getConnector(user, new PasswordToken(password.getBytes))
@@ -114,12 +115,12 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
   def read(parameters: Array[GeneralParameterValue]): GridCoverage2D = {
     val paramsMap = parameters.map(gpv => (gpv.getDescriptor.getName.getCode, gpv)).toMap
     val gg = paramsMap(AbstractGridFormat.READ_GRIDGEOMETRY2D.getName.toString).asInstanceOf[Parameter[GridGeometry2D]].getValue
-    val env = gg.getEnvelope
+    val env = CRS.transform(gg.getEnvelope, crs)
 
     val timeParam: Option[Either[Date, DateRange]] =
       parameters
         .find { _.getDescriptor.getName.getCode == AbstractGridFormat.TIME.getName.toString }
-        .flatMap { case p: Parameter[JList[AnyRef]] => p.getValue.lift(0) }
+        .flatMap { case p: Parameter[JList[AnyRef]] => p.getValue.lift(0).flatMap(Option(_)) } // flatMap(Option(_)) transforms Some(null) into None
         .map {
           case date: Date => Left(date)
           case dateRange: DateRange => Right(dateRange)
@@ -127,7 +128,7 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
         }
 
     val tile = getImage(timeParam, env, gg.getGridRange2D.getSpan(0), gg.getGridRange2D.getSpan(1))
-    this.coverageFactory.create(coverageName, tile, env)
+    coverageFactory.create(coverageName, tile, env)
   }
 
 
