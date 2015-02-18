@@ -19,9 +19,11 @@ import java.util
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
+import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.commands.IngestCommand._
-import org.locationtech.geomesa.tools.ingest.{DelimitedIngest, ShpIngest}
+import org.locationtech.geomesa.tools.ingest.DelimitedIngest
+import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
 
@@ -33,7 +35,9 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
     val fmt = Option(params.format).getOrElse(getFileExtension(params.files(0)))
     fmt match {
       case CSV | TSV => new DelimitedIngest(params).run()
-      case SHP       => new ShpIngest(params).run()
+      case SHP       =>
+        val ds = new DataStoreHelper(params).getOrCreateDs
+        GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)
       case _         =>
         logger.error("Error: File format not supported for file " + params.files(0) + ". Supported formats" +
           "are csv,tsv,shp")

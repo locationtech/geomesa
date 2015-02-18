@@ -41,14 +41,18 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
     val fids = Lists.newArrayList[FeatureId]()
     if (collection.size > 0) {
       writeBounds(collection.getBounds)
-      writeTimeBounds(collection)
 
+      val dateField = org.locationtech.geomesa.core.index.getDtgFieldName(collection.getSchema)
+      val minMaxVisitorO: Option[MinMaxTimeVisitor] =
+        if (dateField.isDefined) Some(new MinMaxTimeVisitor(dateField.get)) else None
       val fw = dataStore.getFeatureWriterAppend(featureName.getLocalPart, Transaction.AUTO_COMMIT)
 
       val iter = collection.features()
       while(iter.hasNext) {
         val feature = iter.next()
         val newFeature = fw.next()
+
+        minMaxVisitorO.foreach ( _.visit(feature) )
 
         try {
           newFeature.setAttributes(feature.getAttributes)
@@ -67,6 +71,10 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
         fids.add(newFeature.getIdentifier)
       }
       fw.close()
+
+      minMaxVisitorO.foreach { minMaxVisitor =>
+        Option(minMaxVisitor.getBounds).foreach { dataStore.writeTemporalBounds(featureName.getLocalPart, _) }
+      }
     }
     fids
   }

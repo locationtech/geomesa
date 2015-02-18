@@ -27,9 +27,8 @@ import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
-import org.locationtech.geomesa.tools.ingest.ShpIngest
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{GeneralShapefileIngest, SimpleFeatureTypes}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -81,7 +80,7 @@ class ShpIngestTest extends Specification {
 
     "should properly ingest a shapefile" >> {
       ingestParams.files.add(shpFile.getPath)
-      new ShpIngest(ingestParams).run()
+      GeneralShapefileIngest.shpToDataStore(ingestParams.files(0), ds, ingestParams.featureName)
 
       val fs = ds.getFeatureSource("shpingest")
       val result = fs.getFeatures.features().toList
@@ -90,7 +89,7 @@ class ShpIngestTest extends Specification {
 
     "should support renaming the feature type" >> {
       ingestParams.featureName = "changed"
-      new ShpIngest(ingestParams).run()
+      GeneralShapefileIngest.shpToDataStore(ingestParams.files(0), ds, ingestParams.featureName)
 
       val fs = ds.getFeatureSource("changed")
       val result = fs.getFeatures.features().toList
