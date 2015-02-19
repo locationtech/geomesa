@@ -17,6 +17,7 @@
 package org.locationtech.geomesa.tools
 
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.Date
 
 import com.google.common.io.Files
@@ -25,6 +26,7 @@ import org.geotools.data.Transaction
 import org.geotools.data.shapefile.ShapefileDataStoreFactory
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -49,11 +51,13 @@ class ShpIngestTest extends Specification {
     val shpStore = shpStoreFactory.createNewDataStore(params)
     val schema = SimpleFeatureTypes.createType("shpingest", "age:Integer,dtg:Date,*geom:Point:srid=4326")
     shpStore.createSchema(schema)
+    val df = new SimpleDateFormat("dd-MM-yyyy")
+    val (minDate, maxDate) = (df.parse("01-01-2011"), df.parse("01-01-2012"))
     val (minX, maxX, minY, maxY) = (10.0, 20.0, 30.0, 40.0)
     val data =
       List(
-        ("1", 1, new Date(), (minX, minY)),
-        ("1", 2, new Date(), (maxX, maxY))
+        ("1", 1, minDate, (minX, minY)),
+        ("1", 2, maxDate, (maxX, maxY))
       )
     val writer = shpStore.getFeatureWriterAppend("shpingest", Transaction.AUTO_COMMIT)
     data.foreach { case (id, age, dtg, (lat, lon)) =>
@@ -91,6 +95,10 @@ class ShpIngestTest extends Specification {
       bounds.getMinY mustEqual minY
       bounds.getMaxY mustEqual maxY
 
+      val timeBounds = ds.getTimeBounds("shpingest")
+      timeBounds.getStart mustEqual new DateTime(minDate)
+      timeBounds.getEnd mustEqual new DateTime(maxDate)
+
       val result = fs.getFeatures.features().toList
       result.length mustEqual 2
     }
@@ -100,6 +108,10 @@ class ShpIngestTest extends Specification {
       GeneralShapefileIngest.shpToDataStore(ingestParams.files(0), ds, ingestParams.featureName)
 
       val fs = ds.getFeatureSource("changed")
+
+      val timeBounds = ds.getTimeBounds("changed")
+      timeBounds.getStart mustEqual new DateTime(minDate)
+      timeBounds.getEnd mustEqual new DateTime(maxDate)
 
       val bounds = fs.getBounds
       bounds.getMinX mustEqual minX

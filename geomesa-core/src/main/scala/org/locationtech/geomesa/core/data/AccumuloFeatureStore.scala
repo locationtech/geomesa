@@ -16,18 +16,19 @@
 
 package org.locationtech.geomesa.core.data
 
-import java.util.{List => JList}
+import java.util.{List => JList, Date}
 
 import com.google.common.collect.Lists
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data._
-import org.geotools.factory.Hints
+import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature._
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess.Definition
+import org.joda.time.Interval
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.utils.geotools.MinMaxTimeVisitor
 import org.opengis.feature.GeometryAttribute
@@ -35,6 +36,7 @@ import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.identity.FeatureId
+import org.locationtech.geomesa.utils.time.Time._
 
 class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Name)
     extends AbstractFeatureStore with AccumuloAbstractFeatureSource {
@@ -43,15 +45,14 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
     if (collection.size > 0) {
       writeBounds(collection.getBounds)
 
-      val minMaxVisitorO = index.getDtgFieldName(collection.getSchema).map { dateField => new MinMaxTimeVisitor(dateField) }
+      val dtg = index.getDtgFieldName(collection.getSchema)
+      val minMaxVisitorO = dtg.map { dateField => new MinMaxTimeVisitor(dateField) }
       val fw = dataStore.getFeatureWriterAppend(featureName.getLocalPart, Transaction.AUTO_COMMIT)
 
-      val iter = collection.features()
-      while(iter.hasNext) {
-        val feature = iter.next()
-        val newFeature = fw.next()
+      val updateTimeBounds: SimpleFeature => Unit = { feature => minMaxVisitorO.foreach { _.visit(feature) } }
 
-        minMaxVisitorO.foreach ( _.visit(feature) )
+      val writeFeature: SimpleFeature => FeatureId = { feature => {
+        val newFeature = fw.next()
 
         try {
           newFeature.setAttributes(feature.getAttributes)
@@ -67,8 +68,16 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
         }
 
         fw.write()
-        fids.add(newFeature.getIdentifier)
-      }
+        newFeature.getIdentifier
+      }}
+
+      val write: SimpleFeature => FeatureId = { feature => {
+        if (dtg.isDefined) updateTimeBounds(feature)
+        writeFeature(feature)
+      }}
+
+      val iter = collection.features()
+      while (iter.hasNext) fids.add(write(iter.next))
       fw.close()
 
       minMaxVisitorO.foreach { minMaxVisitor =>
