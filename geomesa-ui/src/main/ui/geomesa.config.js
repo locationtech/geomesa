@@ -45,10 +45,11 @@ module.exports = {
             'vendor/bower/moment-timezone/builds/moment-timezone-with-data-2010-2020.min.js',
             'vendor/bower/leaflet-dist/leaflet.js',
             'vendor/bower/leaflet-providers/leaflet-providers.js',
+            'vendor/bower/openlayers/build/ol.js',
             // TODO - test only
             'vendor/bower/angular-mocks/angular-mocks.js',
         ],
-        css: [],
+        css: ['vendor/bower/openlayers/css/ol.css'],
         assets: [
             'vendor/bower/font-awesome/fonts/*',
             'vendor/bower/bootstrap/fonts/*'

@@ -15,6 +15,6 @@
     "leaflet-providers": "~1.0.1",
     "moment": "~2.7.0",
     "moment-timezone": "~0.1.0",
-    "openlayers" : "http://github.com/openlayers/ol3/releases/download/v3.2.0/v3.2.0.zip"
+    "openlayers" : "https://github.com/openlayers/ol3/releases/download/v3.2.1/v3.2.1.zip"
   }
 }
