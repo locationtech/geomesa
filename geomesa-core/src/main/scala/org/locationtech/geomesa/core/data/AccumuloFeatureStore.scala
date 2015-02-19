@@ -28,6 +28,7 @@ import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess.Definition
+import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.utils.geotools.MinMaxTimeVisitor
 import org.opengis.feature.GeometryAttribute
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
@@ -42,9 +43,7 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
     if (collection.size > 0) {
       writeBounds(collection.getBounds)
 
-      val dateField = org.locationtech.geomesa.core.index.getDtgFieldName(collection.getSchema)
-      val minMaxVisitorO: Option[MinMaxTimeVisitor] =
-        if (dateField.isDefined) Some(new MinMaxTimeVisitor(dateField.get)) else None
+      val minMaxVisitorO = index.getDtgFieldName(collection.getSchema).map { dateField => new MinMaxTimeVisitor(dateField) }
       val fw = dataStore.getFeatureWriterAppend(featureName.getLocalPart, Transaction.AUTO_COMMIT)
 
       val iter = collection.features()

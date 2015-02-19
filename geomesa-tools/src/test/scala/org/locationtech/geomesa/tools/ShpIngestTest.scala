@@ -49,10 +49,11 @@ class ShpIngestTest extends Specification {
     val shpStore = shpStoreFactory.createNewDataStore(params)
     val schema = SimpleFeatureTypes.createType("shpingest", "age:Integer,dtg:Date,*geom:Point:srid=4326")
     shpStore.createSchema(schema)
+    val (minX, maxX, minY, maxY) = (10.0, 20.0, 30.0, 40.0)
     val data =
       List(
-        ("1", 1, new Date(), (10.0, 10.0)),
-        ("1", 2, new Date(), (20.0, 20.0))
+        ("1", 1, new Date(), (minX, minY)),
+        ("1", 2, new Date(), (maxX, maxY))
       )
     val writer = shpStore.getFeatureWriterAppend("shpingest", Transaction.AUTO_COMMIT)
     data.foreach { case (id, age, dtg, (lat, lon)) =>
@@ -83,6 +84,13 @@ class ShpIngestTest extends Specification {
       GeneralShapefileIngest.shpToDataStore(ingestParams.files(0), ds, ingestParams.featureName)
 
       val fs = ds.getFeatureSource("shpingest")
+
+      val bounds = fs.getBounds
+      bounds.getMinX mustEqual minX
+      bounds.getMaxX mustEqual maxX
+      bounds.getMinY mustEqual minY
+      bounds.getMaxY mustEqual maxY
+
       val result = fs.getFeatures.features().toList
       result.length mustEqual 2
     }
@@ -92,6 +100,13 @@ class ShpIngestTest extends Specification {
       GeneralShapefileIngest.shpToDataStore(ingestParams.files(0), ds, ingestParams.featureName)
 
       val fs = ds.getFeatureSource("changed")
+
+      val bounds = fs.getBounds
+      bounds.getMinX mustEqual minX
+      bounds.getMaxX mustEqual maxX
+      bounds.getMinY mustEqual minY
+      bounds.getMaxY mustEqual maxY
+
       val result = fs.getFeatures.features().toList
       result.length mustEqual 2
     }
