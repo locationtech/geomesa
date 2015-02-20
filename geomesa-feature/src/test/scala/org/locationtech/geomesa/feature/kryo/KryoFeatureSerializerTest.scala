@@ -60,7 +60,7 @@ class KryoFeatureSerializerTest extends Specification {
         val serialized = serializer.write(sf)
         val deserialized = serializer.read(serialized)
 
-        deserialized must not beNull;
+        deserialized must not(beNull)
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
       }
@@ -72,7 +72,7 @@ class KryoFeatureSerializerTest extends Specification {
         val in = new ByteArrayInputStream(out.toByteArray)
         val deserialized = serializer.read(in)
 
-        deserialized must not beNull;
+        deserialized must not(beNull)
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
       }
@@ -95,7 +95,7 @@ class KryoFeatureSerializerTest extends Specification {
         val serialized = serializer.write(sf)
         val deserialized = serializer.read(serialized)
 
-        deserialized must not beNull;
+        deserialized must not(beNull)
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
       }
@@ -107,7 +107,44 @@ class KryoFeatureSerializerTest extends Specification {
         val in = new ByteArrayInputStream(out.toByteArray)
         val deserialized = serializer.read(in)
 
-        deserialized must not beNull;
+        deserialized must not(beNull)
+        deserialized.getType mustEqual sf.getType
+        deserialized.getAttributes mustEqual sf.getAttributes
+      }
+    }
+
+    // NB: this doesn't actually seem to cause the error I was seeing, but
+    // ScaldingDelimitedIngestJobTest in geomesa-tools does cause it...
+    "correctly serialize with a type having the same field names but different field types" in {
+      val spec = "a:Integer,m:List[String],l:Map[Double,Date],dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("testType", spec)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
+
+      sf.setAttribute("a", "1")
+      sf.setAttribute("m", List("test1", "test2"))
+      sf.setAttribute("l", Map(1.0 -> new Date(100), 2.0 -> new Date(200)))
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+      "using byte arrays" >> {
+        val serializer = KryoFeatureSerializer(sft)
+
+        val serialized = serializer.write(sf)
+        val deserialized = serializer.read(serialized)
+
+        deserialized must not(beNull)
+        deserialized.getType mustEqual sf.getType
+        deserialized.getAttributes mustEqual sf.getAttributes
+      }
+      "using streams" >> {
+        val serializer = KryoFeatureSerializer(sft)
+
+        val out = new ByteArrayOutputStream()
+        serializer.write(sf, out)
+        val in = new ByteArrayInputStream(out.toByteArray)
+        val deserialized = serializer.read(in)
+
+        deserialized must not(beNull)
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
       }

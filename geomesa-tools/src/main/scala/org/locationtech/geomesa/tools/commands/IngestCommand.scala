@@ -24,6 +24,7 @@ import org.locationtech.geomesa.tools.commands.IngestCommand._
 import org.locationtech.geomesa.tools.ingest.{DelimitedIngest, ShpIngest}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
   override val command = "ingest"
@@ -81,6 +82,9 @@ object IngestCommand {
 
     @Parameter(names = Array("-ld", "--list-delimiter"), description = "character(s) to delimit list features")
     var listDelimiter: String = ","
+
+    @Parameter(names = Array("-md", "--map-delimiters"), arity = 2, description = "characters to delimit map features, first to divide keys from values, then to divide between key/value pairs")
+    var mapDelimiters: java.util.List[String] = new util.ArrayList[String](Seq(",", ";"))
 
     @Parameter(description = "<file>...", required = true)
     var files: java.util.List[String] = new util.ArrayList[String]()

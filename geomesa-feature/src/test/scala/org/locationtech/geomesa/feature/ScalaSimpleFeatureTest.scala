@@ -29,6 +29,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
+import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
 class ScalaSimpleFeatureTest extends Specification {
@@ -79,9 +80,10 @@ class ScalaSimpleFeatureTest extends Specification {
       f.getProperties("a").head.getValue must not(throwA [org.opengis.feature.IllegalAttributeException])
 
       val prop = f.getProperty("a")
-      prop must not beNull;
-      prop.getName.getLocalPart mustEqual("a")
-      prop.getValue mustEqual(1)
+      prop should not beNull
+
+      prop.getName.getLocalPart mustEqual "a"
+      prop.getValue mustEqual 1
     }
 
     "properly validate a correct object" in {

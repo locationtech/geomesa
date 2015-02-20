@@ -122,6 +122,18 @@ object SimpleFeatureTypes {
     Option(ad.getUserData.get(OPT_CARDINALITY).asInstanceOf[String])
         .flatMap(c => Try(Cardinality.withName(c)).toOption).getOrElse(Cardinality.UNKNOWN)
 
+  def setMapTypes(ad: AttributeDescriptor, keyType: Class[_], valueType: Class[_]): Unit = {
+    ad.getUserData.put(USER_DATA_MAP_KEY_TYPE, keyType)
+    ad.getUserData.put(USER_DATA_MAP_VALUE_TYPE, valueType)
+  }
+
+  def getMapTypes(ad: AttributeDescriptor): Option[(Class[_], Class[_])] =
+    Option(ad.getUserData.get(USER_DATA_MAP_KEY_TYPE)).flatMap { keyClass =>
+      Option(ad.getUserData.get(USER_DATA_MAP_VALUE_TYPE)).map { valueClass =>
+        (keyClass.asInstanceOf[Class[_]], valueClass.asInstanceOf[Class[_]])
+      }
+    }
+
   def encodeType(sft: SimpleFeatureType): String =
     sft.getAttributeDescriptors.map { ad => AttributeSpecFactory.fromAttributeDescriptor(sft, ad).toSpec }.mkString(",")
 
@@ -574,7 +586,7 @@ object SimpleFeatureTypes {
       case Success(t, r)   if r.atEnd => t
       case Error(msg, r)   if r.atEnd => throw new IllegalArgumentException(msg)
       case Failure(msg, r) if r.atEnd => throw new IllegalArgumentException(msg)
-      case _ => throw new IllegalArgumentException("Malformed attribute")
+      case other => throw new IllegalArgumentException(s"Malformed attribute: $other")
     }
   }
 

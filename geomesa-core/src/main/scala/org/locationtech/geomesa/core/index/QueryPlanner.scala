@@ -17,10 +17,10 @@
 package org.locationtech.geomesa.core.index
 
 import java.util.Map.Entry
+import java.util.{Map => JMap}
 
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.data.{Key, Value}
-import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -28,7 +28,7 @@ import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.iterators.TemporalDensityIterator._
-import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIterator, TemporalDensityIterator}
+import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIterator, MapAggregatingIterator, TemporalDensityIterator}
 import org.locationtech.geomesa.core.security.SecurityUtils
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
@@ -38,7 +38,9 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}
 
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
+import scalaz.Scalaz._
 
 object QueryPlanner {
   val iteratorPriority_RowRegex                        = 0
@@ -162,6 +164,8 @@ case class QueryPlanner(schema: String,
       adaptIteratorForDensityQuery(accumuloIterator, decoder)
     } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
       adaptIteratorForTemporalDensityQuery(accumuloIterator, returnSFT, decoder)
+    } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
+      adaptIteratorForMapAggregationQuery(accumuloIterator, query, returnSFT, decoder)
     } else {
       adaptIteratorForStandardQuery(accumuloIterator, query, decoder)
     }
@@ -196,7 +200,6 @@ case class QueryPlanner(schema: String,
     val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
     featureBuilder.reset()
     featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
-
     featureBuilder.add(QueryPlanner.zeroPoint) //Filler value as Feature requires a geometry
     val result = featureBuilder.buildFeature(null)
 
@@ -208,6 +211,32 @@ case class QueryPlanner(schema: String,
     accumuloIterator.flatMap { kv =>
       DensityIterator.expandFeature(decoder.decode(kv.getValue.get))
     }
+  }
+
+  def adaptIteratorForMapAggregationQuery(accumuloIterator: CloseableIterator[Entry[Key, Value]],
+                                          query: Query,
+                                          returnSFT: SimpleFeatureType,
+                                          decoder: SimpleFeatureDecoder): CloseableIterator[SimpleFeature] = {
+    val aggregateKeyName = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
+
+    val maps = accumuloIterator.map { kv =>
+      decoder
+        .decode(kv.getValue.get)
+        .getAttribute(aggregateKeyName)
+        .asInstanceOf[JMap[AnyRef, Int]]
+        .asScala
+        .toMap // TODO: Slow?
+    }
+
+    val reducedMap = maps.reduce(_ |+| _)
+
+    val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
+    featureBuilder.reset()
+    featureBuilder.add(reducedMap)
+    featureBuilder.add(QueryPlanner.zeroPoint) //Filler value as Feature requires a geometry
+    val result = featureBuilder.buildFeature(null)
+
+    List(result).iterator
   }
 
   private def sort(features: CloseableIterator[SimpleFeature],
@@ -239,9 +268,13 @@ case class QueryPlanner(schema: String,
   private def getReturnSFT(query: Query): SimpleFeatureType =
     query match {
       case _: Query if query.getHints.containsKey(DENSITY_KEY)  =>
-        SimpleFeatureTypes.createType(featureType.getTypeName, DensityIterator.DENSITY_FEATURE_STRING)
+        SimpleFeatureTypes.createType(featureType.getTypeName, DensityIterator.DENSITY_FEATURE_SFT_STRING)
       case _: Query if query.getHints.containsKey(TEMPORAL_DENSITY_KEY)  =>
-        SimpleFeatureTypes.createType(featureType.getTypeName, TemporalDensityIterator.TEMPORAL_DENSITY_FEATURE_STRING)
+        SimpleFeatureTypes.createType(featureType.getTypeName, TemporalDensityIterator.TEMPORAL_DENSITY_FEATURE_SFT_STRING)
+      case _: Query if query.getHints.containsKey(MAP_AGGREGATION_KEY)  =>
+        val mapAggregationAttribute = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
+        val sftSpec = MapAggregatingIterator.projectedSFTDef(mapAggregationAttribute, featureType)
+        SimpleFeatureTypes.createType(featureType.getTypeName, sftSpec)
       case _: Query if query.getHints.get(TRANSFORM_SCHEMA) != null =>
         query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
       case _ => featureType
