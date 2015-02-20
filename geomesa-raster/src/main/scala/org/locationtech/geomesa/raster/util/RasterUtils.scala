@@ -37,6 +37,8 @@ import scala.reflect.runtime.universe._
 
 object RasterUtils {
 
+  val nullImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY)
+
   object IngestRasterParams {
     val ACCUMULO_INSTANCE   = "geomesa-tools.ingestraster.instance"
     val ZOOKEEPERS          = "geomesa-tools.ingestraster.zookeepers"
@@ -112,36 +114,43 @@ object RasterUtils {
 
   def writeToMosaic(mosaic: BufferedImage, raster: Raster, env: Envelope, resX: Double, resY: Double) = {
     val croppedRaster = cropRaster(raster, env)
-    croppedRaster.map { cropped =>
-      val rasterEnv = raster.referencedEnvelope.intersection(envelopeToReferencedEnvelope(env))
-      val originX = Math.floor((rasterEnv.getMinX - env.getMinimum(0)) / resX).toInt
-      val originY = Math.floor((env.getMaximum(1) - rasterEnv.getMaxY) / resY).toInt
-      mosaic.getRaster.setRect(originX, originY, cropped.getData)
-      cropped.flush()
+    croppedRaster.foreach{ cropped =>
+        val rasterEnv = raster.referencedEnvelope.intersection(envelopeToReferencedEnvelope(env))
+        val originX = Math.floor((rasterEnv.getMinX - env.getMinimum(0)) / resX).toInt
+        val originY = Math.floor((env.getMaximum(1) - rasterEnv.getMaxY) / resY).toInt
+        mosaic.getRaster.setRect(originX, originY, cropped.getData)
+        cropped.flush()
     }
   }
 
   def mosaicChunks(chunks: Iterator[Raster], queryWidth: Int, queryHeight: Int, queryEnv: Envelope): (BufferedImage, Int) = {
-    // TODO: Add check for Iterator with only a single Raster. https://geomesa.atlassian.net/browse/GEOMESA-671
     if (chunks.isEmpty) {
-      (getEmptyImage(queryWidth, queryHeight, BufferedImage.TYPE_BYTE_GRAY), 0)
+      (nullImage, 0)
     } else {
-      var count = 1
       val firstRaster = chunks.next()
-      val accumuloRasterXRes = firstRaster.referencedEnvelope.getSpan(0) / firstRaster.chunk.getWidth
-      val accumuloRasterYRes = firstRaster.referencedEnvelope.getSpan(1) / firstRaster.chunk.getHeight
-      val mosaicX = (queryEnv.getSpan(0) / accumuloRasterXRes).toInt
-      val mosaicY = (queryEnv.getSpan(1) / accumuloRasterYRes).toInt
-      if (mosaicX <= 0 || mosaicY <= 0) {
-        (getEmptyImage(1, 1, BufferedImage.TYPE_BYTE_GRAY), count)
-      } else {
-        val mosaic = allocateBufferedImage(mosaicX, mosaicY, firstRaster.chunk)
-        writeToMosaic(mosaic, firstRaster, queryEnv, accumuloRasterXRes, accumuloRasterYRes)
-        while (chunks.hasNext) {
-          writeToMosaic(mosaic, chunks.next(), queryEnv, accumuloRasterXRes, accumuloRasterYRes)
-          count += 1
+      if (!chunks.hasNext) {
+        val croppedRaster = cropRaster(firstRaster, queryEnv)
+        croppedRaster match {
+          case None      => (nullImage, 1)
+          case Some(buf) => (scaleBufferedImage(queryWidth, queryHeight, buf), 1)
         }
-        (scaleBufferedImage(queryWidth, queryHeight, mosaic), count)
+      } else {
+        val accumuloRasterXRes = firstRaster.referencedEnvelope.getSpan(0) / firstRaster.chunk.getWidth
+        val accumuloRasterYRes = firstRaster.referencedEnvelope.getSpan(1) / firstRaster.chunk.getHeight
+        val mosaicX = (queryEnv.getSpan(0) / accumuloRasterXRes).toInt
+        val mosaicY = (queryEnv.getSpan(1) / accumuloRasterYRes).toInt
+        if (mosaicX <= 0 || mosaicY <= 0) {
+          (nullImage, 1)
+        } else {
+          var count = 1
+          val mosaic = allocateBufferedImage(mosaicX, mosaicY, firstRaster.chunk)
+          writeToMosaic(mosaic, firstRaster, queryEnv, accumuloRasterXRes, accumuloRasterYRes)
+          while (chunks.hasNext) {
+            writeToMosaic(mosaic, chunks.next(), queryEnv, accumuloRasterXRes, accumuloRasterYRes)
+            count += 1
+          }
+          (scaleBufferedImage(queryWidth, queryHeight, mosaic), count)
+        }
       }
     }
   }
