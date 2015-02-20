@@ -18,9 +18,9 @@ package org.locationtech.geomesa.raster.data
 
 import java.awt.image.BufferedImage
 import java.util.Map.Entry
-import java.util.concurrent.{TimeUnit, Callable}
+import java.util.concurrent.{Callable, TimeUnit}
 
-import com.google.common.cache.{CacheBuilder, Cache}
+import com.google.common.cache.CacheBuilder
 import com.google.common.collect.ImmutableSetMultimap
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
@@ -238,7 +238,7 @@ class AccumuloBackedRasterOperations(val connector: Connector,
     val mutation = new Mutation(getBoundsRowID)
     val value = bboxToValue(BoundingBox(raster.metadata.geom.getEnvelopeInternal))
     val resolution = lexiEncodeDoubleToString(raster.resolution)
-    val geohashlen = lexiEncodeIntToString(raster.minimumBoundingGeoHash.map( _.hash ).getOrElse("").length)
+    val geohashlen = lexiEncodeIntToString(raster.minimumBoundingGeoHash.map( _.hash.length ).getOrElse(0))
     mutation.put(geohashlen, resolution, value)
     mutation
   }
