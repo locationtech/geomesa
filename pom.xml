@@ -89,6 +89,16 @@
     </profiles>
 
     <distributionManagement>
+       <repository>
+            <id>local-release</id>
+            <url>http://art.ccri.com:8081/artifactory/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>local-snapshot</id>
+            <url>http://art.ccri.com:8081/artifactory/libs-snapshot-local</url>
+            <uniqueVersion>true</uniqueVersion>
+        </snapshotRepository>
+<!--
         <repository>
             <id>repo.locationtech.org</id>
             <name>GeoMesa Repository - Releases</name>
@@ -99,6 +109,7 @@
             <name>GeoMesa Repository - Snapshots</name>
             <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots/</url>
         </snapshotRepository>
+-->
     </distributionManagement>
 
     <dependencyManagement>
