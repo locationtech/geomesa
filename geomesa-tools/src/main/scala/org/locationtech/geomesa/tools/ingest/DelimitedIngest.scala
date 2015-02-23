@@ -34,6 +34,7 @@ import org.locationtech.geomesa.tools.ingest.DelimitedIngest._
 import org.locationtech.geomesa.tools.{AccumuloProperties, FeatureCreator}
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
 
@@ -62,7 +63,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
 
     //block until job is completed.
     flow.complete()
-    job.printStatInfo
+    job.printStatInfo()
   }
 
   def validateFileArgs(mode: Mode, params: IngestParameters) =
@@ -96,7 +97,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
   def getScaldingArgs(): Args = {
     val singleArgs = List(classOf[ScaldingDelimitedIngestJob].getCanonicalName, getModeFlag(params.files(0)))
 
-    val requiredKvArgs: Map[String, String] = Map(
+    val requiredKvArgs: Map[String, List[String]] = Map(
       IngestParams.FILE_PATH         -> encodeFileList(params.files.toList),
       IngestParams.SFT_SPEC          -> URLEncoder.encode(params.spec, "UTF-8"),
       IngestParams.CATALOG_TABLE     -> params.catalog,
@@ -108,33 +109,30 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
       IngestParams.FORMAT            -> Option(params.format).getOrElse(getFileExtension(params.files(0))),
       IngestParams.FEATURE_NAME      -> params.featureName,
       IngestParams.IS_TEST_INGEST    -> false.toString
-    )
+    ).mapValues(List(_))
 
-    val optionalKvArgs: Map[String, String] =
-      List(
-        IngestParams.COLS              -> Option(params.columns),
-        IngestParams.DT_FORMAT         -> Option(params.dtFormat),
-        IngestParams.ID_FIELDS         -> Option(params.idFields),
-        IngestParams.DT_FIELD          -> Option(params.dtgField),
-        IngestParams.SKIP_HEADER       -> Option(params.skipHeader),
-        IngestParams.LON_ATTRIBUTE     -> Option(params.lon),
-        IngestParams.LAT_ATTRIBUTE     -> Option(params.lat),
-        IngestParams.AUTHORIZATIONS    -> Option(params.auths),
-        IngestParams.VISIBILITIES      -> Option(params.visibilities),
-        IngestParams.INDEX_SCHEMA_FMT  -> Option(params.indexSchema),
-        IngestParams.SHARDS            -> Option(params.numShards),
-        IngestParams.LIST_DELIMITER    -> Option(params.listDelimiter))
-      .filter(p => p._2.nonEmpty)
-      .map { case (k,o) => k -> o.get.toString }
-      .toMap
+    val optionalKvArgs: Map[String, List[String]] = List(
+      Option(params.columns)      .map(      IngestParams.COLS            -> List(_)),
+      Option(params.dtFormat)     .map(      IngestParams.DT_FORMAT       -> List(_)),
+      Option(params.idFields)     .map(      IngestParams.ID_FIELDS       -> List(_)),
+      Option(params.dtgField)     .map(      IngestParams.DT_FIELD        -> List(_)),
+      Option(params.skipHeader)   .map(sh => IngestParams.SKIP_HEADER     -> List(sh.toString)),
+      Option(params.lon)          .map(      IngestParams.LON_ATTRIBUTE   -> List(_)),
+      Option(params.lat)          .map(      IngestParams.LAT_ATTRIBUTE   -> List(_)),
+      Option(params.auths)        .map(      IngestParams.AUTHORIZATIONS  -> List(_)),
+      Option(params.visibilities) .map(      IngestParams.VISIBILITIES    -> List(_)),
+      Option(params.indexSchema)  .map(      IngestParams.INDEX_SCHEMA_FMT-> List(_)),
+      Option(params.numShards)    .map(ns => IngestParams.SHARDS          -> List(ns.toString)),
+      Option(params.listDelimiter).map(      IngestParams.LIST_DELIMITER  -> List(_)),
+      Option(params.mapDelimiters).map(      IngestParams.MAP_DELIMITERS  -> _.asScala.toList)).flatten.toMap
 
-    if ( !optionalKvArgs.contains(IngestParams.DT_FIELD) ) {
+    if (!optionalKvArgs.contains(IngestParams.DT_FIELD)) {
       // assume user has no date field to use and that there is no column of data signifying it.
       logger.warn("Warning: no date-time field specified. Assuming that data contains no date column. \n" +
         s"GeoMesa is defaulting to the system time for ingested features.")
     }
 
-    val kvArgs = (requiredKvArgs ++ optionalKvArgs).flatMap { case (k,v) => List(s"--$k", v) }
+    val kvArgs = (requiredKvArgs ++ optionalKvArgs).flatMap { case (k,v) => List(s"--$k") ++ v }
     Args(singleArgs ++ kvArgs)
   }
 }

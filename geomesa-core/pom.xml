@@ -103,6 +103,10 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.scalaz</groupId>
+            <artifactId>scalaz-core_2.10</artifactId>
+        </dependency>
 
         <!-- provided dependencies -->
         <dependency>
