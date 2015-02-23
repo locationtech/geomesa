@@ -40,6 +40,7 @@ import org.locationtech.geomesa.core.util.{BoundingBoxUtil, SelfClosingBatchScan
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, TwoGeoHashBoundingBox}
 import org.opengis.geometry.Envelope
 import org.opengis.parameter.{GeneralParameterValue, InvalidParameterValueException}
+import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -72,11 +73,11 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
     case (columnFamily, columnQualifier) => new Text("~" + columnFamily + "~" + columnQualifier)
   }
 
-  val crs = CRS.decode("EPSG:4326")
-  val originalEnvelope = new GeneralEnvelope(Array(-180.0, -90.0), Array(180.0, 90.0))
+  crs = CRS.decode("EPSG:4326")
+  originalEnvelope = new GeneralEnvelope(Array(-180.0, -90.0), Array(180.0, 90.0))
   originalEnvelope.setCoordinateReferenceSystem(crs)
-  val originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
-  val coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(hints)
+  originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
+  coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(hints)
 
   val zkInstance = new ZooKeeperInstance(instanceId, zookeepers)
   val connector = zkInstance.getConnector(user, new PasswordToken(password.getBytes))
@@ -130,7 +131,6 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
     val tile = getImage(timeParam, env, gg.getGridRange2D.getSpan(0), gg.getGridRange2D.getSpan(1))
     coverageFactory.create(coverageName, tile, env)
   }
-
 
   def getImage(timeParam: Option[Either[Date, DateRange]], env: Envelope, xDim:Int, yDim:Int) = {
     val min = Array(Math.max(env.getMinimum(0), -180) + .00000001, Math.max(env.getMinimum(1), -90) + .00000001)
