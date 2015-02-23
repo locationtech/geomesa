@@ -17,6 +17,7 @@ package org.locationtech.geomesa.tools.ingest
 
 import java.net.URLDecoder
 import java.nio.charset.Charset
+import java.util.{List => JList, Map => JMap}
 
 import com.google.common.hash.Hashing
 import com.twitter.scalding.{Args, Hdfs, Job, Local, Mode}
@@ -35,7 +36,7 @@ import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.{params => ds
 import org.locationtech.geomesa.core.index.Constants
 import org.locationtech.geomesa.jobs.scalding.MultipleUsefulTextLineFiles
 import org.locationtech.geomesa.tools.Utils.IngestParams
-import org.locationtech.geomesa.tools.ingest.ScaldingDelimitedIngestJob.{isList, toList}
+import org.locationtech.geomesa.tools.ingest.ScaldingDelimitedIngestJob._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -53,7 +54,7 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
   lazy val idFields         = args.optional(IngestParams.ID_FIELDS).orNull
   lazy val pathList         = DelimitedIngest.decodeFileList(args(IngestParams.FILE_PATH))
   lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
-  lazy val skipHeader       = args.optional(IngestParams.SKIP_HEADER).map(_.toBoolean).getOrElse(false)
+  lazy val skipHeader       = args.optional(IngestParams.SKIP_HEADER).exists(_.toBoolean)
   lazy val colList          = args.optional(IngestParams.COLS).map(ColsParser.build)
   lazy val dtgField         = args.optional(IngestParams.DT_FIELD)
   lazy val dtgFmt           = args.optional(IngestParams.DT_FORMAT)
@@ -64,6 +65,7 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
   lazy val isTestRun        = args(IngestParams.IS_TEST_INGEST).toBoolean
   lazy val featureName      = args(IngestParams.FEATURE_NAME)
   lazy val listDelimiter    = args(IngestParams.LIST_DELIMITER).charAt(0)
+  lazy val mapDelimiters    = args.list(IngestParams.MAP_DELIMITERS).map(_.charAt(0))
 
   //Data Store parameters
   lazy val dsConfig =
@@ -183,6 +185,8 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
     for (idx <- 0 until sfFields.length) {
       if (isList(sft.getAttributeDescriptors.get(idx))) {
         feature.setAttribute(idx, toList(sfFields(idx), listDelimiter, sft.getAttributeDescriptors.get(idx)))
+      } else if (isMap(sft.getAttributeDescriptors.get(idx))) {
+        feature.setAttribute(idx, toMap(sfFields(idx), mapDelimiters(0), mapDelimiters(1), sft.getAttributeDescriptors.get(idx)))
       } else {
         feature.setAttribute(idx, sfFields(idx))
       }
@@ -289,16 +293,34 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
 }
 
 object ScaldingDelimitedIngestJob {
+  import scala.collection.JavaConverters._
+
   def isList(ad: AttributeDescriptor) = classOf[java.util.List[_]].isAssignableFrom(ad.getType.getBinding)
 
-  def toList(s: String, delim: Char,  ad: AttributeDescriptor) = {
+  def toList(s: String, delim: Char,  ad: AttributeDescriptor): JList[_] = {
     val clazz = SimpleFeatureTypes.getCollectionType(ad).get
-    if (s.isEmpty) {
-     List()
-    } else {
+    if (s.isEmpty) List().asJava
+    else {
       s.split(delim).map(_.trim).map { value =>
         Converters.convert(value, clazz).asInstanceOf[AnyRef]
-      }.toList
+      }.toList.asJava
+    }
+  }
+
+  def isMap(ad: AttributeDescriptor) = classOf[java.util.Map[_, _]].isAssignableFrom(ad.getType.getBinding)
+
+  def toMap(s: String,
+            delimBetweenKeysAndValues: Char,
+            delimBetweenKeyValuePairs: Char,
+            ad: AttributeDescriptor): JMap[_,_] = {
+    val (keyClass, valueClass) = SimpleFeatureTypes.getMapTypes(ad).get
+    if (s.isEmpty) Map().asJava
+    else {
+      s.split(delimBetweenKeyValuePairs)
+        .map(_.split(delimBetweenKeysAndValues).map(_.trim))
+        .map { case Array(key, value) =>
+          (Converters.convert(key, keyClass).asInstanceOf[AnyRef], Converters.convert(value, valueClass).asInstanceOf[AnyRef])
+        }.toMap.asJava
     }
   }
 }

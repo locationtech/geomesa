@@ -16,13 +16,14 @@
 
 package org.locationtech.geomesa.feature.kryo
 
-import java.util.{Date, List => jList, Map => jMap, UUID}
+import java.util.{Date, List => JList, Map => JMap, UUID}
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.feature.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -113,6 +114,9 @@ object SimpleFeatureSerializer {
   private val encodingsCache = new SoftThreadLocalCache[String, Seq[Encoding]]()
   private val decodingsCache = new SoftThreadLocalCache[String, Seq[Decoding]]()
 
+  def cacheKeyForSFT(sft: SimpleFeatureType) =
+    s"${sft.getName};${sft.getAttributeDescriptors.map(ad => s"${ad.getName.toString}${ad.getType}").mkString(",")}"
+
   /**
    * Gets a seq of functions to encode the attributes of simple feature
    *
@@ -120,7 +124,7 @@ object SimpleFeatureSerializer {
    * @return
    */
   def sftEncodings(sft: SimpleFeatureType): Seq[Encoding] =
-    encodingsCache.getOrElseUpdate(sft.toString, {
+    encodingsCache.getOrElseUpdate(cacheKeyForSFT(sft), {
       sft.getAttributeDescriptors.zipWithIndex.map { case (d, i) =>
         val encode = matchEncode(d.getType.getBinding, d.getUserData)
         (out: Output, sf: SimpleFeature) => encode(out, sf.getAttribute(i))
@@ -134,7 +138,7 @@ object SimpleFeatureSerializer {
    * @param metadata
    * @return
    */
-  def matchEncode(clas: Class[_], metadata: jMap[AnyRef, AnyRef]): (Output, AnyRef) => Unit = clas match {
+  def matchEncode(clas: Class[_], metadata: JMap[AnyRef, AnyRef]): (Output, AnyRef) => Unit = clas match {
 
     case c if classOf[String].isAssignableFrom(c) =>
       (out: Output, value: AnyRef) => out.writeString(value.asInstanceOf[String])
@@ -205,12 +209,12 @@ object SimpleFeatureSerializer {
         out.write(bytes)
       }
 
-    case c if classOf[jList[_]].isAssignableFrom(c) =>
+    case c if classOf[JList[_]].isAssignableFrom(c) =>
       val subtype = metadata.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]]
       val subEncoding = matchEncode(subtype, null)
 
       (out: Output, value: AnyRef) => {
-        val list = value.asInstanceOf[jList[Object]]
+        val list = value.asInstanceOf[JList[Object]]
         if (list == null) {
           out.writeInt(-1): Unit
         } else {
@@ -219,14 +223,14 @@ object SimpleFeatureSerializer {
         }
       }
 
-    case c if classOf[jMap[_, _]].isAssignableFrom(c) =>
+    case c if classOf[JMap[_, _]].isAssignableFrom(c) =>
       val keyClass      = metadata.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
       val valueClass    = metadata.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
       val keyEncoding   = matchEncode(keyClass, null)
       val valueEncoding = matchEncode(valueClass, null)
 
       (out: Output, value: AnyRef) => {
-        val map = value.asInstanceOf[jMap[Object, Object]]
+        val map = value.asInstanceOf[JMap[Object, Object]]
         if (map == null) {
           out.writeInt(-1): Unit
         } else {
@@ -234,6 +238,8 @@ object SimpleFeatureSerializer {
           map.entrySet.foreach { e => keyEncoding(out, e.getKey); valueEncoding(out, e.getValue) }
         }
       }
+
+
   }
 
   /**
@@ -243,7 +249,7 @@ object SimpleFeatureSerializer {
    * @return
    */
   def sftDecodings(sft: SimpleFeatureType): Seq[((Input) => AnyRef, Int)] =
-    decodingsCache.getOrElseUpdate(sft.toString, {
+    decodingsCache.getOrElseUpdate(cacheKeyForSFT(sft), {
       sft.getAttributeDescriptors.map { d =>
         matchDecode(d.getType.getBinding, d.getUserData)
       }.zipWithIndex
@@ -256,7 +262,7 @@ object SimpleFeatureSerializer {
    * @param metadata
    * @return
    */
-  def matchDecode(clas: Class[_], metadata: jMap[Object, Object]): (Input) => AnyRef = clas match {
+  def matchDecode(clas: Class[_], metadata: JMap[Object, Object]): (Input) => AnyRef = clas match {
 
     case c if classOf[String].isAssignableFrom(c) =>
       (in: Input) => in.readString()
@@ -300,7 +306,7 @@ object SimpleFeatureSerializer {
         }
       }
 
-    case c if classOf[jList[_]].isAssignableFrom(c) =>
+    case c if classOf[JList[_]].isAssignableFrom(c) =>
       val subtype = metadata.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]]
       val subDecoding = matchDecode(subtype, null)
 
@@ -319,7 +325,7 @@ object SimpleFeatureSerializer {
         }
       }
 
-    case c if classOf[jMap[_, _]].isAssignableFrom(c) =>
+    case c if classOf[JMap[_, _]].isAssignableFrom(c) =>
       val keyClass      = metadata.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
       val valueClass    = metadata.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
       val keyDecoding   = matchDecode(keyClass, null)

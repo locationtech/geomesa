@@ -460,8 +460,19 @@ The file type is inferred from the extension of the file, so ensure that the for
     geomesa ingest -u username -p password -c geomesa_catalog -fn myfeature
      -s 'dtg:Date,myList:List[Int],*geom:Point' -cols '0,3' -dt dtg -dtf "MM-dd-yyyy HH:mm:ss" 
      -lon 1 -lat 2 /some/local/path/to/file.csv
-    
-    
+
+##### Create geometry field from the lon/lat but drop the lon/lat from the FeatureType spec - Map[String,Int] is ingested
+
+    # file.csv (comma separated
+    "2014-01-01 22:33:44","38.023","-74.0002","a,5;b,6;c,7"
+    "2014-01-02 22:33:44","39.023","-78.0002",""
+    "2014-01-03 22:33:44","50.023","-73.0002","a,1;b,2;d,3"
+
+    # ingest command
+    geomesa ingest -u username -p password -c geomesa_catalog -fn myfeature
+     -s 'dtg:Date,myMap:Map[String,Int],*geom:Point' -cols '0,3' -dt dtg -dtf "MM-dd-yyyy HH:mm:ss"
+     -lon 1 -lat 2 -md "," ";" /some/local/path/to/file.csv
+
 ##### Ingest a shape file
     geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
 
