@@ -56,6 +56,7 @@ object Utils {
     val COLS                = "geomesa.tools.ingest.cols"
     val IS_TEST_INGEST      = "geomesa.tools.ingest.is-test-ingest"
     val LIST_DELIMITER      = "geomesa.tools.ingest.list-delimiter"
+    val MAP_DELIMITERS      = "geomesa.tools.ingest.map-delimiter"
   }
 
   object Formats {

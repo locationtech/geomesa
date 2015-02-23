@@ -37,7 +37,7 @@ class SimpleFeatureEncoderTest extends Specification {
   val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
 
   def getFeatures = (0 until 6).map { i =>
-    builder.reset
+    builder.reset()
     builder.set("geom", WKTUtils.read("POINT(-110 30)"))
     builder.set("dtg", "2012-01-02T05:06:07.000Z")
     builder.set("name",i.toString)
@@ -52,18 +52,18 @@ class SimpleFeatureEncoderTest extends Specification {
       val decoder = new AvroFeatureDecoder(sft)
 
       val features = getFeatures
-      val encoded = features.map(encoder.encode(_))
+      val encoded = features.map(encoder.encode)
       val decoded = encoded.map { bytes => decoder.decode(bytes) }
-      decoded.map(_.getDefaultGeometry) mustEqual(features.map(_.getDefaultGeometry))
+      decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
     }
 
     "encode and decode points in kryo" in {
       val encoder = new KryoFeatureEncoder(sft, sft)
 
       val features = getFeatures
-      val encoded = features.map(encoder.encode(_))
+      val encoded = features.map(encoder.encode)
       val decoded = encoded.map { bytes => encoder.decode(bytes) }
-      decoded.map(_.getDefaultGeometry) mustEqual(features.map(_.getDefaultGeometry))
+      decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
     }
 
     "have properly working apply() methods" in {

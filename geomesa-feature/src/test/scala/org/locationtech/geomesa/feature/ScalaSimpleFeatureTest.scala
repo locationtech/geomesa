@@ -29,6 +29,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
+import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
 class ScalaSimpleFeatureTest extends Specification {
@@ -80,8 +81,8 @@ class ScalaSimpleFeatureTest extends Specification {
 
       val prop = f.getProperty("a")
       prop must not beNull;
-      prop.getName.getLocalPart mustEqual("a")
-      prop.getValue mustEqual(1)
+      prop.getName.getLocalPart mustEqual "a"
+      prop.getValue mustEqual 1
     }
 
     "properly validate a correct object" in {
@@ -154,10 +155,10 @@ class ScalaSimpleFeatureTest extends Specification {
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
       val sf = new ScalaSimpleFeature("fakeid", sft)
       sf.getAttribute("c") must not(throwA[NullPointerException])
-      sf.getAttribute("c") should beNull
+      sf.getAttribute("c") must beNull
 
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
-      oldSf.getAttribute("c") should beNull
+      oldSf.getAttribute("c") must beNull
     }
 
     "give back a null when a property doesn't exist" in {
@@ -165,30 +166,30 @@ class ScalaSimpleFeatureTest extends Specification {
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
       val sf = new ScalaSimpleFeature("fakeid", sft)
       sf.getProperty("c") must not(throwA[NullPointerException])
-      sf.getProperty("c") should beNull
+      sf.getProperty("c") must beNull
 
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
-      oldSf.getProperty("c") should beNull
+      oldSf.getProperty("c") must beNull
     }
     "give back a property when a property exists but the value is null" in {
       // Verify that KryoSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
       val sf = new ScalaSimpleFeature("fakeid", sft)
       sf.getProperty("b") must not(throwA[NullPointerException])
-      sf.getProperty("b") should not beNull
+      sf.getProperty("b") must not beNull
 
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
-      oldSf.getProperty("b") should not beNull
+      oldSf.getProperty("b") must not beNull
     }
     "give back a null when the property value is null" in {
       // Verify that KryoSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
       val sf = new ScalaSimpleFeature("fakeid", sft)
       sf.getProperty("b").getValue must not(throwA[NullPointerException])
-      sf.getProperty("b").getValue should beNull
+      sf.getProperty("b").getValue must beNull
 
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
-      oldSf.getProperty("b").getValue should beNull
+      oldSf.getProperty("b").getValue must beNull
     }
 
   }
