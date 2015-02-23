@@ -18,15 +18,19 @@ package org.locationtech.geomesa.plugin.wcs
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.coverage.CoverageFactoryFinder
-import org.geotools.coverage.grid.io.{AbstractGridCoverage2DReader, AbstractGridFormat}
+import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
 import org.geotools.coverage.grid.{GridCoverage2D, GridEnvelope2D}
 import org.geotools.factory.Hints
 import org.geotools.geometry.GeneralEnvelope
+import org.geotools.referencing.CRS
+import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.util.Utilities
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.raster.data.{GeoMesaCoverageQueryParams, RasterStore}
 import org.opengis.parameter.GeneralParameterValue
+
+import scala.util.Try
 
 object GeoMesaCoverageReader {
   val GeoServerDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
@@ -46,7 +50,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   val ars = RasterStore(user, password, instanceId, zookeepers, table, auths, "")
 
   // TODO: Either this is needed for rasterToCoverages or remove it.
-  this.crs = AbstractGridFormat.getDefaultCRS
+  this.crs = Try(CRS.decode("EPSG:4326")).getOrElse(DefaultGeographicCRS.WGS84)
   this.originalEnvelope = getBounds()
   this.originalEnvelope.setCoordinateReferenceSystem(this.crs)
   this.originalGridRange = getGridRange()
