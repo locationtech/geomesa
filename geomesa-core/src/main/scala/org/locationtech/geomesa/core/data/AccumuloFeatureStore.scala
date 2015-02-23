@@ -43,7 +43,7 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
     if (collection.size > 0) {
       writeBounds(collection.getBounds)
 
-      val minMaxVisitorO = index.getDtgFieldName(collection.getSchema).map { dateField => new MinMaxTimeVisitor(dateField) }
+      val minMaxVisitorO = index.getDtgFieldName(collection.getSchema).map { new MinMaxTimeVisitor(_) }
       val fw = dataStore.getFeatureWriterAppend(featureName.getLocalPart, Transaction.AUTO_COMMIT)
 
       val updateTimeBounds: SimpleFeature => Unit = { feature => minMaxVisitorO.foreach { _.visit(feature) } }
@@ -53,7 +53,9 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
           updateTimeBounds(feature)
           writeFeature(fw, feature)
         }
-        else { feature => writeFeature(fw, feature) }
+        else { feature =>
+          writeFeature(fw, feature)
+        }
 
       val iter = collection.features()
       while (iter.hasNext) fids.add(write(iter.next))
