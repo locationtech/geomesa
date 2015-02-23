@@ -124,8 +124,8 @@ object SerializationTester {
     }
 
     // prime
-    println(two)
-    println(three)
+    println(two())
+    println(three())
 
     val twos = time(1000, two)
     val threes = time(1000, three)
