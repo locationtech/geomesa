@@ -128,10 +128,9 @@ object SimpleFeatureTypes {
   }
 
   def getMapTypes(ad: AttributeDescriptor): Option[(Class[_], Class[_])] =
-    Option(ad.getUserData.get(USER_DATA_MAP_KEY_TYPE)).flatMap { keyClass =>
-      Option(ad.getUserData.get(USER_DATA_MAP_VALUE_TYPE)).map { valueClass =>
-        (keyClass.asInstanceOf[Class[_]], valueClass.asInstanceOf[Class[_]])
-      }
+    for(keyClass <- Option(ad.getUserData.get(USER_DATA_MAP_KEY_TYPE));
+        valueClass <- Option(ad.getUserData.get(USER_DATA_MAP_VALUE_TYPE))) yield {
+      (keyClass.asInstanceOf[Class[_]], valueClass.asInstanceOf[Class[_]])
     }
 
   def encodeType(sft: SimpleFeatureType): String =

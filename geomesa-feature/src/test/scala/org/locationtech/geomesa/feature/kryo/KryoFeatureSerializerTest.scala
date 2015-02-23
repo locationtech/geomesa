@@ -17,22 +17,15 @@
 package org.locationtech.geomesa.feature.kryo
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.text.SimpleDateFormat
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.{Point, Polygon}
-import org.apache.avro.io.{BinaryDecoder, DecoderFactory, EncoderFactory}
-import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.mutable.ListBuffer
-import scala.util.Random
+import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
 class KryoFeatureSerializerTest extends Specification {
@@ -60,7 +53,7 @@ class KryoFeatureSerializerTest extends Specification {
         val serialized = serializer.write(sf)
         val deserialized = serializer.read(serialized)
 
-        deserialized must not(beNull)
+        deserialized must not beNull;
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
       }
@@ -72,7 +65,7 @@ class KryoFeatureSerializerTest extends Specification {
         val in = new ByteArrayInputStream(out.toByteArray)
         val deserialized = serializer.read(in)
 
-        deserialized must not(beNull)
+        deserialized must not beNull;
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
       }
@@ -95,7 +88,7 @@ class KryoFeatureSerializerTest extends Specification {
         val serialized = serializer.write(sf)
         val deserialized = serializer.read(serialized)
 
-        deserialized must not(beNull)
+        deserialized must not beNull;
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
       }
@@ -107,7 +100,7 @@ class KryoFeatureSerializerTest extends Specification {
         val in = new ByteArrayInputStream(out.toByteArray)
         val deserialized = serializer.read(in)
 
-        deserialized must not(beNull)
+        deserialized must not beNull;
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
       }
@@ -132,7 +125,7 @@ class KryoFeatureSerializerTest extends Specification {
         val serialized = serializer.write(sf)
         val deserialized = serializer.read(serialized)
 
-        deserialized must not(beNull)
+        deserialized must not beNull;
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
       }
@@ -144,7 +137,7 @@ class KryoFeatureSerializerTest extends Specification {
         val in = new ByteArrayInputStream(out.toByteArray)
         val deserialized = serializer.read(in)
 
-        deserialized must not(beNull)
+        deserialized must not beNull;
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
       }
