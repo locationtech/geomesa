@@ -77,7 +77,8 @@ case class BoundingBox(ll: Point, ur: Point) {
    * @param bbox
    * @return
    */
-  def equals(bbox: BoundingBox): Boolean = (ll == bbox.ll) && (ur == bbox.ur)
+  def equals(bbox: BoundingBox): Boolean = (ll.getX == bbox.ll.getX) && (ll.getY == bbox.ll.getY) &&
+                                            (ur.getX == bbox.ur.getX) && (ur.getY == bbox.ur.getY)
 
   lazy val longitudeSize = ur.getX - ll.getX
   lazy val latitudeSize = ur.getY - ll.getY
