@@ -31,7 +31,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
 import org.locationtech.geomesa.core.index.{Constants, QueryHints}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.feature.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
@@ -81,7 +81,7 @@ class MapAggregatingIteratorTest extends Specification {
   }
 
   def loadFeatures(ds: DataStore, sft: SimpleFeatureType, encodedFeatures: Array[_<:Array[_]]): SimpleFeatureStore = {
-    val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+    val builder = ScalaSimpleFeatureFactory.featureBuilder(sft)
     val features = encodedFeatures.map {
       e =>
         val f = builder.buildFeature(e(0).toString, e.asInstanceOf[Array[AnyRef]])
@@ -102,12 +102,14 @@ class MapAggregatingIteratorTest extends Specification {
     q
   }
 
+  val randomSeed = 62
+
   "MapAggregatingIterator" should {
     val spec = "id:Integer,map:Map[String,Integer],dtg:Date,geom:Geometry:srid=4326"
     val typeName = "test"
     val sft = SimpleFeatureTypes.createType(typeName, spec)
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
-    val random = new Random()
+    val random = new Random(randomSeed)
     val encodedFeatures = (0 until 150).toArray.map {
       i =>
         Array(
@@ -292,7 +294,7 @@ class MapAggregatingIteratorTest extends Specification {
     val typeName = "test"
     val sft = SimpleFeatureTypes.createType(typeName, spec)
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
-    val random = new Random()
+    val random = new Random(randomSeed)
     val key1 = 5.0
     val key2 = Double.MinValue
     val key3 = Double.MaxValue
