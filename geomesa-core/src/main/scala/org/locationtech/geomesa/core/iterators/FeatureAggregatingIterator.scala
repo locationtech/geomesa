@@ -79,6 +79,14 @@ abstract class FeatureAggregatingIterator[T <: Result](val other: FeatureAggrega
     featureBuilder = AvroSimpleFeatureFactory.featureBuilder(projectedSFT)
   }
 
+  /**
+   * Subclasses must override this class.  It should set the variable `projectedSFTDef` (if not set in
+   * class initialization) which provides the SFT specification for the projected result feature of this
+   * aggregating iterator.  Any other subclass-specific initialization can be done in this function as well.
+   * @param source
+   * @param options
+   * @param env
+   */
   def initProjectedSFTDefClassSpecificVariables(source: SortedKeyValueIterator[Key, Value],
                                                 options: JMap[String, String],
                                                 env: IteratorEnvironment): Unit

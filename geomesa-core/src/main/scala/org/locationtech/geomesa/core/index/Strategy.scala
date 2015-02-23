@@ -171,7 +171,6 @@ trait Strategy {
 
       MapAggregatingIterator.configure(cfg, mapAttribute)
 
-
       configureFeatureEncoding(cfg, featureEncoding)
       configureFeatureType(cfg, featureType)
 
