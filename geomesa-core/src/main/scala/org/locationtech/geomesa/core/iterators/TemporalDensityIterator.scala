@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-
 package org.locationtech.geomesa.core.iterators
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-import java.util.Date
-import java.{util => ju}
+import java.util.{Collection => JCollection, Date, Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
@@ -30,125 +28,62 @@ import org.apache.commons.codec.binary.Base64
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.{DateTime, Interval}
-import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.index.{IndexEntryDecoder, _}
-import org.locationtech.geomesa.feature._
-import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, TimeSnap}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.core.index.getDtgFieldName
+import org.locationtech.geomesa.core.iterators.FeatureAggregatingIterator.Result
+import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.TimeSeries
+import org.locationtech.geomesa.utils.geotools.TimeSnap
 
-import scala.util.Random
+import scala.collection.mutable
 
-class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvironment) extends SortedKeyValueIterator[Key, Value] {
+class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvironment)
+  extends FeatureAggregatingIterator[TemporalDensityIteratorResult](other, env) {
 
-  import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.{TEMPORAL_DENSITY_FEATURE_STRING, TimeSeries}
+  import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.{TEMPORAL_DENSITY_FEATURE_SFT_STRING, TimeSeries}
 
-  var curRange: ARange = null
-  var result: TimeSeries = new collection.mutable.HashMap[DateTime, Long]()
-  var projectedSFT: SimpleFeatureType = null
-  var featureBuilder: SimpleFeatureBuilder = null
   var snap: TimeSnap = null
-  var topTemporalDensityKey: Option[Key] = None
-  var topTemporalDensityValue: Option[Value] = None
-  protected var decoder: IndexEntryDecoder = null
-
-  var simpleFeatureType: SimpleFeatureType = null
-  var source: SortedKeyValueIterator[Key,Value] = null
-
-  var topSourceKey: Key = null
-  var topSourceValue: Value = null
-  var originalDecoder: SimpleFeatureDecoder = null
-  var temporalDensityFeatureEncoder: SimpleFeatureEncoder = null
-
   var dateTimeFieldName: String = null
+
+  projectedSFTDef = TEMPORAL_DENSITY_FEATURE_SFT_STRING
 
   def this() = this(null, null)
 
-  def init(source: SortedKeyValueIterator[Key, Value],
-                    options: ju.Map[String, String],
-                    env: IteratorEnvironment): Unit = {
-    this.source = source
-
-    val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
-    simpleFeatureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
-    simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+  override def initProjectedSFTDefClassSpecificVariables(source: SortedKeyValueIterator[Key, Value],
+                                                         options: JMap[String, String],
+                                                         env: IteratorEnvironment): Unit = {
 
     dateTimeFieldName = getDtgFieldName(simpleFeatureType).getOrElse ( throw new IllegalArgumentException("dtg field required"))
-
-    // default to text if not found for backwards compatibility
-    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    originalDecoder = SimpleFeatureDecoder(simpleFeatureType, encodingOpt)
-
-    projectedSFT = SimpleFeatureTypes.createType(simpleFeatureType.getTypeName, TEMPORAL_DENSITY_FEATURE_STRING)
-
-    temporalDensityFeatureEncoder = SimpleFeatureEncoder(projectedSFT, encodingOpt)
-    featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(projectedSFT)
 
     val buckets = TemporalDensityIterator.getBuckets(options)
     val bounds = TemporalDensityIterator.getTimeBounds(options)
     snap = new TimeSnap(bounds, buckets)
-
   }
 
-  /**
-   * Combines the results from the underlying iterator stack
-   * into a single feature
-   */
-  def findTop() = {
-    // reset our 'top' (current) variables
-    result.clear()
-    topSourceKey = null
-    topSourceValue = null
-
-    while(source.hasTop && !curRange.afterEndKey(source.getTopKey)) {
-      topSourceKey = source.getTopKey
-      topSourceValue = source.getTopValue //SimpleFeature
-
-      val date = originalDecoder.decode(topSourceValue.get()).getAttribute(dateTimeFieldName).asInstanceOf[Date]
-      val dateTime = new DateTime(date.getTime)
-      addResultDate(dateTime)
-
-      source.next()
-    }
-
-    if(topSourceKey != null) {
-      featureBuilder.reset()
-      featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(result))
-      featureBuilder.add(TemporalDensityIterator.zeroPoint) //Filler value as Feature requires a geometry
-      val feature = featureBuilder.buildFeature(Random.nextString(6))
-      topTemporalDensityKey = Some(topSourceKey)
-      topTemporalDensityValue = Some(new Value(temporalDensityFeatureEncoder.encode(feature)))
-    }
+  override def handleKeyValue(resultO: Option[TemporalDensityIteratorResult],
+                              topSourceKey: Key,
+                              topSourceValue: Value): TemporalDensityIteratorResult = {
+    val date = originalDecoder.decode(topSourceValue.get()).getAttribute(dateTimeFieldName).asInstanceOf[Date]
+    val dateTime = new DateTime(date.getTime)
+    val result = resultO.getOrElse(TemporalDensityIteratorResult())
+    addResultDate(dateTime, result.timeSeries)
+    result
   }
 
   /** take a given Coordinate and add 1 to the result time that it corresponds to via the snap time */
-  def addResultDate(date: DateTime) = {
+  def addResultDate(date: DateTime, result: TimeSeries): Unit = {
     val t: DateTime = snap.t(snap.i(date))
-    val cur: Long = result.get(t).getOrElse(0L)
+    val cur: Long = result.getOrElse(t, 0L)
     result.put(t, cur + 1L)
   }
 
   override def seek(range: ARange,
-                    columnFamilies: ju.Collection[ByteSequence],
+                    columnFamilies: JCollection[ByteSequence],
                     inclusive: Boolean): Unit = {
     curRange = range
     source.seek(range, columnFamilies, inclusive)
     findTop()
   }
 
-  def hasTop: Boolean = topTemporalDensityKey.nonEmpty
-
-  def getTopKey: Key = topTemporalDensityKey.orNull
-
-  def getTopValue = topTemporalDensityValue.orNull
-
   def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = new TemporalDensityIterator(this, env)
-
-  def next(): Unit = if(!source.hasTop) {
-    topTemporalDensityKey = None
-    topTemporalDensityValue = None
-  } else {
-    findTop()
-  }
 }
 
 object TemporalDensityIterator extends Logging {
@@ -156,7 +91,7 @@ object TemporalDensityIterator extends Logging {
   val INTERVAL_KEY = "geomesa.temporal.density.bounds"
   val BUCKETS_KEY = "geomesa.temporal.density.buckets"
   val ENCODED_TIME_SERIES: String = "timeseries"
-  val TEMPORAL_DENSITY_FEATURE_STRING = s"$ENCODED_TIME_SERIES:String,geom:Geometry"
+  val TEMPORAL_DENSITY_FEATURE_SFT_STRING = s"$ENCODED_TIME_SERIES:String,geom:Geometry"
 
   val zeroPoint = new GeometryFactory().createPoint(new Coordinate(0,0))
 
@@ -177,11 +112,11 @@ object TemporalDensityIterator extends Logging {
     iterSettings.addOption(BUCKETS_KEY, s"$buckets")
   }
 
-  def getBuckets(options: ju.Map[String, String]): Int = {
+  def getBuckets(options: JMap[String, String]): Int = {
     options.get(BUCKETS_KEY).toInt
   }
 
-  def getTimeBounds(options: ju.Map[String, String]): Interval = {
+  def getTimeBounds(options: JMap[String, String]): Interval = {
     val Array(s, e) = options.get(INTERVAL_KEY).split(",").map(_.toLong)
     new Interval(s, e)
   }
@@ -216,4 +151,9 @@ object TemporalDensityIterator extends Logging {
     }
     table
   }
+}
+
+case class TemporalDensityIteratorResult(timeSeries: TimeSeries = new mutable.HashMap[DateTime, Long]) extends Result {
+  override def addToFeature(featureBuilder: SimpleFeatureBuilder): Unit =
+    featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(timeSeries))
 }
