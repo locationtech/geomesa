@@ -40,7 +40,6 @@ import org.locationtech.geomesa.core.util.{BoundingBoxUtil, SelfClosingBatchScan
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, TwoGeoHashBoundingBox}
 import org.opengis.geometry.Envelope
 import org.opengis.parameter.{GeneralParameterValue, InvalidParameterValueException}
-import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import scala.collection.JavaConversions._
 import scala.util.Random
