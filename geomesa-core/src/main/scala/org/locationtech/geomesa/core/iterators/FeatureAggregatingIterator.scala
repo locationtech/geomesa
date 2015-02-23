@@ -65,7 +65,6 @@ abstract class FeatureAggregatingIterator[T <: Result](val other: FeatureAggrega
     simpleFeatureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
     simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
-    // default to text if not found for backwards compatibility
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).map(FeatureEncoding.withName).getOrElse(DEFAULT_ENCODING)
     originalDecoder = SimpleFeatureDecoder(simpleFeatureType, encodingOpt)
 

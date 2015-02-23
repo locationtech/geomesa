@@ -52,7 +52,7 @@ class MapAggregatingIterator(other: MapAggregatingIterator, env: IteratorEnviron
                               topSourceValue: Value): MapAggregatingIteratorResult = {
 
     val feature = originalDecoder.decode(topSourceValue.get)
-    val currCounts = feature.getAttribute(mapAttribute).asInstanceOf[JMap[AnyRef, Int]].asScala.toMap // may be inefficient?
+    val currCounts = feature.getAttribute(mapAttribute).asInstanceOf[JMap[AnyRef, Int]].asScala
 
     val result = resultO.getOrElse(MapAggregatingIteratorResult(mapAttribute))
     result.copy(countMap = sumIntValueMaps(Seq(result.countMap, currCounts)))
@@ -81,7 +81,7 @@ object MapAggregatingIterator extends Logging {
 }
 
 case class MapAggregatingIteratorResult(mapAttributeName: String,
-                                        countMap: Map[AnyRef, Int] = Map()) extends Result {
+                                        countMap: collection.Map[AnyRef, Int] = Map()) extends Result {
   override def addToFeature(sfb: SimpleFeatureBuilder): Unit =  {
     sfb.add(countMap)
     sfb.add(QueryPlanner.zeroPoint)

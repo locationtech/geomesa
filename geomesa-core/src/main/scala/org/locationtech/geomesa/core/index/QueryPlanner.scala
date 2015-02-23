@@ -225,7 +225,6 @@ case class QueryPlanner(schema: String,
         .getAttribute(aggregateKeyName)
         .asInstanceOf[JMap[AnyRef, Int]]
         .asScala
-        .toMap // TODO: Slow?
     }
 
     if(maps.nonEmpty) {

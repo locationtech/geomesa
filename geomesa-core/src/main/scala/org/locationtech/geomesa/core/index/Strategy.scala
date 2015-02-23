@@ -117,8 +117,9 @@ trait Strategy {
                      schema: String,
                      featureEncoding: FeatureEncoding,
                      query: Query): Option[IteratorSetting] = {
-    if (iteratorConfig.useSFFI) Some(configureSimpleFeatureFilteringIterator(featureType, ecql, schema, featureEncoding, query))
-    else None
+    if (iteratorConfig.useSFFI) {
+      Some(configureSimpleFeatureFilteringIterator(featureType, ecql, schema, featureEncoding, query))
+    } else None
   }
 
   def getTopIterCfg(query: Query,
