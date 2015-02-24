@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.raster.data
 
+import com.google.common.collect.ImmutableSetMultimap
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.raster._
@@ -31,6 +32,8 @@ class AccumuloRasterQueryPlannerTest extends Specification {
 
   val schema = RasterIndexSchema("")
   val availableResolutions = List[Double](45.0/256.0, 45.0/1024.0)
+
+  val dataMap: ImmutableSetMultimap[Double, Int] = ImmutableSetMultimap.of(45.0/256.0, 1, 45.0/1024.0, 1)
 
   val arqp = AccumuloRasterQueryPlanner(schema)
 
@@ -48,18 +51,9 @@ class AccumuloRasterQueryPlannerTest extends Specification {
     (2000, 45.0/1024.0)
   )
 
-  "RasterQueryPlanner" should {
-    "return a valid resolution by rounding down" in {
-      testCases.map {
-        case (size, expected) =>
-          runTest(size, expected)
-      }
-    }
-  }
-
   def runTest(size: Int, expectedResolution: Double): MatchResult[Double] = {
     val q1 = generateQuery(0, 45, 0, 45, 45.0/size)
-    val qp = arqp.getQueryPlan(q1, availableResolutions)
+    val qp = arqp.getQueryPlan(q1, dataMap)
 
     val rangeString = qp.ranges.head.getStartKey.getRow.toString
     val encodedDouble = rangeString.split("~")(1)
@@ -74,6 +68,13 @@ class AccumuloRasterQueryPlannerTest extends Specification {
     queryResolution should be equalTo roundedResolution
   }
 
-
+  "RasterQueryPlanner" should {
+    "return a valid resolution by rounding down" in {
+      testCases.map {
+        case (size, expected) =>
+          runTest(size, expected)
+      }
+    }
+  }
 
 }
