@@ -18,6 +18,7 @@ package org.locationtech.geomesa.raster.data
 
 import java.awt.image.BufferedImage
 
+import com.google.common.collect.ImmutableSetMultimap
 import org.geotools.coverage.grid.GridEnvelope2D
 import org.locationtech.geomesa.raster.AccumuloStoreHelper
 import org.locationtech.geomesa.utils.geohash.BoundingBox
@@ -54,6 +55,10 @@ class RasterStore(val rasterOps: RasterOperations) {
   def getBounds(): BoundingBox = rasterOps.getBounds()
 
   def getAvailableResolutions(): Seq[Double] = rasterOps.getAvailableResolutions()
+
+  def getAvailableGeoHashLengths(): Seq[Int] = rasterOps.getAvailableGeoHashLengths()
+  
+  def getAvailabilityMap(): ImmutableSetMultimap[Double, Int] = rasterOps.getResolutionAndGeoHashLengthMap()
 
   def getGridRange(): GridEnvelope2D = rasterOps.getGridRange()
 }
