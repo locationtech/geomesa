@@ -72,14 +72,6 @@ case class BoundingBox(ll: Point, ur: Point) {
    */
   def contains(otherGeom: Geometry): Boolean = geom.contains(otherGeom)
 
-  /**
-   * This bounding box equals bbox if the lower left and upper right points are the same.
-   * @param bbox
-   * @return
-   */
-  def equals(bbox: BoundingBox): Boolean = (ll.getX == bbox.ll.getX) && (ll.getY == bbox.ll.getY) &&
-                                            (ur.getX == bbox.ur.getX) && (ur.getY == bbox.ur.getY)
-
   lazy val longitudeSize = ur.getX - ll.getX
   lazy val latitudeSize = ur.getY - ll.getY
 
