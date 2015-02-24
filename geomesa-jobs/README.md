@@ -43,7 +43,11 @@ yarn jar $GEOMESA_HOME/lib/geomesa-jobs-accumulo1.5-1.0.0-SNAPSHOT.jar \
 search. In order to do that, you will need to call
 <code>AccumuloDataStore.updateIndexedAttributes()</code></b>
 
-To run the attribute index update job, first build geomesa-jobs using the 'assemble' profile, to
+#### Transitioning Indices
+Between rc4 and rc5, incompatible schema changes were made. To transition old data to the new
+format, run the SortedIndexUpdateJob:
+
+To run the job, first build geomesa-jobs using the 'assemble' profile to
 create a shaded jar with all dependencies. Then use the following command:
 
 ```shell
