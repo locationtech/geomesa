@@ -18,8 +18,14 @@ angular.module('geomesa.card', [])
                         id: 'id',
                         name: 'name',
                         description: 'description'
+                    },
+                    {
+                        id: 'third_id',
+                        name: 'third_name',
+                        description: 'third_description'
                     }
                 ];
+
                 scope.selectedIndex = 0;
                 scope.updateIndex = function (i) {
                     scope.selectedIndex = Math.max(Math.min(scope.cards.length - 1, scope.selectedIndex + i), 0);
