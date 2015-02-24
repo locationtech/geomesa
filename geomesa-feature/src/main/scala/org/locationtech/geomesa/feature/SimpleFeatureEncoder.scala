@@ -76,7 +76,9 @@ object SimpleFeatureDecoder {
   def apply(sft: SimpleFeatureType, encoding: String): SimpleFeatureDecoder =
     SimpleFeatureDecoder(sft, FeatureEncoding.withName(encoding))
 
-  def apply(originalSft: SimpleFeatureType, projectedSft: SimpleFeatureType, encoding: String): SimpleFeatureDecoder =
+  def apply(originalSft: SimpleFeatureType,
+            projectedSft: SimpleFeatureType,
+            encoding: String): SimpleFeatureDecoder =
     SimpleFeatureDecoder(originalSft, projectedSft, FeatureEncoding.withName(encoding))
 }
 
