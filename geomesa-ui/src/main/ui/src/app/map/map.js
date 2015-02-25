@@ -45,13 +45,20 @@ angular.module('geomesa.map', [])
 
             link: function (scope, element, attrs) {
                //var baseLayer = L.tileLayer.provider('Stamen.TonerLite'),
+            // map = new OpenLayers.Map( 'map' );
+            // layer = new OpenLayers.Layer.WMS( "OpenLayers WMS",
+            //         "http://vmap0.tiles.osgeo.org/wms/vmap0",
+            //         {layers: 'basic'} );
+            // map.addLayer(layer);
+            // map.zoomToMaxExtent();
+
                 var baseLayer = new ol.layer.Tile({
-                   source: new ol.source.MapQuest({layer: 'sat'})
+                   source: new ol.source.MapQuest({layer: 'osm'})
                 });
                 var wmsLayer = new ol.layer.Tile({
                     source: new ol.source.TileWMS({
                       url: 'http://geomesa:8080/geoserver/geomesa/wms',
-                      params: {LAYERS: 'QuickStart'}
+                      params: {LAYERS: 'basic'} //QuickStart //when using the actual layer, the layer get screwed up
                     })
                 });
 
@@ -61,7 +68,10 @@ angular.module('geomesa.map', [])
                    view: new ol.View({
                      center: ol.proj.transform([37.41, 8.82], 'EPSG:4326', 'EPSG:3857'),
                      zoom : 4,
-                     maxResolution : 40075016.68557849 / screen.width,
+                     maxResolution : 100075016.68557849 / screen.width,
+                     minZoomLevel: 3, 
+                     maxZoomLevel: 18
+                     //maxResolution: "auto",
                    })
                  });
             }
