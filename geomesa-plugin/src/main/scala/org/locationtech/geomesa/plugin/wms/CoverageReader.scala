@@ -38,6 +38,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.iterators.{AggregatingKeyIterator, SurfaceAggregatingIterator, TimestampRangeIterator, TimestampSetIterator}
 import org.locationtech.geomesa.core.util.{BoundingBoxUtil, SelfClosingBatchScanner}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, TwoGeoHashBoundingBox}
+import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.opengis.geometry.Envelope
 import org.opengis.parameter.{GeneralParameterValue, InvalidParameterValueException}
 
@@ -72,7 +73,7 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
     case (columnFamily, columnQualifier) => new Text("~" + columnFamily + "~" + columnQualifier)
   }
 
-  crs = CRS.decode("EPSG:4326")
+  crs = CRS_EPSG_4326
   originalEnvelope = new GeneralEnvelope(Array(-180.0, -90.0), Array(180.0, 90.0))
   originalEnvelope.setCoordinateReferenceSystem(crs)
   originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
