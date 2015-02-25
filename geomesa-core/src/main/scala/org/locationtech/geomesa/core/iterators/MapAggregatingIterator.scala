@@ -83,7 +83,7 @@ object MapAggregatingIterator extends Logging {
 case class MapAggregatingIteratorResult(mapAttributeName: String,
                                         countMap: mutable.Map[AnyRef, Int] = mutable.Map()) extends Result {
   override def addToFeature(sfb: SimpleFeatureBuilder): Unit =  {
-    sfb.add(countMap)
+    sfb.add(countMap.toMap)
     sfb.add(QueryPlanner.zeroPoint)
   }
 }

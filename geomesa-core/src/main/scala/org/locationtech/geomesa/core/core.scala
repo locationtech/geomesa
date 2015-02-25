@@ -49,7 +49,7 @@ package object core {
   /**
    * Sums the values by key and returns a map containing all of the keys in the maps, with values
    * equal to the sum of all of the values for that key in the maps.
-   * Sums with and aggregates the valueMaps into the aggregateInto map
+   * Sums with and aggregates the valueMaps into the aggregateInto map.
    * @param valueMaps
    * @param aggregateInto
    * @param num
