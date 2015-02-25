@@ -74,16 +74,6 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
     val cur: Long = result.getOrElse(t, 0L)
     result.put(t, cur + 1L)
   }
-
-  override def seek(range: ARange,
-                    columnFamilies: JCollection[ByteSequence],
-                    inclusive: Boolean): Unit = {
-    curRange = range
-    source.seek(range, columnFamilies, inclusive)
-    findTop()
-  }
-
-  def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = new TemporalDensityIterator(this, env)
 }
 
 object TemporalDensityIterator extends Logging {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Commonwealth Computer Research, Inc.
+ * Copyright 2015 Commonwealth Computer Research, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the License);
  * you may not use this file except in compliance with the License.
@@ -135,14 +135,16 @@ abstract class FeatureAggregatingIterator[T <: Result](val other: FeatureAggrega
 
   def getTopValue = topValue.orNull
 
-  def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value]
+  def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
+    throw new UnsupportedOperationException("not implemented")
 
-  def next(): Unit = if(!source.hasTop) {
-    topKey = None
-    topValue = None
-  } else {
-    findTop()
-  }
+  def next(): Unit =
+    if(!source.hasTop) {
+      topKey = None
+      topValue = None
+    } else {
+      findTop()
+    }
 }
 
 object FeatureAggregatingIterator extends Logging {

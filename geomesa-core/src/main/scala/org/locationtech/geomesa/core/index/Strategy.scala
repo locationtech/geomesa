@@ -127,7 +127,7 @@ trait Strategy {
                     schema: String,
                     featureEncoding: FeatureEncoding,
                     featureType: SimpleFeatureType) = query match {
-    case densityQuery if densityQuery.getHints.containsKey(DENSITY_KEY) =>
+    case _ if query.getHints.containsKey(DENSITY_KEY) =>
       val clazz = classOf[DensityIterator]
 
       val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
@@ -145,7 +145,7 @@ trait Strategy {
       configureFeatureType(cfg, featureType)
 
       Some(cfg)
-    case temporalDensityQuery if temporalDensityQuery.getHints.containsKey(TEMPORAL_DENSITY_KEY) =>
+    case _ if query.getHints.containsKey(TEMPORAL_DENSITY_KEY) =>
       val clazz = classOf[TemporalDensityIterator]
 
       val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
@@ -161,7 +161,7 @@ trait Strategy {
       configureFeatureType(cfg, featureType)
 
       Some(cfg)
-    case mapAggregationQuery if mapAggregationQuery.getHints.containsKey(MAP_AGGREGATION_KEY) =>
+    case _ if query.getHints.containsKey(MAP_AGGREGATION_KEY) =>
       val clazz = classOf[MapAggregatingIterator]
 
       val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,

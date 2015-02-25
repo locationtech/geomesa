@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Commonwealth Computer Research, Inc.
+ * Copyright 2015 Commonwealth Computer Research, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the License);
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,12 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.core.index.QueryPlanner
 import org.locationtech.geomesa.core.iterators.FeatureAggregatingIterator.Result
+import org.locationtech.geomesa.core.sumNumericValueMutableMaps
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.maps.sumIntValueMaps
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.languageFeature.implicitConversions
 
 class MapAggregatingIterator(other: MapAggregatingIterator, env: IteratorEnvironment)
@@ -55,10 +56,9 @@ class MapAggregatingIterator(other: MapAggregatingIterator, env: IteratorEnviron
     val currCounts = feature.getAttribute(mapAttribute).asInstanceOf[JMap[AnyRef, Int]].asScala
 
     val result = resultO.getOrElse(MapAggregatingIteratorResult(mapAttribute))
-    result.copy(countMap = sumIntValueMaps(Seq(result.countMap, currCounts)))
+    sumNumericValueMutableMaps(Seq(currCounts), result.countMap)
+    result
   }
-
-  def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = new MapAggregatingIterator(this, env)
 }
 
 object MapAggregatingIterator extends Logging {
@@ -81,7 +81,7 @@ object MapAggregatingIterator extends Logging {
 }
 
 case class MapAggregatingIteratorResult(mapAttributeName: String,
-                                        countMap: collection.Map[AnyRef, Int] = Map()) extends Result {
+                                        countMap: mutable.Map[AnyRef, Int] = mutable.Map()) extends Result {
   override def addToFeature(sfb: SimpleFeatureBuilder): Unit =  {
     sfb.add(countMap)
     sfb.add(QueryPlanner.zeroPoint)

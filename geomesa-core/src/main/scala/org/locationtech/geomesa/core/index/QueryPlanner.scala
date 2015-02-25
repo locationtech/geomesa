@@ -30,12 +30,12 @@ import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.iterators.TemporalDensityIterator._
 import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIterator, MapAggregatingIterator, TemporalDensityIterator}
 import org.locationtech.geomesa.core.security.SecurityUtils
+import org.locationtech.geomesa.core.sumNumericValueMutableMaps
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.maps.sumIntValueMaps
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}
 
@@ -228,7 +228,7 @@ case class QueryPlanner(schema: String,
     }
 
     if(maps.nonEmpty) {
-      val reducedMap = sumIntValueMaps(maps)
+      val reducedMap = sumNumericValueMutableMaps(maps.toIterable).toMap // to immutable map
 
       val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
       featureBuilder.reset()

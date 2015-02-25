@@ -123,7 +123,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment)
     val featureIterator = grid.getFeatures.features
     featureIterator
       .filter{ f => inPolygon.intersects(f.polygon) }
-      .foreach{ f=> addResultPoint(result, f.polygon.getCentroid) }
+      .foreach{ f => addResultPoint(result, f.polygon.getCentroid) }
   }
 
   /** calls addResultCoordinate on a given Point's coordinate */
@@ -137,8 +137,6 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment)
     val cur = Option(result.get(y, x)).getOrElse(0L)
     result.put(y, x, cur + 1L)
   }
-
-  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = new DensityIterator(this, env)
 }
 
 object DensityIterator extends Logging {
