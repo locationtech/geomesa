@@ -22,14 +22,20 @@ import com.vividsolutions.jts.geom._
 import org.geotools.data.FeatureReader
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
+import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.DirectPosition2D
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.geotools.util.{Converter, ConverterFactory}
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
+import org.locationtech.geomesa.utils.stats.Cardinality._
+import org.locationtech.geomesa.utils.stats.IndexCoverage._
+import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.temporal.Instant
+
+import scala.util.Try
 
 object Conversions {
 
@@ -94,12 +100,77 @@ object Conversions {
     }
   }
 
-  import scala.collection.JavaConversions._
-  implicit class RichAttributeDescriptor(val attr: AttributeDescriptor) extends AnyVal {
-    def isIndexed = attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]
-    def isCollection = classOf[JCollection[_]].isAssignableFrom(attr.getType.getBinding)
-    def isMap = classOf[JMap[_, _]].isAssignableFrom(attr.getType.getBinding)
+}
+
+/**
+ * Contains GeoMesa specific attribute descriptor information
+ */
+object RichAttributeDescriptors {
+
+  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
+
+  implicit class RichAttributeDescriptor(val ad: AttributeDescriptor) extends AnyVal {
+
+    def setIndexCoverage(coverage: IndexCoverage): Unit = ad.getUserData.put(OPT_INDEX, coverage.toString)
+
+    def getIndexCoverage(): IndexCoverage =
+      Option(ad.getUserData.get(OPT_INDEX).asInstanceOf[String])
+          .flatMap(c => Try(IndexCoverage.withName(c)).toOption).getOrElse(IndexCoverage.NONE)
+
+    def setIndexValue(indexValue: Boolean): Unit =
+      ad.getUserData.put(OPT_INDEX_VALUE, new java.lang.Boolean(indexValue))
+
+    def getIndexValue(): Boolean =
+      Option(ad.getUserData.get(OPT_INDEX_VALUE).asInstanceOf[Boolean]).getOrElse(false)
+
+    def setCardinality(cardinality: Cardinality): Unit =
+      ad.getUserData.put(OPT_CARDINALITY, cardinality.toString)
+
+    def getCardinality(): Cardinality =
+      Option(ad.getUserData.get(OPT_CARDINALITY).asInstanceOf[String])
+          .flatMap(c => Try(Cardinality.withName(c)).toOption).getOrElse(Cardinality.UNKNOWN)
+
+    def setCollectionType(typ: Class[_]): Unit = ad.getUserData.put(USER_DATA_LIST_TYPE, typ)
+
+    def getCollectionType(): Option[Class[_]] =
+      Option(ad.getUserData.get(USER_DATA_LIST_TYPE)).map(_.asInstanceOf[Class[_]])
+
+    def setMapTypes(keyType: Class[_], valueType: Class[_]): Unit = {
+      ad.getUserData.put(USER_DATA_MAP_KEY_TYPE, keyType)
+      ad.getUserData.put(USER_DATA_MAP_VALUE_TYPE, valueType)
+    }
+
+    def getMapTypes(): Option[(Class[_], Class[_])] = for {
+      keyClass   <- Option(ad.getUserData.get(USER_DATA_MAP_KEY_TYPE))
+      valueClass <- Option(ad.getUserData.get(USER_DATA_MAP_VALUE_TYPE))
+    } yield {
+      (keyClass.asInstanceOf[Class[_]], valueClass.asInstanceOf[Class[_]])
+    }
+
+    def isIndexed = getIndexCoverage() match {
+      case IndexCoverage.FULL | IndexCoverage.JOIN => true
+      case IndexCoverage.NONE => false
+    }
+
+    def isCollection = getCollectionType().isDefined
+
+    def isMap = getMapTypes().isDefined
+
     def isMultiValued = isCollection || isMap
+  }
+
+  implicit class RichAttributeTypeBuilder(val builder: AttributeTypeBuilder) extends AnyVal {
+
+    def indexCoverage(coverage: IndexCoverage) = builder.userData(OPT_INDEX, coverage.toString)
+
+    def indexValue(indexValue: Boolean) = builder.userData(OPT_INDEX_VALUE, indexValue)
+
+    def cardinality(cardinality: Cardinality) = builder.userData(OPT_CARDINALITY, cardinality.toString)
+
+    def collectionType(typ: Class[_]) = builder.userData(USER_DATA_LIST_TYPE, typ)
+
+    def mapTypes(keyType: Class[_], valueType: Class[_]) =
+      builder.userData(USER_DATA_MAP_KEY_TYPE, keyType).userData(USER_DATA_MAP_VALUE_TYPE, valueType)
   }
 }
 

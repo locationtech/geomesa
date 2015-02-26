@@ -18,7 +18,7 @@ package org.locationtech.geomesa.core
 
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.geotools.data.DataStoreFinder
+import org.geotools.data.{Query, DataStoreFinder}
 import org.geotools.feature.DefaultFeatureCollection
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.core.index._
@@ -74,5 +74,11 @@ trait TestWithDataStore {
     getTestFeatures().foreach(featureCollection.add)
     // write the feature to the store
     fs.addFeatures(featureCollection)
+  }
+
+  def explain(query: Query): String = {
+    val o = new ExplainString
+    ds.getFeatureReader(sftName, query).explainQuery(o)
+    o.toString()
   }
 }

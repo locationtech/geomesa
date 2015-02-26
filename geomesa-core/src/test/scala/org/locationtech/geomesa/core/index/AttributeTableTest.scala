@@ -19,9 +19,11 @@ package org.locationtech.geomesa.core.index
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.data.DEFAULT_ENCODING
 import org.locationtech.geomesa.core.data.tables.{AttributeIndexRow, AttributeTable}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -32,9 +34,9 @@ import scala.util.Success
 @RunWith(classOf[JUnitRunner])
 class AttributeTableTest extends Specification {
 
-  val geotimeAttributes = org.locationtech.geomesa.core.index.spec
   val sftName = "mutableType"
-  val sft = SimpleFeatureTypes.createType(sftName, s"name:String,age:Integer,$geotimeAttributes")
+  val spec = s"name:String:$OPT_INDEX=true,age:Integer:$OPT_INDEX=true,*geom:Geometry:srid=4326,dtg:Date:$OPT_INDEX=true"
+  val sft = SimpleFeatureTypes.createType(sftName, spec)
   sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
     "AttributeTable" should {
@@ -49,7 +51,7 @@ class AttributeTableTest extends Specification {
         feature.setAttribute("age",50.asInstanceOf[Any])
         feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
-        val mutations = AttributeTable.getAttributeIndexMutations(feature, descriptors, new ColumnVisibility(), "")
+        val mutations = AttributeTable.getAttributeIndexMutations(feature, DEFAULT_ENCODING, descriptors, new ColumnVisibility(), "")
         mutations.size mustEqual descriptors.length
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(false)).foreach
@@ -65,7 +67,7 @@ class AttributeTableTest extends Specification {
         feature.setAttribute("age",50.asInstanceOf[Any])
         feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
-        val mutations = AttributeTable.getAttributeIndexMutations(feature, descriptors, new ColumnVisibility(), "", delete = true)
+        val mutations = AttributeTable.getAttributeIndexMutations(feature, DEFAULT_ENCODING, descriptors, new ColumnVisibility(), "", delete = true)
         mutations.size mustEqual descriptors.length
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(true)).foreach

@@ -41,7 +41,7 @@ import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class ScaldingDelimitedIngestJobTest extends Specification{
-  isolated
+  sequential
 
   var id = 0
 

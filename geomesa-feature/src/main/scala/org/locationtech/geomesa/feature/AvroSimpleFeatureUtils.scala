@@ -25,7 +25,7 @@ import com.vividsolutions.jts.io.WKBWriter
 import org.apache.avro.{Schema, SchemaBuilder}
 import org.apache.commons.codec.binary.Hex
 import org.geotools.util.Converters
-import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.opengis.feature.simple.SimpleFeatureType
 

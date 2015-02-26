@@ -29,6 +29,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core._
+import org.locationtech.geomesa.core.data.DEFAULT_ENCODING
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.util.SelfClosingIterator
@@ -78,6 +79,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       val attributes = (0 until sft.getAttributeCount).zip(sft.getAttributeDescriptors)
       getTestFeatures().foreach { feature =>
         val muts = AttributeTable.getAttributeIndexMutations(feature,
+                                                             DEFAULT_ENCODING,
                                                              attributes,
                                                              new ColumnVisibility(), "")
         bw.addMutations(muts)

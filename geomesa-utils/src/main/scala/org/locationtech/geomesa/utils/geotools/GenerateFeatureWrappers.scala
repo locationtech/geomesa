@@ -31,12 +31,12 @@ case class AttributeDetails(unsafeName: String, index: Int, clazz: String) {
 }
 
 object AttributeDetails {
-  import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
 
   def apply(ad: AttributeDescriptor, sft: SimpleFeatureType): AttributeDetails = {
     val majorBinding = classToString(Some(ad.getType.getBinding))
     val binding = if (ad.isCollection) {
-      val subtype = classToString(SimpleFeatureTypes.getCollectionType(ad))
+      val subtype = classToString(ad.getCollectionType())
       s"$majorBinding[$subtype]"
     } else if (ad.isMap) {
       val keyType = classToString(Option(ad.getUserData.get("keyclass").asInstanceOf[Class[_]]))

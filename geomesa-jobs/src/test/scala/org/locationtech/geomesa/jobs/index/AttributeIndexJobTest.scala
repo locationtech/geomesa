@@ -16,26 +16,20 @@
 
 package org.locationtech.geomesa.jobs.index
 
-import java.util
-
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, DEFAULT_ENCODING}
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.iterators.TestData
 import org.locationtech.geomesa.core.iterators.TestData._
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
-import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexJobTest extends Specification {
@@ -49,8 +43,7 @@ class AttributeIndexJobTest extends Specification {
     "password"          -> "mypassword",
     "auths"             -> "A,B,C",
     "tableName"         -> tableName,
-    "useMock"           -> "true",
-    "featureEncoding"   -> "avro")
+    "useMock"           -> "true")
 
   val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
@@ -81,7 +74,7 @@ class AttributeIndexJobTest extends Specification {
     val attrList = Seq((sft.indexOf(descriptor.getName), descriptor))
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
     val tableMutations1 = feats.flatMap { sf =>
-      AttributeTable.getAttributeIndexMutations(sf, attrList, new ColumnVisibility(ds.writeVisibilities), prefix)
+      AttributeTable.getAttributeIndexMutations(sf, DEFAULT_ENCODING, attrList, new ColumnVisibility(ds.writeVisibilities), prefix)
     }
     forall(tableMutations1) { mut => jobMutations1.exists(mut.equals) }
   }
