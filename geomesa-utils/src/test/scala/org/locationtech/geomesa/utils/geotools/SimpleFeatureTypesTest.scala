@@ -18,7 +18,8 @@ package org.locationtech.geomesa.utils.geotools
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
-import org.locationtech.geomesa.utils.stats.Cardinality
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
+import org.locationtech.geomesa.utils.stats.{IndexCoverage, Cardinality}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -35,14 +36,14 @@ class SimpleFeatureTypesTest extends Specification {
       "has an id attribute which is " >> {
         val idDescriptor = sft.getDescriptor("id")
         "not null"    >> { (idDescriptor must not).beNull }
-        "not indexed" >> { idDescriptor.getUserData.get("index").asInstanceOf[Boolean] must beFalse }
+        "not indexed" >> { idDescriptor.getUserData.get("index").asInstanceOf[String] mustEqual("none") }
       }
       "has a default geom field called 'geom'" >> {
         val geomDescriptor = sft.getGeometryDescriptor
         geomDescriptor.getLocalName must be equalTo "geom"
       }
       "encode an sft properly" >> {
-        SimpleFeatureTypes.encodeType(sft) must be equalTo s"id:Integer,dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
+        SimpleFeatureTypes.encodeType(sft) must be equalTo s"id:Integer,dtg:Date,*geom:Point:srid=4326:index=full:$OPT_INDEX_VALUE=true"
       }
     }
 
@@ -81,8 +82,7 @@ class SimpleFeatureTypesTest extends Specification {
 
     "handle no index attribute" >> {
       val sft = SimpleFeatureTypes.createType("testing", "id:Integer,*geom:Point:index=true")
-      sft.getDescriptor("id").getUserData.containsKey("index") must beTrue
-      sft.getDescriptor("id").getUserData.get("index").asInstanceOf[Boolean] must beFalse
+      sft.getDescriptor("id").getIndexCoverage() mustEqual(IndexCoverage.NONE)
     }
 
     "handle no explicit geometry" >> {
@@ -103,7 +103,7 @@ class SimpleFeatureTypesTest extends Specification {
 
     "set index=true for a default geometry" >> {
       val sft = SimpleFeatureTypes.createType("testing", "id:Integer:index=false,dtg:Date:index=true,*geom:Point:srid=4326:index=false")
-      sft.getGeometryDescriptor.getUserData.get("index").asInstanceOf[Boolean] must beTrue
+      sft.getGeometryDescriptor.getUserData.get("index") mustEqual(IndexCoverage.FULL.toString)
     }
 
     "handle list types" >> {
@@ -116,7 +116,7 @@ class SimpleFeatureTypesTest extends Specification {
         sft.getDescriptor("names").getType.getBinding mustEqual(classOf[java.util.List[_]])
 
         val spec = SimpleFeatureTypes.encodeType(sft)
-        spec mustEqual s"id:Integer,names:List[String],dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
+        spec mustEqual s"id:Integer,names:List[String],dtg:Date,*geom:Point:srid=4326:index=full:$OPT_INDEX_VALUE=true"
       }
 
       "with defined values" >> {
@@ -127,7 +127,7 @@ class SimpleFeatureTypesTest extends Specification {
         sft.getDescriptor("names").getType.getBinding mustEqual(classOf[java.util.List[_]])
 
         val spec = SimpleFeatureTypes.encodeType(sft)
-        spec mustEqual s"id:Integer,names:List[Double],dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
+        spec mustEqual s"id:Integer,names:List[Double],dtg:Date,*geom:Point:srid=4326:index=full:$OPT_INDEX_VALUE=true"
       }
 
       "fail for illegal value format" >> {
@@ -151,7 +151,7 @@ class SimpleFeatureTypesTest extends Specification {
         sft.getDescriptor("metadata").getType.getBinding mustEqual classOf[java.util.Map[_, _]]
 
         val spec = SimpleFeatureTypes.encodeType(sft)
-        spec mustEqual s"id:Integer,metadata:Map[String,String],dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
+        spec mustEqual s"id:Integer,metadata:Map[String,String],dtg:Date,*geom:Point:srid=4326:index=full:$OPT_INDEX_VALUE=true"
       }
 
       "with defined values" >> {
@@ -162,7 +162,7 @@ class SimpleFeatureTypesTest extends Specification {
         sft.getDescriptor("metadata").getType.getBinding mustEqual classOf[java.util.Map[_, _]]
 
         val spec = SimpleFeatureTypes.encodeType(sft)
-        spec mustEqual s"id:Integer,metadata:Map[Double,String],dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
+        spec mustEqual s"id:Integer,metadata:Map[Double,String],dtg:Date,*geom:Point:srid=4326:index=full:$OPT_INDEX_VALUE=true"
       }
 
       "fail for illegal value format" >> {
@@ -190,27 +190,48 @@ class SimpleFeatureTypesTest extends Specification {
     "allow specification of ST index entry values" >> {
       val spec = s"name:String:index=true:$OPT_INDEX_VALUE=true,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getDescriptor("name").getUserData.get(OPT_INDEX_VALUE) mustEqual(true)
+      sft.getDescriptor("name").getIndexValue() mustEqual(true)
     }
 
     "automatically set default geom in ST index entry" >> {
       val spec = s"name:String:index=true:$OPT_INDEX_VALUE=true,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getDescriptor("geom").getUserData.get(OPT_INDEX_VALUE) mustEqual(true)
+      sft.getDescriptor("geom").getIndexValue() mustEqual(true)
     }
 
     "allow specification of attribute cardinality" >> {
       val spec = s"name:String:$OPT_CARDINALITY=high,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test", spec)
       sft.getDescriptor("name").getUserData.get(OPT_CARDINALITY) mustEqual("high")
-      SimpleFeatureTypes.getCardinality(sft.getDescriptor("name")) mustEqual(Cardinality.HIGH)
+      sft.getDescriptor("name").getCardinality() mustEqual(Cardinality.HIGH)
     }
 
     "allow specification of attribute cardinality regardless of case" >> {
       val spec = s"name:String:$OPT_CARDINALITY=LOW,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test", spec)
       sft.getDescriptor("name").getUserData.get(OPT_CARDINALITY) mustEqual("low")
-      SimpleFeatureTypes.getCardinality(sft.getDescriptor("name")) mustEqual(Cardinality.LOW)
+      sft.getDescriptor("name").getCardinality() mustEqual(Cardinality.LOW)
+    }
+
+    "allow specification of index attribute coverages" >> {
+      val spec = s"name:String:$OPT_INDEX=join,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      sft.getDescriptor("name").getUserData.get(OPT_INDEX) mustEqual("join")
+      sft.getDescriptor("name").getIndexCoverage() mustEqual(IndexCoverage.JOIN)
+    }
+
+    "allow specification of index attribute coverages regardless of case" >> {
+      val spec = s"name:String:$OPT_INDEX=FULL,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      sft.getDescriptor("name").getUserData.get(OPT_INDEX) mustEqual("full")
+      sft.getDescriptor("name").getIndexCoverage() mustEqual(IndexCoverage.FULL)
+    }
+
+    "allow specification of index attribute coverages as booleans" >> {
+      val spec = s"name:String:$OPT_INDEX=true,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      sft.getDescriptor("name").getUserData.get(OPT_INDEX) mustEqual("join")
+      sft.getDescriptor("name").getIndexCoverage() mustEqual(IndexCoverage.JOIN)
     }
 
     "build from conf" >> {
@@ -230,8 +251,8 @@ class SimpleFeatureTypesTest extends Specification {
       val sft = SimpleFeatureTypes.createType(conf)
       sft.getAttributeCount must be equalTo 4
       sft.getGeometryDescriptor.getName.getLocalPart must be equalTo "geom"
-      SimpleFeatureTypes.getCardinality(sft.getDescriptor("testStr")) mustEqual(Cardinality.UNKNOWN)
-      SimpleFeatureTypes.getCardinality(sft.getDescriptor("testCard")) mustEqual(Cardinality.HIGH)
+      sft.getDescriptor("testStr").getCardinality() mustEqual(Cardinality.UNKNOWN)
+      sft.getDescriptor("testCard").getCardinality() mustEqual(Cardinality.HIGH)
       sft.getTypeName must be equalTo "testconf"
     }
   }

@@ -310,7 +310,7 @@ class AccumuloDataStoreTest extends Specification {
 
       "with the correct schema" >> {
         SimpleFeatureTypes.encodeType(results.getSchema) mustEqual
-            s"name:String,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true,derived:String"
+            s"name:String,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true,derived:String"
       }
       "with the correct results" >> {
         val features = results.features
@@ -370,7 +370,7 @@ class AccumuloDataStoreTest extends Specification {
 
       "with the correct schema" >> {
         SimpleFeatureTypes.encodeType(results.getSchema) mustEqual
-            s"name:String,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true,derived:String"
+            s"name:String,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true,derived:String"
       }
 
       "with the correct results" >> {
@@ -394,7 +394,7 @@ class AccumuloDataStoreTest extends Specification {
 
       "with the correct schema" >> {
         SimpleFeatureTypes.encodeType(results.getSchema) mustEqual
-            s"name:String,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
+            s"name:String,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true"
       }
       "with the correct results" >> {
         val features = results.features
@@ -939,8 +939,8 @@ class AccumuloDataStoreTest extends Specification {
 
     "update metadata for indexed attributes" in {
       val sftName = "updateMetadataTest"
-      val originalSchema = s"name:String,dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
-      val updatedSchema = s"name:String:index=true,dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
+      val originalSchema = s"name:String,dtg:Date,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true"
+      val updatedSchema = s"name:String:$OPT_INDEX=join,dtg:Date,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true"
 
       val sft = createSchema(sftName, originalSchema)
       ds.updateIndexedAttributes(sftName, updatedSchema)
@@ -950,7 +950,7 @@ class AccumuloDataStoreTest extends Specification {
 
     "prevent changing schema types" in {
       val sftName = "preventSchemaChangeTest"
-      val originalSchema = s"name:String,dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
+      val originalSchema = s"name:String,dtg:Date,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true"
       val sft = createSchema(sftName, originalSchema)
 
       "prevent changing default geometry" in {
@@ -1241,7 +1241,7 @@ class AccumuloDataStoreTest extends Specification {
 
       val result = AccumuloFeatureStore.computeSchema(origSFT, definitions.toSeq)
       SimpleFeatureTypes.encodeType(result) mustEqual
-        "name:String,helloName:String,*geom:Point:srid=4326:index-value=true"
+        s"name:String,helloName:String,*geom:Point:srid=4326:$OPT_INDEX=full:index-value=true"
     }
 
     "support sorting and handle time bounds" in {

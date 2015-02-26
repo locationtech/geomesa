@@ -29,8 +29,10 @@ import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureWriterFn
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.IndexValueEncoder
-import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.feature.SimpleFeatureEncoder
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -45,6 +47,7 @@ object AttributeTable extends GeoMesaTable with Logging {
   /** Creates a function to write a feature to the attribute index **/
   def attrWriter(bw: BatchWriter,
                  sft: SimpleFeatureType,
+                 featureEncoding: FeatureEncoding,
                  indexedAttributes: Seq[AttributeDescriptor],
                  rowIdPrefix: String): FeatureWriterFn = {
 
@@ -54,6 +57,7 @@ object AttributeTable extends GeoMesaTable with Logging {
     (feature: SimpleFeature, visibility: String) => {
       val mutations = getAttributeIndexMutations(
         feature,
+        featureEncoding,
         attributesToIdx,
         new ColumnVisibility(visibility),
         rowIdPrefix)
@@ -74,6 +78,7 @@ object AttributeTable extends GeoMesaTable with Logging {
     (feature: SimpleFeature, visibility: String) => {
       val mutations = getAttributeIndexMutations(
         feature,
+        null,
         attributesToIdx,
         new ColumnVisibility(visibility),
         rowIdPrefix,
@@ -96,18 +101,25 @@ object AttributeTable extends GeoMesaTable with Logging {
    * @return
    */
   def getAttributeIndexMutations(feature: SimpleFeature,
+                                 featureEncoding: FeatureEncoding,
                                  indexedAttributes: Seq[(Int, AttributeDescriptor)],
                                  visibility: ColumnVisibility,
                                  rowIdPrefix: String,
                                  delete: Boolean = false): Seq[Mutation] = {
     val cq = new Text(feature.getID)
-    lazy val value = new Value(IndexValueEncoder(feature.getFeatureType).encode(feature))
+    val sft = feature.getFeatureType
+    lazy val joinValue = new Value(IndexValueEncoder(sft).encode(feature))
+    lazy val coveringValue = new Value(SimpleFeatureEncoder(sft, featureEncoding).encode(feature))
     indexedAttributes.flatMap { case (idx, descriptor) =>
       val attribute = Option(feature.getAttribute(idx))
       val mutations = getAttributeIndexRows(rowIdPrefix, descriptor, attribute).map(new Mutation(_))
       if (delete) {
         mutations.foreach(_.putDelete(EMPTY_COLF, cq, visibility))
       } else {
+        val value = descriptor.getIndexCoverage() match {
+          case IndexCoverage.FULL => coveringValue
+          case IndexCoverage.JOIN => joinValue
+        }
         mutations.foreach(_.put(EMPTY_COLF, cq, visibility, value))
       }
       mutations
@@ -194,7 +206,7 @@ object AttributeTable extends GeoMesaTable with Logging {
   def decode(encoded: String, descriptor: AttributeDescriptor): Any = {
     if (descriptor.isCollection) {
       // get the alias from the type of values in the collection
-      val alias = SimpleFeatureTypes.getCollectionType(descriptor).map(_.getSimpleName.toLowerCase(Locale.US)).head
+      val alias = descriptor.getCollectionType().map(_.getSimpleName.toLowerCase(Locale.US)).head
       Seq(typeRegistry.decode(alias, encoded)).asJava
     } else if (descriptor.isMap) {
       // TODO GEOMESA-454 - support querying against map attributes

@@ -29,7 +29,7 @@ import org.geotools.process.vector.VectorProcess
 import org.locationtech.geomesa.core.data.GEOMESA_UNIQUE
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.util.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter

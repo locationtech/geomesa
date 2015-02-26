@@ -73,9 +73,6 @@ trait Strategy {
     cfg.addOption(GEOMESA_ITERATORS_SFT_INDEX_VALUE, encodedSimpleFeatureType)
   }
 
-  def configureAttributeName(cfg: IteratorSetting, attributeName: String) =
-    cfg.addOption(GEOMESA_ITERATORS_ATTRIBUTE_NAME, attributeName)
-
   def configureEcqlFilter(cfg: IteratorSetting, ecql: Option[String]) =
     ecql.foreach(filter => cfg.addOption(GEOMESA_ITERATORS_ECQL_FILTER, filter))
 

@@ -294,13 +294,15 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
 
 object ScaldingDelimitedIngestJob {
   import scala.collection.JavaConverters._
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   def isList(ad: AttributeDescriptor) = classOf[java.util.List[_]].isAssignableFrom(ad.getType.getBinding)
 
   def toList(s: String, delim: Char,  ad: AttributeDescriptor): JList[_] = {
-    val clazz = SimpleFeatureTypes.getCollectionType(ad).get
-    if (s.isEmpty) List().asJava
-    else {
+    if (s.isEmpty) {
+      List().asJava
+    } else {
+      val clazz = ad.getCollectionType().get
       s.split(delim).map(_.trim).map { value =>
         Converters.convert(value, clazz).asInstanceOf[AnyRef]
       }.toList.asJava
@@ -313,9 +315,10 @@ object ScaldingDelimitedIngestJob {
             delimBetweenKeysAndValues: Char,
             delimBetweenKeyValuePairs: Char,
             ad: AttributeDescriptor): JMap[_,_] = {
-    val (keyClass, valueClass) = SimpleFeatureTypes.getMapTypes(ad).get
-    if (s.isEmpty) Map().asJava
-    else {
+    if (s.isEmpty) {
+      Map().asJava
+    } else {
+      val (keyClass, valueClass) = ad.getMapTypes().get
       s.split(delimBetweenKeyValuePairs)
         .map(_.split(delimBetweenKeysAndValues).map(_.trim))
         .map { case Array(key, value) =>

@@ -266,7 +266,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 object STIdxStrategy {
 
   import org.locationtech.geomesa.core.filter.spatialFilters
-  import org.locationtech.geomesa.utils.geotools.Conversions._
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   def getSTIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =
     if(!spatialFilters(filter)) None

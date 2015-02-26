@@ -129,6 +129,7 @@ object AttributeIndexJob {
 
     AttributeTable.getAttributeIndexMutations(
       feature,
+      r.decoder.encoding,
       r.attributeDescriptors,
       new ColumnVisibility(r.visibilities),
       prefix

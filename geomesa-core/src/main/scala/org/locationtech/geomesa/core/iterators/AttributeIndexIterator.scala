@@ -16,11 +16,15 @@
 
 package org.locationtech.geomesa.core.iterators
 
+import java.util.Date
+
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.tables.AttributeTable._
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
 
 import scala.util.{Failure, Success}
@@ -38,12 +42,16 @@ class AttributeIndexIterator
     with HasIndexValueDecoder
     with HasFeatureDecoder
     with HasSpatioTemporalFilter
+    with HasEcqlFilter
     with HasTransforms
     with Logging {
 
   // the following fields get filled in during init
   var attributeRowPrefix: String = null
   var attributeType: Option[AttributeDescriptor] = null
+  var dtgIndex: Option[Int] = None
+
+  var setTopFunction: () => Unit = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
@@ -56,16 +64,44 @@ class AttributeIndexIterator
     // if we're retrieving the attribute, we need the class in order to decode it
     attributeType = Option(options.get(GEOMESA_ITERATORS_ATTRIBUTE_NAME))
         .flatMap(n => Option(featureType.getDescriptor(n)))
+    dtgIndex = index.getDtgFieldName(featureType).map(featureType.indexOf(_))
+    val coverage = Option(options.get(GEOMESA_ITERATORS_ATTRIBUTE_COVERAGE)).map(IndexCoverage.withName)
+        .getOrElse(IndexCoverage.JOIN)
+    setTopFunction = coverage match {
+      case IndexCoverage.FULL => setTopFullCoverage
+      case IndexCoverage.JOIN => setTopJoinCoverage
+    }
   }
 
-  override def setTopConditionally() {
+  override def setTopConditionally() = setTopFunction()
 
+  /**
+   * Each value is the fully encoded simple feature
+   */
+  def setTopFullCoverage(): Unit = {
+    val dataValue = source.getTopValue
+    val sf = featureDecoder.decode(dataValue.get)
+    val meetsStFilter = stFilter.forall(fn => fn(sf.getDefaultGeometry.asInstanceOf[Geometry],
+      dtgIndex.flatMap(i => Option(sf.getAttribute(i).asInstanceOf[Date]).map(_.getTime))))
+    val meetsFilters =  meetsStFilter && ecqlFilter.forall(fn => fn(sf))
+    if (meetsFilters) {
+      // update the key and value
+      topKey = Some(source.getTopKey)
+      // apply any transform here
+      topValue = transform.map(fn => new Value(fn(sf))).orElse(Some(dataValue))
+    }
+  }
+
+  /**
+   * Each value is the encoded index value (typically dtg, geom)
+   */
+  def setTopJoinCoverage(): Unit = {
     // the value contains the full-resolution geometry and time
     lazy val decodedValue = indexEncoder.decode(source.getTopValue.get)
 
     // evaluate the filter check
     val meetsIndexFilters =
-        stFilter.forall(fn => fn(decodedValue.geom, decodedValue.date.map(_.getTime)))
+      stFilter.forall(fn => fn(decodedValue.geom, decodedValue.date.map(_.getTime)))
 
     if (meetsIndexFilters) {
       // current entry matches our filter - update the key and value

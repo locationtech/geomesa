@@ -36,6 +36,7 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.jobs.index.AttributeIndexJob
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -149,7 +150,7 @@ class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage wit
                       .map { case (a, _) => a }
         if (!changed.isEmpty) {
           val (ds, sft) = loadStore().get
-          val added = changed.filter(a => a.index).map(a => a.name)
+          val added = changed.filter(_.index != IndexCoverage.NONE).map(_.name)
           val run =
             if (added.isEmpty) {
               Success(true)

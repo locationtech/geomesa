@@ -93,7 +93,8 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
         val attrWriter = multiBWWriter.getBatchWriter(ds.getAttrIdxTableName(featureType))
         val recWriter = multiBWWriter.getBatchWriter(ds.getRecordTableForType(featureType))
         val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
-        List(AttributeTable.attrWriter(attrWriter, featureType, indexedAttributes, rowIdPrefix),
+        val encoding = encoder.encoding
+        List(AttributeTable.attrWriter(attrWriter, featureType, encoding, indexedAttributes, rowIdPrefix),
              RecordTable.recordWriter(recWriter, encoder, rowIdPrefix))
       }
 

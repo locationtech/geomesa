@@ -23,7 +23,9 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.temporal.`object`.DefaultPeriod
+import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable}
 import org.locationtech.geomesa.core.filter._
@@ -33,8 +35,8 @@ import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.SimpleFeatureDecoder
-import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
@@ -44,6 +46,8 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 trait AttributeIdxStrategy extends Strategy with Logging {
+
+  import org.locationtech.geomesa.core.index.AttributeIndexStrategy._
 
   /**
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
@@ -83,7 +87,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     val iter = iteratorChoice.iterator match {
       case IndexOnlyIterator =>
         // the attribute index iterator also handles transforms and date/geom filters
-        val cfg = configureAttributeIndexIterator(featureType, encoding, query, stFilter,
+        val cfg = configureAttributeIndexIterator(featureType, encoding, query, stFilter, ecqlFilter,
           iteratorChoice.transformCoversFilter, attributeName)
         attrScanner.addScanIterator(cfg)
         output(s"AttributeIndexIterator: ${cfg.toString }")
@@ -146,6 +150,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
       encoding: FeatureEncoding,
       query: Query,
       stFilter: Option[Filter],
+      ecqlFilter: Option[Filter],
       needsTransform: Boolean,
       attributeName: String) = {
 
@@ -159,7 +164,9 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     configureFeatureTypeName(cfg, featureType.getTypeName)
     configureFeatureEncoding(cfg, encoding)
     configureStFilter(cfg, stFilter)
+    configureEcqlFilter(cfg, ecqlFilter.map(ECQL.toCQL))
     configureAttributeName(cfg, attributeName)
+    configureIndexCoverage(cfg, featureType.getDescriptor(attributeName).getIndexCoverage())
     configureIndexValues(cfg, featureType)
     if (needsTransform) {
       // we have to evaluate the filter against full feature then apply the transform
@@ -250,8 +257,6 @@ class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
 }
 
 object AttributeIndexStrategy {
-
-  import org.locationtech.geomesa.utils.geotools.Conversions._
 
   def getAttributeIndexStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =
     filter match {
@@ -370,7 +375,7 @@ object AttributeIndexStrategy {
         value
       } else if (descriptor.isCollection) {
         // we need to encode with the collection type
-        SimpleFeatureTypes.getCollectionType(descriptor) match {
+        descriptor.getCollectionType() match {
           case Some(collectionType) if collectionType == actualBinding => Seq(value).asJava
           case Some(collectionType) if collectionType != actualBinding =>
             Seq(AttributeTable.convertType(value, actualBinding, collectionType)).asJava
@@ -542,4 +547,10 @@ object AttributeIndexStrategy {
 
     (newQuery, indexFilter.get)
   }
+
+  def configureAttributeName(cfg: IteratorSetting, attributeName: String) =
+    cfg.addOption(GEOMESA_ITERATORS_ATTRIBUTE_NAME, attributeName)
+
+  def configureIndexCoverage(cfg: IteratorSetting, coverage: IndexCoverage) =
+    cfg.addOption(GEOMESA_ITERATORS_ATTRIBUTE_COVERAGE, coverage.toString)
 }
