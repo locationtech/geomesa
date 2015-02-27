@@ -16,16 +16,18 @@
 
 package org.locationtech.geomesa.core.index
 
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.Key
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.utils.text.WKBUtils
 
 trait Decoder[T] {
   def decode(key: Key): T
 }
 
 abstract class ExtractingDecoder[T] extends Decoder[T] {
-  def seqExtract(seq: Seq[TextExtractor], key: Key): String =
+  def seqExtract[T <: TextExtractor](seq: Seq[T], key: Key): String =
     seq.map { _.extract(key) }.mkString
 }
 
@@ -34,7 +36,7 @@ case class GeohashDecoder(orderedSeq: Seq[TextExtractor]) extends ExtractingDeco
     GeoHash(seqExtract(orderedSeq, key).takeWhile(c => c != '.'))
 }
 
-case class DateDecoder(orderSeq: Seq[TextExtractor], fs: String) extends ExtractingDecoder[DateTime] {
+case class DateDecoder[T <: TextExtractor](orderSeq: Seq[T], fs: String) extends ExtractingDecoder[DateTime] {
   DateTimeZone.setDefault(DateTimeZone.forID("UTC"))
   val parser = org.joda.time.format.DateTimeFormat.forPattern(fs)
   def decode(key: Key): DateTime = parser.parseDateTime(seqExtract(orderSeq, key))
@@ -43,3 +45,9 @@ case class DateDecoder(orderSeq: Seq[TextExtractor], fs: String) extends Extract
 case class IdDecoder(orderedSeq: Seq[TextExtractor]) extends ExtractingDecoder[String] {
   def decode(key: Key): String = seqExtract(orderedSeq, key).replaceAll("_+$", "")
 }
+
+case class GeometryDecoder(orderedSeq: Seq[ColumnQualifierExtractor]) extends ExtractingDecoder[Geometry] {
+  def decode(key: Key): Geometry =
+    WKBUtils.read(seqExtract(orderedSeq, key).takeWhile(c => c != '.'))
+}
+

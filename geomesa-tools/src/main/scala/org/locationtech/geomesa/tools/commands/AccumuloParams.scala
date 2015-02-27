@@ -90,3 +90,28 @@ class PatternParams {
   @Parameter(names = Array("-pt", "--pattern"), description = "Regular expression to select items to delete", required = false)
   var pattern: Pattern = null
 }
+
+class RasterParams extends AccumuloParams {
+  @Parameter(names = Array("-t", "--raster-table"), description = "Accumulo table for storing raster data", required = true)
+  var table: String = null
+}
+
+trait GeoserverParams {
+  @Parameter(names = Array("-g", "--geoserver-config"), description = "Geoserver configuration info")
+  var geoserverConf: String = null
+}
+
+class CreateRasterParams extends RasterParams with GeoserverParams {
+  @Parameter(names = Array("-wm", "--write-memory"), description = "Memory allocation for ingestion operation")
+  var writeMemory: String = null
+
+  @Parameter(names = Array("-wt", "--write-threads"), description = "Threads for writing raster data")
+  var writeThreads: Integer = null
+
+  @Parameter(names = Array("-qt", "--query-threads"), description = "Threads for quering raster data")
+  var queryThreads: Integer = null
+
+  @Parameter(names = Array("-sh", "--shards"), description = "Number of shards to use for the storage tables " +
+    "(defaults to number of tservers)")
+  var numShards: Integer = null
+}

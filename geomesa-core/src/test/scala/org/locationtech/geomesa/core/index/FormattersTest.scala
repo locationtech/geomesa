@@ -43,4 +43,5 @@ class FormattersTest extends Specification {
       shardNumbers.size must be equalTo 1
     }
   }
+
 }

@@ -16,10 +16,9 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import java.util.{HashSet => JHashSet, Date}
+import java.util.{HashSet => JHashSet}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{ArrayByteSequence, ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
@@ -198,6 +197,7 @@ class SpatioTemporalIntersectingIterator
    * data-iterator.  This is *IMPORTANT*, as otherwise we do not emit rows
    * that honor the SortedKeyValueIterator expectation, and Bad Things Happen.
    */
+
   def seekData(indexValue: DecodedIndexValue) {
     val nextId = indexValue.id
     curId = new Text(nextId)

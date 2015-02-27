@@ -37,9 +37,11 @@ object Runner extends Logging {
       new DeleteCatalogCommand(jc),
       new DescribeCommand(jc),
       new IngestCommand(jc),
+      new IngestRasterCommand(jc),
       new CreateCommand(jc),
       new ExplainCommand(jc),
-      new HelpCommand(jc)
+      new HelpCommand(jc),
+      new QueryStatsCommand(jc)
     )
 
     commands.foreach(_.register)
