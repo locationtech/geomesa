@@ -100,16 +100,15 @@ case class IndexEntryEncoder(rowf: TextFormatter,
     // data entries are stored separately (and independently) from the index entries
     // the entries are (key, value) pairs
 
-    val indexEntries = geohashes.map { gh =>
-      formats.map(_.format(gh, dt, featureToEncode, true)) match {
-        case Array(row, cf, cq) => (new Key(row, cf, cq, v), indexValue)
+    def geohashesToKey(index: Boolean, value: Value): List[(Key, Value)] =
+      geohashes.map { gh =>
+        formats.map(_.format(gh, dt, featureToEncode, index)) match {
+          case Array(row, cf, cq) => (new Key(row, cf, cq, v), value)
+        }
       }
-    }
-    val dataEntries = geohashes.map { gh =>
-      formats.map(_.format(gh, dt, featureToEncode, false)) match {
-        case Array(row, cf, cq) => (new Key(row, cf, cq, v), dataValue)
-      }
-    }
+
+    val indexEntries = geohashesToKey(true, indexValue)
+    val dataEntries = geohashesToKey(false, dataValue)
 
     (indexEntries ++ dataEntries).toList
   }

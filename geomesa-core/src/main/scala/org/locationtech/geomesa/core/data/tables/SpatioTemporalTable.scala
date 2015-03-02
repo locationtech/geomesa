@@ -92,18 +92,15 @@ object SpatioTemporalTable extends Logging {
     val keyPlans =
       Seq(true, false).map(indexOnly => planner.getKeyPlan(AcceptEverythingFilter, indexOnly, ExplainNull))
 
-    val ranges = keyPlans.flatMap { kp =>
-      kp match {
-        case KeyRanges(rs) => rs.map(r => new data.Range(r.start + "~" + MIN_START, r.end + "~" + MAX_END))
-        case _ =>
-          logger.error(s"Keyplanner failed to build range properly.")
-          Seq.empty
-      }
+    val ranges = keyPlans.flatMap {
+      case KeyRanges(rs) => rs.map(r => new data.Range(r.start + "~" + MIN_START, r.end + "~" + MAX_END))
+      case _ =>
+        logger.error(s"Keyplanner failed to build range properly.")
+        Seq.empty
     }
 
     bd.setRanges(ranges.asJavaCollection)
     bd.delete()
     bd.close()
-
   }
 }
