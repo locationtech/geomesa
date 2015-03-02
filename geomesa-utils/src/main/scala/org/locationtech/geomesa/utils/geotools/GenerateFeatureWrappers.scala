@@ -23,7 +23,8 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
 
-case class AttributeDetails(name: String, index: Int, clazz: String) {
+case class AttributeDetails(unsafeName: String, index: Int, clazz: String) {
+  val name = unsafeName.replaceAll("\\W", "_")
   def getter: String = s"def $name(): $clazz = sf.getAttribute($index).asInstanceOf[$clazz]"
   def optionGetter: String = s"def ${name}Opt(): Option[$clazz] = Option($name())"
   def setter: String = s"def set${name.capitalize}(x: $clazz): Unit = sf.setAttribute($index, x)"
