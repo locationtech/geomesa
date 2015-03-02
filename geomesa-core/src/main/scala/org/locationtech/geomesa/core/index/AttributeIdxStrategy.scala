@@ -72,7 +72,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     output(s"Other filters: $nonSTFilters")
 
     val stFilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters)
-    val ecqlFilter: Option[Filter] = nonSTFilters.map(_ => recomposeAnd(nonSTFilters)).headOption
+    val ecqlFilter: Option[Filter] = if (nonSTFilters.isEmpty) None else Some(recomposeAnd(nonSTFilters))
 
     val encoding = iqp.featureEncoding
 

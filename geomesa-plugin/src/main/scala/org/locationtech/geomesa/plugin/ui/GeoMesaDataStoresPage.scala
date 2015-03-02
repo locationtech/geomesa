@@ -189,7 +189,7 @@ object GeoMesaDataStoresPage {
     val connector = dataStore.connector
 
     val tables =
-      if (dataStore.geomesaVersion(featureName) < 1) {
+      if (dataStore.getGeomesaVersion(featureName) < 1) {
         List(("Record Table/GeoSpatial Index", table))
       } else {
         List(("Record Table", dataStore.getRecordTableForType(featureName)),

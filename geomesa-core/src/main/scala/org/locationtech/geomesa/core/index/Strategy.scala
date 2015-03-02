@@ -113,10 +113,10 @@ trait Strategy {
     map(i => Random.nextPrintableChar()).mkString
 
   def getDensityIterCfg(query: Query,
-                    geometryToCover: Geometry,
-                    schema: String,
-                    featureEncoding: FeatureEncoding,
-                    featureType: SimpleFeatureType) = {
+                        geometryToCover: Geometry,
+                        schema: String,
+                        featureEncoding: FeatureEncoding,
+                        featureType: SimpleFeatureType) = {
     if (query.getHints.containsKey(DENSITY_KEY)) {
       val clazz = classOf[DensityIterator]
 

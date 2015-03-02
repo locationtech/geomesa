@@ -50,5 +50,5 @@ trait AccumuloConnectorCreator extends Logging {
    * @param sft
    * @return
    */
-  def geomesaVersion(sft: SimpleFeatureType): Int
+  def getGeomesaVersion(sft: SimpleFeatureType): Int
 }

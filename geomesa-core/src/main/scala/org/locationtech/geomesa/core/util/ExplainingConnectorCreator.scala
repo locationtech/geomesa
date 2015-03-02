@@ -45,5 +45,5 @@ class ExplainingConnectorCreator(output: ExplainerOutputType) extends AccumuloCo
    */
   override def createRecordScanner(sft: SimpleFeatureType, numThreads: Int): BatchScanner = new ExplainingBatchScanner(output)
 
-  override def geomesaVersion(sft: SimpleFeatureType): Int = INTERNAL_GEOMESA_VERSION
+  override def getGeomesaVersion(sft: SimpleFeatureType): Int = INTERNAL_GEOMESA_VERSION
 }

@@ -20,7 +20,6 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{BatchDeleter, BatchWriter, Connector}
 import org.apache.accumulo.core.data
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
-import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureWriterFn
 import org.locationtech.geomesa.core.index.{IndexEntryEncoder, IndexSchema, _}
@@ -93,14 +92,14 @@ object SpatioTemporalTable extends Logging {
     val keyPlans =
       Seq(true, false).map(indexOnly => planner.getKeyPlan(AcceptEverythingFilter, indexOnly, ExplainNull))
 
-    val ranges = keyPlans.map { kp =>
+    val ranges = keyPlans.flatMap { kp =>
       kp match {
         case KeyRanges(rs) => rs.map(r => new data.Range(r.start + "~" + MIN_START, r.end + "~" + MAX_END))
         case _ =>
           logger.error(s"Keyplanner failed to build range properly.")
           Seq.empty
       }
-    }.flatten
+    }
 
     bd.setRanges(ranges.asJavaCollection)
     bd.delete()

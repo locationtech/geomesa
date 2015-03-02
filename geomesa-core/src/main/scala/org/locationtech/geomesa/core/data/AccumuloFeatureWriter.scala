@@ -87,7 +87,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
     val stWriter = List(SpatioTemporalTable.spatioTemporalWriter(multiBWWriter.getBatchWriter(stTable), indexEncoder))
 
     val attrWriters =
-      if (ds.geomesaVersion(featureType) < 1) {
+      if (ds.getGeomesaVersion(featureType) < 1) {
         List.empty
       } else {
         val attrWriter = multiBWWriter.getBatchWriter(ds.getAttrIdxTableName(featureType))
@@ -183,7 +183,7 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
     val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
 
     val attrWriters =
-      if (dataStore.geomesaVersion(featureType) < 1) {
+      if (dataStore.getGeomesaVersion(featureType) < 1) {
         List.empty
       } else {
         val attrWriter = multiBWWriter.getBatchWriter(dataStore.getAttrIdxTableName(featureType))

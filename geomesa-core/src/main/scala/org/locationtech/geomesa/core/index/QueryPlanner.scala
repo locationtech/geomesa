@@ -135,7 +135,7 @@ case class QueryPlanner(schema: String,
                        isADensity: Boolean,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     output(s"Transforms: ${derivedQuery.getHints.get(TRANSFORMS)}")
-    val strategy = QueryStrategyDecider.chooseStrategy(sft, derivedQuery, hints, acc.geomesaVersion(sft))
+    val strategy = QueryStrategyDecider.chooseStrategy(sft, derivedQuery, hints, acc.getGeomesaVersion(sft))
 
     output(s"Strategy: ${strategy.getClass.getCanonicalName}")
     strategy.execute(acc, this, sft, derivedQuery, output)

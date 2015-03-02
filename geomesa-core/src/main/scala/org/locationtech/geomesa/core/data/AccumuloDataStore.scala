@@ -234,7 +234,7 @@ class AccumuloDataStore(val connector: Connector,
    * Read SpatioTemporal Index table name from store metadata
    */
   def getSpatioTemporalIdxTableName(featureName: String): String =
-    if (geomesaVersion(featureName) > 0) {
+    if (getGeomesaVersion(featureName) > 0) {
       metadata.readRequired(featureName, ST_IDX_TABLE_KEY)
     } else {
       catalogTable
@@ -653,7 +653,7 @@ class AccumuloDataStore(val connector: Connector,
    * @param sft
    * @return
    */
-  def geomesaVersion(sft: SimpleFeatureType): Int = geomesaVersion(sft.getTypeName)
+  def getGeomesaVersion(sft: SimpleFeatureType): Int = getGeomesaVersion(sft.getTypeName)
 
   /**
    * Gets the internal geomesa version number for a given feature type
@@ -661,7 +661,7 @@ class AccumuloDataStore(val connector: Connector,
    * @param sft
    * @return
    */
-  def geomesaVersion(sft: String): Int =
+  def getGeomesaVersion(sft: String): Int =
     metadata.read(sft, VERSION_KEY).map(_.toInt).getOrElse {
       // back compatible checks for before we wrote the explicit version
       if (metadata.read(sft, ST_IDX_TABLE_KEY).isEmpty) {
@@ -857,7 +857,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   def createSpatioTemporalIdxScanner(sft: SimpleFeatureType, numThreads: Int): BatchScanner = {
     logger.trace(s"Creating ST batch scanner with $numThreads threads")
-    if (geomesaVersion(sft) > 0) {
+    if (getGeomesaVersion(sft) > 0) {
       connector.createBatchScanner(getSpatioTemporalIdxTableName(sft),
                                    authorizationsProvider.getAuthorizations,
                                    numThreads)
@@ -880,7 +880,7 @@ class AccumuloDataStore(val connector: Connector,
    * Create a Scanner for the Attribute Table (Inverted Index Table)
    */
   def createAttrIdxScanner(sft: SimpleFeatureType) =
-    if (geomesaVersion(sft) > 0) {
+    if (getGeomesaVersion(sft) > 0) {
       connector.createScanner(getAttrIdxTableName(sft), authorizationsProvider.getAuthorizations)
     } else {
       throw new RuntimeException("Cannot create Attribute Index Scanner - " +
@@ -892,7 +892,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   def createRecordScanner(sft: SimpleFeatureType, numThreads: Int = recordScanThreads) = {
     logger.trace(s"Creating record scanne with $numThreads threads")
-    if (geomesaVersion(sft) > 0) {
+    if (getGeomesaVersion(sft) > 0) {
       connector.createBatchScanner(getRecordTableForType(sft), authorizationsProvider.getAuthorizations, numThreads)
     } else {
       throw new RuntimeException("Cannot create Record Scanner - record table does not exist for this version" +
