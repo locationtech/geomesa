@@ -14,7 +14,7 @@ angular.module('geomesa.map', [])
             link: function (scope, element, attrs) {
                 scope.cards = [
                     {
-                        Start: 'Click a data point to view it\'s attributes.'
+                        Start: ' Click a data point to view it\'s attributes.'
                     }
                 ];
 
