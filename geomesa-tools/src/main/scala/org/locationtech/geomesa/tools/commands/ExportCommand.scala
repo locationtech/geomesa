@@ -57,7 +57,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
       exporter.close()
     }
 
-    //necessary to avoid StatsWriter exception when exporting
+    // allow StatsWriter to write stats - otherwise we get a zookeeper exception we can't catch
     Thread.sleep(1000)
   }
 

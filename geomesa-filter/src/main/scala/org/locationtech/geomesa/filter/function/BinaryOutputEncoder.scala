@@ -22,18 +22,17 @@ import java.util.Date
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, LineString}
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.ListAttributeSpec
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
-import scala.collection.immutable.TreeSet
 
 
 object BinaryOutputEncoder extends Logging {
 
   import org.locationtech.geomesa.filter.function.AxisOrder._
+  import org.locationtech.geomesa.utils.geotools.Conversions._
 
   case class ValuesToEncode(lat: Float, lon: Float, dtg: Long, track: Option[String], label: Option[String])
 
@@ -42,7 +41,7 @@ object BinaryOutputEncoder extends Logging {
   }
 
   /**
-   * Encodes a feature collection to bin format
+   * Encodes a feature collection to bin format. Features are written to the output stream.
    *
    * @param fc
    * @param output
@@ -61,7 +60,7 @@ object BinaryOutputEncoder extends Logging {
       labelField: Option[String] = None,
       latLon: Option[(String, String)] = None,
       axisOrder: AxisOrder = LatLon,
-      sort: Boolean = false) = {
+      sort: Boolean = false): Unit = {
 
     val sft = fc.getSchema
     val isLineString = sft.getGeometryDescriptor.getType.getBinding == classOf[LineString]
@@ -165,7 +164,7 @@ object BinaryOutputEncoder extends Logging {
 
     val iter = if (isLineString) {
       // expand the line string into individual points to encode
-      new RichSimpleFeatureIterator(fc.features()).flatMap { sf =>
+      fc.features().flatMap { sf =>
         val points = getLineLatLon(sf)
         val dates = getLineDtg(sf)
         if (points.size != dates.size) {
@@ -181,7 +180,7 @@ object BinaryOutputEncoder extends Logging {
         }
       }
     } else {
-      new RichSimpleFeatureIterator(fc.features()).map { sf =>
+      fc.features().map { sf =>
         val (lat, lon) = getLatLon(sf)
         val dtg = getDtg(sf)
         val trackId = getTrackId(sf)
@@ -190,9 +189,7 @@ object BinaryOutputEncoder extends Logging {
       }
     }
     if (sort) {
-      val set = new scala.collection.mutable.TreeSet[ValuesToEncode]()
-      iter.foreach(set.add)
-      set.foreach(encode)
+      iter.toList.sorted.foreach(encode)
     } else {
       iter.foreach(encode)
     }
