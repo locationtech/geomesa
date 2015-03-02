@@ -28,6 +28,7 @@ import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess.Definition
+import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.utils.geotools.MinMaxTimeVisitor
 import org.opengis.feature.GeometryAttribute
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
@@ -41,34 +42,50 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
     val fids = Lists.newArrayList[FeatureId]()
     if (collection.size > 0) {
       writeBounds(collection.getBounds)
-      writeTimeBounds(collection)
 
+      val minMaxVisitorO = index.getDtgFieldName(collection.getSchema).map { new MinMaxTimeVisitor(_) }
       val fw = dataStore.getFeatureWriterAppend(featureName.getLocalPart, Transaction.AUTO_COMMIT)
 
+      val updateTimeBounds: SimpleFeature => Unit = { feature => minMaxVisitorO.foreach { _.visit(feature) } }
+
+      val write: SimpleFeature => FeatureId =
+        if (minMaxVisitorO.isDefined) { feature =>
+          updateTimeBounds(feature)
+          writeFeature(fw, feature)
+        }
+        else { feature =>
+          writeFeature(fw, feature)
+        }
+
       val iter = collection.features()
-      while(iter.hasNext) {
-        val feature = iter.next()
-        val newFeature = fw.next()
-
-        try {
-          newFeature.setAttributes(feature.getAttributes)
-          newFeature.getUserData.putAll(feature.getUserData)
-        } catch {
-          case ex: Exception =>
-            throw new DataSourceException(s"Could not create ${featureName.getLocalPart} out of provided feature: ${feature.getID}", ex)
-        }
-
-        val useExisting = java.lang.Boolean.TRUE.equals(feature.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[java.lang.Boolean])
-        if (getQueryCapabilities().isUseProvidedFIDSupported && useExisting) {
-          newFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
-        }
-
-        fw.write()
-        fids.add(newFeature.getIdentifier)
-      }
+      while (iter.hasNext) fids.add(write(iter.next))
       fw.close()
+
+      minMaxVisitorO.foreach { minMaxVisitor =>
+        Option(minMaxVisitor.getBounds).foreach { dataStore.writeTemporalBounds(featureName.getLocalPart, _) }
+      }
     }
     fids
+  }
+
+  def writeFeature(fw: SFFeatureWriter, feature: SimpleFeature): FeatureId = {
+    val newFeature = fw.next()
+
+    try {
+      newFeature.setAttributes(feature.getAttributes)
+      newFeature.getUserData.putAll(feature.getUserData)
+    } catch {
+      case ex: Exception =>
+        throw new DataSourceException(s"Could not create ${featureName.getLocalPart} out of provided feature: ${feature.getID}", ex)
+    }
+
+    val useExisting = java.lang.Boolean.TRUE.equals(feature.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[java.lang.Boolean])
+    if (getQueryCapabilities().isUseProvidedFIDSupported && useExisting) {
+      newFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
+    }
+
+    fw.write()
+    newFeature.getIdentifier
   }
 
   def updateTimeBounds(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]) = {
