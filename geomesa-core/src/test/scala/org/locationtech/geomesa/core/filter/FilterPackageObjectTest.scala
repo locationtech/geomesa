@@ -21,6 +21,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.filter.TestFilters._
 import org.locationtech.geomesa.core.iterators.TestData._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -30,6 +31,39 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class FilterPackageObjectTest extends Specification with Logging {
+
+  "The partitionGeom function" should {
+    val sft = SimpleFeatureTypes.createType("filterPackageTest", "g:Geometry,*geom:Geometry")
+
+    "filter bbox based on default geom" in {
+      val filter = ECQL.toFilter("BBOX(geom, -45.0,-45.0,45.0,45.0) AND BBOX(g, -30.0,-30.0,30.0,30.0)")
+      val (geoms, nongeoms) = partitionGeom(filter, sft)
+      geoms must haveLength(1)
+      nongeoms must haveLength(1)
+      ECQL.toCQL(geoms(0)) mustEqual("BBOX(geom, -45.0,-45.0,45.0,45.0)")
+      ECQL.toCQL(nongeoms(0)) mustEqual("BBOX(g, -30.0,-30.0,30.0,30.0)")
+    }
+    "filter intersect based on default geom" in {
+      val filter =
+        ECQL.toFilter("INTERSECTS(geom, POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45))) " +
+          "AND INTERSECTS(g, POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)))")
+      val (geoms, nongeoms) = partitionGeom(filter, sft)
+      geoms must haveLength(1)
+      nongeoms must haveLength(1)
+      ECQL.toCQL(geoms(0)) mustEqual("INTERSECTS(geom, POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)))")
+      ECQL.toCQL(nongeoms(0)) mustEqual("INTERSECTS(g, POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)))")
+    }
+    "filter intersect based on default geom regardless of order" in {
+      val filter =
+        ECQL.toFilter("INTERSECTS(POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)), g) " +
+            "AND INTERSECTS(POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)), geom)")
+      val (geoms, nongeoms) = partitionGeom(filter, sft)
+      geoms must haveLength(1)
+      nongeoms must haveLength(1)
+      ECQL.toCQL(geoms(0)) mustEqual("INTERSECTS(POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)), geom)")
+      ECQL.toCQL(nongeoms(0)) mustEqual("INTERSECTS(POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)), g)")
+    }
+  }
 
   "The deMorgan function" should {
 

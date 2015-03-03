@@ -26,36 +26,31 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 class RecordTableIterator
     extends GeomesaFilteringIterator
     with HasFeatureType
-    with HasFeatureDecoder
-    with HasEcqlFilter
-    with HasTransforms
-    with Logging {
+    with SetTopInclude
+    with SetTopFilter
+    with SetTopTransform
+    with SetTopFilterTransform {
+
+  var setTopOptimized: (Key) => Unit = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
-                    env: IteratorEnvironment) {
+                    env: IteratorEnvironment) = {
     super.init(source, options, env)
     initFeatureType(options)
     init(featureType, options)
-  }
 
-  override def setTopConditionally() {
-
-    val sourceValue = source.getTopValue
-    // the value contains the full-resolution geometry and time
-    lazy val feature = featureDecoder.decode(sourceValue.get())
-    // TODO we could decode it already transformed if we check that the filters are covered
-    // evaluate the filter check
-    val meetsFilters = ecqlFilter.forall(fn => fn(feature))
-
-    if (meetsFilters) {
-      // current entry matches our filter - update the key and value
-      topKey = Some(source.getTopKey)
-      // return the value or transform it as required
-      topValue = transform.map(fn => new Value(fn(feature)))
-          .orElse(Some(sourceValue))
+    // pick the execution path once based on the filters and transforms we need to apply
+    // see org.locationtech.geomesa.core.iterators.IteratorFunctions
+    setTopOptimized = (filter, transform) match {
+      case (null, null) => setTopInclude
+      case (_, null)    => setTopFilter
+      case (null, _)    => setTopTransform
+      case (_, _)       => setTopFilterTransform
     }
   }
+
+  override def setTopConditionally(): Unit = setTopOptimized(source.getTopKey)
 }
 
 

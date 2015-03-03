@@ -16,20 +16,13 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import java.util.Date
-
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Geometry
-import org.apache.accumulo.core.data.{ByteSequence, Range, Value, Key}
+import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
-import org.locationtech.geomesa.core.index
 
 abstract class GeomesaFilteringIterator
-    extends HasIteratorExtensions with SortedKeyValueIterator[Key, Value] with Logging {
+    extends HasIteratorExtensions with SortedKeyValueIterator[Key, Value] with HasSourceIterator with Logging {
 
-  var topKey: Option[Key] = None
-  var topValue: Option[Value] = None
   var source: SortedKeyValueIterator[Key, Value] = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
@@ -39,11 +32,11 @@ abstract class GeomesaFilteringIterator
     this.source = source.deepCopy(env)
   }
 
-  override def hasTop = topKey.isDefined
+  override def hasTop = topKey != null
 
-  override def getTopKey = topKey.orNull
+  override def getTopKey = topKey
 
-  override def getTopValue = topValue.orNull
+  override def getTopValue = topValue
 
   override def seek(range: Range, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean) {
     // move the source iterator to the right starting spot
@@ -61,8 +54,8 @@ abstract class GeomesaFilteringIterator
    */
   def findTop() = {
     // clear out the reference to the last entry
-    topKey = None
-    topValue = None
+    topKey = null
+    topValue = null
 
     // loop while there is more data and we haven't matched our filter
     while (source.hasTop && !checkTop()) {
@@ -74,7 +67,7 @@ abstract class GeomesaFilteringIterator
 
   def checkTop(): Boolean = {
     setTopConditionally()
-    topValue.isDefined
+    topValue != null
   }
 
   /**
@@ -82,6 +75,12 @@ abstract class GeomesaFilteringIterator
    */
   def setTopConditionally(): Unit
 
-  override def deepCopy(env: IteratorEnvironment) =
+  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
     throw new UnsupportedOperationException("GeoMesa iterators do not support deepCopy")
+}
+
+trait HasSourceIterator {
+  def source: SortedKeyValueIterator[Key, Value]
+  var topKey: Key = null
+  var topValue: Value = null
 }

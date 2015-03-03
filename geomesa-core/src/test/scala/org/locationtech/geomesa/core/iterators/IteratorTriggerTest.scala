@@ -64,7 +64,7 @@ class IteratorTriggerTest extends Specification {
      */
 
     def extractReWrittenCQL(query: Query, featureType: SimpleFeatureType): Option[Filter] = {
-      val (_, otherFilters) = partitionGeom(query.getFilter)
+      val (_, otherFilters) = partitionGeom(query.getFilter, featureType)
       val (_, ecqlFilters: Seq[Filter]) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
 
       filterListAsAnd(ecqlFilters)
@@ -137,7 +137,7 @@ class IteratorTriggerTest extends Specification {
      */
     def chooseIteratorTest(ecqlPred: String, transformText: Array[String]): IteratorConfig = {
       val aQuery = TestTable.sampleQuery(ECQL.toFilter(ecqlPred), transformText)
-      val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType).map(CQL.toCQL)
+      val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType)
       IteratorTrigger.chooseIterator(modECQLPred, aQuery, TestTable.testFeatureType)
     }
   }

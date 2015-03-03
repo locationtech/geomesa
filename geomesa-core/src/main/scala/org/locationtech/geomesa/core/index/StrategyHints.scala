@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.core.index
 
+import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
@@ -56,4 +57,12 @@ class UserDataStrategyHints extends StrategyHints {
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   override def cardinality(ad: AttributeDescriptor) = ad.getCardinality()
+}
+
+/**
+ * No-op implementation of hints, for when you don't care about costs.
+ */
+object NoOpHints extends StrategyHints {
+
+  override def cardinality(ad: AttributeDescriptor) = Cardinality.UNKNOWN
 }

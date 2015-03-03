@@ -39,8 +39,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
       query.setFilter(f)
 
       val out = new ExplainString()
-      val reader = ds.getFeatureReader(sftName, query)
-      reader.explainQuery(out)
+      ds.explainQuery(sftName, query, out)
 
       val explanation = out.toString()
       explanation must not be null

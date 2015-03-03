@@ -59,6 +59,9 @@ trait Strategy {
     filter.foreach { f => cfg.addOption(ST_FILTER_PROPERTY_NAME, ECQL.toCQL(f)) }
   }
 
+  def configureVersion(cfg: IteratorSetting, version: Int) =
+    cfg.addOption(GEOMESA_ITERATORS_VERSION, version.toString)
+
   def configureFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) = {
     val encodedSimpleFeatureType = SimpleFeatureTypes.encodeType(featureType)
     cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, encodedSimpleFeatureType)
@@ -170,3 +173,17 @@ trait Strategy {
     case _ => None
   }
 }
+
+trait StrategyProvider {
+
+  /**
+   * Returns details on a potential strategy if the filter is valid for this strategy.
+   *
+   * @param filter
+   * @param sft
+   * @return
+   */
+  def getStrategy(filter: Filter, sft: SimpleFeatureType, hints: StrategyHints): Option[StrategyDecision]
+}
+
+case class StrategyDecision(strategy: Strategy, cost: Long)

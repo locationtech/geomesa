@@ -19,9 +19,9 @@ package org.locationtech.geomesa.core.index
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.DEFAULT_ENCODING
+import org.locationtech.geomesa.core.data.{DEFAULT_ENCODING, INTERNAL_GEOMESA_VERSION}
 import org.locationtech.geomesa.core.data.tables.{AttributeIndexRow, AttributeTable}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -51,7 +51,10 @@ class AttributeTableTest extends Specification {
         feature.setAttribute("age",50.asInstanceOf[Any])
         feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
-        val mutations = AttributeTable.getAttributeIndexMutations(feature, DEFAULT_ENCODING, descriptors, new ColumnVisibility(), "")
+        val indexValueEncoder = IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION)
+        val featureEncoder = SimpleFeatureEncoder(sft, DEFAULT_ENCODING)
+
+        val mutations = AttributeTable.getAttributeIndexMutations(feature, indexValueEncoder, featureEncoder, descriptors, new ColumnVisibility(), "")
         mutations.size mustEqual descriptors.length
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(false)).foreach
@@ -67,7 +70,7 @@ class AttributeTableTest extends Specification {
         feature.setAttribute("age",50.asInstanceOf[Any])
         feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
-        val mutations = AttributeTable.getAttributeIndexMutations(feature, DEFAULT_ENCODING, descriptors, new ColumnVisibility(), "", delete = true)
+        val mutations = AttributeTable.getAttributeIndexMutations(feature, null, null, descriptors, new ColumnVisibility(), "", delete = true)
         mutations.size mustEqual descriptors.length
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(true)).foreach

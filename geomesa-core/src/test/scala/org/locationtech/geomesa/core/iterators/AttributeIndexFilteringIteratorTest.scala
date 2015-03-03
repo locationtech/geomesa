@@ -158,7 +158,7 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       val filter = ff.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
       val query = new Query(sftName, filter, Array("geom"))
       QueryStrategyDecider.chooseStrategy(sft, query, hints, INTERNAL_GEOMESA_VERSION) must
-          beAnInstanceOf[AttributeIdxEqualsStrategy]
+          beAnInstanceOf[STIdxStrategy]
 
       val features = fs.getFeatures(query)
 

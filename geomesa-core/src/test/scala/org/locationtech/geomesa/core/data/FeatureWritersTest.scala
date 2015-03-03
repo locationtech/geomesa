@@ -103,7 +103,6 @@ class FeatureWritersTest extends Specification {
 
         /* write the feature to the store */
         fs.addFeatures(featureCollection)
-        fs.flush()
 
         val store = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 

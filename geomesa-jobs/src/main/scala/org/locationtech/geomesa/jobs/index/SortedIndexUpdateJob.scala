@@ -41,9 +41,11 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
     val indexSchemaFmt = ds.getIndexSchemaFmt(sft.getTypeName)
     val encoding = ds.getFeatureEncoding(sft)
     val fe = SimpleFeatureEncoder(sft, encoding)
-    val indexSchema = IndexSchema(indexSchemaFmt, sft, fe)
-    val prefixes = (0 to indexSchema.maxShard).map {i =>
-      indexSchema.encoder.rowf match { case CompositeTextFormatter(formatters, sep) =>
+    val ive = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
+    val maxShard = IndexSchema.maxShard(indexSchemaFmt)
+    val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe, ive)
+    val prefixes = (0 to maxShard).map { i =>
+      encoder.rowf match { case CompositeTextFormatter(formatters, sep) =>
         formatters.take(2).map {
           case f: PartitionTextFormatter => f.fmt(i)
           case f: ConstantTextFormatter => f.constStr
@@ -106,7 +108,8 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
     val indexSchemaFmt = ds.buildDefaultSpatioTemporalSchema(sft.getTypeName)
     val encoding = ds.getFeatureEncoding(sft)
     val fe = SimpleFeatureEncoder(sft, encoding)
-    val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe)
+    val ive = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
+    val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe, ive)
     val decoder = SimpleFeatureDecoder(sft, encoding)
   }
 }

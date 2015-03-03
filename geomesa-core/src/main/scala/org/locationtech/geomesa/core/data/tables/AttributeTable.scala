@@ -44,10 +44,12 @@ import scala.util.{Failure, Success, Try}
  * Contains logic for converting between accumulo and geotools for the attribute index
  */
 object AttributeTable extends GeoMesaTable with Logging {
+
   /** Creates a function to write a feature to the attribute index **/
   def attrWriter(bw: BatchWriter,
                  sft: SimpleFeatureType,
-                 featureEncoding: FeatureEncoding,
+                 indexValueEncoder: IndexValueEncoder,
+                 featureEncoder: SimpleFeatureEncoder,
                  indexedAttributes: Seq[AttributeDescriptor],
                  rowIdPrefix: String): FeatureWriterFn = {
 
@@ -57,7 +59,8 @@ object AttributeTable extends GeoMesaTable with Logging {
     (feature: SimpleFeature, visibility: String) => {
       val mutations = getAttributeIndexMutations(
         feature,
-        featureEncoding,
+        indexValueEncoder,
+        featureEncoder,
         attributesToIdx,
         new ColumnVisibility(visibility),
         rowIdPrefix)
@@ -78,6 +81,7 @@ object AttributeTable extends GeoMesaTable with Logging {
     (feature: SimpleFeature, visibility: String) => {
       val mutations = getAttributeIndexMutations(
         feature,
+        null,
         null,
         attributesToIdx,
         new ColumnVisibility(visibility),
@@ -101,15 +105,16 @@ object AttributeTable extends GeoMesaTable with Logging {
    * @return
    */
   def getAttributeIndexMutations(feature: SimpleFeature,
-                                 featureEncoding: FeatureEncoding,
+                                 indexValueEncoder: IndexValueEncoder,
+                                 featureEncoder: SimpleFeatureEncoder,
                                  indexedAttributes: Seq[(Int, AttributeDescriptor)],
                                  visibility: ColumnVisibility,
                                  rowIdPrefix: String,
                                  delete: Boolean = false): Seq[Mutation] = {
     val cq = new Text(feature.getID)
     val sft = feature.getFeatureType
-    lazy val joinValue = new Value(IndexValueEncoder(sft).encode(feature))
-    lazy val coveringValue = new Value(SimpleFeatureEncoder(sft, featureEncoding).encode(feature))
+    lazy val joinValue = new Value(indexValueEncoder.encode(feature))
+    lazy val coveringValue = new Value(featureEncoder.encode(feature))
     indexedAttributes.flatMap { case (idx, descriptor) =>
       val attribute = Option(feature.getAttribute(idx))
       val mutations = getAttributeIndexRows(rowIdPrefix, descriptor, attribute).map(new Mutation(_))

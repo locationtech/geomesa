@@ -122,14 +122,14 @@ object SimpleFeatureTypes {
           ad.getLocalName,
           ad.getType.getBinding,
           ad.getIndexCoverage(),
-          ad.getIndexValue(),
+          ad.isIndexValue(),
           ad.getCardinality()
         )
 
       case t if geometryTypeMap.contains(t.getBinding.getSimpleName) =>
-        val crs = Option(ad.asInstanceOf[GeometryDescriptor].getCoordinateReferenceSystem)
-            .filter(crs => crs == CRS_EPSG_4326 || crs == DefaultGeographicCRS.WGS84)
-        val srid = if (crs.isDefined) 4326 else -1
+        val srid = Option(ad.asInstanceOf[GeometryDescriptor].getCoordinateReferenceSystem)
+            .flatMap(crs => Try(crs.getName.getCode.toInt).toOption)
+            .getOrElse(4326)
         GeomAttributeSpec(
           ad.getLocalName,
           ad.getType.getBinding,

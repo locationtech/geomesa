@@ -32,46 +32,34 @@ import org.locationtech.geomesa.utils.stats.MethodProfiling
  */
 class IndexIterator
     extends GeomesaFilteringIterator
-    with HasFeatureBuilder
-    with HasIndexValueDecoder
-    with HasSpatioTemporalFilter
-    with HasFeatureDecoder
-    with HasTransforms
-    with HasInMemoryDeduplication
-    with MethodProfiling
-    with Logging {
+    with HasFeatureType
+    with SetTopIndexUnique
+    with SetTopIndexFilterUnique
+    with SetTopIndexTransformUnique
+    with SetTopIndexFilterTransformUnique {
+
+  var setTopOptimized: (Key) => Unit = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
-                    env: IteratorEnvironment) {
+                    env: IteratorEnvironment) = {
     super.init(source, options, env)
     initFeatureType(options)
     init(featureType, options)
-  }
 
-  override def setTopConditionally() = {
-
-    val indexKey = source.getTopKey
-
-    if (!SpatioTemporalTable.isIndexEntry(indexKey)) {
-      // if this is a data entry, skip it
-      logger.warn("Found unexpected data entry: " + indexKey)
-    } else {
-      // the value contains the full-resolution geometry and time plus feature ID
-      val decodedValue = indexEncoder.decode(source.getTopValue.get)
-
-      // evaluate the filter checks, in least to most expensive order
-      val meetsIndexFilters = checkUniqueId.forall(fn => fn(decodedValue.id)) &&
-          stFilter.forall(fn => fn(decodedValue.geom, decodedValue.date.map(_.getTime)))
-
-      if (meetsIndexFilters) { // we hit a valid geometry, date and id
-        val transformedFeature = encodeIndexValueToSF(decodedValue)
-        // update the key and value
-        // copy the key because reusing it is UNSAFE
-        topKey = Some(indexKey)
-        topValue = transform.map(fn => new Value(fn(transformedFeature)))
-            .orElse(Some(new Value(featureEncoder.encode(transformedFeature))))
-      }
+    // pick the execution path once based on the filters and transforms we need to apply
+    // see org.locationtech.geomesa.core.iterators.IteratorFunctions
+    setTopOptimized = (stFilter, transform, checkUniqueId) match {
+      case (null, null, null) => setTopIndexInclude
+      case (null, null, _)    => setTopIndexUnique
+      case (_, null, null)    => setTopIndexFilter
+      case (_, null, _)       => setTopIndexFilterUnique
+      case (null, _, null)    => setTopIndexTransform
+      case (null, _, _)       => setTopIndexTransformUnique
+      case (_, _, null)       => setTopIndexFilterTransform
+      case (_, _, _)          => setTopIndexFilterTransformUnique
     }
   }
+
+  override def setTopConditionally(): Unit = setTopOptimized(source.getTopKey)
 }

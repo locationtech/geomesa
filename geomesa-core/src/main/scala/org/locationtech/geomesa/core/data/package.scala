@@ -76,7 +76,9 @@ import scala.collection.JavaConversions._
   // 0 == old single table style
   // 1 == multi-table style
   // 2 == sorted keys in the STIDX table
-  val INTERNAL_GEOMESA_VERSION = 2
+  // skipping 3 for integration...
+  // 4 is kryo encoded index values
+  val INTERNAL_GEOMESA_VERSION = 4
 
   // SimpleFeature Hints
   val TRANSFORMS           = new ClassKey(classOf[String])

@@ -18,22 +18,8 @@ package org.locationtech.geomesa.core.iterators
 
 import java.util.Map.Entry
 
-import com.google.common.cache.{Cache, CacheBuilder}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.locationtech.geomesa.core.util.CloseableIterator
-
-class KVEntry(akey: Key, avalue: Value) extends Entry[Key, Value] {
-  def this(entry: Entry[Key, Value]) = this(entry.getKey, entry.getValue)
-
-  var key   = if (akey == null) null else new Key(akey)
-  var value = if (avalue == null) null else new Value(avalue)
-
-  def getValue = value
-  def getKey   = key
-
-  def setValue(value: Value) = ???
-  def setKey(key: Key)       = ???
-}
 
 /**
  * Simple utility that removes duplicates from the list of IDs passed through.
@@ -41,53 +27,52 @@ class KVEntry(akey: Key, avalue: Value) extends Entry[Key, Value] {
  * @param source the original iterator that may contain duplicate ID-rows
  * @param idFetcher the way to extract an ID from any one of the keys
  */
-class DeDuplicatingIterator(source: CloseableIterator[Entry[Key, Value]],
-                            idFetcher:(Key, Value) => String)
+class DeDuplicatingIterator(source: CloseableIterator[Entry[Key, Value]], idFetcher:(Key, Value) => String)
   extends CloseableIterator[Entry[Key, Value]] {
 
   val deduper = new DeDuplicator(idFetcher)
+
+  var nextEntry = findTop
+
   private[this] def findTop = {
     var top: Entry[Key,Value] = null
     while (top == null && source.hasNext) {
       top = source.next
-      if (deduper.isDuplicate(top)) top = null
+      if (deduper.isDuplicate(top)) {
+        top = null
+      }
     }
-    if (top == null) deduper.close
     top
   }
-  var nextEntry = findTop
+
   override def next : Entry[Key, Value] = {
     val result = nextEntry
-    nextEntry = findTop; result
+    nextEntry = findTop
+    result
   }
 
   override def hasNext = nextEntry != null
 
-  override def close(): Unit = source.close()
+  override def close(): Unit = {
+    deduper.close
+    source.close()
+  }
 }
 
 class DeDuplicator(idFetcher: (Key, Value) => String) {
-  val cache: Cache[String, Integer] = CacheBuilder.newBuilder().build()
 
-  val dummyConstant = 0
+  val cache = scala.collection.mutable.HashSet.empty[String]
 
-  def isUnique(key:Key, value:Value): Boolean = {
-    val id = idFetcher(key, value)
-    val entry = cache.getIfPresent(id)
-    if (entry == null) {
-      cache.put(id, dummyConstant)
-      true
-    }
-    else false
-  }
+  def isUnique(key: Key, value: Value): Boolean = cache.add(idFetcher(key, value))
 
   def isDuplicate(key: Key, value: Value): Boolean = !isUnique(key, value)
 
   def isDuplicate(entry: Entry[Key, Value]): Boolean =
-    if (entry == null || entry.getKey == null) true
-    else !isUnique(entry.getKey, entry.getValue)
+    if (entry == null || entry.getKey == null) {
+      true
+    } else {
+      !isUnique(entry.getKey, entry.getValue)
+    }
 
-  def close() {
-    cache.invalidateAll()
-  }
+  def close() = cache.clear()
 }

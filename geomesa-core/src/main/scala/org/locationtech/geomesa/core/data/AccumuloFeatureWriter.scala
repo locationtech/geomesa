@@ -64,7 +64,7 @@ object AccumuloFeatureWriter {
   }
 }
 
-abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
+abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
                                      indexEncoder: IndexEntryEncoder,
                                      encoder: SimpleFeatureEncoder,
                                      ds: AccumuloDataStore,
@@ -72,7 +72,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   extends SimpleFeatureWriter
           with Logging {
 
-  val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(featureType)
+  val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
 
   val connector = ds.connector
 
@@ -83,30 +83,32 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   // version of the datastore (i.e. single table vs catalog
   // table + index tables)
   protected val writers: List[FeatureWriterFn] = {
-    val stTable = ds.getSpatioTemporalIdxTableName(featureType)
-    val stWriter = List(SpatioTemporalTable.spatioTemporalWriter(multiBWWriter.getBatchWriter(stTable), indexEncoder))
+    val stBw = multiBWWriter.getBatchWriter(ds.getSpatioTemporalIdxTableName(sft))
+    val stWriter = List(SpatioTemporalTable.spatioTemporalWriter(stBw, indexEncoder))
 
+    val version = ds.getGeomesaVersion(sft)
     val attrWriters =
-      if (ds.getGeomesaVersion(featureType) < 1) {
+      if (version < 1) {
         List.empty
       } else {
-        val attrWriter = multiBWWriter.getBatchWriter(ds.getAttrIdxTableName(featureType))
-        val recWriter = multiBWWriter.getBatchWriter(ds.getRecordTableForType(featureType))
-        val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
-        val encoding = encoder.encoding
-        List(AttributeTable.attrWriter(attrWriter, featureType, encoding, indexedAttributes, rowIdPrefix),
-             RecordTable.recordWriter(recWriter, encoder, rowIdPrefix))
+        val ive = IndexValueEncoder(sft, version)
+        val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+        val attrBw = multiBWWriter.getBatchWriter(ds.getAttrIdxTableName(sft))
+        val recBw = multiBWWriter.getBatchWriter(ds.getRecordTableForType(sft))
+        val attrWriter = AttributeTable.attrWriter(attrBw, sft, ive, encoder, indexedAttributes, rowIdPrefix)
+        val recWriter = RecordTable.recordWriter(recBw, encoder, rowIdPrefix)
+        List(recWriter, attrWriter)
       }
 
     stWriter ::: attrWriters
   }
 
-  def getFeatureType: SimpleFeatureType = featureType
+  def getFeatureType: SimpleFeatureType = sft
 
   /* Return a String representing nextId - use UUID.random for universal uniqueness across multiple ingest nodes */
   protected def nextFeatureId = UUID.randomUUID().toString
 
-  protected val builder = ScalaSimpleFeatureFactory.featureBuilder(featureType)
+  protected val builder = ScalaSimpleFeatureFactory.featureBuilder(sft)
 
   protected def writeToAccumulo(feature: SimpleFeature): Unit = {
     import scala.collection.JavaConversions._

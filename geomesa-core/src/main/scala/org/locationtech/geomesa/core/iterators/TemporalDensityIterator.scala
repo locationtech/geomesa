@@ -27,7 +27,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.apache.commons.codec.binary.Base64
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.joda.time.{DateTime, Interval}
+import org.joda.time.{DateTimeZone, DateTime, Interval}
 import org.locationtech.geomesa.core.index.getDtgFieldName
 import org.locationtech.geomesa.core.iterators.FeatureAggregatingIterator.Result
 import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.TimeSeries
@@ -83,8 +83,6 @@ object TemporalDensityIterator extends Logging {
   val ENCODED_TIME_SERIES: String = "timeseries"
   val TEMPORAL_DENSITY_FEATURE_SFT_STRING = s"$ENCODED_TIME_SERIES:String,geom:Geometry"
 
-  val zeroPoint = new GeometryFactory().createPoint(new Coordinate(0,0))
-
   type TimeSeries = collection.mutable.HashMap[DateTime, Long]
 
   val geomFactory = JTSFactoryFinder.getGeometryFactory
@@ -135,7 +133,7 @@ object TemporalDensityIterator extends Logging {
     val is = new DataInputStream(new ByteArrayInputStream(bytes))
     val table = new collection.mutable.HashMap[DateTime, Long]()
     while(is.available() > 0) {
-      val dateIdx = new DateTime(is.readLong())
+      val dateIdx = new DateTime(is.readLong(), DateTimeZone.UTC)
       val weight = is.readLong()
       table.put(dateIdx, weight)
     }

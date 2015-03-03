@@ -23,8 +23,10 @@ import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, DEFAULT_ENCODING}
 import org.locationtech.geomesa.core.data.tables.AttributeTable
+import org.locationtech.geomesa.core.index.IndexValueEncoder
 import org.locationtech.geomesa.core.iterators.TestData
 import org.locationtech.geomesa.core.iterators.TestData._
+import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -73,8 +75,10 @@ class AttributeIndexJobTest extends Specification {
     val descriptor = sft.getDescriptor("attr2")
     val attrList = Seq((sft.indexOf(descriptor.getName), descriptor))
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+    val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
+    val encoder = SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft))
     val tableMutations1 = feats.flatMap { sf =>
-      AttributeTable.getAttributeIndexMutations(sf, DEFAULT_ENCODING, attrList, new ColumnVisibility(ds.writeVisibilities), prefix)
+      AttributeTable.getAttributeIndexMutations(sf, indexValueEncoder, encoder, attrList, new ColumnVisibility(ds.writeVisibilities), prefix)
     }
     forall(tableMutations1) { mut => jobMutations1.exists(mut.equals) }
   }

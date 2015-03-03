@@ -54,22 +54,19 @@ case object KeyInvalid extends KeyPlan {
 }
 
 // this key-plan accepts all inputs
-case object KeyAccept extends KeyPlan {
+case class KeyAccept(spacing: Int) extends KeyPlan {
   // a word on Accumulo characters:  Even though the string-parser says that it
   // can handle bytes represented from \x00 to \xFF, it turns out that anything
   // above \x7F throws a "unsupported non-ascii character" error, which is why
   // our maximum character here is \0x7E, "~"
-  val MIN_START = "\u0000"
-  val MAX_END = "~"
+  val MIN_START = Seq.fill(spacing)("\u0000").mkString
+  val MAX_END = Seq.fill(spacing)("~").mkString
 
   def join(right: KeyPlan, sep: String): KeyPlan = right match {
     case KeyRange(rstart, rend) => KeyRange(MIN_START + sep + rstart, MAX_END + sep + rend)
     case KeyRegex(rregex) => KeyRegex(".*?" + sep + rregex)
-    case KeyList(rkeys) => {
-      val sorted = rkeys.sorted
-      KeyRange(MIN_START+sep+sorted.head, MAX_END+sep+sorted.last)
-    }
-    case KeyAccept => KeyRange(MIN_START + sep + MIN_START, MAX_END + sep + MAX_END)
+    case KeyList(rkeys) => KeyRange(MIN_START + sep + rkeys.min, MAX_END + sep + rkeys.max)
+    case r: KeyAccept => KeyRange(MIN_START + sep + r.MIN_START, MAX_END + sep + r.MAX_END)
     case _ => KeyInvalid
   }
 }
@@ -78,11 +75,8 @@ case class KeyRange(start: String, end: String) extends KeyPlan {
   def join(right: KeyPlan, sep: String): KeyPlan = right match {
     case KeyRange(rstart, rend) => KeyRange(start + sep + rstart, end + sep + rend)
     case KeyRegex(rregex) => KeyRegex(estimateRangeRegex(start, end) + sep + rregex)
-    case KeyList(rkeys) => {
-      val sorted = rkeys.sorted
-      KeyRange(start+sep+sorted.head, end+sep+sorted.last)
-    }
-    case KeyAccept => KeyRange(start + sep + KeyAccept.MIN_START, end + sep + KeyAccept.MAX_END)
+    case KeyList(rkeys) => KeyRange(start + sep + rkeys.min, end + sep + rkeys.max)
+    case r: KeyAccept => KeyRange(start + sep + r.MIN_START, end + sep + r.MAX_END)
     case KeyInvalid => KeyInvalid
     case _ => throw new Exception("Invalid KeyPlan match")
   }
@@ -104,7 +98,7 @@ case class KeyRegex(regex: String) extends KeyPlan {
         generalizeStringsToRegex(rkeys)
       } else rkeys.mkString("(","|",")"))
     )
-    case KeyAccept => KeyRegex(regex + sep + ".*?")
+    case KeyAccept(_) => KeyRegex(regex + sep + ".*?")
     case KeyInvalid => KeyInvalid
     case _ => throw new Exception("Invalid KeyPlan match")
   }
@@ -140,7 +134,7 @@ case class KeyList(keys:Seq[String]) extends KeyPlan {
         KeyList(combiner.iterator.toList.map(_.mkString(sep)))
       }
     }
-    case KeyAccept => KeyRegex("((" + keys.mkString("|") + ")" + sep + "(.*?))")
+    case KeyAccept(_) => KeyRegex("((" + keys.mkString("|") + ")" + sep + "(.*?))")
     case KeyInvalid => KeyInvalid
     case _ => throw new Exception("Invalid KeyPlan match")
   }
@@ -199,7 +193,7 @@ sealed trait KeyTiered extends KeyPlan {
     case KeyRange(rstart, rend)             => KeyRangeTiered(rstart, rend, Some(this))
     case KeyListTiered(rkeys, None)         => KeyListTiered(rkeys, Some(this))
     case KeyList(rkeys)                     => KeyListTiered(rkeys, Some(this))
-    case KeyAccept                          => KeyRangeTiered(KeyAccept.MIN_START, KeyAccept.MAX_END, Some(this))
+    case r: KeyAccept                       => KeyAcceptTiered(r.MIN_START, r.MAX_END, Some(this))
     case _                                  => KeyInvalid  // degenerate case
   }
 }
@@ -208,6 +202,25 @@ case class KeyRangeTiered(start: String, end: String, parent:Option[KeyTiered]=N
 }
 case class KeyListTiered(keys:Seq[String], parent:Option[KeyTiered]=None) extends KeyTiered {
   override val optList = Some(KeyList(keys))
+}
+case class KeyAcceptTiered(start: String, end: String, parent:Option[KeyTiered] = None) extends KeyTiered {
+  override val optRange = Some(KeyRange(start, end))
+
+  // anything to the right of this can only be filtered by the end points, can't maintain tiers anymore
+  override def join(right: KeyPlan, sep: String): KeyPlan = right match {
+    case KeyRangeTiered(rstart, rend, None) =>
+      KeyAcceptTiered(start + sep + rstart, end + sep + rend, parent)
+    case KeyRange(rstart, rend) =>
+      KeyAcceptTiered(start + sep + rstart, end + sep + rend, parent)
+    case KeyListTiered(rkeys, None) =>
+      KeyAcceptTiered(start + sep + rkeys.min, end + sep + rkeys.max, parent)
+    case KeyList(rkeys) =>
+      KeyAcceptTiered(start + sep + rkeys.min, end + sep + rkeys.max, parent)
+    case r: KeyAccept =>
+      KeyAcceptTiered(start + sep + r.MIN_START, end + sep + r.MAX_END, parent)
+    case _ =>
+      KeyInvalid  // degenerate case
+  }
 }
 
 object KeyUtils {
@@ -285,18 +298,18 @@ trait GeoHashPlanner extends Logging {
   def polyToPlan(geom: Geometry, offset: Int, bits: Int): KeyPlan = {
     val subHashes = geomToGeoHashes(geom, offset, bits).sorted
     logger.trace(s"Geom to GeoHashes has returned: ${subHashes.size} subhashes to cover $geom $offset $bits.")
-    subHashes match {
-      case subs if subs.size == 0 =>
-        // if the list is empty, then there are probably too many 35-bit GeoHashes
-        // that fall inside the given polygon; in this case, return the LL, UR
-        // GeoHash endpoints of the entire range (which could encompass many
-        // more GeoHashes than we wish, but can only be better than (or equal
-        // to) a full-table scan)
-        val env = geom.getEnvelopeInternal
-        val ghLL = GeoHash(env.getMinX, env.getMinY)
-        val ghUR = GeoHash(env.getMaxX, env.getMaxY)
-        KeyRange(ghLL.hash, ghUR.hash)
-      case subs => KeyList(subs.sorted)
+    if (subHashes.isEmpty) {
+      // if the list is empty, then there are probably too many 35-bit GeoHashes
+      // that fall inside the given polygon; in this case, return the LL, UR
+      // GeoHash endpoints of the entire range (which could encompass many
+      // more GeoHashes than we wish, but can only be better than (or equal
+      // to) a full-table scan)
+      val env = geom.getEnvelopeInternal
+      val ghLL = GeoHash(env.getMinX, env.getMinY)
+      val ghUR = GeoHash(env.getMaxX, env.getMaxY)
+      KeyRange(ghLL.hash, ghUR.hash)
+    } else {
+      KeyList(subHashes)
     }
   }
 
@@ -304,11 +317,11 @@ trait GeoHashPlanner extends Logging {
     case SpatialFilter(geom)                => polyToPlan(geom, offset, bits)
     case SpatialDateFilter(geom, _)         => polyToPlan(geom, offset, bits)
     case SpatialDateRangeFilter(geom, _, _) => polyToPlan(geom, offset, bits)
-    case DateRangeFilter(_, _)              => KeyAccept
-    case AcceptEverythingFilter             => KeyAccept
+    case DateRangeFilter(_, _)              => KeyAccept(bits)
+    case AcceptEverythingFilter             => KeyAccept(bits)
     case _ => // degenerate outcome
       logger.warn(s"Unhandled key planning filter $filter")
-      KeyAccept
+      KeyAccept(bits)
   }
 }
 
@@ -316,16 +329,16 @@ case class GeoHashKeyPlanner(offset: Int, bits: Int) extends KeyPlanner with Geo
   def getKeyPlan(filter: KeyPlanningFilter, indexOnly: Boolean, output: ExplainerOutputType) =
     getKeyPlan(filter, offset, bits) match {
       case KeyList(keys) =>
-        output(s"GeoHashKeyPlanner: ${keys.size} : ${keys.take(20)}")
+        output(s"GeoHashKeyPlanner (${keys.size}): ${keys.take(20).mkString(",")}")
         KeyListTiered(keys)
 
       case KeyRange(keyMin, keyMax) =>
         output(s"GeoHashKeyPlanner: KeyRange $keyMin to $keyMax")
         KeyRangeTiered(keyMin, keyMax)
 
-      case KeyAccept =>
-        output("GeoHashKeyPlanner: KeyAccept")
-        KeyAccept
+      case ka: KeyAccept =>
+        output(s"GeoHashKeyPlanner: KeyAccept (${ka.spacing})")
+        ka
 
       case _ =>
         output("GeoHashKeyPlanner: KeyInvalid")
@@ -342,7 +355,7 @@ case class RandomPartitionPlanner(shards: Int) extends KeyPlanner {
   val numBits: Int = numPartitions.toString.length
   def getKeyPlan(filter: KeyPlanningFilter, indexOnly: Boolean, output: ExplainerOutputType) = {
     val keys = (0 to numPartitions).map(_.toString.reverse.padTo(numBits,"0").reverse.mkString)
-    output(s"Random Partition Planner: $keys")
+    output(s"Random Partition Planner (${keys.size}): ${keys.take(5).mkString(",")}")
     KeyListTiered(keys)
   }
 }

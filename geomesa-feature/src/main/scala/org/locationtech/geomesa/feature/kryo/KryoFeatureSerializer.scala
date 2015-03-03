@@ -29,69 +29,10 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  *
  * @param serializer
  */
-case class KryoFeatureSerializer(serializer: Serializer[SimpleFeature]) {
+case class KryoFeatureSerializer(serializer: Serializer[SimpleFeature])
+    extends KryoSerializerBase[SimpleFeature] {
 
-  private val kryo = new Kryo()
-
-  kryo.setReferences(false)
-
-  val idSerializer = new FeatureIdSerializer()
-
-  val output = new Output(1024, -1)
-  val input = new Input(Array.empty[Byte])
-  lazy val streamBuffer = new Array[Byte](1024)
-
-  /**
-   * Serialize the feature into bytes
-   *
-   * @param sf
-   * @return
-   */
-  def write(sf: SimpleFeature): Array[Byte] = {
-    output.clear()
-    kryo.writeObject(output, sf, serializer)
-    output.toBytes()
-  }
-
-  /**
-   * Serialize the feature into a byte stream
-   *
-   * @param sf
-   * @param out
-   */
-  def write(sf: SimpleFeature, out: OutputStream): Unit = {
-    output.clear()
-    output.setOutputStream(out)
-    kryo.writeObject(output, sf, serializer)
-    output.flush()
-    output.setOutputStream(null)
-  }
-
-  /**
-   * Deserialize the feature from bytes - note that the buffer may be mutated during the read, but
-   * will be returned to normal.
-   *
-   * @param value
-   * @return
-   */
-  def read(value: Array[Byte]): SimpleFeature = {
-    input.setBuffer(value)
-    kryo.readObject(input, classOf[SimpleFeature], serializer)
-  }
-
-  /**
-   * Deserialize the feature from a byte stream
-   *
-   * @param in
-   * @return
-   */
-  def read(in: InputStream): SimpleFeature = {
-    input.setBuffer(streamBuffer)
-    input.setInputStream(in)
-    val sf = kryo.readObject(input, classOf[SimpleFeature], serializer)
-    input.setInputStream(null)
-    sf
-  }
+  private val idSerializer = new FeatureIdSerializer()
 
   /**
    * Read only the id from a serialized feature

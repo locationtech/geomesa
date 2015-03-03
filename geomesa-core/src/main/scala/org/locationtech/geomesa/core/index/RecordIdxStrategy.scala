@@ -37,9 +37,10 @@ import org.opengis.filter.{Filter, Id}
 import scala.collection.JavaConverters._
 
 
-object RecordIdxStrategy {
-  def getRecordIdxStrategy(filter: Filter, sft: SimpleFeatureType): Option[Strategy] =
-    if (filterIsId(filter)) Some(new RecordIdxStrategy) else None
+object RecordIdxStrategy extends StrategyProvider {
+
+  override def getStrategy(filter: Filter, sft: SimpleFeatureType, hints: StrategyHints) =
+    if (filterIsId(filter)) Some(StrategyDecision(new RecordIdxStrategy, -1)) else None
 
   def intersectIDFilters(filters: Seq[Filter]): Option[Id] = filters.size match {
     case 0 => None                                             // empty filter sequence
@@ -57,6 +58,7 @@ object RecordIdxStrategy {
         Some(newFilter)
       }
     }
+
 }
 
 class RecordIdxStrategy extends Strategy with Logging {
@@ -68,8 +70,12 @@ class RecordIdxStrategy extends Strategy with Logging {
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     val recordScanner = acc.createRecordScanner(featureType)
     val qp = buildIDQueryPlan(query, iqp, featureType, output)
-    configureBatchScanner(recordScanner, qp)
-    SelfClosingBatchScanner(recordScanner)
+    if (qp.ranges.isEmpty) {
+      SelfClosingIterator(Iterator.empty)
+    } else {
+      configureBatchScanner(recordScanner, qp)
+      SelfClosingBatchScanner(recordScanner)
+    }
   }
 
   def buildIDQueryPlan(query: Query,
@@ -77,7 +83,7 @@ class RecordIdxStrategy extends Strategy with Logging {
                        featureType: SimpleFeatureType,
                        output: ExplainerOutputType) = {
 
-    val schema         = iqp.schema
+    val schema         = iqp.stSchema
     val featureEncoding = iqp.featureEncoding
 
     output(s"Searching the record table with filter ${query.getFilter}")
@@ -85,7 +91,7 @@ class RecordIdxStrategy extends Strategy with Logging {
     val (idFilters, oFilters) =  partitionID(query.getFilter)
 
     // recombine non-ID filters
-    val combinedOFilter = filterListAsAnd(oFilters)
+    val ecql = filterListAsAnd(oFilters)
 
     // Multiple sets of IDs in a ID Filter are ORs. ANDs of these call for the intersection to be taken.
     // intersect together all groups of ID Filters, producing Some[Id] if the intersection returns something
@@ -106,9 +112,8 @@ class RecordIdxStrategy extends Strategy with Logging {
       case Some(filterSet) if filterSet.nonEmpty => filterSet
       case _ =>
         // TODO: for below instead pass empty query plan (https://geomesa.atlassian.net/browse/GEOMESA-347)
-        // need to log a warning message as the exception will be caught by hasNext in FeatureReaderIterator
-        logger.error(s"Filter ${query.getFilter} results in no valid range for record table")
-        throw new RuntimeException(s"Filter ${query.getFilter} results in no valid range for record table")
+        logger.warn(s"Filter ${query.getFilter} results in no valid range for record table")
+        Seq.empty
     }
 
     output(s"Extracted ID filter: ${combinedIDFilter.get}")
@@ -117,14 +122,11 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     output(s"Setting ${ranges.size} ranges.")
 
-    // this should be done with care, ECQL -> Filter -> CQL is NOT a unitary transform
-    val ecql = combinedOFilter.map { ECQL.toCQL }
-
     val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, featureType)
 
     val cfg = if (iteratorConfig.hasTransformOrFilter) {
       // TODO apply optimization for when transforms cover filter
-      val cfg = configureRecordTableIterator(featureType, featureEncoding, combinedOFilter, query)
+      val cfg = configureRecordTableIterator(featureType, featureEncoding, ecql, query)
       output(s"RecordTableIterator: ${cfg.toString }")
       Some(cfg)
     } else {
