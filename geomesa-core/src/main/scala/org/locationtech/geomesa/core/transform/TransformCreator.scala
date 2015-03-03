@@ -1,9 +1,24 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.core.transform
 
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.core.data.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureEncoder}
-import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
+import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.feature._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -19,27 +34,25 @@ object TransformCreator {
    */
   def createTransform(targetFeatureType: SimpleFeatureType,
                       featureEncoding: FeatureEncoding,
-                      transformString: String): (SimpleFeature => Array[Byte]) =
+                      transformString: String): (SimpleFeature => Array[Byte]) = {
+
+    val encoder = SimpleFeatureEncoder(targetFeatureType, featureEncoding)
+    val defs = TransformProcess.toDefinition(transformString)
     featureEncoding match {
-      case FeatureEncoding.AVRO =>
-        val encoder = SimpleFeatureEncoder(targetFeatureType, featureEncoding)
-        val defs = TransformProcess.toDefinition(transformString)
+      case FeatureEncoding.KRYO | FeatureEncoding.AVRO =>
         (feature: SimpleFeature) => {
-          val newSf = new AvroSimpleFeature(feature.getIdentifier, targetFeatureType)
+          val newSf = new ScalaSimpleFeature(feature.getIdentifier.getID, targetFeatureType)
           defs.foreach { t => newSf.setAttribute(t.name, t.expression.evaluate(feature)) }
           encoder.encode(newSf)
         }
 
       case FeatureEncoding.TEXT =>
-        val defs = TransformProcess.toDefinition(transformString)
-        val encoder = SimpleFeatureEncoder(targetFeatureType, featureEncoding)
-        val builder = AvroSimpleFeatureFactory.featureBuilder(targetFeatureType)
+        val builder = ScalaSimpleFeatureFactory.featureBuilder(targetFeatureType)
         (feature: SimpleFeature) => {
-          builder.reset()
           defs.foreach { t => builder.set(t.name, t.expression.evaluate(feature)) }
           val newFeature = builder.buildFeature(feature.getID)
           encoder.encode(newFeature)
         }
     }
-
+  }
 }

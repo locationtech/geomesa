@@ -43,20 +43,28 @@ object ObjectPoolFactory {
 }
 
 trait WKTUtils {
-  private val readerPool = ObjectPoolFactory { new WKTReader }
-  private val writerPool = ObjectPoolFactory { new WKTWriter }
+  private[this] val readerPool = new ThreadLocal[WKTReader]{
+    override def initialValue = new WKTReader
+  }
+  private[this] val writerPool = new ThreadLocal[WKTWriter]{
+    override def initialValue = new WKTWriter
+  }
 
-  def read(s: String): Geometry = readerPool.withResource { reader => reader.read(s) }
-  def write(g: Geometry): String = writerPool.withResource { writer => writer.write(g) }
+  def read(s: String): Geometry = readerPool.get.read(s)
+  def write(g: Geometry): String = writerPool.get.write(g)
 }
 
 trait WKBUtils {
-  private[this] val readerPool = ObjectPoolFactory { new WKBReader }
-  private[this] val writerPool = ObjectPoolFactory { new WKBWriter }
+  private[this] val readerPool = new ThreadLocal[WKBReader]{
+    override def initialValue = new WKBReader
+  }
+  private[this] val writerPool = new ThreadLocal[WKBWriter]{
+    override def initialValue = new WKBWriter
+  }
 
   def read(s: String): Geometry = read(s.getBytes)
-  def read(b: Array[Byte]): Geometry = readerPool.withResource { reader => reader.read(b) }
-  def write(g: Geometry): Array[Byte] = writerPool.withResource { writer => writer.write(g) }
+  def read(b: Array[Byte]): Geometry = readerPool.get.read(b)
+  def write(g: Geometry): Array[Byte] = writerPool.get.write(g)
 }
 
 object WKTUtils extends WKTUtils

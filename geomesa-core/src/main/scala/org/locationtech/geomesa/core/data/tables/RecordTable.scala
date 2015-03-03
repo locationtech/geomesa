@@ -20,35 +20,39 @@ import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.{Mutation, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.opengis.feature.simple.SimpleFeature
 
 // TODO: Implement as traits and cache results to gain flexibility and speed-up.
 // https://geomesa.atlassian.net/browse/GEOMESA-344
 object RecordTable extends GeoMesaTable {
 
-  def buildWrite(encoder: SimpleFeatureEncoder, visibility: String, rowIdPrefix: String): SimpleFeature => Mutation =
-    (feature: SimpleFeature) => {
+  type Visibility = String
+  type Feature2Mutation = (SimpleFeature, Visibility) => Mutation
+
+  def buildWrite(encoder: SimpleFeatureEncoder, rowIdPrefix: String): (SimpleFeature, Visibility) => Mutation =
+    (feature: SimpleFeature, visibility: Visibility) => {
       val m = new Mutation(getRowKey(rowIdPrefix, feature.getID))
       m.put(SFT_CF, EMPTY_COLQ, new ColumnVisibility(visibility), new Value(encoder.encode(feature)))
       m
     }
 
-  def buildDelete(encoder: SimpleFeatureEncoder, visibility: String, rowIdPrefix: String): SimpleFeature => Mutation =
-    (feature: SimpleFeature) => {
+  def buildDelete(encoder: SimpleFeatureEncoder, rowIdPrefix: String): Feature2Mutation =
+    (feature: SimpleFeature, visibility: Visibility) => {
       val m = new Mutation(getRowKey(rowIdPrefix, feature.getID))
       m.putDelete(SFT_CF, EMPTY_COLQ, new ColumnVisibility(visibility))
       m
     }
 
   /** Creates a function to write a feature to the Record Table **/
-  def recordWriter(bw: BatchWriter, encoder: SimpleFeatureEncoder, visibility: String, rowIdPrefix: String) = {
-    val builder = buildWrite(encoder, visibility, rowIdPrefix)
-    feature: SimpleFeature => bw.addMutation(builder(feature))
+  def recordWriter(bw: BatchWriter, encoder: SimpleFeatureEncoder, rowIdPrefix: String) = {
+    val builder = buildWrite(encoder, rowIdPrefix)
+    (feature: SimpleFeature, visibility: Visibility) => bw.addMutation(builder(feature, visibility))
   }
 
-  def recordDeleter(bw: BatchWriter, encoder: SimpleFeatureEncoder, visibility: String, rowIdPrefix: String) = {
-    val builder = buildDelete(encoder, visibility, rowIdPrefix)
-    feature: SimpleFeature => bw.addMutation(builder(feature))
+  def recordDeleter(bw: BatchWriter, encoder: SimpleFeatureEncoder, rowIdPrefix: String) = {
+    val builder = buildDelete(encoder, rowIdPrefix)
+    (feature: SimpleFeature, visibility: Visibility) => bw.addMutation(builder(feature, visibility))
   }
 
   def getRowKey(rowIdPrefix: String, id: String): String = rowIdPrefix + id

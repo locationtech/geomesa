@@ -35,6 +35,7 @@ import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.feature.{DefaultFeatureCollection, NameImpl}
 import org.geotools.filter.text.cql2.CQL
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.process.vector.TransformProcess
 import org.geotools.referencing.CRS
@@ -42,12 +43,13 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.core.iterators.TestData
+import org.locationtech.geomesa.core.iterators.{IndexIterator, TestData}
 import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -288,7 +290,7 @@ class AccumuloDataStoreTest extends Specification {
         val f = features.next()
 
         "with matching schema" >> {
-          "name:String:index=false,*geom:Point:srid=4326:index=true,derived:String:index=false" mustEqual
+          s"name:String,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true,derived:String" mustEqual
             SimpleFeatureTypes.encodeType(results.getSchema)
         }
 
@@ -386,7 +388,7 @@ class AccumuloDataStoreTest extends Specification {
         val f = features.next()
 
         "with matching schemas" >> {
-          "name:String:index=false,*geom:Point:srid=4326:index=true,derived:String:index=false" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
+          s"name:String,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true,derived:String" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
         }
 
         "and correct results" >> {
@@ -423,7 +425,7 @@ class AccumuloDataStoreTest extends Specification {
         val f = features.next()
 
         "with matching schemas" >> {
-          "name:String:index=false,*geom:Point:srid=4326:index=true" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
+          s"name:String,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true" mustEqual SimpleFeatureTypes.encodeType(results.getSchema)
         }
 
         "and correct results" >> {
@@ -749,8 +751,8 @@ class AccumuloDataStoreTest extends Specification {
       val sftName = "schematest"
 
       val query = new Query(sftName, Filter.INCLUDE)
-      val fr = ds.getFeatureReader(sftName)
-      fr.explainQuery(query)
+      val fr = ds.getFeatureReader(sftName, query)
+      fr.explainQuery()
       fr should not be null
     }
 
@@ -767,7 +769,7 @@ class AccumuloDataStoreTest extends Specification {
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should be OK
       val sftName = "somethingsafe3"
-      val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,numattr:Integer:index=false,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,numattr:Integer,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
 
       val mockInstance = new MockInstance("mycloud")
@@ -818,7 +820,7 @@ class AccumuloDataStoreTest extends Specification {
         "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
 
       val sftName = "testingCaching"
-      val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,numattr:Integer:index=false,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,numattr:Integer,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
 
       val mockInstance = new MockInstance("mycloud")
@@ -826,7 +828,7 @@ class AccumuloDataStoreTest extends Specification {
 
       "typeOf feature source must be ListFeatureCollection" >> {
         val fc = ds.getFeatureSource(sftName).getFeatures(Filter.INCLUDE)
-        fc must haveClass[ListFeatureCollection]
+        fc must haveClass[CachingAccumuloFeatureCollection]
       }
     }
 
@@ -1003,8 +1005,8 @@ class AccumuloDataStoreTest extends Specification {
     }
 
     "update metadata for indexed attributes" in {
-      val originalSchema = "name:String:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true"
-      val updatedSchema = "name:String:index=true,dtg:Date:index=false,*geom:Point:srid=4326:index=true"
+      val originalSchema = "name:String,dtg:Date,*geom:Point:srid=4326:index=true"
+      val updatedSchema = s"name:String:index=true,dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
       val ds = createStore
       val sft = SimpleFeatureTypes.createType("test", originalSchema)
       ds.createSchema(sft)
@@ -1014,7 +1016,7 @@ class AccumuloDataStoreTest extends Specification {
     }
 
     "prevent changing schema types" in {
-      val originalSchema = "name:String:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true"
+      val originalSchema = s"name:String,dtg:Date,*geom:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true"
       val ds = createStore
       val sft = SimpleFeatureTypes.createType("test", originalSchema)
       ds.createSchema(sft)
@@ -1074,10 +1076,116 @@ class AccumuloDataStoreTest extends Specification {
 
       val filter = ff.id(ff.featureId("2"))
       val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
-      writer must beAnInstanceOf[ModifyAccumuloFeatureWriter]
       writer.hasNext must beTrue
-      writer.next.getID mustEqual "2"
+      val feat = writer.next
+      feat.getID mustEqual "2"
+      feat.getAttribute("name") mustEqual "2"
+      feat.setAttribute("name", "2-updated")
+      writer.write()
       writer.hasNext must beFalse
+      writer.close()
+
+      val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
+      reader.hasNext must beTrue
+      val updated = reader.next()
+      reader.hasNext must beFalse
+      reader.close()
+      updated.getID mustEqual("2")
+      updated.getAttribute("name") mustEqual "2-updated"
+    }
+
+    "Allow extra attributes in the STIDX entries" >> {
+      val sftName = "STIDXExtraAttributeTest"
+      val sft = SimpleFeatureTypes.createType(sftName,
+        s"name:String:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,*geom:Point:srid=4326,attr2:String")
+      val ds = createSchema(sft)
+
+      val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+      val features = (0 until 6).map { i =>
+        builder.set("geom", WKTUtils.read(s"POINT(45.0 4$i.0)"))
+        builder.set("dtg", s"2012-01-02T05:0$i:07.000Z")
+        builder.set("name", i.toString)
+        builder.set("attr2", "2-" + i.toString)
+        val sf = builder.buildFeature(i.toString)
+        sf.getUserData.update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf
+      }
+
+      val baseTime = features(0).getAttribute("dtg").asInstanceOf[Date].getTime
+
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      fs.addFeatures(new ListFeatureCollection(sft, features))
+
+      val query = new Query(sftName, ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 50.0)"),
+        Array("geom", "dtg", "name"))
+      val reader = ds.getFeatureReader(sftName, query)
+
+      // verify that the IndexIterator is getting used with the extra field
+      val explain = {
+        val out = new ExplainString
+        reader.explainQuery(o = out)
+        out.toString()
+      }
+      explain must contain(classOf[IndexIterator].getName)
+
+      val read = SelfClosingIterator(reader).toList
+
+      // verify that all the attributes came back
+      read must haveSize(6)
+      read.sortBy(_.getAttribute("name").asInstanceOf[String]).zipWithIndex.foreach { case (sf, i) =>
+        sf.getAttributeCount mustEqual 3
+        sf.getAttribute("name") mustEqual i.toString
+        sf.getAttribute("geom") mustEqual WKTUtils.read(s"POINT(45.0 4$i.0)")
+        sf.getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseTime + i * 60000
+      }
+      success
+    }
+
+    "Use IndexIterator when projecting to date/geom" >> {
+      val sftName = "STIDXExtraAttributeTest2"
+      val sft = SimpleFeatureTypes.createType(sftName,
+        s"name:String:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,*geom:Point:srid=4326,attr2:String")
+      val ds = createSchema(sft)
+
+      val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+      val features = (0 until 6).map { i =>
+        builder.set("geom", WKTUtils.read(s"POINT(45.0 4$i.0)"))
+        builder.set("dtg", s"2012-01-02T05:0$i:07.000Z")
+        builder.set("name", i.toString)
+        builder.set("attr2", "2-" + i.toString)
+        val sf = builder.buildFeature(i.toString)
+        sf.getUserData.update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf
+      }
+
+      val baseTime = features(0).getAttribute("dtg").asInstanceOf[Date].getTime
+
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      fs.addFeatures(new ListFeatureCollection(sft, features))
+
+      val query = new Query(sftName, ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 50.0)"),
+        Array("geom", "dtg"))
+      val reader = ds.getFeatureReader(sftName, query)
+
+      // verify that the IndexIterator is getting used
+      val explain = {
+        val out = new ExplainString
+        reader.explainQuery(o = out)
+        out.toString()
+      }
+      explain must contain(classOf[IndexIterator].getName)
+
+      val read = SelfClosingIterator(reader).toList
+
+      // verify that all the attributes came back
+      read must haveSize(6)
+      read.sortBy(_.getAttribute("dtg").toString).zipWithIndex.foreach { case (sf, i) =>
+        sf.getAttributeCount mustEqual 2
+        sf.getAttribute("name") must beNull
+        sf.getAttribute("geom") mustEqual WKTUtils.read(s"POINT(45.0 4$i.0)")
+        sf.getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseTime + i * 60000
+      }
+      success
     }
   }
 
@@ -1095,7 +1203,7 @@ class AccumuloDataStoreTest extends Specification {
       (result must not).beNull
     }
 
-    "support sorting" >> {
+    "support sorting and handle time bounds" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
@@ -1104,21 +1212,37 @@ class AccumuloDataStoreTest extends Specification {
       fs.getQueryCapabilities.supportsSorting(Array(SortBy.NATURAL_ORDER)) must beTrue
       fs.getQueryCapabilities.supportsSorting(Array(ff.sort("dtg", SortOrder.ASCENDING))) must beTrue
 
+      val defaultInterval = ds.getTimeBounds(sft.getTypeName)
+      defaultInterval.getStartMillis must be equalTo 0
+
       val sfBuilder = new SimpleFeatureBuilder(sft)
       sfBuilder.reset()
-      sfBuilder.addAll(List("johndoe", new DateTime("2014-01-01").toDate, gf.createPoint(new Coordinate(0, 0))))
+      val date1 = new DateTime("2014-01-02").toDate
+      sfBuilder.addAll(List("johndoe", date1, gf.createPoint(new Coordinate(0, 0))))
       val f1 = sfBuilder.buildFeature("f1")
 
+      fs.addFeatures(DataUtilities.collection(List(f1)))
+
+      val secondInterval = ds.getTimeBounds(sft.getTypeName)
+      secondInterval.getStartMillis must be equalTo date1.getTime
+      secondInterval.getEndMillis must be equalTo date1.getTime
+
       sfBuilder.reset()
-      sfBuilder.addAll(List("johndoe", new DateTime("2014-01-03").toDate, gf.createPoint(new Coordinate(0, 0))))
+      val date2 = new DateTime("2014-01-03").toDate
+      sfBuilder.addAll(List("johndoe", date2, gf.createPoint(new Coordinate(0, 0))))
       val f2 = sfBuilder.buildFeature("f2")
 
       sfBuilder.reset()
-      sfBuilder.addAll(List("johndoe", new DateTime("2014-01-02").toDate, gf.createPoint(new Coordinate(0, 0))))
+      val date3 = new DateTime("2014-01-01").toDate
+      sfBuilder.addAll(List("johndoe", date3 , gf.createPoint(new Coordinate(0, 0))))
       val f3 = sfBuilder.buildFeature("f3")
 
-      fs.addFeatures(DataUtilities.collection(List(f1, f2, f3)))
+      fs.addFeatures(DataUtilities.collection(List(f2, f3)))
       fs.flush()
+
+      val thirdInterval = ds.getTimeBounds(sft.getTypeName)
+      thirdInterval.getStartMillis must be equalTo date3.getTime
+      thirdInterval.getEndMillis must be equalTo date2.getTime
 
       "ascending on date" >> {
         val dtgAscendingQ = new Query("test", Filter.INCLUDE)
@@ -1138,10 +1262,21 @@ class AccumuloDataStoreTest extends Specification {
         res.head must beGreaterThan(res(1))
       }
     }
-
   }
 
   def buildTestIndexSchemaFormat(featureName: String) = new IndexSchemaBuilder("~").randomNumber(3).constant(featureName).geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build()
+
+  def createSchema(sft: SimpleFeatureType) = {
+    val ds = DataStoreFinder.getDataStore(Map(
+      "instanceId"        -> "mycloud",
+      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      "user"              -> "myuser",
+      "password"          -> "mypassword",
+      "tableName"         -> sft.getTypeName,
+      "useMock"           -> "true"))
+    ds.createSchema(sft)
+    ds.asInstanceOf[AccumuloDataStore]
+  }
 
   def createStore: AccumuloDataStore = {
     // need to add a unique ID, otherwise create schema will throw an exception

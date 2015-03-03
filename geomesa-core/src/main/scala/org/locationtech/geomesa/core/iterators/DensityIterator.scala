@@ -24,15 +24,14 @@ import com.google.common.collect._
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => ARange}
+import org.apache.accumulo.core.data.{ByteSequence, Key, Range => ARange, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.commons.codec.binary.Base64
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder, ReferencedEnvelope}
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.index.{IndexEntryDecoder, IndexSchema}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.feature._
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, toRichSimpleFeatureIterator}
 import org.locationtech.geomesa.utils.geotools.{GridSnap, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -91,7 +90,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
     // Use density SFT for the encoder since we are transforming the feature into
     // a sparse matrix as the result type of this iterator
     densityFeatureEncoder = SimpleFeatureEncoder(projectedSFT, encodingOpt)
-    featureBuilder = AvroSimpleFeatureFactory.featureBuilder(projectedSFT)
+    featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(projectedSFT)
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
   }
@@ -111,7 +110,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends 
       topSourceKey = source.getTopKey
       topSourceValue = source.getTopValue
 
-      val feature = originalDecoder.decode(topSourceValue)
+      val feature = originalDecoder.decode(topSourceValue.get())
       lazy val geoHashGeom = decoder.decode(topSourceKey).getDefaultGeometry.asInstanceOf[Geometry]
       geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
       geometry match {
@@ -246,7 +245,7 @@ object DensityIterator extends Logging {
   }
 
   def expandFeature(sf: SimpleFeature): Iterable[SimpleFeature] = {
-    val builder = AvroSimpleFeatureFactory.featureBuilder(densitySFT)
+    val builder = ScalaSimpleFeatureFactory.featureBuilder(densitySFT)
 
     val decodedMap = Try(decodeSparseMatrix(sf.getAttribute(ENCODED_RASTER_ATTRIBUTE).toString))
 

@@ -23,9 +23,10 @@ import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.conf.Configuration
 import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, SimpleFeatureDecoder}
+import org.locationtech.geomesa.feature.SimpleFeatureDecoder
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.scalding.{AccumuloInputOptions, AccumuloOutputOptions, AccumuloSource, AccumuloSourceOptions, ConnectionParams}
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -40,22 +41,25 @@ trait JobResources {
   def sft: SimpleFeatureType
   def visibilities: String
   def decoder: SimpleFeatureDecoder
-  def attributeDescriptors: mutable.Buffer[AttributeDescriptor]
+  def attributeDescriptors: mutable.Buffer[(Int, AttributeDescriptor)]
 
   // required by scalding
   def release(): Unit = {}
 }
 
 object JobResources {
+  import scala.collection.JavaConversions._
   def apply(params:  Map[String, String], feature: String, attributes: List[String]) = new JobResources {
     val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
     val sft: SimpleFeatureType = ds.getSchema(feature)
     val visibilities: String = ds.writeVisibilities
     val decoder: SimpleFeatureDecoder = SimpleFeatureDecoder(sft, ds.getFeatureEncoding(sft))
     // the attributes we want to index
-    val attributeDescriptors: mutable.Buffer[AttributeDescriptor] = sft.getAttributeDescriptors
-      .asScala
-      .filter(ad => attributes.contains(ad.getLocalName))
+    override val attributeDescriptors =
+      sft.getAttributeDescriptors
+        .zipWithIndex
+        .filter { case (ad, idx) => attributes.contains(ad.getLocalName) }
+        .map { case (ad, idx) => (idx, ad) }
   }
 }
 
@@ -120,7 +124,7 @@ object AttributeIndexJob {
    * @return
    */
   def getAttributeIndexMutation(r: JobResources, key: Key, value: Value): Seq[Mutation] = {
-    val feature = r.decoder.decode(value)
+    val feature = r.decoder.decode(value.get())
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(r.sft)
 
     AttributeTable.getAttributeIndexMutations(

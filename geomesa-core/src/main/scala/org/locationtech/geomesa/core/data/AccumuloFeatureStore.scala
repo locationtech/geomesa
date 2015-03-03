@@ -16,15 +16,20 @@
 
 package org.locationtech.geomesa.core.data
 
-import java.util.{List => JList, Map => JMap, Set => JSet}
+import java.util.{List => JList}
 
+import com.google.common.collect.Lists
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data._
+import org.geotools.factory.Hints
 import org.geotools.feature._
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.FunctionExpressionImpl
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess.Definition
+import org.locationtech.geomesa.core.index
+import org.locationtech.geomesa.utils.geotools.MinMaxTimeVisitor
 import org.opengis.feature.GeometryAttribute
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -34,13 +39,73 @@ import org.opengis.filter.identity.FeatureId
 class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Name)
     extends AbstractFeatureStore with AccumuloAbstractFeatureSource {
   override def addFeatures(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]): JList[FeatureId] = {
-    writeBounds(collection.getBounds)
-    super.addFeatures(collection)
+    val fids = Lists.newArrayList[FeatureId]()
+    if (collection.size > 0) {
+      writeBounds(collection.getBounds)
+
+      val minMaxVisitorO = index.getDtgFieldName(collection.getSchema).map { new MinMaxTimeVisitor(_) }
+      val fw = dataStore.getFeatureWriterAppend(featureName.getLocalPart, Transaction.AUTO_COMMIT)
+
+      val updateTimeBounds: SimpleFeature => Unit = { feature => minMaxVisitorO.foreach { _.visit(feature) } }
+
+      val write: SimpleFeature => FeatureId =
+        if (minMaxVisitorO.isDefined) { feature =>
+          updateTimeBounds(feature)
+          writeFeature(fw, feature)
+        }
+        else { feature =>
+          writeFeature(fw, feature)
+        }
+
+      val iter = collection.features()
+      while (iter.hasNext) fids.add(write(iter.next))
+      fw.close()
+
+      minMaxVisitorO.foreach { minMaxVisitor =>
+        Option(minMaxVisitor.getBounds).foreach { dataStore.writeTemporalBounds(featureName.getLocalPart, _) }
+      }
+    }
+    fids
+  }
+
+  def writeFeature(fw: SFFeatureWriter, feature: SimpleFeature): FeatureId = {
+    val newFeature = fw.next()
+
+    try {
+      newFeature.setAttributes(feature.getAttributes)
+      newFeature.getUserData.putAll(feature.getUserData)
+    } catch {
+      case ex: Exception =>
+        throw new DataSourceException(s"Could not create ${featureName.getLocalPart} out of provided feature: ${feature.getID}", ex)
+    }
+
+    val useExisting = java.lang.Boolean.TRUE.equals(feature.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[java.lang.Boolean])
+    if (getQueryCapabilities().isUseProvidedFIDSupported && useExisting) {
+      newFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(feature.getID)
+    }
+
+    fw.write()
+    newFeature.getIdentifier
+  }
+
+  def updateTimeBounds(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]) = {
+    val sft = collection.getSchema
+    val dateField = org.locationtech.geomesa.core.index.getDtgFieldName(sft)
+
+    dateField.flatMap { dtg =>
+      val minMax = new MinMaxTimeVisitor(dtg)
+      collection.accepts(minMax, null)
+      Option(minMax.getBounds)
+    }
+  }
+
+  def writeTimeBounds(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]) {
+    updateTimeBounds(collection).foreach { dataStore.writeTemporalBounds(featureName.getLocalPart, _) }
   }
 
   def writeBounds(envelope: ReferencedEnvelope) {
     if(envelope != null)
-      dataStore.writeBounds(featureName.getLocalPart, envelope)
+      dataStore.writeSpatialBounds(featureName.getLocalPart, envelope)
   }
 }
 

@@ -23,8 +23,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureEncoder}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureEncoder, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -155,24 +154,6 @@ class IndexSchemaTest extends Specification {
       // (the portion beyond "yyyyMMdd")
       val msDelta = ((12L * 60L) + 5L) * 60L * 1000L
       (Math.abs(dtOut.getTime - Apr_23_2001.getTime) == msDelta) must beTrue
-    }
-  }
-
-  "IndexSchema " should {
-    "be able to run explainQuery" in {
-
-      val schema = IndexSchema("%~#s%foo#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%15#id",
-        dummyType, dummyEncoder)
-      val q = new Query()
-      val fs = s"INTERSECTS(${dummyType.getGeometryDescriptor.getLocalName}, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
-      val f = ECQL.toFilter(fs)
-      q.setFilter(f)
-
-      val queue = scala.collection.mutable.Queue[String]()
-      schema.explainQuery(q, s => queue.enqueue(Seq(s) : _*))
-
-      val explanation = queue.mkString(",\n")
-      explanation must not be null
     }
   }
 

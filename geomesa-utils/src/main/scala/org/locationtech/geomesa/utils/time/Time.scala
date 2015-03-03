@@ -16,7 +16,9 @@
 
 package org.locationtech.geomesa.utils.time
 
-import org.joda.time.Interval
+import java.util.Date
+
+import org.joda.time.{DateTime, Interval}
 
 object Time {
   val noInterval: Interval = null
@@ -40,5 +42,28 @@ object Time {
           if (self.getEnd.isAfter(other.getEnd)) other.getEnd else self.getEnd
         )
       }
+
+    def expandByDate(date: Date): Interval = {
+      if      (date == null) self
+      else if (self == null) new Interval(new DateTime(date), new DateTime(date))
+      else                   expandByDateTimeNoChecks(new DateTime(date))
+    }
+
+    private def expandByDateTime(dt: DateTime): Interval = {
+      if      (dt == null)   self
+      else if (self == null) new Interval(dt, dt)
+      else                   expandByDateTimeNoChecks(dt)
+    }
+
+    private def expandByDateTimeNoChecks(dt: DateTime): Interval = {
+      if      (self.isBefore(dt)) self.withEnd(dt)
+      else if (self.isAfter(dt))  self.withStart(dt)
+      else                        self
+    }
+
+    def expandByInterval(interval: Interval) =
+      if (interval == null)  self
+      else if (self == null) interval
+      else new RichInterval(expandByDateTime(interval.getStart)).expandByDateTime(interval.getEnd)
   }
 }

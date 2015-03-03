@@ -1,6 +1,24 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.plugin.process
 
-import org.geoserver.catalog.{Catalog, CatalogBuilder, DataStoreInfo}
+import java.{util => ju}
+
+import org.geoserver.catalog.{Keyword, Catalog, CatalogBuilder, DataStoreInfo}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.process.ProcessException
@@ -8,6 +26,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.plugin.wps.GeomesaProcess
 
+import scala.collection.JavaConversions._
 
 @DescribeProcess(
   title = "Geomesa Bulk Import",
@@ -40,6 +59,13 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
                name: String,
 
                @DescribeParameter(
+                 name = "keywords",
+                 min = 0,
+                 collectionType = classOf[String],
+                 description = "List of (comma-separated) keywords for layer")
+               keywordStrs: ju.List[String],
+
+               @DescribeParameter(
                  name = "numShards",
                  min = 0,
                  max= 1,
@@ -65,6 +91,12 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
     // import the layer into geoserver
     catalogBuilder.setStore(storeInfo)
     val typeInfo = catalogBuilder.buildFeatureType(targetType.getName)
+    
+    val kws = for {
+      ks <- Option(keywordStrs).getOrElse(new ju.ArrayList[String]())
+      kw <- ks.split(",").map(_.trim)
+    } yield new Keyword(kw)
+    typeInfo.getKeywords.addAll(kws)
     catalogBuilder.setupBounds(typeInfo)
 
     val layerInfo = catalogBuilder.buildLayer(typeInfo)

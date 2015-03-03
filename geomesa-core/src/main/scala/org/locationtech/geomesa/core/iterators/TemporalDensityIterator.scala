@@ -24,7 +24,7 @@ import java.{util => ju}
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => ARange}
+import org.apache.accumulo.core.data.{ByteSequence, Key, Range => ARange, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.commons.codec.binary.Base64
 import org.codehaus.jackson.`type`.TypeReference
@@ -35,10 +35,11 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.{DateTimeFormat}
 import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
-import org.locationtech.geomesa.core.index._
+//<<<<<<< HEAD TODO KMW
+//import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.getFeatureType
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.core.index.{IndexEntryDecoder, _}
+import org.locationtech.geomesa.feature._
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, TimeSnap}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -90,7 +91,7 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
     projectedSFT = getFeatureType(simpleFeatureType)
 
     temporalDensityFeatureEncoder = SimpleFeatureEncoder(projectedSFT, encodingOpt)
-    featureBuilder = AvroSimpleFeatureFactory.featureBuilder(projectedSFT)
+    featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(projectedSFT)
 
     val buckets = TemporalDensityIterator.getBuckets(options)
     val bounds = TemporalDensityIterator.getTimeBounds(options)
@@ -112,7 +113,7 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
       topSourceKey = source.getTopKey
       topSourceValue = source.getTopValue //SimpleFeature
 
-      val date = originalDecoder.decode(topSourceValue).getAttribute(dateTimeFieldName).asInstanceOf[Date]
+      val date = originalDecoder.decode(topSourceValue.get()).getAttribute(dateTimeFieldName).asInstanceOf[Date]
       val dateTime = new DateTime(date.getTime)
       addResultDate(dateTime)
 

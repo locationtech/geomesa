@@ -17,9 +17,11 @@
 
 package org.locationtech.geomesa.filter.function
 
+import java.io.{ByteArrayOutputStream, OutputStream}
 import java.nio.{ByteBuffer, ByteOrder}
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.apache.commons.codec.Charsets
 import org.geotools.data.Base64
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
@@ -41,7 +43,8 @@ class Convert2ViewerFunction
     val id    = getExpression(0).evaluate(obj).asInstanceOf[String]
     val geom  = getExpression(1).evaluate(obj).asInstanceOf[Point]
     val dtg   = dtg2Long(getExpression(2).evaluate(obj))
-    Base64.encodeBytes(encode(ExtendedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, None, Some(id))))
+    val values = ExtendedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, None, Some(id))
+    Base64.encodeBytes(encodeToByteArray(values))
   }
 
   private def dtg2Long(d: Any): Long = d match {
@@ -54,6 +57,38 @@ class Convert2ViewerFunction
 
 object Convert2ViewerFunction {
 
+  private val buffers: ThreadLocal[ByteBuffer] = new ThreadLocal[ByteBuffer] {
+    override def initialValue = ByteBuffer.allocate(24).order(ByteOrder.LITTLE_ENDIAN)
+    override def get = {
+      val out = super.get
+      out.clear() // ready for re-use
+      out
+    }
+  }
+
+  private val byteStreams: ThreadLocal[ByteArrayOutputStream] = new ThreadLocal[ByteArrayOutputStream] {
+    override def initialValue = new ByteArrayOutputStream(24)
+    override def get = {
+      val out = super.get
+      out.reset() // ready for re-use
+      out
+    }
+  }
+
+  /**
+   * Reachback version is the simple version with an extra
+   *
+   * 64-bit quantity: label/reachback/whatever you want
+   *
+   * @param values
+   */
+  def encode(values: ExtendedValues, out: OutputStream): Unit = {
+    val buf = buffers.get()
+    put(buf, values.lat, values.lon, values.dtg, values.trackId)
+    putOption(buf, values.label, 8)
+    out.write(buf.array(), 0, 24)
+  }
+
   /**
    * Simple version:
    *
@@ -62,25 +97,25 @@ object Convert2ViewerFunction {
    * 32-bit float: latitude degrees (+/-90)
    * 32-bit float: longitude degrees (+/- 180)
    *
-   * Reachback version is the above with an extra
-   *
-   * 64-bit quantity: label/reachback/whatever you want
-   *
    * @param values
-   * @return
    */
-  def encode(values: EncodedValues): Array[Byte] =
-    values match {
-      case BasicValues(lat, lon, dtg, trackId) =>
-        val buf = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN)
-        put(buf, lat, lon, dtg, trackId)
-        buf.array()
-      case ExtendedValues(lat, lon, dtg, trackId, label) =>
-        val buf = ByteBuffer.allocate(24).order(ByteOrder.LITTLE_ENDIAN)
-        put(buf, lat, lon, dtg, trackId)
-        putOption(buf, label, 8)
-        buf.array()
-    }
+  def encode(values: BasicValues, out: OutputStream): Unit = {
+    val buf = buffers.get()
+    put(buf, values.lat, values.lon, values.dtg, values.trackId)
+    out.write(buf.array(), 0, 16)
+  }
+
+  def encodeToByteArray(values: ExtendedValues): Array[Byte] = {
+    val out = byteStreams.get()
+    encode(values, out)
+    out.toByteArray
+  }
+
+  def encodeToByteArray(values: BasicValues): Array[Byte] = {
+    val out = byteStreams.get()
+    encode(values, out)
+    out.toByteArray
+  }
 
   /**
    * Fills in the basic values
@@ -92,7 +127,7 @@ object Convert2ViewerFunction {
    * @param trackId
    */
   private def put(buffer: ByteBuffer, lat: Float, lon: Float, dtg: Long, trackId: Option[String]): Unit = {
-    putOption(buffer, trackId, 4)
+    buffer.putInt(trackId.map(_.hashCode).getOrElse(0))
     buffer.putInt((dtg / 1000).toInt)
     buffer.putFloat(lat)
     buffer.putFloat(lon)
@@ -109,7 +144,7 @@ object Convert2ViewerFunction {
   private def putOption(buf: ByteBuffer, value: Option[String], length: Int): Unit =
     value match {
       case Some(v) =>
-        val bytes = v.getBytes
+        val bytes = v.getBytes(Charsets.UTF_8)
         val sized =
           if (bytes.length < length) {
             bytes.padTo(length, ' '.toByte)
@@ -133,7 +168,7 @@ object Convert2ViewerFunction {
     if (bytes.forall(_ == 0)) {
       None
     } else {
-      Some(new String(bytes).trim)
+      Some(new String(bytes, Charsets.UTF_8).trim)
     }
   }
 
@@ -145,7 +180,10 @@ object Convert2ViewerFunction {
    */
   def decode(encoded: Array[Byte]): EncodedValues = {
     val buf = ByteBuffer.wrap(encoded).order(ByteOrder.LITTLE_ENDIAN)
-    val trackId = getOption(buf, 4)
+    val trackId = buf.getInt match {
+      case i if i != 0 => Some(i.toString)
+      case _           => None
+    }
     val time = buf.getInt * 1000L
     val lat = buf.getFloat
     val lon = buf.getFloat

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.jobs.index
 
 import java.util
@@ -53,20 +69,16 @@ class AttributeIndexJobTest extends Specification {
   def test(sft: SimpleFeatureType, feats: Seq[SimpleFeature]) = {
     val recScanner1 = ds.createRecordScanner(sft)
     recScanner1.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
-    val sft1Records: Seq[util.Map.Entry[Key, Value]] = recScanner1.iterator().toSeq
-
-    val attributes = Seq("attr2")
-    val attributeDescriptors: mutable.Buffer[AttributeDescriptor] = sft.getAttributeDescriptors
-      .asScala
-      .filter(ad => attributes.contains(ad.getLocalName))
+    val sft1Records = recScanner1.iterator().toSeq
 
     val r = JobResources(params, sft.getTypeName, List("attr2"))
 
-    val jobMutations1: Seq[Mutation] = sft1Records.flatMap { e =>
+    val jobMutations1 = sft1Records.flatMap { e =>
       AttributeIndexJob.getAttributeIndexMutation(r, e.getKey, e.getValue)
     }
 
-    val attrList = Seq(sft.getDescriptor("attr2"))
+    val descriptor = sft.getDescriptor("attr2")
+    val attrList = Seq((sft.indexOf(descriptor.getName), descriptor))
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
     val tableMutations1 = feats.flatMap { sf =>
       AttributeTable.getAttributeIndexMutations(sf, attrList, new ColumnVisibility(ds.writeVisibilities), prefix)

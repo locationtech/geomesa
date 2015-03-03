@@ -17,21 +17,22 @@
 
 package org.locationtech.geomesa.core.data.tables
 
-import java.util.{Date, Locale, Collection => JCollection, Map => JMap}
+import java.util.{Collection => JCollection, Date, Locale, Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.BatchWriter
-import org.apache.accumulo.core.data.Mutation
+import org.apache.accumulo.core.data.{Mutation, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureWriterFn
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.IndexEntry
+import org.locationtech.geomesa.core.index.IndexValueEncoder
 import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -43,30 +44,43 @@ import scala.util.{Failure, Success, Try}
 object AttributeTable extends GeoMesaTable with Logging {
   /** Creates a function to write a feature to the attribute index **/
   def attrWriter(bw: BatchWriter,
+                 sft: SimpleFeatureType,
                  indexedAttributes: Seq[AttributeDescriptor],
-                 visibility: String,
-                 rowIdPrefix: String): SimpleFeature => Unit =
-    (feature: SimpleFeature) => {
-      val mutations = getAttributeIndexMutations(feature,
-        indexedAttributes,
+                 rowIdPrefix: String): FeatureWriterFn = {
+
+    val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
+    val attributesToIdx = indexesOfIndexedAttributes.zip(indexedAttributes)
+
+    (feature: SimpleFeature, visibility: String) => {
+      val mutations = getAttributeIndexMutations(
+        feature,
+        attributesToIdx,
         new ColumnVisibility(visibility),
         rowIdPrefix)
       bw.addMutations(mutations)
     }
 
+  }
+
   /** Creates a function to remove attribute index entries for a feature **/
   def removeAttrIdx(bw: BatchWriter,
+                    sft: SimpleFeatureType,
                     indexedAttributes: Seq[AttributeDescriptor],
-                    visibility: String,
-                    rowIdPrefix: String): SimpleFeature => Unit =
-    (feature: SimpleFeature) => {
-      val mutations = getAttributeIndexMutations(feature,
-        indexedAttributes,
+                    rowIdPrefix: String): FeatureWriterFn = {
+
+    val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
+    val attributesToIdx = indexesOfIndexedAttributes.zip(indexedAttributes)
+
+    (feature: SimpleFeature, visibility: String) => {
+      val mutations = getAttributeIndexMutations(
+        feature,
+        attributesToIdx,
         new ColumnVisibility(visibility),
         rowIdPrefix,
-        true)
+        delete = true)
       bw.addMutations(mutations)
     }
+  }
 
   val typeRegistry = LexiTypeEncoders.LEXI_TYPES
   val nullString = ""
@@ -82,14 +96,14 @@ object AttributeTable extends GeoMesaTable with Logging {
    * @return
    */
   def getAttributeIndexMutations(feature: SimpleFeature,
-                                 indexedAttributes: Seq[AttributeDescriptor],
+                                 indexedAttributes: Seq[(Int, AttributeDescriptor)],
                                  visibility: ColumnVisibility,
                                  rowIdPrefix: String,
                                  delete: Boolean = false): Seq[Mutation] = {
     val cq = new Text(feature.getID)
-    lazy val value = IndexEntry.encodeIndexValue(feature)
-    indexedAttributes.flatMap { descriptor =>
-      val attribute = Option(feature.getAttribute(descriptor.getName))
+    lazy val value = new Value(IndexValueEncoder(feature.getFeatureType).encode(feature))
+    indexedAttributes.flatMap { case (idx, descriptor) =>
+      val attribute = Option(feature.getAttribute(idx))
       val mutations = getAttributeIndexRows(rowIdPrefix, descriptor, attribute).map(new Mutation(_))
       if (delete) {
         mutations.foreach(_.putDelete(EMPTY_COLF, cq, visibility))

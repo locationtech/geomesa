@@ -26,16 +26,18 @@ import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.Hints
-import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureWriterFn
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.{AvroSimpleFeature, AvroSimpleFeatureFactory}
+import org.locationtech.geomesa.core.security
+import org.locationtech.geomesa.feature.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 object AccumuloFeatureWriter {
 
+  type FeatureWriterFn = (SimpleFeature, String) => Unit
   type AccumuloRecordWriter = RecordWriter[Key, Value]
 
   class LocalRecordDeleter(tableName: String, connector: Connector) extends AccumuloRecordWriter {
@@ -80,19 +82,19 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   // it to an index or table. This list is configured to match the
   // version of the datastore (i.e. single table vs catalog
   // table + index tables)
-  protected val writers: List[SimpleFeature => Unit] = {
+  protected val writers: List[FeatureWriterFn] = {
     val stTable = ds.getSpatioTemporalIdxTableName(featureType)
-    val stWriter = List(SpatioTemporalTable.spatioTemporalWriter(multiBWWriter.getBatchWriter(stTable), visibility, indexEncoder))
+    val stWriter = List(SpatioTemporalTable.spatioTemporalWriter(multiBWWriter.getBatchWriter(stTable), indexEncoder))
 
-    val attrWriters: List[SimpleFeature => Unit] =
+    val attrWriters =
       if (ds.catalogTableFormat(featureType)) {
         val attrTable = ds.getAttrIdxTableName(featureType)
         val recTable = ds.getRecordTableForType(featureType)
         val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
 
         List(
-          AttributeTable.attrWriter(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility, rowIdPrefix),
-          RecordTable.recordWriter(multiBWWriter.getBatchWriter(recTable), encoder, visibility, rowIdPrefix))
+          AttributeTable.attrWriter(multiBWWriter.getBatchWriter(attrTable), featureType, indexedAttributes, rowIdPrefix),
+          RecordTable.recordWriter(multiBWWriter.getBatchWriter(recTable), encoder, rowIdPrefix))
       } else {
         List.empty
       }
@@ -105,9 +107,10 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
   /* Return a String representing nextId - use UUID.random for universal uniqueness across multiple ingest nodes */
   protected def nextFeatureId = UUID.randomUUID().toString
 
-  protected val builder = AvroSimpleFeatureFactory.featureBuilder(featureType)
+  protected val builder = ScalaSimpleFeatureFactory.featureBuilder(featureType)
 
   protected def writeToAccumulo(feature: SimpleFeature): Unit = {
+    import scala.collection.JavaConversions._
     // see if there's a suggested ID to use for this feature
     // (relevant when this insertion is wrapped inside a Transaction)
     val toWrite =
@@ -117,9 +120,11 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
       }
       else feature
 
-    // require non-null geometry to write to geomesa (can't index null geo yo!)
+    val perFeatureVisibility = feature.getUserData.getOrElse(security.SecurityUtils.FEATURE_VISIBILITY, visibility).asInstanceOf[String]
+
+    // require non-null geometry to write to geomesa (can't index null geo)
     if (toWrite.getDefaultGeometry != null) {
-      writers.foreach { w => w(toWrite) }
+      writers.foreach { w => w(toWrite, perFeatureVisibility) }
     } else {
       logger.warn("Invalid feature to write (no default geometry):  " + DataUtilities.encodeFeature(toWrite))
     }
@@ -149,7 +154,7 @@ class AppendAccumuloFeatureWriter(featureType: SimpleFeatureType,
   }
 
   def next(): SimpleFeature = {
-    currentFeature = new AvroSimpleFeature(new FeatureIdImpl(nextFeatureId), featureType)
+    currentFeature = new ScalaSimpleFeature(nextFeatureId, featureType)
     currentFeature
   }
 
@@ -173,30 +178,30 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
   // index or table. This list is configured to match the
   // version of the datastore (i.e. single table vs catalog
   // table + index tables)
-  val removers: List[SimpleFeature => Unit] = {
+  val removers: List[FeatureWriterFn] = {
     val stTable = dataStore.getSpatioTemporalIdxTableName(featureType)
     val stWriter = List(SpatioTemporalTable.removeSpatioTemporalIdx(multiBWWriter.getBatchWriter(stTable), indexEncoder))
 
     val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(featureType)
 
-    val attrWriters: List[SimpleFeature => Unit] =
+    val attrWriters =
       if (dataStore.catalogTableFormat(featureType)) {
         val attrTable = dataStore.getAttrIdxTableName(featureType)
         val recTable = dataStore.getRecordTableForType(featureType)
 
         List(
-          AttributeTable.removeAttrIdx(multiBWWriter.getBatchWriter(attrTable), indexedAttributes, visibility, rowIdPrefix),
-          RecordTable.recordDeleter(multiBWWriter.getBatchWriter(recTable), encoder, visibility, rowIdPrefix))
+          AttributeTable.removeAttrIdx(multiBWWriter.getBatchWriter(attrTable), featureType, indexedAttributes, rowIdPrefix),
+          RecordTable.recordDeleter(multiBWWriter.getBatchWriter(recTable), encoder, rowIdPrefix))
       } else {
         List.empty
       }
     stWriter ::: attrWriters
   }
 
+  import scala.collection.JavaConversions._
   override def remove() =
     if (original != null) {
-      removers.foreach { r => r(original)}
-      multiBWWriter.flush()
+      removers.foreach { r => r(original, original.getUserData.getOrElse(security.SecurityUtils.FEATURE_VISIBILITY, visibility).asInstanceOf[String]) }
     }
 
   override def hasNext = reader.hasNext
@@ -215,7 +220,9 @@ class ModifyAccumuloFeatureWriter(featureType: SimpleFeatureType,
       if (hasNext) {
         original = reader.next()
         builder.init(original)
-        builder.buildFeature(original.getID)
+        val ret = builder.buildFeature(original.getID)
+        ret.getUserData.putAll(original.getUserData)
+        ret
       } else {
         builder.buildFeature(nextFeatureId)
       }

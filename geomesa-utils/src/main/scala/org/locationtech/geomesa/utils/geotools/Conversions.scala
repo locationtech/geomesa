@@ -19,6 +19,7 @@ package org.locationtech.geomesa.utils.geotools
 import java.util.{Collection => JCollection, Map => JMap}
 
 import com.vividsolutions.jts.geom._
+import org.geotools.data.FeatureReader
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
 import org.geotools.geometry.DirectPosition2D
@@ -27,7 +28,7 @@ import org.geotools.util.{Converter, ConverterFactory}
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.temporal.Instant
 
 object Conversions {
@@ -44,6 +45,13 @@ object Conversions {
     }
     def next() = iter.next
     def close() { if(!isClosed) {iter.close(); open = false} }
+  }
+
+  implicit class RichSimpleFeatureReader(val r: FeatureReader[SimpleFeatureType, SimpleFeature]) extends AnyVal {
+    def getIterator = new Iterator[SimpleFeature] {
+      override def hasNext: Boolean = r.hasNext
+      override def next(): SimpleFeature = r.next()
+    }
   }
 
   implicit def toRichSimpleFeatureIterator(iter: SimpleFeatureIterator) = new RichSimpleFeatureIterator(iter)
@@ -70,6 +78,20 @@ object Conversions {
     def multiPolygon = sf.getDefaultGeometry.asInstanceOf[MultiPolygon]
     def multiPoint = sf.getDefaultGeometry.asInstanceOf[MultiPoint]
     def multiLineString = sf.getDefaultGeometry.asInstanceOf[MultiLineString]
+
+    def get[T](i: Int) = sf.getAttribute(i).asInstanceOf[T]
+    def get[T](name: String) = sf.getAttribute(name).asInstanceOf[T]
+
+    def getDouble(str: String): Double = {
+
+      val ret = sf.getAttribute(str)
+      ret match {
+        case d: java.lang.Double  => d
+        case f: java.lang.Float   => f.toDouble
+        case i: java.lang.Integer => i.toDouble
+        case _                    => throw new Exception(s"Input $ret is not a numeric type.")
+      }
+    }
   }
 
   import scala.collection.JavaConversions._

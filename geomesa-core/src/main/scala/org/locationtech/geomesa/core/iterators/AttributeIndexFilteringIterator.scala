@@ -24,11 +24,12 @@ import org.apache.accumulo.core.iterators.{Filter, IteratorEnvironment, SortedKe
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.index.IndexEntry.DecodedIndexValue
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 class AttributeIndexFilteringIterator extends Filter with Logging with WrappedSTFilter {
+
+  var indexEncoder: IndexValueEncoder = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: JMap[String, String],
@@ -39,6 +40,8 @@ class AttributeIndexFilteringIterator extends Filter with Logging with WrappedST
       val featureType = SimpleFeatureTypes.createType("DummyType", options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
       featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
       dateAttributeName = getDtgFieldName(featureType)
+
+      indexEncoder = IndexValueEncoder(featureType)
 
       val filterString  = options.get(DEFAULT_FILTER_PROPERTY_NAME)
       filter = ECQL.toFilter(filterString)
@@ -56,9 +59,10 @@ class AttributeIndexFilteringIterator extends Filter with Logging with WrappedST
     copy
   }
 
-  override def accept(k: Key, v: Value): Boolean = {
-    val DecodedIndexValue(_, geom, dtgOpt) = IndexEntry.decodeIndexValue(v)
-    wrappedSTFilter(geom, dtgOpt)
-  }
+  override def accept(k: Key, v: Value): Boolean =
+    indexEncoder == null || { // if index encoder is not set, wrapped filter will be a no-op
+      val decoded = indexEncoder.decode(v.get())
+      wrappedSTFilter(decoded.geom, decoded.date.map(_.getTime))
+    }
 }
 

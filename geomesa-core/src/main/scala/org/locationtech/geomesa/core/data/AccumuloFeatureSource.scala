@@ -32,6 +32,7 @@ import org.locationtech.geomesa.core.process.temporalDensity.TemporalDensityVisi
 import org.locationtech.geomesa.core.process.tube.TubeVisitor
 import org.locationtech.geomesa.core.process.unique.AttributeVisitor
 import org.locationtech.geomesa.core.util.TryLoggingFailure
+import org.locationtech.geomesa.utils.geotools.MinMaxTimeVisitor
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -93,9 +94,9 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
 
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener) =
     visitor match {
-      // TODO GEOMESA-421 implement min/max iterators
-      case v: MinVisitor             => v.setValue(new DateTime(2000,1,1,0,0).toDate)
-      case v: MaxVisitor             => v.setValue(new DateTime().toDate)
+      // TODO GEOMESA-421 implement min/max iteratorsZ
+      case v: MinVisitor             => v.setValue(ds.getTimeBounds(query.getTypeName).getStart.toDate)
+      case v: MaxVisitor             => v.setValue(ds.getTimeBounds(query.getTypeName).getEnd.toDate)
       case v: BoundsVisitor          => v.reset(ds.getBounds(query))
       case v: TubeVisitor            => v.setValue(v.tubeSelect(source, query))
       case v: ProximityVisitor       => v.setValue(v.proximitySearch(source, query))
@@ -109,6 +110,13 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
   override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = super.reader()
 }
 
+class CachingAccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
+    extends AccumuloFeatureCollection(source, query) {
+  lazy val internalFeatures = super.features()
+
+  override def features = internalFeatures
+}
+
 trait CachingFeatureSource extends AccumuloAbstractFeatureSource {
   self: AccumuloAbstractFeatureSource =>
 
@@ -116,8 +124,7 @@ trait CachingFeatureSource extends AccumuloAbstractFeatureSource {
     CacheBuilder.newBuilder().build(
       new CacheLoader[Query, SimpleFeatureCollection] {
         override def load(query: Query): SimpleFeatureCollection = {
-          val accFC = self.getFeaturesNoCache(query)
-          new ListFeatureCollection(accFC)
+          new CachingAccumuloFeatureCollection(self, query)
         }
       })
 

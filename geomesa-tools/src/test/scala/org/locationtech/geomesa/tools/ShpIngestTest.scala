@@ -1,25 +1,45 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.tools
 
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.Date
 
 import com.google.common.io.Files
 import com.vividsolutions.jts.geom.Coordinate
+import org.geotools.data.Transaction
 import org.geotools.data.shapefile.ShapefileDataStoreFactory
-import org.geotools.data.{DataStoreFinder, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
+import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.{GeneralShapefileIngest, SimpleFeatureTypes}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class ShpIngestTest extends Specification {
 
-  import org.locationtech.geomesa.utils.geotools.Conversions._
-
-import scala.collection.JavaConversions._
+  sequential
 
   "ShpIngest" >> {
     val geomBuilder = JTSFactoryFinder.getGeometryFactory
@@ -31,10 +51,13 @@ import scala.collection.JavaConversions._
     val shpStore = shpStoreFactory.createNewDataStore(params)
     val schema = SimpleFeatureTypes.createType("shpingest", "age:Integer,dtg:Date,*geom:Point:srid=4326")
     shpStore.createSchema(schema)
+    val df = new SimpleDateFormat("dd-MM-yyyy")
+    val (minDate, maxDate) = (df.parse("01-01-2011"), df.parse("01-01-2012"))
+    val (minX, maxX, minY, maxY) = (10.0, 20.0, 30.0, 40.0)
     val data =
       List(
-        ("1", 1, new Date(), (10.0, 10.0)),
-        ("1", 2, new Date(), (20.0, 20.0))
+        ("1", 1, minDate, (minX, minY)),
+        ("1", 2, maxDate, (maxX, maxY))
       )
     val writer = shpStore.getFeatureWriterAppend("shpingest", Transaction.AUTO_COMMIT)
     data.foreach { case (id, age, dtg, (lat, lon)) =>
@@ -50,33 +73,54 @@ import scala.collection.JavaConversions._
     writer.flush()
     writer.close()
 
-    val dsConf =     Map(
-      "instanceId"      -> "mycloud",
-      "zookeepers"      -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"            -> "myuser",
-      "password"        -> "mypassword",
-      "tableName"       -> "testshpingestcatalog",
-      "useMock"         -> "true")
+    val ingestParams = new IngestParameters()
+    ingestParams.instance = "mycloud"
+    ingestParams.zookeepers = "zoo1,zoo2,zoo3"
+    ingestParams.user = "myuser"
+    ingestParams.password = "mypassword"
+    ingestParams.catalog = "testshpingestcatalog"
+    ingestParams.useMock = true
 
-    val ds = DataStoreFinder.getDataStore(dsConf)
+    val ds = new DataStoreHelper(ingestParams).getOrCreateDs
 
     "should properly ingest a shapefile" >> {
-      val ingestConf = IngestArguments(file = shpFile.getAbsolutePath)
-      ShpIngest.doIngest(ingestConf, dsConf)
+      ingestParams.files.add(shpFile.getPath)
+      GeneralShapefileIngest.shpToDataStore(ingestParams.files(0), ds, ingestParams.featureName)
 
       val fs = ds.getFeatureSource("shpingest")
+
+      val bounds = fs.getBounds
+      bounds.getMinX mustEqual minX
+      bounds.getMaxX mustEqual maxX
+      bounds.getMinY mustEqual minY
+      bounds.getMaxY mustEqual maxY
+
+      val timeBounds = ds.getTimeBounds("shpingest")
+      timeBounds.getStart mustEqual new DateTime(minDate)
+      timeBounds.getEnd mustEqual new DateTime(maxDate)
+
       val result = fs.getFeatures.features().toList
-      result.length must beEqualTo(2)
+      result.length mustEqual 2
     }
 
     "should support renaming the feature type" >> {
-      val ingestConf = IngestArguments(file = shpFile.getAbsolutePath, featureName = "changed")
-      ShpIngest.doIngest(ingestConf, dsConf)
+      ingestParams.featureName = "changed"
+      GeneralShapefileIngest.shpToDataStore(ingestParams.files(0), ds, ingestParams.featureName)
 
       val fs = ds.getFeatureSource("changed")
-      val result = fs.getFeatures.features().toList
-      result.length must beEqualTo(2)
 
+      val timeBounds = ds.getTimeBounds("changed")
+      timeBounds.getStart mustEqual new DateTime(minDate)
+      timeBounds.getEnd mustEqual new DateTime(maxDate)
+
+      val bounds = fs.getBounds
+      bounds.getMinX mustEqual minX
+      bounds.getMaxX mustEqual maxX
+      bounds.getMinY mustEqual minY
+      bounds.getMaxY mustEqual maxY
+
+      val result = fs.getFeatures.features().toList
+      result.length mustEqual 2
     }
   }
 }

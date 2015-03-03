@@ -61,16 +61,6 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
 
     logger.debug(s"Done adding mutations to table $tableName.")
 
-    // add the schema description
-    val mutSchema = new Mutation(s"${METADATA_TAG}_$featureName")
-    mutSchema.put("schema", "", schemaEncoding)
-    bw.addMutation(mutSchema)
-
-    // add the attributes description
-    val mutAttributes = new Mutation(s"${METADATA_TAG}_$featureName")
-    mutAttributes.put("attributes", "", TestData.getTypeSpec())
-    bw.addMutation(mutAttributes)
-
     bw.flush()
     c
   }

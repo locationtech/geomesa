@@ -16,13 +16,14 @@
 
 package org.locationtech.geomesa.feature
 
-import java.io.ByteArrayOutputStream
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.text.SimpleDateFormat
 import java.util.UUID
 
 import com.vividsolutions.jts.geom.{Point, Polygon}
-import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
+import org.apache.avro.io.{BinaryDecoder, BinaryEncoder, DecoderFactory, EncoderFactory}
 import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.feature.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
@@ -36,17 +37,17 @@ object SerializationTester {
 
   def main(args: Array[String]) = {
 
-    def createComplicatedFeatures(numFeatures : Int) : List[Version2ASF] = {
-      val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,f8:Polygon:srid=4326"
+    def createComplicatedFeatures(numFeatures : Int) : List[AvroSimpleFeature] = {
+      val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date," +
+          "*f7:Point:srid=4326,f8:Polygon:srid=4326,f9:List[Double],f10:Map[String,Int]"
       val sft = SimpleFeatureTypes.createType("test", geoSchema)
       val r = new Random()
       r.setSeed(0)
 
-
-      val list = new ListBuffer[Version2ASF]
+      val list = new ListBuffer[AvroSimpleFeature]
       for(i <- 0 until numFeatures){
         val fid = new FeatureIdImpl(r.nextString(5))
-        val sf = new Version2ASF(fid, sft)
+        val sf = new AvroSimpleFeature(fid, sft)
 
         sf.setAttribute("f0", r.nextString(10).asInstanceOf[Object])
         sf.setAttribute("f1", r.nextInt().asInstanceOf[Object])
@@ -57,35 +58,63 @@ object SerializationTester {
         sf.setAttribute("f6", new SimpleDateFormat("yyyyMMdd").parse("20140102"))
         sf.setAttribute("f7", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])
         sf.setAttribute("f8", GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
+        sf.setAttribute("f9", List(r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble()))
+        sf.setAttribute("f10", Map(r.nextString(10) -> r.nextInt(),
+          r.nextString(10) -> r.nextInt(), r.nextString(10) -> r.nextInt(), r.nextString(10) -> r.nextInt()))
         list += sf
       }
       list.toList
     }
 
-    val features = createComplicatedFeatures(500000)
+//    size avro: 1151750
+//    size kryo: 1137102 1% smaller
 
-    def one() = {
-      val oldBaos = new ByteArrayOutputStream()
-      features.foreach { f =>
-        oldBaos.reset()
-        f.write(oldBaos)
-        oldBaos.toByteArray
-      }
-    }
+//    encode avro: 6.565
+//    encode kryo: 4.905 34% faster!
+
+//    decode avro: 9.455
+//    decode kryo: 7.625 24% faster!
+
+//    encode/decode avro: 16.02
+//    encode/decode kryo: 12.53 28% faster!
+
+//    complex attributes size avro: 1301239
+//    complex attributes size kryo: 1111239 17% smaller
+
+//    complex attributes encode/decode avro: 30.980
+//    complex attributes encode/decode kryo: 17.326 79% faster!
+
+    val features = createComplicatedFeatures(5000)
 
     def two() = {
       val writer = new AvroSimpleFeatureWriter(features(0).getType)
+      val reader = new FeatureSpecificReader(features(0).getType)
       val baos = new ByteArrayOutputStream()
       var reusableEncoder: BinaryEncoder = null
-      features.foreach { f =>
+      var reusableDecoder: BinaryDecoder = null
+      features.map { f =>
         baos.reset()
         reusableEncoder = EncoderFactory.get().directBinaryEncoder(baos, reusableEncoder)
         writer.write(f, reusableEncoder)
-        baos.toByteArray
-      }
+        val bytes = baos.toByteArray
+        reusableDecoder = DecoderFactory.get().directBinaryDecoder(new ByteArrayInputStream(bytes), reusableDecoder)
+        val feat = reader.read(null, reusableDecoder)
+        assert(f.getAttributes == feat.getAttributes)
+        bytes.size
+      }.sum
     }
 
-    def time(runs: Int, f: () => Unit) = {
+    def three() = {
+      val serializer = KryoFeatureSerializer(features(0).getType)
+      features.map { f =>
+        val bytes = serializer.write(f)
+        val feat = serializer.read(bytes)
+        assert(f.getAttributes == feat.getAttributes)
+        bytes.size
+      }.sum
+    }
+
+    def time(runs: Int, f: () => Int) = {
       val start = System.currentTimeMillis()
       for(i <- 0 until runs) {
         f()
@@ -93,16 +122,16 @@ object SerializationTester {
       val end = System.currentTimeMillis()
       (end-start).toDouble/runs.toDouble
     }
+
     // prime
-    one
-    two
+    println(two())
+    println(three())
 
-    val ones = time(100, one)
-    val twos = time(100, two)
+    val twos = time(1000, two)
+    val threes = time(1000, three)
 
-    println("1: " + ones)
-    println("2: " + twos)
-    println("r: " + ones/twos)
-
+    println("avro: " + twos)
+    println("kryo: " + threes)
+    println()
   }
 }

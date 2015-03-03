@@ -18,7 +18,10 @@ package org.locationtech.geomesa.core.data
 
 import org.geotools.data.{FeatureReader, Query}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.core.stats.{MethodProfiling, QueryStat, QueryStatTransform, StatWriter}
+import org.locationtech.geomesa.core.stats._
+import org.locationtech.geomesa.core.util.ExplainingConnectorCreator
+import org.locationtech.geomesa.feature.SimpleFeatureEncoder
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class AccumuloFeatureReader(dataStore: AccumuloDataStore,
@@ -26,52 +29,44 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
                             indexSchemaFmt: String,
                             sft: SimpleFeatureType,
                             featureEncoder: SimpleFeatureEncoder)
-  extends FeatureReader[SimpleFeatureType, SimpleFeature] with MethodProfiling {
+    extends FeatureReader[SimpleFeatureType, SimpleFeature] with MethodProfiling {
 
-  private var scanTime = 0L
-  private var hitsSeen = 0
+  implicit val timings = new TimingsImpl
 
   private val indexSchema = IndexSchema(indexSchemaFmt, sft, featureEncoder)
   private val queryPlanner = indexSchema.planner
+  private lazy val strategyHints = dataStore.strategyHints(sft)
 
-  def explainQuery(q: Query = query, o: ExplainerOutputType = ExplainPrintln) {
-    val (_, explainTime) = profile {
-      indexSchema.explainQuery(q, o)
-    }
-    o(s"Query Planning took $explainTime milliseconds.")
+  def explainQuery(o: ExplainerOutputType = ExplainPrintln) = {
+    profile({
+      val cc = new ExplainingConnectorCreator(o)
+      queryPlanner.getIterator(cc, sft, query, strategyHints, o)
+    }, "explain")
+    o(s"Query Planning took ${timings.time("explain")} milliseconds.")
   }
 
-  private lazy val (iter, planningTime) = profile {
-    queryPlanner.query(query, dataStore)
-  }
+  private lazy val iter = profile(queryPlanner.query(query, dataStore, strategyHints), "planning")
 
   override def getFeatureType = sft
 
-  override def next() = {
-    val (result, time) = profile(iter.next())
-    scanTime += time
-    hitsSeen += 1
-    result
-  }
+  override def next() = profile(iter.next(), "next")
 
-  override def hasNext = {
-    val (result, time) = profile(iter.hasNext)
-    scanTime += time
-    result
-  }
+  override def hasNext = profile(iter.hasNext, "hasNext")
 
   override def close() = {
     iter.close()
 
     dataStore match {
       case sw: StatWriter =>
-        val stat = QueryStat(sft.getTypeName,
-                             System.currentTimeMillis(),
-                             QueryStatTransform.filterToString(query.getFilter),
-                             QueryStatTransform.hintsToString(query.getHints),
-                             planningTime,
-                             scanTime - planningTime, // planning time gets added to scan time due to lazy val... Revisit in GEOMESA-408.
-                             hitsSeen)
+        val stat =
+          QueryStat(sft.getTypeName,
+                    System.currentTimeMillis(),
+                    QueryStatTransform.filterToString(query.getFilter),
+                    QueryStatTransform.hintsToString(query.getHints),
+                    timings.time("planning"),
+                    //TODO: planning time gets added to scan time due to lazy val... Revisit in GEOMESA-408
+                    timings.time("next") + timings.time("hasNext") - timings.time("planning"),
+                    timings.occurrences("next").toInt)
         sw.writeStat(stat, dataStore.getQueriesTableName(sft))
       case _ => // do nothing
     }

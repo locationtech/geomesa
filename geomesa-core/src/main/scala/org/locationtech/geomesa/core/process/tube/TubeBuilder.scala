@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.core.process.tube
 
 import java.util.Date
@@ -10,7 +26,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.format.DateTimeFormat
 import org.locationtech.geomesa.core.index.Constants
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.feature.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -30,7 +46,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   val GEOM_PROP = "geom"
 
   val tubeType = SimpleFeatureTypes.createType("tubeType", s"$GEOM_PROP:Geometry:srid=4326,start:Date,end:Date")
-  val builder = AvroSimpleFeatureFactory.featureBuilder(tubeType)
+  val builder = ScalaSimpleFeatureFactory.featureBuilder(tubeType)
 
   // default to ISO 8601 date format
   val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");

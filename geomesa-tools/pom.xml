@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-accumulo1.5</artifactId>
-        <version>1.0.0-rc.2-SNAPSHOT</version>
+        <version>1.0.0-rc.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -88,10 +88,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.scopt</groupId>
-            <artifactId>scopt_2.10</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <scope>compile</scope>
@@ -107,6 +103,10 @@
         <dependency>
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
         </dependency>
         <!-- test deps -->
         <dependency>

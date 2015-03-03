@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.core.data
 
 import org.apache.accumulo.core.client.BatchWriterConfig
@@ -12,7 +28,7 @@ import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.feature.{FeatureEncoding, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -205,7 +221,7 @@ class TableVersionTest extends Specification {
       val manualStore = DataStoreFinder.getDataStore(newManualParams).asInstanceOf[AccumuloDataStore]
 
       // the user provided avro
-      manualStore.featureEncoding mustEqual FeatureEncoding.AVRO
+      manualStore.featureEncoding mustEqual FeatureEncoding.KRYO
 
       // Ensure that a table with featureEncoder metadata defaults to TextFeatureEncoder
       // and verify with a manual scanner
@@ -262,7 +278,7 @@ class TableVersionTest extends Specification {
       hasEncodingMeta must beTrue
     }
 
-    "should default to creating new tables in avro" in {
+    "should default to creating new tables in kryo" in {
       var newGeomesaParams = geomesaParams.updated("tableName", "geomesa3")
       newGeomesaParams -= "featureEncoding"
 
@@ -272,8 +288,8 @@ class TableVersionTest extends Specification {
 
       val geomesaStore = DataStoreFinder.getDataStore(newGeomesaParams).asInstanceOf[AccumuloDataStore]
 
-      geomesaStore.featureEncoding mustEqual FeatureEncoding.AVRO
-      geomesaStore.getFeatureEncoding(sft) mustEqual FeatureEncoding.AVRO
+      geomesaStore.featureEncoding mustEqual FeatureEncoding.KRYO
+      geomesaStore.getFeatureEncoding(sft) mustEqual FeatureEncoding.KRYO
     }
   }
 

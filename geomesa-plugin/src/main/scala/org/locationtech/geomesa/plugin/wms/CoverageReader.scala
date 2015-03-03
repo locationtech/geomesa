@@ -31,12 +31,14 @@ import org.geotools.coverage.grid.io.{AbstractGridCoverage2DReader, AbstractGrid
 import org.geotools.coverage.grid.{GridCoverage2D, GridEnvelope2D, GridGeometry2D}
 import org.geotools.geometry.GeneralEnvelope
 import org.geotools.parameter.Parameter
+import org.geotools.referencing.CRS
 import org.geotools.util.{DateRange, Utilities}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.iterators.{AggregatingKeyIterator, SurfaceAggregatingIterator, TimestampRangeIterator, TimestampSetIterator}
 import org.locationtech.geomesa.core.util.{BoundingBoxUtil, SelfClosingBatchScanner}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, TwoGeoHashBoundingBox}
+import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.opengis.geometry.Envelope
 import org.opengis.parameter.{GeneralParameterValue, InvalidParameterValueException}
 
@@ -71,11 +73,11 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
     case (columnFamily, columnQualifier) => new Text("~" + columnFamily + "~" + columnQualifier)
   }
 
-  this.crs = AbstractGridFormat.getDefaultCRS
-  this.originalEnvelope = new GeneralEnvelope(Array(-180.0, -90.0), Array(180.0, 90.0))
-  this.originalEnvelope.setCoordinateReferenceSystem(this.crs)
-  this.originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
-  this.coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(this.hints)
+  crs = CRS_EPSG_4326
+  originalEnvelope = new GeneralEnvelope(Array(-180.0, -90.0), Array(180.0, 90.0))
+  originalEnvelope.setCoordinateReferenceSystem(crs)
+  originalGridRange = new GridEnvelope2D(new Rectangle(0, 0, 1024, 512))
+  coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(hints)
 
   val zkInstance = new ZooKeeperInstance(instanceId, zookeepers)
   val connector = zkInstance.getConnector(user, new PasswordToken(password.getBytes))
@@ -114,12 +116,12 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
   def read(parameters: Array[GeneralParameterValue]): GridCoverage2D = {
     val paramsMap = parameters.map(gpv => (gpv.getDescriptor.getName.getCode, gpv)).toMap
     val gg = paramsMap(AbstractGridFormat.READ_GRIDGEOMETRY2D.getName.toString).asInstanceOf[Parameter[GridGeometry2D]].getValue
-    val env = gg.getEnvelope
+    val env = CRS.transform(gg.getEnvelope, crs)
 
     val timeParam: Option[Either[Date, DateRange]] =
       parameters
         .find { _.getDescriptor.getName.getCode == AbstractGridFormat.TIME.getName.toString }
-        .flatMap { case p: Parameter[JList[AnyRef]] => p.getValue.lift(0) }
+        .flatMap { case p: Parameter[JList[AnyRef]] => p.getValue.lift(0).flatMap(Option(_)) } // flatMap(Option(_)) transforms Some(null) into None
         .map {
           case date: Date => Left(date)
           case dateRange: DateRange => Right(dateRange)
@@ -127,9 +129,8 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
         }
 
     val tile = getImage(timeParam, env, gg.getGridRange2D.getSpan(0), gg.getGridRange2D.getSpan(1))
-    this.coverageFactory.create(coverageName, tile, env)
+    coverageFactory.create(coverageName, tile, env)
   }
-
 
   def getImage(timeParam: Option[Either[Date, DateRange]], env: Envelope, xDim:Int, yDim:Int) = {
     val min = Array(Math.max(env.getMinimum(0), -180) + .00000001, Math.max(env.getMinimum(1), -90) + .00000001)

@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-accumulo1.5</artifactId>
-        <version>1.0.0-rc.2-SNAPSHOT</version>
+        <version>1.0.0-rc.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -86,6 +86,10 @@
         <dependency>
             <groupId>com.typesafe</groupId>
             <artifactId>scalalogging-slf4j_2.10</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
         </dependency>
 
         <!-- test dependencies -->
