@@ -20,6 +20,8 @@ import java.io.{InputStream, OutputStream}
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
+import org.geotools.feature.simple.SimpleFeatureImpl
+import org.locationtech.geomesa.feature.{AvroSimpleFeature, ScalaSimpleFeature}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -31,7 +33,6 @@ case class KryoFeatureSerializer(serializer: Serializer[SimpleFeature]) {
 
   private val kryo = new Kryo()
 
-  // TODO test spark
   kryo.setReferences(false)
 
   val idSerializer = new FeatureIdSerializer()
@@ -106,10 +107,21 @@ case class KryoFeatureSerializer(serializer: Serializer[SimpleFeature]) {
 
 object KryoFeatureSerializer {
 
+  val simpleFeatureImpls = Seq(classOf[ScalaSimpleFeature],
+                               classOf[SimpleFeature],
+                               classOf[AvroSimpleFeature],
+                               classOf[SimpleFeatureImpl])
+
   def apply(sft: SimpleFeatureType): KryoFeatureSerializer = apply(new SimpleFeatureSerializer(sft))
 
   def apply(sft: SimpleFeatureType, decodeAs: SimpleFeatureType): KryoFeatureSerializer =
     if (sft.eq(decodeAs)) apply(sft) else apply(new TransformingSimpleFeatureSerializer(sft, decodeAs))
+
+  def setupKryo(kryo: Kryo, serializer: Serializer[SimpleFeature]): Unit = {
+    kryo.setReferences(false)
+    simpleFeatureImpls.foreach(kryo.register(_, serializer, kryo.getNextRegistrationId))
+    kryo.register(classOf[KryoFeatureId], new FeatureIdSerializer(), kryo.getNextRegistrationId)
+  }
 }
 
 case class KryoFeatureId(id: String)

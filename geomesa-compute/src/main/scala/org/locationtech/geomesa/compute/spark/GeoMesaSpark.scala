@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.compute.spark
 
-import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 
 import com.esotericsoftware.kryo.Kryo
@@ -33,7 +32,8 @@ import org.geotools.data.{DataStore, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.{IndexSchema, STIdxStrategy}
-import org.locationtech.geomesa.feature.{AvroFeatureDecoder, AvroFeatureEncoder, SimpleFeatureEncoder, AvroSimpleFeature}
+import org.locationtech.geomesa.feature._
+import org.locationtech.geomesa.feature.kryo.{SimpleFeatureSerializer, KryoFeatureSerializer}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -48,7 +48,7 @@ object GeoMesaSpark {
     
     conf.set("spark.executor.extraJavaOptions", extraOpts)
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    conf.set("spark.kryo.registrator", classOf[KryoAvroSimpleFeatureBridge].getCanonicalName)
+    conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getCanonicalName)
   }
   
   def typeProp(typeName: String) = s"geomesa.types.$typeName"
@@ -58,7 +58,8 @@ object GeoMesaSpark {
     val typeName = query.getTypeName
     val sft = ds.getSchema(typeName)
     val spec = SimpleFeatureTypes.encodeType(sft)
-    val encoder = SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft))
+    val encoding = ds.getFeatureEncoding(sft)
+    val encoder = SimpleFeatureEncoder(sft, encoding)
     val indexSchema = IndexSchema(ds.getIndexSchemaFmt(typeName), sft, encoder)
 
     val planner = new STIdxStrategy
@@ -75,7 +76,7 @@ object GeoMesaSpark {
 
     rdd.mapPartitions { iter =>
       val sft = SimpleFeatureTypes.createType(typeName, spec)
-      val decoder = new AvroFeatureDecoder(sft)
+      val decoder = SimpleFeatureDecoder(sft, encoding)
       iter.map { case (k: Key, v: Value) => decoder.decode(v.get()) }
     }
   }
@@ -94,48 +95,37 @@ object GeoMesaSpark {
 
 }
 
-class KryoAvroSimpleFeatureBridge extends KryoRegistrator {
+class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
 
   override def registerClasses(kryo: Kryo): Unit = {
-    kryo.register(classOf[AvroSimpleFeature],
-      new com.esotericsoftware.kryo.Serializer[AvroSimpleFeature]() {
-        val typeCache = CacheBuilder.newBuilder().build(
-          new CacheLoader[String, SimpleFeatureType] {
-            override def load(key: String): SimpleFeatureType = {
-              val spec = System.getProperty(GeoMesaSpark.typeProp(key))
-              if (spec == null) throw new IllegalArgumentException(s"Couldn't find property geomesa.types.$key")
-              SimpleFeatureTypes.createType(key, spec)
-            }
-          })
+    val serializer = new com.esotericsoftware.kryo.Serializer[SimpleFeature]() {
+      val typeCache = CacheBuilder.newBuilder().build(
+        new CacheLoader[String, SimpleFeatureType] {
+          override def load(key: String): SimpleFeatureType = {
+            val spec = System.getProperty(GeoMesaSpark.typeProp(key))
+            if (spec == null) throw new IllegalArgumentException(s"Couldn't find property geomesa.types.$key")
+            SimpleFeatureTypes.createType(key, spec)
+          }
+        })
 
-        val encoderCache = CacheBuilder.newBuilder().build(
-          new CacheLoader[String, AvroFeatureEncoder] {
-            override def load(key: String): AvroFeatureEncoder = new AvroFeatureEncoder(typeCache.get(key))
-          })
+      val serializerCache = CacheBuilder.newBuilder().build(
+        new CacheLoader[String, SimpleFeatureSerializer] {
+          override def load(key: String): SimpleFeatureSerializer = new SimpleFeatureSerializer(typeCache.get(key))
+        })
 
-        val decoderCache = CacheBuilder.newBuilder().build(
-          new CacheLoader[String, AvroFeatureDecoder] {
-            override def load(key: String): AvroFeatureDecoder = new AvroFeatureDecoder(typeCache.get(key))
-          })
 
-        override def write(kryo: Kryo, out: Output, feature: AvroSimpleFeature): Unit = {
-          val typeName = feature.getFeatureType.getTypeName
-          val len = typeName.length
-          out.writeInt(len, true)
-          out.write(typeName.getBytes(StandardCharsets.UTF_8))
-          val bytes = encoderCache.get(typeName).encode(feature)
-          out.writeInt(bytes.length, true)
-          out.write(bytes)
-        }
+      override def write(kryo: Kryo, out: Output, feature: SimpleFeature): Unit = {
+        val typeName = feature.getFeatureType.getTypeName
+        out.writeString(typeName)
+        serializerCache.get(typeName).write(kryo, out, feature)
+      }
 
-        override def read(kry: Kryo, in: Input, clazz: Class[AvroSimpleFeature]): AvroSimpleFeature = {
-          val len = in.readInt(true)
-          val typeName = new String(in.readBytes(len), StandardCharsets.UTF_8)
-          val sft = typeCache.get(typeName)
-          val flen = in.readInt(true)
-          val bytes = in.readBytes(flen)
-          decoderCache.get(typeName).decode(bytes)
-        }
-      })
+      override def read(kry: Kryo, in: Input, clazz: Class[SimpleFeature]): SimpleFeature = {
+        val typeName = in.readString()
+        serializerCache.get(typeName).read(kryo, in, clazz)
+      }
+    }
+
+    KryoFeatureSerializer.setupKryo(kryo, serializer)
   }
 }

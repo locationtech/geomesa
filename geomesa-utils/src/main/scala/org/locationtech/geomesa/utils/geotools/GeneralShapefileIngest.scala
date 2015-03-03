@@ -67,6 +67,9 @@ object GeneralShapefileIngest {
         features.getSchema
 
     val featureTypeName = featureType.getName.getLocalPart
+    if (ds.getSchema(featureTypeName) != null) {
+      throw new Exception(s"Type name $featureTypeName already exists in data store...shapefile ingest cannot continue")
+    }
 
     ds.createSchema(featureType)
 
