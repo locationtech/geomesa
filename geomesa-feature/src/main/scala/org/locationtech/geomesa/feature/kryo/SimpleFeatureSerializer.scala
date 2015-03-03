@@ -23,6 +23,7 @@ import com.esotericsoftware.kryo.{Kryo, Serializer}
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.io.WKBConstants
 import org.locationtech.geomesa.feature.ScalaSimpleFeature
+import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer.{Decoding, Encoding}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -46,16 +47,22 @@ class SimpleFeatureSerializer(sft: SimpleFeatureType) extends Serializer[SimpleF
   override def write(kryo: Kryo, output: Output, sf: SimpleFeature): Unit = {
     output.writeInt(VERSION, true)
     output.writeString(sf.getID)
-    encodings.foreach(encode => encode(output, sf))
+    var i = 0
+    while (i < encodings.length) {
+      encodings(i)(output, sf)
+      i += 1
+    }
   }
 
   override def read(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
     val version = input.readInt(true)
     val id = input.readString()
     val values = Array.ofDim[AnyRef](sft.getAttributeCount)
-
-    decodings.foreach { case (decode, i) => values(i) = decode(input, version) }
-
+    var i = 0
+    while (i < decodings.length) {
+      values(i) = decodings(i)(input, version)
+      i += 1
+    }
     new ScalaSimpleFeature(id, sft, values)
   }
 }
@@ -68,33 +75,62 @@ class FeatureIdSerializer extends Serializer[KryoFeatureId] {
   override def write(kryo: Kryo, output: Output, id: KryoFeatureId): Unit = ???
 
   override def read(kryo: Kryo, input: Input, typ: Class[KryoFeatureId]): KryoFeatureId = {
-    input.readInt(true) // discard version info, currently only one version
+    input.readInt(true) // discard version info, not used for ID
     KryoFeatureId(input.readString())
   }
 }
 
 /**
- * Kryo serialization implementation for simple features - provides transformation during read
+ * Kryo serialization implementation for simple features - provides transformation during read and write
  *
  * @param sft
- * @param decodeAs
+ * @param transform
  */
-class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, decodeAs: SimpleFeatureType)
+class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: SimpleFeatureType)
     extends SimpleFeatureSerializer(sft) {
 
-  val transformDecodings = decodings.map {
-    case (decode, i) => (decode, decodeAs.indexOf(sft.getDescriptor(i).getLocalName))
+  import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer.VERSION
+
+  val (transformEncodings, transformDecodings) = {
+    val enc = scala.collection.mutable.ArrayBuffer.empty[Encoding]
+    val dec = scala.collection.mutable.ArrayBuffer.empty[(Decoding, Int)]
+    var i = 0
+    while (i < encodings.length) {
+      val index = transform.indexOf(sft.getDescriptor(i).getLocalName)
+      if (index != -1) {
+        enc.append(encodings(i))
+      }
+      dec.append((decodings(i), index))
+      i += 1
+    }
+    (enc, dec)
+  }
+
+  override def write(kryo: Kryo, output: Output, sf: SimpleFeature): Unit = {
+    output.writeInt(VERSION, true)
+    output.writeString(sf.getID)
+    var i = 0
+    while (i < transformEncodings.length) {
+      transformEncodings(i)(output, sf)
+      i += 1
+    }
   }
 
   override def read(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
     val version = input.readInt(true)
     val id = input.readString()
-    val values = Array.ofDim[AnyRef](decodeAs.getAttributeCount)
-
-    transformDecodings.foreach { case (decode, i) =>
-      if (i == -1) decode(input, version) else values(i) = decode(input, version)
+    val values = Array.ofDim[AnyRef](transform.getAttributeCount)
+    var i = 0
+    while (i < transformDecodings.length) {
+      val (decoding, index) = transformDecodings(i)
+      if (index == -1) {
+        decoding(input, version) // discard
+      } else {
+        values(index) = decoding(input, version)
+      }
+      i += 1
     }
-    new ScalaSimpleFeature(id, decodeAs, values)
+    new ScalaSimpleFeature(id, transform, values)
   }
 }
 
@@ -108,12 +144,12 @@ object SimpleFeatureSerializer {
   val NON_NULL_BYTE = 1.asInstanceOf[Byte]
 
   type Encoding = (Output, SimpleFeature) => Unit
-  type Decoding = ((Input, Int) => AnyRef, Int)
+  type Decoding = (Input, Int) => AnyRef
 
   // encodings are cached per-thread to avoid synchronization issues
   // we use soft references to allow garbage collection as needed
-  private val encodingsCache = new SoftThreadLocalCache[String, Seq[Encoding]]()
-  private val decodingsCache = new SoftThreadLocalCache[String, Seq[Decoding]]()
+  private val encodingsCache = new SoftThreadLocalCache[String, Array[Encoding]]()
+  private val decodingsCache = new SoftThreadLocalCache[String, Array[Decoding]]()
 
   def cacheKeyForSFT(sft: SimpleFeatureType) =
     s"${sft.getName};${sft.getAttributeDescriptors.map(ad => s"${ad.getName.toString}${ad.getType}").mkString(",")}"
@@ -124,9 +160,9 @@ object SimpleFeatureSerializer {
    * @param sft
    * @return
    */
-  def sftEncodings(sft: SimpleFeatureType): Seq[Encoding] =
+  def sftEncodings(sft: SimpleFeatureType): Array[Encoding] =
     encodingsCache.getOrElseUpdate(cacheKeyForSFT(sft), {
-      sft.getAttributeDescriptors.zipWithIndex.map { case (d, i) =>
+      sft.getAttributeDescriptors.zipWithIndex.toArray.map { case (d, i) =>
         val encode = matchEncode(d.getType.getBinding, d.getUserData)
         (out: Output, sf: SimpleFeature) => encode(out, sf.getAttribute(i))
       }
@@ -314,11 +350,11 @@ object SimpleFeatureSerializer {
    * @param sft
    * @return
    */
-  def sftDecodings(sft: SimpleFeatureType): Seq[((Input, Int) => AnyRef, Int)] =
+  def sftDecodings(sft: SimpleFeatureType): Array[(Input, Int) => AnyRef] =
     decodingsCache.getOrElseUpdate(cacheKeyForSFT(sft), {
       sft.getAttributeDescriptors.map { d =>
         matchDecode(d.getType.getBinding, d.getUserData)
-      }.zipWithIndex
+      }.toArray
     })
 
   /**

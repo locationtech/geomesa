@@ -19,45 +19,34 @@ package org.locationtech.geomesa.core.index
 import java.util
 
 import org.geotools.data.Query
-import org.locationtech.geomesa.core.index.AttributeIndexStrategy.getAttributeIndexStrategy
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryHints._
-import org.locationtech.geomesa.core.index.RecordIdxStrategy.getRecordIdxStrategy
-import org.locationtech.geomesa.core.index.STIdxStrategy.getSTIdxStrategy
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Id, PropertyIsLike}
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 
 object QueryStrategyDecider {
 
-  def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints, version: Int): Strategy = {
-    if (version < 1) {
-      // if datastore doesn't support attr index use spatiotemporal only
-      return new STIdxStrategy
-    }
+  val REASONABLE_COST = 10000
+  val OPTIMAL_COST = 10
 
-    val isDensity = query.getHints.containsKey(BBOX_KEY) || query.getHints.contains(TIME_BUCKETS_KEY)
-    if (isDensity) {
+  def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints, version: Int): Strategy = {
+    // check for density queries
+    if (query.getHints.containsKey(BBOX_KEY) || query.getHints.contains(TIME_BUCKETS_KEY)) {
       // TODO GEOMESA-322 use other strategies with density iterator
       return new STIdxStrategy
     }
 
-    val filter = query.getFilter
-    // check if we can use the attribute index first
-    val attributeStrategy = getAttributeIndexStrategy(filter, sft)
-    attributeStrategy.getOrElse {
-      filter match {
-        case idFilter: Id => new RecordIdxStrategy
-        case and: And     => processAnd(and, sft, hints)
-        case cql          => new STIdxStrategy
-      }
+    query.getFilter match {
+      case id: Id   => new RecordIdxStrategy
+      case and: And => processAnd(and, sft, hints)
+      case cql =>
+        // a single clause - check for indexed attributes or fall back to spatio-temporal
+        AttributeIndexStrategy.getStrategy(cql, sft, hints).map(_.strategy).getOrElse(new STIdxStrategy)
     }
   }
-
-  case class StrategyAndFilter(strategy: Strategy, filter: Filter)
 
   /**
    * Choose the query strategy to be employed here. This is the priority
@@ -78,51 +67,35 @@ object QueryStrategyDecider {
    */
   private def processAnd(and: And, sft: SimpleFeatureType, hints: StrategyHints): Strategy = {
 
-    val filters: util.List[Filter] = decomposeAnd(and)
+    import org.locationtech.geomesa.utils.geotools.RichIterator.RichIterator
+
+    val filters = decomposeAnd(and)
 
     // scan the query and identify the type of predicates present
 
     // record strategy takes priority
-    val recordStrategies =
-      filters.toStream.flatMap(f => getRecordIdxStrategy(f, sft).map(StrategyAndFilter(_, f)))
-    if (!recordStrategies.isEmpty) {
-      return recordStrategies(0).strategy
+    val recordStrategy = filters.iterator.flatMap(f => RecordIdxStrategy.getStrategy(f, sft, hints)).headOption
+    if (recordStrategy.isDefined) {
+      return recordStrategy.get.strategy
     }
 
+    // look for reasonable cost attribute strategies
     val attributeStrategies =
-      filters.flatMap(f => getAttributeIndexStrategy(f, sft).map(StrategyAndFilter(_, f)))
+      filters.flatMap(f => AttributeIndexStrategy.getStrategy(f, sft, hints)).filter(_.cost < REASONABLE_COST)
     // if no attribute or record strategies, use ST
     if (attributeStrategies.isEmpty) {
       return new STIdxStrategy
     }
 
-    // next look for high-cardinality attribute filters
-    val highCardinalityStrategy = attributeStrategies.find { case StrategyAndFilter(strategy, filter) =>
-      val (prop, _) = AttributeIndexStrategy.getPropertyAndRange(filter, sft)
-      hints.cardinality(sft.getDescriptor(prop)) == Cardinality.HIGH
-    }
+    // next look for low cost (high-cardinality) attribute filters - cost is set in the attribute strategy
+    val highCardinalityStrategy = attributeStrategies.find(_.cost < OPTIMAL_COST)
     if (highCardinalityStrategy.isDefined) {
       return highCardinalityStrategy.get.strategy
     }
 
-    // finally, compare spatial and attribute filters based on order
-    val stStrategy = filters.flatMap(f => getSTIdxStrategy(f, sft).map(StrategyAndFilter(_, f))).headOption
-    val attrStrategy = attributeStrategies.find { case StrategyAndFilter(strategy, filter) =>
-      val (prop, _) = AttributeIndexStrategy.getPropertyAndRange(filter, sft)
-      hints.cardinality(sft.getDescriptor(prop)) != Cardinality.LOW
-    }
-
-    (stStrategy, attrStrategy) match {
-      case (None, None)           => new STIdxStrategy
-      case (Some(st), None)       => st.strategy
-      case (None, Some(attr))     => attr.strategy
-      case (Some(st), Some(attr)) =>
-        if (filters.indexOf(st.filter) < filters.indexOf(attr.filter)) {
-          st.strategy
-        } else {
-          attr.strategy
-        }
-    }
+    // finally, prefer spatial filters if available
+    val stStrategy = filters.iterator.flatMap(f => STIdxStrategy.getStrategy(f, sft, hints)).headOption
+    stStrategy.orElse(attributeStrategies.headOption).map(_.strategy).getOrElse(new STIdxStrategy)
   }
 
   // TODO try to use wildcard values from the Filter itself (https://geomesa.atlassian.net/browse/GEOMESA-309)

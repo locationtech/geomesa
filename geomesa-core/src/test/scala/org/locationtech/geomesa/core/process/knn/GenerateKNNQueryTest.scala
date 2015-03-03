@@ -106,7 +106,7 @@ class GenerateKNNQueryTest extends Specification {
       val newFilter =  newQuery.getFilter
 
       // process the newFilter to split out the geometry part
-      val (geomFilters, otherFilters) = filter.partitionGeom(newFilter)
+      val (geomFilters, otherFilters) = filter.partitionGeom(newFilter, sft)
 
       // rewrite the geometry filter
       val tweakedGeoms = geomFilters.map ( FilterHelper.updateTopologicalFilters(_, sft) )

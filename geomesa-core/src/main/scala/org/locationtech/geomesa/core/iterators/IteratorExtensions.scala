@@ -16,17 +16,11 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import java.util.Date
-
-import com.vividsolutions.jts.geom.Geometry
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.IteratorExtensions.OptionMap
 import org.locationtech.geomesa.core.transform.TransformCreator
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -61,80 +55,36 @@ trait HasFeatureType {
   // feature type config
   def initFeatureType(options: OptionMap) = {
     val sftName = Option(options.get(GEOMESA_ITERATORS_SFT_NAME)).getOrElse(this.getClass.getSimpleName)
-    featureType = SimpleFeatureTypes.createType(sftName,
-      options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
+    featureType = SimpleFeatureTypes.createType(sftName, options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
     featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+  }
+}
+
+trait HasVersion extends IteratorExtensions {
+
+  var version: Int = -1
+
+  abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
+    super.init(featureType, options)
+    version = options.get(GEOMESA_ITERATORS_VERSION).toInt
   }
 }
 
 /**
  * Provides an index value decoder
  */
-trait HasIndexValueDecoder extends IteratorExtensions {
+trait HasIndexValueDecoder extends HasVersion {
 
+  var indexSft: SimpleFeatureType = null
   var indexEncoder: IndexValueEncoder = null
 
   // index value encoder/decoder
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
-    val indexValues = SimpleFeatureTypes.createType(featureType.getTypeName,
+    val version = options.get(GEOMESA_ITERATORS_VERSION).toInt
+    indexSft = SimpleFeatureTypes.createType(featureType.getTypeName,
       options.get(GEOMESA_ITERATORS_SFT_INDEX_VALUE))
-    indexEncoder = IndexValueEncoder(indexValues)
-  }
-}
-
-/**
- * Provides a feature builder and a method to create a feature from an index value
- */
-trait HasFeatureBuilder extends HasFeatureType {
-
-  import org.locationtech.geomesa.core.iterators.IteratorTrigger._
-
-  private var featureBuilder: SimpleFeatureBuilder = null
-
-  private lazy val geomIdx = featureType.indexOf(featureType.getGeometryDescriptor.getLocalName)
-  private lazy val sdtgIdx = featureType.startTimeName.map(featureType.indexOf).getOrElse(-1)
-  private lazy val edtgIdx = featureType.endTimeName.map(featureType.indexOf).getOrElse(-1)
-  private lazy val hasDtg  = sdtgIdx != -1 || edtgIdx != -1
-
-  private lazy val attrArray = Array.ofDim[AnyRef](featureType.getAttributeCount)
-
-  override def initFeatureType(options: OptionMap) = {
-    super.initFeatureType(options)
-    featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(featureType)
-  }
-
-  def encodeIndexValueToSF(value: DecodedIndexValue): SimpleFeature = {
-    // Build and fill the Feature. This offers some performance gain over building and then setting the attributes.
-    featureBuilder.buildFeature(value.id, attributeArray(featureBuilder.getFeatureType, value))
-  }
-
-  /**
-   * Construct and fill an array of the SimpleFeature's attribute values
-   */
-  def attributeArray(sft: SimpleFeatureType, indexValue: DecodedIndexValue): Array[AnyRef] = {
-    val attrArray = new Array[AnyRef](sft.getAttributeCount)
-    indexValue.attributes.foreach { case (name, value) =>
-      val index = sft.indexOf(name)
-      if (index != -1) {
-        attrArray.update(index, value.asInstanceOf[AnyRef])
-      }
-    }
-    attrArray
-  }
-
-  /**
-   * Construct and fill an array of the SimpleFeature's attribute values
-   * Reuse attrArray as it is copied inside of feature builder anyway
-   */
-  private def fillAttributeArray(geomValue: Geometry, date: Option[Date]) = {
-    // always set the mandatory geo element
-    attrArray(geomIdx) = geomValue
-    // if dtgDT exists, attempt to fill the elements corresponding to the start and/or end times
-    date.foreach { time =>
-      if (sdtgIdx != -1) attrArray(sdtgIdx) = time
-      if (edtgIdx != -1) attrArray(edtgIdx) = time
-    }
+    indexEncoder = IndexValueEncoder(indexSft, featureType, version)
   }
 }
 
@@ -162,30 +112,16 @@ trait HasFeatureDecoder extends IteratorExtensions {
  */
 trait HasSpatioTemporalFilter extends IteratorExtensions {
 
-  private var filterOption: Option[Filter] = None
-  private var dateAttributeIndex: Option[Int] = None
-  private var testSimpleFeature: Option[SimpleFeature] = None
-
-  lazy val stFilter: Option[(Geometry, Option[Long]) => Boolean] =
-    for (filter <- filterOption.filterNot(_ == Filter.INCLUDE); feat <- testSimpleFeature) yield {
-      (geom: Geometry, olong: Option[Long]) => {
-        feat.setDefaultGeometry(geom)
-        dateAttributeIndex.foreach { i =>
-          olong.map(new Date(_)).foreach(feat.setAttribute(i, _))
-        }
-        filter.evaluate(feat)
-      }
-    }
+  var stFilter: Filter = null
 
   // spatio-temporal filter config
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
-    dateAttributeIndex = getDtgFieldName(featureType).map(featureType.indexOf)
     if (options.containsKey(ST_FILTER_PROPERTY_NAME)) {
-      val filterString = options.get(ST_FILTER_PROPERTY_NAME)
-      filterOption = Some(ECQL.toFilter(filterString))
-      val sfb = new SimpleFeatureBuilder(featureType)
-      testSimpleFeature = Some(sfb.buildFeature("test"))
+      val filter = ECQL.toFilter(options.get(ST_FILTER_PROPERTY_NAME))
+      if (filter != Filter.INCLUDE) {
+        stFilter = filter
+      }
     }
   }
 }
@@ -193,21 +129,18 @@ trait HasSpatioTemporalFilter extends IteratorExtensions {
 /**
  * Provides an arbitrary filter if the iterator config specifies one
  */
-trait HasEcqlFilter extends IteratorExtensions {
+trait HasFilter extends IteratorExtensions {
 
-  private var filterOption: Option[Filter] = None
-
-  lazy val ecqlFilter: Option[(SimpleFeature) => Boolean] =
-    filterOption.filterNot(_ == Filter.INCLUDE).map { filter =>
-      (sf: SimpleFeature) => filter.evaluate(sf)
-    }
+  var filter: Filter = null
 
   // other filter config
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     if (options.containsKey(GEOMESA_ITERATORS_ECQL_FILTER)) {
-      val filterString = options.get(GEOMESA_ITERATORS_ECQL_FILTER)
-      filterOption = Some(ECQL.toFilter(filterString))
+      val ecql = ECQL.toFilter(options.get(GEOMESA_ITERATORS_ECQL_FILTER))
+      if (ecql != Filter.INCLUDE) {
+        filter = ecql
+      }
     }
   }
 }
@@ -219,28 +152,22 @@ trait HasTransforms extends IteratorExtensions {
 
   import org.locationtech.geomesa.core.data.DEFAULT_ENCODING
 
-  private var targetFeatureType: Option[SimpleFeatureType] = None
-  private var transformString: Option[String] = None
-  private var transformEncoding: FeatureEncoding = null
-
-  lazy val transform: Option[(SimpleFeature) => Array[Byte]] =
-    for { featureType <- targetFeatureType; string <- transformString } yield {
-      val transform = TransformCreator.createTransform(featureType, transformEncoding, string)
-      (sf: SimpleFeature) => transform(sf)
-    }
+  var transform: (SimpleFeature) => Array[Byte] = null
 
   // feature type transforms
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
-    if (options.containsKey(GEOMESA_ITERATORS_TRANSFORM_SCHEMA)) {
+    if (options.containsKey(GEOMESA_ITERATORS_TRANSFORM_SCHEMA) &&
+        options.containsKey(GEOMESA_ITERATORS_TRANSFORM)) {
       val transformSchema = options.get(GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
+      val targetFeatureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, transformSchema)
+      targetFeatureType.decodeUserData(options, GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
 
-      targetFeatureType = Some(SimpleFeatureTypes.createType(this.getClass.getCanonicalName, transformSchema))
-      targetFeatureType.foreach(_.decodeUserData(options, GEOMESA_ITERATORS_TRANSFORM_SCHEMA))
-
-      transformString = Option(options.get(GEOMESA_ITERATORS_TRANSFORM))
-      transformEncoding = Option(options.get(FEATURE_ENCODING)).map(FeatureEncoding.withName(_))
+      val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
+      val transformEncoding = Option(options.get(FEATURE_ENCODING)).map(FeatureEncoding.withName)
           .getOrElse(DEFAULT_ENCODING)
+
+      transform = TransformCreator.createTransform(targetFeatureType, transformEncoding, transformString)
     }
   }
 }
@@ -271,13 +198,7 @@ trait HasInMemoryDeduplication extends IteratorExtensions {
    *
    * @return False if this identifier is in the local cache; True otherwise
    */
-  lazy val checkUniqueId: Option[(String) => Boolean] =
-    Some(deduplicate).filter(_ == true).map { _ =>
-      (id: String) =>
-        Option(id)
-          .filter(_ => inMemoryIdCache.size < maxInMemoryIdCacheEntries)
-          .forall(inMemoryIdCache.add(_))
-    }
+  var checkUniqueId: (String) => Boolean = null
 
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
@@ -289,6 +210,12 @@ trait HasInMemoryDeduplication extends IteratorExtensions {
           maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt
         }
         inMemoryIdCache = new java.util.HashSet[String](maxInMemoryIdCacheEntries)
+        checkUniqueId =
+            (id: String) => if (inMemoryIdCache.size < maxInMemoryIdCacheEntries) {
+              inMemoryIdCache.add(id)
+            } else {
+              !inMemoryIdCache.contains(id)
+            }
       }
     }
   }

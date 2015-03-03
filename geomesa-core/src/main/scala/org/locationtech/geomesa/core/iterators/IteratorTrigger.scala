@@ -70,14 +70,13 @@ object IteratorTrigger extends Logging {
 
     def attributePresent(attributeKey: String): Boolean = Option(sft.getDescriptor(attributeKey)).isDefined
 
-    def indexAttributeNames = IndexValueEncoder(sft).fields
+    def indexAttributeNames = IndexValueEncoder.getIndexValueFields(sft)
   }
 
   /**
    * Scans the ECQL, query, and sourceSFTspec and determines which Iterators should be configured.
    */
-  def chooseIterator(ecqlPredicate: Option[String], query: Query, sourceSFT: SimpleFeatureType): IteratorConfig = {
-    val filter = ecqlPredicate.map(ECQL.toFilter)
+  def chooseIterator(filter: Option[Filter], query: Query, sourceSFT: SimpleFeatureType): IteratorConfig = {
     val transformsCoverFilter = doTransformsCoverFilters(query)
     if (useIndexOnlyIterator(filter, query, sourceSFT)) {
       // if the transforms cover the filtered attributes, we can decode into the transformed feature
@@ -172,7 +171,7 @@ object IteratorTrigger extends Logging {
                                     indexedAttribute: Option[String]): Boolean = {
     // convert to a TransformProcess Definition
     val theDefinitions = TransformProcess.toDefinition(transformDefs).asScala
-    val attributeNames = IndexValueEncoder(schema).fields ++ indexedAttribute
+    val attributeNames = IndexValueEncoder.getIndexValueFields(schema) ++ indexedAttribute
     // check that, for each definition, the expression is simply the name of an index attribute in the schema
     // multi-valued attributes only get partially encoded in the index
     theDefinitions.map(_.expression.toString).forall { aDef =>

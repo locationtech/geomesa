@@ -16,17 +16,17 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import java.util.Date
-
-import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.tables.AttributeTable._
+import org.locationtech.geomesa.feature.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.feature.simple.SimpleFeature
 
+import scala.collection.JavaConversions._
 import scala.util.{Failure, Success}
 
 /**
@@ -38,20 +38,22 @@ import scala.util.{Failure, Success}
  */
 class AttributeIndexIterator
     extends GeomesaFilteringIterator
-    with HasFeatureBuilder
-    with HasIndexValueDecoder
-    with HasFeatureDecoder
-    with HasSpatioTemporalFilter
-    with HasEcqlFilter
-    with HasTransforms
-    with Logging {
+    with HasFeatureType
+    with SetTopUnique
+    with SetTopFilterUnique
+    with SetTopTransformUnique
+    with SetTopFilterTransformUnique
+    with SetTopIndexInclude
+    with SetTopIndexFilter
+    with SetTopIndexTransform
+    with SetTopIndexFilterTransform {
 
   // the following fields get filled in during init
   var attributeRowPrefix: String = null
-  var attributeType: Option[AttributeDescriptor] = null
-  var dtgIndex: Option[Int] = None
+  var attributeType: AttributeDescriptor = null
+  var testFeature: ScalaSimpleFeature = null
 
-  var setTopFunction: () => Unit = null
+  var setTopOptimized: (Key) => Unit = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
@@ -63,64 +65,101 @@ class AttributeIndexIterator
     attributeRowPrefix = index.getTableSharingPrefix(featureType)
     // if we're retrieving the attribute, we need the class in order to decode it
     attributeType = Option(options.get(GEOMESA_ITERATORS_ATTRIBUTE_NAME))
-        .flatMap(n => Option(featureType.getDescriptor(n)))
-    dtgIndex = index.getDtgFieldName(featureType).map(featureType.indexOf(_))
+        .flatMap(n => Option(featureType.getDescriptor(n))).orNull
+    if (attributeType != null) {
+      val sft = {
+        val builder = new SimpleFeatureTypeBuilder()
+        builder.setName("testSft")
+        builder.addAll(indexSft.getAttributeDescriptors)
+        builder.add(attributeType)
+        builder.buildFeatureType()
+      }
+      testFeature = new ScalaSimpleFeature("testId", sft)
+    }
     val coverage = Option(options.get(GEOMESA_ITERATORS_ATTRIBUTE_COVERED)).map(IndexCoverage.withName)
         .getOrElse(IndexCoverage.JOIN)
-    setTopFunction = coverage match {
-      case IndexCoverage.FULL => setTopFullCoverage
-      case IndexCoverage.JOIN => setTopJoinCoverage
-    }
-  }
 
-  override def setTopConditionally() = setTopFunction()
-
-  /**
-   * Each value is the fully encoded simple feature
-   */
-  def setTopFullCoverage(): Unit = {
-    val dataValue = source.getTopValue
-    val sf = featureDecoder.decode(dataValue.get)
-    val meetsStFilter = stFilter.forall(fn => fn(sf.getDefaultGeometry.asInstanceOf[Geometry],
-      dtgIndex.flatMap(i => Option(sf.getAttribute(i).asInstanceOf[Date]).map(_.getTime))))
-    val meetsFilters =  meetsStFilter && ecqlFilter.forall(fn => fn(sf))
-    if (meetsFilters) {
-      // update the key and value
-      topKey = Some(source.getTopKey)
-      // apply any transform here
-      topValue = transform.map(fn => new Value(fn(sf))).orElse(Some(dataValue))
-    }
-  }
-
-  /**
-   * Each value is the encoded index value (typically dtg, geom)
-   */
-  def setTopJoinCoverage(): Unit = {
-    // the value contains the full-resolution geometry and time
-    lazy val decodedValue = indexEncoder.decode(source.getTopValue.get)
-
-    // evaluate the filter check
-    val meetsIndexFilters =
-      stFilter.forall(fn => fn(decodedValue.geom, decodedValue.date.map(_.getTime)))
-
-    if (meetsIndexFilters) {
-      // current entry matches our filter - update the key and value
-      topKey = Some(source.getTopKey)
-      // using the already decoded index value, generate a SimpleFeature
-      val sf = encodeIndexValueToSF(decodedValue)
-
-      // if they requested the attribute value, decode it from the row key
-      if (attributeType.isDefined) {
-        val row = topKey.get.getRow.toString
-        val decoded = decodeAttributeIndexRow(attributeRowPrefix, attributeType.get, row)
-        decoded match {
-          case Success(att) => sf.setAttribute(att.attributeName, att.attributeValue)
-          case Failure(e) => logger.error(s"Error decoding attribute row: row: $row, error: ${e.toString}")
-        }
+    setTopOptimized = coverage match {
+      case IndexCoverage.FULL => (filter, transform, checkUniqueId) match {
+        case (null, null, null) => setTopInclude
+        case (null, null, _)    => setTopUnique
+        case (_, null, null)    => setTopFilter
+        case (_, null, _)       => setTopFilterUnique
+        case (null, _, null)    => setTopTransform
+        case (null, _, _)       => setTopTransformUnique
+        case (_, _, null)       => setTopFilterTransform
+        case (_, _, _)          => setTopFilterTransformUnique
       }
 
-      // set the encoded simple feature as the value
-      topValue = transform.map(fn => new Value(fn(sf))).orElse(Some(new Value(featureEncoder.encode(sf))))
+      case IndexCoverage.JOIN => (stFilter, transform) match {
+        case (null, null)                         => setTopIndexInclude
+        case (_, null)                            => setTopIndexFilter
+        case (null, _) if (attributeType == null) => setTopIndexTransform
+        case (null, _)                            => setTopIndexTransformAttr
+        case (_, _)    if (attributeType == null) => setTopIndexFilterTransform
+        case (_, _)                               => setTopIndexFilterTransformAttr
+      }
+    }
+  }
+
+  override def setTopConditionally(): Unit = setTopOptimized(source.getTopKey)
+
+  /**
+   * Adds the attribute from the row key to the decoded simple feature
+   *
+   * @param key
+   */
+  def setTopIndexTransformAttr(key: Key): Unit = {
+    val sf = {
+      val intermediateFeature = indexEncoder.decode(source.getTopValue.get)
+      testFeature.getIdentifier.setID(intermediateFeature.getID)
+      intermediateFeature.getProperties.foreach(p => testFeature.setAttribute(p.getName, p.getValue))
+      setAttributeFromRow(key, testFeature)
+      testFeature
+    }
+    topKey = key
+    topValue = new Value(transform(sf))
+  }
+
+  /**
+   * Adds the attribute from the row key to the decoded simple feature
+   *
+   * @param key
+   */
+  def setTopIndexFilterTransformAttr(key: Key): Unit = {
+    val intermediateFeature = indexEncoder.decode(source.getTopValue.get)
+    if (stFilter.evaluate(intermediateFeature)) {
+      val sf = {
+        testFeature.getIdentifier.setID(intermediateFeature.getID)
+        intermediateFeature.getProperties.foreach(p => testFeature.setAttribute(p.getName, p.getValue))
+        setAttributeFromRow(key, testFeature)
+        testFeature
+      }
+      topKey = key
+      topValue = new Value(transform(sf))
+    }
+  }
+
+  /**
+   * Adds the attribute from the row key to the decoded simple feature
+   *
+   * @param key
+   */
+  def setTopIndexFilterTransformUniqueAttr(key: Key): Unit =
+    if (checkUniqueId(key.getColumnQualifier.toString)) { setTopIndexFilterTransformAttr(key) }
+
+  /**
+   * Sets an attribute in the feature based on the value stored in the row key
+   *
+   * @param key
+   * @param sf
+   */
+  def setAttributeFromRow(key: Key, sf: SimpleFeature) = {
+    val row = key.getRow.toString
+    val decoded = decodeAttributeIndexRow(attributeRowPrefix, attributeType, row)
+    decoded match {
+      case Success(att) => sf.setAttribute(att.attributeName, att.attributeValue)
+      case Failure(e)   => logger.error(s"Error decoding attribute row: row: $row, error: ${e.toString}")
     }
   }
 }

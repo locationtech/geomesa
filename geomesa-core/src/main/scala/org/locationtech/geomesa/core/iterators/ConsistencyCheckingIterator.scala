@@ -25,6 +25,7 @@ import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable.{DATA_CHECK, INDEX_CHECK}
 import org.locationtech.geomesa.core.index.IndexValueEncoder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.core.GEOMESA_ITERATORS_VERSION
 
 class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] with Logging {
 
@@ -46,11 +47,6 @@ class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] wit
     this.dataSource = source.deepCopy(env)
   }
 
-  val indexValueEncoder = {
-    val sft = SimpleFeatureTypes.createType("ConsistencyCheckingIterator", "*geom:Geometry:srid=4326")
-    IndexValueEncoder(sft)
-  }
-
   def hasTop = nextKey != null || topKey != null
 
   def getTopKey = topKey
@@ -68,7 +64,7 @@ class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] wit
         nextKey = null
       } else {
         logger.debug(s"Checking $nextKey")
-        curId = indexValueEncoder.decode(indexSource.getTopValue.get).id
+        curId = nextKey.getColumnQualifier.toString
 
         val dataSeekKey = new Key(new Text(nextKey.getRow.toString.replace(INDEX_CHECK, DATA_CHECK)),
           nextKey.getColumnFamily, nextKey.getColumnQualifier)

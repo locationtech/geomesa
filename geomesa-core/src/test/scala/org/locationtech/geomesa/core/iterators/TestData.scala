@@ -27,9 +27,9 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.core.data.AccumuloFeatureStore
+import org.locationtech.geomesa.core.data.{AccumuloFeatureStore, INTERNAL_GEOMESA_VERSION}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.{SimpleFeatureEncoder, AvroSimpleFeatureFactory}
+import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -107,8 +107,9 @@ object TestData extends Logging {
   lazy val featureType: SimpleFeatureType = getFeatureType()
 
   lazy val featureEncoder = SimpleFeatureEncoder(getFeatureType(), "avro")
+  lazy val indexValueEncoder = IndexValueEncoder(featureType, INTERNAL_GEOMESA_VERSION)
 
-  lazy val index = IndexSchema(schemaEncoding, featureType, featureEncoder)
+  lazy val indexEncoder = IndexSchema.buildKeyEncoder(schemaEncoding, featureEncoder, indexValueEncoder)
 
   val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
 
@@ -124,7 +125,9 @@ object TestData extends Logging {
 
     //entry.setAttribute(geomType, id)
     entry.setAttribute("attr2", "2nd" + id)
-    index.encode(entry).toList
+    indexEncoder.synchronized {
+      indexEncoder.encode(entry, "").toList
+    }
   }
 
   def createSF(e: Entry): SimpleFeature = createSF(e, featureType)

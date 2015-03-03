@@ -28,6 +28,8 @@ object GeometryUtils {
 
   val geoFactory = JTSFactoryFinder.getGeometryFactory
 
+  val zeroPoint = geoFactory.createPoint(new Coordinate(0,0))
+
   /** Convert meters to dec degrees based on widest point in dec degrees of circles at bounding box corners */
   def distanceDegrees(geometry: Geometry, meters: Double): Double = {
     if (geometry.isInstanceOf[Point]) geometry.distance(farthestPoint(geometry.asInstanceOf[Point], meters))

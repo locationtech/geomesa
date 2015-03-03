@@ -38,15 +38,12 @@ import org.locationtech.geomesa.utils.stats.MethodProfiling
 class SpatioTemporalIntersectingIterator
     extends GeomesaFilteringIterator
     with HasFeatureType
-    with HasFeatureDecoder
-    with HasSpatioTemporalFilter
-    with HasEcqlFilter
-    with HasTransforms
-    with HasInMemoryDeduplication
-    with MethodProfiling
-    with Logging {
+    with SetTopUnique
+    with SetTopFilterUnique
+    with SetTopTransformUnique
+    with SetTopFilterTransformUnique {
 
-  var dtgIndex: Option[Int] = None
+  var setTopOptimized: (Key) => Unit = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
@@ -54,27 +51,18 @@ class SpatioTemporalIntersectingIterator
     super.init(source, options, env)
     initFeatureType(options)
     init(featureType, options)
-    dtgIndex = index.getDtgFieldName(featureType).map(featureType.indexOf(_))
-  }
 
-  override def setTopConditionally(): Unit = {
-    val key = source.getTopKey
-    if (!SpatioTemporalTable.isDataEntry(key)) {
-      logger.warn("Found unexpected index entry: " + key)
-    } else {
-      if (checkUniqueId.forall(fn => fn(key.getColumnQualifier.toString))) {
-        val dataValue = source.getTopValue
-        val sf = featureDecoder.decode(dataValue.get)
-        val meetsStFilter = stFilter.forall(fn => fn(sf.getDefaultGeometry.asInstanceOf[Geometry],
-          dtgIndex.flatMap(i => Option(sf.getAttribute(i).asInstanceOf[Date]).map(_.getTime))))
-        val meetsFilters =  meetsStFilter && ecqlFilter.forall(fn => fn(sf))
-        if (meetsFilters) {
-          // update the key and value
-          topKey = Some(key)
-          // apply any transform here
-          topValue = transform.map(fn => new Value(fn(sf))).orElse(Some(dataValue))
-        }
-      }
+    setTopOptimized = (filter, transform, checkUniqueId) match {
+      case (null, null, null) => setTopInclude
+      case (null, null, _)    => setTopUnique
+      case (_, null, null)    => setTopFilter
+      case (_, null, _)       => setTopFilterUnique
+      case (null, _, null)    => setTopTransform
+      case (null, _, _)       => setTopTransformUnique
+      case (_, _, null)       => setTopFilterTransform
+      case (_, _, _)          => setTopFilterTransformUnique
     }
   }
+
+  override def setTopConditionally(): Unit = setTopOptimized(source.getTopKey)
 }

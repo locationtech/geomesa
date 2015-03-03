@@ -334,6 +334,21 @@ class AccumuloDataStoreTest extends Specification {
       results(0).getAttribute("name") must beNull
     }
 
+    "handle back compatible transformations" in {
+      val sftName = "transformtest7"
+      val sft = createSchema(sftName)
+      ds.setGeomesaVersion(sftName, 2)
+
+      addDefaultPoint(sft)
+
+      val query = new Query(sftName, Filter.INCLUDE, List("dtg", "geom").toArray)
+      val results = SelfClosingIterator(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())).toList
+      results must haveSize(1)
+      results(0).getAttribute("dtg") mustEqual(defaultDtg)
+      results(0).getAttribute("geom") mustEqual(defaultGeom)
+      results(0).getAttribute("name") must beNull
+    }
+
     "handle setPropertyNames transformations" in {
       val sftName = "transformtest3"
       val sft = createSchema(sftName)
@@ -621,11 +636,9 @@ class AccumuloDataStoreTest extends Specification {
       val query = new Query(sftName, Filter.INCLUDE)
       val fr = ds.getFeatureReader(sftName)
       fr must not beNull;
-      val explain = {
-        val out = new ExplainString
-        fr.explainQuery(o = out)
-        out.toString()
-      }
+      val out = new ExplainString
+      ds.explainQuery(sftName, new Query(sftName, Filter.INCLUDE), out)
+      val explain = out.toString()
       explain must startWith(s"Running Query")
     }
 
@@ -1077,7 +1090,7 @@ class AccumuloDataStoreTest extends Specification {
       // verify that the IndexIterator is getting used with the extra field
       val explain = {
         val out = new ExplainString
-        reader.explainQuery(o = out)
+        ds.explainQuery(sftName, query, out)
         out.toString()
       }
       explain must contain(classOf[IndexIterator].getName)
@@ -1124,7 +1137,7 @@ class AccumuloDataStoreTest extends Specification {
       // verify that the IndexIterator is getting used
       val explain = {
         val out = new ExplainString
-        reader.explainQuery(o = out)
+        ds.explainQuery(sftName, query, out)
         out.toString()
       }
       explain must contain(classOf[IndexIterator].getName)
@@ -1163,7 +1176,7 @@ class AccumuloDataStoreTest extends Specification {
 
       val explain = {
         val o = new ExplainString
-        ds.getFeatureReader(sftName1, query).explainQuery(o = o)
+        ds.explainQuery(sftName1, query, o)
         o.toString()
       }
       println(explain)

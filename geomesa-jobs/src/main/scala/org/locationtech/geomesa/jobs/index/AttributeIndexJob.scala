@@ -26,7 +26,8 @@ import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
-import org.locationtech.geomesa.feature.SimpleFeatureDecoder
+import org.locationtech.geomesa.core.index.IndexValueEncoder
+import org.locationtech.geomesa.feature.{SimpleFeatureEncoder, SimpleFeatureDecoder}
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.scalding.{AccumuloInputOptions, AccumuloOutputOptions, AccumuloSource, AccumuloSourceOptions, ConnectionParams}
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -40,6 +41,8 @@ trait JobResources {
   def ds: AccumuloDataStore
   def sft: SimpleFeatureType
   def visibilities: String
+  def indexValueEncoder: IndexValueEncoder
+  def encoder: SimpleFeatureEncoder
   def decoder: SimpleFeatureDecoder
   def attributeDescriptors: mutable.Buffer[(Int, AttributeDescriptor)]
 
@@ -53,7 +56,9 @@ object JobResources {
     val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
     val sft: SimpleFeatureType = ds.getSchema(feature)
     val visibilities: String = ds.writeVisibilities
-    val decoder: SimpleFeatureDecoder = SimpleFeatureDecoder(sft, ds.getFeatureEncoding(sft))
+    val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
+    val encoder = SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft))
+    val decoder = SimpleFeatureDecoder(sft, ds.getFeatureEncoding(sft))
     // the attributes we want to index
     override val attributeDescriptors =
       sft.getAttributeDescriptors
@@ -129,7 +134,8 @@ object AttributeIndexJob {
 
     AttributeTable.getAttributeIndexMutations(
       feature,
-      r.decoder.encoding,
+      r.indexValueEncoder,
+      r.encoder,
       r.attributeDescriptors,
       new ColumnVisibility(r.visibilities),
       prefix

@@ -190,13 +190,13 @@ class SimpleFeatureTypesTest extends Specification {
     "allow specification of ST index entry values" >> {
       val spec = s"name:String:index=true:$OPT_INDEX_VALUE=true,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getDescriptor("name").getIndexValue() mustEqual(true)
+      sft.getDescriptor("name").isIndexValue() mustEqual(true)
     }
 
     "automatically set default geom in ST index entry" >> {
       val spec = s"name:String:index=true:$OPT_INDEX_VALUE=true,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getDescriptor("geom").getIndexValue() mustEqual(true)
+      sft.getDescriptor("geom").isIndexValue() mustEqual(true)
     }
 
     "allow specification of attribute cardinality" >> {

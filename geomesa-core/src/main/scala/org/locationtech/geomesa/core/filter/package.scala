@@ -17,7 +17,10 @@
 package org.locationtech.geomesa.core
 
 import org.geotools.factory.CommonFactoryFinder
+import org.locationtech.geomesa.core.index.Strategy
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
+import org.opengis.filter.expression.{Literal, Expression, PropertyName}
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{BinaryTemporalOperator, TEquals}
 
@@ -224,12 +227,23 @@ package object filter {
     }
   }
 
-  def partitionGeom(filter: Filter) = partitionSubFilters(filter, spatialFilters)
+  def partitionGeom(filter: Filter, sft: SimpleFeatureType) =
+    partitionSubFilters(filter, primarySpatialFilters(_, sft))
 
   def partitionTemporal(filters: Seq[Filter], dtgAttr: Option[String]): (Seq[Filter], Seq[Filter]) =
     dtgAttr.map { dtga => filters.partition(temporalFilters(dtga)) }.getOrElse((Seq(), filters))
 
   def partitionID(filter: Filter) = partitionSubFilters(filter, filterIsId)
+
+  def primarySpatialFilters(filter: Filter, sft: SimpleFeatureType): Boolean = {
+    val geom = sft.getGeometryDescriptor.getLocalName
+    val primary = filter match {
+      case f: BinarySpatialOperator =>
+        checkOrder(f.getExpression1, f.getExpression2).map(_.name == geom).getOrElse(false)
+      case _ => false
+    }
+    primary && spatialFilters(filter)
+  }
 
   // Defines the topological predicates we like for use in the STII.
   def spatialFilters(f: Filter): Boolean = {
@@ -299,4 +313,20 @@ package object filter {
       case f: Filter => Seq(f)
     }
 
+  /**
+   * Checks the order of properties and literals in the expression
+   *
+   * @param one
+   * @param two
+   * @return (prop, literal, whether the order was flipped)
+   */
+  def checkOrder[T](one: Expression, two: Expression): Option[PropertyLiteral] =
+    (one, two) match {
+      case (p: PropertyName, l: Literal) => Some(PropertyLiteral(p.getPropertyName, l, None, false))
+      case (l: Literal, p: PropertyName) => Some(PropertyLiteral(p.getPropertyName, l, None, true))
+      case (_: PropertyName, _: PropertyName) | (_: Literal, _: Literal) => None
+      case _ =>
+        val msg = s"Unhandled expressions in strategy: ${one.getClass.getName}, ${two.getClass.getName}"
+        throw new RuntimeException(msg)
+    }
 }

@@ -63,7 +63,8 @@ object IndexEntry {
 case class IndexEntryEncoder(rowf: TextFormatter,
                              cff: TextFormatter,
                              cqf: TextFormatter,
-                             featureEncoder: SimpleFeatureEncoder)
+                             featureEncoder: SimpleFeatureEncoder,
+                             indexValueEncoder: IndexValueEncoder)
   extends Logging {
 
   import org.locationtech.geomesa.core.index.IndexEntry._
@@ -93,7 +94,7 @@ case class IndexEntryEncoder(rowf: TextFormatter,
     val dt = featureToEncode.dt.getOrElse(new DateTime()).withZone(timeZone)
 
     // the index value is the encoded date/time/fid
-    val indexValue = new Value(IndexValueEncoder(featureToEncode.getFeatureType).encode(featureToEncode))
+    val indexValue = new Value(indexValueEncoder.encode(featureToEncode))
     // the data value is the encoded SimpleFeature
     val dataValue = new Value(featureEncoder.encode(featureToEncode))
 

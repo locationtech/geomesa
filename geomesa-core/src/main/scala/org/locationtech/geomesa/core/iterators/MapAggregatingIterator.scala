@@ -23,10 +23,9 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.locationtech.geomesa.core.index.QueryPlanner
 import org.locationtech.geomesa.core.iterators.FeatureAggregatingIterator.Result
 import org.locationtech.geomesa.core.sumNumericValueMutableMaps
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
@@ -84,7 +83,7 @@ case class MapAggregatingIteratorResult(mapAttributeName: String,
                                         countMap: mutable.Map[AnyRef, Int] = mutable.Map()) extends Result {
   override def addToFeature(sfb: SimpleFeatureBuilder): Unit =  {
     sfb.add(countMap.toMap)
-    sfb.add(QueryPlanner.zeroPoint)
+    sfb.add(GeometryUtils.zeroPoint)
   }
 }
 

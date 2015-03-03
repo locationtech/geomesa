@@ -122,10 +122,11 @@ class SimpleFeatureEncoderTest extends Specification {
       val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
 
       val projectingEncoder = SimpleFeatureDecoder(sft, projectedSft, "kryo").asInstanceOf[KryoFeatureEncoder]
+      val decoder = SimpleFeatureDecoder(projectedSft, "kryo").asInstanceOf[KryoFeatureEncoder]
 
       val features = getFeatures
       val encoded = features.map(projectingEncoder.encode)
-      val decoded = encoded.map(projectingEncoder.decode)
+      val decoded = encoded.map(decoder.decode)
       decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
 
       forall(decoded) { sf =>

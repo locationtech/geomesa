@@ -20,10 +20,144 @@ import java.nio.ByteBuffer
 import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom.Geometry
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.core
+import org.locationtech.geomesa.feature.{KryoFeatureEncoder, ScalaSimpleFeature, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKBUtils
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.collection.mutable
+
+/**
+ * Encode and decode index values
+ */
+trait IndexValueEncoder {
+
+  /**
+   * Fields that will be encoded/decoded
+   *
+   * @return
+   */
+  def fields: Seq[String]
+
+  /**
+   * Encodes a simple feature into a byte array. Only the attributes marked for inclusion get encoded.
+   *
+   * @param sf
+   * @return
+   */
+  def encode(sf: SimpleFeature): Array[Byte]
+
+  /**
+   * Decodes a byte array into a simple feature
+   *
+   * @param value
+   * @return
+   */
+  def decode(value: Array[Byte]): SimpleFeature
+
+}
+
+object IndexValueEncoder {
+
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+  import scala.collection.JavaConversions._
+
+  private val cache = new SoftThreadLocalCache[String, (SimpleFeatureType, Seq[String])]()
+
+  def apply(sft: SimpleFeatureType, version: Int): IndexValueEncoder = apply(sft, None, version)
+
+  def apply(sft: SimpleFeatureType, transform: SimpleFeatureType, version: Int): IndexValueEncoder =
+    apply(sft, Some(transform), version)
+
+  def apply(sft: SimpleFeatureType, transform: Option[SimpleFeatureType], version: Int): IndexValueEncoder = {
+    val key = {
+      // cache key should be unique per feature - we use name + attributes + bindings
+      val descriptors = sft.getAttributeDescriptors.map(d => s"${d.getLocalName}:${d.getType.getBinding}}")
+      s"[${sft.getTypeName}]${descriptors.mkString(",")}"
+    }
+    val (indexSft, attributes) = cache.getOrElseUpdate(key, (getIndexSft(sft), getIndexValueFields(sft)))
+
+    if (version < 4) { // kryo encoding introduced in version 4
+      OldIndexValueEncoder(sft, transform.getOrElse(indexSft))
+    } else {
+      val encoder = new KryoFeatureEncoder(sft, indexSft)
+      val decoder = new KryoFeatureEncoder(indexSft, transform.getOrElse(indexSft))
+      new IndexValueEncoderImpl(encoder, decoder, attributes)
+    }
+  }
+
+  /**
+   * Gets a feature type compatible with the stored index value
+   *
+   * @param sft
+   * @return
+   */
+  protected[index] def getIndexSft(sft: SimpleFeatureType) = {
+    val builder = new SimpleFeatureTypeBuilder()
+    builder.setName(sft.getTypeName + "--index")
+    builder.setAttributes(getIndexValueAttributes(sft))
+    builder.setDefaultGeometry(sft.getGeometryDescriptor.getLocalName)
+    builder.setCRS(sft.getCoordinateReferenceSystem)
+    val indexSft = builder.buildFeatureType()
+    indexSft.getUserData.putAll(sft.getUserData)
+    indexSft
+  }
+
+  /**
+   * Gets the attributes that are stored in the index value
+   *
+   * @param sft
+   * @return
+   */
+  protected[index] def getIndexValueAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] = {
+    val geom = sft.getGeometryDescriptor
+    val dtg = core.index.getDtgFieldName(sft)
+    val attributes = mutable.Buffer.empty[AttributeDescriptor]
+    var i = 0
+    while (i < sft.getAttributeCount) {
+      val ad = sft.getDescriptor(i)
+      if (ad == geom || dtg.exists(_ == ad.getLocalName) || ad.isIndexValue()) {
+        attributes.append(ad)
+      }
+      i += 1
+    }
+    attributes
+  }
+
+  /**
+   * Gets the attribute names that are stored in the index value
+   *
+   * @param sft
+   * @return
+   */
+  def getIndexValueFields(sft: SimpleFeatureType): Seq[String] =
+    getIndexValueAttributes(sft).map(_.getLocalName)
+}
+
+/**
+ * Encoder/decoder for index values. Allows customizable fields to be encoded. Not thread-safe.
+ *
+ * We need a separate encoder/decoder, as the encoder takes a 'full' feature and only writes the 'reduced'
+ * parts, while the decoder reads the 'reduced' feature.
+ *
+ * @param encoder
+ * @param decoder
+ * @param fields
+ */
+class IndexValueEncoderImpl(encoder: SimpleFeatureEncoder,
+                            decoder: SimpleFeatureDecoder,
+                            val fields: Seq[String]) extends IndexValueEncoder {
+
+  override def encode(sf: SimpleFeature): Array[Byte] = encoder.encode(sf)
+
+  override def decode(value: Array[Byte]): SimpleFeature = decoder.decode(value)
+}
+
 
 /**
  * Encoder/decoder for index values. Allows customizable fields to be encoded. Thread-safe.
@@ -31,9 +165,11 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  * @param sft
  * @param fields
  */
-class IndexValueEncoder(val sft: SimpleFeatureType, val fields: Seq[String]) {
+@Deprecated
+class OldIndexValueEncoder(sft: SimpleFeatureType, encodedSft: SimpleFeatureType, val fields: Seq[String])
+    extends IndexValueEncoder {
 
-  import org.locationtech.geomesa.core.index.IndexValueEncoder._
+  import org.locationtech.geomesa.core.index.OldIndexValueEncoder._
 
   fields.foreach(f => require(sft.getDescriptor(f) != null ||
     f == ID_FIELD, s"Encoded field does not exist: $f"))
@@ -95,16 +231,17 @@ class IndexValueEncoder(val sft: SimpleFeatureType, val fields: Seq[String]) {
    * @param value
    * @return
    */
-  def decode(value: Array[Byte]): DecodedIndexValue = {
+  def decode(value: Array[Byte]): SimpleFeature = {
     val buf = ByteBuffer.wrap(value)
     val values = fieldsWithIndex.map { case (f, i) => f -> decodings(i)(buf) }.toMap
-    DecodedIndexValue(id(values), geometry(values), date(values), values)
+    val sf = new ScalaSimpleFeature(values(ID_FIELD).asInstanceOf[String], encodedSft)
+    values.foreach { case (key, value) =>
+      if (key != ID_FIELD) {
+        sf.setAttribute(key, value.asInstanceOf[AnyRef])
+      }
+    }
+    sf
   }
-
-  // helper methods to extract known fields from the decoded map
-  private def id(values: Map[String, Any]) = values(ID_FIELD).asInstanceOf[String]
-  private def geometry(values: Map[String, Any]) = values(geomField).asInstanceOf[Geometry]
-  private def date(values: Map[String, Any]) = dtgField.flatMap(f => Option(values(f).asInstanceOf[Date]))
 }
 
 /**
@@ -117,7 +254,8 @@ class IndexValueEncoder(val sft: SimpleFeatureType, val fields: Seq[String]) {
  */
 case class DecodedIndexValue(id: String, geom: Geometry, date: Option[Date], attributes: Map[String, Any])
 
-object IndexValueEncoder {
+@Deprecated
+object OldIndexValueEncoder {
 
   val ID_FIELD = "id"
 
@@ -128,10 +266,10 @@ object IndexValueEncoder {
 
   // gets a cached instance to avoid the initialization overhead
   // we use sft.toString, which includes the fields and type name, as a unique key
-  def apply(sft: SimpleFeatureType) = {
+  def apply(sft: SimpleFeatureType, transform: SimpleFeatureType) = {
     val schema = getSchema(sft)
     val key = s"${sft.getTypeName}[${schema.mkString(",")}]"
-    cache.get.getOrElseUpdate(key, new IndexValueEncoder(sft, schema))
+    cache.get.getOrElseUpdate(key, new OldIndexValueEncoder(sft, transform, schema))
   }
 
   // gets the default schema, which includes ID, geom and date (if available)

@@ -102,6 +102,13 @@ object Conversions {
 
 }
 
+object RichIterator {
+  implicit class RichIterator[T](val iter: Iterator[T]) extends AnyVal {
+    def head = iter.next()
+    def headOption = if (iter.hasNext) Some(iter.next()) else None
+  }
+}
+
 /**
  * Contains GeoMesa specific attribute descriptor information
  */
@@ -120,7 +127,7 @@ object RichAttributeDescriptors {
     def setIndexValue(indexValue: Boolean): Unit =
       ad.getUserData.put(OPT_INDEX_VALUE, new java.lang.Boolean(indexValue))
 
-    def getIndexValue(): Boolean =
+    def isIndexValue(): Boolean =
       Option(ad.getUserData.get(OPT_INDEX_VALUE).asInstanceOf[Boolean]).getOrElse(false)
 
     def setCardinality(cardinality: Cardinality): Unit =
@@ -175,7 +182,7 @@ object RichAttributeDescriptors {
 }
 
 class JodaConverterFactory extends ConverterFactory {
-  private val df = ISODateTimeFormat.dateTime()
+  private val df = ISODateTimeFormat.dateTime().withZoneUTC()
   def createConverter(source: Class[_], target: Class[_], hints: Hints) =
     if(classOf[java.util.Date].isAssignableFrom(source) && classOf[String].isAssignableFrom(target)) {
       // Date => String
