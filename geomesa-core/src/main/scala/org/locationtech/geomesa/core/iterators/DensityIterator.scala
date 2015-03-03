@@ -18,201 +18,124 @@
 package org.locationtech.geomesa.core.iterators
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-import java.{util => ju}
+import java.util.{Map => JMap}
 
 import com.google.common.collect._
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{ByteSequence, Key, Range => ARange, Value}
+import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.commons.codec.binary.Base64
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder, ReferencedEnvelope}
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index.{IndexEntryDecoder, IndexSchema}
-import org.locationtech.geomesa.feature._
+import org.locationtech.geomesa.core.iterators.DensityIterator.{DENSITY_FEATURE_SFT_STRING, SparseMatrix}
+import org.locationtech.geomesa.core.iterators.FeatureAggregatingIterator._
+import org.locationtech.geomesa.feature.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, toRichSimpleFeatureIterator}
 import org.locationtech.geomesa.utils.geotools.{GridSnap, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
-import scala.util.{Failure, Random, Success, Try}
+import scala.util.{Failure, Success, Try}
 
-class DensityIterator(other: DensityIterator, env: IteratorEnvironment) extends SortedKeyValueIterator[Key, Value] {
+class DensityIterator(other: DensityIterator, env: IteratorEnvironment)
+  extends FeatureAggregatingIterator[DensityIteratorResult](other, env) {
 
-  import org.locationtech.geomesa.core.iterators.DensityIterator.{DENSITY_FEATURE_STRING, SparseMatrix}
-
-  var bbox: ReferencedEnvelope = null
-  var curRange: ARange = null
-  var result: SparseMatrix = HashBasedTable.create[Double, Double, Long]()
-  var projectedSFT: SimpleFeatureType = null
-  var featureBuilder: SimpleFeatureBuilder = null
-  var snap: GridSnap = null
-  var topDensityKey: Option[Key] = None
-  var topDensityValue: Option[Value] = None
   protected var decoder: IndexEntryDecoder = null
 
-  var simpleFeatureType: SimpleFeatureType = null
-  var source: SortedKeyValueIterator[Key,Value] = null
+  var bbox: ReferencedEnvelope = null
+  var snap: GridSnap = null
 
-  var topSourceKey: Key = null
-  var topSourceValue: Value = null
-  var originalDecoder: SimpleFeatureDecoder = null
-  var densityFeatureEncoder: SimpleFeatureEncoder = null
-
-  if (other != null && env != null) {
-    source = other.source.deepCopy(env)
-    simpleFeatureType = other.simpleFeatureType
-  }
+  projectedSFTDef = DENSITY_FEATURE_SFT_STRING
 
   def this() = this(null, null)
 
-  def init(source: SortedKeyValueIterator[Key, Value],
-                    options: ju.Map[String, String],
+  override def initProjectedSFTDefClassSpecificVariables(source: SortedKeyValueIterator[Key, Value],
+                    options: JMap[String, String],
                     env: IteratorEnvironment): Unit = {
-    this.source = source
-
-    val simpleFeatureTypeSpec = options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
-    simpleFeatureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
-    simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
-
-    // default to text if not found for backwards compatibility
-    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
-    originalDecoder = SimpleFeatureDecoder(simpleFeatureType, encodingOpt)
-
     bbox = JTS.toEnvelope(WKTUtils.read(options.get(DensityIterator.BBOX_KEY)))
     val (w, h) = DensityIterator.getBounds(options)
     snap = new GridSnap(bbox, w, h)
-    projectedSFT = SimpleFeatureTypes.createType(simpleFeatureType.getTypeName, DENSITY_FEATURE_STRING)
 
-    // Use density SFT for the encoder since we are transforming the feature into
-    // a sparse matrix as the result type of this iterator
-    densityFeatureEncoder = SimpleFeatureEncoder(projectedSFT, encodingOpt)
-    featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(projectedSFT)
     val schemaEncoding = options.get(DEFAULT_SCHEMA_NAME)
     decoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
   }
 
-  /**
-   * Combines the results from the underlying iterator stack
-   * into a single feature
-   */
-  def findTop() = {
-    // reset our 'top' (current) variables
-    result.clear()
-    topSourceKey = null
-    topSourceValue = null
-    var geometry: Geometry = null
+  override def handleKeyValue(resultO: Option[DensityIteratorResult],
+                              topSourceKey: Key,
+                              topSourceValue: Value): DensityIteratorResult = {
+    val feature = originalDecoder.decode(topSourceValue.get)
+    lazy val geoHashGeom = decoder.decode(topSourceKey).getDefaultGeometry.asInstanceOf[Geometry]
+    val geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
+    val result = resultO.getOrElse(DensityIteratorResult(geometry))  // result.result will get updated
 
-    while(source.hasTop && !curRange.afterEndKey(source.getTopKey)) {
-      topSourceKey = source.getTopKey
-      topSourceValue = source.getTopValue
+    geometry match {
+      case point: Point =>
+        addResultPoint(result.densityGrid, point)
 
-      val feature = originalDecoder.decode(topSourceValue.get())
-      lazy val geoHashGeom = decoder.decode(topSourceKey).getDefaultGeometry.asInstanceOf[Geometry]
-      geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
-      geometry match {
-        case point: Point =>
-          addResultPoint(point)
+      case multiPoint: MultiPoint =>
+        (0 until multiPoint.getNumGeometries).foreach {
+          i => addResultPoint(result.densityGrid, multiPoint.getGeometryN(i).intersection(geoHashGeom).asInstanceOf[Point])
+        }
 
-        case multiPoint: MultiPoint =>
-          (0 until multiPoint.getNumGeometries).foreach {
-            i => addResultPoint(multiPoint.getGeometryN(i).intersection(geoHashGeom).asInstanceOf[Point])
-          }
+      case line: LineString =>
+        handleLineString(result.densityGrid, line.intersection(geoHashGeom).asInstanceOf[LineString])
 
-        case line: LineString =>
-          handleLineString(line.intersection(geoHashGeom).asInstanceOf[LineString])
+      case multiLineString: MultiLineString =>
+        (0 until multiLineString.getNumGeometries).foreach {
+          i => handleLineString(result.densityGrid, multiLineString.getGeometryN(i).intersection(geoHashGeom).asInstanceOf[LineString])
+        }
 
-        case multiLineString: MultiLineString =>
-          (0 until multiLineString.getNumGeometries).foreach {
-           i => handleLineString(multiLineString.getGeometryN(i).intersection(geoHashGeom).asInstanceOf[LineString])
-          }
+      case polygon: Polygon =>
+        handlePolygon(result.densityGrid, polygon.intersection(geoHashGeom).asInstanceOf[Polygon])
 
-        case polygon: Polygon =>
-          handlePolygon(polygon.intersection(geoHashGeom).asInstanceOf[Polygon])
+      case multiPolygon: MultiPolygon =>
+        (0 until multiPolygon.getNumGeometries).foreach {
+          i => handlePolygon(result.densityGrid, multiPolygon.getGeometryN(i).intersection(geoHashGeom).asInstanceOf[Polygon])
+        }
 
-        case multiPolygon: MultiPolygon =>
-          (0 until multiPolygon.getNumGeometries).foreach {
-            i => handlePolygon(multiPolygon.getGeometryN(i).intersection(geoHashGeom).asInstanceOf[Polygon])
-          }
+      case someGeometry: Geometry =>
+        addResultPoint(result.densityGrid, someGeometry.getCentroid)
 
-        case someGeometry: Geometry =>
-          addResultPoint(someGeometry.getCentroid)
-
-        case _ => Nil
-
-      }
-
-      // Advance the source iterator
-      source.next()
+      case _ => Nil
     }
 
-    // if we found anything, set the current value
-    if(topSourceKey != null) {
-      featureBuilder.reset()
-      // encode the bins into the feature - this will be expanded by the IndexSchema
-      featureBuilder.add(DensityIterator.encodeSparseMatrix(result))
-      featureBuilder.add(geometry)
-      val feature = featureBuilder.buildFeature(Random.nextString(6))
-      topDensityKey = Some(topSourceKey)
-      topDensityValue = Some(new Value(densityFeatureEncoder.encode(feature)))
-    }
+    result.copy(geometry = geometry)
   }
 
-    /** take in a line string and seed in points between each window of two points
-      * take the set of the resulting points to remove duplicate endpoints */
-  def handleLineString(inLine: LineString) = {
+  /** take in a line string and seed in points between each window of two points
+    * take the set of the resulting points to remove duplicate endpoints */
+  def handleLineString(result: SparseMatrix, inLine: LineString) = {
     inLine.getCoordinates.sliding(2).flatMap {
       case Array(p0, p1) =>
         snap.generateLineCoordSet(p0, p1)
-    }.toSet[Coordinate].foreach(c => addResultCoordinate(c))
+    }.toSet[Coordinate].foreach(c => addResultCoordinate(result, c))
   }
 
   /** for a given polygon, take the centroid of each polygon from the BBOX coverage grid
     * if the given polygon contains the centroid then it is passed on to addResultPoint */
-  def handlePolygon(inPolygon: Polygon) = {
+  def handlePolygon(result: SparseMatrix, inPolygon: Polygon) = {
     val grid = snap.generateCoverageGrid
     val featureIterator = grid.getFeatures.features
     featureIterator
       .filter{ f => inPolygon.intersects(f.polygon) }
-      .foreach{ f=> addResultPoint(f.polygon.getCentroid) }
+      .foreach{ f => addResultPoint(result, f.polygon.getCentroid) }
   }
 
   /** calls addResultCoordinate on a given Point's coordinate */
-  def addResultPoint(inPoint: Point) = addResultCoordinate(inPoint.getCoordinate)
+  def addResultPoint(result: SparseMatrix, inPoint: Point) = addResultCoordinate(result, inPoint.getCoordinate)
 
   /** take a given Coordinate and add 1 to the result coordinate that it corresponds to via the snap grid */
-  def addResultCoordinate(coord: Coordinate) = {
+  def addResultCoordinate(result: SparseMatrix, coord: Coordinate) = {
     // snap the point into a 'bin' of close points and increment the count for the bin
     val x = snap.x(snap.i(coord.x))
     val y = snap.y(snap.j(coord.y))
     val cur = Option(result.get(y, x)).getOrElse(0L)
     result.put(y, x, cur + 1L)
-  }
-
-  override def seek(range: ARange,
-                    columnFamilies: ju.Collection[ByteSequence],
-                    inclusive: Boolean): Unit = {
-    curRange = range
-    source.seek(range, columnFamilies, inclusive)
-    findTop()
-  }
-
-  def hasTop: Boolean = topDensityKey.nonEmpty
-
-  def getTopKey: Key = topDensityKey.orNull
-
-  def getTopValue = topDensityValue.orNull
-
-  def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = new DensityIterator(this, env)
-
-  def next(): Unit = if(!source.hasTop) {
-    topDensityKey = None
-    topDensityValue = None
-  } else {
-    findTop()
   }
 }
 
@@ -221,7 +144,7 @@ object DensityIterator extends Logging {
   val BBOX_KEY = "geomesa.density.bbox"
   val BOUNDS_KEY = "geomesa.density.bounds"
   val ENCODED_RASTER_ATTRIBUTE = "encodedraster"
-  val DENSITY_FEATURE_STRING = s"$ENCODED_RASTER_ATTRIBUTE:String,geom:Point:srid=4326"
+  val DENSITY_FEATURE_SFT_STRING = s"$ENCODED_RASTER_ATTRIBUTE:String,geom:Point:srid=4326"
   type SparseMatrix = HashBasedTable[Double, Double, Long]
   val densitySFT = SimpleFeatureTypes.createType("geomesadensity", "weight:Double,geom:Point:srid=4326")
   val geomFactory = JTSFactoryFinder.getGeometryFactory
@@ -239,7 +162,7 @@ object DensityIterator extends Logging {
     iterSettings.addOption(BOUNDS_KEY, s"$width,$height")
   }
 
-  def getBounds(options: ju.Map[String, String]): (Int, Int) = {
+  def getBounds(options: JMap[String, String]): (Int, Int) = {
     val Array(w, h) = options.get(BOUNDS_KEY).split(",").map(_.toInt)
     (w, h)
   }
@@ -294,5 +217,12 @@ object DensityIterator extends Logging {
     }
     table
   }
+}
 
+case class DensityIteratorResult(geometry: Geometry,
+                                 densityGrid: SparseMatrix = HashBasedTable.create[Double, Double, Long]()) extends Result {
+  override def addToFeature(featureBuilder: SimpleFeatureBuilder): Unit = {
+    featureBuilder.add(DensityIterator.encodeSparseMatrix(densityGrid))
+    featureBuilder.add(geometry)
+  }
 }
