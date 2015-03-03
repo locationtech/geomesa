@@ -23,7 +23,6 @@ import com.esotericsoftware.kryo.{Kryo, Serializer}
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.feature.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 

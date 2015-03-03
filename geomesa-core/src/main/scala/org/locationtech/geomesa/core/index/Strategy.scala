@@ -25,13 +25,12 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.feature.FeatureEncoding
-import FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.iterators.{FEATURE_ENCODING, _}
 import org.locationtech.geomesa.core.util.SelfClosingIterator
+import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -116,8 +115,8 @@ trait Strategy {
                         geometryToCover: Geometry,
                         schema: String,
                         featureEncoding: FeatureEncoding,
-                        featureType: SimpleFeatureType) = {
-    if (query.getHints.containsKey(DENSITY_KEY)) {
+                        featureType: SimpleFeatureType) = query match {
+    case _ if query.getHints.containsKey(DENSITY_KEY) =>
       val clazz = classOf[DensityIterator]
 
       val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
@@ -135,7 +134,7 @@ trait Strategy {
       configureFeatureType(cfg, featureType)
 
       Some(cfg)
-    } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
+    case _ if query.getHints.containsKey(TEMPORAL_DENSITY_KEY) =>
       val clazz = classOf[TemporalDensityIterator]
 
       val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
@@ -151,8 +150,21 @@ trait Strategy {
       configureFeatureType(cfg, featureType)
 
       Some(cfg)
-    } else {
-      None
-    }
+    case _ if query.getHints.containsKey(MAP_AGGREGATION_KEY) =>
+      val clazz = classOf[MapAggregatingIterator]
+
+      val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
+        "topfilter-" + randomPrintableString(5),
+        clazz)
+
+      val mapAttribute = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
+
+      MapAggregatingIterator.configure(cfg, mapAttribute)
+
+      configureFeatureEncoding(cfg, featureEncoding)
+      configureFeatureType(cfg, featureType)
+
+      Some(cfg)
+    case _ => None
   }
 }

@@ -48,9 +48,6 @@ object SimpleFeatureTypes {
   val USER_DATA_MAP_KEY_TYPE   = "keyclass"
   val USER_DATA_MAP_VALUE_TYPE = "valueclass"
 
-  // use the epsg jar if it's available (e.g. in geoserver), otherwise use the less-rich constant
-  val CRS_EPSG_4326          = Try(CRS.decode("EPSG:4326")).getOrElse(DefaultGeographicCRS.WGS84)
-
   def createType(conf: Config): SimpleFeatureType = {
     val nameSpec = conf.getString("type-name")
     val (namespace, name) = buildTypeName(nameSpec)
