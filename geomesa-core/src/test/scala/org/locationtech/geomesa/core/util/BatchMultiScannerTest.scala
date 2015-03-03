@@ -98,7 +98,9 @@ class BatchMultiScannerTest extends Specification {
     val attrScanner = conn.createScanner(attrIdxTable, new Authorizations())
 
     val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
-    attrScanner.setRange(new ARange(AttributeTable.getAttributeIndexRows(rowIdPrefix, sft.getDescriptor(attr), Option(value)).head))
+    val descriptor = sft.getDescriptor(attr)
+    val range = new ARange(AttributeTable.getAttributeIndexRows(rowIdPrefix, descriptor, value).head)
+    attrScanner.setRange(range)
 
     val recordTable = AccumuloDataStore.formatRecordTableName(catalogTable, sft)
     conn.tableOperations().exists(recordTable) must beTrue
@@ -112,9 +114,7 @@ class BatchMultiScannerTest extends Specification {
     val retrieved = bms.iterator.toList
     retrieved.foreach { e =>
       val sf = decoder.decode(e.getValue.get())
-      if (value != AttributeTable.nullString) {
-        sf.getAttribute(attr) mustEqual value
-      }
+      sf.getAttribute(attr) mustEqual value
     }
 
     retrieved.size
@@ -134,9 +134,6 @@ class BatchMultiScannerTest extends Specification {
 
         // test something that was stored as a null
         attrIdxEqualQuery("age", "43", batchSize) mustEqual 0
-
-        // find nulls
-        attrIdxEqualQuery("age", null, batchSize) mustEqual 16
       }
       Success()
     }
