@@ -1,5 +1,5 @@
 <div ng-controller="HomeController">
     <masthead cql="cql"></masthead>
-    <geomesa-map cards="cards" api="mapAPI" selected-point="selectedPoint"></geomesa-map>
-    <cards cards="cards" selected-point="selectedPoint"></cards>
+    <geomesa-map selected-features="selectedFeatures" api="mapAPI"></geomesa-map>
+    <cards cards="selectedFeatures"></cards>
 </div>

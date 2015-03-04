@@ -7,18 +7,20 @@ angular.module('geomesa.map', [])
             scope: {
                 map: '=?',
                 api: '=',
-                cards: '=',
-                selectedPoint: '='
+                selectedFeatures: '=',
             },
 
             link: function (scope, element, attrs) {
-                scope.cards = [
+                scope.selectedFeatures = [
                     {
-                        Start: ' Click a data point to view it\'s attributes.'
+                        Start: ' Click a data point to view its attributes.'
                     }
                 ];
 
-                var baseLayer = new ol.layer.Tile({
+                var projection = ol.proj.get('EPSG:3857'),
+                    extent = projection.getExtent(),
+                    baseLayer = new ol.layer.Tile({
+                        extent: extent,
                         source: new ol.source.MapQuest({layer: 'osm'})
                     }),
                     wmsSource = new ol.source.TileWMS({
@@ -26,6 +28,7 @@ angular.module('geomesa.map', [])
                         params: {LAYERS: 'QuickStart'}
                     }),
                         wmsLayer = new ol.layer.Tile({
+                        extent: extent,
                         source: wmsSource
                     }),
                     olView = new ol.View({
@@ -48,10 +51,10 @@ angular.module('geomesa.map', [])
                 };
 
                 scope.map.on('singleclick', function(evt) {
-                    var viewResolution = olView.getResolution();
-                    var url = wmsSource.getGetFeatureInfoUrl(
-                        evt.coordinate, viewResolution, 'EPSG:3857',
-                        {'INFO_FORMAT': 'application/json', FEATURE_COUNT: 50}
+                    var viewResolution = olView.getResolution(),
+                        url = wmsSource.getGetFeatureInfoUrl(
+                            evt.coordinate, viewResolution, 'EPSG:3857',
+                            {'INFO_FORMAT': 'application/json', FEATURE_COUNT: 50}
                     );
                     $http.get(url).success(function(data, status, headers, config) {
                         if (data.features.length){
