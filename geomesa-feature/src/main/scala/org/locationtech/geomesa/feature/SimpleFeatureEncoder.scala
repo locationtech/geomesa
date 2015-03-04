@@ -21,7 +21,6 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 import org.apache.avro.io._
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -58,17 +57,16 @@ trait SimpleFeatureDecoder extends HasEncoding {
 }
 
 object SimpleFeatureDecoder {
-
   def apply(sft: SimpleFeatureType, encoding: FeatureEncoding) =
     encoding match {
-      case FeatureEncoding.KRYO => new KryoFeatureEncoder(sft, sft)
       case FeatureEncoding.AVRO => new AvroFeatureDecoder(sft)
       case FeatureEncoding.TEXT => new TextFeatureDecoder(sft)
     }
 
-  def apply(originalSft: SimpleFeatureType, projectedSft: SimpleFeatureType, encoding: FeatureEncoding) =
+  def apply(originalSft: SimpleFeatureType,
+            projectedSft: SimpleFeatureType,
+            encoding: FeatureEncoding) =
     encoding match {
-      case FeatureEncoding.KRYO => new KryoFeatureEncoder(originalSft, projectedSft)
       case FeatureEncoding.AVRO => new ProjectingAvroFeatureDecoder(originalSft, projectedSft)
       case FeatureEncoding.TEXT => new ProjectingTextDecoder(originalSft, projectedSft)
     }
@@ -83,9 +81,8 @@ object SimpleFeatureDecoder {
 }
 
 object SimpleFeatureEncoder {
-  def apply(sft: SimpleFeatureType, encoding: FeatureEncoding): SimpleFeatureEncoder =
+  def apply(sft: SimpleFeatureType, encoding: FeatureEncoding) =
     encoding match {
-      case FeatureEncoding.KRYO => new KryoFeatureEncoder(sft, sft)
       case FeatureEncoding.AVRO => new AvroFeatureEncoder(sft)
       case FeatureEncoding.TEXT => new TextFeatureEncoder(sft)
     }
@@ -96,7 +93,6 @@ object SimpleFeatureEncoder {
 
 object FeatureEncoding extends Enumeration {
   type FeatureEncoding = Value
-  val KRYO = Value("kryo")
   val AVRO = Value("avro")
   val TEXT = Value("text")
 }
@@ -193,19 +189,3 @@ class ProjectingAvroFeatureDecoder(original: SimpleFeatureType, projected: Simpl
 }
 
 class AvroFeatureDecoder(sft: SimpleFeatureType) extends ProjectingAvroFeatureDecoder(sft, sft)
-
-/**
- *
- * @param sft
- * @param decodeAs
- */
-class KryoFeatureEncoder(sft: SimpleFeatureType, decodeAs: SimpleFeatureType)
-    extends SimpleFeatureEncoder with SimpleFeatureDecoder {
-
-  val encoder = KryoFeatureSerializer(sft, decodeAs)
-
-  override val encoding = FeatureEncoding.KRYO
-  override def encode(feature: SimpleFeature) = encoder.write(feature)
-  override def decode(featureBytes: Array[Byte]) = encoder.read(featureBytes)
-  override def extractFeatureId(featureBytes: Array[Byte]) = encoder.readId(featureBytes)
-}

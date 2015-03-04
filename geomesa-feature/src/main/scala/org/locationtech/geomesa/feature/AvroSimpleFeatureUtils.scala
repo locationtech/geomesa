@@ -26,7 +26,6 @@ import org.apache.avro.{Schema, SchemaBuilder}
 import org.apache.commons.codec.binary.Hex
 import org.geotools.util.Converters
 import org.locationtech.geomesa.utils.geotools.Conversions.RichAttributeDescriptor
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -119,11 +118,11 @@ object AvroSimpleFeatureUtils {
 
         case t if ad.isCollection => (v: AnyRef) =>
           encodeList(v.asInstanceOf[java.util.List[_]],
-            ad.getUserData.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]])
+            ad.getUserData.get("subtype").asInstanceOf[Class[_]])
 
         case t if ad.isMap => (v: AnyRef) =>
-          val keyclass   = ad.getUserData.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
-          val valueclass = ad.getUserData.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
+          val keyclass   = ad.getUserData.get("keyclass").asInstanceOf[Class[_]]
+          val valueclass = ad.getUserData.get("valueclass").asInstanceOf[Class[_]]
           encodeMap(v.asInstanceOf[java.util.Map[_, _]], keyclass, valueclass)
 
         case _ =>

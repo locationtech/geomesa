@@ -25,12 +25,9 @@ import org.locationtech.geomesa.tools.commands.TableConfCommand._
 
 import scala.collection.JavaConversions._
 
-class TableConfCommand(parent: JCommander) extends CommandWithCatalog(parent) with Logging {
-  override val command = "tableconf"
-  override val params = null
-  override def register = {}
+class TableConfCommand(parent: JCommander) extends Command with Logging {
 
-  val jcTableConf = mkSubCommand(parent, command, new TableConfParams())
+  val jcTableConf = mkSubCommand(parent, Command, new TableConfParams())
   val tcList      = new ListParams
   val tcUpdate    = new UpdateParams
   val tcDesc      = new DescribeParams
@@ -68,13 +65,14 @@ class TableConfCommand(parent: JCommander) extends CommandWithCatalog(parent) wi
 
       case _ =>
         println("Error: no tableconf command listed...run as: geomesa tableconf <tableconf-command>")
-        parent.usage(command)
+        parent.usage(Command)
     }
   }
 
 }
 
 object TableConfCommand {
+  val Command            = "tableconf"
   val ListSubCommand     = "list"
   val DescribeSubCommand = "describe"
   val UpdateCommand      = "update"
@@ -116,7 +114,7 @@ object TableConfCommand {
     @Parameter(names = Array("-t", "--table-suffix"), description = "Table suffix to operate on (attr_idx, st_idx, or records)", required = true)
     var tableSuffix: String = null
 
-    lazy val ds = new DataStoreHelper(this).getExistingStore
+    lazy val ds = new DataStoreHelper(this).ds
     lazy val tableName = getTableName(ds, this)
   }
 

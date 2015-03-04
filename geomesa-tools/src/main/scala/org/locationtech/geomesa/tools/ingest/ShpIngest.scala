@@ -40,7 +40,7 @@ class ShpIngest(params: IngestParameters) extends Logging {
     val featureTypeName = shpDataStore.getTypeNames.head
     val featureSource = shpDataStore.getFeatureSource(featureTypeName)
 
-    val ds = new DataStoreHelper(params).getExistingStore
+    val ds = new DataStoreHelper(params).ds
 
     val targetTypeName = if (params.featureName != null) params.featureName else featureTypeName
 

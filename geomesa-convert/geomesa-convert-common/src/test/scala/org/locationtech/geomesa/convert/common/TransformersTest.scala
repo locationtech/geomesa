@@ -39,16 +39,6 @@ class TransformersTest extends Specification {
     "handle transformations" >> {
       "handle string transformations" >> {
 
-        "allow literal strings" >> {
-          val exp = Transformers.parseTransform("'hello'")
-          exp.eval(null) must be equalTo "hello"
-        }
-
-        "allow empty literal strings" >> {
-          val exp = Transformers.parseTransform("''")
-          exp.eval(null) must be equalTo ""
-        }
-
         "trim" >> {
           val exp = Transformers.parseTransform("trim($1)")
           exp.eval("", "foo ", "bar") must be equalTo "foo"
@@ -91,11 +81,6 @@ class TransformersTest extends Specification {
         "date with custom format" >> {
           val exp = Transformers.parseTransform("date('yyyyMMdd', $1)")
           exp.eval("", "20150101").asInstanceOf[Date] must be equalTo testDate
-        }
-
-        "datetime" >> {
-          val exp = Transformers.parseTransform("datetime($1)")
-          exp.eval("", "2015-01-01T00:00:00.000Z").asInstanceOf[Date] must be equalTo testDate
         }
 
         "isodate" >> {

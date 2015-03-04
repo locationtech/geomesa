@@ -18,7 +18,6 @@ package org.locationtech.geomesa.utils.geotools
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
-import org.locationtech.geomesa.utils.stats.Cardinality
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -199,20 +198,6 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getDescriptor("geom").getUserData.get(OPT_INDEX_VALUE) mustEqual(true)
     }
 
-    "allow specification of attribute cardinality" >> {
-      val spec = s"name:String:$OPT_CARDINALITY=high,dtg:Date,*geom:Point:srid=4326"
-      val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getDescriptor("name").getUserData.get(OPT_CARDINALITY) mustEqual("high")
-      SimpleFeatureTypes.getCardinality(sft.getDescriptor("name")) mustEqual(Cardinality.HIGH)
-    }
-
-    "allow specification of attribute cardinality regardless of case" >> {
-      val spec = s"name:String:$OPT_CARDINALITY=LOW,dtg:Date,*geom:Point:srid=4326"
-      val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getDescriptor("name").getUserData.get(OPT_CARDINALITY) mustEqual("low")
-      SimpleFeatureTypes.getCardinality(sft.getDescriptor("name")) mustEqual(Cardinality.LOW)
-    }
-
     "build from conf" >> {
       val conf = ConfigFactory.parseString(
         """
@@ -220,7 +205,6 @@ class SimpleFeatureTypesTest extends Specification {
           |  type-name = "testconf"
           |  fields = [
           |    { name = "testStr",  type = "string"       , index = true  },
-          |    { name = "testCard", type = "string"       , index = true, cardinality = high },
           |    { name = "testList", type = "List[String]" , index = false },
           |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
           |  ]
@@ -228,10 +212,8 @@ class SimpleFeatureTypesTest extends Specification {
         """.stripMargin)
 
       val sft = SimpleFeatureTypes.createType(conf)
-      sft.getAttributeCount must be equalTo 4
+      sft.getAttributeCount must be equalTo 3
       sft.getGeometryDescriptor.getName.getLocalPart must be equalTo "geom"
-      SimpleFeatureTypes.getCardinality(sft.getDescriptor("testStr")) mustEqual(Cardinality.UNKNOWN)
-      SimpleFeatureTypes.getCardinality(sft.getDescriptor("testCard")) mustEqual(Cardinality.HIGH)
       sft.getTypeName must be equalTo "testconf"
     }
   }

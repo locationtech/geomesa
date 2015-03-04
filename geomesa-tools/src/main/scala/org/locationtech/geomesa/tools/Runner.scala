@@ -18,7 +18,6 @@ package org.locationtech.geomesa.tools
 import com.beust.jcommander.{JCommander, ParameterException}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.tools.commands._
-import org.locationtech.geomesa.tools.commands.convert.GeoMesaIStringConverterFactory
 
 import scala.collection.JavaConversions._
 
@@ -27,23 +26,16 @@ object Runner extends Logging {
   def main(args: Array[String]): Unit = {
     val jc = new JCommander()
     jc.setProgramName("geomesa")
-    jc.addConverterFactory(new GeoMesaIStringConverterFactory)
 
-    val commands = List(
-      new TableConfCommand(jc),
-      new ListCommand(jc),
-      new ExportCommand(jc),
-      new RemoveSchemaCommand(jc),
-      new DeleteCatalogCommand(jc),
-      new DescribeCommand(jc),
-      new IngestCommand(jc),
-      new CreateCommand(jc),
-      new ExplainCommand(jc),
-      new HelpCommand(jc)
-    )
-
-    commands.foreach(_.register)
-    val commandMap = commands.map(c => c.command -> c).toMap
+    val tableConf = new TableConfCommand(jc)
+    val listCom   = new ListCommand(jc)
+    val export    = new ExportCommand(jc)
+    val delete    = new DeleteCommand(jc)
+    val describe  = new DescribeCommand(jc)
+    val ingest    = new IngestCommand(jc)
+    val create    = new CreateCommand(jc)
+    val explain   = new ExplainCommand(jc)
+    val help      = new HelpCommand(jc)
 
     try {
       jc.parse(args.toArray: _*)
@@ -55,7 +47,18 @@ object Runner extends Logging {
     }
 
     val command: Command =
-      commandMap.get(jc.getParsedCommand).getOrElse(new DefaultCommand(jc))
+      jc.getParsedCommand match {
+        case TableConfCommand.Command => tableConf
+        case ListCommand.Command      => listCom
+        case ExportCommand.Command    => export
+        case DeleteCommand.Command    => delete
+        case DescribeCommand.Command  => describe
+        case IngestCommand.Command    => ingest
+        case CreateCommand.Command    => create
+        case ExplainCommand.Command   => explain
+        case HelpCommand.Command      => help
+        case _                        => new DefaultCommand(jc)
+      }
 
     try {
       command.execute()
@@ -71,11 +74,8 @@ object Runner extends Logging {
     parent.getCommands().get(name)
   }
 
-  class DefaultCommand(jc: JCommander) extends Command(jc) {
+  class DefaultCommand(jc: JCommander) extends Command {
     override def execute() = println(commandUsage(jc))
-    override def register = {}
-    override val command: String = ""
-    override val params: Any = null
   }
 
   def commandUsage(jc: JCommander) = {

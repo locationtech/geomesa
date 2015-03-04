@@ -77,8 +77,8 @@ class AccumuloDataStore(val connector: Connector,
                         val recordThreadsConfig: Option[Int] = None,
                         val writeThreadsConfig: Option[Int] = None,
                         val cachingConfig: Boolean = false,
-                        val featureEncoding: FeatureEncoding = DEFAULT_ENCODING)
-    extends AbstractDataStore(true) with AccumuloConnectorCreator with StrategyHintsProvider with Logging {
+                        val featureEncoding: FeatureEncoding = FeatureEncoding.AVRO)
+    extends AbstractDataStore(true) with AccumuloConnectorCreator with Logging {
 
   // having at least as many shards as tservers provides optimal parallelism in queries
   protected [core] val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
@@ -476,22 +476,6 @@ class AccumuloDataStore(val connector: Connector,
     ).filter(tableOps.exists).foreach(tableOps.delete)
 
   /**
-   * Delete everything (all tables) associated with this datastore (index tables and catalog table)
-   */
-  def delete() = {
-    val indexTables =
-      getTypeNames.flatMap { t =>
-        Seq(getSpatioTemporalIdxTableName(t),
-            getAttrIdxTableName(t),
-            getRecordTableForType(t))
-        }.distinct
-
-    // Delete index tables first then catalog table in case of error
-    indexTables.filter(tableOps.exists).foreach(tableOps.delete)
-    tableOps.delete(catalogTable)
-  }
-
-  /**
    * GeoTools API createSchema() method for a featureType...creates tables with
    * ${numTabletServers} splits. To control the number of splits use the
    * createSchema(featureType, maxShard) method or a custom index schema format.
@@ -652,14 +636,16 @@ class AccumuloDataStore(val connector: Connector,
    * @param featureName
    * @return
    */
-  private def getAttributes(featureName: String) = metadata.read(featureName, ATTRIBUTES_KEY)
+  private def getAttributes(featureName: String) =
+    metadata.read(featureName, ATTRIBUTES_KEY)
 
   /**
    * Reads the feature encoding from the metadata. Defaults to TEXT if there is no metadata.
    */
   def getFeatureEncoding(sft: SimpleFeatureType): FeatureEncoding = {
-    metadata.read(sft.getTypeName, FEATURE_ENCODING_KEY)
-      .map(FeatureEncoding.withName).getOrElse(FeatureEncoding.TEXT)
+    val encodingString = metadata.read(sft.getTypeName, FEATURE_ENCODING_KEY)
+                         .getOrElse(FeatureEncoding.TEXT.toString)
+    FeatureEncoding.withName(encodingString)
   }
 
   // We assume that they want the bounds for everything.
@@ -876,8 +862,6 @@ class AccumuloDataStore(val connector: Connector,
    * @return
    */
   private def getFeatureName(featureType: SimpleFeatureType) = featureType.getName.getLocalPart
-
-  override def strategyHints(sft: SimpleFeatureType) = new UserDataStrategyHints()
 }
 
 object AccumuloDataStore {

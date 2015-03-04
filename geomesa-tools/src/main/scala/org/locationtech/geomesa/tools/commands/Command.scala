@@ -15,24 +15,6 @@
  */
 package org.locationtech.geomesa.tools.commands
 
-import com.beust.jcommander.JCommander
-import org.locationtech.geomesa.tools.{AccumuloProperties, DataStoreHelper}
-
-/**
- * Abstract superclass for all top-level GeoMesa JCommander commands
- */
-abstract class Command(parent: JCommander) {
+trait Command {
   def execute()
-  val params: Any
-  def register = parent.addCommand(command, params)
-  val command: String
-}
-
-/**
- * Abstract class for commands that have a pre-existing catlaog
- */
-abstract class CommandWithCatalog(parent: JCommander) extends Command(parent) with AccumuloProperties {
-  override val params: GeoMesaParams
-  lazy val ds = new DataStoreHelper(params).getExistingStore
-  lazy val catalog = params.catalog
 }

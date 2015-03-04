@@ -27,14 +27,15 @@ import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools._
-import org.locationtech.geomesa.tools.commands.ExportCommand.ExportParameters
+import org.locationtech.geomesa.tools.commands.ExportCommand.{Command, ExportParameters}
 import org.opengis.filter.Filter
 
 import scala.util.{Failure, Success, Try}
 
-class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with Logging {
-  override val command = "export"
-  override val params = new ExportParameters
+class ExportCommand(parent: JCommander) extends Command with Logging {
+
+  val params = new ExportParameters
+  parent.addCommand(Command, params)
 
   override def execute() = {
 
@@ -65,12 +66,12 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
           if (Option(params.attributes).nonEmpty) {
             params.attributes
           } else {
-            val sft = ds.getSchema(params.featureName)
+            val sft = new DataStoreHelper(params).ds.getSchema(params.featureName)
             ShapefileExport.modifySchema(sft)
           }
         getFeatureCollection(Some(schemaString))
       case BIN =>
-        val sft = ds.getSchema(params.featureName)
+        val sft = new DataStoreHelper(params).ds.getSchema(params.featureName)
         index.getDtgFieldName(sft).foreach(BinFileExport.DEFAULT_TIME = _)
         getFeatureCollection(Some(BinFileExport.getAttributeList(params)))
       case _ => getFeatureCollection()
@@ -92,7 +93,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
     }
 
     // get the feature store used to query the GeoMesa data
-    val fs = ds.getFeatureSource(params.featureName).asInstanceOf[AccumuloFeatureStore]
+    val fs = new DataStoreHelper(params).ds.getFeatureSource(params.featureName).asInstanceOf[AccumuloFeatureStore]
 
     // and execute the query
     Try(fs.getFeatures(q)) match {
@@ -122,6 +123,8 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 }
 
 object ExportCommand {
+  val Command = "export"
+
   @Parameters(commandDescription = "Export a GeoMesa feature")
   class ExportParameters extends OptionalCqlFilterParameters {
     @Parameter(names = Array("-fmt", "--format"), description = "Format to export (csv|tsv|gml|json|shp|bin)")

@@ -751,8 +751,8 @@ class AccumuloDataStoreTest extends Specification {
       val sftName = "schematest"
 
       val query = new Query(sftName, Filter.INCLUDE)
-      val fr = ds.getFeatureReader(sftName, query)
-      fr.explainQuery()
+      val fr = ds.getFeatureReader(sftName)
+      fr.explainQuery(query)
       fr should not be null
     }
 

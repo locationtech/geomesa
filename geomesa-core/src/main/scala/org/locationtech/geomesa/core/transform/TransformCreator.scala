@@ -17,8 +17,8 @@
 package org.locationtech.geomesa.core.transform
 
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature._
+import FeatureEncoding.FeatureEncoding
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -34,25 +34,27 @@ object TransformCreator {
    */
   def createTransform(targetFeatureType: SimpleFeatureType,
                       featureEncoding: FeatureEncoding,
-                      transformString: String): (SimpleFeature => Array[Byte]) = {
-
-    val encoder = SimpleFeatureEncoder(targetFeatureType, featureEncoding)
-    val defs = TransformProcess.toDefinition(transformString)
+                      transformString: String): (SimpleFeature => Array[Byte]) =
     featureEncoding match {
-      case FeatureEncoding.KRYO | FeatureEncoding.AVRO =>
+      case FeatureEncoding.AVRO =>
+        val encoder = SimpleFeatureEncoder(targetFeatureType, featureEncoding)
+        val defs = TransformProcess.toDefinition(transformString)
         (feature: SimpleFeature) => {
-          val newSf = new ScalaSimpleFeature(feature.getIdentifier.getID, targetFeatureType)
+          val newSf = new AvroSimpleFeature(feature.getIdentifier, targetFeatureType)
           defs.foreach { t => newSf.setAttribute(t.name, t.expression.evaluate(feature)) }
           encoder.encode(newSf)
         }
 
       case FeatureEncoding.TEXT =>
-        val builder = ScalaSimpleFeatureFactory.featureBuilder(targetFeatureType)
+        val defs = TransformProcess.toDefinition(transformString)
+        val encoder = SimpleFeatureEncoder(targetFeatureType, featureEncoding)
+        val builder = AvroSimpleFeatureFactory.featureBuilder(targetFeatureType)
         (feature: SimpleFeature) => {
+          builder.reset()
           defs.foreach { t => builder.set(t.name, t.expression.evaluate(feature)) }
           val newFeature = builder.buildFeature(feature.getID)
           encoder.encode(newFeature)
         }
     }
-  }
+
 }

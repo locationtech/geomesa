@@ -77,7 +77,7 @@ class ShpIngestTest extends Specification {
     ingestParams.catalog = "testshpingestcatalog"
     ingestParams.useMock = true
 
-    val ds = new DataStoreHelper(ingestParams).getOrCreateDs
+    val ds = new DataStoreHelper(ingestParams).ds
 
     "should properly ingest a shapefile" >> {
       ingestParams.files.add(shpFile.getPath)

@@ -21,7 +21,6 @@ import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Predica
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
-import scala.util.Try
 
 class CompositeConverterFactory[I] extends SimpleFeatureConverterFactory[I] {
   override def canProcess(conf: Config): Boolean = canProcessType(conf, "composite-converter")
@@ -42,9 +41,12 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
                                converters: Seq[(Predicate, SimpleFeatureConverter[I])])
   extends SimpleFeatureConverter[I] {
 
+  // to maintain laziness
+  val convView = converters.view
+
   override def processInput(is: Iterator[I]): Iterator[SimpleFeature] =
-    is.flatMap { input =>
-      converters.view.flatMap { case (pred, conv) =>  processIfValid(input, pred, conv) }.headOption
+    is.map { input =>
+      convView.flatMap { case (pred, conv) =>  processIfValid(input, pred, conv) }.head
     }
 
   // noop
@@ -52,7 +54,7 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
 
   implicit val ec = new EvaluationContext(Map(), Array())
   def processIfValid(input: I, pred: Predicate, conv: SimpleFeatureConverter[I]) =
-    Try { pred.eval(input) }.toOption.flatMap { v => if(v) conv.processSingleInput(input) else None }
+    if(pred.eval(input)) conv.processSingleInput(input) else None
 }
 
 

@@ -221,7 +221,7 @@ class TableVersionTest extends Specification {
       val manualStore = DataStoreFinder.getDataStore(newManualParams).asInstanceOf[AccumuloDataStore]
 
       // the user provided avro
-      manualStore.featureEncoding mustEqual FeatureEncoding.KRYO
+      manualStore.featureEncoding mustEqual FeatureEncoding.AVRO
 
       // Ensure that a table with featureEncoder metadata defaults to TextFeatureEncoder
       // and verify with a manual scanner
@@ -278,7 +278,7 @@ class TableVersionTest extends Specification {
       hasEncodingMeta must beTrue
     }
 
-    "should default to creating new tables in kryo" in {
+    "should default to creating new tables in avro" in {
       var newGeomesaParams = geomesaParams.updated("tableName", "geomesa3")
       newGeomesaParams -= "featureEncoding"
 
@@ -288,8 +288,8 @@ class TableVersionTest extends Specification {
 
       val geomesaStore = DataStoreFinder.getDataStore(newGeomesaParams).asInstanceOf[AccumuloDataStore]
 
-      geomesaStore.featureEncoding mustEqual FeatureEncoding.KRYO
-      geomesaStore.getFeatureEncoding(sft) mustEqual FeatureEncoding.KRYO
+      geomesaStore.featureEncoding mustEqual FeatureEncoding.AVRO
+      geomesaStore.getFeatureEncoding(sft) mustEqual FeatureEncoding.AVRO
     }
   }
 

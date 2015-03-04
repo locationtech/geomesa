@@ -153,65 +153,27 @@ To create a new feature on a specified catalog table, use the `create` command.
 #### Example command:
     geomesa create -u username -p password -c test_create -i instname -z zoo1,zoo2,zoo3 -fn testing -s fid:String:index=true,dtg:Date,geom:Point:srid=4326 -dt dtg
 
-### removeschema
-To remove a feature type and it's associated data from a catalog table, use the `removeschema` command.
+### delete
+To delete a feature on a specified catalog table, use the `delete` command.
 
 ####Usage (required options denoted with star):
-    $ geomesa help removeschema
-    Usage: removeschema [options]
+    $ geomesa help delete
+    Delete a feature's data and definition from a GeoMesa catalog
+    Usage: delete [options]
       Options:
         -a, --auths
            Accumulo authorizations
       * -c, --catalog
            Catalog table name for GeoMesa
-        -fn, --feature-name
+      * -fn, --feature-name
            Simple Feature Type name on which to operate
         -f, --force
-           Force deletion without prompt
+           Force deletion of feature without prompt
            Default: false
         -i, --instance
            Accumulo instance name
         -mc, --mock
            Run everything with a mock accumulo instance instead of a real one
-           (true/false)
-           Default: false
-        -p, --password
-           Accumulo password (will prompt if not supplied)
-        -pt, --pattern
-           Regular expression to select items to delete
-      * -u, --user
-           Accumulo user name
-        -v, --visibilities
-           Accumulo scan visibilities
-        -z, --zookeepers
-           Zookeepers (host[:port], comma separated)
-
-
-    
-####Example:
-    geomesa removeschema -u username -p password -i instname -z zoo1,zoo2,zoo3 -c test_catalog -fn testfeature1
-    geomesa removeschema -u username -p password -i instname -z zoo1,zoo2,zoo3 -c test_catalog -pt 'testfeatures\d+'
-
-### deletecatalog
-To delete a GeoMesa catalog completely (and all features in it) use the `deletecatalog` command.
-
-####Usage (required options denoted with star):
-    geomesa help deletecatalog
-    Delete a GeoMesa catalog completely (and all features in it)
-    Usage: deletecatalog [options]
-      Options:
-        -a, --auths
-           Accumulo authorizations
-      * -c, --catalog
-           Catalog table name for GeoMesa
-        -f, --force
-           Force deletion without prompt
-           Default: false
-        -i, --instance
-           Accumulo instance name
-        -mc, --mock
-           Run everything with a mock accumulo instance instead of a real one
-           (true/false)
            Default: false
         -p, --password
            Accumulo password (will prompt if not supplied)
@@ -221,10 +183,11 @@ To delete a GeoMesa catalog completely (and all features in it) use the `deletec
            Accumulo scan visibilities
         -z, --zookeepers
            Zookeepers (host[:port], comma separated)
+
     
 ####Example:
-    geomesa deletecatalog -u username -p password -i instname -z zoo1,zoo2,zoo3 -c test_catalog
-    
+    geomesa delete -u username -p password -i instname -z zoo1,zoo2,zoo3 -c test_delete -fn testing
+
 ### describe
 To describe the attributes of a feature on a specified catalog table, use the `describe` command.  
 

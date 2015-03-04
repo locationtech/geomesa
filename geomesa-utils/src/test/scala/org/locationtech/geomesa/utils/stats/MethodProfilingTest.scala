@@ -94,7 +94,7 @@ class MethodProfilingTest extends Specification {
       timings.occurrence("1", 100)
       timings.occurrence("2", 200)
 
-      timings.averageTimes() mustEqual "Total time: 300 ms. Percent of time - 1: 33.3% 1 times at 100.0000 ms avg, 2: 66.7% 1 times at 200.0000 ms avg"
+      timings.averageTimes() mustEqual "Total time: 300 ms. Percent of time - 1: 33.3% 100.0000 ms avg, 2: 66.7% 200.0000 ms avg"
     }
 
     "compute average occurrences" in {

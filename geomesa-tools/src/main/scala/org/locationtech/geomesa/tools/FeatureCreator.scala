@@ -24,7 +24,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 object FeatureCreator extends Logging {
 
   def createFeature(params: CreateFeatureParams): Unit = {
-    val ds = new DataStoreHelper(params).getOrCreateDs
+    val ds = new DataStoreHelper(params).ds
     createFeature(ds, params)
   }
 

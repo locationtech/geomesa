@@ -21,10 +21,9 @@ import java.io.StringReader
 import com.typesafe.scalalogging.slf4j.Logging
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.csv.CSVParser._
+import org.locationtech.geomesa.core.csv.CSVParser.TimeParser
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -69,31 +68,6 @@ class CSVPackageTest
       schema mustEqual "string:String"
     }
 
-    "recognize LineStrings"  in {
-      val csv = "name\n\"LINESTRING(0 2, 2 0, 8 6)\""
-      val schema = getSchema("test", csv)
-      schema mustEqual s"*name:LineString:srid=4326:index=true:$OPT_INDEX_VALUE=true"
-    }
-    "recognize Polygons"  in {
-      val csv = "name\n\"POLYGON((20 10, 30 0, 40 10, 30 20, 20 10))\""
-      val schema = getSchema("test", csv)
-      schema mustEqual s"*name:Polygon:srid=4326:index=true:$OPT_INDEX_VALUE=true"
-    }
-    "recognize MultiLineStrings"  in {
-      val csv = "name\n\"MULTILINESTRING((0 2, 2 0, 8 6),(0 2, 2 0, 8 6))\""
-      val schema = getSchema("test", csv)
-      schema mustEqual s"*name:MultiLineString:srid=4326:index=true:$OPT_INDEX_VALUE=true"
-    }
-    "recognize MultiPoints"  in {
-      val csv = "name\n\"MULTIPOINT(0 0, 2 2)\""
-      val schema = getSchema("test", csv)
-      schema mustEqual s"*name:MultiPoint:srid=4326:index=true:$OPT_INDEX_VALUE=true"
-    }
-    "recognize MultiPolygons"  in {
-      val csv = "name\n\"MULTIPOLYGON(((-1 0, 0 1, 1 0, 0 -1, -1 0)), ((-2 6, 1 6, 1 3, -2 3, -2 6)), ((-1 5, 2 5, 2 2, -1 2, -1 5)))\""
-      val schema = getSchema("test", csv)
-      schema mustEqual s"*name:MultiPolygon:srid=4326:index=true:$OPT_INDEX_VALUE=true"
-    }
   }
 
   "buildFeatureCollection" should {
