@@ -128,7 +128,7 @@ class TemporalDensityIteratorTest extends Specification {
       (iter must not).beNull
 
       iter.length should be lessThan 150
-      iter.length should be equalTo 1
+      iter.length mustEqual 1
     }
 
     "maintain total weights of time" in {
@@ -143,8 +143,8 @@ class TemporalDensityIteratorTest extends Specification {
       val timeSeries = decodeTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
       val totalCount = timeSeries.map { case (dateTime, count) => count}.sum
 
-      totalCount should be equalTo 150
-      timeSeries.size should be equalTo 1
+      totalCount mustEqual 150
+      timeSeries.size mustEqual 1
     }
 
     "maintain total weights of time - json" in {
@@ -159,8 +159,8 @@ class TemporalDensityIteratorTest extends Specification {
       val timeSeries = jsonToTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
       val totalCount = timeSeries.map { case (dateTime, count) => count}.sum
 
-      totalCount should be equalTo 150
-      timeSeries.size should be equalTo 1
+      totalCount mustEqual 150
+      timeSeries.size mustEqual 1
     }
 
 
@@ -181,8 +181,8 @@ class TemporalDensityIteratorTest extends Specification {
 
       val total = timeSeries.map { case (dateTime, count) => count}.sum
 
-      total should be equalTo 150
-      timeSeries.size should be equalTo 1
+      total mustEqual 150
+      timeSeries.size mustEqual 1
     }
 
     "maintain total irrespective of point - json" in {
@@ -202,8 +202,8 @@ class TemporalDensityIteratorTest extends Specification {
 
       val total = timeSeries.map { case (dateTime, count) => count}.sum
 
-      total should be equalTo 150
-      timeSeries.size should be equalTo 1
+      total mustEqual 150
+      timeSeries.size mustEqual 1
     }
 
     "correctly bin off of time intervals" in {
@@ -222,11 +222,11 @@ class TemporalDensityIteratorTest extends Specification {
 
       val total = timeSeries.map {
         case (dateTime, count) =>
-          count should be equalTo 2L
+          count mustEqual 2L
           count}.sum
 
-      total should be equalTo 48
-      timeSeries.size should be equalTo 24
+      total mustEqual 48
+      timeSeries.size mustEqual 24
     }
 
     "correctly bin off of time intervals - json" in {
@@ -245,11 +245,11 @@ class TemporalDensityIteratorTest extends Specification {
 
       val total = timeSeries.map {
         case (dateTime, count) =>
-          count should be equalTo 2L
+          count mustEqual 2L
           count}.sum
 
-      total should be equalTo 48
-      timeSeries.size should be equalTo 24
+      total mustEqual 48
+      timeSeries.size mustEqual 24
     }
 
     "encode decode feature" in {
@@ -260,10 +260,10 @@ class TemporalDensityIteratorTest extends Specification {
       val encoded = TemporalDensityIterator.encodeTimeSeries(timeSeries)
       val decoded = TemporalDensityIterator.decodeTimeSeries(encoded)
 
-      timeSeries should be equalTo decoded
-      timeSeries.size should be equalTo 2
-      timeSeries.get(new DateTime("2012-01-01T00:00:00", DateTimeZone.UTC)).get should be equalTo 2L
-      timeSeries.get(new DateTime("2012-01-01T01:00:00", DateTimeZone.UTC)).get should be equalTo 8L
+      timeSeries mustEqual decoded
+      timeSeries.size mustEqual 2
+      timeSeries.get(new DateTime("2012-01-01T00:00:00", DateTimeZone.UTC)).get mustEqual 2L
+      timeSeries.get(new DateTime("2012-01-01T01:00:00", DateTimeZone.UTC)).get mustEqual 8L
     }
 
     "query dtg bounds not in DataStore" in {
@@ -277,7 +277,7 @@ class TemporalDensityIteratorTest extends Specification {
 
       val results = fs.getFeatures(q)
       val sfList = results.features().toList
-      sfList.length should be equalTo 0
+      sfList.length mustEqual 0
     }
 
     "nothing to query over" in {
@@ -289,7 +289,7 @@ class TemporalDensityIteratorTest extends Specification {
 
       val results = fs.getFeatures(q)
       val sfList = results.features().toList
-      sfList.length should be equalTo 0
+      sfList.length mustEqual 0
     }
 
     "nothing to query over - json" in {
@@ -301,7 +301,7 @@ class TemporalDensityIteratorTest extends Specification {
 
       val results = fs.getFeatures(q)
       val sfList = results.features().toList
-      sfList.length should be equalTo 0
+      sfList.length mustEqual 0
     }
   }
 }

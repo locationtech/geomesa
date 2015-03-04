@@ -19,7 +19,7 @@ package org.locationtech.geomesa.core.process.temporalDensity
 import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.geotools.data.{DataUtilities, Query}
+import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
@@ -28,7 +28,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.util.NullProgressListener
 import org.joda.time.Interval
 import org.locationtech.geomesa.core.index.QueryHints
-import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.getFeatureType
+import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.createFeatureType
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 
@@ -49,19 +49,22 @@ class TemporalDensityProcess extends Logging {
                  name = "startDate",
                  description = "The start of the time interval")
                startDate: Date,
+
                @DescribeParameter(
                  name = "endDate",
                  description = "The end of the time interval")
                endDate: Date,
+
                @DescribeParameter(
                  name = "buckets",
                  min = 1,
                  description = "How many buckets we want to divide our time interval into.")
                buckets: Int
+
                ): SimpleFeatureCollection = {
     logger.info("Attempting Geomesa temporal density on type " + features.getClass.getName)
 
-    if(features.isInstanceOf[ReTypingFeatureCollection]) {
+    if(features.isInstanceOf[ReTypingFeatureCollection]){
       logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
 
@@ -73,11 +76,10 @@ class TemporalDensityProcess extends Logging {
   }
 }
 
-class TemporalDensityVisitor(features: SimpleFeatureCollection, interval: Interval, buckets: Int )
-  extends FeatureCalc
-          with Logging {
+class TemporalDensityVisitor(features: SimpleFeatureCollection, interval: Interval, buckets: Int)
+  extends FeatureCalc with Logging {
 
-  val retType = getFeatureType(features.getSchema())
+  val retType = createFeatureType(features.getSchema())
   val manualVisitResults = new DefaultFeatureCollection(null, retType)
 
   //  Called for non AccumuloFeatureCollections

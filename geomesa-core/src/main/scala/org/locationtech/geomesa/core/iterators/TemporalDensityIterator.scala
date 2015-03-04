@@ -37,7 +37,7 @@ import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core._
 //<<<<<<< HEAD TODO KMW
 //import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
-import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.getFeatureType
+import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.createFeatureType
 import org.locationtech.geomesa.core.index.{IndexEntryDecoder, _}
 import org.locationtech.geomesa.feature._
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, TimeSnap}
@@ -88,7 +88,7 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
     val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(FeatureEncoding.TEXT.toString)
     originalDecoder = SimpleFeatureDecoder(simpleFeatureType, encodingOpt)
 
-    projectedSFT = getFeatureType(simpleFeatureType)
+    projectedSFT = createFeatureType(simpleFeatureType)
 
     temporalDensityFeatureEncoder = SimpleFeatureEncoder(projectedSFT, encodingOpt)
     featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(projectedSFT)
@@ -123,7 +123,7 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
     if(topSourceKey != null) {
       featureBuilder.reset()
       featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(result))
-      featureBuilder.add(TemporalDensityIterator.zeroPoint) //Filler value as Feature requires a geometry
+      featureBuilder.add(TemporalDensityIterator.ZeroPoint) //Filler value as Feature requires a geometry
       val feature = featureBuilder.buildFeature(Random.nextString(6))
       topTemporalDensityKey = Some(topSourceKey)
       topTemporalDensityValue = Some(new Value(temporalDensityFeatureEncoder.encode(feature)))
@@ -168,11 +168,11 @@ object TemporalDensityIterator extends Logging {
   val TIME_SERIES: String = "timeseries"
   val TEMPORAL_DENSITY_FEATURE_STRING = s"$TIME_SERIES:String,geom:Geometry"
 
-  val zeroPoint = new GeometryFactory().createPoint(new Coordinate(0,0))
+  val ZeroPoint = new GeometryFactory().createPoint(new Coordinate(0,0))
 
   type TimeSeries = collection.mutable.HashMap[DateTime, Long]
 
-  val geomFactory = JTSFactoryFinder.getGeometryFactory
+  val GeomFactory = JTSFactoryFinder.getGeometryFactory
 
   def configure(cfg: IteratorSetting, interval : Interval, buckets: Int) = {
     setTimeBounds(cfg, interval)
@@ -196,7 +196,7 @@ object TemporalDensityIterator extends Logging {
     new Interval(s, e)
   }
 
-  def getFeatureType(origFetType : SimpleFeatureType) = {
+  def createFeatureType(origFetType : SimpleFeatureType) = {
     //Need a filler namespace, else geoserver throws nullptr exception for xml output
     DataUtilities.createType("FILLER", origFetType.getTypeName, TemporalDensityIterator.TEMPORAL_DENSITY_FEATURE_STRING)
   }
@@ -209,15 +209,14 @@ object TemporalDensityIterator extends Logging {
     resultTS
   }
 
-  def timeSeriesToJSON(ts : TimeSeries) : String = {
-    val jsonMap = ts.toMap map { case (k, v) => (k.toString("yyyy-MM-dd'T'HH:mm:ss.SSSZ") -> v)}
-    val timeSeriesJSON = new JSONObject(jsonMap).toString()
-    timeSeriesJSON
-  }
-
   private val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
-  def jsonToTimeSeries(ts : String) : TimeSeries = {
+  def timeSeriesToJSON(ts : TimeSeries): String = {
+    val jsonMap = ts.toMap.map { case (k, v) => k.toString(df) -> v };
+    new JSONObject(jsonMap).toString()
+  }
+
+  def jsonToTimeSeries(ts : String): TimeSeries = {
     val objMapper: ObjectMapper = new ObjectMapper();
     val stringMap: ju.HashMap[String, Long] = objMapper.readValue(ts, new TypeReference[ju.HashMap[String, java.lang.Long]]() {});
     (for((k,v) <- stringMap) yield(df.parseDateTime(k) -> v))(breakOut)

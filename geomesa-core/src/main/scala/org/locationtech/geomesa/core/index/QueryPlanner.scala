@@ -20,7 +20,6 @@ import java.util.Map.Entry
 
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.data.{Key, Value}
-import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -39,7 +38,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}
 
 import scala.reflect.ClassTag
-import scala.util.parsing.json.JSONObject
 
 object QueryPlanner {
   val iteratorPriority_RowRegex                        = 0
@@ -197,10 +195,11 @@ case class QueryPlanner(schema: String,
     val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
     featureBuilder.reset()
 
-    if (returnEncoded)
+    if (returnEncoded) {
       featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
-    else
+    } else {
       featureBuilder.add(timeSeriesToJSON(summedTimeSeries))
+    }
 
 
     featureBuilder.add(QueryPlanner.zeroPoint) //Filler value as Feature requires a geometry
@@ -247,7 +246,7 @@ case class QueryPlanner(schema: String,
       case _: Query if query.getHints.containsKey(DENSITY_KEY)  =>
         SimpleFeatureTypes.createType(featureType.getTypeName, DensityIterator.DENSITY_FEATURE_STRING)
       case _: Query if query.getHints.containsKey(TEMPORAL_DENSITY_KEY)  =>
-        getFeatureType(featureType)
+        createFeatureType(featureType)
       case _: Query if query.getHints.get(TRANSFORM_SCHEMA) != null =>
         query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
       case _ => featureType

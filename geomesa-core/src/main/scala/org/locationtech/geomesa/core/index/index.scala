@@ -24,7 +24,7 @@ import org.geotools.data.Query
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.FeatureId
@@ -94,9 +94,9 @@ package object index {
     val BBOX_KEY    = new ClassKey(classOf[ReferencedEnvelope])
 
     val TEMPORAL_DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
-    val TIME_INTERVAL_KEY = new ClassKey(classOf[org.joda.time.Interval])
-    val TIME_BUCKETS_KEY = new IntegerKey(256)
-    val RETURN_ENCODED = new ClassKey(classOf[java.lang.Boolean])
+    val TIME_INTERVAL_KEY    = new ClassKey(classOf[org.joda.time.Interval])
+    val TIME_BUCKETS_KEY     = new IntegerKey(256)
+    val RETURN_ENCODED       = new ClassKey(classOf[java.lang.Boolean])
   }
 
   type ExplainerOutputType = ( => String) => Unit
