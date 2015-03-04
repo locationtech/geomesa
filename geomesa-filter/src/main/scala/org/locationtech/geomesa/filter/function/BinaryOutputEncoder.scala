@@ -63,7 +63,8 @@ object BinaryOutputEncoder extends Logging {
       sort: Boolean = false): Unit = {
 
     val sft = fc.getSchema
-    val isLineString = sft.getGeometryDescriptor.getType.getBinding == classOf[LineString]
+    val isPoint = sft.getGeometryDescriptor.getType.getBinding == classOf[Point]
+    val isLineString = !isPoint && sft.getGeometryDescriptor.getType.getBinding == classOf[LineString]
 
     // validate our input data
     validateDateAttribute(dtgField, sft, isLineString)
@@ -105,8 +106,18 @@ object BinaryOutputEncoder extends Logging {
         // default is to use the geometry
         // depending on srs requested and wfs versions, axis order can be flipped
         axisOrder match {
-          case LatLon => (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint)
-          case LonLat => (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint).swap
+          case LatLon =>
+            if (isPoint) {
+              (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Point])
+            } else {
+              (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint)
+            }
+          case LonLat =>
+            if (isPoint) {
+              (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Point]).swap
+            } else {
+              (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint).swap  
+            }
         }
       }
     // for linestrings, we return each point - use an array so we get constant-time lookup
