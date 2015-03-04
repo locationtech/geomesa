@@ -20,7 +20,7 @@ import java.io.OutputStream
 import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Geometry, LineString}
+import com.vividsolutions.jts.geom.{Point, Geometry, LineString}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.ListAttributeSpec
@@ -105,14 +105,8 @@ object BinaryOutputEncoder extends Logging {
         // default is to use the geometry
         // depending on srs requested and wfs versions, axis order can be flipped
         axisOrder match {
-          case LatLon => (f) => {
-            val geom = f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint
-            (geom.getX.toFloat, geom.getY.toFloat)
-          }
-          case LonLat => (f) => {
-            val geom = f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint
-            (geom.getY.toFloat, geom.getX.toFloat)
-          }
+          case LatLon => (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint)
+          case LonLat => (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Geometry].getInteriorPoint).swap
         }
       }
     // for linestrings, we return each point - use an array so we get constant-time lookup
@@ -120,13 +114,13 @@ object BinaryOutputEncoder extends Logging {
     val getLineLatLon: (SimpleFeature) => Array[(Float, Float)] = axisOrder match {
       case LatLon => (f) => {
         val geom = f.getDefaultGeometry.asInstanceOf[LineString]
-        val points = (0 until geom.getNumPoints).map(geom.getPointN(_))
-        points.map(p => (p.getX.toFloat, p.getY.toFloat)).toArray
+        val points = (0 until geom.getNumPoints).map(geom.getPointN)
+        points.map(pointToXY).toArray
       }
       case LonLat => (f) => {
         val geom = f.getDefaultGeometry.asInstanceOf[LineString]
-        val points = (0 until geom.getNumPoints).map(geom.getPointN(_))
-        points.map(p => (p.getY.toFloat, p.getX.toFloat)).toArray
+        val points = (0 until geom.getNumPoints).map(geom.getPointN)
+        points.map(pointToXY(_).swap).toArray
       }
     }
 
@@ -195,6 +189,8 @@ object BinaryOutputEncoder extends Logging {
     }
     // Feature collection has already been closed by SelfClosingIterator
   }
+
+  private def pointToXY(p: Point) = (p.getX.toFloat, p.getY.toFloat)
 
   private def validateDateAttribute(dtgField: String, sft: SimpleFeatureType, isLineString: Boolean) = {
     val sftAttributes = SimpleFeatureTypes.parse(SimpleFeatureTypes.encodeType(sft)).attributes
