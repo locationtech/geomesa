@@ -44,7 +44,7 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class MapAggregatingIteratorTest extends Specification {
 
-  isolated
+  sequential
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
