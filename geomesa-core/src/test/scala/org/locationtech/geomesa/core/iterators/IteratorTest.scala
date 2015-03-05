@@ -19,6 +19,7 @@ import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 
 trait IteratorTest {
   val TEST_TABLE_NAME: String = "query_test"
@@ -44,7 +45,7 @@ trait IteratorTest {
   }
 
   def initializeTables(data: Map[Key, Value]) {
-    val writer: BatchWriter = conn.createBatchWriter(TEST_TABLE_NAME, new BatchWriterConfig)
+    val writer: BatchWriter = conn.createBatchWriter(TEST_TABLE_NAME, GeoMesaBatchWriterConfig())
     for (key <- data.keys) {
       val m1: Mutation = new Mutation(key.getRow)
       m1.put(key.getColumnFamily, key.getColumnQualifier, data(key))

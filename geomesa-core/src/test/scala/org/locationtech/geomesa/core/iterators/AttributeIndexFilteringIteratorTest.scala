@@ -20,10 +20,10 @@ import java.text.SimpleDateFormat
 import java.util.TimeZone
 
 import com.vividsolutions.jts.geom.Geometry
+import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{BatchWriterConfig, IteratorSetting}
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
 import org.geotools.data.{DataStoreFinder, Query}
@@ -37,6 +37,7 @@ import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -101,7 +102,7 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       val conn = instance.getConnector("", new PasswordToken(""))
       conn.tableOperations.create(table, true, TimeType.LOGICAL)
 
-      val bw = conn.createBatchWriter(table, new BatchWriterConfig)
+      val bw = conn.createBatchWriter(table, GeoMesaBatchWriterConfig())
       val attributes = (0 until sft.getAttributeCount).zip(sft.getAttributeDescriptors)
       featureCollection.foreach { feature =>
         val muts = AttributeTable.getAttributeIndexMutations(feature,

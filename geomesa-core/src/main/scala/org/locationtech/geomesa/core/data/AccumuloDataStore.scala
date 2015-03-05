@@ -38,6 +38,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core
 import org.locationtech.geomesa.core.data.AccumuloDataStore._
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.feature.{SimpleFeatureEncoder, FeatureEncoding}
 import FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
@@ -121,7 +122,7 @@ class AccumuloDataStore(val connector: Connector,
 
   // TODO memory should be configurable
   private val defaultBWConfig =
-    new BatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(writeThreads)
+    GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(writeThreads)
 
   private val tableOps = connector.tableOperations()
 

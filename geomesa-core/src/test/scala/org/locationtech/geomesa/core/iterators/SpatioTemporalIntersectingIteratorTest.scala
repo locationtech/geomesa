@@ -19,12 +19,12 @@ package org.locationtech.geomesa.core.iterators
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, IteratorSetting}
+import org.apache.accumulo.core.client.{Connector, IteratorSetting}
 import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.METADATA_TAG
 import org.locationtech.geomesa.core.iterators.TestData._
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -47,7 +47,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     val mockInstance = new MockInstance()
     val c = mockInstance.getConnector(TEST_USER, new PasswordToken(Array[Byte]()))
     c.tableOperations.create(tableName)
-    val bw = c.createBatchWriter(tableName, new BatchWriterConfig)
+    val bw = c.createBatchWriter(tableName, GeoMesaBatchWriterConfig())
 
     logger.debug(s"Add mutations to table $tableName.")
     for {
@@ -82,7 +82,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
   "Consistency Iterator" should {
     "verify inconsistency of table" in {
       val c = setupMockAccumuloTable(TestData.shortListOfPoints)
-      val bd = c.createBatchDeleter(TEST_TABLE, TEST_AUTHORIZATIONS, 8, new BatchWriterConfig)
+      val bd = c.createBatchDeleter(TEST_TABLE, TEST_AUTHORIZATIONS, 8, GeoMesaBatchWriterConfig())
       bd.setRanges(List(new org.apache.accumulo.core.data.Range()))
       bd.fetchColumnFamily(new Text("|data|1".getBytes()))
       bd.delete()
