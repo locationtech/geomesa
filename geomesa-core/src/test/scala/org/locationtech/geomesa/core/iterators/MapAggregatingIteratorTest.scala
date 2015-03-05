@@ -44,7 +44,7 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class MapAggregatingIteratorTest extends Specification {
 
-  sequential
+  isolated
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
@@ -106,7 +106,7 @@ class MapAggregatingIteratorTest extends Specification {
 
   "MapAggregatingIterator" should {
     val spec = "id:Integer,map:Map[String,Integer],dtg:Date,geom:Geometry:srid=4326"
-    val typeName = "test"
+    val typeName = "MapAggregatingIteratorTest"
     val sft = SimpleFeatureTypes.createType(typeName, spec)
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
     val random = new Random(randomSeed)
@@ -291,7 +291,7 @@ class MapAggregatingIteratorTest extends Specification {
 
   "MapAggregatingIterator with Double key" should {
     val spec = "id:Integer,map:Map[Double,Integer],dtg:Date,geom:Geometry:srid=4326"
-    val typeName = "test"
+    val typeName = "MapAggregatingIteratorTestDouble"
     val sft = SimpleFeatureTypes.createType(typeName, spec)
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
     val random = new Random(randomSeed)
