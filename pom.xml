@@ -607,11 +607,6 @@
                 <version>2.3.0</version>
             </dependency>
             <dependency>
-                <groupId>org.objenesis</groupId>
-                <artifactId>objenesis</artifactId>
-                <version>1.2</version>
-            </dependency>
-            <dependency>
                 <groupId>com.typesafe</groupId>
                 <artifactId>scalalogging-slf4j_2.10</artifactId>
                 <version>${scalalogging.version}</version>
