@@ -76,7 +76,8 @@ class MapAggregatingIteratorTest extends Specification {
       userParam.key       -> "user",
       passwordParam.key   -> "pass",
       tableNameParam.key  -> tableName,
-      mockParam.key       -> "true").asJava)
+      mockParam.key       -> "true",
+      featureEncParam.key -> "avro").asJava)
     ds
   }
 
@@ -106,7 +107,7 @@ class MapAggregatingIteratorTest extends Specification {
 
   "MapAggregatingIterator" should {
     val spec = "id:Integer,map:Map[String,Integer],dtg:Date,geom:Geometry:srid=4326"
-    val typeName = "test"
+    val typeName = "MapAggregatingIteratorTest"
     val sft = SimpleFeatureTypes.createType(typeName, spec)
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
     val random = new Random(randomSeed)
@@ -291,7 +292,7 @@ class MapAggregatingIteratorTest extends Specification {
 
   "MapAggregatingIterator with Double key" should {
     val spec = "id:Integer,map:Map[Double,Integer],dtg:Date,geom:Geometry:srid=4326"
-    val typeName = "test"
+    val typeName = "MapAggregatingIteratorTestDouble"
     val sft = SimpleFeatureTypes.createType(typeName, spec)
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
     val random = new Random(randomSeed)
