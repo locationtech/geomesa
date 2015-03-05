@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.plugin.wms
+package org.locationtech.geomesa.plugin
 
+import java.awt._
 import java.awt.color.ColorSpace
 import java.awt.image._
-import java.awt.{Point, Transparency}
+import java.io.{ByteArrayInputStream, ObjectInputStream, ObjectOutputStream, ByteArrayOutputStream}
+import javax.media.jai.remote.SerializableRenderedImage
 
+import org.geotools.coverage.grid.GridCoverage2D
 import org.locationtech.geomesa.utils.geohash.{GeoHash, TwoGeoHashBoundingBox}
+import org.opengis.coverage.grid.GridCoverage
+import org.opengis.geometry.Envelope
 
 object ImageUtils {
   def createTileImage(ghBbox: TwoGeoHashBoundingBox,
@@ -98,5 +103,28 @@ object ImageUtils {
                                              dbuffer,
                                              new Point(0, 0))
     new BufferedImage(colorModel, raster, false, null)
+  }
+
+  def imageSerialize(coverage: GridCoverage2D): Array[Byte] = {
+    val buffer: ByteArrayOutputStream = new ByteArrayOutputStream
+    val out: ObjectOutputStream = new ObjectOutputStream(buffer)
+    val serializableImage = new SerializableRenderedImage(coverage.getRenderedImage, true)
+    try {
+      out.writeObject(serializableImage)
+    } finally {
+      out.close()
+    }
+    buffer.toByteArray
+  }
+
+  def rasterImageDeserialize(imageBytes: Array[Byte]): RenderedImage = {
+    val in: ObjectInputStream = new ObjectInputStream(new ByteArrayInputStream(imageBytes))
+    var read: RenderedImage = null
+    try {
+      read = in.readObject().asInstanceOf[RenderedImage]
+    } finally {
+      in.close()
+    }
+    read
   }
 }

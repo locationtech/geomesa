@@ -9,7 +9,7 @@ To begin using the command line tools, first build the full GeoMesa project from
 
     mvn clean install
     
-You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-bin.tar.gz" 
+You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-{version}-bin.tar.gz"
 in the geomesa-assemble/target directory. Untar this file with
 
     tar xvfz geomesa-assemble/target/geomesa-${version}-bin.tar.gz
@@ -40,6 +40,7 @@ This should print out the following usage text:
         export       Export a GeoMesa feature
         help         Show help
         ingest       Ingest a file of various formats into GeoMesa
+        ingestraster Ingest a raster file or raster files in a directory into GeoMesa
         list         List GeoMesa features for a given catalog
         tableconf    Perform table configuration operations
                 
@@ -475,6 +476,85 @@ The file type is inferred from the extension of the file, so ensure that the for
 
 ##### Ingest a shape file
     geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
+
+### ingestraster
+To ingest one or multiple raster image files into Geomesa, use the `ingestraster` command. Input files, Geotiff or
+DTED, are located on local file system. If chunking (only works for single file) is specified by option `-ck`,
+input file is cut into chunks by size in kilobytes (option `-cs or --chunk-size`) and chunks are ingested. Ingestion
+is done in local or distributed mode (by option `-m or --mode`, default is local). In local mode, files are ingested
+directly from local host into Accumulo tables. In distributed mode, raster files are serialized and stored in a HDFS
+directory from where they are ingested. Optionally, ingested raster files as a coverage can be registered to a
+GeoServer by option `-g or --geoserver-config`.
+
+*Note:* Make sure GDAL is installed when doing chunking that depends on GDAL utility `gdal_translate`.
+
+*Note:* It assumes input raster files have CRS set to EPSG:4326. For non-EPSG:4326 files, they need to be converted into
+EPSG:4326 raster files before ingestion. An example of doing conversion with GDAL utility is `gdalwarp -t_srs EPSG:4326
+input_file out_file`.
+
+####Usage (required options denoted with star):
+    $ geomesa help ingestraster
+    Ingest a raster file or files in a directory into GeoMesa
+    Usage: ingestraster [options]
+      Options:
+        -a, --auths
+           Accumulo authorizations
+        -ck, --chunk
+           Create raster chunks before ingestion
+           Default: false
+        -cs, --chunk-size
+           Desired size (in kilobytes) of each chunk
+           Default: 600
+      * -f, --file
+           Single raster file or directory of raster files to be ingested
+        -fmt, --format
+           Format of incoming raster data (geotiff | DTED) to override file
+           extension recognition
+        -g, --geoserver-config
+           Geoserver configuration info
+        -i, --instance
+           Accumulo instance name
+        -mc, --mock
+           Run everything with a mock accumulo instance instead of a real one
+           (true/false)
+           Default: false
+        -m, --mode
+           Ingestion mode (local | distributed, default to local)
+           Default: local
+        -par, --parallel-level
+           Maximum number of local threads for ingesting multiple raster files
+           (default to 1)
+           Default: 1
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+        -qt, --query-threads
+           Threads for quering raster data
+      * -t, --raster-table
+           Accumulo table for storing raster data
+        -sh, --shards
+           Number of shards to use for the storage tables (defaults to number of
+           tservers)
+        -tm, --timestamp
+           Ingestion time (default to current time)
+      * -u, --user
+           Accumulo user name
+        -v, --visibilities
+           Accumulo scan visibilities
+        -wm, --write-memory
+           Memory allocation for ingestion operation
+        -wt, --write-threads
+           Threads for writing raster data
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+
+#### Example commands:
+    geomesa ingestraster -u username -p password -t geomesa_raster -f /some/local/path/to/raster.tif
+
+    geomesa ingestraster -u username -p password -t geomesa_raster -ck -cs 1000 -m distributed -f /some/path/to/raster.tif
+
+    geomesa ingestraster -u username -p password -t geomesa_raster -fmt DTED -par 8 -f /some/local/path/to/raster_dir
+     -g "user=USERNAME,password=PASS,url=http://GEOSERVER:8080/geoserver,namespace=RASTER"
 
 ### list
 To list the features on a specified catalog table, use the `list` command.  

@@ -16,6 +16,8 @@
 
 package org.locationtech.geomesa.core.index
 
+import java.nio.ByteBuffer
+
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
@@ -26,38 +28,13 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.DATA_CQ
 import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.geohash.{GeoHash, GeohashUtils}
+import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 
-object IndexEntry {
+object IndexEntry extends IndexHelpers {
 
-  val timeZone = DateTimeZone.forID("UTC")
-
-  implicit class IndexEntrySFT(sf: SimpleFeature) {
-    lazy val userData = sf.getFeatureType.getUserData
-    lazy val dtgStartField = userData.getOrElse(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME).asInstanceOf[String]
-    lazy val dtgEndField = userData.getOrElse(SF_PROPERTY_END_TIME, DEFAULT_DTG_END_PROPERTY_NAME).asInstanceOf[String]
-
-    lazy val sid = sf.getID
-    lazy val gh: GeoHash = GeohashUtils.reconstructGeohashFromGeometry(geometry)
-    def geometry = sf.getDefaultGeometry match {
-      case geo: Geometry => geo
-      case other =>
-        throw new Exception(s"Default geometry must be Geometry: '$other' of type '${Option(other).map(_.getClass).orNull}'")
-    }
-
-    private def getTime(attr: String) = sf.getAttribute(attr).asInstanceOf[java.util.Date]
-    def startTime = getTime(dtgStartField)
-    def endTime   = getTime(dtgEndField)
-    lazy val dt   = Option(startTime).map { d => new DateTime(d) }
-
-    private def setTime(attr: String, time: DateTime) =
-      sf.setAttribute(attr, Option(time).map(_.toDate).orNull)
-
-    def setStartTime(time: DateTime) = setTime(dtgStartField, time)
-    def setEndTime(time: DateTime)   = setTime(dtgEndField, time)
-  }
 }
 
 case class IndexEntryEncoder(rowf: TextFormatter,
@@ -129,11 +106,68 @@ object IndexEntryDecoder {
 
 import org.locationtech.geomesa.core.index.IndexEntryDecoder._
 
-case class IndexEntryDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
+case class IndexEntryDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder[AbstractExtractor]]) {
   def decode(key: Key) = {
     val builder = localBuilder.get
     builder.reset()
-    builder.addAll(List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))))
+    builder.addAll(List(ghDecoder.decode(key).geom, dtDecoder.map { _.decode(key) } ))
     builder.buildFeature("")
+  }
+}
+
+trait IndexHelpers {
+
+  val timeZone = DateTimeZone.forID("UTC")
+
+  implicit class IndexEntrySFT(sf: SimpleFeature) {
+    lazy val userData = sf.getFeatureType.getUserData
+    lazy val dtgStartField = userData.getOrElse(SF_PROPERTY_START_TIME, DEFAULT_DTG_PROPERTY_NAME).asInstanceOf[String]
+    lazy val dtgEndField = userData.getOrElse(SF_PROPERTY_END_TIME, DEFAULT_DTG_END_PROPERTY_NAME).asInstanceOf[String]
+
+    lazy val sid = sf.getID
+    lazy val gh: GeoHash = GeohashUtils.reconstructGeohashFromGeometry(geometry)
+    def geometry = sf.getDefaultGeometry match {
+      case geo: Geometry => geo
+      case other =>
+        throw new Exception(s"Default geometry must be Geometry: '$other' of type '${Option(other).map(_.getClass).orNull}'")
+    }
+
+    private def getTime(attr: String) = sf.getAttribute(attr).asInstanceOf[java.util.Date]
+    def startTime = getTime(dtgStartField)
+    def endTime   = getTime(dtgEndField)
+    lazy val dt   = Option(startTime).map { d => new DateTime(d) }
+
+    private def setTime(attr: String, time: DateTime) =
+      sf.setAttribute(attr, Option(time).map(_.toDate).orNull)
+
+    def setStartTime(time: DateTime) = setTime(dtgStartField, time)
+    def setEndTime(time: DateTime)   = setTime(dtgEndField, time)
+  }
+
+  def byteArrayToDecodedIndex(b: Array[Byte]): DecodedIndex = {
+    val idLength = ByteBuffer.wrap(b, 0, 4).getInt
+    val (idPortion, geomDatePortion) = b.drop(4).splitAt(idLength)
+    val id = new String(idPortion)
+    val geomLength = ByteBuffer.wrap(geomDatePortion, 0, 4).getInt
+    if(geomLength < (geomDatePortion.length - 4)) {
+      val (l,r) = geomDatePortion.drop(4).splitAt(geomLength)
+      DecodedIndex(id, WKBUtils.read(l), Some(ByteBuffer.wrap(r).getLong))
+    } else {
+      DecodedIndex(id, WKBUtils.read(geomDatePortion.drop(4)), None)
+    }
+  }
+}
+
+case class DecodedIndex(id: String, geom: Geometry, dtgMillis: Option[Long]) {
+  def toBytes(): Array[Byte] =  {
+    val encodedId = id.getBytes
+    val encodedGeom = WKBUtils.write(geom)
+    val date = dtgMillis.map{new DateTime(_, DateTimeZone.UTC)}
+    val encodedDtg = date.map { dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array() }
+                         .getOrElse(Array[Byte]())
+
+    ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
+      ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
+      encodedDtg
   }
 }

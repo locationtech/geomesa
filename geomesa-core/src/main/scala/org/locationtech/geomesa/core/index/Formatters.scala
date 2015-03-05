@@ -20,7 +20,6 @@ import org.apache.hadoop.io.Text
 import org.joda.time.DateTime
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeature
-
 import scala.util.hashing.MurmurHash3
 
 trait TextFormatter {
@@ -114,4 +113,3 @@ case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends T
   val numBits = lf.map(_.numBits).sum
   def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = lf.map { _.formatString(gh, dt, sf) }.mkString(sep)
 }
-

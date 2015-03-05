@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.{BufferedReader, InputStreamReader}
+import java.io.{BufferedReader, File, InputStreamReader}
 import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -24,7 +24,8 @@ import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.commons.compress.compressors.bzip2.BZip2Utils
 import org.apache.commons.compress.compressors.gzip.GzipUtils
 import org.apache.commons.compress.compressors.xz.XZUtils
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
 
 import scala.util.{Failure, Success, Try}
 import scala.xml.XML
@@ -62,6 +63,8 @@ object Utils {
   object Formats {
     val CSV     = "csv"
     val TSV     = "tsv"
+    val TIFF    = "geotiff"
+    val DTED    = "DTED"
     val SHP     = "shp"
     val JSON    = "json"
     val GeoJson = "geojson"
@@ -77,13 +80,18 @@ object Utils {
       }
 
       fileExtension match {
-        case _ if name.toLowerCase.endsWith(CSV)  => CSV
-        case _ if name.toLowerCase.endsWith(TSV)  => TSV
-        case _ if name.toLowerCase.endsWith(SHP)  => SHP
-        case _ if name.toLowerCase.endsWith(JSON) => JSON
-        case _ if name.toLowerCase.endsWith(GML)  => GML
-        case _ if name.toLowerCase.endsWith(BIN)  => BIN
-        case _ => "unknown"
+        case _ if fileExtension.toLowerCase.endsWith(CSV)      => CSV
+        case _ if fileExtension.toLowerCase.endsWith(TSV)      => TSV
+        case _ if fileExtension.toLowerCase.endsWith("tif") ||
+                  fileExtension.toLowerCase.endsWith("tiff")   => TIFF
+        case _ if fileExtension.toLowerCase.endsWith("dt0") ||
+                  fileExtension.toLowerCase.endsWith("dt1") ||
+                  fileExtension.toLowerCase.endsWith("dt2")    => DTED
+        case _ if fileExtension.toLowerCase.endsWith(SHP)      => SHP
+        case _ if fileExtension.toLowerCase.endsWith(JSON)     => JSON
+        case _ if fileExtension.toLowerCase.endsWith(GML)      => GML
+        case _ if fileExtension.toLowerCase.endsWith(BIN)      => BIN
+        case _                                                 => "unknown"
       }
     }
 
@@ -92,14 +100,32 @@ object Utils {
 
   object Modes {
     val Local = "local"
-    val Hdfs  = "hdfs"
+    val Hdfs = "hdfs"
 
     def getJobMode(filename: String) = if (filename.toLowerCase.trim.startsWith("hdfs://")) Hdfs else Local
     def getModeFlag(filename: String) = "--" + getJobMode(filename)
   }
 
-}
+  //Recursively delete a local directory and its children
+  def deleteLocalDirectory(pathStr: String) {
+    val path = new File(pathStr)
+    if (path.exists) {
+      val files = path.listFiles
+      files.foreach { _ match {
+        case p if p.isDirectory => deleteLocalDirectory(p.getAbsolutePath)
+        case f => f.delete
+      }}
+      path.delete
+    }
+  }
 
+  //Recursively delete a HDFS directory and its children
+  def deleteHdfsDirectory(pathStr: String) {
+    val fs = FileSystem.get(new Configuration)
+    val path = new Path(pathStr)
+    fs.delete(path, true)
+  }
+}
 /* get password trait */
 trait GetPassword {
   def getPassword(pass: String) = Option(pass).getOrElse({
