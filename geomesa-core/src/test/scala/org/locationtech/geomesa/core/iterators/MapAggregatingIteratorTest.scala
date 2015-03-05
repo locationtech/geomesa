@@ -76,7 +76,8 @@ class MapAggregatingIteratorTest extends Specification {
       userParam.key       -> "user",
       passwordParam.key   -> "pass",
       tableNameParam.key  -> tableName,
-      mockParam.key       -> "true").asJava)
+      mockParam.key       -> "true",
+      featureEncParam.key -> "avro").asJava)
     ds
   }
 
