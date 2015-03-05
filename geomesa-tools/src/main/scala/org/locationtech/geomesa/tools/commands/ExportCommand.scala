@@ -56,6 +56,9 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
       exporter.flush()
       exporter.close()
     }
+
+    // allow StatsWriter to write stats - otherwise we get a zookeeper exception we can't catch
+    Thread.sleep(1000)
   }
 
   def getFeatureCollection(fmt: String): SimpleFeatureCollection = {
