@@ -29,7 +29,8 @@ angular.module('geomesa.map', [])
                         source: wmsSource
                     }),
                     olView = new ol.View({
-                        center: ol.proj.transform([37.41, 8.82], 'EPSG:4326', 'EPSG:3857'),
+                        // center: ol.proj.transform([37.41, 8.82], 'EPSG:4326', 'EPSG:3857'),
+                        center:[-8554902.86746,-4592147.60759],
                         zoom : 4,
                         maxResolution : 40075016.68557849 / screen.width,
                     });
