@@ -28,6 +28,7 @@ import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
 import org.locationtech.geomesa.core.stats.StatWriter.TableInstance
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -60,7 +61,7 @@ object StatWriter extends Runnable with Logging {
 
   private val writeDelayMillis = 1000
 
-  private val batchWriterConfig = new BatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(5)
+  private val batchWriterConfig = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(5)
 
   // use the guava exiting executor so that this thread doesn't hold up the jvm shutdown
   private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(1))

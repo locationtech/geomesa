@@ -28,6 +28,7 @@ import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.feature.{FeatureEncoding, AvroSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -72,7 +73,7 @@ class TableVersionTest extends Specification {
     val connector = instance.getConnector(params("user"), new PasswordToken(params("password").getBytes))
     connector.tableOperations.create(params("tableName"))
 
-    val bw = connector.createBatchWriter(params("tableName"), new BatchWriterConfig)
+    val bw = connector.createBatchWriter(params("tableName"), GeoMesaBatchWriterConfig())
 
     // Insert metadata
     val metadataMutation = new Mutation(s"~METADATA_$sftName")

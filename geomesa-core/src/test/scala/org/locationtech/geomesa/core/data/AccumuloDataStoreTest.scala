@@ -45,7 +45,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.{IndexIterator, TestData}
 import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
-import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.core.util.{GeoMesaBatchWriterConfig, CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -1363,7 +1363,7 @@ class AccumuloDataStoreTest extends Specification {
     val connector = instance.getConnector(params("user"), new PasswordToken(params("password").getBytes))
     connector.tableOperations.create(params("tableName"))
 
-    val bw = connector.createBatchWriter(params("tableName"), new BatchWriterConfig)
+    val bw = connector.createBatchWriter(params("tableName"), GeoMesaBatchWriterConfig())
 
     // Insert metadata
     val metadataMutation = new Mutation(s"~METADATA_$sftName")

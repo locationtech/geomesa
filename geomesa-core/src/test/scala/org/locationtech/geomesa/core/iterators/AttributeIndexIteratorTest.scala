@@ -19,10 +19,10 @@ package org.locationtech.geomesa.core.iterators
 import java.text.SimpleDateFormat
 import java.util.{Collections, Date, TimeZone}
 
+import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{BatchWriterConfig, IteratorSetting}
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
 import org.geotools.data.Query
@@ -33,7 +33,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.core.util.SelfClosingIterator
+import org.locationtech.geomesa.core.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -78,7 +78,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       val conn = instance.getConnector("", new PasswordToken(""))
       conn.tableOperations.create(table, true, TimeType.LOGICAL)
 
-      val bw = conn.createBatchWriter(table, new BatchWriterConfig)
+      val bw = conn.createBatchWriter(table, GeoMesaBatchWriterConfig())
       val attributes = (0 until sft.getAttributeCount).zip(sft.getAttributeDescriptors)
       getTestFeatures().foreach { feature =>
         val muts = AttributeTable.getAttributeIndexMutations(feature,

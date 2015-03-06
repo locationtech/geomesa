@@ -33,6 +33,7 @@ import org.apache.accumulo.core.util.{Pair => AcPair}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred._
 import org.apache.log4j.Level
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
@@ -204,7 +205,7 @@ class AccumuloScheme(val options: AccumuloSourceOptions)
                                             new PasswordToken(options.password.getBytes()))
       AccumuloOutputFormat.setDefaultTableName(conf, options.output.table)
       AccumuloOutputFormat.setZooKeeperInstance(conf, options.instance, options.zooKeepers)
-      val batchWriterConfig = new BatchWriterConfig()
+      val batchWriterConfig = GeoMesaBatchWriterConfig()
       options.output.threads.foreach(t => batchWriterConfig.setMaxWriteThreads(t))
       options.output.memory.foreach(m => batchWriterConfig.setMaxMemory(m))
       AccumuloOutputFormat.setBatchWriterOptions(conf, batchWriterConfig)

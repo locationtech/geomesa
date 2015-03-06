@@ -30,6 +30,7 @@ import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureWriterFn
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.feature.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -41,7 +42,7 @@ object AccumuloFeatureWriter {
   type AccumuloRecordWriter = RecordWriter[Key, Value]
 
   class LocalRecordDeleter(tableName: String, connector: Connector) extends AccumuloRecordWriter {
-    private val bw = connector.createBatchWriter(tableName, new BatchWriterConfig())
+    private val bw = connector.createBatchWriter(tableName, GeoMesaBatchWriterConfig())
 
     def write(key: Key, value: Value) {
       val m = new Mutation(key.getRow)
@@ -76,7 +77,7 @@ abstract class AccumuloFeatureWriter(featureType: SimpleFeatureType,
 
   val connector = ds.connector
 
-  protected val multiBWWriter = connector.createMultiTableBatchWriter(new BatchWriterConfig)
+  protected val multiBWWriter = connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
 
   // A "writer" is a function that takes a simple feature and writes
   // it to an index or table. This list is configured to match the
