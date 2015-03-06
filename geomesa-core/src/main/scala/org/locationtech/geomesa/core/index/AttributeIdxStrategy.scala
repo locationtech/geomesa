@@ -160,6 +160,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     configureFeatureEncoding(cfg, encoding)
     configureStFilter(cfg, stFilter)
     configureAttributeName(cfg, attributeName)
+    configureIndexValues(cfg, featureType)
     if (needsTransform) {
       // we have to evaluate the filter against full feature then apply the transform
       configureFeatureType(cfg, featureType)
@@ -187,6 +188,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 
     configureFeatureType(cfg, featureType)
     configureFeatureTypeName(cfg, featureType.getTypeName)
+    configureIndexValues(cfg, featureType)
     configureFeatureEncoding(cfg, encoding)
     configureStFilter(cfg, stFilter)
 

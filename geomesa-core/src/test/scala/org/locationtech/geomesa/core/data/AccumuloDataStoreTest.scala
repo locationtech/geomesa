@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.core.data
 
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.{Date, TimeZone}
 
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -69,6 +69,9 @@ class AccumuloDataStoreTest extends Specification {
   val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
   val WGS84 = DefaultGeographicCRS.WGS84
   val gf = JTSFactoryFinder.getGeometryFactory
+
+  val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+  df.setTimeZone(TimeZone.getTimeZone("UTC"))
 
   val defaultSchema = "name:String,geom:Point:srid=4326,dtg:Date"
   val defaultGeom = WKTUtils.read("POINT(45.0 49.0)")
@@ -1165,6 +1168,66 @@ class AccumuloDataStoreTest extends Specification {
       }
       println(explain)
       explain must not contain("GeoHashKeyPlanner: KeyInvalid")
+    }
+
+    "transform index value data correctly" in {
+      val sftName = "indexValueTransform"
+      val sft = createSchema(sftName, "trackId:String:index-value=true,label:String:index-value=true," +
+          "extraValue:String,score:Double:index-value=true,dtg:Date,geom:Point:srid=4326")
+
+      (0 until 5).foreach { i =>
+        val attrs = List(s"trk$i", s"label$i", "extra", new java.lang.Double(i),
+          df.parse(s"2014-01-01 0$i:00:00"), WKTUtils.read(s"POINT(5$i 50)"))
+        addDefaultPoint(sft, fid = s"f$i", attributes = attrs)
+      }
+
+      "with out of order attributes" >> {
+        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), Array("geom", "dtg", "label"))
+        val features =
+          SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+        features must haveSize(5)
+        (0 until 5).foreach { i =>
+          features(i).getID mustEqual(s"f$i")
+          features(i).getAttributeCount mustEqual 3
+          features(i).getAttribute("label") mustEqual s"label$i"
+          features(i).getAttribute("dtg") mustEqual df.parse(s"2014-01-01 0$i:00:00")
+          features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
+        }
+        success
+      }
+
+      "with only date and geom" >> {
+        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), Array("geom", "dtg"))
+        val features =
+          SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+        features must haveSize(5)
+        (0 until 5).foreach { i =>
+          features(i).getID mustEqual(s"f$i")
+          features(i).getAttributeCount mustEqual 2
+          features(i).getAttribute("dtg") mustEqual df.parse(s"2014-01-01 0$i:00:00")
+          features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
+        }
+        success
+      }
+
+      "with all attributes" >> {
+        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"),
+          Array("geom", "dtg", "label", "score", "trackId"))
+        val features =
+          SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+        features must haveSize(5)
+        (0 until 5).foreach { i =>
+          features(i).getID mustEqual(s"f$i")
+          features(i).getAttributeCount mustEqual 5
+          features(i).getAttribute("label") mustEqual s"label$i"
+          features(i).getAttribute("trackId") mustEqual s"trk$i"
+          features(i).getAttribute("score") mustEqual i.toDouble
+          features(i).getAttribute("dtg") mustEqual df.parse(s"2014-01-01 0$i:00:00")
+          features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
+        }
+        success
+      }
+
     }
   }
 

@@ -35,6 +35,7 @@ import scala.util.{Failure, Success}
 class AttributeIndexIterator
     extends GeomesaFilteringIterator
     with HasFeatureBuilder
+    with HasIndexValueDecoder
     with HasFeatureDecoder
     with HasSpatioTemporalFilter
     with HasTransforms

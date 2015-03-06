@@ -40,6 +40,7 @@ package object core {
 
   val GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE = "geomesa.iterators.aggregator-types"
   val GEOMESA_ITERATORS_SFT_NAME            = "geomesa.iterators.sft-name"
+  val GEOMESA_ITERATORS_SFT_INDEX_VALUE     = "geomesa.iterators.sft.index-value-schema"
   val GEOMESA_ITERATORS_ATTRIBUTE_NAME      = "geomesa.iterators.attribute.name"
   val GEOMESA_ITERATORS_ECQL_FILTER         = "geomesa.iterators.ecql-filter"
   val GEOMESA_ITERATORS_TRANSFORM           = "geomesa.iterators.transform"
