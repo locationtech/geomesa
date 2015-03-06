@@ -345,7 +345,7 @@ class AccumuloDataStore(val connector: Connector,
                                       tableName: String) {
 
     if (maxShard > 1) {
-      val splits = (1 to maxShard - 1).map { i => s"%0${maxShard.toString.length}d".format(i) }.map(new Text(_))
+      val splits = (1 to maxShard - 1).map(i => new Text(s"%0${maxShard.toString.length}d".format(i)))
       tableOps.addSplits(tableName, new java.util.TreeSet(splits))
     }
 

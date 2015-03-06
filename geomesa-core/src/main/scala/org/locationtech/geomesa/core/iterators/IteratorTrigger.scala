@@ -116,15 +116,17 @@ object IteratorTrigger extends Logging {
   }
 
   /**
-   * Tests whether the attributes being filtered on are a subset of the attribute transforms requested.
+   * Tests whether the attributes being filtered on are a subset of the attribute transforms requested. If so,
+   * then we can optimize by decoding each feature directly to the transformed spec, vs decoding to the
+   * original spec and then transforming.
    *
    * @param query
    * @return
    */
   def doTransformsCoverFilters(query: Query): Boolean =
     Option(query.getHints.get(TRANSFORMS).asInstanceOf[String]).map { transformString =>
-      val filterAttributes = getFilterAttributes(query.getFilter)
-      val transforms: Seq[String] =
+      val filterAttributes = getFilterAttributes(query.getFilter) // attributes we are filtering on
+      val transforms: Seq[String] = // names of the attributes the transform contains
         TransformProcess.toDefinition(transformString).asScala
           .flatMap { _.expression match {
               case p if p.isInstanceOf[PropertyName] => Seq(p.asInstanceOf[PropertyName].getPropertyName)
