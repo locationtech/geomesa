@@ -301,14 +301,14 @@ trait GeoHashPlanner extends Logging {
   }
 
   def getKeyPlan(filter: KeyPlanningFilter, offset: Int, bits: Int) = filter match {
-    case SpatialFilter(geom) =>
-      polyToPlan(geom, offset, bits)
-    case SpatialDateFilter(geom, _) =>
-      polyToPlan(geom, offset, bits)
-    case SpatialDateRangeFilter(geom, _, _) =>
-      polyToPlan(geom, offset, bits)
-    case AcceptEverythingFilter => KeyAccept
-    case _ => KeyInvalid // degenerate outcome
+    case SpatialFilter(geom)                => polyToPlan(geom, offset, bits)
+    case SpatialDateFilter(geom, _)         => polyToPlan(geom, offset, bits)
+    case SpatialDateRangeFilter(geom, _, _) => polyToPlan(geom, offset, bits)
+    case DateRangeFilter(_, _)              => KeyAccept
+    case AcceptEverythingFilter             => KeyAccept
+    case _ => // degenerate outcome
+      logger.warn(s"Unhandled key planning filter $filter")
+      KeyAccept
   }
 }
 
@@ -319,11 +319,17 @@ case class GeoHashKeyPlanner(offset: Int, bits: Int) extends KeyPlanner with Geo
         output(s"GeoHashKeyPlanner: ${keys.size} : ${keys.take(20)}")
         KeyListTiered(keys)
 
+      case KeyRange(keyMin, keyMax) =>
+        output(s"GeoHashKeyPlanner: KeyRange $keyMin to $keyMax")
+        KeyRangeTiered(keyMin, keyMax)
+
       case KeyAccept =>
-        output(s"GeoHashKeyPlanner: KeyAccept")
+        output("GeoHashKeyPlanner: KeyAccept")
         KeyAccept
 
-      case _ => KeyInvalid
+      case _ =>
+        output("GeoHashKeyPlanner: KeyInvalid")
+        KeyInvalid
     }
 }
 
