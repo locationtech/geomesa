@@ -50,7 +50,7 @@ object ScalaSimpleFeatureFactory {
 
   def init() = Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[ScalaSimpleFeatureFactory])
 
-  def buildAvroFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String) = {
+  def buildFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String) = {
     val builder = getFeatureBuilder(sft)
     builder.addAll(attrs)
     builder.buildFeature(id)

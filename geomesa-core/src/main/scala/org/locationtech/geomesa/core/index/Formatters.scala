@@ -18,21 +18,22 @@ package org.locationtech.geomesa.core.index
 
 import org.apache.hadoop.io.Text
 import org.joda.time.DateTime
+import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.util.hashing.MurmurHash3
 
 trait TextFormatter {
-  def format(gh: GeoHash, dt: DateTime, sf: SimpleFeature): Text = new Text(formatString(gh, dt, sf))
-  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature): String
+  def format(gh: GeoHash, dt: DateTime, sf: SimpleFeature, isIndex: Boolean = false): Text
   def numBits: Int
 }
 
-object TextFormatter {
-  implicit def string2Text(s: String): Text = new Text(s)
+abstract class BaseTextFormatter() extends TextFormatter {
+  def format(gh: GeoHash, dt: DateTime, sf: SimpleFeature, isIndex: Boolean = false): Text =
+    new Text(formatString(gh, dt, sf, isIndex))
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature, isIndex: Boolean = false): String
 }
-
 /**
  * These GeoHash strings are padded to 7 characters with a period.  This is
  * done for a few reasons:
@@ -46,18 +47,18 @@ object TextFormatter {
  * @param numBits how many characters to use
  */
 
-case class GeoHashTextFormatter(offset: Int, numBits: Int) extends TextFormatter {
-  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = {
+case class GeoHashTextFormatter(offset: Int, numBits: Int) extends BaseTextFormatter {
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature, isIndex: Boolean = false) = {
     val padded = gh.hash.padTo(7, ".").mkString
     padded.substring(offset, offset + numBits)
   }
 }
 
 // note:  this will fail if you have an entry lacking a valid date
-case class DateTextFormatter(f: String) extends TextFormatter {
+case class DateTextFormatter(f: String) extends BaseTextFormatter {
   val numBits = f.length
   val formatter = org.joda.time.format.DateTimeFormat.forPattern(f)
-  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) =   
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature, isIndex: Boolean = false) =
    formatter.print(dt)
 }
 
@@ -82,9 +83,10 @@ case class DateTextFormatter(f: String) extends TextFormatter {
  *       server.  (How likely is this to happen?)</li>
  * </ul>
  *
- * @param numPartitions "%99#r" will mean:  create shards from 0..99
+ * @param shards "%99#r" will mean:  create shards from 0..98
  */
-case class PartitionTextFormatter(numPartitions: Int) extends TextFormatter {
+case class PartitionTextFormatter(shards: Int) extends BaseTextFormatter {
+  val numPartitions = if (shards > 1) shards - 1 else 0
   val numBits: Int = numPartitions.toString.length
   val fmt = ("%0" + numBits + "d").format(_: Int)
 
@@ -96,22 +98,33 @@ case class PartitionTextFormatter(numPartitions: Int) extends TextFormatter {
     Math.abs(MurmurHash3.arrayHash(toHash) % (numPartitions + 1))
   }
 
-  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = fmt(getIdHashPartition(sf))
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature, isIndex: Boolean = false) =
+    fmt(getIdHashPartition(sf))
 }
 
 case class ConstantTextFormatter(constStr: String) extends TextFormatter {
-  val constText = new Text(constStr)
-  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = constStr
-  def numBits = constStr.length
+  val text = new Text(constStr)
+  val numBits = constStr.length
+  def format(gh: GeoHash, dt: DateTime, sf: SimpleFeature, isIndex: Boolean = false) = text
 }
 
-case class IdFormatter(maxLength: Int) extends TextFormatter {
-  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = sf.getID.padTo(maxLength, "_").mkString
+case class IndexOrDataTextFormatter() extends TextFormatter {
+  val constTextIndex = new Text(SpatioTemporalTable.INDEX_FLAG)
+  val constTextData = new Text(SpatioTemporalTable.DATA_FLAG)
+  val numBits = 1
+  def format(gh: GeoHash, dt: DateTime, sf: SimpleFeature, isIndex: Boolean = false) =
+    if (isIndex) constTextIndex else constTextData
+}
+
+case class IdFormatter(maxLength: Int) extends BaseTextFormatter {
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature, isIndex: Boolean = false) =
+    sf.getID.padTo(maxLength, "_").mkString
   def numBits: Int = maxLength
 }
 
-case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends TextFormatter {
+case class CompositeTextFormatter(lf: Seq[TextFormatter], sep: String) extends BaseTextFormatter {
   val numBits = lf.map(_.numBits).sum
-  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature) = lf.map { _.formatString(gh, dt, sf) }.mkString(sep)
+  def formatString(gh: GeoHash, dt: DateTime, sf: SimpleFeature, isIndex: Boolean = false) =
+    lf.map { _.format(gh, dt, sf, isIndex) }.mkString(sep)
 }
 

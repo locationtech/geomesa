@@ -42,3 +42,23 @@ yarn jar $GEOMESA_HOME/lib/geomesa-jobs-accumulo1.5-1.0.0-SNAPSHOT.jar \
 <b>Note: this job will not change the meta-data that indicates which attributes are indexed for
 search. In order to do that, you will need to call
 <code>AccumuloDataStore.updateIndexedAttributes()</code></b>
+
+#### Transitioning Indices
+Between rc4 and rc5, incompatible schema changes were made. To transition old data to the new
+format, run the SortedIndexUpdateJob:
+
+To run the job, first build geomesa-jobs using the 'assemble' profile to
+create a shaded jar with all dependencies. Then use the following command:
+
+```shell
+yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0-rc.2-SNAPSHOT.jar \
+    com.twitter.scalding.Tool \
+    org.locationtech.geomesa.jobs.index.SortedIndexUpdateJob \
+    --hdfs \
+    --geomesa.accumulo.instance <instance> \
+    --geomesa.accumulo.zookeepers <zookeepers> \
+    --geomesa.accumulo.user <user> \
+    --geomesa.accumulo.password <pwd> \
+    --geomesa.feature.tables.catalog <catalog-table> \
+    --geomesa.feature.name <feature>
+```
