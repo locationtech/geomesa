@@ -30,6 +30,7 @@ import org.locationtech.geomesa.core.process.temporalDensity.TemporalDensityVisi
 import org.locationtech.geomesa.core.process.tube.TubeVisitor
 import org.locationtech.geomesa.core.process.unique.AttributeVisitor
 import org.locationtech.geomesa.core.util.TryLoggingFailure
+import org.locationtech.geomesa.utils.geotools.MinMaxTimeVisitor
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -93,7 +94,7 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
 
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener) =
     visitor match {
-      // TODO GEOMESA-421 implement min/max iteratorsZ
+      // TODO GEOMESA-421 implement min/max iterators
       case v: MinVisitor             => v.setValue(ds.getTimeBounds(query.getTypeName).getStart.toDate)
       case v: MaxVisitor             => v.setValue(ds.getTimeBounds(query.getTypeName).getEnd.toDate)
       case v: BoundsVisitor          => v.reset(ds.getBounds(query))

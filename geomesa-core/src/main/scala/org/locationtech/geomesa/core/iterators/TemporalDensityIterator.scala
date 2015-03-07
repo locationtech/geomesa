@@ -35,8 +35,6 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.{DateTimeFormat}
 import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.core._
-//<<<<<<< HEAD TODO KMW
-//import org.locationtech.geomesa.core.data.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.createFeatureType
 import org.locationtech.geomesa.core.index.{IndexEntryDecoder, _}
 import org.locationtech.geomesa.feature._
@@ -176,7 +174,7 @@ object TemporalDensityIterator extends Logging {
 
   def configure(cfg: IteratorSetting, interval : Interval, buckets: Int) = {
     setTimeBounds(cfg, interval)
-    setBuckets(cffg, buckets)
+    setBuckets(cfg, buckets)
   }
 
   def setTimeBounds(iterSettings: IteratorSetting, interval: Interval) : Unit = {

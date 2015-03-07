@@ -20,6 +20,7 @@ import java.util.Map.Entry
 
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.hadoop.io.Text
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.ReferencedEnvelope
