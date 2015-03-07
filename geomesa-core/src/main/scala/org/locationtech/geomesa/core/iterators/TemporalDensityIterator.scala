@@ -123,7 +123,7 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
     if(topSourceKey != null) {
       featureBuilder.reset()
       featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(result))
-      featureBuilder.add(TemporalDensityIterator.ZeroPoint) //Filler value as Feature requires a geometry
+      featureBuilder.add(TemporalDensityIterator.zeroPoint) //Filler value as Feature requires a geometry
       val feature = featureBuilder.buildFeature(Random.nextString(6))
       topTemporalDensityKey = Some(topSourceKey)
       topTemporalDensityValue = Some(new Value(temporalDensityFeatureEncoder.encode(feature)))
@@ -168,15 +168,15 @@ object TemporalDensityIterator extends Logging {
   val TIME_SERIES: String = "timeseries"
   val TEMPORAL_DENSITY_FEATURE_STRING = s"$TIME_SERIES:String,geom:Geometry"
 
-  val ZeroPoint = new GeometryFactory().createPoint(new Coordinate(0,0))
+  val zeroPoint = new GeometryFactory().createPoint(new Coordinate(0,0))
 
   type TimeSeries = collection.mutable.HashMap[DateTime, Long]
 
-  val GeomFactory = JTSFactoryFinder.getGeometryFactory
+  val geomFactory = JTSFactoryFinder.getGeometryFactory
 
   def configure(cfg: IteratorSetting, interval : Interval, buckets: Int) = {
     setTimeBounds(cfg, interval)
-    setBuckets(cfg, buckets)
+    setBuckets(cffg, buckets)
   }
 
   def setTimeBounds(iterSettings: IteratorSetting, interval: Interval) : Unit = {
