@@ -19,11 +19,6 @@ angular.module('geomesa.card', [])
                         name: 'name',
                         description: 'description'
                     },
-                    {
-                        id: 'third_id',
-                        name: 'third_name',
-                        description: 'third_description'
-                    }
                 ];
 
                 scope.selectedIndex = 0;
