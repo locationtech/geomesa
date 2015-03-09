@@ -18,7 +18,7 @@ angular.module('geomesa.card', [])
                         id: 'id',
                         name: 'name',
                         description: 'description'
-                    },
+                    }
                 ];
 
                 scope.selectedIndex = 0;
