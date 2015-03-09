@@ -58,7 +58,7 @@ angular.module('geomesa.map', [])
                     );
                     $http.get(url).success(function(data, status, headers, config) {
                         if (data.features.length){
-                            scope.cards = data.features;
+                            scope.selectedFeatures = data.features;
                         }
                     }).error(function(data, status, headers, config) {
                         console.log('Error getting data with getFeatureInfo.');
