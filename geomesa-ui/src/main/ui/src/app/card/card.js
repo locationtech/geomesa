@@ -20,7 +20,6 @@ angular.module('geomesa.card', [])
                         description: 'description'
                     }
                 ];
-
                 scope.selectedIndex = 0;
                 scope.updateIndex = function (i) {
                     scope.selectedIndex = Math.max(Math.min(scope.cards.length - 1, scope.selectedIndex + i), 0);
