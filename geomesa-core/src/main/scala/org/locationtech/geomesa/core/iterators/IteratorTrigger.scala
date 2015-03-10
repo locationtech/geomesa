@@ -97,7 +97,7 @@ object IteratorTrigger extends Logging {
                            query: Query,
                            sft: SimpleFeatureType,
                            indexedAttribute: Option[String] = None): Boolean = {
-    if (useDensityIterator(query: Query)) {
+    if (useDensityIterator(query)) {
       // the Density Iterator is run in place of the SFFI. If it is requested we keep the SFFI
       // config in the stack, and do NOT run the IndexIterator.
       return false
