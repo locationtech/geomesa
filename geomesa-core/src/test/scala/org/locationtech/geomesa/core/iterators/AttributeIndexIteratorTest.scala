@@ -77,7 +77,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       connector.tableOperations.create(table, true, TimeType.LOGICAL)
 
       val bw = connector.createBatchWriter(table, new BatchWriterConfig)
-      val attributes = (0 until sft.getAttributeCount).zip(sft.getAttributeDescriptors)
+      val attributes = sft.getAttributeDescriptors.zipWithIndex
       val indexValueEncoder = IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION)
       val featureEncoder = SimpleFeatureEncoder(sft, DEFAULT_ENCODING)
       getTestFeatures().foreach { feature =>
