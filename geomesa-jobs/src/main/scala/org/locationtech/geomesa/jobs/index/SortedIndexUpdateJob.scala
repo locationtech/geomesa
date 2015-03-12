@@ -16,10 +16,8 @@
 
 package org.locationtech.geomesa.jobs.index
 
-import java.util
-
 import com.twitter.scalding._
-import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => AcRange}
+import org.apache.accumulo.core.data.{Key, Mutation, Range => AcRange, Value}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.geotools.data.DataStoreFinder
@@ -27,7 +25,6 @@ import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.{SimpleFeatureDecoder, SimpleFeatureEncoder}
-import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.scalding._
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -91,17 +88,12 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
       }
     }.write(AccumuloSource(options))
 
-  // override the run method to schedule a table compaction after the job finishes
-  override def run: Boolean = {
-    val result = super.run
-    if (result) {
-      // schedule a table compaction to remove the deleted entries
-      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
-      ds.connector.tableOperations().compact(stIndexTable, null, null, true, false)
-      ds.setIndexSchemaFmt(feature, ds.buildDefaultSpatioTemporalSchema(feature))
-      ds.setGeomesaVersion(feature, INTERNAL_GEOMESA_VERSION)
-    }
-    result
+  override def afterJobTasks() = {
+    // schedule a table compaction to remove the deleted entries
+    val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
+    ds.connector.tableOperations().compact(stIndexTable, null, null, true, false)
+    ds.setIndexSchemaFmt(feature, ds.buildDefaultSpatioTemporalSchema(feature))
+    ds.setGeomesaVersion(feature, INTERNAL_GEOMESA_VERSION)
   }
 
   class SortedIndexUpdateResources extends GeoMesaResources {
@@ -115,31 +107,8 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
 }
 
 object SortedIndexUpdateJob {
-
   def runJob(conf: Configuration, params: Map[String, String], feature: String) = {
-
-    val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
-
-    require(ds != null, "Data store could not be loaded")
-
-    val sft = ds.getSchema(feature)
-    require(sft != null, s"Feature '$feature' does not exist")
-
-    // create args to pass to scalding job based on our input parameters
-    val args = buildArgs(params.asJava, feature)
-
-    // set libjars so that our dependent libs get propagated to the cluster
-    JobUtils.setLibJars(conf)
-
-    // run the scalding job on HDFS
-    val hdfsMode = Hdfs(strict = true, conf)
-    val arguments = Mode.putMode(hdfsMode, args)
-
-    val job = new SortedIndexUpdateJob(arguments)
-    val flow = job.buildFlow
-    flow.complete() // this blocks until the job is done
+    val instantiateJob = (args: Args) => new SortedIndexUpdateJob(args)
+    GeoMesaBaseJob.runJob(conf, params, feature, Map.empty, instantiateJob)
   }
-
-  def buildArgs(params: util.Map[String, String], feature: String): Args =
-    GeoMesaBaseJob.buildBaseArgs(params, feature)
 }
