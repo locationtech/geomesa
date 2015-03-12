@@ -209,6 +209,17 @@ class QueryStrategyDeciderTest extends Specification {
     }
   }
 
+  "IS NOT NULL filters" should {
+    "get the attribute strategy if attribute is indexed" in {
+      val fs = "attr2 IS NOT NULL"
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxRangeStrategy]
+    }
+    "get the stidx strategy if attribute is not indexed" in {
+      val fs = "attr1 IS NOT NULL"
+      getStrategy(fs) must beAnInstanceOf[STIdxStrategy]
+    }
+  }
+
   "Anded Attribute filters" should {
     "get the STIdx strategy with stIdxStrategyPredicates" in {
       forall(stIdxStrategyPredicates) { getStStrategy }
