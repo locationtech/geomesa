@@ -377,6 +377,14 @@ object AttributeIndexStrategy extends StrategyProvider {
     AttributeTable.getAttributeIndexRows(rowIdPrefix, descriptor, Some(typedValue)).head
   }
 
+  /**
+   * Gets the property name from the filter and a range that covers the filter in the attribute table.
+   * Note that if the filter is not a valid attribute filter this method will throw an exception.
+   *
+   * @param filter
+   * @param sft
+   * @return
+   */
   def getPropertyAndRange(filter: Filter, sft: SimpleFeatureType): (String, AccRange) =
     filter match {
       case f: PropertyIsBetween =>
@@ -388,35 +396,35 @@ object AttributeIndexStrategy extends StrategyProvider {
         (prop, new AccRange(lowerBound, true, upperBound, true))
 
       case f: PropertyIsGreaterThan =>
-        val prop = checkOrder(f.getExpression1, f.getExpression2).get
+        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         if (prop.flipped) {
           (prop.name, lessThanRange(sft, prop.name, prop.literal.getValue))
         } else {
           (prop.name, greaterThanRange(sft, prop.name, prop.literal.getValue))
         }
       case f: PropertyIsGreaterThanOrEqualTo =>
-        val prop = checkOrder(f.getExpression1, f.getExpression2).get
+        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         if (prop.flipped) {
           (prop.name, lessThanOrEqualRange(sft, prop.name, prop.literal.getValue))
         } else {
           (prop.name, greaterThanOrEqualRange(sft, prop.name, prop.literal.getValue))
         }
       case f: PropertyIsLessThan =>
-        val prop = checkOrder(f.getExpression1, f.getExpression2).get
+        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         if (prop.flipped) {
           (prop.name, greaterThanRange(sft, prop.name, prop.literal.getValue))
         } else {
           (prop.name, lessThanRange(sft, prop.name, prop.literal.getValue))
         }
       case f: PropertyIsLessThanOrEqualTo =>
-        val prop = checkOrder(f.getExpression1, f.getExpression2).get
+        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         if (prop.flipped) {
           (prop.name, greaterThanOrEqualRange(sft, prop.name, prop.literal.getValue))
         } else {
           (prop.name, lessThanOrEqualRange(sft, prop.name, prop.literal.getValue))
         }
       case f: Before =>
-        val prop = checkOrder(f.getExpression1, f.getExpression2).get
+        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         val lit = prop.literal.evaluate(null, classOf[Date])
         if (prop.flipped) {
           (prop.name, greaterThanRange(sft, prop.name, lit))
@@ -424,7 +432,7 @@ object AttributeIndexStrategy extends StrategyProvider {
           (prop.name, lessThanRange(sft, prop.name, lit))
         }
       case f: After =>
-        val prop = checkOrder(f.getExpression1, f.getExpression2).get
+        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         val lit = prop.literal.evaluate(null, classOf[Date])
         if (prop.flipped) {
           (prop.name, lessThanRange(sft, prop.name, lit))
@@ -432,7 +440,7 @@ object AttributeIndexStrategy extends StrategyProvider {
           (prop.name, greaterThanRange(sft, prop.name, lit))
         }
       case f: During =>
-        val prop = checkOrder(f.getExpression1, f.getExpression2).get
+        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         val during = prop.literal.getValue.asInstanceOf[DefaultPeriod]
         val lower = during.getBeginning.getPosition.getDate
         val upper = during.getEnding.getPosition.getDate
@@ -441,11 +449,11 @@ object AttributeIndexStrategy extends StrategyProvider {
         (prop.name, new AccRange(lowerBound, true, upperBound, true))
 
       case f: PropertyIsEqualTo =>
-        val prop = checkOrder(f.getExpression1, f.getExpression2).get
+        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         (prop.name, AccRange.exact(getEncodedAttrIdxRow(sft, prop.name, prop.literal.getValue)))
 
       case f: TEquals =>
-        val prop = checkOrder(f.getExpression1, f.getExpression2).get
+        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         (prop.name, AccRange.exact(getEncodedAttrIdxRow(sft, prop.name, prop.literal.getValue)))
 
       case f: PropertyIsLike =>

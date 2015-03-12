@@ -320,7 +320,7 @@ package object filter {
    * @param two
    * @return (prop, literal, whether the order was flipped)
    */
-  def checkOrder[T](one: Expression, two: Expression): Option[PropertyLiteral] =
+  def checkOrder(one: Expression, two: Expression): Option[PropertyLiteral] =
     (one, two) match {
       case (p: PropertyName, l: Literal) => Some(PropertyLiteral(p.getPropertyName, l, None, false))
       case (l: Literal, p: PropertyName) => Some(PropertyLiteral(p.getPropertyName, l, None, true))
@@ -329,4 +329,16 @@ package object filter {
         val msg = s"Unhandled expressions in strategy: ${one.getClass.getName}, ${two.getClass.getName}"
         throw new RuntimeException(msg)
     }
+
+  /**
+   * Checks the order of properties and literals in the expression - if the expression does not contain
+   * a property and a literal, throws an exception.
+   *
+   * @param one
+   * @param two
+   * @return
+   */
+  def checkOrderUnsafe(one: Expression, two: Expression): PropertyLiteral =
+    checkOrder(one, two)
+        .getOrElse(throw new RuntimeException("Expressions did not contain valid property and literal"))
 }
