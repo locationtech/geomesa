@@ -191,6 +191,21 @@ class AvroSimpleFeatureTest extends Specification {
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getProperty("b").getValue should beNull
     }
+    "implement equals" in {
+      val sft = SimpleFeatureTypes.createType("avrotesttype", "a:Integer,b:String,*g:Geometry")
 
+      val sf1 = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+      sf1.setAttribute(0, java.lang.Integer.valueOf(1))
+      sf1.setAttribute(1, "b string")
+      sf1.setAttribute(2, "POINT(10 15)")
+
+      val sf2 = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+      sf2.setAttribute(0, java.lang.Integer.valueOf(1))
+      sf2.setAttribute(1, "b string")
+      sf2.setAttribute(2, "POINT(10 15)")
+
+      sf1 mustEqual(sf2)
+      sf1 == sf2 must beTrue
+    }
   }
 }

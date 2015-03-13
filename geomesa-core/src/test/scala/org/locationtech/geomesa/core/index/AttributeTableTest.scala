@@ -19,6 +19,7 @@ package org.locationtech.geomesa.core.index
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.{DEFAULT_ENCODING, INTERNAL_GEOMESA_VERSION}
 import org.locationtech.geomesa.core.data.tables.{AttributeIndexRow, AttributeTable}
 import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, SimpleFeatureEncoder}
@@ -54,7 +55,8 @@ class AttributeTableTest extends Specification {
         val indexValueEncoder = IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION)
         val featureEncoder = SimpleFeatureEncoder(sft, DEFAULT_ENCODING)
 
-        val mutations = AttributeTable.getAttributeIndexMutations(feature, indexValueEncoder, featureEncoder, descriptors, new ColumnVisibility(), "")
+        val toWrite = new FeatureToWrite(feature, "", featureEncoder, indexValueEncoder)
+        val mutations = AttributeTable.getAttributeIndexMutations(toWrite, descriptors, "")
         mutations.size mustEqual descriptors.length
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(false)).foreach
@@ -70,7 +72,8 @@ class AttributeTableTest extends Specification {
         feature.setAttribute("age",50.asInstanceOf[Any])
         feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
-        val mutations = AttributeTable.getAttributeIndexMutations(feature, null, null, descriptors, new ColumnVisibility(), "", delete = true)
+        val toWrite = new FeatureToWrite(feature, "", null, null)
+        val mutations = AttributeTable.getAttributeIndexMutations(toWrite, descriptors, "", true)
         mutations.size mustEqual descriptors.length
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(true)).foreach
