@@ -21,12 +21,13 @@ import java.util
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
 import org.apache.accumulo.core.Constants
-import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.data.{Mutation, Key, Value}
 import org.geotools.data.DataStore
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.{AccumuloFeatureStore, INTERNAL_GEOMESA_VERSION}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, SimpleFeatureEncoder}
@@ -109,12 +110,12 @@ object TestData extends Logging {
   lazy val featureEncoder = SimpleFeatureEncoder(getFeatureType(), "avro")
   lazy val indexValueEncoder = IndexValueEncoder(featureType, INTERNAL_GEOMESA_VERSION)
 
-  lazy val indexEncoder = IndexSchema.buildKeyEncoder(schemaEncoding, featureEncoder, indexValueEncoder)
+  lazy val indexEncoder = IndexSchema.buildKeyEncoder(featureType, schemaEncoding)
 
   val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
 
   // utility function that can encode multiple types of geometry
-  def createObject(id: String, wkt: String, dt: DateTime = new DateTime(defaultDateTime)): List[(Key, Value)] = {
+  def createObject(id: String, wkt: String, dt: DateTime = new DateTime(defaultDateTime)): Seq[Mutation] = {
     val geomType: String = wkt.split( """\(""").head
     val geometry: Geometry = WKTUtils.read(wkt)
     val entry =
@@ -126,7 +127,8 @@ object TestData extends Logging {
     //entry.setAttribute(geomType, id)
     entry.setAttribute("attr2", "2nd" + id)
     indexEncoder.synchronized {
-      indexEncoder.encode(entry, "").toList
+      val toWrite = new FeatureToWrite(entry, "", featureEncoder, indexValueEncoder)
+      indexEncoder.encode(toWrite)
     }
   }
 
@@ -259,22 +261,4 @@ object TestData extends Logging {
   // this point's geohash overlaps with the query polygon so is a candidate result
   // however, the point itself is outside of the candidate result
   val geohashHitActualNotHit = List(Entry("POINT(47.999962 22.999969)", "9999"))
-
-  def encodeDataList(entries: List[Entry] = fullData): util.Collection[(Key, Value)] = {
-    val list: List[(Key, Value)] =
-      entries.flatMap { entry =>
-        createObject(entry.id, entry.wkt, entry.dt)
-      }.toList
-
-    list.sortWith((kvA: (Key, Value), kvB: (Key, Value)) => kvA._1.toString < kvB._1.toString).asJavaCollection
-  }
-
-  def encodeDataMap(entries: List[Entry] = fullData): util.TreeMap[Key, Value] = {
-    val list = encodeDataList(entries)
-
-    val map = new util.TreeMap[Key, Value]()
-    list.foreach(kv => map(kv._1) = kv._2)
-
-    map
-  }
 }

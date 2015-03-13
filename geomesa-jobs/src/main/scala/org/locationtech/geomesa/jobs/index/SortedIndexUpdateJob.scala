@@ -21,6 +21,7 @@ import org.apache.accumulo.core.data.{Key, Mutation, Range => AcRange, Value}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.core.index._
@@ -34,13 +35,13 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
 
   lazy val (stIndexTable, ranges) = {
     val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
-    val sft: SimpleFeatureType = ds.getSchema(feature)
+    val sft = ds.getSchema(feature)
     val indexSchemaFmt = ds.getIndexSchemaFmt(sft.getTypeName)
     val encoding = ds.getFeatureEncoding(sft)
     val fe = SimpleFeatureEncoder(sft, encoding)
     val ive = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
     val maxShard = IndexSchema.maxShard(indexSchemaFmt)
-    val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe, ive)
+    val encoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
     val prefixes = (0 to maxShard).map { i =>
       encoder.rowf match { case CompositeTextFormatter(formatters, sep) =>
         formatters.take(2).map {
@@ -72,14 +73,8 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
         val mutations = if (key.getColumnQualifier.toString == "SimpleFeatureAttribute") {
           // data entry, re-calculate the keys for index and data entries
           val sf = r.decoder.decode(value.get())
-          val newKeys: Map[Text, List[(Key, Value)]] = r.encoder.encode(sf, visibility.toString).groupBy(_._1.getRow)
-          newKeys.map { case (r: Text, keys: List[(Key, Value)]) =>
-            val mutation = new Mutation(r)
-            keys.foreach { case (k: Key, v: Value) =>
-              mutation.put(k.getColumnFamily, k.getColumnQualifier, visibility, v)
-            }
-            mutation
-          }
+          val toWrite = new FeatureToWrite(sf, r.visibilityString, r.fe, r.ive)
+          r.encoder.encode(toWrite)
         } else {
           // index entry, ignore it (will be handled by associated data entry)
           Seq.empty
@@ -101,7 +96,7 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
     val encoding = ds.getFeatureEncoding(sft)
     val fe = SimpleFeatureEncoder(sft, encoding)
     val ive = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
-    val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe, ive)
+    val encoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
     val decoder = SimpleFeatureDecoder(sft, encoding)
   }
 }

@@ -48,13 +48,8 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     val bw = c.createBatchWriter(tableName, new BatchWriterConfig)
 
     logger.debug(s"Add mutations to table $tableName.")
-    for {
-      entry        <- entries.par
-      (key, value) <- createObject(entry.id, entry.wkt, entry.dt)
-    } {
-      val m: Mutation = new Mutation(key.getRow)
-      m.put(key.getColumnFamily, key.getColumnQualifier, value)
-      bw.addMutation(m)
+    entries.foreach { entry =>
+      bw.addMutations(createObject(entry.id, entry.wkt, entry.dt))
     }
 
     logger.debug(s"Done adding mutations to table $tableName.")
