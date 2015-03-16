@@ -18,7 +18,7 @@ package org.locationtech.geomesa.core.util
 
 import java.util.Map.Entry
 
-import org.apache.accumulo.core.client.{BatchScanner, Scanner}
+import org.apache.accumulo.core.client.ScannerBase
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.FeatureReader
 import org.geotools.data.simple.SimpleFeatureIterator
@@ -110,15 +110,10 @@ object SelfClosingIterator {
 
   def apply[A](iter: CloseableIterator[A]): SelfClosingIterator[A] = apply(iter, iter.close)
 
-  def apply(s: Scanner): SelfClosingIterator[Entry[Key, Value]] = apply(s.iterator(), s.close)
+  def apply(s: ScannerBase): SelfClosingIterator[Entry[Key, Value]] = apply(s.iterator(), s.close)
 
   def apply[A <: Feature, B <: FeatureType](fr: FeatureReader[B, A]): SelfClosingIterator[A] =
     apply(CloseableIterator(fr))
 
   def apply(iter: SimpleFeatureIterator): SelfClosingIterator[SimpleFeature] = apply(CloseableIterator(iter))
-}
-
-// This object provides a standard way to wrap BatchScanners in a self-closing and closeable iterator.
-object SelfClosingBatchScanner {
-  def apply(bs: BatchScanner): SelfClosingIterator[Entry[Key, Value]] = SelfClosingIterator(bs.iterator, () => bs.close())
 }

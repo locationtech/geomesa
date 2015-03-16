@@ -34,6 +34,7 @@ import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.stats.{TimingsImpl, MethodProfiling}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}
 
@@ -43,16 +44,16 @@ import scala.reflect.ClassTag
 /**
  * Executes a query against geomesa
  */
-class QueryPlanner(sft: SimpleFeatureType,
-                   val featureEncoding: FeatureEncoding,
-                   val stSchema: String,
-                   acc: AccumuloConnectorCreator,
-                   hints: StrategyHints,
-                   version: Int) extends ExplainingLogging with IndexFilterHelpers {
+case class QueryPlanner(sft: SimpleFeatureType,
+                        featureEncoding: FeatureEncoding,
+                        stSchema: String,
+                        acc: AccumuloConnectorCreator,
+                        hints: StrategyHints,
+                        version: Int) extends ExplainingLogging with IndexFilterHelpers with MethodProfiling {
 
   import org.locationtech.geomesa.core.index.QueryPlanner._
 
-  val hasDupes = IndexSchema.mayContainDuplicates(sft)
+  case class StrategyPlan(strategy: Strategy, plan: QueryPlan)
 
   val featureEncoder = SimpleFeatureEncoder(sft, featureEncoding)
   val featureDecoder = SimpleFeatureDecoder(sft, featureEncoding)
@@ -71,47 +72,60 @@ class QueryPlanner(sft: SimpleFeatureType,
   /**
    * Plan the query, but don't execute it - used for explain query
    */
-  def planQuery(query: Query, output: ExplainerOutputType = log): Unit = getIterator(query, output)
+  def planQuery(query: Query, output: ExplainerOutputType = log): Seq[QueryPlan] =
+    getQueryPlans(query, output).map(_.plan)
 
   /**
    * Gets the accumulo iterator returning raw key/value pairs
    */
   private def getIterator(query: Query, output: ExplainerOutputType): KVIter = {
-    output(s"Running ${ExplainerOutputType.toString(query)}")
+    val queryPlans = getQueryPlans(query, output)
 
-    val isDensity = query.getHints.containsKey(BBOX_KEY)
+    val hasDupes = queryPlans.length > 1 || queryPlans.exists(_.plan.hasDuplicates)
 
-    def flatten(queries: Seq[Query]): KVIter =
-      queries.toIterator.ciFlatMap(executeStrategy(_, isDensity, output))
+    val rawKvs = queryPlans.iterator.ciFlatMap(sp => sp.strategy.execute(sp.plan, acc, output))
 
-    // in some cases, where duplicates may appear in overlapping queries or the data itself, remove them
-    def deduplicate(queries: Seq[Query]): KVIter = {
-      val flatQueries = flatten(queries)
+    if (hasDupes) {
       val dedupe = (key: Key, value: Value) => featureDecoder.extractFeatureId(value.get)
-      new DeDuplicatingIterator(flatQueries, dedupe)
-    }
-
-    if (isDensity) {
-      val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
-      val q1 = new Query(sft.getTypeName, ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env))
-      val mixedQuery = Seq(DataUtilities.mixQueries(q1, query, "geomesa.mixed.query"))
-      if (hasDupes) deduplicate(mixedQuery) else flatten(mixedQuery)
+      new DeDuplicatingIterator(rawKvs, dedupe)
     } else {
-      // As a pre-processing step, we examine the query/filter and split it into multiple queries.
-      // TODO Work to make the queries non-overlapping
-      val rawQueries = splitQueryOnOrs(query, output)
-      if (hasDupes || rawQueries.length > 1) deduplicate(rawQueries) else flatten(rawQueries)
+      rawKvs
     }
   }
 
   /**
-   * Choose and execute a strategy - delegate the rest of the planning to the strategy
+   * Set up the query plans and strategies used to execute them
    */
-  private def executeStrategy(query: Query, isDensity: Boolean, output: ExplainerOutputType): KVIter = {
-    val strategy = QueryStrategyDecider.chooseStrategy(sft, query, hints, version)
-    output(s"Strategy: ${strategy.getClass.getCanonicalName}")
-    output(s"Transforms: ${query.getHints.get(TRANSFORMS)}")
-    strategy.execute(acc, this, sft, query, output)
+  private def getQueryPlans(query: Query, output: ExplainerOutputType): Seq[StrategyPlan] = {
+    output(s"Planning ${ExplainerOutputType.toString(query)}")
+    implicit val timings = new TimingsImpl
+    val queryPlans = profile({
+      val isDensity = query.getHints.containsKey(BBOX_KEY)
+      if (isDensity) {
+        val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
+        val q1 = new Query(sft.getTypeName, ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env))
+        val mixedQuery = DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
+        val strategy = QueryStrategyDecider.chooseStrategy(sft, mixedQuery, hints, version)
+        val plan = strategy.getQueryPlan(mixedQuery, this, output)
+        Seq(StrategyPlan(strategy, plan))
+      } else {
+        // As a pre-processing step, we examine the query/filter and split it into multiple queries.
+        // TODO Work to make the queries non-overlapping
+        splitQueryOnOrs(query, output).map { q =>
+          val strategy = QueryStrategyDecider.chooseStrategy(sft, q, hints, version)
+          output(s"Strategy: ${strategy.getClass.getCanonicalName}")
+          output(s"Transforms: ${query.getHints.get(TRANSFORMS)}")
+          val plan = strategy.getQueryPlan(q, this, output)
+          output(s"Table: ${plan.table}")
+          output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all" else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
+          output(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).mkString(", ")}")
+          output(s"Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", ", ", "]")}")
+          StrategyPlan(strategy, plan)
+        }
+      }
+    }, "plan")
+    output(s"Query Planning took ${timings.time("plan")} milliseconds.")
+    queryPlans
   }
 
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.

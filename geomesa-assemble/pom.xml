@@ -97,6 +97,7 @@
                         <configuration>
                             <attach>true</attach>
                             <finalName>geomesa-${project.version}</finalName>
+                            <tarLongFileMode>gnu</tarLongFileMode>
                             <descriptors>
                                 <descriptor>src/main/assemblies/binary-release.xml</descriptor>
                             </descriptors>

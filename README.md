@@ -40,6 +40,7 @@ From the root directory, this builds each sub-project with its additional depend
 * [FAQ](http://geomesa.github.io/faq/)
 * [Tutorials](http://geomesa.github.io)
 * GeoMesa [Users](https://locationtech.org/mhonarc/lists/geomesa-users/) and [Dev](https://locationtech.org/mhonarc/lists/geomesa-dev/) mailing list archives
+* READMEs are provided under most modules: [Tools](geomesa-tools), [Jobs](geomesa-jobs), etc
 
 ## GeoMesa Project Structure
 

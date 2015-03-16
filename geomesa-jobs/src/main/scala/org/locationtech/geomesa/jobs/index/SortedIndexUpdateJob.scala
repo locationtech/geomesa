@@ -19,27 +19,30 @@ package org.locationtech.geomesa.jobs.index
 import com.twitter.scalding._
 import org.apache.accumulo.core.data.{Key, Mutation, Range => AcRange, Value}
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.io.Text
 import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.{SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.jobs.scalding.ConnectionParams._
 import org.locationtech.geomesa.jobs.scalding._
-import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
 
 class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
 
-  lazy val (stIndexTable, ranges) = {
-    val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
+  val UPDATE_TO_VERSION = 2 // we want to maintain compatibility with any attribute indices written
+
+  val feature = args(FEATURE_IN)
+  val dsParams = toDataStoreInParams(args)
+
+  val (input, output) = {
+    val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
     val sft = ds.getSchema(feature)
+    assert(sft != null, s"The feature '$feature' does not exist in the input data store")
     val indexSchemaFmt = ds.getIndexSchemaFmt(sft.getTypeName)
-    val encoding = ds.getFeatureEncoding(sft)
-    val fe = SimpleFeatureEncoder(sft, encoding)
-    val ive = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
     val maxShard = IndexSchema.maxShard(indexSchemaFmt)
     val encoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
     val prefixes = (0 to maxShard).map { i =>
@@ -50,15 +53,19 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
         }.mkString("", sep, sep)
       }
     }
-    val ranges = prefixes.map(p => new AcRange(p, p + "~"))
-    (ds.getSpatioTemporalIdxTableName(feature), SerializedRange(ranges))
+    val ranges = SerializedRange(prefixes.map(p => new AcRange(p, p + "~")))
+    val stTable = ds.getSpatioTemporalTable(feature)
+    val instance = dsParams(instanceIdParam.getName)
+    val zoos = dsParams(zookeepersParam.getName)
+    val user = dsParams(userParam.getName)
+    val pwd = dsParams(passwordParam.getName)
+    val input = AccumuloInputOptions(instance, zoos, user, pwd, stTable, ranges)
+    val output = AccumuloOutputOptions(instance, zoos, user, pwd, stTable)
+    (input, output)
   }
 
-  override lazy val input  = AccumuloInputOptions(stIndexTable, ranges)
-  override lazy val output = AccumuloOutputOptions(stIndexTable)
-
   // scalding job
-  AccumuloSource(options)
+  AccumuloSource(input)
     .using(new SortedIndexUpdateResources)
     .flatMap(('key, 'value) -> 'mutation) { (r: SortedIndexUpdateResources, kv: (Key, Value)) =>
       val key = kv._1
@@ -73,7 +80,7 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
         val mutations = if (key.getColumnQualifier.toString == "SimpleFeatureAttribute") {
           // data entry, re-calculate the keys for index and data entries
           val sf = r.decoder.decode(value.get())
-          val toWrite = new FeatureToWrite(sf, r.visibilityString, r.fe, r.ive)
+          val toWrite = new FeatureToWrite(sf, r.visibilities, r.fe, r.ive)
           r.encoder.encode(toWrite)
         } else {
           // index entry, ignore it (will be handled by associated data entry)
@@ -81,29 +88,36 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
         }
         Seq(delete) ++ mutations
       }
-    }.write(AccumuloSource(options))
+    }.write(AccumuloSource(output))
 
   override def afterJobTasks() = {
     // schedule a table compaction to remove the deleted entries
-    val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
-    ds.connector.tableOperations().compact(stIndexTable, null, null, true, false)
+    val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
+    ds.connector.tableOperations().compact(output.table, null, null, true, false)
     ds.setIndexSchemaFmt(feature, ds.buildDefaultSpatioTemporalSchema(feature))
-    ds.setGeomesaVersion(feature, INTERNAL_GEOMESA_VERSION)
+    ds.setGeomesaVersion(feature, UPDATE_TO_VERSION)
   }
 
-  class SortedIndexUpdateResources extends GeoMesaResources {
+  class SortedIndexUpdateResources {
+    val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
+    val sft = ds.getSchema(feature)
     val indexSchemaFmt = ds.buildDefaultSpatioTemporalSchema(sft.getTypeName)
     val encoding = ds.getFeatureEncoding(sft)
     val fe = SimpleFeatureEncoder(sft, encoding)
-    val ive = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
+    val ive = IndexValueEncoder(sft, UPDATE_TO_VERSION)
     val encoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
     val decoder = SimpleFeatureDecoder(sft, encoding)
+    val visibilities = ds.writeVisibilities
+
+    // required by scalding
+    def release(): Unit = {}
   }
 }
 
 object SortedIndexUpdateJob {
   def runJob(conf: Configuration, params: Map[String, String], feature: String) = {
+    val args = toInArgs(params) ++ Seq(FEATURE_IN -> List(feature)).toMap
     val instantiateJob = (args: Args) => new SortedIndexUpdateJob(args)
-    GeoMesaBaseJob.runJob(conf, params, feature, Map.empty, instantiateJob)
+    GeoMesaBaseJob.runJob(conf, args, instantiateJob)
   }
 }

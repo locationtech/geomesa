@@ -17,28 +17,29 @@
 package org.locationtech.geomesa.jobs.scalding
 
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.client.mapreduce.lib.util.InputConfigurator
-import org.apache.accumulo.core.data.{Range => AcRange, Key}
+import org.apache.accumulo.core.data.{Key, Range => AcRange}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AcPair}
 import org.apache.hadoop.io.Text
-import org.apache.hadoop.mapred.JobConf
 import org.apache.log4j.Level
 
-import scala.collection.JavaConversions._
 import scala.util.parsing.combinator.JavaTokenParsers
 
-case class AccumuloSourceOptions(
+sealed trait AccumuloSourceOptions {
+  def instance: String
+  def zooKeepers: String
+  def user: String
+  def password: String
+  def table: String
+  def logLevel: Option[Level]
+  override def toString = s"${getClass.getSimpleName}[$instance,$table]"
+}
+
+case class AccumuloInputOptions(
     instance: String,
     zooKeepers: String,
     user: String,
     password: String,
-    input: AccumuloInputOptions,
-    output: AccumuloOutputOptions) {
-  override val toString = s"AccumuloSourceOptions[$instance,$zooKeepers,$input,$output]"
-}
-
-case class AccumuloInputOptions(
     table: String,
     ranges: Seq[SerializedRange] = Seq.empty,
     columns: Seq[SerializedColumn] = Seq.empty,
@@ -48,18 +49,18 @@ case class AccumuloInputOptions(
     localIterators: Option[Boolean] = None,
     offlineTableScan: Option[Boolean] = None,
     scanIsolation: Option[Boolean] = None,
-    logLevel: Option[Level] = None) {
-  override val toString = s"AccumuloInputOptions[$table]"
-}
+    logLevel: Option[Level] = None) extends AccumuloSourceOptions
 
 case class AccumuloOutputOptions(
+    instance: String,
+    zooKeepers: String,
+    user: String,
+    password: String,
     table: String,
     threads: Option[Int] = None,
     memory: Option[Long] = None,
     createTable: Boolean = false,
-    logLevel: Option[Level] = None) {
-  override val toString = s"AccumuloOutputOptions[$table]"
-}
+    logLevel: Option[Level] = None) extends AccumuloSourceOptions
 
 case class SerializedRange(start: Endpoint, end: Endpoint)
 
