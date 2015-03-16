@@ -51,7 +51,7 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
       }
     }
     val ranges = prefixes.map(p => new AcRange(p, p + "~"))
-    (ds.getSpatioTemporalIdxTableName(feature), SerializedRange(ranges))
+    (ds.getSpatioTemporalTable(feature), SerializedRange(ranges))
   }
 
   override lazy val input  = AccumuloInputOptions(stIndexTable, ranges)

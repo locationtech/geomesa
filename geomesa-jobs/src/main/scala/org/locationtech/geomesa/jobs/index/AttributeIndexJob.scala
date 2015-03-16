@@ -39,7 +39,7 @@ class AttributeIndexJob(args: Args) extends GeoMesaBaseJob(args) {
 
   val (recordTable, attributeTable) = {
     val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
-    (ds.getRecordTableForType(feature), ds.getAttrIdxTableName(feature))
+    (ds.getRecordTable(feature), ds.getAttributeTable(feature))
   }
   val attributes = args.list(AttributeIndexJob.ATTRIBUTES_TO_INDEX)
   val coverage = args.optional(AttributeIndexJob.INDEX_COVERAGE)

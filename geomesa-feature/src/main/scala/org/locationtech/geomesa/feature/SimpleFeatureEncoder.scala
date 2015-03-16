@@ -94,13 +94,6 @@ object SimpleFeatureEncoder {
     SimpleFeatureEncoder(sft, FeatureEncoding.withName(encoding))
 }
 
-object FeatureEncoding extends Enumeration {
-  type FeatureEncoding = Value
-  val KRYO = Value("kryo")
-  val AVRO = Value("avro")
-  val TEXT = Value("text")
-}
-
 class TextFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
   override def encode(feature:SimpleFeature): Array[Byte] =
     ThreadSafeDataUtilities.encodeFeature(feature).getBytes

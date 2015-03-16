@@ -70,8 +70,7 @@ class AttributeIndexJobTest extends Specification {
     val scaldingArgs = new Args(GeoMesaBaseJob.buildBaseArgs(params, sft.getTypeName) ++ jobParams)
     val arguments = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)), scaldingArgs)
 
-    val recScanner1 = ds.createRecordScanner(sft)
-    recScanner1.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
+    val recScanner1 = ds.getScanner(ds.getRecordTable(sft))
     val sft1Records = recScanner1.iterator().toSeq
 
     val job = new AttributeIndexJob(arguments) {

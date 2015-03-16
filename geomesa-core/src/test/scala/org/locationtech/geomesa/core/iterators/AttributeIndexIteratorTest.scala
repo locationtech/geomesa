@@ -110,8 +110,9 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       val explain = new ExplainString()
       ds.explainQuery(sftName, query, explain)
       val output = explain.toString()
-      val iter = output.split("\n").filter(_.startsWith("AttributeIndexIterator:")).headOption
+      val iter = output.split("\n").filter(_.startsWith("Iterators")).headOption
       iter must beSome
+      iter.get must contain(classOf[AttributeIndexIterator].getName)
     }
 
     "be selected for appropriate queries" in {

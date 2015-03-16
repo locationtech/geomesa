@@ -42,6 +42,7 @@ import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, S
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
+import org.locationtech.geomesa.core.util.ExplainingConnectorCreator
 import org.locationtech.geomesa.data.TableSplitter
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureEncoder}
@@ -207,7 +208,7 @@ class AccumuloDataStore(val connector: Connector,
     metadata.insert(featureName, ATTRIBUTES_KEY, attributes)
 
     // reconfigure the splits on the attribute table
-    configureAttrIdxTable(getSchema(featureName), getAttrIdxTableName(featureName))
+    configureAttrIdxTable(getSchema(featureName), getAttributeTable(featureName))
   }
 
   type KVEntry = JMap.Entry[Key,Value]
@@ -215,41 +216,35 @@ class AccumuloDataStore(val connector: Connector,
   /**
    * Read Record table name from store metadata
    */
-  def getRecordTableForType(featureType: SimpleFeatureType): String =
-    getRecordTableForType(featureType.getTypeName)
+  def getRecordTable(featureType: SimpleFeatureType): String = getRecordTable(featureType.getTypeName)
 
   /**
    * Read Record table name from store metadata
    */
-  def getRecordTableForType(featureName: String): String =
-    metadata.readRequired(featureName, RECORD_TABLE_KEY)
+  def getRecordTable(featureName: String): String = metadata.readRequired(featureName, RECORD_TABLE_KEY)
 
   /**
    * Read SpatioTemporal Index table name from store metadata
    */
-  def getSpatioTemporalIdxTableName(featureType: SimpleFeatureType): String =
-    getSpatioTemporalIdxTableName(featureType.getTypeName)
+  override def getSpatioTemporalTable(featureType: SimpleFeatureType): String =
+    getSpatioTemporalTable(featureType.getTypeName)
 
   /**
    * Read SpatioTemporal Index table name from store metadata
    */
-  def getSpatioTemporalIdxTableName(featureName: String): String =
-    if (getGeomesaVersion(featureName) > 0) {
-      metadata.readRequired(featureName, ST_IDX_TABLE_KEY)
-    } else {
-      catalogTable
-    }
+  def getSpatioTemporalTable(featureName: String): String =
+    metadata.readRequired(featureName, ST_IDX_TABLE_KEY)
 
   /**
    * Read Attribute Index table name from store metadata
    */
-  def getAttrIdxTableName(featureType: SimpleFeatureType): String =
-    getAttrIdxTableName(featureType.getTypeName)
+  override def getAttributeTable(featureType: SimpleFeatureType): String =
+    getAttributeTable(featureType.getTypeName)
 
   /**
    * Read Attribute Index table name from store metadata
    */
-  def getAttrIdxTableName(featureName: String): String =
+  def getAttributeTable(featureName: String): String =
     metadata.readRequired(featureName, ATTR_IDX_TABLE_KEY)
 
   /**
@@ -435,9 +430,9 @@ class AccumuloDataStore(val connector: Connector,
     }
 
   private def deleteSharedTables(sft: SimpleFeatureType) = {
-    val stTableName = getSpatioTemporalIdxTableName(sft)
-    val attrTableName = getAttrIdxTableName(sft)
-    val recordTableName = getRecordTableForType(sft)
+    val stTableName = getSpatioTemporalTable(sft)
+    val attrTableName = getAttributeTable(sft)
+    val recordTableName = getRecordTable(sft)
 
     val numThreads = queryThreadsConfig.getOrElse(Math.min(MAX_QUERY_THREADS,
       Math.max(MIN_QUERY_THREADS, getSpatioTemporalMaxShard(sft))))
@@ -459,9 +454,9 @@ class AccumuloDataStore(val connector: Connector,
   // NB: We are *not* currently deleting the query table and/or query information.
   private def deleteStandAloneTables(sft: SimpleFeatureType) =
     Seq(
-      getSpatioTemporalIdxTableName(sft),
-      getAttrIdxTableName(sft),
-      getRecordTableForType(sft)
+      getSpatioTemporalTable(sft),
+      getAttributeTable(sft),
+      getRecordTable(sft)
     ).filter(tableOps.exists).foreach(tableOps.delete)
 
   /**
@@ -470,9 +465,9 @@ class AccumuloDataStore(val connector: Connector,
   def delete() = {
     val indexTables =
       getTypeNames.flatMap { t =>
-        Seq(getSpatioTemporalIdxTableName(t),
-            getAttrIdxTableName(t),
-            getRecordTableForType(t))
+        Seq(getSpatioTemporalTable(t),
+            getAttributeTable(t),
+            getRecordTable(t))
         }.distinct
 
     // Delete index tables first then catalog table in case of error
@@ -824,14 +819,20 @@ class AccumuloDataStore(val connector: Connector,
     new AccumuloFeatureReader(this, query, sft, indexSchemaFmt, featureEncoding, version)
   }
 
-  def explainQuery(featureName: String, query: Query, o: ExplainerOutputType = ExplainPrintln) = {
+  def explainQuery(featureName: String,
+                   query: Query,
+                   o: ExplainerOutputType = ExplainPrintln): Seq[QueryPlan] = {
     validateMetadata(featureName)
     val sft = getSchema(featureName)
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
     val featureEncoding = getFeatureEncoding(sft)
     val version = getGeomesaVersion(sft)
     setQueryTransforms(query, sft)
-    new AccumuloQueryExplainer(this, query, sft, indexSchemaFmt, featureEncoding, version).explainQuery(o)
+
+    val cc = new ExplainingConnectorCreator(this, o)
+    val hints = strategyHints(sft)
+    val qp = new QueryPlanner(sft, featureEncoding, indexSchemaFmt, cc, hints, version)
+    qp.planQuery(query, o)
   }
 
   /* create a general purpose writer that is capable of insert, deletes, and updates */
@@ -861,55 +862,20 @@ class AccumuloDataStore(val connector: Connector,
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE
 
-  /**
-   * Create a BatchScanner for the SpatioTemporal Index Table
-   *
-   * @param numThreads number of threads for the BatchScanner
-   */
-  def createSpatioTemporalIdxScanner(sft: SimpleFeatureType, numThreads: Int): BatchScanner = {
-    logger.trace(s"Creating ST batch scanner with $numThreads threads")
-    if (getGeomesaVersion(sft) > 0) {
-      connector.createBatchScanner(getSpatioTemporalIdxTableName(sft),
-                                   authorizationsProvider.getAuthorizations,
-                                   numThreads)
-    } else {
-      connector.createBatchScanner(catalogTable, authorizationsProvider.getAuthorizations, numThreads)
-    }
+  override def getSuggestedSpatioTemporalThreads(sft: SimpleFeatureType): Int = queryThreadsConfig.getOrElse{
+    val numShards = getSpatioTemporalMaxShard(sft)
+    Math.min(MAX_QUERY_THREADS, Math.max(MIN_QUERY_THREADS, numShards))
   }
 
-  /**
-   * Create a BatchScanner for the SpatioTemporal Index Table
-   */
-  def createSTIdxScanner(sft: SimpleFeatureType): BatchScanner = {
-    // use provided thread count, or the number of shards (with min/max checks)
-    val numThreads = queryThreadsConfig.getOrElse(Math.min(MAX_QUERY_THREADS,
-                       Math.max(MIN_QUERY_THREADS, getSpatioTemporalMaxShard(sft))))
-    createSpatioTemporalIdxScanner(sft, numThreads)
-  }
+  override def getSuggestedAttributeThreads(sft: SimpleFeatureType): Int = 1
 
-  /**
-   * Create a Scanner for the Attribute Table (Inverted Index Table)
-   */
-  def createAttrIdxScanner(sft: SimpleFeatureType) =
-    if (getGeomesaVersion(sft) > 0) {
-      connector.createScanner(getAttrIdxTableName(sft), authorizationsProvider.getAuthorizations)
-    } else {
-      throw new RuntimeException("Cannot create Attribute Index Scanner - " +
-        "attribute index table does not exist for this version of the data store")
-    }
+  override def getSuggestedRecordThreads(sft: SimpleFeatureType): Int = recordScanThreads
 
-  /**
-   * Create a BatchScanner to retrieve only Records (SimpleFeatures)
-   */
-  def createRecordScanner(sft: SimpleFeatureType, numThreads: Int = recordScanThreads) = {
-    logger.trace(s"Creating record scanne with $numThreads threads")
-    if (getGeomesaVersion(sft) > 0) {
-      connector.createBatchScanner(getRecordTableForType(sft), authorizationsProvider.getAuthorizations, numThreads)
-    } else {
-      throw new RuntimeException("Cannot create Record Scanner - record table does not exist for this version" +
-        "of the datastore")
-    }
-  }
+  override def getBatchScanner(table: String, numThreads: Int): BatchScanner =
+    connector.createBatchScanner(table, authorizationsProvider.getAuthorizations, numThreads)
+
+  override def getScanner(table: String): Scanner =
+    connector.createScanner(table, authorizationsProvider.getAuthorizations)
 
   // Accumulo assumes that the failures directory exists.  This function assumes that you have already created it.
   def importDirectory(tableName: String, dir: String, failureDir: String, disableGC: Boolean) {

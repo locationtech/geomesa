@@ -17,11 +17,10 @@
 package org.locationtech.geomesa.core.index
 
 import java.util.Date
-import java.util.Map.Entry
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
+import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
@@ -32,10 +31,10 @@ import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryPlanner._
+import org.locationtech.geomesa.core.index.QueryPlanners.JoinFunction
+import org.locationtech.geomesa.core.index.Strategy._
 import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterator}
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.SimpleFeatureDecoder
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
@@ -55,24 +54,23 @@ trait AttributeIdxStrategy extends Strategy with Logging {
   /**
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
    */
-  def attrIdxQuery(
-      acc: AccumuloConnectorCreator,
-      query: Query,
-      iqp: QueryPlanner,
-      featureType: SimpleFeatureType,
-      attributeName: String,
-      range: AccRange,
-      output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
+  def getAttributeIdxQueryPlan(query: Query,
+                               queryPlanner: QueryPlanner,
+                               attributeName: String,
+                               range: AccRange,
+                               output: ExplainerOutputType): QueryPlan = {
 
-    output(s"Scanning attribute table for feature type ${featureType.getTypeName}")
+    val sft = queryPlanner.sft
+    val acc = queryPlanner.acc
+
+    output(s"Scanning attribute table for feature type ${sft.getTypeName}")
     output(s"Range: ${ExplainerOutputType.toString(range)}")
     output(s"Filter: ${query.getFilter}")
 
-    val attrScanner = acc.createAttrIdxScanner(featureType)
-    attrScanner.setRange(range)
+    val attributeIterators = scala.collection.mutable.ArrayBuffer.empty[IteratorSetting]
 
-    val (geomFilters, otherFilters) = partitionGeom(query.getFilter, featureType)
-    val (temporalFilters, nonSTFilters) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
+    val (geomFilters, otherFilters) = partitionGeom(query.getFilter, sft)
+    val (temporalFilters, nonSTFilters) = partitionTemporal(otherFilters, getDtgFieldName(sft))
 
     output(s"Geometry filters: $geomFilters")
     output(s"Temporal filters: $temporalFilters")
@@ -81,70 +79,59 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     val stFilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters)
     val ecqlFilter: Option[Filter] = filterListAsAnd(nonSTFilters)
 
-    val encoding = iqp.featureEncoding
-    val version = acc.getGeomesaVersion(featureType)
+    val encoding = queryPlanner.featureEncoding
+    val version = acc.getGeomesaVersion(sft)
+    val hasDupes = sft.getDescriptor(attributeName).isMultiValued
 
     // choose which iterator we want to use - joining iterator or attribute only iterator
     val iteratorChoice: IteratorConfig =
-      IteratorTrigger.chooseAttributeIterator(ecqlFilter, query, featureType, attributeName)
+      IteratorTrigger.chooseAttributeIterator(ecqlFilter, query, sft, attributeName)
 
-    val iter = iteratorChoice.iterator match {
+    iteratorChoice.iterator match {
       case IndexOnlyIterator =>
         // the attribute index iterator also handles transforms and date/geom filters
-        val cfg = configureAttributeIndexIterator(featureType, encoding, query, stFilter, ecqlFilter,
+        val cfg = configureAttributeIndexIterator(sft, encoding, query, stFilter, ecqlFilter,
           iteratorChoice.transformCoversFilter, attributeName, version)
-        attrScanner.addScanIterator(cfg)
-        output(s"AttributeIndexIterator: ${cfg.toString }")
+        attributeIterators.append(cfg)
 
         // if this is a request for unique attribute values, add the skipping iterator to speed up response
         if (query.getHints.containsKey(GEOMESA_UNIQUE)) {
-          val uCfg = configureUniqueAttributeIterator()
-          attrScanner.addScanIterator(uCfg)
-          output(s"UniqueAttributeIterator: ${uCfg.toString }")
+          attributeIterators.append(configureUniqueAttributeIterator())
         }
 
         // there won't be any non-date/time-filters if the index only iterator has been selected
-        SelfClosingIterator(attrScanner)
+        ScanPlan(acc.getAttributeTable(sft), range, attributeIterators.toSeq, Seq.empty, hasDupes)
 
       case RecordJoinIterator =>
         output("Using record join iterator")
+        val recordIterators = scala.collection.mutable.ArrayBuffer.empty[IteratorSetting]
+
         stFilter.foreach { filter =>
           // apply a filter for the indexed date and geometry
-          val cfg = configureSpatioTemporalFilter(featureType, encoding, stFilter, version)
-          attrScanner.addScanIterator(cfg)
-          output(s"SpatioTemporalFilter: ${cfg.toString }")
+          attributeIterators.append(configureSpatioTemporalFilter(sft, encoding, stFilter, version))
         }
-
-        val recordScanner = acc.createRecordScanner(featureType)
 
         if (iteratorChoice.hasTransformOrFilter) {
           // apply an iterator for any remaining transforms/filters
-          val cfg = configureRecordTableIterator(featureType, encoding, ecqlFilter, query)
-          recordScanner.addScanIterator(cfg)
-          output(s"RecordTableIterator: ${cfg.toString }")
+          recordIterators.append(configureRecordTableIterator(sft, encoding, ecqlFilter, query))
         }
 
         // function to join the attribute index scan results to the record table
         // since the row id of the record table is in the CF just grab that
-        val prefix = getTableSharingPrefix(featureType)
-        val joinFunction = (kv: java.util.Map.Entry[Key, Value]) =>
-          new AccRange(RecordTable.getRowKey(prefix, kv.getKey.getColumnQualifier.toString))
-        val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction)
+        val prefix = getTableSharingPrefix(sft)
+        val joinFunction: JoinFunction =
+          (kv) => new AccRange(RecordTable.getRowKey(prefix, kv.getKey.getColumnQualifier.toString))
 
-        SelfClosingIterator(bms.iterator, () => bms.close())
-    }
+        val recordTable = acc.getRecordTable(sft)
+        val recordRanges = Seq(new AccRange()) // this will get overwritten in the join method
+        val recordThreads = acc.getSuggestedRecordThreads(sft)
+        val joinQuery =
+          BatchScanPlan(recordTable, recordRanges, recordIterators.toSeq, Seq.empty, recordThreads, hasDupes)
 
-    // wrap with a de-duplicator if the attribute could have multiple values, and it won't be
-    // de-duped by the query planner
-    if (!IndexSchema.mayContainDuplicates(featureType) &&
-        featureType.getDescriptor(attributeName).isMultiValued) {
-      val returnSft = Option(query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
-          .getOrElse(featureType)
-      val decoder = SimpleFeatureDecoder(returnSft, iqp.featureEncoding)
-      val deduper = new DeDuplicatingIterator(iter, (_: Key, value: Value) => decoder.extractFeatureId(value.get))
-      SelfClosingIterator(deduper)
-    } else {
-      iter
+        val attrTable = acc.getAttributeTable(sft)
+        val attrThreads = acc.getSuggestedAttributeThreads(sft)
+        val attrIters = attributeIterators.toSeq
+        JoinPlan(attrTable, Seq(range), attrIters, Seq.empty, attrThreads, hasDupes, joinFunction, joinQuery)
     }
   }
 
@@ -229,14 +216,10 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
 
   import org.locationtech.geomesa.core.index.AttributeIndexStrategy._
 
-  override def execute(acc: AccumuloConnectorCreator,
-                       iqp: QueryPlanner,
-                       sft: SimpleFeatureType,
-                       query: Query,
-                       output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val (strippedQuery, filter) = partitionFilter(query, sft)
-    val (prop, range) = getPropertyAndRange(filter, sft)
-    attrIdxQuery(acc, strippedQuery, iqp, sft, prop, range, output)
+  override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
+    val (strippedQuery, filter) = partitionFilter(query, queryPlanner.sft)
+    val (prop, range) = getPropertyAndRange(filter, queryPlanner.sft)
+    getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
   }
 }
 
@@ -244,14 +227,10 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
 
   import org.locationtech.geomesa.core.index.AttributeIndexStrategy._
 
-  override def execute(acc: AccumuloConnectorCreator,
-                       iqp: QueryPlanner,
-                       featureType: SimpleFeatureType,
-                       query: Query,
-                       output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val (strippedQuery, filter) = partitionFilter(query, featureType)
-    val (prop, range) = getPropertyAndRange(filter, featureType)
-    attrIdxQuery(acc, strippedQuery, iqp, featureType, prop, range, output)
+  override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
+    val (strippedQuery, filter) = partitionFilter(query, queryPlanner.sft)
+    val (prop, range) = getPropertyAndRange(filter, queryPlanner.sft)
+    getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
   }
 }
 
@@ -259,14 +238,10 @@ class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
 
   import org.locationtech.geomesa.core.index.AttributeIndexStrategy._
 
-  override def execute(acc: AccumuloConnectorCreator,
-                       iqp: QueryPlanner,
-                       featureType: SimpleFeatureType,
-                       query: Query,
-                       output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
-    val (strippedQuery, extractedFilter) = partitionFilter(query, featureType)
-    val (prop, range) = getPropertyAndRange(extractedFilter, featureType)
-    attrIdxQuery(acc, strippedQuery, iqp, featureType, prop, range, output)
+  override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
+    val (strippedQuery, extractedFilter) = partitionFilter(query, queryPlanner.sft)
+    val (prop, range) = getPropertyAndRange(extractedFilter, queryPlanner.sft)
+    getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
   }
 }
 
