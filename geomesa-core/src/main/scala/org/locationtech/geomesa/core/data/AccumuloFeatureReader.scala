@@ -18,8 +18,9 @@ package org.locationtech.geomesa.core.data
 
 import org.geotools.data.{FeatureReader, Query}
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.core.iterators.ScanConfig
 import org.locationtech.geomesa.core.stats._
-import org.locationtech.geomesa.core.util.ExplainingConnectorCreator
+import org.locationtech.geomesa.core.util.{ExplainingConfig, ExplainingConnectorCreator}
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
@@ -71,16 +72,18 @@ class AccumuloQueryExplainer(dataStore: AccumuloDataStore,
                              featureEncoding: FeatureEncoding,
                              version: Int) extends MethodProfiling {
 
-  def explainQuery(o: ExplainerOutputType) = {
+  def explainQuery(o: ExplainerOutputType): ScanConfig = {
     implicit val timings = new TimingsImpl
-    profile(planQuery(o), "plan")
+    val config = profile(planQuery(o), "plan")
     o(s"Query Planning took ${timings.time("plan")} milliseconds.")
+    config
   }
 
-  private def planQuery(o: ExplainerOutputType) = {
-    val cc = new ExplainingConnectorCreator(o)
+  private def planQuery(o: ExplainerOutputType): ScanConfig = {
+    val cc = new ExplainingConnectorCreator(dataStore, o)
     val hints = dataStore.strategyHints(sft)
     val qp = new QueryPlanner(sft, featureEncoding, indexSchemaFmt, cc, hints, version)
     qp.planQuery(query, o)
+    cc.getScanConfig()
   }
 }

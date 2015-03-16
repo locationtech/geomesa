@@ -26,21 +26,26 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.core.index.ExplainerOutputType
 
 class ExplainingBatchScanner(output: ExplainerOutputType) extends ExplainingScanner(output) with BatchScanner {
-  override def setRanges(ranges: util.Collection[Range]): Unit = {}
+  import scala.collection.JavaConversions._
+
+  override def setRanges(r: util.Collection[Range]): Unit = ranges.appendAll(r)
 }
 
-class ExplainingScanner(output: ExplainerOutputType) extends Scanner {
+class ExplainingScanner(output: ExplainerOutputType) extends Scanner with ExplainingConfig {
+
+  val ranges = scala.collection.mutable.ArrayBuffer.empty[Range]
+  val iterators = scala.collection.mutable.ArrayBuffer.empty[IteratorSetting]
+  val cfs = scala.collection.mutable.ArrayBuffer.empty[Text]
 
   override def setTimeout(timeout: Long, timeUnit: TimeUnit): Unit = output(s"setTimeout($timeout, $timeUnit)")
 
   override def close(): Unit = {}
 
-  override def updateScanIteratorOption(iteratorName: String, key: String, value: String): Unit =
-    output(s"updateScanIterator($iteratorName, $key, $value")
+  override def updateScanIteratorOption(iteratorName: String, key: String, value: String): Unit = ???
 
-  override def removeScanIterator(iteratorName: String): Unit = output(s"removeScanIterator($iteratorName)")
+  override def removeScanIterator(iteratorName: String): Unit = ???
 
-  override def fetchColumnFamily(col: Text): Unit = {}
+  override def fetchColumnFamily(col: Text): Unit = cfs.append(col)
 
   override def getTimeout(timeUnit: TimeUnit): Long = { output(s"getTimeout($timeUnit)"); 0 }
 
@@ -52,19 +57,32 @@ class ExplainingScanner(output: ExplainerOutputType) extends Scanner {
     }
   }
 
-  override def clearScanIterators(): Unit = output(s"clearScanIterators")
+  override def clearScanIterators(): Unit = {
+    iterators.clear()
+    output(s"clearScanIterators")
+  }
 
   override def fetchColumn(colFam: Text, colQual: Text): Unit = {}
 
-  override def clearColumns(): Unit = output("clearColumns")
+  override def clearColumns(): Unit = {
+    cfs.clear()
+    output("clearColumns")
+  }
 
-  override def addScanIterator(cfg: IteratorSetting): Unit = output(s"addScanIterator($cfg")
+  override def addScanIterator(cfg: IteratorSetting): Unit = {
+    iterators.append(cfg)
+    output(s"addScanIterator($cfg")
+  }
 
   override def setTimeOut(timeOut: Int): Unit = {}
 
   override def getTimeOut: Int = ???
 
-  override def setRange(range: Range): Unit = output(s"setRange: $range")
+  override def setRange(range: Range): Unit = {
+    ranges.clear()
+    ranges.append(range)
+    output(s"setRange: $range")
+  }
 
   override def getRange: Range = ???
 
@@ -75,4 +93,17 @@ class ExplainingScanner(output: ExplainerOutputType) extends Scanner {
   override def enableIsolation(): Unit = {}
 
   override def disableIsolation(): Unit = {}
+
+  // methods from ExplainingConfig
+  override def getRanges() = ranges.toSeq
+
+  override def getIterators() = iterators.toSeq
+
+  override def getColumnFamilies() = cfs.toSeq
+}
+
+trait ExplainingConfig {
+  def getRanges(): Seq[Range]
+  def getIterators(): Seq[IteratorSetting]
+  def getColumnFamilies(): Seq[Text]
 }

@@ -20,7 +20,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{BatchDeleter, BatchWriter, Connector}
 import org.apache.accumulo.core.data
 import org.apache.accumulo.core.data.Key
-import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToWrite, FeatureWriterFn}
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToWrite, FeatureToMutations}
 import org.locationtech.geomesa.core.index.{IndexSchema, STIndexEncoder, _}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -40,18 +40,12 @@ object SpatioTemporalTable extends Logging {
   // data rows have a data flag as part of the schema
   def isDataEntry(key: Key): Boolean = key.getRow.find(DATA_CHECK) != -1
 
-  def spatioTemporalWriter(bw: BatchWriter, encoder: STIndexEncoder): FeatureWriterFn =
-    (toWrite: FeatureToWrite) => {
-      val mutations = encoder.encode(toWrite)
-      bw.addMutations(mutations)
-    }
+  def spatioTemporalWriter(encoder: STIndexEncoder): FeatureToMutations =
+    (toWrite: FeatureToWrite) => encoder.encode(toWrite)
 
   /** Creates a function to remove spatio temporal index entries for a feature **/
-  def removeSpatioTemporalIdx(bw: BatchWriter, encoder: STIndexEncoder): FeatureWriterFn =
-    (toWrite: FeatureToWrite) => {
-      val mutations = encoder.encode(toWrite, true)
-      bw.addMutations(mutations)
-    }
+  def spatioTemporalRemover(encoder: STIndexEncoder): FeatureToMutations =
+    (toWrite: FeatureToWrite) => encoder.encode(toWrite, true)
 
   def deleteFeaturesFromTable(conn: Connector, bd: BatchDeleter, sft: SimpleFeatureType): Unit = {
     val MIN_START = "\u0000"
