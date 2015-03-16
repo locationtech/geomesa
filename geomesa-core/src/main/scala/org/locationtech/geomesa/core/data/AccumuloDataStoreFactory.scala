@@ -169,9 +169,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       cachingParam
     )
 
-  val pi = getParametersInfo
-  def canProcess(params: JMap[String,Serializable]) =
-    params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
+  def canProcess(params: JMap[String,Serializable]) = AccumuloDataStoreFactory.canProcess(params)
 
   override def isAvailable = true
 
@@ -226,6 +224,9 @@ object AccumuloDataStoreFactory {
     val (conn, _) = buildAccumuloConnector(params, useMock)
     conn.tableOperations().exists(tableNameParam.lookUp(params).asInstanceOf[String])
   }
+
+  def canProcess(params: JMap[String,Serializable]): Boolean =
+    params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
 
   def configureJob(job: Job, params: JMap[String, Serializable]): Job = {
     val conf = job.getConfiguration

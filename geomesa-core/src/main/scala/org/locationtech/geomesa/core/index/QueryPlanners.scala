@@ -24,10 +24,56 @@ import org.joda.time.format.DateTimeFormatter
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.core.index.KeyUtils._
+import org.locationtech.geomesa.core.index.QueryPlanners.JoinFunction
 import org.locationtech.geomesa.utils.CartesianProductIterable
 import org.locationtech.geomesa.utils.geohash.{GeoHash, GeohashUtils}
+import org.apache.accumulo.core.data.{Range => AccRange, Value, Key}
 
-case class QueryPlan(iterators: Seq[IteratorSetting], ranges: Seq[org.apache.accumulo.core.data.Range], cf: Seq[Text])
+object QueryPlanners {
+  type JoinFunction = (java.util.Map.Entry[Key, Value]) => AccRange
+}
+
+sealed trait QueryPlan {
+  def table: String
+  def ranges: Seq[AccRange]
+  def iterators: Seq[IteratorSetting]
+  def columnFamilies: Seq[Text]
+  def numThreads: Int
+  def hasDuplicates: Boolean
+
+  def join: Option[(JoinFunction, QueryPlan)] = None
+}
+
+// single scan plan
+case class ScanPlan(table: String,
+                    range: AccRange,
+                    iterators: Seq[IteratorSetting],
+                    columnFamilies: Seq[Text],
+                    hasDuplicates: Boolean) extends QueryPlan {
+  val numThreads = 1
+  val ranges = Seq(range)
+}
+
+// batch scan plan
+case class BatchScanPlan(table: String,
+                         ranges: Seq[AccRange],
+                         iterators: Seq[IteratorSetting],
+                         columnFamilies: Seq[Text],
+                         numThreads: Int,
+                         hasDuplicates: Boolean) extends QueryPlan
+
+// join on multiple tables - requires multiple scans
+case class JoinPlan(table: String,
+                    ranges: Seq[AccRange],
+                    iterators: Seq[IteratorSetting],
+                    columnFamilies: Seq[Text],
+                    numThreads: Int,
+                    hasDuplicates: Boolean,
+                    joinFunction: JoinFunction,
+                    joinQuery: BatchScanPlan) extends QueryPlan {
+  override val join = Some((joinFunction, joinQuery))
+}
+
 
 trait KeyPlanningFilter
 

@@ -25,9 +25,10 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
-import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToWrite, FeatureWriterFn}
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToWrite, FeatureToMutations}
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
@@ -42,37 +43,33 @@ import scala.util.{Failure, Success, Try}
 object AttributeTable extends GeoMesaTable with Logging {
 
   /** Creates a function to write a feature to the attribute index **/
-  def attrWriter(bw: BatchWriter,
-                 sft: SimpleFeatureType,
-                 indexedAttributes: Seq[AttributeDescriptor],
-                 rowIdPrefix: String): FeatureWriterFn = {
+  def attributeWriter(sft: SimpleFeatureType): Option[FeatureToMutations] = {
 
-    val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
-    val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
+    val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
+    if (indexedAttributes.isEmpty) {
+      None
+    } else {
+      val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
 
-    (toWrite: FeatureToWrite) => {
-      val mutations = getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix)
-      if (!mutations.isEmpty) {
-        bw.addMutations(mutations)
-      }
+      val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
+      val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
+
+      Some((toWrite: FeatureToWrite) => getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix))
     }
-
   }
 
   /** Creates a function to remove attribute index entries for a feature **/
-  def removeAttrIdx(bw: BatchWriter,
-                    sft: SimpleFeatureType,
-                    indexedAttributes: Seq[AttributeDescriptor],
-                    rowIdPrefix: String): FeatureWriterFn = {
+  def attributeRemover(sft: SimpleFeatureType): Option[FeatureToMutations] = {
+    val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
+    if (indexedAttributes.isEmpty) {
+      None
+    } else {
+      val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
 
-    val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
-    val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
+      val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName)}
+      val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
 
-    (toWrite: FeatureToWrite) => {
-      val mutations = getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix, true)
-      if (!mutations.isEmpty) {
-        bw.addMutations(mutations)
-      }
+      Some((toWrite: FeatureToWrite) => getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix, true))
     }
   }
 
