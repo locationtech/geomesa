@@ -52,6 +52,8 @@ class SpatioTemporalIntersectingIterator
     initFeatureType(options)
     init(featureType, options)
 
+    // pick the execution path once based on the filters and transforms we need to apply
+    // see org.locationtech.geomesa.core.iterators.IteratorFunctions
     setTopOptimized = (filter, transform, checkUniqueId) match {
       case (null, null, null) => setTopInclude
       case (null, null, _)    => setTopUnique

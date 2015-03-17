@@ -47,6 +47,8 @@ class IndexIterator
     initFeatureType(options)
     init(featureType, options)
 
+    // pick the execution path once based on the filters and transforms we need to apply
+    // see org.locationtech.geomesa.core.iterators.IteratorFunctions
     setTopOptimized = (stFilter, transform, checkUniqueId) match {
       case (null, null, null) => setTopIndexInclude
       case (null, null, _)    => setTopIndexUnique

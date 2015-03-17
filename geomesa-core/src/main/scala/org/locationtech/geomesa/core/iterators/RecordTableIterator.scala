@@ -40,6 +40,8 @@ class RecordTableIterator
     initFeatureType(options)
     init(featureType, options)
 
+    // pick the execution path once based on the filters and transforms we need to apply
+    // see org.locationtech.geomesa.core.iterators.IteratorFunctions
     setTopOptimized = (filter, transform) match {
       case (null, null) => setTopInclude
       case (_, null)    => setTopFilter

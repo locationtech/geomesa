@@ -79,6 +79,8 @@ class AttributeIndexIterator
     val coverage = Option(options.get(GEOMESA_ITERATORS_ATTRIBUTE_COVERED)).map(IndexCoverage.withName)
         .getOrElse(IndexCoverage.JOIN)
 
+    // pick the execution path once based on the coverage and the filters and transforms we need to apply
+    // see org.locationtech.geomesa.core.iterators.IteratorFunctions
     setTopOptimized = coverage match {
       case IndexCoverage.FULL => (filter, transform, checkUniqueId) match {
         case (null, null, null) => setTopInclude

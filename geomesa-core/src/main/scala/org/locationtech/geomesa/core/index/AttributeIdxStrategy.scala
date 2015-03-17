@@ -37,11 +37,11 @@ import org.locationtech.geomesa.core.util.{BatchMultiScanner, SelfClosingIterato
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.SimpleFeatureDecoder
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
+import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.expression.{Expression, Literal, PropertyName}
+import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.filter.{Filter, PropertyIsEqualTo, PropertyIsLike, _}
 

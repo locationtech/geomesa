@@ -341,4 +341,12 @@ package object filter {
   def checkOrderUnsafe(one: Expression, two: Expression): PropertyLiteral =
     checkOrder(one, two)
         .getOrElse(throw new RuntimeException("Expressions did not contain valid property and literal"))
+
+  /**
+   * Holder for a property name, literal value(s), and the order they are in
+   */
+  case class PropertyLiteral(name: String,
+                             literal: Literal,
+                             secondary: Option[Literal],
+                             flipped: Boolean = false)
 }

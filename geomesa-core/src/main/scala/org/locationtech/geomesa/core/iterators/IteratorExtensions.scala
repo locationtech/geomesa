@@ -152,7 +152,8 @@ trait HasTransforms extends IteratorExtensions {
 
   import org.locationtech.geomesa.core.data.DEFAULT_ENCODING
 
-  var transform: (SimpleFeature) => Array[Byte] = null
+  type TransformFunction = (SimpleFeature) => Array[Byte]
+  var transform: TransformFunction = null
 
   // feature type transforms
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
@@ -177,6 +178,8 @@ trait HasTransforms extends IteratorExtensions {
  */
 trait HasInMemoryDeduplication extends IteratorExtensions {
 
+  type CheckUniqueId = (String) => Boolean
+
   private var deduplicate: Boolean = false
 
   // each thread maintains its own (imperfect!) list of the unique identifiers it has seen
@@ -198,7 +201,7 @@ trait HasInMemoryDeduplication extends IteratorExtensions {
    *
    * @return False if this identifier is in the local cache; True otherwise
    */
-  var checkUniqueId: (String) => Boolean = null
+  var checkUniqueId: CheckUniqueId = null
 
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)

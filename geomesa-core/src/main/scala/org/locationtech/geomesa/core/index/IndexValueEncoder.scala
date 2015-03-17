@@ -22,6 +22,7 @@ import java.util.{Date, UUID}
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.core
+import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer
 import org.locationtech.geomesa.feature.{KryoFeatureEncoder, ScalaSimpleFeature, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
@@ -75,11 +76,7 @@ object IndexValueEncoder {
     apply(sft, Some(transform), version)
 
   def apply(sft: SimpleFeatureType, transform: Option[SimpleFeatureType], version: Int): IndexValueEncoder = {
-    val key = {
-      // cache key should be unique per feature - we use name + attributes + bindings
-      val descriptors = sft.getAttributeDescriptors.map(d => s"${d.getLocalName}:${d.getType.getBinding}}")
-      s"[${sft.getTypeName}]${descriptors.mkString(",")}"
-    }
+    val key = SimpleFeatureSerializer.cacheKeyForSFT(sft)
     val (indexSft, attributes) = cache.getOrElseUpdate(key, (getIndexSft(sft), getIndexValueFields(sft)))
 
     if (version < 4) { // kryo encoding introduced in version 4
@@ -236,7 +233,7 @@ class OldIndexValueEncoder(sft: SimpleFeatureType, encodedSft: SimpleFeatureType
     val values = fieldsWithIndex.map { case (f, i) => f -> decodings(i)(buf) }.toMap
     val sf = new ScalaSimpleFeature(values(ID_FIELD).asInstanceOf[String], encodedSft)
     values.foreach { case (key, value) =>
-      if (key != ID_FIELD) {
+      if (encodedSft.indexOf(key) != -1) {
         sf.setAttribute(key, value.asInstanceOf[AnyRef])
       }
     }
@@ -267,9 +264,8 @@ object OldIndexValueEncoder {
   // gets a cached instance to avoid the initialization overhead
   // we use sft.toString, which includes the fields and type name, as a unique key
   def apply(sft: SimpleFeatureType, transform: SimpleFeatureType) = {
-    val schema = getSchema(sft)
-    val key = s"${sft.getTypeName}[${schema.mkString(",")}]"
-    cache.get.getOrElseUpdate(key, new OldIndexValueEncoder(sft, transform, schema))
+    val key = SimpleFeatureSerializer.cacheKeyForSFT(sft) + SimpleFeatureSerializer.cacheKeyForSFT(transform)
+    cache.get.getOrElseUpdate(key, new OldIndexValueEncoder(sft, transform, getSchema(sft)))
   }
 
   // gets the default schema, which includes ID, geom and date (if available)

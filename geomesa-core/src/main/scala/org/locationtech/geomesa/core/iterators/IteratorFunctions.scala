@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import org.apache.accumulo.core.data.{Value, Key}
+import org.apache.accumulo.core.data.{Key, Value}
 
 /**
  * Functions optimized for a single execution path

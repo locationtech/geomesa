@@ -337,7 +337,7 @@ case class GeoHashKeyPlanner(offset: Int, bits: Int) extends KeyPlanner with Geo
         KeyRangeTiered(keyMin, keyMax)
 
       case ka: KeyAccept =>
-        output("GeoHashKeyPlanner: KeyAccept")
+        output(s"GeoHashKeyPlanner: KeyAccept (${ka.spacing})")
         ka
 
       case _ =>

@@ -204,11 +204,7 @@ object IteratorTrigger extends Logging {
     // if the transforms cover the filtered attributes, we can decode into the transformed feature
     // otherwise, we need to decode into the original feature, apply the filter, and then transform
     if (useIndexOnlyIterator(ecqlPredicate, query, sourceSFT, Some(indexedAttribute))) {
-      val needsTransform = sourceSFT.getDescriptor(indexedAttribute).getIndexCoverage() match {
-        case IndexCoverage.FULL => true // in this case, we want to decode the original simple feature
-        case _                  => doTransformsCoverFilters(query)
-      }
-      IteratorConfig(IndexOnlyIterator, false, needsTransform)
+      IteratorConfig(IndexOnlyIterator, false, true)
     } else {
       val hasEcqlOrTransform = useSimpleFeatureFilteringIterator(ecqlPredicate, query)
       val transformsCoverFilter = if (hasEcqlOrTransform) doTransformsCoverFilters(query) else true
