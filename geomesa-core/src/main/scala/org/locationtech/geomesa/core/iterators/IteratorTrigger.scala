@@ -96,32 +96,29 @@ object IteratorTrigger extends Logging {
   def useIndexOnlyIterator(ecqlPredicate: Option[Filter],
                            query: Query,
                            sft: SimpleFeatureType,
-                           indexedAttribute: Option[String] = None): Boolean = {
+                           indexedAttribute: Option[String] = None): Boolean =
     if (useDensityIterator(query)) {
       // the Density Iterator is run in place of the SFFI. If it is requested we keep the SFFI
       // config in the stack, and do NOT run the IndexIterator.
-      return false
-    }
-
-    if (indexedAttribute.exists(a => sft.getDescriptor(a).getIndexCoverage() == IndexCoverage.FULL)) {
+      false
+    } else if (indexedAttribute.exists(a => sft.getDescriptor(a).getIndexCoverage() == IndexCoverage.FULL)) {
       // the attribute index is a covering index, so we can use the index iterator regardless
-      return true
+      true
+    } else {
+      // get transforms if they exist
+      val transformDefs = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
+
+      // if the transforms exist, check if the transform is simple enough to be handled by the IndexIterator
+      // if it does not exist, then set this variable to false
+      val isIndexTransform = transformDefs
+          .map(tDef => isOneToOneIndexTransformation(tDef, sft, indexedAttribute))
+          .orElse(Some(false))
+      // if the ecql predicate exists, check that it is a trivial filter that does nothing
+      val isPassThroughFilter = ecqlPredicate.map { ecql => passThroughFilter(ecql)}
+
+      // require both to be true
+      (isIndexTransform ++ isPassThroughFilter).forall(_ == true)
     }
-
-    // get transforms if they exist
-    val transformDefs = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
-
-    // if the transforms exist, check if the transform is simple enough to be handled by the IndexIterator
-    // if it does not exist, then set this variable to false
-    val isIndexTransform = transformDefs
-        .map(tDef => isOneToOneIndexTransformation(tDef, sft, indexedAttribute))
-        .orElse(Some(false))
-    // if the ecql predicate exists, check that it is a trivial filter that does nothing
-    val isPassThroughFilter = ecqlPredicate.map { ecql => passThroughFilter(ecql)}
-
-    // require both to be true
-    (isIndexTransform ++ isPassThroughFilter).forall(_ == true)
-  }
 
   /**
    * Tests whether the attributes being filtered on are a subset of the attribute transforms requested. If so,

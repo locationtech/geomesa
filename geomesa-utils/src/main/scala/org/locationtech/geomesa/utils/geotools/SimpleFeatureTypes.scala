@@ -146,11 +146,11 @@ object SimpleFeatureTypes {
         )
 
       case t if t.getBinding.equals(classOf[java.util.Map[_, _]]) =>
-        val mapTypes = ad.getMapTypes().get
+        val Some((keyType, valueType)) = ad.getMapTypes()
         MapAttributeSpec(
           ad.getLocalName,
-          mapTypes._1,
-          mapTypes._2,
+          keyType,
+          valueType,
           ad.getIndexCoverage(),
           ad.getCardinality()
         )

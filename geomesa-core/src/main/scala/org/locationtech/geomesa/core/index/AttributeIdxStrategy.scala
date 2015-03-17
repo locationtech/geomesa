@@ -552,5 +552,5 @@ object AttributeIndexStrategy {
     cfg.addOption(GEOMESA_ITERATORS_ATTRIBUTE_NAME, attributeName)
 
   def configureIndexCoverage(cfg: IteratorSetting, coverage: IndexCoverage) =
-    cfg.addOption(GEOMESA_ITERATORS_ATTRIBUTE_COVERAGE, coverage.toString)
+    cfg.addOption(GEOMESA_ITERATORS_ATTRIBUTE_COVERED, coverage.toString)
 }

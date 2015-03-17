@@ -65,7 +65,7 @@ class AttributeIndexIterator
     attributeType = Option(options.get(GEOMESA_ITERATORS_ATTRIBUTE_NAME))
         .flatMap(n => Option(featureType.getDescriptor(n)))
     dtgIndex = index.getDtgFieldName(featureType).map(featureType.indexOf(_))
-    val coverage = Option(options.get(GEOMESA_ITERATORS_ATTRIBUTE_COVERAGE)).map(IndexCoverage.withName)
+    val coverage = Option(options.get(GEOMESA_ITERATORS_ATTRIBUTE_COVERED)).map(IndexCoverage.withName)
         .getOrElse(IndexCoverage.JOIN)
     setTopFunction = coverage match {
       case IndexCoverage.FULL => setTopFullCoverage
