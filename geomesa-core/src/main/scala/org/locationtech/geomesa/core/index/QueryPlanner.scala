@@ -125,7 +125,7 @@ class QueryPlanner(sft: SimpleFeatureType,
     if (query.getHints.containsKey(DENSITY_KEY)) {
       adaptDensityIterator(accumuloIterator, decoder)
     } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
-      adaptTemporalIterator(accumuloIterator, returnSFT, decoder)
+      adaptTemporalIterator(accumuloIterator, returnSFT, decoder, query.getHints.containsKey(RETURN_ENCODED))
     } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
       adaptMapAggregationIterator(accumuloIterator, query, returnSFT, decoder)
     } else {
@@ -154,16 +154,21 @@ class QueryPlanner(sft: SimpleFeatureType,
 
   def adaptTemporalIterator(accumuloIterator: KVIter,
                             returnSFT: SimpleFeatureType,
-                            decoder: SimpleFeatureDecoder): SFIter = {
+                            decoder: SimpleFeatureDecoder,
+                            returnEncoded: Boolean): SFIter = {
     val timeSeriesStrings = accumuloIterator.map { kv =>
-      val encoded = decoder.decode(kv.getValue.get).getAttribute(ENCODED_TIME_SERIES).toString
+      val encoded = decoder.decode(kv.getValue.get).getAttribute(TIME_SERIES).toString
       decodeTimeSeries(encoded)
     }
     val summedTimeSeries = timeSeriesStrings.reduceOption(combineTimeSeries)
 
     val feature = summedTimeSeries.map { sum =>
       val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
-      featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(sum))
+      if (returnEncoded) {
+        featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(sum))
+      } else {
+        featureBuilder.add(timeSeriesToJSON(sum))
+      }
       featureBuilder.add(GeometryUtils.zeroPoint) // Filler value as Feature requires a geometry
       featureBuilder.buildFeature(null)
     }
@@ -202,8 +207,7 @@ class QueryPlanner(sft: SimpleFeatureType,
     if (query.getHints.containsKey(DENSITY_KEY)) {
       SimpleFeatureTypes.createType(sft.getTypeName, DensityIterator.DENSITY_FEATURE_SFT_STRING)
     } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
-      val spec = TemporalDensityIterator.TEMPORAL_DENSITY_FEATURE_SFT_STRING
-      SimpleFeatureTypes.createType(sft.getTypeName, spec)
+      createFeatureType(sft)
     } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
       val mapAggregationAttribute = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
       val spec = MapAggregatingIterator.projectedSFTDef(mapAggregationAttribute, sft)

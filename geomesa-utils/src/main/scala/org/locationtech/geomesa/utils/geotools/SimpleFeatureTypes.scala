@@ -22,8 +22,6 @@ import com.typesafe.config.{Config, ConfigFactory}
 import com.vividsolutions.jts.geom._
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.referencing.CRS
-import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser.{ListAttributeType, MapAttributeType, SimpleAttributeType}
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
@@ -79,6 +77,10 @@ object SimpleFeatureTypes {
     val (namespace, name) = buildTypeName(nameSpec)
     val FeatureSpec(attributeSpecs, opts) = parse(spec)
     createType(namespace, name, attributeSpecs, opts)
+  }
+
+  def createType(namespace: String, name: String,spec: String): SimpleFeatureType = {
+    createType(namespace + ":" + name, spec)
   }
 
   def buildTypeName(nameSpec: String): (String, String) = {
