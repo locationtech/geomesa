@@ -19,13 +19,12 @@ package org.locationtech.geomesa.core.data.tables
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{BatchDeleter, BatchWriter, Connector}
 import org.apache.accumulo.core.data
-import org.apache.accumulo.core.data.{Key, Mutation, Value}
-import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureWriterFn
-import org.locationtech.geomesa.core.index.{IndexEntryEncoder, IndexSchema, _}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.apache.accumulo.core.data.Key
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToWrite, FeatureToMutations}
+import org.locationtech.geomesa.core.index.{IndexSchema, STIndexEncoder, _}
+import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
 object SpatioTemporalTable extends Logging {
 
@@ -41,30 +40,12 @@ object SpatioTemporalTable extends Logging {
   // data rows have a data flag as part of the schema
   def isDataEntry(key: Key): Boolean = key.getRow.find(DATA_CHECK) != -1
 
-  def spatioTemporalWriter(bw: BatchWriter, encoder: IndexEntryEncoder): FeatureWriterFn =
-    (feature: SimpleFeature, visibility: String) => {
-      val KVs = encoder.encode(feature, visibility)
-      val m = KVs.groupBy { case (k, _) => k.getRow }.map { case (row, kvs) => kvsToMutations(row, kvs) }
-      bw.addMutations(m.asJava)
-    }
-
-  def kvsToMutations(row: Text, kvs: Seq[(Key, Value)]): Mutation = {
-    val m = new Mutation(row)
-    kvs.foreach { case (k, v) =>
-      m.put(k.getColumnFamily, k.getColumnQualifier, k.getColumnVisibilityParsed, v)
-    }
-    m
-  }
+  def spatioTemporalWriter(encoder: STIndexEncoder): FeatureToMutations =
+    (toWrite: FeatureToWrite) => encoder.encode(toWrite)
 
   /** Creates a function to remove spatio temporal index entries for a feature **/
-  def removeSpatioTemporalIdx(bw: BatchWriter, encoder: IndexEntryEncoder): FeatureWriterFn =
-    (feature: SimpleFeature, visibility: String) => {
-      encoder.encode(feature, visibility).foreach { case (key, _) =>
-        val m = new Mutation(key.getRow)
-        m.putDelete(key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibilityParsed)
-        bw.addMutation(m)
-      }
-    }
+  def spatioTemporalRemover(encoder: STIndexEncoder): FeatureToMutations =
+    (toWrite: FeatureToWrite) => encoder.encode(toWrite, true)
 
   def deleteFeaturesFromTable(conn: Connector, bd: BatchDeleter, sft: SimpleFeatureType): Unit = {
     val MIN_START = "\u0000"
@@ -99,7 +80,7 @@ object SpatioTemporalTable extends Logging {
         Seq.empty
     }
 
-    bd.setRanges(ranges.asJavaCollection)
+    bd.setRanges(ranges)
     bd.delete()
     bd.close()
   }

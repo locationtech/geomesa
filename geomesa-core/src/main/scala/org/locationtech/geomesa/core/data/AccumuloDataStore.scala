@@ -41,6 +41,7 @@ import org.locationtech.geomesa.core.data.AccumuloDataStore._
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.core.iterators.ScanConfig
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.data.TableSplitter
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
@@ -824,7 +825,7 @@ class AccumuloDataStore(val connector: Connector,
     new AccumuloFeatureReader(this, query, sft, indexSchemaFmt, featureEncoding, version)
   }
 
-  def explainQuery(featureName: String, query: Query, o: ExplainerOutputType = ExplainPrintln) = {
+  def explainQuery(featureName: String, query: Query, o: ExplainerOutputType = ExplainPrintln): ScanConfig = {
     validateMetadata(featureName)
     val sft = getSchema(featureName)
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
@@ -842,8 +843,8 @@ class AccumuloDataStore(val connector: Connector,
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
     val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
     val ive = IndexValueEncoder(sft, getGeomesaVersion(sft))
-    val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe, ive)
-    new ModifyAccumuloFeatureWriter(sft, encoder, connector, fe, writeVisibilities, filter, this)
+    val stEncoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
+    new ModifyAccumuloFeatureWriter(sft, fe, ive, stEncoder, this, writeVisibilities, filter)
   }
 
   /* optimized for GeoTools API to return writer ONLY for appending (aka don't scan table) */
@@ -855,8 +856,8 @@ class AccumuloDataStore(val connector: Connector,
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
     val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
     val ive = IndexValueEncoder(sft, getGeomesaVersion(sft))
-    val encoder = IndexSchema.buildKeyEncoder(indexSchemaFmt, fe, ive)
-    new AppendAccumuloFeatureWriter(sft, encoder, connector, fe, writeVisibilities, this)
+    val stEncoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
+    new AppendAccumuloFeatureWriter(sft, fe, ive, stEncoder, this, writeVisibilities)
   }
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE
