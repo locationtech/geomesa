@@ -18,6 +18,7 @@ package org.locationtech.geomesa.kafka
 
 import java.net.InetSocketAddress
 
+import com.google.common.cache.{Cache, LoadingCache}
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
 import kafka.server.KafkaConfig
@@ -58,7 +59,16 @@ class KafkaDataStoreTest extends Specification with Logging {
       "zkPath"     -> "/geomesa/kafka/testds",
       "isProducer" -> false)
 
+    val cachedConsumerParams = Map(
+      "brokers"          -> s"$host:$port",
+      "zookeepers"       -> zkConnect,
+      "zkPath"           -> "/geomesa/kafka/testds",
+      "isProducer"       -> false,
+      "expiry"           -> true,
+      "expirationPeriod" -> 3000L)
+
     val consumerDS = DataStoreFinder.getDataStore(consumerParams)
+    val cachedConsumerDS = DataStoreFinder.getDataStore(cachedConsumerParams)
 
     val producerParams = Map(
       "brokers"    -> s"$host:$port",
@@ -84,6 +94,7 @@ class KafkaDataStoreTest extends Specification with Logging {
     "allow features to be written" >> {
       // create the consumerFC first so that it is ready to receive features from the producer
       val consumerFC = consumerDS.getFeatureSource("test")
+      val cachedConsumerFS = cachedConsumerDS.getFeatureSource("test").asInstanceOf[KafkaConsumerFeatureSource]
 
       val store = producerDS.getFeatureSource("test").asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
       val fw = producerDS.getFeatureWriter("test", null, Transaction.AUTO_COMMIT)
@@ -92,6 +103,17 @@ class KafkaDataStoreTest extends Specification with Logging {
       sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
       fw.write()
       Thread.sleep(2000)
+
+      //Check LoadingCache expiration
+      {
+        import cachedConsumerFS._
+        val cachedFeatures = cachedConsumerFS.features.asInstanceOf[Cache[String, FeatureHolder]]
+        cachedFeatures.cleanUp() //remove old entries...hopefully there aren't any
+        cachedFeatures.size() must be equalTo 1
+        Thread.sleep(1100)
+        cachedFeatures.cleanUp() //remove old entries now that the expiration period has passed
+        cachedFeatures.size() must be equalTo 0
+      }
 
       // AND READ
       {
