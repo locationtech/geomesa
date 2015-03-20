@@ -17,6 +17,7 @@
 package org.locationtech.geomesa.compute.spark
 
 import java.text.SimpleDateFormat
+import java.util.UUID
 
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
@@ -28,12 +29,10 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
 import org.apache.spark.serializer.KryoRegistrator
 import org.apache.spark.{SparkConf, SparkContext}
-import org.geotools.data.{DataStore, Query}
+import org.geotools.data.{DataStore, DataStoreFinder, DefaultTransaction, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.{AvroFeatureDecoder, AvroFeatureEncoder, AvroSimpleFeature, SimpleFeatureEncoder}
-import org.locationtech.geomesa.core.index.{ExplainPrintln, IndexSchema, IndexValueEncoder, STIdxStrategy}
+import org.locationtech.geomesa.core.index.{ExplainPrintln, STIdxStrategy, _}
 import org.locationtech.geomesa.feature._
 import org.locationtech.geomesa.feature.kryo.{KryoFeatureSerializer, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -56,7 +55,7 @@ object GeoMesaSpark {
   def typeProp(typeName: String) = s"geomesa.types.$typeName"
   def jOpt(typeName: String, spec: String) = s"-D${typeProp(typeName)}=$spec"
 
-  def rdd(conf: Configuration, sc: SparkContext, ds: AccumuloDataStore, query: Query): RDD[SimpleFeature] = {
+  def rdd(conf: Configuration, sc: SparkContext, ds: AccumuloDataStore, query: Query, useMock: Boolean = false): RDD[SimpleFeature] = {
     val typeName = query.getTypeName
     val sft = ds.getSchema(typeName)
     val spec = SimpleFeatureTypes.encodeType(sft)
@@ -69,7 +68,9 @@ object GeoMesaSpark {
     val qp = planner.buildSTIdxQueryPlan(query, queryPlanner, sft, version, ExplainPrintln)
 
     ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, ds.connector.whoami(), ds.authToken)
-    ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat], conf, ds.connector.getInstance().getInstanceName, ds.connector.getInstance().getZooKeepers)
+
+    if(useMock) ConfiguratorBase.setMockInstance(classOf[AccumuloInputFormat], conf, ds.connector.getInstance().getInstanceName)
+    else ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat], conf, ds.connector.getInstance().getInstanceName, ds.connector.getInstance().getZooKeepers)
 
     InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, ds.getSpatioTemporalIdxTableName(sft))
     InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
@@ -81,6 +82,35 @@ object GeoMesaSpark {
       val sft = SimpleFeatureTypes.createType(typeName, spec)
       val decoder = SimpleFeatureDecoder(sft, featureEncoding)
       iter.map { case (k: Key, v: Value) => decoder.decode(v.get()) }
+    }
+  }
+
+  /**
+   * Writes this RDD to a GeoMesa table.
+   * The type must exist in the data store, and all of the features in the RDD must be of this type.
+   * @param rdd
+   * @param writeDataStoreParams
+   * @param writeTypeName
+   */
+  def save(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit = {
+    val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
+    require(ds.getSchema(writeTypeName) != null, "feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
+
+    rdd.foreachPartition { iter =>
+      val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
+      val transaction = new DefaultTransaction(UUID.randomUUID().toString)
+      val featureWriter = ds.getFeatureWriterAppend(writeTypeName, transaction)
+      val attrNames = featureWriter.getFeatureType.getAttributeDescriptors.map(_.getLocalName)
+      try {
+        iter.foreach { case rawFeature =>
+          val newFeature = featureWriter.next()
+          attrNames.foreach(an => newFeature.setAttribute(an, rawFeature.getAttribute(an)))
+          featureWriter.write()
+        }
+        transaction.commit()
+      } finally {
+        featureWriter.close()
+      }
     }
   }
 
