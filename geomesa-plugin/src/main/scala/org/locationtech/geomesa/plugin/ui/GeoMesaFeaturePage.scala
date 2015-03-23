@@ -147,7 +147,7 @@ class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage wit
                       .map { case (a, _) => a }
         if (!changed.isEmpty) {
           val (ds, sft) = loadStore().get
-          val added = changed.filter(_.index != IndexCoverage.NONE).map(_.name).mkString(",")
+          val added = changed.filter(_.index != IndexCoverage.NONE).map(_.name).toList
           val run =
             if (added.isEmpty) {
               Success(true)
@@ -160,8 +160,7 @@ class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage wit
                              .toMap[String, java.io.Serializable]
                              .asInstanceOf[Map[String, String]]
               // TODO allow full index coverage, if we keep supporting this page...
-              val attrParams = Map(ATTRIBUTES_TO_INDEX -> added, INDEX_COVERAGE -> IndexCoverage.JOIN.toString)
-              Try(runJob(conf, baseParams ++ attrParams, sft.getTypeName))
+              Try(runJob(conf, baseParams, sft.getTypeName, added, IndexCoverage.JOIN))
             }
           run match {
             case Success(_) =>

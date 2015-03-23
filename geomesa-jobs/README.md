@@ -78,14 +78,14 @@ geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0.jar \
     com.twitter.scalding.Tool \
     org.locationtech.geomesa.jobs.index.AttributeIndexJob \
     --hdfs \
-    --geomesa.accumulo.instance <instance> \
-    --geomesa.accumulo.zookeepers <zookeepers> \
-    --geomesa.accumulo.user <user> \
-    --geomesa.accumulo.password <pwd> \
-    --geomesa.feature.tables.catalog <catalog-table> \
-    --geomesa.feature.name <feature> \
+    --geomesa.input.instanceId <instance> \
+    --geomesa.input.zookeepers <zookeepers> \
+    --geomesa.input.user <user> \
+    --geomesa.input.password <pwd> \
+    --geomesa.input.tableName <catalog-table> \
+    --geomesa.input.feature <feature> \
     --geomesa.index.coverage <full|join> \ # optional attribute
-    --geomesa.index.attributes <attributes to index (space separated)>
+    --geomesa.index.attributes <attributes to index - space separated>
 ```
 
 (Note that if you did not build with the 'assemble' profile, you will also need to include an extensive
@@ -103,12 +103,12 @@ yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0.jar \
     com.twitter.scalding.Tool \
     org.locationtech.geomesa.jobs.index.SortedIndexUpdateJob \
     --hdfs \
-    --geomesa.accumulo.instance <instance> \
-    --geomesa.accumulo.zookeepers <zookeepers> \
-    --geomesa.accumulo.user <user> \
-    --geomesa.accumulo.password <pwd> \
-    --geomesa.feature.tables.catalog <catalog-table> \
-    --geomesa.feature.name <feature>
+    --geomesa.input.instanceId <instance> \
+    --geomesa.input.zookeepers <zookeepers> \
+    --geomesa.input.user <user> \
+    --geomesa.input.password <pwd> \
+    --geomesa.input.tableName <catalog-table> \
+    --geomesa.input.feature <feature>
 ```
 
 (Note that if you did not build with the 'assemble' profile, you will also need to include an extensive

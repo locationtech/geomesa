@@ -19,7 +19,6 @@ package org.locationtech.geomesa.jobs.index
 import com.twitter.scalding.{Args, Mode}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.security.ColumnVisibility
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloDataStore
@@ -28,8 +27,9 @@ import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index.IndexValueEncoder
 import org.locationtech.geomesa.core.iterators.TestData
 import org.locationtech.geomesa.core.iterators.TestData._
-import org.locationtech.geomesa.feature.SimpleFeatureEncoder
+import org.locationtech.geomesa.feature.{SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.jobs.index.AttributeIndexJob._
+import org.locationtech.geomesa.jobs.scalding.ConnectionParams
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -66,19 +66,22 @@ class AttributeIndexJobTest extends Specification {
   val fs2 = getFeatureStore(ds, sft2, mediumData1)
 
   def test(sft: SimpleFeatureType, feats: Seq[SimpleFeature]) = {
-    val jobParams = Map(ATTRIBUTES_TO_INDEX -> List("attr2"), INDEX_COVERAGE -> List("join"))
-    val scaldingArgs = new Args(GeoMesaBaseJob.buildBaseArgs(params, sft.getTypeName) ++ jobParams)
+    val jobParams = Map(ATTRIBUTES_TO_INDEX -> List("attr2"),
+                        INDEX_COVERAGE -> List("join"),
+                        ConnectionParams.FEATURE_IN -> List(sft.getTypeName))
+    val scaldingArgs = new Args(ConnectionParams.toInArgs(params) ++ jobParams)
     val arguments = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)), scaldingArgs)
 
+    val decoder = SimpleFeatureDecoder(sft, ds.getFeatureEncoding(sft))
     val recScanner1 = ds.getScanner(ds.getRecordTable(sft))
-    val sft1Records = recScanner1.iterator().toSeq
+    val sft1Records = recScanner1.iterator().map(v => decoder.decode(v.getValue.get)).toSeq
 
     val job = new AttributeIndexJob(arguments) {
       val r = new AttributeIndexResources
       override def run = true
     }
 
-    val jobMutations1 = sft1Records.flatMap(e => job.getMutations(e.getValue, job.r))
+    val jobMutations1 = sft1Records.flatMap(sf => job.getMutations(sf, job.r))
 
     val descriptor = sft.getDescriptor("attr2")
     val attrList = Seq((descriptor, sft.indexOf(descriptor.getName)))

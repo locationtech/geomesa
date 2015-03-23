@@ -207,10 +207,8 @@ class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
     original = null
     live = if (hasNext) {
       original = reader.next()
-      builder.init(original)
-      val ret = builder.buildFeature(original.getID)
-      ret.getUserData.putAll(original.getUserData)
-      ret
+      builder.init(original) // this copies user data as well
+      builder.buildFeature(original.getID)
     } else {
       builder.buildFeature(nextFeatureId)
     }

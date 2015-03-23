@@ -147,7 +147,8 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] {
   override def getSplits(context: JobContext): java.util.List[InputSplit] = {
     init(context.getConfiguration)
     val accumuloSplits = delegate.getSplits(context)
-    val groupSize = accumuloSplits.size / (numShards * 2) // try to create 2 mappers per node
+    // try to create 2 mappers per node - account for case where there are less splits than shards
+    val groupSize = Math.max(numShards * 2, accumuloSplits.length / (numShards * 2))
 
     // We know each range will only have a single location because of autoAdjustRanges
     val splits = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
