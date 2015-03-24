@@ -164,9 +164,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
 
     val partitions       = Option(TOPIC_PARTITIONS.lookUp(params)).map(_.toString.toInt).getOrElse(1)
     val replication      = Option(TOPIC_REPLICATION.lookUp(params)).map(_.toString.toInt).getOrElse(1)
-    val expiry =
-      if(EXPIRY.lookUp(params) == null) java.lang.Boolean.FALSE
-      else EXPIRY.lookUp(params).asInstanceOf[java.lang.Boolean]
+    val expiry           = Option(EXPIRY.lookUp(params).asInstanceOf[java.lang.Boolean]).getOrElse(java.lang.Boolean.FALSE)
     val expirationPeriod = Option(EXPIRATION_PERIOD.lookUp(params)).map(_.toString.toLong).getOrElse(0L)
 
     new KafkaDataStore(broker, zk, zkPath, partitions, replication, isProducer, expiry, expirationPeriod)

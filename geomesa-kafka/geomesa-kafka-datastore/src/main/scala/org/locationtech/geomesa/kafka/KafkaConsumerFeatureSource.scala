@@ -19,10 +19,9 @@ package org.locationtech.geomesa.kafka
 import java.nio.charset.StandardCharsets
 import java.util
 import java.util.Properties
-import java.util.concurrent.{ConcurrentMap, Executors, TimeUnit}
+import java.util.concurrent.{Executors, TimeUnit}
 
 import com.google.common.cache.{Cache, CacheBuilder}
-import com.google.common.collect.Maps
 import com.google.common.eventbus.{EventBus, Subscribe}
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import com.vividsolutions.jts.index.quadtree.Quadtree
@@ -51,7 +50,7 @@ import scala.collection.JavaConversions._
 class KafkaConsumerFeatureSource(entry: ContentEntry,
                                  schema: SimpleFeatureType,
                                  eb: EventBus,
-                                 query: Query, 
+                                 query: Query,
                                  expiry: Boolean,
                                  expirationPeriod: Long)
   extends ContentFeatureStore(entry, query) {
@@ -68,14 +67,13 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
     }
   }
 
-  val features = if (expiry) {
-    CacheBuilder
-      .newBuilder()
-      .expireAfterWrite(expirationPeriod, TimeUnit.MILLISECONDS)
-      .build()
-  } else {
-    Maps.newConcurrentMap[String, FeatureHolder]()
+  val cb = CacheBuilder.newBuilder()
+
+  if (expiry) {
+    cb.expireAfterWrite(expirationPeriod, TimeUnit.MILLISECONDS)
   }
+
+  val features: Cache[String, FeatureHolder] = cb.build()
 
   eb.register(this)
 
@@ -90,44 +88,21 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   def processNewFeatures(update: CreateOrUpdate): Unit = {
     val sf = update.f
     val id = update.id
-    if (expiry) {
-      val featuresCollection = features.asInstanceOf[Cache[String, FeatureHolder]]
-      Option(featuresCollection.asMap().get(id)).foreach {  old => qt.remove(old.env, old.sf) }
-      val env = sf.geometry.getEnvelopeInternal
-      qt.insert(env, sf)
-      featuresCollection.put(sf.getID, FeatureHolder(sf, env))
-    } else {
-      val featuresCollection = features.asInstanceOf[ConcurrentMap[String, FeatureHolder]]
-      Option(featuresCollection.get(id)).foreach {  old => qt.remove(old.env, old.sf) }
-      val env = sf.geometry.getEnvelopeInternal
-      qt.insert(env, sf)
-      featuresCollection.put(sf.getID, FeatureHolder(sf, env))
-    }
+    Option(features.asMap().get(id)).foreach {  old => qt.remove(old.env, old.sf) }
+    val env = sf.geometry.getEnvelopeInternal
+    qt.insert(env, sf)
+    features.put(sf.getID, FeatureHolder(sf, env))
   }
 
   def removeFeature(toDelete: Delete): Unit = {
-    if (expiry) {
-      val featuresCollection = features.asInstanceOf[Cache[String, FeatureHolder]]
-      Option(featuresCollection.asMap().get(toDelete.id)).foreach { holder =>
-        qt.remove(holder.env, holder.sf)
-      }
-      featuresCollection.invalidate(toDelete.id)
-    } else {
-      val featuresCollection = features.asInstanceOf[ConcurrentMap[String, FeatureHolder]]
-      Option(featuresCollection.remove(toDelete.id)).foreach { holder =>
-        qt.remove(holder.env, holder.sf)
-      }
+    Option(features.asMap().get(toDelete.id)).foreach { holder =>
+      qt.remove(holder.env, holder.sf)
     }
+    features.invalidate(toDelete.id)
   }
 
   def clear(): Unit = {
-    if (expiry) {
-      val featuresCollection = features.asInstanceOf[Cache[String, FeatureHolder]]
-      featuresCollection.invalidateAll()
-    } else {
-      val featuresCollection = features.asInstanceOf[ConcurrentMap[String, FeatureHolder]]
-      featuresCollection.clear()
-    }
+    features.invalidateAll()
     qt = new Quadtree
   }
 
@@ -156,26 +131,11 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
   type DFI = DelegateFeatureIterator[SimpleFeature]
 
-  def include(i: IncludeFilter) = {
-    if (expiry) {
-      val featuresCollection = features.asInstanceOf[Cache[String, FeatureHolder]]
-      new DFR(schema, new DFI(featuresCollection.asMap().valuesIterator.map(_.sf)))
-    } else {
-      val featuresCollection = features.asInstanceOf[ConcurrentMap[String, FeatureHolder]]
-      new DFR(schema, new DFI(featuresCollection.valuesIterator.map(_.sf)))
-    }
-  }
+  def include(i: IncludeFilter) = new DFR(schema, new DFI(features.asMap().valuesIterator.map(_.sf)))
 
   def fid(ids: FidFilterImpl): FR = {
-    if (expiry) {
-      val featuresCollection = features.asInstanceOf[Cache[String, FeatureHolder]]
-      val iter = ids.getIDs.flatMap(id => Option(featuresCollection.asMap().get(id.toString)).map(_.sf)).iterator
-      new DFR(schema, new DFI(iter))
-    } else {
-      val featuresCollection = features.asInstanceOf[ConcurrentMap[String, FeatureHolder]]
-      val iter = ids.getIDs.flatMap(id => Option(featuresCollection.get(id.toString)).map(_.sf)).iterator
-      new DFR(schema, new DFI(iter))
-    }
+    val iter = ids.getIDs.flatMap(id => Option(features.asMap().get(id.toString)).map(_.sf)).iterator
+    new DFR(schema, new DFI(iter))
   }
 
   private val ff = CommonFactoryFinder.getFilterFactory2
