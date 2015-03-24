@@ -39,8 +39,6 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreTest extends Specification with Logging {
 
-  sequential
-
   val brokerConf = TestUtils.createBrokerConfig(1)
 
   val zkConnect = TestZKUtils.zookeeperConnect
@@ -50,50 +48,45 @@ class KafkaDataStoreTest extends Specification with Logging {
   val host = brokerConf.getProperty("host.name")
   val port = brokerConf.getProperty("port").toInt
   val ff = CommonFactoryFinder.getFilterFactory2
+  val consumerParams = Map(
+    "brokers"    -> s"$host:$port",
+    "zookeepers" -> zkConnect,
+    "zkPath"     -> "/geomesa/kafka/testds",
+    "isProducer" -> false)
+
+  val cachedConsumerParams = Map(
+    "brokers"          -> s"$host:$port",
+    "zookeepers"       -> zkConnect,
+    "zkPath"           -> "/geomesa/kafka/testds",
+    "isProducer"       -> false,
+    "expiry"           -> true,
+    "expirationPeriod" -> 3000L)
+
+  val producerParams = Map(
+    "brokers"    -> s"$host:$port",
+    "zookeepers" -> zkConnect,
+    "zkPath"     -> "/geomesa/kafka/testds",
+    "isProducer" -> true)
+
+  val gf = JTSFactoryFinder.getGeometryFactory
 
   "KafkaDataSource" should {
-    val consumerParams = Map(
-      "brokers"    -> s"$host:$port",
-      "zookeepers" -> zkConnect,
-      "zkPath"     -> "/geomesa/kafka/testds",
-      "isProducer" -> false)
-
-    val cachedConsumerParams = Map(
-      "brokers"          -> s"$host:$port",
-      "zookeepers"       -> zkConnect,
-      "zkPath"           -> "/geomesa/kafka/testds",
-      "isProducer"       -> false,
-      "expiry"           -> true,
-      "expirationPeriod" -> 3000L)
-
     val consumerDS = DataStoreFinder.getDataStore(consumerParams)
-    val cachedConsumerDS = DataStoreFinder.getDataStore(cachedConsumerParams)
-
-    val producerParams = Map(
-      "brokers"    -> s"$host:$port",
-      "zookeepers" -> zkConnect,
-      "zkPath"     -> "/geomesa/kafka/testds",
-      "isProducer" -> true)
-
     val producerDS = DataStoreFinder.getDataStore(producerParams)
 
     "consumerDS must not be null" >> { consumerDS must not beNull }
     "producerDS must not be null" >> { producerDS must not beNull }
 
     val schema = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val schemaExpiration = SimpleFeatureTypes.createType("testExpiration", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 
     "allow schemas to be created" >> {
       producerDS.createSchema(schema)
-      producerDS.createSchema(schemaExpiration)
 
       "and available in other data stores" >> {
         consumerDS.getTypeNames.toList must contain("test")
-        consumerDS.getTypeNames.toList must contain("testExpiration")
       }
     }
 
-    val gf = JTSFactoryFinder.getGeometryFactory
     "allow features to be written" >> {
       // create the consumerFC first so that it is ready to receive features from the producer
       val consumerFC = consumerDS.getFeatureSource("test")
@@ -180,8 +173,16 @@ class KafkaDataStoreTest extends Specification with Logging {
       factory.canProcess(Map.empty[String, Serializable]) must beFalse
       factory.canProcess(Map(KAFKA_BROKER_PARAM.key -> "test", ZOOKEEPERS_PARAM.key -> "test")) must beTrue
     }
+  }
 
+  "KafkaDataStore with cachedConsumer" should {
     "expire messages correctly when expirationPeriod is set" >> {
+      //Setup datastores and schema
+      val cachedConsumerDS = DataStoreFinder.getDataStore(cachedConsumerParams)
+      val producerDS = DataStoreFinder.getDataStore(producerParams)
+      val schemaExpiration = SimpleFeatureTypes.createType("testExpiration", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+      producerDS.createSchema(schemaExpiration)
+
       //Setup consumer prior to writing feature so the feature will be written to the cache once the producer writes
       val cachedConsumerFS = cachedConsumerDS.getFeatureSource("testExpiration").asInstanceOf[KafkaConsumerFeatureSource]
       val featureCache = cachedConsumerFS.features
@@ -192,11 +193,11 @@ class KafkaDataStoreTest extends Specification with Logging {
       sf.setAttributes(Array("jones", 30, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
       sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
       fw.write()
-      Thread.sleep(2000) //sleep to ensure test feature is written by producer and read by consumer
 
-      featureCache.cleanUp() //attempt to remove stale entries -- but there shouldn't be any since the TTL has not yet passed
-      featureCache.size() must be equalTo 1
-      Thread.sleep(1100) //sleep enough time to reach the expirationPeriod
+//      featureCache.cleanUp() //remove stale entries, BUT there shouldn't be anything to remove
+      featureCache.size() must eventually(5, 500.millis)(beEqualTo(1))
+      Thread.sleep(3005) //sleep enough time to reach the expirationPeriod
+
       featureCache.cleanUp() //remove old entries now that the TTL has passed
       featureCache.size() must be equalTo 0
     }
