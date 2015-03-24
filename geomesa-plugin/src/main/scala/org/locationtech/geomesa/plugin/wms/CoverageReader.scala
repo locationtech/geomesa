@@ -36,7 +36,7 @@ import org.geotools.util.{DateRange, Utilities}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.iterators.{AggregatingKeyIterator, SurfaceAggregatingIterator, TimestampRangeIterator, TimestampSetIterator}
-import org.locationtech.geomesa.core.util.{BoundingBoxUtil, SelfClosingBatchScanner}
+import org.locationtech.geomesa.core.util.{BoundingBoxUtil, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, Bounds, GeoHash, TwoGeoHashBoundingBox}
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.opengis.geometry.Envelope
@@ -180,7 +180,7 @@ class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() wit
                                                                           aggPrefix + "precision" -> getGeohashPrecision.toString,
                                                                           aggPrefix + "dims" -> (xDim +","+yDim)))
 
-    SelfClosingBatchScanner(scanner)
+    SelfClosingIterator(scanner)
   }
 
   def getEmptyImage = {

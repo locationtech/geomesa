@@ -41,7 +41,8 @@ case class AccumuloSource(options: AccumuloSourceOptions) extends Source with Ma
   override def createTap(readOrWrite: AccessMode)(implicit mode: Mode): GenericTap =
     mode match {
       case Hdfs(_, _) => new AccumuloTap(readOrWrite, new AccumuloScheme(options))
-      case _ => throw new NotImplementedError()
+      case Test(_)    => TestTapFactory(this, hdfsScheme).createTap(readOrWrite)
+      case _          => throw new NotImplementedError()
     }
 
   def converter[U >: (Key, Value)]: TupleConverter[U] = new TupleConverter[U] {
@@ -67,11 +68,6 @@ class AccumuloTap(readOrWrite: AccessMode, scheme: AccumuloScheme) extends AccTa
                         .getConnector(options.user, new PasswordToken(options.password))
                         .tableOperations()
 
-  lazy val table = readOrWrite match {
-    case Read => options.input.table
-    case Write => options.output.table
-  }
-
   override def openForRead(fp: FlowProcess[JobConf], rr: KVRecordReader): TupleEntryIterator =
     new HadoopTupleEntrySchemeIterator(fp, this, rr)
 
@@ -82,22 +78,22 @@ class AccumuloTap(readOrWrite: AccessMode, scheme: AccumuloScheme) extends AccTa
   }
 
   override def createResource(conf: JobConf): Boolean =
-    Try(tableOps.create(table)) match {
+    Try(tableOps.create(options.table)) match {
       case Success(_) => true
       case Failure(e) =>
-        logger.error(s"Error creating table $table", e)
+        logger.error(s"Error creating table ${options.table}", e)
         false
     }
 
   override def deleteResource(conf: JobConf): Boolean =
-    Try(tableOps.delete(table)) match {
+    Try(tableOps.delete(options.table)) match {
       case Success(_) => true
       case Failure(e) =>
-        logger.error(s"Error deleting table $table", e)
+        logger.error(s"Error deleting table ${options.table}", e)
         false
     }
 
-  override def resourceExists(conf: JobConf): Boolean = tableOps.exists(table)
+  override def resourceExists(conf: JobConf): Boolean = tableOps.exists(options.table)
 
   override def getModifiedTime(conf: JobConf): Long = System.currentTimeMillis()
 }
@@ -150,46 +146,52 @@ class AccumuloScheme(val options: AccumuloSourceOptions)
   import scala.collection.JavaConversions._
 
   override def sourceConfInit(fp: FlowProcess[JobConf], tap: AccTap, conf: JobConf) {
+    val input = Some(options).collect { case i: AccumuloInputOptions => i }.getOrElse(
+      throw new IllegalArgumentException("In order to use this as a source you must use AccumuloInputOptions")
+    )
+
     // this method may be called more than once so check to see if we've already configured
     if (!ConfiguratorBase.isConnectorInfoSet(classOf[AccumuloInputFormat], conf)) {
-      InputFormatBase.setZooKeeperInstance(conf, options.instance, options.zooKeepers)
-      InputFormatBase.setConnectorInfo(conf,
-                                       options.user,
-                                       new PasswordToken(options.password.getBytes()))
-      InputFormatBase.setInputTableName(conf, options.input.table)
-      InputFormatBase.setScanAuthorizations(conf, options.input.authorizations)
-      if (!options.input.ranges.isEmpty) {
-        val ranges = options.input.ranges.collect { case SerializedRangeSeq(ranges) => ranges }
+      InputFormatBase.setZooKeeperInstance(conf, input.instance, input.zooKeepers)
+      InputFormatBase.setConnectorInfo(conf, input.user, new PasswordToken(input.password.getBytes()))
+      InputFormatBase.setInputTableName(conf, input.table)
+      InputFormatBase.setScanAuthorizations(conf, input.authorizations)
+      if (!input.ranges.isEmpty) {
+        val ranges = input.ranges.collect { case SerializedRangeSeq(ranges) => ranges }
         InputFormatBase.setRanges(conf, ranges)
       }
-      if (!options.input.columns.isEmpty) {
-        val cols = options.input.columns.collect { case SerializedColumnSeq(column) => column }
+      if (!input.columns.isEmpty) {
+        val cols = input.columns.collect { case SerializedColumnSeq(column) => column }
         InputFormatBase.fetchColumns(conf, cols)
       }
-      options.input.iterators.foreach(InputFormatBase.addIterator(conf, _))
-      options.input.autoAdjustRanges.foreach(InputFormatBase.setAutoAdjustRanges(conf, _))
-      options.input.localIterators.foreach(InputFormatBase.setLocalIterators(conf, _))
-      options.input.offlineTableScan.foreach(InputFormatBase.setOfflineTableScan(conf, _))
-      options.input.scanIsolation.foreach(InputFormatBase.setScanIsolation(conf, _))
-      options.input.logLevel.foreach(InputFormatBase.setLogLevel(conf, _))
+      input.iterators.foreach(InputFormatBase.addIterator(conf, _))
+      input.autoAdjustRanges.foreach(InputFormatBase.setAutoAdjustRanges(conf, _))
+      input.localIterators.foreach(InputFormatBase.setLocalIterators(conf, _))
+      input.offlineTableScan.foreach(InputFormatBase.setOfflineTableScan(conf, _))
+      input.scanIsolation.foreach(InputFormatBase.setScanIsolation(conf, _))
+      input.logLevel.foreach(InputFormatBase.setLogLevel(conf, _))
     }
 
     conf.setInputFormat(classOf[AccumuloInputFormat])
   }
 
   override def sinkConfInit(fp: FlowProcess[JobConf], tap: AccTap, conf: JobConf) {
+    val output = Some(options).collect { case o: AccumuloOutputOptions => o }.getOrElse(
+      throw new IllegalArgumentException("In order to use this as a sink you must use AccumuloOutputOptions")
+    )
+
     // this method may be called more than once so check to see if we've already configured
     if (!ConfiguratorBase.isConnectorInfoSet(classOf[AccumuloOutputFormat], conf)) {
       AccumuloOutputFormat.setConnectorInfo(
-        conf, options.user, new PasswordToken(options.password.getBytes()))
-      AccumuloOutputFormat.setDefaultTableName(conf, options.output.table)
-      AccumuloOutputFormat.setZooKeeperInstance(conf, options.instance, options.zooKeepers)
+        conf, output.user, new PasswordToken(output.password.getBytes()))
+      AccumuloOutputFormat.setDefaultTableName(conf, output.table)
+      AccumuloOutputFormat.setZooKeeperInstance(conf, output.instance, output.zooKeepers)
       val batchWriterConfig = new BatchWriterConfig()
-      options.output.threads.foreach(t => batchWriterConfig.setMaxWriteThreads(t))
-      options.output.memory.foreach(m => batchWriterConfig.setMaxMemory(m))
+      output.threads.foreach(t => batchWriterConfig.setMaxWriteThreads(t))
+      output.memory.foreach(m => batchWriterConfig.setMaxMemory(m))
       AccumuloOutputFormat.setBatchWriterOptions(conf, batchWriterConfig)
-      AccumuloOutputFormat.setCreateTables(conf, options.output.createTable)
-      options.output.logLevel.foreach(l => AccumuloOutputFormat.setLogLevel(conf, l))
+      AccumuloOutputFormat.setCreateTables(conf, output.createTable)
+      output.logLevel.foreach(l => AccumuloOutputFormat.setLogLevel(conf, l))
     }
     conf.setOutputFormat(classOf[AccumuloOutputFormat])
     conf.setOutputKeyClass(classOf[Text])

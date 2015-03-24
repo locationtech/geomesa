@@ -53,7 +53,7 @@ class ScalaSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValue
   override def getType = sft
   override def getIdentifier = featureId
   override def getID = featureId.getID // this needs to reference the featureId, as it can be updated
-  override def getName: Name = sft.getName
+  override def getName = sft.getName
   override def getUserData = userData
 
   override def getAttribute(name: Name) = getAttribute(name.getLocalPart)
@@ -151,13 +151,29 @@ class ScalaSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValue
     }
   }
 
-  override def toString() = s"ScalaSimpleFeature:${getID}"
+  override def toString = s"ScalaSimpleFeature:$getID"
+
+  override def hashCode: Int = getID.hashCode()
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case other: ScalaSimpleFeature if getIdentifier.equalsExact(other.getIdentifier) =>
+      getName == other.getName && java.util.Arrays.equals(values, other.getAttributes.toArray)
+    case _ => false
+  }
 }
 
 object ScalaSimpleFeature {
-  implicit class RichSimpleFeature(val sf: ScalaSimpleFeature) extends AnyVal {
-    def getAttribute[T](name: String) = sf.getAttribute(name).asInstanceOf[T]
-    def getAttribute[T](index: Int) = sf.getAttribute(index).asInstanceOf[T]
-    def getGeometry() = sf.getDefaultGeometry.asInstanceOf[Geometry]
+
+  /**
+   * Compares the id and attributes for the simple features - concrete class is not checked
+   */
+  def equalIdAndAttributes(sf1: SimpleFeature, sf2: SimpleFeature): Boolean =
+    sf1 != null && sf2 != null && sf1.getIdentifier.equalsExact(sf2.getIdentifier) &&
+        java.util.Arrays.equals(sf1.getAttributes.toArray, sf2.getAttributes.toArray)
+
+  implicit class RichSimpleFeature(val sf: SimpleFeature) extends AnyVal {
+    def attribute[T](name: String) = sf.getAttribute(name).asInstanceOf[T]
+    def attribute[T](index: Int) = sf.getAttribute(index).asInstanceOf[T]
+    def geometry = sf.getDefaultGeometry.asInstanceOf[Geometry]
   }
 }

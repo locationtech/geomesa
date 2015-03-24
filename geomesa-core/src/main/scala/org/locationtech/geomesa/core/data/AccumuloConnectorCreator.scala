@@ -23,26 +23,44 @@ import org.opengis.feature.simple.SimpleFeatureType
 trait AccumuloConnectorCreator extends Logging {
 
   /**
-   * Create a BatchScanner for the SpatioTemporal Index Table
-   *
-   * @param numThreads number of threads for the BatchScanner
+   * Get the name of the spatio temporal index table in accumulo for the given feature
    */
-  def createSpatioTemporalIdxScanner(sft: SimpleFeatureType, numThreads: Int): BatchScanner
+  def getSpatioTemporalTable(sft: SimpleFeatureType): String
 
   /**
-   * Create a BatchScanner for the SpatioTemporal Index Table
+   * Get the name of the attribute index table in accumulo for the given feature
    */
-  def createSTIdxScanner(sft: SimpleFeatureType): BatchScanner
+  def getAttributeTable(sft: SimpleFeatureType): String
 
   /**
-   * Create a Scanner for the Attribute Table (Inverted Index Table)
+   * Get the name of the records table in accumulo for the given feature
    */
-  def createAttrIdxScanner(sft: SimpleFeatureType): Scanner
+  def getRecordTable(sft: SimpleFeatureType): String
 
   /**
-   * Create a BatchScanner to retrieve only Records (SimpleFeatures)
+   * Gets a suggested number of threads for querying the spatio temporal index for the given feature
    */
-  def createRecordScanner(sft: SimpleFeatureType, numThreads: Int = 0) : BatchScanner
+  def getSuggestedSpatioTemporalThreads(sft: SimpleFeatureType): Int
+
+  /**
+   * Gets a suggested number of threads for querying the attribute index for the given feature
+   */
+  def getSuggestedAttributeThreads(sft: SimpleFeatureType): Int
+
+  /**
+   * Gets a suggested number of threads for querying the record table for the given feature
+   */
+  def getSuggestedRecordThreads(sft: SimpleFeatureType): Int
+
+  /**
+   * Gets a single-range scanner for the given table
+   */
+  def getScanner(table: String): Scanner
+
+  /**
+   * Gets a batch scanner for the given table
+   */
+  def getBatchScanner(table: String, numThreads: Int): BatchScanner
 
   /**
    * Gets the geomesa internal version for the feature type

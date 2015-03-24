@@ -19,9 +19,7 @@ package org.locationtech.geomesa.core.data
 import org.geotools.data.{FeatureReader, Query}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.stats._
-import org.locationtech.geomesa.core.util.ExplainingConnectorCreator
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -61,26 +59,5 @@ class AccumuloFeatureReader(dataStore: AccumuloDataStore,
         sw.writeStat(stat, dataStore.getQueriesTableName(sft))
       case _ => // do nothing
     }
-  }
-}
-
-class AccumuloQueryExplainer(dataStore: AccumuloDataStore,
-                             query: Query,
-                             sft: SimpleFeatureType,
-                             indexSchemaFmt: String,
-                             featureEncoding: FeatureEncoding,
-                             version: Int) extends MethodProfiling {
-
-  def explainQuery(o: ExplainerOutputType) = {
-    implicit val timings = new TimingsImpl
-    profile(planQuery(o), "plan")
-    o(s"Query Planning took ${timings.time("plan")} milliseconds.")
-  }
-
-  private def planQuery(o: ExplainerOutputType) = {
-    val cc = new ExplainingConnectorCreator(o)
-    val hints = dataStore.strategyHints(sft)
-    val qp = new QueryPlanner(sft, featureEncoding, indexSchemaFmt, cc, hints, version)
-    qp.planQuery(query, o)
   }
 }

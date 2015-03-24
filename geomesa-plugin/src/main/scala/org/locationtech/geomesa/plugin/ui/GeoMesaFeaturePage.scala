@@ -32,13 +32,10 @@ import org.apache.wicket.markup.html.panel.Fragment
 import org.apache.wicket.model.{Model, PropertyModel}
 import org.apache.wicket.{AttributeModifier, PageParameters, ResourceReference}
 import org.geoserver.web.GeoServerBasePage
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.core.data.AccumuloDataStore
-import org.locationtech.geomesa.jobs.index.AttributeIndexJob
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -150,28 +147,23 @@ class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage wit
                       .map { case (a, _) => a }
         if (!changed.isEmpty) {
           val (ds, sft) = loadStore().get
-          val added = changed.filter(_.index != IndexCoverage.NONE).map(_.name)
+          val added = changed.filter(_.index != IndexCoverage.NONE).map(_.name).toList
           val run =
             if (added.isEmpty) {
               Success(true)
             } else {
-              val params = getCatalog.getDataStoreByName(workspaceName, dataStoreName)
+              import org.locationtech.geomesa.jobs.index.AttributeIndexJob._
+              val conf = GeoMesaBasePage.getHdfsConfiguration
+              val baseParams = getCatalog.getDataStoreByName(workspaceName, dataStoreName)
                              .getConnectionParameters
                              .asScala
                              .toMap[String, java.io.Serializable]
                              .asInstanceOf[Map[String, String]]
-              val conf = GeoMesaBasePage.getHdfsConfiguration
-              Try(AttributeIndexJob.runJob(conf, params, sft.getTypeName, added))
+              // TODO allow full index coverage, if we keep supporting this page...
+              Try(runJob(conf, baseParams, sft.getTypeName, added, IndexCoverage.JOIN))
             }
-
           run match {
             case Success(_) =>
-              // if the job was successful, update the schema stored in the metadata
-              val sftb = new SimpleFeatureTypeBuilder()
-              sftb.setName(sft.getTypeName)
-              sftb.addAll(attributes.map(_.toAttribute))
-              val newSFT = sftb.buildFeatureType()
-              ds.updateIndexedAttributes(sft.getTypeName, SimpleFeatureTypes.encodeType(newSFT))
             case Failure(e) =>
               // set error message in page for user to see
               getSession().error(s"Failed to index attributes: ${e.getMessage}")

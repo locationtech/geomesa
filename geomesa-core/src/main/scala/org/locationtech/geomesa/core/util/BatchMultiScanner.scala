@@ -21,12 +21,12 @@ import java.util.concurrent.{Executors, TimeUnit}
 
 import com.google.common.collect.Queues
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.{BatchScanner, Scanner}
-import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
+import org.apache.accumulo.core.client.{BatchScanner, ScannerBase}
+import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 
 import scala.collection.JavaConversions._
 
-class BatchMultiScanner(in: Scanner,
+class BatchMultiScanner(in: ScannerBase,
                         out: BatchScanner,
                         joinFn: java.util.Map.Entry[Key, Value] => AccRange,
                         batchSize: Int = 32768)

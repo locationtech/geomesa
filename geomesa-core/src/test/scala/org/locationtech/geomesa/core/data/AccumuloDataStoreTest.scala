@@ -216,7 +216,7 @@ class AccumuloDataStoreTest extends Specification {
       val sft = SimpleFeatureTypes.createType("customsplit", spec)
       org.locationtech.geomesa.core.index.setTableSharing(sft, false)
       ds.createSchema(sft)
-      val recTable = ds.getRecordTableForType(sft)
+      val recTable = ds.getRecordTable(sft)
       val splits = ds.connector.tableOperations().listSplits(recTable)
       splits.size() mustEqual 100
       splits.head mustEqual new Text("00")
@@ -639,7 +639,7 @@ class AccumuloDataStoreTest extends Specification {
       val out = new ExplainString
       ds.explainQuery(sftName, new Query(sftName, Filter.INCLUDE), out)
       val explain = out.toString()
-      explain must startWith(s"Running Query")
+      explain must startWith(s"Planning Query")
     }
 
     "allow secondary attribute indexes" in {

@@ -111,7 +111,8 @@ class AttributeIndexStrategyTest extends Specification {
 
   def execute(strategy: AttributeIdxStrategy, filter: String): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))
-    val results = strategy.execute(ds, queryPlanner, sft, query, ExplainNull)
+    val plan = strategy.getQueryPlan(query, queryPlanner, ExplainNull)
+    val results = strategy.execute(plan, ds, ExplainNull)
     // adapt iterator no longer de-dupes, add dedupe wrapper
     queryPlanner.adaptIterator(results, query).map(_.getAttribute("name").toString).toSet.toList
   }
@@ -119,7 +120,7 @@ class AttributeIndexStrategyTest extends Specification {
   "AttributeIndexStrategy" should {
     "print values" in {
       skipped("used for debugging")
-      val scanner = connector.createScanner(ds.getAttrIdxTableName(sftName), new Authorizations())
+      val scanner = connector.createScanner(ds.getAttributeTable(sftName), new Authorizations())
       val prefix = AttributeTable.getAttributeIndexRowPrefix(index.getTableSharingPrefix(sft),
         sft.getDescriptor("fingers"))
       scanner.setRange(AccRange.prefix(prefix))
@@ -170,7 +171,8 @@ class AttributeIndexStrategyTest extends Specification {
       val strategy = new AttributeIdxLikeStrategy
       val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("name LIKE 'b%'"), ECQL.toFilter("count<27"), ECQL.toFilter("age<29"))).get
       val query = new Query(sftName, filter)
-      val results = strategy.execute(ds, queryPlanner, sft, query, ExplainNull)
+      val plan = strategy.getQueryPlan(query, queryPlanner, ExplainNull)
+      val results = strategy.execute(plan, ds, ExplainNull)
       val resultNames = queryPlanner.adaptIterator(results, query).map(_.getAttribute("name").toString).toList
       resultNames must have size(1)
       resultNames must contain ("bill")

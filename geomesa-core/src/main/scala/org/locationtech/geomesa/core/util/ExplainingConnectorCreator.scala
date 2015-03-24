@@ -16,34 +16,30 @@
 
 package org.locationtech.geomesa.core.util
 
-import org.apache.accumulo.core.client.{BatchScanner, Scanner}
-import org.locationtech.geomesa.core.data.{AccumuloConnectorCreator, INTERNAL_GEOMESA_VERSION}
+import org.locationtech.geomesa.core.data.{AccumuloConnectorCreator, AccumuloDataStore}
 import org.locationtech.geomesa.core.index.ExplainerOutputType
 import org.opengis.feature.simple.SimpleFeatureType
 
 
-class ExplainingConnectorCreator(output: ExplainerOutputType) extends AccumuloConnectorCreator {
-  /**
-   * Create a BatchScanner for the SpatioTemporal Index Table
-   *
-   * @param numThreads number of threads for the BatchScanner
-   */
-  override def createSpatioTemporalIdxScanner(sft: SimpleFeatureType, numThreads: Int): BatchScanner = new ExplainingBatchScanner(output)
+class ExplainingConnectorCreator(ds: AccumuloDataStore, output: ExplainerOutputType)
+    extends AccumuloConnectorCreator {
 
-  /**
-   * Create a BatchScanner for the SpatioTemporal Index Table
-   */
-  override def createSTIdxScanner(sft: SimpleFeatureType): BatchScanner = new ExplainingBatchScanner(output)
+  override def getBatchScanner(table: String, numThreads: Int) = new ExplainingBatchScanner(output)
 
-  /**
-   * Create a Scanner for the Attribute Table (Inverted Index Table)
-   */
-  override def createAttrIdxScanner(sft: SimpleFeatureType): Scanner = new ExplainingScanner(output)
+  override def getScanner(table: String) = new ExplainingScanner(output)
 
-  /**
-   * Create a BatchScanner to retrieve only Records (SimpleFeatures)
-   */
-  override def createRecordScanner(sft: SimpleFeatureType, numThreads: Int): BatchScanner = new ExplainingBatchScanner(output)
+  override def getSpatioTemporalTable(sft: SimpleFeatureType) = ds.getSpatioTemporalTable(sft)
 
-  override def getGeomesaVersion(sft: SimpleFeatureType): Int = INTERNAL_GEOMESA_VERSION
+  override def getAttributeTable(sft: SimpleFeatureType) = ds.getAttributeTable(sft)
+
+  override def getRecordTable(sft: SimpleFeatureType) = ds.getRecordTable(sft)
+
+  override def getSuggestedSpatioTemporalThreads(sft: SimpleFeatureType) =
+    ds.getSuggestedSpatioTemporalThreads(sft)
+
+  override def getSuggestedRecordThreads(sft: SimpleFeatureType) = ds.getSuggestedRecordThreads(sft)
+
+  override def getSuggestedAttributeThreads(sft: SimpleFeatureType) = ds.getSuggestedAttributeThreads(sft)
+
+  override def getGeomesaVersion(sft: SimpleFeatureType): Int = ds.getGeomesaVersion(sft)
 }
