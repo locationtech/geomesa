@@ -54,7 +54,7 @@ object AttributeTable extends GeoMesaTable with Logging {
                  rowIdPrefix: String): FeatureWriterFn = {
 
     val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
-    val attributesToIdx = indexesOfIndexedAttributes.zip(indexedAttributes)
+    val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
 
     (feature: SimpleFeature, visibility: String) => {
       val mutations = getAttributeIndexMutations(
@@ -78,7 +78,7 @@ object AttributeTable extends GeoMesaTable with Logging {
                     rowIdPrefix: String): FeatureWriterFn = {
 
     val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
-    val attributesToIdx = indexesOfIndexedAttributes.zip(indexedAttributes)
+    val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
 
     (feature: SimpleFeature, visibility: String) => {
       val mutations = getAttributeIndexMutations(
@@ -110,7 +110,7 @@ object AttributeTable extends GeoMesaTable with Logging {
   def getAttributeIndexMutations(feature: SimpleFeature,
                                  indexValueEncoder: IndexValueEncoder,
                                  featureEncoder: SimpleFeatureEncoder,
-                                 indexedAttributes: Seq[(Int, AttributeDescriptor)],
+                                 indexedAttributes: Seq[(AttributeDescriptor, Int)],
                                  visibility: ColumnVisibility,
                                  rowIdPrefix: String,
                                  delete: Boolean = false): Seq[Mutation] = {
@@ -118,7 +118,7 @@ object AttributeTable extends GeoMesaTable with Logging {
     val sft = feature.getFeatureType
     lazy val joinValue = new Value(indexValueEncoder.encode(feature))
     lazy val coveringValue = new Value(featureEncoder.encode(feature))
-    indexedAttributes.flatMap { case (idx, descriptor) =>
+    indexedAttributes.flatMap { case (descriptor, idx) =>
       val attribute = feature.getAttribute(idx)
       val mutations = getAttributeIndexRows(rowIdPrefix, descriptor, attribute).map(new Mutation(_))
       if (delete) {
