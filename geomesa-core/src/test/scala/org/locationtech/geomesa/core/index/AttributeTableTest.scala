@@ -42,7 +42,7 @@ class AttributeTableTest extends Specification {
     "AttributeTable" should {
 
       "encode mutations for attribute index" in {
-        val descriptors = (0 until sft.getAttributeCount).zip(sft.getAttributeDescriptors).toSeq
+        val descriptors = sft.getAttributeDescriptors.zipWithIndex
 
         val feature = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id1")
         val geom = WKTUtils.read("POINT(45.0 49.0)")
@@ -61,7 +61,7 @@ class AttributeTableTest extends Specification {
       }
 
       "encode mutations for delete attribute index" in {
-        val descriptors = (0 until sft.getAttributeCount).zip(sft.getAttributeDescriptors)
+        val descriptors = sft.getAttributeDescriptors.zipWithIndex
 
         val feature = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id1")
         val geom = WKTUtils.read("POINT(45.0 49.0)")
