@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.core.index
 
 import java.nio.ByteBuffer
-import java.util.UUID
+import java.util.{Date, UUID}
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.vividsolutions.jts.geom.Geometry
@@ -276,10 +276,11 @@ class IndexValueEncoderTest extends Specification {
   // 2.  WKB-encoded geometry
   // 3.  start-date/time
   def _encodeIndexValue(entry: SimpleFeature): Value = {
-    import org.locationtech.geomesa.core.index.IndexEntry._
-    val encodedId = entry.sid.getBytes
-    val encodedGeom = WKBUtils.write(entry.geometry)
-    val encodedDtg = entry.dt.map(dtg => ByteBuffer.allocate(8).putLong(dtg.getMillis).array()).getOrElse(Array[Byte]())
+    val encodedId = entry.getID.getBytes
+    val encodedGeom = WKBUtils.write(entry.getDefaultGeometry.asInstanceOf[Geometry])
+    // dtg prop is hard-coded here for convenience
+    val encodedDtg = Option(entry.getAttribute("dtg").asInstanceOf[Date])
+        .map(dtg => ByteBuffer.allocate(8).putLong(dtg.getTime).array()).getOrElse(Array[Byte]())
 
     new Value(
       ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++

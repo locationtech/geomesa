@@ -21,20 +21,16 @@ import java.util.{Collection => JCollection, Date, Locale, Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.BatchWriter
-import org.apache.accumulo.core.data.{Mutation, Value}
-import org.apache.accumulo.core.security.ColumnVisibility
+import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
-import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureWriterFn
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToWrite, FeatureWriterFn}
 import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.IndexValueEncoder
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -48,22 +44,14 @@ object AttributeTable extends GeoMesaTable with Logging {
   /** Creates a function to write a feature to the attribute index **/
   def attrWriter(bw: BatchWriter,
                  sft: SimpleFeatureType,
-                 indexValueEncoder: IndexValueEncoder,
-                 featureEncoder: SimpleFeatureEncoder,
                  indexedAttributes: Seq[AttributeDescriptor],
                  rowIdPrefix: String): FeatureWriterFn = {
 
     val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
     val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
 
-    (feature: SimpleFeature, visibility: String) => {
-      val mutations = getAttributeIndexMutations(
-        feature,
-        indexValueEncoder,
-        featureEncoder,
-        attributesToIdx,
-        new ColumnVisibility(visibility),
-        rowIdPrefix)
+    (toWrite: FeatureToWrite) => {
+      val mutations = getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix)
       if (!mutations.isEmpty) {
         bw.addMutations(mutations)
       }
@@ -80,15 +68,8 @@ object AttributeTable extends GeoMesaTable with Logging {
     val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
     val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
 
-    (feature: SimpleFeature, visibility: String) => {
-      val mutations = getAttributeIndexMutations(
-        feature,
-        null,
-        null,
-        attributesToIdx,
-        new ColumnVisibility(visibility),
-        rowIdPrefix,
-        delete = true)
+    (toWrite: FeatureToWrite) => {
+      val mutations = getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix, true)
       if (!mutations.isEmpty) {
         bw.addMutations(mutations)
       }
@@ -101,34 +82,28 @@ object AttributeTable extends GeoMesaTable with Logging {
   /**
    * Gets mutations for the attribute index table
    *
-   * @param feature
+   * @param toWrite
    * @param indexedAttributes attributes that will be indexed
-   * @param visibility
+   * @param rowIdPrefix
    * @param delete whether we are writing or deleting
    * @return
    */
-  def getAttributeIndexMutations(feature: SimpleFeature,
-                                 indexValueEncoder: IndexValueEncoder,
-                                 featureEncoder: SimpleFeatureEncoder,
+  def getAttributeIndexMutations(toWrite: FeatureToWrite,
                                  indexedAttributes: Seq[(AttributeDescriptor, Int)],
-                                 visibility: ColumnVisibility,
                                  rowIdPrefix: String,
                                  delete: Boolean = false): Seq[Mutation] = {
-    val cq = new Text(feature.getID)
-    val sft = feature.getFeatureType
-    lazy val joinValue = new Value(indexValueEncoder.encode(feature))
-    lazy val coveringValue = new Value(featureEncoder.encode(feature))
+    val cq = new Text(toWrite.feature.getID)
     indexedAttributes.flatMap { case (descriptor, idx) =>
-      val attribute = feature.getAttribute(idx)
+      val attribute = toWrite.feature.getAttribute(idx)
       val mutations = getAttributeIndexRows(rowIdPrefix, descriptor, attribute).map(new Mutation(_))
       if (delete) {
-        mutations.foreach(_.putDelete(EMPTY_COLF, cq, visibility))
+        mutations.foreach(_.putDelete(EMPTY_COLF, cq, toWrite.columnVisibility))
       } else {
         val value = descriptor.getIndexCoverage() match {
-          case IndexCoverage.FULL => coveringValue
-          case IndexCoverage.JOIN => joinValue
+          case IndexCoverage.FULL => toWrite.dataValue
+          case IndexCoverage.JOIN => toWrite.indexValue
         }
-        mutations.foreach(_.put(EMPTY_COLF, cq, visibility, value))
+        mutations.foreach(_.put(EMPTY_COLF, cq, toWrite.columnVisibility, value))
       }
       mutations
     }

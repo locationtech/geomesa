@@ -172,11 +172,9 @@ object IndexSchema extends RegexParsers with Logging {
   }
 
   // builds the encoder from a string representation
-  def buildKeyEncoder(s: String,
-                      featureEncoder: SimpleFeatureEncoder,
-                      indexValueEncoder: IndexValueEncoder): IndexEntryEncoder = {
+  def buildKeyEncoder(sft: SimpleFeatureType, s: String): STIndexEncoder = {
     val (rowf, cff, cqf) = parse(formatter, s).get
-    IndexEntryEncoder(rowf, cff, cqf, featureEncoder, indexValueEncoder)
+    STIndexEncoder(sft, rowf, cff, cqf)
   }
 
   // extracts an entire date encoder from a key part
