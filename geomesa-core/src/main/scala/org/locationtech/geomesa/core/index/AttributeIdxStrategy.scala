@@ -374,7 +374,9 @@ object AttributeIndexStrategy extends StrategyProvider {
     val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
     // grab the first encoded row - right now there will only ever be a single item in the seq
     // eventually we may support searching a whole collection at once
-    AttributeTable.getAttributeIndexRows(rowIdPrefix, descriptor, Some(typedValue)).head
+    val rowWithValue = AttributeTable.getAttributeIndexRows(rowIdPrefix, descriptor, typedValue).headOption
+    // if value is null there won't be any rows returned, instead just use the row prefix
+    rowWithValue.getOrElse(AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, descriptor))
   }
 
   /**

@@ -55,7 +55,7 @@ class AttributeTableTest extends Specification {
         val featureEncoder = SimpleFeatureEncoder(sft, DEFAULT_ENCODING)
 
         val mutations = AttributeTable.getAttributeIndexMutations(feature, indexValueEncoder, featureEncoder, descriptors, new ColumnVisibility(), "")
-        mutations.size mustEqual descriptors.length
+        mutations.size mustEqual descriptors.length - 1 // for null date
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(false)).foreach
       }
@@ -71,13 +71,13 @@ class AttributeTableTest extends Specification {
         feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
         val mutations = AttributeTable.getAttributeIndexMutations(feature, null, null, descriptors, new ColumnVisibility(), "", delete = true)
-        mutations.size mustEqual descriptors.length
+        mutations.size mustEqual descriptors.length - 1 // for null date
         mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
         mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(true)).foreach
       }
 
       "decode attribute index rows" in {
-        val row = AttributeTable.getAttributeIndexRows("prefix", sft.getDescriptor("age"), Some(23)).head
+        val row = AttributeTable.getAttributeIndexRows("prefix", sft.getDescriptor("age"), 23).head
         val decoded = AttributeTable.decodeAttributeIndexRow("prefix", sft.getDescriptor("age"), row)
         decoded mustEqual(Success(AttributeIndexRow("age", 23)))
       }
