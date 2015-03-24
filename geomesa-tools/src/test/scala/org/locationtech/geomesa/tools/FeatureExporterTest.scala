@@ -16,48 +16,50 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.{StringWriter, ByteArrayOutputStream}
+import java.io.StringWriter
 import java.util.Date
 
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.apache.accumulo.core.client.mock.MockInstance
+import org.apache.accumulo.core.client.security.tokens.{PasswordToken, AuthenticationToken}
+import org.geotools.data.{Query, DataStoreFinder}
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.core.data.AccumuloFeatureStore
+import org.locationtech.geomesa.feature.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
-import scala.xml.XML
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class FeatureExporterTest extends Specification {
 
+  sequential
+
   "DelimitedExport" >> {
-    val sft = SimpleFeatureTypes.createType("DelimitedExportTest", "name:String,geom:Geometry:srid=4326,dtg:Date")
-    val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
-    val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
+    val sftName = "DelimitedExportTest"
+    val sft = SimpleFeatureTypes.createType(sftName, "name:String,geom:Geometry:srid=4326,dtg:Date")
 
-    // create a feature
-    val builder = new SimpleFeatureBuilder(sft, featureFactory)
-    builder.addAll(Array[AnyRef]("myname", null, new Date(0)))
-    val liveFeature = builder.buildFeature("fid-1")
-    val geom = WKTUtils.read("POINT(45.0 49.0)")
-    liveFeature.setDefaultGeometry(geom)
-
-    // make sure we ask the system to re-use the provided feature-ID
-    liveFeature.getUserData().asScala(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+    val attributes = Array("myname", "POINT(45.0 49.0)", new Date(0))
+    val feature = ScalaSimpleFeatureFactory.buildFeature(sft, attributes, "fid-1")
 
     val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
+    featureCollection.add(feature)
 
-    featureCollection.add(liveFeature)
+    val connector = new MockInstance().getConnector("", new PasswordToken(""))
+
+    val ds = DataStoreFinder
+        .getDataStore(Map("connector" -> connector, "tableName" -> sftName, "caching"   -> false))
+    ds.createSchema(sft)
+    ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore].addFeatures(featureCollection)
 
     "should properly export to CSV" >> {
       val writer = new StringWriter()
-      val export = new DelimitedExport(writer, Formats.CSV, Some("name,geom,dtg"), None, None, None, None)
+      val export = new DelimitedExport(writer, Formats.CSV, Some("name,geom,dtg"))
       export.write(featureCollection)
       export.close()
 
@@ -66,6 +68,38 @@ class FeatureExporterTest extends Specification {
 
       header mustEqual "name,geom,dtg"
       data mustEqual "myname,POINT (45 49),1970-01-01 00:00:00"
+    }
+
+    "should handle transforms" >> {
+      val query = new Query(sftName, Filter.INCLUDE, Array("derived=strConcat(name, '-test')", "geom", "dtg"))
+      val features = ds.getFeatureSource(sftName).getFeatures(query)
+
+      val writer = new StringWriter()
+      val export = new DelimitedExport(writer, Formats.CSV, Some("derived=strConcat(name\\, '-test'),geom,dtg"))
+      export.write(features)
+      export.close()
+
+      val result = writer.toString.split("\n")
+      val (header, data) = (result(0), result(1))
+
+      header mustEqual "derived,geom,dtg"
+      data mustEqual "myname-test,POINT (45 49),1970-01-01 00:00:00"
+    }
+
+    "should handle escapes" >> {
+      val query = new Query(sftName, Filter.INCLUDE, Array("derived=strConcat(name, ',test')", "geom", "dtg"))
+      val features = ds.getFeatureSource(sftName).getFeatures(query)
+
+      val writer = new StringWriter()
+      val export = new DelimitedExport(writer, Formats.CSV, Some("derived=strConcat(name\\, '\\,test'),geom,dtg"))
+      export.write(features)
+      export.close()
+
+      val result = writer.toString.split("\n")
+      val (header, data) = (result(0), result(1))
+
+      header mustEqual "derived,geom,dtg"
+      data mustEqual "\"myname,test\",POINT (45 49),1970-01-01 00:00:00"
     }
   }
 }
