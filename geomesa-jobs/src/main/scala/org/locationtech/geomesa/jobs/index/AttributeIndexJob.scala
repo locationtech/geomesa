@@ -20,6 +20,7 @@ import com.twitter.scalding._
 import org.apache.accumulo.core.data.{Key, Range => AcRange, Value}
 import org.apache.hadoop.conf.Configuration
 import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index._
@@ -57,7 +58,8 @@ class AttributeIndexJob(args: Args) extends GeoMesaBaseJob(args) {
 
   def getMutations(value: Value, r: AttributeIndexResources) = {
     val feature = r.decoder.decode(value.get())
-    AttributeTable.getAttributeIndexMutations(feature, r.ive, r.fe, r.attrs, r.visibilities, r.prefix)
+    val toWrite = new FeatureToWrite(feature, r.visibilityString, r.fe, r.ive)
+    AttributeTable.getAttributeIndexMutations(toWrite, r.attrs, r.prefix)
   }
 
   override def afterJobTasks() = {
