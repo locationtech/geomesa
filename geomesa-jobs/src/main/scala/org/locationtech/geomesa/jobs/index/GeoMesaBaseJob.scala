@@ -93,7 +93,8 @@ abstract class GeoMesaBaseJob(args: Args) extends Job(args) with Logging {
   class GeoMesaResources {
     val ds: AccumuloDataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
     val sft: SimpleFeatureType = ds.getSchema(feature)
-    val visibilities = new ColumnVisibility(ds.writeVisibilities)
+    val visibilityString = ds.writeVisibilities
+    val visibilities = new ColumnVisibility(visibilityString)
     // required by scalding
     def release(): Unit = {}
   }

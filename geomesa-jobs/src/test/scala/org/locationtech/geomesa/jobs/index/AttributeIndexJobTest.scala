@@ -23,6 +23,7 @@ import org.apache.accumulo.core.security.ColumnVisibility
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index.IndexValueEncoder
 import org.locationtech.geomesa.core.iterators.TestData
@@ -86,8 +87,8 @@ class AttributeIndexJobTest extends Specification {
     val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
     val encoder = SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft))
     val tableMutations1 = feats.flatMap { sf =>
-      AttributeTable.getAttributeIndexMutations(sf, indexValueEncoder, encoder, attrList,
-        new ColumnVisibility(ds.writeVisibilities), prefix)
+      val toWrite = new FeatureToWrite(sf, ds.writeVisibilities, encoder, indexValueEncoder)
+      AttributeTable.getAttributeIndexMutations(toWrite, attrList, prefix)
     }
     forall(tableMutations1) { mut => jobMutations1.exists(mut.equals) }
   }

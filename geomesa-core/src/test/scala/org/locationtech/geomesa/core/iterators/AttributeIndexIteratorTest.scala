@@ -29,11 +29,13 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core._
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.util.SelfClosingIterator
 import org.locationtech.geomesa.feature.SimpleFeatureEncoder
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -77,15 +79,13 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       connector.tableOperations.create(table, true, TimeType.LOGICAL)
 
       val bw = connector.createBatchWriter(table, new BatchWriterConfig)
-      val attributes = sft.getAttributeDescriptors.zipWithIndex
+      val attributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).zipWithIndex
       val indexValueEncoder = IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION)
       val featureEncoder = SimpleFeatureEncoder(sft, DEFAULT_ENCODING)
+      val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
       getTestFeatures().foreach { feature =>
-        val muts = AttributeTable.getAttributeIndexMutations(feature,
-                                                             indexValueEncoder,
-                                                             featureEncoder,
-                                                             attributes,
-                                                             new ColumnVisibility(), "")
+        val toWrite = new FeatureToWrite(feature, "", featureEncoder, indexValueEncoder)
+        val muts = AttributeTable.getAttributeIndexMutations(toWrite, attributes, rowIdPrefix)
         bw.addMutations(muts)
       }
       bw.close()
@@ -100,7 +100,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       )
       val is = new IteratorSetting(40, classOf[AttributeIndexIterator], opts)
       scanner.addScanIterator(is)
-      val range = AttributeTable.getAttributeIndexRows("", sft.getDescriptor("name"), "b").head
+      val range = AttributeTable.getAttributeIndexRows(rowIdPrefix, sft.getDescriptor("name"), "b").head
       scanner.setRange(new ARange(range))
       scanner.iterator.size mustEqual 4
     }
