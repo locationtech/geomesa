@@ -41,6 +41,7 @@ case class AccumuloSource(options: AccumuloSourceOptions) extends Source with Ma
   override def createTap(readOrWrite: AccessMode)(implicit mode: Mode): GenericTap =
     mode match {
       case Hdfs(_, _) => new AccumuloTap(readOrWrite, new AccumuloScheme(options))
+      case Test(_) => TestTapFactory(this, hdfsScheme).createTap(readOrWrite)
       case _ => throw new NotImplementedError()
     }
 

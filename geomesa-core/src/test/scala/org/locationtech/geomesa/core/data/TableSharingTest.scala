@@ -122,8 +122,8 @@ class TableSharingTest extends Specification {
 
   // Delete one shared table feature to ensure that deleteSchema works.
   s"Removing ${sft2.getTypeName}" should {
-    val sft2Scanner = ds.createSpatioTemporalIdxScanner(sft2, 1)
-    val sft2RecordScanner = ds.createRecordScanner(sft2)
+    val sft2Scanner = ds.getScanner(ds.getSpatioTemporalTable(sft2))
+    val sft2RecordScanner = ds.getScanner(ds.getRecordTable(sft2))
 
     ds.removeSchema(sft2.getTypeName)
 
@@ -131,13 +131,13 @@ class TableSharingTest extends Specification {
     // TODO: test ds.getNames.
 
     // TODO: Observe that this kind of collection is empty.
-    sft2Scanner.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
+    sft2Scanner.setRange(new org.apache.accumulo.core.data.Range())
     sft2Scanner.iterator
       .map(e => s"ST Key: ${e.getKey}")
       .filter(_.contains("feature2"))
       .take(10).foreach { println }
 
-    sft2RecordScanner.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
+    sft2RecordScanner.setRange(new org.apache.accumulo.core.data.Range())
     sft2RecordScanner.iterator.take(10).foreach { e => println(s"Record Key: ${e.getKey}") }
 
     s"result in FeatureStore named ${sft2.getTypeName} being gone" >> {

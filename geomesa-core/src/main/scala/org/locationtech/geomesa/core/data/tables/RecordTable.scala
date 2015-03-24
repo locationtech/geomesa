@@ -19,40 +19,32 @@ package org.locationtech.geomesa.core.data.tables
 import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.{Mutation, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter._
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.feature.SimpleFeatureEncoder
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 
 // TODO: Implement as traits and cache results to gain flexibility and speed-up.
 // https://geomesa.atlassian.net/browse/GEOMESA-344
 object RecordTable extends GeoMesaTable {
 
-  type Visibility = String
-  type Feature2Mutation = (SimpleFeature, Visibility) => Mutation
-
-  def buildWrite(encoder: SimpleFeatureEncoder, rowIdPrefix: String): (SimpleFeature, Visibility) => Mutation =
-    (feature: SimpleFeature, visibility: Visibility) => {
-      val m = new Mutation(getRowKey(rowIdPrefix, feature.getID))
-      m.put(SFT_CF, EMPTY_COLQ, new ColumnVisibility(visibility), new Value(encoder.encode(feature)))
-      m
-    }
-
-  def buildDelete(encoder: SimpleFeatureEncoder, rowIdPrefix: String): Feature2Mutation =
-    (feature: SimpleFeature, visibility: Visibility) => {
-      val m = new Mutation(getRowKey(rowIdPrefix, feature.getID))
-      m.putDelete(SFT_CF, EMPTY_COLQ, new ColumnVisibility(visibility))
-      m
-    }
-
   /** Creates a function to write a feature to the Record Table **/
-  def recordWriter(bw: BatchWriter, encoder: SimpleFeatureEncoder, rowIdPrefix: String) = {
-    val builder = buildWrite(encoder, rowIdPrefix)
-    (feature: SimpleFeature, visibility: Visibility) => bw.addMutation(builder(feature, visibility))
+  def recordWriter(sft: SimpleFeatureType): FeatureToMutations = {
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+    (toWrite: FeatureToWrite) => {
+      val m = new Mutation(getRowKey(rowIdPrefix, toWrite.feature.getID))
+      m.put(SFT_CF, EMPTY_COLQ, toWrite.columnVisibility, toWrite.dataValue)
+      Seq(m)
+    }
   }
 
-  def recordDeleter(bw: BatchWriter, encoder: SimpleFeatureEncoder, rowIdPrefix: String) = {
-    val builder = buildDelete(encoder, rowIdPrefix)
-    (feature: SimpleFeature, visibility: Visibility) => bw.addMutation(builder(feature, visibility))
+  def recordRemover(sft: SimpleFeatureType): FeatureToMutations = {
+    val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+    (toWrite: FeatureToWrite) => {
+      val m = new Mutation(getRowKey(rowIdPrefix, toWrite.feature.getID))
+      m.putDelete(SFT_CF, EMPTY_COLQ, toWrite.columnVisibility)
+      Seq(m)
+    }
   }
 
   def getRowKey(rowIdPrefix: String, id: String): String = rowIdPrefix + id

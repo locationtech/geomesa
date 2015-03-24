@@ -65,13 +65,12 @@ object GeoMesaSpark {
     val version = ds.getGeomesaVersion(sft)
     val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, ds.strategyHints(sft), version)
 
-    val planner = new STIdxStrategy
-    val qp = planner.buildSTIdxQueryPlan(query, queryPlanner, sft, version, ExplainPrintln)
+    val qp = new STIdxStrategy().getQueryPlan(query, queryPlanner, ExplainPrintln)
 
     ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, ds.connector.whoami(), ds.authToken)
     ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat], conf, ds.connector.getInstance().getInstanceName, ds.connector.getInstance().getZooKeepers)
 
-    InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, ds.getSpatioTemporalIdxTableName(sft))
+    InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, ds.getSpatioTemporalTable(sft))
     InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
     qp.iterators.foreach { is => InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, is) }
 

@@ -192,9 +192,9 @@ object GeoMesaDataStoresPage {
       if (dataStore.getGeomesaVersion(featureName) < 1) {
         List(("Record Table/GeoSpatial Index", table))
       } else {
-        List(("Record Table", dataStore.getRecordTableForType(featureName)),
-          ("GeoSpatial Index", dataStore.getSpatioTemporalIdxTableName(featureName)),
-          ("Attribute Index", dataStore.getAttrIdxTableName(featureName)))
+        List(("Record Table", dataStore.getRecordTable(featureName)),
+          ("GeoSpatial Index", dataStore.getSpatioTemporalTable(featureName)),
+          ("Attribute Index", dataStore.getAttributeTable(featureName)))
       }
 
     tables.map { case (displayName, table) =>

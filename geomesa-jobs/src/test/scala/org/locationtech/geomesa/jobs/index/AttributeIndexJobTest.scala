@@ -16,22 +16,26 @@
 
 package org.locationtech.geomesa.jobs.index
 
+import com.twitter.scalding.{Args, Mode}
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, DEFAULT_ENCODING}
+import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index.IndexValueEncoder
 import org.locationtech.geomesa.core.iterators.TestData
 import org.locationtech.geomesa.core.iterators.TestData._
 import org.locationtech.geomesa.feature.SimpleFeatureEncoder
+import org.locationtech.geomesa.jobs.index.AttributeIndexJob._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexJobTest extends Specification {
@@ -62,23 +66,28 @@ class AttributeIndexJobTest extends Specification {
   val fs2 = getFeatureStore(ds, sft2, mediumData1)
 
   def test(sft: SimpleFeatureType, feats: Seq[SimpleFeature]) = {
-    val recScanner1 = ds.createRecordScanner(sft)
-    recScanner1.setRanges(Seq(new org.apache.accumulo.core.data.Range()))
+    val jobParams = Map(ATTRIBUTES_TO_INDEX -> List("attr2"), INDEX_COVERAGE -> List("join"))
+    val scaldingArgs = new Args(GeoMesaBaseJob.buildBaseArgs(params, sft.getTypeName) ++ jobParams)
+    val arguments = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)), scaldingArgs)
+
+    val recScanner1 = ds.getScanner(ds.getRecordTable(sft))
     val sft1Records = recScanner1.iterator().toSeq
 
-    val r = JobResources(params, sft.getTypeName, List("attr2"))
-
-    val jobMutations1 = sft1Records.flatMap { e =>
-      AttributeIndexJob.getAttributeIndexMutation(r, e.getKey, e.getValue)
+    val job = new AttributeIndexJob(arguments) {
+      val r = new AttributeIndexResources
+      override def run = true
     }
 
+    val jobMutations1 = sft1Records.flatMap(e => job.getMutations(e.getValue, job.r))
+
     val descriptor = sft.getDescriptor("attr2")
-    val attrList = Seq((sft.indexOf(descriptor.getName), descriptor))
+    val attrList = Seq((descriptor, sft.indexOf(descriptor.getName)))
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
     val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
     val encoder = SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft))
     val tableMutations1 = feats.flatMap { sf =>
-      AttributeTable.getAttributeIndexMutations(sf, indexValueEncoder, encoder, attrList, new ColumnVisibility(ds.writeVisibilities), prefix)
+      val toWrite = new FeatureToWrite(sf, ds.writeVisibilities, encoder, indexValueEncoder)
+      AttributeTable.getAttributeIndexMutations(toWrite, attrList, prefix)
     }
     forall(tableMutations1) { mut => jobMutations1.exists(mut.equals) }
   }
