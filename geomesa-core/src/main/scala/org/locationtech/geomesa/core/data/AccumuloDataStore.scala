@@ -42,6 +42,7 @@ import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, S
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.data.TableSplitter
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureEncoder}
@@ -120,9 +121,8 @@ class AccumuloDataStore(val connector: Connector,
   private val visibilityCheckCache = new mutable.HashMap[(String, String), Boolean]()
                                          with mutable.SynchronizedMap[(String, String), Boolean]
 
-  // TODO memory should be configurable
   private val defaultBWConfig =
-    new BatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(writeThreads)
+    GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(writeThreads)
 
   private val tableOps = connector.tableOperations()
 

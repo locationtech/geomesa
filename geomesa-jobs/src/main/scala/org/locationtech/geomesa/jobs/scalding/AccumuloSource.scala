@@ -23,14 +23,15 @@ import cascading.tap.hadoop.io.HadoopTupleEntrySchemeIterator
 import cascading.tuple._
 import com.twitter.scalding._
 import com.typesafe.scalalogging.slf4j.Logging
+import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.mapred.{AccumuloInputFormat, AccumuloOutputFormat, InputFormatBase}
 import org.apache.accumulo.core.client.mapreduce.lib.util.ConfiguratorBase
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{BatchWriterConfig, ZooKeeperInstance}
-import org.apache.accumulo.core.data.{Key, Mutation, Range => AcRange, Value}
+import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => AcRange}
 import org.apache.accumulo.core.util.{Pair => AcPair}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred._
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 
 import scala.util.{Failure, Success, Try}
 
@@ -185,7 +186,7 @@ class AccumuloScheme(val options: AccumuloSourceOptions)
         conf, options.user, new PasswordToken(options.password.getBytes()))
       AccumuloOutputFormat.setDefaultTableName(conf, options.output.table)
       AccumuloOutputFormat.setZooKeeperInstance(conf, options.instance, options.zooKeepers)
-      val batchWriterConfig = new BatchWriterConfig()
+      val batchWriterConfig = GeoMesaBatchWriterConfig()
       options.output.threads.foreach(t => batchWriterConfig.setMaxWriteThreads(t))
       options.output.memory.foreach(m => batchWriterConfig.setMaxMemory(m))
       AccumuloOutputFormat.setBatchWriterOptions(conf, batchWriterConfig)

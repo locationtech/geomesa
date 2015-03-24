@@ -19,7 +19,7 @@ package org.locationtech.geomesa.core.data
 import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
+import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
@@ -33,6 +33,7 @@ import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToWrite,
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.security.SecurityUtils.FEATURE_VISIBILITY
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.feature.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -59,7 +60,7 @@ object AccumuloFeatureWriter {
   }
 
   class LocalRecordDeleter(tableName: String, connector: Connector) extends AccumuloRecordWriter {
-    private val bw = connector.createBatchWriter(tableName, new BatchWriterConfig())
+    private val bw = connector.createBatchWriter(tableName, GeoMesaBatchWriterConfig())
 
     def write(key: Key, value: Value) {
       val m = new Mutation(key.getRow)
@@ -91,9 +92,7 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
 
   protected val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
   protected val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
-
-  // TODO customizable batch writer config
-  protected val multiBWWriter = ds.connector.createMultiTableBatchWriter(new BatchWriterConfig)
+  protected val multiBWWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
 
   // A "writer" is a function that takes a simple feature and writes
   // it to an index or table. This list is configured to match the

@@ -19,13 +19,13 @@ package org.locationtech.geomesa.core.iterators
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, IteratorSetting}
-import org.apache.accumulo.core.data.Mutation
+import org.apache.accumulo.core.client.{Connector, IteratorSetting}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.GEOMESA_ITERATORS_VERSION
 import org.locationtech.geomesa.core.data.INTERNAL_GEOMESA_VERSION
 import org.locationtech.geomesa.core.iterators.TestData._
+import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -45,7 +45,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     val mockInstance = new MockInstance()
     val c = mockInstance.getConnector(TEST_USER, new PasswordToken(Array[Byte]()))
     c.tableOperations.create(tableName)
-    val bw = c.createBatchWriter(tableName, new BatchWriterConfig)
+    val bw = c.createBatchWriter(tableName, GeoMesaBatchWriterConfig())
 
     logger.debug(s"Add mutations to table $tableName.")
     entries.foreach { entry =>
@@ -75,12 +75,13 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
     "verify inconsistency of table" in {
       val table = "inconsistentTest"
       val c = setupMockAccumuloTable(TestData.shortListOfPoints, table)
-      val bd = c.createBatchDeleter(table, TEST_AUTHORIZATIONS, 2, new BatchWriterConfig)
+      val bd = c.createBatchDeleter(table, TEST_AUTHORIZATIONS, 2, GeoMesaBatchWriterConfig())
       bd.addScanIterator({
         val cfg = new IteratorSetting(100, "regex", classOf[RegExFilter])
         RegExFilter.setRegexs(cfg, ".*~1~.*", null, ".*\\|data\\|1", null, false)
         cfg
       })
+
       bd.setRanges(List(new org.apache.accumulo.core.data.Range()))
       bd.delete()
       bd.flush()
