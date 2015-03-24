@@ -29,6 +29,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.core.index
+import org.locationtech.geomesa.core.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.MinMaxTimeVisitor
 import org.opengis.feature.GeometryAttribute
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
@@ -38,7 +39,12 @@ import org.opengis.filter.identity.FeatureId
 
 class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Name)
     extends AbstractFeatureStore with AccumuloAbstractFeatureSource {
-  override def addFeatures(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]): JList[FeatureId] = {
+  override def addFeatures(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]): JList[FeatureId] =
+    addFeatures(collection, None)
+
+
+  def addFeatures(collection: FeatureCollection[SimpleFeatureType, SimpleFeature],
+                  featureVis: Option[String]): JList[FeatureId] = {
     val fids = Lists.newArrayList[FeatureId]()
     if (collection.size > 0) {
       writeBounds(collection.getBounds)
@@ -58,12 +64,18 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
         }
 
       val iter = collection.features()
-      while (iter.hasNext) fids.add(write(iter.next))
+      while (iter.hasNext) {
+        val f = iter.next()
+        for (fv <- featureVis) SecurityUtils.setFeatureVisibility(f, fv)
+        val id = write(f) // keep side effecting code separate for clarity
+        fids.add(id)
+      }
       fw.close()
 
-      minMaxVisitorO.foreach { minMaxVisitor =>
-        Option(minMaxVisitor.getBounds).foreach { dataStore.writeTemporalBounds(featureName.getLocalPart, _) }
-      }
+      for {
+        mmv <- minMaxVisitorO
+        bounds <- Option(mmv.getBounds)
+      } dataStore.writeTemporalBounds(featureName.getLocalPart, bounds)
     }
     fids
   }

@@ -17,6 +17,11 @@
                 <version>${scalatra.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra-auth_2.10</artifactId>
+                <version>${scalatra.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-web</artifactId>
                 <version>3.1.4.RELEASE</version>
@@ -50,6 +55,7 @@
     <modules>
         <module>geomesa-web-core</module>
         <module>geomesa-web-csv</module>
+        <module>geomesa-web-data</module>
     </modules>
 
 </project>
