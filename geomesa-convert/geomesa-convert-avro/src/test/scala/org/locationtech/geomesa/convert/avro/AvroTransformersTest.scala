@@ -17,8 +17,7 @@
 package org.locationtech.geomesa.convert.avro
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.Transformers
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
+import org.locationtech.geomesa.convert.{EvaluationContext, Transformers}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

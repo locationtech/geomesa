@@ -17,8 +17,7 @@
 package org.locationtech.geomesa.convert.fixedwidth
 
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
-import org.locationtech.geomesa.convert._
+import org.locationtech.geomesa.convert.{EvaluationContext, _}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._

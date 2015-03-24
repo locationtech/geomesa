@@ -20,9 +20,8 @@ import javax.imageio.spi.ServiceRegistry
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr, FieldLookup, FunctionExpr}
+import org.locationtech.geomesa.convert.Transformers.{Expr, FieldLookup, FunctionExpr}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._

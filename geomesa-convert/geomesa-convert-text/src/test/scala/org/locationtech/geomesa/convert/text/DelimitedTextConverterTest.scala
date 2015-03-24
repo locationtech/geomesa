@@ -140,7 +140,9 @@ class DelimitedTextConverterTest extends Specification {
       converter.close()
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello, \"foo\""
+      //res(0).getAttribute("count").asInstanceOf[String] must be equalTo "1"
       res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
+      //res(1).getAttribute("count").asInstanceOf[String] must be equalTo "2"
     }
 
     "handle records bigger than buffer size" >> {

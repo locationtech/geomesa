@@ -102,11 +102,6 @@ object Transformers extends JavaTokenParsers {
     def transformExpr: Parser[Expr] = cast2double | cast2int | expr
   }
 
-  class EvaluationContext(fieldNameMap: Map[String, Int], var computedFields: Array[Any]) {
-    def indexOf(n: String) = fieldNameMap(n)
-    def lookup(i: Int) = if(i < 0) null else computedFields(i)
-  }
-
   sealed trait Expr {
     def eval(args: Any*)(implicit ctx: EvaluationContext): Any
   }
@@ -204,17 +199,24 @@ object Transformers extends JavaTokenParsers {
 
 }
 
+class EvaluationContext(fieldNameMap: Map[String, Int], var computedFields: Array[Any]) {
+  private var count: Int = 0
+  def indexOf(n: String) = fieldNameMap(n)
+  def lookup(i: Int) = if(i < 0) null else computedFields(i)
+  def incCount(): Int = { count += 1; count}
+}
+
 object TransformerFn {
   def apply(n: String)(f: Seq[Any] => Any) =
     new TransformerFn {
-      override def eval(args: Any*): Any = f(args)
+      override def eval(args: Any*)(implicit ctx: EvaluationContext): Any = f(args)
       override def name: String = n
   }
 }
 
 trait TransformerFn {
   def name: String
-  def eval(args: Any*): Any
+  def eval(args: Any*)(implicit ctx: EvaluationContext): Any
   // some transformers cache arguments that don't change, override getInstance in order
   // to return a new transformer that can cache args
   def getInstance: TransformerFn = this
@@ -254,14 +256,14 @@ class DateFunctionFactory extends TransformerFunctionFactory {
   val millisToDate = TransformerFn("millisToDate") { args => new Date(args(0).asInstanceOf[Long]) }
 
   case class StandardDateParser(name: String, format: DateTimeFormatter) extends TransformerFn {
-    override def eval(args: Any*): Any = format.parseDateTime(args(0).toString).toDate
+    override def eval(args: Any*)(implicit ctx: EvaluationContext): Any = format.parseDateTime(args(0).toString).toDate
   }
 
   case class CustomFormatDateParser(var format: DateTimeFormatter = null) extends TransformerFn {
     val name = "date"
     override def getInstance: CustomFormatDateParser = CustomFormatDateParser()
 
-    override def eval(args: Any*): Any = {
+    override def eval(args: Any*)(implicit ctx: EvaluationContext): Any = {
       if(format == null) format = DateTimeFormat.forPattern(args(0).asInstanceOf[String])
       format.parseDateTime(args(1).asInstanceOf[String]).toDate
     }
@@ -284,13 +286,33 @@ class IdFunctionFactory extends TransformerFunctionFactory {
   val string2Bytes = TransformerFn("string2bytes") { args => args(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8) }
 
   case object MD5 extends TransformerFn {
-
     override def name: String = "md5"
     val hasher = Hashing.md5()
-    override def eval(args: Any*): Any = hasher.hashBytes(args(0).asInstanceOf[Array[Byte]]).toString
+    override def eval(args: Any*)(implicit ctx: EvaluationContext): Any = hasher.hashBytes(args(0).asInstanceOf[Array[Byte]]).toString
   }
 
   val uuidFn = TransformerFn("uuid")   { args => UUID.randomUUID().toString }
   val base64 = TransformerFn("base64") { args => Base64.encodeBase64URLSafeString(args(0).asInstanceOf[Array[Byte]]) }
 
+}
+
+class FileInfoFunctionFactory extends TransformerFunctionFactory {
+  override def functions = Seq(FileNameFn(), LineNumberFn())
+
+  case class LineNumberFn() extends TransformerFn {
+    override def getInstance: LineNumberFn = LineNumberFn()
+    override def name: String = "lineNo"
+    override def eval(args: Any*)(implicit ec: EvaluationContext): Any = ec.incCount()
+  }
+
+  case class FileNameFn() extends TransformerFn {
+    override def getInstance: FileNameFn = FileNameFn()
+    val name = "fileName"
+
+    var filename: String = null
+    override def eval(args: Any*)(implicit ctx: EvaluationContext): Any = {
+      if(filename == null) filename = args(0).asInstanceOf[String] // TODO: figure out if more parsing is needed.
+      filename
+    }
+  }
 }

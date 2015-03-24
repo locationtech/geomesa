@@ -24,7 +24,7 @@ import org.apache.commons.codec.binary.Base64
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.Transformers
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -32,6 +32,8 @@ import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class TransformersTest extends Specification {
+
+  sequential
 
   "Transformers" should {
 
@@ -139,6 +141,22 @@ class TransformersTest extends Specification {
           val exp = Transformers.parseTransform("base64($0)")
           exp.eval(bytes) must be equalTo Base64.encodeBase64URLSafeString(bytes)
         }
+      }
+
+      "handle file info functions" >> {
+
+        "lineNumber" >> {
+          val exp = Transformers.parseTransform("lineNo()")
+          exp.eval(null) must be equalTo 1
+          exp.eval(null) must be equalTo 2
+          exp.eval(null) must be equalTo 3
+        }
+
+        "fileName" >> {
+          val exp = Transformers.parseTransform("fileName('/somefile.txt')")
+          exp.eval(null) must be equalTo "/somefile.txt"
+        }
+
       }
 
       "handle named values" >> {
