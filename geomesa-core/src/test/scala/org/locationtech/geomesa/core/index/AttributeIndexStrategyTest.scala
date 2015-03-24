@@ -593,6 +593,12 @@ class AttributeIndexStrategyTest extends Specification {
         features must contain("bill", "bob")
       }
     }
+
+    "correctly query on not nulls" in {
+      val features = execute(strategy, "age IS NOT NULL")
+      features must have size(3)
+      features must contain("alice", "bill", "bob")
+    }
   }
 
   "AttributeIndexLikeStrategy" should {

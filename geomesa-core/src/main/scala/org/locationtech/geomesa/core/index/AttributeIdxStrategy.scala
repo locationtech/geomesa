@@ -281,6 +281,7 @@ object AttributeIndexStrategy extends StrategyProvider {
   override def getStrategy(filter: Filter, sft: SimpleFeatureType, hints: StrategyHints) = {
     val indexed: (PropertyLiteral) => Boolean = (p: PropertyLiteral) => sft.getDescriptor(p.name).isIndexed
     val costp: (PropertyLiteral) => Int = (p: PropertyLiteral) => cost(sft.getDescriptor(p.name))
+
     filter match {
       // equals strategy checks
       case f: PropertyIsEqualTo =>
@@ -330,6 +331,18 @@ object AttributeIndexStrategy extends StrategyProvider {
       case f: During =>
         checkOrder(f.getExpression1, f.getExpression2).filter(indexed)
             .map(p => StrategyDecision(new AttributeIdxRangeStrategy, costp(p)))
+
+      // not check - we only support 'not null' for an indexed attribute
+      case n: Not =>
+        Option(n.getFilter).collect { case f: PropertyIsNull => f }.flatMap { f =>
+          val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
+          val descriptor = sft.getDescriptor(prop)
+          if (descriptor.isIndexed) {
+            Some(StrategyDecision(new AttributeIdxRangeStrategy, cost(descriptor)))
+          } else {
+            None
+          }
+        }
 
       // doesn't match any attribute strategy
       case _ => None
@@ -393,9 +406,7 @@ object AttributeIndexStrategy extends StrategyProvider {
         val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
         val lower = f.getLowerBoundary.asInstanceOf[Literal].getValue
         val upper = f.getUpperBoundary.asInstanceOf[Literal].getValue
-        val lowerBound = getEncodedAttrIdxRow(sft, prop, lower)
-        val upperBound = getEncodedAttrIdxRow(sft, prop, upper)
-        (prop, new AccRange(lowerBound, true, upperBound, true))
+        (prop, inclusiveRange(sft, prop, lower, upper))
 
       case f: PropertyIsGreaterThan =>
         val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
@@ -404,6 +415,7 @@ object AttributeIndexStrategy extends StrategyProvider {
         } else {
           (prop.name, greaterThanRange(sft, prop.name, prop.literal.getValue))
         }
+
       case f: PropertyIsGreaterThanOrEqualTo =>
         val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         if (prop.flipped) {
@@ -411,6 +423,7 @@ object AttributeIndexStrategy extends StrategyProvider {
         } else {
           (prop.name, greaterThanOrEqualRange(sft, prop.name, prop.literal.getValue))
         }
+
       case f: PropertyIsLessThan =>
         val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         if (prop.flipped) {
@@ -418,6 +431,7 @@ object AttributeIndexStrategy extends StrategyProvider {
         } else {
           (prop.name, lessThanRange(sft, prop.name, prop.literal.getValue))
         }
+
       case f: PropertyIsLessThanOrEqualTo =>
         val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         if (prop.flipped) {
@@ -425,6 +439,7 @@ object AttributeIndexStrategy extends StrategyProvider {
         } else {
           (prop.name, lessThanOrEqualRange(sft, prop.name, prop.literal.getValue))
         }
+
       case f: Before =>
         val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         val lit = prop.literal.evaluate(null, classOf[Date])
@@ -433,6 +448,7 @@ object AttributeIndexStrategy extends StrategyProvider {
         } else {
           (prop.name, lessThanRange(sft, prop.name, lit))
         }
+
       case f: After =>
         val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         val lit = prop.literal.evaluate(null, classOf[Date])
@@ -441,14 +457,13 @@ object AttributeIndexStrategy extends StrategyProvider {
         } else {
           (prop.name, greaterThanRange(sft, prop.name, lit))
         }
+
       case f: During =>
         val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
         val during = prop.literal.getValue.asInstanceOf[DefaultPeriod]
         val lower = during.getBeginning.getPosition.getDate
         val upper = during.getEnding.getPosition.getDate
-        val lowerBound = getEncodedAttrIdxRow(sft, prop.name, lower)
-        val upperBound = getEncodedAttrIdxRow(sft, prop.name, upper)
-        (prop.name, new AccRange(lowerBound, true, upperBound, true))
+        (prop.name, inclusiveRange(sft, prop.name, lower, upper))
 
       case f: PropertyIsEqualTo =>
         val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
@@ -469,39 +484,58 @@ object AttributeIndexStrategy extends StrategyProvider {
         }
         (prop, AccRange.prefix(getEncodedAttrIdxRow(sft, prop, value)))
 
+      case n: Not =>
+        val f = n.getFilter.asInstanceOf[PropertyIsNull] // this should have been verified in getStrategy
+        val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
+        (prop, allRange(sft, prop))
+
       case _ =>
         val msg = s"Unhandled filter type in attribute strategy: ${filter.getClass.getName}"
         throw new RuntimeException(msg)
     }
 
   private def greaterThanRange(sft: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val rowIdPrefix = getTableSharingPrefix(sft)
     val start = new Text(getEncodedAttrIdxRow(sft, prop, lit))
-    val endPrefix = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop))
-    val end = AccRange.followingPrefix(new Text(endPrefix))
+    val end = upperBound(sft, prop)
     new AccRange(start, false, end, false)
   }
 
   private def greaterThanOrEqualRange(sft: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val rowIdPrefix = getTableSharingPrefix(sft)
     val start = new Text(getEncodedAttrIdxRow(sft, prop, lit))
-    val endPrefix = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop))
-    val end = AccRange.followingPrefix(new Text(endPrefix))
+    val end = upperBound(sft, prop)
     new AccRange(start, true, end, false)
   }
 
   private def lessThanRange(sft: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val rowIdPrefix = getTableSharingPrefix(sft)
-    val start = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop))
-    val end = getEncodedAttrIdxRow(sft, prop, lit)
+    val start = lowerBound(sft, prop)
+    val end = new Text(getEncodedAttrIdxRow(sft, prop, lit))
     new AccRange(start, false, end, false)
   }
 
   private def lessThanOrEqualRange(sft: SimpleFeatureType, prop: String, lit: AnyRef): AccRange = {
-    val rowIdPrefix = getTableSharingPrefix(sft)
-    val start = AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop))
-    val end = getEncodedAttrIdxRow(sft, prop, lit)
+    val start = lowerBound(sft, prop)
+    val end = new Text(getEncodedAttrIdxRow(sft, prop, lit))
     new AccRange(start, false, end, true)
+  }
+
+  private def inclusiveRange(sft: SimpleFeatureType, prop: String, lower: AnyRef, upper: AnyRef): AccRange = {
+    val start = getEncodedAttrIdxRow(sft, prop, lower)
+    val end = getEncodedAttrIdxRow(sft, prop, upper)
+    new AccRange(start, true, end, true)
+  }
+
+  private def allRange(sft: SimpleFeatureType, prop: String): AccRange =
+    new AccRange(lowerBound(sft, prop), false, upperBound(sft, prop), false)
+
+  private def lowerBound(sft: SimpleFeatureType, prop: String): Text = {
+    val rowIdPrefix = getTableSharingPrefix(sft)
+    new Text(AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop)))
+  }
+
+  private def upperBound(sft: SimpleFeatureType, prop: String): Text = {
+    val rowIdPrefix = getTableSharingPrefix(sft)
+    val end = new Text(AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop)))
+    AccRange.followingPrefix(end)
   }
 
   // This function assumes that the query's filter object is or has an attribute-idx-satisfiable
