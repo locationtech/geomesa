@@ -233,13 +233,11 @@ object AttributeVisitor {
 
   /**
    * Returns a filter that is equivalent to Filter.INCLUDE, but against the attribute index.
-   * Excludes null values, since we don't care about those anyway.
    *
    * @param attribute
    * @return
    */
-  def getIncludeAttributeFilter(attribute: String) =
-    ff.greater(ff.property(attribute), ff.literal(AttributeTable.nullString))
+  def getIncludeAttributeFilter(attribute: String) = ff.greater(ff.property(attribute), ff.literal(""))
 }
 
 /**

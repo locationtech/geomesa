@@ -100,7 +100,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       )
       val is = new IteratorSetting(40, classOf[AttributeIndexIterator], opts)
       scanner.addScanIterator(is)
-      val range = AttributeTable.getAttributeIndexRows("", sft.getDescriptor("name"), Some("b")).head
+      val range = AttributeTable.getAttributeIndexRows("", sft.getDescriptor("name"), "b").head
       scanner.setRange(new ARange(range))
       scanner.iterator.size mustEqual 4
     }
