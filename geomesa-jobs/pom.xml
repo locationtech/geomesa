@@ -51,13 +51,6 @@
         <dependency>
             <groupId>com.twitter</groupId>
             <artifactId>scalding-core_2.10</artifactId>
-            <exclusions>
-                <exclusion>
-                    <!-- excluded due to license issues -->
-                    <artifactId>objenesis</artifactId>
-                    <groupId>org.objenesis</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jgrapht</groupId>
