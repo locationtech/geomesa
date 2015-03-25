@@ -17,6 +17,7 @@
 
 package org.locationtech.geomesa.core.data
 
+import java.io.IOException
 import java.util.{Map => JMap}
 
 import com.google.common.collect.ImmutableSortedSet
@@ -497,7 +498,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   protected def validateMetadata(featureName: String): Unit = {
     metadata.read(featureName, ATTRIBUTES_KEY)
-      .getOrElse(throw new RuntimeException(s"Feature '$featureName' has not been initialized. Please call 'createSchema' first."))
+      .getOrElse(throw new IOException(s"Feature '$featureName' has not been initialized. Please call 'createSchema' first."))
 
     val ok = validated.getOrElseUpdate(featureName, checkMetadata(featureName))
 
