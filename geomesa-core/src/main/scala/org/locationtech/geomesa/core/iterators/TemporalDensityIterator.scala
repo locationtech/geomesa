@@ -17,23 +17,29 @@
 package org.locationtech.geomesa.core.iterators
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-import java.util.{Collection => JCollection, Date, Map => JMap}
+import java.util.{Date, HashMap => JHMap, Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{ByteSequence, Key, Range => ARange, Value}
+import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.commons.codec.binary.Base64
+import org.codehaus.jackson.`type`.TypeReference
+import org.codehaus.jackson.map.ObjectMapper
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.joda.time.{DateTimeZone, DateTime, Interval}
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.locationtech.geomesa.core.index.getDtgFieldName
 import org.locationtech.geomesa.core.iterators.FeatureAggregatingIterator.Result
 import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.TimeSeries
-import org.locationtech.geomesa.utils.geotools.TimeSnap
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.buildTypeName
+import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, TimeSnap}
+import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.mutable
+import scala.collection.JavaConversions._
+import scala.collection.{breakOut, mutable}
+import scala.util.parsing.json.JSONObject
 
 class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvironment)
   extends FeatureAggregatingIterator[TemporalDensityIteratorResult](other, env) {
@@ -80,8 +86,8 @@ object TemporalDensityIterator extends Logging {
 
   val INTERVAL_KEY = "geomesa.temporal.density.bounds"
   val BUCKETS_KEY = "geomesa.temporal.density.buckets"
-  val ENCODED_TIME_SERIES: String = "timeseries"
-  val TEMPORAL_DENSITY_FEATURE_SFT_STRING = s"$ENCODED_TIME_SERIES:String,geom:Geometry"
+  val TIME_SERIES: String = "timeseries"
+  val TEMPORAL_DENSITY_FEATURE_SFT_STRING = s"$TIME_SERIES:String,geom:Geometry"
 
   type TimeSeries = collection.mutable.HashMap[DateTime, Long]
 
@@ -109,12 +115,36 @@ object TemporalDensityIterator extends Logging {
     new Interval(s, e)
   }
 
+  def createFeatureType(origFeatureType: SimpleFeatureType) = {
+    //Need a filler namespace, else geoserver throws nullptr exception for xml output
+    val (namespace, name) = buildTypeName(origFeatureType.getTypeName)
+    val outNamespace = if (namespace == null){
+        "NullNamespace"
+      } else {
+        namespace
+      }
+    SimpleFeatureTypes.createType(outNamespace, name, TemporalDensityIterator.TEMPORAL_DENSITY_FEATURE_SFT_STRING)
+  }
+
   def combineTimeSeries(ts1: TimeSeries, ts2: TimeSeries) : TimeSeries = {
     val resultTS = new collection.mutable.HashMap[DateTime, Long]()
     for (key <- ts1.keySet ++ ts2.keySet) {
       resultTS.put(key, ts1.getOrElse(key, 0L) + ts2.getOrElse(key,0L))
     }
     resultTS
+  }
+
+  private val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+
+  def timeSeriesToJSON(ts : TimeSeries): String = {
+    val jsonMap = ts.toMap.map { case (k, v) => k.toString(df) -> v }
+    new JSONObject(jsonMap).toString()
+  }
+
+  def jsonToTimeSeries(ts : String): TimeSeries = {
+    val objMapper: ObjectMapper = new ObjectMapper()
+    val stringMap: JHMap[String, Long] = objMapper.readValue(ts, new TypeReference[JHMap[String, java.lang.Long]]() {})
+    (for((k,v) <- stringMap) yield df.parseDateTime(k) -> v)(breakOut)
   }
 
   def encodeTimeSeries(timeSeries: TimeSeries): String = {
