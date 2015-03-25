@@ -15,9 +15,9 @@ class GeoMesaBatchWriterConfigTest extends Specification {
 
   "GeoMesaBatchWriterConfig" should {
     "have defaults set" in {
-      bwc.getMaxMemory                         must be equalTo GeoMesaBatchWriterConfig.DEFAULTMAXMEMORY
-      bwc.getMaxLatency(TimeUnit.MILLISECONDS) must be equalTo GeoMesaBatchWriterConfig.DEFAULTLATENCY
-      bwc.getMaxWriteThreads                   must be equalTo GeoMesaBatchWriterConfig.DEFAULTTHREADS
+      bwc.getMaxMemory                         must be equalTo GeoMesaBatchWriterConfig.DEFAULT_MAX_MEMORY
+      bwc.getMaxLatency(TimeUnit.MILLISECONDS) must be equalTo GeoMesaBatchWriterConfig.DEFAULT_LATENCY
+      bwc.getMaxWriteThreads                   must be equalTo GeoMesaBatchWriterConfig.DEFAULT_THREADS
     }
   }
 
@@ -28,17 +28,17 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       val threadsProp = "25"
       val timeoutProp = "33"
 
-      System.setProperty(GeoMesaBatchWriterConfig.WRITERLATENCYMILLIS, latencyProp)
-      System.setProperty(GeoMesaBatchWriterConfig.WRITERMEMORY,        memoryProp)
-      System.setProperty(GeoMesaBatchWriterConfig.WRITERTHREADS,       threadsProp)
-      System.setProperty(GeoMesaBatchWriterConfig.WRITETIMEOUT,        timeoutProp)
+      System.setProperty(GeoMesaBatchWriterConfig.WRITER_LATENCY_MILLIS, latencyProp)
+      System.setProperty(GeoMesaBatchWriterConfig.WRITER_MEMORY,        memoryProp)
+      System.setProperty(GeoMesaBatchWriterConfig.WRITER_THREADS,       threadsProp)
+      System.setProperty(GeoMesaBatchWriterConfig.WRITE_TIMEOUT,        timeoutProp)
 
       val nbwc = GeoMesaBatchWriterConfig.buildBWC
 
-      System.clearProperty(GeoMesaBatchWriterConfig.WRITERLATENCYMILLIS)
-      System.clearProperty(GeoMesaBatchWriterConfig.WRITERMEMORY)
-      System.clearProperty(GeoMesaBatchWriterConfig.WRITERTHREADS)
-      System.clearProperty(GeoMesaBatchWriterConfig.WRITETIMEOUT)
+      System.clearProperty(GeoMesaBatchWriterConfig.WRITER_LATENCY_MILLIS)
+      System.clearProperty(GeoMesaBatchWriterConfig.WRITER_MEMORY)
+      System.clearProperty(GeoMesaBatchWriterConfig.WRITER_THREADS)
+      System.clearProperty(GeoMesaBatchWriterConfig.WRITE_TIMEOUT)
 
       nbwc.getMaxLatency(TimeUnit.MILLISECONDS) must be equalTo java.lang.Long.parseLong(latencyProp)
       nbwc.getMaxMemory                         must be equalTo java.lang.Long.parseLong(memoryProp)
