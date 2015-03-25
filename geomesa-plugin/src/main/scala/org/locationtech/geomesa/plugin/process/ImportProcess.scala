@@ -70,7 +70,14 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
                  min = 0,
                  max= 1,
                  description = "Number of shards to store for this table (defaults to 4)")
-               numShards: Integer
+               numShards: Integer,
+
+               @DescribeParameter(
+                 name = "securityLevel",
+                 min = 0,
+                 max = 1,
+                 description = "The level of security to apply to this import")
+               securityLevel: String
               ) = {
 
     val workspaceInfo = Option(catalog.getWorkspaceByName(workspace)).getOrElse {
@@ -86,7 +93,7 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
 
     val maxShard = Option(numShards).map { n => if(n > 1) n-1 else DEFAULT_MAX_SHARD }.getOrElse(DEFAULT_MAX_SHARD)
 
-    val targetType = importIntoStore(features, name, storeInfo, maxShard)
+    val targetType = importIntoStore(features, name, storeInfo, maxShard, Option(securityLevel))
 
     // import the layer into geoserver
     catalogBuilder.setStore(storeInfo)
@@ -108,7 +115,11 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
     layerInfo.prefixedName
   }
 
-  def importIntoStore(features: SimpleFeatureCollection, name: String, storeInfo: DataStoreInfo, maxShard: Int) = {
+  def importIntoStore(features: SimpleFeatureCollection,
+                      name: String,
+                      storeInfo: DataStoreInfo,
+                      maxShard: Int,
+                      visibility: Option[String]) = {
     val ds = storeInfo.getDataStore(null)
     if(!ds.isInstanceOf[AccumuloDataStore]) {
       throw new ProcessException(s"Cannot import into non-AccumuloDataStore of type ${ds.getClass.getName}")
@@ -130,7 +141,7 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
     if(layer != null) throw new ProcessException(s"Target layer $layerName already exists in the catalog")
 
     val fs = accumuloDS.getFeatureSource(storedSft.getName).asInstanceOf[AccumuloFeatureStore]
-    fs.addFeatures(features)
+    fs.addFeatures(features, visibility)
     storedSft
   }
 
