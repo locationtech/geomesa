@@ -25,17 +25,27 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache._
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.commons.io.FilenameUtils
-import org.eclipse.xsd._
-import org.eclipse.xsd.util.{XSDConstants, XSDResourceImpl}
 import org.geotools.GML
 import org.geotools.gml.producer.FeatureTransformer
 import org.locationtech.geomesa.core.{TypeSchema, csv}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
+import org.locationtech.geomesa.web.scalatra.{User, PkiAuthenticationSupport}
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 
-class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Logging {
+// TODO:
+// Right now we cannot have GeoServer directly access a secured .gml endpoint
+// since the geoserver cert -- if it even tries to use one -- will not match
+// the cert of the uploading user.  ahulbert has suggested using wps instead
+// if using a servlet at all, which isn't a bad idea.
+//
+// There should be two wps processes
+// 1) geomesa:csv2xsd infers a schema from the uploaded csv data;
+//    the end user can just pass the head of their csv to minimize transfers
+// 2) geomesa:csvimport takes a schema as well as the csv data and converts
+//    csv records to SimpleFeatures on the fly for ingest
+class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Logging with PkiAuthenticationSupport {
 
   override val root: String = "csv"
 
@@ -47,9 +57,9 @@ class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Log
 
   class Record(val csvFile: File, val hasHeader: Boolean, var schema: TypeSchema)
 
-  val records: Cache[String, Record] = {
-    val removalListener = new RemovalListener[String, Record]() {
-      override def onRemoval(notification: RemovalNotification[String, Record]) =
+  val records: Cache[RecordTag, Record] = {
+    val removalListener = new RemovalListener[RecordTag, Record]() {
+      override def onRemoval(notification: RemovalNotification[RecordTag, Record]) =
         cleanup(notification.getKey, notification.getValue)
     }
     CacheBuilder.newBuilder()
@@ -58,16 +68,21 @@ class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Log
         .build()
   }
 
+  case class RecordTag(userId: Option[User], csvId: String)
+  private[this] def getUser = scentry.authenticate("Pki")
+  private[this] def getRecordTag = RecordTag(getUser, params("csvid"))
+
   post("/") {
     try {
       val fileItem = fileParams("csvfile")
-      val uuid = UUID.randomUUID.toString
       val csvFile = File.createTempFile(FilenameUtils.removeExtension(fileItem.name), ".csv")
       fileItem.write(csvFile)
       val hasHeader = params.get("hasHeader").map(_.toBoolean).getOrElse(true)
       val schema = csv.guessTypes(csvFile, hasHeader)
-      records.put(uuid, new Record(csvFile, hasHeader, schema))
-      Ok(uuid)
+      val csvId = UUID.randomUUID.toString
+      val tag = RecordTag(getUser, csvId)
+      records.put(tag, new Record(csvFile, hasHeader, schema))
+      Ok(csvId)
     } catch {
       case ex: Throwable =>
         logger.warn("Error uploading CSV", ex)
@@ -76,7 +91,8 @@ class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Log
   }
 
   get("/types/:csvid") {
-    val record = records.getIfPresent(params("csvid"))
+    val tag = getRecordTag
+    val record = records.getIfPresent(tag)
     if (record == null) {
       NotFound()
     } else {
@@ -86,10 +102,10 @@ class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Log
   }
 
   post("/types/update/:csvid") {
-    val id = params("csvid")
-    val record = records.getIfPresent(id)
+    val tag = getRecordTag
+    val record = records.getIfPresent(tag)
     if (record == null) {
-      BadRequest(reason = s"$id doesn't exist")
+      BadRequest(reason = s"Could not find record ${tag.csvId} for user ${tag.userId}")
     } else {
       val name = params.getOrElse("name", record.schema.name)
       val schema = params.getOrElse("schema", record.schema.schema)
@@ -100,8 +116,8 @@ class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Log
   }
 
   get("/:csvid.gml") {
-    val id = params("csvid")
-    val record = records.getIfPresent(id)
+    val tag = getRecordTag
+    val record = records.getIfPresent(tag)
     if (record == null) {
       NotFound()
     } else {
@@ -110,14 +126,14 @@ class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Log
       val header = record.hasHeader
       try {
         // before running the gml code, first create the XSD, otherwise it can cause deadlocks in geotools
-        getXsd(id, record, new ByteArrayOutputStream())
+        getXsd(tag.csvId, record, new ByteArrayOutputStream())
 
         val fc = csv.csvToFeatures(file, header, record.schema)
         val out = new BufferedOutputStream(response.getOutputStream)
         val transformer = new FeatureTransformer()
         transformer.getFeatureTypeNamespaces.declareNamespace(fc.getSchema,
-          "geomesa", s"feat:geomesa:$id")
-        transformer.addSchemaLocation(s"feat:geomesa:$id",
+          "geomesa", s"feat:geomesa:${tag.csvId}")
+        transformer.addSchemaLocation(s"feat:geomesa:${tag.csvId}",
           request.getRequestURL.toString.replaceAll("gml$", "xsd"))
 
         transformer.setIndentation(2)
@@ -139,15 +155,15 @@ class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Log
   }
 
   get("/:csvid.xsd") {
-    val id = params("csvid")
-    val record = records.getIfPresent(id)
+    val tag = getRecordTag
+    val record = records.getIfPresent(tag)
     if (record == null) {
       NotFound()
     } else {
       contentType = "application/xml"
       try {
         val out = new BufferedOutputStream(response.getOutputStream)
-        getXsd(id, record, out)
+        getXsd(tag.csvId, record, out)
         out.flush()
         Ok()
       } catch {
@@ -158,30 +174,30 @@ class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Log
     }
   }
 
-  def getXsd(id: String, record: Record, out: OutputStream) = {
+  def getXsd(csvId: String, record: Record, out: OutputStream) = {
     record.synchronized {
       val sft = SimpleFeatureTypes.createType(record.schema.name, record.schema.schema)
       val gml = new GML(GML.Version.GML2)
       gml.setBaseURL(new URL("http://localhost"))
-      gml.setNamespace("geomesa", s"feat:geomesa:$id")
+      gml.setNamespace("geomesa", s"feat:geomesa:$csvId")
       gml.encode(out, sft)
     }
   }
 
   post("/delete/:csvid.csv") {
-    val id = params("csvid")
-    Option(records.getIfPresent(id)).foreach(cleanup(id, _))
+    val tag = getRecordTag
+    Option(records.getIfPresent(tag)).foreach(cleanup(tag, _))
     Ok()
   }
 
   delete("/:csvid.csv") {
-    val id = params("csvid")
-    Option(records.getIfPresent(id)).foreach(cleanup(id, _))
+    val tag = getRecordTag
+    Option(records.getIfPresent(tag)).foreach(cleanup(tag, _))
     Ok()
   }
 
-  private def cleanup(id: String, record: Record) {
+  private def cleanup(tag: RecordTag, record: Record) {
     record.csvFile.delete()
-    records.invalidate(id)
+    records.invalidate(tag)
   }
 }
