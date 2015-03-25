@@ -86,7 +86,6 @@ class VisibilityFilter(ve: VisibilityEvaluator) extends Filter {
     val viz = SecurityUtils.getVisibility(o.asInstanceOf[SimpleFeature])
     if(viz != null) {
       vizCache.getOrElseUpdate(viz, ve.evaluate(new ColumnVisibility(viz)))
-      ve.evaluate(new ColumnVisibility(viz))
     } else {
       false
     }
