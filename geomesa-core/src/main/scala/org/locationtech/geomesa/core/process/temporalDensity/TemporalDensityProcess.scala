@@ -69,7 +69,7 @@ class TemporalDensityProcess extends Logging {
       logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
 
-   val interval = new Interval(startDate.getTime, endDate.getTime)
+    val interval = new Interval(startDate.getTime, endDate.getTime)
 
     val visitor = new TemporalDensityVisitor(features, interval, buckets)
     features.accepts(visitor, new NullProgressListener)
