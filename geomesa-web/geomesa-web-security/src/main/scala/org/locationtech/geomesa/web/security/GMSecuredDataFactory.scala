@@ -49,12 +49,17 @@ object GMSecuredDataFactory {
 class GMSecureFeatureSource(delegate: FeatureSource[SimpleFeatureType, SimpleFeature])
   extends DecoratingFeatureSource[SimpleFeatureType, SimpleFeature](delegate) {
 
-  override def getFeatures(query: Query): FeatureCollection[SimpleFeatureType, SimpleFeature] =
-    new FilteringSimpleFeatureCollection(delegate.getFeatures(query), new VisibilityFilter(GMSecuredDataFactory.buildVisibilityEvaluator()))
+  override def getFeatures(query: Query): FeatureCollection[SimpleFeatureType, SimpleFeature] = {
+    val filter = new VisibilityFilter(GMSecuredDataFactory.buildVisibilityEvaluator())
+    new FilteringSimpleFeatureCollection(delegate.getFeatures(query), filter)
+  }
 }
 
 class GMSecureFeatureCollection(delegate: SimpleFeatureCollection) extends DefaultFeatureCollection(delegate) {
-  override def features(): SimpleFeatureIterator = new FilteringSimpleFeatureIterator(super.features(), new VisibilityFilter(GMSecuredDataFactory.buildVisibilityEvaluator()))
+  override def features(): SimpleFeatureIterator =
+    new FilteringSimpleFeatureIterator(
+      super.features(),
+      new VisibilityFilter(GMSecuredDataFactory.buildVisibilityEvaluator()))
 }
 
 class GMSecureDataStore(delegate: DataStore) extends AbstractDataStore {
@@ -66,7 +71,8 @@ class GMSecureDataStore(delegate: DataStore) extends AbstractDataStore {
 
   override def getFeatureReader(query: Query, transaction: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     val delegateReader = delegate.getFeatureReader(query, transaction)
-    new FilteringFeatureReader[SimpleFeatureType, SimpleFeature](delegateReader, new VisibilityFilter(GMSecuredDataFactory.buildVisibilityEvaluator()))
+    val filter = new VisibilityFilter(GMSecuredDataFactory.buildVisibilityEvaluator())
+    new FilteringFeatureReader[SimpleFeatureType, SimpleFeature](delegateReader, filter)
   }
 
   override def getTypeNames: Array[String] = delegate.getTypeNames
