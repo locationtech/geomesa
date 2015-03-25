@@ -22,7 +22,7 @@ import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.core.data.AccumuloBackedMetadata._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
-import org.locationtech.geomesa.core.util.SelfClosingIterator
+import org.locationtech.geomesa.core.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -55,9 +55,8 @@ class AccumuloBackedMetadata(connector: Connector,
   // warning: only access this map in a synchronized fashion
   private val metaDataCache = new mutable.HashMap[(String, String), Option[String]]()
 
-  // TODO memory should be configurable
   private val metadataBWConfig =
-    new BatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(1)
+    GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(1)
 
   /**
    * Handles creating a mutation for writing metadata

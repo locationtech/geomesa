@@ -19,10 +19,10 @@ package org.locationtech.geomesa.core.iterators
 import java.text.SimpleDateFormat
 import java.util.{Collections, Date, TimeZone}
 
+import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.client.admin.TimeType
-import org.apache.accumulo.core.client.{BatchWriterConfig, IteratorSetting}
 import org.apache.accumulo.core.data.{Range => ARange}
-import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
+import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -33,7 +33,7 @@ import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.core.util.SelfClosingIterator
+import org.locationtech.geomesa.core.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -78,11 +78,12 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       val table = "AttributeIndexIteratorTest_2"
       connector.tableOperations.create(table, true, TimeType.LOGICAL)
 
-      val bw = connector.createBatchWriter(table, new BatchWriterConfig)
+      val bw = connector.createBatchWriter(table, GeoMesaBatchWriterConfig())
       val attributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).zipWithIndex
       val indexValueEncoder = IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION)
       val featureEncoder = SimpleFeatureEncoder(sft, DEFAULT_ENCODING)
       val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+
       getTestFeatures().foreach { feature =>
         val toWrite = new FeatureToWrite(feature, "", featureEncoder, indexValueEncoder)
         val muts = AttributeTable.getAttributeIndexMutations(toWrite, attributes, rowIdPrefix)

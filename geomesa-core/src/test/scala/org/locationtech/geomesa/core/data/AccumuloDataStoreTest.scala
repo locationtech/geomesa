@@ -20,9 +20,9 @@ import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}
 
 import com.vividsolutions.jts.geom.Coordinate
+import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{BatchWriterConfig, IteratorSetting}
 import org.apache.accumulo.core.data.{Mutation, Range}
 import org.apache.accumulo.core.iterators.user.VersioningIterator
 import org.apache.accumulo.core.security.Authorizations
@@ -45,7 +45,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.{IndexIterator, TestData}
 import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
-import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.core.util.{CloseableIterator, GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -793,7 +793,7 @@ class AccumuloDataStoreTest extends Specification {
         val connector = instance.getConnector(params("user"), new PasswordToken(params("password").getBytes))
         connector.tableOperations.create(params("tableName"))
 
-        val bw = connector.createBatchWriter(params("tableName"), new BatchWriterConfig)
+        val bw = connector.createBatchWriter(params("tableName"), GeoMesaBatchWriterConfig())
 
         // Insert metadata
         val metadataMutation = new Mutation(s"~METADATA_$sftName")
