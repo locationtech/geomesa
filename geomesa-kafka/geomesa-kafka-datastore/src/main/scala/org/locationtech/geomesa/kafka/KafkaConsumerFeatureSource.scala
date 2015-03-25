@@ -21,7 +21,7 @@ import java.util
 import java.util.Properties
 import java.util.concurrent.{Executors, TimeUnit}
 
-import com.google.common.cache.{Cache, CacheBuilder}
+import com.google.common.cache.{RemovalNotification, RemovalListener, Cache, CacheBuilder}
 import com.google.common.eventbus.{EventBus, Subscribe}
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import com.vividsolutions.jts.index.quadtree.Quadtree
@@ -71,6 +71,13 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
 
   if (expiry) {
     cb.expireAfterWrite(expirationPeriod, TimeUnit.MILLISECONDS)
+      .removalListener(
+        new RemovalListener[String, FeatureHolder] {
+          def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
+            removeFeature(new Delete(removal.getKey))
+          }
+        }
+      )
   }
 
   val features: Cache[String, FeatureHolder] = cb.build()
@@ -88,16 +95,15 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   def processNewFeatures(update: CreateOrUpdate): Unit = {
     val sf = update.f
     val id = update.id
-    Option(features.asMap().get(id)).foreach {  old => qt.remove(old.env, old.sf) }
+    Option(features.getIfPresent(id)).foreach {  old => qt.remove(old.env, old.sf) }
     val env = sf.geometry.getEnvelopeInternal
     qt.insert(env, sf)
     features.put(sf.getID, FeatureHolder(sf, env))
   }
 
   def removeFeature(toDelete: Delete): Unit = {
-    Option(features.asMap().get(toDelete.id)).foreach { holder =>
-      qt.remove(holder.env, holder.sf)
-    }
+    val id = toDelete.id
+    Option(features.getIfPresent(id)).foreach {  old => qt.remove(old.env, old.sf) }
     features.invalidate(toDelete.id)
   }
 
@@ -134,7 +140,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   def include(i: IncludeFilter) = new DFR(schema, new DFI(features.asMap().valuesIterator.map(_.sf)))
 
   def fid(ids: FidFilterImpl): FR = {
-    val iter = ids.getIDs.flatMap(id => Option(features.asMap().get(id.toString)).map(_.sf)).iterator
+    val iter = ids.getIDs.flatMap(id => Option(features.getIfPresent(id.toString)).map(_.sf)).iterator
     new DFR(schema, new DFI(iter))
   }
 

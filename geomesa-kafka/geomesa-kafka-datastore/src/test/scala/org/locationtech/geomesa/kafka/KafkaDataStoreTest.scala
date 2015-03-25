@@ -194,7 +194,6 @@ class KafkaDataStoreTest extends Specification with Logging {
       sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
       fw.write()
 
-//      featureCache.cleanUp() //remove stale entries, BUT there shouldn't be anything to remove
       featureCache.size() must eventually(5, 500.millis)(beEqualTo(1))
       Thread.sleep(3005) //sleep enough time to reach the expirationPeriod
 
