@@ -115,11 +115,10 @@ object TemporalDensityIterator extends Logging {
     new Interval(s, e)
   }
 
-  def createFeatureType(origFetType : SimpleFeatureType) = {
+  def createFeatureType(origFeatureType: SimpleFeatureType) = {
     //Need a filler namespace, else geoserver throws nullptr exception for xml output
-    val (namespace, name) = buildTypeName(origFetType.getTypeName)
-    val outNamespace =
-      if (namespace == null){
+    val (namespace, name) = buildTypeName(origFeatureType.getTypeName)
+    val outNamespace = if (namespace == null){
         "NullNamespace"
       } else {
         namespace
@@ -135,16 +134,16 @@ object TemporalDensityIterator extends Logging {
     resultTS
   }
 
-  private val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+  private val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 
   def timeSeriesToJSON(ts : TimeSeries): String = {
-    val jsonMap = ts.toMap.map { case (k, v) => k.toString(df) -> v };
+    val jsonMap = ts.toMap.map { case (k, v) => k.toString(df) -> v }
     new JSONObject(jsonMap).toString()
   }
 
   def jsonToTimeSeries(ts : String): TimeSeries = {
-    val objMapper: ObjectMapper = new ObjectMapper();
-    val stringMap: JHMap[String, Long] = objMapper.readValue(ts, new TypeReference[JHMap[String, java.lang.Long]]() {});
+    val objMapper: ObjectMapper = new ObjectMapper()
+    val stringMap: JHMap[String, Long] = objMapper.readValue(ts, new TypeReference[JHMap[String, java.lang.Long]]() {})
     (for((k,v) <- stringMap) yield df.parseDateTime(k) -> v)(breakOut)
   }
 

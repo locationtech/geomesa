@@ -17,7 +17,7 @@
 
 package org.locationtech.geomesa.core.process.temporaldensity
 
-import com.vividsolutions.jts.geom.{Envelope, Point}
+import com.vividsolutions.jts.geom.Envelope
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.hadoop.io.Text
@@ -26,21 +26,19 @@ import org.geotools.data.{DataStore, DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
+import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.{Constants, QueryHints}
-import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.{decodeTimeSeries, TIME_SERIES, jsonToTimeSeries}
+import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.{TIME_SERIES, decodeTimeSeries, jsonToTimeSeries}
 import org.locationtech.geomesa.core.process.temporalDensity.TemporalDensityProcess
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
-
-import org.joda.time.{DateTime, DateTimeZone}
 
 
 @RunWith(classOf[JUnitRunner])
