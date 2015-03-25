@@ -19,6 +19,7 @@ import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.core.data.extractDtgField
 import org.locationtech.geomesa.tools.commands.DescribeCommand._
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.opengis.feature.`type`.AttributeDescriptor
 
 import scala.collection.JavaConversions._
@@ -32,8 +33,7 @@ class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
     try {
       val sft = ds.getSchema(params.featureName)
 
-      def isIndexed(attr: AttributeDescriptor) =
-        attr.getUserData.getOrElse("index", false).asInstanceOf[java.lang.Boolean]
+      def isIndexed(attr: AttributeDescriptor) = attr.isIndexed
 
       val sb = new StringBuilder()
       sft.getAttributeDescriptors.foreach { attr =>
