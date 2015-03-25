@@ -7,7 +7,6 @@ import org.scalatra.ScalatraBase
 import org.scalatra.auth.{ScentryStrategy, ScentryConfig, ScentrySupport}
 
 package object scalatra {
-  // copied from STEALTH; I propose pulling this out into commons-scalatra
 
   case class User(dn:String)
 
