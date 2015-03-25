@@ -10,9 +10,9 @@ import scala.util.Try
 object GeoMesaBatchWriterConfig extends Logging {
   val WRITER_LATENCY_SECONDS = "geomesa.batchwriter.latency.seconds"  // Measured in seconds
   val WRITER_LATENCY_MILLIS  = "geomesa.batchwriter.latency.millis"   // Measured in millis
-  val WRITER_MEMORY         = "geomesa.batchwriter.memory"           // Measured in bytes
-  val WRITER_THREADS        = "geomesa.batchwriter.maxthreads"
-  val WRITE_TIMEOUT         = "geomesa.batchwriter.timeout.seconds"  // Timeout measured in seconds.  Likely unnecessary.
+  val WRITER_MEMORY          = "geomesa.batchwriter.memory"           // Measured in bytes
+  val WRITER_THREADS         = "geomesa.batchwriter.maxthreads"
+  val WRITE_TIMEOUT          = "geomesa.batchwriter.timeout.seconds"  // Timeout measured in seconds.  Likely unnecessary.
 
   val DEFAULT_LATENCY   = 10000l   // 10 seconds
   val DEFAULT_MAX_MEMORY = 1000000l // 1 megabyte
@@ -47,7 +47,7 @@ object GeoMesaBatchWriterConfig extends Logging {
     logger.trace(s"GeoMesaBatchWriter config: maxWriteThreads set to $threads.")
     bwc.setMaxWriteThreads(threads.toInt)
 
-    fetchProperty(WRITE_TIMEOUT).map { timeout =>
+    fetchProperty(WRITE_TIMEOUT).foreach { timeout =>
       logger.trace(s"GeoMesaBatchWriter config: maxTimeout set to $timeout seconds.")
       bwc.setTimeout(timeout, TimeUnit.SECONDS)
     }

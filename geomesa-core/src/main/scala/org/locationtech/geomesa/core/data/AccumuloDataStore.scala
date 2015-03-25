@@ -122,7 +122,7 @@ class AccumuloDataStore(val connector: Connector,
                                          with mutable.SynchronizedMap[(String, String), Boolean]
 
   private val defaultBWConfig =
-    GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(writeThreads)
+    GeoMesaBatchWriterConfig().setMaxWriteThreads(writeThreads)
 
   private val tableOps = connector.tableOperations()
 
