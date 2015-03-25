@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+<!--
+  ~ Copyright 2014 Commonwealth Computer Research, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the License);
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an AS IS BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!-- curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'temporaldensity.xml' http://localhost:8080/geoserver/wps | json_pp -->
+  <ows:Identifier>geomesa:TemporalDensity</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>features</ows:Identifier>
+      <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+        <wps:Body>
+          <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2" xmlns:tiger="http://www.census.gov">
+            <wfs:Query typeName="tiger:QuickStart"/>
+          </wfs:GetFeature>
+        </wps:Body>
+      </wps:Reference>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>startDate</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>2014-01-01T00:00:00</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>endDate</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>2014-12-31T23:59:59</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>buckets</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>12</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput mimeType="application/json">
+      <ows:Identifier>result</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>

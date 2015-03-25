@@ -88,16 +88,17 @@ package object index {
   type KeyValuePair = (Key, Value)
 
   object QueryHints {
-    val DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
-    val WIDTH_KEY   = new IntegerKey(256)
-    val HEIGHT_KEY  = new IntegerKey(256)
-    val BBOX_KEY    = new ClassKey(classOf[ReferencedEnvelope])
+    val DENSITY_KEY          = new ClassKey(classOf[java.lang.Boolean])
+    val WIDTH_KEY            = new IntegerKey(256)
+    val HEIGHT_KEY           = new IntegerKey(256)
+    val BBOX_KEY             = new ClassKey(classOf[ReferencedEnvelope])
 
     val TEMPORAL_DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
-    val TIME_INTERVAL_KEY = new ClassKey(classOf[org.joda.time.Interval])
-    val TIME_BUCKETS_KEY = new IntegerKey(256)
+    val TIME_INTERVAL_KEY    = new ClassKey(classOf[org.joda.time.Interval])
+    val TIME_BUCKETS_KEY     = new IntegerKey(256)
+    val RETURN_ENCODED       = new ClassKey(classOf[java.lang.Boolean])
 
-    val MAP_AGGREGATION_KEY = new ClassKey(classOf[java.lang.String])
+    val MAP_AGGREGATION_KEY  = new ClassKey(classOf[java.lang.String])
   }
 
   type ExplainerOutputType = ( => String) => Unit

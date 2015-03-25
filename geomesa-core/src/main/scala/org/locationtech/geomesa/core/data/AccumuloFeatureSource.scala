@@ -21,9 +21,12 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator, SimpleFeatureSource}
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
+import org.locationtech.geomesa.core.index.QueryHints._
+import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.createFeatureType
 import org.locationtech.geomesa.core.process.knn.KNNVisitor
 import org.locationtech.geomesa.core.process.proximity.ProximityVisitor
 import org.locationtech.geomesa.core.process.query.QueryVisitor
+import org.locationtech.geomesa.core.process.temporalDensity.TemporalDensityVisitor
 import org.locationtech.geomesa.core.process.tube.TubeVisitor
 import org.locationtech.geomesa.core.process.unique.AttributeVisitor
 import org.locationtech.geomesa.core.util.{SelfClosingIterator, TryLoggingFailure}
@@ -81,21 +84,27 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
   val ds  = source.getDataStore.asInstanceOf[AccumuloDataStore]
 
   override def getSchema: SimpleFeatureType =
-    if(query.getHints.containsKey(TRANSFORMS)) query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
-    else super.getSchema
+    if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
+      createFeatureType(source.getSchema())
+    } else if(query.getHints.containsKey(TRANSFORMS)) {
+      query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
+    } else {
+      super.getSchema
+    }
 
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener) =
     visitor match {
       // TODO GEOMESA-421 implement min/max iterators
-      case v: MinVisitor       => v.setValue(ds.getTimeBounds(query.getTypeName).getStart.toDate)
-      case v: MaxVisitor       => v.setValue(ds.getTimeBounds(query.getTypeName).getEnd.toDate)
-      case v: BoundsVisitor    => v.reset(ds.getBounds(query))
-      case v: TubeVisitor      => v.setValue(v.tubeSelect(source, query))
-      case v: ProximityVisitor => v.setValue(v.proximitySearch(source, query))
-      case v: QueryVisitor     => v.setValue(v.query(source, query))
-      case v: KNNVisitor       => v.setValue(v.kNNSearch(source,query))
-      case v: AttributeVisitor => v.setValue(v.unique(source, query))
-      case _                   => super.accepts(visitor, progress)
+      case v: MinVisitor             => v.setValue(ds.getTimeBounds(query.getTypeName).getStart.toDate)
+      case v: MaxVisitor             => v.setValue(ds.getTimeBounds(query.getTypeName).getEnd.toDate)
+      case v: BoundsVisitor          => v.reset(ds.getBounds(query))
+      case v: TubeVisitor            => v.setValue(v.tubeSelect(source, query))
+      case v: ProximityVisitor       => v.setValue(v.proximitySearch(source, query))
+      case v: QueryVisitor           => v.setValue(v.query(source, query))
+      case v: TemporalDensityVisitor => v.setValue(v.query(source, query))
+      case v: KNNVisitor             => v.setValue(v.kNNSearch(source,query))
+      case v: AttributeVisitor       => v.setValue(v.unique(source, query))
+      case _                         => super.accepts(visitor, progress)
     }
 
   override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = super.reader()
