@@ -103,7 +103,7 @@ object Transformers extends JavaTokenParsers {
   }
 
   class EvaluationContext(fieldNameMap: Map[String, Int], var computedFields: Array[Any]) {
-    def indexOf(n: String) = fieldNameMap(n)
+    def indexOf(n: String) = fieldNameMap.getOrElse(n, -1)
     def lookup(i: Int) = if(i < 0) null else computedFields(i)
   }
 
@@ -247,10 +247,10 @@ class DateFunctionFactory extends TransformerFunctionFactory {
 
   val now = TransformerFn("now") { args => DateTime.now.toDate }
   val customFormatDateParser = CustomFormatDateParser()
-  val datetime = StandardDateParser("datetime", ISODateTimeFormat.dateTime())
-  val isodate = StandardDateParser("isodate", ISODateTimeFormat.basicDate())
-  val isodatetime = StandardDateParser("isodatetime", ISODateTimeFormat.basicDateTime())
-  val dateHourMinuteSecondMillis = StandardDateParser("dateHourMinuteSecondMillis", ISODateTimeFormat.dateHourMinuteSecondMillis())
+  val datetime = StandardDateParser("datetime", ISODateTimeFormat.dateTime().withZoneUTC())
+  val isodate = StandardDateParser("isodate", ISODateTimeFormat.basicDate().withZoneUTC())
+  val isodatetime = StandardDateParser("isodatetime", ISODateTimeFormat.basicDateTime().withZoneUTC())
+  val dateHourMinuteSecondMillis = StandardDateParser("dateHourMinuteSecondMillis", ISODateTimeFormat.dateHourMinuteSecondMillis().withZoneUTC())
   val millisToDate = TransformerFn("millisToDate") { args => new Date(args(0).asInstanceOf[Long]) }
 
   case class StandardDateParser(name: String, format: DateTimeFormatter) extends TransformerFn {
@@ -262,7 +262,7 @@ class DateFunctionFactory extends TransformerFunctionFactory {
     override def getInstance: CustomFormatDateParser = CustomFormatDateParser()
 
     override def eval(args: Any*): Any = {
-      if(format == null) format = DateTimeFormat.forPattern(args(0).asInstanceOf[String])
+      if(format == null) format = DateTimeFormat.forPattern(args(0).asInstanceOf[String]).withZoneUTC()
       format.parseDateTime(args(1).asInstanceOf[String]).toDate
     }
   }
