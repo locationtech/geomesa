@@ -32,6 +32,12 @@ import java.util.Map;
 
 /**
  * Sample job showing how to read and write features using GeoMesa Input/Output formats
+ *
+ * This job assumes a feature has been created with the name 'myfeature' that contains a Geometry
+ * attribute named 'geom' and a Date attribute named 'dtg'.
+ *
+ * The job copies each feature into a different simple feature type called 'test' and writes it
+ * back to GeoMesa.
  */
 public class FeatureWriterJob {
 

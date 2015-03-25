@@ -47,17 +47,6 @@ package object scalding {
 
   object ConnectionParams {
 
-    // old arg strings - replaced with standardized input/output ones below
-    @Deprecated val ACCUMULO_INSTANCE_OLD = "geomesa.accumulo.instance"
-    @Deprecated val ZOOKEEPERS_OLD        = "geomesa.accumulo.zookeepers"
-    @Deprecated val ACCUMULO_USER_OLD     = "geomesa.accumulo.user"
-    @Deprecated val ACCUMULO_PASSWORD_OLD = "geomesa.accumulo.password"
-    @Deprecated val AUTHORIZATIONS_OLD    = "geomesa.accumulo.authorizations"
-    @Deprecated val VISIBILITIES_OLD      = "geomesa.accumulo.visibilities"
-    @Deprecated val FEATURE_NAME_OLD      = "geomesa.feature.name"
-    @Deprecated val CATALOG_TABLE_OLD     = "geomesa.feature.tables.catalog"
-    @Deprecated val MOCK_OLD              = "geomesa.mock"
-
     private val IN_PREFIX  = "geomesa.input."
     private val OUT_PREFIX = "geomesa.output."
 
@@ -85,17 +74,8 @@ package object scalding {
       args.m.map { case (key, value) =>
         if (key.startsWith(prefix)) {
           key.substring(prefix.length) -> value.headOption.getOrElse("")
-        } else key match {
-          // back compatible checks
-          case ACCUMULO_INSTANCE_OLD => "instanceId"     -> value.headOption.getOrElse("")
-          case ZOOKEEPERS_OLD        => "zookeepers"     -> value.headOption.getOrElse("")
-          case ACCUMULO_USER_OLD     => "user"           -> value.headOption.getOrElse("")
-          case ACCUMULO_PASSWORD_OLD => "password"       -> value.headOption.getOrElse("")
-          case AUTHORIZATIONS_OLD    => "authorizations" -> value.headOption.getOrElse("")
-          case VISIBILITIES_OLD      => "visibilities"   -> value.headOption.getOrElse("")
-          case CATALOG_TABLE_OLD     => "tableName"      -> value.headOption.getOrElse("")
-          case MOCK_OLD              => "useMock"        -> value.headOption.getOrElse("")
-          case _                     => ""               -> ""
+        } else {
+          "" -> ""
         }
       }.filter { case (k, v) => !v.isEmpty }
 

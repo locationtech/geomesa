@@ -42,7 +42,7 @@ import scala.util.Try
 
 class AttributeIndexJob(args: Args) extends GeoMesaBaseJob(args) {
 
-  val feature = args.optional(FEATURE_IN).getOrElse(args(FEATURE_NAME_OLD))
+  val feature = args(FEATURE_IN)
   val dsParams = toDataStoreInParams(args)
 
   // add a comma-split to allow comma-separated values

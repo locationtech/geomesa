@@ -75,7 +75,7 @@ object GeoMesaInputFormat extends Logging {
     // run an explain query to set up the iterators, ranges, etc
     val ecql = filter.map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
     val query = new Query(featureTypeName, ecql)
-    val queryPlans = ds.explainQuery(featureTypeName, query, ExplainNull)
+    val queryPlans = ds.getQueryPlan(featureTypeName, query)
 
     // see if the plan is something we can execute from a single table
     val tryPlan = if (queryPlans.length > 1) None else queryPlans.headOption.filter {

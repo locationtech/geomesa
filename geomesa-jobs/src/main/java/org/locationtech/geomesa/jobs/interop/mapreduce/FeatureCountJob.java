@@ -31,6 +31,12 @@ import java.util.Map;
 
 /**
  * Sample job showing how to read features using GeoMesaInputFormat
+ *
+ * This job assumes a feature has been created with the name 'myfeature' that contains a Geometry
+ * attribute named 'geom' and a Date attribute named 'dtg'.
+ *
+ * The job uses map/reduce counters to keep track of how many features are processed, and outputs
+ * each feature ID and geometry to a text file in HDFS.
  */
 public class FeatureCountJob {
 
@@ -44,7 +50,7 @@ public class FeatureCountJob {
             Counter counter = context.getCounter(CountersEnum.class.getName(),
                                                  CountersEnum.FEATURES.toString());
             counter.increment(1);
-            context.write(key, new Text(value.getAttribute("geom").toString()));
+            context.write(key, new Text(value.getDefaultGeometry().toString()));
         }
     }
 

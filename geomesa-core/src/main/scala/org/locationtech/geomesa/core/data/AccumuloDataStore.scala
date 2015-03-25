@@ -810,29 +810,44 @@ class AccumuloDataStore(val connector: Connector,
 
   // This override is important as it allows us to optimize and plan our search with the Query.
   override def getFeatureReader(featureName: String, query: Query) = {
-    validateMetadata(featureName)
-    val sft = getSchema(featureName)
-    val indexSchemaFmt = getIndexSchemaFmt(featureName)
-    val featureEncoding = getFeatureEncoding(sft)
-    val version = getGeomesaVersion(sft)
-    setQueryTransforms(query, sft)
-    new AccumuloFeatureReader(this, query, sft, indexSchemaFmt, featureEncoding, version)
+    val qp = getQueryPlanner(featureName, query, this)
+    new AccumuloFeatureReader(qp, query, this)
   }
 
-  def explainQuery(featureName: String,
-                   query: Query,
-                   o: ExplainerOutputType = ExplainPrintln): Seq[QueryPlan] = {
+  /**
+   * Gets the query plan for a given query. The query plan consists of the tables, ranges, iterators etc
+   * required to run a query against accumulo.
+   */
+  def getQueryPlan(featureName: String, query: Query): Seq[QueryPlan] =
+    planQuery(featureName, query, ExplainNull)
+
+  /**
+   * Prints the query plan for a given query to the provided output.
+   */
+  def explainQuery(featureName: String, query: Query, o: ExplainerOutputType = ExplainPrintln): Unit =
+    planQuery(featureName, query, o)
+
+  /**
+   *
+   */
+  private def planQuery(featureName: String, query: Query, o: ExplainerOutputType): Seq[QueryPlan] = {
+    val cc = new ExplainingConnectorCreator(this, o)
+    val qp = getQueryPlanner(featureName, query, cc)
+    qp.planQuery(query, o)
+  }
+
+  /**
+   * Gets a query planner. Also has side-effect of setting transforms in the query.
+   */
+  private def getQueryPlanner(featureName: String, query: Query, cc: AccumuloConnectorCreator): QueryPlanner = {
     validateMetadata(featureName)
     val sft = getSchema(featureName)
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
     val featureEncoding = getFeatureEncoding(sft)
     val version = getGeomesaVersion(sft)
-    setQueryTransforms(query, sft)
-
-    val cc = new ExplainingConnectorCreator(this, o)
     val hints = strategyHints(sft)
-    val qp = new QueryPlanner(sft, featureEncoding, indexSchemaFmt, cc, hints, version)
-    qp.planQuery(query, o)
+    setQueryTransforms(query, sft)
+    new QueryPlanner(sft, featureEncoding, indexSchemaFmt, cc, hints, version)
   }
 
   /* create a general purpose writer that is capable of insert, deletes, and updates */

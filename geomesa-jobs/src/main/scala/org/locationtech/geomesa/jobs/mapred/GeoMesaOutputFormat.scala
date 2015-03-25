@@ -117,7 +117,7 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
     if (sftCache.add(sftName)) {
       // this is a no-op if schema is already created, and should be thread-safe from different mappers
       ds.createSchema(value.getFeatureType)
-      // short sleep to ensure that feature is fully written if it is happening in some other thread
+      // short sleep to ensure that feature type is fully written if it is happening in some other thread
       Thread.sleep(1000)
     }
 

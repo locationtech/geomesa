@@ -35,7 +35,7 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
 
   val UPDATE_TO_VERSION = 2 // we want to maintain compatibility with any attribute indices written
 
-  val feature = args.optional(FEATURE_IN).getOrElse(args(FEATURE_NAME_OLD))
+  val feature = args(FEATURE_IN)
   val dsParams = toDataStoreInParams(args)
 
   val (input, output) = {
