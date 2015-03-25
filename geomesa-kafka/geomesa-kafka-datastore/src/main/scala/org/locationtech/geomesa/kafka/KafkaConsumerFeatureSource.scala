@@ -74,7 +74,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
       .removalListener(
         new RemovalListener[String, FeatureHolder] {
           def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
-            removeFeature(new Delete(removal.getKey))
+            qt.remove(removal.getValue.env, removal.getValue.sf)
           }
         }
       )

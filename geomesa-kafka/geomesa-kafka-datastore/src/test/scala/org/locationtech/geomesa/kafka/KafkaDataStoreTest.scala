@@ -60,7 +60,7 @@ class KafkaDataStoreTest extends Specification with Logging {
     "zkPath"           -> "/geomesa/kafka/testds",
     "isProducer"       -> false,
     "expiry"           -> true,
-    "expirationPeriod" -> 3000L)
+    "expirationPeriod" -> 2000L)
 
   val producerParams = Map(
     "brokers"    -> s"$host:$port",
@@ -186,6 +186,7 @@ class KafkaDataStoreTest extends Specification with Logging {
       //Setup consumer prior to writing feature so the feature will be written to the cache once the producer writes
       val cachedConsumerFS = cachedConsumerDS.getFeatureSource("testExpiration").asInstanceOf[KafkaConsumerFeatureSource]
       val featureCache = cachedConsumerFS.features
+      cachedConsumerFS.qt.size() must be equalTo 0
 
       //Write test feature
       val fw = producerDS.getFeatureWriter("testExpiration", null, Transaction.AUTO_COMMIT)
@@ -194,11 +195,13 @@ class KafkaDataStoreTest extends Specification with Logging {
       sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
       fw.write()
 
-      featureCache.size() must eventually(5, 500.millis)(beEqualTo(1))
-      Thread.sleep(3005) //sleep enough time to reach the expirationPeriod
+      featureCache.size() must eventually(10, 500.millis)(beEqualTo(1))
+      cachedConsumerFS.qt.size() must eventually(10, 500.millis)(beEqualTo(1))
+      Thread.sleep(2000) //sleep enough time to reach the expirationPeriod
 
       featureCache.cleanUp() //remove old entries now that the TTL has passed
       featureCache.size() must be equalTo 0
+      cachedConsumerFS.qt.size() must eventually(10, 500.millis)(beEqualTo(0))
     }
   }
 
