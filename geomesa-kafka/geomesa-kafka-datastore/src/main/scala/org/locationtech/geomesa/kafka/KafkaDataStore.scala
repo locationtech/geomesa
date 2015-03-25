@@ -42,7 +42,9 @@ class KafkaDataStore(broker: String,
                      zkPath: String,
                      partitions: Int,
                      replication: Int,
-                     isProducer: Boolean) extends ContentDataStore with Logging {
+                     isProducer: Boolean,
+                     expiry: Boolean,
+                     expirationPeriod: Long) extends ContentDataStore with Logging {
 
   import scala.collection.JavaConversions._
 
@@ -123,7 +125,7 @@ class KafkaDataStore(broker: String,
       val decoder = new AvroFeatureDecoder(sft)
       // create a producer that reads from kafka and sends to the event bus
       val producer = new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
-      new KafkaConsumerFeatureSource(entry, sft, eb, null)
+      new KafkaConsumerFeatureSource(entry, sft, eb, null, expiry, expirationPeriod)
     } else null
   }
 
@@ -139,6 +141,8 @@ object KafkaDataStoreFactoryParams {
   val TOPIC_PARTITIONS   = new Param("partitions", classOf[Integer], "Number of partitions to use in kafka topics", false)
   val TOPIC_REPLICATION  = new Param("replication", classOf[Integer], "Replication factor to use in kafka topics", false)
   val IS_PRODUCER_PARAM  = new Param("isProducer", classOf[java.lang.Boolean], "Is Producer", false, false)
+  val EXPIRY             = new Param("expiry", classOf[java.lang.Boolean], "Expiry", false, false)
+  val EXPIRATION_PERIOD  = new Param("expirationPeriod", classOf[java.lang.Long], "Expiration Period in milliseconds", false, false)
 }
 
 class KafkaDataStoreFactory extends DataStoreFactorySpi {
@@ -158,10 +162,12 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
       if(IS_PRODUCER_PARAM.lookUp(params) == null) java.lang.Boolean.FALSE
       else IS_PRODUCER_PARAM.lookUp(params).asInstanceOf[java.lang.Boolean]
 
-    val partitions  = Option(TOPIC_PARTITIONS.lookUp(params)).map(_.toString.toInt).getOrElse(1)
-    val replication = Option(TOPIC_REPLICATION.lookUp(params)).map(_.toString.toInt).getOrElse(1)
+    val partitions       = Option(TOPIC_PARTITIONS.lookUp(params)).map(_.toString.toInt).getOrElse(1)
+    val replication      = Option(TOPIC_REPLICATION.lookUp(params)).map(_.toString.toInt).getOrElse(1)
+    val expiry           = Option(EXPIRY.lookUp(params).asInstanceOf[java.lang.Boolean]).getOrElse(java.lang.Boolean.FALSE)
+    val expirationPeriod = Option(EXPIRATION_PERIOD.lookUp(params)).map(_.toString.toLong).getOrElse(0L)
 
-    new KafkaDataStore(broker, zk, zkPath, partitions, replication, isProducer)
+    new KafkaDataStore(broker, zk, zkPath, partitions, replication, isProducer, expiry, expirationPeriod)
   }
 
   override def createNewDataStore(params: ju.Map[String, Serializable]): DataStore = ???
