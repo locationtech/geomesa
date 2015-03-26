@@ -49,7 +49,7 @@ case class GeoMesaSource(options: GeoMesaSourceOptions) extends Source with Mapp
   def converter[U >: (Text, SimpleFeature)]: TupleConverter[U] = new TupleConverter[U] {
     override val arity: Int = 2
     override def apply(te: TupleEntry): (Text, SimpleFeature) =
-      (te.getObject(1).asInstanceOf[Text], te.getObject(0).asInstanceOf[SimpleFeature])
+      (te.getObject(0).asInstanceOf[Text], te.getObject(1).asInstanceOf[SimpleFeature])
   }
 }
 
