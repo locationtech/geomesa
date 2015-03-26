@@ -142,24 +142,7 @@ class TransformersTest extends Specification {
           exp.eval(bytes) must be equalTo Base64.encodeBase64URLSafeString(bytes)
         }
       }
-
-      "handle file info functions" >> {
-
-        "lineNumber" >> {
-          implicit val ctx = new EvaluationContext(null, null)
-          val exp = Transformers.parseTransform("lineNo()")
-          exp.eval(null)(ctx) must be equalTo 1
-          exp.eval(null)(ctx) must be equalTo 2
-          exp.eval(null)(ctx) must be equalTo 3
-        }
-
-        "fileName" >> {
-          val exp = Transformers.parseTransform("fileName('/somefile.txt')")
-          exp.eval(null) must be equalTo "/somefile.txt"
-        }
-
-      }
-
+      
       "handle named values" >> {
         val closure = Array.ofDim[Any](3)
         closure(1) = "bar"

@@ -149,7 +149,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   val sfAttrReuse = Array.ofDim[Any](targetSFT.getAttributeCount)
 
   def processSingleInput(i: I): Option[SimpleFeature] =
-    Try { convert(fromInputType(i), reuse, sfAttrReuse) } match {
+    Try { ctx.incCount(); convert(fromInputType(i), reuse, sfAttrReuse) } match {
       case Success(s) => Some(s)
       case Failure(t) =>
         logger.debug("Failed to parse input", t)

@@ -203,7 +203,8 @@ class EvaluationContext(fieldNameMap: Map[String, Int], var computedFields: Arra
   private var count: Int = 0
   def indexOf(n: String) = fieldNameMap(n)
   def lookup(i: Int) = if(i < 0) null else computedFields(i)
-  def incCount(): Int = { count += 1; count}
+  def getCount(): Int = count
+  def incCount(): Unit = count +=1
 }
 
 object TransformerFn {
@@ -302,7 +303,7 @@ class FileInfoFunctionFactory extends TransformerFunctionFactory {
   case class LineNumberFn() extends TransformerFn {
     override def getInstance: LineNumberFn = LineNumberFn()
     override def name: String = "lineNo"
-    override def eval(args: Any*)(implicit ec: EvaluationContext): Any = ec.incCount()
+    override def eval(args: Any*)(implicit ec: EvaluationContext): Any = ec.getCount()
   }
 
   case class FileNameFn() extends TransformerFn {
