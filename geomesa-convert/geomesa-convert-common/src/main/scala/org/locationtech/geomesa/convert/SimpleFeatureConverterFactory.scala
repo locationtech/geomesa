@@ -122,6 +122,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
 
   def convert(t: Array[Any], reuse: Array[Any], sfAttrReuse: Array[Any]): SimpleFeature = {
     import spire.syntax.cfor._
+    ctx.incCount()
 
     val attributes =
       if(reuse == null) Array.ofDim[Any](requiredFields.length)
@@ -149,7 +150,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   val sfAttrReuse = Array.ofDim[Any](targetSFT.getAttributeCount)
 
   def processSingleInput(i: I): Option[SimpleFeature] =
-    Try { ctx.incCount(); convert(fromInputType(i), reuse, sfAttrReuse) } match {
+    Try { convert(fromInputType(i), reuse, sfAttrReuse) } match {
       case Success(s) => Some(s)
       case Failure(t) =>
         logger.debug("Failed to parse input", t)
