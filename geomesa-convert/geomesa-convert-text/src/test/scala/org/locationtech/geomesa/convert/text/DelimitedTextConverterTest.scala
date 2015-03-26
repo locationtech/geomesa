@@ -104,6 +104,36 @@ class DelimitedTextConverterTest extends Specification {
       res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
     }
 
+    "handle line number transform correctly" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | converter = {
+          |   type         = "delimited-text",
+          |   format       = "TDF",
+          |   id-field     = "md5(string2bytes($0))",
+          |   fields = [
+          |     { name = "phrase", transform = "concat($1, $2)" },
+          |     { name = "linenumber", transform = "lineNo()"},
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          | }
+        """.stripMargin)
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      converter must not beNull
+      val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))).toList
+      converter.close()
+      res.size must be equalTo 2
+      res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
+      res(0).getAttribute("linenumber").asInstanceOf[Int] must be equalTo 1
+      res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
+      res(1).getAttribute("linenumber").asInstanceOf[Int] must be equalTo 2
+    }
+
+
+
     "handle projecting to just the attributes in the SFT (and associated input dependencies)" >> {
       // l3 has cascading dependencies
       val subsft = SimpleFeatureTypes.createType("subsettest", "l3:String,geom:Point:srid=4326")

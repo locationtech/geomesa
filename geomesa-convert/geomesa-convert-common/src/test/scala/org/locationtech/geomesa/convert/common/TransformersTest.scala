@@ -146,10 +146,11 @@ class TransformersTest extends Specification {
       "handle file info functions" >> {
 
         "lineNumber" >> {
+          implicit val ctx = new EvaluationContext(null, null)
           val exp = Transformers.parseTransform("lineNo()")
-          exp.eval(null) must be equalTo 1
-          exp.eval(null) must be equalTo 2
-          exp.eval(null) must be equalTo 3
+          exp.eval(null)(ctx) must be equalTo 1
+          exp.eval(null)(ctx) must be equalTo 2
+          exp.eval(null)(ctx) must be equalTo 3
         }
 
         "fileName" >> {
