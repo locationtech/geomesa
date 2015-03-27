@@ -4,7 +4,6 @@
 
 Version | Status
 ------ | -----
-| 1.x for Accumulo 1.4.x | [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.4%2F1.x)](https://travis-ci.org/locationtech/geomesa)  	| 
 | 1.x for Accumulo 1.5.x | [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.5.x%2F1.x)](https://travis-ci.org/locationtech/geomesa)  	| 
 
 ## GeoMesa
@@ -15,11 +14,19 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 
 #### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](http://www.locationtech.org) working group of the Eclipse Foundation.
 
+## Download and Version Information
+
+<b>NOTE:</b> The current recommended version is ```1.0.0-rc5-SNAPSHOT``` which is a breaking change from ```1.0.0-rc4``` and previous versions due to schema incompatibility. The most recent snapshot tar.gz assembly can be [downloaded here](https://repo.locationtech.org/service/local/artifact/maven/redirect?r=geomesa-snapshots&g=org.locationtech.geomesa&a=geomesa-assemble-accumulo1.5&v=1.0.0-rc.5-SNAPSHOT&e=tar.gz&c=bin) which contains the [Accumulo distributed runtime jar](geomesa-distributed-runtime), [GeoServer plugin](geomesa-plugin), and [command line tools](geomesa-tools).
+
+GeoMesa artifacts can be downloaded from the [LocationTech Maven repository](https://repo.locationtech.org/content/repositories/geomesa-releases/)
+
+Snapshots are availabile in the [LocationTech Snapshots Repository](https://repo.locationtech.org/content/repositories/geomesa-snapshots/)
+
 
 ## Building Instructions
 
 * Navigate to where you would like to download this project.
-* git clone git@github.com:geomesa/geomesa.git
+* ```git clone git@github.com:locationtech/geomesa.git```
 
 This project is managed by Maven, and builds with the command
 
