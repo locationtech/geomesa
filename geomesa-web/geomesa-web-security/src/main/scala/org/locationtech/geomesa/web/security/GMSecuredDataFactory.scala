@@ -8,7 +8,7 @@ import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.geotools.feature.collection.{FilteringSimpleFeatureCollection, FilteringSimpleFeatureIterator}
 import org.geotools.feature.{DefaultFeatureCollection, FeatureCollection}
-import org.locationtech.geomesa.core.security.SecurityUtils
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{Filter, FilterVisitor}
 import org.springframework.security.core.context.SecurityContextHolder

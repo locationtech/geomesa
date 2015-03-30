@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.locationtech.geomesa.core.security;
+package org.locationtech.geomesa.utils.security;
 
-import junit.framework.Assert;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.junit.Assert;
 import org.junit.Test;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeature;

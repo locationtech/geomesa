@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.core.security;
+package org.locationtech.geomesa.utils.security;
 
 import com.google.common.base.Joiner;
 import org.opengis.feature.simple.SimpleFeature;
