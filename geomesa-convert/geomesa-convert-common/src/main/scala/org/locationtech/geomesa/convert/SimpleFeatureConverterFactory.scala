@@ -69,8 +69,8 @@ object SimpleFeatureConverters {
 
 trait SimpleFeatureConverter[I] {
   def targetSFT: SimpleFeatureType
-  def processInput(is: Iterator[I]): Iterator[SimpleFeature]
-  def processSingleInput(i: I): Option[SimpleFeature]
+  def processInput(is: Iterator[I], globalParams: Map[String, String] = null): Iterator[SimpleFeature]
+  def processSingleInput(i: I, globalParams: Map[String, String] = null): Option[SimpleFeature]
   def close(): Unit = {}
 }
 
@@ -121,6 +121,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
 
   def convert(t: Array[Any], reuse: Array[Any]): SimpleFeature = {
     import spire.syntax.cfor._
+    ctx.incCount()
 
     val attributes =
       if(reuse == null) Array.ofDim[Any](requiredFields.length)
@@ -139,16 +140,21 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
 
   val reuse = Array.ofDim[Any](requiredFields.length)
 
-  def processSingleInput(i: I): Option[SimpleFeature] =
+  def processSingleInput(i: I, gParams: Map[String, String] = null): Option[SimpleFeature] = {
+    if (gParams != null) ctx.globalParams = Some(gParams)
     Try { convert(fromInputType(i), reuse) } match {
       case Success(s) => Some(s)
       case Failure(t) =>
         logger.debug("Failed to parse input", t)
         None
     }
+  }
 
-  def processInput(is: Iterator[I]): Iterator[SimpleFeature] =
+  def processInput(is: Iterator[I], gParams: Map[String, String] = null): Iterator[SimpleFeature] = {
+    if (gParams != null) ctx.globalParams = Some(gParams)
     is.flatMap { s => processSingleInput(s) }
+  }
 
+  def resetCounter(): Unit = ctx.resetCount()
 
 }

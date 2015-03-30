@@ -2,3 +2,4 @@ org.locationtech.geomesa.convert.StringFunctionFactory
 org.locationtech.geomesa.convert.DateFunctionFactory
 org.locationtech.geomesa.convert.GeometryFunctionFactory
 org.locationtech.geomesa.convert.IdFunctionFactory
+org.locationtech.geomesa.convert.FileInfoFunctionFactory

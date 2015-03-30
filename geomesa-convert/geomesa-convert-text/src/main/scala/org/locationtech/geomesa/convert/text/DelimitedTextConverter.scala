@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.convert.text
 
 import java.io.{PipedReader, PipedWriter}
-import java.util.concurrent.{TimeUnit, Executors}
+import java.util.concurrent.Executors
 
 import com.google.common.collect.Queues
 import com.typesafe.config.Config
@@ -105,5 +105,6 @@ class DelimitedTextConverter(format: CSVFormat,
     es.shutdownNow()
     writer.close()
     reader.close()
+    resetCounter()
   }
 }
