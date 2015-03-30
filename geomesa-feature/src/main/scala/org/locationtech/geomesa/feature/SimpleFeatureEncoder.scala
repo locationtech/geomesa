@@ -20,11 +20,11 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
 import org.apache.avro.io._
 import org.geotools.data.DataUtilities
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOption
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
 
 trait HasEncoding {
   def encoding: FeatureEncoding
@@ -59,38 +59,85 @@ trait SimpleFeatureDecoder extends HasEncoding {
 
 object SimpleFeatureDecoder {
 
-  def apply(sft: SimpleFeatureType, encoding: FeatureEncoding) =
+  /**
+   * Decode without projecting.
+   *
+   * @param sft the encoded simple feature type to be decode
+   * @param encoding the encoding that was used to encode
+   * @param options any options that were used to encode
+   * @return a new [[SimpleFeatureDecoder]]
+   */
+  def apply(sft: SimpleFeatureType, encoding: FeatureEncoding, options: EncodingOption*) =
     encoding match {
       case FeatureEncoding.KRYO => new KryoFeatureEncoder(sft, sft)
       case FeatureEncoding.AVRO => new AvroFeatureDecoder(sft)
       case FeatureEncoding.TEXT => new TextFeatureDecoder(sft)
     }
 
-  def apply(originalSft: SimpleFeatureType, projectedSft: SimpleFeatureType, encoding: FeatureEncoding) =
+  /**
+   * Decode and project.
+   *
+   * @param originalSft the encoded simple feature type to be decode
+   * @param projectedSft the simple feature type to project to
+   * @param encoding the encoding that was used to encode
+   * @param options any options that were used to encode
+   * @return a new [[SimpleFeatureDecoder]]
+   */
+  def apply(originalSft: SimpleFeatureType, projectedSft: SimpleFeatureType,
+            encoding: FeatureEncoding, options: EncodingOption*) =
     encoding match {
       case FeatureEncoding.KRYO => new KryoFeatureEncoder(originalSft, projectedSft)
       case FeatureEncoding.AVRO => new ProjectingAvroFeatureDecoder(originalSft, projectedSft)
       case FeatureEncoding.TEXT => new ProjectingTextDecoder(originalSft, projectedSft)
     }
 
-  def apply(sft: SimpleFeatureType, encoding: String): SimpleFeatureDecoder =
+  /**
+   * Decode without projecting.
+   *
+   * @param sft the encoded simple feature type to be decode
+   * @param encoding the encoding that was used to encode
+   * @param options any options that were used to encode
+   * @return a new [[SimpleFeatureDecoder]]
+   */
+  def apply(sft: SimpleFeatureType, encoding: String, options: EncodingOption*): SimpleFeatureDecoder =
     SimpleFeatureDecoder(sft, FeatureEncoding.withName(encoding))
 
-  def apply(originalSft: SimpleFeatureType,
-            projectedSft: SimpleFeatureType,
-            encoding: String): SimpleFeatureDecoder =
+  /**
+   * Decode and project.
+   *
+   * @param originalSft the encoded simple feature type to be decode
+   * @param projectedSft the simple feature type to project to
+   * @param encoding the encoding that was used to encode
+   * @param options any options that were used to encode
+   * @return a new [[SimpleFeatureDecoder]]
+   */
+  def apply(originalSft: SimpleFeatureType, projectedSft: SimpleFeatureType,
+            encoding: String, options: EncodingOption*): SimpleFeatureDecoder =
     SimpleFeatureDecoder(originalSft, projectedSft, FeatureEncoding.withName(encoding))
 }
 
 object SimpleFeatureEncoder {
-  def apply(sft: SimpleFeatureType, encoding: FeatureEncoding): SimpleFeatureEncoder =
+
+  /**
+   * @param sft the simple feature type to be encoded
+   * @param encoding the desired encoding
+   * @param options the desired options
+   * @return a new [[SimpleFeatureEncoder]]
+   */
+  def apply(sft: SimpleFeatureType, encoding: FeatureEncoding, options: EncodingOption*): SimpleFeatureEncoder =
     encoding match {
       case FeatureEncoding.KRYO => new KryoFeatureEncoder(sft, sft)
       case FeatureEncoding.AVRO => new AvroFeatureEncoder(sft)
       case FeatureEncoding.TEXT => new TextFeatureEncoder(sft)
     }
 
-  def apply(sft: SimpleFeatureType, encoding: String): SimpleFeatureEncoder =
+  /**
+   * @param sft the simple feature type to be encoded
+   * @param encoding the desired encoding
+   * @param options the desired options
+   * @return a new [[SimpleFeatureEncoder]]
+   */
+  def apply(sft: SimpleFeatureType, encoding: String, options: EncodingOption*): SimpleFeatureEncoder =
     SimpleFeatureEncoder(sft, FeatureEncoding.withName(encoding))
 }
 
@@ -99,6 +146,19 @@ object FeatureEncoding extends Enumeration {
   val KRYO = Value("kryo")
   val AVRO = Value("avro")
   val TEXT = Value("text")
+}
+
+/**
+ * Options to be applied when encoding.  The same options must be specified when decoding.
+ */
+object EncodingOption extends Enumeration {
+  type EncodingOption = Value
+
+  /**
+   * If this [[EncodingOption]] is specified then the security marking associated with the sample feature will be
+   * serialized and deserialized.
+   */
+  val SECURE = Value("secure")
 }
 
 class TextFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
@@ -196,13 +256,13 @@ class AvroFeatureDecoder(sft: SimpleFeatureType) extends ProjectingAvroFeatureDe
 
 /**
  *
- * @param sft
- * @param decodeAs
+ * @param sft the simple feature type to encode or decode
+ * @param projected the projected simple feature type for encoding or decoding
  */
-class KryoFeatureEncoder(sft: SimpleFeatureType, decodeAs: SimpleFeatureType)
+class KryoFeatureEncoder(sft: SimpleFeatureType, projected: SimpleFeatureType)
     extends SimpleFeatureEncoder with SimpleFeatureDecoder {
 
-  val encoder = KryoFeatureSerializer(sft, decodeAs)
+  val encoder = KryoFeatureSerializer(sft, projected)
 
   override val encoding = FeatureEncoding.KRYO
   override def encode(feature: SimpleFeature) = encoder.write(feature)
