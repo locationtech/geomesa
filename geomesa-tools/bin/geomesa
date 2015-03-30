@@ -36,13 +36,35 @@ if [ -z "$GEOMESA_HOME" ]; then
     export PATH=${GEOMESA_HOME}/bin:$PATH
     echo >&2 "Warning: GEOMESA_HOME is not set, using $GEOMESA_HOME"
 else
-    echo >&2 "Using GEOMESA_HOME $GEOMESA_HOME"
+    echo >&2 "Using GEOMESA_HOME as set: $GEOMESA_HOME"
+    read -p "Is this intentional? Y\n " -n 1 -r
+    if [[  $REPLY =~ ^[Nn]$ ]]; then
+        bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
+        export GEOMESA_HOME="$bin"
+        echo >&2 ""
+        echo "Now set to ${GEOMESA_HOME}"
+    fi
+    echo >&2 ""
 fi
 
 # GEOMESA paths, GEOMESA_LIB should live inside GEOMESA_HOME, but can be pointed elsewhere
 if [ -z "$GEOMESA_LIB" ]; then
     GEOMESA_LIB=${GEOMESA_HOME}/lib
+else
+    message="Warning: GEOMESA_LIB already set, probably by a prior configuration."
+    message="${message}\n Current value is ${GEOMESA_LIB}."
+    echo >&2 ""
+    echo -e >&2 "$message"
+    echo >&2 ""
+    read -p "Is this intentional? Y\n " -n 1 -r
+    if [[  $REPLY =~ ^[Nn]$ ]]; then
+        GEOMESA_LIB=${GEOMESA_HOME}/lib
+        echo >&2 ""
+        echo "Now set to ${GEOMESA_LIB}"
+    fi
+    echo >&2 ""
 fi
+
 
 # ACCUMULO paths, user can hard set these, or rely on this script to find set them via
 if [ -n "$ACCUMULO_HOME" ]; then
