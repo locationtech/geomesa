@@ -51,7 +51,7 @@
         <zookeeper.version>3.4.5</zookeeper.version>
         <accumulo.version>1.5.1</accumulo.version>
         <hadoop.version>2.2.0</hadoop.version>
-        <scalding.version>0.11.2</scalding.version>
+        <scalding.version>0.13.1</scalding.version>
 
         <!-- logging properties
              we expect logging jars to be provided -->
@@ -506,6 +506,18 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-feature-accumulo1.5</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-feature-accumulo1.5</artifactId>
+                <classifier>shaded</classifier>
+                <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.esotericsoftware</groupId>
+                        <artifactId>kryo-shaded</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>

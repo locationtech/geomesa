@@ -1245,18 +1245,6 @@ class AccumuloDataStoreTest extends Specification {
   }
 
   "AccumuloFeatureStore" should {
-    "compute target schemas from transformation expressions" in {
-      val sftName = "targetSchemaTest"
-      val origSFT = SimpleFeatureTypes.createType(sftName, defaultSchema)
-      origSFT.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
-      val definitions =
-        TransformProcess.toDefinition("name=name;helloName=strConcat('hello', name);geom=geom")
-
-      val result = AccumuloFeatureStore.computeSchema(origSFT, definitions.toSeq)
-      SimpleFeatureTypes.encodeType(result) mustEqual
-        s"name:String,helloName:String,*geom:Point:srid=4326:$OPT_INDEX=full:index-value=true"
-    }
-
     "support sorting and handle time bounds" in {
       val sftName = "sortingAndTimeBoundsTest"
       val sft = createSchema(sftName)

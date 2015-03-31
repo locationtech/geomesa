@@ -21,6 +21,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.geotools.data.Query;
+import org.geotools.filter.text.ecql.ECQL;
 import org.locationtech.geomesa.feature.ScalaSimpleFeature;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes$;
 import org.opengis.feature.simple.SimpleFeature;
@@ -82,9 +84,9 @@ public class FeatureWriterJob {
         params.put("password", "mypassword");
         params.put("tableName", "mycatalog");
 
-        String cql = "BBOX(geom, -165,5,-50,75) AND dtg DURING 2015-03-02T00:00:00.000Z/2015-03-02T23:59:59.999Z";
+        Query query = new Query("myfeature", ECQL.toFilter("BBOX(geom, -165,5,-50,75)"));
 
-        GeoMesaInputFormat.configure(job, params, "myfeature", cql);
+        GeoMesaInputFormat.configure(job, params, query);
 
         Map<String, String> outParams = new HashMap<String, String>();
         outParams.put("instanceId", "myinstance");

@@ -29,7 +29,7 @@ import org.locationtech.geomesa.core.process.query.QueryVisitor
 import org.locationtech.geomesa.core.process.temporalDensity.TemporalDensityVisitor
 import org.locationtech.geomesa.core.process.tube.TubeVisitor
 import org.locationtech.geomesa.core.process.unique.AttributeVisitor
-import org.locationtech.geomesa.core.util.{SelfClosingIterator, TryLoggingFailure}
+import org.locationtech.geomesa.core.util.TryLoggingFailure
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -64,7 +64,7 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource with Logging w
     }
 
   protected def getFeaturesNoCache(query: Query): SimpleFeatureCollection = {
-    AccumuloDataStore.setQueryTransforms(query, getSchema)
+    org.locationtech.geomesa.core.index.setQueryTransforms(query, getSchema)
     new AccumuloFeatureCollection(self, query)
   }
 
@@ -86,10 +86,8 @@ class AccumuloFeatureCollection(source: SimpleFeatureSource, query: Query)
   override def getSchema: SimpleFeatureType =
     if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
       createFeatureType(source.getSchema())
-    } else if(query.getHints.containsKey(TRANSFORMS)) {
-      query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
     } else {
-      super.getSchema
+      org.locationtech.geomesa.core.index.getTransformSchema(query).getOrElse(super.getSchema)
     }
 
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener) =

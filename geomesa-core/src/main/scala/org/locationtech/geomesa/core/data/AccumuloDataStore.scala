@@ -34,7 +34,6 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.feature.NameImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.process.vector.TransformProcess
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.Interval
 import org.locationtech.geomesa.core
@@ -1010,33 +1009,5 @@ object AccumuloDataStore {
     }
     sb.toString()
   }
-
-  /**
-   * Checks for attribute transforms in the query and sets them as hints if found
-   *
-   * @param query
-   * @param sft
-   * @return
-   */
-  def setQueryTransforms(query: Query, sft: SimpleFeatureType) =
-    if (query.getProperties != null && query.getProperties.size > 0) {
-      val (transformProps, regularProps) = query.getPropertyNames.partition(_.contains('='))
-      val convertedRegularProps = regularProps.map { p => s"$p=$p" }
-      val allTransforms = convertedRegularProps ++ transformProps
-      // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
-      val geomName = sft.getGeometryDescriptor.getLocalName
-      val geomTransform =
-        if (allTransforms.exists(_.matches(s"$geomName\\s*=.*"))) {
-          Nil
-        } else {
-          Seq(s"$geomName=$geomName")
-        }
-      val transforms = (allTransforms ++ geomTransform).mkString(";")
-      val transformDefs = TransformProcess.toDefinition(transforms)
-      val derivedSchema = AccumuloFeatureStore.computeSchema(sft, transformDefs)
-      query.setProperties(Query.ALL_PROPERTIES)
-      query.getHints.put(TRANSFORMS, transforms)
-      query.getHints.put(TRANSFORM_SCHEMA, derivedSchema)
-    }
 }
 

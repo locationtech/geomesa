@@ -53,7 +53,7 @@ class IteratorTriggerTest extends Specification {
 
     def sampleQuery(ecql: org.opengis.filter.Filter, finalAttributes: Array[String]): Query = {
       val aQuery = new Query(testFeatureType.getTypeName, ecql, finalAttributes)
-      AccumuloDataStore.setQueryTransforms(aQuery, testFeatureType) // normally called by data store when getting feature reader
+      org.locationtech.geomesa.core.index.setQueryTransforms(aQuery, testFeatureType) // normally called by data store when getting feature reader
       aQuery
     }
 
@@ -257,7 +257,7 @@ class IteratorTriggerTest extends Specification {
 
       def testOverlap(filter: String, attributes: Array[String]) = {
         val query = new Query("overlaptest", ECQL.toFilter(filter), attributes)
-        AccumuloDataStore.setQueryTransforms(query, sft)
+        org.locationtech.geomesa.core.index.setQueryTransforms(query, sft)
         IteratorTrigger.doTransformsCoverFilters(query)
       }
 
@@ -303,7 +303,7 @@ class IteratorTriggerTest extends Specification {
       val spec = "name:String:index=true,age:Integer:index=true,dtg:Date:index=true,*geom:Geometry:srid=4326"
       val sft = SimpleFeatureTypes.createType(sftName, spec)
       val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg", "name"))
-      AccumuloDataStore.setQueryTransforms(query, sft) // normally called by data store when getting feature reader
+      org.locationtech.geomesa.core.index.setQueryTransforms(query, sft) // normally called by data store when getting feature reader
       val iteratorChoice = IteratorTrigger.chooseAttributeIterator(None, query, sft, "name")
       iteratorChoice.iterator mustEqual(IndexOnlyIterator)
     }
@@ -312,7 +312,7 @@ class IteratorTriggerTest extends Specification {
       val spec = "name:String:index=true,age:Integer:index-value=true,dtg:Date:index=true,*geom:Geometry:srid=4326"
       val sft = SimpleFeatureTypes.createType(sftName, spec)
       val query = new Query(sftName, ECQL.toFilter("name='bob'"), Array("geom", "dtg", "name", "age"))
-      AccumuloDataStore.setQueryTransforms(query, sft) // normally called by data store when getting feature reader
+      org.locationtech.geomesa.core.index.setQueryTransforms(query, sft) // normally called by data store when getting feature reader
       val iteratorChoice = IteratorTrigger.chooseAttributeIterator(None, query, sft, "name")
       iteratorChoice.iterator mustEqual(IndexOnlyIterator)
     }

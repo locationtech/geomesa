@@ -50,9 +50,10 @@ package object scalding {
     private val IN_PREFIX  = "geomesa.input."
     private val OUT_PREFIX = "geomesa.output."
 
-    val CQL_IN      = s"${IN_PREFIX}cql"
-    val FEATURE_IN  = s"${IN_PREFIX}feature"
-    val FEATURE_OUT = s"${OUT_PREFIX}feature"
+    val CQL_IN       = s"${IN_PREFIX}cql"
+    val TRANSFORM_IN = s"${IN_PREFIX}transform"
+    val FEATURE_IN   = s"${IN_PREFIX}feature"
+    val FEATURE_OUT  = s"${OUT_PREFIX}feature"
 
     private val params = Seq(instanceIdParam, zookeepersParam, userParam, passwordParam, authsParam,
       visibilityParam, tableNameParam, mockParam)

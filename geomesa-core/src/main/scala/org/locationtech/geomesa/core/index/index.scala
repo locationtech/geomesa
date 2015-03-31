@@ -17,16 +17,27 @@
 package org.locationtech.geomesa.core
 
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.geotools.data.Query
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
+import org.geotools.feature.AttributeTypeBuilder
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.{DateTimeZone, DateTime}
+import org.geotools.process.vector.TransformProcess
+import org.geotools.process.vector.TransformProcess.Definition
+import org.joda.time.{DateTime, DateTimeZone}
+import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.GeometryAttribute
+import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.identity.FeatureId
 
+import scala.collection.JavaConversions._
 import scala.languageFeature.implicitConversions
 
 /**
@@ -79,6 +90,90 @@ package object index {
   def getTableSharingPrefix(sft: SimpleFeatureType): String =
     if(getTableSharing(sft)) s"${sft.getTypeName}~"
     else                     ""
+
+  /**
+   * Get the transforms set in the query
+   */
+  def getTransformDefinition(query: Query): Option[String] =
+    Option(query.getHints.get(TRANSFORMS).asInstanceOf[String])
+
+  /**
+   * Get the transform schema set in the query
+   */
+  def getTransformSchema(query: Query): Option[SimpleFeatureType] =
+    Option(query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
+
+  /**
+   * Checks for attribute transforms in the query and sets them as hints if found
+   *
+   * @param query
+   * @param sft
+   * @return
+   */
+  def setQueryTransforms(query: Query, sft: SimpleFeatureType) =
+    if (query.getProperties != null && !query.getProperties.isEmpty) {
+      val (transformProps, regularProps) = query.getPropertyNames.partition(_.contains('='))
+      val convertedRegularProps = regularProps.map { p => s"$p=$p" }
+      val allTransforms = convertedRegularProps ++ transformProps
+      // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
+      val geomName = sft.getGeometryDescriptor.getLocalName
+      val geomTransform = if (allTransforms.exists(_.matches(s"$geomName\\s*=.*"))) {
+        Nil
+      } else {
+        Seq(s"$geomName=$geomName")
+      }
+      val transforms = (allTransforms ++ geomTransform).mkString(";")
+      val transformDefs = TransformProcess.toDefinition(transforms)
+      val derivedSchema = computeSchema(sft, transformDefs)
+      query.setProperties(Query.ALL_PROPERTIES)
+      query.getHints.put(TRANSFORMS, transforms)
+      query.getHints.put(TRANSFORM_SCHEMA, derivedSchema)
+    }
+
+  private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
+    val attributes: Seq[AttributeDescriptor] = transforms.map { definition =>
+      val name = definition.name
+      val cql  = definition.expression
+      cql match {
+        case p: PropertyName =>
+          val origAttr = origSFT.getDescriptor(p.getPropertyName)
+          val ab = new AttributeTypeBuilder()
+          ab.init(origAttr)
+          val descriptor = if (origAttr.isInstanceOf[GeometryDescriptor]) {
+            ab.buildDescriptor(name, ab.buildGeometryType())
+          } else {
+            ab.buildDescriptor(name, ab.buildType())
+          }
+          descriptor.getUserData.putAll(origAttr.getUserData)
+          descriptor
+
+        case f: FunctionExpressionImpl  =>
+          val clazz = f.getFunctionName.getReturn.getType
+          val ab = new AttributeTypeBuilder().binding(clazz)
+          if (classOf[Geometry].isAssignableFrom(clazz)) {
+            ab.buildDescriptor(name, ab.buildGeometryType())
+          } else {
+            ab.buildDescriptor(name, ab.buildType())
+          }
+      }
+    }
+
+    val geomAttributes = attributes.filter(_.isInstanceOf[GeometryAttribute]).map(_.getLocalName)
+    val sftBuilder = new SimpleFeatureTypeBuilder()
+    sftBuilder.setName(origSFT.getName)
+    sftBuilder.addAll(attributes.toArray)
+    if (!geomAttributes.isEmpty) {
+      val defaultGeom = if (geomAttributes.size == 1) { geomAttributes.head } else {
+        // try to find a geom with the same name as the original default geom
+        val origDefaultGeom = origSFT.getGeometryDescriptor.getLocalName
+        geomAttributes.find(_ == origDefaultGeom).getOrElse(geomAttributes.head)
+      }
+      sftBuilder.setDefaultGeometry(defaultGeom)
+    }
+    val schema = sftBuilder.buildFeatureType()
+    schema.getUserData.putAll(origSFT.getUserData)
+    schema
+  }
 
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)

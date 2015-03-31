@@ -32,7 +32,7 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
-import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.core.index.{getTransformSchema, _}
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.{ScalaSimpleFeature, SimpleFeatureDecoder}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
@@ -45,16 +45,24 @@ import scala.collection.mutable.ArrayBuffer
 
 object GeoMesaInputFormat extends Logging {
 
+  def configure(job: JobConf,
+                dsParams: Map[String, String],
+                featureTypeName: String,
+                filter: Option[String] = None,
+                transform: Option[Array[String]] = None): Unit = {
+    val ecql = filter.map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+    val trans = transform.getOrElse(Query.ALL_NAMES)
+    val query = new Query(featureTypeName, ecql, trans)
+    configure(job, dsParams, query)
+  }
+
   /**
    * Configure the input format.
    *
    * This is a single method, as we have to calculate several things to pass to the underlying
    * AccumuloInputFormat, and there is not a good hook to indicate when the config is finished.
    */
-  def configure(job: JobConf,
-                dsParams: Map[String, String],
-                featureTypeName: String,
-                filter: Option[String]): Unit = {
+  def configure(job: JobConf, dsParams: Map[String, String], query: Query): Unit = {
 
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
 
@@ -73,8 +81,7 @@ object GeoMesaInputFormat extends Logging {
     auths.foreach(a => InputFormatBase.setScanAuthorizations(job, new Authorizations(a.split(","): _*)))
 
     // run an explain query to set up the iterators, ranges, etc
-    val ecql = filter.map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
-    val query = new Query(featureTypeName, ecql)
+    val featureTypeName = query.getTypeName
     val queryPlans = ds.getQueryPlan(featureTypeName, query)
 
     // see if the plan is something we can execute from a single table
@@ -110,9 +117,13 @@ object GeoMesaInputFormat extends Logging {
     InputFormatBase.setAutoAdjustRanges(job, true)
 
     // also set the datastore parameters so we can access them later
+    GeoMesaConfigurator.setSerialization(job)
     GeoMesaConfigurator.setDataStoreInParams(job, dsParams)
     GeoMesaConfigurator.setFeatureType(job, featureTypeName)
-    filter.foreach(GeoMesaConfigurator.setFilter(job, _))
+    if (query.getFilter != Filter.INCLUDE) {
+      GeoMesaConfigurator.setFilter(job, ECQL.toCQL(query.getFilter))
+    }
+    getTransformSchema(query).foreach(GeoMesaConfigurator.setTransformSchema(job, _))
   }
 }
 
@@ -169,8 +180,9 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] {
     // we need to use an iterator to use delayed execution on the delegate record readers,
     // otherwise this kills memory
     val readers = splits.iterator.map(delegate.getRecordReader(_, job, reporter))
-    val decoder = SimpleFeatureDecoder(sft, encoding)
-    new GeoMesaRecordReader(sft, decoder, readers, splits.length)
+    val schema = GeoMesaConfigurator.getTransformSchema(job).getOrElse(sft)
+    val decoder = SimpleFeatureDecoder(schema, encoding)
+    new GeoMesaRecordReader(schema, decoder, readers, splits.length)
   }
 }
 

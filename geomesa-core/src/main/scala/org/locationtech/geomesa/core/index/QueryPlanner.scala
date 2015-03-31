@@ -34,7 +34,7 @@ import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.stats.{TimingsImpl, MethodProfiling}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}
 
@@ -114,7 +114,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
         splitQueryOnOrs(query, output).map { q =>
           val strategy = QueryStrategyDecider.chooseStrategy(sft, q, hints, version)
           output(s"Strategy: ${strategy.getClass.getCanonicalName}")
-          output(s"Transforms: ${query.getHints.get(TRANSFORMS)}")
+          output(s"Transforms: ${getTransformDefinition(query).getOrElse("None")}")
           val plan = strategy.getQueryPlan(q, this, output)
           output(s"Table: ${plan.table}")
           output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all" else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
@@ -226,10 +226,8 @@ case class QueryPlanner(sft: SimpleFeatureType,
       val mapAggregationAttribute = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
       val spec = MapAggregatingIterator.projectedSFTDef(mapAggregationAttribute, sft)
       SimpleFeatureTypes.createType(sft.getTypeName, spec)
-    } else if (query.getHints.get(TRANSFORM_SCHEMA) != null) {
-      query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
     } else {
-      sft
+      getTransformSchema(query).getOrElse(sft)
     }
 }
 
