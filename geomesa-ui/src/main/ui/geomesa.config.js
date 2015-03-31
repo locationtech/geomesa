@@ -38,6 +38,7 @@ module.exports = {
             'vendor/bower/d3/d3.js',
             'vendor/bower/lodash/dist/lodash.js',
             'vendor/bower/jquery/dist/jquery.js',
+            'vendor/bower/jquery-ui/jquery-ui.min.js',
             'vendor/bower/angular/angular.js',
             'vendor/bower/angular-route/angular-route.js',
             'vendor/bower/angular-resource/angular-resource.js',

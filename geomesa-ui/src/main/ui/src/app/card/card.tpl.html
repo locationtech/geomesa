@@ -1,4 +1,15 @@
-<div class="cards panel" ng-class="{hidden: cards.length === 0}">
+
+
+
+
+<div class="transparent-header" ng-hide="showhide">
+    <button id="maximizeBtn" class="btn btn-default btn-circle" style="outline: none;" ng-click="showhide = !showhide" > <i class="fa fa-plus"></i> </button>
+</div>
+
+<div class="cards panel ui-widget-content" ng-class="{hidden: cards.length === 0}" ng-init="showhide = true" ng-show="showhide" drag>
+    
+    <button id="minimizeBtn" class="btn btn-default btn-circle" style="outline: none;" ng-click="showhide = !showhide"> <i class="fa fa-minus"></i> </button>
+
     <div class="panel-body">
         <div class="card" ng-repeat="card in cards" ng-class="{selected: selectedIndex === $index, right: $index > selectedIndex, left: $index < selectedIndex}">
             <div class="card-row" ng-repeat="(k, v) in card">

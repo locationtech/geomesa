@@ -1,3 +1,4 @@
+
 angular.module('geomesa.card', [])
 
     .directive('cards', [function () {
@@ -17,9 +18,8 @@ angular.module('geomesa.card', [])
                 function success (response) {
                     console.log(response);
                 }
-
                 scope.$watch('selectedPoint', function (p) {
-                    if (p.lat && p.lng) {
+                    if (p && p.lat && p.lng) {
                         params = {
                             REQUEST: "GetFeatureInfo",
                             EXCEPTIONS: "application/vnd.ogc.se_xml",
@@ -41,4 +41,16 @@ angular.module('geomesa.card', [])
                 }, true);
             }
         };
-    }]);
+    }])
+
+    .directive('drag', function(){
+        return {
+
+            //The link function is responsible for registering DOM listeners as well as updating the DOM.
+            link: function(scope, element, attrs, ctrl) {
+              element.draggable({
+                revert:false
+              });
+            }
+        };
+    });

@@ -9,23 +9,6 @@ angular.module('geomesa.map', [])
                 api: '=',
                 selectedFeatures: '=',
             },
-            link: function (scope, element, attrs) {
-                //var baseLayer = L.tileLayer.provider('Stamen.TonerLite'),
-                var baseLayer = L.tileLayer.provider('MapQuestOpen.OSM'), 
-                    wmsLayer = L.tileLayer.wms("http://geomesa:8080/geoserver/geomesa/wms", {
-                        layers: 'geomesa:QuickStart',
-                        format: 'image/png',
-                        transparent: true
-                    });
-
-                scope.map = L.map(element[0], {
-                    center: L.latLng(-38.09, -76.85),
-                    zoom: 8,
-                    maxZoom: 18,
-                    minZoom: 3,
-                    attributionControl: false,
-                    layers: [baseLayer, wmsLayer]
-                });
 
             link: function (scope, element, attrs) {
                 scope.selectedFeatures = [
@@ -63,7 +46,14 @@ angular.module('geomesa.map', [])
 
                 scope.api = {
                     applyCQL: function (cql) {
-                        console.log(cql);
+                        if (cql) {
+                            var params = {CQL_FILTER: cql};
+                            wmsSource.updateParams(params);
+                        }
+                        else {
+                            delete wmsSource.getParams().CQL_FILTER;
+                            wmsSource.updateParams({});
+                        }
                     }
                 };
 
@@ -74,7 +64,7 @@ angular.module('geomesa.map', [])
                             {'INFO_FORMAT': 'application/json', FEATURE_COUNT: 50}
                     );
                     $http.get(url).success(function(data, status, headers, config) {
-                        if (data.features.length){
+                        if (data.features.length) {
                             scope.selectedFeatures = data.features;
                         }
                     }).error(function(data, status, headers, config) {
