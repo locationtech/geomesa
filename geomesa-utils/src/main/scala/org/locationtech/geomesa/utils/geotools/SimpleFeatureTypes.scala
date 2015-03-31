@@ -20,6 +20,7 @@ import java.util.{Date, Locale, UUID}
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.vividsolutions.jts.geom._
+import org.geotools.factory.Hints
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser.{ListAttributeType, MapAttributeType, SimpleAttributeType}
@@ -48,6 +49,8 @@ object SimpleFeatureTypes {
   val USER_DATA_LIST_TYPE      = "subtype"
   val USER_DATA_MAP_KEY_TYPE   = "keyclass"
   val USER_DATA_MAP_VALUE_TYPE = "valueclass"
+
+  Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true);
 
   def createType(conf: Config): SimpleFeatureType = {
     val nameSpec = conf.getString("type-name")
