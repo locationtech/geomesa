@@ -25,14 +25,17 @@ import org.apache.avro.Schema.Type._
 import org.apache.avro.io.{DatumWriter, Encoder}
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.feature.AvroSimpleFeatureUtils._
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOption
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
-class AvroSimpleFeatureWriter(sft: SimpleFeatureType)
+class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: Set[EncodingOption] = Set.empty)
   extends DatumWriter[SimpleFeature] {
 
-  private var schema: Schema = generateSchema(sft)
+  private val includeVis = opts.contains(EncodingOption.WITH_VISIBILITIES)
+  private var schema: Schema = generateSchema(sft, includeVis)
   private val typeMap = createTypeMap(sft, new WKBWriter())
   private val names = DataUtilities.attributeNames(sft).map(encodeAttributeName)
 
@@ -40,13 +43,15 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType)
 
   override def write(datum: SimpleFeature, out: Encoder): Unit = {
 
-    def rawField(field: Field) = datum.getAttribute(field.pos - 2)
+    val numHeaderFields = if (includeVis) 3 else 2
+
+    def rawField(field: Field) = datum.getAttribute(field.pos - numHeaderFields)
 
     def getFieldValue[T](field: Field): T =
       if (rawField(field) == null)
         null.asInstanceOf[T]
       else
-        convertValue(field.pos - 2, rawField(field)).asInstanceOf[T]
+        convertValue(field.pos - numHeaderFields, rawField(field)).asInstanceOf[T]
 
     def write(schema: Schema, f: Field): Unit = {
       schema.getType match {
@@ -70,8 +75,14 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType)
     out.writeInt(VERSION)
     out.writeString(datum.getID)
 
+    // optionally, write visibility
+    if (includeVis) {
+      val vis = Option(SecurityUtils.getVisibility(datum)).getOrElse("")
+      out.writeString(vis)
+    }
+
     // Write out fields from Simple Feature
-    var i = 2
+    var i = numHeaderFields
     while(i < schema.getFields.length) {
       val f = schema.getFields.get(i)
       write(f.schema, f)

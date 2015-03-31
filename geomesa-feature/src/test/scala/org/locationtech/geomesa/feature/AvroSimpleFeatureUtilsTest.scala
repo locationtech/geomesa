@@ -20,6 +20,7 @@ import java.lang
 import java.util.Date
 
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -330,6 +331,32 @@ class AvroSimpleFeatureUtilsTest extends Specification {
         val orig = Map(2 -> new Object(), 1 -> new Object())
         AvroSimpleFeatureUtils.encodeMap(orig.asJava,
           classOf[Int], classOf[Object]) must throwAn[IllegalArgumentException]
+      }
+    }
+
+    "generate schema" >> {
+      "without visibility by default" >> {
+        val sft = SimpleFeatureTypes.createType("UtilsTest", "name:String,*geom:Point,dtg:Date")
+        val result = AvroSimpleFeatureUtils.generateSchema(sft)
+
+        result must not(beNull)
+        result.getFields must have size 5 // 3 attributes + 2 meta
+      }
+
+      "without visibility" >> {
+        val sft = SimpleFeatureTypes.createType("UtilsTest", "name:String,*geom:Point,dtg:Date")
+        val result = AvroSimpleFeatureUtils.generateSchema(sft, includeVisibility = false)
+
+        result must not(beNull)
+        result.getFields must have size 5 // 3 attributes + 2 meta
+      }
+
+      "with visibility" >> {
+        val sft = SimpleFeatureTypes.createType("UtilsTest", "name:String,*geom:Point,dtg:Date")
+        val result = AvroSimpleFeatureUtils.generateSchema(sft, includeVisibility = true)
+
+        result must not(beNull)
+        result.getFields must have size 6 // 3 attributes + 3 meta
       }
     }
   }

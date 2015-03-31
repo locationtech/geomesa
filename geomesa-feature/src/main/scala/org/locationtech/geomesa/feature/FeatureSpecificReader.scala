@@ -25,16 +25,19 @@ import org.apache.avro.io.{BinaryDecoder, DatumReader, Decoder, DecoderFactory}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.feature.AvroSimpleFeatureUtils._
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOption
 import org.locationtech.geomesa.feature.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
-class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType)
+class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType, opts: Set[EncodingOption] = Set.empty)
   extends DatumReader[AvroSimpleFeature] {
 
   def this(sft: SimpleFeatureType) = this(sft, sft)
 
+  private val includeVis = opts.contains(EncodingOption.WITH_VISIBILITIES)
   var oldSchema = generateSchema(oldType)
   val newSchema = generateSchema(newType)
   val fieldsDesired = DataUtilities.attributeNames(newType).map(encodeAttributeName)
@@ -106,9 +109,17 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
 
     // Read the id
     val id = new FeatureIdImpl(in.readString())
+    val sf = new AvroSimpleFeature(id, newType)
+
+    // Optionally, read the visibility
+    if (includeVis) {
+      val vis = in.readString()
+      if (!vis.isEmpty) {
+        SecurityUtils.setFeatureVisibility(sf, vis)
+      }
+    }
 
     // Followed by the data fields
-    val sf = new AvroSimpleFeature(id, newType)
     deserializer.foreach { f => f(sf, in) }
     sf
   }

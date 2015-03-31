@@ -30,6 +30,10 @@ trait HasEncoding {
   def encoding: FeatureEncoding
 }
 
+trait HasEncodingOptions {
+  def options: Set[EncodingOption]
+}
+
 /**
  * Interface to encode SimpleFeatures with a configurable serialization format.
  *
@@ -39,7 +43,7 @@ trait HasEncoding {
  * SimpleFeatureEncoder classes may not be thread safe and should generally be used
  * as instance variables for performance reasons.
  */
-trait SimpleFeatureEncoder extends HasEncoding {
+trait SimpleFeatureEncoder extends HasEncoding with HasEncodingOptions {
   def encode(feature: SimpleFeature): Array[Byte]
 }
 
@@ -52,7 +56,7 @@ trait SimpleFeatureEncoder extends HasEncoding {
  * SimpleFeatureDecoder classes may not be thread safe and should generally be used
  * as instance variables for performance reasons.
  */
-trait SimpleFeatureDecoder extends HasEncoding {
+trait SimpleFeatureDecoder extends HasEncoding with HasEncodingOptions {
   def decode(featureBytes: Array[Byte]): SimpleFeature
   def extractFeatureId(bytes: Array[Byte]): String
 }
@@ -69,9 +73,9 @@ object SimpleFeatureDecoder {
    */
   def apply(sft: SimpleFeatureType, encoding: FeatureEncoding, options: EncodingOption*) =
     encoding match {
-      case FeatureEncoding.KRYO => new KryoFeatureEncoder(sft, sft)
-      case FeatureEncoding.AVRO => new AvroFeatureDecoder(sft)
-      case FeatureEncoding.TEXT => new TextFeatureDecoder(sft)
+      case FeatureEncoding.KRYO => new KryoFeatureEncoder(sft, options.toSet)
+      case FeatureEncoding.AVRO => new AvroFeatureDecoder(sft, options.toSet)
+      case FeatureEncoding.TEXT => new TextFeatureDecoder(sft, options.toSet)
     }
 
   /**
@@ -86,9 +90,9 @@ object SimpleFeatureDecoder {
   def apply(originalSft: SimpleFeatureType, projectedSft: SimpleFeatureType,
             encoding: FeatureEncoding, options: EncodingOption*) =
     encoding match {
-      case FeatureEncoding.KRYO => new KryoFeatureEncoder(originalSft, projectedSft)
-      case FeatureEncoding.AVRO => new ProjectingAvroFeatureDecoder(originalSft, projectedSft)
-      case FeatureEncoding.TEXT => new ProjectingTextDecoder(originalSft, projectedSft)
+      case FeatureEncoding.KRYO => new           KryoFeatureEncoder(originalSft, projectedSft, options.toSet)
+      case FeatureEncoding.AVRO => new ProjectingAvroFeatureDecoder(originalSft, projectedSft, options.toSet)
+      case FeatureEncoding.TEXT => new ProjectingTextFeatureDecoder(originalSft, projectedSft, options.toSet)
     }
 
   /**
@@ -126,9 +130,9 @@ object SimpleFeatureEncoder {
    */
   def apply(sft: SimpleFeatureType, encoding: FeatureEncoding, options: EncodingOption*): SimpleFeatureEncoder =
     encoding match {
-      case FeatureEncoding.KRYO => new KryoFeatureEncoder(sft, sft)
-      case FeatureEncoding.AVRO => new AvroFeatureEncoder(sft)
-      case FeatureEncoding.TEXT => new TextFeatureEncoder(sft)
+      case FeatureEncoding.KRYO => new KryoFeatureEncoder(sft, options.toSet)
+      case FeatureEncoding.AVRO => new AvroFeatureEncoder(sft, options.toSet)
+      case FeatureEncoding.TEXT => new TextFeatureEncoder(sft, options.toSet)
     }
 
   /**
@@ -158,17 +162,31 @@ object EncodingOption extends Enumeration {
    * If this [[EncodingOption]] is specified then the security marking associated with the sample feature will be
    * serialized and deserialized.
    */
-  val SECURE = Value("secure")
+  val WITH_VISIBILITIES = Value("withVisibilities")
 }
 
-class TextFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
+object EncodingOptions {
+
+  /**
+   * Same as ``Set.empty`` but provides better readability.
+   *
+   * e.g. ``SimpleFeatureEncoder(sft, FeatureEncoding.AVRO, EncodingOptions.none)``
+   */
+  val none: Set[EncodingOption] = Set.empty
+}
+
+class TextFeatureEncoder(sft: SimpleFeatureType, val options: Set[EncodingOption] = Set.empty)
+  extends SimpleFeatureEncoder {
+
   override def encode(feature:SimpleFeature): Array[Byte] =
     ThreadSafeDataUtilities.encodeFeature(feature).getBytes
 
   override def encoding: FeatureEncoding = FeatureEncoding.TEXT
 }
 
-class TextFeatureDecoder(sft: SimpleFeatureType) extends SimpleFeatureDecoder {
+class TextFeatureDecoder(sft: SimpleFeatureType, val options: Set[EncodingOption] = Set.empty)
+  extends SimpleFeatureDecoder {
+
   override def decode(bytes: Array[Byte]) =
     ThreadSafeDataUtilities.createFeature(sft, new String(bytes))
 
@@ -181,8 +199,9 @@ class TextFeatureDecoder(sft: SimpleFeatureType) extends SimpleFeatureDecoder {
   override def encoding: FeatureEncoding = FeatureEncoding.TEXT
 }
 
-class ProjectingTextDecoder(original: SimpleFeatureType, projected: SimpleFeatureType)
-  extends TextFeatureDecoder(original) {
+class ProjectingTextFeatureDecoder(original: SimpleFeatureType, projected: SimpleFeatureType,
+                                   options: Set[EncodingOption] = Set.empty)
+  extends TextFeatureDecoder(original, options) {
 
   private val fac = AvroSimpleFeatureFactory.featureBuilder(projected)
   private val attrs = DataUtilities.attributeNames(projected)
@@ -212,9 +231,10 @@ object ThreadSafeDataUtilities {
     }
 }
 
-class AvroFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
+class AvroFeatureEncoder(sft: SimpleFeatureType, val options: Set[EncodingOption] = Set.empty)
+  extends SimpleFeatureEncoder {
 
-  private val writer = new AvroSimpleFeatureWriter(sft)
+  private val writer = new AvroSimpleFeatureWriter(sft, options)
 
   // Encode using a direct binary encoder that is reused. No need to buffer
   // small simple features. Reuse a common BAOS as well.
@@ -232,10 +252,11 @@ class AvroFeatureEncoder(sft: SimpleFeatureType) extends SimpleFeatureEncoder {
   override def encoding: FeatureEncoding = FeatureEncoding.AVRO
 }
 
-class ProjectingAvroFeatureDecoder(original: SimpleFeatureType, projected: SimpleFeatureType)
+class ProjectingAvroFeatureDecoder(original: SimpleFeatureType, projected: SimpleFeatureType,
+                                   val options: Set[EncodingOption] = Set.empty)
   extends SimpleFeatureDecoder {
 
-  private val reader = new FeatureSpecificReader(original, projected)
+  private val reader = new FeatureSpecificReader(original, projected, options)
 
   override def decode(bytes: Array[Byte]) = decode(new ByteArrayInputStream(bytes))
 
@@ -252,15 +273,21 @@ class ProjectingAvroFeatureDecoder(original: SimpleFeatureType, projected: Simpl
   override def encoding: FeatureEncoding = FeatureEncoding.AVRO
 }
 
-class AvroFeatureDecoder(sft: SimpleFeatureType) extends ProjectingAvroFeatureDecoder(sft, sft)
+class AvroFeatureDecoder(sft: SimpleFeatureType, opts: Set[EncodingOption] = Set.empty)
+  extends ProjectingAvroFeatureDecoder(sft, sft, opts)
 
 /**
  *
  * @param sft the simple feature type to encode or decode
  * @param projected the projected simple feature type for encoding or decoding
  */
-class KryoFeatureEncoder(sft: SimpleFeatureType, projected: SimpleFeatureType)
+class KryoFeatureEncoder(sft: SimpleFeatureType, projected: SimpleFeatureType,
+                         val options: Set[EncodingOption] = Set.empty)
     extends SimpleFeatureEncoder with SimpleFeatureDecoder {
+
+  def this(sft: SimpleFeatureType, options: Set[EncodingOption] = Set.empty) {
+    this(sft, sft, options)
+  }
 
   val encoder = KryoFeatureSerializer(sft, projected)
 
