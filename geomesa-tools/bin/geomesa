@@ -15,13 +15,8 @@
 # limitations under the License.
 #
 
-GEOMESA_OPTS="-Duser.timezone=UTC"
-GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"
-GEOMESA_CP=""
-JAVA_LIBRARY_PATH=""
-
-# Define GEOMESA_HOME and update the PATH if necessary.
-if [ -z "$GEOMESA_HOME" ]; then
+setGeoHome ()
+{
     SOURCE="${BASH_SOURCE[0]}"
     # resolve $SOURCE until the file is no longer a symlink
     while [ -h "${SOURCE}" ]; do
@@ -35,22 +30,33 @@ if [ -z "$GEOMESA_HOME" ]; then
     export GEOMESA_HOME="$bin"
     export PATH=${GEOMESA_HOME}/bin:$PATH
     echo >&2 "Warning: GEOMESA_HOME is not set, using $GEOMESA_HOME"
+}
+
+GEOMESA_OPTS="-Duser.timezone=UTC"
+GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"
+GEOMESA_CP=""
+JAVA_LIBRARY_PATH=""
+
+
+
+# Define GEOMESA_HOME and update the PATH if necessary.
+if [ -z "$GEOMESA_HOME" ]; then
+setGeoHome
 else
     echo >&2 "Using GEOMESA_HOME as set: $GEOMESA_HOME"
-    read -p "Is this intentional? Y\n " -n 1 -r
-    if [[  $REPLY =~ ^[Nn]$ ]]; then
-        bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
-        export GEOMESA_HOME="$bin"
+    if [[ $1 = configure ]]; then
+        read -p "Is this intentional? Y\n " -n 1 -r
+        if [[  $REPLY =~ ^[Nn]$ ]]; then
+            setGeoHome
+        fi
         echo >&2 ""
-        echo "Now set to ${GEOMESA_HOME}"
     fi
-    echo >&2 ""
 fi
 
 # GEOMESA paths, GEOMESA_LIB should live inside GEOMESA_HOME, but can be pointed elsewhere
 if [ -z "$GEOMESA_LIB" ]; then
     GEOMESA_LIB=${GEOMESA_HOME}/lib
-else
+elif [[ $1 = configure ]]; then
     message="Warning: GEOMESA_LIB already set, probably by a prior configuration."
     message="${message}\n Current value is ${GEOMESA_LIB}."
     echo >&2 ""
