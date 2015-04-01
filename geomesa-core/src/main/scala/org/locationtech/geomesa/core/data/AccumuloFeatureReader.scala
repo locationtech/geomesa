@@ -19,14 +19,15 @@ package org.locationtech.geomesa.core.data
 import org.geotools.data.{FeatureReader, Query}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.stats._
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, NoOpTimings, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class AccumuloFeatureReader(queryPlanner: QueryPlanner, query: Query, dataStore: AccumuloDataStore)
     extends FeatureReader[SimpleFeatureType, SimpleFeature] with MethodProfiling {
 
-  implicit val timings = new TimingsImpl
+  private val writeStats = dataStore.isInstanceOf[StatWriter]
+
+  implicit val timings = if (writeStats) new TimingsImpl else NoOpTimings
 
   private val iter = profile(queryPlanner.query(query), "planning")
 
@@ -38,19 +39,15 @@ class AccumuloFeatureReader(queryPlanner: QueryPlanner, query: Query, dataStore:
 
   override def close() = {
     iter.close()
-
-    dataStore match {
-      case sw: StatWriter =>
-        val stat =
-          QueryStat(queryPlanner.sft.getTypeName,
-                    System.currentTimeMillis(),
-                    QueryStatTransform.filterToString(query.getFilter),
-                    QueryStatTransform.hintsToString(query.getHints),
-                    timings.time("planning"),
-                    timings.time("next") + timings.time("hasNext"),
-                    timings.occurrences("next").toInt)
-        sw.writeStat(stat, dataStore.getQueriesTableName(queryPlanner.sft))
-      case _ => // do nothing
+    if (writeStats) {
+      val stat = QueryStat(queryPlanner.sft.getTypeName,
+          System.currentTimeMillis(),
+          QueryStatTransform.filterToString(query.getFilter),
+          QueryStatTransform.hintsToString(query.getHints),
+          timings.time("planning"),
+          timings.time("next") + timings.time("hasNext"),
+          timings.occurrences("next").toInt)
+      dataStore.asInstanceOf[StatWriter].writeStat(stat, dataStore.getQueriesTableName(queryPlanner.sft))
     }
   }
 }

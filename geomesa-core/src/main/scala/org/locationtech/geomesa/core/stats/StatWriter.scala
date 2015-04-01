@@ -18,19 +18,20 @@
 
 package org.locationtech.geomesa.core.stats
 
+import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
-import com.google.common.collect.Queues
 import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
-import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
+import org.apache.accumulo.core.client.{Connector, TableExistsException}
 import org.locationtech.geomesa.core.stats.StatWriter.TableInstance
 import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 
-import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 trait StatWriter {
@@ -38,7 +39,7 @@ trait StatWriter {
   def connector: Connector
 
   // start the background thread
-  if(!connector.isInstanceOf[MockConnector]) {
+  if (!connector.isInstanceOf[MockConnector]) {
     StatWriter.startIfNeeded()
   }
 
@@ -68,10 +69,12 @@ object StatWriter extends Runnable with Logging {
 
   private val running = new AtomicBoolean(false)
 
-  private val queue = Queues.newLinkedBlockingQueue[StatToWrite](batchSize)
-
-  private val tableCache = new mutable.HashMap[TableInstance, Boolean]
-                               with mutable.SynchronizedMap[TableInstance, Boolean]
+  // we need to use our own synchronization in order to synchronize the flush method and the queue draining
+  private val lock = new ReentrantLock()
+  private val notEmpty = lock.newCondition()
+  // the queue and table cache should only be accessed when the lock is acquired
+  private val queue = scala.collection.mutable.Queue.empty[StatToWrite]
+  private val tableCache = scala.collection.mutable.Set.empty[TableInstance]
 
   sys.addShutdownHook {
     executor.shutdownNow()
@@ -80,30 +83,76 @@ object StatWriter extends Runnable with Logging {
   /**
    * Starts the background thread for writing stats, if it hasn't already been started
    */
-  private def startIfNeeded() {
-    if (running.compareAndSet(false, true)) {
-      // we want to wait between invocations to give more stats a chance to queue up
-      executor.scheduleWithFixedDelay(this, writeDelayMillis, writeDelayMillis, TimeUnit.MILLISECONDS)
-    }
+  private def startIfNeeded() = if (running.compareAndSet(false, true)) {
+    // we want to wait between invocations to give more stats a chance to queue up
+    executor.scheduleWithFixedDelay(this, writeDelayMillis, writeDelayMillis, TimeUnit.MILLISECONDS)
   }
 
   /**
    * Queues a stat for writing. We don't want to affect memory and accumulo performance too much...
    * if we exceed the queue size, we drop any further stats
-   *
-   * @param stat
    */
-  private def queueStat(stat: Stat, table: TableInstance): Unit =
-    if (!queue.offer(StatToWrite(stat, table))) {
-      logger.debug("Stat queue is full - stat being dropped")
+  private def queueStat(stat: Stat, table: TableInstance): Unit = {
+    lock.lock()
+    try {
+      if (queue.length < batchSize) {
+        queue.enqueue(StatToWrite(stat, table))
+        notEmpty.signal() // notify the writing thread that there is data
+      } else {
+        logger.debug("Stat queue is full - stat being dropped")
+      }
+    } finally {
+      lock.unlock()
     }
+  }
+
+  override def run() = {
+    lock.lock()
+    try {
+      // wait for a stat to be queued
+      while (queue.isEmpty) {
+        notEmpty.await() // this gives up the lock but will re-acquire it before proceeding
+      }
+      drainQueue()
+    } catch {
+      case e: InterruptedException =>
+        // normal thread termination, just propagate the interrupt
+        Thread.currentThread().interrupt()
+      case e: Exception =>
+        logger.error("Error in stat writing - stopping stat writer thread", e)
+        executor.shutdown()
+    } finally {
+      lock.unlock()
+    }
+  }
 
   /**
-   * Writes the stats.
-   *
-   * @param statsToWrite
+   * Flush out any queued stats.
    */
-  def write(statsToWrite: Iterable[StatToWrite]): Unit =
+  def flush(): Unit = {
+    lock.lock()
+    try {
+      drainQueue()
+    } finally {
+      lock.unlock()
+    }
+  }
+
+  /**
+   * Flush out any queued entries - should only be called if the current thread has acquired the lock.
+   */
+  private def drainQueue(): Unit = {
+    // drain out all current stats that may have been queued
+    val stats = if (queue.nonEmpty) queue.dequeueAll(_ => true) else Seq.empty
+    if (stats.nonEmpty) {
+      write(stats)
+    }
+  }
+
+  /**
+   * Writes the stats. This should be called only when the lock is acquired.
+   */
+  protected[stats] def write(statsToWrite: Seq[StatToWrite]): Unit =
     statsToWrite.groupBy(s => StatGroup(s.table, s.stat.getClass)).foreach { case (group, stats) =>
       // get the appropriate transform for this type of stat
       val transform = group.clas match {
@@ -111,52 +160,25 @@ object StatWriter extends Runnable with Logging {
         case _ => throw new RuntimeException("Not implemented")
       }
       // create the table if necessary
-      checkTable(group.table)
+      if (tableCache.add(group.table)) {
+        val tableOps = group.table.connector.tableOperations()
+        if (!tableOps.exists(group.table.name)) {
+          try {
+            tableOps.create(group.table.name, true, TimeType.LOGICAL)
+          } catch {
+            case e: TableExistsException => // unlikely, but this can happen with multiple jvms
+          }
+        }
+      }
       // write to the table
       val writer = group.table.connector.createBatchWriter(group.table.name, batchWriterConfig)
       try {
-        writer.addMutations(stats.map(stw => transform.statToMutation(stw.stat)).asJava)
+        writer.addMutations(stats.map(stw => transform.statToMutation(stw.stat)))
         writer.flush()
       } finally {
         writer.close()
       }
     }
-
-  /**
-   * Create the stats table if it doesn't exist
-   * @param table
-   * @return
-   */
-  private def checkTable(table: TableInstance) =
-    tableCache.getOrElseUpdate(table, {
-      val tableOps = table.connector.tableOperations()
-      if (!tableOps.exists(table.name)) {
-        try {
-          tableOps.create(table.name, true, TimeType.LOGICAL)
-        } catch {
-          case e: TableExistsException => // unlikely, but this can happen with multiple jvms
-        }
-      }
-      true
-    })
-
-  override def run() = {
-    try {
-      // wait for a stat to be queued
-      val head = queue.take()
-      // drain out any other stats that have been queued while sleeping
-      val stats = collection.mutable.ListBuffer(head)
-      queue.drainTo(stats.asJava)
-      write(stats)
-    } catch {
-      case e: InterruptedException =>
-        // normal thread termination, just propagate the interrupt
-        Thread.currentThread().interrupt()
-      case e: Exception =>
-        logger.error("Error in stat writing - stopping stat writer thread:", e)
-        executor.shutdown()
-    }
-  }
 
   private[stats] case class StatToWrite(stat: Stat, table: TableInstance)
 

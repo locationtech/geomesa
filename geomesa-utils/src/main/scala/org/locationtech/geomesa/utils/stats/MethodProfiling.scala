@@ -181,7 +181,7 @@ class AutoLoggingTimings(moduloToLog: Int = 1000) extends TimingsImpl with Loggi
   }
 }
 
-class NoOpTimings extends Timings {
+object NoOpTimings extends Timings {
 
   override def occurrence(identifier: String, time: Long) = {}
 
