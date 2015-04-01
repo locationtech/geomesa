@@ -69,8 +69,8 @@ object SimpleFeatureConverters {
 
 trait SimpleFeatureConverter[I] {
   def targetSFT: SimpleFeatureType
-  def processInput(is: Iterator[I], globalParams: Map[String, String] = null): Iterator[SimpleFeature]
-  def processSingleInput(i: I, globalParams: Map[String, String] = null): Option[SimpleFeature]
+  def processInput(is: Iterator[I], globalParams: Option[Map[String, String]] = None): Iterator[SimpleFeature]
+  def processSingleInput(i: I, globalParams: Option[Map[String, String]] = None): Option[SimpleFeature]
   def close(): Unit = {}
 }
 
@@ -121,7 +121,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
 
   def convert(t: Array[Any], reuse: Array[Any]): SimpleFeature = {
     import spire.syntax.cfor._
-    ctx.incCount()
+    ctx.incrementCount()
 
     val attributes =
       if(reuse == null) Array.ofDim[Any](requiredFields.length)
@@ -140,8 +140,8 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
 
   val reuse = Array.ofDim[Any](requiredFields.length)
 
-  def processSingleInput(i: I, gParams: Map[String, String] = null): Option[SimpleFeature] = {
-    if (gParams != null) ctx.globalParams = Some(gParams)
+  def processSingleInput(i: I, gParams: Option[Map[String, String]] = None): Option[SimpleFeature] = {
+    if (gParams.isDefined) ctx.globalParams = gParams
     Try { convert(fromInputType(i), reuse) } match {
       case Success(s) => Some(s)
       case Failure(t) =>
@@ -150,8 +150,8 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     }
   }
 
-  def processInput(is: Iterator[I], gParams: Map[String, String] = null): Iterator[SimpleFeature] = {
-    if (gParams != null) ctx.globalParams = Some(gParams)
+  def processInput(is: Iterator[I], gParams: Option[Map[String, String]] = None): Iterator[SimpleFeature] = {
+    if (gParams.isDefined) ctx.globalParams = gParams
     is.flatMap { s => processSingleInput(s) }
   }
 

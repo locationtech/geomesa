@@ -125,7 +125,7 @@ class DelimitedTextConverterTest extends Specification {
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not beNull
       val input = data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))
-      val res = converter.processInput(input, Map("filename"-> "/some/file/path/testfile.txt")).toList
+      val res = converter.processInput(input, Some(Map("filename"-> "/some/file/path/testfile.txt"))).toList
       converter.close()
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"

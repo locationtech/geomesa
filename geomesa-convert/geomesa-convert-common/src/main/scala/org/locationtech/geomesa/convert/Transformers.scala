@@ -108,7 +108,7 @@ object Transformers extends JavaTokenParsers {
     def indexOf(n: String): Int = fieldNameMap.getOrElse(n, -1)
     def lookup(i: Int) = if(i < 0) null else computedFields(i)
     def getCount(): Int = count
-    def incCount(): Unit = count +=1
+    def incrementCount(): Unit = count +=1
     def resetCount(): Unit = count = 0
   }
 
@@ -146,12 +146,11 @@ object Transformers extends JavaTokenParsers {
 
   case class FieldLookup(n: String) extends Expr {
     var idx = -1
-    override def eval(args: Any*)(implicit ctx: EvaluationContext): Any = {
-      if (ctx.globalParams.isDefined && ctx.globalParams.get.isDefinedAt(n)) ctx.globalParams.get.getOrElse(n, null)
-      else {
+    override def eval(args: Any*)(implicit ctx: EvaluationContext): Any = ctx.globalParams match {
+      case Some(gp) if gp.isDefinedAt(n) => gp.getOrElse(n, null)
+      case _                             =>
         if (idx == -1) idx = ctx.indexOf(n)
         ctx.lookup(idx)
-      }
     }
   }
 
@@ -303,7 +302,7 @@ class IdFunctionFactory extends TransformerFunctionFactory {
 
 }
 
-class FileInfoFunctionFactory extends TransformerFunctionFactory {
+class LineNumberFunctionFactory extends TransformerFunctionFactory {
   override def functions = Seq(LineNumberFn())
 
   case class LineNumberFn() extends TransformerFn {

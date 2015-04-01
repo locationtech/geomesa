@@ -42,15 +42,16 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
                                converters: Seq[(Predicate, SimpleFeatureConverter[I])])
   extends SimpleFeatureConverter[I] {
 
-  override def processInput(is: Iterator[I],  globalParams: Map[String, String] = null): Iterator[SimpleFeature] = {
-    if (globalParams != null) ec.globalParams = Some(globalParams)
-    is.flatMap { input => ec.incCount()
+  override def processInput(is: Iterator[I],  gParams: Option[Map[String, String]] = None): Iterator[SimpleFeature] = {
+    if (gParams.isDefined) ec.globalParams = gParams
+    is.flatMap { input =>
+      ec.incrementCount()
       converters.view.flatMap { case (pred, conv) => processIfValid(input, pred, conv) }.headOption
     }
   }
 
   // noop
-  override def processSingleInput(i: I,  globalParams: Map[String, String] = null): Option[SimpleFeature] = null
+  override def processSingleInput(i: I, gParams: Option[Map[String, String]] = None): Option[SimpleFeature] = null
 
   implicit val ec = new EvaluationContext(Map(), Array())
   def processIfValid(input: I, pred: Predicate, conv: SimpleFeatureConverter[I]) =
