@@ -43,10 +43,11 @@ JAVA_LIBRARY_PATH=""
 if [ -z "$GEOMESA_HOME" ]; then
 setGeoHome
 else
-    echo >&2 "Using GEOMESA_HOME as set: $GEOMESA_HOME"
+    echo >&2 "Using GEOMESA_HOME = $GEOMESA_HOME"
     if [[ $1 = configure ]]; then
-        read -p "Is this intentional? Y\n " -n 1 -r
-        if [[  $REPLY =~ ^[Nn]$ ]]; then
+        read -p "Do you want to reset this? Y\n " -n 1 -r
+        if [[  $REPLY =~ ^[Yy]$ ]]; then
+            echo >&2 ""
             setGeoHome
         fi
         echo >&2 ""
@@ -62,8 +63,8 @@ elif [[ $1 = configure ]]; then
     echo >&2 ""
     echo -e >&2 "$message"
     echo >&2 ""
-    read -p "Is this intentional? Y\n " -n 1 -r
-    if [[  $REPLY =~ ^[Nn]$ ]]; then
+    read -p "Is you want to reset this? Y\n " -n 1 -r
+    if [[  $REPLY =~ ^[Yy]$ ]]; then
         GEOMESA_LIB=${GEOMESA_HOME}/lib
         echo >&2 ""
         echo "Now set to ${GEOMESA_LIB}"
