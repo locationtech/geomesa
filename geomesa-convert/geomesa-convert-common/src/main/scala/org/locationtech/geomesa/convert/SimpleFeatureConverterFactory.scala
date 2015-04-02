@@ -69,8 +69,8 @@ object SimpleFeatureConverters {
 
 trait SimpleFeatureConverter[I] {
   def targetSFT: SimpleFeatureType
-  def processInput(is: Iterator[I], globalParams: Option[Map[String, String]] = None): Iterator[SimpleFeature]
-  def processSingleInput(i: I, globalParams: Option[Map[String, String]] = None): Option[SimpleFeature]
+  def processInput(is: Iterator[I], globalParams: Map[String, String] = Map.empty): Iterator[SimpleFeature]
+  def processSingleInput(i: I, globalParams: Map[String, String] = Map.empty): Option[SimpleFeature]
   def close(): Unit = {}
 }
 
@@ -101,7 +101,6 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   val idDependencies = dependenciesOf(idBuilder)
   val requiredFieldsNames: Set[String] = attrRequiredFieldsNames ++ idDependencies
   val requiredFields = inputFields.filter { f => requiredFieldsNames.contains(f.name) }
-
   val nfields = requiredFields.length
 
   val indexes =
@@ -124,7 +123,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     ctx.incrementCount()
 
     val attributes =
-      if(reuse == null) Array.ofDim[Any](requiredFields.length)
+      if(reuse == null) Array.ofDim[Any](nfields)
       else reuse
     ctx.computedFields = attributes
 
@@ -138,10 +137,10 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     sf
   }
 
-  val reuse = Array.ofDim[Any](requiredFields.length)
+  var reuse = Array.ofDim[Any](nfields)
 
-  def processSingleInput(i: I, gParams: Option[Map[String, String]] = None): Option[SimpleFeature] = {
-    if (gParams.isDefined) ctx.globalParams = gParams
+  def processSingleInput(i: I, gParams: Map[String, String] = Map.empty): Option[SimpleFeature] = {
+    updateReuseWithGP(gParams)
     Try { convert(fromInputType(i), reuse) } match {
       case Success(s) => Some(s)
       case Failure(t) =>
@@ -150,11 +149,20 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     }
   }
 
-  def processInput(is: Iterator[I], gParams: Option[Map[String, String]] = None): Iterator[SimpleFeature] = {
-    if (gParams.isDefined) ctx.globalParams = gParams
+  def processInput(is: Iterator[I], gParams: Map[String, String] = Map.empty): Iterator[SimpleFeature] = {
+    ctx.resetCount()
+    updateReuseWithGP(gParams)
     is.flatMap { s => processSingleInput(s) }
   }
 
-  def resetCounter(): Unit = ctx.resetCount()
+  private def updateReuseWithGP(gParams: Map[String, String] = Map.empty): Unit = {
+    if (gParams.nonEmpty) {
+      ctx.globalParams = Some(gParams)
+      ctx.globalParams.foreach { gp =>
+        ctx.fieldNameMap = inputFieldIndexes ++ gp.zipWithIndex.map(p => (p._1._1, p._2 + nfields))
+        gp.valuesIterator.foreach(v => reuse = reuse :+ v)
+      }
+    }
+  }
 
 }

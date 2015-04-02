@@ -125,7 +125,7 @@ class DelimitedTextConverterTest extends Specification {
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not beNull
       val input = data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))
-      val res = converter.processInput(input, Some(Map("filename"-> "/some/file/path/testfile.txt"))).toList
+      val res = converter.processInput(input, Map("filename"-> "/some/file/path/testfile.txt")).toList
       converter.close()
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
@@ -135,6 +135,40 @@ class DelimitedTextConverterTest extends Specification {
       res(1).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 2
       res(1).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
     }
+
+    "handle line number transform and filename global in id-field " >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | converter = {
+          |   type         = "delimited-text",
+          |   format       = "TDF",
+          |   id-field     = "concat($filename, lineNo())",
+          |   fields = [
+          |     { name = "phrase", transform = "concat($1, $2)" },
+          |     { name = "lineNr", transform = "lineNo()"},
+          |     { name = "fn",     transform = "$filename"},
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      converter must not beNull
+      val input = data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))
+      val res = converter.processInput(input, Map("filename"-> "/some/file/path/testfile.txt")).toList
+      converter.close()
+      res.size must be equalTo 2
+      res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
+      res(0).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 1
+      res(0).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
+      res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
+      res(1).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 2
+      res(1).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
+    }
+
 
 
     "handle projecting to just the attributes in the SFT (and associated input dependencies)" >> {

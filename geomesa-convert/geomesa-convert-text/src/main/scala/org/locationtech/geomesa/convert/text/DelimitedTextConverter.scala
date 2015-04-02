@@ -105,6 +105,5 @@ class DelimitedTextConverter(format: CSVFormat,
     es.shutdownNow()
     writer.close()
     reader.close()
-    resetCounter()
   }
 }
