@@ -21,8 +21,9 @@ import java.util.{Date, UUID}
 
 import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.ScalaSimpleFeature
+import org.locationtech.geomesa.feature.{EncodingOptions, EncodingOption, ScalaSimpleFeature}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -70,6 +71,42 @@ class KryoFeatureSerializerTest extends Specification {
         deserialized must not beNull;
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
+      }
+
+      "without visibility" >> {
+        val sft = SimpleFeatureTypes.createType("testType", "dtg:Date,*geom:Point:srid=4326")
+        val sf = new ScalaSimpleFeature("testId", sft)
+
+        sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+        sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+        val vis = "u&usa&fouo"
+        SecurityUtils.setFeatureVisibility(sf, vis)
+
+        val serializer =  KryoFeatureSerializer(sft, EncodingOptions.none)
+
+        val serialized = serializer.write(sf)
+        val deserialized = serializer.read(serialized)
+
+        SecurityUtils.getVisibility(deserialized) must beNull
+      }
+
+      "with visibility" >> {
+        val sft = SimpleFeatureTypes.createType("testType", "dtg:Date,*geom:Point:srid=4326")
+        val sf = new ScalaSimpleFeature("testId", sft)
+
+        sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+        sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+        val vis = "u&usa&fouo"
+        SecurityUtils.setFeatureVisibility(sf, vis)
+
+        val serializer =  KryoFeatureSerializer(sft, Set(EncodingOption.WITH_VISIBILITIES))
+
+        val serialized = serializer.write(sf)
+        val deserialized = serializer.read(serialized)
+
+        SecurityUtils.getVisibility(deserialized) mustEqual vis
       }
     }
 

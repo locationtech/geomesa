@@ -289,7 +289,7 @@ class KryoFeatureEncoder(sft: SimpleFeatureType, projected: SimpleFeatureType,
     this(sft, sft, options)
   }
 
-  val encoder = KryoFeatureSerializer(sft, projected)
+  val encoder = KryoFeatureSerializer(sft, projected, options)
 
   override val encoding = FeatureEncoding.KRYO
   override def encode(feature: SimpleFeature) = encoder.write(feature)
