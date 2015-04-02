@@ -19,10 +19,12 @@ package org.locationtech.geomesa.jobs
 import java.util.{List => JList, Map => JMap}
 
 import cascading.flow.{Flow, FlowStep, FlowStepStrategy}
+import com.twitter.chill.config.ConfiguredInstantiator
 import com.twitter.scalding._
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapred.JobConf
+import org.locationtech.geomesa.jobs.scalding.SimpleFeatureKryoHadoop
 
 abstract class GeoMesaBaseJob(args: Args) extends Job(args) with Logging {
 
@@ -30,6 +32,10 @@ abstract class GeoMesaBaseJob(args: Args) extends Job(args) with Logging {
 
   // hook to set the job name
   override def stepStrategy: Option[FlowStepStrategy[_]] = Some(new JobNameFlowStepStrategy(jobName))
+
+  // we need to register our custom simple feature serialization
+  override def config: Map[AnyRef, AnyRef] =
+    super.config ++ Map(ConfiguredInstantiator.KEY -> classOf[SimpleFeatureKryoHadoop].getName)
 
   // override the run method to perform tasks after the job completes
   override def run: Boolean = {

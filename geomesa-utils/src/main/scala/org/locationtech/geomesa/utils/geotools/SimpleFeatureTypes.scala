@@ -573,10 +573,11 @@ object SimpleFeatureTypes {
     def strip(s: String) = s.stripMargin('|').replaceAll("\\s*", "")
 
     def parse(s: String): FeatureSpec = parse(spec, strip(s)) match {
-      case Success(t, r)   if r.atEnd => t
-      case Error(msg, r)   if r.atEnd => throw new IllegalArgumentException(msg)
-      case Failure(msg, r) if r.atEnd => throw new IllegalArgumentException(msg)
-      case other => throw new IllegalArgumentException(s"Malformed attribute: $other")
+      case Success(t, r)     if r.atEnd => t
+      case NoSuccess(msg, r) if r.atEnd =>
+        throw new IllegalArgumentException(s"Error parsing spec '$s' : $msg")
+      case other =>
+        throw new IllegalArgumentException(s"Error parsing spec '$s' : $other")
     }
   }
 

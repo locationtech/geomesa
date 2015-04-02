@@ -17,22 +17,22 @@
 package org.locationtech.geomesa.jobs.index
 
 import cascading.tuple.Tuple
-import com.twitter.scalding.{Source, Args, Mode}
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import com.twitter.scalding.{Args, Mode, Source}
 import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.geotools.data.DataStoreFinder
+import org.geotools.feature.DefaultFeatureCollection
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.tables.AttributeTable
-import org.locationtech.geomesa.core.index.IndexValueEncoder
-import org.locationtech.geomesa.core.iterators.TestData
-import org.locationtech.geomesa.core.iterators.TestData._
-import org.locationtech.geomesa.feature.{SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.locationtech.geomesa.jobs.index.AttributeIndexJob._
-import org.locationtech.geomesa.jobs.scalding.{AccumuloSource, GeoMesaInputOptions, GeoMesaSource, ConnectionParams}
+import org.locationtech.geomesa.jobs.scalding.{AccumuloSource, ConnectionParams, GeoMesaSource}
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -57,9 +57,14 @@ class AttributeIndexJobTest extends Specification {
   val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
   def test(sft: SimpleFeatureType, feats: Seq[SimpleFeature]) = {
-    getFeatureStore(ds, sft, feats) // populate the data
+    ds.createSchema(sft)
+    ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore].addFeatures {
+      val collection = new DefaultFeatureCollection(sft.getTypeName, sft)
+      collection.addAll(feats)
+      collection
+    }
 
-    val jobParams = Map(ATTRIBUTES_TO_INDEX -> List("attr2"),
+    val jobParams = Map(ATTRIBUTES_TO_INDEX -> List("name"),
                         INDEX_COVERAGE -> List("join"),
                         ConnectionParams.FEATURE_IN -> List(sft.getTypeName))
     val scaldingArgs = new Args(ConnectionParams.toInArgs(params) ++ jobParams)
@@ -76,7 +81,8 @@ class AttributeIndexJobTest extends Specification {
     val job = new AttributeIndexJob(arguments)
     job.run must beTrue
 
-    val descriptor = sft.getDescriptor("attr2")
+    val descriptor = sft.getDescriptor("name")
+    descriptor.setIndexCoverage(IndexCoverage.JOIN)
     val attrList = Seq((descriptor, sft.indexOf(descriptor.getName)))
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
     val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
@@ -91,17 +97,32 @@ class AttributeIndexJobTest extends Specification {
     jobMutations must containTheSameElementsAs(expectedMutations)
   }
 
+  val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
+  def getTestFeatures(sft: SimpleFeatureType) = {
+    (0 until 10).map { i =>
+      val name = s"name$i"
+      val dtg = s"2014-01-0${i}T00:00:00.000Z"
+      val geom = s"POINT(${40 + i} ${60 - i})"
+      ScalaSimpleFeatureFactory.buildFeature(sft, Array(name, dtg, geom), s"fid-$i")
+    } ++ (10 until 20).map { i =>
+      val name = null
+      val dtg = s"2014-01-${i}T00:00:00.000Z"
+      val geom = s"POINT(${40 + i} ${60 - i})"
+      ScalaSimpleFeatureFactory.buildFeature(sft, Array(name, dtg, geom), s"fid-$i")
+    }
+  }
+
   "AccumuloIndexJob" should {
     "create the correct mutation for a stand-alone feature" in {
-      val sft1 = TestData.getFeatureType("1", tableSharing = false)
-      val mediumData1: Seq[SimpleFeature] = mediumData.map(createSF(_, sft1))
-      test(sft1, mediumData1)
+      val sft = SimpleFeatureTypes.createType("1", spec)
+      setTableSharing(sft, false)
+      test(sft, getTestFeatures(sft))
     }
 
     "create the correct mutation for a shared-table feature" in {
-      val sft2 = TestData.getFeatureType("2", tableSharing = true)
-      val mediumData2 = mediumData.map(createSF(_, sft2))
-      test(sft2, mediumData2)
+      val sft = SimpleFeatureTypes.createType("2", spec)
+      setTableSharing(sft, true)
+      test(sft, getTestFeatures(sft))
     }
   }
 }

@@ -84,9 +84,9 @@ geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0-shaded.jar 
     --geomesa.input.feature <feature> \
     --geomesa.input.transform <attribute transforms - space separated> \ # optional
     --geomesa.hist.attribute <attribute to histogram> \
-    --geomesa.hist.value.regex <regex to filter attribute values> \ # optional
     --geomesa.hist.file.out <hdfs path to write results> \
     --geomesa.hist.group.attributes <additional attributes that will be used to group the results - space separated> \ # optional
+    --geomesa.hist.unique.attributes <additional attributes that will be used to filter the results - space separated> \ # optional
     --geomesa.input.cql <cql filter>
 ```
 
