@@ -22,6 +22,8 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.SimpleFeature
+import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -62,39 +64,113 @@ class SimpleFeatureEncoderTest extends Specification {
 
   "SimpleFeatureEncoder" should {
 
-    "have properly working apply() methods" >> {
-      SimpleFeatureEncoder(sft, "avro") must beAnInstanceOf[AvroFeatureEncoder]
-      SimpleFeatureEncoder(sft, FeatureEncoding.AVRO) must beAnInstanceOf[AvroFeatureEncoder]
+    "have a properly working apply() method" >> {
+      val opts = Set(EncodingOption.WITH_VISIBILITIES)
 
-      SimpleFeatureEncoder(sft, "text") must beAnInstanceOf[TextFeatureEncoder]
-      SimpleFeatureEncoder(sft, FeatureEncoding.TEXT) must beAnInstanceOf[TextFeatureEncoder]
+      // AVRO without options
+      val avro1 = SimpleFeatureEncoder(sft, FeatureEncoding.AVRO)
+      avro1 must beAnInstanceOf[AvroFeatureEncoder]
+      avro1.options mustEqual Set.empty
 
-      SimpleFeatureEncoder(sft, "kryo") must beAnInstanceOf[KryoFeatureEncoder]
-      SimpleFeatureEncoder(sft, FeatureEncoding.KRYO) must beAnInstanceOf[KryoFeatureEncoder]
+      // AVRO with options
+      val avro2 = SimpleFeatureEncoder(sft, FeatureEncoding.AVRO, opts)
+      avro2 must beAnInstanceOf[AvroFeatureEncoder]
+      avro2.options mustEqual opts
+
+      // TEXT without options
+      val text1 = SimpleFeatureEncoder(sft, FeatureEncoding.TEXT)
+      text1 must beAnInstanceOf[TextFeatureEncoder]
+      text1.options mustEqual Set.empty
+
+      // TEXT with options
+      val text2 = SimpleFeatureEncoder(sft, FeatureEncoding.TEXT, opts)
+      text2 must beAnInstanceOf[TextFeatureEncoder]
+      text2.options mustEqual opts
+
+      // KRYO without options
+      val kryo1 = SimpleFeatureEncoder(sft, FeatureEncoding.KRYO)
+      kryo1 must beAnInstanceOf[KryoFeatureEncoder]
+      kryo1.options mustEqual Set.empty
+
+      // KRYO with options
+      val kryo2 = SimpleFeatureEncoder(sft, FeatureEncoding.KRYO, opts)
+      kryo2 must beAnInstanceOf[KryoFeatureEncoder]
+      kryo2.options mustEqual opts
     }
   }
 
   "SimpleFeatureDecoder" should {
 
-    "have properly working apply() methods" >> {
-      SimpleFeatureDecoder(sft, "avro") must beAnInstanceOf[AvroFeatureDecoder]
-      SimpleFeatureDecoder(sft, FeatureEncoding.AVRO) must beAnInstanceOf[AvroFeatureDecoder]
+    "have a properly working apply() method" >> {
+      val opts = Set(EncodingOption.WITH_VISIBILITIES)
 
-      SimpleFeatureDecoder(sft, "text") must beAnInstanceOf[TextFeatureDecoder]
-      SimpleFeatureDecoder(sft, FeatureEncoding.TEXT) must beAnInstanceOf[TextFeatureDecoder]
+      // AVRO without options
+      val avro1 = SimpleFeatureDecoder(sft, FeatureEncoding.AVRO)
+      avro1 must beAnInstanceOf[AvroFeatureDecoder]
+      avro1.options mustEqual Set.empty
 
-      SimpleFeatureDecoder(sft, FeatureEncoding.KRYO) must beAnInstanceOf[KryoFeatureEncoder]
-      SimpleFeatureDecoder(sft, "kryo") must beAnInstanceOf[KryoFeatureEncoder]
+      // AVRO with options
+      val avro2 = SimpleFeatureDecoder(sft, FeatureEncoding.AVRO, opts)
+      avro2 must beAnInstanceOf[AvroFeatureDecoder]
+      avro2.options mustEqual opts
 
+      // TEXT without options
+      val text1 = SimpleFeatureDecoder(sft, FeatureEncoding.TEXT)
+      text1 must beAnInstanceOf[TextFeatureDecoder]
+      text1.options mustEqual Set.empty
+
+      // TEXT with options
+      val text2 = SimpleFeatureDecoder(sft, FeatureEncoding.TEXT, opts)
+      text2 must beAnInstanceOf[TextFeatureDecoder]
+      text2.options mustEqual opts
+
+      // KRYO without options
+      val kryo1 = SimpleFeatureDecoder(sft, FeatureEncoding.KRYO)
+      kryo1 must beAnInstanceOf[KryoFeatureEncoder]
+      kryo1.options mustEqual Set.empty
+
+      // KRYO with options
+      val kryo2 = SimpleFeatureDecoder(sft, FeatureEncoding.KRYO, opts)
+      kryo2 must beAnInstanceOf[KryoFeatureEncoder]
+      kryo2.options mustEqual opts
+    }
+  }
+
+  "ProjectingSimpleFeatureDecoder" should {
+
+    "have a properly working apply() method" >> {
       val projectedSft = SimpleFeatureTypes.createType(sftName, "*geom:Point")
-      SimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.AVRO) must beAnInstanceOf[ProjectingAvroFeatureDecoder]
-      SimpleFeatureDecoder(sft, projectedSft, "avro") must beAnInstanceOf[ProjectingAvroFeatureDecoder]
+      val opts = Set(EncodingOption.WITH_VISIBILITIES)
 
-      SimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.TEXT) must beAnInstanceOf[ProjectingTextFeatureDecoder]
-      SimpleFeatureDecoder(sft, projectedSft, "text") must beAnInstanceOf[ProjectingTextFeatureDecoder]
+      // AVRO without options
+      val avro1 = ProjectingSimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.AVRO)
+      avro1 must beAnInstanceOf[ProjectingAvroFeatureDecoder]
+      avro1.options mustEqual Set.empty
 
-      SimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.KRYO) must beAnInstanceOf[KryoFeatureEncoder]
-      SimpleFeatureDecoder(sft, projectedSft, "kryo") must beAnInstanceOf[KryoFeatureEncoder]
+      // AVRO with options
+      val avro2 = ProjectingSimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.AVRO, opts)
+      avro2 must beAnInstanceOf[ProjectingAvroFeatureDecoder]
+      avro2.options mustEqual opts
+
+      // TEXT without options
+      val text1 = ProjectingSimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.TEXT)
+      text1 must beAnInstanceOf[ProjectingTextFeatureDecoder]
+      text1.options mustEqual Set.empty
+
+      // TEXT with options
+      val text2 = ProjectingSimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.TEXT, opts)
+      text2 must beAnInstanceOf[ProjectingTextFeatureDecoder]
+      text2.options mustEqual opts
+
+      // KRYO without options
+      val kryo1 = ProjectingSimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.KRYO)
+      kryo1 must beAnInstanceOf[KryoFeatureEncoder]
+      kryo1.options mustEqual Set.empty
+
+      // KRYO with options
+      val kryo2 = ProjectingSimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.KRYO, opts)
+      kryo2 must beAnInstanceOf[KryoFeatureEncoder]
+      kryo2.options mustEqual opts
     }
   }
 
@@ -161,23 +237,20 @@ class SimpleFeatureEncoderTest extends Specification {
       val encoded = features.map(encoder.encode)
 
       val decoded = encoded.map(decoder.decode)
-      decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
+      decoded must equalFeatures(features)
     }
 
-    "be able to decode points with visbility" >> {
+    "be able to decode points with visibility" >> {
       val encoder = new AvroFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
       val decoder = new AvroFeatureDecoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
 
       val features = getFeaturesWithVisibility
-
       val encoded = features.map(encoder.encode)
 
       val decoded = encoded.map(decoder.decode)
 
-      // when decoding any empty visibilities will be ignored
-      val emptyToNull = (s: String) => if (s == null || s.isEmpty) null else s
-
-      decoded.map(SecurityUtils.getVisibility) mustEqual features.map(SecurityUtils.getVisibility _ andThen emptyToNull)
+      // when decoding any empty visibilities will be transformed to null
+      decoded must equalFeatures(features, withLooseVisibilityMatch)
     }
 
     "be able to extract feature IDs" >> {
@@ -190,7 +263,7 @@ class SimpleFeatureEncoderTest extends Specification {
       encoded.map(decoder.extractFeatureId) mustEqual features.map(_.getID)
     }
 
-    "fail when visbilities were encoded but are not expected by decoder" >> {
+    "fail when visibilities were encoded but are not expected by decoder" >> {
       val encoder = new AvroFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
       val encoded = encoder.encode(getFeaturesWithVisibility.head)
 
@@ -221,6 +294,7 @@ class SimpleFeatureEncoderTest extends Specification {
       val encoded = features.map(encoder.encode)
       val decoded = encoded.map(projectingDecoder.decode)
 
+      decoded.map(_.getID) mustEqual features.map(_.getID)
       decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
 
       forall(decoded) { sf =>
@@ -234,12 +308,12 @@ class SimpleFeatureEncoderTest extends Specification {
   "KryoFeatureEncoder" should {
 
     "return the correct encoding" >> {
-      val encoder = new KryoFeatureEncoder(sft, sft)
+      val encoder = new KryoFeatureEncoder(sft)
       encoder.encoding mustEqual FeatureEncoding.KRYO
     }
 
     "be able to encode points" >> {
-      val encoder = new KryoFeatureEncoder(sft, sft)
+      val encoder = new KryoFeatureEncoder(sft)
       val features = getFeatures
 
       val encoded = features.map(encoder.encode)
@@ -247,52 +321,111 @@ class SimpleFeatureEncoderTest extends Specification {
       encoded must have size features.size
     }
 
-    "be able to decode points" >> {
-      val encoder = new KryoFeatureEncoder(sft, sft)
+    "not include visibilities when not requested" >> {
+      val encoder = new KryoFeatureEncoder(sft)
+      val expected = getFeatures.map(encoder.encode)
 
-      val features = getFeatures
-      val encoded = features.map(encoder.encode)
+      val featuresWithVis = getFeaturesWithVisibility
+      val actual = featuresWithVis.map(encoder.encode)
 
-      val decoded = encoded.map(encoder.decode)
-      decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
-    }
+      actual must haveSize(expected.size)
 
-    "be able to extract feature IDs" >> {
-      val encoder = new KryoFeatureEncoder(sft, sft)
-
-      val features = getFeatures
-      val encoded = features.map(encoder.encode)
-
-      encoded.map(encoder.extractFeatureId) mustEqual features.map(_.getID)
-    }
-
-    "properly project features when encoding" >> {
-      val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
-
-      val encoder = new KryoFeatureEncoder(sft, projectedSft)
-      val decoder = new KryoFeatureEncoder(projectedSft, projectedSft)
-
-      val features = getFeatures
-      val encoded = features.map(encoder.encode)
-      val decoded = encoded.map(decoder.decode)
-      decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
-
-      forall(decoded) { sf =>
-        sf.getAttributeCount mustEqual 1
-        sf.getAttribute(0) must beAnInstanceOf[Point]
-        sf.getFeatureType mustEqual projectedSft
+      forall(actual.zip(expected)) {
+        case (a, e) => a mustEqual e
       }
     }
 
-    "properly project features when decoding" >> {
-      val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
+    "include visibilities when requested" >> {
+      val noVis = {
+        val encoder = new KryoFeatureEncoder(sft, EncodingOptions.none)
+        getFeatures.map(encoder.encode)
+      }
+      val withVis = {
+        val encoder = new KryoFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+        getFeaturesWithVisibility.map(encoder.encode)
+      }
 
-      val encoder = new KryoFeatureEncoder(sft, sft)
-      val decoder = new KryoFeatureEncoder(sft, projectedSft)
+      withVis must haveSize(noVis.size)
+
+      forall(withVis.zip(noVis)) {
+        case (y, n) => y.length must beGreaterThan(n.length)
+      }
+    }
+  }
+
+  "KryoFeatureDecoder" should {
+
+    "return the correct encoding" >> {
+      val decoder = new KryoFeatureDecoder(sft)
+      decoder.encoding mustEqual FeatureEncoding.KRYO
+    }
+
+    "be able to decode points" >> {
+      val encoder = new KryoFeatureEncoder(sft)
+      val decoder = new KryoFeatureDecoder(sft)
 
       val features = getFeatures
       val encoded = features.map(encoder.encode)
+
       val decoded = encoded.map(decoder.decode)
+      decoded must equalFeatures(features)
+    }
+
+    "be able to decode points with visibility" >> {
+      val encoder = new KryoFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+      val decoder = new KryoFeatureDecoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+
+      val features = getFeaturesWithVisibility
+      val encoded = features.map(encoder.encode)
+
+      val decoded = encoded.map(decoder.decode)
+
+      // when decoding any empty visibilities will be transformed to null
+      decoded must equalFeatures(features, withLooseVisibilityMatch)
+    }
+
+    "be able to extract feature IDs" >> {
+      val encoder = new KryoFeatureEncoder(sft)
+      val decoder = new KryoFeatureDecoder(sft)
+
+      val features = getFeatures
+      val encoded = features.map(encoder.encode)
+
+      encoded.map(decoder.extractFeatureId) mustEqual features.map(_.getID)
+    }
+
+    "fail when visibilities were encoded but are not expected by decoder" >> {
+      val encoder = new KryoFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+      val encoded = encoder.encode(getFeaturesWithVisibility.head)
+
+      val decoder = new KryoFeatureDecoder(sft, EncodingOptions.none)
+
+      decoder.decode(encoded) must throwA[Exception]
+    }
+
+    "fail when visibilities were not encoded but are expected by the decoder" >> {
+      val encoder = new KryoFeatureEncoder(sft, EncodingOptions.none)
+      val encoded = encoder.encode(getFeaturesWithVisibility.head)
+
+      val decoder = new KryoFeatureDecoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+
+      decoder.decode(encoded) must throwA[Exception]
+    }
+  }
+
+  "ProjectingKryoFeatureDecoder" should {
+
+    "properly project features" >> {
+      val encoder = new KryoFeatureEncoder(sft)
+
+      val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
+      val projectingDecoder = new ProjectingKryoFeatureDecoder(sft, projectedSft)
+
+      val features = getFeatures
+      val encoded = features.map(encoder.encode)
+      val decoded = encoded.map(projectingDecoder.decode)
+
+      decoded.map(_.getID) mustEqual features.map(_.getID)
       decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
 
       forall(decoded) { sf =>
@@ -302,7 +435,6 @@ class SimpleFeatureEncoderTest extends Specification {
       }
     }
   }
-
 
   "TextFeatureEncoder" should {
 
@@ -369,6 +501,42 @@ class SimpleFeatureEncoderTest extends Specification {
         sf.getAttribute(0) must beAnInstanceOf[Point]
         sf.getFeatureType mustEqual projectedSft
       }
+    }
+  }
+
+  def equalFeatures(expected: Seq[SimpleFeature], withVisibilityMatch: MatcherFactory[String] = withStrictVisibilityMatch): Matcher[Seq[SimpleFeature]] = {
+    actual: Seq[SimpleFeature] => {
+      actual must not(beNull)
+      actual must haveSize(expected.size)
+
+      forall(actual zip expected) {
+        case (act, exp) => act must equalSF(exp, withVisibilityMatch)
+      }
+    }
+  }
+
+  type MatcherFactory[T] = (T) => Matcher[T]
+
+  val withStrictVisibilityMatch: MatcherFactory[String] = {
+    expected: String => actual: String => actual mustEqual expected
+  }
+
+  // when decoding any empty visibilities will be transformed into null
+  val withLooseVisibilityMatch: MatcherFactory[String] = {
+    expected: String =>
+      if (expected == "") {
+        actual: String => actual must beNull
+      } else {
+        actual: String => actual mustEqual expected
+      }
+  }
+
+  def equalSF(expected: SimpleFeature, matchVisibility: MatcherFactory[String] = withStrictVisibilityMatch): Matcher[SimpleFeature] = {
+    sf: SimpleFeature => {
+      sf.getID mustEqual expected.getID
+      sf.getDefaultGeometry mustEqual expected.getDefaultGeometry
+      sf.getAttributes mustEqual expected.getAttributes
+      SecurityUtils.getVisibility(sf) must matchVisibility(SecurityUtils.getVisibility(expected))
     }
   }
 }

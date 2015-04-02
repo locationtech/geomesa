@@ -38,8 +38,7 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   def this(sft: SimpleFeatureType) = this(sft, sft)
 
   private val includeVis = opts.contains(EncodingOption.WITH_VISIBILITIES)
-  var oldSchema = generateSchema(oldType)
-  val newSchema = generateSchema(newType)
+  var oldSchema = generateSchema(oldType, includeVis)
   val fieldsDesired = DataUtilities.attributeNames(newType).map(encodeAttributeName)
 
   def isDataField(f: Schema.Field) =

@@ -56,7 +56,7 @@ object AvroSimpleFeatureUtils {
    * @param includeVisibility true if the visibility marking is to be included or false if not
    * @return the [[Schema]] for the sft with or with out visibility according to includeVisibility
    */
-  def generateSchema(sft: SimpleFeatureType, includeVisibility: Boolean = false): Schema = {
+  def generateSchema(sft: SimpleFeatureType, includeVisibility: Boolean): Schema = {
     var initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
       SchemaBuilder.record(encodeAttributeName(sft.getTypeName))
         .namespace(AVRO_NAMESPACE)

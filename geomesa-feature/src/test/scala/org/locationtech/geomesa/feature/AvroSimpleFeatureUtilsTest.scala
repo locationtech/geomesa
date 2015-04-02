@@ -335,14 +335,6 @@ class AvroSimpleFeatureUtilsTest extends Specification {
     }
 
     "generate schema" >> {
-      "without visibility by default" >> {
-        val sft = SimpleFeatureTypes.createType("UtilsTest", "name:String,*geom:Point,dtg:Date")
-        val result = AvroSimpleFeatureUtils.generateSchema(sft)
-
-        result must not(beNull)
-        result.getFields must have size 5 // 3 attributes + 2 meta
-      }
-
       "without visibility" >> {
         val sft = SimpleFeatureTypes.createType("UtilsTest", "name:String,*geom:Point,dtg:Date")
         val result = AvroSimpleFeatureUtils.generateSchema(sft, includeVisibility = false)
