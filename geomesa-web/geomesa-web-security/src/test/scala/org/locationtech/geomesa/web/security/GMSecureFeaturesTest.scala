@@ -7,9 +7,9 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator,
 import org.geotools.data.{DataStore, DataUtilities, FeatureSource, Query}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.security.SecurityUtils
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

@@ -2,9 +2,9 @@ package org.locationtech.geomesa.web.security
 
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.security.SecurityUtils
 import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.springframework.security.authentication.TestingAuthenticationToken
