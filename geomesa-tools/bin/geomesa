@@ -58,12 +58,12 @@ fi
 if [ -z "$GEOMESA_LIB" ]; then
     GEOMESA_LIB=${GEOMESA_HOME}/lib
 elif [[ $1 = configure ]]; then
-    message="Warning: GEOMESA_LIB already set, probably by a prior configuration."
-    message="${message}\n Current value is ${GEOMESA_LIB}."
+    message="Warning: GEOMESA_LIB was already set, probably by a prior configuration."
+    message="${message}\n The current value is ${GEOMESA_LIB}."
     echo >&2 ""
     echo -e >&2 "$message"
     echo >&2 ""
-    read -p "Is you want to reset this? Y\n " -n 1 -r
+    read -p "Do you want to reset this to ${GEOMESA_HOME}/lib? Y\n " -n 1 -r
     if [[  $REPLY =~ ^[Yy]$ ]]; then
         GEOMESA_LIB=${GEOMESA_HOME}/lib
         echo >&2 ""
