@@ -17,12 +17,14 @@
 package org.locationtech.geomesa.feature
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
+import java.nio.charset.StandardCharsets
 
 import org.apache.avro.io._
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.feature.EncodingOption.EncodingOption
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -152,8 +154,18 @@ object EncodingOptions {
 class TextFeatureEncoder(sft: SimpleFeatureType, val options: Set[EncodingOption] = Set.empty)
   extends SimpleFeatureEncoder {
 
-  override def encode(feature:SimpleFeature): Array[Byte] =
-    ThreadSafeDataUtilities.encodeFeature(feature).getBytes
+  private val includeVis = options.contains(EncodingOption.WITH_VISIBILITIES.asInstanceOf[EncodingOption])
+
+  override def encode(feature:SimpleFeature): Array[Byte] = {
+    var encoded = ThreadSafeDataUtilities.encodeFeature(feature)
+
+    if (includeVis) {
+      val vis = Option(SecurityUtils.getVisibility(feature)).getOrElse("")
+      encoded = TextEncoding.addVisibility(encoded, vis)
+    }
+
+    encoded.getBytes(StandardCharsets.UTF_8)
+  }
 
   override val encoding: FeatureEncoding = FeatureEncoding.TEXT
 }
@@ -165,8 +177,25 @@ class TextFeatureEncoder(sft: SimpleFeatureType, val options: Set[EncodingOption
 class TextFeatureDecoder(sft: SimpleFeatureType, val options: Set[EncodingOption] = Set.empty)
   extends SimpleFeatureDecoder {
 
-  override def decode(bytes: Array[Byte]): SimpleFeature =
-    ThreadSafeDataUtilities.createFeature(sft, new String(bytes))
+  private val expectVis = options.contains(EncodingOption.WITH_VISIBILITIES.asInstanceOf[EncodingOption])
+
+  override def decode(bytes: Array[Byte]): SimpleFeature = {
+    var encoded = new String(bytes, StandardCharsets.UTF_8)
+    var vis = Option.empty[String]
+
+    if (expectVis) {
+      val (e, v) = TextEncoding.splitVisibility(encoded)
+      encoded = e
+      vis = if (v.isEmpty) Option.empty else Option(v)
+    }
+
+    val sf = ThreadSafeDataUtilities.createFeature(sft, encoded)
+    if (vis.isDefined) {
+      SecurityUtils.setFeatureVisibility(sf, vis.get)
+    }
+
+    sf
+  }
 
   // This is derived from the knowledge of the GeoTools encoding in DataUtilities
   override def extractFeatureId(bytes: Array[Byte]): String = {
@@ -195,23 +224,6 @@ class ProjectingTextFeatureDecoder(original: SimpleFeatureType, projected: Simpl
     attrs.foreach { attr => fac.set(attr, sf.getAttribute(attr)) }
     fac.buildFeature(sf.getID)
   }
-}
-
-/**
- * This could be done more cleanly, but the object pool infrastructure already
- * existed, so it was quickest, easiest simply to abuse it.
- */
-object ThreadSafeDataUtilities {
-  private[this] val dataUtilitiesPool = ObjectPoolFactory(new Object, 1)
-
-  def encodeFeature(feature:SimpleFeature): String = dataUtilitiesPool.withResource {
-    _ => DataUtilities.encodeFeature(feature)
-  }
-
-  def createFeature(simpleFeatureType:SimpleFeatureType, featureString:String): SimpleFeature =
-    dataUtilitiesPool.withResource {
-      _ => DataUtilities.createFeature(simpleFeatureType, featureString)
-    }
 }
 
 /**

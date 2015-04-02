@@ -16,6 +16,8 @@
 
 package org.locationtech.geomesa.feature
 
+import java.nio.charset.StandardCharsets
+
 import com.vividsolutions.jts.geom.Point
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
@@ -451,6 +453,37 @@ class SimpleFeatureEncoderTest extends Specification {
       encoded must not(beNull)
       encoded must have size features.size
     }
+
+    "not include visibilities when not requested" >> {
+      val encoder = new TextFeatureEncoder(sft)
+      val expected = getFeatures.map(encoder.encode)
+
+      val featuresWithVis = getFeaturesWithVisibility
+      val actual = featuresWithVis.map(encoder.encode)
+
+      actual must haveSize(expected.size)
+
+      forall(actual.zip(expected)) {
+        case (a, e) => a mustEqual e
+      }
+    }
+
+    "include visibilities when requested" >> {
+      val noVis = {
+        val encoder = new TextFeatureEncoder(sft, EncodingOptions.none)
+        getFeatures.map(encoder.encode)
+      }
+      val withVis = {
+        val encoder = new TextFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+        getFeaturesWithVisibility.map(encoder.encode)
+      }
+
+      withVis must haveSize(noVis.size)
+
+      forall(withVis.zip(noVis)) {
+        case (y, n) => y.length must beGreaterThan(n.length)
+      }
+    }
   }
 
   "TextFeatureDecoder" should {
@@ -468,7 +501,20 @@ class SimpleFeatureEncoderTest extends Specification {
       val encoded = features.map(encoder.encode)
 
       val decoded = encoded.map(decoder.decode)
-      decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
+      decoded must equalFeatures(features)
+    }
+
+    "be able to decode points with visibility" >> {
+      val encoder = new TextFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+      val decoder = new TextFeatureDecoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+
+      val features = getFeaturesWithVisibility
+      val encoded = features.map(encoder.encode)
+
+      val decoded = encoded.map(decoder.decode)
+
+      // when decoding any empty visibilities will be transformed to null
+      decoded must equalFeatures(features, withLooseVisibilityMatch)
     }
 
     "be able to extract feature IDs" >> {
@@ -479,6 +525,24 @@ class SimpleFeatureEncoderTest extends Specification {
       val encoded = features.map(encoder.encode)
 
       encoded.map(decoder.extractFeatureId) mustEqual features.map(_.getID)
+    }
+
+    "fail when visibilities were encoded but are not expected by decoder" >> {
+      val encoder = new TextFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+      val encoded = encoder.encode(getFeaturesWithVisibility.head)
+
+      val decoder = new TextFeatureDecoder(sft, EncodingOptions.none)
+
+      decoder.decode(encoded) must throwA[Exception]
+    }
+
+    "fail when visibilities were not encoded but are expected by the decoder" >> {
+      val encoder = new TextFeatureEncoder(sft, EncodingOptions.none)
+      val encoded = encoder.encode(getFeaturesWithVisibility.head)
+
+      val decoder = new TextFeatureDecoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+
+      decoder.decode(encoded) must throwA[Exception]
     }
   }
 
@@ -494,6 +558,7 @@ class SimpleFeatureEncoderTest extends Specification {
       val encoded = features.map(encoder.encode)
       val decoded = encoded.map(projectingDecoder.decode)
 
+      decoded.map(_.getID) mustEqual features.map(_.getID)
       decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
 
       forall(decoded) { sf =>
