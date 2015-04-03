@@ -24,6 +24,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.AccumuloFeatureStore
 import org.locationtech.geomesa.core.index
+import org.locationtech.geomesa.core.stats.StatWriter
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools._
@@ -57,8 +58,8 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
       exporter.close()
     }
 
-    // allow StatsWriter to write stats - otherwise we get a zookeeper exception we can't catch
-    Thread.sleep(1000)
+    // force StatsWriter to write stats - otherwise we get a zookeeper exception we can't catch
+    StatWriter.flush()
   }
 
   def getFeatureCollection(fmt: String): SimpleFeatureCollection = {
