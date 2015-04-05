@@ -28,7 +28,7 @@ class AvroPathFunctionFactory extends TransformerFunctionFactory {
     val name = "avroPath"
 
     var path: AvroPath = null
-    override def eval(args: Any*): Any = {
+    override def eval(args: Array[Any]): Any = {
       if(path == null) path = AvroPath(args(1).asInstanceOf[String])
       path.eval(args(0).asInstanceOf[GenericRecord]).orNull
     }

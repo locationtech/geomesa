@@ -25,8 +25,10 @@ import scala.collection.JavaConversions._
 
 case class FixedWidthField(name: String, transform: Transformers.Expr, s: Int, w: Int) extends Field {
   private val e = s + w
-  override def eval(args: Any*)(implicit ec: EvaluationContext): Any = {
-    transform.eval(args(0).asInstanceOf[String].substring(s, e))
+  private val mutableArray = Array.ofDim[Any](1)
+  override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
+    mutableArray(0) = args(0).asInstanceOf[String].substring(s, e)
+    transform.eval(mutableArray)
   }
 }
 
