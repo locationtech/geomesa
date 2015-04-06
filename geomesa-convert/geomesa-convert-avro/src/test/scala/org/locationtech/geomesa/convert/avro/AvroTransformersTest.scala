@@ -22,23 +22,25 @@ import org.locationtech.geomesa.convert.Transformers.EvaluationContext
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.mutable
+
 @RunWith(classOf[JUnitRunner])
 class AvroTransformersTest extends Specification with AvroUtils {
 
   sequential
 
   "Transformers" should {
-    implicit val ctx = new EvaluationContext(Map(), null)
+    implicit val ctx = new EvaluationContext(mutable.HashMap.empty[String, Int], null)
     "handle Avro records" >> {
 
       "extract an inner value" >> {
         val exp = Transformers.parseTransform("avroPath($0, '/content$type=TObj/kvmap[$k=prop3]/v')")
-        exp.eval(decoded) must be equalTo " foo "
+        exp.eval(Array(decoded)) must be equalTo " foo "
       }
 
       "handle compound expressions" >> {
         val exp = Transformers.parseTransform("trim(avroPath($0, '/content$type=TObj/kvmap[$k=prop3]/v'))")
-        exp.eval(decoded) must be equalTo "foo"
+        exp.eval(Array(decoded)) must be equalTo "foo"
       }
     }
 
