@@ -26,6 +26,7 @@ import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
 trait Field {
@@ -69,8 +70,8 @@ object SimpleFeatureConverters {
 
 trait SimpleFeatureConverter[I] {
   def targetSFT: SimpleFeatureType
-  def processInput(is: Iterator[I]): Iterator[SimpleFeature]
-  def processSingleInput(i: I): Option[SimpleFeature]
+  def processInput(is: Iterator[I], globalParams: Map[String, String] = Map.empty): Iterator[SimpleFeature]
+  def processSingleInput(i: I, globalParams: Map[String, String] = Map.empty): Option[SimpleFeature]
   def close(): Unit = {}
 }
 
@@ -101,7 +102,6 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   val idDependencies = dependenciesOf(idBuilder)
   val requiredFieldsNames: Set[String] = attrRequiredFieldsNames ++ idDependencies
   val requiredFields = inputFields.filter { f => requiredFieldsNames.contains(f.name) }
-
   val nfields = requiredFields.length
 
   val indexes =
@@ -115,40 +115,49 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
 
     }.toIndexedSeq
 
-  val inputFieldIndexes = requiredFields.map(_.name).zipWithIndex.toMap
+  val inputFieldIndexes =
+    mutable.HashMap.empty[String, Int] ++= requiredFields.map(_.name).zipWithIndex.toMap
 
   implicit val ctx = new EvaluationContext(inputFieldIndexes, null)
 
+  var reuse: Array[Any] = null
   def convert(t: Array[Any], reuse: Array[Any]): SimpleFeature = {
     import spire.syntax.cfor._
-
-    val attributes =
-      if(reuse == null) Array.ofDim[Any](requiredFields.length)
-      else reuse
-    ctx.computedFields = attributes
+    ctx.incrementCount()
+    ctx.computedFields = reuse
 
     cfor(0)(_ < nfields, _ + 1) { i =>
-      attributes(i) = requiredFields(i).eval(t)
+      reuse(i) = requiredFields(i).eval(t)
     }
 
     val id = idBuilder.eval(t).asInstanceOf[String]
     val sf = new AvroSimpleFeature(new FeatureIdImpl(id), targetSFT)
-    indexes.foreach(i => sf.setAttributeNoConvert(i._1, attributes(i._2).asInstanceOf[Object]))
+    for((sftIdx, arrIdx) <- indexes) {
+      sf.setAttributeNoConvert(sftIdx, reuse(arrIdx).asInstanceOf[Object])
+    }
     sf
   }
 
-  val reuse = Array.ofDim[Any](requiredFields.length)
-
-  def processSingleInput(i: I): Option[SimpleFeature] =
+  def processSingleInput(i: I, gParams: Map[String, String]): Option[SimpleFeature] = {
+    if(reuse == null) {
+      reuse = Array.ofDim[Any](nfields + gParams.size)
+      gParams.zipWithIndex.foreach { case ((k, v), idx) =>
+        val shiftedIdx = nfields + idx
+        reuse(shiftedIdx) = v
+        ctx.fieldNameMap(k) = shiftedIdx
+      }
+    }
     Try { convert(fromInputType(i), reuse) } match {
       case Success(s) => Some(s)
       case Failure(t) =>
         logger.debug("Failed to parse input", t)
         None
     }
+  }
 
-  def processInput(is: Iterator[I]): Iterator[SimpleFeature] =
-    is.flatMap { s => processSingleInput(s) }
-
+  def processInput(is: Iterator[I], gParams: Map[String, String] = Map.empty): Iterator[SimpleFeature] = {
+    ctx.resetCount() 
+    is.flatMap { s => processSingleInput(s, gParams) }
+  }
 
 }
