@@ -43,7 +43,7 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
                             converters: Seq[(Predicate, SimpleFeatureConverter[I])])
   extends SimpleFeatureConverter[I] {
 
-  override def processInput(is: Iterator[I],  gParams: Map[String, String] = Map.empty): Iterator[SimpleFeature] = {
+  override def processInput(is: Iterator[I],  gParams: Map[String, Any] = Map.empty): Iterator[SimpleFeature] = {
     is.flatMap { input =>
       converters.view.flatMap { case (pred, conv) =>
         processIfValid(input, pred, conv, gParams)
@@ -52,14 +52,14 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
   }
 
   // noop
-  override def processSingleInput(i: I, gParams: Map[String, String] = Map.empty): Option[SimpleFeature] = null
+  override def processSingleInput(i: I, gParams: Map[String, Any] = Map.empty): Option[SimpleFeature] = null
 
   private val mutableArray = Array.ofDim[Any](1)
 
   // to satisfy pred.eval() implicit evaluation context requirement
   implicit val emptyEC = new EvaluationContext(mutable.HashMap.empty[String, Int], Array.empty[Any])
 
-  def processIfValid(input: I, pred: Predicate, conv: SimpleFeatureConverter[I], gParams: Map[String, String]) = {
+  def processIfValid(input: I, pred: Predicate, conv: SimpleFeatureConverter[I], gParams: Map[String, Any]) = {
     val opt =
       Try {
         mutableArray(0) = input

@@ -70,8 +70,8 @@ object SimpleFeatureConverters {
 
 trait SimpleFeatureConverter[I] {
   def targetSFT: SimpleFeatureType
-  def processInput(is: Iterator[I], globalParams: Map[String, String] = Map.empty): Iterator[SimpleFeature]
-  def processSingleInput(i: I, globalParams: Map[String, String] = Map.empty): Option[SimpleFeature]
+  def processInput(is: Iterator[I], globalParams: Map[String, Any] = Map.empty): Iterator[SimpleFeature]
+  def processSingleInput(i: I, globalParams: Map[String, Any] = Map.empty): Option[SimpleFeature]
   def close(): Unit = {}
 }
 
@@ -138,7 +138,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     sf
   }
 
-  def processSingleInput(i: I, gParams: Map[String, String]): Option[SimpleFeature] = {
+  def processSingleInput(i: I, gParams: Map[String, Any]): Option[SimpleFeature] = {
     if(reuse == null) {
       reuse = Array.ofDim[Any](nfields + gParams.size)
       gParams.zipWithIndex.foreach { case ((k, v), idx) =>
@@ -155,7 +155,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     }
   }
 
-  def processInput(is: Iterator[I], gParams: Map[String, String] = Map.empty): Iterator[SimpleFeature] = {
+  def processInput(is: Iterator[I], gParams: Map[String, Any] = Map.empty): Iterator[SimpleFeature] = {
     ctx.resetCount() 
     is.flatMap { s => processSingleInput(s, gParams) }
   }
