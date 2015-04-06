@@ -27,7 +27,7 @@ import org.geotools.feature.collection.BridgeIterator
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.feature.{AvroFeatureEncoder, AvroSimpleFeature}
+import org.locationtech.geomesa.feature.{AvroFeatureEncoder, AvroSimpleFeature, EncodingOption}
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
@@ -86,7 +86,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
 
   class ModifyingFeatureWriter(query: Query) extends FW {
 
-    val encoder = new AvroFeatureEncoder(schema)
+    val encoder = new AvroFeatureEncoder(schema, Set(EncodingOption.WITH_VISIBILITIES))
     private var id = 1L
     def getNextId: FeatureId = {
       val ret = id

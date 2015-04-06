@@ -24,10 +24,10 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.core.security
 import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
@@ -65,10 +65,10 @@ class VisibilitiesTest extends Specification {
 
     val features = getFeatures(sft).toList
     val privFeatures = features.take(3)
-    privFeatures.foreach { f => f.getUserData.put(security.SecurityUtils.FEATURE_VISIBILITY, "user&admin") }
+    privFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user&admin") }
 
     val nonPrivFeatures = features.drop(3)
-    nonPrivFeatures.foreach { f => f.getUserData.put(security.SecurityUtils.FEATURE_VISIBILITY, "user") }
+    nonPrivFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user") }
 
     fs.addFeatures(new ListFeatureCollection(sft, privFeatures ++ nonPrivFeatures))
     fs.flush()
@@ -164,10 +164,10 @@ class VisibilitiesTest extends Specification {
 
     val features = getFeatures(sft).toList
     val privFeatures = features.take(3)
-    privFeatures.foreach { f => f.getUserData.put(security.SecurityUtils.FEATURE_VISIBILITY, "user&admin") }
+    privFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user&admin") }
 
     val nonPrivFeatures = features.drop(3)
-    nonPrivFeatures.foreach { f => f.getUserData.put(security.SecurityUtils.FEATURE_VISIBILITY, "user") }
+    nonPrivFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user") }
 
     fs.addFeatures(new ListFeatureCollection(sft, privFeatures ++ nonPrivFeatures))
     fs.flush()

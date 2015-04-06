@@ -21,12 +21,16 @@ import java.text.SimpleDateFormat
 import java.util.UUID
 
 import com.vividsolutions.jts.geom.{Point, Polygon}
-import org.apache.avro.io.{BinaryDecoder, DecoderFactory, EncoderFactory}
+import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactory}
+import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.security.SecurityUtils
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -34,7 +38,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureWriterTest extends Specification {
+class AvroSimpleFeatureWriterTest extends Specification with Mockito {
 
   def createComplicatedFeatures(numFeatures : Int) : List[Version2ASF] = {
     val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,"+
@@ -67,6 +71,20 @@ class AvroSimpleFeatureWriterTest extends Specification {
       list += sf
     }
     list.toList
+  }
+
+  def createSimpleFeature: SimpleFeature = {
+    val sft = SimpleFeatureTypes.createType("AvroSimpleFeatureWriterTest", "name:String,*geom:Point,dtg:Date")
+
+    val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+    builder.reset()
+    builder.set("name", "test_feature")
+    builder.set("geom", WKTUtils.read("POINT(-110 30)"))
+    builder.set("dtg", "2012-01-02T05:06:07.000Z")
+
+    val sf = builder.buildFeature("fid")
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    sf
   }
 
   "AvroSimpleFeatureWriter2" should {
@@ -141,6 +159,56 @@ class AvroSimpleFeatureWriterTest extends Specification {
       success
     }
 
+    "serialize visibility when requested" >> {
+
+      val vis = "test&usa"
+
+      val sf = createSimpleFeature
+      SecurityUtils.setFeatureVisibility(sf, vis)
+
+      val afw = new AvroSimpleFeatureWriter(sf.getType, Set(EncodingOption.WITH_VISIBILITIES))
+      val encoder = mock[Encoder]
+
+      afw.write(sf, encoder)
+
+      (there was one(encoder).writeInt(AvroSimpleFeatureUtils.VERSION)
+        andThen one(encoder).writeString("fid")
+        andThen one(encoder).writeString(vis)
+      )
+    }
+
+    "serialize no visibility as empty string" >> {
+
+      // don't add any visibility
+      val sf = createSimpleFeature
+
+      val afw = new AvroSimpleFeatureWriter(sf.getType, Set(EncodingOption.WITH_VISIBILITIES))
+      val encoder = mock[Encoder]
+
+      afw.write(sf, encoder)
+
+      (there was one(encoder).writeInt(AvroSimpleFeatureUtils.VERSION)
+        andThen one(encoder).writeString("fid")
+        andThen one(encoder).writeString("")
+        )
+    }
+
+    "serialize empty visibility correctly" >> {
+
+      val vis = ""
+
+      val sf = createSimpleFeature
+      SecurityUtils.setFeatureVisibility(sf, vis)
+
+      val afw = new AvroSimpleFeatureWriter(sf.getType, Set(EncodingOption.WITH_VISIBILITIES))
+      val encoder = mock[Encoder]
+
+      afw.write(sf, encoder)
+
+      (there was one(encoder).writeInt(AvroSimpleFeatureUtils.VERSION)
+        andThen one(encoder).writeString("fid")
+        andThen one(encoder).writeString(vis))
+    }
   }
 
 }
