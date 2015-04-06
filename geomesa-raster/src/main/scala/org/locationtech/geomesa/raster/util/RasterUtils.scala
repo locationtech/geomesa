@@ -137,8 +137,9 @@ object RasterUtils {
       } else {
         val accumuloRasterXRes = firstRaster.referencedEnvelope.getSpan(0) / firstRaster.chunk.getWidth
         val accumuloRasterYRes = firstRaster.referencedEnvelope.getSpan(1) / firstRaster.chunk.getHeight
-        val mosaicX = (queryEnv.getSpan(0) / accumuloRasterXRes).toInt
-        val mosaicY = (queryEnv.getSpan(1) / accumuloRasterYRes).toInt
+        //TODO: check for corner cases: https://geomesa.atlassian.net/browse/GEOMESA-758
+        val mosaicX = Math.round(queryEnv.getSpan(0) / accumuloRasterXRes).toInt
+        val mosaicY = Math.round(queryEnv.getSpan(1) / accumuloRasterYRes).toInt
         if (mosaicX <= 0 || mosaicY <= 0) {
           (nullImage, 1)
         } else {
@@ -171,29 +172,30 @@ object RasterUtils {
     if (intersection.equals(rasterEnv)) {
       Some(renderedImageToBufferedImage(raster.chunk))
     } else {
-      intersection match {
-        case valid if intersection.getArea > 0.0 =>
-          val chunkXRes = rasterEnv.getWidth / raster.chunk.getWidth
-          val chunkYRes = rasterEnv.getHeight / raster.chunk.getHeight
-          val uLX = Math.max(Math.floor((intersection.getMinX - rasterEnv.getMinimum(0)) / chunkXRes).toInt, 0)
-          val uLY = Math.max(Math.floor((rasterEnv.getMaximum(1) - intersection.getMaxY) / chunkYRes).toInt, 0)
-          val wTemp = Math.max(Math.ceil(intersection.getWidth / chunkXRes).toInt, 0)
-          val w = if(wTemp + uLX > raster.chunk.getWidth) {
-            raster.chunk.getWidth - uLX
-          } else {
-            wTemp
-          }
-          val hTemp = Math.max(Math.ceil(intersection.getHeight / chunkYRes).toInt, 0)
-          val h = if(hTemp + uLY > raster.chunk.getHeight) {
-            raster.chunk.getHeight - uLY
-          } else {
-            hTemp
-          }
-          val b = renderedImageToBufferedImage(raster.chunk)
-          val result = bufferCrop(b, uLX, uLY, w, h)
-          Some(result)
-        case _                                   => None
-      }
+      val chunkXRes = rasterEnv.getWidth / raster.chunk.getWidth
+      val chunkYRes = rasterEnv.getHeight / raster.chunk.getHeight
+      //TODO: check for corner cases: https://geomesa.atlassian.net/browse/GEOMESA-758
+      val widthP  = Math.round(intersection.getWidth / chunkXRes)
+      val heightP = Math.round(intersection.getHeight / chunkYRes)
+      if (widthP > 0 && heightP > 0) {
+        val uLX = Math.max(Math.floor((intersection.getMinX - rasterEnv.getMinimum(0)) / chunkXRes).toInt, 0)
+        val uLY = Math.max(Math.floor((rasterEnv.getMaximum(1) - intersection.getMaxY) / chunkYRes).toInt, 0)
+        val wTemp = Math.max(Math.ceil(intersection.getWidth / chunkXRes).toInt, 0)
+        val w = if (wTemp + uLX > raster.chunk.getWidth) {
+          raster.chunk.getWidth - uLX
+        } else {
+          wTemp
+        }
+        val hTemp = Math.max(Math.ceil(intersection.getHeight / chunkYRes).toInt, 0)
+        val h = if (hTemp + uLY > raster.chunk.getHeight) {
+          raster.chunk.getHeight - uLY
+        } else {
+          hTemp
+        }
+        val b = renderedImageToBufferedImage(raster.chunk)
+        val result = bufferCrop(b, uLX, uLY, w, h)
+        Some(result)
+      } else None
     }
   }
 

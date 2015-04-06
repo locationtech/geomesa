@@ -17,7 +17,7 @@
 
 package org.locationtech.geomesa.raster
 
-import java.awt.image.{RenderedImage, WritableRaster}
+import java.awt.image.{BufferedImage, RenderedImage, WritableRaster}
 
 import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory}
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -52,6 +52,19 @@ object RasterTestsUtils {
   def generateQuery(minX: Double, maxX: Double, minY: Double, maxY: Double, res: Double = 10.0) = {
     val bb = BoundingBox(new ReferencedEnvelope(minX, maxX, minY, maxY, DefaultGeographicCRS.WGS84))
     new RasterQuery(bb, res, None, None)
+  }
+
+  implicit def bboxToRefEnv(b: BoundingBox): ReferencedEnvelope = new ReferencedEnvelope(b.minLon,
+                                                                                          b.maxLon,
+                                                                                          b.minLat,
+                                                                                          b.maxLat,
+                                                                                          DefaultGeographicCRS.WGS84)
+
+  def generateRaster(bbox: BoundingBox, buf: BufferedImage, id: String = Raster.getRasterId("testRaster")): Raster = {
+    val ingestTime = new DateTime()
+    val metadata = DecodedIndex(id, bbox.geom, Option(ingestTime.getMillis))
+    val coverage = imageToCoverage(buf.getRaster, bbox, defaultGridCoverageFactory)
+    Raster(coverage.getRenderedImage, metadata, 10.0)
   }
 
   def generateTestRaster(minX: Double, maxX: Double, minY: Double, maxY: Double,
@@ -122,5 +135,86 @@ object RasterTestsUtils {
   }
 
   private def getDelta(level: Int): Double = 45.0 / Math.pow(2, level)
+
+  def generateIntRasterVSplit(w: Int, h: Int): BufferedImage = {
+    // w and h must be even!
+    val image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY)
+    val wr = image.getRaster
+    wr.setPixels(0,0,w/2,h, Array.fill[Int](w/2*h){1})
+    wr.setPixels(w/2,0,w/2,h, Array.fill[Int](w/2*h){2})
+    image
+  }
+
+  val testRasterIntSolid: BufferedImage = {
+    val image = new BufferedImage(16, 16, BufferedImage.TYPE_BYTE_GRAY)
+    val wr = image.getRaster
+    wr.setPixels(0,0,16,16, Array.fill[Int](16*16){1})
+    image
+  }
+
+  val redHerring: BufferedImage = {
+    val image = new BufferedImage(16, 16, BufferedImage.TYPE_BYTE_GRAY)
+    val wr = image.getRaster
+    wr.setPixels(0,0,16,16, Array.fill[Int](16*16){42})
+    image
+  }
+
+  val testRasterIntVSplit: BufferedImage = {
+    val image = new BufferedImage(16, 16, BufferedImage.TYPE_BYTE_GRAY)
+    val wr = image.getRaster
+    wr.setPixels(0,0,8,16, Array.fill[Int](8*16){1})
+    wr.setPixels(8,0,8,16, Array.fill[Int](8*16){2})
+    image
+  }
+
+  val testRasterIntHSplit: BufferedImage = {
+    val image = new BufferedImage(16, 16, BufferedImage.TYPE_BYTE_GRAY)
+    val wr = image.getRaster
+    wr.setPixels(0,0,16,8, Array.fill[Int](8*16){1})
+    wr.setPixels(0,8,16,8, Array.fill[Int](8*16){2})
+    image
+  }
+
+  val testRasterIntQuadrants: BufferedImage = {
+    val image = new BufferedImage(16, 16, BufferedImage.TYPE_BYTE_GRAY)
+    val wr = image.getRaster
+    wr.setPixels(8,0,8,8, Array.fill[Int](8*8){1})
+    wr.setPixels(0,0,8,8, Array.fill[Int](8*8){2})
+    wr.setPixels(0,8,8,8, Array.fill[Int](8*8){3})
+    wr.setPixels(8,8,8,8, Array.fill[Int](8*8){4})
+    image
+  }
+
+  val testRasterIntQuadrants2x2: BufferedImage = {
+    val image = new BufferedImage(2, 2, BufferedImage.TYPE_BYTE_GRAY)
+    val wr = image.getRaster
+    wr.setPixels(1,0,1,1, Array.fill[Int](1){1})
+    wr.setPixels(0,0,1,1, Array.fill[Int](1){2})
+    wr.setPixels(0,1,1,1, Array.fill[Int](1){3})
+    wr.setPixels(1,1,1,1, Array.fill[Int](1){4})
+    image
+  }
+
+  val testRasterIntQuadrants4x4: BufferedImage = {
+    val image = new BufferedImage(4, 4, BufferedImage.TYPE_BYTE_GRAY)
+    val wr = image.getRaster
+    wr.setPixels(2,0,2,2, Array.fill[Int](4){1})
+    wr.setPixels(0,0,2,2, Array.fill[Int](4){2})
+    wr.setPixels(0,2,2,2, Array.fill[Int](4){3})
+    wr.setPixels(2,2,2,2, Array.fill[Int](4){4})
+    image
+  }
+
+  val testRasterIntQuadrants8x8: BufferedImage = {
+    val image = new BufferedImage(8, 8, BufferedImage.TYPE_BYTE_GRAY)
+    val wr = image.getRaster
+    wr.setPixels(4,0,4,4, Array.fill[Int](16){1})
+    wr.setPixels(0,0,4,4, Array.fill[Int](16){2})
+    wr.setPixels(0,4,4,4, Array.fill[Int](16){3})
+    wr.setPixels(4,4,4,4, Array.fill[Int](16){4})
+    image
+  }
+
+
 
 }
