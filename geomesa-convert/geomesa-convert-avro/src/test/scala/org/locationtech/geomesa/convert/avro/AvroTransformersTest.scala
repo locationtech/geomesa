@@ -22,13 +22,15 @@ import org.locationtech.geomesa.convert.Transformers.EvaluationContext
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.mutable
+
 @RunWith(classOf[JUnitRunner])
 class AvroTransformersTest extends Specification with AvroUtils {
 
   sequential
 
   "Transformers" should {
-    implicit val ctx = new EvaluationContext(Map(), null)
+    implicit val ctx = new EvaluationContext(mutable.HashMap.empty[String, Int], null)
     "handle Avro records" >> {
 
       "extract an inner value" >> {

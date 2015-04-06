@@ -28,6 +28,7 @@ import org.locationtech.geomesa.convert.Transformers.EvaluationContext
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.mutable
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
@@ -35,7 +36,7 @@ class TransformersTest extends Specification {
 
   "Transformers" should {
 
-    implicit val ctx = new EvaluationContext(Map(), null)
+    implicit val ctx = new EvaluationContext(mutable.HashMap.empty[String, Int], null)
     "handle transformations" >> {
       "handle string transformations" >> {
 
@@ -144,7 +145,7 @@ class TransformersTest extends Specification {
       "handle named values" >> {
         val closure = Array.ofDim[Any](3)
         closure(1) = "bar"
-        implicit val ctx = new EvaluationContext(Map("foo" -> 1), closure)
+        implicit val ctx = new EvaluationContext(mutable.HashMap("foo" -> 1), closure)
         val exp = Transformers.parseTransform("capitalize($foo)")
         exp.eval(Array(null))(ctx) must be equalTo "Bar"
       }
