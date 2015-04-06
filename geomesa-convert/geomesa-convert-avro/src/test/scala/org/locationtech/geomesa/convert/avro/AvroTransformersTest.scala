@@ -33,12 +33,12 @@ class AvroTransformersTest extends Specification with AvroUtils {
 
       "extract an inner value" >> {
         val exp = Transformers.parseTransform("avroPath($0, '/content$type=TObj/kvmap[$k=prop3]/v')")
-        exp.eval(decoded) must be equalTo " foo "
+        exp.eval(Array(decoded)) must be equalTo " foo "
       }
 
       "handle compound expressions" >> {
         val exp = Transformers.parseTransform("trim(avroPath($0, '/content$type=TObj/kvmap[$k=prop3]/v'))")
-        exp.eval(decoded) must be equalTo "foo"
+        exp.eval(Array(decoded)) must be equalTo "foo"
       }
     }
 

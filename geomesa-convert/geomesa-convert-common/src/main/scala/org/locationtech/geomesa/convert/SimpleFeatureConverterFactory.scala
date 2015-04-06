@@ -31,7 +31,7 @@ import scala.util.{Failure, Success, Try}
 trait Field {
   def name: String
   def transform: Transformers.Expr
-  def eval(args: Any*)(implicit ec: EvaluationContext): Any = transform.eval(args: _*)
+  def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = transform.eval(args)
 }
 
 case class SimpleField(name: String, transform: Transformers.Expr) extends Field
@@ -128,10 +128,10 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     ctx.computedFields = attributes
 
     cfor(0)(_ < nfields, _ + 1) { i =>
-      attributes(i) = requiredFields(i).eval(t: _*)
+      attributes(i) = requiredFields(i).eval(t)
     }
 
-    val id = idBuilder.eval(t: _*).asInstanceOf[String]
+    val id = idBuilder.eval(t).asInstanceOf[String]
     val sf = new AvroSimpleFeature(new FeatureIdImpl(id), targetSFT)
     indexes.foreach(i => sf.setAttributeNoConvert(i._1, attributes(i._2).asInstanceOf[Object]))
     sf
