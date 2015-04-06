@@ -170,10 +170,4 @@ object ScalaSimpleFeature {
   def equalIdAndAttributes(sf1: SimpleFeature, sf2: SimpleFeature): Boolean =
     sf1 != null && sf2 != null && sf1.getIdentifier.equalsExact(sf2.getIdentifier) &&
         java.util.Arrays.equals(sf1.getAttributes.toArray, sf2.getAttributes.toArray)
-
-  implicit class RichSimpleFeature(val sf: SimpleFeature) extends AnyVal {
-    def attribute[T](name: String) = sf.getAttribute(name).asInstanceOf[T]
-    def attribute[T](index: Int) = sf.getAttribute(index).asInstanceOf[T]
-    def geometry = sf.getDefaultGeometry.asInstanceOf[Geometry]
-  }
 }
