@@ -24,7 +24,7 @@ import com.twitter.scalding._
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapred.JobConf
-import org.locationtech.geomesa.jobs.scalding.SimpleFeatureKryoHadoop
+import org.locationtech.geomesa.jobs.scalding.serialization.SimpleFeatureKryoHadoop
 
 abstract class GeoMesaBaseJob(args: Args) extends Job(args) with Logging {
 

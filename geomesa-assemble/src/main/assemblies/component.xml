@@ -54,25 +54,18 @@
                 <include>README.md</include>
             </includes>
         </fileSet>
+        <fileSet>
+            <directory>../geomesa-tools/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>geomesa</include>
+                <include>geomesa-install-jai</include>
+                <include>geomesa-test-script.sh</include>
+            </includes>
+        </fileSet>
     </fileSets>
     <files>
-        <file>
-            <source>../geomesa-tools/bin/geomesa</source>
-            <outputDirectory>bin</outputDirectory>
-            <fileMode>0755</fileMode>
-            <filtered>true</filtered>
-        </file>
-        <file>
-            <source>../geomesa-tools/bin/geomesa-install-jai</source>
-            <outputDirectory>bin</outputDirectory>
-            <fileMode>0755</fileMode>
-            <filtered>true</filtered>
-        </file>
-        <file>
-            <source>../geomesa-tools/bin/geomesa-test-script.sh</source>
-            <outputDirectory>bin</outputDirectory>
-            <fileMode>0755</fileMode>
-        </file>
         <file>
             <source>../geomesa-compute/README.md</source>
             <outputDirectory>docs/compute</outputDirectory>
@@ -96,7 +89,6 @@
         <file>
             <source>../geomesa-tools/README.md</source>
             <outputDirectory>docs/tools</outputDirectory>
-            <filtered>true</filtered>
         </file>
     </files>
 </component>

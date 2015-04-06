@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.jobs.scalding
-
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+package org.locationtech.geomesa.jobs.scalding.serialization
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.twitter.chill.config.Config
-import com.twitter.scalding.{Hdfs, Read, Write}
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.mapred.JobConf
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
-import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
