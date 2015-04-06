@@ -20,9 +20,12 @@ import java.util.Map.Entry
 
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.geotools.factory.Hints
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.opengis.filter.Filter
+
+import scala.util.Try
 
 /**
  * Class for capturing query-related stats
@@ -97,7 +100,7 @@ object QueryStatTransform extends StatTransform[QueryStat] {
    * @param filter
    * @return
    */
-  def filterToString(filter: Filter): String = filter.toString
+  def filterToString(filter: Filter): String = Try(ECQL.toCQL(filter)).getOrElse(filter.toString)
 
   // list of query hints we want to persist
   val QUERY_HINTS = List[Hints.Key](TRANSFORMS,

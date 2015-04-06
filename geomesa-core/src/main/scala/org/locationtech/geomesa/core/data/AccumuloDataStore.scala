@@ -96,14 +96,14 @@ class AccumuloDataStore(val connector: Connector,
   // floor on the number of query threads, even if the number of shards is 1
   private val MIN_QUERY_THREADS = 5
 
-  // equivalent to: s"%~#s%$maxShard#r%${name}#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id"
+  // equivalent to: s"%~#s%$maxShard#r%${name}#cstr%0,3#gh%yyyyMMddHH#d::%~#s%3,2#gh::%~#s%#id"
   def buildDefaultSpatioTemporalSchema(name: String, maxShard: Int = DEFAULT_MAX_SHARD): String =
     new IndexSchemaBuilder("~")
       .randomNumber(maxShard)
       .indexOrDataFlag()
       .constant(name)
       .geoHash(0, 3)
-      .date("yyyyMMdd")
+      .date("yyyyMMddHH")
       .nextPart()
       .geoHash(3, 2)
       .nextPart()
