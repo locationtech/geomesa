@@ -29,7 +29,7 @@ class SynchronizedQuadtree extends Quadtree with Serializable {
 
   // quad tree needs to be synchronized - we use a read/write lock which allows concurrent reads but
   // synchronizes writes
-  private val (readLock, writeLock) = {
+  protected[index] val (readLock, writeLock) = {
     val readWriteLock = new ReentrantReadWriteLock()
     (readWriteLock.readLock(), readWriteLock.writeLock())
   }
@@ -53,7 +53,7 @@ class SynchronizedQuadtree extends Quadtree with Serializable {
 
   override def size() = super.size()
 
-  private def withLock[T](lock: Lock)(fn: => T) = {
+  protected[index] def withLock[T](lock: Lock)(fn: => T) = {
     lock.lock()
     try {
       fn
