@@ -16,19 +16,23 @@
 
 package org.locationtech.geomesa.utils.index
 
+import java.util.ConcurrentModificationException
+
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.util.Try
+
 @RunWith(classOf[JUnitRunner])
 class SynchronizedQuadtreeTest extends Specification with Logging {
 
-  val qt = new SynchronizedQuadtree
-
-  "Quadtree" should {
+  "SynchronizedQuadtree" should {
     "be thread safe" in {
+      val qt = new SynchronizedQuadtree
       val pt = WKTUtils.read("POINT(45 50)")
       val env = pt.getEnvelopeInternal
       val wholeWorld = WKTUtils.read("POLYGON((-180 -90,180 -90,180 90,-180 90,-180 -90))").getEnvelopeInternal
@@ -42,22 +46,49 @@ class SynchronizedQuadtreeTest extends Specification with Logging {
           }
         }
       })
-      val t2 = new Thread(new Runnable() {
+      t1.start()
+      var i = 0
+      while (i < 1000) {
+        qt.query(wholeWorld)
+        Thread.sleep(1)
+        i += 1
+      }
+      t1.join()
+      success
+    }
+
+    "normal quadtree should not be thread safe" in {
+      val qt = new Quadtree
+      val pt = WKTUtils.read("POINT(45 50)")
+      val env = pt.getEnvelopeInternal
+      val wholeWorld = WKTUtils.read("POLYGON((-180 -90,180 -90,180 90,-180 90,-180 -90))").getEnvelopeInternal
+      val t1 = new Thread(new Runnable() {
         override def run() = {
           var i = 0
           while (i < 1000) {
-            qt.query(wholeWorld)re
+            qt.insert(env, pt)
             Thread.sleep(1)
             i += 1
           }
         }
       })
       t1.start()
-      t2.start()
+      val read = Try({
+        var i = 0
+        while (i < 1000) {
+          qt.query(wholeWorld)
+          Thread.sleep(1)
+          i += 1
+        }
+      })
+      read should beAFailedTry(beAnInstanceOf[ConcurrentModificationException])
       t1.join()
-      t2.join()
       success
     }
+  }
+
+  def readAndWrite(qt: Quadtree) = {
+
   }
 }
 
