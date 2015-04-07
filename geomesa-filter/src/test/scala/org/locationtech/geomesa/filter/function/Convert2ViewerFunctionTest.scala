@@ -55,7 +55,7 @@ class Convert2ViewerFunctionTest extends Specification {
                                    49.0f,
                                    System.currentTimeMillis(),
                                    Some("1200"),
-                                   Some("label"))
+                                   Some(10))
       val encoded = Convert2ViewerFunction.encodeToByteArray(initial)
       encoded must haveLength(24)
       val decoded = Convert2ViewerFunction.decode(encoded)
@@ -67,34 +67,18 @@ class Convert2ViewerFunctionTest extends Specification {
       decoded.asInstanceOf[ExtendedValues].label mustEqual(initial.label)
     }
 
-    "truncate long labels" in {
-      val initial = ExtendedValues(45.0f,
-                                   49.0f,
-                                   System.currentTimeMillis(),
-                                   Some("track that is too long"),
-                                   Some("label that is too long"))
-      val encoded = Convert2ViewerFunction.encodeToByteArray(initial)
-      val decoded = Convert2ViewerFunction.decode(encoded)
-      decoded must beAnInstanceOf[ExtendedValues]
-      decoded.lat mustEqual(initial.lat)
-      decoded.lon mustEqual(initial.lon)
-      Math.abs(decoded.dtg - initial.dtg) must beLessThan(1000L) // dates get truncated to nearest second
-      decoded.trackId.get.toInt mustEqual(initial.trackId.get.hashCode)
-      decoded.asInstanceOf[ExtendedValues].label.get mustEqual(initial.label.get.substring(0, 8))
-    }
-
     "encode and decode to an output stream" in {
       val time = System.currentTimeMillis()
       val one = ExtendedValues(45.0f,
         49.0f,
         time,
         Some("1200"),
-        Some("label"))
+        Some(1000))
       val two = ExtendedValues(45.0f,
         49.0f,
         time - 100,
         Some("1201"),
-        Some("label2"))
+        Some(3000))
       val out = new ByteArrayOutputStream(48)
       Convert2ViewerFunction.encode(one, out)
       Convert2ViewerFunction.encode(two, out)
@@ -121,7 +105,7 @@ class Convert2ViewerFunctionTest extends Specification {
     "encode faster to an output stream" in {
       skipped("integration")
       val times = 10000
-      val one = ExtendedValues(45.0f, 49.0f, System.currentTimeMillis(), Some("1200"), Some("label"))
+      val one = ExtendedValues(45.0f, 49.0f, System.currentTimeMillis(), Some("1200"), Some(10000))
       val out = new ByteArrayOutputStream(24 * times)
 
       // the first test run always takes a long time, even with some initialization...

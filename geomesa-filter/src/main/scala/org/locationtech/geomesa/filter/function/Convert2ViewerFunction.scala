@@ -21,7 +21,6 @@ import java.io.{ByteArrayOutputStream, OutputStream}
 import java.nio.{ByteBuffer, ByteOrder}
 
 import com.vividsolutions.jts.geom.{Geometry, Point}
-import org.apache.commons.codec.Charsets
 import org.geotools.data.Base64
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
@@ -41,9 +40,10 @@ class Convert2ViewerFunction
 
   override def evaluate(obj: scala.Any): String = {
     val id    = getExpression(0).evaluate(obj).asInstanceOf[String]
+    val label = id.getBytes().take(8).zipWithIndex.map { case (b, i) => (b & 0xffL) << (8*i) }.sum
     val geom  = getExpression(1).evaluate(obj).asInstanceOf[Point]
     val dtg   = dtg2Long(getExpression(2).evaluate(obj))
-    val values = ExtendedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, None, Some(id))
+    val values = ExtendedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, None, Some(label))
     Base64.encodeBytes(encodeToByteArray(values))
   }
 
@@ -141,36 +141,11 @@ object Convert2ViewerFunction {
    * @param value
    * @param length number of bytes to use for storing the value
    */
-  private def putOption(buf: ByteBuffer, value: Option[String], length: Int): Unit =
+  private def putOption(buf: ByteBuffer, value: Option[Long], length: Int): Unit =
     value match {
-      case Some(v) =>
-        val bytes = v.getBytes(Charsets.UTF_8)
-        val sized =
-          if (bytes.length < length) {
-            bytes.padTo(length, ' '.toByte)
-          } else {
-            bytes
-          }
-        buf.put(sized, 0, length)
+      case Some(v) => buf.putLong(v)
       case None => buf.position(buf.position + length)
     }
-
-  /**
-   * Reads a string from a fixed size bin
-   *
-   * @param buf
-   * @param length number of bytes used to store the value we're reading
-   * @return
-   */
-  private def getOption(buf: ByteBuffer, length: Int): Option[String] = {
-    val bytes = Array.ofDim[Byte](length)
-    buf.get(bytes)
-    if (bytes.forall(_ == 0)) {
-      None
-    } else {
-      Some(new String(bytes, Charsets.UTF_8).trim)
-    }
-  }
 
   /**
    * Decodes a byte array
@@ -188,8 +163,8 @@ object Convert2ViewerFunction {
     val lat = buf.getFloat
     val lon = buf.getFloat
     if (encoded.length > 16) {
-      val label = getOption(buf, 8)
-      ExtendedValues(lat, lon, time, trackId, label)
+      val label = buf.getLong
+      ExtendedValues(lat, lon, time, trackId, Some(label))
     } else {
       BasicValues(lat, lon, time, trackId)
     }
@@ -210,4 +185,4 @@ case class ExtendedValues(lat: Float,
                           lon: Float,
                           dtg: Long,
                           trackId: Option[String] = None,
-                          label: Option[String] = None) extends EncodedValues
+                          label: Option[Long] = None) extends EncodedValues

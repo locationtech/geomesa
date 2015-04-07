@@ -37,7 +37,7 @@ class BinaryOutputEncoderTest extends Specification {
 
     "encode a point feature collection" in {
       val sft = SimpleFeatureTypes.createType("bintest",
-        "track:String,label:String,lat:Double,lon:Double,dtg:Date,geom:Point:srid=4326")
+        "track:String,label:Long,lat:Double,lon:Double,dtg:Date,geom:Point:srid=4326")
       val baseDtg = dateFormat.parse("2014-01-01 08:09:00").getTime
 
       val fc = new ListFeatureCollection(sft)
@@ -45,7 +45,7 @@ class BinaryOutputEncoderTest extends Specification {
       (0 until 4).foreach { i =>
         val point = WKTUtils.read(s"POINT (45 5$i)")
         val date = dateFormat.parse(s"2014-01-01 08:0${9-i}:00")
-        builder.addAll(Array(s"1234-$i", s"label-$i", 45 + i, 50, date, point).asInstanceOf[Array[AnyRef]])
+        builder.addAll(Array(s"1234-$i", java.lang.Long.valueOf(i), 45 + i, 50, date, point).asInstanceOf[Array[AnyRef]])
         fc.add(builder.buildFeature(s"$i"))
       }
 
@@ -60,7 +60,7 @@ class BinaryOutputEncoderTest extends Specification {
           decoded.lat mustEqual 45
           decoded.lon mustEqual 50 + i
           decoded.trackId mustEqual Some(s"1234-$i").map(_.hashCode.toString)
-          decoded.asInstanceOf[ExtendedValues].label mustEqual Some(s"label-$i")
+          decoded.asInstanceOf[ExtendedValues].label mustEqual Some(java.lang.Long.valueOf(i))
         }
         success
       }
@@ -116,7 +116,7 @@ class BinaryOutputEncoderTest extends Specification {
 
     "encode a line feature collection" in {
       val sft = SimpleFeatureTypes.createType("binlinetest",
-        "track:String,label:String,dtg:Date,dates:List[Date],geom:LineString:srid=4326")
+        "track:String,label:Long,dtg:Date,dates:List[Date],geom:LineString:srid=4326")
       val line = WKTUtils.read("LINESTRING(45 50, 46 51, 47 52, 50 55)")
       val date = dateFormat.parse("2014-01-01 08:00:00")
       val dates = (0 until 4).map(i => dateFormat.parse(s"2014-01-01 08:00:0${9-i}"))
@@ -124,7 +124,7 @@ class BinaryOutputEncoderTest extends Specification {
       val fc = new ListFeatureCollection(sft)
       val builder = new SimpleFeatureBuilder(sft)
       (0 until 1).foreach { i =>
-        builder.addAll(Array[AnyRef](s"1234-$i", s"label-$i", date, dates, line))
+        builder.addAll(Array[AnyRef](s"1234-$i", java.lang.Long.valueOf(i), date, dates, line))
         fc.add(builder.buildFeature(s"$i"))
       }
 
@@ -139,7 +139,7 @@ class BinaryOutputEncoderTest extends Specification {
           decoded.lat mustEqual line.getCoordinates()(i).x.toFloat
           decoded.lon mustEqual line.getCoordinates()(i).y.toFloat
           decoded.trackId mustEqual Some("1234-0").map(_.hashCode.toString)
-          decoded.asInstanceOf[ExtendedValues].label mustEqual Some("label-0")
+          decoded.asInstanceOf[ExtendedValues].label mustEqual Some(0)
         }
         success
       }
