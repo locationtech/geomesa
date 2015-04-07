@@ -86,10 +86,6 @@ class SynchronizedQuadtreeTest extends Specification with Logging {
       success
     }
   }
-
-  def readAndWrite(qt: Quadtree) = {
-
-  }
 }
 
 
