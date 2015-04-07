@@ -35,7 +35,7 @@ import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.feature.SimpleFeatureEncoder
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -53,7 +53,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
     sdf.parse("20140102")
   }
 
-  override def getTestFeatures() = {
+  addFeatures({
     List("a", "b", "c", "d", null).flatMap { name =>
       List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
         val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
@@ -66,15 +66,14 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
         sf
       }
     }
-  }
-
-  populateFeatures
+  })
 
   val ff = CommonFactoryFinder.getFilterFactory2
 
   "AttributeIndexIterator" should {
 
     "implement the Accumulo iterator stack properly" in {
+      import Conversions._
       val table = "AttributeIndexIteratorTest_2"
       connector.tableOperations.create(table, true, TimeType.LOGICAL)
 
@@ -84,7 +83,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       val featureEncoder = SimpleFeatureEncoder(sft, DEFAULT_ENCODING)
       val rowIdPrefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
 
-      getTestFeatures().foreach { feature =>
+      fs.getFeatures().features().foreach { feature =>
         val toWrite = new FeatureToWrite(feature, "", featureEncoder, indexValueEncoder)
         val muts = AttributeTable.getAttributeIndexMutations(toWrite, attributes, rowIdPrefix)
         bw.addMutations(muts)
