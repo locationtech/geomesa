@@ -21,10 +21,9 @@ import java.util
 import java.util.Properties
 import java.util.concurrent.{Executors, TimeUnit}
 
-import com.google.common.cache.{RemovalNotification, RemovalListener, Cache, CacheBuilder}
+import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNotification}
 import com.google.common.eventbus.{EventBus, Subscribe}
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
-import com.vividsolutions.jts.index.quadtree.Quadtree
 import kafka.consumer.{Consumer, ConsumerConfig, Whitelist}
 import kafka.producer.KeyedMessage
 import kafka.serializer.DefaultDecoder
@@ -39,6 +38,7 @@ import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.feature.AvroFeatureDecoder
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.identity.FeatureId
@@ -56,7 +56,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   extends ContentFeatureStore(entry, query) {
 
   type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
-  var qt = new Quadtree
+  var qt = new SynchronizedQuadtree
 
   case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
     override def hashCode(): Int = sf.hashCode()
@@ -95,7 +95,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   def processNewFeatures(update: CreateOrUpdate): Unit = {
     val sf = update.f
     val id = update.id
-    Option(features.getIfPresent(id)).foreach {  old => qt.remove(old.env, old.sf) }
+    Option(features.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
     val env = sf.geometry.getEnvelopeInternal
     qt.insert(env, sf)
     features.put(sf.getID, FeatureHolder(sf, env))
@@ -103,13 +103,13 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
 
   def removeFeature(toDelete: Delete): Unit = {
     val id = toDelete.id
-    Option(features.getIfPresent(id)).foreach {  old => qt.remove(old.env, old.sf) }
+    Option(features.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
     features.invalidate(toDelete.id)
   }
 
   def clear(): Unit = {
     features.invalidateAll()
-    qt = new Quadtree
+    qt = new SynchronizedQuadtree
   }
 
   override def getBoundsInternal(query: Query) =
