@@ -19,19 +19,28 @@ import java.util.Properties
 
 import com.beust.jcommander.{JCommander, Parameters}
 import org.locationtech.geomesa.tools.commands.VersionCommand.VersionParameters
+import org.locationtech.geomesa.tools.commands.VersionCommand._
 
 class VersionCommand(parent: JCommander) extends Command(parent) {
+
   override val command = "version"
   override val params = new VersionParameters
 
   override def execute() = {
     val properties = new Properties()
-    properties.load(getClass.getClassLoader.getResourceAsStream("org/locationtech/geomesa/tools/geomesaVersion.properties"))
-    println(s"GeoMesa Version ${properties.getProperty("GEOMESA_BUILD_VERSION")} built on ${properties.getProperty("GEOMESA_BUILD_DATE")}")
+    val stream = getClass
+                  .getClassLoader
+                  .getResourceAsStream(propertiesPath)
+
+    properties.load(stream)
+    println(s"GeoMesa Version ${properties.getProperty("GEOMESA_BUILD_VERSION")} " +
+            s"built on ${properties.getProperty("GEOMESA_BUILD_DATE")}")
+    stream.close()
   }
 }
 
 object VersionCommand {
+  val propertiesPath ="org/locationtech/geomesa/tools/geomesaVersion.properties"
   @Parameters(commandDescription = "GeoMesa Version")
   class VersionParameters {}
 }
