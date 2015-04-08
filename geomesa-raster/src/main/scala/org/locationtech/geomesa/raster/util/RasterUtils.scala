@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.raster.util
 
+import java.awt.RenderingHints
 import java.awt.image.{BufferedImage, Raster => JRaster, RenderedImage}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.nio.ByteBuffer
@@ -28,7 +29,6 @@ import org.apache.hadoop.io.{BytesWritable, IOUtils, SequenceFile}
 import org.geotools.coverage.grid.GridGeometry2D
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.imgscalr.Scalr._
 import org.locationtech.geomesa.raster.data.Raster
 import org.opengis.geometry.Envelope
 
@@ -97,6 +97,13 @@ object RasterUtils {
     new BufferedImage(colorModel, emptyRaster, alphaPremultiplied, properties)
   }
 
+  def allocateBufferedImage(width: Int, height: Int, buf: BufferedImage): BufferedImage = {
+    val colorModel = buf.getColorModel
+    val alphaPremultiplied = colorModel.isAlphaPremultiplied
+    val emptyRaster = colorModel.createCompatibleWritableRaster(width, height)
+    new BufferedImage(colorModel, emptyRaster, alphaPremultiplied, null)
+  }
+
   def renderedImageToBufferedImage(r: RenderedImage): BufferedImage = {
     val properties = new JHashtable[String, Object]
     if (r.getPropertyNames != null) {
@@ -119,7 +126,6 @@ object RasterUtils {
         val originX = Math.floor((rasterEnv.getMinX - env.getMinimum(0)) / resX).toInt
         val originY = Math.floor((env.getMaximum(1) - rasterEnv.getMaxY) / resY).toInt
         mosaic.getRaster.setRect(originX, originY, cropped.getData)
-        cropped.flush()
     }
   }
 
@@ -160,9 +166,15 @@ object RasterUtils {
     if (image.getWidth == newWidth && image.getHeight == newHeight) {
       image
     } else {
-      val result = resize(image, Method.SPEED, Mode.FIT_EXACT, newWidth, newHeight, null)
-      image.flush()
-      result
+      if (newWidth < 1 || newHeight < 1) nullImage
+      else {
+        val result = allocateBufferedImage(newWidth, newHeight, image)
+        val resGraphics = result.createGraphics()
+        resGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR)
+        resGraphics.drawImage(image, 0, 0, newWidth, newHeight, null)
+        resGraphics.dispose()
+        result
+      }
     }
   }
 
@@ -200,7 +212,6 @@ object RasterUtils {
 
   def bufferCrop(src: BufferedImage, ulx: Int, uly: Int, w: Int, h: Int): BufferedImage = {
     val result = src.getSubimage(ulx, uly, w, h)
-    src.flush()
     result
   }
 

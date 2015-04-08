@@ -18,13 +18,14 @@
 package org.locationtech.geomesa.raster
 
 import java.awt.image.{BufferedImage, RenderedImage, WritableRaster}
+import java.util.UUID
 
 import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index.DecodedIndex
-import org.locationtech.geomesa.raster.data.{AccumuloRasterStore, Raster, RasterQuery, AccumuloRasterStore$}
+import org.locationtech.geomesa.raster.data.{AccumuloRasterStore, Raster, RasterQuery}
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.opengis.geometry.Envelope
@@ -148,10 +149,34 @@ object RasterTestsUtils {
     }
   }
 
+  def compareFloatBufferedImages(act: BufferedImage, exp: BufferedImage): Boolean = {
+    //compare basic info
+    if (act.getWidth != exp.getWidth) false
+    else if (act.getHeight != exp.getHeight) false
+    else {
+      val actWR = act.getRaster
+      val expWR = exp.getRaster
+      val actual = for(i <- (0 until act.getWidth).iterator;
+                       j <- 0 until act.getHeight) yield actWR.getSampleFloat(i, j, 0)
+      val expected = for(i <- (0 until act.getWidth).iterator;
+                         j <- 0 until act.getHeight) yield expWR.getSampleFloat(i, j, 0)
+      actual.sameElements(expected)
+    }
+  }
+
+  // check the setPixels to make sure we are not going out of bounds!
   val testRasterIntSolid: BufferedImage = {
     val image = new BufferedImage(16, 16, BufferedImage.TYPE_BYTE_GRAY)
     val wr = image.getRaster
     wr.setPixels(0,0,16,16, Array.fill[Int](16*16){1})
+    image
+  }
+
+  val testRasterInt10x1: BufferedImage = {
+    val image = new BufferedImage(10, 1, BufferedImage.TYPE_BYTE_GRAY)
+    val wr = image.getRaster
+    wr.setPixels(0,0,5,1, Array.fill[Int](5)(1))
+    wr.setPixels(5,0,5,1, Array.fill[Int](5)(2))
     image
   }
 
@@ -216,6 +241,17 @@ object RasterTestsUtils {
     wr.setPixels(0,4,4,4, Array.fill[Int](16){3})
     wr.setPixels(4,4,4,4, Array.fill[Int](16){4})
     image
+  }
+
+  val testRasterFloat10x1: BufferedImage =
+    Array(Array.fill[Float](5){1.6.toFloat} ++ Array.fill[Float](5){2.5.toFloat})
+
+  val testRasterFloat1x10: BufferedImage =
+    Array.fill(5)(Array.fill[Float](1){1.6.toFloat}) ++ Array.fill(5)(Array.fill[Float](1){2.5.toFloat})
+
+  implicit def float2DArrayToBufferedImage(fa: Array[Array[Float]]): BufferedImage = {
+    val gc = defaultGridCoverageFactory.create(UUID.randomUUID.toString, fa, quadrant1)
+    RasterUtils.renderedImageToBufferedImage(gc.getRenderedImage)
   }
 
 }

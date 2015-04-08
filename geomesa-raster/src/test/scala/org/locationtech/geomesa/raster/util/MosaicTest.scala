@@ -29,6 +29,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class MosaicTest extends Specification {
 
+  sequential
+
   def generateFourAdjacentRaster(): Seq[Raster] = {
     val testRaster1 = generateTestRaster(-50, 0, 0, 50, color = lightGray)
     val testRaster2 = generateTestRaster(0, 50, 0, 50, color = darkGray)
@@ -256,6 +258,103 @@ class MosaicTest extends Specification {
 
       croppedRaster must beNone
     }
+
+  }
+
+  "scaleBufferedImage" should {
+
+    "do nothing when told to scale 10x1 Floats to same dimensions" in {
+      val expected = testRasterFloat10x1
+      val actual = RasterUtils.scaleBufferedImage(10, 1, expected)
+
+      actual must beEqualTo(expected)
+    }
+
+    "do nothing when told to scale 1x10 Floats to same dimensions" in {
+      val expected = testRasterFloat1x10
+      val actual = RasterUtils.scaleBufferedImage(1, 10, expected)
+
+      actual must beEqualTo(expected)
+    }
+
+    "scale 4x4 Ints to 2x2" in {
+      val actual = RasterUtils.scaleBufferedImage(2, 2, testRasterIntQuadrants4x4)
+      compareIntBufferedImages(actual, testRasterIntQuadrants2x2)
+    }
+
+    "scale 2x2 Ints to 4x4" in {
+      val actual = RasterUtils.scaleBufferedImage(4, 4, testRasterIntQuadrants2x2)
+      compareIntBufferedImages(actual, testRasterIntQuadrants4x4)
+    }
+
+    "scale 825x41 Ints to 660x330" in {
+      val actual = RasterUtils.scaleBufferedImage(660, 330, RasterUtils.getNewImage(825, 41, gray))
+      val expected = RasterUtils.getNewImage(660, 330, gray)
+      compareIntBufferedImages(actual, expected)
+    }
+
+    "scale 10x1 Ints to 5x1" in {
+      val source = testRasterInt10x1
+      val expected: BufferedImage = {
+        val image = new BufferedImage(5, 1, BufferedImage.TYPE_BYTE_GRAY)
+        val wr = image.getRaster
+        wr.setPixels(0,0,2,1, Array.fill[Int](2)(1))
+        wr.setPixels(2,0,3,1, Array.fill[Int](3)(2))
+        image
+      }
+      val actual = RasterUtils.scaleBufferedImage(5, 1, source)
+      compareIntBufferedImages(actual, expected) must beTrue
+    }
+
+    "scale 10x1 Floats to 5x1" in {
+      val expected = Array(Array.fill[Float](2)(1.6.toFloat) ++ Array.fill[Float](3)(2.5.toFloat))
+      val actual = RasterUtils.scaleBufferedImage(5, 1, testRasterFloat10x1)
+      compareFloatBufferedImages(actual, expected) must beTrue
+    }
+
+    "scale 10x1 Floats to 5x5" in {
+      val expected = Array.fill(5)(Array.fill[Float](2)(1.6.toFloat) ++ Array.fill[Float](3)(2.5.toFloat))
+      val actual = RasterUtils.scaleBufferedImage(5, 5, testRasterFloat10x1)
+      compareFloatBufferedImages(actual, expected) must beTrue
+    }
+
+    "scale 10x1 Floats to 20x1" in {
+      val expected = Array(Array.fill[Float](10)(1.6.toFloat) ++ Array.fill[Float](10)(2.5.toFloat))
+      val actual = RasterUtils.scaleBufferedImage(20, 1, testRasterFloat10x1)
+      compareFloatBufferedImages(actual, expected) must beTrue
+    }
+
+    "scale 1x10 Floats to 1x5" in {
+      val expected =  Array.fill(2)(Array.fill[Float](1)(1.6.toFloat)) ++
+                      Array.fill(3)(Array.fill[Float](1)(2.5.toFloat))
+      val actual = RasterUtils.scaleBufferedImage(1, 5, testRasterFloat1x10)
+      compareFloatBufferedImages(actual, expected) must beTrue
+    }
+
+    "scale 1x10 Floats to 5x5" in {
+      val expected = Array.fill(2)(Array.fill[Float](5)(1.6.toFloat)) ++ Array.fill(3)(Array.fill[Float](5)(2.5.toFloat))
+      val actual = RasterUtils.scaleBufferedImage(5, 5, testRasterFloat1x10)
+      compareFloatBufferedImages(actual, expected) must beTrue
+    }
+
+    "scale 1x10 Floats to 1x20" in {
+      val expected =  Array.fill(10)(Array.fill[Float](1)(1.6.toFloat)) ++
+                      Array.fill(10)(Array.fill[Float](1)(2.5.toFloat))
+      val actual = RasterUtils.scaleBufferedImage(1, 20, testRasterFloat1x10)
+      compareFloatBufferedImages(actual, expected) must beTrue
+    }
+
+    "scale 821x41 Floats to 660x330" in {
+      val actual = RasterUtils.scaleBufferedImage(660, 330, Array.fill[Float](41, 821)(123.456.toFloat))
+      val expected: BufferedImage = Array.fill[Float](330, 660)(123.456.toFloat)
+      compareFloatBufferedImages(actual, expected) must beTrue
+    }.pendingUntilFixed("Fixed scaling large Float Raster with prime number dimensions")
+
+    "scale 800x40 Floats to 600x300" in {
+      val actual = RasterUtils.scaleBufferedImage(660, 330, Array.fill[Float](40, 800)(123.456.toFloat))
+      val expected: BufferedImage = Array.fill[Float](330, 660)(123.456.toFloat)
+      compareFloatBufferedImages(actual, expected) must beTrue
+    }.pendingUntilFixed("Fixed scaling large Float raster")
 
   }
 
