@@ -24,7 +24,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index.DecodedIndex
-import org.locationtech.geomesa.raster.data.{Raster, RasterQuery, RasterStore}
+import org.locationtech.geomesa.raster.data.{AccumuloRasterStore, Raster, RasterQuery, AccumuloRasterStore$}
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.opengis.geometry.Envelope
@@ -45,7 +45,7 @@ object RasterTestsUtils {
   val defaultGridCoverageFactory = new GridCoverageFactory
 
   def createMockRasterStore(tableName: String) = {
-    val rs = RasterStore("user", "pass", "testInstance", "zk", tableName, "", "", true)
+    val rs = AccumuloRasterStore("user", "pass", "testInstance", "zk", tableName, "", "", true)
     rs
   }
 

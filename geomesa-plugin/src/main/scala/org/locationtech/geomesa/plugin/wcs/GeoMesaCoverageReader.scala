@@ -27,7 +27,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.util.Utilities
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.raster.data.{GeoMesaCoverageQueryParams, RasterStore}
+import org.locationtech.geomesa.raster.data.{AccumuloRasterStore, GeoMesaCoverageQueryParams}
 import org.opengis.parameter.GeneralParameterValue
 
 import scala.util.Try
@@ -47,7 +47,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
 
   coverageName = table
 
-  val ars = RasterStore(user, password, instanceId, zookeepers, table, auths, "")
+  val ars = AccumuloRasterStore(user, password, instanceId, zookeepers, table, auths, "")
 
   // TODO: Either this is needed for rasterToCoverages or remove it.
   this.crs = Try(CRS.decode("EPSG:4326")).getOrElse(DefaultGeographicCRS.WGS84)
