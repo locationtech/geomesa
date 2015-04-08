@@ -205,7 +205,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito {
       there was one(encoder).writeString(vis)
 
       // hint data
-      there was one(encoder).writeString(HintKeySerialization.getIdentity(Hints.USE_PROVIDED_FID))
+      there was one(encoder).writeString(HintKeySerialization.getId(Hints.USE_PROVIDED_FID))
       there was one(encoder).writeBoolean(true)
 
       // key = 5, value = null

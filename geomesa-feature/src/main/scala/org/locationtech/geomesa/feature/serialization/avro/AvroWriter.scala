@@ -33,7 +33,7 @@ class AvroWriter(encoder: Encoder) extends AbstractWriter {
   override val writeDouble: DatumWriter[Double] = encoder.writeDouble
   override val writeBoolean: DatumWriter[Boolean] = encoder.writeBoolean
   override val writeDate: DatumWriter[Date] = (date) => encoder.writeLong(date.getTime)
-  override val writeBytes: DatumWriter[ByteBuffer] = encoder.writeBytes
+  override val writeBytes: DatumWriter[Array[Byte]] = encoder.writeBytes
 
   override def writeNullable[T](writeRaw: DatumWriter[T]): DatumWriter[T] = (raw) => {
     if (raw != null) {

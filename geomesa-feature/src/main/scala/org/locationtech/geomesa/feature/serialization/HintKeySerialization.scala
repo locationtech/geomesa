@@ -16,8 +16,6 @@
 
 package org.locationtech.geomesa.feature.serialization
 
-import java.awt.RenderingHints
-
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.feature.SerializationException
 
@@ -27,7 +25,7 @@ trait HintKeyWriter extends PrimitiveWriter {
   /**
    * A [[DatumWriter]] for writing a non-nullable [[Hints.Key]].
    */
-  val writeHintKey: DatumWriter[Hints.Key] = (key) => writeString(HintKeySerialization.getIdentity(key))
+  val writeHintKey: DatumWriter[Hints.Key] = (key) => writeString(HintKeySerialization.getId(key))
 }
 
 /** Reads a [[Hints.Key]] */
@@ -36,43 +34,21 @@ trait HintKeyReader extends PrimitiveReader {
   val readHintKey: DatumReader[Hints.Key] = () => HintKeySerialization.getKey(readString())
 }
 
-/** Reflection support for [[HintKeyWriter]] and [[HintKeyReader]].
-  *
-  * This is fragile.  Is there a better way?
-  */
+/** Maintains Key -> String and String -> Key mappings */
 object HintKeySerialization {
 
-  // avoid creating a copy of RenderingHints.Key.identityMap - just create an accessible reference
-  lazy val keyIdentityMap: java.util.Map[Object, Object] = {
+  // Add more keys as needed.
+  val idToKey: Map[String, Hints.Key] = Map(
+    "USE_PROVIDED_FID" -> Hints.USE_PROVIDED_FID
+  )
 
-    try {
-      val keyClass = classOf[RenderingHints.Key]
-      val field = keyClass.getDeclaredField("identitymap")
-      field.setAccessible(true)
-      field.get(null).asInstanceOf[java.util.Map[Object,Object]]
-    } catch {
-      case e: Exception =>
-        throw new SerializationException("Error accessing identityMap", e)
-    }
-  }
+  val keyToId: Map[Hints.Key, String] = idToKey.map(_.swap)
 
   def getKey(identity: String): Hints.Key = {
-    Option(keyIdentityMap.get(identity))
-      .collect{case ref: java.lang.ref.WeakReference[_] => ref}
-      .flatMap((ref) => Option(ref.get()))
-      .collect{case key: Hints.Key => key}
-      .getOrElse(throw  new SerializationException(s"No Key found for identity $identity"))
+    idToKey.getOrElse(identity, throw new SerializationException(s"Unknown Key ID: '$identity'"))
   }
 
-  def getIdentity(key: Hints.Key): String = {
-    try {
-      val keyClass = classOf[RenderingHints.Key]
-      val method = keyClass.getDeclaredMethod("getIdentity")
-      method.setAccessible(true)
-      method.invoke(key).asInstanceOf[String]
-    } catch {
-      case e: Exception =>
-        throw new SerializationException("Error accessing getIdentity() method", e)
-    }
+  def getId(key: Hints.Key): String = {
+    keyToId.getOrElse(key, throw new SerializationException(s"Unknown Key: '$key'"))
   }
 }

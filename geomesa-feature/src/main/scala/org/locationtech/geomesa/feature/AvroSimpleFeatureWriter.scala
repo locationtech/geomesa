@@ -84,9 +84,7 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: EncodingOptions = En
     aw.writeGenericMap(datum.getUserData)
   }
 
-  private val doWrite = if (opts.withUserData) writeWithUserData _ else defaultWrite _
-
-  def write(datum: SimpleFeature, out: Encoder) = doWrite(datum, out)
+  val write: (SimpleFeature, Encoder) => Unit = if (opts.withUserData) writeWithUserData else defaultWrite
 
   private def convertValue(idx: Int, v: AnyRef) = typeMap(names(idx)).conv.apply(v)
 }

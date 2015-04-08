@@ -124,14 +124,11 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     sf
   }
 
-  private val doRead = {
+  val read: (AvroSimpleFeature, Decoder) => AvroSimpleFeature =
     if (opts.withUserData)
-      readWithUserData _
+      readWithUserData
     else
-      defaultRead _
-  }
-
-  def read(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = doRead(reuse, in)
+      defaultRead
 }
 
 object FeatureSpecificReader {

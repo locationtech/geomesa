@@ -31,6 +31,8 @@ trait PrimitiveReader {
   def readDouble: DatumReader[Double]
   def readBoolean: DatumReader[Boolean]
   def readDate: DatumReader[Date]
+
+  // TODO change to DatumReader[Array[Byte]]
   def readBytes: DatumReader[ByteBuffer]
   
 }

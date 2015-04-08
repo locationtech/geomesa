@@ -39,8 +39,10 @@ object TransformCreator {
     val encoder = SimpleFeatureEncoder(targetFeatureType, featureEncoding)
     val defs = TransformProcess.toDefinition(transformString)
 
+    val newSf = new ScalaSimpleFeature("reusable", targetFeatureType)
+
     (feature: SimpleFeature) => {
-        val newSf = new ScalaSimpleFeature(feature.getIdentifier.getID, targetFeatureType)
+        newSf.getIdentifier.setID(feature.getIdentifier.getID)
         defs.foreach { t => newSf.setAttribute(t.name, t.expression.evaluate(feature)) }
         encoder.encode(newSf)
       }

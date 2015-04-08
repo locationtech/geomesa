@@ -31,5 +31,5 @@ trait PrimitiveWriter {
   def writeDouble: DatumWriter[Double]
   def writeBoolean: DatumWriter[Boolean]
   def writeDate: DatumWriter[Date]
-  def writeBytes: DatumWriter[ByteBuffer]
+  def writeBytes: DatumWriter[Array[Byte]]
 }

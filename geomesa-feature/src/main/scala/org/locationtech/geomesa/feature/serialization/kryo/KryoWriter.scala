@@ -33,23 +33,7 @@ class KryoWriter(out: Output) extends AbstractWriter {
   override val writeDouble: DatumWriter[Double] = out.writeDouble
   override val writeBoolean: DatumWriter[Boolean] = out.writeBoolean
   override val writeDate: DatumWriter[Date] = (date) => out.writeLong(date.getTime)
-  override val writeBytes: DatumWriter[ByteBuffer] = (bytes) => {
-    // based on logic from Avro's BinaryEncoder
-    val pos: Int = bytes.position
-    val len: Int = bytes.limit - pos
-
-    out.writeInt(len)
-
-    if (len > 0) {
-      if (bytes.hasArray) {
-        out.writeBytes(bytes.array, bytes.arrayOffset + pos, len)
-      } else {
-        val b: Array[Byte] = new Array[Byte](len)
-        bytes.get(b, 0, len)
-        out.writeBytes(b, 0, len)
-      }
-    }
-  }
+  override val writeBytes: DatumWriter[Array[Byte]] = out.writeBytes
 
   override val writeArrayStart: DatumWriter[Long] = out.writeLong
 
