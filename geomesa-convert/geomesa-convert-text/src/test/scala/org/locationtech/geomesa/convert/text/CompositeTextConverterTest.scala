@@ -49,6 +49,7 @@ class CompositeTextConverterTest extends Specification {
       |       id-field     = "concat('first', trim($1))",
       |       fields = [
       |         { name = "phrase", transform = "concat($1, $2)" },
+      |         { name = "lineNr", transform = "lineNo()" },
       |         { name = "lat",    transform = "$3::double" },
       |         { name = "lon",    transform = "$4::double" },
       |         { name = "geom",   transform = "point($lat, $lon)" }
@@ -66,6 +67,7 @@ class CompositeTextConverterTest extends Specification {
       |         { name = "lat",    transform = "$3::double" },
       |         { name = "lon",    transform = "$4::double" },
       |         { name = "geom",   transform = "point($lat, $lon)" }
+      |         { name = "lineNr", transform = "lineNo()" }
       |       ]
       |     }
       |   }
@@ -77,11 +79,17 @@ class CompositeTextConverterTest extends Specification {
     val converter = SimpleFeatureConverters.build[String](sft, conf)
     converter must not beNull
 
+    val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
+
     "and process some data" >> {
-      val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
       res.size must be equalTo 2
       res(0).getID must be equalTo "first1"
       res(1).getID must be equalTo "second2"
+    }
+
+    "and get correct line numbers" >> {
+      res(0).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 1
+      res(1).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 4
     }
   }
 

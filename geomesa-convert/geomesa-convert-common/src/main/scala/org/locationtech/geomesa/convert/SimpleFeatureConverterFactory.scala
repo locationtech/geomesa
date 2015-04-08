@@ -71,7 +71,7 @@ object SimpleFeatureConverters {
 trait SimpleFeatureConverter[I] {
   def targetSFT: SimpleFeatureType
   def processInput(is: Iterator[I], globalParams: Map[String, Any] = Map.empty): Iterator[SimpleFeature]
-  def processSingleInput(i: I, globalParams: Map[String, Any] = Map.empty): Option[SimpleFeature]
+  def processSingleInput(i: I, globalParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Option[SimpleFeature]
   def close(): Unit = {}
 }
 
@@ -118,12 +118,9 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   val inputFieldIndexes =
     mutable.HashMap.empty[String, Int] ++= requiredFields.map(_.name).zipWithIndex.toMap
 
-  implicit val ctx = new EvaluationContext(inputFieldIndexes, null)
-
   var reuse: Array[Any] = null
-  def convert(t: Array[Any], reuse: Array[Any]): SimpleFeature = {
+  def convert(t: Array[Any], reuse: Array[Any])(implicit ctx: EvaluationContext): SimpleFeature = {
     import spire.syntax.cfor._
-    ctx.incrementCount()
     ctx.computedFields = reuse
 
     cfor(0)(_ < nfields, _ + 1) { i =>
@@ -138,13 +135,15 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     sf
   }
 
-  def processSingleInput(i: I, gParams: Map[String, Any]): Option[SimpleFeature] = {
-    if(reuse == null) {
+  def processSingleInput(i: I, gParams: Map[String, Any])(implicit ec: EvaluationContext): Option[SimpleFeature] = {
+    if(reuse == null || ec.fieldNameMap == null) {
+      // initialize reuse and ec
+      ec.fieldNameMap = inputFieldIndexes
       reuse = Array.ofDim[Any](nfields + gParams.size)
       gParams.zipWithIndex.foreach { case ((k, v), idx) =>
         val shiftedIdx = nfields + idx
         reuse(shiftedIdx) = v
-        ctx.fieldNameMap(k) = shiftedIdx
+        ec.fieldNameMap(k) = shiftedIdx
       }
     }
     Try { convert(fromInputType(i), reuse) } match {
@@ -156,8 +155,11 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   }
 
   def processInput(is: Iterator[I], gParams: Map[String, Any] = Map.empty): Iterator[SimpleFeature] = {
-    ctx.resetCount() 
-    is.flatMap { s => processSingleInput(s, gParams) }
+    implicit val ctx = new EvaluationContext(inputFieldIndexes, null)
+    is.flatMap { s =>
+      ctx.incrementCount()
+      processSingleInput(s, gParams)
+    }
   }
 
 }

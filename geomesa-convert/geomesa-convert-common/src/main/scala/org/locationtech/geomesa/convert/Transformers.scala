@@ -108,7 +108,8 @@ object Transformers extends JavaTokenParsers {
     def lookup(i: Int) = if(i < 0) null else computedFields(i)
     def getCount(): Int = count
     def incrementCount(): Unit = count +=1
-    def resetCount(): Unit = count = 0
+    def setCount(i: Int) = count = i
+    def resetCount(): Unit = setCount(0)
   }
 
   sealed trait Expr {

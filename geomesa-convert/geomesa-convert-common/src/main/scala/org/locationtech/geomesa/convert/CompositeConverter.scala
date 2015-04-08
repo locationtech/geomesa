@@ -21,7 +21,6 @@ import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Predica
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 import scala.util.Try
 
 class CompositeConverterFactory[I] extends SimpleFeatureConverterFactory[I] {
@@ -43,29 +42,36 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
                             converters: Seq[(Predicate, SimpleFeatureConverter[I])])
   extends SimpleFeatureConverter[I] {
 
+  val evaluationContexts = List.fill(converters.length)(new EvaluationContext(null, null))
+
   override def processInput(is: Iterator[I],  gParams: Map[String, Any] = Map.empty): Iterator[SimpleFeature] = {
+    var count = 0
     is.flatMap { input =>
-      converters.view.flatMap { case (pred, conv) =>
+      count += 1
+      converters.view.zipWithIndex.flatMap { case ((pred, conv), i) =>
+        implicit val ec = evaluationContexts(i)
+        ec.setCount(count)
         processIfValid(input, pred, conv, gParams)
       }.headOption
     }
   }
 
   // noop
-  override def processSingleInput(i: I, gParams: Map[String, Any] = Map.empty): Option[SimpleFeature] = null
+  override def processSingleInput(i: I, gParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Option[SimpleFeature] = null
 
   private val mutableArray = Array.ofDim[Any](1)
 
-  // to satisfy pred.eval() implicit evaluation context requirement
-  implicit val emptyEC = new EvaluationContext(mutable.HashMap.empty[String, Int], Array.empty[Any])
-
-  def processIfValid(input: I, pred: Predicate, conv: SimpleFeatureConverter[I], gParams: Map[String, Any]) = {
+  def processIfValid(input: I,
+                     pred: Predicate,
+                     conv: SimpleFeatureConverter[I],
+                     gParams: Map[String, Any])
+                    (implicit  ec: EvaluationContext) = {
     val opt =
       Try {
         mutableArray(0) = input
         pred.eval(mutableArray)
       }.toOption
 
-    opt.flatMap { v => if (v) conv.processSingleInput(input, gParams) else None }
+    opt.flatMap { v => if (v) conv.processSingleInput(input, gParams)(ec) else None }
   }
 }
