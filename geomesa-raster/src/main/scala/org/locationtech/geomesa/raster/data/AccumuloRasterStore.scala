@@ -96,9 +96,9 @@ class AccumuloRasterStore(val connector: Connector,
 
     val (image, numRasters) = profile("mosaic") {
       RasterUtils.mosaicChunks(rasters,
-        params.height.toInt,
-        params.width.toInt,
-        params.envelope)
+                                params.width.toInt,
+                                params.height.toInt,
+                                params.envelope)
     }
     val stat = RasterQueryStat(tableName,
       System.currentTimeMillis(),
