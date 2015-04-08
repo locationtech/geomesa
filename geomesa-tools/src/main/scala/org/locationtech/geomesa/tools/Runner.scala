@@ -30,16 +30,17 @@ object Runner extends Logging {
     jc.addConverterFactory(new GeoMesaIStringConverterFactory)
 
     val commands = List(
-      new TableConfCommand(jc),
-      new ListCommand(jc),
-      new ExportCommand(jc),
-      new RemoveSchemaCommand(jc),
+      new CreateCommand(jc),
       new DeleteCatalogCommand(jc),
       new DescribeCommand(jc),
-      new IngestCommand(jc),
-      new CreateCommand(jc),
       new ExplainCommand(jc),
-      new HelpCommand(jc)
+      new ExportCommand(jc),
+      new HelpCommand(jc),
+      new IngestCommand(jc),
+      new ListCommand(jc),
+      new RemoveSchemaCommand(jc),
+      new TableConfCommand(jc),
+      new VersionCommand(jc)
     )
 
     commands.foreach(_.register)
