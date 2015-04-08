@@ -18,7 +18,7 @@ package org.locationtech.geomesa.tools
 
 import java.util.{Date, UUID}
 
-import com.twitter.scalding.{Mode, Args}
+import com.twitter.scalding.{Args, Mode}
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.DataStoreFinder
 import org.geotools.filter.identity.FeatureIdImpl

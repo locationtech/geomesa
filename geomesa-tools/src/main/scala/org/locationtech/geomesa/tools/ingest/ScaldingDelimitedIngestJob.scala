@@ -29,8 +29,8 @@ import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.Converters
-import org.joda.time.{DateTimeZone, DateTime}
 import org.joda.time.format.DateTimeFormat
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.{params => dsp}
 import org.locationtech.geomesa.core.index.Constants
@@ -293,8 +293,9 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
 }
 
 object ScaldingDelimitedIngestJob {
-  import scala.collection.JavaConverters._
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+  import scala.collection.JavaConverters._
 
   def isList(ad: AttributeDescriptor) = classOf[java.util.List[_]].isAssignableFrom(ad.getType.getBinding)
 
