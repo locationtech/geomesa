@@ -33,6 +33,14 @@ class GeoMesaILoop extends ILoop {
       intp.beQuietDuring {
         intp.interpret(GeoMesaILoop.imports)
       }
+      intp.beSilentDuring {
+        intp.interpret("classOf[scala.tools.jline.console.completer.Completer]") match {
+          case scala.tools.nsc.interpreter.Results.Error =>
+            println("\nWARNING: Could not load jline. For better console usability, " +
+                "run the install-jline script in $GEOMESA_HOME/bin.")
+          case _ => // ok
+        }
+      }
     }
   }
 }
@@ -76,6 +84,7 @@ object GeoMesaILoop {
         classOf[AccumuloDataStore].getName,
         "org.locationtech.geomesa.utils.geotools.Conversions._",
         "org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes",
-        "org.geotools.data._")
-        .mkString("import ", ", ", "")
+        "org.geotools.data._",
+        "org.geotools.filter.text.ecql.ECQL",
+        "scala.collection.JavaConversions._").mkString("import ", ", ", "")
 }

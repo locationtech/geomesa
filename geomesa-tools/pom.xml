@@ -54,11 +54,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>jline</artifactId>
-            <version>${scala.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.twitter</groupId>
             <artifactId>scalding-repl_2.10</artifactId>
             <version>${scalding.version}</version>

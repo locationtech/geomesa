@@ -73,7 +73,7 @@ in each command by using `-u` or `--username `and `-p` or `--password`, respecti
 on the command line using `-u` or `--username` and type the password in an additional prompt, where the password will be
 hidden from the shell history.
 
-A test script is included under `geomesa\bin\geomesa-test-script.sh` that runs each command provided by geomesa-tools. Edit this script
+A test script is included under `geomesa\bin\test-geomesa` that runs each command provided by geomesa-tools. Edit this script
 by including your Accumulo username, password, test catalog table, test feature name, and test SFT specification. Default values
 are already included in the script. Then, run the script from the command line to ensure there are no errors in the output text. 
 
@@ -95,7 +95,7 @@ This library can be downloaded from your local nexus repo or `http://download.ja
 
 To install, copy the jai_core.jar and jai_code.jar into `$GEOMESA_HOME/lib/`
 
-Optionally there is a script bundled as `$GEOMESA_HOME/bin/geomesa-install-jai` that will attempt to wget and install 
+Optionally there is a script bundled as `$GEOMESA_HOME/bin/install-jai` that will attempt to wget and install 
 the jai libraries
 
 ###Logging configuration

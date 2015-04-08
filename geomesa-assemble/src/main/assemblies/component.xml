@@ -60,9 +60,11 @@
             <fileMode>0755</fileMode>
             <includes>
                 <include>geomesa</include>
-                <include>geomesa-install-jai</include>
-                <include>geomesa-test-script.sh</include>
+                <include>install-jai</include>
+                <include>install-jline</include>
+                <include>test-geomesa</include>
             </includes>
+            <filtered>true</filtered>
         </fileSet>
     </fileSets>
     <files>
