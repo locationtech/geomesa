@@ -54,11 +54,8 @@ object RasterTestsUtils {
     new RasterQuery(bb, res, None, None)
   }
 
-  implicit def bboxToRefEnv(b: BoundingBox): ReferencedEnvelope = new ReferencedEnvelope(b.minLon,
-                                                                                          b.maxLon,
-                                                                                          b.minLat,
-                                                                                          b.maxLat,
-                                                                                          DefaultGeographicCRS.WGS84)
+  implicit def bboxToRefEnv(b: BoundingBox): ReferencedEnvelope =
+    new ReferencedEnvelope(b.minLon, b.maxLon, b.minLat, b.maxLat, DefaultGeographicCRS.WGS84)
 
   def generateRaster(bbox: BoundingBox, buf: BufferedImage, id: String = Raster.getRasterId("testRaster")): Raster = {
     val ingestTime = new DateTime()
@@ -136,13 +133,19 @@ object RasterTestsUtils {
 
   private def getDelta(level: Int): Double = 45.0 / Math.pow(2, level)
 
-  def generateIntRasterVSplit(w: Int, h: Int): BufferedImage = {
-    // w and h must be even!
-    val image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY)
-    val wr = image.getRaster
-    wr.setPixels(0,0,w/2,h, Array.fill[Int](w/2*h){1})
-    wr.setPixels(w/2,0,w/2,h, Array.fill[Int](w/2*h){2})
-    image
+  def compareIntBufferedImages(act: BufferedImage, exp: BufferedImage): Boolean = {
+    //compare basic info
+    if (act.getWidth != exp.getWidth) false
+    else if (act.getHeight != exp.getHeight) false
+    else {
+      val actWR = act.getRaster
+      val expWR = exp.getRaster
+      val actual = for(i <- (0 until act.getWidth).iterator;
+                       j <- 0 until act.getHeight) yield actWR.getSample(i, j, 0)
+      val expected = for(i <- (0 until act.getWidth).iterator;
+                         j <- 0 until act.getHeight) yield expWR.getSample(i, j, 0)
+      actual.sameElements(expected)
+    }
   }
 
   val testRasterIntSolid: BufferedImage = {
@@ -214,7 +217,5 @@ object RasterTestsUtils {
     wr.setPixels(4,4,4,4, Array.fill[Int](16){4})
     image
   }
-
-
 
 }

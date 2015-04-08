@@ -193,8 +193,7 @@ object RasterUtils {
           hTemp
         }
         val b = renderedImageToBufferedImage(raster.chunk)
-        val result = bufferCrop(b, uLX, uLY, w, h)
-        Some(result)
+        Some(bufferCrop(b, uLX, uLY, w, h))
       } else None
     }
   }
