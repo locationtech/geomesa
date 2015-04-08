@@ -25,7 +25,7 @@ import org.apache.avro.Schema.Type._
 import org.apache.avro.io.Encoder
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.feature.AvroSimpleFeatureUtils._
-import org.locationtech.geomesa.feature.EncodingOptions.EncodingOptions
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.feature.serialization.avro.AvroWriter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 

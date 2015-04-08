@@ -22,11 +22,11 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.io.WKBConstants
-import org.locationtech.geomesa.feature.EncodingOption._
-import org.locationtech.geomesa.feature.{EncodingOption, ScalaSimpleFeature}
-import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer.{Decoding, Encoding}
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
+import org.locationtech.geomesa.feature.ScalaSimpleFeature
+import org.locationtech.geomesa.feature.serialization.avro.AvroWriter
+import org.locationtech.geomesa.feature.serialization.kryo.{KryoReader, KryoWriter}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
-import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -39,7 +39,7 @@ import scala.reflect.ClassTag
  *
  * @param sft
  */
-class SimpleFeatureSerializer(sft: SimpleFeatureType, opts: Set[EncodingOption] = Set.empty)
+class SimpleFeatureSerializer(sft: SimpleFeatureType, opts: EncodingOptions = EncodingOptions.none)
   extends BaseSimpleFeatureSerializer(sft, opts) {
 
   import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer._
@@ -47,7 +47,7 @@ class SimpleFeatureSerializer(sft: SimpleFeatureType, opts: Set[EncodingOption] 
   val encodings = sftEncodings(sft)
   val decodings = sftDecodings(sft)
 
-  override def writeValues(output: Output, sf: SimpleFeature) = {
+  override def writeAttributes(output: Output, sf: SimpleFeature) = {
     var i = 0
     while (i < encodings.length) {
       encodings(i)(output, sf)
@@ -55,7 +55,7 @@ class SimpleFeatureSerializer(sft: SimpleFeatureType, opts: Set[EncodingOption] 
     }
   }
 
-  def readValues(input: Input, version: Int): Array[AnyRef] = {
+  def readAttributes(input: Input, version: Int): Array[AnyRef] = {
     val values = Array.ofDim[AnyRef](sft.getAttributeCount)
     var i = 0
     while (i < decodings.length) {
@@ -86,7 +86,7 @@ class FeatureIdSerializer extends Serializer[KryoFeatureId] {
  * @param sft
  * @param transform
  */
-class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: SimpleFeatureType, options: Set[EncodingOption])
+class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: SimpleFeatureType, options: EncodingOptions)
     extends BaseSimpleFeatureSerializer(transform, options) {
 
   import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer._
@@ -110,7 +110,7 @@ class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: Sim
     (enc, dec)
   }
 
-  override def writeValues(output: Output, sf: SimpleFeature): Unit = {
+  override def writeAttributes(output: Output, sf: SimpleFeature): Unit = {
     var i = 0
     while (i < transformEncodings.length) {
       transformEncodings(i)(output, sf)
@@ -118,7 +118,7 @@ class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: Sim
     }
   }
 
-  override def readValues(input: Input, version: Int): Array[AnyRef] = {
+  override def readAttributes(input: Input, version: Int): Array[AnyRef] = {
     val values = Array.ofDim[AnyRef](transform.getAttributeCount)
     var i = 0
     while (i < transformDecodings.length) {
@@ -134,57 +134,58 @@ class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: Sim
   }
 }
 
-abstract class BaseSimpleFeatureSerializer(sft: SimpleFeatureType, opts: Set[EncodingOption])
+abstract class BaseSimpleFeatureSerializer(sft: SimpleFeatureType, opts: EncodingOptions)
   extends Serializer[SimpleFeature] {
 
   import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer.VERSION
 
-  private val includeVis = opts.contains(EncodingOption.WITH_VISIBILITIES)
+  val doWrite: (Kryo, Output, SimpleFeature) => Unit =
+    if (opts.withUserData) writeWithUserData else defaultWrite
 
-  override def write(kryo: Kryo, output: Output, sf: SimpleFeature): Unit = {
-    writeHeader(output, sf)
-    writeValues(output, sf)
-  }
+  val doRead: (Kryo, Input, Class[SimpleFeature]) => SimpleFeature =
+    if (opts.withUserData) readWithUserData else defaultRead
 
-  override def read(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
-    val (version, id, vis) = readHeader(input)
-    val values = readValues(input, version)
+  override def write(kryo: Kryo, output: Output, sf: SimpleFeature) = doWrite(kryo, output, sf)
+  override def read(kryo: Kryo, input: Input, typ: Class[SimpleFeature]) = doRead(kryo, input, typ)
 
-    val sf = new ScalaSimpleFeature(id, sft, values)
-    if (vis.isDefined) {
-      SecurityUtils.setFeatureVisibility(sf, vis.get)
-    }
-    sf
-  }
-
-  def writeHeader(output: Output, sf: SimpleFeature) = {
+  def defaultWrite(kryo: Kryo, output: Output, sf: SimpleFeature): Unit = {
     output.writeInt(VERSION, true)
     output.writeString(sf.getID)
 
-    if (includeVis) {
-      val vis = Option(SecurityUtils.getVisibility(sf)).getOrElse("")
-      output.writeString(vis)
-    }
+    writeAttributes(output, sf)
   }
 
-  def readHeader(input: Input): (Int, String, Option[String]) = {
+  def writeWithUserData(kryo: Kryo, output: Output, sf: SimpleFeature) = {
+    defaultWrite(kryo, output, sf)
+
+    // TODO move out and use everywhere
+    val kw = new org.locationtech.geomesa.feature.serialization.kryo.KryoWriter(output)
+    kw.writeGenericMap(sf.getUserData)
+  }
+
+  def defaultRead(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
     val version = input.readInt(true)
     val id = input.readString()
 
-    val vis = {
-      if (includeVis) {
-        val v = input.readString()
-        if (v.isEmpty) Option.empty else Option(v)
-      } else {
-        Option.empty
-      }
-    }
+    val values = readAttributes(input, version)
 
-    (version, id, vis)
+    new ScalaSimpleFeature(id, sft, values)
   }
 
-  def writeValues(output: Output, sf: SimpleFeature)
-  def readValues(input: Input, version: Int): Array[AnyRef]
+  def readWithUserData(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
+    val sf = defaultRead(kryo, input, typ)
+
+    // TODO move out and use everywhere
+    val kr = new KryoReader(input)
+
+    val userData = kr.readGenericMap()
+    sf.getUserData.clear()
+    sf.getUserData.putAll(userData)
+    sf
+  }
+
+  def writeAttributes(output: Output, sf: SimpleFeature)
+  def readAttributes(input: Input, version: Int): Array[AnyRef]
 }
 
 object SimpleFeatureSerializer {

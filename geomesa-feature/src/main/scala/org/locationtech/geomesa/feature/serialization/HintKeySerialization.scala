@@ -21,10 +21,7 @@ import java.awt.RenderingHints
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.feature.SerializationException
 
-/** Writes a [[Hints.Key]].
-  *
-  * Created by mmatz on 4/7/15.
-  */
+/** Writes a [[Hints.Key]]. */
 trait HintKeyWriter extends PrimitiveWriter {
 
   /**
@@ -33,10 +30,7 @@ trait HintKeyWriter extends PrimitiveWriter {
   val writeHintKey: DatumWriter[Hints.Key] = (key) => writeString(HintKeySerialization.getIdentity(key))
 }
 
-/** Reads a [[Hints.Key]]
-  *
-  * Created by mmatz on 4/7/15.
-  */
+/** Reads a [[Hints.Key]] */
 trait HintKeyReader extends PrimitiveReader {
 
   val readHintKey: DatumReader[Hints.Key] = () => HintKeySerialization.getKey(readString())

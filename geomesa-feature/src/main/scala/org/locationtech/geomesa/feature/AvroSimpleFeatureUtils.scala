@@ -50,10 +50,6 @@ object AvroSimpleFeatureUtils {
 
   def decodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, decode(s))
 
-  /**
-   * @param sft the simple feature type whose schema will be generated
-   * @return the [[Schema]] for the sft with or with out visibility according to includeVisibility
-   */
   def generateSchema(sft: SimpleFeatureType): Schema = {
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
       SchemaBuilder.record(encodeAttributeName(sft.getTypeName))
@@ -61,6 +57,7 @@ object AvroSimpleFeatureUtils {
         .fields
         .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
         .name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
+
     val result =
       sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
         addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)

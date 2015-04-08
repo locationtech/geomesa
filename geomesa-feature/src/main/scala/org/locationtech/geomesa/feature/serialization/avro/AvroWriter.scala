@@ -22,9 +22,7 @@ import java.util.Date
 import org.apache.avro.io.Encoder
 import org.locationtech.geomesa.feature.serialization._
 
-/**
-  * Created by mmatz on 4/7/15.
-  */
+/** Implemenation of [[AbstractWriter]] for Avro. */
 class AvroWriter(encoder: Encoder) extends AbstractWriter {
   import AvroWriter.{NOT_NULL_INDEX, NULL_INDEX}
 
@@ -37,7 +35,6 @@ class AvroWriter(encoder: Encoder) extends AbstractWriter {
   override val writeDate: DatumWriter[Date] = (date) => encoder.writeLong(date.getTime)
   override val writeBytes: DatumWriter[ByteBuffer] = encoder.writeBytes
 
-  // override to avoid Option creation
   override def writeNullable[T](writeRaw: DatumWriter[T]): DatumWriter[T] = (raw) => {
     if (raw != null) {
       encoder.writeIndex(NOT_NULL_INDEX)
@@ -46,15 +43,6 @@ class AvroWriter(encoder: Encoder) extends AbstractWriter {
       encoder.writeIndex(NULL_INDEX)
       encoder.writeNull()
     }
-  }
-
-  override def writeOption[T](writeRaw: DatumWriter[T]): DatumWriter[Option[T]] = {
-    case Some(raw) =>
-      encoder.writeIndex(NOT_NULL_INDEX)
-      writeRaw(raw)
-    case _ =>
-      encoder.writeIndex(NULL_INDEX)
-      encoder.writeNull()
   }
 
   override val writeArrayStart: DatumWriter[Long] = (arrayLen) => {

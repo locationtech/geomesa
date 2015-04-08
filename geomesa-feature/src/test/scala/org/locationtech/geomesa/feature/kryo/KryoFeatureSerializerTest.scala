@@ -19,9 +19,9 @@ package org.locationtech.geomesa.feature.kryo
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.Point
 import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.feature._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.security.SecurityUtils
@@ -74,7 +74,7 @@ class KryoFeatureSerializerTest extends Specification {
         deserialized.getAttributes mustEqual sf.getAttributes
       }
 
-      "without visibility" >> {
+      "without user data" >> {
         val sft = SimpleFeatureTypes.createType("testType", "dtg:Date,*geom:Point:srid=4326")
         val sf = new ScalaSimpleFeature("testId", sft)
 
@@ -84,7 +84,7 @@ class KryoFeatureSerializerTest extends Specification {
         val vis = "u&usa&fouo"
         SecurityUtils.setFeatureVisibility(sf, vis)
 
-        val serializer = KryoFeatureSerializer(sft, EncodingOptions.none.options)
+        val serializer = KryoFeatureSerializer(sft, EncodingOptions.none)
 
         val serialized = serializer.write(sf)
         val deserialized = serializer.read(serialized)
@@ -92,7 +92,7 @@ class KryoFeatureSerializerTest extends Specification {
         SecurityUtils.getVisibility(deserialized) must beNull
       }
 
-      "with visibility" >> {
+      "with user data" >> {
         val sft = SimpleFeatureTypes.createType("testType", "dtg:Date,*geom:Point:srid=4326")
         val sf = new ScalaSimpleFeature("testId", sft)
 
@@ -102,12 +102,12 @@ class KryoFeatureSerializerTest extends Specification {
         val vis = "u&usa&fouo"
         SecurityUtils.setFeatureVisibility(sf, vis)
 
-        val serializer = KryoFeatureSerializer(sft, Set(EncodingOption.WITH_VISIBILITIES))
+        val serializer = KryoFeatureSerializer(sft, EncodingOptions.withUserData)
 
         val serialized = serializer.write(sf)
         val deserialized = serializer.read(serialized)
 
-        SecurityUtils.getVisibility(deserialized) mustEqual vis
+        deserialized.getUserData mustEqual sf.getUserData
       }
     }
 
@@ -266,7 +266,7 @@ class KryoFeatureSerializerTest extends Specification {
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
       "when serializing" >> {
-        val serializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none.options)
+        val serializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none)
         val deserializer = KryoFeatureSerializer(projectedSft)
 
         val serialized = serializer.write(sf)
@@ -279,7 +279,7 @@ class KryoFeatureSerializerTest extends Specification {
 
       "when deserializing" >> {
         val serializer = KryoFeatureSerializer(sft)
-        val deserializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none.options)
+        val deserializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none)
 
         val serialized = serializer.write(sf)
         val deserialized = deserializer.read(serialized)

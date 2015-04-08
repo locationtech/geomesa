@@ -22,10 +22,7 @@ import java.util.Date
 import com.esotericsoftware.kryo.io.Input
 import org.locationtech.geomesa.feature.serialization._
 
-/** Implemenation of [[AbstractReader]] for Kryo.
-  *
-  * Created by mmatz on 4/7/15.
-  */
+/** Implemenation of [[AbstractReader]] for Kryo. */
 class KryoReader(in: Input) extends AbstractReader {
   import KryoWriter.NON_NULL_MARKER_BYTE
 
@@ -42,11 +39,11 @@ class KryoReader(in: Input) extends AbstractReader {
     ByteBuffer.wrap(bytes)
   }
 
-  override def readOption[T](readRaw: DatumReader[T]): DatumReader[Option[T]] = () => {
+  override def readNullable[T](readRaw: DatumReader[T]): DatumReader[T] = () => {
     if (in.readByte() == NON_NULL_MARKER_BYTE) {
-      Some(readRaw())
+      readRaw()
     } else {
-      None
+      null.asInstanceOf
     }
   }
 

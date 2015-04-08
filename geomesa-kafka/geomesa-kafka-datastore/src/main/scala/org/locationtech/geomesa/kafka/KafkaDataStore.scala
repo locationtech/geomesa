@@ -33,7 +33,8 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.geotools.feature.NameImpl
-import org.locationtech.geomesa.feature.{EncodingOption, AvroFeatureDecoder}
+import org.locationtech.geomesa.feature.AvroFeatureDecoder
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -122,7 +123,7 @@ class KafkaDataStore(broker: String,
       val eb = new EventBus(topic)
       val sft = schemaCache.get(topic)
       val groupId = RandomStringUtils.randomAlphanumeric(5)
-      val decoder = new AvroFeatureDecoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+      val decoder = new AvroFeatureDecoder(sft, EncodingOptions.withUserData)
       // create a producer that reads from kafka and sends to the event bus
       val producer = new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
       new KafkaConsumerFeatureSource(entry, sft, eb, null, expiry, expirationPeriod)

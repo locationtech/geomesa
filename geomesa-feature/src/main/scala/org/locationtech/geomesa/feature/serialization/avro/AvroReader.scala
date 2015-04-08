@@ -22,10 +22,7 @@ import java.util.Date
 import org.apache.avro.io.Decoder
 import org.locationtech.geomesa.feature.serialization.{AbstractReader, DatumReader}
 
-/** Implemenation of [[AbstractReader]] for Avro.
-  *
-  * Created by mmatz on 4/7/15.
-  */
+/** Implemenation of [[AbstractReader]] for Avro. */
 class AvroReader(decoder: Decoder) extends AbstractReader {
   import AvroWriter.NOT_NULL_INDEX
 
@@ -38,12 +35,12 @@ class AvroReader(decoder: Decoder) extends AbstractReader {
   override val readDate: DatumReader[Date] = () => new Date(decoder.readLong())
   override val readBytes: DatumReader[ByteBuffer] = () => decoder.readBytes(null)
 
-  override def readOption[T](readRaw: DatumReader[T]): DatumReader[Option[T]] = () => {
+  override def readNullable[T](readRaw: DatumReader[T]): DatumReader[T] = () => {
     if (decoder.readIndex() == NOT_NULL_INDEX) {
-      Some(readRaw())
+      readRaw()
     } else {
       decoder.readNull()
-      None
+      null.asInstanceOf[T]
     }
   }
 

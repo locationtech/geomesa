@@ -20,19 +20,13 @@ import java.util.Date
 
 /** A collection of [[DatumReader]]s for reading objects which may be null.
   *
-  * Created by mmatz on 4/7/15.
   */
 trait NullableReader extends PrimitiveReader {
 
   /**
-   * Reads a null or not-null and if not-null then the value.
-   */
-  def readOption[T](readRaw: DatumReader[T]): DatumReader[Option[T]]
-
-  /**
    * Read any value that may be null.
    */
-  def readNullable[T](readRaw: DatumReader[T]): DatumReader[T] = () => readOption(readRaw)().getOrElse(null.asInstanceOf[T])
+  def readNullable[T](readRaw: DatumReader[T]): DatumReader[T]
 
   val readNullableInt: DatumReader[Int] = readNullable(readInt)
   val readNullableLong: DatumReader[Long] = readNullable(readLong)

@@ -19,9 +19,9 @@ package org.locationtech.geomesa.feature
 import com.vividsolutions.jts.geom.Point
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.Matcher
@@ -208,7 +208,7 @@ class SimpleFeatureEncoderTest extends Specification {
       val encoded = features.map(encoder.encode)
 
       val decoded = encoded.map(decoder.decode)
-      decoded must equalFeatures(features)
+      decoded must equalFeatures(features, withoutUserData)
     }
 
     "be able to decode points with user data" >> {
@@ -233,15 +233,16 @@ class SimpleFeatureEncoderTest extends Specification {
       encoded.map(decoder.extractFeatureId) mustEqual features.map(_.getID)
     }
 
-    // TODO this test fails because user data is at the end so it is ignored
-//    "fail when user data were encoded but are not expected by decoder" >> {
-//      val encoder = new AvroFeatureEncoder(sft, EncodingOptions.withUserData)
-//      val encoded = encoder.encode(getFeaturesWithVisibility.head)
-//
-//      val decoder = new AvroFeatureDecoder(sft, EncodingOptions.none)
-//
-//      decoder.decode(encoded) must throwA[Exception]
-//    }
+    "work when user data were encoded but are not expected by decoder" >> {
+      // in this case the encoded user data will be ignored
+      val sf = getFeaturesWithVisibility.head
+      val encoder = new AvroFeatureEncoder(sft, EncodingOptions.withUserData)
+      val encoded = encoder.encode(sf)
+
+      val decoder = new AvroFeatureDecoder(sft, EncodingOptions.none)
+
+      decoder.decode(encoded) must equalSF(sf, withoutUserData)
+    }
 
     "fail when user data were not encoded but are expected by the decoder" >> {
       val encoder = new AvroFeatureEncoder(sft, EncodingOptions.none)
@@ -287,7 +288,7 @@ class SimpleFeatureEncoderTest extends Specification {
       val decoded = encoded.map(decoder.decode)
 
       forall(features.zip(decoded)) { case (in, out) =>
-        out must haveSameVisibilityAs(in)
+        out.getUserData mustEqual in.getUserData
       }
     }
   }
@@ -322,13 +323,13 @@ class SimpleFeatureEncoderTest extends Specification {
       }
     }
 
-    "include visibilities when requested" >> {
+    "include user data when requested" >> {
       val noVis = {
         val encoder = new KryoFeatureEncoder(sft, EncodingOptions.none)
         getFeatures.map(encoder.encode)
       }
       val withVis = {
-        val encoder = new KryoFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+        val encoder = new KryoFeatureEncoder(sft, EncodingOptions.withUserData)
         getFeaturesWithVisibility.map(encoder.encode)
       }
 
@@ -355,20 +356,19 @@ class SimpleFeatureEncoderTest extends Specification {
       val encoded = features.map(encoder.encode)
 
       val decoded = encoded.map(decoder.decode)
-      decoded must equalFeatures(features)
+      decoded must equalFeatures(features, withoutUserData)
     }
 
-    "be able to decode points with visibility" >> {
-      val encoder = new KryoFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
-      val decoder = new KryoFeatureDecoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+    "be able to decode points with user data" >> {
+      val encoder = new KryoFeatureEncoder(sft, EncodingOptions.withUserData)
+      val decoder = new KryoFeatureDecoder(sft, EncodingOptions.withUserData)
 
       val features = getFeaturesWithVisibility
       val encoded = features.map(encoder.encode)
 
       val decoded = encoded.map(decoder.decode)
 
-      // when decoding any empty visibilities will be transformed to null
-      decoded must equalFeatures(features, withLooseVisibilityMatch)
+      decoded must equalFeatures(features)
     }
 
     "be able to extract feature IDs" >> {
@@ -381,20 +381,22 @@ class SimpleFeatureEncoderTest extends Specification {
       encoded.map(decoder.extractFeatureId) mustEqual features.map(_.getID)
     }
 
-    "fail when visibilities were encoded but are not expected by decoder" >> {
-      val encoder = new KryoFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
-      val encoded = encoder.encode(getFeaturesWithVisibility.head)
+    "work user data were encoded but are not expected by decoder" >> {
+      // in this case the encoded user data will be ignored
+      val sf = getFeaturesWithVisibility.head
+      val encoder = new KryoFeatureEncoder(sft, EncodingOptions.withUserData)
+      val encoded = encoder.encode(sf)
 
       val decoder = new KryoFeatureDecoder(sft, EncodingOptions.none)
 
-      decoder.decode(encoded) must throwA[Exception]
+      decoder.decode(encoded) must equalSF(sf, withoutUserData)
     }
 
-    "fail when visibilities were not encoded but are expected by the decoder" >> {
+    "fail when user data were not encoded but are expected by the decoder" >> {
       val encoder = new KryoFeatureEncoder(sft, EncodingOptions.none)
       val encoded = encoder.encode(getFeaturesWithVisibility.head)
 
-      val decoder = new KryoFeatureDecoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+      val decoder = new KryoFeatureDecoder(sft, EncodingOptions.withUserData)
 
       decoder.decode(encoded) must throwA[Exception]
     }
@@ -422,11 +424,11 @@ class SimpleFeatureEncoderTest extends Specification {
       }
     }
 
-    "be able to decode points with visibility" >> {
-      val encoder = new KryoFeatureEncoder(sft, Set(EncodingOption.WITH_VISIBILITIES))
+    "be able to decode points with user data" >> {
+      val encoder = new KryoFeatureEncoder(sft, EncodingOptions.withUserData)
 
       val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
-      val decoder = new ProjectingKryoFeatureDecoder(sft, projectedSft, Set(EncodingOption.WITH_VISIBILITIES))
+      val decoder = new ProjectingKryoFeatureDecoder(sft, projectedSft, EncodingOptions.withUserData)
 
       val features = getFeaturesWithVisibility
       val encoded = features.map(encoder.encode)
@@ -435,49 +437,39 @@ class SimpleFeatureEncoderTest extends Specification {
 
       // when decoding any empty visibilities will be transformed to null
       forall(features.zip(decoded)) { case (in, out) =>
-        out must haveSameVisibilityAs(in, withLooseVisibilityMatch)
-      }
-    }
-  }
-
-  def equalFeatures(expected: Seq[SimpleFeature], withVisibilityMatch: MatcherFactory[String] = withStrictVisibilityMatch): Matcher[Seq[SimpleFeature]] = {
-    actual: Seq[SimpleFeature] => {
-      actual must not(beNull)
-      actual must haveSize(expected.size)
-
-      forall(actual zip expected) {
-        case (act, exp) => act must equalSF(exp, withVisibilityMatch)
+        out.getUserData mustEqual in.getUserData
       }
     }
   }
 
   type MatcherFactory[T] = (T) => Matcher[T]
+  type UserDataMap = java.util.Map[AnyRef, AnyRef]
 
-  val withStrictVisibilityMatch: MatcherFactory[String] = {
-    expected: String => actual: String => actual mustEqual expected
+  val withoutUserData: MatcherFactory[UserDataMap] = {
+    expected: UserDataMap => actual: UserDataMap => actual.isEmpty must beTrue
   }
 
-  // when decoding any empty visibilities will be transformed into null
-  @deprecated // this is no longer an issue when serializing the entire user data map
-  val withLooseVisibilityMatch: MatcherFactory[String] = {
-    expected: String =>
-      if (expected == "") {
-        actual: String => actual must beNull
-      } else {
-        actual: String => actual mustEqual expected
+  val withUserData: MatcherFactory[UserDataMap] = {
+    expected: UserDataMap => actual: UserDataMap => actual mustEqual expected
+  }
+
+  def equalFeatures(expected: Seq[SimpleFeature], withUserDataMatcher: MatcherFactory[UserDataMap] = withUserData): Matcher[Seq[SimpleFeature]] = {
+    actual: Seq[SimpleFeature] => {
+      actual must not(beNull)
+      actual must haveSize(expected.size)
+
+      forall(actual zip expected) {
+        case (act, exp) => act must equalSF(exp, withUserDataMatcher)
       }
+    }
   }
 
-  def equalSF(expected: SimpleFeature, matchVisibility: MatcherFactory[String] = withStrictVisibilityMatch): Matcher[SimpleFeature] = {
+  def equalSF(expected: SimpleFeature, matchUserData: MatcherFactory[UserDataMap] = withUserData): Matcher[SimpleFeature] = {
     sf: SimpleFeature => {
       sf.getID mustEqual expected.getID
       sf.getDefaultGeometry mustEqual expected.getDefaultGeometry
       sf.getAttributes mustEqual expected.getAttributes
-      SecurityUtils.getVisibility(sf) must matchVisibility(SecurityUtils.getVisibility(expected))
+      sf.getUserData must matchUserData(expected.getUserData)
     }
-  }
-
-  def haveSameVisibilityAs(expected: SimpleFeature, matchVisibility: MatcherFactory[String] = withStrictVisibilityMatch): Matcher[SimpleFeature] = {
-    actual: SimpleFeature => SecurityUtils.getVisibility(actual) must matchVisibility(SecurityUtils.getVisibility(expected))
   }
 }

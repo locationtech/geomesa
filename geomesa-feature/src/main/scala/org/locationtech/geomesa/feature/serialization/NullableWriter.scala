@@ -20,19 +20,13 @@ import java.util.Date
 
 /** A collection of [[DatumWriter]]s for writing objects which may be null.
   *
-  * Created by mmatz on 4/7/15.
   */
 trait NullableWriter extends PrimitiveWriter {
 
   /**
-   * Writs a null or not-null and if not-null then the value.
-   */
-  def writeOption[T](rawWrite: DatumWriter[T]): DatumWriter[Option[T]]
-
-  /**
    * Write any value that may be null.
    */
-  def writeNullable[T](rawWrite: DatumWriter[T]): DatumWriter[T] = (obj) => writeOption(rawWrite)(Option(obj))
+  def writeNullable[T](rawWrite: DatumWriter[T]): DatumWriter[T]
 
   val writeNullableInt: DatumWriter[Int] = writeNullable(writeInt)
   val writeNullableLong: DatumWriter[Long] = writeNullable(writeLong)

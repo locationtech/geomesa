@@ -25,7 +25,7 @@ import org.apache.avro.io._
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.feature.AvroSimpleFeatureUtils._
-import org.locationtech.geomesa.feature.EncodingOptions.EncodingOptions
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.feature.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
 import org.locationtech.geomesa.feature.serialization.avro.AvroReader
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

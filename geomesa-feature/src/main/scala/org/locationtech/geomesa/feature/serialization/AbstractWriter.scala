@@ -20,7 +20,6 @@ import org.geotools.factory.Hints
 
 /** [[DatumWriter]] definitions for writing (serializing) components of a [[org.opengis.feature.simple.SimpleFeature]].
   *
-  * Created by mmatz on 4/7/15.
   */
 trait AbstractWriter
   extends PrimitiveWriter

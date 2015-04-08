@@ -21,7 +21,6 @@ import java.util.Date
 
 /** A collection of [[DatumWriter]]s for writing primitive-like datums.
   *
-  * Created by mmatz on 4/7/15.
   */
 trait PrimitiveWriter {
 

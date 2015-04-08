@@ -16,9 +16,6 @@
 
 package org.locationtech.geomesa.feature
 
-/**
-  * Created by mmatz on 4/7/15.
-  */
 package object serialization {
 
   // Write a datum.

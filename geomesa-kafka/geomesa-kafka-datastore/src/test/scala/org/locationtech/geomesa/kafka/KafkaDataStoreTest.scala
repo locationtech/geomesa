@@ -109,7 +109,7 @@ class KafkaDataStoreTest extends Specification with Logging {
         val readSF = features.next()
         sf.getID must be equalTo readSF.getID
         sf.getAttribute("dtg") must be equalTo readSF.getAttribute("dtg")
-        sf.visibility mustEqual "USER|ADMIN"
+        sf.visibility mustEqual Some("USER|ADMIN")
         store.removeFeatures(ff.id(ff.featureId("1")))
         Thread.sleep(500) // ensure FC has seen the delete
         consumerFC.getCount(Query.ALL) must be equalTo 0
@@ -129,7 +129,7 @@ class KafkaDataStoreTest extends Specification with Logging {
         featureCollection.size() must be equalTo 1
         val res = featureCollection.features().next()
         res.getAttribute("name") must be equalTo "jones"
-        res.visibility mustEqual "ADMIN"
+        res.visibility mustEqual Some("ADMIN")
       }
 
       // AND CLEARED
@@ -160,7 +160,7 @@ class KafkaDataStoreTest extends Specification with Logging {
         res.size() must be equalTo 1
         val resSF = res.features().next()
         resSF.getAttribute("name") must be equalTo "jones"
-        resSF.visibility mustEqual "USER"
+        resSF.visibility mustEqual Some("USER")
 
         res = consumerFC.getFeatures(ff.greater(ff.property("age"), ff.literal(50)))
         res.size() must be equalTo 1

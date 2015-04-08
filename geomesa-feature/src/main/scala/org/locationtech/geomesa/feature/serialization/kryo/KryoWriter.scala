@@ -19,14 +19,11 @@ package org.locationtech.geomesa.feature.serialization.kryo
 import java.nio.ByteBuffer
 import java.util.Date
 
-import com.esotericsoftware.kryo.io.{Input, Output}
+import com.esotericsoftware.kryo.io.Output
 import org.locationtech.geomesa.feature.serialization.{AbstractWriter, DatumWriter}
 
-/** Implemenation of [[AbstractWriter]] for Kryo.
-  *
-  * Created by mmatz on 4/7/15.
-  */
-class KryoWriter(in: Input, out: Output) extends AbstractWriter {
+/** Implemenation of [[AbstractWriter]] for Kryo. */
+class KryoWriter(out: Output) extends AbstractWriter {
   import KryoWriter.{NON_NULL_MARKER_BYTE, NULL_MARKER_BYTE}
   
   override val writeString: DatumWriter[String] = out.writeString
@@ -59,7 +56,6 @@ class KryoWriter(in: Input, out: Output) extends AbstractWriter {
   override val startItem = ()
   override val endArray = ()
 
-  // override to avoid Option creation
   override def writeNullable[T](writeRaw: DatumWriter[T]): DatumWriter[T] = (raw) => {
     if (raw != null) {
       out.writeByte(NON_NULL_MARKER_BYTE)
@@ -69,13 +65,6 @@ class KryoWriter(in: Input, out: Output) extends AbstractWriter {
     }
   }
 
-  override def writeOption[T](writeRaw: DatumWriter[T]): DatumWriter[Option[T]] = {
-    case Some(raw) =>
-      out.writeByte(NON_NULL_MARKER_BYTE)
-      writeRaw(raw)
-    case _ =>
-      out.writeByte(NULL_MARKER_BYTE)
-  }
 }
 
 object KryoWriter {

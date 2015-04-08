@@ -19,8 +19,7 @@ package org.locationtech.geomesa.feature
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
 import org.apache.avro.io._
-import org.locationtech.geomesa.feature.EncodingOption.EncodingOption
-import org.locationtech.geomesa.feature.EncodingOptions.EncodingOptions
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.kryo.KryoFeatureSerializer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -184,7 +183,7 @@ class KryoFeatureEncoder(sft: SimpleFeatureType, projected: SimpleFeatureType,
     this(sft, sft, options)
   }
 
-  val encoder = KryoFeatureSerializer(sft, projected, options.options)
+  val encoder = KryoFeatureSerializer(sft, projected, options)
 
   override val encoding = FeatureEncoding.KRYO
   override def encode(feature: SimpleFeature) = encoder.write(feature)

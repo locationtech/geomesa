@@ -20,7 +20,6 @@ import org.geotools.factory.Hints
 
 /** Combines all readers.
   *
-  * Created by mmatz on 4/7/15.
   */
 trait AbstractReader
   extends PrimitiveReader
