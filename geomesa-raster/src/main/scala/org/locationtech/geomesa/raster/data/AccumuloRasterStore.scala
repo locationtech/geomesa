@@ -52,13 +52,13 @@ trait RasterOperations extends StrategyHelpers {
   def putRaster(raster: Raster): Unit
   def getBounds(): BoundingBox
   def getAvailableResolutions(): Seq[Double]
-  def getAvailableGeoHashLengths(): Seq[Int]
+  def getAvailableGeoHashLengths(): Set[Int]
   def getAvailabilityMap(): ImmutableSetMultimap[Double, Int]
   def getGridRange(): GridEnvelope2D
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams): BufferedImage
 }
 
-class RasterStore(val connector: Connector,
+class AccumuloRasterStore(val connector: Connector,
                   val tableName: String,
                   val authorizationsProvider: AuthorizationsProvider,
                   val writeVisibilities: String,
@@ -151,12 +151,12 @@ class RasterStore(val connector: Connector,
     getAvailabilityMap().keySet.toSeq.sorted
   }
 
-  def getAvailableGeoHashLengths(): Seq[Int] = {
-    getAvailabilityMap().values.toSeq.distinct
+  def getAvailableGeoHashLengths(): Set[Int] = {
+    getAvailabilityMap().values().toSet
   }
 
   def getAvailabilityMap(): ImmutableSetMultimap[Double, Int] = {
-    RasterStore.boundsCache.get(tableName, callable)
+    AccumuloRasterStore.boundsCache.get(tableName, callable)
   }
 
   def callable = new Callable[ImmutableSetMultimap[Double, Int]] {
@@ -259,10 +259,10 @@ class RasterStore(val connector: Connector,
   private def createTables(user: String, defaultVisibilities: String, tableNames: String*) = {
     tableNames.foreach(tableName => {
       createTable(tableName)
-      RasterTableConfig.settings(defaultVisibilities).foreach { case (key, value) =>
+      AccumuloRasterTableConfig.settings(defaultVisibilities).foreach { case (key, value) =>
         tableOps.setProperty(tableName, key, value)
       }
-      RasterTableConfig.permissions.split(",").foreach { p =>
+      AccumuloRasterTableConfig.permissions.split(",").foreach { p =>
         securityOps.grantTablePermission(user, tableName, TablePermission.valueOf(p))
       }
     })
@@ -280,7 +280,7 @@ class RasterStore(val connector: Connector,
 
 }
 
-object RasterStore {
+object AccumuloRasterStore {
   def apply(username: String,
             password: String,
             instanceId: String,
@@ -292,13 +292,13 @@ object RasterStore {
             shardsConfig: Option[Int] = None,
             writeMemoryConfig: Option[String] = None,
             writeThreadsConfig: Option[Int] = None,
-            queryThreadsConfig: Option[Int] = None): RasterStore = {
+            queryThreadsConfig: Option[Int] = None): AccumuloRasterStore = {
 
     val conn = AccumuloStoreHelper.buildAccumuloConnector(username, password, instanceId, zookeepers, useMock)
 
     val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(auths.split(","), conn)
 
-    val rasterStore = new RasterStore(conn, tableName, authorizationsProvider, writeVisibilities,
+    val rasterStore = new AccumuloRasterStore(conn, tableName, authorizationsProvider, writeVisibilities,
                         shardsConfig, writeMemoryConfig, writeThreadsConfig, queryThreadsConfig)
     // this will actually create the Accumulo Table
     rasterStore.createTableStructure()
@@ -313,7 +313,7 @@ object RasterStore {
       .build[String, ImmutableSetMultimap[Double, Int]]
 }
 
-object RasterTableConfig {
+object AccumuloRasterTableConfig {
   /**
    * documentation for raster table settings:
    *
