@@ -22,9 +22,11 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.io.WKBConstants
-import org.locationtech.geomesa.feature.ScalaSimpleFeature
+import org.locationtech.geomesa.feature.EncodingOption._
+import org.locationtech.geomesa.feature.{EncodingOption, ScalaSimpleFeature}
 import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer.{Decoding, Encoding}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -37,16 +39,15 @@ import scala.reflect.ClassTag
  *
  * @param sft
  */
-class SimpleFeatureSerializer(sft: SimpleFeatureType) extends Serializer[SimpleFeature] {
+class SimpleFeatureSerializer(sft: SimpleFeatureType, opts: Set[EncodingOption] = Set.empty)
+  extends BaseSimpleFeatureSerializer(sft, opts) {
 
   import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer._
 
   val encodings = sftEncodings(sft)
   val decodings = sftDecodings(sft)
 
-  override def write(kryo: Kryo, output: Output, sf: SimpleFeature): Unit = {
-    output.writeInt(VERSION, true)
-    output.writeString(sf.getID)
+  override def writeValues(output: Output, sf: SimpleFeature) = {
     var i = 0
     while (i < encodings.length) {
       encodings(i)(output, sf)
@@ -54,16 +55,15 @@ class SimpleFeatureSerializer(sft: SimpleFeatureType) extends Serializer[SimpleF
     }
   }
 
-  override def read(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
-    val version = input.readInt(true)
-    val id = input.readString()
+  def readValues(input: Input, version: Int): Array[AnyRef] = {
     val values = Array.ofDim[AnyRef](sft.getAttributeCount)
     var i = 0
     while (i < decodings.length) {
       values(i) = decodings(i)(input, version)
       i += 1
     }
-    new ScalaSimpleFeature(id, sft, values)
+
+    values
   }
 }
 
@@ -86,14 +86,18 @@ class FeatureIdSerializer extends Serializer[KryoFeatureId] {
  * @param sft
  * @param transform
  */
-class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: SimpleFeatureType)
-    extends SimpleFeatureSerializer(sft) {
+class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: SimpleFeatureType, options: Set[EncodingOption])
+    extends BaseSimpleFeatureSerializer(transform, options) {
 
-  import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer.VERSION
+  import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer._
 
   val (transformEncodings, transformDecodings) = {
+    val encodings = sftEncodings(sft)
+    val decodings = sftDecodings(sft)
+
     val enc = scala.collection.mutable.ArrayBuffer.empty[Encoding]
     val dec = scala.collection.mutable.ArrayBuffer.empty[(Decoding, Int)]
+
     var i = 0
     while (i < encodings.length) {
       val index = transform.indexOf(sft.getDescriptor(i).getLocalName)
@@ -106,9 +110,7 @@ class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: Sim
     (enc, dec)
   }
 
-  override def write(kryo: Kryo, output: Output, sf: SimpleFeature): Unit = {
-    output.writeInt(VERSION, true)
-    output.writeString(sf.getID)
+  override def writeValues(output: Output, sf: SimpleFeature): Unit = {
     var i = 0
     while (i < transformEncodings.length) {
       transformEncodings(i)(output, sf)
@@ -116,9 +118,7 @@ class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: Sim
     }
   }
 
-  override def read(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
-    val version = input.readInt(true)
-    val id = input.readString()
+  override def readValues(input: Input, version: Int): Array[AnyRef] = {
     val values = Array.ofDim[AnyRef](transform.getAttributeCount)
     var i = 0
     while (i < transformDecodings.length) {
@@ -130,8 +130,61 @@ class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: Sim
       }
       i += 1
     }
-    new ScalaSimpleFeature(id, transform, values)
+    values
   }
+}
+
+abstract class BaseSimpleFeatureSerializer(sft: SimpleFeatureType, opts: Set[EncodingOption])
+  extends Serializer[SimpleFeature] {
+
+  import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer.VERSION
+
+  private val includeVis = opts.contains(EncodingOption.WITH_VISIBILITIES)
+
+  override def write(kryo: Kryo, output: Output, sf: SimpleFeature): Unit = {
+    writeHeader(output, sf)
+    writeValues(output, sf)
+  }
+
+  override def read(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
+    val (version, id, vis) = readHeader(input)
+    val values = readValues(input, version)
+
+    val sf = new ScalaSimpleFeature(id, sft, values)
+    if (vis.isDefined) {
+      SecurityUtils.setFeatureVisibility(sf, vis.get)
+    }
+    sf
+  }
+
+  def writeHeader(output: Output, sf: SimpleFeature) = {
+    output.writeInt(VERSION, true)
+    output.writeString(sf.getID)
+
+    if (includeVis) {
+      val vis = Option(SecurityUtils.getVisibility(sf)).getOrElse("")
+      output.writeString(vis)
+    }
+  }
+
+  def readHeader(input: Input): (Int, String, Option[String]) = {
+    val version = input.readInt(true)
+    val id = input.readString()
+
+    val vis = {
+      if (includeVis) {
+        val v = input.readString()
+        if (v.isEmpty) Option.empty else Option(v)
+      } else {
+        Option.empty
+      }
+    }
+
+    (version, id, vis)
+  }
+
+  def writeValues(output: Output, sf: SimpleFeature)
+  def readValues(input: Input, version: Int): Array[AnyRef]
 }
 
 object SimpleFeatureSerializer {
@@ -143,8 +196,12 @@ object SimpleFeatureSerializer {
   val NULL_BYTE     = 0.asInstanceOf[Byte]
   val NON_NULL_BYTE = 1.asInstanceOf[Byte]
 
+  // [[Encoding]] is attribute specific, it extracts a single attribute from the simple feature
   type Encoding = (Output, SimpleFeature) => Unit
   type Decoding = (Input, Int) => AnyRef
+
+  type AttributeWriter = (Output, AnyRef) => Unit
+  type AttributeReader[A <: AnyRef] = (Input, Int) => A
 
   // encodings are cached per-thread to avoid synchronization issues
   // we use soft references to allow garbage collection as needed
@@ -175,67 +232,34 @@ object SimpleFeatureSerializer {
    * @param metadata
    * @return
    */
-  def matchEncode(clas: Class[_], metadata: JMap[AnyRef, AnyRef]): (Output, AnyRef) => Unit = clas match {
+  def matchEncode(clas: Class[_], metadata: JMap[AnyRef, AnyRef]): AttributeWriter = clas match {
 
     case c if classOf[String].isAssignableFrom(c) =>
       (out: Output, value: AnyRef) => out.writeString(value.asInstanceOf[String])
 
     case c if classOf[java.lang.Integer].isAssignableFrom(c) =>
-      (out: Output, value: AnyRef) => if (value == null) {
-        out.writeByte(NULL_BYTE)
-      } else {
-        out.writeByte(NON_NULL_BYTE)
-        out.writeInt(value.asInstanceOf[java.lang.Integer])
-      }
+      nullableWriter( (out: Output, value: AnyRef) => out.writeInt(value.asInstanceOf[java.lang.Integer]) )
 
     case c if classOf[java.lang.Long].isAssignableFrom(c) =>
-      (out: Output, value: AnyRef) => if (value == null) {
-        out.writeByte(NULL_BYTE)
-      } else {
-        out.writeByte(NON_NULL_BYTE)
-        out.writeLong(value.asInstanceOf[java.lang.Long])
-      }
+      nullableWriter( (out: Output, value: AnyRef) => out.writeLong(value.asInstanceOf[java.lang.Long]) )
 
     case c if classOf[java.lang.Double].isAssignableFrom(c) =>
-      (out: Output, value: AnyRef) => if (value == null) {
-        out.writeByte(NULL_BYTE)
-      } else {
-        out.writeByte(NON_NULL_BYTE)
-        out.writeDouble(value.asInstanceOf[java.lang.Double])
-      }
+      nullableWriter( (out: Output, value: AnyRef) => out.writeDouble(value.asInstanceOf[java.lang.Double]) )
 
     case c if classOf[java.lang.Float].isAssignableFrom(c) =>
-      (out: Output, value: AnyRef) => if (value == null) {
-        out.writeByte(NULL_BYTE)
-      } else {
-        out.writeByte(NON_NULL_BYTE)
-        out.writeFloat(value.asInstanceOf[java.lang.Float])
-      }
+      nullableWriter( (out: Output, value: AnyRef) => out.writeFloat(value.asInstanceOf[java.lang.Float]) )
 
     case c if classOf[java.lang.Boolean].isAssignableFrom(c) =>
-      (out: Output, value: AnyRef) => if (value == null) {
-        out.writeByte(NULL_BYTE)
-      } else {
-        out.writeByte(NON_NULL_BYTE)
-        out.writeBoolean(value.asInstanceOf[java.lang.Boolean])
-      }
+      nullableWriter( (out: Output, value: AnyRef) => out.writeBoolean(value.asInstanceOf[java.lang.Boolean]) )
 
     case c if classOf[UUID].isAssignableFrom(c) =>
-      (out: Output, value: AnyRef) =>  if (value == null) {
-        out.writeByte(NULL_BYTE)
-      } else {
-        out.writeByte(NON_NULL_BYTE)
+      nullableWriter( (out: Output, value: AnyRef) => {
         out.writeLong(value.asInstanceOf[UUID].getMostSignificantBits)
         out.writeLong(value.asInstanceOf[UUID].getLeastSignificantBits)
-      }
+      })
 
     case c if classOf[Date].isAssignableFrom(c) =>
-      (out: Output, value: AnyRef) => if (value == null) {
-        out.writeByte(NULL_BYTE)
-      } else {
-        out.writeByte(NON_NULL_BYTE)
-        out.writeLong(value.asInstanceOf[Date].getTime)
-      }
+      nullableWriter( (out: Output, value: AnyRef) => out.writeLong(value.asInstanceOf[Date].getTime) )
 
     case c if classOf[Geometry].isAssignableFrom(c) =>
       (out: Output, value: AnyRef) => writeGeometry(out, value.asInstanceOf[Geometry])
@@ -272,6 +296,21 @@ object SimpleFeatureSerializer {
   }
 
   /**
+   * Write a null or not null flag and if not null then the value.
+   *
+   * @param writeNonNull the [[[AttributeWriter]] handling the non-null case
+   * @return a [[AttributeWriter]] capable of handling potentially null values
+   */
+  def nullableWriter(writeNonNull: AttributeWriter): AttributeWriter = (out: Output, value: AnyRef) => {
+    if (value == null) {
+      out.writeByte(NULL_BYTE)
+    } else {
+      out.writeByte(NON_NULL_BYTE)
+      writeNonNull(out, value)
+    }
+  }
+
+  /**
    * Based on the method from geotools WKBWriter. This method is optimized for kryo and simplified from
    * WKBWriter in the following ways:
    *
@@ -283,31 +322,27 @@ object SimpleFeatureSerializer {
    * @param out
    * @param geom
    */
-  def writeGeometry(out: Output, geom: Geometry): Unit =
-    if (geom == null) {
-      out.write(NULL_BYTE)
-    } else {
-      out.write(NON_NULL_BYTE)
-      geom match {
-        case g: Point =>
-          out.writeInt(WKBConstants.wkbPoint, true)
-          writeCoordinate(out, g.getCoordinateSequence.getCoordinate(0))
+  def writeGeometry(out: Output, geom: Geometry): Unit = nullableWriter( (out, geom) => {
+    geom match {
+      case g: Point =>
+        out.writeInt(WKBConstants.wkbPoint, true)
+        writeCoordinate(out, g.getCoordinateSequence.getCoordinate(0))
 
-        case g: LineString =>
-          out.writeInt(WKBConstants.wkbLineString, true)
-          writeCoordinateSequence(out, g.getCoordinateSequence)
+      case g: LineString =>
+        out.writeInt(WKBConstants.wkbLineString, true)
+        writeCoordinateSequence(out, g.getCoordinateSequence)
 
-        case g: Polygon => writePolygon(out, g)
+      case g: Polygon => writePolygon(out, g)
 
-        case g: MultiPoint => writeGeometryCollection(out, WKBConstants.wkbMultiPoint, g)
+      case g: MultiPoint => writeGeometryCollection(out, WKBConstants.wkbMultiPoint, g)
 
-        case g: MultiLineString => writeGeometryCollection(out, WKBConstants.wkbMultiLineString, g)
+      case g: MultiLineString => writeGeometryCollection(out, WKBConstants.wkbMultiLineString, g)
 
-        case g: MultiPolygon => writeGeometryCollection(out, WKBConstants.wkbMultiPolygon, g)
+      case g: MultiPolygon => writeGeometryCollection(out, WKBConstants.wkbMultiPolygon, g)
 
-        case g: GeometryCollection => writeGeometryCollection(out, WKBConstants.wkbGeometryCollection, g)
-      }
+      case g: GeometryCollection => writeGeometryCollection(out, WKBConstants.wkbGeometryCollection, g)
     }
+  })(out, geom)
 
   def writePolygon(out: Output, g: Polygon): Unit = {
     out.writeInt(WKBConstants.wkbPolygon, true)
@@ -350,7 +385,7 @@ object SimpleFeatureSerializer {
    * @param sft
    * @return
    */
-  def sftDecodings(sft: SimpleFeatureType): Array[(Input, Int) => AnyRef] =
+  def sftDecodings(sft: SimpleFeatureType): Array[Decoding] =
     decodingsCache.getOrElseUpdate(cacheKeyForSFT(sft), {
       sft.getAttributeDescriptors.map { d =>
         matchDecode(d.getType.getBinding, d.getUserData)
@@ -364,46 +399,40 @@ object SimpleFeatureSerializer {
    * @param metadata
    * @return
    */
-  def matchDecode(clas: Class[_], metadata: JMap[Object, Object]): (Input, Int) => AnyRef = clas match {
+  def matchDecode(clas: Class[_], metadata: JMap[Object, Object]): AttributeReader[AnyRef] = clas match {
 
     case c if classOf[String].isAssignableFrom(c) =>
       (in: Input, version: Int) => in.readString()
 
     case c if classOf[java.lang.Integer].isAssignableFrom(c) =>
-      (in: Input, version: Int) => if (in.readByte() == NULL_BYTE) null else in.readInt().asInstanceOf[AnyRef]
+      nullableReader( (in: Input, version: Int) => Int.box(in.readInt()) )
 
     case c if classOf[java.lang.Long].isAssignableFrom(c) =>
-      (in: Input, version: Int) =>
-        if (in.readByte() == NULL_BYTE) null else in.readLong().asInstanceOf[AnyRef]
+      nullableReader( (in: Input, version: Int) => Long.box(in.readLong()) )
 
     case c if classOf[java.lang.Double].isAssignableFrom(c) =>
-      (in: Input, version: Int) =>
-        if (in.readByte() == NULL_BYTE) null else in.readDouble().asInstanceOf[AnyRef]
+      nullableReader( (in: Input, version: Int) => Double.box(in.readDouble()) )
 
     case c if classOf[java.lang.Float].isAssignableFrom(c) =>
-      (in: Input, version: Int) =>
-        if (in.readByte() == NULL_BYTE) null else in.readFloat().asInstanceOf[AnyRef]
+      nullableReader( (in: Input, version: Int) => Float.box(in.readFloat()) )
 
     case c if classOf[java.lang.Boolean].isAssignableFrom(c) =>
-      (in: Input, version: Int) =>
-        if (in.readByte() == NULL_BYTE) null else in.readBoolean().asInstanceOf[AnyRef]
+      nullableReader( (in: Input, version: Int) => Boolean.box(in.readBoolean()) )
 
     case c if classOf[Date].isAssignableFrom(c) =>
-      (in: Input, version: Int) => if (in.readByte() == NULL_BYTE) null else new Date(in.readLong())
+      nullableReader( (in: Input, version: Int) => new Date(in.readLong()) )
 
     case c if classOf[UUID].isAssignableFrom(c) =>
-      (in: Input, version: Int) => if (in.readByte() == NULL_BYTE) {
-        null
-      } else {
+      nullableReader( (in: Input, version: Int) =>  {
         val mostSignificantBits = in.readLong()
         val leastSignificantBits = in.readLong()
         new UUID(mostSignificantBits, leastSignificantBits)
-      }
+      })
 
     case c if classOf[Geometry].isAssignableFrom(c) =>
       val factory = new GeometryFactory()
       val csFactory = factory.getCoordinateSequenceFactory
-      (in: Input, version) =>
+      (in: Input, version: Int) =>
         if (version == 0) {
           val length = in.readInt(true)
           if (length > 0) {
@@ -459,6 +488,16 @@ object SimpleFeatureSerializer {
   }
 
   /**
+   * Read a null or not null flag and if not null then the value.
+   *
+   * @param readNonNull the [[AttributeReader]] for reading the value in the not null case
+   * @return a [[AttributeReader]] capable of reading a potentially null value
+   */
+  def nullableReader[A <: AnyRef](readNonNull: AttributeReader[A]): AttributeReader[A] = (in: Input, version: Int) =>
+    if (in.readByte() == NULL_BYTE) null.asInstanceOf[A] else readNonNull(in, version)
+
+
+  /**
    * Based on the method from geotools WKBReader.
    *
    * @param in
@@ -466,35 +505,32 @@ object SimpleFeatureSerializer {
    * @param csFactory
    * @return
    */
-  def readGeometry(in: Input, factory: GeometryFactory, csFactory: CoordinateSequenceFactory): Geometry = {
-    if (in.readByte() == NULL_BYTE) {
-      return null
-    }
+  def readGeometry(in: Input, factory: GeometryFactory, csFactory: CoordinateSequenceFactory): Geometry =
+    nullableReader( (in: Input, version: Int) => {
+      in.readInt(true) match {
+        case WKBConstants.wkbPoint => factory.createPoint(readCoordinate(in, csFactory))
 
-    in.readInt(true) match {
-      case WKBConstants.wkbPoint => factory.createPoint(readCoordinate(in, csFactory))
+        case WKBConstants.wkbLineString => factory.createLineString(readCoordinateSequence(in, csFactory))
 
-      case WKBConstants.wkbLineString => factory.createLineString(readCoordinateSequence(in, csFactory))
+        case WKBConstants.wkbPolygon => readPolygon(in, factory, csFactory)
 
-      case WKBConstants.wkbPolygon => readPolygon(in, factory, csFactory)
+        case WKBConstants.wkbMultiPoint =>
+          val geoms = readGeometryCollection[Point](in, factory, csFactory)
+          factory.createMultiPoint(geoms)
 
-      case WKBConstants.wkbMultiPoint =>
-        val geoms = readGeometryCollection[Point](in, factory, csFactory)
-        factory.createMultiPoint(geoms)
+        case WKBConstants.wkbMultiLineString =>
+          val geoms = readGeometryCollection[LineString](in, factory, csFactory)
+          factory.createMultiLineString(geoms)
 
-      case WKBConstants.wkbMultiLineString =>
-        val geoms = readGeometryCollection[LineString](in, factory, csFactory)
-        factory.createMultiLineString(geoms)
+        case WKBConstants.wkbMultiPolygon =>
+          val geoms = readGeometryCollection[Polygon](in, factory, csFactory)
+          factory.createMultiPolygon(geoms)
 
-      case WKBConstants.wkbMultiPolygon =>
-        val geoms = readGeometryCollection[Polygon](in, factory, csFactory)
-        factory.createMultiPolygon(geoms)
-
-      case WKBConstants.wkbGeometryCollection =>
-        val geoms = readGeometryCollection[Geometry](in, factory, csFactory)
-        factory.createGeometryCollection(geoms)
-    }
-  }
+        case WKBConstants.wkbGeometryCollection =>
+          val geoms = readGeometryCollection[Geometry](in, factory, csFactory)
+          factory.createGeometryCollection(geoms)
+      }
+  })(in, 1)
 
   def readPolygon(in: Input, factory: GeometryFactory, csFactory: CoordinateSequenceFactory): Polygon = {
     val exteriorRing = factory.createLinearRing(readCoordinateSequence(in, csFactory))
