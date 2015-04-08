@@ -18,7 +18,6 @@ package org.locationtech.geomesa.tools.commands
 import java.util.Properties
 
 import com.beust.jcommander.{JCommander, Parameters}
-import org.locationtech.geomesa.tools.commands.VersionCommand.VersionParameters
 import org.locationtech.geomesa.tools.commands.VersionCommand._
 
 class VersionCommand(parent: JCommander) extends Command(parent) {
