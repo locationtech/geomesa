@@ -16,13 +16,16 @@
 
 package org.locationtech.geomesa.feature
 
-// putting this in it's own file prevents intellij from flagging every use as a compile error
-object FeatureEncoding extends Enumeration {
-  type FeatureEncoding = Value
-  val KRYO = Value("kryo")
-  val AVRO = Value("avro")
+/**
+  * Created by mmatz on 4/7/15.
+  */
+package object serialization {
 
-  // TODO rip out and patch references
-  @deprecated
-  val TEXT = Value("text")
+  // Write a datum.
+  type DatumWriter[T] = (T) => Unit
+
+  // Read a datum.
+  type DatumReader[T] = () => T
 }
+
+class SerializationException(msg: String, cause: Throwable = null) extends RuntimeException(msg, cause)

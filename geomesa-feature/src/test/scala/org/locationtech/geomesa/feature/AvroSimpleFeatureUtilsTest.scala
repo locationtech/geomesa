@@ -333,24 +333,6 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           classOf[Int], classOf[Object]) must throwAn[IllegalArgumentException]
       }
     }
-
-    "generate schema" >> {
-      "without visibility" >> {
-        val sft = SimpleFeatureTypes.createType("UtilsTest", "name:String,*geom:Point,dtg:Date")
-        val result = AvroSimpleFeatureUtils.generateSchema(sft, includeVisibility = false)
-
-        result must not(beNull)
-        result.getFields must have size 5 // 3 attributes + 2 meta
-      }
-
-      "with visibility" >> {
-        val sft = SimpleFeatureTypes.createType("UtilsTest", "name:String,*geom:Point,dtg:Date")
-        val result = AvroSimpleFeatureUtils.generateSchema(sft, includeVisibility = true)
-
-        result must not(beNull)
-        result.getFields must have size 6 // 3 attributes + 3 meta
-      }
-    }
   }
 
 }

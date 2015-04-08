@@ -19,16 +19,32 @@ package org.locationtech.geomesa.feature
 import org.locationtech.geomesa.feature.EncodingOption.EncodingOption
 
 /**
- * Created by mmatz on 4/6/15.
- */
+  * Created by mmatz on 4/6/15.
+  */
 object EncodingOptions {
 
   /**
-   * Same as ``Set.empty`` but provides better readability.
-   *
-   * e.g. ``SimpleFeatureEncoder(sft, FeatureEncoding.AVRO, EncodingOptions.none)``
+   * An empty set of encoding options.
    */
-  val none: Set[EncodingOption] = Set.empty
+  val none: EncodingOptions = Set[EncodingOption]()
+
+  /**
+   * @return a new [[EncodingOptions]] containing just the ``EncodingOption.WITH_USER_DATA`` option
+   */
+  def withUserData: EncodingOptions = Set(EncodingOption.WITH_USER_DATA)
+
+  implicit class EncodingOptions(val options: Set[EncodingOption]) extends AnyVal {
+
+    /**
+     * @param value the value to search for
+     * @return true iff ``this`` contains the given ``value``
+     */
+    def contains(value: EncodingOption.Value) = options.contains(value)
+
+    /** @return true iff ``this`` contains ``EncodingOption.WITH_USER_DATA``
+     */
+    def withUserData: Boolean = options.contains(EncodingOption.WITH_USER_DATA)
+  }
 }
 
 /**
@@ -38,8 +54,16 @@ object EncodingOption extends Enumeration {
   type EncodingOption = Value
 
   /**
-   * If this [[EncodingOption]] is specified then the security marking associated with the sample feature will be
+   * If this [[EncodingOption]] is specified then all user data of the simple feature will be
    * serialized and deserialized.
    */
+  val WITH_USER_DATA = Value("withUserData")
+
+  /**
+   * If this [[EncodingOption]] is specified then the security marking associated with the simple feature will be
+   * serialized and deserialized.
+   */
+  @deprecated
   val WITH_VISIBILITIES = Value("withVisibilities")
 }
+

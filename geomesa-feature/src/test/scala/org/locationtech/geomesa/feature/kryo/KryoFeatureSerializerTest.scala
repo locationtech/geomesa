@@ -84,7 +84,7 @@ class KryoFeatureSerializerTest extends Specification {
         val vis = "u&usa&fouo"
         SecurityUtils.setFeatureVisibility(sf, vis)
 
-        val serializer = KryoFeatureSerializer(sft, EncodingOptions.none)
+        val serializer = KryoFeatureSerializer(sft, EncodingOptions.none.options)
 
         val serialized = serializer.write(sf)
         val deserialized = serializer.read(serialized)
@@ -266,7 +266,7 @@ class KryoFeatureSerializerTest extends Specification {
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
       "when serializing" >> {
-        val serializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none)
+        val serializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none.options)
         val deserializer = KryoFeatureSerializer(projectedSft)
 
         val serialized = serializer.write(sf)
@@ -279,7 +279,7 @@ class KryoFeatureSerializerTest extends Specification {
 
       "when deserializing" >> {
         val serializer = KryoFeatureSerializer(sft)
-        val deserializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none)
+        val deserializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none.options)
 
         val serialized = serializer.write(sf)
         val deserialized = deserializer.read(serialized)

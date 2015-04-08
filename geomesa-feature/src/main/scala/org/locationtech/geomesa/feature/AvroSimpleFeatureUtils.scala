@@ -35,7 +35,6 @@ object AvroSimpleFeatureUtils {
 
   val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
-  val AVRO_SIMPLE_FEATURE_VISIBILITY: String = "__visibility__"
 
   // Increment whenever encoding changes and handle in reader and writer
   val VERSION: Int = 2
@@ -53,21 +52,15 @@ object AvroSimpleFeatureUtils {
 
   /**
    * @param sft the simple feature type whose schema will be generated
-   * @param includeVisibility true if the visibility marking is to be included or false if not
    * @return the [[Schema]] for the sft with or with out visibility according to includeVisibility
    */
-  def generateSchema(sft: SimpleFeatureType, includeVisibility: Boolean): Schema = {
-    var initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
+  def generateSchema(sft: SimpleFeatureType): Schema = {
+    val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
       SchemaBuilder.record(encodeAttributeName(sft.getTypeName))
         .namespace(AVRO_NAMESPACE)
         .fields
         .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
         .name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
-
-    if (includeVisibility) {
-      initialAssembler = initialAssembler.name(AVRO_SIMPLE_FEATURE_VISIBILITY).`type`.stringType.noDefault
-    }
-
     val result =
       sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
         addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)

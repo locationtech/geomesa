@@ -88,7 +88,7 @@ class KafkaDataStoreTest extends Specification with Logging {
     }
 
     "allow features to be written" >> {
-      import org.locationtech.geomesa.utils.security.SimpleFeatureSecurityWrapper._
+      import org.locationtech.geomesa.utils.geotools.Conversions._
 
       // create the consumerFC first so that it is ready to receive features from the producer
       val consumerFC = consumerDS.getFeatureSource("test")

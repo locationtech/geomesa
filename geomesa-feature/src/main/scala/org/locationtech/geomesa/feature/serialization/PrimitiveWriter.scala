@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.feature
+package org.locationtech.geomesa.feature.serialization
 
-// putting this in it's own file prevents intellij from flagging every use as a compile error
-object FeatureEncoding extends Enumeration {
-  type FeatureEncoding = Value
-  val KRYO = Value("kryo")
-  val AVRO = Value("avro")
+import java.nio.ByteBuffer
+import java.util.Date
 
-  // TODO rip out and patch references
-  @deprecated
-  val TEXT = Value("text")
+/** A collection of [[DatumWriter]]s for writing primitive-like datums.
+  *
+  * Created by mmatz on 4/7/15.
+  */
+trait PrimitiveWriter {
+
+  def writeString: DatumWriter[String]
+  def writeInt: DatumWriter[Int]
+  def writeLong: DatumWriter[Long]
+  def writeFloat: DatumWriter[Float]
+  def writeDouble: DatumWriter[Double]
+  def writeBoolean: DatumWriter[Boolean]
+  def writeDate: DatumWriter[Date]
+  def writeBytes: DatumWriter[ByteBuffer]
 }

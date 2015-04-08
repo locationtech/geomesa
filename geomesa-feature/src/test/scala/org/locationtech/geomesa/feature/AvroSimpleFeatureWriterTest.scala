@@ -17,6 +17,7 @@
 package org.locationtech.geomesa.feature
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.UUID
 
@@ -25,6 +26,7 @@ import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactor
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.feature.serialization.{HintKeySerialization, AbstractWriter}
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.security.SecurityUtils
@@ -159,55 +161,59 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito {
       success
     }
 
-    "serialize visibility when requested" >> {
+    "serialize user data when requested" >> {
+      import org.locationtech.geomesa.utils.geotools.Conversions._
+
+      val sf = createSimpleFeature
 
       val vis = "test&usa"
+      sf.visibility = vis
 
-      val sf = createSimpleFeature
-      SecurityUtils.setFeatureVisibility(sf, vis)
+      val userData = sf.getUserData
+      userData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      userData.put(java.lang.Integer.valueOf(5), null)
+      userData.put(null, "null key")
 
-      val afw = new AvroSimpleFeatureWriter(sf.getType, Set(EncodingOption.WITH_VISIBILITIES))
+      val afw = new AvroSimpleFeatureWriter(sf.getType, EncodingOptions.withUserData)
       val encoder = mock[Encoder]
 
       afw.write(sf, encoder)
 
-      (there was one(encoder).writeInt(AvroSimpleFeatureUtils.VERSION)
-        andThen one(encoder).writeString("fid")
-        andThen one(encoder).writeString(vis)
-      )
-    }
+      there was one(encoder).writeArrayStart()
 
-    "serialize no visibility as empty string" >> {
+      there was one(encoder).setItemCount(4)
+      there was 4.times(encoder).startItem()
 
-      // don't add any visibility
-      val sf = createSimpleFeature
+      // 1 key  and 2 values have type String
+      there was three(encoder).writeString("java.lang.String")
 
-      val afw = new AvroSimpleFeatureWriter(sf.getType, Set(EncodingOption.WITH_VISIBILITIES))
-      val encoder = mock[Encoder]
+      // 1 key  and 0 values have type Hints.Key
+      there was one(encoder).writeString(classOf[Hints.Key].getName)
 
-      afw.write(sf, encoder)
+      // 0 keys and 1 value  have type Boolean
+      there was one(encoder).writeString("java.lang.Boolean")
 
-      (there was one(encoder).writeInt(AvroSimpleFeatureUtils.VERSION)
-        andThen one(encoder).writeString("fid")
-        andThen one(encoder).writeString("")
-        )
-    }
+      // 1 key  and 0 values have type Integer
+      there was one(encoder).writeString("java.lang.Boolean")
 
-    "serialize empty visibility correctly" >> {
+      // 1 key  and 1 value  are null
+      there was two(encoder).writeString(AbstractWriter.NULL_MARKER_STR)
 
-      val vis = ""
+      // visibility data
+      there was one(encoder).writeString(SecurityUtils.FEATURE_VISIBILITY)
+      there was one(encoder).writeString(vis)
 
-      val sf = createSimpleFeature
-      SecurityUtils.setFeatureVisibility(sf, vis)
+      // hint data
+      there was one(encoder).writeString(HintKeySerialization.getIdentity(Hints.USE_PROVIDED_FID))
+      there was one(encoder).writeBoolean(true)
 
-      val afw = new AvroSimpleFeatureWriter(sf.getType, Set(EncodingOption.WITH_VISIBILITIES))
-      val encoder = mock[Encoder]
+      // key = 5, value = null
+      there was one(encoder).writeInt(5)
 
-      afw.write(sf, encoder)
+      // key = null, value = "null key"
+      there was one(encoder).writeString("null key")
 
-      (there was one(encoder).writeInt(AvroSimpleFeatureUtils.VERSION)
-        andThen one(encoder).writeString("fid")
-        andThen one(encoder).writeString(vis))
+      there was one(encoder).writeArrayEnd()
     }
   }
 

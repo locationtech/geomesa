@@ -38,21 +38,11 @@ object TransformCreator {
 
     val encoder = SimpleFeatureEncoder(targetFeatureType, featureEncoding)
     val defs = TransformProcess.toDefinition(transformString)
-    featureEncoding match {
-      case FeatureEncoding.KRYO | FeatureEncoding.AVRO =>
-        (feature: SimpleFeature) => {
-          val newSf = new ScalaSimpleFeature(feature.getIdentifier.getID, targetFeatureType)
-          defs.foreach { t => newSf.setAttribute(t.name, t.expression.evaluate(feature)) }
-          encoder.encode(newSf)
-        }
 
-      case FeatureEncoding.TEXT =>
-        val builder = ScalaSimpleFeatureFactory.featureBuilder(targetFeatureType)
-        (feature: SimpleFeature) => {
-          defs.foreach { t => builder.set(t.name, t.expression.evaluate(feature)) }
-          val newFeature = builder.buildFeature(feature.getID)
-          encoder.encode(newFeature)
-        }
-    }
+    (feature: SimpleFeature) => {
+        val newSf = new ScalaSimpleFeature(feature.getIdentifier.getID, targetFeatureType)
+        defs.foreach { t => newSf.setAttribute(t.name, t.expression.evaluate(feature)) }
+        encoder.encode(newSf)
+      }
   }
 }

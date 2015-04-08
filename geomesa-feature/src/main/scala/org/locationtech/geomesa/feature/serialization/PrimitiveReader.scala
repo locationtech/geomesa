@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.feature
+package org.locationtech.geomesa.feature.serialization
 
-// putting this in it's own file prevents intellij from flagging every use as a compile error
-object FeatureEncoding extends Enumeration {
-  type FeatureEncoding = Value
-  val KRYO = Value("kryo")
-  val AVRO = Value("avro")
+import java.nio.ByteBuffer
+import java.util.Date
 
-  // TODO rip out and patch references
-  @deprecated
-  val TEXT = Value("text")
+/** A collection of [[DatumReader]]s for reading primitive-like datums.
+  *
+  * Created by mmatz on 4/7/15.
+  */
+trait PrimitiveReader {
+
+  def readString: DatumReader[String]
+  def readInt: DatumReader[Int]
+  def readLong: DatumReader[Long]
+  def readFloat: DatumReader[Float]
+  def readDouble: DatumReader[Double]
+  def readBoolean: DatumReader[Boolean]
+  def readDate: DatumReader[Date]
+  def readBytes: DatumReader[ByteBuffer]
+  
 }
