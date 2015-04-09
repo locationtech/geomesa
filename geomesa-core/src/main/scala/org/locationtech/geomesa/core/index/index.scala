@@ -162,7 +162,7 @@ package object index {
     val sftBuilder = new SimpleFeatureTypeBuilder()
     sftBuilder.setName(origSFT.getName)
     sftBuilder.addAll(attributes.toArray)
-    if (!geomAttributes.isEmpty) {
+    if (geomAttributes.nonEmpty) {
       val defaultGeom = if (geomAttributes.size == 1) { geomAttributes.head } else {
         // try to find a geom with the same name as the original default geom
         val origDefaultGeom = origSFT.getGeometryDescriptor.getLocalName
