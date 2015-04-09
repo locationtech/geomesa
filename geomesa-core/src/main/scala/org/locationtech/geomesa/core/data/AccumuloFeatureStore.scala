@@ -70,6 +70,7 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
         val id = write(f) // keep side effecting code separate for clarity
         fids.add(id)
       }
+      iter.close()
       fw.close()
 
       for {

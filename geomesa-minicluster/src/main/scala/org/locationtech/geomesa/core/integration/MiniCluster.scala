@@ -217,6 +217,7 @@ class MiniCluster(val dataType: DataType, val zooPort: String) extends Logging {
       count = count + 1
       features.next()
     }
+    features.close()
     logger.info(s"queried $count features")
   }
 }
