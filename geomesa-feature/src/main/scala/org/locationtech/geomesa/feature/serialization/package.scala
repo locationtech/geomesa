@@ -18,11 +18,13 @@ package org.locationtech.geomesa.feature
 
 package object serialization {
 
+  type Version = Int
+
   // Write a datum.
   type DatumWriter[T] = (T) => Unit
 
   // Read a datum.
-  type DatumReader[T] = () => T
+  type DatumReader[Reader, +T] = (Reader, Version) => T
 }
 
 class SerializationException(msg: String, cause: Throwable = null) extends RuntimeException(msg, cause)

@@ -13,25 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.locationtech.geomesa.feature.serialization
 
-import java.util.Date
+/** Provides access to the encodings for a [[org.opengis.feature.simple.SimpleFeature]].
+ *
+ */
+trait SimpleFeatureEncodings[Writer] {
 
-/** A collection of [[DatumWriter]]s for writing primitive-like datums.
-  *
-  */
-trait PrimitiveWriter {
-
-  def writeString: DatumWriter[String]
-  def writeInt: DatumWriter[Int]
-  def writeLong: DatumWriter[Long]
-  def writeFloat: DatumWriter[Float]
-  def writeDouble: DatumWriter[Double]
-  def writeBoolean: DatumWriter[Boolean]
-  def writeDate: DatumWriter[Date]
-  def writeBytes: DatumWriter[Array[Byte]]
-
-  /** A [[DatumReader]] for writing an [[Int]] with postive optimization */
-  def writePositiveInt: DatumWriter[Int]
 }

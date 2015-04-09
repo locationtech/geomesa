@@ -16,22 +16,22 @@
 
 package org.locationtech.geomesa.feature.serialization
 
-import java.util.Date
+import java.util.{UUID, Date}
 
 /** A collection of [[DatumReader]]s for reading objects which may be null.
   *
   */
-trait NullableReader extends PrimitiveReader {
+trait NullableReader[Reader] extends PrimitiveReader[Reader] with NullableCheck {
 
   /**
    * Read any value that may be null.
    */
-  def readNullable[T](readRaw: DatumReader[T]): DatumReader[T]
+  def readNullable[T](readRaw: DatumReader[Reader, T]): DatumReader[Reader, T]
 
-  val readNullableInt: DatumReader[Int] = readNullable(readInt)
-  val readNullableLong: DatumReader[Long] = readNullable(readLong)
-  val readNullableFloat: DatumReader[Float] = readNullable(readFloat)
-  val readNullableDouble: DatumReader[Double] = readNullable(readDouble)
-  val readNullableBoolean: DatumReader[Boolean] = readNullable(readBoolean)
-  val readNullableDate: DatumReader[Date] = readNullable(readDate)
+  val readNullableInt: DatumReader[Reader, Int] = readNullable(readInt)
+  val readNullableLong: DatumReader[Reader, Long] = readNullable(readLong)
+  val readNullableFloat: DatumReader[Reader, Float] = readNullable(readFloat)
+  val readNullableDouble: DatumReader[Reader, Double] = readNullable(readDouble)
+  val readNullableBoolean: DatumReader[Reader, Boolean] = readNullable(readBoolean)
+  val readNullableDate: DatumReader[Reader, Date] = readNullable(readDate)
 }

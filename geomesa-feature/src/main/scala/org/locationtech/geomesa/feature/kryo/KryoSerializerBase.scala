@@ -20,8 +20,6 @@ import java.io.{InputStream, OutputStream}
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
-import com.vividsolutions.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.reflect.ClassTag
 

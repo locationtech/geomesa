@@ -20,32 +20,43 @@ import java.nio.ByteBuffer
 import java.util.Date
 
 import com.esotericsoftware.kryo.io.Input
+import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.feature.serialization._
 
 /** Implemenation of [[AbstractReader]] for Kryo. */
-class KryoReader(in: Input) extends AbstractReader {
+class KryoReader extends AbstractReader[Input] {
   import KryoWriter.NON_NULL_MARKER_BYTE
 
-  override val readString: DatumReader[String] = in.readString
-  override val readInt: DatumReader[Int] = in.readInt
-  override val readLong: DatumReader[Long] = in.readLong
-  override val readFloat: DatumReader[Float] = in.readFloat
-  override val readDouble: DatumReader[Double] = in.readDouble
-  override val readBoolean: DatumReader[Boolean] = in.readBoolean
-  override val readDate: DatumReader[Date] = () => new Date(in.readLong())
-  override val readBytes: DatumReader[ByteBuffer] = () => {
-    val len = in.readInt()
-    val bytes = in.readBytes(len)
-    ByteBuffer.wrap(bytes)
+  override val readString: DatumReader[Input, String] = (in, _) => in.readString
+  override val readInt: DatumReader[Input, Int] = (in, _) => in.readInt
+  override val readPositiveInt: DatumReader[Input, Int] = (in, _) => in.readInt(true)
+  override val readLong: DatumReader[Input, Long] = (in, _) => in.readLong
+  override val readFloat: DatumReader[Input, Float] = (in, _) => in.readFloat
+  override val readDouble: DatumReader[Input, Double] = (in, _) => in.readDouble
+  override val readBoolean: DatumReader[Input, Boolean] = (in, _) => in.readBoolean
+  override val readDate: DatumReader[Input, Date] = (in, _) => new Date(in.readLong())
+  override val readBytes: DatumReader[Input, Array[Byte]] = (in, version) => {
+    val len = in.readInt(true)
+    in.readBytes(len)
   }
 
-  override def readNullable[T](readRaw: DatumReader[T]): DatumReader[T] = () => {
+  override def readNullable[T](readRaw: DatumReader[Input, T]): DatumReader[Input, T] = (in, version) => {
     if (in.readByte() == NON_NULL_MARKER_BYTE) {
-      readRaw()
+      readRaw(in, version)
     } else {
-      null.asInstanceOf
+      null.asInstanceOf[T]
     }
   }
 
-  override val readArrayStart: DatumReader[Long] = in.readLong
+  override val readArrayStart: DatumReader[Input, Int] = (in, version) => in.readInt
+
+  override val readGeometry: DatumReader[Input, Geometry] = (in, version) => {
+    if (version == 0) {
+      readGeometryAsWKB(in, version)
+    } else {
+      readGeometryDirectly(in, version)
+    }
+  }
+
+
 }

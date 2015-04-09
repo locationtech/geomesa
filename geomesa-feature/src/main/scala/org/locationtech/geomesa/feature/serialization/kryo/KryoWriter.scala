@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.feature.serialization.kryo
 
-import java.nio.ByteBuffer
 import java.util.Date
 
 import com.esotericsoftware.kryo.io.Output
@@ -28,14 +27,18 @@ class KryoWriter(out: Output) extends AbstractWriter {
   
   override val writeString: DatumWriter[String] = out.writeString
   override val writeInt: DatumWriter[Int] = out.writeInt
+  override val writePositiveInt: DatumWriter[Int] = (value) => out.writeInt(value, true)
   override val writeLong: DatumWriter[Long] = out.writeLong
   override val writeFloat: DatumWriter[Float] = out.writeFloat
   override val writeDouble: DatumWriter[Double] = out.writeDouble
   override val writeBoolean: DatumWriter[Boolean] = out.writeBoolean
   override val writeDate: DatumWriter[Date] = (date) => out.writeLong(date.getTime)
-  override val writeBytes: DatumWriter[Array[Byte]] = out.writeBytes
+  override val writeBytes: DatumWriter[Array[Byte]] = (bytes) => {
+    out.writeInt(bytes.length, true)
+    out.writeBytes(bytes)
+  }
 
-  override val writeArrayStart: DatumWriter[Long] = out.writeLong
+  override val writeArrayStart: DatumWriter[Int] = out.writeInt
 
   override val startItem = ()
   override val endArray = ()

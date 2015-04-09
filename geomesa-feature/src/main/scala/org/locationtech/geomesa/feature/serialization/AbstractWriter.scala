@@ -16,6 +16,9 @@
 
 package org.locationtech.geomesa.feature.serialization
 
+import java.util.UUID
+
+import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.factory.Hints
 
 /** [[DatumWriter]] definitions for writing (serializing) components of a [[org.opengis.feature.simple.SimpleFeature]].
@@ -24,9 +27,15 @@ import org.geotools.factory.Hints
 trait AbstractWriter
   extends PrimitiveWriter
   with NullableWriter
-  with HintKeyWriter {
+  with HintKeyWriter
+  with Logging {
 
   import AbstractWriter.NULL_MARKER_STR
+
+  def writeUUID: DatumWriter[UUID] = (uuid) => {
+    writeLong(uuid.getMostSignificantBits)
+    writeLong(uuid.getLeastSignificantBits)
+  }
 
   /** A [[DatumWriter]] which writes the class name of ``obj`` and then the ``obj``.  If the object is ``null`` then only
     * ``<null>`` will be written
@@ -45,7 +54,7 @@ trait AbstractWriter
   /**
    * A [[DatumWriter]] which writes the start of an array.  The value is the length of the array
    */
-  def writeArrayStart: DatumWriter[Long]
+  def writeArrayStart: DatumWriter[Int]
 
   /** Call to indicate the start of an item in an array or map. */
   def startItem(): Unit
@@ -59,18 +68,34 @@ trait AbstractWriter
    * writes.  After writing all entries the reader will call ``endArray``.
    */
   def writeGenericMap: DatumWriter[java.util.Map[AnyRef, AnyRef]] = (map) => {
-    writeArrayStart(map.size)
 
-    val iter = map.entrySet().iterator()
-    while(iter.hasNext) {
-      val entry = iter.next()
+    // may not be able to write all entries - must pre-filter to know correct count
+    import collection.JavaConverters.mapAsScalaMapConverter
+    val filtered = map.asScala.filter {
+      case (key, value) =>
+        if (canSerialize(key)) {
+          true
+        } else {
+          logger.warn(s"Can't serialize Map entry ($key,$value).  The map entry will be skipped.")
+          false
+        }
+    }
 
-      startItem()
-      writeGeneric(entry.getKey)
-      writeGeneric(entry.getValue)
+    writeArrayStart(filtered.size)
+
+    filtered.foreach {
+      case (key, value) =>
+        startItem()
+        writeGeneric(key)
+        writeGeneric(value)
     }
 
     endArray()
+  }
+
+  def canSerialize(obj: AnyRef): Boolean = obj match {
+    case key: Hints.Key => HintKeySerialization.canSerialize(key)
+    case _ => true
   }
 
   /**

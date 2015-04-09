@@ -22,17 +22,17 @@ import java.util.Date
 /** A collection of [[DatumReader]]s for reading primitive-like datums.
   *
   */
-trait PrimitiveReader {
+trait PrimitiveReader[Reader] {
 
-  def readString: DatumReader[String]
-  def readInt: DatumReader[Int]
-  def readLong: DatumReader[Long]
-  def readFloat: DatumReader[Float]
-  def readDouble: DatumReader[Double]
-  def readBoolean: DatumReader[Boolean]
-  def readDate: DatumReader[Date]
+  def readString: DatumReader[Reader, String]
+  def readInt: DatumReader[Reader, Int]
+  def readLong: DatumReader[Reader, Long]
+  def readFloat: DatumReader[Reader, Float]
+  def readDouble: DatumReader[Reader, Double]
+  def readBoolean: DatumReader[Reader, Boolean]
+  def readDate: DatumReader[Reader, Date]
+  def readBytes: DatumReader[Reader, Array[Byte]]
 
-  // TODO change to DatumReader[Array[Byte]]
-  def readBytes: DatumReader[ByteBuffer]
-  
+  /** A [[DatumReader]] for reading an [[Int]] written with postive optimization. */
+  def readPositiveInt: DatumReader[Reader, Int]
 }

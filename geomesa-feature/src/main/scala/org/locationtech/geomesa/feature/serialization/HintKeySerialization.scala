@@ -22,33 +22,40 @@ import org.locationtech.geomesa.feature.SerializationException
 /** Writes a [[Hints.Key]]. */
 trait HintKeyWriter extends PrimitiveWriter {
 
+  import HintKeySerialization.keyToId
+
   /**
    * A [[DatumWriter]] for writing a non-nullable [[Hints.Key]].
    */
-  val writeHintKey: DatumWriter[Hints.Key] = (key) => writeString(HintKeySerialization.getId(key))
+  val writeHintKey: DatumWriter[Hints.Key] = (key) => {
+    // exception should not be thrown - AbstractWriter.writeGenericMap will short circuit
+    val id = keyToId.getOrElse(key, throw new SerializationException(s"Unknown Key: '$key'"))
+    writeString(id)
+  }
 }
 
 /** Reads a [[Hints.Key]] */
-trait HintKeyReader extends PrimitiveReader {
+trait HintKeyReader[Reader] extends PrimitiveReader[Reader] {
 
-  val readHintKey: DatumReader[Hints.Key] = () => HintKeySerialization.getKey(readString())
+  import HintKeySerialization.idToKey
+
+  val readHintKey: DatumReader[Reader, Hints.Key] = (reader, version) => {
+    val id = readString(reader, version)
+
+    // exception should not be thrown - if we wrote it, we should be able to read it!
+    idToKey.getOrElse(id, throw new SerializationException(s"Unknown Key ID: '$id'"))
+  }
 }
 
 /** Maintains Key -> String and String -> Key mappings */
 object HintKeySerialization {
 
   // Add more keys as needed.
-  val idToKey: Map[String, Hints.Key] = Map(
-    "USE_PROVIDED_FID" -> Hints.USE_PROVIDED_FID
+  val keyToId: Map[Hints.Key, String] = Map(
+    Hints.USE_PROVIDED_FID -> "USE_PROVIDED_FID"
   )
 
-  val keyToId: Map[Hints.Key, String] = idToKey.map(_.swap)
+  val idToKey: Map[String, Hints.Key] = keyToId.map(_.swap)
 
-  def getKey(identity: String): Hints.Key = {
-    idToKey.getOrElse(identity, throw new SerializationException(s"Unknown Key ID: '$identity'"))
-  }
-
-  def getId(key: Hints.Key): String = {
-    keyToId.getOrElse(key, throw new SerializationException(s"Unknown Key: '$key'"))
-  }
+  def canSerialize(key: Hints.Key): Boolean = keyToId.contains(key)
 }

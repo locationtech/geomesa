@@ -28,6 +28,7 @@ class AvroWriter(encoder: Encoder) extends AbstractWriter {
 
   override val writeString: DatumWriter[String] =  encoder.writeString
   override val writeInt: DatumWriter[Int] = encoder.writeInt
+  override val writePositiveInt: DatumWriter[Int] = writeInt // no optimization
   override val writeLong: DatumWriter[Long] = encoder.writeLong
   override val writeFloat: DatumWriter[Float] = encoder.writeFloat
   override val writeDouble: DatumWriter[Double] = encoder.writeDouble
@@ -45,7 +46,7 @@ class AvroWriter(encoder: Encoder) extends AbstractWriter {
     }
   }
 
-  override val writeArrayStart: DatumWriter[Long] = (arrayLen) => {
+  override val writeArrayStart: DatumWriter[Int] = (arrayLen) => {
     encoder.writeArrayStart()
     encoder.setItemCount(arrayLen)
   }

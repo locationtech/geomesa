@@ -13,25 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.locationtech.geomesa.feature.serialization.avro
 
-package org.locationtech.geomesa.feature.serialization
+import com.esotericsoftware.kryo.io.Input
+import org.apache.avro.io.Decoder
+import org.locationtech.geomesa.feature.serialization.kryo.KryoReader
+import org.locationtech.geomesa.feature.serialization.{AbstractReader, SimpleFeatureDecodingsCache}
 
-import java.util.Date
+/** Concrete [[SimpleFeatureDecodingsCache]] for Avro. */
+object AvroSimpleFeatureDecodingsCache extends SimpleFeatureDecodingsCache[Decoder] {
 
-/** A collection of [[DatumWriter]]s for writing primitive-like datums.
-  *
-  */
-trait PrimitiveWriter {
-
-  def writeString: DatumWriter[String]
-  def writeInt: DatumWriter[Int]
-  def writeLong: DatumWriter[Long]
-  def writeFloat: DatumWriter[Float]
-  def writeDouble: DatumWriter[Double]
-  def writeBoolean: DatumWriter[Boolean]
-  def writeDate: DatumWriter[Date]
-  def writeBytes: DatumWriter[Array[Byte]]
-
-  /** A [[DatumReader]] for writing an [[Int]] with postive optimization */
-  def writePositiveInt: DatumWriter[Int]
+  override val datumReadersFactory: () => AbstractReader[Decoder] = () => new AvroReader()
 }

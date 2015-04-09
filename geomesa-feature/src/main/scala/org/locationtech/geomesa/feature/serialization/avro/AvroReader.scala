@@ -19,30 +19,56 @@ package org.locationtech.geomesa.feature.serialization.avro
 import java.nio.ByteBuffer
 import java.util.Date
 
+import com.esotericsoftware.kryo.io.Input
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.avro.io.Decoder
-import org.locationtech.geomesa.feature.serialization.{AbstractReader, DatumReader}
+import org.locationtech.geomesa.feature.serialization._
 
 /** Implemenation of [[AbstractReader]] for Avro. */
-class AvroReader(decoder: Decoder) extends AbstractReader {
+class AvroReader extends AbstractReader[Decoder] {
   import AvroWriter.NOT_NULL_INDEX
 
-  override val readString: DatumReader[String] = decoder.readString
-  override val readInt: DatumReader[Int] = decoder.readInt
-  override val readLong: DatumReader[Long] = decoder.readLong
-  override val readFloat: DatumReader[Float] = decoder.readFloat
-  override val readDouble: DatumReader[Double] = decoder.readDouble
-  override val readBoolean: DatumReader[Boolean] = decoder.readBoolean
-  override val readDate: DatumReader[Date] = () => new Date(decoder.readLong())
-  override val readBytes: DatumReader[ByteBuffer] = () => decoder.readBytes(null)
+  override val readString: DatumReader[Decoder, String] = (decoder, _) => decoder.readString
+  override val readInt: DatumReader[Decoder, Int] = (decoder, _) => decoder.readInt
+  override val readPositiveInt: DatumReader[Decoder, Int] = readInt // no optimization
+  override val readLong: DatumReader[Decoder, Long] = (decoder, _) => decoder.readLong
+  override val readFloat: DatumReader[Decoder, Float] = (decoder, _) => decoder.readFloat
+  override val readDouble: DatumReader[Decoder, Double] = (decoder, _) => decoder.readDouble
+  override val readBoolean: DatumReader[Decoder, Boolean] = (decoder, _) => decoder.readBoolean
+  override val readDate: DatumReader[Decoder, Date] = (decoder, _) => new Date(decoder.readLong())
 
-  override def readNullable[T](readRaw: DatumReader[T]): DatumReader[T] = () => {
+  override val readBytes: DatumReader[Decoder, Array[Byte]] = (decoder, _) => {
+    val buffer: ByteBuffer = decoder.readBytes(null)
+
+    val pos: Int = buffer.position
+    val len: Int = buffer.limit - pos
+
+    if (len == 0) {
+      Array.emptyByteArray
+    } else if (pos == 0 && buffer.hasArray) {
+      // should always be able to acess directly
+      buffer.array()
+    } else {
+      // just in case
+      val array = Array.ofDim[Byte](len)
+      buffer.get(array, pos, len)
+      array
+    }
+  }
+
+  override def readNullable[T](readRaw: DatumReader[Decoder, T]): DatumReader[Decoder, T] = (decoder, version) => {
     if (decoder.readIndex() == NOT_NULL_INDEX) {
-      readRaw()
+      readRaw(decoder, version)
     } else {
       decoder.readNull()
       null.asInstanceOf[T]
     }
   }
 
-  override val readArrayStart: DatumReader[Long] = decoder.readArrayStart
+  override val readArrayStart: DatumReader[Decoder, Int] = (decoder, _) => {
+    // always writing an Int so this cast should be safe
+    decoder.readArrayStart.asInstanceOf[Int]
+  }
+
+  override val readGeometry: DatumReader[Decoder, Geometry] = readGeometryAsWKB
 }
