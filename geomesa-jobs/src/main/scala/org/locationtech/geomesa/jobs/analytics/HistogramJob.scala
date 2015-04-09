@@ -46,7 +46,7 @@ class HistogramJob(args: Args) extends GeoMesaBaseJob(args) {
   val attribute  = args(ATTRIBUTE)
   val groupBy    = args.nonStrictList(GROUP_BY)
   val uniqueBy   = args.nonStrictList(UNIQUE_BY)
-  val transforms = Option(args.list(TRANSFORM_IN).toArray).filter(!_.isEmpty)
+  val transforms = Option(args.list(TRANSFORM_IN).toArray).filter(_.nonEmpty)
 
   val input = GeoMesaInputOptions(dsParams, feature, filter, transforms)
   val output = args(FILE_OUT)
