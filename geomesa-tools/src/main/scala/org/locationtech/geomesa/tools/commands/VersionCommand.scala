@@ -33,8 +33,9 @@ class VersionCommand(parent: JCommander) extends Command(parent) {
 
     properties.load(stream)
     println(s"GeoMesa Version ${properties.getProperty("geomesa.build.version")} " +
-            s"built on ${properties.getProperty("geomesa.build.date")}. " +
-            s"Commit ID: ${properties.getProperty("geomesa.build.commit.id")}")
+            s"built on ${properties.getProperty("geomesa.build.date")}.")
+    println(s"Commit ID: ${properties.getProperty("geomesa.build.commit.id")}")
+    println(s"Branch: ${properties.getProperty("geomesa.build.branch")}")
     stream.close()
   }
 }

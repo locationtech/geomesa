@@ -10,3 +10,4 @@
 target
 atlassian*
 geomesa-*.*.*-*
+**/src/main/resources/git.properties
