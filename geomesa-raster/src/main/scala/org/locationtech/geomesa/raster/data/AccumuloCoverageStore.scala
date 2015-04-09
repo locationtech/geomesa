@@ -48,7 +48,7 @@ trait CoverageStore {
  * @param rasterStore Raster store instance
  * @param geoserverClientService Optional GeoServer client instance
  */
-class AccumuloCoverageStore(val rasterStore: RasterStore,
+class AccumuloCoverageStore(val rasterStore: AccumuloRasterStore,
                             val geoserverClientService: Option[GeoserverClientService] = None)
   extends CoverageStore with Logging {
 
@@ -92,7 +92,7 @@ object AccumuloCoverageStore extends Logging {
             auths: String,
             writeVisibilities: String): AccumuloCoverageStore = {
 
-    val rs = RasterStore(username, password, instanceId, zookeepers,
+    val rs = AccumuloRasterStore(username, password, instanceId, zookeepers,
                          tableName, auths, writeVisibilities)
 
     new AccumuloCoverageStore(rs, None)
@@ -112,7 +112,7 @@ object AccumuloCoverageStore extends Logging {
     val writeThreadsConfig = writeThreadsParam.lookupOpt(config)
     val queryThreadsConfig = queryThreadsParam.lookupOpt(config)
 
-    val rasterStore = RasterStore(userName, password, instanceId, zookeepers,
+    val rasterStore = AccumuloRasterStore(userName, password, instanceId, zookeepers,
                                   tableName, visibility, authorizations, useMock,
                                   shardsConfig, writeMemoryConfig, writeThreadsConfig,
                                   queryThreadsConfig)

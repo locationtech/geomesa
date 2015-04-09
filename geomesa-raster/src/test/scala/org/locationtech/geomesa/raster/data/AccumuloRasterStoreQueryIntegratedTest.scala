@@ -24,7 +24,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RasterStoreQueryIntegratedTest extends Specification {
+class AccumuloRasterStoreQueryIntegratedTest extends Specification {
 
   sequential
 
@@ -45,7 +45,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(0, 50, 0, 50)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(0)
     }
@@ -61,7 +61,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(0, 50, 0, 50)
 
-      theStore must beAnInstanceOf[RasterStore]
+      theStore must beAnInstanceOf[AccumuloRasterStore]
       val theIterator = theStore.getRasters(query)
       val theRaster = theIterator.next()
       theRaster must beAnInstanceOf[Raster]
@@ -78,7 +78,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(0, 50, 0, 50)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theIterator = rasterStore.getRasters(query)
       val theRaster = theIterator.next()
       theRaster must beAnInstanceOf[Raster]
@@ -95,7 +95,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(0, 45, 0, 45)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theIterator = rasterStore.getRasters(query)
       theIterator.isEmpty must beTrue
     }
@@ -113,7 +113,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(0, 50, 0, 50)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -129,7 +129,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(0, 50, 0, 50, res = 5.0)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -148,7 +148,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(env.getMinX-0.0001, env.getMaxX+0.0001, env.getMinY-0.0001, env.getMaxY+0.0001)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -167,7 +167,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(env.getMinX-0.0001, env.getMaxX+0.0001, env.getMinY-0.0001, env.getMaxY+0.0001)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -193,7 +193,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(bbox1.minLon, bbox3.maxLon, bbox1.minLat, bbox3.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(4)
     }
@@ -219,7 +219,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(bbox1.minLon, bbox3.maxLon, bbox1.minLat, bbox3.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(4)
     }
@@ -237,7 +237,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(-180.0, 180.0, -90.0, 90.0)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(32)
     }
@@ -253,7 +253,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -269,7 +269,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -285,7 +285,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -301,7 +301,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -317,7 +317,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -333,7 +333,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -349,7 +349,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -365,7 +365,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -381,7 +381,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -397,7 +397,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -413,7 +413,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -429,7 +429,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -445,7 +445,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -461,7 +461,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -477,7 +477,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(qbbox.minLon, qbbox.maxLon, qbbox.minLat, qbbox.maxLat)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
     }
@@ -503,7 +503,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       //generate query
       val query = generateQuery(-180.0, 180.0, -90.0, 90.0)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theResults = rasterStore.getRasters(query).toList
       theResults.length must beEqualTo(1)
       theResults.head.resolution must beEqualTo(expectedResolution)
@@ -523,7 +523,7 @@ class RasterStoreQueryIntegratedTest extends Specification {
       val testRaster4 = generateTestRaster(0, 45.0/8, 0, 45.0/8, res = 50.0 / 256)
       rasterStore.putRaster(testRaster4)
 
-      rasterStore must beAnInstanceOf[RasterStore]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val theAvailability = rasterStore.getAvailabilityMap()
       theAvailability.keys().size() must beEqualTo(3)
       theAvailability.keySet().size() must beEqualTo(2)
