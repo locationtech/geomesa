@@ -41,8 +41,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <timestamp>${maven.build.timestamp}</timestamp>
-        <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
         <scala.version>2.10.5</scala.version>
         <geoserver.version>2.5.2</geoserver.version>
         <gt.version>11.2</gt.version>
