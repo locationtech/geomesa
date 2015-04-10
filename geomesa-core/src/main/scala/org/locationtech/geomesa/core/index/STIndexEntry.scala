@@ -24,7 +24,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
-import org.locationtech.geomesa.feature.ScalaSimpleFeature.RichSimpleFeature
+import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -61,7 +61,7 @@ case class STIndexEncoder(sft: SimpleFeatureType, rowf: TextFormatter, cff: Text
     logger.trace(s"decomposed ${toWrite.feature.geometry} into geohashes:" +
         s" ${geohashes.map(_.hash).mkString(",")})}")
 
-    val dt = dtgFieldIndex.map(toWrite.feature.attribute[Date])
+    val dt = dtgFieldIndex.map(toWrite.feature.get[Date])
         .map(new DateTime(_))
         .getOrElse(new DateTime())
         .withZone(DateTimeZone.UTC)
