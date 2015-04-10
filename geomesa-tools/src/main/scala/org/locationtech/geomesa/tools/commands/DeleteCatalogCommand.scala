@@ -25,7 +25,7 @@ class DeleteCatalogCommand (parent: JCommander) extends CommandWithCatalog(paren
 
   override def execute() = {
     val msg = s"Delete catalog '$catalog'? (yes/no): "
-    if (PromptConfirm.confirm(msg, List("yes", "y"))) {
+    if (params.force || PromptConfirm.confirm(msg, List("yes", "y"))) {
       ds.delete()
       println(s"Deleted catalog $catalog")
     } else {
