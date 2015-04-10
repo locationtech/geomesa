@@ -514,7 +514,7 @@ class AccumuloDataStore(val connector: Connector,
 
     val errors = checks.flatten.mkString(", ")
 
-    // if no errors, check the feature encoding and update if needed
+    // if no errors, check the feature encoding
     if (errors.isEmpty) {
       checkFeatureEncodingMetadata(featureName)
     }
@@ -544,12 +544,9 @@ class AccumuloDataStore(val connector: Connector,
    * @param featureName
    */
   def checkFeatureEncodingMetadata(featureName: String): Unit = {
-    // for feature encoding, we are more lenient - we will use whatever is stored in the table,
-    // or default to 'text' for backwards compatibility
+    // for feature encoding, we are more lenient - we will use whatever is stored in the table
     if (metadata.read(featureName, FEATURE_ENCODING_KEY).getOrElse("").isEmpty) {
-      // if there is nothing in the table, it means the table was created with an older version of
-      // geomesa - we'll update the data in the table to be 1.0 compliant
-      metadata.insert(featureName, FEATURE_ENCODING_KEY, FeatureEncoding.TEXT.toString)
+      throw new RuntimeException(s"No '$FEATURE_ENCODING_KEY' found for feature '$featureName'.")
     }
   }
 
@@ -684,11 +681,13 @@ class AccumuloDataStore(val connector: Connector,
   private def getAttributes(featureName: String) = metadata.read(featureName, ATTRIBUTES_KEY)
 
   /**
-   * Reads the feature encoding from the metadata. Defaults to TEXT if there is no metadata.
+   * Reads the feature encoding from the metadata.
+   *
+   * @throws NoSuchElementException if the feature encoding is missing
    */
   def getFeatureEncoding(sft: SimpleFeatureType): FeatureEncoding = {
     metadata.read(sft.getTypeName, FEATURE_ENCODING_KEY)
-      .map(FeatureEncoding.withName).getOrElse(FeatureEncoding.TEXT)
+      .map(FeatureEncoding.withName).get
   }
 
   // We assume that they want the bounds for everything.

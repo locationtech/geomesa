@@ -21,22 +21,22 @@ import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.avro.Schema
-import org.apache.avro.io.{BinaryDecoder, DatumReader, Decoder, DecoderFactory}
+import org.apache.avro.io._
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.feature.AvroSimpleFeatureUtils._
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.feature.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
+import org.locationtech.geomesa.feature.serialization.avro.AvroSimpleFeatureDecodingsCache
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
-class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType)
-  extends DatumReader[AvroSimpleFeature] {
+class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType, opts: EncodingOptions = EncodingOptions.none) {
 
   def this(sft: SimpleFeatureType) = this(sft, sft)
 
-  var oldSchema = generateSchema(oldType)
-  val newSchema = generateSchema(newType)
+  val oldSchema = generateSchema(oldType)
   val fieldsDesired = DataUtilities.attributeNames(newType).map(encodeAttributeName)
 
   def isDataField(f: Schema.Field) =
@@ -50,8 +50,6 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   val nillableAttrs: Set[String] = oldType.getAttributeDescriptors.filter(_.isNillable).map {
       ad => encodeAttributeName(ad.getLocalName)
     }.toSet
-
-  def setSchema(schema:Schema) = oldSchema = schema
 
   def buildFieldReaders(deserializer: ASFDeserializer) =
     oldType.getAttributeDescriptors.map { ad =>
@@ -96,9 +94,12 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   lazy val v1fieldreaders = buildFieldReaders(Version1Deserializer)
   lazy val v2fieldreaders = buildFieldReaders(Version2Deserializer)
 
-  def read(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
-    // Read the version first and choose the proper deserializer
+  def defaultRead(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
+    // read and store the version
     val serializationVersion = in.readInt()
+    AvroSimpleFeatureDecodingsCache.getAbstractReader.version = serializationVersion
+
+    // choose the proper deserializer
     val deserializer = serializationVersion match {
       case 1 => v1fieldreaders
       case 2 => v2fieldreaders
@@ -113,6 +114,23 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     sf
   }
 
+  def readWithUserData(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
+    val sf = defaultRead(reuse, in)
+
+    val ar = AvroSimpleFeatureDecodingsCache.getAbstractReader
+
+    val userData = ar.readGenericMap(in)
+    sf.getUserData.clear()
+    sf.getUserData.putAll(userData)
+
+    sf
+  }
+
+  val read: (AvroSimpleFeature, Decoder) => AvroSimpleFeature =
+    if (opts.withUserData)
+      readWithUserData
+    else
+      defaultRead
 }
 
 object FeatureSpecificReader {
