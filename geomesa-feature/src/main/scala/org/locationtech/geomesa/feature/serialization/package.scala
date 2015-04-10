@@ -24,7 +24,7 @@ package object serialization {
   type DatumWriter[Writer, -T] = (Writer, T) => Unit
 
   // Read a datum.
-  type DatumReader[Reader, +T] = (Reader, Version) => T
+  type DatumReader[Reader, +T] = (Reader) => T
 }
 
 class SerializationException(msg: String, cause: Throwable = null) extends RuntimeException(msg, cause)

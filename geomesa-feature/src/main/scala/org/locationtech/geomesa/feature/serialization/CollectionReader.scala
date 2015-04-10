@@ -26,15 +26,15 @@ trait CollectionReader[Reader] extends PrimitiveReader[Reader] {
    * @tparam E the type of the list elements
    * @return a [[DatumReader]] for reading a [[java.util.List]] which may be null
    */
-  def readList[E](elementReader: DatumReader[Reader, E]): DatumReader[Reader, JList[E]] = (in, version) => {
-    val length = readInt(in, version)
+  def readList[E](elementReader: DatumReader[Reader, E]): DatumReader[Reader, JList[E]] = (in) => {
+    val length = readInt(in)
     if (length < 0) {
       null
     } else {
       val list = new JArrayList[E](length)
       var i = 0
       while (i < length) {
-        list.add(elementReader(in, version))
+        list.add(elementReader(in))
         i += 1
       }
       list
@@ -48,15 +48,15 @@ trait CollectionReader[Reader] extends PrimitiveReader[Reader] {
    * @tparam V the type of the map values
    * @return a [[DatumReader]] for reading a [[java.util.Map]]which may be null
    */
-  def readMap[K, V](keyReader: DatumReader[Reader, K], valueReader: DatumReader[Reader, V]): DatumReader[Reader, JMap[K, V]] = (in, version) => {
-    val length = readInt(in, version)
+  def readMap[K, V](keyReader: DatumReader[Reader, K], valueReader: DatumReader[Reader, V]): DatumReader[Reader, JMap[K, V]] = (in) => {
+    val length = readInt(in)
     if (length < 0) {
       null
     } else {
       val map = new JHashMap[K, V](length)
       var i = 0
       while (i < length) {
-        map.put(keyReader(in, version), valueReader(in, version))
+        map.put(keyReader(in), valueReader(in))
         i += 1
       }
       map

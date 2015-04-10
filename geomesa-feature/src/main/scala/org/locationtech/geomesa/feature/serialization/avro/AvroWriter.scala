@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.feature.serialization.avro
 
-import java.nio.ByteBuffer
 import java.util.Date
 
 import org.apache.avro.io.Encoder

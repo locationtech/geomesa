@@ -47,13 +47,13 @@ class SimpleFeatureSerializer(sft: SimpleFeatureType, opts: EncodingOptions = En
     }
   }
 
-  def readAttributes(input: Input, version: Int): Array[AnyRef] = {
+  def readAttributes(input: Input): Array[AnyRef] = {
     val values = Array.ofDim[AnyRef](sft.getAttributeCount)
     var i = 0
 
     val attributeDecodings = decodings.attributeDecodings
     while (i < attributeDecodings.length) {
-      values(i) = attributeDecodings(i)(input, version)
+      values(i) = attributeDecodings(i)(input)
       i += 1
     }
 
@@ -112,15 +112,15 @@ class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: Sim
     }
   }
 
-  override def readAttributes(input: Input, version: Int): Array[AnyRef] = {
+  override def readAttributes(input: Input): Array[AnyRef] = {
     val values = Array.ofDim[AnyRef](transform.getAttributeCount)
     var i = 0
     while (i < transformDecodings.length) {
       val (decoding, index) = transformDecodings(i)
       if (index == -1) {
-        decoding(input, version) // discard
+        decoding(input) // discard
       } else {
-        values(index) = decoding(input, version)
+        values(index) = decoding(input)
       }
       i += 1
     }
@@ -136,14 +136,11 @@ abstract class BaseSimpleFeatureSerializer(sft: SimpleFeatureType, opts: Encodin
   val doWrite: (Kryo, Output, SimpleFeature) => Unit =
     if (opts.withUserData) writeWithUserData else defaultWrite
 
-  val reader: (Kryo, Input, Class[SimpleFeature], Int) => SimpleFeature =
+  val doRead: (Kryo, Input, Class[SimpleFeature]) => SimpleFeature =
     if (opts.withUserData) readWithUserData else defaultRead
 
   override def write(kryo: Kryo, output: Output, sf: SimpleFeature) = doWrite(kryo, output, sf)
-  override def read(kryo: Kryo, input: Input, typ: Class[SimpleFeature]) = {
-    val version = input.readInt(true)
-    reader(kryo, input, typ, version)
-  }
+  override def read(kryo: Kryo, input: Input, typ: Class[SimpleFeature]) = doRead(kryo, input, typ)
 
   def defaultWrite(kryo: Kryo, output: Output, sf: SimpleFeature): Unit = {
     output.writeInt(VERSION, true)
@@ -159,27 +156,29 @@ abstract class BaseSimpleFeatureSerializer(sft: SimpleFeatureType, opts: Encodin
     kw.writeGenericMap(output, sf.getUserData)
   }
 
-  def defaultRead(kryo: Kryo, input: Input, typ: Class[SimpleFeature], version: Int): SimpleFeature = {
-    val id = input.readString()
+  def defaultRead(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
+    // read and store version
+    val version = input.readInt(true)
+    KryoSimpleFeatureDecodingsCache.getAbstractReader.version = version
 
-    val values = readAttributes(input, version)
+    val id = input.readString()
+    val values = readAttributes(input)
 
     new ScalaSimpleFeature(id, sft, values)
   }
 
-  def readWithUserData(kryo: Kryo, input: Input, typ: Class[SimpleFeature], serializationVersion: Int): SimpleFeature = {
-    val sf = defaultRead(kryo, input, typ, serializationVersion)
+  def readWithUserData(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
+    val sf = defaultRead(kryo, input, typ)
 
     val kr = KryoSimpleFeatureDecodingsCache.getAbstractReader
-
-    val userData = kr.readGenericMap(input, serializationVersion)
+    val userData = kr.readGenericMap(input)
     sf.getUserData.clear()
     sf.getUserData.putAll(userData)
     sf
   }
 
   def writeAttributes(output: Output, sf: SimpleFeature)
-  def readAttributes(input: Input, version: Int): Array[AnyRef]
+  def readAttributes(input: Input): Array[AnyRef]
 }
 
 object SimpleFeatureSerializer {

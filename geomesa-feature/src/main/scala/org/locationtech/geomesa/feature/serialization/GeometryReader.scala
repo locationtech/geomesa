@@ -35,83 +35,83 @@ trait GeometryReader[Reader] extends PrimitiveReader[Reader] with NullableReader
   def readGeometry: DatumReader[Reader, Geometry]
 
   /** Selects the correct reader based on the type of geometry.  For use only when reading [[Geometry]] directly. */
-  val selectGeometryReader: DatumReader[Reader, Geometry] = (in, version) => {
-    readPositiveInt(in, version) match {
-      case WKBConstants.wkbPoint => factory.createPoint(readCoordinate(in, version))
+  val selectGeometryReader: DatumReader[Reader, Geometry] = (in) => {
+    readPositiveInt(in) match {
+      case WKBConstants.wkbPoint => factory.createPoint(readCoordinate(in))
 
-      case WKBConstants.wkbLineString => factory.createLineString(readCoordinateSequence(in, version))
+      case WKBConstants.wkbLineString => factory.createLineString(readCoordinateSequence(in))
 
-      case WKBConstants.wkbPolygon => readPolygon(in, version)
+      case WKBConstants.wkbPolygon => readPolygon(in)
 
       case WKBConstants.wkbMultiPoint =>
-        val geoms = readGeometryCollection[Point](in, version)
+        val geoms = readGeometryCollection[Point](in)
         factory.createMultiPoint(geoms)
 
       case WKBConstants.wkbMultiLineString =>
-        val geoms = readGeometryCollection[LineString](in, version)
+        val geoms = readGeometryCollection[LineString](in)
         factory.createMultiLineString(geoms)
 
       case WKBConstants.wkbMultiPolygon =>
-        val geoms = readGeometryCollection[Polygon](in, version)
+        val geoms = readGeometryCollection[Polygon](in)
         factory.createMultiPolygon(geoms)
 
       case WKBConstants.wkbGeometryCollection =>
-        val geoms = readGeometryCollection[Geometry](in, version)
+        val geoms = readGeometryCollection[Geometry](in)
         factory.createGeometryCollection(geoms)
     }
   }
 
-  def readPolygon(in: Reader, version: Version): Polygon = {
-    val exteriorRing = factory.createLinearRing(readCoordinateSequence(in, version))
-    val numInteriorRings = readPositiveInt(in, version)
+  def readPolygon(in: Reader): Polygon = {
+    val exteriorRing = factory.createLinearRing(readCoordinateSequence(in))
+    val numInteriorRings = readPositiveInt(in)
     if (numInteriorRings == 0) {
       factory.createPolygon(exteriorRing)
     } else {
       val interiorRings = Array.ofDim[LinearRing](numInteriorRings)
       var i = 0
       while (i < numInteriorRings) {
-        interiorRings.update(i, factory.createLinearRing(readCoordinateSequence(in, version)))
+        interiorRings.update(i, factory.createLinearRing(readCoordinateSequence(in)))
         i += 1
       }
       factory.createPolygon(exteriorRing, interiorRings)
     }
   }
 
-  def readGeometryCollection[T <: Geometry: ClassTag](in: Reader, version: Version): Array[T] = {
-    val numGeoms = readPositiveInt(in, version)
+  def readGeometryCollection[T <: Geometry: ClassTag](in: Reader): Array[T] = {
+    val numGeoms = readPositiveInt(in)
     val geoms = Array.ofDim[T](numGeoms)
     var i = 0
     while (i < numGeoms) {
-      geoms.update(i, readGeometryDirectly(in, version).asInstanceOf[T])
+      geoms.update(i, readGeometryDirectly(in).asInstanceOf[T])
       i += 1
     }
     geoms
   }
 
-  def readCoordinateSequence(in: Reader, version: Version): CoordinateSequence = {
-    val numCoords = readPositiveInt(in, version)
+  def readCoordinateSequence(in: Reader): CoordinateSequence = {
+    val numCoords = readPositiveInt(in)
     val coords = csFactory.create(numCoords, 2)
     var i = 0
     while (i < numCoords) {
-      coords.setOrdinate(i, 0, readDouble(in, version))
-      coords.setOrdinate(i, 1, readDouble(in, version))
+      coords.setOrdinate(i, 0, readDouble(in))
+      coords.setOrdinate(i, 1, readDouble(in))
       i += 1
     }
     coords
   }
 
-  def readCoordinate(in: Reader, version: Version): CoordinateSequence = {
+  def readCoordinate(in: Reader): CoordinateSequence = {
     val coords = csFactory.create(1, 2)
-    coords.setOrdinate(0, 0, readDouble(in, version))
-    coords.setOrdinate(0, 1, readDouble(in, version))
+    coords.setOrdinate(0, 0, readDouble(in))
+    coords.setOrdinate(0, 1, readDouble(in))
     coords
   }
 
   /** Based on the method from geotools WKBReader. */
   val readGeometryDirectly: DatumReader[Reader, Geometry] = readNullable(selectGeometryReader)
 
-  lazy val readGeometryAsWKB: DatumReader[Reader, Geometry] = (reader, version) => {
-    val bytes = readBytes(reader, version)
+  lazy val readGeometryAsWKB: DatumReader[Reader, Geometry] = (reader) => {
+    val bytes = readBytes(reader)
     if (bytes.length > 0) {
       WKBUtils.read(bytes)
     } else {

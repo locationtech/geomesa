@@ -19,7 +19,6 @@ package org.locationtech.geomesa.feature.serialization.avro
 import java.nio.ByteBuffer
 import java.util.Date
 
-import com.esotericsoftware.kryo.io.Input
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.avro.io.Decoder
 import org.locationtech.geomesa.feature.serialization._
@@ -28,16 +27,16 @@ import org.locationtech.geomesa.feature.serialization._
 class AvroReader extends AbstractReader[Decoder] {
   import AvroWriter.NOT_NULL_INDEX
 
-  override val readString: DatumReader[Decoder, String] = (decoder, _) => decoder.readString
-  override val readInt: DatumReader[Decoder, Int] = (decoder, _) => decoder.readInt
+  override val readString: DatumReader[Decoder, String] = (decoder) => decoder.readString
+  override val readInt: DatumReader[Decoder, Int] = (decoder) => decoder.readInt
   override val readPositiveInt: DatumReader[Decoder, Int] = readInt // no optimization
-  override val readLong: DatumReader[Decoder, Long] = (decoder, _) => decoder.readLong
-  override val readFloat: DatumReader[Decoder, Float] = (decoder, _) => decoder.readFloat
-  override val readDouble: DatumReader[Decoder, Double] = (decoder, _) => decoder.readDouble
-  override val readBoolean: DatumReader[Decoder, Boolean] = (decoder, _) => decoder.readBoolean
-  override val readDate: DatumReader[Decoder, Date] = (decoder, _) => new Date(decoder.readLong())
+  override val readLong: DatumReader[Decoder, Long] = (decoder) => decoder.readLong
+  override val readFloat: DatumReader[Decoder, Float] = (decoder) => decoder.readFloat
+  override val readDouble: DatumReader[Decoder, Double] = (decoder) => decoder.readDouble
+  override val readBoolean: DatumReader[Decoder, Boolean] = (decoder) => decoder.readBoolean
+  override val readDate: DatumReader[Decoder, Date] = (decoder) => new Date(decoder.readLong())
 
-  override val readBytes: DatumReader[Decoder, Array[Byte]] = (decoder, _) => {
+  override val readBytes: DatumReader[Decoder, Array[Byte]] = (decoder) => {
     val buffer: ByteBuffer = decoder.readBytes(null)
 
     val pos: Int = buffer.position
@@ -56,9 +55,9 @@ class AvroReader extends AbstractReader[Decoder] {
     }
   }
 
-  override def readNullable[T](readRaw: DatumReader[Decoder, T]): DatumReader[Decoder, T] = (decoder, version) => {
+  override def readNullable[T](readRaw: DatumReader[Decoder, T]): DatumReader[Decoder, T] = (decoder) => {
     if (decoder.readIndex() == NOT_NULL_INDEX) {
-      readRaw(decoder, version)
+      readRaw(decoder)
     } else {
       decoder.readNull()
       null.asInstanceOf[T]

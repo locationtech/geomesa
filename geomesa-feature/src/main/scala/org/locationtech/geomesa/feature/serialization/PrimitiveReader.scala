@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.feature.serialization
 
-import java.nio.ByteBuffer
 import java.util.Date
 
 /** A collection of [[DatumReader]]s for reading primitive-like datums.

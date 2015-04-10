@@ -21,6 +21,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 import collection.JavaConversions._
 import CacheKeyGenerator.cacheKeyForSFT
 
+import scala.ref.SoftReference
+
 
 /** Provides access to the decodings for a [[SimpleFeatureType]].
   *
@@ -43,9 +45,7 @@ class SimpleFeatureDecodings[Reader](val datumReaders: AbstractReader[Reader], v
   */
 trait SimpleFeatureDecodingsCache[Reader] {
 
-  // one [[AbstractReader]] per thread - key will always be "" (use a different structure??)
-  private val readersCache = new SoftThreadLocalCache[String, AbstractReader[Reader]]()
-
+  private val readersCache = new ThreadLocal[SoftReference[AbstractReader[Reader]]]()
   private val decodingsCache = new SoftThreadLocalCache[String, SimpleFeatureDecodings[Reader]]()
 
   def datumReadersFactory: () => AbstractReader[Reader]
@@ -57,7 +57,11 @@ trait SimpleFeatureDecodingsCache[Reader] {
     })
 
   def getAbstractReader: AbstractReader[Reader] = {
-    readersCache.getOrElseUpdate("", datumReadersFactory())
+    Option(readersCache.get()).flatMap(_.get).getOrElse {
+      val reader = datumReadersFactory()
+      readersCache.set(new SoftReference(reader))
+      reader
+    }
   }
 }
 

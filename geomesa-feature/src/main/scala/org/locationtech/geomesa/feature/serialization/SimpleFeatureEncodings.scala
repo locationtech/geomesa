@@ -15,12 +15,12 @@
  */
 package org.locationtech.geomesa.feature.serialization
 
-import java.util.{Map => JMap}
+import org.locationtech.geomesa.feature.serialization.CacheKeyGenerator.cacheKeyForSFT
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import collection.JavaConversions._
-import CacheKeyGenerator.cacheKeyForSFT
+import scala.collection.JavaConversions._
+import scala.ref.SoftReference
 
 /** Provides access to the encodings for a [[SimpleFeatureType]].
  *
@@ -53,9 +53,7 @@ class SimpleFeatureEncodings[Writer](val datumWriters: AbstractWriter[Writer], v
   */
 trait SimpleFeatureEncodingsCache[Writer] {
 
-  // one [[AbstractWriter]] per thread - key will always be "" (use a different structure??)
-  private val writersCache = new SoftThreadLocalCache[String, AbstractWriter[Writer]]()
-
+  private val writersCache = new ThreadLocal[SoftReference[AbstractWriter[Writer]]]()
   private val encodingsCache = new SoftThreadLocalCache[String, SimpleFeatureEncodings[Writer]]()
 
   protected  def datumWritersFactory: () => AbstractWriter[Writer]
@@ -67,6 +65,10 @@ trait SimpleFeatureEncodingsCache[Writer] {
     })
   
   def getAbstractWriter: AbstractWriter[Writer] = {
-    writersCache.getOrElseUpdate("", datumWritersFactory())
+    Option(writersCache.get()).flatMap(_.get).getOrElse {
+      val writer = datumWritersFactory()
+      writersCache.set(new SoftReference(writer))
+      writer
+    }
   }
 }

@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.feature.serialization
 
-import java.util.{UUID, Date}
+import java.util.Date
 
 /** A collection of [[DatumReader]]s for reading objects which may be null.
   *

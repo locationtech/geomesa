@@ -39,8 +39,8 @@ trait HintKeyReader[Reader] extends PrimitiveReader[Reader] {
 
   import HintKeySerialization.idToKey
 
-  val readHintKey: DatumReader[Reader, Hints.Key] = (reader, version) => {
-    val id = readString(reader, version)
+  val readHintKey: DatumReader[Reader, Hints.Key] = (reader) => {
+    val id = readString(reader)
 
     // exception should not be thrown - if we wrote it, we should be able to read it!
     idToKey.getOrElse(id, throw new SerializationException(s"Unknown Key ID: '$id'"))

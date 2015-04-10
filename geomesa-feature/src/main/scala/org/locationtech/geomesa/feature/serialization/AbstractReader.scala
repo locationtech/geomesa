@@ -24,7 +24,8 @@ import org.locationtech.geomesa.feature.serialization.AbstractWriter.NULL_MARKER
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 
 /** Combines all readers.
-  *
+  * 
+  * Not thread safe.
   */
 trait AbstractReader[Reader]
   extends PrimitiveReader[Reader]
@@ -33,37 +34,40 @@ trait AbstractReader[Reader]
   with GeometryReader[Reader]
   with HintKeyReader[Reader] {
 
-  def readUUID: DatumReader[Reader, UUID] = (in: Reader, version: Int) =>  {
-    val mostSignificantBits = readLong(in, version)
-    val leastSignificantBits = readLong(in, version)
+  /** Holds the serialization version number currently being read.  Must be managed externally. */
+  var version: Version = -1
+
+  def readUUID: DatumReader[Reader, UUID] = (in: Reader) =>  {
+    val mostSignificantBits = readLong(in)
+    val leastSignificantBits = readLong(in)
     new UUID(mostSignificantBits, leastSignificantBits)
   }
 
   /** A [[DatumReader]] which reads a class name and then an object of that class.  If the class name is a null marker
     * then ``null`` will be returned.
     */
-  def readGeneric: DatumReader[Reader, AnyRef] = (reader, version) => {
-    val className = readString(reader, version)
+  def readGeneric: DatumReader[Reader, AnyRef] = (reader) => {
+    val className = readString(reader)
 
     if (className == NULL_MARKER_STR) {
       null
     } else {
       val clazz = Class.forName(className)
-      selectReader(clazz).apply(reader, version)
+      selectReader(clazz).apply(reader)
     }
   }
 
   /**
    * A [[DatumReader]] for reading a map where the key and values may be any type.  The map may not be null. The reader
-   * will call ``readArrayStart(reader, version)`` and then, for each entry, read up to four items.
+   * will call ``readArrayStart(reader)`` and then, for each entry, read up to four items.
    */
-  def readGenericMap: DatumReader[Reader, JMap[AnyRef, AnyRef]] = (reader, version) => {
+  def readGenericMap: DatumReader[Reader, JMap[AnyRef, AnyRef]] = (reader) => {
     var toRead = readArrayStart(reader)
     val map = new java.util.HashMap[AnyRef, AnyRef](toRead)
 
     while (toRead > 0) {
-      val key = readGeneric(reader, version)
-      val value = readGeneric(reader, version)
+      val key = readGeneric(reader)
+      val value = readGeneric(reader)
 
       map.put(key, value)
       toRead -= 1
