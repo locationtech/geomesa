@@ -32,4 +32,8 @@ public class SecurityUtils {
         String and = Joiner.on("&").join(visibilities);
         return setFeatureVisibility(feature, and);
     }
+
+    public static String getVisibility(SimpleFeature feature) {
+        return (String)feature.getUserData().get(FEATURE_VISIBILITY);
+    }
 }
