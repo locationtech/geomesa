@@ -142,18 +142,13 @@ object Strategy {
   def configureEcqlFilter(cfg: IteratorSetting, ecql: Option[String]) =
     ecql.foreach(filter => cfg.addOption(GEOMESA_ITERATORS_ECQL_FILTER, filter))
 
-  // returns the SimpleFeatureType for the query's transform
-  def transformedSimpleFeatureType(query: Query): Option[SimpleFeatureType] = {
-    Option(query.getHints.get(TRANSFORM_SCHEMA)).map {_.asInstanceOf[SimpleFeatureType]}
-  }
-
   // store transform information into an Iterator's settings
   def configureTransforms(cfg: IteratorSetting, query:Query) =
     for {
-      transformOpt  <- Option(query.getHints.get(TRANSFORMS))
+      transformOpt  <- org.locationtech.geomesa.core.index.getTransformDefinition(query)
       transform     = transformOpt.asInstanceOf[String]
       _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
-      sfType        <- transformedSimpleFeatureType(query)
+      sfType        <- org.locationtech.geomesa.core.index.getTransformSchema(query)
       encodedSFType = SimpleFeatureTypes.encodeType(sfType)
       _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, encodedSFType)
     } yield Unit

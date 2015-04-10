@@ -173,8 +173,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
       configureTransforms(cfg, query)
     } else {
       // we can evaluate the filter against the transformed schema, so skip the original feature decoding
-      val transformedType = query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
-      configureFeatureType(cfg, transformedType)
+      getTransformSchema(query).foreach(transformedType => configureFeatureType(cfg, transformedType))
     }
 
     cfg

@@ -18,6 +18,7 @@ package org.locationtech.geomesa.jobs.mapreduce
 
 import java.io.{InputStream, OutputStream}
 
+import com.google.common.primitives.Ints
 import org.apache.hadoop.io.serializer.{Deserializer, Serialization, Serializer}
 import org.locationtech.geomesa.feature.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization._
@@ -38,9 +39,33 @@ class SimpleFeatureSerialization extends Serialization[SimpleFeature] {
 }
 
 object SimpleFeatureSerialization {
-
   // re-usable serializers since they are not thread safe
   val serializers = new SoftThreadLocalCache[String, KryoFeatureSerializer]()
+
+  /**
+   * Writes a string to the output stream
+   */
+  def writeString(out: OutputStream, value: String): Unit = {
+    val bytes = value.getBytes("UTF-8")
+    val length = bytes.length
+    // bit-shift to write the 4 bytes of the int
+    out.write(length >> 24)
+    out.write(length >> 16)
+    out.write(length >> 8)
+    out.write(length) // >> 0
+    out.write(bytes)
+  }
+
+  /**
+   * Read a string from the input stream
+   */
+  def readString(in: InputStream): String = {
+    implicit def intToByte(i: Int): Byte = i.asInstanceOf[Byte]
+    // have to re-construct the int from 4 bytes
+    val bytes = Array.ofDim[Byte](Ints.fromBytes(in.read(), in.read(), in.read(), in.read()))
+    in.read(bytes)
+    new String(bytes, "UTF-8")
+  }
 }
 
 /**
@@ -57,14 +82,10 @@ class SimpleFeatureSerializer extends Serializer[SimpleFeature] {
 
   override def serialize(sf: SimpleFeature) = {
     val sft = sf.getFeatureType
+    writeString(out, sft.getTypeName)
     val sftString = SimpleFeatureTypes.encodeType(sft)
-    val sftNameBytes = sft.getTypeName.getBytes("UTF-8")
-    val sftStringBytes = sftString.getBytes("UTF-8")
-    out.write(sftNameBytes.length)
-    out.write(sftNameBytes)
-    out.write(sftStringBytes.length)
-    out.write(sftStringBytes)
-    serializers.getOrElseUpdate(sftString, KryoFeatureSerializer(sft)).write(sf, out)
+    writeString(out, sftString)
+    serializers.getOrElseUpdate(s"${sft.getTypeName}:$sftString", KryoFeatureSerializer(sft)).write(sf, out)
   }
 }
 
@@ -80,13 +101,9 @@ class SimpleFeatureDeserializer extends Deserializer[SimpleFeature] {
   override def close() = in.close()
 
   override def deserialize(ignored: SimpleFeature) = {
-    val sftNameBytes = Array.ofDim[Byte](in.read())
-    in.read(sftNameBytes)
-    val sftStringBytes = Array.ofDim[Byte](in.read())
-    in.read(sftStringBytes)
-    val sftString = new String(sftStringBytes, "UTF-8")
-    lazy val sft = SimpleFeatureTypes.createType(new String(sftNameBytes, "UTF-8"), sftString)
-    serializers.getOrElseUpdate(sftString, KryoFeatureSerializer(sft)).read(in)
+    val sftName = readString(in)
+    val sftString = readString(in)
+    lazy val sft = SimpleFeatureTypes.createType(sftName, sftString)
+    serializers.getOrElseUpdate(s"${sft.getTypeName}:$sftString", KryoFeatureSerializer(sft)).read(in)
   }
 }
-

@@ -19,9 +19,11 @@ package org.locationtech.geomesa.jobs.interop.mapreduce;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.geotools.data.Query;
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat$;
 import org.opengis.feature.simple.SimpleFeature;
 import scala.Option;
@@ -54,13 +56,24 @@ public class GeoMesaInputFormat extends InputFormat<Text, SimpleFeature> {
         return delegate.createRecordReader(split, context);
     }
 
-    public static void configure(org.apache.hadoop.mapreduce.Job job,
-                                 Map<String, String> dataStoreParams,
-                                 String featureTypeName,
-                                 String filter) {
+    public static void configure(Job job, Map<String, String> dataStoreParams, Query query) {
         scala.collection.immutable.Map<String, String> scalaParams =
                 JavaConverters.asScalaMapConverter(dataStoreParams).asScala()
                               .toMap(Predef.<Tuple2<String, String>>conforms());
-        GeoMesaInputFormat$.MODULE$.configure(job, scalaParams, featureTypeName, Option.apply(filter));
+        GeoMesaInputFormat$.MODULE$.configure(job, scalaParams, query);
+    }
+
+    @Deprecated
+    public static void configure(Job job,
+                                 Map<String, String> dataStoreParams,
+                                 String featureTypeName,
+                                 String filter,
+                                 String[] transform) {
+        scala.collection.immutable.Map<String, String> scalaParams =
+                JavaConverters.asScalaMapConverter(dataStoreParams).asScala()
+                              .toMap(Predef.<Tuple2<String, String>>conforms());
+        Option<String> f = Option.apply(filter);
+        Option<String[]> t = Option.apply(transform);
+        GeoMesaInputFormat$.MODULE$.configure(job, scalaParams, featureTypeName, f, t);
     }
 }

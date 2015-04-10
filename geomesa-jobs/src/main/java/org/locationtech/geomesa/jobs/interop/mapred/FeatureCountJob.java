@@ -27,6 +27,8 @@ import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextOutputFormat;
+import org.geotools.data.Query;
+import org.geotools.filter.text.ecql.ECQL;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.IOException;
@@ -80,9 +82,9 @@ public class FeatureCountJob {
         params.put("password", "mypassword");
         params.put("tableName", "mycatalog");
 
-        String cql = "BBOX(geom, -165,5,-50,75) AND dtg DURING 2015-03-02T00:00:00.000Z/2015-03-02T23:59:59.999Z";
+        Query query = new Query("myfeature", ECQL.toFilter("BBOX(geom, -165,5,-50,75)"));
 
-        GeoMesaInputFormat.configure(conf, params, "myfeature", cql);
+        GeoMesaInputFormat.configure(conf, params, query);
 
         JobClient.runJob(conf);
     }

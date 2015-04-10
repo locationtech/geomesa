@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>geomesa-feature-accumulo1.5</artifactId>
-    <name>GeoMesa Avro SimpleFeature - [Accumulo 1.5.x]</name>
+    <name>GeoMesa SimpleFeatures - [Accumulo 1.5.x]</name>
 
     <dependencies>
         <dependency>
@@ -33,7 +33,7 @@
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
-            <artifactId>kryo</artifactId>
+            <artifactId>kryo-shaded</artifactId>
             <version>3.0.0</version>
         </dependency>
 
@@ -61,6 +61,51 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <artifactSet>
+                                <includes>
+                                    <include>com.esotericsoftware:kryo-shaded</include>
+                                </includes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.esotericsoftware.kryo</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.feature.shaded.com.esotericsoftware.kryo</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.esotericsoftware.reflectasm</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.feature.shaded.com.esotericsoftware.reflectasm</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 
 </project>

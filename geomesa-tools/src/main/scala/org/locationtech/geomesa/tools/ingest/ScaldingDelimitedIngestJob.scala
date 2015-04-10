@@ -29,8 +29,8 @@ import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.Converters
-import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.{params => dsp}
 import org.locationtech.geomesa.core.index.Constants
@@ -96,7 +96,7 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
   }
 
   lazy val geomFactory = JTSFactoryFinder.getGeometryFactory
-  lazy val dtFormat = dtgFmt.map(DateTimeFormat.forPattern)
+  lazy val dtFormat = dtgFmt.map(DateTimeFormat.forPattern(_).withZone(DateTimeZone.UTC))
   lazy val attributes = sft.getAttributeDescriptors
   lazy val dtBuilder = dtgField.flatMap(buildDtBuilder)
   lazy val idBuilder = buildIDBuilder
@@ -275,26 +275,27 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
   def buildDtBuilder(dtgFieldName: String): Option[(AnyRef) => DateTime] =
     attributes.find(_.getLocalName == dtgFieldName).map {
       case attr if attr.getType.getBinding.equals(classOf[java.lang.Long]) =>
-        (obj: AnyRef) => new DateTime(obj.asInstanceOf[java.lang.Long])
+        (obj: AnyRef) => new DateTime(obj.asInstanceOf[java.lang.Long]).withZone(DateTimeZone.UTC)
 
       case attr if attr.getType.getBinding.equals(classOf[java.util.Date]) =>
         (obj: AnyRef) => obj match {
-          case d: java.util.Date => new DateTime(d)
-          case s: String         => dtFormat.map(_.parseDateTime(s)).getOrElse(new DateTime(s.toLong))
+          case d: java.util.Date => new DateTime(d).withZone(DateTimeZone.UTC)
+          case s: String         => dtFormat.map(_.parseDateTime(s)).getOrElse(new DateTime(s.toLong).withZone(DateTimeZone.UTC))
         }
 
       case attr if attr.getType.getBinding.equals(classOf[java.lang.String]) =>
         (obj: AnyRef) => {
           val dtString = obj.asInstanceOf[String]
-          dtFormat.map(_.parseDateTime(dtString)).getOrElse(new DateTime(dtString.toLong))
+          dtFormat.map(_.parseDateTime(dtString)).getOrElse(new DateTime(dtString.toLong).withZone(DateTimeZone.UTC))
         }
     }
 
 }
 
 object ScaldingDelimitedIngestJob {
-  import scala.collection.JavaConverters._
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+  import scala.collection.JavaConverters._
 
   def isList(ad: AttributeDescriptor) = classOf[java.util.List[_]].isAssignableFrom(ad.getType.getBinding)
 

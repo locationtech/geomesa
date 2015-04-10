@@ -24,7 +24,6 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
-import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryHints._
@@ -167,8 +166,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     configureVersion(cfg, version)
     if (transformsCoverFilter) {
       // apply the transform directly to the index iterator
-      val testType = query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType]
-      configureFeatureType(cfg, testType)
+      getTransformSchema(query).foreach(testType => configureFeatureType(cfg, testType))
     } else {
       // we need to evaluate the original feature before transforming
       // transforms are applied afterwards

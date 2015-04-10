@@ -35,22 +35,37 @@ import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 
 import scala.util.{Failure, Success, Try}
 
-case class AccumuloSource(options: AccumuloSourceOptions) extends Source with Mappable[(Key,Value)] {
+case class AccumuloSource(options: AccumuloSourceOptions)
+    extends Source with TypedSource[(Key,Value)] with TypedSink[(Text, Mutation)] {
 
-  val hdfsScheme = new AccumuloScheme(options).asInstanceOf[GenericScheme]
+  def scheme = AccumuloScheme(options)
 
   override def createTap(readOrWrite: AccessMode)(implicit mode: Mode): GenericTap =
     mode match {
-      case Hdfs(_, _) => new AccumuloTap(readOrWrite, new AccumuloScheme(options))
-      case Test(_)    => TestTapFactory(this, hdfsScheme).createTap(readOrWrite)
+      case Hdfs(_, _) => AccumuloTap(readOrWrite, scheme)
+      case Test(_)    => TestTapFactory(this, scheme.asInstanceOf[GenericScheme]).createTap(readOrWrite)
       case _          => throw new NotImplementedError()
     }
 
-  def converter[U >: (Key, Value)]: TupleConverter[U] = new TupleConverter[U] {
+  override def sourceFields: Fields = AccumuloSource.sourceFields
+
+  override def converter[U >: (Key, Value)]: TupleConverter[U] = new TupleConverter[U] {
     override def arity: Int = 2
     override def apply(te: TupleEntry): (Key, Value) =
       (te.getObject(0).asInstanceOf[Key], te.getObject(1).asInstanceOf[Value])
   }
+
+  override def sinkFields: Fields = AccumuloSource.sinkFields
+
+  override def setter[U <: (Text, Mutation)]:  TupleSetter[U] = new TupleSetter[U] {
+    override def arity: Int = 2
+    override def apply(arg: U): Tuple = new Tuple(arg._1, arg._2)
+  }
+}
+
+object AccumuloSource {
+  def sourceFields: Fields = new Fields("k", "v")
+  def sinkFields: Fields = new Fields("t", "m")
 }
 
 /**
@@ -59,11 +74,11 @@ case class AccumuloSource(options: AccumuloSourceOptions) extends Source with Ma
  * @param readOrWrite
  * @param scheme
  */
-class AccumuloTap(readOrWrite: AccessMode, scheme: AccumuloScheme) extends AccTap(scheme) with Logging {
+case class AccumuloTap(readOrWrite: AccessMode, scheme: AccumuloScheme) extends AccTap(scheme) with Logging {
 
   val options = scheme.options
 
-  val getIdentifier: String = readOrWrite.toString + options.toString
+  val getIdentifier: String = toString
 
   lazy val tableOps = new ZooKeeperInstance(options.instance, options.zooKeepers)
                         .getConnector(options.user, new PasswordToken(options.password))
@@ -97,6 +112,8 @@ class AccumuloTap(readOrWrite: AccessMode, scheme: AccumuloScheme) extends AccTa
   override def resourceExists(conf: JobConf): Boolean = tableOps.exists(options.table)
 
   override def getModifiedTime(conf: JobConf): Long = System.currentTimeMillis()
+
+  override def toString = s"AccumuloTap[$readOrWrite,$options]"
 }
 
 /**
@@ -108,6 +125,11 @@ class AccumuloTap(readOrWrite: AccessMode, scheme: AccumuloScheme) extends AccTa
 class AccumuloCollector(flowProcess: FlowProcess[JobConf], tap: AccumuloTap)
     extends TupleEntrySchemeCollector[JobConf, MutOutputCollector](flowProcess, tap.getScheme)
     with MutOutputCollector {
+
+  val progress = flowProcess match {
+    case process: HadoopFlowProcess => () => process.getReporter.progress()
+    case _ => () => Unit
+  }
 
   setOutput(this)
 
@@ -129,9 +151,7 @@ class AccumuloCollector(flowProcess: FlowProcess[JobConf], tap: AccumuloTap)
   }
 
   override def collect(t: Text, m: Mutation): Unit = {
-    if (flowProcess.isInstanceOf[HadoopFlowProcess]) {
-      flowProcess.asInstanceOf[HadoopFlowProcess].getReporter().progress()
-    }
+    progress()
     writer.write(t, m)
   }
 }
@@ -141,8 +161,8 @@ class AccumuloCollector(flowProcess: FlowProcess[JobConf], tap: AccumuloTap)
  *
  * @param options
  */
-class AccumuloScheme(val options: AccumuloSourceOptions)
-  extends AccScheme(new Fields("key", "value"), new Fields("mutation")) {
+case class AccumuloScheme(options: AccumuloSourceOptions)
+    extends AccScheme(AccumuloSource.sourceFields, AccumuloSource.sinkFields) {
 
   import scala.collection.JavaConversions._
 
@@ -154,14 +174,14 @@ class AccumuloScheme(val options: AccumuloSourceOptions)
     // this method may be called more than once so check to see if we've already configured
     if (!ConfiguratorBase.isConnectorInfoSet(classOf[AccumuloInputFormat], conf)) {
       InputFormatBase.setZooKeeperInstance(conf, input.instance, input.zooKeepers)
-      InputFormatBase.setConnectorInfo(conf, input.user, new PasswordToken(input.password.getBytes()))
+      InputFormatBase.setConnectorInfo(conf, input.user, new PasswordToken(input.password.getBytes))
       InputFormatBase.setInputTableName(conf, input.table)
       InputFormatBase.setScanAuthorizations(conf, input.authorizations)
-      if (!input.ranges.isEmpty) {
-        val ranges = input.ranges.collect { case SerializedRangeSeq(ranges) => ranges }
+      if (input.ranges.nonEmpty) {
+        val ranges = input.ranges.collect { case SerializedRangeSeq(r) => r }
         InputFormatBase.setRanges(conf, ranges)
       }
-      if (!input.columns.isEmpty) {
+      if (input.columns.nonEmpty) {
         val cols = input.columns.collect { case SerializedColumnSeq(column) => column }
         InputFormatBase.fetchColumns(conf, cols)
       }
@@ -184,7 +204,7 @@ class AccumuloScheme(val options: AccumuloSourceOptions)
     // this method may be called more than once so check to see if we've already configured
     if (!ConfiguratorBase.isConnectorInfoSet(classOf[AccumuloOutputFormat], conf)) {
       AccumuloOutputFormat.setConnectorInfo(
-        conf, output.user, new PasswordToken(output.password.getBytes()))
+        conf, output.user, new PasswordToken(output.password.getBytes))
       AccumuloOutputFormat.setDefaultTableName(conf, output.table)
       AccumuloOutputFormat.setZooKeeperInstance(conf, output.instance, output.zooKeepers)
       val batchWriterConfig = GeoMesaBatchWriterConfig()
@@ -200,25 +220,22 @@ class AccumuloScheme(val options: AccumuloSourceOptions)
   }
 
   override def source(fp: FlowProcess[JobConf], sc: SourceCall[Array[Any], KVRecordReader]): Boolean = {
-    val k = sc.getContext.apply(0)
-    val v = sc.getContext.apply(1)
+    val context = sc.getContext
+    val k = context(0).asInstanceOf[Key]
+    val v = context(1).asInstanceOf[Value]
 
-    val hasNext = sc.getInput.next(k.asInstanceOf[Key], v.asInstanceOf[Value])
-
+    val hasNext = sc.getInput.next(k, v)
     if (hasNext) {
-      val res = new Tuple()
-      res.add(k)
-      res.add(v)
-      sc.getIncomingEntry.setTuple(res)
+      sc.getIncomingEntry.setTuple(new Tuple(k, v))
     }
-
     hasNext
   }
 
   override def sink(fp: FlowProcess[JobConf], sc: SinkCall[Array[Any], MutOutputCollector]) {
     val entry = sc.getOutgoingEntry
-    val m = entry.getObject("mutation").asInstanceOf[Mutation]
-    sc.getOutput.collect(null, m)
+    val table = entry.getObject(0).asInstanceOf[Text]
+    val mutation = entry.getObject(1).asInstanceOf[Mutation]
+    sc.getOutput.collect(table, mutation)
   }
 
   override def sourcePrepare(fp: FlowProcess[JobConf], sc: SourceCall[Array[Any], KVRecordReader]) =

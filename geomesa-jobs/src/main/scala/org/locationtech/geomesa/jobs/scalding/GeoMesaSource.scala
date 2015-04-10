@@ -22,7 +22,6 @@ import cascading.scheme.{SinkCall, SourceCall}
 import cascading.tap.hadoop.io.HadoopTupleEntrySchemeIterator
 import cascading.tuple._
 import com.twitter.scalding._
-import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred._
 import org.locationtech.geomesa.feature.ScalaSimpleFeature
@@ -35,22 +34,35 @@ import org.opengis.feature.simple.SimpleFeature
  * 
  * @param options
  */
-case class GeoMesaSource(options: GeoMesaSourceOptions) extends Source with Mappable[(Text, SimpleFeature)] {
+case class GeoMesaSource(options: GeoMesaSourceOptions)
+    extends Source with TypedSource[(Text, SimpleFeature)] with TypedSink[(Text, SimpleFeature)] {
 
-  val hdfsScheme = new GeoMesaScheme(options).asInstanceOf[GenericScheme]
+  def scheme = GeoMesaScheme(options)
 
   override def createTap(readOrWrite: AccessMode)(implicit mode: Mode): GenericTap =
     mode match {
-      case Hdfs(_, _) => new GeoMesaTap(readOrWrite, new GeoMesaScheme(options))
-      case Test(_)    => TestTapFactory(this, hdfsScheme).createTap(readOrWrite)
+      case Hdfs(_, _) => GeoMesaTap(readOrWrite, scheme)
+      case Test(_)    => TestTapFactory(this, scheme.asInstanceOf[GenericScheme]).createTap(readOrWrite)
       case _          => throw new NotImplementedError()
     }
+  override def sourceFields: Fields = GeoMesaSource.fields
 
-  def converter[U >: (Text, SimpleFeature)]: TupleConverter[U] = new TupleConverter[U] {
+  override def converter[U >: (Text, SimpleFeature)]: TupleConverter[U] = new TupleConverter[U] {
     override val arity: Int = 2
     override def apply(te: TupleEntry): (Text, SimpleFeature) =
       (te.getObject(0).asInstanceOf[Text], te.getObject(1).asInstanceOf[SimpleFeature])
   }
+
+  override def sinkFields: Fields = GeoMesaSource.fields
+
+  override def setter[U <: (Text, SimpleFeature)]:  TupleSetter[U] = new TupleSetter[U] {
+    override def arity: Int = 2
+    override def apply(arg: U): Tuple = new Tuple(arg._1, arg._2)
+  }
+}
+
+object GeoMesaSource {
+  def fields: Fields = new Fields("id", "sf")
 }
 
 /**
@@ -59,11 +71,9 @@ case class GeoMesaSource(options: GeoMesaSourceOptions) extends Source with Mapp
  * @param readOrWrite
  * @param scheme
  */
-class GeoMesaTap(readOrWrite: AccessMode, scheme: GeoMesaScheme) extends GMTap(scheme) with Logging {
+case class GeoMesaTap(readOrWrite: AccessMode, scheme: GeoMesaScheme) extends GMTap(scheme) {
 
-  val options = scheme.options
-
-  val getIdentifier: String = readOrWrite.toString + options.toString
+  val getIdentifier: String = toString
 
   override def openForRead(fp: FlowProcess[JobConf], rr: GMRecordReader): TupleEntryIterator =
     new HadoopTupleEntrySchemeIterator(fp, this, rr)
@@ -81,6 +91,8 @@ class GeoMesaTap(readOrWrite: AccessMode, scheme: GeoMesaScheme) extends GMTap(s
   override def resourceExists(conf: JobConf): Boolean = true
 
   override def getModifiedTime(conf: JobConf): Long = System.currentTimeMillis()
+
+  override def toString = s"GeoMesaTap[$readOrWrite,${scheme.options}]"
 }
 
 /**
@@ -92,6 +104,11 @@ class GeoMesaTap(readOrWrite: AccessMode, scheme: GeoMesaScheme) extends GMTap(s
 class GeoMesaCollector(flowProcess: FlowProcess[JobConf], tap: GeoMesaTap)
     extends TupleEntrySchemeCollector[JobConf, GMOutputCollector](flowProcess, tap.getScheme)
     with GMOutputCollector {
+
+  val progress = flowProcess match {
+    case process: HadoopFlowProcess => () => process.getReporter.progress()
+    case _ => () => Unit
+  }
 
   setOutput(this)
 
@@ -113,9 +130,7 @@ class GeoMesaCollector(flowProcess: FlowProcess[JobConf], tap: GeoMesaTap)
   }
 
   override def collect(t: Text, sf: SimpleFeature): Unit = {
-    if (flowProcess.isInstanceOf[HadoopFlowProcess]) {
-      flowProcess.asInstanceOf[HadoopFlowProcess].getReporter().progress()
-    }
+    progress()
     writer.write(t, sf)
   }
 }
@@ -125,8 +140,8 @@ class GeoMesaCollector(flowProcess: FlowProcess[JobConf], tap: GeoMesaTap)
  *
  * @param options
  */
-class GeoMesaScheme(val options: GeoMesaSourceOptions)
-  extends GMScheme(new Fields("id", "sf"), new Fields("id", "sf")) {
+case class GeoMesaScheme(options: GeoMesaSourceOptions)
+  extends GMScheme(GeoMesaSource.fields, GeoMesaSource.fields) {
 
   override def sourceConfInit(fp: FlowProcess[JobConf], tap: GMTap, conf: JobConf) {
     val input = Some(options).collect { case i: GeoMesaInputOptions => i }.getOrElse(
@@ -135,7 +150,7 @@ class GeoMesaScheme(val options: GeoMesaSourceOptions)
 
     // this method may be called more than once so check to see if we've already configured
     if (GeoMesaConfigurator.getDataStoreInParams(conf).isEmpty) {
-      GeoMesaInputFormat.configure(conf, input.dsParams, input.feature, input.filter)
+      GeoMesaInputFormat.configure(conf, input.dsParams, input.feature, input.filter, input.transform)
     }
     conf.setInputFormat(classOf[GeoMesaInputFormat])
   }
@@ -157,25 +172,21 @@ class GeoMesaScheme(val options: GeoMesaSourceOptions)
   }
 
   override def source(fp: FlowProcess[JobConf], sc: SourceCall[Array[Any], GMRecordReader]): Boolean = {
-    val k = sc.getContext.apply(0)
-    val v = sc.getContext.apply(1)
+    val context = sc.getContext
+    val k = context(0).asInstanceOf[Text]
+    val v = context(1).asInstanceOf[SimpleFeature]
 
-    val hasNext = sc.getInput.next(k.asInstanceOf[Text], v.asInstanceOf[SimpleFeature])
-
+    val hasNext = sc.getInput.next(k, v)
     if (hasNext) {
-      val res = new Tuple()
-      res.add(k)
-      res.add(v)
-      sc.getIncomingEntry.setTuple(res)
+      sc.getIncomingEntry.setTuple(new Tuple(k, v))
     }
-
     hasNext
   }
 
   override def sink(fp: FlowProcess[JobConf], sc: SinkCall[Array[Any], GMOutputCollector]) {
     val entry = sc.getOutgoingEntry
-    val id = entry.getObject("id").asInstanceOf[Text]
-    val sf = entry.getObject("sf").asInstanceOf[SimpleFeature]
+    val id = entry.getObject(0).asInstanceOf[Text]
+    val sf = entry.getObject(1).asInstanceOf[SimpleFeature]
     sc.getOutput.collect(id, sf)
   }
 
@@ -196,15 +207,17 @@ sealed trait GeoMesaSourceOptions {
 /**
  * Options for configuring GeoMesa as a source
  */
-case class GeoMesaInputOptions(dsParams: Map[String, String], feature: String, filter: Option[String] = None)
-    extends GeoMesaSourceOptions {
-  override val toString = s"GeoMesaInputOptions[${dsParams.get("instanceId").getOrElse("None")}," +
-      s"sft:$feature,filter:${filter.getOrElse("INCLUDE")}]"
+case class GeoMesaInputOptions(dsParams: Map[String, String],
+                               feature: String,
+                               filter: Option[String] = None,
+                               transform: Option[Array[String]] = None) extends GeoMesaSourceOptions {
+  override val toString = s"GeoMesaInputOptions[${dsParams.getOrElse("instanceId", "None")}," +
+      s"${dsParams.getOrElse("tableName", "None")},$feature,${filter.getOrElse("INCLUDE")}]"
 }
 
 /**
  * Options for configuring GeoMesa as a sink
  */
 case class GeoMesaOutputOptions(dsParams: Map[String, String]) extends GeoMesaSourceOptions {
-  override val toString = s"GeoMesaOutputOptions[${dsParams.get("instanceId").getOrElse("None")}]"
+  override val toString = s"GeoMesaOutputOptions[${dsParams.getOrElse("instanceId", "None")}]"
 }

@@ -52,7 +52,7 @@ wish to write. If the ```SimpleFeatureType``` associated with the ```SimpleFeatu
 GeoMesa, it will be created for you. You may write different ```SimpleFeatureType```s, but note that they
 will all share a common catalog table.
 
-### Maintenance Jobs
+### Map/Reduce Jobs
 
 To facilitate running jobs, you may wish to build a shaded jar that contains all the required dependencies.
 Ensure that the pom references the correct versions of hadoop, accumulo etc for your cluster, then build the
@@ -65,6 +65,43 @@ geomesa> mvn clean install -P assemble -pl geomesa-jobs
 The following instructions assume you have built a shaded jar; if not you will need to use the 'libjars'
 argument to ensure the correct jars are available on the distributed classpath.
 
+#### Analytic Histograms
+
+GeoMesa provides the ability to analyze your data through histograms.
+
+The job can be invoked through yarn as follows (jar version may vary slightly):
+
+```shell
+geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0-shaded.jar \
+    com.twitter.scalding.Tool \
+    org.locationtech.geomesa.jobs.analytics.HistogramJob \
+    --hdfs \
+    --geomesa.input.instanceId <instance> \
+    --geomesa.input.zookeepers <zookeepers> \
+    --geomesa.input.user <user> \
+    --geomesa.input.password <pwd> \
+    --geomesa.input.tableName <catalog-table> \
+    --geomesa.input.feature <feature> \
+    --geomesa.input.transform <attribute transforms - space separated> \ # optional
+    --geomesa.hist.attribute <attribute to histogram> \
+    --geomesa.hist.file.out <hdfs path to write results> \
+    --geomesa.hist.group.attributes <additional attributes that will be used to group the results - space separated> \ # optional
+    --geomesa.hist.unique.attributes <additional attributes that will be used to filter the results - space separated> \ # optional
+    --geomesa.input.cql <cql filter>
+```
+
+(Note that if you did not build with the 'assemble' profile, you will also need to include an extensive
+-libjars argument with all dependent jars)
+
+For more advanced use-cases, you can transform the attributes before grouping or histogramming:
+
+```shell
+    --geomesa.input.transform "name=strSubstring(name, 0, 2)" "age"
+```
+
+This example will histogram the first two characters of the 'name' attribute. Note that you will need to include
+every attribute that you are histogramming or grouping by in the transform list.
+
 #### Attribute Indexing
 
 GeoMesa provides indexing on attributes to improve certain queries. You can indicate attributes that should
@@ -74,7 +111,7 @@ index additional attributes, you can use the attribute indexing job. You only ne
 The job can be invoked through yarn as follows (jar version may vary slightly):
 
 ```shell
-geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0.jar \
+geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0-shaded.jar \
     com.twitter.scalding.Tool \
     org.locationtech.geomesa.jobs.index.AttributeIndexJob \
     --hdfs \
@@ -99,7 +136,7 @@ to update to the new version, you may use the SortedIndexUpdateJob.
 The job can be invoked through yarn as follows (jar version may vary slightly):
 
 ```shell
-yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0.jar \
+yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0-shaded.jar \
     com.twitter.scalding.Tool \
     org.locationtech.geomesa.jobs.index.SortedIndexUpdateJob \
     --hdfs \

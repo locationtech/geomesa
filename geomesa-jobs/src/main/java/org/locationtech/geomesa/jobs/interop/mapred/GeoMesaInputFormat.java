@@ -22,6 +22,7 @@ import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
+import org.geotools.data.Query;
 import org.locationtech.geomesa.jobs.mapred.GeoMesaInputFormat$;
 import org.opengis.feature.simple.SimpleFeature;
 import scala.Option;
@@ -52,13 +53,24 @@ public class GeoMesaInputFormat implements InputFormat<Text, SimpleFeature> {
         return delegate.getRecordReader(split, job, reporter);
     }
 
-    public static void configure(JobConf job,
-                                 Map<String, String> dataStoreParams,
-                                 String featureTypeName,
-                                 String filter) {
+    public static void configure(JobConf job, Map<String, String> dataStoreParams, Query query) {
         scala.collection.immutable.Map<String, String> scalaParams =
                 JavaConverters.asScalaMapConverter(dataStoreParams).asScala()
                               .toMap(Predef.<Tuple2<String, String>>conforms());
-        GeoMesaInputFormat$.MODULE$.configure(job, scalaParams, featureTypeName, Option.apply(filter));
+        GeoMesaInputFormat$.MODULE$.configure(job, scalaParams, query);
+    }
+
+    @Deprecated
+    public static void configure(JobConf job,
+                                 Map<String, String> dataStoreParams,
+                                 String featureTypeName,
+                                 String filter,
+                                 String[] transform) {
+        scala.collection.immutable.Map<String, String> scalaParams =
+                JavaConverters.asScalaMapConverter(dataStoreParams).asScala()
+                              .toMap(Predef.<Tuple2<String, String>>conforms());
+        Option<String> f = Option.apply(filter);
+        Option<String[]> t = Option.apply(transform);
+        GeoMesaInputFormat$.MODULE$.configure(job, scalaParams, featureTypeName, f, t);
     }
 }

@@ -20,6 +20,8 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.serializer.WritableSerialization
 import org.apache.hadoop.mapreduce.Job
 import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
@@ -37,9 +39,11 @@ object GeoMesaConfigurator {
   private val dsInSubstring  = dsInParams.length
   private val dsOutSubstring = dsOutParams.length
 
-  private val filterKey      = s"$prefix.filter"
-  private val sftKey         = s"$prefix.sft"
-  private val serializersKey = "io.serializations"
+  private val filterKey        = s"$prefix.filter"
+  private val sftKey           = s"$prefix.sft"
+  private val transformsKey    = s"$prefix.transforms.schema"
+  private val transformNameKey = s"$prefix.transforms.name"
+  private val serializersKey   = "io.serializations"
 
   private val writableSerialization      = classOf[WritableSerialization].getName
   private val simpleFeatureSerialization = classOf[SimpleFeatureSerialization].getName
@@ -70,6 +74,20 @@ object GeoMesaConfigurator {
   def setFilter(conf: Configuration, filter: String): Unit = conf.set(filterKey, filter)
   def getFilter(job: Job): Option[String] = getFilter(job.getConfiguration)
   def getFilter(conf: Configuration): Option[String] = Option(conf.get(filterKey))
+
+  // set/get query transforms
+  def setTransformSchema(conf: Configuration, schema: SimpleFeatureType): Unit = {
+    conf.set(transformNameKey, schema.getTypeName)
+    conf.set(transformsKey, SimpleFeatureTypes.encodeType(schema))
+  }
+  def getTransformSchema(job: Job): Option[SimpleFeatureType] = getTransformSchema(job.getConfiguration)
+  def getTransformSchema(conf: Configuration): Option[SimpleFeatureType] =
+    for {
+      transformName   <- Option(conf.get(transformNameKey))
+      transformSchema <- Option(conf.get(transformsKey))
+    } yield {
+      SimpleFeatureTypes.createType(transformName, transformSchema)
+    }
 
   // add our simple feature serialization to the config
   def setSerialization(conf: Configuration): Unit = {

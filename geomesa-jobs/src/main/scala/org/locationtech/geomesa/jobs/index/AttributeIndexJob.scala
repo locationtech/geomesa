@@ -27,6 +27,7 @@ import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature.SimpleFeatureEncoder
+import org.locationtech.geomesa.jobs.GeoMesaBaseJob
 import org.locationtech.geomesa.jobs.scalding.ConnectionParams._
 import org.locationtech.geomesa.jobs.scalding._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -34,7 +35,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -52,62 +52,54 @@ class AttributeIndexJob(args: Args) extends GeoMesaBaseJob(args) {
       .getOrElse(IndexCoverage.JOIN)
 
   val input = GeoMesaInputOptions(dsParams, feature)
-  val (output, visibilities) = {
-    val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
-    val sft = ds.getSchema(feature)
+
+  // non-serializable resources - need to be lazy and transient so they are available to each mapper
+  @transient lazy val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
+  @transient lazy val sft = ds.getSchema(feature)
+  @transient lazy val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+  @transient lazy val encoding = ds.getFeatureEncoding(sft)
+  @transient lazy val featureEncoder = SimpleFeatureEncoder(sft, encoding)
+  @transient lazy val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
+  @transient lazy val visibilities = ds.writeVisibilities
+  // the attributes we want to index
+  @transient lazy val descriptors = {
+    val attrs = sft.getAttributeDescriptors.zipWithIndex
+        .filter { case (ad, idx) => attributes.contains(ad.getLocalName) }
+    attrs.foreach { case (ad, idx) => ad.setIndexCoverage(coverage) }
+    attrs
+  }
+
+  // validation
+  {
     assert(sft != null, s"The feature '$feature' does not exist in the input data store")
-    val descriptors = sft.getAttributeDescriptors.map(_.getLocalName)
-    attributes.foreach {
-      a => assert(descriptors.contains(a), s"Attribute '$a' does not exist in feature $feature")
-    }
+    val valid = sft.getAttributeDescriptors.map(_.getLocalName)
+    attributes.foreach(a => assert(valid.contains(a), s"Attribute '$a' does not exist in feature $feature"))
+  }
+
+  val output = {
     val attributeTable = ds.getAttributeTable(feature)
     val instance = dsParams(instanceIdParam.getName)
     val zoos = dsParams(zookeepersParam.getName)
     val user = dsParams(userParam.getName)
     val pwd = dsParams(passwordParam.getName)
-    val visibilities = ds.writeVisibilities
-    (AccumuloOutputOptions(instance, zoos, user, pwd, attributeTable, createTable = true), visibilities)
+    AccumuloOutputOptions(instance, zoos, user, pwd, attributeTable, createTable = true)
   }
 
   // scalding job
-  GeoMesaSource(input)
-    .using(new AttributeIndexResources)
-    .flatMap(('id, 'sf) -> 'mutation) {
-      (r: AttributeIndexResources, kv: (Text, SimpleFeature)) => getMutations(kv._2, r)
+  TypedPipe.from(GeoMesaSource(input))
+    .flatMap { case (id, sf) =>
+      val toWrite = new FeatureToWrite(sf, visibilities, featureEncoder, indexValueEncoder)
+      AttributeTable.getAttributeIndexMutations(toWrite, descriptors, prefix).map((null: Text, _))
     }.write(AccumuloSource(output))
 
-  def getMutations(sf: SimpleFeature, r: AttributeIndexResources) = {
-    val toWrite = new FeatureToWrite(sf, visibilities, r.fe, r.ive)
-    AttributeTable.getAttributeIndexMutations(toWrite, r.attrs, r.prefix)
-  }
-
   override def afterJobTasks() = {
-    val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
     // schedule a table compaction to clean up the table
     ds.connector.tableOperations().compact(output.table, null, null, true, false)
     // update the metadata
-    val sft = ds.getSchema(feature)
     def wasIndexed(ad: AttributeDescriptor) = attributes.contains(ad.getLocalName)
     sft.getAttributeDescriptors.filter(wasIndexed).foreach(_.setIndexCoverage(coverage))
     val updatedSpec = SimpleFeatureTypes.encodeType(sft)
     ds.updateIndexedAttributes(feature, updatedSpec)
-  }
-
-  class AttributeIndexResources {
-    val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
-    val sft = ds.getSchema(feature)
-    val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
-    val encoding = ds.getFeatureEncoding(sft)
-    val fe = SimpleFeatureEncoder(sft, encoding)
-    val ive = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
-
-    // the attributes we want to index
-    val attrs = sft.getAttributeDescriptors.zipWithIndex
-        .filter { case (ad, idx) => attributes.contains(ad.getLocalName) }
-    attrs.foreach { case (ad, idx) => ad.setIndexCoverage(coverage) }
-
-    // required by scalding
-    def release(): Unit = {}
   }
 }
 

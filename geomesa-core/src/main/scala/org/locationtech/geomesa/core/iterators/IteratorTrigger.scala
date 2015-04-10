@@ -105,7 +105,7 @@ object IteratorTrigger extends Logging {
       true
     } else {
       // get transforms if they exist
-      val transformDefs = Option(query.getHints.get(TRANSFORMS)).map(_.asInstanceOf[String])
+      val transformDefs = getTransformDefinition(query)
 
       // if the transforms exist, check if the transform is simple enough to be handled by the IndexIterator
       // if it does not exist, then set this variable to false
@@ -128,7 +128,7 @@ object IteratorTrigger extends Logging {
    * @return
    */
   def doTransformsCoverFilters(query: Query): Boolean =
-    Option(query.getHints.get(TRANSFORMS).asInstanceOf[String]).map { transformString =>
+    getTransformDefinition(query).map { transformString =>
       val filterAttributes = getFilterAttributes(query.getFilter) // attributes we are filtering on
       val transforms: Seq[String] = // names of the attributes the transform contains
         TransformProcess.toDefinition(transformString).asScala
@@ -153,7 +153,7 @@ object IteratorTrigger extends Logging {
    */
   def useSimpleFeatureFilteringIterator(ecqlPredicate: Option[Filter], query: Query): Boolean = {
     // get transforms if they exist
-    val transformDefs = Option(query.getHints.get(TRANSFORMS)).map (_.asInstanceOf[String])
+    val transformDefs = getTransformDefinition(query)
     // if the ecql predicate exists, check that it is a trivial filter that does nothing
     val nonPassThroughFilter = ecqlPredicate.exists { ecql => !passThroughFilter(ecql)}
     // the Density Iterator is run in place of the SFFI. If it is requested we keep the SFFI config in the stack

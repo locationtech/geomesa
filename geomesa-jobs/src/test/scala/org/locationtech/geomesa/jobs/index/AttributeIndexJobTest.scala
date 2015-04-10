@@ -16,20 +16,23 @@
 
 package org.locationtech.geomesa.jobs.index
 
-import com.twitter.scalding.{Args, Mode}
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import cascading.tuple.Tuple
+import com.twitter.scalding.{Args, Mode, Source}
+import org.apache.accumulo.core.data.Mutation
+import org.apache.hadoop.io.Text
 import org.geotools.data.DataStoreFinder
+import org.geotools.feature.DefaultFeatureCollection
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.tables.AttributeTable
-import org.locationtech.geomesa.core.index.IndexValueEncoder
-import org.locationtech.geomesa.core.iterators.TestData
-import org.locationtech.geomesa.core.iterators.TestData._
-import org.locationtech.geomesa.feature.{SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.locationtech.geomesa.jobs.index.AttributeIndexJob._
-import org.locationtech.geomesa.jobs.scalding.ConnectionParams
+import org.locationtech.geomesa.jobs.scalding.{AccumuloSource, ConnectionParams, GeoMesaSource}
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -44,64 +47,82 @@ class AttributeIndexJobTest extends Specification {
 
   val params = Map(
     "instanceId"        -> "mycloud",
-    "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+    "zookeepers"        -> "zoo1,zoo2,zoo3",
     "user"              -> "myuser",
     "password"          -> "mypassword",
-    "auths"             -> "A,B,C",
+    "auths"             -> "",
     "tableName"         -> tableName,
     "useMock"           -> "true")
 
   val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
-  val mockInstance = new MockInstance("mycloud")
-  val c = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
-
-  val sft1 = TestData.getFeatureType("1", tableSharing = false)
-  val sft2 = TestData.getFeatureType("2", tableSharing = true)
-
-  val mediumData1: Seq[SimpleFeature] = mediumData.map(createSF(_, sft1))
-  val mediumData2 = mediumData.map(createSF(_, sft2))
-
-  val fs1 = getFeatureStore(ds, sft1, mediumData1)
-  val fs2 = getFeatureStore(ds, sft2, mediumData1)
-
   def test(sft: SimpleFeatureType, feats: Seq[SimpleFeature]) = {
-    val jobParams = Map(ATTRIBUTES_TO_INDEX -> List("attr2"),
+    ds.createSchema(sft)
+    ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore].addFeatures {
+      val collection = new DefaultFeatureCollection(sft.getTypeName, sft)
+      collection.addAll(feats)
+      collection
+    }
+
+    val jobParams = Map(ATTRIBUTES_TO_INDEX -> List("name"),
                         INDEX_COVERAGE -> List("join"),
                         ConnectionParams.FEATURE_IN -> List(sft.getTypeName))
     val scaldingArgs = new Args(ConnectionParams.toInArgs(params) ++ jobParams)
-    val arguments = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)), scaldingArgs)
 
-    val decoder = SimpleFeatureDecoder(sft, ds.getFeatureEncoding(sft))
-    val recScanner1 = ds.getScanner(ds.getRecordTable(sft))
-    val sft1Records = recScanner1.iterator().map(v => decoder.decode(v.getValue.get)).toSeq
-
-    val job = new AttributeIndexJob(arguments) {
-      val r = new AttributeIndexResources
-      override def run = true
+    val input = feats.map(f => new Tuple(new Text(f.getID), f)).toBuffer
+    val output = mutable.Buffer.empty[Tuple]
+    val buffers: (Source) => Option[mutable.Buffer[Tuple]] = {
+      case gs: GeoMesaSource  => Some(input)
+      case as: AccumuloSource => Some(output)
     }
+    val arguments = Mode.putMode(com.twitter.scalding.Test(buffers), scaldingArgs)
 
-    val jobMutations1 = sft1Records.flatMap(sf => job.getMutations(sf, job.r))
+    // run the job
+    val job = new AttributeIndexJob(arguments)
+    job.run must beTrue
 
-    val descriptor = sft.getDescriptor("attr2")
+    val descriptor = sft.getDescriptor("name")
+    descriptor.setIndexCoverage(IndexCoverage.JOIN)
     val attrList = Seq((descriptor, sft.indexOf(descriptor.getName)))
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
     val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
     val encoder = SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft))
-    val tableMutations1 = feats.flatMap { sf =>
+
+    val expectedMutations = feats.flatMap { sf =>
       val toWrite = new FeatureToWrite(sf, ds.writeVisibilities, encoder, indexValueEncoder)
       AttributeTable.getAttributeIndexMutations(toWrite, attrList, prefix)
     }
-    forall(tableMutations1) { mut => jobMutations1.exists(mut.equals) }
+
+    val jobMutations = output.map(_.getObject(1).asInstanceOf[Mutation])
+    jobMutations must containTheSameElementsAs(expectedMutations)
+  }
+
+  val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
+  def getTestFeatures(sft: SimpleFeatureType) = {
+    (0 until 10).map { i =>
+      val name = s"name$i"
+      val dtg = s"2014-01-0${i}T00:00:00.000Z"
+      val geom = s"POINT(${40 + i} ${60 - i})"
+      ScalaSimpleFeatureFactory.buildFeature(sft, Array(name, dtg, geom), s"fid-$i")
+    } ++ (10 until 20).map { i =>
+      val name = null
+      val dtg = s"2014-01-${i}T00:00:00.000Z"
+      val geom = s"POINT(${40 + i} ${60 - i})"
+      ScalaSimpleFeatureFactory.buildFeature(sft, Array(name, dtg, geom), s"fid-$i")
+    }
   }
 
   "AccumuloIndexJob" should {
     "create the correct mutation for a stand-alone feature" in {
-      test(sft1, mediumData1)
+      val sft = SimpleFeatureTypes.createType("1", spec)
+      setTableSharing(sft, false)
+      test(sft, getTestFeatures(sft))
     }
 
     "create the correct mutation for a shared-table feature" in {
-      test(sft2, mediumData2)
+      val sft = SimpleFeatureTypes.createType("2", spec)
+      setTableSharing(sft, true)
+      test(sft, getTestFeatures(sft))
     }
   }
 }
