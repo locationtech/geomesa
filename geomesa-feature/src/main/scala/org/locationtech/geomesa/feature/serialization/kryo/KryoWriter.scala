@@ -40,8 +40,8 @@ class KryoWriter extends AbstractWriter[Output] {
 
   override val writeArrayStart: DatumWriter[Output, Int] = (out, arrayLen) => out.writeInt(arrayLen)
 
-  override def startItem(out: Output) = {}
-  override def endArray(out: Output) = {}
+  override val startItem: (Output) => Unit = (_) => {}
+  override def endArray: (Output) => Unit = (_) => {}
 
   override def writeNullable[T](writeRaw: DatumWriter[Output, T]): DatumWriter[Output, T] = (out, raw) => {
     if (raw != null) {

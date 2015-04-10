@@ -48,7 +48,7 @@ class KryoReader extends AbstractReader[Input] {
     }
   }
 
-  override val readArrayStart: DatumReader[Input, Int] = (in, _) => in.readInt
+  override val readArrayStart: (Input) => Int = (in) => in.readInt
 
   override val readGeometry: DatumReader[Input, Geometry] = (in, version) => {
     if (version == 0) {

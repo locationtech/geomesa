@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.feature.serialization
 
-import java.util.{ArrayList => JArrayList, Collections => JCollections, HashMap => JHashMap, List => JList, Map => JMap, UUID}
+import java.util.{Collections => JCollections, Map => JMap, UUID}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
@@ -29,56 +29,14 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 trait AbstractReader[Reader]
   extends PrimitiveReader[Reader]
   with NullableReader[Reader]
+  with CollectionReader[Reader]
   with GeometryReader[Reader]
   with HintKeyReader[Reader] {
-  
 
   def readUUID: DatumReader[Reader, UUID] = (in: Reader, version: Int) =>  {
     val mostSignificantBits = readLong(in, version)
     val leastSignificantBits = readLong(in, version)
     new UUID(mostSignificantBits, leastSignificantBits)
-  }
-
-  /**
-   * @param elementReader will be delegated to for reading the list elements
-   * @tparam E the type of the list elements
-   * @return a [[DatumReader]] for reading a [[java.util.List]] which may be null
-   */
-  def readList[E](elementReader: DatumReader[Reader, E]): DatumReader[Reader, JList[E]] = (in, version) => {
-    val length = readInt(in, version)
-    if (length < 0) {
-      null
-    } else {
-      val list = new JArrayList[E](length)
-      var i = 0
-      while (i < length) {
-        list.add(elementReader(in, version))
-        i += 1
-      }
-      list
-    }
-  }
-
-  /**
-   * @param keyReader will be delegated to for reading the map keys
-   * @param valueReader will be delegated to for reading the map values
-   * @tparam K the type of the map keys
-   * @tparam V the type of the map values
-   * @return a [[DatumReader]] for reading a [[java.util.Map]]which may be null
-   */
-  def readMap[K, V](keyReader: DatumReader[Reader, K], valueReader: DatumReader[Reader, V]): DatumReader[Reader, JMap[K, V]] = (in, version) => {
-    val length = readInt(in, version)
-    if (length < 0) {
-      null
-    } else {
-      val map = new JHashMap[K, V](length)
-      var i = 0
-      while (i < length) {
-        map.put(keyReader(in, version), valueReader(in, version))
-        i += 1
-      }
-      map
-    }
   }
 
   /** A [[DatumReader]] which reads a class name and then an object of that class.  If the class name is a null marker
@@ -96,16 +54,11 @@ trait AbstractReader[Reader]
   }
 
   /**
-   * A [[DatumReader]] which reads the start of an array and returns the number of elements in the array.
-   */
-  def readArrayStart: DatumReader[Reader, Int]
-
-  /**
    * A [[DatumReader]] for reading a map where the key and values may be any type.  The map may not be null. The reader
    * will call ``readArrayStart(reader, version)`` and then, for each entry, read up to four items.
    */
   def readGenericMap: DatumReader[Reader, JMap[AnyRef, AnyRef]] = (reader, version) => {
-    var toRead = readArrayStart(reader, version)
+    var toRead = readArrayStart(reader)
     val map = new java.util.HashMap[AnyRef, AnyRef](toRead)
 
     while (toRead > 0) {

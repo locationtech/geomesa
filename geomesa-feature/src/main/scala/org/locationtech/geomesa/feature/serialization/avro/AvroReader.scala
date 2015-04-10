@@ -65,7 +65,7 @@ class AvroReader extends AbstractReader[Decoder] {
     }
   }
 
-  override val readArrayStart: DatumReader[Decoder, Int] = (decoder, _) => {
+  override val readArrayStart: (Decoder) => Int = (decoder) => {
     // always writing an Int so this cast should be safe
     decoder.readArrayStart.asInstanceOf[Int]
   }

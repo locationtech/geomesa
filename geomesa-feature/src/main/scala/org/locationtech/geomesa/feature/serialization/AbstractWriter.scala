@@ -18,7 +18,6 @@ package org.locationtech.geomesa.feature.serialization
 
 import java.util.{Collections => JCollections, List => JList, Map => JMap, UUID}
 
-import com.esotericsoftware.kryo.io.Output
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
@@ -31,6 +30,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 trait AbstractWriter[Writer]
   extends PrimitiveWriter[Writer]
   with NullableWriter[Writer]
+  with CollectionWriter[Writer]
   with GeometryWriter[Writer]
   with HintKeyWriter[Writer]
   with Logging {
@@ -39,48 +39,6 @@ trait AbstractWriter[Writer]
   def writeUUID: DatumWriter[Writer, UUID] = (writer, uuid) => {
     writeLong(writer, uuid.getMostSignificantBits)
     writeLong(writer, uuid.getLeastSignificantBits)
-  }
-
-  /**
-   * @param elementWriter will be delegated to for writing the list elements
-   * @tparam E the type of the list elements
-   * @return a [[DatumWriter]] for writing a [[java.util.List]] which may be null
-   */
-  def writeList[E](elementWriter: DatumWriter[Writer, E]): DatumWriter[Writer, JList[E]] = (writer, list) => {
-    if (list == null) {
-      writeInt(writer, -1)
-    } else {
-      writeInt(writer, list.size())
-
-      // don't convert to scala
-      val iter = list.iterator()
-      while (iter.hasNext) {
-        elementWriter(writer, iter.next())
-      }
-    }
-  }
-
-  /**
-   * @param keyWriter will be delegated to for writing the map keys
-   * @param valueWriter will be delegated to for writing the map values
-   * @tparam K the type of the map keys
-   * @tparam V the type of the map values
-   * @return a [[DatumWriter]] for writing a [[java.util.Map]] which may be null
-   */
-  def writeMap[K, V](keyWriter: DatumWriter[Writer, K], valueWriter: DatumWriter[Writer, V]): DatumWriter[Writer, JMap[K, V]] = (writer, map) => {
-    if (map == null) {
-      writeInt(writer, -1)
-    } else {
-      writeInt(writer, map.size())
-
-      // don't convert to scala
-      val iter = map.entrySet().iterator()
-      while (iter.hasNext) {
-        val entry = iter.next()
-        keyWriter(writer, entry.getKey)
-        valueWriter(writer, entry.getValue)
-      }
-    }
   }
 
   /** A [[DatumWriter]] which writes the class name of ``obj`` and then the ``obj``.  If the object is ``null`` then
@@ -96,17 +54,6 @@ trait AbstractWriter[Writer]
       selectWriter(obj.getClass.asInstanceOf[Class[T]])(writer, obj)
     }
   }
-
-  /**
-   * A [[DatumWriter]] which writes the start of an array.  The value is the length of the array
-   */
-  def writeArrayStart: DatumWriter[Writer, Int]
-
-  /** Call to indicate the start of an item in an array or map. */
-  def startItem(writer: Writer): Unit
-
-  /** Call to indicate the end of an array. */
-  def endArray(writer: Writer): Unit
 
   /**
    * A [[DatumWriter]] for writing a map where the key and values may be any type.  The map may not be null. The writer

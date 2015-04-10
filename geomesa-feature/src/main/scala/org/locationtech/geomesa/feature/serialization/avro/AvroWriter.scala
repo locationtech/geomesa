@@ -51,8 +51,8 @@ class AvroWriter extends AbstractWriter[Encoder] {
     encoder.setItemCount(arrayLen)
   }
 
-  override def startItem(encoder: Encoder) = encoder.startItem()
-  override def endArray(encoder: Encoder) = encoder.writeArrayEnd()
+  override val startItem: (Encoder) => Unit = (encoder) => encoder.startItem()
+  override def endArray: (Encoder) => Unit = (encoder) => encoder.writeArrayEnd()
 }
 
 object AvroWriter {
