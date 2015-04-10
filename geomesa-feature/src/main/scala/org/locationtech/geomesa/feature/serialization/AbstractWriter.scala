@@ -107,7 +107,7 @@ trait AbstractWriter[Writer]
    * @tparam T the type of the object to be written
    * @return a [[DatumWriter]] capable of writing object of the given ``clazz``
    */
-  def selectWriter[T](clazz: Class[_ <: T], metadata: JMap[AnyRef, AnyRef] = JCollections.emptyMap(),
+  def selectWriter[T](clazz: Class[_ <: T], metadata: JMap[_ <: AnyRef, _ <: AnyRef] = JCollections.emptyMap(),
                       isNullable: isNullableFn = notNullable): DatumWriter[Writer, T] = {
 
     val writer = clazz match {

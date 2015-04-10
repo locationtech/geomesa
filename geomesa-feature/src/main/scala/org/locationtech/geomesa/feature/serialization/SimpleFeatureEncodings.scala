@@ -56,7 +56,7 @@ trait SimpleFeatureEncodingsCache[Writer] {
   private val writersCache = new ThreadLocal[SoftReference[AbstractWriter[Writer]]]()
   private val encodingsCache = new SoftThreadLocalCache[String, SimpleFeatureEncodings[Writer]]()
 
-  protected  def datumWritersFactory: () => AbstractWriter[Writer]
+  protected def datumWritersFactory: () => AbstractWriter[Writer]
 
   /** Gets a sequence of functions to encode the attributes of a simple feature. */
   def get(sft: SimpleFeatureType): SimpleFeatureEncodings[Writer] =

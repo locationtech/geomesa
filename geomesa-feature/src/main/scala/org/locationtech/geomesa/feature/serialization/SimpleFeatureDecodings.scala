@@ -48,7 +48,7 @@ trait SimpleFeatureDecodingsCache[Reader] {
   private val readersCache = new ThreadLocal[SoftReference[AbstractReader[Reader]]]()
   private val decodingsCache = new SoftThreadLocalCache[String, SimpleFeatureDecodings[Reader]]()
 
-  def datumReadersFactory: () => AbstractReader[Reader]
+  protected def datumReadersFactory: () => AbstractReader[Reader]
 
   /** Gets a sequence of functions to decode the attributes of a simple feature. */
   def get(sft: SimpleFeatureType): SimpleFeatureDecodings[Reader] =

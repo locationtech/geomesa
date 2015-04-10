@@ -21,5 +21,5 @@ import org.locationtech.geomesa.feature.serialization.{AbstractReader, SimpleFea
 /** Concrete [[SimpleFeatureDecodingsCache]] for Kryo. */
 object KryoSimpleFeatureDecodingsCache extends SimpleFeatureDecodingsCache[Input] {
 
-  override val datumReadersFactory: () => AbstractReader[Input] = () => new KryoReader()
+  override protected val datumReadersFactory: () => AbstractReader[Input] = () => new KryoReader()
 }

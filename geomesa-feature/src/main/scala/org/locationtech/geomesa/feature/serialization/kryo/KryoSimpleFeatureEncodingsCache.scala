@@ -21,5 +21,5 @@ import org.locationtech.geomesa.feature.serialization.{AbstractWriter, SimpleFea
 /** Concrete [[SimpleFeatureEncodingsCache]] for Kryo. */
 object KryoSimpleFeatureEncodingsCache extends SimpleFeatureEncodingsCache[Output] {
 
-   override def datumWritersFactory: () => AbstractWriter[Output] = () => new KryoWriter()
- }
+  override protected val datumWritersFactory: () => AbstractWriter[Output] = () => new KryoWriter()
+}

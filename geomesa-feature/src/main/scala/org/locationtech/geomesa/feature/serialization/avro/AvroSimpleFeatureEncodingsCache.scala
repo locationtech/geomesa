@@ -21,5 +21,5 @@ import org.locationtech.geomesa.feature.serialization.{AbstractWriter, SimpleFea
 /** Concrete [[SimpleFeatureEncodingsCache]] for Avro. */
 object AvroSimpleFeatureEncodingsCache extends SimpleFeatureEncodingsCache[Encoder] {
 
-  override def datumWritersFactory: () => AbstractWriter[Encoder] = () => new AvroWriter()
+  override protected val datumWritersFactory: () => AbstractWriter[Encoder] = () => new AvroWriter()
 }

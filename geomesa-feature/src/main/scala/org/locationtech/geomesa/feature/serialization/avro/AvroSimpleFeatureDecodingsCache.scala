@@ -21,5 +21,5 @@ import org.locationtech.geomesa.feature.serialization.{AbstractReader, SimpleFea
 /** Concrete [[SimpleFeatureDecodingsCache]] for Avro. */
 object AvroSimpleFeatureDecodingsCache extends SimpleFeatureDecodingsCache[Decoder] {
 
-  override val datumReadersFactory: () => AbstractReader[Decoder] = () => new AvroReader()
+  override protected val datumReadersFactory: () => AbstractReader[Decoder] = () => new AvroReader()
 }

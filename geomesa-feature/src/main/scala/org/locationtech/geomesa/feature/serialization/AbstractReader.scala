@@ -80,7 +80,7 @@ trait AbstractReader[Reader]
    * @param clazz the [[Class]] of the object to be read
    * @return a [[DatumReader]] capable of reading object of the given ``clazz``
    */
-  def selectReader(clazz: Class[_], metadata: JMap[AnyRef, AnyRef] = JCollections.emptyMap(),
+  def selectReader(clazz: Class[_], metadata: JMap[_ <: AnyRef, _ <: AnyRef] = JCollections.emptyMap(),
                    isNullable: isNullableFn = notNullable): DatumReader[Reader, AnyRef] = {
 
     val reader: DatumReader[Reader, AnyRef] = clazz match {
