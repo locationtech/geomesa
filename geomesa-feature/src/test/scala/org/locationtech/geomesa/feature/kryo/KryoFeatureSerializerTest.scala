@@ -21,8 +21,10 @@ import java.util.{Date, UUID}
 
 import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.ScalaSimpleFeature
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
+import org.locationtech.geomesa.feature._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -71,11 +73,47 @@ class KryoFeatureSerializerTest extends Specification {
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
       }
+
+      "without user data" >> {
+        val sft = SimpleFeatureTypes.createType("testType", "dtg:Date,*geom:Point:srid=4326")
+        val sf = new ScalaSimpleFeature("testId", sft)
+
+        sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+        sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+        val vis = "u&usa&fouo"
+        SecurityUtils.setFeatureVisibility(sf, vis)
+
+        val serializer = KryoFeatureSerializer(sft, EncodingOptions.none)
+
+        val serialized = serializer.write(sf)
+        val deserialized = serializer.read(serialized)
+
+        SecurityUtils.getVisibility(deserialized) must beNull
+      }
+
+      "with user data" >> {
+        val sft = SimpleFeatureTypes.createType("testType", "dtg:Date,*geom:Point:srid=4326")
+        val sf = new ScalaSimpleFeature("testId", sft)
+
+        sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+        sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+        val vis = "u&usa&fouo"
+        SecurityUtils.setFeatureVisibility(sf, vis)
+
+        val serializer = KryoFeatureSerializer(sft, EncodingOptions.withUserData)
+
+        val serialized = serializer.write(sf)
+        val deserialized = serializer.read(serialized)
+
+        deserialized.getUserData mustEqual sf.getUserData
+      }
     }
 
     "correctly serialize and deserialize different geometries" in {
       val spec = "a:LineString,b:Polygon,c:MultiPoint,d:MultiLineString,e:MultiPolygon," +
-          "f:GeometryCollection,dtg:Date,*geom:Point:srid=4326"
+        "f:GeometryCollection,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("testType", spec)
       val sf = new ScalaSimpleFeature("fakeid", sft)
 
@@ -84,7 +122,7 @@ class KryoFeatureSerializerTest extends Specification {
       sf.setAttribute("c", "MULTIPOINT(0 0, 2 2)")
       sf.setAttribute("d", "MULTILINESTRING((0 2, 2 0, 8 6),(0 2, 2 0, 8 6))")
       sf.setAttribute("e", "MULTIPOLYGON(((-1 0, 0 1, 1 0, 0 -1, -1 0)), ((-2 6, 1 6, 1 3, -2 3, -2 6)), " +
-          "((-1 5, 2 5, 2 2, -1 2, -1 5)))")
+        "((-1 5, 2 5, 2 2, -1 2, -1 5)))")
       sf.setAttribute("f", "MULTIPOINT(0 0, 2 2)")
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(55.0 49.0)")
@@ -188,7 +226,7 @@ class KryoFeatureSerializerTest extends Specification {
 
     "correctly serialize and deserialize null values" in {
       val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,l:List,m:Map," +
-          "dtg:Date,*geom:Point:srid=4326"
+        "dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("testType", spec)
       val sf = new ScalaSimpleFeature("fakeid", sft)
       "using byte arrays" >> {
@@ -214,6 +252,41 @@ class KryoFeatureSerializerTest extends Specification {
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes.foreach(_ must beNull)
         deserialized.getAttributes mustEqual sf.getAttributes
+      }
+    }
+
+    "correctly project features" in {
+
+      val sft = SimpleFeatureTypes.createType("fullType", "name:String,*geom:Point,dtg:Date")
+      val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point")
+
+      val sf = new ScalaSimpleFeature("testFeature", sft)
+      sf.setAttribute("name", "foo")
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+      "when serializing" >> {
+        val serializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none)
+        val deserializer = KryoFeatureSerializer(projectedSft)
+
+        val serialized = serializer.write(sf)
+        val deserialized = deserializer.read(serialized)
+
+        deserialized.getID mustEqual sf.getID
+        deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
+        deserialized.getAttributeCount mustEqual 1
+      }
+
+      "when deserializing" >> {
+        val serializer = KryoFeatureSerializer(sft)
+        val deserializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none)
+
+        val serialized = serializer.write(sf)
+        val deserialized = deserializer.read(serialized)
+
+        deserialized.getID mustEqual sf.getID
+        deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
+        deserialized.getAttributeCount mustEqual 1
       }
     }
 

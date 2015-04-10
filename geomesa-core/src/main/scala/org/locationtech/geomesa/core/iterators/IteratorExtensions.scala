@@ -95,15 +95,15 @@ trait HasFeatureDecoder extends IteratorExtensions {
 
   var featureDecoder: SimpleFeatureDecoder = null
   var featureEncoder: SimpleFeatureEncoder = null
-  val defaultEncoding = org.locationtech.geomesa.core.data.DEFAULT_ENCODING.toString
+  val defaultEncoding = org.locationtech.geomesa.core.data.DEFAULT_ENCODING
 
   // feature encoder/decoder
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     // this encoder is for the source sft
-    val encodingOpt = Option(options.get(FEATURE_ENCODING)).getOrElse(defaultEncoding)
-    featureDecoder = SimpleFeatureDecoder(featureType, encodingOpt)
-    featureEncoder = SimpleFeatureEncoder(featureType, encodingOpt)
+    val encoding = Option(options.get(FEATURE_ENCODING)).map(FeatureEncoding.withName).getOrElse(defaultEncoding)
+    featureDecoder = SimpleFeatureDecoder(featureType, encoding)
+    featureEncoder = SimpleFeatureEncoder(featureType, encoding)
   }
 }
 

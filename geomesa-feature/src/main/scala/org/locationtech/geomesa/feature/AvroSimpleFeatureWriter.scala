@@ -22,23 +22,20 @@ import com.vividsolutions.jts.io.WKBWriter
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Field
 import org.apache.avro.Schema.Type._
-import org.apache.avro.io.{DatumWriter, Encoder}
+import org.apache.avro.io.Encoder
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.feature.AvroSimpleFeatureUtils._
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
+import org.locationtech.geomesa.feature.serialization.avro.AvroSimpleFeatureEncodingsCache
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: EncodingOptions = EncodingOptions.none) {
 
-class AvroSimpleFeatureWriter(sft: SimpleFeatureType)
-  extends DatumWriter[SimpleFeature] {
-
-  private var schema: Schema = generateSchema(sft)
+  private val schema: Schema = generateSchema(sft)
   private val typeMap = createTypeMap(sft, new WKBWriter())
   private val names = DataUtilities.attributeNames(sft).map(encodeAttributeName)
 
-  override def setSchema(s: Schema): Unit = schema = s
-
-  override def write(datum: SimpleFeature, out: Encoder): Unit = {
+  def defaultWrite(datum: SimpleFeature, out: Encoder) = {
 
     def rawField(field: Field) = datum.getAttribute(field.pos - 2)
 
@@ -72,12 +69,21 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType)
 
     // Write out fields from Simple Feature
     var i = 2
-    while(i < schema.getFields.length) {
+    while(i < schema.getFields.size()) {
       val f = schema.getFields.get(i)
       write(f.schema, f)
       i += 1
     }
   }
+
+  def writeWithUserData(datum: SimpleFeature, out: Encoder) = {
+    defaultWrite(datum, out)
+
+    val aw = AvroSimpleFeatureEncodingsCache.getAbstractWriter
+    aw.writeGenericMap(out, datum.getUserData)
+  }
+
+  val write: (SimpleFeature, Encoder) => Unit = if (opts.withUserData) writeWithUserData else defaultWrite
 
   private def convertValue(idx: Int, v: AnyRef) = typeMap(names(idx)).conv.apply(v)
 }

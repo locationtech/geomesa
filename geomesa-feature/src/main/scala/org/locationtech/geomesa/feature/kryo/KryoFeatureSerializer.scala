@@ -16,11 +16,9 @@
 
 package org.locationtech.geomesa.feature.kryo
 
-import java.io.{InputStream, OutputStream}
-
-import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
 import org.geotools.feature.simple.SimpleFeatureImpl
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.feature.{AvroSimpleFeature, ScalaSimpleFeature}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -53,10 +51,14 @@ object KryoFeatureSerializer {
                                classOf[AvroSimpleFeature],
                                classOf[SimpleFeatureImpl])
 
-  def apply(sft: SimpleFeatureType): KryoFeatureSerializer = apply(new SimpleFeatureSerializer(sft))
+  def apply(sft: SimpleFeatureType, options: EncodingOptions = EncodingOptions.none): KryoFeatureSerializer =
+    apply(new SimpleFeatureSerializer(sft, options))
 
-  def apply(sft: SimpleFeatureType, decodeAs: SimpleFeatureType): KryoFeatureSerializer =
-    if (sft.eq(decodeAs)) apply(sft) else apply(new TransformingSimpleFeatureSerializer(sft, decodeAs))
+  def apply(sft: SimpleFeatureType, decodeAs: SimpleFeatureType, options: EncodingOptions): KryoFeatureSerializer = {
+    if (sft.eq(decodeAs))
+      apply(sft, options)
+    else apply(new TransformingSimpleFeatureSerializer(sft, decodeAs, options))
+  }
 
   def setupKryo(kryo: Kryo, serializer: Serializer[SimpleFeature]): Unit = {
     kryo.setReferences(false)

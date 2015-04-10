@@ -88,6 +88,8 @@ class KafkaDataStoreTest extends Specification with Logging {
     }
 
     "allow features to be written" >> {
+      import org.locationtech.geomesa.utils.geotools.Conversions._
+
       // create the consumerFC first so that it is ready to receive features from the producer
       val consumerFC = consumerDS.getFeatureSource("test")
 
@@ -96,6 +98,7 @@ class KafkaDataStoreTest extends Specification with Logging {
       val sf = fw.next()
       sf.setAttributes(Array("smith", 30, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
       sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
+      sf.visibility = "USER|ADMIN"
       fw.write()
       Thread.sleep(2000)
 
@@ -106,7 +109,7 @@ class KafkaDataStoreTest extends Specification with Logging {
         val readSF = features.next()
         sf.getID must be equalTo readSF.getID
         sf.getAttribute("dtg") must be equalTo readSF.getAttribute("dtg")
-
+        sf.visibility mustEqual Some("USER|ADMIN")
         store.removeFeatures(ff.id(ff.featureId("1")))
         Thread.sleep(500) // ensure FC has seen the delete
         consumerFC.getCount(Query.ALL) must be equalTo 0
@@ -117,6 +120,7 @@ class KafkaDataStoreTest extends Specification with Logging {
         val updated = sf
         updated.setAttribute("name", "jones")
         updated.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        updated.visibility = "ADMIN"
         store.addFeatures(DataUtilities.collection(updated))
 
         Thread.sleep(500)
@@ -125,6 +129,7 @@ class KafkaDataStoreTest extends Specification with Logging {
         featureCollection.size() must be equalTo 1
         val res = featureCollection.features().next()
         res.getAttribute("name") must be equalTo "jones"
+        res.visibility mustEqual Some("ADMIN")
       }
 
       // AND CLEARED
@@ -147,12 +152,15 @@ class KafkaDataStoreTest extends Specification with Logging {
         val sf = fw.next()
         sf.setAttributes(Array("jones", 60, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
         sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
+        sf.visibility = "USER"
         fw.write()
 
         Thread.sleep(500)
         var res = consumerFC.getFeatures(ff.equals(ff.property("name"), ff.literal("jones")))
         res.size() must be equalTo 1
-        res.features().next().getAttribute("name") must be equalTo "jones"
+        val resSF = res.features().next()
+        resSF.getAttribute("name") must be equalTo "jones"
+        resSF.visibility mustEqual Some("USER")
 
         res = consumerFC.getFeatures(ff.greater(ff.property("age"), ff.literal(50)))
         res.size() must be equalTo 1
