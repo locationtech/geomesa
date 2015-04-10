@@ -50,9 +50,8 @@
 
 
 * **b. Send xml request to Geoserver Instance on our cloud. (Geoserver is hooked up to Geomesa).**
->1. You can find some sample xml request files in the subdirectories found here. Some of the sample xml request files have a comment like this:
->
->><!-- curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'KNNAboutWhiteHouse.xml' http://localhost:8080/geoserver/wps | json_pp -->
+
+>1. You can find some sample xml request files in the subdirectories found here. Some of the sample xml request files have a comment like this:	<!-- curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'KNNAboutWhiteHouse.xml' http://localhost:8080/geoserver/wps | json_pp -->
 >
 >2. Replace localhost:8080 with geomesa:8080
 >
