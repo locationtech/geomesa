@@ -23,36 +23,36 @@ import org.apache.avro.io.Encoder
 import org.locationtech.geomesa.feature.serialization._
 
 /** Implemenation of [[AbstractWriter]] for Avro. */
-class AvroWriter(encoder: Encoder) extends AbstractWriter {
+class AvroWriter extends AbstractWriter[Encoder] {
   import AvroWriter.{NOT_NULL_INDEX, NULL_INDEX}
 
-  override val writeString: DatumWriter[String] =  encoder.writeString
-  override val writeInt: DatumWriter[Int] = encoder.writeInt
-  override val writePositiveInt: DatumWriter[Int] = writeInt // no optimization
-  override val writeLong: DatumWriter[Long] = encoder.writeLong
-  override val writeFloat: DatumWriter[Float] = encoder.writeFloat
-  override val writeDouble: DatumWriter[Double] = encoder.writeDouble
-  override val writeBoolean: DatumWriter[Boolean] = encoder.writeBoolean
-  override val writeDate: DatumWriter[Date] = (date) => encoder.writeLong(date.getTime)
-  override val writeBytes: DatumWriter[Array[Byte]] = encoder.writeBytes
+  override val writeString: DatumWriter[Encoder, String] = (encoder, str) => encoder.writeString(str)
+  override val writeInt: DatumWriter[Encoder, Int] = (encoder, int) => encoder.writeInt(int)
+  override val writePositiveInt: DatumWriter[Encoder, Int] = writeInt // no optimization
+  override val writeLong: DatumWriter[Encoder, Long] = (encoder, long) => encoder.writeLong(long)
+  override val writeFloat: DatumWriter[Encoder, Float] = (encoder, float) => encoder.writeFloat(float)
+  override val writeDouble: DatumWriter[Encoder, Double] = (encoder, double) => encoder.writeDouble(double)
+  override val writeBoolean: DatumWriter[Encoder, Boolean] = (encoder, boolean) => encoder.writeBoolean(boolean)
+  override val writeDate: DatumWriter[Encoder, Date] = (encoder, date) => encoder.writeLong(date.getTime)
+  override val writeBytes: DatumWriter[Encoder, Array[Byte]] = (encoder, bytes) => encoder.writeBytes(bytes)
 
-  override def writeNullable[T](writeRaw: DatumWriter[T]): DatumWriter[T] = (raw) => {
+  override def writeNullable[T](writeRaw: DatumWriter[Encoder, T]): DatumWriter[Encoder, T] = (encoder, raw) => {
     if (raw != null) {
       encoder.writeIndex(NOT_NULL_INDEX)
-      writeRaw(raw)
+      writeRaw(encoder, raw)
     } else {
       encoder.writeIndex(NULL_INDEX)
       encoder.writeNull()
     }
   }
 
-  override val writeArrayStart: DatumWriter[Int] = (arrayLen) => {
+  override val writeArrayStart: DatumWriter[Encoder, Int] = (encoder, arrayLen) => {
     encoder.writeArrayStart()
     encoder.setItemCount(arrayLen)
   }
 
-  override def startItem() = encoder.startItem()
-  override def endArray() = encoder.writeArrayEnd()
+  override def startItem(encoder: Encoder) = encoder.startItem()
+  override def endArray(encoder: Encoder) = encoder.writeArrayEnd()
 }
 
 object AvroWriter {

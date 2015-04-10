@@ -31,7 +31,7 @@ trait AbstractReader[Reader]
   with NullableReader[Reader]
   with GeometryReader[Reader]
   with HintKeyReader[Reader] {
-
+  
 
   def readUUID: DatumReader[Reader, UUID] = (in: Reader, version: Int) =>  {
     val mostSignificantBits = readLong(in, version)
@@ -39,12 +39,17 @@ trait AbstractReader[Reader]
     new UUID(mostSignificantBits, leastSignificantBits)
   }
 
+  /**
+   * @param elementReader will be delegated to for reading the list elements
+   * @tparam E the type of the list elements
+   * @return a [[DatumReader]] for reading a [[java.util.List]] which may be null
+   */
   def readList[E](elementReader: DatumReader[Reader, E]): DatumReader[Reader, JList[E]] = (in, version) => {
     val length = readInt(in, version)
     if (length < 0) {
       null
     } else {
-      val list = new java.util.ArrayList[E](length)
+      val list = new JArrayList[E](length)
       var i = 0
       while (i < length) {
         list.add(elementReader(in, version))
@@ -55,11 +60,11 @@ trait AbstractReader[Reader]
   }
 
   /**
-   * @param keyReader for reading the keys
-   * @param valueReader for reading the values
-   * @tparam K the type of the keys
-   * @tparam V the type of the values
-   * @return a [[DatumReader]] for reading a [[Map[K,V]] which may be null
+   * @param keyReader will be delegated to for reading the map keys
+   * @param valueReader will be delegated to for reading the map values
+   * @tparam K the type of the map keys
+   * @tparam V the type of the map values
+   * @return a [[DatumReader]] for reading a [[java.util.Map]]which may be null
    */
   def readMap[K, V](keyReader: DatumReader[Reader, K], valueReader: DatumReader[Reader, V]): DatumReader[Reader, JMap[K, V]] = (in, version) => {
     val length = readInt(in, version)
@@ -76,7 +81,7 @@ trait AbstractReader[Reader]
     }
   }
 
-  /** A [[DatumReader]] which reads the a class name and then an object of that class.  If the class name is a null marker
+  /** A [[DatumReader]] which reads a class name and then an object of that class.  If the class name is a null marker
     * then ``null`` will be returned.
     */
   def readGeneric: DatumReader[Reader, AnyRef] = (reader, version) => {
@@ -97,7 +102,7 @@ trait AbstractReader[Reader]
 
   /**
    * A [[DatumReader]] for reading a map where the key and values may be any type.  The map may not be null. The reader
-   * will call ``readArrayStart(reader)`` and then, for each entry, read up to four items.
+   * will call ``readArrayStart(reader, version)`` and then, for each entry, read up to four items.
    */
   def readGenericMap: DatumReader[Reader, JMap[AnyRef, AnyRef]] = (reader, version) => {
     var toRead = readArrayStart(reader, version)
@@ -107,9 +112,7 @@ trait AbstractReader[Reader]
       val key = readGeneric(reader, version)
       val value = readGeneric(reader, version)
 
-      // force boxing by calling 'asInstanceOf[AnyRef]
-      map.put(key.asInstanceOf[AnyRef], value.asInstanceOf[AnyRef])
-
+      map.put(key, value)
       toRead -= 1
     }
 
@@ -132,16 +135,13 @@ trait AbstractReader[Reader]
       case cls if classOf[java.lang.Boolean].isAssignableFrom(cls) => readBoolean.asInstanceOf[DatumReader[Reader, AnyRef]]
       case cls if classOf[java.util.Date].isAssignableFrom(cls) => readDate
 
-
       case cls if classOf[UUID].isAssignableFrom(cls) => readUUID
-
       case cls if classOf[Geometry].isAssignableFrom(cls) => readGeometry
-
-      case cls if classOf[Hints.Key].isAssignableFrom(cls) => readHintKey.asInstanceOf[DatumReader[Reader, AnyRef]]
+      case cls if classOf[Hints.Key].isAssignableFrom(cls) => readHintKey
 
       case cls if classOf[java.util.List[_]].isAssignableFrom(cls) =>
-        val elemType = metadata.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]]
-        val elemReader = selectReader(elemType, isNullable = isNullable)
+        val elemClass = metadata.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]]
+        val elemReader = selectReader(elemClass, isNullable = isNullable)
         readList(elemReader)
 
       case cls if classOf[java.util.Map[_, _]].isAssignableFrom(cls) =>

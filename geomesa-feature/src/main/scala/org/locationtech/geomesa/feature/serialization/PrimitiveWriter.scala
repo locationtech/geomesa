@@ -21,17 +21,17 @@ import java.util.Date
 /** A collection of [[DatumWriter]]s for writing primitive-like datums.
   *
   */
-trait PrimitiveWriter {
+trait PrimitiveWriter[Writer] {
 
-  def writeString: DatumWriter[String]
-  def writeInt: DatumWriter[Int]
-  def writeLong: DatumWriter[Long]
-  def writeFloat: DatumWriter[Float]
-  def writeDouble: DatumWriter[Double]
-  def writeBoolean: DatumWriter[Boolean]
-  def writeDate: DatumWriter[Date]
-  def writeBytes: DatumWriter[Array[Byte]]
+  def writeString: DatumWriter[Writer, String]
+  def writeInt: DatumWriter[Writer, Int]
+  def writeLong: DatumWriter[Writer, Long]
+  def writeFloat: DatumWriter[Writer, Float]
+  def writeDouble: DatumWriter[Writer, Double]
+  def writeBoolean: DatumWriter[Writer, Boolean]
+  def writeDate: DatumWriter[Writer, Date]
+  def writeBytes: DatumWriter[Writer, Array[Byte]]
 
   /** A [[DatumReader]] for writing an [[Int]] with postive optimization */
-  def writePositiveInt: DatumWriter[Int]
+  def writePositiveInt: DatumWriter[Writer, Int]
 }

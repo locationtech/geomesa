@@ -27,10 +27,12 @@ import CacheKeyGenerator.cacheKeyForSFT
   */
 class SimpleFeatureDecodings[Reader](val datumReaders: AbstractReader[Reader], val sft: SimpleFeatureType) {
 
+  /**
+   * @return a seq of functions to decode the attributes of simple feature
+   */
   lazy val attributeDecodings: Array[DatumReader[Reader, AnyRef]] =
     sft.getAttributeDescriptors.map { d =>
-      val clas = d.getType.getBinding
-      datumReaders.selectReader(clas, d.getUserData, datumReaders.standardNullable)
+      datumReaders.selectReader(d.getType.getBinding, d.getUserData, datumReaders.standardNullable)
     }.toArray
 }
 
@@ -41,16 +43,22 @@ class SimpleFeatureDecodings[Reader](val datumReaders: AbstractReader[Reader], v
   */
 trait SimpleFeatureDecodingsCache[Reader] {
 
+  // one [[AbstractReader]] per thread - key will always be "" (use a different structure??)
+  private val readersCache = new SoftThreadLocalCache[String, AbstractReader[Reader]]()
+
   private val decodingsCache = new SoftThreadLocalCache[String, SimpleFeatureDecodings[Reader]]()
 
   def datumReadersFactory: () => AbstractReader[Reader]
 
   /** Gets a sequence of functions to decode the attributes of a simple feature. */
-  def sftDecodings(sft: SimpleFeatureType): SimpleFeatureDecodings[Reader] =
+  def get(sft: SimpleFeatureType): SimpleFeatureDecodings[Reader] =
     decodingsCache.getOrElseUpdate(cacheKeyForSFT(sft), {
-      val datumReaders = datumReadersFactory()
-      new SimpleFeatureDecodings[Reader](datumReaders, sft)
+      new SimpleFeatureDecodings[Reader](getAbstractReader, sft)
     })
+
+  def getAbstractReader: AbstractReader[Reader] = {
+    readersCache.getOrElseUpdate("", datumReadersFactory())
+  }
 }
 
 object CacheKeyGenerator {

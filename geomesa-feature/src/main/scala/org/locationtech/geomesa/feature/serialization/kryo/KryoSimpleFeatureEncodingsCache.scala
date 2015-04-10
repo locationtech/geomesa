@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.locationtech.geomesa.feature.serialization.kryo
 
-package org.locationtech.geomesa.feature
+import com.esotericsoftware.kryo.io.Output
+import org.locationtech.geomesa.feature.serialization.{AbstractWriter, SimpleFeatureEncodingsCache}
 
-package object serialization {
+/** Concrete [[SimpleFeatureEncodingsCache]] for Kryo. */
+object KryoSimpleFeatureEncodingsCache extends SimpleFeatureEncodingsCache[Output] {
 
-  type Version = Int
-
-  // Write a datum.
-  type DatumWriter[Writer, -T] = (Writer, T) => Unit
-
-  // Read a datum.
-  type DatumReader[Reader, +T] = (Reader, Version) => T
-}
-
-class SerializationException(msg: String, cause: Throwable = null) extends RuntimeException(msg, cause)
+   override def datumWritersFactory: () => AbstractWriter[Output] = () => new KryoWriter()
+ }

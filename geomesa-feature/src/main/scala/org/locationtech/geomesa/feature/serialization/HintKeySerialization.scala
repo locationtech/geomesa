@@ -20,17 +20,17 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.feature.SerializationException
 
 /** Writes a [[Hints.Key]]. */
-trait HintKeyWriter extends PrimitiveWriter {
+trait HintKeyWriter[Writer] extends PrimitiveWriter[Writer] {
 
   import HintKeySerialization.keyToId
 
   /**
    * A [[DatumWriter]] for writing a non-nullable [[Hints.Key]].
    */
-  val writeHintKey: DatumWriter[Hints.Key] = (key) => {
+  val writeHintKey: DatumWriter[Writer, Hints.Key] = (writer, key) => {
     // exception should not be thrown - AbstractWriter.writeGenericMap will short circuit
     val id = keyToId.getOrElse(key, throw new SerializationException(s"Unknown Key: '$key'"))
-    writeString(id)
+    writeString(writer, id)
   }
 }
 

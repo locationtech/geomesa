@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.locationtech.geomesa.feature.serialization.avro
 
-package org.locationtech.geomesa.feature
+import org.apache.avro.io.Encoder
+import org.locationtech.geomesa.feature.serialization.{AbstractWriter, SimpleFeatureEncodingsCache}
 
-package object serialization {
+/** Concrete [[SimpleFeatureEncodingsCache]] for Avro. */
+object AvroSimpleFeatureEncodingsCache extends SimpleFeatureEncodingsCache[Encoder] {
 
-  type Version = Int
-
-  // Write a datum.
-  type DatumWriter[Writer, -T] = (Writer, T) => Unit
-
-  // Read a datum.
-  type DatumReader[Reader, +T] = (Reader, Version) => T
+  override def datumWritersFactory: () => AbstractWriter[Encoder] = () => new AvroWriter()
 }
-
-class SerializationException(msg: String, cause: Throwable = null) extends RuntimeException(msg, cause)

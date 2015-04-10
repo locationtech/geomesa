@@ -21,8 +21,8 @@ import java.io.{InputStream, OutputStream}
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.feature.serialization.DatumReader
-import org.locationtech.geomesa.feature.serialization.kryo.KryoReader
+import org.locationtech.geomesa.feature.serialization.kryo.{KryoReader, KryoWriter}
+import org.locationtech.geomesa.feature.serialization.{DatumReader, DatumWriter}
 
 import scala.ref.SoftReference
 
@@ -59,11 +59,12 @@ class GeometrySerializer extends Serializer[Geometry] {
 
   import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer._
 
+  lazy val geoWriter: DatumWriter[Output, Geometry] = new KryoWriter().writeGeometry
   lazy val geoReader: DatumReader[Input, Geometry] = new KryoReader().readGeometryDirectly
 
   override def write(kryo: Kryo, output: Output, geom: Geometry): Unit = {
     output.writeInt(VERSION, true)
-    writeGeometry(output, geom)
+    geoWriter(output, geom)
   }
 
   override def read(kryo: Kryo, input: Input, typ: Class[Geometry]): Geometry = {

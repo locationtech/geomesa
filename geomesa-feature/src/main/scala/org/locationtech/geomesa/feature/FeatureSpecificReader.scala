@@ -113,7 +113,7 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   def readWithUserData(reuse: AvroSimpleFeature, in: Decoder, serializationVersion: Int): AvroSimpleFeature = {
     val sf = defaultRead(reuse, in, serializationVersion)
 
-    val ar = AvroSimpleFeatureDecodingsCache.sftDecodings(oldType).datumReaders
+    val ar = AvroSimpleFeatureDecodingsCache.getAbstractReader
 
     val userData = ar.readGenericMap(in, serializationVersion)
     sf.getUserData.clear()

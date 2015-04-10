@@ -21,19 +21,19 @@ import java.util.{UUID, Date}
 /** A collection of [[DatumWriter]]s for writing objects which may be null.
   *
   */
-trait NullableWriter extends PrimitiveWriter with NullableCheck {
+trait NullableWriter[Writer] extends PrimitiveWriter[Writer] with NullableCheck {
 
   /**
    * Write any value that may be null.
    */
-  def writeNullable[T](rawWrite: DatumWriter[T]): DatumWriter[T]
+  def writeNullable[T](rawWrite: DatumWriter[Writer, T]): DatumWriter[Writer, T]
 
-  val writeNullableInt: DatumWriter[Int] = writeNullable(writeInt)
-  val writeNullableLong: DatumWriter[Long] = writeNullable(writeLong)
-  val writeNullableFloat: DatumWriter[Float] = writeNullable(writeFloat)
-  val writeNullableDouble: DatumWriter[Double] = writeNullable(writeDouble)
-  val writeNullableBoolean: DatumWriter[Boolean] = writeNullable(writeBoolean)
-  val writeNullableDate: DatumWriter[Date] = writeNullable(writeDate)
+  val writeNullableInt: DatumWriter[Writer, Int] = writeNullable(writeInt)
+  val writeNullableLong: DatumWriter[Writer, Long] = writeNullable(writeLong)
+  val writeNullableFloat: DatumWriter[Writer, Float] = writeNullable(writeFloat)
+  val writeNullableDouble: DatumWriter[Writer, Double] = writeNullable(writeDouble)
+  val writeNullableBoolean: DatumWriter[Writer, Boolean] = writeNullable(writeBoolean)
+  val writeNullableDate: DatumWriter[Writer, Date] = writeNullable(writeDate)
 }
 
 trait NullableCheck {

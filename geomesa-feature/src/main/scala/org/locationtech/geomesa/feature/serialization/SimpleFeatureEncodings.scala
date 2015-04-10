@@ -15,9 +15,58 @@
  */
 package org.locationtech.geomesa.feature.serialization
 
-/** Provides access to the encodings for a [[org.opengis.feature.simple.SimpleFeature]].
+import java.util.{Map => JMap}
+import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import collection.JavaConversions._
+import CacheKeyGenerator.cacheKeyForSFT
+
+/** Provides access to the encodings for a [[SimpleFeatureType]].
  *
  */
-trait SimpleFeatureEncodings[Writer] {
+class SimpleFeatureEncodings[Writer](val datumWriters: AbstractWriter[Writer], val sft: SimpleFeatureType) {
 
+  type AttributeEncoding = (Writer, SimpleFeature) => Unit
+
+  /**
+   * @return a seq of functions to encode the attributes of simple feature
+   */
+  lazy val attributeEncodings: Array[AttributeEncoding] =
+    sft.getAttributeDescriptors.zipWithIndex.toArray.map { case (d, i) =>
+
+      // This method is needed to capture the type of the attribute in order to type the writer.
+      @inline def encode[T](attribClass: Class[T]): AttributeEncoding = {
+        val attribWriter: DatumWriter[Writer, T] =
+          datumWriters.selectWriter(attribClass, d.getUserData, datumWriters.standardNullable)
+        (writer: Writer, sf: SimpleFeature) => attribWriter(writer, attribClass.cast(sf.getAttribute(i)))
+      }
+
+      encode(d.getType.getBinding)
+    }
+}
+
+/** Caches [[SimpleFeatureEncodings]] for multiple [[SimpleFeatureType]]s.
+  * Each thread has its own cache.
+  *
+  * Concrete subclasses must be objects not classes.
+  */
+trait SimpleFeatureEncodingsCache[Writer] {
+
+  // one [[AbstractWriter]] per thread - key will always be "" (use a different structure??)
+  private val writersCache = new SoftThreadLocalCache[String, AbstractWriter[Writer]]()
+
+  private val encodingsCache = new SoftThreadLocalCache[String, SimpleFeatureEncodings[Writer]]()
+
+  protected  def datumWritersFactory: () => AbstractWriter[Writer]
+
+  /** Gets a sequence of functions to encode the attributes of a simple feature. */
+  def get(sft: SimpleFeatureType): SimpleFeatureEncodings[Writer] =
+    encodingsCache.getOrElseUpdate(cacheKeyForSFT(sft), {
+      new SimpleFeatureEncodings[Writer](getAbstractWriter, sft)
+    })
+  
+  def getAbstractWriter: AbstractWriter[Writer] = {
+    writersCache.getOrElseUpdate("", datumWritersFactory())
+  }
 }

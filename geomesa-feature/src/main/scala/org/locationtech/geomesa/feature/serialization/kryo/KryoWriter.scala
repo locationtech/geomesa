@@ -22,31 +22,31 @@ import com.esotericsoftware.kryo.io.Output
 import org.locationtech.geomesa.feature.serialization.{AbstractWriter, DatumWriter}
 
 /** Implemenation of [[AbstractWriter]] for Kryo. */
-class KryoWriter(out: Output) extends AbstractWriter {
+class KryoWriter extends AbstractWriter[Output] {
   import KryoWriter.{NON_NULL_MARKER_BYTE, NULL_MARKER_BYTE}
   
-  override val writeString: DatumWriter[String] = out.writeString
-  override val writeInt: DatumWriter[Int] = out.writeInt
-  override val writePositiveInt: DatumWriter[Int] = (value) => out.writeInt(value, true)
-  override val writeLong: DatumWriter[Long] = out.writeLong
-  override val writeFloat: DatumWriter[Float] = out.writeFloat
-  override val writeDouble: DatumWriter[Double] = out.writeDouble
-  override val writeBoolean: DatumWriter[Boolean] = out.writeBoolean
-  override val writeDate: DatumWriter[Date] = (date) => out.writeLong(date.getTime)
-  override val writeBytes: DatumWriter[Array[Byte]] = (bytes) => {
+  override val writeString: DatumWriter[Output, String] = (out, str) => out.writeString(str)
+  override val writeInt: DatumWriter[Output, Int] = (out, int) => out.writeInt(int)
+  override val writePositiveInt: DatumWriter[Output, Int] = (out, int) => out.writeInt(int, true)
+  override val writeLong: DatumWriter[Output, Long] = (out, long) => out.writeLong(long)
+  override val writeFloat: DatumWriter[Output, Float] = (out, float) => out.writeFloat(float)
+  override val writeDouble: DatumWriter[Output, Double] = (out, double) => out.writeDouble(double)
+  override val writeBoolean: DatumWriter[Output, Boolean] = (out, boolean) => out.writeBoolean(boolean)
+  override val writeDate: DatumWriter[Output, Date] = (out, date) => out.writeLong(date.getTime)
+  override val writeBytes: DatumWriter[Output, Array[Byte]] = (out, bytes) => {
     out.writeInt(bytes.length, true)
     out.writeBytes(bytes)
   }
 
-  override val writeArrayStart: DatumWriter[Int] = out.writeInt
+  override val writeArrayStart: DatumWriter[Output, Int] = (out, arrayLen) => out.writeInt(arrayLen)
 
-  override val startItem = ()
-  override val endArray = ()
+  override def startItem(out: Output) = {}
+  override def endArray(out: Output) = {}
 
-  override def writeNullable[T](writeRaw: DatumWriter[T]): DatumWriter[T] = (raw) => {
+  override def writeNullable[T](writeRaw: DatumWriter[Output, T]): DatumWriter[Output, T] = (out, raw) => {
     if (raw != null) {
       out.writeByte(NON_NULL_MARKER_BYTE)
-      writeRaw(raw)
+      writeRaw(out, raw)
     } else {
       out.writeByte(NULL_MARKER_BYTE)
     }

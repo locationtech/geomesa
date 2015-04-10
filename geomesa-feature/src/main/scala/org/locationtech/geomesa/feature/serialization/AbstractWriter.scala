@@ -16,58 +16,104 @@
 
 package org.locationtech.geomesa.feature.serialization
 
-import java.util.UUID
+import java.util.{Collections => JCollections, List => JList, Map => JMap, UUID}
 
+import com.esotericsoftware.kryo.io.Output
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.feature.serialization.AbstractWriter.NULL_MARKER_STR
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 
 /** [[DatumWriter]] definitions for writing (serializing) components of a [[org.opengis.feature.simple.SimpleFeature]].
   *
   */
-trait AbstractWriter
-  extends PrimitiveWriter
-  with NullableWriter
-  with HintKeyWriter
+trait AbstractWriter[Writer]
+  extends PrimitiveWriter[Writer]
+  with NullableWriter[Writer]
+  with GeometryWriter[Writer]
+  with HintKeyWriter[Writer]
   with Logging {
 
-  import AbstractWriter.NULL_MARKER_STR
 
-  def writeUUID: DatumWriter[UUID] = (uuid) => {
-    writeLong(uuid.getMostSignificantBits)
-    writeLong(uuid.getLeastSignificantBits)
+  def writeUUID: DatumWriter[Writer, UUID] = (writer, uuid) => {
+    writeLong(writer, uuid.getMostSignificantBits)
+    writeLong(writer, uuid.getLeastSignificantBits)
   }
 
-  /** A [[DatumWriter]] which writes the class name of ``obj`` and then the ``obj``.  If the object is ``null`` then only
-    * ``<null>`` will be written
+  /**
+   * @param elementWriter will be delegated to for writing the list elements
+   * @tparam E the type of the list elements
+   * @return a [[DatumWriter]] for writing a [[java.util.List]] which may be null
+   */
+  def writeList[E](elementWriter: DatumWriter[Writer, E]): DatumWriter[Writer, JList[E]] = (writer, list) => {
+    if (list == null) {
+      writeInt(writer, -1)
+    } else {
+      writeInt(writer, list.size())
+
+      // don't convert to scala
+      val iter = list.iterator()
+      while (iter.hasNext) {
+        elementWriter(writer, iter.next())
+      }
+    }
+  }
+
+  /**
+   * @param keyWriter will be delegated to for writing the map keys
+   * @param valueWriter will be delegated to for writing the map values
+   * @tparam K the type of the map keys
+   * @tparam V the type of the map values
+   * @return a [[DatumWriter]] for writing a [[java.util.Map]] which may be null
+   */
+  def writeMap[K, V](keyWriter: DatumWriter[Writer, K], valueWriter: DatumWriter[Writer, V]): DatumWriter[Writer, JMap[K, V]] = (writer, map) => {
+    if (map == null) {
+      writeInt(writer, -1)
+    } else {
+      writeInt(writer, map.size())
+
+      // don't convert to scala
+      val iter = map.entrySet().iterator()
+      while (iter.hasNext) {
+        val entry = iter.next()
+        keyWriter(writer, entry.getKey)
+        valueWriter(writer, entry.getValue)
+      }
+    }
+  }
+
+  /** A [[DatumWriter]] which writes the class name of ``obj`` and then the ``obj``.  If the object is ``null`` then
+    * only a null marker will be written.
     *
     * @tparam T thpe of t
     */
-  def writeGeneric[T]: DatumWriter[T] = (obj) => {
+  def writeGeneric[T]: DatumWriter[Writer, T] = (writer, obj) => {
     if (obj == null) {
-      writeString(NULL_MARKER_STR)
+      writeString(writer, NULL_MARKER_STR)
     } else {
-      writeString(obj.getClass.getName)
-      selectWriter(obj.getClass.asInstanceOf[Class[T]])(obj)
+      writeString(writer, obj.getClass.getName)
+      selectWriter(obj.getClass.asInstanceOf[Class[T]])(writer, obj)
     }
   }
 
   /**
    * A [[DatumWriter]] which writes the start of an array.  The value is the length of the array
    */
-  def writeArrayStart: DatumWriter[Int]
+  def writeArrayStart: DatumWriter[Writer, Int]
 
   /** Call to indicate the start of an item in an array or map. */
-  def startItem(): Unit
+  def startItem(writer: Writer): Unit
 
   /** Call to indicate the end of an array. */
-  def endArray(): Unit
+  def endArray(writer: Writer): Unit
 
   /**
    * A [[DatumWriter]] for writing a map where the key and values may be any type.  The map may not be null. The writer
-   * will call ``writeArrayStart(writer, map.size)`` and then, for each entry, call ``startItem`` followed by four
+   * will call ``writeArrayStart(writer, map.size)`` and then, for each entry, call ``startItem`` followed by up to four
    * writes.  After writing all entries the reader will call ``endArray``.
    */
-  def writeGenericMap: DatumWriter[java.util.Map[AnyRef, AnyRef]] = (map) => {
+  def writeGenericMap: DatumWriter[Writer, JMap[AnyRef, AnyRef]] = (writer, map) => {
 
     // may not be able to write all entries - must pre-filter to know correct count
     import collection.JavaConverters.mapAsScalaMapConverter
@@ -81,16 +127,16 @@ trait AbstractWriter
         }
     }
 
-    writeArrayStart(filtered.size)
+    writeArrayStart(writer, filtered.size)
 
     filtered.foreach {
       case (key, value) =>
-        startItem()
-        writeGeneric(key)
-        writeGeneric(value)
+        startItem(writer)
+        writeGeneric(writer, key)
+        writeGeneric(writer, value)
     }
 
-    endArray()
+    endArray(writer)
   }
 
   def canSerialize(obj: AnyRef): Boolean = obj match {
@@ -98,29 +144,57 @@ trait AbstractWriter
     case _ => true
   }
 
+  /*
+    /**
+   * Finds an encoding function based on the input type
+   *
+   * @param clas
+   * @param metadata
+   * @return
+   */
+  def matchEncode(clas: Class[_], metadata: JMap[AnyRef, AnyRef]): AttributeWriter = clas match {
+   */
+
   /**
    * @param clazz the [[Class]] of the object to be written
    * @tparam T the type of the object to be written
    * @return a [[DatumWriter]] capable of writing object of the given ``clazz``
    */
-  def selectWriter[T](clazz: Class[_ <: T]): DatumWriter[T] = {
-    clazz match {
-      case cls if classOf[java.lang.String].isAssignableFrom(cls)    => writeString.asInstanceOf[DatumWriter[T]]
-      case cls if classOf[java.lang.Integer].isAssignableFrom(cls)   => writeInt.asInstanceOf[DatumWriter[T]]
-      case cls if classOf[java.lang.Long].isAssignableFrom(cls)      => writeLong.asInstanceOf[DatumWriter[T]]
-      case cls if classOf[java.lang.Float].isAssignableFrom(cls)     => writeFloat.asInstanceOf[DatumWriter[T]]
-      case cls if classOf[java.lang.Double].isAssignableFrom(cls)    => writeDouble.asInstanceOf[DatumWriter[T]]
-      case cls if classOf[java.lang.Boolean].isAssignableFrom(cls)   => writeBoolean.asInstanceOf[DatumWriter[T]]
-      case cls if classOf[java.util.Date].isAssignableFrom(cls)      => writeDate.asInstanceOf[DatumWriter[T]]
+  def selectWriter[T](clazz: Class[_ <: T], metadata: JMap[AnyRef, AnyRef] = JCollections.emptyMap(),
+                      isNullable: isNullableFn = notNullable): DatumWriter[Writer, T] = {
 
-      case cls if classOf[Hints.Key].isAssignableFrom(cls)           => writeHintKey.asInstanceOf[DatumWriter[T]]
+    val writer = clazz match {
+      case cls if classOf[java.lang.String].isAssignableFrom(cls) => writeString.asInstanceOf[DatumWriter[Writer, T]]
+      case cls if classOf[java.lang.Integer].isAssignableFrom(cls) => writeInt.asInstanceOf[DatumWriter[Writer, T]]
+      case cls if classOf[java.lang.Long].isAssignableFrom(cls) => writeLong.asInstanceOf[DatumWriter[Writer, T]]
+      case cls if classOf[java.lang.Float].isAssignableFrom(cls) => writeFloat.asInstanceOf[DatumWriter[Writer, T]]
+      case cls if classOf[java.lang.Double].isAssignableFrom(cls) => writeDouble.asInstanceOf[DatumWriter[Writer, T]]
+      case cls if classOf[java.lang.Boolean].isAssignableFrom(cls) => writeBoolean.asInstanceOf[DatumWriter[Writer, T]]
+      case cls if classOf[java.util.Date].isAssignableFrom(cls) => writeDate.asInstanceOf[DatumWriter[Writer, T]]
 
-      //      case cls if classOf[UUID].isAssignableFrom(cls)                => ???
-      //      case cls if classOf[Geometry].isAssignableFrom(cls)            => ???
-      //      case cls if classOf[java.util.List[_]].isAssignableFrom(cls)   => ???
-      //      case cls if classOf[java.util.Map[_, _]].isAssignableFrom(cls) => ???
+      case cls if classOf[UUID].isAssignableFrom(cls) => writeUUID.asInstanceOf[DatumWriter[Writer, T]]
+      case cls if classOf[Geometry].isAssignableFrom(cls) => writeGeometry.asInstanceOf[DatumWriter[Writer, T]]
+      case cls if classOf[Hints.Key].isAssignableFrom(cls) => writeHintKey.asInstanceOf[DatumWriter[Writer, T]]
+
+      case c if classOf[JList[_]].isAssignableFrom(c) =>
+        val elemClass = metadata.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]]
+        val elemWriter = selectWriter(elemClass, isNullable = isNullable)
+        writeList(elemWriter).asInstanceOf[DatumWriter[Writer, T]]
+
+      case c if classOf[JMap[_, _]].isAssignableFrom(c) =>
+        val keyClass      = metadata.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
+        val valueClass    = metadata.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
+        val keyWriter   = selectWriter(keyClass, isNullable = isNullable)
+        val valueWriter = selectWriter(valueClass, isNullable = isNullable)
+        writeMap(keyWriter, valueWriter).asInstanceOf[DatumWriter[Writer, T]]
 
       case _ => throw new IllegalArgumentException("Unsupported class: " + clazz)
+    }
+
+    if (isNullable(clazz)) {
+      writeNullable(writer)
+    } else {
+      writer
     }
   }
 }

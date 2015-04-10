@@ -15,9 +15,7 @@
  */
 package org.locationtech.geomesa.feature.serialization.avro
 
-import com.esotericsoftware.kryo.io.Input
 import org.apache.avro.io.Decoder
-import org.locationtech.geomesa.feature.serialization.kryo.KryoReader
 import org.locationtech.geomesa.feature.serialization.{AbstractReader, SimpleFeatureDecodingsCache}
 
 /** Concrete [[SimpleFeatureDecodingsCache]] for Avro. */
