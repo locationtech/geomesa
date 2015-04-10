@@ -21,8 +21,4 @@ object FeatureEncoding extends Enumeration {
   type FeatureEncoding = Value
   val KRYO = Value("kryo")
   val AVRO = Value("avro")
-
-  // TODO rip out and patch references
-  @deprecated
-  val TEXT = Value("text")
 }
