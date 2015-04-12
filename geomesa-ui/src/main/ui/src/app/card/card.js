@@ -45,7 +45,7 @@ angular.module('geomesa.card', [])
 
     .directive('drag', function(){
         return {
-
+            restrict: 'A',
             //The link function is responsible for registering DOM listeners as well as updating the DOM.
             link: function(scope, element, attrs, ctrl) {
               element.draggable({
