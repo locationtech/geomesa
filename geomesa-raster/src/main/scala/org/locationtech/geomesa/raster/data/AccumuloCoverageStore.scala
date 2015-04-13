@@ -36,6 +36,7 @@ trait CoverageStore {
   def getConnector: Connector
   def getTable: String
   def saveRaster(raster: Raster): Unit
+  def saveRasters(rasters: Iterator[Raster]): Unit
   def registerToGeoServer(raster: Raster): Unit
 }
 
@@ -67,6 +68,8 @@ class AccumuloCoverageStore(val rasterStore: AccumuloRasterStore,
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = rasterStore.getRasters(rasterQuery)
 
   def saveRaster(raster: Raster) = rasterStore.putRaster(raster)
+
+  def saveRasters(rasters: Iterator[Raster]) = rasterStore.putRasters(rasters)
 
   def getQueryRecords(numRecords: Int): Iterator[String]  = rasterStore.getQueryRecords(numRecords)
 
@@ -107,10 +110,10 @@ object AccumuloCoverageStore extends Logging {
     val visibility = AccumuloStoreHelper.getVisibility(config)
     val tableName = tableNameParam.lookUp(config).asInstanceOf[String]
     val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(config).asInstanceOf[String])
-    val shardsConfig = shardsParam.lookupOpt(config)
-    val writeMemoryConfig = writeMemoryParam.lookupOpt(config)
-    val writeThreadsConfig = writeThreadsParam.lookupOpt(config)
-    val queryThreadsConfig = queryThreadsParam.lookupOpt(config)
+    val shardsConfig = shardsParam.lookupOpt(config).asInstanceOf[Option[Int]]
+    val writeMemoryConfig = writeMemoryParam.lookupOpt(config).asInstanceOf[Option[Int]]
+    val writeThreadsConfig = writeThreadsParam.lookupOpt(config).asInstanceOf[Option[Int]]
+    val queryThreadsConfig = queryThreadsParam.lookupOpt(config).asInstanceOf[Option[Int]]
 
     val rasterStore = AccumuloRasterStore(userName, password, instanceId, zookeepers,
                                   tableName, visibility, authorizations, useMock,

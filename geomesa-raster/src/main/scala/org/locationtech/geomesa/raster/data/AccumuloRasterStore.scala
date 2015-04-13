@@ -18,25 +18,25 @@ package org.locationtech.geomesa.raster.data
 
 import java.awt.image.BufferedImage
 import java.util.Map.Entry
-import java.util.concurrent.{TimeUnit, Callable}
+import java.util.concurrent.{Callable, TimeUnit}
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.ImmutableSetMultimap
-import org.apache.accumulo.core.client.{TableExistsException, BatchWriterConfig, Connector}
-import org.apache.accumulo.core.data.{Mutation, Value, Key, Range}
-import org.apache.accumulo.core.security.{TablePermission, Authorizations}
+import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
+import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
+import org.apache.accumulo.core.security.{Authorizations, TablePermission}
 import org.geotools.coverage.grid.GridEnvelope2D
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index.StrategyHelpers
 import org.locationtech.geomesa.core.iterators.BBOXCombiner._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
-import org.locationtech.geomesa.core.stats.{RasterQueryStatTransform, RasterQueryStat, StatWriter}
-import org.locationtech.geomesa.core.util.{SelfClosingScanner, SelfClosingBatchScanner}
+import org.locationtech.geomesa.core.stats.{RasterQueryStat, RasterQueryStatTransform, StatWriter}
+import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingScanner}
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.BoundingBox
-import org.locationtech.geomesa.utils.stats.{TimingsImpl, MethodProfiling}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 
 import scala.collection.JavaConversions._
 
@@ -63,16 +63,18 @@ class AccumuloRasterStore(val connector: Connector,
                   val authorizationsProvider: AuthorizationsProvider,
                   val writeVisibilities: String,
                   shardsConfig: Option[Int] = None,
-                  writeMemoryConfig: Option[String] = None,
+                  writeMemoryConfig: Option[Int] = None,
                   writeThreadsConfig: Option[Int] = None,
                   queryThreadsConfig: Option[Int] = None) extends RasterOperations with MethodProfiling with StatWriter {
   //By default having at least as many shards as tservers provides optimal parallelism in queries
   val shards = shardsConfig.getOrElse(connector.instanceOperations().getTabletServers.size())
-  val writeMemory = writeMemoryConfig.getOrElse("10000").toLong
+  val writeMemory = writeMemoryConfig.getOrElse(52428800).toLong
   val writeThreads = writeThreadsConfig.getOrElse(10)
-  val bwConfig: BatchWriterConfig =
-    new BatchWriterConfig().setMaxMemory(writeMemory).setMaxWriteThreads(writeThreads)
   val numQThreads = queryThreadsConfig.getOrElse(20)
+  val bwConfig: BatchWriterConfig =
+    new BatchWriterConfig().setMaxMemory(writeMemory)
+      .setMaxWriteThreads(writeThreads)
+      .setMaxLatency(30, TimeUnit.SECONDS)
 
   // TODO: WCS: GEOMESA-585 Add ability to use arbitrary schemas
   val schema = RasterIndexSchema("")
@@ -216,8 +218,13 @@ class AccumuloRasterStore(val connector: Connector,
     mutation
   }
 
-  def putRasters(rasters: Seq[Raster]) {
-    rasters.foreach { putRaster(_) }
+  def putRasters(rasters: Iterator[Raster]) {
+    val multiWriter = connector.createMultiTableBatchWriter(bwConfig)
+    val dataWriter = multiWriter.getBatchWriter(tableName)
+    val metaWriter = multiWriter.getBatchWriter(GEOMESA_RASTER_BOUNDS_TABLE)
+    rasters.foreach{r => dataWriter.addMutation(createMutation(r)); metaWriter.addMutation(createBoundsMutation(r))}
+    multiWriter.flush()
+    multiWriter.close()
   }
 
   def putRaster(raster: Raster) {
@@ -290,7 +297,7 @@ object AccumuloRasterStore {
             writeVisibilities: String,
             useMock: Boolean = false,
             shardsConfig: Option[Int] = None,
-            writeMemoryConfig: Option[String] = None,
+            writeMemoryConfig: Option[Int] = None,
             writeThreadsConfig: Option[Int] = None,
             queryThreadsConfig: Option[Int] = None): AccumuloRasterStore = {
 

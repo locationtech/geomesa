@@ -113,7 +113,7 @@ class IngestRasterCommand(parent: JCommander) extends Command with AccumuloPrope
       IngestRasterParams.FORMAT            -> Some(Option(params.format).getOrElse(getFormat(new File(params.file)))),
       IngestRasterParams.GEOSERVER_REG     -> Option(params.geoserverConf),
       IngestRasterParams.TIME              -> Option(params.timeStamp),
-      IngestRasterParams.WRITE_MEMORY      -> Option(params.writeMemory),
+      IngestRasterParams.WRITE_MEMORY      -> Option(params.writeMemory).map(_.toString),
       IngestRasterParams.WRITE_THREADS     -> Option(params.writeThreads).map(_.toString),
       IngestRasterParams.QUERY_THREADS     -> Option(params.queryThreads).map(_.toString),
       IngestRasterParams.SHARDS            -> Option(params.numShards).map(_.toString),
@@ -159,7 +159,7 @@ object IngestRasterCommand {
     @Parameter(names = Array("-tm", "--timestamp"), description = "Ingestion time (default to current time)")
     var timeStamp: String = null
 
-    @Parameter(names = Array("-par", "--parallel-level"), description = "Maximum number of local " +
+    @Parameter(names = Array("-par", "--parallel-level"), description = " -DEPRECATED-FOR-LOCAL-INGEST Maximum number of local " +
       "threads for ingesting multiple raster files (default to 1)")
     var parLevel: Integer = 1
 

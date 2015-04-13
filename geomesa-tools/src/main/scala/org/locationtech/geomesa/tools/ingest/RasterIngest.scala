@@ -45,7 +45,7 @@ trait RasterIngest extends Logging {
       dsp.visibilityParam.getName   -> config(IngestRasterParams.VISIBILITIES),
       dsp.shardsParam.getName       -> config(IngestRasterParams.SHARDS),
       dsp.writeMemoryParam.getName  -> config(IngestRasterParams.WRITE_MEMORY),
-      dsp.writeThreadsParam         -> config(IngestRasterParams.WRITE_THREADS),
+      dsp.writeThreadsParam.getName -> config(IngestRasterParams.WRITE_THREADS),
       dsp.queryThreadsParam.getName -> config(IngestRasterParams.QUERY_THREADS),
       dsp.mockParam.getName         -> config(IngestRasterParams.ACCUMULO_MOCK)
     ).collect {

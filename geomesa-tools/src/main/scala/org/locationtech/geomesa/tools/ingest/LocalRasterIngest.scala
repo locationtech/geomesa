@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.tools.ingest
 
-import java.io.{FilenameFilter, File}
+import java.io.{File, FilenameFilter}
 
 import org.geotools.coverage.grid.GridCoverage2D
 import org.joda.time.format.DateTimeFormat
@@ -25,11 +25,10 @@ import org.locationtech.geomesa.core.index.DecodedIndex
 import org.locationtech.geomesa.raster.data.Raster
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
-import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.locationtech.geomesa.tools.Utils.Formats._
+import org.locationtech.geomesa.utils.geohash.BoundingBox
 
-import scala.collection.parallel.ForkJoinTaskSupport
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class LocalRasterIngest(config: Map[String, Option[String]]) extends RasterIngest {
 
@@ -50,36 +49,33 @@ class LocalRasterIngest(config: Map[String, Option[String]]) extends RasterInges
            override def accept(dir: File, name: String) =
              getFileExtension(name).endsWith(fileType)
          })
-       else Array(fileOrDir)).par
-
-    files.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(parLevel))
-    files.foreach(ingestRasterFromFile(_))
-
+       else Array(fileOrDir)).toIterator
+    val rasters = files.map(generateRasterFromFile).filter(_.isSuccess).map(_.get)
+    cs.saveRasters(rasters)
     cs.geoserverClientService.foreach { geoserverClientService => {
       geoserverClientService.registerRasterStyles()
       geoserverClientService.registerRaster(rasterName, rasterName, "Raster data", None)
     }}
   }
 
-  def ingestRasterFromFile(file: File) {
+  def ingestRasterFromFile(file: File) = generateRasterFromFile(file) match {
+    case Success(r) => cs.saveRaster(r)
+    case Failure(e) => println(s"Failed to ingest file: ${file.getName}")
+  }
+
+  def generateRasterFromFile(file: File): Try[Raster] = Try {
     val rasterReader = getReader(file, fileType)
     val rasterGrid: GridCoverage2D = rasterReader.read(null)
-
+    rasterReader.dispose()
     val projection = rasterGrid.getCoordinateReferenceSystem.getName.toString
     if (projection != "EPSG:WGS 84") {
       throw new Exception(s"Error, Projection: $projection is unsupported.")
     }
-
     val envelope = rasterGrid.getEnvelope2D
     val bbox = BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
-
-    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime(_)).getOrElse(new DateTime(DateTimeZone.UTC))
+    val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime).getOrElse(new DateTime(DateTimeZone.UTC))
     val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Some(ingestTime.getMillis))
-
-    val res =  RasterUtils.sharedRasterParams(rasterGrid.getGridGeometry, envelope).suggestedQueryResolution
-
-    val raster = Raster(rasterGrid.getRenderedImage, metadata, res)
-
-    cs.saveRaster(raster)
+    val res = RasterUtils.sharedRasterParams(rasterGrid.getGridGeometry, envelope).suggestedQueryResolution
+    Raster(rasterGrid.getRenderedImage, metadata, res)
   }
 }
