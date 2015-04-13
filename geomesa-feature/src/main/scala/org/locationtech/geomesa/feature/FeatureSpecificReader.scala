@@ -32,15 +32,19 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
-class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType, opts: EncodingOptions = EncodingOptions.none) {
+class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType,
+                            opts: EncodingOptions = EncodingOptions.none)
+  extends DatumReader[AvroSimpleFeature] {
 
   def this(sft: SimpleFeatureType) = this(sft, sft)
 
-  val oldSchema = generateSchema(oldType)
+  var oldSchema = generateSchema(oldType)
   val fieldsDesired = DataUtilities.attributeNames(newType).map(encodeAttributeName)
 
   def isDataField(f: Schema.Field) =
     !f.name.equals(FEATURE_ID_AVRO_FIELD_NAME) && !f.name.equals(AVRO_SIMPLE_FEATURE_VERSION)
+
+  override def setSchema(schema: Schema): Unit = oldSchema = schema
 
   val dataFields = oldSchema.getFields.filter { isDataField }
 
@@ -126,11 +130,13 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     sf
   }
 
-  val read: (AvroSimpleFeature, Decoder) => AvroSimpleFeature =
+  private val reader: (AvroSimpleFeature, Decoder) => AvroSimpleFeature =
     if (opts.withUserData)
       readWithUserData
     else
       defaultRead
+
+  override def read(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = reader(reuse, in)
 }
 
 object FeatureSpecificReader {
