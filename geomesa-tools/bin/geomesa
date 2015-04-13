@@ -228,6 +228,7 @@ elif [[ $1 = repl ]]; then
         CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP"
         java ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.repl.GeoMesaShell --local --repl
     fi
+    reset # reset the console - the repl can mess up the colors
 else
     if [[ $1 = debug ]]; then
         GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
