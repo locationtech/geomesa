@@ -10,3 +10,4 @@
 target
 atlassian*
 *.png
+**/src/main/resources/git.properties
