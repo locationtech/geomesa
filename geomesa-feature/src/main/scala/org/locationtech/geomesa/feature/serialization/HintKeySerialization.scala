@@ -52,6 +52,7 @@ object HintKeySerialization {
 
   // Add more keys as needed.
   val keyToId: Map[Hints.Key, String] = Map(
+    Hints.PROVIDED_FID -> "PROVIDED_FID",
     Hints.USE_PROVIDED_FID -> "USE_PROVIDED_FID"
   )
 
