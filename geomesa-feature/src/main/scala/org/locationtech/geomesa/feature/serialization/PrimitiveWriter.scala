@@ -32,6 +32,6 @@ trait PrimitiveWriter[Writer] {
   def writeDate: DatumWriter[Writer, Date]
   def writeBytes: DatumWriter[Writer, Array[Byte]]
 
-  /** A [[DatumReader]] for writing an [[Int]] with postive optimization */
+  /** A [[DatumReader]] for writing an [[Int]] with positive optimization */
   def writePositiveInt: DatumWriter[Writer, Int]
 }

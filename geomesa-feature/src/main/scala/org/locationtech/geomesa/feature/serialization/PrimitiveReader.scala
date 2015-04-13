@@ -32,6 +32,6 @@ trait PrimitiveReader[Reader] {
   def readDate: DatumReader[Reader, Date]
   def readBytes: DatumReader[Reader, Array[Byte]]
 
-  /** A [[DatumReader]] for reading an [[Int]] written with postive optimization. */
+  /** A [[DatumReader]] for reading an [[Int]] written with positive optimization. */
   def readPositiveInt: DatumReader[Reader, Int]
 }

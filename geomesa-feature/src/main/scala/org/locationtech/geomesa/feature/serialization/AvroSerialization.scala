@@ -13,19 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.locationtech.geomesa.feature.serialization.avro
+package org.locationtech.geomesa.feature.serialization
 
 import java.nio.ByteBuffer
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Geometry
-import org.apache.avro.io.Decoder
-import org.locationtech.geomesa.feature.serialization._
+import org.apache.avro.io.{Decoder, Encoder}
+import org.locationtech.geomesa.feature.serialization.AvroSerialization.{NOT_NULL_INDEX, NULL_INDEX}
+
+/** Avro specific serialization logic.
+ */
+object AvroSerialization
+  extends EncodingsCache[Encoder]
+  with DecodingsCache[Decoder] {
+
+  override protected val datumWritersFactory: () => AbstractWriter[Encoder] = () => new AvroWriter()
+  override protected val datumReadersFactory: () => AbstractReader[Decoder] = () => new AvroReader()
+
+//  def getEncodings(sft: SimpleFeatureType)
+
+  val NOT_NULL_INDEX = 0
+  val NULL_INDEX = 1
+}
+
+/** Implemenation of [[AbstractWriter]] for Avro. */
+class AvroWriter extends AbstractWriter[Encoder] {
+
+  override val writeString: DatumWriter[Encoder, String] = (encoder, str) => encoder.writeString(str)
+  override val writeInt: DatumWriter[Encoder, Int] = (encoder, int) => encoder.writeInt(int)
+  override val writePositiveInt: DatumWriter[Encoder, Int] = writeInt // no optimization
+  override val writeLong: DatumWriter[Encoder, Long] = (encoder, long) => encoder.writeLong(long)
+  override val writeFloat: DatumWriter[Encoder, Float] = (encoder, float) => encoder.writeFloat(float)
+  override val writeDouble: DatumWriter[Encoder, Double] = (encoder, double) => encoder.writeDouble(double)
+  override val writeBoolean: DatumWriter[Encoder, Boolean] = (encoder, bool) => encoder.writeBoolean(bool)
+  override val writeDate: DatumWriter[Encoder, Date] = (encoder, date) => encoder.writeLong(date.getTime)
+  override val writeBytes: DatumWriter[Encoder, Array[Byte]] = (encoder, bytes) => encoder.writeBytes(bytes)
+
+  override def writeNullable[T](writeRaw: DatumWriter[Encoder, T]): DatumWriter[Encoder, T] =
+    (encoder, raw) => {
+      if (raw != null) {
+        encoder.writeIndex(NOT_NULL_INDEX)
+        writeRaw(encoder, raw)
+      } else {
+        encoder.writeIndex(NULL_INDEX)
+        encoder.writeNull()
+      }
+  }
+
+  override val writeArrayStart: DatumWriter[Encoder, Int] = (encoder, arrayLen) => {
+    encoder.writeArrayStart()
+    encoder.setItemCount(arrayLen)
+  }
+
+  override val startItem: (Encoder) => Unit = (encoder) => encoder.startItem()
+  override val endArray: (Encoder) => Unit = (encoder) => encoder.writeArrayEnd()
+}
 
 /** Implemenation of [[AbstractReader]] for Avro. */
 class AvroReader extends AbstractReader[Decoder] {
-  import AvroWriter.NOT_NULL_INDEX
 
   override val readString: DatumReader[Decoder, String] = (decoder) => decoder.readString
   override val readInt: DatumReader[Decoder, Int] = (decoder) => decoder.readInt

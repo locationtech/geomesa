@@ -26,7 +26,7 @@ import org.apache.avro.io.{DatumWriter, Encoder}
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.feature.AvroSimpleFeatureUtils._
 import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
-import org.locationtech.geomesa.feature.serialization.avro.AvroSimpleFeatureEncodingsCache
+import org.locationtech.geomesa.feature.serialization.AvroSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: EncodingOptions = EncodingOptions.none)
@@ -82,7 +82,7 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: EncodingOptions = En
   def writeWithUserData(datum: SimpleFeature, out: Encoder) = {
     defaultWrite(datum, out)
 
-    val aw = AvroSimpleFeatureEncodingsCache.getAbstractWriter
+    val aw = AvroSerialization.writer
     aw.writeGenericMap(out, datum.getUserData)
   }
 

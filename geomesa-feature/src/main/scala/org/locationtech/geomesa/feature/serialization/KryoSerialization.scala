@@ -13,18 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.locationtech.geomesa.feature.serialization.kryo
+package org.locationtech.geomesa.feature.serialization
 
 import java.util.Date
 
-import com.esotericsoftware.kryo.io.Output
-import org.locationtech.geomesa.feature.serialization.{AbstractWriter, DatumWriter}
+import com.esotericsoftware.kryo.io.{Input, Output}
+import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.geomesa.feature.serialization.KryoSerialization.{NON_NULL_MARKER_BYTE, NULL_MARKER_BYTE}
+
+
+/** Kryo specific serialization logic.
+  */
+object KryoSerialization
+  extends EncodingsCache[Output]
+  with DecodingsCache[Input] {
+
+  override protected val datumWritersFactory: () => AbstractWriter[Output] = () => new KryoWriter()
+  override protected val datumReadersFactory: () => AbstractReader[Input] = () => new KryoReader()
+
+  lazy val NULL_MARKER_BYTE     = 0.asInstanceOf[Byte]
+  lazy val NON_NULL_MARKER_BYTE = 1.asInstanceOf[Byte]
+}
 
 /** Implemenation of [[AbstractWriter]] for Kryo. */
 class KryoWriter extends AbstractWriter[Output] {
-  import KryoWriter.{NON_NULL_MARKER_BYTE, NULL_MARKER_BYTE}
-  
+
   override val writeString: DatumWriter[Output, String] = (out, str) => out.writeString(str)
   override val writeInt: DatumWriter[Output, Int] = (out, int) => out.writeInt(int)
   override val writePositiveInt: DatumWriter[Output, Int] = (out, int) => out.writeInt(int, true)
@@ -51,10 +64,39 @@ class KryoWriter extends AbstractWriter[Output] {
       out.writeByte(NULL_MARKER_BYTE)
     }
   }
-
 }
 
-object KryoWriter {
-  lazy val NULL_MARKER_BYTE     = 0.asInstanceOf[Byte]
-  lazy val NON_NULL_MARKER_BYTE = 1.asInstanceOf[Byte]
+/** Implemenation of [[AbstractReader]] for Kryo. */
+class KryoReader extends AbstractReader[Input] {
+
+  override val readString: DatumReader[Input, String] = (in) => in.readString
+  override val readInt: DatumReader[Input, Int] = (in) => in.readInt
+  override val readPositiveInt: DatumReader[Input, Int] = (in) => in.readInt(true)
+  override val readLong: DatumReader[Input, Long] = (in) => in.readLong
+  override val readFloat: DatumReader[Input, Float] = (in) => in.readFloat
+  override val readDouble: DatumReader[Input, Double] = (in) => in.readDouble
+  override val readBoolean: DatumReader[Input, Boolean] = (in) => in.readBoolean
+  override val readDate: DatumReader[Input, Date] = (in) => new Date(in.readLong())
+  override val readBytes: DatumReader[Input, Array[Byte]] = (in) => {
+    val len = in.readInt(true)
+    in.readBytes(len)
+  }
+
+  override def readNullable[T](readRaw: DatumReader[Input, T]): DatumReader[Input, T] = (in) => {
+    if (in.readByte() == NON_NULL_MARKER_BYTE) {
+      readRaw(in)
+    } else {
+      null.asInstanceOf[T]
+    }
+  }
+
+  override val readArrayStart: (Input) => Int = (in) => in.readInt
+
+  override def selectGeometryReader(version: Version): DatumReader[Input, Geometry] = {
+    if (version == 0) {
+      readGeometryAsWKB
+    } else {
+      readGeometryDirectly
+    }
+  }
 }

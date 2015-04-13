@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.locationtech.geomesa.feature.serialization.kryo
+package org.locationtech.geomesa.feature.serialization
 
 import java.util.UUID
 
@@ -22,7 +22,6 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.SerializationException
-import org.locationtech.geomesa.feature.serialization.{DatumReader, DatumWriter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.specs2.matcher.MatchResult

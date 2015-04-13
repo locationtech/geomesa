@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.locationtech.geomesa.feature.serialization.kryo
+package org.locationtech.geomesa.feature.serialization
 
 import java.util.UUID
 
+import com.esotericsoftware.kryo.io.Output
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.feature.SerializationException
-import org.locationtech.geomesa.feature.serialization.{HintKeySerialization, AbstractWriter, DatumWriter}
-import com.esotericsoftware.kryo.io.Output
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.feature.SerializationException
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import collection.JavaConverters._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class KryoWriterTest extends Specification with Mockito {
@@ -113,12 +112,12 @@ class KryoWriterTest extends Specification with Mockito {
 
         "that is not null" >> {
           datumWriter(output, 6.asInstanceOf[AnyRef])
-          there was one(output).writeByte(KryoWriter.NON_NULL_MARKER_BYTE) andThen one(output).writeInt(6)
+          there was one(output).writeByte(KryoSerialization.NON_NULL_MARKER_BYTE) andThen one(output).writeInt(6)
         }
 
         "that is null" >> {
           datumWriter(output, null)
-          there was one(output).writeByte(KryoWriter.NULL_MARKER_BYTE) andThen noMoreCallsTo(output)
+          there was one(output).writeByte(KryoSerialization.NULL_MARKER_BYTE) andThen noMoreCallsTo(output)
         }
 
         "a generic value" >> {

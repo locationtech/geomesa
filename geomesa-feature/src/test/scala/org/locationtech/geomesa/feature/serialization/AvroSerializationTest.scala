@@ -13,31 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.locationtech.geomesa.feature.serialization.avro
+package org.locationtech.geomesa.feature.serialization
 
-import org.apache.avro.io.Encoder
+import org.apache.avro.io.{Decoder, Encoder}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.serialization.AbstractWriter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureEncodingsCacheTest extends Specification {
+class AvroSerializationTest extends Specification {
 
   sequential
 
-  "cache" should {
+  "encodings cache" should {
+
+    "create a reader" >> {
+      val reader: AbstractReader[Decoder] = AvroSerialization.reader
+      reader must not(beNull)
+    }
+
+    "create encodings" >> {
+      val sft = SimpleFeatureTypes.createType("test type", "name:String,*geom:Point,dtg:Date")
+      val encodings = AvroSerialization.decodings(sft).forVersion(version = 1)
+      encodings must haveSize(3)
+    }
+  }
+
+  "decodings cache" should {
 
     "create a writer" >> {
-      val writer: AbstractWriter[Encoder] = AvroSimpleFeatureEncodingsCache.getAbstractWriter
+      val writer: AbstractWriter[Encoder] = AvroSerialization.writer
       writer must not(beNull)
     }
 
     "create encodings" >> {
       val sft = SimpleFeatureTypes.createType("test type", "name:String,*geom:Point,dtg:Date")
-      val encodings = AvroSimpleFeatureEncodingsCache.get(sft).attributeEncodings
+      val encodings = AvroSerialization.encodings(sft)
       encodings must haveSize(3)
     }
   }
 }
+
