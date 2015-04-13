@@ -49,11 +49,11 @@ class KryoReader extends AbstractReader[Input] {
 
   override val readArrayStart: (Input) => Int = (in) => in.readInt
 
-  override def readGeometry: DatumReader[Input, Geometry] = (in) => {
+  override def selectGeometryReader(version: Version): DatumReader[Input, Geometry] = {
     if (version == 0) {
-      readGeometryAsWKB(in)
+      readGeometryAsWKB
     } else {
-      readGeometryDirectly(in)
+      readGeometryDirectly
     }
   }
 }

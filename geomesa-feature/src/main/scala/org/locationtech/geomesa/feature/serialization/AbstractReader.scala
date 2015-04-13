@@ -24,8 +24,7 @@ import org.locationtech.geomesa.feature.serialization.AbstractWriter.NULL_MARKER
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 
 /** Combines all readers.
-  * 
-  * Not thread safe.
+  *
   */
 trait AbstractReader[Reader]
   extends PrimitiveReader[Reader]
@@ -33,9 +32,6 @@ trait AbstractReader[Reader]
   with CollectionReader[Reader]
   with GeometryReader[Reader]
   with HintKeyReader[Reader] {
-
-  /** Holds the serialization version number currently being read.  Must be managed externally. */
-  var version: Version = -1
 
   def readUUID: DatumReader[Reader, UUID] = (in: Reader) =>  {
     val mostSignificantBits = readLong(in)
@@ -46,14 +42,14 @@ trait AbstractReader[Reader]
   /** A [[DatumReader]] which reads a class name and then an object of that class.  If the class name is a null marker
     * then ``null`` will be returned.
     */
-  def readGeneric: DatumReader[Reader, AnyRef] = (reader) => {
+  def readGeneric(version: Version): DatumReader[Reader, AnyRef] = (reader) => {
     val className = readString(reader)
 
     if (className == NULL_MARKER_STR) {
       null
     } else {
       val clazz = Class.forName(className)
-      selectReader(clazz).apply(reader)
+      selectReader(clazz, version).apply(reader)
     }
   }
 
@@ -61,13 +57,13 @@ trait AbstractReader[Reader]
    * A [[DatumReader]] for reading a map where the key and values may be any type.  The map may not be null. The reader
    * will call ``readArrayStart(reader)`` and then, for each entry, read up to four items.
    */
-  def readGenericMap: DatumReader[Reader, JMap[AnyRef, AnyRef]] = (reader) => {
+  def readGenericMap(version: Version): DatumReader[Reader, JMap[AnyRef, AnyRef]] = (reader) => {
     var toRead = readArrayStart(reader)
     val map = new java.util.HashMap[AnyRef, AnyRef](toRead)
 
     while (toRead > 0) {
-      val key = readGeneric(reader)
-      val value = readGeneric(reader)
+      val key = readGeneric(version).apply(reader)
+      val value = readGeneric(version).apply(reader)
 
       map.put(key, value)
       toRead -= 1
@@ -77,41 +73,44 @@ trait AbstractReader[Reader]
   }
 
   /**
-   * @param clazz the [[Class]] of the object to be read
+   * @param cls the [[Class]] of the object to be read
    * @return a [[DatumReader]] capable of reading object of the given ``clazz``
    */
-  def selectReader(clazz: Class[_], metadata: JMap[_ <: AnyRef, _ <: AnyRef] = JCollections.emptyMap(),
+  def selectReader(cls: Class[_], version: Version,
+                   metadata: JMap[_ <: AnyRef, _ <: AnyRef] = JCollections.emptyMap(),
                    isNullable: isNullableFn = notNullable): DatumReader[Reader, AnyRef] = {
 
-    val reader: DatumReader[Reader, AnyRef] = clazz match {
-      case cls if classOf[java.lang.String].isAssignableFrom(cls) => readString
-      case cls if classOf[java.lang.Integer].isAssignableFrom(cls) => readInt.asInstanceOf[DatumReader[Reader, AnyRef]]
-      case cls if classOf[java.lang.Long].isAssignableFrom(cls) => readLong.asInstanceOf[DatumReader[Reader, AnyRef]]
-      case cls if classOf[java.lang.Float].isAssignableFrom(cls) => readFloat.asInstanceOf[DatumReader[Reader, AnyRef]]
-      case cls if classOf[java.lang.Double].isAssignableFrom(cls) => readDouble.asInstanceOf[DatumReader[Reader, AnyRef]]
-      case cls if classOf[java.lang.Boolean].isAssignableFrom(cls) => readBoolean.asInstanceOf[DatumReader[Reader, AnyRef]]
-      case cls if classOf[java.util.Date].isAssignableFrom(cls) => readDate
+    val reader: DatumReader[Reader, AnyRef] = {
+      if (classOf[java.lang.String].isAssignableFrom(cls)) readString
+      else if (classOf[java.lang.Integer].isAssignableFrom(cls)) readInt
+      else if (classOf[java.lang.Long].isAssignableFrom(cls)) readLong
+      else if (classOf[java.lang.Float].isAssignableFrom(cls)) readFloat
+      else if (classOf[java.lang.Double].isAssignableFrom(cls)) readDouble
+      else if (classOf[java.lang.Boolean].isAssignableFrom(cls)) readBoolean
+      else if (classOf[java.util.Date].isAssignableFrom(cls)) readDate
 
-      case cls if classOf[UUID].isAssignableFrom(cls) => readUUID
-      case cls if classOf[Geometry].isAssignableFrom(cls) => readGeometry
-      case cls if classOf[Hints.Key].isAssignableFrom(cls) => readHintKey
+      else if (classOf[UUID].isAssignableFrom(cls)) readUUID
+      else if (classOf[Geometry].isAssignableFrom(cls)) selectGeometryReader(version)
+      else if (classOf[Hints.Key].isAssignableFrom(cls)) readHintKey
 
-      case cls if classOf[java.util.List[_]].isAssignableFrom(cls) =>
+      else if (classOf[java.util.List[_]].isAssignableFrom(cls)) {
         val elemClass = metadata.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]]
-        val elemReader = selectReader(elemClass, isNullable = isNullable)
+        val elemReader = selectReader(elemClass, version, isNullable = isNullable)
         readList(elemReader)
+      }
 
-      case cls if classOf[java.util.Map[_, _]].isAssignableFrom(cls) =>
-        val keyClass      = metadata.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
-        val valueClass    = metadata.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
-        val keyDecoding   = selectReader(keyClass, isNullable = isNullable)
-        val valueDecoding = selectReader(valueClass, isNullable = isNullable)
+      else if (classOf[java.util.Map[_, _]].isAssignableFrom(cls)) {
+        val keyClass = metadata.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
+        val valueClass = metadata.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
+        val keyDecoding = selectReader(keyClass, version, isNullable = isNullable)
+        val valueDecoding = selectReader(valueClass, version, isNullable = isNullable)
         readMap(keyDecoding, valueDecoding)
+      }
 
-      case _ => throw new IllegalArgumentException("Unsupported class: " + clazz)
-    }
+      else throw new IllegalArgumentException("Unsupported class: " + cls)
+    }.asInstanceOf[DatumReader[Reader, AnyRef]]
 
-    if (isNullable(clazz)) {
+    if (isNullable(cls)) {
       readNullable(reader)
     } else {
       reader

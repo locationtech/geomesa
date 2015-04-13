@@ -18,7 +18,7 @@
 package org.locationtech.geomesa.core.data
 
 import java.io.IOException
-import java.util.{Map => JMap}
+import java.util.{Map => JMap, NoSuchElementException}
 
 import com.google.common.collect.ImmutableSortedSet
 import com.typesafe.scalalogging.slf4j.Logging
@@ -683,11 +683,15 @@ class AccumuloDataStore(val connector: Connector,
   /**
    * Reads the feature encoding from the metadata.
    *
-   * @throws NoSuchElementException if the feature encoding is missing
+   * @throws RuntimeException if the feature encoding is missing or invalid
    */
   def getFeatureEncoding(sft: SimpleFeatureType): FeatureEncoding = {
-    metadata.read(sft.getTypeName, FEATURE_ENCODING_KEY)
-      .map(FeatureEncoding.withName).get
+    val name = metadata.readRequired(sft.getTypeName, FEATURE_ENCODING_KEY)
+    try {
+      FeatureEncoding.withName(name)
+    } catch {
+      case e: NoSuchElementException => throw new RuntimeException(s"Invalid Feature Encoding '$name'.")
+    }
   }
 
   // We assume that they want the bounds for everything.

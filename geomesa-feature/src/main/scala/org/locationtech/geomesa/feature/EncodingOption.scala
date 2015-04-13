@@ -26,7 +26,7 @@ object EncodingOption extends Enumeration {
    * If this [[EncodingOption]] is specified then all user data of the simple feature will be
    * serialized and deserialized.
    */
-  val WITH_USER_DATA = Value("withUserData")
+  val WithUserData = Value
 
 
   implicit class EncodingOptions(val options: Set[EncodingOption]) extends AnyVal {
@@ -38,7 +38,7 @@ object EncodingOption extends Enumeration {
     def contains(value: EncodingOption.Value) = options.contains(value)
 
     /** @return true iff ``this`` contains ``EncodingOption.WITH_USER_DATA`` */
-    def withUserData: Boolean = options.contains(EncodingOption.WITH_USER_DATA)
+    def withUserData: Boolean = options.contains(EncodingOption.WithUserData)
   }
 
   object EncodingOptions {
@@ -51,7 +51,7 @@ object EncodingOption extends Enumeration {
     /**
      * @return a new [[EncodingOptions]] containing just the ``EncodingOption.WITH_USER_DATA`` option
      */
-    def withUserData: EncodingOptions = Set(EncodingOption.WITH_USER_DATA)
+    def withUserData: EncodingOptions = Set(EncodingOption.WithUserData)
   }
 }
 

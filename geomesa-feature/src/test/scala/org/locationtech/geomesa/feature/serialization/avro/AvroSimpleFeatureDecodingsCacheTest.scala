@@ -36,7 +36,7 @@ class AvroSimpleFeatureDecodingsCacheTest extends Specification {
 
     "create encodings" >> {
       val sft = SimpleFeatureTypes.createType("test type", "name:String,*geom:Point,dtg:Date")
-      val encodings = AvroSimpleFeatureDecodingsCache.get(sft).attributeDecodings
+      val encodings = AvroSimpleFeatureDecodingsCache.get(sft).attributeDecodings(version = 1)
       encodings must haveSize(3)
     }
   }

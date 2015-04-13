@@ -30,9 +30,9 @@ trait GeometryReader[Reader] extends PrimitiveReader[Reader] with NullableReader
   private lazy val csFactory = factory.getCoordinateSequenceFactory
 
   /** Selects the correct [[Geometry]] reader, either ``readGeometryDirectly`` or ``readGeometryAsWKB``
-    * depending on the serialization version.
+    * depending on the serialization ``version``.
     */
-  def readGeometry: DatumReader[Reader, Geometry]
+  def selectGeometryReader(version: Version): DatumReader[Reader, Geometry]
 
   /** Selects the correct reader based on the type of geometry.  For use only when reading [[Geometry]] directly. */
   val selectGeometryReader: DatumReader[Reader, Geometry] = (in) => {

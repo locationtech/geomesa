@@ -132,7 +132,7 @@ class KryoReaderTest extends Specification {
       }
 
       "a generic value" >> {
-        val datumReader = reader.readGeneric
+        val datumReader = reader.readGeneric(0)
         val datumWriter = writer.writeGeneric
 
         "that is not null" >> {verify(6.asInstanceOf[AnyRef], datumWriter, datumReader)}
@@ -140,7 +140,7 @@ class KryoReaderTest extends Specification {
       }
 
       "a generic map" >> {
-        val datumReader = reader.readGenericMap
+        val datumReader = reader.readGenericMap(1)
         val datumWriter = writer.writeGenericMap
 
         "that is empty" >> {
@@ -160,64 +160,46 @@ class KryoReaderTest extends Specification {
       }
 
       "a point" >> {
-        reader.version = 1
-
         val point = WKTUtils.read("POINT(55.0 49.0)")
-        verify(point, writer.writeGeometry, reader.readGeometry)
+        verify(point, writer.writeGeometry, reader.readGeometryDirectly)
       }
 
       "a line string" >> {
-        reader.version = 1
-
         val point = WKTUtils.read("LINESTRING(0 2, 2 0, 8 6)")
-        verify(point, writer.writeGeometry, reader.readGeometry)
+        verify(point, writer.writeGeometry, reader.readGeometryDirectly)
       }
 
       "a polygon" >> {
-        reader.version = 1
-
         val point = WKTUtils.read("POLYGON((20 10, 30 0, 40 10, 30 20, 20 10))")
-        verify(point, writer.writeGeometry, reader.readGeometry)
+        verify(point, writer.writeGeometry, reader.readGeometryDirectly)
       }
 
       "a polygon with an inner ring" >> {
-        reader.version = 1
-
         val point = WKTUtils.read("POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10),(20 30, 35 35, 30 20, 20 30))")
-        verify(point, writer.writeGeometry, reader.readGeometry)
+        verify(point, writer.writeGeometry, reader.readGeometryDirectly)
       }
 
       "a multi point" >> {
-        reader.version = 1
-
         val point = WKTUtils.read("MULTIPOINT(0 0, 2 2)")
-        verify(point, writer.writeGeometry, reader.readGeometry)
+        verify(point, writer.writeGeometry, reader.readGeometryDirectly)
       }
 
       "a multi line string" >> {
-        reader.version = 1
-
         val point = WKTUtils.read("MULTILINESTRING((0 2, 2 0, 8 6),(0 2, 2 0, 8 6))")
-        verify(point, writer.writeGeometry, reader.readGeometry)
+        verify(point, writer.writeGeometry, reader.readGeometryDirectly)
       }
 
       "a multi polygon" >> {
-        reader.version = 1
-
         val point = WKTUtils.read("MULTIPOLYGON(((-1 0, 0 1, 1 0, 0 -1, -1 0)), ((-2 6, 1 6, 1 3, -2 3, -2 6)), ((-1 5, 2 5, 2 2, -1 2, -1 5)))")
-        verify(point, writer.writeGeometry, reader.readGeometry)
+        verify(point, writer.writeGeometry, reader.readGeometryDirectly)
       }
 
-      "a geomertyr collection" >> {
-        reader.version = 1
-
+      "a geomerty collection" >> {
         val point = WKTUtils.read("GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10))")
-        verify(point, writer.writeGeometry, reader.readGeometry)
+        verify(point, writer.writeGeometry, reader.readGeometryDirectly)
       }
 
       "binary geometry" >> {
-        reader.version = 0
-
         val geom = WKTUtils.read("POLYGON((20 10, 30 0, 40 10, 30 20, 20 10))")
         val bytes = WKBUtils.write(geom)
 
@@ -225,20 +207,18 @@ class KryoReaderTest extends Specification {
         writer.writeBytes(output, bytes)
         input.setBuffer(output.toBytes)
 
-        val result = reader.readGeometry(input)
+        val result = reader.readGeometryAsWKB(input)
         result mustEqual geom
       }
 
       "empty binary geometry" >> {
-        reader.version = 0
-
         val bytes = Array.empty[Byte]
 
         output.clear()
         writer.writeBytes(output, bytes)
         input.setBuffer(output.toBytes)
 
-        val result = reader.readGeometry(input)
+        val result = reader.readGeometryAsWKB(input)
         result must beNull
       }
     }
@@ -246,64 +226,64 @@ class KryoReaderTest extends Specification {
     "be able to select a datum reader" >> {
 
       "for a String" >> {
-        val result = reader.selectReader(classOf[String])
+        val result = reader.selectReader(classOf[String], 0)
         result must be equalTo reader.readString
       }
 
       "for an Integer" >> {
-        val result = reader.selectReader(classOf[java.lang.Integer])
+        val result = reader.selectReader(classOf[java.lang.Integer], 0)
         result must be equalTo reader.readInt.asInstanceOf[DatumReader[Input, AnyRef]]
       }
 
       "for a Long" >> {
-        val result = reader.selectReader(classOf[java.lang.Long])
+        val result = reader.selectReader(classOf[java.lang.Long], 0)
         result must be equalTo reader.readLong.asInstanceOf[DatumReader[Input, AnyRef]]
       }
 
       "for a float" >> {
-        val result = reader.selectReader(classOf[java.lang.Float])
+        val result = reader.selectReader(classOf[java.lang.Float], 0)
         result must be equalTo reader.readFloat.asInstanceOf[DatumReader[Input, AnyRef]]
       }
 
       "for a double" >> {
-        val result = reader.selectReader(classOf[java.lang.Double])
+        val result = reader.selectReader(classOf[java.lang.Double], 0)
         result must be equalTo reader.readDouble.asInstanceOf[DatumReader[Input, AnyRef]]
       }
 
       "for a boolean" >> {
-        val result = reader.selectReader(classOf[java.lang.Boolean])
+        val result = reader.selectReader(classOf[java.lang.Boolean], 0)
         result must be equalTo reader.readBoolean.asInstanceOf[DatumReader[Input, AnyRef]]
       }
 
       "for a date" >> {
-        val result = reader.selectReader(classOf[java.util.Date])
+        val result = reader.selectReader(classOf[java.util.Date], 0)
         result must be equalTo reader.readDate
       }
 
       "for a UUID" >> {
-        val result = reader.selectReader(classOf[UUID])
+        val result = reader.selectReader(classOf[UUID], 0)
         result must not(beNull)
       }
 
       "for a Geometry" >> {
-        val result = reader.selectReader(classOf[Geometry])
+        val result = reader.selectReader(classOf[Geometry], 0)
         result must not(beNull)
       }
 
       "for a hint key" >> {
-        val result = reader.selectReader(classOf[Hints.Key])
+        val result = reader.selectReader(classOf[Hints.Key], 0)
         result must not(beNull)
       }
 
       "for a List" >> {
         "with necessary metadata" >> {
           val metadata = Map(USER_DATA_LIST_TYPE -> classOf[java.util.Date]).asJava
-          val result = reader.selectReader(classOf[java.util.List[java.util.Date]], metadata)
+          val result = reader.selectReader(classOf[java.util.List[java.util.Date]], 0, metadata)
           result must not(beNull)
         }
 
         "with missing metadata" >> {
-          reader.selectReader(classOf[java.util.List[java.util.Date]]) must throwA[NullPointerException]
+          reader.selectReader(classOf[java.util.List[java.util.Date]], 0) must throwA[NullPointerException]
         }
       }
 
@@ -313,18 +293,28 @@ class KryoReaderTest extends Specification {
             USER_DATA_MAP_KEY_TYPE -> classOf[String],
             USER_DATA_MAP_VALUE_TYPE -> classOf[Geometry]
           ).asJava
-          val result = reader.selectReader(classOf[java.util.Map[String, Geometry]], metadata)
+          val result = reader.selectReader(classOf[java.util.Map[String, Geometry]], 0, metadata)
           result must not(beNull)
         }
 
         "with missing metadata" >> {
-          reader.selectReader(classOf[java.util.Map[String, Geometry]]) must throwA[NullPointerException]
+          reader.selectReader(classOf[java.util.Map[String, Geometry]], 0) must throwA[NullPointerException]
         }
       }
     }
 
     "fail to select a datum reader when class is unknown" >> {
-      reader.selectReader(classOf[java.util.Set[Geometry]]) must throwA[IllegalArgumentException]
+      reader.selectReader(classOf[java.util.Set[Geometry]], 0) must throwA[IllegalArgumentException]
+    }
+
+    "read geometry directly for version 1" >> {
+      val result = reader.selectGeometryReader(1)
+      result mustEqual reader.readGeometryDirectly
+    }
+
+    "read geometry as WKB for version 0" >> {
+      val result = reader.selectGeometryReader(0)
+      result mustEqual reader.readGeometryAsWKB
     }
   }
 }

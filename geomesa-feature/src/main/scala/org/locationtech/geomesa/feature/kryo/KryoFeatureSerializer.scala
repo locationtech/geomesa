@@ -55,9 +55,11 @@ object KryoFeatureSerializer {
     apply(new SimpleFeatureSerializer(sft, options))
 
   def apply(sft: SimpleFeatureType, decodeAs: SimpleFeatureType, options: EncodingOptions): KryoFeatureSerializer = {
-    if (sft.eq(decodeAs))
+    if (sft.eq(decodeAs)) {
       apply(sft, options)
-    else apply(new TransformingSimpleFeatureSerializer(sft, decodeAs, options))
+    } else {
+      apply(new TransformingSimpleFeatureSerializer(sft, decodeAs, options))
+    }
   }
 
   def setupKryo(kryo: Kryo, serializer: Serializer[SimpleFeature]): Unit = {

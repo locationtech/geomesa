@@ -45,7 +45,7 @@ object KryoGeometrySerializer extends KryoSerializer[Geometry] {
 }
 
 /**
- * Class for serializing and deserializing geometries. Not thread safe.
+ * Class for serializing and deserializing geometries
  *
  * @param serializer
  */
@@ -67,7 +67,7 @@ class GeometrySerializer extends Serializer[Geometry] {
   }
 
   override def read(kryo: Kryo, input: Input, typ: Class[Geometry]): Geometry = {
-    kryoReader.version = input.readInt(true)
+    input.readInt(true) // not used
     kryoReader.readGeometryDirectly(input)
   }
 }

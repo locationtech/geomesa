@@ -25,7 +25,7 @@ import scala.ref.SoftReference
 /** Provides access to the encodings for a [[SimpleFeatureType]].
  *
  */
-class SimpleFeatureEncodings[Writer](val datumWriters: AbstractWriter[Writer], val sft: SimpleFeatureType) {
+case class SimpleFeatureEncodings[Writer](datumWriters: AbstractWriter[Writer], sft: SimpleFeatureType) {
 
   type AttributeEncoding = (Writer, SimpleFeature) => Unit
 
@@ -39,7 +39,7 @@ class SimpleFeatureEncodings[Writer](val datumWriters: AbstractWriter[Writer], v
       @inline def encode[T](attribClass: Class[T]): AttributeEncoding = {
         val attribWriter: DatumWriter[Writer, T] =
           datumWriters.selectWriter(attribClass, d.getUserData, datumWriters.standardNullable)
-        (writer: Writer, sf: SimpleFeature) => attribWriter(writer, attribClass.cast(sf.getAttribute(i)))
+        (writer: Writer, sf: SimpleFeature) => attribWriter(writer, sf.getAttribute(i).asInstanceOf[T])
       }
 
       encode(d.getType.getBinding)

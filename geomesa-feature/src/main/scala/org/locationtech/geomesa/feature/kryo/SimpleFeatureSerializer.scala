@@ -21,7 +21,7 @@ import com.esotericsoftware.kryo.{Kryo, Serializer}
 import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.feature.ScalaSimpleFeature
 import org.locationtech.geomesa.feature.serialization.kryo.{KryoSimpleFeatureDecodingsCache, KryoSimpleFeatureEncodingsCache}
-import org.locationtech.geomesa.feature.serialization.{DatumReader, SimpleFeatureDecodings, SimpleFeatureEncodings}
+import org.locationtech.geomesa.feature.serialization.{SimpleFeatureDecodings, SimpleFeatureEncodings}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -47,11 +47,11 @@ class SimpleFeatureSerializer(sft: SimpleFeatureType, opts: EncodingOptions = En
     }
   }
 
-  def readAttributes(input: Input): Array[AnyRef] = {
+  def readAttributes(input: Input, version: Int): Array[AnyRef] = {
     val values = Array.ofDim[AnyRef](sft.getAttributeCount)
     var i = 0
 
-    val attributeDecodings = decodings.attributeDecodings
+    val attributeDecodings = decodings.attributeDecodings(version)
     while (i < attributeDecodings.length) {
       values(i) = attributeDecodings(i)(input)
       i += 1
@@ -80,17 +80,17 @@ class FeatureIdSerializer extends Serializer[KryoFeatureId] {
  * @param sft
  * @param transform
  */
-class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: SimpleFeatureType, options: EncodingOptions)
-    extends BaseSimpleFeatureSerializer(transform, options) {
+class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: SimpleFeatureType,
+                                          options: EncodingOptions)
+  extends BaseSimpleFeatureSerializer(transform, options) {
 
   type AttributeEncoding = SimpleFeatureEncodings[Output]#AttributeEncoding
 
-  val (transformEncodings, transformDecodings) = {
+  val (transformEncodings, transformDecodingsMapping) = {
     val encodings = KryoSimpleFeatureEncodingsCache.get(sft).attributeEncodings
-    val decodings = KryoSimpleFeatureDecodingsCache.get(sft).attributeDecodings
 
     val enc = scala.collection.mutable.ArrayBuffer.empty[AttributeEncoding]
-    val dec = scala.collection.mutable.ArrayBuffer.empty[(DatumReader[Input, AnyRef], Int)]
+    val dec = scala.collection.mutable.ArrayBuffer.empty[Int]
 
     var i = 0
     while (i < encodings.length) {
@@ -98,11 +98,13 @@ class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: Sim
       if (index != -1) {
         enc.append(encodings(i))
       }
-      dec.append((decodings(i), index))
+      dec.append(index)
       i += 1
     }
     (enc, dec)
   }
+
+  val decodings: SimpleFeatureDecodings[Input] = KryoSimpleFeatureDecodingsCache.get(sft)
 
   override def writeAttributes(output: Output, sf: SimpleFeature): Unit = {
     var i = 0
@@ -112,11 +114,14 @@ class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: Sim
     }
   }
 
-  override def readAttributes(input: Input): Array[AnyRef] = {
+  override def readAttributes(input: Input, version: Int): Array[AnyRef] = {
     val values = Array.ofDim[AnyRef](transform.getAttributeCount)
     var i = 0
+
+    val transformDecodings = decodings.attributeDecodings(version)
     while (i < transformDecodings.length) {
-      val (decoding, index) = transformDecodings(i)
+      val decoding = transformDecodings(i)
+      val index = transformDecodingsMapping(i)
       if (index == -1) {
         decoding(input) // discard
       } else {
@@ -157,28 +162,28 @@ abstract class BaseSimpleFeatureSerializer(sft: SimpleFeatureType, opts: Encodin
   }
 
   def defaultRead(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
-    // read and store version
     val version = input.readInt(true)
-    KryoSimpleFeatureDecodingsCache.getAbstractReader.version = version
-
     val id = input.readString()
-    val values = readAttributes(input)
+    val values = readAttributes(input, version)
 
     new ScalaSimpleFeature(id, sft, values)
   }
 
   def readWithUserData(kryo: Kryo, input: Input, typ: Class[SimpleFeature]): SimpleFeature = {
-    val sf = defaultRead(kryo, input, typ)
+    val version = input.readInt(true)
+    val id = input.readString()
+    val values = readAttributes(input, version)
+
+    val sf = new ScalaSimpleFeature(id, sft, values)
 
     val kr = KryoSimpleFeatureDecodingsCache.getAbstractReader
-    val userData = kr.readGenericMap(input)
-    sf.getUserData.clear()
+    val userData = kr.readGenericMap(version)(input)
     sf.getUserData.putAll(userData)
     sf
   }
 
   def writeAttributes(output: Output, sf: SimpleFeature)
-  def readAttributes(input: Input): Array[AnyRef]
+  def readAttributes(input: Input, version: Int): Array[AnyRef]
 }
 
 object SimpleFeatureSerializer {

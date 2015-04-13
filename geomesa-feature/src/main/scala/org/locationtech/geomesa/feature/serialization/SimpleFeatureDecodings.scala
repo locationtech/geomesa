@@ -21,21 +21,28 @@ import org.opengis.feature.simple.SimpleFeatureType
 import collection.JavaConversions._
 import CacheKeyGenerator.cacheKeyForSFT
 
+import scala.collection.mutable
 import scala.ref.SoftReference
 
 
 /** Provides access to the decodings for a [[SimpleFeatureType]].
   *
   */
-class SimpleFeatureDecodings[Reader](val datumReaders: AbstractReader[Reader], val sft: SimpleFeatureType) {
+case class SimpleFeatureDecodings[Reader](datumReaders: AbstractReader[Reader], sft: SimpleFeatureType) {
+
+  type DecodingsArray = Array[DatumReader[Reader, AnyRef]]
+
+  private val versionCache = new mutable.HashMap[Version, DecodingsArray]
 
   /**
    * @return a seq of functions to decode the attributes of simple feature
    */
-  lazy val attributeDecodings: Array[DatumReader[Reader, AnyRef]] =
-    sft.getAttributeDescriptors.map { d =>
-      datumReaders.selectReader(d.getType.getBinding, d.getUserData, datumReaders.standardNullable)
-    }.toArray
+  def attributeDecodings(version: Version): DecodingsArray =
+    versionCache.getOrElseUpdate(version, {
+      sft.getAttributeDescriptors.map { d =>
+        datumReaders.selectReader(d.getType.getBinding, version, d.getUserData, datumReaders.standardNullable)
+      }.toArray}
+    )
 }
 
 /** Caches [[SimpleFeatureDecodings]] for multiple [[SimpleFeatureType]]s.

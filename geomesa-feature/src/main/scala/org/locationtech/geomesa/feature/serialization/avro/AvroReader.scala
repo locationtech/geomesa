@@ -69,5 +69,5 @@ class AvroReader extends AbstractReader[Decoder] {
     decoder.readArrayStart.asInstanceOf[Int]
   }
 
-  override val readGeometry: DatumReader[Decoder, Geometry] = readGeometryAsWKB
+  override def selectGeometryReader(version: Version): DatumReader[Decoder, Geometry] = readGeometryAsWKB
 }

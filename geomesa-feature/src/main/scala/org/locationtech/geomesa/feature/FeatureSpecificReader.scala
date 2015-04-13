@@ -99,9 +99,23 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   lazy val v2fieldreaders = buildFieldReaders(Version2Deserializer)
 
   def defaultRead(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
-    // read and store the version
     val serializationVersion = in.readInt()
-    AvroSimpleFeatureDecodingsCache.getAbstractReader.version = serializationVersion
+    readAttributes(in, serializationVersion)
+  }
+
+  def readWithUserData(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
+    val serializationVersion = in.readInt()
+    val sf = readAttributes(in, serializationVersion)
+
+    val ar = AvroSimpleFeatureDecodingsCache.getAbstractReader
+
+    val userData = ar.readGenericMap(serializationVersion)(in)
+    sf.getUserData.putAll(userData)
+
+    sf
+  }
+
+  def readAttributes(in: Decoder, serializationVersion: Int): AvroSimpleFeature = {
 
     // choose the proper deserializer
     val deserializer = serializationVersion match {
@@ -115,18 +129,6 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     // Followed by the data fields
     val sf = new AvroSimpleFeature(id, newType)
     deserializer.foreach { f => f(sf, in) }
-    sf
-  }
-
-  def readWithUserData(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
-    val sf = defaultRead(reuse, in)
-
-    val ar = AvroSimpleFeatureDecodingsCache.getAbstractReader
-
-    val userData = ar.readGenericMap(in)
-    sf.getUserData.clear()
-    sf.getUserData.putAll(userData)
-
     sf
   }
 

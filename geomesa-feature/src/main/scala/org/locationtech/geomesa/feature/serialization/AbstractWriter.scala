@@ -91,17 +91,6 @@ trait AbstractWriter[Writer]
     case _ => true
   }
 
-  /*
-    /**
-   * Finds an encoding function based on the input type
-   *
-   * @param clas
-   * @param metadata
-   * @return
-   */
-  def matchEncode(clas: Class[_], metadata: JMap[AnyRef, AnyRef]): AttributeWriter = clas match {
-   */
-
   /**
    * @param clazz the [[Class]] of the object to be written
    * @tparam T the type of the object to be written
