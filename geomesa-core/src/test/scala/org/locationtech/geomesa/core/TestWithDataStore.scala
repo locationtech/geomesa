@@ -18,13 +18,14 @@ package org.locationtech.geomesa.core
 
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.geotools.data.{Query, DataStoreFinder}
+import org.geotools.data.{Transaction, Query, DataStoreFinder}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
+import org.opengis.filter.Filter
 
 import scala.collection.JavaConverters._
 
@@ -35,13 +36,6 @@ trait TestWithDataStore {
 
   def spec: String
   def dtgField: String = "dtg"
-
-  /**
-   * Return the features you want to populate the data store with
-   *
-   * @return
-   */
-  def getTestFeatures(): Seq[SimpleFeature]
 
   // we use class name to prevent spillage between unit tests in the mock connector
   val sftName = getClass.getSimpleName
@@ -67,17 +61,24 @@ trait TestWithDataStore {
 
   /**
    * Call to load the test features into the data store
-   *
-   * @return
    */
-  def populateFeatures = {
+  def addFeatures(features: Seq[SimpleFeature]): Unit = {
     val featureCollection = new DefaultFeatureCollection(sftName, sft)
-    getTestFeatures().foreach { f =>
+    features.foreach { f =>
       f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       featureCollection.add(f)
     }
     // write the feature to the store
     fs.addFeatures(featureCollection)
+  }
+
+  def clearFeatures(): Unit = {
+    val writer = ds.getFeatureWriter(sftName, Filter.INCLUDE, Transaction.AUTO_COMMIT)
+    while (writer.hasNext) {
+      writer.next()
+      writer.remove()
+    }
+    writer.close()
   }
 
   def explain(query: Query): String = {

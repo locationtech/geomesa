@@ -23,6 +23,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapred.JobConf
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.jobs.scalding._
+import org.locationtech.geomesa.jobs.scalding.taps.{AccumuloScheme, AccumuloTap}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

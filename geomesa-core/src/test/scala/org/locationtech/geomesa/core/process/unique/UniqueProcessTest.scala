@@ -40,7 +40,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
   override val spec = "name:String:index=true,weight:Double:index=true,dtg:Date,*geom:Geometry:srid=4326"
   override val dtgField = "dtg"
 
-  override def getTestFeatures() = {
+  addFeatures({
     val geom = WKTUtils.read("POINT(45.0 49.0)")
 
     val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
@@ -67,9 +67,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       feature.getUserData().asScala(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       feature
     }
-  }
-
-  populateFeatures
+  })
 
   val pl = new NullProgressListener()
 

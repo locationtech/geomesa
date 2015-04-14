@@ -47,6 +47,12 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-accumulo1.5</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-feature-accumulo1.5</artifactId>
+            <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
