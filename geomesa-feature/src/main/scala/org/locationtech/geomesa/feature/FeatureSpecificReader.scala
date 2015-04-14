@@ -21,26 +21,30 @@ import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.avro.Schema
-import org.apache.avro.io.{BinaryDecoder, DatumReader, Decoder, DecoderFactory}
+import org.apache.avro.io._
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.feature.AvroSimpleFeatureUtils._
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.feature.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
+import org.locationtech.geomesa.feature.serialization.AvroSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
-class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType)
+class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType,
+                            opts: EncodingOptions = EncodingOptions.none)
   extends DatumReader[AvroSimpleFeature] {
 
   def this(sft: SimpleFeatureType) = this(sft, sft)
 
   var oldSchema = generateSchema(oldType)
-  val newSchema = generateSchema(newType)
   val fieldsDesired = DataUtilities.attributeNames(newType).map(encodeAttributeName)
 
   def isDataField(f: Schema.Field) =
     !f.name.equals(FEATURE_ID_AVRO_FIELD_NAME) && !f.name.equals(AVRO_SIMPLE_FEATURE_VERSION)
+
+  override def setSchema(schema: Schema): Unit = oldSchema = schema
 
   val dataFields = oldSchema.getFields.filter { isDataField }
 
@@ -50,8 +54,6 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   val nillableAttrs: Set[String] = oldType.getAttributeDescriptors.filter(_.isNillable).map {
       ad => encodeAttributeName(ad.getLocalName)
     }.toSet
-
-  def setSchema(schema:Schema) = oldSchema = schema
 
   def buildFieldReaders(deserializer: ASFDeserializer) =
     oldType.getAttributeDescriptors.map { ad =>
@@ -96,9 +98,26 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
   lazy val v1fieldreaders = buildFieldReaders(Version1Deserializer)
   lazy val v2fieldreaders = buildFieldReaders(Version2Deserializer)
 
-  def read(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
-    // Read the version first and choose the proper deserializer
+  def defaultRead(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
     val serializationVersion = in.readInt()
+    readAttributes(in, serializationVersion)
+  }
+
+  def readWithUserData(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
+    val serializationVersion = in.readInt()
+    val sf = readAttributes(in, serializationVersion)
+
+    val ar = AvroSerialization.reader
+
+    val userData = ar.readGenericMap(serializationVersion)(in)
+    sf.getUserData.putAll(userData)
+
+    sf
+  }
+
+  def readAttributes(in: Decoder, serializationVersion: Int): AvroSimpleFeature = {
+
+    // choose the proper deserializer
     val deserializer = serializationVersion match {
       case 1 => v1fieldreaders
       case 2 => v2fieldreaders
@@ -113,6 +132,13 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     sf
   }
 
+  private val reader: (AvroSimpleFeature, Decoder) => AvroSimpleFeature =
+    if (opts.withUserData)
+      readWithUserData
+    else
+      defaultRead
+
+  override def read(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = reader(reuse, in)
 }
 
 object FeatureSpecificReader {

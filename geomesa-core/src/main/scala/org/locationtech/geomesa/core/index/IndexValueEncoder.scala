@@ -22,7 +22,7 @@ import java.util.{Date, UUID}
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.core
-import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer
+import org.locationtech.geomesa.feature.serialization.CacheKeyGenerator
 import org.locationtech.geomesa.feature.{KryoFeatureEncoder, ScalaSimpleFeature, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
@@ -76,7 +76,7 @@ object IndexValueEncoder {
     apply(sft, Some(transform), version)
 
   def apply(sft: SimpleFeatureType, transform: Option[SimpleFeatureType], version: Int): IndexValueEncoder = {
-    val key = SimpleFeatureSerializer.cacheKeyForSFT(sft)
+    val key = CacheKeyGenerator.cacheKeyForSFT(sft)
     val (indexSft, attributes) = cache.getOrElseUpdate(key, (getIndexSft(sft), getIndexValueFields(sft)))
 
     if (version < 4) { // kryo encoding introduced in version 4
@@ -264,7 +264,7 @@ object OldIndexValueEncoder {
   // gets a cached instance to avoid the initialization overhead
   // we use sft.toString, which includes the fields and type name, as a unique key
   def apply(sft: SimpleFeatureType, transform: SimpleFeatureType) = {
-    val key = SimpleFeatureSerializer.cacheKeyForSFT(sft) + SimpleFeatureSerializer.cacheKeyForSFT(transform)
+    val key = CacheKeyGenerator.cacheKeyForSFT(sft) + CacheKeyGenerator.cacheKeyForSFT(transform)
     cache.get.getOrElseUpdate(key, new OldIndexValueEncoder(sft, transform, getSchema(sft)))
   }
 

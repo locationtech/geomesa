@@ -16,12 +16,10 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import java.util
-
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
 import org.apache.accumulo.core.Constants
-import org.apache.accumulo.core.data.{Mutation, Key, Value}
+import org.apache.accumulo.core.data.{Mutation, Value}
 import org.geotools.data.DataStore
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
@@ -30,12 +28,11 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.{AccumuloFeatureStore, INTERNAL_GEOMESA_VERSION}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, SimpleFeatureEncoder}
+import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, FeatureEncoding, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.util.Random
 
@@ -107,7 +104,7 @@ object TestData extends Logging {
   // This is a quick trick to make sure that the userData is set.
   lazy val featureType: SimpleFeatureType = getFeatureType()
 
-  lazy val featureEncoder = SimpleFeatureEncoder(getFeatureType(), "avro")
+  lazy val featureEncoder = SimpleFeatureEncoder(getFeatureType(), FeatureEncoding.AVRO)
   lazy val indexValueEncoder = IndexValueEncoder(featureType, INTERNAL_GEOMESA_VERSION)
 
   lazy val indexEncoder = IndexSchema.buildKeyEncoder(featureType, schemaEncoding)

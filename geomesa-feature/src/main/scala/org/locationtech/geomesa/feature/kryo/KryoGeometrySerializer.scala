@@ -20,7 +20,8 @@ import java.io.{InputStream, OutputStream}
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
-import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
+import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.geomesa.feature.serialization.{KryoReader, KryoWriter}
 
 import scala.ref.SoftReference
 
@@ -44,29 +45,29 @@ object KryoGeometrySerializer extends KryoSerializer[Geometry] {
 }
 
 /**
- * Class for serializing and deserializing geometries. Not thread safe.
+ * Class for serializing and deserializing geometries
  *
  * @param serializer
  */
 case class KryoGeometrySerializer(serializer: Serializer[Geometry]) extends KryoSerializerBase[Geometry]
 
 /**
- * Kryo serializer for geometries
+ * Kryo serializer for geometries.  Not thread safe.
  */
 class GeometrySerializer extends Serializer[Geometry] {
 
   import org.locationtech.geomesa.feature.kryo.SimpleFeatureSerializer._
 
-  val factory = new GeometryFactory()
-  val csFactory = factory.getCoordinateSequenceFactory
+  lazy val kryoReader = new KryoReader()
+  lazy val kryoWriter = new KryoWriter()
 
   override def write(kryo: Kryo, output: Output, geom: Geometry): Unit = {
     output.writeInt(VERSION, true)
-    writeGeometry(output, geom)
+    kryoWriter.writeGeometry(output, geom)
   }
 
   override def read(kryo: Kryo, input: Input, typ: Class[Geometry]): Geometry = {
     input.readInt(true) // not used
-    readGeometry(input, factory, csFactory)
+    kryoReader.readGeometryDirectly(input)
   }
 }
