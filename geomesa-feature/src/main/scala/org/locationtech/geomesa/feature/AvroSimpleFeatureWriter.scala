@@ -25,11 +25,11 @@ import org.apache.avro.Schema.Type._
 import org.apache.avro.io.{DatumWriter, Encoder}
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.feature.AvroSimpleFeatureUtils._
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
+import org.locationtech.geomesa.feature.serialization.AvroSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
-
-class AvroSimpleFeatureWriter(sft: SimpleFeatureType)
+class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: EncodingOptions = EncodingOptions.none)
   extends DatumWriter[SimpleFeature] {
 
   private var schema: Schema = generateSchema(sft)
@@ -38,7 +38,7 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType)
 
   override def setSchema(s: Schema): Unit = schema = s
 
-  override def write(datum: SimpleFeature, out: Encoder): Unit = {
+  def defaultWrite(datum: SimpleFeature, out: Encoder) = {
 
     def rawField(field: Field) = datum.getAttribute(field.pos - 2)
 
@@ -72,12 +72,23 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType)
 
     // Write out fields from Simple Feature
     var i = 2
-    while(i < schema.getFields.length) {
+    while(i < schema.getFields.size()) {
       val f = schema.getFields.get(i)
       write(f.schema, f)
       i += 1
     }
   }
+
+  def writeWithUserData(datum: SimpleFeature, out: Encoder) = {
+    defaultWrite(datum, out)
+
+    val aw = AvroSerialization.writer
+    aw.writeGenericMap(out, datum.getUserData)
+  }
+
+  private val writer: (SimpleFeature, Encoder) => Unit = if (opts.withUserData) writeWithUserData else defaultWrite
+
+  override def write(datum: SimpleFeature, out: Encoder): Unit = writer(datum, out)
 
   private def convertValue(idx: Int, v: AnyRef) = typeMap(names(idx)).conv.apply(v)
 }
