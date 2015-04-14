@@ -37,7 +37,7 @@
         <module>geomesa-compute</module>
         <module>geomesa-assemble</module>
         <module>geomesa-web</module>
-        <module>geomesa-wps</module>
+        <module>geomesa-process</module>
     </modules>
 
     <properties>
@@ -881,7 +881,7 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-wps-accumulo1.5</artifactId>
+                <artifactId>geomesa-process-accumulo1.5</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
