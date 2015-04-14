@@ -81,12 +81,6 @@
                 <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.jvmargs>
             </properties>
         </profile>
-        <profile>
-            <id>build-minicluster</id>
-            <modules>
-                <module>geomesa-minicluster</module>
-            </modules>
-        </profile>
     </profiles>
 
     <distributionManagement>
