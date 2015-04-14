@@ -188,16 +188,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.geoserver.extension</groupId>
-            <artifactId>gs-wps-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket</artifactId>
         </dependency>

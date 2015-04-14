@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.plugin.process
+package org.locationtech.geomesa.process
 
 import java.{util => ju}
 
-import org.geoserver.catalog.{Keyword, Catalog, CatalogBuilder, DataStoreInfo}
+import org.geoserver.catalog.{Catalog, CatalogBuilder, DataStoreInfo, Keyword}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.plugin.wps.GeomesaProcess
 
 import scala.collection.JavaConversions._
 

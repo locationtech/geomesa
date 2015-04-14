@@ -15,7 +15,7 @@
  */
 
 
-package org.locationtech.geomesa.plugin.process
+package org.locationtech.geomesa.process
 
 import org.geotools.data.Query
 import org.geotools.geometry.jts.ReferencedEnvelope

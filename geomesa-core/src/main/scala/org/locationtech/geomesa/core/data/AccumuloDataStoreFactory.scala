@@ -152,9 +152,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     }
   }
 
-  override def getDisplayName = "Accumulo Feature Data Store"
+  override def getDisplayName = "Accumulo (GeoMesa)"
 
-  override def getDescription = "Feature Data store for accumulo"
+  override def getDescription = "Apache Accumulo\u2122 distributed key/value store"
 
   override def getParametersInfo =
     Array(

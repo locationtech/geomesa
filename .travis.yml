@@ -1,7 +1,2 @@
 # See http://about.travis-ci.org/docs/user/build-configuration/
 language: java
-notifications:
-  email:
-    recipients:
-      - skylar@ccri.com
-
