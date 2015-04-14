@@ -23,16 +23,21 @@ import java.util.UUID
 import com.vividsolutions.jts.geom.{LineString, Point, Polygon}
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 import org.geotools.data.DataUtilities
+import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.{Assert, Test}
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.Random
+import org.junit.Assert._
+import org.hamcrest.CoreMatchers._
 
 class FeatureSpecificReaderTest {
 
@@ -297,6 +302,42 @@ class FeatureSpecificReaderTest {
       }
 
     }
+  }
+
+  @Test
+  def testDeserializeWithUserData() = {
+    val sf = createTypeWithGeo
+    val sft = sf.getFeatureType
+
+    val userData = sf.getUserData
+
+    userData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    userData.put(SecurityUtils.FEATURE_VISIBILITY, "USER|ADMIN")
+    userData.put(null, java.lang.Integer.valueOf(5))
+    userData.put(java.lang.Long.valueOf(10), "10")
+    userData.put("null", null)
+
+    // serialize
+    val baos = new ByteArrayOutputStream()
+    val writer = new AvroSimpleFeatureWriter(sft, EncodingOptions.withUserData)
+    val encoder = EncoderFactory.get().binaryEncoder(baos, null)
+    writer.write(sf, encoder)
+    encoder.flush()
+    baos.close()
+
+    val bytes = baos.toByteArray
+
+    // deserialize
+    val bais = new ByteArrayInputStream(bytes)
+    val reader = new FeatureSpecificReader(sft, sft, EncodingOptions.withUserData)
+    val decoder = DecoderFactory.get().binaryDecoder(bytes, 0, bytes.length, null)
+    val result = reader.read(null, decoder)
+
+    assertThat(result, is(not(nullValue[SimpleFeature]())))
+    assertThat(result.getFeatureType, equalTo(sft))
+    assertThat(result.getID, equalTo(sf.getID))
+    assertThat(result.getAttributes, equalTo(sf.getAttributes))
+    assertThat(result.getUserData, equalTo(sf.getUserData))
   }
 
   @Test

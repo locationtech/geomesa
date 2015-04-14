@@ -17,16 +17,23 @@
 package org.locationtech.geomesa.feature
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.UUID
 
 import com.vividsolutions.jts.geom.{Point, Polygon}
-import org.apache.avro.io.{BinaryDecoder, DecoderFactory, EncoderFactory}
+import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactory}
+import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
+import org.locationtech.geomesa.feature.serialization.{HintKeySerialization, AbstractWriter}
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.security.SecurityUtils
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -34,7 +41,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureWriterTest extends Specification {
+class AvroSimpleFeatureWriterTest extends Specification with Mockito {
 
   def createComplicatedFeatures(numFeatures : Int) : List[Version2ASF] = {
     val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,"+
@@ -67,6 +74,20 @@ class AvroSimpleFeatureWriterTest extends Specification {
       list += sf
     }
     list.toList
+  }
+
+  def createSimpleFeature: SimpleFeature = {
+    val sft = SimpleFeatureTypes.createType("AvroSimpleFeatureWriterTest", "name:String,*geom:Point,dtg:Date")
+
+    val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+    builder.reset()
+    builder.set("name", "test_feature")
+    builder.set("geom", WKTUtils.read("POINT(-110 30)"))
+    builder.set("dtg", "2012-01-02T05:06:07.000Z")
+
+    val sf = builder.buildFeature("fid")
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    sf
   }
 
   "AvroSimpleFeatureWriter2" should {
@@ -141,6 +162,60 @@ class AvroSimpleFeatureWriterTest extends Specification {
       success
     }
 
+    "serialize user data when requested" >> {
+      import org.locationtech.geomesa.utils.geotools.Conversions._
+
+      val sf = createSimpleFeature
+
+      val vis = "test&usa"
+      sf.visibility = vis
+
+      val userData = sf.getUserData
+      userData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      userData.put(java.lang.Integer.valueOf(5), null)
+      userData.put(null, "null key")
+
+      val afw = new AvroSimpleFeatureWriter(sf.getType, EncodingOptions.withUserData)
+      val encoder = mock[Encoder]
+
+      afw.write(sf, encoder)
+
+      there was one(encoder).writeArrayStart()
+
+      there was one(encoder).setItemCount(4)
+      there was 4.times(encoder).startItem()
+
+      // 1 key  and 2 values have type String
+      there was three(encoder).writeString("java.lang.String")
+
+      // 1 key  and 0 values have type Hints.Key
+      there was one(encoder).writeString(classOf[Hints.Key].getName)
+
+      // 0 keys and 1 value  have type Boolean
+      there was one(encoder).writeString("java.lang.Boolean")
+
+      // 1 key  and 0 values have type Integer
+      there was one(encoder).writeString("java.lang.Boolean")
+
+      // 1 key  and 1 value  are null
+      there was two(encoder).writeString(AbstractWriter.NULL_MARKER_STR)
+
+      // visibility data
+      there was one(encoder).writeString(SecurityUtils.FEATURE_VISIBILITY)
+      there was one(encoder).writeString(vis)
+
+      // hint data
+      there was one(encoder).writeString(HintKeySerialization.keyToId(Hints.USE_PROVIDED_FID))
+      there was one(encoder).writeBoolean(true)
+
+      // key = 5, value = null
+      there was one(encoder).writeInt(5)
+
+      // key = null, value = "null key"
+      there was one(encoder).writeString("null key")
+
+      there was one(encoder).writeArrayEnd()
+    }
   }
 
 }

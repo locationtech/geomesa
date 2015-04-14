@@ -25,8 +25,8 @@ import org.geotools.feature._
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.core.index
-import org.locationtech.geomesa.core.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.MinMaxTimeVisitor
+import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
