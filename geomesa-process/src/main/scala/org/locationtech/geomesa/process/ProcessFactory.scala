@@ -15,7 +15,7 @@
  */
 
 
-package org.locationtech.geomesa.plugin.process
+package org.locationtech.geomesa.process
 
 import org.geotools.process.factory.AnnotatedBeanProcessFactory
 import org.geotools.text.Text

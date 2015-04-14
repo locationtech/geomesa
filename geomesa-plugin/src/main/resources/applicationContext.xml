@@ -49,16 +49,6 @@
                   value="org.locationtech.geomesa.plugin.wms.CoverageStoreEditPanel"/>
     </bean>
 
-    <bean id="geomesaProcessFactory" class="org.locationtech.geomesa.plugin.wps.GeomesaProcessFactory">
-        <constructor-arg index="0" value="Geomesa Processes"/>
-        <constructor-arg index="1" value="geomesa"/>
-        <constructor-arg index="2" value="org.locationtech.geomesa.plugin.wps.GeomesaProcess"/>
-    </bean>
-
-    <bean id="geomesaImportProcess" class="org.locationtech.geomesa.plugin.process.ImportProcess">
-        <constructor-arg index="0" ref="catalog"/>
-    </bean>
-
   <bean id="binaryViewerOutputFormat" class="org.locationtech.geomesa.plugin.wfs.output.BinaryViewerOutputFormat">
     <constructor-arg ref="geoServer"/>
   </bean>
