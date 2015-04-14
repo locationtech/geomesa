@@ -19,11 +19,10 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-
-    <bean id="geomesaProcessFactory" class="GeomesaProcessFactory">
+    <bean id="geomesaProcessFactory" class="org.locationtech.geomesa.process.GeomesaProcessFactory">
         <constructor-arg index="0" value="Geomesa Processes"/>
         <constructor-arg index="1" value="geomesa"/>
-        <constructor-arg index="2" value="GeomesaProcess"/>
+        <constructor-arg index="2" value="org.locationtech.geomesa.process.GeomesaProcess"/>
     </bean>
 
     <bean id="geomesaImportProcess" class="org.locationtech.geomesa.process.ImportProcess">
