@@ -19,6 +19,7 @@ package org.locationtech.geomesa.jobs.scalding
 import com.twitter.scalding.{Hdfs, Read, Write}
 import org.apache.hadoop.conf.Configuration
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.jobs.scalding.taps.GeoMesaTap
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

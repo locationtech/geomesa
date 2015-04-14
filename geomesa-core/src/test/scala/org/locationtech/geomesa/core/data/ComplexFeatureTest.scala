@@ -52,7 +52,7 @@ class ComplexFeatureTest extends Specification with TestWithDataStore {
       |*geom:Point:srid=4326
     """.stripMargin
 
-  override def getTestFeatures() = {
+  addFeatures({
     // create and add a feature
     val builder = new SimpleFeatureBuilder(sft, CommonFactoryFinder.getFeatureFactory(null))
     builder.addAll(List(
@@ -66,9 +66,7 @@ class ComplexFeatureTest extends Specification with TestWithDataStore {
     val liveFeature = builder.buildFeature("fid-1")
     liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     Seq(liveFeature)
-  }
-
-  populateFeatures
+  })
 
   "SimpleFeatures" should {
 

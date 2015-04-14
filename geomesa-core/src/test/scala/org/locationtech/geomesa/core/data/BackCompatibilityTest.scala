@@ -48,7 +48,7 @@ class BackCompatibilityTest extends Specification with TestWithDataStore {
       |*geom:Point:srid=4326
     """.stripMargin
 
-  override def getTestFeatures() = {
+  def getTestFeatures() = {
     (0 until 10).map { i =>
       val name = s"name$i"
       val age = java.lang.Integer.valueOf(10 + i)

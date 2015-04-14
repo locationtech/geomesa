@@ -16,6 +16,8 @@
 
 package org.locationtech.geomesa.jobs
 
+import java.util.Properties
+
 import cascading.scheme.Scheme
 import cascading.tap.Tap
 import com.twitter.scalding.Args
@@ -38,12 +40,16 @@ package object scalding {
   type MutOutputCollector = OutputCollector[Text, Mutation]
   type AccTap = Tap[JobConf, KVRecordReader, MutOutputCollector]
   type AccScheme = Scheme[JobConf, KVRecordReader, MutOutputCollector, Array[Any], Array[Any]]
+  type AccLocalTap = Tap[Properties, KVRecordReader, MutOutputCollector]
+  type AccLocalScheme = Scheme[Properties, KVRecordReader, MutOutputCollector, Array[Any], Array[Any]]
 
   type GMRecordReader = RecordReader[Text, SimpleFeature]
   type GMRecordWriter = RecordWriter[Text, SimpleFeature]
   type GMOutputCollector = OutputCollector[Text, SimpleFeature]
   type GMTap = Tap[JobConf, GMRecordReader, GMOutputCollector]
   type GMScheme = Scheme[JobConf, GMRecordReader, GMOutputCollector, Array[Any], Array[Any]]
+  type GMLocalTap = Tap[Properties, GMRecordReader, GMOutputCollector]
+  type GMLocalScheme = Scheme[Properties, GMRecordReader, GMOutputCollector, Array[Any], Array[Any]]
 
   object ConnectionParams {
 
