@@ -28,9 +28,9 @@ class CoverageFormat extends AbstractGridFormat {
   mInfo = new java.util.HashMap[String, String]()
   mInfo.put("name", "Accumulo Coverage Format")
   mInfo.put("description", "Serve tile imagery from Accumulo tables with a specific format")
-  mInfo.put("vendor", "CCRI")
-  mInfo.put("docURL", "http://www.ccri.com")
-  mInfo.put("version", "2.0")
+  mInfo.put("vendor", "GeoMesa")
+  mInfo.put("docURL", "http://www.geomesa.org")
+  mInfo.put("version", "1.0")
 
   val parameterDescriptors =
     Array[GeneralParameterDescriptor](AbstractGridFormat.READ_GRIDGEOMETRY2D, AbstractGridFormat.TIME)
