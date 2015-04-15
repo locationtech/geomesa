@@ -28,13 +28,10 @@ import kafka.producer.{Producer, ProducerConfig}
 import kafka.utils.ZKStringSerializer
 import org.I0Itec.zkclient.ZkClient
 import org.I0Itec.zkclient.exception.ZkNodeExistsException
-import org.apache.commons.lang3.RandomStringUtils
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.geotools.feature.NameImpl
-import org.locationtech.geomesa.feature.AvroFeatureDecoder
-import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -122,11 +119,7 @@ class KafkaDataStore(broker: String,
       val topic = entry.getTypeName
       val eb = new EventBus(topic)
       val sft = schemaCache.get(topic)
-      val groupId = RandomStringUtils.randomAlphanumeric(5)
-      val decoder = new AvroFeatureDecoder(sft, EncodingOptions.withUserData)
-      // create a producer that reads from kafka and sends to the event bus
-      val producer = new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
-      new KafkaConsumerFeatureSource(entry, sft, eb, null, expiry, expirationPeriod)
+      new KafkaConsumerFeatureSource(entry, sft, eb, null, topic, zookeepers, expiry, expirationPeriod)
     } else null
   }
 

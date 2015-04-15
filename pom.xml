@@ -38,6 +38,7 @@
         <module>geomesa-assemble</module>
         <module>geomesa-web</module>
         <module>geomesa-process</module>
+        <module>geomesa-stream</module>
     </modules>
 
     <properties>
@@ -897,6 +898,11 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-web-core-accumulo1.5</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-stream-geoserver-plugin-accumulo1.5</artifactId>
+                <version>1.0.0-rc.6-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

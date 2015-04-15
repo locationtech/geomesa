@@ -27,6 +27,7 @@ import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import kafka.consumer.{Consumer, ConsumerConfig, Whitelist}
 import kafka.producer.KeyedMessage
 import kafka.serializer.DefaultDecoder
+import org.apache.commons.lang3.RandomStringUtils
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FilteringFeatureReader, Query}
@@ -37,6 +38,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.feature.AvroFeatureDecoder
+import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -51,12 +53,19 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
                                  schema: SimpleFeatureType,
                                  eb: EventBus,
                                  query: Query,
+                                 topic: String,
+                                 zookeepers: String,
                                  expiry: Boolean,
                                  expirationPeriod: Long)
   extends ContentFeatureStore(entry, query) {
 
   type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
   var qt = new SynchronizedQuadtree
+
+  val groupId = RandomStringUtils.randomAlphanumeric(5)
+  val decoder = new AvroFeatureDecoder(schema, EncodingOptions.withUserData)
+  // create a producer that reads from kafka and sends to the event bus
+  new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
 
   case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
     override def hashCode(): Int = sf.hashCode()
