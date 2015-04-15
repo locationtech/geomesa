@@ -47,7 +47,7 @@ trait RasterOperations extends StrategyHelpers {
   def getAuths(): Authorizations
   def getVisibility(): String
   def getConnector(): Connector
-  def getRasters(rasterQuery: RasterQuery): Iterator[Raster]
+  def getRasters(rasterQuery: RasterQuery)(implicit timings: Option[TimingsImpl] = None): Iterator[Raster]
   def getQueryRecords(numRecords: Int): Iterator[String]
   def putRaster(raster: Raster): Unit
   def getBounds(): BoundingBox
@@ -65,7 +65,8 @@ class AccumuloRasterStore(val connector: Connector,
                   shardsConfig: Option[Int] = None,
                   writeMemoryConfig: Option[String] = None,
                   writeThreadsConfig: Option[Int] = None,
-                  queryThreadsConfig: Option[Int] = None) extends RasterOperations with MethodProfiling with StatWriter {
+                  queryThreadsConfig: Option[Int] = None,
+                  collectStats: Boolean = false) extends RasterOperations with MethodProfiling with StatWriter {
   //By default having at least as many shards as tservers provides optimal parallelism in queries
   val shards = shardsConfig.getOrElse(connector.instanceOperations().getTabletServers.size())
   val writeMemory = writeMemoryConfig.getOrElse("10000").toLong
@@ -91,41 +92,45 @@ class AccumuloRasterStore(val connector: Connector,
   def getTable() = tableName
 
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams) = {
-    implicit val timings = new TimingsImpl
-    val rasters = getRastersWithTiming(query)
-
-    val (image, numRasters) = profile("mosaic") {
-      RasterUtils.mosaicChunks(rasters,
-                                params.width.toInt,
-                                params.height.toInt,
-                                params.envelope)
-    }
-    val stat = RasterQueryStat(tableName,
-      System.currentTimeMillis(),
-      query.toString,
-      timings.time("planning"),
-      timings.time("scanning") - timings.time("planning"),
-      timings.time("mosaic"),
-      numRasters)
-    this.writeStat(stat, s"${tableName}_queries")
-    image
-  }
-
-  def getRastersWithTiming(rasterQuery: RasterQuery)(implicit timings: TimingsImpl): Iterator[Raster] = {
-    profile("scanning") {
-      val batchScanner = connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, numQThreads)
-      val plan = profile(queryPlanner.getQueryPlan(rasterQuery, getAvailabilityMap), "planning")
-      configureBatchScanner(batchScanner, plan)
-      adaptIteratorToChunks(SelfClosingBatchScanner(batchScanner))
+    if (collectStats) {
+      implicit val timings = new TimingsImpl
+      val rasters = getRasters(query)(Some(timings))
+      val (image, numRasters) = profile("mosaic") {
+        RasterUtils.mosaicChunks(rasters,
+          params.width.toInt,
+          params.height.toInt,
+          params.envelope)
+      }
+      val stat = RasterQueryStat(tableName,
+        System.currentTimeMillis(),
+        query.toString,
+        timings.time("planning"),
+        timings.time("scanning") - timings.time("planning"),
+        timings.time("mosaic"),
+        numRasters)
+      this.writeStat(stat, s"${tableName}_queries")
+      image
+    } else {
+      val rasters = getRasters(query)
+      val (image, _) = RasterUtils.mosaicChunks(rasters, params.width.toInt, params.height.toInt, params.envelope)
+      image
     }
   }
 
   // Consider a no-op timing option to unify getRasters(WithTiming) https://geomesa.atlassian.net/browse/GEOMESA-672
-  def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
-    val batchScanner = connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, numQThreads)
-    val plan = queryPlanner.getQueryPlan(rasterQuery, getAvailabilityMap)
-    configureBatchScanner(batchScanner, plan)
-    adaptIteratorToChunks(SelfClosingBatchScanner(batchScanner))
+  def getRasters(rasterQuery: RasterQuery)(implicit timings: Option[TimingsImpl] = None): Iterator[Raster] = {
+    def getThoseRasters(rq: RasterQuery): Iterator[Raster] = {
+      val batchScanner = connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, numQThreads)
+      val plan = queryPlanner.getQueryPlan(rq, getAvailabilityMap)
+      configureBatchScanner(batchScanner, plan)
+      adaptIteratorToChunks(SelfClosingBatchScanner(batchScanner))
+    }
+
+    timings match {
+      case Some(t) => profile("scanning") {getThoseRasters(rasterQuery)}(t)
+      case None => getThoseRasters(rasterQuery)
+    }
+
   }
 
   def getQueryRecords(numRecords: Int): Iterator[String] = {
@@ -292,14 +297,15 @@ object AccumuloRasterStore {
             shardsConfig: Option[Int] = None,
             writeMemoryConfig: Option[String] = None,
             writeThreadsConfig: Option[Int] = None,
-            queryThreadsConfig: Option[Int] = None): AccumuloRasterStore = {
+            queryThreadsConfig: Option[Int] = None,
+            collectStats: Boolean = false): AccumuloRasterStore = {
 
     val conn = AccumuloStoreHelper.buildAccumuloConnector(username, password, instanceId, zookeepers, useMock)
 
     val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(auths.split(","), conn)
 
     val rasterStore = new AccumuloRasterStore(conn, tableName, authorizationsProvider, writeVisibilities,
-                        shardsConfig, writeMemoryConfig, writeThreadsConfig, queryThreadsConfig)
+                        shardsConfig, writeMemoryConfig, writeThreadsConfig, queryThreadsConfig, collectStats)
     // this will actually create the Accumulo Table
     rasterStore.createTableStructure()
 
