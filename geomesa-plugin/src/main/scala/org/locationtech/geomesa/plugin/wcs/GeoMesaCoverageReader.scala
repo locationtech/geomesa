@@ -35,19 +35,20 @@ import scala.util.Try
 object GeoMesaCoverageReader {
   val GeoServerDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   val DefaultDateString = GeoServerDateFormat.print(new DateTime(DateTimeZone.forID("UTC")))
-  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#zookeepers=([^#]*)(?:#auths=)?([^#]*)(?:#visibilities=)?([^#]*)$""".r
+  val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#zookeepers=([^#]*)(?:#auths=)?([^#]*)(?:#visibilities=)?([^#]*)(?:#collectStats=)?([^#]*)$""".r
 }
 
 import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageReader._
 
 class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridCoverage2DReader() with Logging {
   logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
-  val FORMAT(user, password, instanceId, table, zookeepers, auths, visibilities) = url
+  val FORMAT(user, password, instanceId, table, zookeepers, auths, visibilities, collectStats) = url
   logger.debug(s"extracted user $user, password ********, instance id $instanceId, table $table, zookeepers $zookeepers, auths ********")
-
+  logger.info(s"collectstats: $collectStats")
   coverageName = table
 
-  val ars = AccumuloRasterStore(user, password, instanceId, zookeepers, table, auths, "")
+  val dostats = if (collectStats == "null") false else true
+  val ars = AccumuloRasterStore(user, password, instanceId, zookeepers, table, auths, "", collectStats = dostats)
 
   // TODO: Either this is needed for rasterToCoverages or remove it.
   this.crs = Try(CRS.decode("EPSG:4326")).getOrElse(DefaultGeographicCRS.WGS84)

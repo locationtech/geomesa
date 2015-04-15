@@ -41,6 +41,7 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
   val auths = addTextPanel(paramsModel, new Param("auths", classOf[String], "Authorizations", false))
   val visibilities = addTextPanel(paramsModel, new Param("visibilities", classOf[String], "Visibilities", false))
   val tableName = addTextPanel(paramsModel, new Param("tableName", classOf[String], "The Accumulo Table Name", true))
+  val collectStats = addCheckBoxPanel(paramsModel, new Param("collectStats", classOf[String], "Collect Stats", false))
 
   val dependentFormComponents = Array[FormComponent[_]](instanceId, zookeepers, user, password, auths, visibilities, tableName)
   dependentFormComponents.map(_.setOutputMarkupId(true))
@@ -58,7 +59,7 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
         .append("#zookeepers=").append(zookeepers.getValue)
         .append("#auths=").append(auths.getValue)
         .append("#visibilities=").append(visibilities.getValue)
-
+        .append("#collectStats=").append(collectStats.getValue)
       storeInfo.setURL(sb.toString())
     }
   })
@@ -66,7 +67,7 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
   def parseConnectionParametersFromURL(url: String): JMap[String, String] = {
     val params = new JMap[String, String]
     if (url != null && url.startsWith("accumulo:")) {
-      val FORMAT(user, password, instanceId, table, zookeepers, auths, visibilities) = url
+      val FORMAT(user, password, instanceId, table, zookeepers, auths, visibilities, collectStats) = url
       params.put("user", user)
       params.put("password", password)
       params.put("instanceId", instanceId)
@@ -74,6 +75,7 @@ class GeoMesaCoverageStoreEditPanel(componentId: String, storeEditForm: Form[_])
       params.put("zookeepers", zookeepers)
       params.put("auths", auths)
       params.put("visibilities", visibilities)
+      params.put("collectStats", collectStats)
     }
     params
   }
