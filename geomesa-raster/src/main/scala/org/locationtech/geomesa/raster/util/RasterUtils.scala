@@ -37,8 +37,6 @@ import scala.reflect.runtime.universe._
 
 object RasterUtils {
 
-  val nullImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY)
-
   object IngestRasterParams {
     val ACCUMULO_INSTANCE   = "geomesa-tools.ingestraster.instance"
     val ZOOKEEPERS          = "geomesa-tools.ingestraster.zookeepers"
@@ -131,13 +129,13 @@ object RasterUtils {
 
   def mosaicChunks(chunks: Iterator[Raster], queryWidth: Int, queryHeight: Int, queryEnv: Envelope): (BufferedImage, Int) = {
     if (chunks.isEmpty) {
-      (nullImage, 0)
+      (null, 0)
     } else {
       val firstRaster = chunks.next()
       if (!chunks.hasNext) {
         val croppedRaster = cropRaster(firstRaster, queryEnv)
         croppedRaster match {
-          case None      => (nullImage, 1)
+          case None      => (null, 1)
           case Some(buf) => (scaleBufferedImage(queryWidth, queryHeight, buf), 1)
         }
       } else {
@@ -147,7 +145,7 @@ object RasterUtils {
         val mosaicX = Math.round(queryEnv.getSpan(0) / accumuloRasterXRes).toInt
         val mosaicY = Math.round(queryEnv.getSpan(1) / accumuloRasterYRes).toInt
         if (mosaicX <= 0 || mosaicY <= 0) {
-          (nullImage, 1)
+          (null, 1)
         } else {
           var count = 1
           val mosaic = allocateBufferedImage(mosaicX, mosaicY, firstRaster.chunk)
@@ -166,7 +164,7 @@ object RasterUtils {
     if (image.getWidth == newWidth && image.getHeight == newHeight) {
       image
     } else {
-      if (newWidth < 1 || newHeight < 1) nullImage
+      if (newWidth < 1 || newHeight < 1) null
       else {
         val result = allocateBufferedImage(newWidth, newHeight, image)
         val resGraphics = result.createGraphics()

@@ -55,6 +55,20 @@ class ClosestAcceptableGeoHashTest extends Specification {
       result.get.hash must beEqualTo("d")
     }
 
+    "Given bounds outside the world, return None" in {
+      val bbox = BoundingBox(0, 180, 90, 90)
+
+      val result = GeohashUtils.getClosestAcceptableGeoHash(bbox)
+      result must beNone
+    }
+
+    "Given bounds outside the world again, return None" in {
+      val bbox = BoundingBox(-180, 0, 90, 90)
+
+      val result = GeohashUtils.getClosestAcceptableGeoHash(bbox)
+      result must beNone
+    }
+
     "Given a QLevel 1 BoundingBox '-90.0, -67.5, 22.5, 45.0', the closest acceptable GeoHash must be 'd' " in {
       testClosestAcceptableGeoHash(-90.0, -67.5, 22.5, 45.0, "d") must beTrue
     }
