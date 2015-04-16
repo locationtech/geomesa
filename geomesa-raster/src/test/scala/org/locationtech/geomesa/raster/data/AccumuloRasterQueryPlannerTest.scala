@@ -53,7 +53,7 @@ class AccumuloRasterQueryPlannerTest extends Specification {
 
   def runTest(size: Int, expectedResolution: Double): MatchResult[Double] = {
     val q1 = generateQuery(0, 45, 0, 45, 45.0/size)
-    val qp = arqp.getQueryPlan(q1, dataMap)
+    val qp = arqp.getQueryPlan(q1, dataMap).get
 
     val rangeString = qp.ranges.head.getStartKey.getRow.toString
     val encodedDouble = rangeString.split("~")(1)

@@ -115,8 +115,12 @@ class AccumuloRasterStore(val connector: Connector,
     profile("scanning") {
       val batchScanner = connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, numQThreads)
       val plan = profile(queryPlanner.getQueryPlan(rasterQuery, getAvailabilityMap), "planning")
-      configureBatchScanner(batchScanner, plan)
-      adaptIteratorToChunks(SelfClosingBatchScanner(batchScanner))
+      plan match {
+        case Some(qp) =>
+          configureBatchScanner(batchScanner, qp)
+          adaptIteratorToChunks(SelfClosingBatchScanner(batchScanner))
+        case _        => Iterator.empty
+      }
     }
   }
 
@@ -124,8 +128,12 @@ class AccumuloRasterStore(val connector: Connector,
   def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
     val batchScanner = connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, numQThreads)
     val plan = queryPlanner.getQueryPlan(rasterQuery, getAvailabilityMap)
-    configureBatchScanner(batchScanner, plan)
-    adaptIteratorToChunks(SelfClosingBatchScanner(batchScanner))
+    plan match {
+      case Some(qp) =>
+        configureBatchScanner(batchScanner, qp)
+        adaptIteratorToChunks(SelfClosingBatchScanner(batchScanner))
+      case _        => Iterator.empty
+    }
   }
 
   def getQueryRecords(numRecords: Int): Iterator[String] = {

@@ -38,6 +38,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 // TODO: Constructor needs info to create Row Formatter
 // right now the schema is not used
@@ -52,7 +53,7 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
     case lengthen if expectedLen > hash.length => new ARange(new Text(s"~$res~$hash"), new Text(s"~$res~$hash~"))
   }
 
-  def getQueryPlan(rq: RasterQuery, resAndGeoHashMap: ImmutableSetMultimap[Double, Int]): QueryPlan = {
+  def getQueryPlan(rq: RasterQuery, resAndGeoHashMap: ImmutableSetMultimap[Double, Int]): Option[QueryPlan] = {
     val availableResolutions = resAndGeoHashMap.keys.toList.distinct.sorted
 
     // Step 1. Pick resolution
@@ -80,25 +81,29 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
           val touching = TouchingGeoHashes.touching(gh).map(_.hash)
           (preliminaryHashes ++ touching).distinct
         }
-      case _ => BoundingBox.getGeoHashesFromBoundingBox(rq.bbox)
+      case _ => Try {BoundingBox.getGeoHashesFromBoundingBox(rq.bbox) } getOrElse List.empty[String]
     }
 
     logger.debug(s"RasterQueryPlanner: BBox: ${rq.bbox} has geohashes: $hashes, and has encoded Resolution: $res")
-    println(s"Scanning at res: $selectedRes, with hashes: $hashes")
+    logger.debug(s"Scanning at res: $selectedRes, with hashes: $hashes")
     val r = hashes.map { gh => modifyHashRange(gh, expectedGeoHashLen, res) }.distinct
 
-    // of the Ranges enumerated, get the merge of the overlapping Ranges
-    val rows = ARange.mergeOverlapping(r)
-    println(s"Scanning with ranges: $rows")
+    if (r.isEmpty) {
+      logger.debug(s"RasterQueryPlanner: Query was invalid given BBox: ${rq.bbox}")
+      None
+    } else {
+      // of the Ranges enumerated, get the merge of the overlapping Ranges
+      val rows = ARange.mergeOverlapping(r)
+      logger.debug(s"Scanning with ranges: $rows")
+      // setup the RasterFilteringIterator
+      val cfg = new IteratorSetting(90, "raster-filtering-iterator", classOf[RasterFilteringIterator])
+      configureRasterFilter(cfg, AccumuloRasterQueryPlanner.constructRasterFilter(rq.bbox.geom, indexSFT))
+      configureRasterMetadataFeatureType(cfg, indexSFT)
 
-    // setup the RasterFilteringIterator
-    val cfg = new IteratorSetting(90, "raster-filtering-iterator", classOf[RasterFilteringIterator])
-    configureRasterFilter(cfg, AccumuloRasterQueryPlanner.constructRasterFilter(rq.bbox.geom, indexSFT))
-    configureRasterMetadataFeatureType(cfg, indexSFT)
-
-    // TODO: WCS: setup a CFPlanner to match against a list of strings
-    // ticket is GEOMESA-559
-    QueryPlan(Seq(cfg), rows, Seq())
+      // TODO: WCS: setup a CFPlanner to match against a list of strings
+      // ticket is GEOMESA-559
+      Some(QueryPlan(Seq(cfg), rows, Seq()))
+    }
   }
 
   def selectResolution(suggestedResolution: Double, availableResolutions: List[Double]): Double = {
