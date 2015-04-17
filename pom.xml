@@ -902,7 +902,7 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-stream-geoserver-plugin-accumulo1.5</artifactId>
-                <version>1.0.0-rc.6-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
