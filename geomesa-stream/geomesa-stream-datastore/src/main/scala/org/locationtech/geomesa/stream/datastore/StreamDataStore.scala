@@ -1,8 +1,7 @@
 package org.locationtech.geomesa.stream.datastore
 
 import java.awt.RenderingHints
-import java.util.Collections
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.{CopyOnWriteArrayList, Executors, TimeUnit}
 import java.util.logging.Level
 import java.{util => ju}
 
@@ -63,9 +62,10 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int) extends C
 
   val features: Cache[String, FeatureHolder] = cb.build()
 
-  val listeners = Collections.synchronizedList(Lists.newArrayList[StreamListener]())
+  val listeners = new CopyOnWriteArrayList[StreamListener]()
 
-  Executors.newSingleThreadExecutor().submit(
+  private val executor = Executors.newSingleThreadExecutor()
+  executor.submit(
     new Runnable {
       override def run(): Unit = {
         while(true) {
@@ -97,7 +97,15 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int) extends C
 
   def registerListener(listener: StreamListener): Unit = listeners.add(listener)
 
-  override def createTypeNames(): ju.List[Name] = Lists.newArrayList(sft.getName) 
+  override def createTypeNames(): ju.List[Name] = Lists.newArrayList(sft.getName)
+
+  def close(): Unit = {
+    try {
+      executor.shutdown()
+    } catch {
+      case t: Throwable => // swallow
+    }
+  }
 }
 
 class StreamFeatureStore(entry: ContentEntry,

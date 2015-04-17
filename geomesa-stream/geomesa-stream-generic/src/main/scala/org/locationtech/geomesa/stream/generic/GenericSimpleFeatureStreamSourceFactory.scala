@@ -76,7 +76,8 @@ class GenericSimpleFeatureStreamSource(val ctx: CamelContext,
     new Runnable {
       override def run(): Unit = {
         implicit val ec = new EvaluationContext(null, null)
-        while (true) {
+        var running = true
+        while (running) {
           try {
             val s = inQ.poll(500, TimeUnit.MILLISECONDS)
             if (s != null) {
@@ -88,7 +89,11 @@ class GenericSimpleFeatureStreamSource(val ctx: CamelContext,
               }
             }
           } catch {
-            case t: Throwable => logger.debug("Failed", t)
+            case t: InterruptedException =>
+              running = false
+
+            case t: Throwable =>
+              logger.debug("Failed", t)
           }
         }
       }
