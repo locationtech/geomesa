@@ -38,6 +38,7 @@ import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.feature.AvroFeatureDecoder
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceReTypingSupport
 import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.{Literal, PropertyName}
@@ -53,9 +54,9 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
                                  query: Query,
                                  expiry: Boolean,
                                  expirationPeriod: Long)
-  extends ContentFeatureStore(entry, query) {
+  extends ContentFeatureStore(entry, query)
+  with ContentFeatureSourceReTypingSupport {
 
-  type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
   var qt = new SynchronizedQuadtree
 
   case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
@@ -120,7 +121,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   override def getCountInternal(query: Query): Int =
     getReaderInternal(query).getIterator.size
 
-  override def getReaderInternal(query: Query): FR = getReaderForFilter(query.getFilter)
+  override def getReaderInternal(query: Query): FR = addSupport(query, getReaderForFilter(query.getFilter))
 
   def getReaderForFilter(f: Filter): FR =
     f match {
