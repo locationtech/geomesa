@@ -29,7 +29,7 @@ import kafka.producer.KeyedMessage
 import kafka.serializer.DefaultDecoder
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
-import org.geotools.data.{FeatureReader, FilteringFeatureReader, Query}
+import org.geotools.data.{FilteringFeatureReader, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.filter.FidFilterImpl
@@ -38,7 +38,7 @@ import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.feature.AvroFeatureDecoder
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceReTypingSupport
+import org.locationtech.geomesa.utils.geotools.{ContentFeatureSourceSecuritySupport, ContentFeatureSourceReTypingSupport}
 import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.{Literal, PropertyName}
@@ -55,6 +55,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
                                  expiry: Boolean,
                                  expirationPeriod: Long)
   extends ContentFeatureStore(entry, query)
+  with ContentFeatureSourceSecuritySupport
   with ContentFeatureSourceReTypingSupport {
 
   var qt = new SynchronizedQuadtree
