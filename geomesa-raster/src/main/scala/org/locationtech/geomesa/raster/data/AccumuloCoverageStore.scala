@@ -29,6 +29,7 @@ import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.raster.AccumuloStoreHelper
 import org.locationtech.geomesa.raster.ingest.GeoserverClientService
 import org.locationtech.geomesa.raster.util.RasterUtils._
+import org.locationtech.geomesa.utils.stats.Timings
 
 trait CoverageStore {
   def getAuths: Authorizations
@@ -37,6 +38,7 @@ trait CoverageStore {
   def getTable: String
   def saveRaster(raster: Raster): Unit
   def registerToGeoServer(raster: Raster): Unit
+  def getRasters(rasterQuery: RasterQuery)(implicit timing: Timings): Iterator[Raster]
 }
 
 /**
@@ -64,7 +66,7 @@ class AccumuloCoverageStore(val rasterStore: AccumuloRasterStore,
 
   def getTable = rasterStore.getTable
 
-  def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = rasterStore.getRasters(rasterQuery)
+  def getRasters(rasterQuery: RasterQuery)(implicit timing: Timings): Iterator[Raster] = rasterStore.getRasters(rasterQuery)
 
   def saveRaster(raster: Raster) = rasterStore.putRaster(raster)
 

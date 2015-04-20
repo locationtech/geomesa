@@ -22,6 +22,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.BoundingBox
+import org.locationtech.geomesa.utils.stats.{NoOpTimings, Timings}
 import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -30,6 +31,7 @@ import org.specs2.runner.JUnitRunner
 class QueryAndMosaicTest extends Specification {
   sequential
 
+  implicit val noTime: Timings = new NoOpTimings
   var testIteration = 0
 
   val bboxNorthOf    = BoundingBox(-77.1152343750, -77.104248046875, 43.01220703125, 43.023193359375)
