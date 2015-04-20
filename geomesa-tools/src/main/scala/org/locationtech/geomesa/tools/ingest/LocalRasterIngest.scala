@@ -66,7 +66,6 @@ class LocalRasterIngest(config: Map[String, Option[String]]) extends RasterInges
   def generateRasterFromFile(file: File): Try[Raster] = Try {
     val rasterReader = getReader(file, fileType)
     val rasterGrid: GridCoverage2D = rasterReader.read(null)
-    rasterReader.dispose()
     val projection = rasterGrid.getCoordinateReferenceSystem.getName.toString
     if (projection != "EPSG:WGS 84") {
       throw new Exception(s"Error, Projection: $projection is unsupported.")
@@ -76,6 +75,8 @@ class LocalRasterIngest(config: Map[String, Option[String]]) extends RasterInges
     val ingestTime = config(IngestRasterParams.TIME).map(df.parseDateTime).getOrElse(new DateTime(DateTimeZone.UTC))
     val metadata = DecodedIndex(Raster.getRasterId(rasterName), bbox.geom, Some(ingestTime.getMillis))
     val res = RasterUtils.sharedRasterParams(rasterGrid.getGridGeometry, envelope).suggestedQueryResolution
-    Raster(rasterGrid.getRenderedImage, metadata, res)
+    val raster = Raster(rasterGrid.getRenderedImage, metadata, res)
+    rasterReader.dispose()
+    raster
   }
 }
