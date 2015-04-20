@@ -18,25 +18,25 @@ package org.locationtech.geomesa.raster.data
 
 import java.awt.image.BufferedImage
 import java.util.Map.Entry
-import java.util.concurrent.{TimeUnit, Callable}
+import java.util.concurrent.{Callable, TimeUnit}
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.ImmutableSetMultimap
-import org.apache.accumulo.core.client.{TableExistsException, BatchWriterConfig, Connector}
-import org.apache.accumulo.core.data.{Mutation, Value, Key, Range}
-import org.apache.accumulo.core.security.{TablePermission, Authorizations}
+import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
+import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
+import org.apache.accumulo.core.security.{Authorizations, TablePermission}
 import org.geotools.coverage.grid.GridEnvelope2D
 import org.joda.time.DateTime
 import org.locationtech.geomesa.core.index.StrategyHelpers
 import org.locationtech.geomesa.core.iterators.BBOXCombiner._
 import org.locationtech.geomesa.core.security.AuthorizationsProvider
-import org.locationtech.geomesa.core.stats.{RasterQueryStatTransform, RasterQueryStat, StatWriter}
-import org.locationtech.geomesa.core.util.{SelfClosingScanner, SelfClosingBatchScanner}
+import org.locationtech.geomesa.core.stats.{RasterQueryStat, RasterQueryStatTransform, StatWriter}
+import org.locationtech.geomesa.core.util.{SelfClosingBatchScanner, SelfClosingScanner}
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.BoundingBox
-import org.locationtech.geomesa.utils.stats.{TimingsImpl, MethodProfiling}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, NoOpTimings, Timings, TimingsImpl}
 
 import scala.collection.JavaConversions._
 
@@ -47,7 +47,7 @@ trait RasterOperations extends StrategyHelpers {
   def getAuths(): Authorizations
   def getVisibility(): String
   def getConnector(): Connector
-  def getRasters(rasterQuery: RasterQuery)(implicit timings: Option[TimingsImpl] = None): Iterator[Raster]
+  def getRasters(rasterQuery: RasterQuery)(implicit timings: Timings): Iterator[Raster]
   def getQueryRecords(numRecords: Int): Iterator[String]
   def putRaster(raster: Raster): Unit
   def getBounds(): BoundingBox
@@ -92,15 +92,12 @@ class AccumuloRasterStore(val connector: Connector,
   def getTable() = tableName
 
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams) = {
-    if (collectStats) {
-      implicit val timings = new TimingsImpl
-      val rasters = getRasters(query)(Some(timings))
-      val (image, numRasters) = profile("mosaic") {
-        RasterUtils.mosaicChunks(rasters,
-          params.width.toInt,
-          params.height.toInt,
-          params.envelope)
+    implicit val timings = if (collectStats) new TimingsImpl else new NoOpTimings
+    val rasters = getRasters(query)
+    val (image, numRasters) = profile("mosaic") {
+        RasterUtils.mosaicChunks(rasters, params.width.toInt, params.height.toInt, params.envelope)
       }
+    if (timings.isInstanceOf[TimingsImpl]) {
       val stat = RasterQueryStat(tableName,
         System.currentTimeMillis(),
         query.toString,
@@ -109,28 +106,17 @@ class AccumuloRasterStore(val connector: Connector,
         timings.time("mosaic"),
         numRasters)
       this.writeStat(stat, s"${tableName}_queries")
-      image
-    } else {
-      val rasters = getRasters(query)
-      val (image, _) = RasterUtils.mosaicChunks(rasters, params.width.toInt, params.height.toInt, params.envelope)
-      image
     }
+    image
   }
 
-  // Consider a no-op timing option to unify getRasters(WithTiming) https://geomesa.atlassian.net/browse/GEOMESA-672
-  def getRasters(rasterQuery: RasterQuery)(implicit timings: Option[TimingsImpl] = None): Iterator[Raster] = {
-    def getThoseRasters(rq: RasterQuery): Iterator[Raster] = {
+  def getRasters(rasterQuery: RasterQuery)(implicit timings: Timings): Iterator[Raster] = {
+    profile("scanning") {
       val batchScanner = connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, numQThreads)
-      val plan = queryPlanner.getQueryPlan(rq, getAvailabilityMap)
+      val plan = queryPlanner.getQueryPlan(rasterQuery, getAvailabilityMap)
       configureBatchScanner(batchScanner, plan)
       adaptIteratorToChunks(SelfClosingBatchScanner(batchScanner))
     }
-
-    timings match {
-      case Some(t) => profile("scanning") {getThoseRasters(rasterQuery)}(t)
-      case None => getThoseRasters(rasterQuery)
-    }
-
   }
 
   def getQueryRecords(numRecords: Int): Iterator[String] = {
