@@ -149,7 +149,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     Try { convert(fromInputType(i), reuse) } match {
       case Success(s) => Some(s)
       case Failure(t) =>
-        logger.debug("Failed to parse input", t)
+        logger.warn("Failed to parse input", t)
         None
     }
   }

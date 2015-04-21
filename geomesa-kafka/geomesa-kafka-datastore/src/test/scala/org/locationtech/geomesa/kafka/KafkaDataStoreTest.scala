@@ -56,13 +56,6 @@ class KafkaDataStoreTest extends Specification with Logging {
     "zkPath"     -> "/geomesa/kafka/testds",
     "isProducer" -> false)
 
-  val cachedConsumerParams = Map(
-    "brokers"          -> s"$host:$port",
-    "zookeepers"       -> zkConnect,
-    "zkPath"           -> "/geomesa/kafka/testds",
-    "isProducer"       -> false,
-    "expiry"           -> true,
-    "expirationPeriod" -> 2000L)
 
   val producerParams = Map(
     "brokers"    -> s"$host:$port",
@@ -187,6 +180,20 @@ class KafkaDataStoreTest extends Specification with Logging {
 
   "KafkaDataStore with cachedConsumer" should {
     "expire messages correctly when expirationPeriod is set" >> {
+      val cachedConsumerParams = Map(
+        "brokers"          -> s"$host:$port",
+        "zookeepers"       -> zkConnect,
+        "zkPath"           -> "/geomesa/kafka/cachedtestds",
+        "isProducer"       -> false,
+        "expiry"           -> true,
+        "expirationPeriod" -> 2000L)
+
+      val producerParams = Map(
+        "brokers"    -> s"$host:$port",
+        "zookeepers" -> zkConnect,
+        "zkPath"     -> "/geomesa/kafka/cachedtestds",
+        "isProducer" -> true)
+
       //Setup datastores and schema
       val cachedConsumerDS = DataStoreFinder.getDataStore(cachedConsumerParams)
       val producerDS = DataStoreFinder.getDataStore(producerParams)
