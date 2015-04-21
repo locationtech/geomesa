@@ -23,6 +23,7 @@ import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import scala.util.Try
 
 object GeneralShapefileIngest {
   def shpToDataStoreViaParams(shapefilePath: String, params: JMap[String, Serializable]): DataStore =
@@ -67,7 +68,9 @@ object GeneralShapefileIngest {
         features.getSchema
 
     val featureTypeName = featureType.getName.getLocalPart
-    if (ds.getSchema(featureTypeName) != null) {
+
+    val existingSchema = Try(ds.getSchema(featureTypeName)).getOrElse(null)
+    if (existingSchema != null) {
       throw new Exception(s"Type name $featureTypeName already exists in data store...shapefile ingest cannot continue")
     }
 
