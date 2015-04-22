@@ -16,8 +16,6 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.{Collection => JCollection, Map => JMap}
-
 import com.vividsolutions.jts.geom._
 import org.geotools.data.FeatureReader
 import org.geotools.data.simple.SimpleFeatureIterator
@@ -28,7 +26,6 @@ import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPos
 import org.geotools.util.{Converter, ConverterFactory}
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
-import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.locationtech.geomesa.utils.stats.Cardinality._
 import org.locationtech.geomesa.utils.stats.IndexCoverage._
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
@@ -100,24 +97,6 @@ object Conversions {
       }
     }
 
-    /**
-     * Sets the visibility to the given ``visibility`` expression.
-     *
-     * @param visibility the visibility expression or null
-     */
-    def visibility_=(visibility: String): Unit = SecurityUtils.setFeatureVisibility(sf, visibility)
-
-    /**
-     * Sets the visibility to the given ``visibility`` expression
-     *
-     * @param visibility the visibility expression or None
-     */
-    def visibility_=(visibility: Option[String]): Unit = SecurityUtils.setFeatureVisibility(sf, visibility.orNull)
-
-    /**
-     * @return the visibility or None
-     */
-    def visibility: Option[String] = Option(SecurityUtils.getVisibility(sf))
   }
 
 }

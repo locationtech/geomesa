@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.locationtech.geomesa.utils.security
+package org.locationtech.geomesa.security
 
-import org.geotools.data.{FeatureSource, FeatureReader}
+import org.geotools.data.{FeatureReader, FeatureSource}
 import org.geotools.feature.FeatureCollection
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.core.security
+package org.locationtech.geomesa.security
 
 import org.apache.accumulo.core.security.Authorizations
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
 
 /**
  * Default implementation of the AuthorizationsProvider that doesn't provide any authorizations
@@ -29,7 +28,7 @@ class DefaultAuthorizationsProvider extends AuthorizationsProvider {
   override def getAuthorizations: Authorizations = authorizations
 
   override def configure(params: java.util.Map[String, java.io.Serializable]) {
-    val authString = AccumuloDataStoreFactory.params.authsParam.lookUp(params).asInstanceOf[String]
+    val authString = authsParam.lookUp(params).asInstanceOf[String]
     if (authString == null || authString.isEmpty)
       authorizations = new Authorizations()
     else

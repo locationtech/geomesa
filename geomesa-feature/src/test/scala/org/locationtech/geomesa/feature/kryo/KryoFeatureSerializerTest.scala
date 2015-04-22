@@ -23,8 +23,8 @@ import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.feature._
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

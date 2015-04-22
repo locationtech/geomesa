@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.core.security
+package org.locationtech.geomesa.security
 
 import org.apache.accumulo.core.security.Authorizations
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
 
 import scala.collection.JavaConversions._
 
@@ -39,7 +38,7 @@ class FilteringAuthorizationsProvider (val wrappedProvider: AuthorizationsProvid
     }
 
   override def configure(params: java.util.Map[String, java.io.Serializable]) {
-    val authString = AccumuloDataStoreFactory.params.authsParam.lookUp(params).asInstanceOf[String]
+    val authString = authsParam.lookUp(params).asInstanceOf[String]
     if (authString != null && !authString.isEmpty)
       filter = Option(authString.split(","))
 

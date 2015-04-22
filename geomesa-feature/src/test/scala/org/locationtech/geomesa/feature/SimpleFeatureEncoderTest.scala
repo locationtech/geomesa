@@ -20,7 +20,7 @@ import com.vividsolutions.jts.geom.Point
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.security._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature

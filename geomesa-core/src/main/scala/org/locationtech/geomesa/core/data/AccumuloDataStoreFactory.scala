@@ -19,7 +19,6 @@ package org.locationtech.geomesa.core.data
 
 import java.io.Serializable
 import java.util.{Map => JMap}
-import javax.imageio.spi.ServiceRegistry
 
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, PasswordToken}
@@ -28,12 +27,11 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
-import org.locationtech.geomesa.core.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import org.locationtech.geomesa.core.stats.StatWriter
 import org.locationtech.geomesa.feature.FeatureEncoding
+import org.locationtech.geomesa.security
 
 import scala.collection.JavaConversions._
-import scala.util.Try
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -79,43 +77,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       else
         masterAuthsStrings.toList
 
-    // if the user specifies an auth provider to use, try to use that impl
-    val authProviderSystemProperty = Option(System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY))
-
-    // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
-    val authorizationsProvider = new FilteringAuthorizationsProvider ({
-        val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
-        authProviderSystemProperty match {
-          case Some(prop) =>
-            if (classOf[DefaultAuthorizationsProvider].getName == prop)
-              new DefaultAuthorizationsProvider
-            else
-              providers.find(_.getClass.getName == prop)
-                .getOrElse {
-                  val message =
-                    s"The service provider class '$prop' specified by " +
-                    s"${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"
-                  throw new IllegalArgumentException(message)
-              }
-          case None =>
-            providers.length match {
-              case 0 => new DefaultAuthorizationsProvider
-              case 1 => providers.head
-              case _ =>
-                val message =
-                  "Found multiple AuthorizationsProvider implementations. Please specify the one " +
-                  "to use with the system property " +
-                  s"'${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: " +
-                  s"${providers.map(_.getClass.getName).mkString(", ")}"
-                throw new IllegalStateException(message)
-            }
-        }
-      })
-
-    // update the authorizations in the parameters and then configure the auth provider
-    // we copy the map so as not to modify the original
-    val modifiedParams = params ++ Map(authsParam.key -> auths.mkString(","))
-    authorizationsProvider.configure(modifiedParams)
+    val authorizationsProvider = security.getAuthorizationsProvider(params, auths)
 
     val featureEncoding = featureEncParam.lookupOpt[String](params)
       .map(FeatureEncoding.withName)
@@ -190,7 +152,7 @@ object AccumuloDataStoreFactory {
     val zookeepersParam     = new Param("zookeepers", classOf[String], "Zookeepers", true)
     val userParam           = new Param("user", classOf[String], "Accumulo user", true)
     val passwordParam       = new Param("password", classOf[String], "Password", true)
-    val authsParam          = new Param("auths", classOf[String], "Super-set of authorizations that will be used for queries. The actual authorizations might differ, depending on the authorizations provider, but will be outside this set. Comma-delimited.", false)
+    val authsParam          = org.locationtech.geomesa.security.authsParam
     val visibilityParam     = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
     val tableNameParam      = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
     val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false)

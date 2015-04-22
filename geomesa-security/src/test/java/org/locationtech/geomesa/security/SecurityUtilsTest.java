@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.locationtech.geomesa.utils.security;
+package org.locationtech.geomesa.security;
 
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.Test;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
 
 public class SecurityUtilsTest {
 
@@ -35,7 +32,7 @@ public class SecurityUtilsTest {
         SimpleFeature f = buildFeature();
         SecurityUtils.setFeatureVisibility(f, TEST_VIS);
 
-        assertThat(f.getUserData().get(SecurityUtils.FEATURE_VISIBILITY), equalTo((Object) TEST_VIS));
+        Assert.assertThat(f.getUserData().get(SecurityUtils.FEATURE_VISIBILITY), CoreMatchers.equalTo((Object) TEST_VIS));
     }
 
     @Test
@@ -43,7 +40,7 @@ public class SecurityUtilsTest {
         SimpleFeature f = buildFeature();
         SecurityUtils.setFeatureVisibilities(f, "admin", "user");
 
-        assertThat(f.getUserData().get(SecurityUtils.FEATURE_VISIBILITY), equalTo((Object) TEST_VIS));
+        Assert.assertThat(f.getUserData().get(SecurityUtils.FEATURE_VISIBILITY), CoreMatchers.equalTo((Object) TEST_VIS));
     }
 
     @Test
@@ -51,14 +48,14 @@ public class SecurityUtilsTest {
         SimpleFeature f = buildFeature();
         f.getUserData().put(SecurityUtils.FEATURE_VISIBILITY, TEST_VIS);
 
-        assertThat(SecurityUtils.getVisibility(f), equalTo("admin&user"));
+        Assert.assertThat(SecurityUtils.getVisibility(f), CoreMatchers.equalTo("admin&user"));
     }
 
     @Test
     public void testGetFeatureVisibilityWhenNone() {
         SimpleFeature f = buildFeature();
 
-        assertThat(SecurityUtils.getVisibility(f), is(nullValue()));
+        Assert.assertThat(SecurityUtils.getVisibility(f), CoreMatchers.is(CoreMatchers.nullValue()));
     }
 
     @Test
@@ -68,12 +65,12 @@ public class SecurityUtilsTest {
 
         SecurityUtils.setFeatureVisibility(src, "src_vis");
 
-        assertThat(SecurityUtils.getVisibility(src), equalTo("src_vis"));
-        assertThat(SecurityUtils.getVisibility(dest), is(nullValue()));
+        Assert.assertThat(SecurityUtils.getVisibility(src), CoreMatchers.equalTo("src_vis"));
+        Assert.assertThat(SecurityUtils.getVisibility(dest), CoreMatchers.is(CoreMatchers.nullValue()));
 
         SecurityUtils.copyVisibility(src, dest);
 
-        assertThat(SecurityUtils.getVisibility(dest), equalTo("src_vis"));
+        Assert.assertThat(SecurityUtils.getVisibility(dest), CoreMatchers.equalTo("src_vis"));
     }
 
     private SimpleFeature buildFeature() {

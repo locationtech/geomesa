@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.core.security
+package org.locationtech.geomesa.security
 
 import java.io.Serializable
 import java.util

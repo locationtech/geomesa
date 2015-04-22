@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.locationtech.geomesa.core.security;
+package org.locationtech.geomesa.security;
 
 import org.apache.accumulo.core.security.Authorizations;
 

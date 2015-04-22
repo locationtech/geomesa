@@ -93,6 +93,10 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-web-security-accumulo1.5</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-compute-accumulo1.5</artifactId>
             <classifier>shaded</classifier>
         </dependency>

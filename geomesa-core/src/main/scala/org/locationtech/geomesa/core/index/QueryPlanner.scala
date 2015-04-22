@@ -32,8 +32,8 @@ import org.locationtech.geomesa.core.util.CloseableIterator
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}

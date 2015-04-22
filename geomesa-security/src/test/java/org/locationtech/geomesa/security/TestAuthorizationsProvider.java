@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.locationtech.geomesa.core.security;
+package org.locationtech.geomesa.security;
 
 import org.apache.accumulo.core.security.Authorizations;
-import org.locationtech.geomesa.core.security.AuthorizationsProvider;
 
 import java.io.Serializable;
 import java.util.Map;

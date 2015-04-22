@@ -11,15 +11,16 @@
  * distributed under the License is distributed on an AS IS BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
-package org.locationtech.geomesa.utils.security
+package org.locationtech.geomesa.security
 
 import java.util.ServiceLoader
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.geotools.data.{FeatureSource, FeatureReader}
+import org.geotools.data.{FeatureReader, FeatureSource, Query}
 import org.geotools.feature.FeatureCollection
+import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceSupport
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /** A service for adding to security to feature readers.
@@ -75,4 +76,12 @@ object NoSecurityProvider extends DataStoreSecurityProvider {
   override def secure(fc: FeatureCollection[SimpleFeatureType, SimpleFeature]) = fc
 
   override def secure(fr: FeatureReader[SimpleFeatureType, SimpleFeature]) = fr
+}
+
+/** Adds security to a [[FeatureReader]] if a DataStoreSecurityProvider has been registered.
+  */
+trait ContentFeatureSourceSecuritySupport extends ContentFeatureSourceSupport {
+
+  override def addSupport(query: Query, reader: FR): FR =
+    DataStoreSecurityService.provider.secure(super.addSupport(query, reader))
 }

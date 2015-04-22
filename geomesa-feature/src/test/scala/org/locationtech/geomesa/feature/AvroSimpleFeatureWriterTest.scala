@@ -28,9 +28,9 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.feature.serialization.{HintKeySerialization, AbstractWriter}
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.security.SecurityUtils
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
@@ -163,7 +163,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito {
     }
 
     "serialize user data when requested" >> {
-      import org.locationtech.geomesa.utils.geotools.Conversions._
+      import org.locationtech.geomesa.security._
 
       val sf = createSimpleFeature
 
