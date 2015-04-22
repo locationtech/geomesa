@@ -66,6 +66,8 @@ class KafkaDataStoreTest extends Specification with Logging {
   val gf = JTSFactoryFinder.getGeometryFactory
 
   "KafkaDataSource" should {
+    import org.locationtech.geomesa.security._
+
     val consumerDS = DataStoreFinder.getDataStore(consumerParams)
     val producerDS = DataStoreFinder.getDataStore(producerParams)
 
@@ -83,7 +85,6 @@ class KafkaDataStoreTest extends Specification with Logging {
     }
 
     "allow features to be written" >> {
-      import org.locationtech.geomesa.utils.geotools.Conversions._
 
       // create the consumerFC first so that it is ready to receive features from the producer
       val consumerFC = consumerDS.getFeatureSource("test")

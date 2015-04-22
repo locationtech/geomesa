@@ -31,7 +31,8 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter._
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.utils.security.SecurityUtils.FEATURE_VISIBILITY
+import org.locationtech.geomesa.security.SecurityUtils
+import SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.feature.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

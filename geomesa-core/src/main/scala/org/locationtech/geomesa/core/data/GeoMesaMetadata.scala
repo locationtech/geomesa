@@ -21,8 +21,8 @@ import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.core.data.AccumuloBackedMetadata._
-import org.locationtech.geomesa.core.security.AuthorizationsProvider
 import org.locationtech.geomesa.core.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
+import org.locationtech.geomesa.security.AuthorizationsProvider
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable

@@ -31,5 +31,5 @@ Don't forget to click "Save" on the main "Data Security" page when you're done.
 To add additional users and roles select "User, Groups, Roles" under "Security" on the left side menu.
 
 
-See ```org.locationtech.geomesa.utils.security.SecurityUtils``` for more details on how to get and set
+See ```org.locationtech.geomesa.security.SecurityUtils``` for more details on how to get and set
 visibilities on a SimpleFeature

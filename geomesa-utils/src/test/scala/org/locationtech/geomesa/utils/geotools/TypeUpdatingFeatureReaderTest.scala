@@ -21,7 +21,6 @@ import org.geotools.factory.Hints
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mock.Mockito
@@ -47,7 +46,6 @@ class TypeUpdatingFeatureReaderTest extends Specification with Mockito {
     val values = Seq[AnyRef](i.toString, WKTUtils.read("POINT(-110 30)"), "2012-01-02T05:06:07.000Z")
     val sf = SimpleFeatureBuilder.build(sft, values, i.toString)
     sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-    sf.visibility = "USER|ADMIN"
     sf
   }
 

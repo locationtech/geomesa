@@ -18,7 +18,6 @@ package org.locationtech.geomesa.utils.geotools
 import org.geotools.data.store.{ContentFeatureSource, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, Query}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.locationtech.geomesa.utils.security.DataStoreSecurityService
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /** Parent for any trait adding support to a [[ContentFeatureSource]] such as 'retype', 'sort', 'offset',
@@ -63,12 +62,4 @@ trait ContentFeatureSourceReTypingSupport extends ContentFeatureSourceSupport {
 
     result
   }
-}
-
-/** Adds security to a [[FeatureReader]] if a DataStoreSecurityProvider has been registered.
-  */
-trait ContentFeatureSourceSecuritySupport extends ContentFeatureSourceSupport {
-
-  override def addSupport(query: Query, reader: FR): FR =
-    DataStoreSecurityService.provider.secure(super.addSupport(query, reader))
 }

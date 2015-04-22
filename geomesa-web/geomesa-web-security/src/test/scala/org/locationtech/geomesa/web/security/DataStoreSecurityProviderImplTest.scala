@@ -15,15 +15,15 @@
  */
 package org.locationtech.geomesa.web.security
 
-import org.geotools.data.collection.DelegateFeatureReader
-import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore, SimpleFeatureSource}
 import org.geotools.data._
+import org.geotools.data.collection.DelegateFeatureReader
+import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureSource, SimpleFeatureStore}
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.feature.{DefaultFeatureCollection, FeatureCollection}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.feature.AvroSimpleFeature
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.security._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -43,6 +43,7 @@ class DataStoreSecurityProviderImplTest extends Specification with Mockito {
   sequential
 
   val testSFT = SimpleFeatureTypes.createType("test", "name:String,*geom:Point:srid=4326")
+  System.setProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY, classOf[TestAuthorizationsProvider].getName)
 
   "DataStoreSecurityProviderImpl" should {
 
