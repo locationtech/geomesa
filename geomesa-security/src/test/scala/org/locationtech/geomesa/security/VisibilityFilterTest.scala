@@ -1,13 +1,16 @@
-package org.locationtech.geomesa.web.security
+package org.locationtech.geomesa.security
 
+
+import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.AvroSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class VisibilityFilterTest extends Specification {
@@ -23,7 +26,8 @@ class VisibilityFilterTest extends Specification {
 
     "work with simple viz" in {
 
-      val f = new AvroSimpleFeature(new FeatureIdImpl(""), testSFT)
+      val f = new SimpleFeatureImpl(List.empty[AnyRef], testSFT, new FeatureIdImpl(""))
+
       f.visibility = "ADMIN&USER"
 
       val ctx = SecurityContextHolder.createEmptyContext()
@@ -35,7 +39,7 @@ class VisibilityFilterTest extends Specification {
     }
 
     "work with no viz on the feature" in {
-      val f = new AvroSimpleFeature(new FeatureIdImpl(""), testSFT)
+      val f = new SimpleFeatureImpl(List.empty[AnyRef], testSFT, new FeatureIdImpl(""))
 
       val ctx = SecurityContextHolder.createEmptyContext()
       ctx.setAuthentication(new TestingAuthenticationToken(null, null, "ADMIN", "USER"))
@@ -46,7 +50,7 @@ class VisibilityFilterTest extends Specification {
     }
 
     "return false when user does not have the right auths" in {
-      val f = new AvroSimpleFeature(new FeatureIdImpl(""), testSFT)
+      val f = new SimpleFeatureImpl(List.empty[AnyRef], testSFT, new FeatureIdImpl(""))
       f.visibility = "ADMIN&USER"
 
       val ctx = SecurityContextHolder.createEmptyContext()
@@ -58,7 +62,7 @@ class VisibilityFilterTest extends Specification {
     }
 
     "return true when dealing with expressions" in {
-      val f = new AvroSimpleFeature(new FeatureIdImpl(""), testSFT)
+      val f = new SimpleFeatureImpl(List.empty[AnyRef], testSFT, new FeatureIdImpl(""))
       f.visibility = "ADMIN|USER"
 
       val ctx = SecurityContextHolder.createEmptyContext()

@@ -16,20 +16,16 @@
 package org.locationtech.geomesa.web.security
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.security.{ColumnVisibility, VisibilityEvaluator}
 import org.geoserver.security.decorators.{DecoratingDataAccess, DecoratingDataStore, DecoratingSimpleFeatureSource}
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.FeatureCollection
 import org.geotools.feature.collection.FilteringSimpleFeatureCollection
-import org.locationtech.geomesa.security
-import org.locationtech.geomesa.security.DataStoreSecurityProvider
+import org.locationtech.geomesa.security.{DataStoreSecurityProvider, VisibilityFilter}
 import org.locationtech.geomesa.web.security.DataStoreSecurityProviderImpl.{DA, FC, FR, FS}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.{Filter, FilterVisitor}
-
-import scala.collection.mutable
+import org.opengis.filter.Filter
 
 /** Implementation of [[DataStoreSecurityProvider]] using the spring security context to access the
   * user's authorizations.
@@ -127,28 +123,3 @@ object GMSecureFeatureReader extends Logging {
   }
 }
 
-class VisibilityFilter(ve: VisibilityEvaluator) extends Filter {
-  import org.locationtech.geomesa.security._
-
-  private val vizCache = new mutable.HashMap[String, Boolean]()
-
-  override def evaluate(o: Any): Boolean = {
-    val viz = o.asInstanceOf[SimpleFeature].visibility
-    viz.exists(v =>
-      vizCache.getOrElseUpdate(v, ve.evaluate(new ColumnVisibility(v))))
-  }
-
-  override def accept(filterVisitor: FilterVisitor, o: AnyRef): AnyRef = o
-}
-
-object VisibilityFilter {
-  import scala.collection.JavaConversions._
-
-  def apply(): VisibilityFilter = {
-    val provider = security.getAuthorizationsProvider(Map.empty[String, Serializable], Seq())
-    val auths = provider.getAuthorizations
-    val vizEvaluator = new VisibilityEvaluator(auths)
-    new VisibilityFilter(vizEvaluator)
-  }
-
-}
