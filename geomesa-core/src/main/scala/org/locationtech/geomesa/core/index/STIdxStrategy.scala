@@ -22,6 +22,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
+import org.geotools.filter.OrImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
 import org.locationtech.geomesa.core.filter._
@@ -35,6 +36,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Literal
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator}
+
+import scala.collection.JavaConversions._
 
 class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 
@@ -51,7 +54,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     output(s"Scanning ST index table for feature type ${sft.getTypeName}")
     output(s"Filter: ${query.getFilter}")
 
-     val dtgField = getDtgFieldName(sft)
+    val dtgField = getDtgFieldName(sft)
 
     // TODO: Select only the geometry filters which involve the indexed geometry type.
     // https://geomesa.atlassian.net/browse/GEOMESA-200
@@ -65,20 +68,12 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     output(s"Temporal filters: $temporalFilters")
     output(s"Other filters: $ecqlFilters")
 
-    val tweakedGeoms = geomFilters.map(updateTopologicalFilters(_, sft))
+    val tweakedGeomFilters = geomFilters.map(updateTopologicalFilters(_, sft))
 
-    output(s"Tweaked geom filters are $tweakedGeoms")
+    output(s"Tweaked geom filters are $tweakedGeomFilters")
 
     // standardize the two key query arguments:  polygon and date-range
-    val geomsToCover = tweakedGeoms.flatMap {
-      case bbox: BBOX =>
-        val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
-        Seq(bboxPoly)
-      case gf: BinarySpatialOperator =>
-        extractGeometry(gf)
-      case _ => Seq()
-    }
-
+    val geomsToCover = tweakedGeomFilters.flatMap(decomposeToGeometry)
     val collectionToCover: Geometry = geomsToCover match {
       case Nil => null
       case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
@@ -87,11 +82,16 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val temporal = extractTemporal(dtgField)(temporalFilters)
     val interval = netInterval(temporal)
     val geometryToCover = netGeom(collectionToCover)
+
+    //This is correctly doing an AcceptEverythingFilter if the geometryToCover is the whole world
     val filter = buildFilter(geometryToCover, interval)
 
     output(s"GeomsToCover: $geomsToCover")
 
-    val ofilter = filterListAsAnd(tweakedGeoms ++ temporalFilters)
+    val ofilter = if (IndexSchema.somewhere(geometryToCover).isEmpty) {
+      filterListAsAnd(temporalFilters)
+    } else filterListAsAnd(tweakedGeomFilters ++ temporalFilters)
+
     if (ofilter.isEmpty) {
       logger.warn(s"Querying Accumulo without SpatioTemporal filter.")
     }
@@ -119,7 +119,19 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     qp.copy(table = table, iterators = iterators, numThreads = numThreads, hasDuplicates = hasDupes)
   }
 
-  def getSTIIIterCfg(iteratorConfig: IteratorConfig,
+  def decomposeToGeometry(f: Filter): Seq[Geometry] = f match {
+    case bbox: BBOX =>
+      val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
+      Seq(bboxPoly)
+    case gf: BinarySpatialOperator =>
+      extractGeometry(gf)
+    case or: OrImpl =>
+      val children = or.getChildren
+      children.flatMap(decomposeToGeometry)
+    case _ => Seq()
+  }
+
+  private def getSTIIIterCfg(iteratorConfig: IteratorConfig,
                      query: Query,
                      featureType: SimpleFeatureType,
                      stFilter: Option[Filter],
@@ -162,7 +174,10 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),classOf[IndexIterator])
 
-    configureStFilter(cfg, filter)
+    // test if the filter is for the whole world
+    val isWholeWorld = filter.exists(isFilterWholeWorld)
+    if (!isWholeWorld) configureStFilter(cfg, filter)
+
     configureVersion(cfg, version)
     if (transformsCoverFilter) {
       // apply the transform directly to the index iterator

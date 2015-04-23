@@ -37,7 +37,6 @@ import org.geotools.feature.{DefaultFeatureCollection, NameImpl}
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.geotools.process.vector.TransformProcess
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
@@ -515,7 +514,6 @@ class AccumuloDataStoreTest extends Specification {
         val spatial1 = ff.bbox("geom", -181.1, -90, 40.1, 90, CRS.toSRS(WGS84))
         val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
         val binarySpatial = ff.or(spatial1, spatial2)
-
         val query = new Query(sftName, binarySpatial)
         val results = fs.getFeatures(query)
         results.size() mustEqual 226
@@ -1153,6 +1151,61 @@ class AccumuloDataStoreTest extends Specification {
         sf.getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseTime + i * 60000
       }
       success
+    }
+
+    "create key plan that uses STII Filter with bbox" in {
+      val sftName = "explainLargeBBOXTest_1"
+      val sft1 = createSchema(sftName)
+      val filter = CQL.toFilter("bbox(geom, -100, -45, 100, 45)")
+      val query = new Query(sftName, filter, Array("geom"))
+      val explain = {
+        val o = new ExplainString
+        ds.explainQuery(sftName, query, o)
+        o.toString()
+      }
+      explain must contain("STII Filter: [ geom bbox POLYGON ((-100 -45, -100 45, 100 45, 100 -45, -100 -45)) ]")
+    }
+
+    "create key plan that does not use STII when given the Whole World bbox" in {
+      val sftName = "explainLargeBBOXTest_2"
+      val sft2 = createSchema(sftName)
+      val filter = CQL.toFilter("bbox(geom, -180, -90, 180, 90)")
+      val query = new Query(sftName, filter, Array("geom"))
+      val explain = {
+        val o = new ExplainString
+        ds.explainQuery(sftName, query, o)
+        o.toString()
+      }
+      explain must contain("No STII Filter")
+      explain must contain("Filter: AcceptEverythingFilter")
+    }
+
+    "create key plan that does not use STII when given something larger than the Whole World bbox" in {
+      val sftName = "explainLargeBBOXTest_3"
+      val sft3 = createSchema(sftName)
+      val filter = CQL.toFilter("bbox(geom, -190, -100, 190, 100)")
+      val query = new Query(sftName, filter, Array("geom"))
+      val explain = {
+        val o = new ExplainString
+        ds.explainQuery(sftName, query, o)
+        o.toString()
+      }
+      explain must contain("No STII Filter")
+      explain must contain("Filter: AcceptEverythingFilter")
+    }
+
+    "create key plan that does not use STII when given an or'd geometry query both of the whole world" in {
+      val sftName = "explainLargeBBOXTest_4"
+      val sft3 = createSchema(sftName)
+      val filter = CQL.toFilter("bbox(geom, -180, -90, 180, 90) OR bbox(geom, -180, -90, 180, 90)")
+      val query = new Query(sftName, filter, Array("geom"))
+      val explain = {
+        val o = new ExplainString
+        ds.explainQuery(sftName, query, o)
+        o.toString()
+      }
+      explain must contain("No STII Filter")
+      explain must contain("Filter: AcceptEverythingFilter")
     }
 
     "create key plan correctly with a large bbox and a date range" in {

@@ -20,10 +20,8 @@ import java.util.{Collection => JCollection}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.{DataUtilities, Query}
-import org.geotools.filter.text.ecql.ECQL
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -110,10 +108,10 @@ object IteratorTrigger extends Logging {
       // if the transforms exist, check if the transform is simple enough to be handled by the IndexIterator
       // if it does not exist, then set this variable to false
       val isIndexTransform = transformDefs
-          .map(tDef => isOneToOneIndexTransformation(tDef, sft, indexedAttribute))
-          .orElse(Some(false))
+        .map(tDef => isOneToOneIndexTransformation(tDef, sft, indexedAttribute))
+        .orElse(Some(false))
       // if the ecql predicate exists, check that it is a trivial filter that does nothing
-      val isPassThroughFilter = ecqlPredicate.map { ecql => passThroughFilter(ecql)}
+      val isPassThroughFilter = ecqlPredicate.map { ecql => passThroughFilter(ecql) }
 
       // require both to be true
       (isIndexTransform ++ isPassThroughFilter).forall(_ == true)
