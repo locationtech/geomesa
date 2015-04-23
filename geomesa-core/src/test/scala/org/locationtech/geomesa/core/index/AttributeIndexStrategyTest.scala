@@ -25,7 +25,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
-import org.geotools.factory.Hints
+import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQLException
@@ -38,6 +38,7 @@ import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, SimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -127,6 +128,57 @@ class AttributeIndexStrategyTest extends Specification {
       scanner.asScala.foreach(println)
       println
       success
+    }
+
+    "partition a query by selecting the best filter" >> {
+
+      val spec = "name:String:index=true:cardinality=high," +
+        "age:Integer:index=true:cardinality=low," +
+        "weight:Double:index=false," +
+        "height:Float:index=false:cardinality=unknown"
+      val sft = SimpleFeatureTypes.createType(sftName, spec)
+
+      val ff = CommonFactoryFinder.getFilterFactory(null)
+      val ageFilter = ff.equals(ff.property("age"), ff.literal(21))
+      val nameFilter = ff.equals(ff.literal("foo"), ff.property("name"))
+      val heightFilter = ff.equals(ff.property("height"), ff.literal(12.0D))
+      val weightFilter = ff.equals(ff.literal(21.12D), ff.property("weight"))
+
+      "when best is first" >> {
+        val filter = ff.and(Seq[Filter](nameFilter, heightFilter, weightFilter, ageFilter).asJava)
+
+        val query = new Query(sft.getTypeName, filter)
+
+        val expectedQuery = new Query(sft.getTypeName, ff.and(Seq[Filter](heightFilter, weightFilter, ageFilter).asJava))
+
+        val (strippedQuery, extractedFilter) = AttributeIndexStrategy.partitionFilter(query, sft)
+        strippedQuery mustEqual expectedQuery
+        extractedFilter mustEqual nameFilter
+      }
+
+      "when best is in the middle" >> {
+        val filter = ff.and(Seq[Filter](ageFilter, nameFilter, heightFilter, weightFilter).asJava)
+
+        val query = new Query(sft.getTypeName, filter)
+
+        val expectedQuery = new Query(sft.getTypeName, ff.and(Seq[Filter](ageFilter, heightFilter, weightFilter).asJava))
+
+        val (strippedQuery, extractedFilter) = AttributeIndexStrategy.partitionFilter(query, sft)
+        strippedQuery mustEqual expectedQuery
+        extractedFilter mustEqual nameFilter
+      }
+
+      "when best is last" >> {
+        val filter = ff.and(Seq[Filter](ageFilter, heightFilter, weightFilter, nameFilter).asJava)
+
+        val query = new Query(sft.getTypeName, filter)
+
+        val expectedQuery = new Query(sft.getTypeName, ff.and(Seq[Filter](ageFilter, heightFilter, weightFilter).asJava))
+
+        val (strippedQuery, extractedFilter) = AttributeIndexStrategy.partitionFilter(query, sft)
+        strippedQuery mustEqual expectedQuery
+        extractedFilter mustEqual nameFilter
+      }
     }
 
     "use first indexable attribute if equals" in {

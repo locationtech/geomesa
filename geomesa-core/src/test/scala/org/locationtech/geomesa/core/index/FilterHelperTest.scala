@@ -25,11 +25,12 @@ import org.locationtech.geomesa.core.filter.TestFilters._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.utils.filters.Filters._
 import org.opengis.filter.Filter
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FilterHelperTest extends Specification with Logging {
+class FilterHelperTest extends Specification with Mockito with Logging {
   val ff = CommonFactoryFinder.getFilterFactory2
 
   val min = IndexSchema.minDateTime
@@ -211,6 +212,131 @@ class FilterHelperTest extends Specification with Logging {
       val difference = processed diff baseFilters
 
       difference.isEmpty must beTrue
+    }
+  }
+
+  "findBest" should {
+
+    val a = mockAs[Filter]("a")
+    val b = mockAs[Filter]("b")
+    val c = mockAs[Filter]("c")
+    val d = mockAs[Filter]("d")
+
+    "return none when the sequence is empty" >> {
+      val cost = (f: Filter) => Some(0L)
+      val filters = Seq.empty[Filter]
+
+      val result = FilterHelper.findBest(cost)(filters)
+
+      result.isInstanceOf[UnknownCost] must beTrue
+      result.bestFilter must beNone
+      result.otherFilters mustEqual filters
+    }
+
+    "return none when no costs are known" >> {
+      val cost = (f: Filter) => None : Option[Long]
+      val filters = Seq(a, b, c)
+
+      val result = FilterHelper.findBest(cost)(filters)
+
+      result.isInstanceOf[UnknownCost] must beTrue
+      result.bestFilter must beNone
+      result.otherFilters mustEqual filters
+    }
+
+    "return best if first" >> {
+      val lookup = Seq(
+        (a, Some(1L)),
+        (b, Some(2L)),
+        (c, None),
+        (d, Some(3L))
+      )
+
+      val filters = lookup.map(_._1)
+      val cost: (Filter) => Option[Long] = lookup.toMap
+
+      val result = FilterHelper.findBest(cost)(filters)
+
+      result.isInstanceOf[KnownCost] must beTrue
+      result.bestFilter must beSome(a)
+      result.otherFilters mustEqual Seq(b, c, d)
+      result.asInstanceOf[KnownCost].cost mustEqual 1
+    }
+
+    "return best if after unknown" >> {
+      val lookup = Seq(
+        (a, None),
+        (b, Some(2L)),
+        (c, Some(6L)),
+        (d, Some(4L))
+      )
+
+      val filters = lookup.map(_._1)
+      val cost: (Filter) => Option[Long] = lookup.toMap
+
+      val result = FilterHelper.findBest(cost)(filters)
+
+      result.isInstanceOf[KnownCost] must beTrue
+      result.bestFilter must beSome(b)
+      result.otherFilters mustEqual Seq(a, c, d)
+      result.asInstanceOf[KnownCost].cost mustEqual 2
+    }
+
+    "return best if after worse" >> {
+      val lookup = Seq(
+        (a, Some(5L)),
+        (b, None),
+        (c, Some(3L)),
+        (d, Some(5L))
+      )
+
+      val filters = lookup.map(_._1)
+      val cost: (Filter) => Option[Long] = lookup.toMap
+
+      val result = FilterHelper.findBest(cost)(filters)
+
+      result.isInstanceOf[KnownCost] must beTrue
+      result.bestFilter must beSome(c)
+      result.otherFilters mustEqual Seq(a, b, d)
+      result.asInstanceOf[KnownCost].cost mustEqual 3
+    }
+
+    "return best if last" >> {
+      val lookup = Seq(
+        (a, Some(30L)),
+        (b, None),
+        (c, Some(20L)),
+        (d, Some(10L))
+      )
+
+      val filters = lookup.map(_._1)
+      val cost: (Filter) => Option[Long] = lookup.toMap
+
+      val result = FilterHelper.findBest(cost)(filters)
+
+      result.isInstanceOf[KnownCost] must beTrue
+      result.bestFilter must beSome(d)
+      result.otherFilters mustEqual Seq(a, b, c)
+      result.asInstanceOf[KnownCost].cost mustEqual 10
+    }
+
+    "return first best if multiple" >> {
+      val lookup = Seq(
+        (a, Some(200L)),
+        (b, Some(5L)),
+        (c, None),
+        (d, Some(5L))
+      )
+
+      val filters = lookup.map(_._1)
+      val cost: (Filter) => Option[Long] = lookup.toMap
+
+      val result = FilterHelper.findBest(cost)(filters)
+
+      result.isInstanceOf[KnownCost] must beTrue
+      result.bestFilter must beSome(b)
+      result.otherFilters mustEqual Seq(a, c, d)
+      result.asInstanceOf[KnownCost].cost mustEqual 5
     }
   }
 }

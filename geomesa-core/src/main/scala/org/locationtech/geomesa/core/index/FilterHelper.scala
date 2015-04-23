@@ -205,6 +205,70 @@ object FilterHelper {
       }
     }
 
+  /**
+   * Finds the filter with the lowest known cost and returns the rest in the same order they were in.  If
+   * there are multiple filters with the same lowest cost then the first will be selected.  If no filters
+   * have a known cost or if ``s`` is empty then (None, s) will be returned.
+   */
+  def findBest(cost: Filter => Option[Long])(s: Seq[Filter]): CostAnalysis = {
+    if (s.isEmpty) {
+      CostAnalysis.unknown(s)
+    } else {
+      val head = s.head
+      val tail = s.tail
+
+      val headAnalysis = cost(head).map(c => new KnownCost(head, tail, c)).getOrElse(CostAnalysis.unknown(s))
+      val tailAnalysis = findBest(cost)(tail)
+
+      if (headAnalysis <= tailAnalysis) {
+        headAnalysis
+      } else {
+        // tailAnaysis must have a known cost
+        val ta = tailAnalysis.asInstanceOf[KnownCost]
+        new KnownCost(ta.best, head +: ta.otherFilters, ta.cost)
+      }
+    }
+  }
+
+  /**
+    * @param bestFilter the [[Filter]] with the lowest cost
+    * @param otherFilters all other [[Filter]]s
+    */
+  sealed abstract case class CostAnalysis(bestFilter: Option[Filter], otherFilters: Seq[Filter]) {
+
+    /**
+      * @param rhs the [[CostAnalysis]] to compare to
+      * @return ``true`` if ``this`` has a lower or the same cost as ``rhs``
+      */
+    def <=(rhs: CostAnalysis): Boolean
+
+    def extract: (Option[Filter], Seq[Filter]) = (bestFilter, otherFilters)
+  }
+
+  class KnownCost(val best: Filter, others: Seq[Filter], val cost: Long) extends CostAnalysis(Some(best), others) {
+
+    def <=(rhs: CostAnalysis): Boolean = rhs match {
+      case knownRhs: KnownCost =>
+        this.cost <= knownRhs.cost
+      case _ =>
+        // always less than an unknown cost
+        true
+    }
+  }
+
+  class UnknownCost(filters: Seq[Filter]) extends CostAnalysis(None, filters) {
+    override def <=(rhs: CostAnalysis): Boolean = rhs.isInstanceOf[UnknownCost]
+  }
+
+  object CostAnalysis {
+
+    /**
+      * @param filters the filters, none of which have a known cost
+      * @return an [[UnknownCost]] containing ``filters``
+      */
+    def unknown(filters: Seq[Filter]): CostAnalysis = new UnknownCost(filters)
+  }
+
   def decomposeAnd(f: Filter): Seq[Filter] = {
     f match {
       case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)

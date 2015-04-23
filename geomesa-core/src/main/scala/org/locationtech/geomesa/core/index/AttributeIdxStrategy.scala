@@ -520,7 +520,8 @@ object AttributeIndexStrategy extends StrategyProvider {
 
     val (indexFilter: Option[Filter], cqlFilter) = filter match {
       case and: And =>
-        findFirst(AttributeIndexStrategy.getStrategy(_, sft, NoOpHints).isDefined)(and.getChildren)
+        val costFn = AttributeIndexStrategy.getStrategy(_ : Filter, sft, NoOpHints).map(_.cost)
+        findBest(costFn)(and.getChildren).extract
       case f: Filter =>
         (Some(f), Seq())
     }
