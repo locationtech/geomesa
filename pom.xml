@@ -48,7 +48,7 @@
 
         <scala.version>2.10.5</scala.version>
         <geoserver.version>2.5.2</geoserver.version>
-        <gt.version>11.2</gt.version>
+        <gt.version>14-SNAPSHOT</gt.version>
         <jts.version>1.13</jts.version>
         <scalding.version>0.13.1</scalding.version>
         <avro.version>1.7.5</avro.version>

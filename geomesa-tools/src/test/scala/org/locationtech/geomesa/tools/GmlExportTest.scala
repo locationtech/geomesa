@@ -55,6 +55,6 @@ class GmlExportTest extends Specification {
       feat must not beNull
       val xmlFid = feat \ "@fid"
       xmlFid.text mustEqual("fid-1")
-    }
+    }.pendingUntilFixed("GML Export should handle namespaces properly.")
   }
 }

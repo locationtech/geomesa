@@ -48,6 +48,7 @@ class GeoJsonExport(writer: Writer) extends FeatureExporter {
 class GmlExport(os: OutputStream) extends FeatureExporter {
 
   val encode = new GML(Version.WFS1_0)
+  // JNH: "location" is unlikely to be a valid namespace.
   encode.setNamespace("location", "location.xsd")
 
   override def write(features: SimpleFeatureCollection) = encode.encode(os, features)
