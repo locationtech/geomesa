@@ -160,7 +160,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
       sf
     }
     if (query.getSortBy != null && !query.getSortBy.isEmpty) {
-      sort(features, query.getSortBy)
+      new LazySortedIterator(features, query.getSortBy)
     } else {
       features
     }
@@ -264,9 +264,13 @@ object QueryPlanner {
       q
     }
   }
+}
 
-  private def sort(features: CloseableIterator[SimpleFeature],
-                   sortBy: Array[SortBy]): CloseableIterator[SimpleFeature] = {
+class LazySortedIterator(features: CloseableIterator[SimpleFeature],
+                         sortBy: Array[SortBy]) extends CloseableIterator[SimpleFeature] {
+
+  private lazy val sorted: CloseableIterator[SimpleFeature] = {
+
     val sortOrdering = sortBy.map {
       case SortBy.NATURAL_ORDER => Ordering.by[SimpleFeature, String](_.getID)
       case SortBy.REVERSE_ORDER => Ordering.by[SimpleFeature, String](_.getID).reverse
@@ -294,4 +298,11 @@ object QueryPlanner {
 
   def attributeToComparable[T <: Comparable[T]](prop: String)(implicit ct: ClassTag[T]): Ordering[SimpleFeature] =
     Ordering.by[SimpleFeature, T](_.getAttribute(prop).asInstanceOf[T])
+
+  override def hasNext: Boolean = sorted.hasNext
+
+  override def next(): SimpleFeature = sorted.next()
+
+  override def close(): Unit = {}
 }
+
