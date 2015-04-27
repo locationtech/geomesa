@@ -243,7 +243,6 @@ class IteratorTriggerTest extends Specification {
       choice.iterator mustEqual IndexOnlyIterator
       choice.transformCoversFilter must beFalse
     }
-
   }
 
   "IteratorTrigger" should {
