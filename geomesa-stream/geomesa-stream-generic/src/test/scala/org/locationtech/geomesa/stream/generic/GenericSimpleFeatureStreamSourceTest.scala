@@ -1,11 +1,12 @@
 package org.locationtech.geomesa.stream.generic
 
+import java.net.{DatagramPacket, InetAddress}
 import java.nio.charset.StandardCharsets
 
 import com.google.common.io.Resources
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.IOUtils
-import org.apache.commons.net.DefaultSocketFactory
+import org.apache.commons.net.{DefaultDatagramSocketFactory, DefaultSocketFactory}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.stream.SimpleFeatureStreamSource
 import org.opengis.feature.simple.SimpleFeature
@@ -20,7 +21,7 @@ class GenericSimpleFeatureStreamSourceTest extends Specification  {
 
   "GenericSimpleFeatureStreamSource" should {
 
-    val conf = ConfigFactory.parseString(
+    val confString =
       """
         |{
         |  type         = "generic"
@@ -46,10 +47,9 @@ class GenericSimpleFeatureStreamSourceTest extends Specification  {
         |                 }
         |}
       """.stripMargin
-    )
 
     "be built from a conf" >> {
-      val source = SimpleFeatureStreamSource.buildSource(conf)
+      val source = SimpleFeatureStreamSource.buildSource(ConfigFactory.parseString(confString))
       source.init()
       source must not beNull
 
@@ -75,6 +75,48 @@ class GenericSimpleFeatureStreamSourceTest extends Specification  {
             ret = source.next
           }
           i+=1
+          ret
+        }
+      }
+      val result = iter.take(lines.length).toList
+      result.length must be equalTo lines.length
+    }
+
+    "work with udp" >> {
+      val port = 5898
+      val udpConf = confString.replace("tcp", "udp").replace("5899", port.toString)
+          .replace("textline=true", "textline=true&decoderMaxLineLength=" + Int.MaxValue)
+      val source = SimpleFeatureStreamSource.buildSource(ConfigFactory.parseString(udpConf))
+      source.init()
+      source must not beNull
+
+      val url = Resources.getResource("testdata.tsv")
+      val lines = Resources.readLines(url, StandardCharsets.UTF_8)
+      val socketFactory = new DefaultDatagramSocketFactory
+      Future {
+        val address = InetAddress.getByName("localhost")
+        val socket = socketFactory.createDatagramSocket()
+        socket.connect(address, port)
+
+        lines.foreach { line =>
+          val bytes = (line + "\n").getBytes("UTF-8")
+          if (bytes.length > socket.getSendBufferSize) {
+            println("Error in buffer size with line \n" + line)
+          }
+          val packet = new DatagramPacket(bytes, bytes.length, address, port)
+          socket.send(packet)
+        }
+        socket.disconnect()
+      }
+
+      val iter = new Iterator[SimpleFeature] {
+        override def hasNext: Boolean = true
+        override def next() = {
+          var ret: SimpleFeature = null
+          while (ret == null) {
+            Thread.sleep(10)
+            ret = source.next
+          }
           ret
         }
       }

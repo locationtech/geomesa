@@ -5,7 +5,7 @@ import java.util.concurrent.{ExecutorService, Executors, LinkedBlockingQueue, Ti
 import com.google.common.collect.Queues
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.camel.CamelContext
-import org.apache.camel.impl.DefaultCamelContext
+import org.apache.camel.impl._
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 import org.locationtech.geomesa.convert.Transformers.EvaluationContext
 import org.locationtech.geomesa.convert.{SimpleFeatureConverter, SimpleFeatureConverters}
@@ -16,20 +16,19 @@ import org.slf4j.LoggerFactory
 
 import scala.util.Try
 
-class GenericSimpleFeatureStreamSourceFactory
-  extends SimpleFeatureStreamSourceFactory {
+class GenericSimpleFeatureStreamSourceFactory extends SimpleFeatureStreamSourceFactory {
 
-  var ctx: CamelContext = null
+  lazy val ctx: CamelContext = {
+    val context = new DefaultCamelContext()
+    context.start()
+    context
+  }
 
   override def canProcess(conf: Config): Boolean =
     if(conf.hasPath("type") && conf.getString("type").equals("generic")) true
     else false
 
   override def create(conf: Config): SimpleFeatureStreamSource = {
-    if(ctx == null) {
-      ctx = new DefaultCamelContext()
-      ctx.start()
-    }
     val sourceRoute = conf.getString("source-route")
     val sft = SimpleFeatureTypes.createType(conf.getConfig("sft"))
     val threads = Try(conf.getInt("threads")).getOrElse(1)
@@ -64,10 +63,7 @@ class GenericSimpleFeatureStreamSource(val ctx: CamelContext,
   }
 
   def getProcessingRoute(inQ: LinkedBlockingQueue[String]): RouteBuilder = new RouteBuilder {
-    from(sourceRoute).process { e =>
-      val s = e.getIn.getBody.asInstanceOf[String]
-      inQ.put(s)
-    }
+    from(sourceRoute).process { e => inQ.put(e.getIn.getBody.asInstanceOf[String]) }
   }
 
   override def next: SimpleFeature = outQ.poll(500, TimeUnit.MILLISECONDS)
