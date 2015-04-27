@@ -81,13 +81,13 @@ object FilterHelper {
       case _ => false
     }
 
-  private def isOperationGeomWholeWorld[O <: BinarySpatialOperator](op: O): Boolean = {
+  private def isOperationGeomWholeWorld[Op <: BinarySpatialOperator](op: Op): Boolean = {
     val e2 = op.getExpression2.asInstanceOf[Literal]
     val geom = e2.evaluate(null, classOf[Geometry])
     isWholeWorld(geom)
   }
 
-  def isWholeWorld(g: Geometry): Boolean = g.covers(IndexSchema.everywhere)
+  def isWholeWorld[G <: Geometry](g: G): Boolean = g.covers(IndexSchema.everywhere)
 
   def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
     for( i <- 0 until inMP.getNumGeometries ) yield inMP.getGeometryN(i)

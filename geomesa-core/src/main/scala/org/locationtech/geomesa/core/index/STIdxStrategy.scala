@@ -22,7 +22,6 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
-import org.geotools.filter.OrImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.GEOMESA_ITERATORS_IS_DENSITY_TYPE
 import org.locationtech.geomesa.core.filter._
@@ -36,8 +35,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Literal
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator}
-
-import scala.collection.JavaConversions._
 
 class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 
@@ -74,6 +71,9 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 
     // standardize the two key query arguments:  polygon and date-range
     val geomsToCover = tweakedGeomFilters.flatMap(decomposeToGeometry)
+
+    output(s"GeomsToCover: $geomsToCover")
+
     val collectionToCover: Geometry = geomsToCover match {
       case Nil => null
       case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
@@ -85,10 +85,10 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 
     //This is correctly doing an AcceptEverythingFilter if the geometryToCover is the whole world
     val filter = buildFilter(geometryToCover, interval)
-
-    output(s"GeomsToCover: $geomsToCover")
-
-    val ofilter = if (IndexSchema.somewhere(geometryToCover).isEmpty) {
+    // This catches the case when a whole world query slips through DNF/CNF
+    // The union on this geometry collection is necessary at the moment but is not true
+    // If given spatial predicates like disjoint.
+    val ofilter = if (geometryToCover != null && isWholeWorld(geometryToCover.union)) {
       filterListAsAnd(temporalFilters)
     } else filterListAsAnd(tweakedGeomFilters ++ temporalFilters)
 
@@ -125,9 +125,6 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
       Seq(bboxPoly)
     case gf: BinarySpatialOperator =>
       extractGeometry(gf)
-    case or: OrImpl =>
-      val children = or.getChildren
-      children.flatMap(decomposeToGeometry)
     case _ => Seq()
   }
 
