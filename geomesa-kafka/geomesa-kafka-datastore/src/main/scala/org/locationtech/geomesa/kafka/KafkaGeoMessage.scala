@@ -27,13 +27,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 sealed trait KafkaGeoMessage
 
-object KafkaGeoMessage {
-
-  val DELETE_KEY = "delete".getBytes(StandardCharsets.UTF_8)
-  val CLEAR_KEY  = "clear".getBytes(StandardCharsets.UTF_8)
-
-}
-
 /** Create a new simple feature or update an existing [[SimpleFeature]]
   *
   * @param feature the [[SimpleFeature]]
@@ -58,15 +51,18 @@ case object Clear extends KafkaGeoMessage
   */
 object KafkaGeoMessageEncoder {
 
+  val DELETE_KEY = "delete".getBytes(StandardCharsets.UTF_8)
+  val CLEAR_KEY  = "clear".getBytes(StandardCharsets.UTF_8)
+
   type MSG = KeyedMessage[Array[Byte], Array[Byte]]
 
   private val EMPTY = Array.empty[Byte]
 
-  def encodeClearMessage(topic: String): MSG = new MSG(topic, KafkaGeoMessage.CLEAR_KEY, EMPTY)
+  def encodeClearMessage(topic: String): MSG = new MSG(topic, CLEAR_KEY, EMPTY)
 
   def encodeDeleteMessage(topic: String, id: String): MSG = {
     val idEncoded = id.getBytes(StandardCharsets.UTF_8)
-    new MSG(topic, KafkaGeoMessage.DELETE_KEY, idEncoded)
+    new MSG(topic, DELETE_KEY, idEncoded)
   }
 }
 
@@ -93,16 +89,18 @@ class KafkaGeoMessageEncoder(val schema: SimpleFeatureType) {
 
 class KafkaGeoMessageDecoder(val schema: SimpleFeatureType) extends Logging {
 
+  import KafkaGeoMessageEncoder.{CLEAR_KEY, DELETE_KEY}
+
   type MSG = MessageAndMetadata[Array[Byte], Array[Byte]]
 
   val sfDecoder: SimpleFeatureDecoder = new AvroFeatureDecoder(schema, EncodingOptions.withUserData)
 
   def decode(msg: MSG): KafkaGeoMessage = {
     if(msg.key() != null) {
-      if(util.Arrays.equals(msg.key(), KafkaGeoMessage.DELETE_KEY)) {
+      if(util.Arrays.equals(msg.key(), DELETE_KEY)) {
         val id = new String(msg.message(), StandardCharsets.UTF_8)
         Delete(id)
-      } else if(util.Arrays.equals(msg.key(), KafkaGeoMessage.CLEAR_KEY)) {
+      } else if(util.Arrays.equals(msg.key(), CLEAR_KEY)) {
         Clear
       } else {
         throw new IllegalArgumentException("Unknow message key: " + new String(msg.key(), StandardCharsets.UTF_8))
