@@ -27,6 +27,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.feature.AvroSimpleFeature
+import org.locationtech.geomesa.kafka.KafkaGeoMessage._
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
@@ -72,8 +73,8 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
   }
 
   def clearFeatures(): Unit = {
-    val msg = KafkaGeoMessageEncoder.encodeClearMessage(topic)
-    producer.send(msg)
+    val msg = KafkaGeoMessage.clear()
+    producer.send(KafkaGeoMessageEncoder.encodeClearMessage(topic, msg))
   }
 
   override def getWriterInternal(query: Query, flags: Int) =
@@ -114,14 +115,14 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
     }
 
     override def remove(): Unit = {
-      val msg = Delete(curFeature.getID)
+      val msg = KafkaGeoMessage.delete(curFeature.getID)
       curFeature = null
 
       send(msg)
     }
 
     override def write(): Unit = {
-      val msg = CreateOrUpdate(curFeature)
+      val msg = KafkaGeoMessage.createOrUpdate(curFeature)
       curFeature = null
 
       send(msg)

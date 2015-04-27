@@ -97,8 +97,8 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   def processProtocolMessage(msg: KafkaGeoMessage): Unit = msg match {
     case update: CreateOrUpdate => processNewFeatures(update)
     case del: Delete            => removeFeature(del)
-    case Clear                  => clear()
-    case _     => throw new IllegalArgumentException("Should never happen")
+    case clr: Clear             => clear()
+    case _     => throw new IllegalArgumentException("Unknown message: " + msg)
   }
 
   def processNewFeatures(update: CreateOrUpdate): Unit = {
