@@ -16,8 +16,6 @@
 
 package org.locationtech.geomesa.kafka
 
-import java.nio.charset.StandardCharsets
-import java.util
 import java.util.Properties
 import java.util.concurrent.{Executors, TimeUnit}
 
@@ -25,7 +23,6 @@ import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNot
 import com.google.common.eventbus.{EventBus, Subscribe}
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import kafka.consumer.{Consumer, ConsumerConfig, Whitelist}
-import kafka.producer.KeyedMessage
 import kafka.serializer.DefaultDecoder
 import org.apache.commons.lang3.RandomStringUtils
 import org.geotools.data.collection.DelegateFeatureReader
@@ -37,8 +34,6 @@ import org.geotools.filter.FidFilterImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.feature.AvroFeatureDecoder
-import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
 import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceReTypingSupport
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -66,9 +61,11 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   var qt = new SynchronizedQuadtree
 
   val groupId = RandomStringUtils.randomAlphanumeric(5)
-  val decoder = new AvroFeatureDecoder(schema, EncodingOptions.withUserData)
+
+  private val msgDecoder = new KafkaGeoMessageDecoder(schema)
+
   // create a producer that reads from kafka and sends to the event bus
-  new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
+  new KafkaFeatureConsumer(topic, zookeepers, groupId, msgDecoder, eb)
 
   case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
     override def hashCode(): Int = sf.hashCode()
@@ -105,7 +102,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   }
 
   def processNewFeatures(update: CreateOrUpdate): Unit = {
-    val sf = update.f
+    val sf = update.feature
     val id = update.id
     Option(features.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
     val env = sf.geometry.getEnvelopeInternal
@@ -203,28 +200,11 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   override def getWriterInternal(query: Query, flags: Int) = throw new IllegalArgumentException("Not allowed")
 }
 
-sealed trait KafkaGeoMessage
-case class CreateOrUpdate(id: String, f: SimpleFeature)  extends KafkaGeoMessage
-case class Delete(id: String) extends KafkaGeoMessage
-case object Clear extends KafkaGeoMessage {
-  type MSG = KeyedMessage[Array[Byte], Array[Byte]]
-  val EMPTY = Array.empty[Byte]
-  def toMsg(topic: String) = new MSG(topic, KafkaProducerFeatureStore.CLEAR_KEY, EMPTY)
-}
-
-trait FeatureProducer {
-  def eventBus: EventBus
-  def produceFeatures(f: SimpleFeature): Unit = eventBus.post(CreateOrUpdate(f.getID, f))
-  def deleteFeature(id: String): Unit = eventBus.post(Delete(id))
-  def deleteFeatures(ids: Seq[String]): Unit = ids.foreach(deleteFeature)
-  def clear(): Unit = eventBus.post(Clear)
-}
-
 class KafkaFeatureConsumer(topic: String,
                            zookeepers: String,
                            groupId: String,
-                           featureDecoder: AvroFeatureDecoder,
-                           override val eventBus: EventBus) extends FeatureProducer {
+                           msgDecoder: KafkaGeoMessageDecoder,
+                           eventBus: EventBus) {
 
   private val client = Consumer.create(new ConsumerConfig(buildClientProps))
   private val whiteList = new Whitelist(topic)
@@ -235,21 +215,9 @@ class KafkaFeatureConsumer(topic: String,
   es.submit(new Runnable {
     override def run(): Unit = {
       val iter = stream.iterator()
-      while (iter.hasNext) {
-        val msg = iter.next()
-        if(msg.key() != null) {
-          if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.DELETE_KEY)) {
-            val id = new String(msg.message(), StandardCharsets.UTF_8)
-            deleteFeature(id)
-          } else if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.CLEAR_KEY)) {
-            clear()
-          } else {
-            // only other key is the SCHEMA_KEY so ingore
-          }
-        } else {
-          val f = featureDecoder.decode(msg.message())
-          produceFeatures(f)
-        }
+      while (iter.hasNext()) {
+        val msg: KafkaGeoMessage = msgDecoder.decode(iter.next())
+        eventBus.post(msg)
       }
     }
   })
