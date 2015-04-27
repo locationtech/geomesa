@@ -20,10 +20,8 @@ import java.util.{Collection => JCollection}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.{DataUtilities, Query}
-import org.geotools.filter.text.ecql.ECQL
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.core._
-import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor

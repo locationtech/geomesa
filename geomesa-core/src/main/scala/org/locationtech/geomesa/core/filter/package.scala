@@ -17,10 +17,9 @@
 package org.locationtech.geomesa.core
 
 import org.geotools.factory.CommonFactoryFinder
-import org.locationtech.geomesa.core.index.Strategy
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
-import org.opengis.filter.expression.{Literal, Expression, PropertyName}
+import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{BinaryTemporalOperator, TEquals}
 
@@ -239,7 +238,7 @@ package object filter {
     val geom = sft.getGeometryDescriptor.getLocalName
     val primary = filter match {
       case f: BinarySpatialOperator =>
-        checkOrder(f.getExpression1, f.getExpression2).map(_.name == geom).getOrElse(false)
+        checkOrder(f.getExpression1, f.getExpression2).exists(_.name == geom)
       case _ => false
     }
     primary && spatialFilters(filter)
