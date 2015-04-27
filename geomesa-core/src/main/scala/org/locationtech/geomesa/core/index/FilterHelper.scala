@@ -82,9 +82,8 @@ object FilterHelper {
     }
 
   private def isOperationGeomWholeWorld[Op <: BinarySpatialOperator](op: Op): Boolean = {
-    val e2 = op.getExpression2.asInstanceOf[Literal]
-    val geom = e2.evaluate(null, classOf[Geometry])
-    isWholeWorld(geom)
+    val prop = checkOrder(op.getExpression1, op.getExpression2)
+    prop.map(_.literal.evaluate(null, classOf[Geometry])).exists(isWholeWorld)
   }
 
   def isWholeWorld[G <: Geometry](g: G): Boolean = g.covers(IndexSchema.everywhere)

@@ -263,7 +263,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 object STIdxStrategy extends StrategyProvider {
 
   override def getStrategy(filter: Filter, sft: SimpleFeatureType, hints: StrategyHints) =
-    if (spatialFilters(filter)) {
+    if (spatialFilters(filter) && !isFilterWholeWorld(filter)) {
       val geom = sft.getGeometryDescriptor.getLocalName
       val e1 = filter.asInstanceOf[BinarySpatialOperator].getExpression1
       val e2 = filter.asInstanceOf[BinarySpatialOperator].getExpression2
