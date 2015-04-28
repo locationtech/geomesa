@@ -17,14 +17,13 @@ package org.locationtech.geomesa.kafka
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util
 
 import com.typesafe.scalalogging.slf4j.Logging
 import kafka.message.MessageAndMetadata
 import kafka.producer.KeyedMessage
 import org.joda.time.Instant
 import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
-import org.locationtech.geomesa.feature.{AvroFeatureDecoder, AvroFeatureEncoder, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.feature._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 sealed trait KafkaGeoMessage {
@@ -34,16 +33,14 @@ sealed trait KafkaGeoMessage {
 
 object KafkaGeoMessage {
 
-  implicit val clock = SystemClock
+  def clear(): Clear =
+    new Clear(Instant.now)
 
-  def clear()(implicit clock: Clock): Clear =
-    new Clear(clock.now)
+  def delete(id: String): Delete =
+    new Delete(Instant.now, id)
 
-  def delete(id: String)(implicit clock: Clock): Delete =
-    new Delete(clock.now, id)
-
-  def createOrUpdate(sf: SimpleFeature)(implicit clock: Clock): CreateOrUpdate =
-    new CreateOrUpdate(clock.now, sf)
+  def createOrUpdate(sf: SimpleFeature): CreateOrUpdate =
+    new CreateOrUpdate(Instant.now, sf)
 }
 
 /** Create a new simple feature or update an existing [[SimpleFeature]]
@@ -65,20 +62,13 @@ case class Delete(override val timestamp: Instant, id: String) extends KafkaGeoM
   */
 case class Clear(override val timestamp: Instant) extends KafkaGeoMessage
 
-trait Clock {
-  def now: Instant
-}
-
-object SystemClock extends Clock {
-  override def now = Instant.now
-}
 
 /** Encodes [[KafkaGeoMessage]]s using the following encoding:
   *
   * Key: version (1 byte) type (1 byte) timstamp (8 bytes)
   *
   * The current version is 1
-  * The type is 'C' for create or update, 'R' for delete and 'X' for clear
+  * The type is 'C' for create or update, 'D' for delete and 'X' for clear
   *
   * Value
   *   CreateOrUpdate: serialized simple feature
@@ -129,7 +119,7 @@ class KafkaGeoMessageEncoder(val schema: SimpleFeatureType) {
 
   import KafkaGeoMessageEncoder.{MSG, encodeKey}
 
-  val sfEncoder: SimpleFeatureEncoder = new AvroFeatureEncoder(schema, EncodingOptions.withUserData)
+  val sfEncoder: SimpleFeatureEncoder = new KryoFeatureEncoder(schema, EncodingOptions.withUserData)
 
   def encode(topic: String, msg: KafkaGeoMessage): MSG = msg match {
     case c: CreateOrUpdate =>
@@ -155,70 +145,48 @@ class KafkaGeoMessageDecoder(val schema: SimpleFeatureType) extends Logging {
 
   type MSG = MessageAndMetadata[Array[Byte], Array[Byte]]
 
-  private lazy val V0_DELETE_KEY = "delete".getBytes(StandardCharsets.UTF_8)
-  private lazy val V0_CLEAR_KEY = "clear".getBytes(StandardCharsets.UTF_8)
-  private lazy val V0_TIMESTAMP = new Instant(0L)
+  case class MsgKey(version: Byte, msgType: Byte, ts: Instant)
 
-  val sfDecoder: SimpleFeatureDecoder = new AvroFeatureDecoder(schema, EncodingOptions.withUserData)
+  val sfDecoder: SimpleFeatureDecoder = new KryoFeatureDecoder(schema, EncodingOptions.withUserData)
 
   def decode(msg: MSG): KafkaGeoMessage = {
 
-    val key = msg.key()
+    val MsgKey(version, msgType, ts) = decodeKey(msg.key())
 
-    if (key != null && key(0) == 1) {
-      decodeVersion1(msg)
+    if (version == 1) {
+      decodeVersion1(msgType, ts, msg)
     } else {
-      // try version 0
-      decodeVersion0(msg)
+      throw new IllegalArgumentException(s"Unknown serialization version: $version")
     }
   }
 
-  def decodeKey(key: Array[Byte]): (Instant, Byte) = {
+  def decodeKey(key: Array[Byte]): MsgKey = {
+    if (key == null) {
+      throw new IllegalArgumentException("Invalid null key.")
+    }
     if (key.length != 10) {
       throw new IllegalArgumentException(s"Invalid message key.  Expecting 10 bytes but found ${key.length}: "
         + s"${new String(key, StandardCharsets.UTF_8)}")
     }
 
     val buffer = ByteBuffer.wrap(key)
-
-    buffer.get() // version
+    val version = buffer.get()
     val msgType = buffer.get()
     val ts = new Instant(buffer.getLong)
 
-    (ts, msgType)
+    MsgKey(version, msgType, ts)
   }
 
-  def decodeVersion1(msg: MSG): KafkaGeoMessage = {
-    val (ts, msgType) = decodeKey(msg.key())
-
-    msgType match {
-      case KafkaGeoMessageEncoder.createOrUpdateType =>
-        val sf = sfDecoder.decode(msg.message())
-        CreateOrUpdate(ts, sf)
-      case KafkaGeoMessageEncoder.deleteType =>
-        val id = new String(msg.message(), StandardCharsets.UTF_8)
-        Delete(ts, id)
-      case KafkaGeoMessageEncoder.clearType =>
-        Clear(ts)
-      case _ =>
-        throw new IllegalArgumentException("Unknown message type: " + msgType.toChar)
-    }
-  }
-
-  def decodeVersion0(msg: MSG): KafkaGeoMessage = {
-
-    if(msg.key() != null) {
-      if(util.Arrays.equals(msg.key(), V0_DELETE_KEY)) {
-        val id = new String(msg.message(), StandardCharsets.UTF_8)
-        Delete(V0_TIMESTAMP, id)
-      } else if(util.Arrays.equals(msg.key(), V0_CLEAR_KEY)) {
-        Clear(V0_TIMESTAMP)
-      } else {
-        throw new IllegalArgumentException("Unknown message key: " + new String(msg.key(), StandardCharsets.UTF_8))
-      }
-    } else {
+  def decodeVersion1(msgType: Byte, ts: Instant, msg: MSG): KafkaGeoMessage = msgType match {
+    case KafkaGeoMessageEncoder.createOrUpdateType =>
       val sf = sfDecoder.decode(msg.message())
-      CreateOrUpdate(V0_TIMESTAMP, sf)
-    }
+      CreateOrUpdate(ts, sf)
+    case KafkaGeoMessageEncoder.deleteType =>
+      val id = new String(msg.message(), StandardCharsets.UTF_8)
+      Delete(ts, id)
+    case KafkaGeoMessageEncoder.clearType =>
+      Clear(ts)
+    case _ =>
+      throw new IllegalArgumentException("Unknown message type: " + msgType.toChar)
   }
 }

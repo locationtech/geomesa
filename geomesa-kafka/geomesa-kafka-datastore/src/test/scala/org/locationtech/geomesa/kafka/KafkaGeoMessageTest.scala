@@ -15,15 +15,13 @@
  */
 package org.locationtech.geomesa.kafka
 
-import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
-import org.joda.time.Instant
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.AvroFeatureEncoder
 import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
+import org.locationtech.geomesa.feature.KryoFeatureEncoder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -45,10 +43,6 @@ class KafkaGeoMessageTest extends Specification with Mockito {
   val topic = "test_topic"
   val schema = SimpleFeatureTypes.createType("KafkaGeoMessageTest", "name:String,*geom:Point:srid=4326")
 
-  implicit val mockClock = new Clock {
-    override val now: Instant = new Instant(ByteBuffer.wrap(Array[Byte](1, 2, 3, 4, 5, 6, 7, 8)).getLong)
-  }
-
   def createSimpleFeature: SimpleFeature = {
     val id = "test_id"
     val sfVals = List[AnyRef]("foo", WKTUtils.read("POINT(1 -1)"))
@@ -56,7 +50,7 @@ class KafkaGeoMessageTest extends Specification with Mockito {
   }
 
   def encodeSF(sf: SimpleFeature): Array[Byte] = {
-    val sfEncoder = new AvroFeatureEncoder(schema, EncodingOptions.withUserData)
+    val sfEncoder = new KryoFeatureEncoder(schema, EncodingOptions.withUserData)
     sfEncoder.encode(sf)
   }
 
@@ -64,16 +58,15 @@ class KafkaGeoMessageTest extends Specification with Mockito {
 
     val msg = KafkaGeoMessage.clear()
 
-    "use the correct timestamp" >> {
-      msg.timestamp mustEqual mockClock.now
-    }
-
     "be able to be encoded and decoded" >> {
       val encoder = new KafkaGeoMessageEncoder(schema)
       val encoded: ProducerMsg = encoder.encode(topic, msg)
 
       encoded must not(beNull)
-      encoded.key mustEqual Array[Byte](1, 'X', 1, 2, 3, 4, 5, 6, 7, 8)
+      encoded.key must not(beNull)
+      encoded.key.length mustEqual 10
+      encoded.key(0) mustEqual 1
+      encoded.key(1) mustEqual 'X'
       encoded.message mustEqual Array.empty[Byte]
 
       val decoder = new KafkaGeoMessageDecoder(schema)
@@ -88,16 +81,15 @@ class KafkaGeoMessageTest extends Specification with Mockito {
     val id = "test_id"
     val msg = KafkaGeoMessage.delete(id)
 
-    "use the correct timestamp" >> {
-      msg.timestamp mustEqual mockClock.now
-    }
-
     "be able to be encoded and decoded" >> {
       val encoder = new KafkaGeoMessageEncoder(schema)
       val encoded: ProducerMsg = encoder.encode(topic, msg)
 
       encoded must not(beNull)
-      encoded.key mustEqual Array[Byte](1, 'D', 1, 2, 3, 4, 5, 6, 7, 8)
+      encoded.key must not(beNull)
+      encoded.key.length mustEqual 10
+      encoded.key(0) mustEqual 1
+      encoded.key(1) mustEqual 'D'
       encoded.message mustEqual id.getBytes(StandardCharsets.UTF_8)
 
       val decoder = new KafkaGeoMessageDecoder(schema)
@@ -112,16 +104,15 @@ class KafkaGeoMessageTest extends Specification with Mockito {
     val sf = createSimpleFeature
     val msg = KafkaGeoMessage.createOrUpdate(sf)
 
-    "use the correct timestamp" >> {
-      msg.timestamp mustEqual mockClock.now
-    }
-
     "be able to be encoded and decoded" >> {
       val encoder = new KafkaGeoMessageEncoder(schema)
       val encoded: ProducerMsg = encoder.encode(topic, msg)
 
       encoded must not(beNull)
-      encoded.key mustEqual Array[Byte](1, 'C', 1, 2, 3, 4, 5, 6, 7, 8)
+      encoded.key must not(beNull)
+      encoded.key.length mustEqual 10
+      encoded.key(0) mustEqual 1
+      encoded.key(1) mustEqual 'C'
       encoded.message mustEqual encodeSF(sf)
 
       val decoder = new KafkaGeoMessageDecoder(schema)
@@ -137,61 +128,17 @@ class KafkaGeoMessageTest extends Specification with Mockito {
 
   "KafkaGeoMessageDecoder" should {
 
-    "be able to decode version 0 messages" >> {
-
-      val decoder = new KafkaGeoMessageDecoder(schema)
-
-      "of type Clear" >> {
-        val key = "clear".getBytes(StandardCharsets.UTF_8)
-        val msg = Array.empty[Byte]
-        val cmsg = mockConsumerMessage(key, msg)
-
-        val result = decoder.decode(cmsg)
-        result must not(beNull)
-        result.isInstanceOf[Clear] must beTrue
-        result.timestamp mustEqual new Instant(0L)
-      }
-
-      "of type Delete" >> {
-        val id = "test_id"
-
-        val key = "delete".getBytes(StandardCharsets.UTF_8)
-        val msg = id.getBytes(StandardCharsets.UTF_8)
-        val cmsg = mockConsumerMessage(key, msg)
-
-        val result = decoder.decode(cmsg)
-        result must not(beNull)
-        result.isInstanceOf[Delete] must beTrue
-        result.timestamp mustEqual new Instant(0L)
-        result.asInstanceOf[Delete].id mustEqual id
-      }
-
-      "of type CreateOrUpdate" >> {
-        val sf = createSimpleFeature
-        val key: Array[Byte] = null
-        val msg = encodeSF(sf)
-
-        val cmsg = mockConsumerMessage(key, msg)
-
-        val result = decoder.decode(cmsg)
-        result must not(beNull)
-        result.isInstanceOf[CreateOrUpdate] must beTrue
-        result.timestamp mustEqual new Instant(0L)
-        result.asInstanceOf[CreateOrUpdate].feature must equalSF(sf)
-      }
-    }
-
-    "throw an exception if the message cannot be decoded" >> {
+    "throw an exception if the message key is null" >> {
       val decoder = new KafkaGeoMessageDecoder(schema)
 
       val msg = mockConsumerMessage(
-        "garbage".getBytes(StandardCharsets.UTF_8),
+        null,
         "garbage".getBytes(StandardCharsets.UTF_8))
 
-      decoder.decode(msg) must throwAn[IllegalArgumentException]("Unknown message key")
+      decoder.decode(msg) must throwAn[IllegalArgumentException]("Invalid null key")
     }
 
-    "throw an exception if the message key lenght is incorrect" >> {
+    "throw an exception if the message key length is incorrect" >> {
       val decoder = new KafkaGeoMessageDecoder(schema)
 
       val msg = mockConsumerMessage(
@@ -201,14 +148,34 @@ class KafkaGeoMessageTest extends Specification with Mockito {
       decoder.decode(msg) must throwAn[IllegalArgumentException]("Invalid message key")
     }
 
+    "throw an exception if the version number is incorrect" >> {
+      val decoder = new KafkaGeoMessageDecoder(schema)
+
+      val msg = mockConsumerMessage(
+        Array[Byte](0, 'X', 1, 2, 3, 4, 5, 6, 7, 8),
+        "garbage".getBytes(StandardCharsets.UTF_8))
+
+      decoder.decode(msg) must throwAn[IllegalArgumentException]("Unknown serialization version")
+    }
+
     "throw an exception if the message type is invalid" >> {
       val decoder = new KafkaGeoMessageDecoder(schema)
 
       val msg = mockConsumerMessage(
-        Array[Byte](1, 'U', 0, 0, 0, 0, 0, 0, 0, 0),
+        Array[Byte](1, 'Z', 0, 0, 0, 0, 0, 0, 0, 0),
         "garbage".getBytes(StandardCharsets.UTF_8))
 
       decoder.decode(msg) must throwAn[IllegalArgumentException]("Unknown message type")
+    }
+
+    "throw an exception if the message cannot be decoded" >> {
+      val decoder = new KafkaGeoMessageDecoder(schema)
+
+      val msg = mockConsumerMessage(
+        Array[Byte](0, 'C', 1, 2, 3, 4, 5, 6, 7, 8),
+        "garbage".getBytes(StandardCharsets.UTF_8))
+
+      decoder.decode(msg) must throwAn[IllegalArgumentException]
     }
   }
 
