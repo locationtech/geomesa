@@ -91,18 +91,13 @@ object GeoMesaSpark {
   def typeProp(typeName: String) = s"geomesa.types.$typeName"
   def jOpt(typeName: String, spec: String) = s"-D${typeProp(typeName)}=$spec"
 
+  @deprecated("Relies on incidental functional parity across classes, effectively an implicit and unexpressed dependency on non-guaranteed behavior", "Apr2015")
   def rddPartPerExec(conf: Configuration, sc: SparkContext, dsParams: Map[String, String], query: Query, partsPerExec: Int): RDD[SimpleFeature] = {
     val filter = ECQL.toCQL(query.getFilter)
-    conf.setInt("SplitsDesired", sc.getExecutorStorageStatus.length * partsPerExec)
+    conf.setInt("SplitsDesired", sc.getExecutorStorageStatus.length * partsPerExec / 2)
     val job = Job.getInstance(conf, "GeoMesa Spark")
-    GeoMesaInputFormat.configure(job, dsParams, query, Some(filter)) // this appears to be mutator for job
-    val rdd = sc.newAPIHadoopRDD(job.getConfiguration(), classOf[GeoSparkInputFormat], classOf[Text], classOf[SimpleFeature])
-
-/*    rdd.mapPartitions { iter =>
-      val sft = SimpleFeatureTypes.createType(typeName, spec)
-      val decoder = SimpleFeatureDecoder(sft, featureEncoding)
-      iter.map { case (k: Key, v: Value) => decoder.decode(v.get()) }
-    }*/
+    GeoMesaInputFormat.configure(job, dsParams, query.getTypeName, Some(filter)) // this appears to be mutator for job
+    sc.newAPIHadoopRDD(job.getConfiguration(), classOf[GeoSparkInputFormat], classOf[Text], classOf[SimpleFeature]).map{ case (t, sf) => sf}
   }
 
   def rdd(conf: Configuration, sc: SparkContext, ds: AccumuloDataStore, query: Query, useMock: Boolean = false): RDD[SimpleFeature] = {
@@ -125,8 +120,6 @@ object GeoMesaSpark {
     InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
     qp.iterators.foreach { is => InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, is) }
 
-    val job = Job.getInstance(conf, "GeoMesa Spark") // this line, I don't totally grok.
-    GeoMesaInputFormat.configure(job, )
     val rdd = sc.newAPIHadoopRDD(conf, classOf[AccumuloInputFormat], classOf[Key], classOf[Value])
 
     rdd.mapPartitions { iter =>
