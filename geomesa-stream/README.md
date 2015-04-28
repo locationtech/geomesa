@@ -71,4 +71,14 @@ val listener =
     def onNext(sf: SimpleFeature) = println(s"Received a new feature: ${sf.getID}")
   }
 ds.asInstanceOf[org.locationtech.geomesa.stream.datastore.StreamDataStore].registerListener(listener)
-```    
+```
+### UDP
+
+The generic source can be used with UDP as well, although there are some caveats:
+
+* If you are sending text, the source route must include '?textline=true', even though the Camel docs say that only applies to TCP
+* Each UDP packet data must end with a newline character
+* Each UDP packet data must contain exactly one line - everything after the newline will be dropped
+* Packet size can be controlled by the route parameter 'receiveBufferSize' - default is 65536 bytes
+  * If the message is larger than the packet size then the message will be truncated
+* The sender must ensure that the UDP send packet size is sufficient to contain each message
