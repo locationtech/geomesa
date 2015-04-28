@@ -79,6 +79,7 @@ The generic source can be used with UDP as well, although there are some caveats
 * If you are sending text, the source route must include '?textline=true', even though the Camel docs say that only applies to TCP
 * Each UDP packet data must end with a newline character
 * Each UDP packet data must contain exactly one line - everything after the newline will be dropped
-* Maximun text line size can be controlled by the route parameter 'decoderMaxLineLength' with a maximum value of Integer.MAX_VALUE, which roughly corresponds to 2 KB
+* Maximun text line size can be controlled by the route parameter 'decoderMaxLineLength' with a maximum value of 2048
   * If the message is longer than the line size then the message will be dropped
   * Default maximum text line length is 1024
+  * Note that technically the line length can be longer, but Camel does not expose the Netty UDP RCVBUF_ALLOCATOR option, which causes messages to be truncated at 2048 bytes.
