@@ -85,6 +85,7 @@ class GenericSimpleFeatureStreamSourceTest extends Specification  {
     "work with udp" >> {
       val port = 5898
       val udpConf = confString.replace("tcp", "udp").replace("5899", port.toString)
+          .replace("textline=true", "textline=true&decoderMaxLineLength=" + Int.MaxValue)
       val source = SimpleFeatureStreamSource.buildSource(ConfigFactory.parseString(udpConf))
       source.init()
       source must not beNull
