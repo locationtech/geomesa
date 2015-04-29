@@ -22,12 +22,13 @@ import java.util.UUID
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
-import org.apache.accumulo.core.client.mapreduce.{RangeInputSplit, AccumuloInputFormat}
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.mapreduce.lib.util.{ConfiguratorBase, InputConfigurator}
+import org.apache.accumulo.core.client.mapreduce.{AccumuloInputFormat, RangeInputSplit}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
-import org.apache.hadoop.mapreduce.{InputSplit, JobContext, Job}
+import org.apache.hadoop.mapreduce.{InputSplit, Job, JobContext}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.serializer.KryoRegistrator
 import org.apache.spark.{SparkConf, SparkContext}
@@ -39,13 +40,13 @@ import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.feature._
 import org.locationtech.geomesa.feature.kryo.{KryoFeatureSerializer, SimpleFeatureSerializer}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
-import org.locationtech.geomesa.jobs.mapreduce.{GroupedSplit, GeoMesaInputFormat}
+import org.locationtech.geomesa.jobs.mapreduce.{GeoMesaInputFormat, GroupedSplit}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
-object GeoMesaSpark {
+object GeoMesaSpark extends Logging {
 
   class GeoSparkInputFormat extends GeoMesaInputFormat
   {
@@ -63,7 +64,7 @@ object GeoMesaSpark {
       // try to create 2 mappers per node - account for case where there are less splits than shards
       val desiredSplits = context.getConfiguration.getInt("SplitsDesired", numShards)
       val groupSize = Math.max(desiredSplits * 2, accumuloSplits.length / (desiredSplits * 2))
-
+      logger.error("I am being used....")
       // We know each range will only have a single location because of autoAdjustRanges
       val splits = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
         splits.grouped(groupSize).map { group =>
@@ -73,7 +74,9 @@ object GeoMesaSpark {
           split
         }
       }
+      logger.error(s"Got ${splits.toList.length} splits using desired=${desiredSplits} and asking for ${groupSize} from ${accumuloSplits.length}")
       splits.toList
+
     }
 
   }
@@ -197,7 +200,7 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
         serializerCache.get(typeName).write(kryo, out, feature)
       }
 
-      override def read(kry: Kryo, in: Input, clazz: Class[SimpleFeature]): SimpleFeature = {
+      override def read(kryo: Kryo, in: Input, clazz: Class[SimpleFeature]): SimpleFeature = {
         val typeName = in.readString()
         serializerCache.get(typeName).read(kryo, in, clazz)
       }
