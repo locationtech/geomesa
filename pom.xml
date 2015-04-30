@@ -65,10 +65,20 @@
         <log4j.version>1.2.17</log4j.version>
 
         <!-- distribution properties -->
+        <dist.releases.id>repo.locationtech.org</dist.releases.id>
+        <dist.releases.name>GeoMesa Repository - Releases</dist.releases.name>
+        <dist.releases.url>https://repo.locationtech.org/content/repositories/geomesa-releases/</dist.releases.url>
+        <dist.snapshots.id>repo.locationtech.org</dist.snapshots.id>
+        <dist.snapshots.name>GeoMesa Repository - Snapshots</dist.snapshots.name>
+        <dist.snapshots.url>https://repo.locationtech.org/content/repositories/geomesa-snapshots/</dist.snapshots.url>
         <dist.accumulo.lib.ext>accumulo/lib/ext</dist.accumulo.lib.ext>
         <dist.hdfs>hdfs</dist.hdfs>
         <dist.geoserver.lib>geoserver/WEB-INF/lib</dist.geoserver.lib>
         <dist.dev>dev</dist.dev>
+
+        <!-- SCM properties -->
+        <scm.connection>scm:git:git@github.com:locationtech/geomesa.git</scm.connection>
+        <scm.url>https://github.com/locationtech/geomesa</scm.url>
 
         <!-- testing properties -->
         <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit</maven.test.jvmargs>
@@ -88,14 +98,14 @@
 
     <distributionManagement>
         <repository>
-            <id>repo.locationtech.org</id>
-            <name>GeoMesa Repository - Releases</name>
-            <url>https://repo.locationtech.org/content/repositories/geomesa-releases/</url>
+            <id>${dist.releases.id}</id>
+            <name>${dist.releases.name}</name>
+            <url>${dist.releases.url}</url>
         </repository>
         <snapshotRepository>
-            <id>repo.locationtech.org</id>
-            <name>GeoMesa Repository - Snapshots</name>
-            <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots/</url>
+            <id>${dist.snapshots.id}</id>
+            <name>${dist.snapshots.name}</name>
+            <url>${dist.snapshots.url}</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -1043,9 +1053,9 @@
     </build>
 
     <scm>
-        <connection>scm:git:git@github.com:locationtech/geomesa.git</connection>
-        <developerConnection>scm:git:git@github.com:locationtech/geomesa.git</developerConnection>
-        <url>https://github.com/locationtech/geomesa</url>
+        <connection>${scm.connection}</connection>
+        <developerConnection>${scm.connection}</developerConnection>
+        <url>${scm.url}</url>
         <tag>geomesa-accumulo1.5-1.0.0-rc.6</tag>
     </scm>
 
