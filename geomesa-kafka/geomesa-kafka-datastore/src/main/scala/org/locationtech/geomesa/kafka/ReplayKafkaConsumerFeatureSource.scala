@@ -15,21 +15,15 @@
  */
 package org.locationtech.geomesa.kafka
 
-import java.util.concurrent.BlockingQueue
-
-import kafka.consumer.{ConsumerConfig, FetchedDataChunk}
-import kafka.message.{Message, MessageAndMetadata}
-import kafka.serializer.{Decoder, DefaultDecoder}
 import org.geotools.data.Query
 import org.geotools.data.store.ContentEntry
 import org.joda.time.{Duration, Instant}
-import org.locationtech.geomesa.kafka.RequestedOffset.MessagePredicate
+import org.locationtech.geomesa.core.filter._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
-import org.locationtech.geomesa.core.filter._
 
-import scala.collection.immutable.{SortedMap, TreeMap}
 import scala.collection.JavaConverters._
+import scala.collection.immutable.{SortedMap, TreeMap}
 
 object ReplayKafkaConsumerFeatureSource {
 
@@ -41,16 +35,11 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
                                        query: Query,
                                        topic: String,
                                        zookeepers: String,
-                                       replayConfig: ReplayConfig) {
+                                       replayConfig: ReplayConfig)(implicit val kf: KafkaFactory) {
 
   def readMessages(): SortedMap[Long, Seq[KafkaGeoMessage]] = {
 
-    val kafkaConsumer = {
-      val kafkaConfig = KafkaConsumerFeatureSource.buildConsumerConfig(zookeepers)
-      val decoder: DefaultDecoder = new DefaultDecoder(null)
-      new KafkaConsumer[Array[Byte], Array[Byte]](kafkaConfig, decoder, decoder)
-    }
-
+    val kafkaConsumer = kf.kafkaConsumer(zookeepers)
     val msgDecoder = new KafkaGeoMessageDecoder(schema)
 
     val startTime = replayConfig.realStartTime
@@ -177,54 +166,4 @@ case class TimestampFilterLists(timestamps: Seq[Long], filters: Seq[Filter]) {
       TimestampFilterSplit(None, None)
     }
   }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////
-// Delete all code below when KafkaConsumer has been moved into GeoMesa //
-//////////////////////////////////////////////////////////////////////////
-
-
-
-/** This is a stub for KafkaConsumer, currently part of WT, until is is moved to GeoMesa. */
-class KafkaConsumer[K, V](val config: ConsumerConfig, keyDecoder: Decoder[K], valueDecoder: Decoder[V]) {
-
-  def createMessageStreams(topic: String,
-                           numStreams: Int,
-                           startFrom: RequestedOffset = NextOffset(config.groupId)): List[KafkaStreamLike[K, V]] = ???
-
-  // TODO add to KafkaConsumer - gets the requested offset for each partition
-  def getOffsets(topic: String, request: RequestedOffset): Seq[Long] = ???
-}
-
-/** Copied from WT.  Delete when moved to GeoMesa. */
-sealed trait RequestedOffset
-
-case object EarliestOffset                          extends RequestedOffset
-case object LatestOffset                            extends RequestedOffset
-case class  NextOffset(group: String)               extends RequestedOffset
-case class  DateOffset(date: Long)                  extends RequestedOffset
-case class  FindOffset(predicate: MessagePredicate) extends RequestedOffset
-
-object RequestedOffset {
-  // 0 indicates a match, -1 indicates less than, 1 indicates greater than
-  type MessagePredicate = (Message) => Int
-}
-
-/** This is a stub for KafkaStreamLike, currently part of WT, until is is moved to GeoMesa. */
-class KafkaStreamLike[K, V](queue: BlockingQueue[FetchedDataChunk],
-                            timeoutMs: Long,
-                            keyDecoder: Decoder[K],
-                            valueDecoder: Decoder[V]) extends Iterable[MessageAndMetadata[K, V]] {
-  override def iterator: Iterator[MessageAndMetadata[K, V]] = ???
 }

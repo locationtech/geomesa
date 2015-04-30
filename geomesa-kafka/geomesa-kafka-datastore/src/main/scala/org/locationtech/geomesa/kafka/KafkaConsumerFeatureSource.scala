@@ -16,17 +16,13 @@
 
 package org.locationtech.geomesa.kafka
 
-import java.util.Properties
 import java.util.concurrent.{Executors, TimeUnit}
 
 import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNotification}
 import com.google.common.eventbus.{EventBus, Subscribe}
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
-import kafka.consumer.{Consumer, ConsumerConfig, Whitelist}
-import kafka.serializer.DefaultDecoder
-import org.apache.commons.lang3.RandomStringUtils
 import org.geotools.data.collection.DelegateFeatureReader
-import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
+import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
 import org.geotools.data.{FilteringFeatureReader, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.DelegateFeatureIterator
@@ -53,19 +49,17 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
                                  topic: String,
                                  zookeepers: String,
                                  expiry: Boolean,
-                                 expirationPeriod: Long)
-  extends ContentFeatureStore(entry, query)
+                                 expirationPeriod: Long)(implicit val kf: KafkaFactory)
+  extends ContentFeatureSource(entry, query)
   with ContentFeatureSourceSecuritySupport
   with ContentFeatureSourceReTypingSupport {
 
   var qt = new SynchronizedQuadtree
 
-  val groupId = RandomStringUtils.randomAlphanumeric(5)
-
   private val msgDecoder = new KafkaGeoMessageDecoder(schema)
 
   // create a producer that reads from kafka and sends to the event bus
-  new KafkaFeatureConsumer(topic, zookeepers, groupId, msgDecoder, eb)
+  new KafkaFeatureConsumer(topic, zookeepers, msgDecoder, eb)
 
   case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
     override def hashCode(): Int = sf.hashCode()
@@ -196,20 +190,14 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
     id += 1
     new FeatureIdImpl(ret.toString)
   }
-
-  override def getWriterInternal(query: Query, flags: Int) = throw new IllegalArgumentException("Not allowed")
 }
 
 class KafkaFeatureConsumer(topic: String,
                            zookeepers: String,
-                           groupId: String,
                            msgDecoder: KafkaGeoMessageDecoder,
-                           eventBus: EventBus) {
+                           eventBus: EventBus)(implicit val kf: KafkaFactory) {
 
-  private val client = Consumer.create(new ConsumerConfig(buildClientProps))
-  private val whiteList = new Whitelist(topic)
-  private val decoder: DefaultDecoder = new DefaultDecoder(null)
-  private val stream = client.createMessageStreamsByFilter(whiteList, 1, decoder, decoder).head
+  private val stream = kf.messageStreams(zookeepers, topic, 1).head
 
   val es = Executors.newSingleThreadExecutor()
   es.submit(new Runnable {
@@ -221,14 +209,4 @@ class KafkaFeatureConsumer(topic: String,
       }
     }
   })
-
-  private def buildClientProps = {
-    val props = new Properties()
-    props.put("zookeeper.connect", zookeepers)
-    props.put("group.id", groupId)
-    props.put("zookeeper.session.timeout.ms", "2000")
-    props.put("zookeeper.sync.time.ms", "1000")
-    props.put("auto.commit.interval.ms", "1000")
-    props
-  }
 }
