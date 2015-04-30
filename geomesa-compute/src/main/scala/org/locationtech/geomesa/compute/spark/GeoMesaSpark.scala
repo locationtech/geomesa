@@ -64,7 +64,6 @@ object GeoMesaSpark extends Logging {
       val accumuloSplits = delegate.getSplits(context)
       // try to create 2 mappers per node - account for case where there are less splits than shards
       val groupSize = Math.max(1, accumuloSplits.length / desiredSplits)
-      logger.error("I am being used....")
       // We know each range will only have a single location because of autoAdjustRanges
       val splits = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
         splits.grouped(groupSize).map { group =>
@@ -77,7 +76,7 @@ object GeoMesaSpark extends Logging {
       //we've dumped all ranges into groups by location, and tried to get enough splits by breaking up those groups.
       //we may eventually need to go ahead and do some pretty grim mojo to break each split down small enough
       //so that we don't blow executor's memory pools. Right now, that's not happening, so I'm not going to push it.
-      logger.error(s"Got ${splits.toList.length} splits using desired=${desiredSplits} from ${accumuloSplits.length}")
+      logger.info(s"Got ${splits.toList.length} splits using desired=${desiredSplits} from ${accumuloSplits.length}")
       splits.toList
 
     }
