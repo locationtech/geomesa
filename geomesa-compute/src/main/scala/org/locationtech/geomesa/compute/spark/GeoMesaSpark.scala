@@ -60,10 +60,10 @@ object GeoMesaSpark extends Logging {
 
     override def getSplits(context: JobContext) : java.util.List[InputSplit] = {
       init(context.getConfiguration)
+      val desiredSplits = context.getConfiguration.getInt("SplitsDesired", 10*numShards)
       val accumuloSplits = delegate.getSplits(context)
       // try to create 2 mappers per node - account for case where there are less splits than shards
-      val desiredSplits = context.getConfiguration.getInt("SplitsDesired", numShards)
-      val groupSize = Math.max(desiredSplits * 2, accumuloSplits.length / (desiredSplits * 2))
+      val groupSize = Math.max(1, accumuloSplits.length / desiredSplits)
       logger.error("I am being used....")
       // We know each range will only have a single location because of autoAdjustRanges
       val splits = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
@@ -74,7 +74,10 @@ object GeoMesaSpark extends Logging {
           split
         }
       }
-      logger.error(s"Got ${splits.toList.length} splits using desired=${desiredSplits} and asking for ${groupSize} from ${accumuloSplits.length}")
+      //we've dumped all ranges into groups by location, and tried to get enough splits by breaking up those groups.
+      //we may eventually need to go ahead and do some pretty grim mojo to break each split down small enough
+      //so that we don't blow executor's memory pools. Right now, that's not happening, so I'm not going to push it.
+      logger.error(s"Got ${splits.toList.length} splits using desired=${desiredSplits} from ${accumuloSplits.length}")
       splits.toList
 
     }
@@ -97,7 +100,7 @@ object GeoMesaSpark extends Logging {
   @deprecated("Relies on incidental functional parity across classes, effectively an implicit and unexpressed dependency on non-guaranteed behavior", "Apr2015")
   def rddPartPerExec(conf: Configuration, sc: SparkContext, dsParams: Map[String, String], query: Query, partsPerExec: Int): RDD[SimpleFeature] = {
     val filter = ECQL.toCQL(query.getFilter)
-    conf.setInt("SplitsDesired", sc.getExecutorStorageStatus.length * partsPerExec / 2)
+    conf.setInt("SplitsDesired", partsPerExec * sc.getExecutorStorageStatus.length) // sc.get[...]status.length returns a much smaller value than I expected.
     val job = Job.getInstance(conf, "GeoMesa Spark")
     GeoMesaInputFormat.configure(job, dsParams, query.getTypeName, Some(filter)) // this appears to be mutator for job
     sc.newAPIHadoopRDD(job.getConfiguration(), classOf[GeoSparkInputFormat], classOf[Text], classOf[SimpleFeature]).map{ case (t, sf) => sf}
