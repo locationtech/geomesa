@@ -25,6 +25,7 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.locationtech.geomesa.kafka.RequestedOffset.MessagePredicate
 
 import scala.collection.Seq
+import scala.language.implicitConversions
 
 class KafkaFactory {
 
@@ -77,6 +78,7 @@ object KafkaFactory {
   implicit val factory: KafkaFactory = new KafkaFactory
 
   val defaultDecoder: Decoder[Array[Byte]] = new DefaultDecoder(null)
+
 }
 
 

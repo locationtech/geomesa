@@ -88,7 +88,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   eb.register(this)
 
   @Subscribe
-  def processProtocolMessage(msg: KafkaGeoMessage): Unit = msg match {
+  def processProtocolMessage(msg: GeoMessage): Unit = msg match {
     case update: CreateOrUpdate => processNewFeatures(update)
     case del: Delete            => removeFeature(del)
     case clr: Clear             => clear()
@@ -204,7 +204,7 @@ class KafkaFeatureConsumer(topic: String,
     override def run(): Unit = {
       val iter = stream.iterator()
       while (iter.hasNext()) {
-        val msg: KafkaGeoMessage = msgDecoder.decode(iter.next())
+        val msg: GeoMessage = msgDecoder.decode(iter.next())
         eventBus.post(msg)
       }
     }

@@ -33,7 +33,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class KafkaGeoMessageTest extends Specification with Mockito {
+class GeoMessageTest extends Specification with Mockito {
 
   sequential
 
@@ -56,11 +56,11 @@ class KafkaGeoMessageTest extends Specification with Mockito {
 
   "Clear" should {
 
-    val msg = KafkaGeoMessage.clear()
+    val msg = GeoMessage.clear()
 
     "be able to be encoded and decoded" >> {
       val encoder = new KafkaGeoMessageEncoder(schema)
-      val encoded: ProducerMsg = encoder.encode(topic, msg)
+      val encoded: ProducerMsg = encoder.encodeMessage(topic, msg)
 
       encoded must not(beNull)
       encoded.key must not(beNull)
@@ -70,7 +70,7 @@ class KafkaGeoMessageTest extends Specification with Mockito {
       encoded.message mustEqual Array.empty[Byte]
 
       val decoder = new KafkaGeoMessageDecoder(schema)
-      val decoded: KafkaGeoMessage = decoder.decode(encoded)
+      val decoded: GeoMessage = decoder.decode(encoded)
 
       decoded mustEqual msg
     }
@@ -79,11 +79,11 @@ class KafkaGeoMessageTest extends Specification with Mockito {
   "Delete" should {
 
     val id = "test_id"
-    val msg = KafkaGeoMessage.delete(id)
+    val msg = GeoMessage.delete(id)
 
     "be able to be encoded and decoded" >> {
       val encoder = new KafkaGeoMessageEncoder(schema)
-      val encoded: ProducerMsg = encoder.encode(topic, msg)
+      val encoded: ProducerMsg = encoder.encodeMessage(topic, msg)
 
       encoded must not(beNull)
       encoded.key must not(beNull)
@@ -93,7 +93,7 @@ class KafkaGeoMessageTest extends Specification with Mockito {
       encoded.message mustEqual id.getBytes(StandardCharsets.UTF_8)
 
       val decoder = new KafkaGeoMessageDecoder(schema)
-      val decoded: KafkaGeoMessage = decoder.decode(encoded)
+      val decoded: GeoMessage = decoder.decode(encoded)
 
       decoded mustEqual msg
     }
@@ -102,11 +102,11 @@ class KafkaGeoMessageTest extends Specification with Mockito {
   "CreateOrUpdate" should {
 
     val sf = createSimpleFeature
-    val msg = KafkaGeoMessage.createOrUpdate(sf)
+    val msg = GeoMessage.createOrUpdate(sf)
 
     "be able to be encoded and decoded" >> {
       val encoder = new KafkaGeoMessageEncoder(schema)
-      val encoded: ProducerMsg = encoder.encode(topic, msg)
+      val encoded: ProducerMsg = encoder.encodeMessage(topic, msg)
 
       encoded must not(beNull)
       encoded.key must not(beNull)
@@ -116,7 +116,7 @@ class KafkaGeoMessageTest extends Specification with Mockito {
       encoded.message mustEqual encodeSF(sf)
 
       val decoder = new KafkaGeoMessageDecoder(schema)
-      val decoded: KafkaGeoMessage = decoder.decode(encoded)
+      val decoded: GeoMessage = decoder.decode(encoded)
 
       decoded.isInstanceOf[CreateOrUpdate] must beTrue
 

@@ -37,7 +37,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
                                        zookeepers: String,
                                        replayConfig: ReplayConfig)(implicit val kf: KafkaFactory) {
 
-  def readMessages(): SortedMap[Long, Seq[KafkaGeoMessage]] = {
+  def readMessages(): SortedMap[Long, Seq[GeoMessage]] = {
 
     val kafkaConsumer = kf.kafkaConsumer(zookeepers)
     val msgDecoder = new KafkaGeoMessageDecoder(schema)
@@ -59,7 +59,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
       .takeWhile(_.offset <= lastOffset)
       .map(msgDecoder.decode)
       .takeWhile(replayConfig.isNotAfterEnd)
-      .foldLeft(TreeMap.empty[Long, Seq[KafkaGeoMessage]]) { (map, msg) =>
+      .foldLeft(TreeMap.empty[Long, Seq[GeoMessage]]) { (map, msg) =>
         val ts = msg.timestamp.getMillis
         val msgList = map.get(ts).map(_ :+ msg).getOrElse(Seq(msg))
         map + (ts -> msgList)
@@ -83,10 +83,10 @@ case class ReplayConfig(start: Instant, end: Instant, readBehind: Duration) {
   val realStartTime: Instant = start.minus(readBehind)
 
   /**
-    * @param msg the [[KafkaGeoMessage]] to check
+    * @param msg the [[GeoMessage]] to check
     * @return true if the ``message`` is not after the ``end`` [[Instant]]
     */
-  def isNotAfterEnd(msg: KafkaGeoMessage): Boolean = end.isAfter(msg.timestamp)
+  def isNotAfterEnd(msg: GeoMessage): Boolean = end.isAfter(msg.timestamp)
 }
 
 
