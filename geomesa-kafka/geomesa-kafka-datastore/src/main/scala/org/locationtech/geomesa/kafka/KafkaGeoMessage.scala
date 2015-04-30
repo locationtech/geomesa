@@ -19,7 +19,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.slf4j.Logging
-import kafka.message.MessageAndMetadata
+import kafka.message.{Message, MessageAndMetadata}
 import kafka.producer.KeyedMessage
 import org.joda.time.Instant
 import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
@@ -33,14 +33,11 @@ sealed trait KafkaGeoMessage {
 
 object KafkaGeoMessage {
 
-  def clear(): Clear =
-    new Clear(Instant.now)
+  def clear(): Clear = Clear(Instant.now)
 
-  def delete(id: String): Delete =
-    new Delete(Instant.now, id)
+  def delete(id: String): Delete = Delete(Instant.now, id)
 
-  def createOrUpdate(sf: SimpleFeature): CreateOrUpdate =
-    new CreateOrUpdate(Instant.now, sf)
+  def createOrUpdate(sf: SimpleFeature): CreateOrUpdate = CreateOrUpdate(Instant.now, sf)
 }
 
 /** Create a new simple feature or update an existing [[SimpleFeature]]
@@ -177,6 +174,17 @@ class KafkaGeoMessageDecoder(val schema: SimpleFeatureType) extends Logging {
     MsgKey(version, msgType, ts)
   }
 
+  def decodeKey(msg: Message): MsgKey = {
+    if (!msg.hasKey) {
+      decodeKey(null : Array[Byte])
+    } else {
+      val buffer = msg.key
+      val bytes = Array.ofDim[Byte](buffer.remaining())
+      buffer.get(bytes)
+      decodeKey(bytes)
+    }
+  }
+
   def decodeVersion1(msgType: Byte, ts: Instant, msg: MSG): KafkaGeoMessage = msgType match {
     case KafkaGeoMessageEncoder.createOrUpdateType =>
       val sf = sfDecoder.decode(msg.message())
@@ -190,3 +198,4 @@ class KafkaGeoMessageDecoder(val schema: SimpleFeatureType) extends Logging {
       throw new IllegalArgumentException("Unknown message type: " + msgType.toChar)
   }
 }
+

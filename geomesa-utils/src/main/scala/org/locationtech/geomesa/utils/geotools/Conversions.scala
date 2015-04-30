@@ -52,7 +52,7 @@ object Conversions {
   }
 
   implicit class RichSimpleFeatureReader(val r: FeatureReader[SimpleFeatureType, SimpleFeature]) extends AnyVal {
-    def getIterator = new Iterator[SimpleFeature] {
+    def getIterator: Iterator[SimpleFeature] = new Iterator[SimpleFeature] {
       override def hasNext: Boolean = r.hasNext
       override def next(): SimpleFeature = r.next()
     }
