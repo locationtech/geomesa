@@ -21,7 +21,6 @@ import java.io.Serializable
 import java.{util => ju}
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
-import com.google.common.eventbus.EventBus
 import com.typesafe.scalalogging.slf4j.Logging
 import kafka.admin.AdminUtils
 import kafka.producer.{Producer, ProducerConfig}
@@ -117,9 +116,8 @@ class KafkaDataStore(broker: String,
   private def createConsumerFeatureSource(entry: ContentEntry): ContentFeatureSource = {
     if (createTypeNames().contains(entry.getName)) {
       val topic = entry.getTypeName
-      val eb = new EventBus(topic)
       val sft = schemaCache.get(topic)
-      new KafkaConsumerFeatureSource(entry, sft, eb, null, topic, zookeepers, expiry, expirationPeriod)
+      new LiveKafkaConsumerFeatureSource(entry, sft, null, topic, zookeepers, expiry, expirationPeriod)
     } else null
   }
 
