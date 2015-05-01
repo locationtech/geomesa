@@ -9,7 +9,7 @@ angular.module('geomesa.map', [])
                 api: '=',
                 selectedFeatures: '=',
             },
-            link: function (scope, element, attrs) {
+            leaflet: function (scope, element, attrs) {
                 //var baseLayer = L.tileLayer.provider('Stamen.TonerLite'),
                 var baseLayer = L.tileLayer.provider('MapQuestOpen.OSM'), 
                     wmsLayer = L.tileLayer.wms("http://geomesa:8080/geoserver/geomesa/wms", {
@@ -26,7 +26,7 @@ angular.module('geomesa.map', [])
                     attributionControl: false,
                     layers: [baseLayer, wmsLayer]
                 });
-
+            },
             link: function (scope, element, attrs) {
                 scope.selectedFeatures = [
                     {
