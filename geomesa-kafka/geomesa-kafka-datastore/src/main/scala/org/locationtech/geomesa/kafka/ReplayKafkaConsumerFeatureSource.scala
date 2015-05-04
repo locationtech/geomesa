@@ -15,7 +15,7 @@
  */
 package org.locationtech.geomesa.kafka
 
-import com.google.common.cache.{CacheBuilder, Cache}
+import com.google.common.cache.{Cache, CacheBuilder}
 import com.vividsolutions.jts.geom.Envelope
 import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
@@ -24,7 +24,6 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.core.filter._
-import org.locationtech.geomesa.kafka.ReplayKafkaConsumerFeatureSource.GeoMessages
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -54,21 +53,63 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     val split = TimestampFilterSplit.split(query.getFilter)
 
-    val reader = if (split.filter.getOrElse(Filter.EXCLUDE) == Filter.EXCLUDE) {
+    val reader = if (messages.isEmpty) {
+      // no data!
       None
     } else {
-      // default to end time if no time specified
-      split.ts.map(messages.indexAtTime).getOrElse(if (messages.isEmpty) None else Some(0)).map(startIndex => {
-        val endTime = split.ts.getOrElse(replayConfig.end.getMillis) - replayConfig.readBehind.getMillis
+      split.map { s =>
+        val (startTime, startIndex) = s.ts
+          .map(ts => (ts, indexAtTime(ts)))
+          .getOrElse((replayConfig.end.getMillis, Some(0)))
+        val filter = s.filter.getOrElse(Filter.INCLUDE)
 
-        val q = new Query(query)
-        q.setFilter(split.filter.get)
-
-        snapshot(startIndex, endTime).getReaderInternal(q)
-      })
+        startIndex.map(si => Some(getReaderAtTime(si, startTime, filter))).getOrElse(None)
+      }.getOrElse(None)
     }
 
     reader.getOrElse(new EmptyFeatureReader[SimpleFeatureType, SimpleFeature](schema))
+  }
+
+  /** @return the index of the most recent [[GeoMessage]] at or before the given ``time``
+    */
+  private def indexAtTime(time: Long): Option[Int] = {
+
+    if (replayConfig.isInWindow(time)) {
+      // look for first event before the given ``time`` because there may be
+      // multiple events at the same time
+      // it doesn't matter what the message is, only the time
+      val key: GeoMessage = new Clear(new Instant(time - 1))
+
+      // reverse ordering for reverse ordered ``messages``
+      val ordering = new Ordering[GeoMessage] {
+        override def compare(x: GeoMessage, y: GeoMessage): Int = y.timestamp.compareTo(x.timestamp)
+      }
+
+      var index = java.util.Arrays.binarySearch(messages, key, ordering)
+
+      if (index < 0) {
+        // no message found at sought time
+        index = -index - 1
+      }
+
+      // walk forward to the first message at ``time``
+      while (index >= 0 && messages(index).timestamp.getMillis > time) index -= 1
+
+      if (index < messages.length) Some(index) else None
+    } else {
+      // requested time is outside of user specified time window
+      None
+    }
+  }
+
+  private def getReaderAtTime(startIndex: Int, startTime: Long, filter: Filter) = {
+
+    val endTime = startTime - replayConfig.readBehind.getMillis
+
+    val q = new Query(query)
+    q.setFilter(filter)
+
+    snapshot(startIndex, endTime).getReaderInternal(q)
   }
 
   /**
@@ -120,35 +161,6 @@ object ReplayKafkaConsumerFeatureSource {
 
   val KafkaMessageTimestampAttribute = "KafkaMessageTimestamp"
 
-  implicit class GeoMessages(val messages: Array[GeoMessage]) extends AnyVal {
-
-    /** @return the index of the most recent [[GeoMessage]] on or before the given ``time``
-      */
-    def indexAtTime(time: Long): Option[Int] = {
-
-      // look for first event before the given ``time`` because there may be
-      // multiple events at the same time
-      // it doesn't matter what the message is, only the time
-      val key = new Clear(new Instant(time - 1))
-
-      // reverse ordering for reverse ordered ``messages``
-      val ordering = new Ordering[GeoMessage] {
-        override def compare(x: GeoMessage, y: GeoMessage): Int = y.timestamp.compareTo(x.timestamp)
-      }
-
-      var index = java.util.Arrays.binarySearch(messages, key, ordering)
-
-      if (index < 0) {
-        // no message found at sought time
-        index = -index -1
-      }
-
-      // walk forward to the first message at ``time``
-      while (index >= 0 && messages(index).timestamp.getMillis > time) index -= 1
-
-      if (index < messages.length) Some(index) else None
-    }
-  }
 }
 
 
@@ -215,9 +227,12 @@ case class ReplayConfig(start: Instant, end: Instant, readBehind: Duration) {
     * @return true if the ``message`` is not after the ``end`` [[Instant]]
     */
   def isNotAfterEnd(msg: GeoMessage): Boolean = !msg.timestamp.isAfter(end)
+
+  def isInWindow(time: Long): Boolean = !(start.isAfter(time) || end.isBefore(time))
 }
 
-
+/** Splits a [[Filter]] into the requested Kafka Message Timestamp and the remaining filters
+  */
 case class TimestampFilterSplit(ts: Option[Long], filter: Option[Filter])
 
 object TimestampFilterSplit {
@@ -232,28 +247,98 @@ object TimestampFilterSplit {
     * logically correct.  In the case of 'or', the query makes no sense because each timestamp represents a
     * moment in time.
     */
-  def split(filter: Filter): TimestampFilterSplit = filter match {
+  def split(filter: Filter): Option[TimestampFilterSplit] = filter match {
 
     case eq: PropertyIsEqualTo =>
       val ts = checkOrder(eq.getExpression1, eq.getExpression2)
         .filter(pl => pl.name == KafkaMessageTimestampAttribute && pl.literal.getValue.isInstanceOf[Long])
         .map(_.literal.getValue.asInstanceOf[Long])
       val f = ts.map(_ => None).getOrElse(Some(filter))
-      TimestampFilterSplit(ts, f)
+      Some(TimestampFilterSplit(ts, f))
 
     case a: And =>
-      split(a, ff.and)
+      // either no child specifies a timestamp, one child specifies a timestamp or multiple children specify
+      // the same timestamp
+      split(a, buildAnd)
 
     case o: Or =>
-      split(o, ff.or)
+      // either all children specify the same timestamp or none specify a timestamp
+      split(o, buildOr)
 
-    case _ => TimestampFilterSplit(None, Some(filter))
+    case n: Not =>
+      // the filter being inverted may not contain a timestamp
+      val s = split(n.getFilter)
+      s.flatMap(split => split.ts.map(_ => None)
+        .getOrElse(Some(TimestampFilterSplit(None, split.filter.map(ff.not)))))
+
+    case _ => Some(TimestampFilterSplit(None, Some(filter)))
   }
 
-  def split(op: BinaryLogicOperator, combiner: java.util.List[Filter] => Filter): TimestampFilterSplit = {
-    op.getChildren.asScala.map(split)
-      .foldLeft(new TimestampFilterLists()) {_ + _}
-      .combine(combiner)
+  type SplitCombiner = Seq[TimestampFilterSplit] => Option[TimestampFilterSplit]
+
+  def split(op: BinaryLogicOperator, combiner: SplitCombiner): Option[TimestampFilterSplit] = {
+    val children = op.getChildren.asScala
+    val childSplits = children.map(split).flatten
+
+    if (childSplits.size != children.size) {
+      // one or more children are invalid
+      None
+    } else {
+      combiner(childSplits)
+    }
+  }
+
+  def buildAnd(childSplits: Seq[TimestampFilterSplit]): Option[TimestampFilterSplit] = {
+    val tsList = childSplits.flatMap(_.ts)
+    val ts = tsList.headOption
+
+    if (tsList.nonEmpty && !tsList.tail.forall(_ == tsList.head)) {
+      // inconsistent timestamps
+      None
+    } else {
+      val filters = childSplits.flatMap(_.filter)
+
+      val filter = if (filters.isEmpty) {
+        None
+      } else if (filters.size == 1) {
+        filters.headOption
+      } else {
+        Some(ff.and(filters.asJava))
+      }
+
+      Some(TimestampFilterSplit(ts, filter))
+    }
+  }
+
+  def buildOr(childSplits: Seq[TimestampFilterSplit]): Option[TimestampFilterSplit] = {
+    val ts = childSplits.headOption.flatMap(_.ts)
+
+    if (!childSplits.forall(_.ts == ts)) {
+      // inconsistent timestamps
+      None
+    } else {
+      val filters = childSplits.flatMap(_.filter)
+
+      val filter = if (filters.isEmpty) {
+        None
+      } else if (filters.size == 1) {
+        filters.headOption
+      } else {
+        Some(ff.or(filters.asJava))
+      }
+
+      Some(TimestampFilterSplit(ts, filter))
+    }
+  }
+
+
+
+  def or(lhs: TimestampFilterSplit, rhs: TimestampFilterSplit): TimestampFilterSplit = {
+    if (lhs.ts == rhs.ts && lhs.filter.isDefined && rhs.filter.isDefined) {
+      TimestampFilterSplit(lhs.ts, lhs.filter.flatMap(l => rhs.filter.map(r => ff.or(l, r))))
+    } else {
+      TimestampFilterSplit(None, None)
+    }
   }
 }
 
@@ -275,7 +360,7 @@ case class TimestampFilterLists(timestamps: Seq[Long], filters: Seq[Filter]) {
     new TimestampFilterLists(ts, f)
   }
 
-  def isConsistent: Boolean = timestamps.tail.forall(_ == timestamps.head)
+  def isConsistent: Boolean = timestamps.isEmpty || timestamps.tail.forall(_ == timestamps.head)
 
   def combine(combiner: java.util.List[Filter] => Filter): TimestampFilterSplit = {
     if (isConsistent) {
