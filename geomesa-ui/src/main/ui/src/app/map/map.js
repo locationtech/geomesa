@@ -9,7 +9,24 @@ angular.module('geomesa.map', [])
                 api: '=',
                 selectedFeatures: '=',
             },
+            leaflet: function (scope, element, attrs) {
+                //var baseLayer = L.tileLayer.provider('Stamen.TonerLite'),
+                var baseLayer = L.tileLayer.provider('MapQuestOpen.OSM'), 
+                    wmsLayer = L.tileLayer.wms("http://geomesa:8080/geoserver/geomesa/wms", {
+                        layers: 'geomesa:QuickStart',
+                        format: 'image/png',
+                        transparent: true
+                    });
 
+                scope.map = L.map(element[0], {
+                    center: L.latLng(-38.09, -76.85),
+                    zoom: 8,
+                    maxZoom: 18,
+                    minZoom: 3,
+                    attributionControl: false,
+                    layers: [baseLayer, wmsLayer]
+                });
+            },
             link: function (scope, element, attrs) {
                 scope.selectedFeatures = [
                     {
