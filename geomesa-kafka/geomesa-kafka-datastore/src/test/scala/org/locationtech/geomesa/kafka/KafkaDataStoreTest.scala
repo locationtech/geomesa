@@ -39,8 +39,6 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreTest extends Specification with Logging {
 
-  sequential
-
   val brokerConf = TestUtils.createBrokerConfig(1)
 
   val zkConnect = TestZKUtils.zookeeperConnect
