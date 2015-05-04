@@ -76,7 +76,8 @@ object GeoMesaSpark extends Logging {
       //we've dumped all ranges into groups by location, and tried to get enough splits by breaking up those groups.
       //we may eventually need to go ahead and do some pretty grim mojo to break each split down small enough
       //so that we don't blow executor's memory pools. Right now, that's not happening, so I'm not going to push it.
-      logger.info(s"Got ${splits.toList.length} splits using desired=${desiredSplits} from ${accumuloSplits.length}")
+      logger.info(s"Got ${splits.toList.length} splits" +
+        s" using desired=${desiredSplits} from ${accumuloSplits.length}")
       splits.toList
 
     }
@@ -96,34 +97,71 @@ object GeoMesaSpark extends Logging {
   def typeProp(typeName: String) = s"geomesa.types.$typeName"
   def jOpt(typeName: String, spec: String) = s"-D${typeProp(typeName)}=$spec"
 
-  @deprecated("Relies on incidental functional parity across classes, effectively an implicit and unexpressed dependency on non-guaranteed behavior", "Apr2015")
-  def rddPartPerExec(conf: Configuration, sc: SparkContext, dsParams: Map[String, String], query: Query, partsPerExec: Int): RDD[SimpleFeature] = {
+  @deprecated("Relies on incidental functional parity across classes, effectively an " +
+    "implicit and unexpressed dependency on non-guaranteed behavior", "Apr2015")
+  def rddPartPerExec(conf: Configuration,
+                     sc: SparkContext,
+                     dsParams: Map[String, String],
+                     query: Query,
+                     partsPerExec: Int): RDD[SimpleFeature] = {
     val filter = ECQL.toCQL(query.getFilter)
-    conf.setInt("SplitsDesired", partsPerExec * sc.getExecutorStorageStatus.length) // sc.get[...]status.length returns a much smaller value than I expected.
+    // sc.get[...]status.length returns a much smaller value than I expected.
+    conf.setInt("SplitsDesired",
+      partsPerExec * sc.getExecutorStorageStatus.length)
     val job = Job.getInstance(conf, "GeoMesa Spark")
-    GeoMesaInputFormat.configure(job, dsParams, query.getTypeName, Some(filter)) // this appears to be mutator for job
-    sc.newAPIHadoopRDD(job.getConfiguration(), classOf[GeoSparkInputFormat], classOf[Text], classOf[SimpleFeature]).map{ case (t, sf) => sf}
+
+    GeoMesaInputFormat.configure(job,
+      dsParams,
+      query.getTypeName,
+      Some(filter))
+
+    sc.newAPIHadoopRDD(job.getConfiguration(),
+      classOf[GeoSparkInputFormat],
+      classOf[Text],
+      classOf[SimpleFeature]).map{ case (t, sf) => sf}
   }
 
-  def rdd(conf: Configuration, sc: SparkContext, ds: AccumuloDataStore, query: Query, useMock: Boolean = false): RDD[SimpleFeature] = {
+  def rdd(conf: Configuration,
+          sc: SparkContext,
+          ds: AccumuloDataStore,
+          query: Query,
+          useMock: Boolean = false): RDD[SimpleFeature] = {
     val typeName = query.getTypeName
     val sft = ds.getSchema(typeName)
     val spec = SimpleFeatureTypes.encodeType(sft)
     val featureEncoding = ds.getFeatureEncoding(sft)
     val indexSchema = ds.getIndexSchemaFmt(typeName)
     val version = ds.getGeomesaVersion(sft)
-    val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, ds.strategyHints(sft), version)
+    val queryPlanner = new QueryPlanner(sft,
+      featureEncoding,
+      indexSchema,
+      ds,
+      ds.strategyHints(sft),
+      version)
 
     val qp = new STIdxStrategy().getQueryPlan(query, queryPlanner, ExplainPrintln)
 
-    ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, ds.connector.whoami(), ds.authToken)
+    ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat],
+      conf,
+      ds.connector.whoami(),
+      ds.authToken)
 
-    if(useMock) ConfiguratorBase.setMockInstance(classOf[AccumuloInputFormat], conf, ds.connector.getInstance().getInstanceName)
-    else ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat], conf, ds.connector.getInstance().getInstanceName, ds.connector.getInstance().getZooKeepers)
+    if(useMock) {
+      ConfiguratorBase.setMockInstance(classOf[AccumuloInputFormat],
+        conf,
+        ds.connector.getInstance().getInstanceName)
+    }else
+    {ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat],
+      conf,
+      ds.connector.getInstance().getInstanceName,
+      ds.connector.getInstance().getZooKeepers)
+    }
 
     InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, ds.getSpatioTemporalTable(sft))
     InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
-    qp.iterators.foreach { is => InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, is) }
+    qp.iterators.foreach { is =>
+      InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, is)
+    }
 
     val rdd = sc.newAPIHadoopRDD(conf, classOf[AccumuloInputFormat], classOf[Key], classOf[Value])
 
@@ -141,9 +179,12 @@ object GeoMesaSpark extends Logging {
    * @param writeDataStoreParams
    * @param writeTypeName
    */
-  def save(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit = {
+  def save(rdd: RDD[SimpleFeature],
+           writeDataStoreParams: Map[String, String],
+           writeTypeName: String): Unit = {
     val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
-    require(ds.getSchema(writeTypeName) != null, "feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
+    require(ds.getSchema(writeTypeName) != null, "feature type must exist before calling save." +
+      "  Call .createSchema on the DataStore before calling .save")
 
     rdd.foreachPartition { iter =>
       val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
@@ -163,7 +204,11 @@ object GeoMesaSpark extends Logging {
     }
   }
 
-  def countByDay(conf: Configuration, sccc: SparkContext, ds: AccumuloDataStore, query: Query, dateField: String = "dtg") = {
+  def countByDay(conf: Configuration,
+                 sccc: SparkContext,
+                 ds: AccumuloDataStore,
+                 query: Query,
+                 dateField: String = "dtg") = {
     val d = rdd(conf, sccc, ds, query)
     val dayAndFeature = d.mapPartitions { iter =>
       val df = new SimpleDateFormat("yyyyMMdd")
