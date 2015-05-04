@@ -24,7 +24,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.core.filter._
-import org.locationtech.geomesa.kafka.ReplayKafkaConsumerFeatureSource.History
+import org.locationtech.geomesa.kafka.ReplayKafkaConsumerFeatureSource.GeoMessages
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -40,8 +40,8 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
                                        replayConfig: ReplayConfig)(implicit val kf: KafkaFactory)
   extends ContentFeatureSource(entry, query) {
 
-  // history is stored as an array of events where the most recent is at index 0
-  private val history: Array[Event] = readMessages()
+  // messages are stored as an array where the most recent is at index 0
+  private val messages: Array[GeoMessage] = readMessages()
 
   override def getBoundsInternal(query: Query) =
     ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
@@ -58,7 +58,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
       None
     } else {
       // default to end time if no time specified
-      split.ts.map(history.indexAtTime).getOrElse(if (history.isEmpty) None else Some(0)).map(startIndex => {
+      split.ts.map(messages.indexAtTime).getOrElse(if (messages.isEmpty) None else Some(0)).map(startIndex => {
         val endTime = split.ts.getOrElse(replayConfig.end.getMillis) - replayConfig.readBehind.getMillis
 
         val q = new Query(query)
@@ -71,20 +71,23 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     reader.getOrElse(new EmptyFeatureReader[SimpleFeatureType, SimpleFeature](schema))
   }
 
+  /**
+    * @param startIndex the index of the most recent message to process
+    * @param endTime the time of the last message to process
+    */
   private def snapshot(startIndex: Int, endTime: Long): SnapshotConsumerFeatureSource = {
-    val snapshot: Seq[CUDEvent] = history.view
+    val snapshot: Seq[GeoMessage] = messages.view
       .drop(startIndex)
       .takeWhile {
         // stop at the first clear or when past the endTime
-        case c: ClearEvent => false
-        case e => e.time >= endTime
+        case c: Clear => false
+        case e => e.timestamp.getMillis >= endTime
       }
-      .map(_.asInstanceOf[CUDEvent])
 
     new SnapshotConsumerFeatureSource(snapshot, entry, schema, query)
   }
 
-  private def readMessages(): Array[Event] = {
+  private def readMessages(): Array[GeoMessage] = {
 
     val kafkaConsumer = kf.kafkaConsumer(zookeepers)
     val msgDecoder = new KafkaGeoMessageDecoder(schema)
@@ -108,7 +111,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
       .map(msgDecoder.decode)
       .dropWhile(replayConfig.isBeforeRealStart)
       .takeWhile(replayConfig.isNotAfterEnd)
-      .foldLeft(EventSequence.empty)(_.add(_))
+      .foldLeft(Seq.empty[GeoMessage])((seq, elem) => elem +: seq)
       .toArray
   }
 }
@@ -117,150 +120,75 @@ object ReplayKafkaConsumerFeatureSource {
 
   val KafkaMessageTimestampAttribute = "KafkaMessageTimestamp"
 
-  implicit class History(val events: Array[Event]) extends AnyVal {
+  implicit class GeoMessages(val messages: Array[GeoMessage]) extends AnyVal {
 
-    /** @return the most recent [[Event]] on or before the given ``time``
+    /** @return the index of the most recent [[GeoMessage]] on or before the given ``time``
       */
     def indexAtTime(time: Long): Option[Int] = {
-      val key = new Event {
-        // look for first event before the given ``time`` because there may be multiple events
-        // at the same time
-        override val time: Long = time - 1
+
+      // look for first event before the given ``time`` because there may be
+      // multiple events at the same time
+      // it doesn't matter what the message is, only the time
+      val key = new Clear(new Instant(time - 1))
+
+      // reverse ordering for reverse ordered ``messages``
+      val ordering = new Ordering[GeoMessage] {
+        override def compare(x: GeoMessage, y: GeoMessage): Int = y.timestamp.compareTo(x.timestamp)
       }
 
-      var index = java.util.Arrays.binarySearch(events.asInstanceOf[Array[AnyRef]], key)
-      while (index >= 0 && events(index).time > time) index -= 1
+      var index = java.util.Arrays.binarySearch(messages, key, ordering)
 
-      if (index >= 0) Some(index) else None
+      if (index < 0) {
+        // no message found at sought time
+        index = -index -1
+      }
+
+      // walk forward to the first message at ``time``
+      while (index >= 0 && messages(index).timestamp.getMillis > time) index -= 1
+
+      if (index < messages.length) Some(index) else None
     }
   }
 }
 
-sealed trait Event extends Ordered[Event] {
 
-  /** @return the time of the event
-    */
-  def time: Long
-
-  override def compare(that: Event): Int = this.time.compare(that.time)
-}
-
-
-/** An [[Event]] in which all tracks were cleared.
- */
-case class ClearEvent(override val time: Long) extends Event
-
-
-/** An [[Event]] in which one or more tracks were created, updated, or deleted.
-  *
-  * @param changes a [[Map]] of the changes at the given ``time``, keyed by Track ID containing the
-  *                new version of the [[SimpleFeature]]
-  */
-case class CUDEvent(override val time: Long, changes: Map[String, Option[SimpleFeature]])
-  extends Event {
-
-  /** Add an additional state change at the same time.
-    *
-    * @return a copy of ``this`` with an additional change
-    */
-  def add(trackId: String, sf: Option[SimpleFeature]): CUDEvent =
-    CUDEvent(time, changes + (trackId -> sf))
-}
-
-object EventSequence {
-
-  def empty: EventSequence = Seq.empty[Event]
-
-  implicit class EventSequence(val events: Seq[Event]) extends AnyVal {
-
-    def add(msg: GeoMessage): EventSequence = msg match {
-      case update: CreateOrUpdate => createOrUpdateFeature(update)
-      case delete: Delete => removeFeature(delete)
-      case clear: Clear => clearFeatures(clear)
-      case _ => throw new IllegalArgumentException("Unknown message: " + msg)
-    }
-
-    def createOrUpdateFeature(msg: CreateOrUpdate): EventSequence = {
-      val sf = msg.feature
-      addEvent(msg.timestamp.getMillis, sf.getID, Some(sf))
-    }
-
-    def removeFeature(msg: Delete): EventSequence = {
-      addEvent(msg.timestamp.getMillis, msg.id, None)
-    }
-
-    def clearFeatures(msg: Clear): EventSequence = {
-      val ts = msg.timestamp.getMillis
-
-      events.headOption.map { head =>
-
-        if (ts == head.time) {
-          // clear at the same time as other changes; last wins so replaces existing head
-          ClearEvent(ts) +: events.tail : EventSequence
-        } else {
-          ClearEvent(ts) +: events : EventSequence
-        }
-
-      }.getOrElse(Seq(ClearEvent(ts)))
-    }
-
-    def addEvent(ts: Long, trackId: String, sf: Option[SimpleFeature]): EventSequence = {
-      events.headOption.map {
-        case t: CUDEvent if t.time == ts =>
-          // additional change at the same time - append to existing head
-          t.add(trackId, sf) +: events.tail : EventSequence
-        case h =>
-          // new change
-          CUDEvent(ts, Map(trackId -> sf)) +: events : EventSequence
-
-      }.getOrElse(Seq(CUDEvent(ts, Map(trackId -> sf))))
-    }
-    
-    def toArray: Array[Event] = events.toArray
-  }
-}
-
-class SnapshotConsumerFeatureSource(events: Seq[CUDEvent],
+class SnapshotConsumerFeatureSource(events: Seq[GeoMessage],
                                     entry: ContentEntry,
                                     schema: SimpleFeatureType,
                                     query: Query)
   extends KafkaConsumerFeatureSource(entry, schema, query) {
 
+  override lazy val (qt, features) = processMessages
 
-  override lazy val (qt, features) = processEvents
-
-  private def processEvents: (Quadtree, Cache[String, FeatureHolder]) = {
+  private def processMessages: (Quadtree, Cache[String, FeatureHolder]) = {
     def features: Cache[String, FeatureHolder] = CacheBuilder.newBuilder().build()
     def qt = new Quadtree
     def seen = new mutable.HashSet[String]
 
-    events.foreach {e =>
-      e.changes.foreach {
-        case (trackId, sf) =>
-          if (!seen.contains(trackId)) {
-            sf.foreach { feature =>
-              val env = feature.geometry.getEnvelopeInternal
-              qt.insert(env, sf)
-              features.put(feature.getID, FeatureHolder(feature, env))
-            }
-            seen.add(trackId)
-          }
-      }
+    events.foreach {
+      case CreateOrUpdate(ts, sf) =>
+        val id = sf.getID
+
+        // starting with the most recent so if haven't seen it yet, add it, otherwise keep newer version
+        if (!seen(id)) {
+          val env = sf.geometry.getEnvelopeInternal
+
+          qt.insert(env, sf)
+          features.put(id, FeatureHolder(sf, env))
+          seen.add(id)
+        }
+
+      case Delete(ts, id) =>
+        seen.add(id)
+
+      case unknown =>
+        // clear messages should not get here
+        throw new IllegalStateException(s"Unexpected message: '$unknown'")
     }
 
     (qt, features)
   }
-
-  def processNewFeatures(update: CreateOrUpdate): Unit = {
-    val sf = update.feature
-    val id = update.id
-    Option(features.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
-    val env = sf.geometry.getEnvelopeInternal
-    qt.insert(env, sf)
-    features.put(sf.getID, FeatureHolder(sf, env))
-  }
 }
-
 
 
 /** Configuration for replaying a Kafka DataStore.
@@ -288,7 +216,6 @@ case class ReplayConfig(start: Instant, end: Instant, readBehind: Duration) {
     */
   def isNotAfterEnd(msg: GeoMessage): Boolean = !msg.timestamp.isAfter(end)
 }
-
 
 
 case class TimestampFilterSplit(ts: Option[Long], filter: Option[Filter])
