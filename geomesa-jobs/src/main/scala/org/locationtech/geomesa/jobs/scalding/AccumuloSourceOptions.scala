@@ -51,6 +51,17 @@ case class AccumuloInputOptions(
     scanIsolation: Option[Boolean] = None,
     logLevel: Option[Level] = None) extends AccumuloSourceOptions
 
+object AccumuloInputOptions {
+  def apply(dsParams: Map[String, String]) = {
+    new AccumuloInputOptions(
+      dsParams.getOrElse("instanceId", "None"),
+      dsParams.getOrElse("zookeepers", "None"),
+      dsParams.getOrElse("user", "None"),
+      dsParams.getOrElse("password", "None"),
+      dsParams.getOrElse("tableName", "None"))
+  }
+}
+
 case class AccumuloOutputOptions(
     instance: String,
     zooKeepers: String,
@@ -61,6 +72,18 @@ case class AccumuloOutputOptions(
     memory: Option[Long] = None,
     createTable: Boolean = false,
     logLevel: Option[Level] = None) extends AccumuloSourceOptions
+
+object AccumuloOutputOptions {
+  def apply(dsParams: Map[String, String]) = {
+    new AccumuloOutputOptions(
+      dsParams.getOrElse("instanceId", "None"),
+      dsParams.getOrElse("zookeepers", "None"),
+      dsParams.getOrElse("user", "None"),
+      dsParams.getOrElse("password", "None"),
+      dsParams.getOrElse("tableName", "None"),
+      createTable = true)
+  }
+}
 
 case class SerializedRange(start: Endpoint, end: Endpoint)
 
@@ -82,13 +105,13 @@ object SerializedRange {
      */
 
     def startBracket = """[\(\[]""".r ^^ {
-      case b if b == "(" => Bracket(false)
-      case b if b == "[" => Bracket(true)
+      case b if b == "(" => Bracket(inclusive = false)
+      case b if b == "[" => Bracket(inclusive = true)
     }
 
     def endBracket = """[\)\]]""".r ^^ {
-      case b if b == ")" => Bracket(false)
-      case b if b == "]" => Bracket(true)
+      case b if b == ")" => Bracket(inclusive = false)
+      case b if b == "]" => Bracket(inclusive = true)
     }
 
     def part = """[^\[\]\(\),\s]+""".r
@@ -133,15 +156,15 @@ object SerializedRange {
       sb.clear()
       if (r.isStartKeyInclusive) sb.append("[") else sb.append("(")
       if (!r.isInfiniteStartKey) {
-        sb.append(r.getStartKey.getRow().toString)
-        sb.append(" ").append(r.getStartKey.getColumnFamily().toString)
-        sb.append(" ").append(r.getStartKey.getColumnQualifier().toString)
+        sb.append(r.getStartKey.getRow.toString)
+        sb.append(" ").append(r.getStartKey.getColumnFamily.toString)
+        sb.append(" ").append(r.getStartKey.getColumnQualifier.toString)
       }
       sb.append(",")
       if (!r.isInfiniteStopKey) {
-        sb.append(r.getEndKey.getRow().toString)
-        sb.append(" ").append(r.getEndKey.getColumnFamily().toString)
-        sb.append(" ").append(r.getEndKey.getColumnQualifier().toString)
+        sb.append(r.getEndKey.getRow.toString)
+        sb.append(" ").append(r.getEndKey.getColumnFamily.toString)
+        sb.append(" ").append(r.getEndKey.getColumnQualifier.toString)
       }
       if (r.isEndKeyInclusive) sb.append("]") else sb.append(")")
       sb.toString()
