@@ -150,13 +150,19 @@ class TimestampFilterSplitTest extends Specification with Mockito {
       val tsAnd2 = ff.and(List(m2, tsFilter, m3))
       val tsAnd3 = ff.and(List(m2, m3, m1, tsFilter))
 
-      "with 0 sibs" >> {
+      "with single direct timestamp" >> {
         val or = ff.or(List(tsFilter))
 
         testSplit(or, Some(time), None)
       }
 
-      "with 1 sib" >> {
+      "with 1 child" >> {
+        val or = ff.or(List(tsAnd1))
+
+        testSplit(or, Some(time), Some(m1))
+      }
+
+      "with 2 children" >> {
         val or = ff.or(List(tsAnd1, tsAnd2))
 
         val expectedFilter = ff.or(m1, ff.and(m2, m3))
@@ -164,7 +170,7 @@ class TimestampFilterSplitTest extends Specification with Mockito {
         testSplit(or, Some(time), Some(expectedFilter))
       }
 
-      "with 2 sibs" >> {
+      "with three children" >> {
         val or = ff.or(List(tsAnd1, tsAnd2, tsAnd3))
 
         testSplit(or, Some(time), Some(ff.or(List(m1, ff.and(m2, m3), ff.and(List(m2, m3, m1))))))
@@ -198,6 +204,31 @@ class TimestampFilterSplitTest extends Specification with Mockito {
 
       val result = TimestampFilterSplit.split(or)
 
+      result must beNone
+    }
+
+    "return None if a nested child is invalid" >> {
+      val ts = ff.equals(prop, ff.literal(1L))
+      val m1 = mockAs[Filter]("m1")
+
+      // the right side of the and is invalid because all child of the or must have timestamp if any do
+      val f = ff.and(ts, ff.or(ts, m1))
+
+      val result = TimestampFilterSplit.split(f)
+      result must beNone
+    }
+
+    "handle Not without a timestamp" >> {
+      val f = ff.not(mock[Filter])
+
+      testSplit(f, None, Some(f))
+    }
+
+    "return None if Not contains a timestamp" >> {
+      val tsFilter = ff.equals(prop, ff.literal(1L))
+      val f = ff.not(tsFilter)
+
+      val result = TimestampFilterSplit.split(f)
       result must beNone
     }
   }
