@@ -150,8 +150,8 @@ object GeoMesaSpark extends Logging {
       ConfiguratorBase.setMockInstance(classOf[AccumuloInputFormat],
         conf,
         ds.connector.getInstance().getInstanceName)
-    }else
-    {ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat],
+    } else {
+      ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat],
       conf,
       ds.connector.getInstance().getInstanceName,
       ds.connector.getInstance().getZooKeepers)
