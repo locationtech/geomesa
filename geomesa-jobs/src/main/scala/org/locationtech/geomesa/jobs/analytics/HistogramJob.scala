@@ -19,7 +19,7 @@ package org.locationtech.geomesa.jobs.analytics
 import com.twitter.algebird.Aggregator
 import com.twitter.scalding._
 import com.twitter.scalding.typed.UnsortedGrouped
-import org.apache.accumulo.core.data.{Mutation, Range => AcRange, Value}
+import org.apache.accumulo.core.data.{Mutation, Range => AcRange}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.geotools.data.DataStoreFinder
@@ -104,7 +104,7 @@ class HistogramJob(args: Args) extends GeoMesaBaseJob(args) {
   if (writeToAccumulo) {
     aggregates.toTypedPipe
       .flatMap { case (group, count) =>
-      val mut = new Mutation(new Text(s"$feature~$attribute~${group.get(group.size() -1)}"))
+      val mut = new Mutation(new Text(s"$feature~$attribute~${group.productElement(group.productArity - 1).toString}"))
       mut.put(new Text(s"${group.productIterator.mkString("\t")}"), new Text(count.toString.getBytes), EMPTY_VALUE)
       Seq(mut).map((null: Text, _))
     }.write(AccumuloSource(accOutput))

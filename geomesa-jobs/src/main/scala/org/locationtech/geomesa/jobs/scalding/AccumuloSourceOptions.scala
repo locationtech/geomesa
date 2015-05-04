@@ -58,7 +58,7 @@ object AccumuloInputOptions {
       dsParams.getOrElse("zookeepers", "None"),
       dsParams.getOrElse("user", "None"),
       dsParams.getOrElse("password", "None"),
-      dsParams.getOrElse("table", "None"))
+      dsParams.getOrElse("tableName", "None"))
   }
 }
 
@@ -80,7 +80,7 @@ object AccumuloOutputOptions {
       dsParams.getOrElse("zookeepers", "None"),
       dsParams.getOrElse("user", "None"),
       dsParams.getOrElse("password", "None"),
-      dsParams.getOrElse("table", "None"),
+      dsParams.getOrElse("tableName", "None"),
       createTable = true)
   }
 }
