@@ -22,6 +22,7 @@ import kafka.consumer._
 import kafka.message.{Message, MessageAndMetadata}
 import kafka.serializer.{Decoder, DefaultDecoder}
 import org.apache.commons.lang3.RandomStringUtils
+import org.locationtech.geomesa.kafka.KafkaFactory.RawKafkaStream
 import org.locationtech.geomesa.kafka.RequestedOffset.MessagePredicate
 
 import scala.collection.Seq
@@ -63,8 +64,7 @@ class KafkaFactory {
     new KafkaConsumer[Array[Byte], Array[Byte]](config, decoder, decoder)
   }
 
-  def messageStreams(zookeepers: String, topic: String, numStreams: Int = 1)
-      : Seq[KafkaStream[Array[Byte], Array[Byte]]] = {
+  def messageStreams(zookeepers: String, topic: String, numStreams: Int = 1): Seq[RawKafkaStream] = {
 
     val client = consumerConnector(zookeepers)
     val whiteList = new Whitelist(topic)
@@ -74,6 +74,8 @@ class KafkaFactory {
 }
 
 object KafkaFactory {
+
+  type RawKafkaStream = KafkaStream[Array[Byte], Array[Byte]]
 
   implicit val factory: KafkaFactory = new KafkaFactory
 

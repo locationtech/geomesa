@@ -92,6 +92,7 @@ object GeoMessageEncoder {
       case c: CreateOrUpdate => createOrUpdateType
       case d: Delete => deleteType
       case x: Clear => clearType
+      case u => throw new IllegalArgumentException(s"Invalid message: '$u'")
     }
 
     val bb = ByteBuffer.allocate(10)
@@ -123,6 +124,8 @@ class GeoMessageEncoder(schema: SimpleFeatureType) {
       encodeDeleteMessage(d)
     case x: Clear =>
       encodeClearMessage(x)
+    case u =>
+      throw new IllegalArgumentException(s"Invalid message: '$u'")
   }
 
   def encodeCreateOrUpdateMessage(msg: CreateOrUpdate): Array[Byte] = sfEncoder.encode(msg.feature)
