@@ -102,8 +102,8 @@ class XMLUserNameRoleService extends XMLRoleService with UserNameRoles
 //    XMLUserNameRoleSecurityProvider (including package name!)
 // 3) bundle the contents of the directory into a new JAR with "jar cf"
 // 4) replace the gs-main JAR from geoserver with the new JAR
-// 5) edit $GEOSERVER_DATA/security/role/default/config.xml to replace XMLSecurityProvider
-//    with XMLUserNameRoleSecurityProvider (including package name!)
+// 5) edit $GEOSERVER_DATA/security/role/default/config.xml to replace XMLRoleService
+//    with XMLUserNameRoleService (including package name!)
 // then when GeoServer deploys it should create this SecurityProvider instead
 class XMLUserNameRoleSecurityProvider extends XMLSecurityProvider {
   override def getRoleServiceClass: Class[_ <: GeoServerRoleService] = classOf[XMLUserNameRoleService]
