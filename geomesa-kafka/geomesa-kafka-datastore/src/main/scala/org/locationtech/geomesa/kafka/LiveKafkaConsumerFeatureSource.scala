@@ -29,10 +29,10 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
                                      schema: SimpleFeatureType,
                                      query: Query,
                                      topic: String,
-                                     zookeepers: String,
+                                     kf: KafkaConsumerFactory,
                                      expiry: Boolean,
                                      expirationPeriod: Long)
-  extends KafkaConsumerFeatureSource(entry, schema, query) {
+  extends KafkaConsumerFeatureSource(entry, schema, query, kf) {
 
   val eb = new EventBus(topic)
   eb.register(this)
@@ -55,7 +55,7 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
   override val features: Cache[String, FeatureHolder] = cb.build()
   
   // create a producer that reads from kafka and sends to the event bus that the kcfs has subscribed to
-  new KafkaFeatureConsumer(schema, topic, zookeepers, eb)
+  new KafkaFeatureConsumer(schema, topic, kf, eb)
 
   @Subscribe
   def processProtocolMessage(msg: GeoMessage): Unit = msg match {
@@ -88,12 +88,12 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
 
 class KafkaFeatureConsumer(schema: SimpleFeatureType,
                            topic: String,
-                           zookeepers: String,
-                           eventBus: EventBus)(implicit val kf: KafkaFactory) {
+                           kf: KafkaConsumerFactory,
+                           eventBus: EventBus) {
 
   private val msgDecoder = new KafkaGeoMessageDecoder(schema)
 
-  private val stream = kf.messageStreams(zookeepers, topic, 1).head
+  private val stream = kf.messageStreams(topic, 1).head
 
   val es = Executors.newSingleThreadExecutor()
   es.submit(new Runnable {

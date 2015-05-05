@@ -31,17 +31,17 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.geotools.feature.NameImpl
+import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
-class KafkaDataStore(broker: String,
-                     zookeepers: String,
+class KafkaDataStore(zookeepers: String,
                      zkPath: String,
                      partitions: Int,
                      replication: Int,
-                     isProducer: Boolean,
-                     expiry: Boolean,
-                     expirationPeriod: Long) extends ContentDataStore with Logging {
+                     fsFactory: FeatureSourceFactory) extends ContentDataStore with Logging {
+
+  ds =>
 
   import scala.collection.JavaConversions._
 
@@ -85,42 +85,20 @@ class KafkaDataStore(broker: String,
 
   private def getZkPath(typeName: String) = s"$zkPath/$typeName"
 
-  val producerCache =
+  val featureSourceCache =
     CacheBuilder.newBuilder().build[ContentEntry, ContentFeatureSource](
       new CacheLoader[ContentEntry, ContentFeatureSource] {
-        override def load(entry: ContentEntry) = createProducerFeatureSource(entry)
+        override def load(entry: ContentEntry) = fsFactory(ds, entry)
       })
-  val consumerCache =
-    CacheBuilder.newBuilder().build[ContentEntry, ContentFeatureSource](
-      new CacheLoader[ContentEntry, ContentFeatureSource] {
-        override def load(entry: ContentEntry) = createConsumerFeatureSource(entry)
-      })
+
   val schemaCache =
     CacheBuilder.newBuilder().build(new CacheLoader[String, SimpleFeatureType] {
       override def load(k: String): SimpleFeatureType =
         resolveTopicSchema(k).getOrElse(throw new IllegalArgumentException("Unable to find schema"))
     })
 
-  override def createFeatureSource(entry: ContentEntry) =
-    if(isProducer) producerCache.get(entry)
-    else consumerCache.get(entry)
-
-  private def createProducerFeatureSource(entry: ContentEntry): ContentFeatureSource = {
-    val props = new ju.Properties()
-    props.put("metadata.broker.list", broker)
-    props.put("serializer.class", "kafka.serializer.DefaultEncoder")
-    val kafkaProducer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(props))
-    new KafkaProducerFeatureStore(entry, schemaCache.get(entry.getTypeName), broker, null, kafkaProducer)
-  }
-
-  private def createConsumerFeatureSource(entry: ContentEntry): ContentFeatureSource = {
-    if (createTypeNames().contains(entry.getName)) {
-      val topic = entry.getTypeName
-      val sft = schemaCache.get(topic)
-      new LiveKafkaConsumerFeatureSource(entry, sft, null, topic, zookeepers, expiry, expirationPeriod)
-    } else null
-  }
-
+  override def createFeatureSource(entry: ContentEntry) = featureSourceCache.get(entry)
+  
   def resolveTopicSchema(typeName: String): Option[SimpleFeatureType] =
     Option(zkClient.readData[String](getZkPath(typeName), true))
       .map(data => SimpleFeatureTypes.createType(typeName, data))
@@ -137,29 +115,83 @@ object KafkaDataStoreFactoryParams {
   val EXPIRATION_PERIOD  = new Param("expirationPeriod", classOf[java.lang.Long], "Expiration Period in milliseconds", false, false)
 }
 
+object KafkaDataStore {
+  type FeatureSourceFactory = (KafkaDataStore, ContentEntry) => ContentFeatureSource
+
+  def producerFeatureSourceFactory(broker: String): FeatureSourceFactory =
+
+    (ds: KafkaDataStore, entry: ContentEntry) => {
+      val props = new ju.Properties()
+      props.put("metadata.broker.list", broker)
+      props.put("serializer.class", "kafka.serializer.DefaultEncoder")
+      val kafkaProducer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(props))
+      new KafkaProducerFeatureStore(entry, ds.schemaCache.get(entry.getTypeName), broker, null, kafkaProducer)
+    }
+
+  def liveConsumerFeatureSourceFactory(zookeepers: String,
+                                       expiry: Boolean,
+                                       expirationPeriod: Long): FeatureSourceFactory =
+
+    (ds: KafkaDataStore, entry: ContentEntry) => {
+      if (ds.createTypeNames().contains(entry.getName)) {
+        val topic = entry.getTypeName
+        val sft = ds.schemaCache.get(topic)
+        val kf = new KafkaConsumerFactory(zookeepers)
+        new LiveKafkaConsumerFeatureSource(entry, sft, null, topic, kf, expiry, expirationPeriod)
+      } else {
+        null
+      }
+  }
+
+  def replayConsumerFeatureSourceFactory(zookeepers: String, config: ReplayConfig): FeatureSourceFactory =
+
+    (ds: KafkaDataStore, entry: ContentEntry) => {
+      if (ds.createTypeNames().contains(entry.getName)) {
+        val topic = entry.getTypeName
+        val sft = ds.schemaCache.get(topic)
+        val kf = new KafkaConsumerFactory(zookeepers)
+        new ReplayKafkaConsumerFeatureSource(entry, sft, null, topic, kf, config)
+      } else {
+        null
+      }
+    }
+}
+
 class KafkaDataStoreFactory extends DataStoreFactorySpi {
 
   import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
+  import org.locationtech.geomesa.kafka.KafkaDataStore._
 
   override def createDataStore(params: ju.Map[String, Serializable]): DataStore = {
-    val broker   = KAFKA_BROKER_PARAM.lookUp(params).asInstanceOf[String]
-    val zk       = ZOOKEEPERS_PARAM.lookUp(params).asInstanceOf[String]
-    val zkPath   = Option(ZK_PATH.lookUp(params).asInstanceOf[String])
+
+    val zk = ZOOKEEPERS_PARAM.lookUp(params).asInstanceOf[String]
+    val zkPath = Option(ZK_PATH.lookUp(params).asInstanceOf[String])
                      .map(_.trim)
                      .filterNot(_.isEmpty)
                      .map(p => if (p.startsWith("/")) p else "/" + p)
                      .map(p => if (p.endsWith("/")) p.substring(0, p.length - 1) else p)
                      .getOrElse("/geomesa/ds/kafka")
-    val isProducer =
-      if(IS_PRODUCER_PARAM.lookUp(params) == null) java.lang.Boolean.FALSE
-      else IS_PRODUCER_PARAM.lookUp(params).asInstanceOf[java.lang.Boolean]
 
-    val partitions       = Option(TOPIC_PARTITIONS.lookUp(params)).map(_.toString.toInt).getOrElse(1)
-    val replication      = Option(TOPIC_REPLICATION.lookUp(params)).map(_.toString.toInt).getOrElse(1)
-    val expiry           = Option(EXPIRY.lookUp(params).asInstanceOf[java.lang.Boolean]).getOrElse(java.lang.Boolean.FALSE)
-    val expirationPeriod = Option(EXPIRATION_PERIOD.lookUp(params)).map(_.toString.toLong).getOrElse(0L)
+    val partitions = Option(TOPIC_PARTITIONS.lookUp(params)).map(_.toString.toInt).getOrElse(1)
+    val replication = Option(TOPIC_REPLICATION.lookUp(params)).map(_.toString.toInt).getOrElse(1)
 
-    new KafkaDataStore(broker, zk, zkPath, partitions, replication, isProducer, expiry, expirationPeriod)
+    val fsFactory = createFeatureSourceFactory(zk, params)
+
+    new KafkaDataStore(zk, zkPath, partitions, replication, fsFactory)
+  }
+
+  def createFeatureSourceFactory(zk: String, params: ju.Map[String, Serializable]): FeatureSourceFactory = {
+
+    val isProducer = Option(IS_PRODUCER_PARAM.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
+
+    if (isProducer) {
+      val broker   = KAFKA_BROKER_PARAM.lookUp(params).asInstanceOf[String]
+      producerFeatureSourceFactory(broker)
+    } else {
+      val expiry           = Option(EXPIRY.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
+      val expirationPeriod = Option(EXPIRATION_PERIOD.lookUp(params)).map(_.toString.toLong).getOrElse(0L)
+      liveConsumerFeatureSourceFactory(zk, expiry, expirationPeriod)
+    }
   }
 
   override def createNewDataStore(params: ju.Map[String, Serializable]): DataStore = ???

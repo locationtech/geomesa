@@ -31,14 +31,15 @@ import org.locationtech.geomesa.kafka.RequestedOffset.MessagePredicate
 import scala.collection.Seq
 import scala.language.implicitConversions
 
-class KafkaConsumerFactory {
+/**
+  * @param zookeepers the zookeeper connection string
+  */
+class KafkaConsumerFactory(zookeepers: String) {
 
-  /** @param zookeepers the zookeeper connection string
-    *
-    * @return a [[ConsumerConfig]] containing the given ``zookeepers``, a random Group ID and other
-    *         fixed properties
+  /** The [[ConsumerConfig]] containing the given ``zookeepers``, a random Group ID and other fixed
+    * properties.
     */
-  def consumerConfig(zookeepers: String): ConsumerConfig = {
+  val config: ConsumerConfig  = {
     val groupId = RandomStringUtils.randomAlphanumeric(5)
 
     val props = new Properties()
@@ -51,34 +52,24 @@ class KafkaConsumerFactory {
     new ConsumerConfig(props)
   }
 
-  /** @param zookeepers the zookeeper connection string
-    *
-    * @return a high level [[ConsumerConfig]]
+  /** @return a new high level [[ConsumerConfig]]
     */
-  def consumerConnector(zookeepers: String): ConsumerConnector = Consumer.create(consumerConfig(zookeepers))
+  def consumerConnector: ConsumerConnector = Consumer.create(config)
 
-  /** @param zookeepers the zookeeper connection string
-    *
-    * @return a low level [[KafkaConsumer]]
+  /** @return a new low level [[KafkaConsumer]]
     */
-  def kafkaConsumer(zookeepers: String): KafkaConsumer[Array[Byte], Array[Byte]] = {
-    kafkaConsumer(consumerConfig(zookeepers))
-  }
-
-  /** @param config the Kafaka consumer connection configuration
-    *
-    * @return a low level [[KafkaConsumer]]
-    */
-  def kafkaConsumer(config: ConsumerConfig): KafkaConsumer[Array[Byte], Array[Byte]] = {
+  def kafkaConsumer: KafkaConsumer[Array[Byte], Array[Byte]] = {
     val decoder: DefaultDecoder = new DefaultDecoder(null)
     new KafkaConsumer[Array[Byte], Array[Byte]](config, decoder, decoder)
   }
 
-  def offsetManager(config: ConsumerConfig): OffsetManager = new OffsetManager(config)
+  /** @return a new [[OffsetManager]]
+   */
+  def offsetManager: OffsetManager = new OffsetManager(config)
 
-  def messageStreams(zookeepers: String, topic: String, numStreams: Int = 1): Seq[RawKafkaStream] = {
+  def messageStreams(topic: String, numStreams: Int = 1): Seq[RawKafkaStream] = {
 
-    val client = consumerConnector(zookeepers)
+    val client = consumerConnector
     val whiteList = new Whitelist(topic)
     val decoder = KafkaConsumerFactory.defaultDecoder
     client.createMessageStreamsByFilter(whiteList, 1, decoder, decoder)
@@ -89,10 +80,7 @@ object KafkaConsumerFactory {
 
   type RawKafkaStream = KafkaStream[Array[Byte], Array[Byte]]
 
-  implicit val factory: KafkaConsumerFactory = new KafkaConsumerFactory
-
   val defaultDecoder: Decoder[Array[Byte]] = new DefaultDecoder(null)
-
 }
 
 

@@ -39,7 +39,8 @@ import scala.collection.JavaConversions._
 
 abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
                                  schema: SimpleFeatureType,
-                                 query: Query)(implicit val kf: KafkaFactory)
+                                 query: Query,
+                                 kf: KafkaConsumerFactory)
   extends ContentFeatureSource(entry, query)
   with ContentFeatureSourceSecuritySupport
   with ContentFeatureSourceReTypingSupport {

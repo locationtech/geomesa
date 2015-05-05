@@ -15,6 +15,42 @@
  */
 package org.locationtech.geomesa.kafka
 
-class MockKafkaConsumerFactory {
+import kafka.message.MessageAndMetadata
+import org.mockito.Mockito._
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
+
+class MockKafkaConsumerFactory extends KafkaConsumerFactory("mock-zoo") {
+
+  override val kafkaConsumer = mock(classOf[KafkaConsumer[Array[Byte], Array[Byte]]])
+
+  override val offsetManager = mock(classOf[OffsetManager])
+}
+
+object MockKafkaStream {
+
+  def apply[K, V](data: Seq[MessageAndMetadata[K, V]]): KafkaStreamLike[K, V] = {
+    val ksl = mock(classOf[KafkaStreamLike[K, V]])
+
+    // Kafka consumer iterators will block until there is a new message
+    // for testing, throw an exception if a consumer tries to read beyond ``data``
+    val end: Iterator[MessageAndMetadata[K, V]] = new Iterator[MessageAndMetadata[K, V]] {
+
+      override def hasNext: Boolean =
+        throw new IllegalStateException("Attempting to read beyond given mock data.")
+
+      override def next(): MessageAndMetadata[K, V] =
+        throw new IllegalStateException("Attempting to read beyond given mock data.")
+    }
+
+    when(ksl.iterator).thenAnswer(new Answer[Iterator[MessageAndMetadata[K, V]]] {
+
+      override def answer(invocation: InvocationOnMock): Iterator[MessageAndMetadata[K, V]] = {
+        data.iterator ++ end
+      }
+    })
+
+    ksl
+  }
 
 }
