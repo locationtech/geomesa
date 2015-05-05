@@ -86,7 +86,7 @@ object FilterHelper {
     prop.map(_.literal.evaluate(null, classOf[Geometry])).exists(isWholeWorld)
   }
 
-  def isWholeWorld[G <: Geometry](g: G): Boolean = g.covers(IndexSchema.everywhere)
+  def isWholeWorld[G <: Geometry](g: G): Boolean = g != null && g.union.covers(IndexSchema.everywhere)
 
   def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
     for( i <- 0 until inMP.getNumGeometries ) yield inMP.getGeometryN(i)

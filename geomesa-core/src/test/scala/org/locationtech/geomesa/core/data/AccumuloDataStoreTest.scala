@@ -1199,6 +1199,7 @@ class AccumuloDataStoreTest extends Specification {
     }
 
     "create key plan that does not use STII when given an or'd geometry query with redundant bbox" in {
+      // Todo: https://geomesa.atlassian.net/browse/GEOMESA-785
       val sftName = "explainLargeBBOXTest4"
       val sft3 = createSchema(sftName)
       val filter = CQL.toFilter("bbox(geom, -180, -90, 180, 90) OR bbox(geom, -10, -10, 10, 10)")
@@ -1215,6 +1216,7 @@ class AccumuloDataStoreTest extends Specification {
     }.pendingUntilFixed("Fixed query planner to deal with OR'd redundant geom with whole world")
 
     "create key plan that does not use STII when given two bboxes that when unioned are the whole world" in {
+      // Todo: https://geomesa.atlassian.net/browse/GEOMESA-785
       val sftName = "explainWhatIsLogicallyTheWholeWorldTest1"
       val sft4 = createSchema(sftName)
       val filter = CQL.toFilter("bbox(geom, -180, -90, 0, 90) OR bbox(geom, 0, -90, 180, 90)")

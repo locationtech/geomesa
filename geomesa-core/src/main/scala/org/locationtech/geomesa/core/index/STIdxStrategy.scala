@@ -83,12 +83,11 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val interval = netInterval(temporal)
     val geometryToCover = netGeom(collectionToCover)
 
-    //This is correctly doing an AcceptEverythingFilter if the geometryToCover is the whole world
     val filter = buildFilter(geometryToCover, interval)
     // This catches the case when a whole world query slips through DNF/CNF
     // The union on this geometry collection is necessary at the moment but is not true
     // If given spatial predicates like disjoint.
-    val ofilter = if (geometryToCover != null && isWholeWorld(geometryToCover.union)) {
+    val ofilter = if (isWholeWorld(geometryToCover)) {
       filterListAsAnd(temporalFilters)
     } else filterListAsAnd(tweakedGeomFilters ++ temporalFilters)
 
@@ -171,9 +170,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val cfg = new IteratorSetting(iteratorPriority_SpatioTemporalIterator,
       "within-" + randomPrintableString(5),classOf[IndexIterator])
 
-    // test if the filter is for the whole world
-    val isWholeWorld = filter.exists(isFilterWholeWorld)
-    if (!isWholeWorld) configureStFilter(cfg, filter)
+    configureStFilter(cfg, filter)
 
     configureVersion(cfg, version)
     if (transformsCoverFilter) {
