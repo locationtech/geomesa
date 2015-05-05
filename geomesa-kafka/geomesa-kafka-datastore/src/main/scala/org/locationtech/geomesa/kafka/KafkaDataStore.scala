@@ -31,6 +31,7 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.geotools.feature.NameImpl
+import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
@@ -105,14 +106,30 @@ class KafkaDataStore(zookeepers: String,
 }
 
 object KafkaDataStoreFactoryParams {
-  val KAFKA_BROKER_PARAM = new Param("brokers", classOf[String], "Kafka broker", true)
+  // general
   val ZOOKEEPERS_PARAM   = new Param("zookeepers", classOf[String], "Zookeepers", true)
   val ZK_PATH            = new Param("zkPath", classOf[String], "Zookeeper discoverable path", false)
   val TOPIC_PARTITIONS   = new Param("partitions", classOf[Integer], "Number of partitions to use in kafka topics", false)
   val TOPIC_REPLICATION  = new Param("replication", classOf[Integer], "Replication factor to use in kafka topics", false)
+
+  // producer or live consumer?
   val IS_PRODUCER_PARAM  = new Param("isProducer", classOf[java.lang.Boolean], "Is Producer", false, false)
+
+  // producer
+  val KAFKA_BROKER_PARAM = new Param("brokers", classOf[String], "Kafka broker", true)
+
+  // live consumer
   val EXPIRY             = new Param("expiry", classOf[java.lang.Boolean], "Expiry", false, false)
-  val EXPIRATION_PERIOD  = new Param("expirationPeriod", classOf[java.lang.Long], "Expiration Period in milliseconds", false, false)
+  val EXPIRATION_PERIOD  = new Param("expirationPeriod", classOf[java.lang.Long], "Expiration Period in milliseconds", false)
+}
+
+object ReplayKafkaDataStoreFactoryParams {
+  val REPLAY_START_TIME  = new Param("replayStart", classOf[Long],
+                                      "Lower bound on replay window, UTC epoic", true)
+  val REPLAY_END_TIME    = new Param("replayEnd", classOf[Long],
+                                      "Upper bound on replay window, UTC epoic", true)
+  val REPLAY_READ_BEHIND = new Param("replayReadBehind", classOf[Long],
+                                      "Milliseconds of log to log to read before requested read time", true)
 }
 
 object KafkaDataStore {
@@ -159,8 +176,8 @@ object KafkaDataStore {
 
 class KafkaDataStoreFactory extends DataStoreFactorySpi {
 
-  import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
   import org.locationtech.geomesa.kafka.KafkaDataStore._
+  import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
 
   override def createDataStore(params: ju.Map[String, Serializable]): DataStore = {
 
@@ -203,4 +220,31 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
 
   override def isAvailable: Boolean = true
   override def getImplementationHints: ju.Map[Key, _] = null
+}
+
+class ReplayKafkaDataStoreFactory extends KafkaDataStoreFactory {
+
+  import org.locationtech.geomesa.kafka.KafkaDataStore._
+  import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
+  import org.locationtech.geomesa.kafka.ReplayKafkaDataStoreFactoryParams._
+
+  override def createFeatureSourceFactory(zk: String, params: ju.Map[String, Serializable]): FeatureSourceFactory = {
+
+    val start = new Instant(REPLAY_START_TIME.lookUp(params).asInstanceOf[Long])
+    val end = new Instant(REPLAY_END_TIME.lookUp(params).asInstanceOf[Long])
+    val readBehind = Duration.millis(REPLAY_READ_BEHIND.lookUp(params).asInstanceOf[Long])
+
+    val replayConfig = new ReplayConfig(start, end, readBehind)
+
+    replayConsumerFeatureSourceFactory(zk, replayConfig)
+  }
+
+  override def getDisplayName: String = "Replay Kafka Data Store"
+  override def getDescription: String = "Query a Kafka Data Store at a specific point in history."
+
+  override def getParametersInfo: Array[Param] =
+    Array(ZOOKEEPERS_PARAM, REPLAY_START_TIME, REPLAY_END_TIME, REPLAY_READ_BEHIND)
+
+  override def canProcess(params: ju.Map[String, Serializable]): Boolean =
+    getParametersInfo.forall(p => params.containsKey(p.key))
 }
