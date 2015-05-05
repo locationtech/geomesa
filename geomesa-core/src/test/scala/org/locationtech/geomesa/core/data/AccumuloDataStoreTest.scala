@@ -514,11 +514,11 @@ class AccumuloDataStoreTest extends Specification {
         val spatial1 = ff.bbox("geom", -181.1, -90, 40.1, 90, CRS.toSRS(WGS84))
         val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
         val binarySpatial = ff.or(spatial1, spatial2)
-
         val query = new Query(sftName, binarySpatial)
         val results = fs.getFeatures(query)
         results.size() mustEqual 226
       }
+
     }
 
     "provide ability to configure authorizations" in {
@@ -1153,6 +1153,84 @@ class AccumuloDataStoreTest extends Specification {
       }
       success
     }
+
+    "create key plan that uses STII Filter with bbox" in {
+      val sftName = "explainLargeBBOXTest1"
+      val sft1 = createSchema(sftName)
+      val filter = CQL.toFilter("bbox(geom, -100, -45, 100, 45)")
+      val query = new Query(sftName, filter, Array("geom"))
+      val explain = {
+        val o = new ExplainString
+        ds.explainQuery(sftName, query, o)
+        o.toString()
+      }
+      ds.removeSchema(sftName)
+      explain must contain("STII Filter: [ geom bbox POLYGON ((-100 -45, -100 45, 100 45, 100 -45, -100 -45)) ]")
+    }
+
+    "create key plan that does not use STII when given the Whole World bbox" in {
+      val sftName = "explainLargeBBOXTest2"
+      val sft2 = createSchema(sftName)
+      val filter = CQL.toFilter("bbox(geom, -180, -90, 180, 90)")
+      val query = new Query(sftName, filter, Array("geom"))
+      val explain = {
+        val o = new ExplainString
+        ds.explainQuery(sftName, query, o)
+        o.toString()
+      }
+      ds.removeSchema(sftName)
+      explain must contain("No STII Filter")
+      explain must contain("Filter: AcceptEverythingFilter")
+    }
+
+    "create key plan that does not use STII when given something larger than the Whole World bbox" in {
+      val sftName = "explainLargeBBOXTest3"
+      val sft3 = createSchema(sftName)
+      val filter = CQL.toFilter("bbox(geom, -190, -100, 190, 100)")
+      val query = new Query(sftName, filter, Array("geom"))
+      val explain = {
+        val o = new ExplainString
+        ds.explainQuery(sftName, query, o)
+        o.toString()
+      }
+      ds.removeSchema(sftName)
+      explain must contain("No STII Filter")
+      explain must contain("Filter: AcceptEverythingFilter")
+    }
+
+    "create key plan that does not use STII when given an or'd geometry query with redundant bbox" in {
+      // Todo: https://geomesa.atlassian.net/browse/GEOMESA-785
+      val sftName = "explainLargeBBOXTest4"
+      val sft3 = createSchema(sftName)
+      val filter = CQL.toFilter("bbox(geom, -180, -90, 180, 90) OR bbox(geom, -10, -10, 10, 10)")
+      val query = new Query(sftName, filter, Array("geom"))
+      val explain = {
+        val o = new ExplainString
+        ds.explainQuery(sftName, query, o)
+        o.toString()
+      }
+      ds.removeSchema(sftName)
+      explain must not contain("STII Filter: [ geom bbox ")
+      explain must contain("No STII Filter")
+      explain must contain("Filter: AcceptEverythingFilter")
+    }.pendingUntilFixed("Fixed query planner to deal with OR'd redundant geom with whole world")
+
+    "create key plan that does not use STII when given two bboxes that when unioned are the whole world" in {
+      // Todo: https://geomesa.atlassian.net/browse/GEOMESA-785
+      val sftName = "explainWhatIsLogicallyTheWholeWorldTest1"
+      val sft4 = createSchema(sftName)
+      val filter = CQL.toFilter("bbox(geom, -180, -90, 0, 90) OR bbox(geom, 0, -90, 180, 90)")
+      val query = new Query(sftName, filter, Array("geom"))
+      val explain = {
+        val o = new ExplainString
+        ds.explainQuery(sftName, query, o)
+        o.toString()
+      }
+      ds.removeSchema(sftName)
+      explain must not contain("STII Filter: [ geom bbox ")
+      explain must contain("No STII Filter")
+      explain must contain("Filter: AcceptEverythingFilter")
+    }.pendingUntilFixed("Fixed query planner to deal with OR'd whole world geometry")
 
     "create key plan correctly with a large bbox and a date range" in {
       val sftName1 = "keyPlanTest1"
