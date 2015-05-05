@@ -211,7 +211,7 @@ class SnapshotConsumerFeatureSource(events: Seq[GeoMessage],
  */
 case class ReplayConfig(start: Instant, end: Instant, readBehind: Duration) {
 
-  require(start.getMillis <= end.getMillis)
+  require(start.getMillis <= end.getMillis, "The start time must not be after the end time.")
 
   /** The starting time to read from kafka, accounting for read behind. */
   val realStartTime: Instant = start.minus(readBehind)
@@ -242,10 +242,13 @@ object TimestampFilterSplit {
   /** Look for a Kafka message timestamp filter in ``filter`` and if found, extract the requested timestamp
     * and return that timestamp and the remaining filters.
     *
-    * If multiple message timestamps filters are found joined by 'and' or 'or' then all found timestamps must
-    * be exactly equal.  If not then an ``EXCLUDE`` filters will be used.  In the case of 'and' this is
-    * logically correct.  In the case of 'or', the query makes no sense because each timestamp represents a
-    * moment in time.
+    * Any operand (or none) of an 'and' may specify a timestamp.  If multiple operands of the 'and'
+    * specify a timestamp then all timestamps must be the same.
+    *
+    * For an 'or' the requirement is that either all operands specify the same timestamp or none specify a
+    * timestamp.
+    *
+    * A timestamp may not be specified within a 'not'.
     */
   def split(filter: Filter): Option[TimestampFilterSplit] = filter match {
 
@@ -292,19 +295,12 @@ object TimestampFilterSplit {
     val tsList = childSplits.flatMap(_.ts)
     val ts = tsList.headOption
 
-    if (tsList.nonEmpty && !tsList.tail.forall(_ == tsList.head)) {
+    if (tsList.nonEmpty && tsList.tail.exists(_ != tsList.head)) {
       // inconsistent timestamps
       None
     } else {
       val filters = childSplits.flatMap(_.filter)
-
-      val filter = if (filters.isEmpty) {
-        None
-      } else if (filters.size == 1) {
-        filters.headOption
-      } else {
-        Some(ff.and(filters.asJava))
-      }
+      val filter = combine(filters, ff.and)
 
       Some(TimestampFilterSplit(ts, filter))
     }
@@ -318,16 +314,20 @@ object TimestampFilterSplit {
       None
     } else {
       val filters = childSplits.flatMap(_.filter)
-
-      val filter = if (filters.isEmpty) {
-        None
-      } else if (filters.size == 1) {
-        filters.headOption
-      } else {
-        Some(ff.or(filters.asJava))
-      }
+      val filter = combine(filters, ff.or)
 
       Some(TimestampFilterSplit(ts, filter))
+    }
+  }
+
+  def combine(filters: Seq[Filter], combiner: java.util.List[Filter] => Filter): Option[Filter] = {
+
+    if (filters.isEmpty) {
+      None
+    } else if (filters.size == 1) {
+      filters.headOption
+    } else {
+      Some(combiner(filters.asJava))
     }
   }
 }
