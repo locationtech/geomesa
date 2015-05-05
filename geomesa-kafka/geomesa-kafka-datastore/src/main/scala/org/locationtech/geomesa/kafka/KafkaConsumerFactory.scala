@@ -18,17 +18,20 @@ package org.locationtech.geomesa.kafka
 import java.util.Properties
 import java.util.concurrent.BlockingQueue
 
+import com.typesafe.scalalogging.slf4j.Logging
+import kafka.common.TopicAndPartition
 import kafka.consumer._
 import kafka.message.{Message, MessageAndMetadata}
 import kafka.serializer.{Decoder, DefaultDecoder}
 import org.apache.commons.lang3.RandomStringUtils
-import org.locationtech.geomesa.kafka.KafkaFactory.RawKafkaStream
+import org.locationtech.geomesa.kafka.KafkaConsumerFactory.RawKafkaStream
+import org.locationtech.geomesa.kafka.OffsetManager.Offsets
 import org.locationtech.geomesa.kafka.RequestedOffset.MessagePredicate
 
 import scala.collection.Seq
 import scala.language.implicitConversions
 
-class KafkaFactory {
+class KafkaConsumerFactory {
 
   /** @param zookeepers the zookeeper connection string
     *
@@ -59,25 +62,34 @@ class KafkaFactory {
     * @return a low level [[KafkaConsumer]]
     */
   def kafkaConsumer(zookeepers: String): KafkaConsumer[Array[Byte], Array[Byte]] = {
-    val config = consumerConfig(zookeepers)
+    kafkaConsumer(consumerConfig(zookeepers))
+  }
+
+  /** @param config the Kafaka consumer connection configuration
+    *
+    * @return a low level [[KafkaConsumer]]
+    */
+  def kafkaConsumer(config: ConsumerConfig): KafkaConsumer[Array[Byte], Array[Byte]] = {
     val decoder: DefaultDecoder = new DefaultDecoder(null)
     new KafkaConsumer[Array[Byte], Array[Byte]](config, decoder, decoder)
   }
+
+  def offsetManager(config: ConsumerConfig): OffsetManager = new OffsetManager(config)
 
   def messageStreams(zookeepers: String, topic: String, numStreams: Int = 1): Seq[RawKafkaStream] = {
 
     val client = consumerConnector(zookeepers)
     val whiteList = new Whitelist(topic)
-    val decoder = KafkaFactory.defaultDecoder
+    val decoder = KafkaConsumerFactory.defaultDecoder
     client.createMessageStreamsByFilter(whiteList, 1, decoder, decoder)
   }
 }
 
-object KafkaFactory {
+object KafkaConsumerFactory {
 
   type RawKafkaStream = KafkaStream[Array[Byte], Array[Byte]]
 
-  implicit val factory: KafkaFactory = new KafkaFactory
+  implicit val factory: KafkaConsumerFactory = new KafkaConsumerFactory
 
   val defaultDecoder: Decoder[Array[Byte]] = new DefaultDecoder(null)
 
@@ -97,8 +109,17 @@ class KafkaConsumer[K, V](val config: ConsumerConfig, keyDecoder: Decoder[K], va
                            numStreams: Int,
                            startFrom: RequestedOffset = NextOffset(config.groupId)): List[KafkaStreamLike[K, V]] = ???
 
-  // TODO add to KafkaConsumer - gets the requested offset for each partition
-  def getOffsets(topic: String, request: RequestedOffset): Seq[Long] = ???
+}
+
+class OffsetManager(val config: ConsumerConfig) extends AutoCloseable with Logging {
+
+  def getOffsets(topic: String, when: RequestedOffset): Offsets = ???
+
+  override def close(): Unit = {}
+}
+
+object OffsetManager extends Logging {
+  type Offsets = Map[TopicAndPartition, Long]
 }
 
 /** Copied from WT.  Delete when moved to GeoMesa. */

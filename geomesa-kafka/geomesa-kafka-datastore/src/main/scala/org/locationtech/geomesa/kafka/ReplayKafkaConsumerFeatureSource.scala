@@ -35,8 +35,8 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
                                        schema: SimpleFeatureType,
                                        query: Query,
                                        topic: String,
-                                       zookeepers: String,
-                                       replayConfig: ReplayConfig)(implicit val kf: KafkaFactory)
+                                       kf: KafkaConsumerFactory,
+                                       replayConfig: ReplayConfig)
   extends ContentFeatureSource(entry, query) {
 
   // messages are stored as an array where the most recent is at index 0
@@ -125,12 +125,14 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
         case e => e.timestamp.getMillis >= endTime
       }
 
-    new SnapshotConsumerFeatureSource(snapshot, entry, schema, query)
+    new SnapshotConsumerFeatureSource(snapshot, entry, schema, query, kf)
   }
 
   private def readMessages(): Array[GeoMessage] = {
 
-    val kafkaConsumer = kf.kafkaConsumer(zookeepers)
+    val kafkaConsumer = kf.kafkaConsumer
+    val offsetManager = kf.offsetManager
+
     val msgDecoder = new KafkaGeoMessageDecoder(schema)
 
     // start 1 ms earlier because there might be multiple messages with the same timestamp
@@ -145,7 +147,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     val stream = kafkaConsumer.createMessageStreams(topic, 1, offsetRequest).head
 
     // stop at the last offset even if before the end instant
-    val lastOffset = kafkaConsumer.getOffsets(topic, LatestOffset).head
+    val lastOffset = offsetManager.getOffsets(topic, LatestOffset).head._2
 
     stream.iterator
       .takeWhile(_.offset <= lastOffset)
@@ -167,8 +169,9 @@ object ReplayKafkaConsumerFeatureSource {
 class SnapshotConsumerFeatureSource(events: Seq[GeoMessage],
                                     entry: ContentEntry,
                                     schema: SimpleFeatureType,
-                                    query: Query)
-  extends KafkaConsumerFeatureSource(entry, schema, query) {
+                                    query: Query,
+                                    kf: KafkaConsumerFactory)
+  extends KafkaConsumerFeatureSource(entry, schema, query, kf) {
 
   override lazy val (qt, features) = processMessages
 
