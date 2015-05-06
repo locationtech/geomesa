@@ -7,6 +7,7 @@ import com.google.common.io.Resources
 import org.apache.commons.io.IOUtils
 import org.apache.commons.net.DefaultSocketFactory
 import org.geotools.data.DataStoreFinder
+import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -23,6 +24,7 @@ class StreamDataStoreTest extends Specification {
 
   "StreamDataStore" should {
 
+    val ff = CommonFactoryFinder.getFilterFactory2()
     val sourceConf =
       """
         |{
@@ -88,7 +90,11 @@ class StreamDataStoreTest extends Specification {
     }
 
     "support listeners" >> {
-      count.get() must equalTo(3)
+      count.get() must equalTo(7)
+    }
+
+    "handle bbox filters" >> {
+      fs.getFeatures(ff.bbox("geom", 49, 79, 51, 81, "EPSG:4326")).size() must be equalTo 3
     }
 
     "expire data after the appropriate amount of time" >> {

@@ -12,7 +12,7 @@ import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data._
 import org.geotools.data.collection.DelegateFeatureReader
-import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource, ContentFeatureStore}
+import org.geotools.data.store._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.filter.FidFilterImpl
@@ -179,7 +179,8 @@ class StreamFeatureStore(entry: ContentEntry,
     val bounds = JTS.toGeometry(b.getBounds)
     val res = qt.query(bounds.getEnvelopeInternal)
     val fiter = new DFI(res.asInstanceOf[java.util.List[SimpleFeature]].iterator)
-    new DFR(sft, fiter)
+    val filt = new FilteringFeatureIterator[SimpleFeature](fiter, b)
+    new DFR(sft, filt)
   }
 
   def splitBinOp(binop: BinarySpatialOperator): (PropertyName, Literal) =
