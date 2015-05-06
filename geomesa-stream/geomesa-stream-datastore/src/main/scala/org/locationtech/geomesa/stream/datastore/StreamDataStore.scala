@@ -170,9 +170,9 @@ class StreamFeatureStore(entry: ContentEntry,
     val (_, geomLit) = splitBinOp(w)
     val geom = geomLit.evaluate(null).asInstanceOf[Geometry]
     val res = qt.query(geom.getEnvelopeInternal)
-    val filtered = res.asInstanceOf[java.util.List[SimpleFeature]].filter(sf => geom.contains(sf.point))
-    val fiter = new DFI(filtered.iterator)
-    new DFR(sft, fiter)
+    val fiter = new DFI(res.asInstanceOf[java.util.List[SimpleFeature]].iterator)
+    val filt = new FilteringFeatureIterator[SimpleFeature](fiter, w)
+    new DFR(sft, filt)
   }
 
   def bbox(b: BBOX): FR = {
