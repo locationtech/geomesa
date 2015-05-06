@@ -17,10 +17,8 @@
 package org.locationtech.geomesa.core.iterators
 
 import org.geotools.data.Query
-import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index._
