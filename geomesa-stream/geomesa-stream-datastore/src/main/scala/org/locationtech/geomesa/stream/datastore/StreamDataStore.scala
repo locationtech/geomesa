@@ -38,10 +38,6 @@ case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
   }
 }
 
-trait StreamListener {
-  def onNext(sf: SimpleFeature): Unit
-}
-
 class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int) extends ContentDataStore {
   
   val sft = source.sft
@@ -221,3 +217,20 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
   override def isAvailable: Boolean = true
   override def getImplementationHints: ju.Map[RenderingHints.Key, _] = null
 }
+
+trait StreamListener {
+  def onNext(sf: SimpleFeature): Unit
+}
+
+object StreamListener {
+  def apply(f: Filter, fn: SimpleFeature => Unit) =
+    new StreamListener {
+      override def onNext(sf: SimpleFeature): Unit = if(f.evaluate(sf)) fn(sf)
+    }
+
+  def apply(fn: SimpleFeature => Unit) =
+    new StreamListener {
+      override def onNext(sf: SimpleFeature): Unit = fn(sf)
+    }
+}
+
