@@ -29,7 +29,7 @@ import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter._
-import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
+import org.locationtech.geomesa.core.data.tables.{Z3Table, AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.security.SecurityUtils
 import SecurityUtils.FEATURE_VISIBILITY
@@ -78,6 +78,8 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
     val stWriter = SpatioTemporalTable.spatioTemporalWriter(stIndexEncoder)
     val stBw = multiBWWriter.getBatchWriter(ds.getSpatioTemporalTable(sft))
 
+    val z3Writer = Z3Table.z3writer(sft)
+    val z3bw = multiBWWriter.getBatchWriter(ds.getZ3Table(sft))
     val recWriter = RecordTable.recordWriter(sft)
     val recBw = multiBWWriter.getBatchWriter(ds.getRecordTable(sft))
 

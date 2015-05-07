@@ -105,6 +105,7 @@ object TableConfCommand {
       case TableSuffix.STIdx   => params.ds.getSpatioTemporalTable(params.featureName)
       case TableSuffix.AttrIdx => params.ds.getAttributeTable(params.featureName)
       case TableSuffix.Records => params.ds.getRecordTable(params.featureName)
+      case TableSuffix.Z3      => params.ds.getZ3Table(params.featureName)
       case _                   => throw new Exception(s"Invalid table suffix: ${params.tableSuffix}")
     }
   

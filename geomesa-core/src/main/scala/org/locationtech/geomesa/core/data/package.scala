@@ -55,6 +55,7 @@ import scala.collection.JavaConversions._
   val ST_IDX_TABLE_KEY       = "tables.idx.st.name"
   val ATTR_IDX_TABLE_KEY     = "tables.idx.attr.name"
   val RECORD_TABLE_KEY       = "tables.record.name"
+  val Z3_TABLE_KEY           = "tables.z3.name"
   val QUERIES_TABLE_KEY      = "tables.queries.name"
   val SHARED_TABLES_KEY      = "tables.sharing"
   val VERSION_KEY            = "version"
@@ -98,5 +99,6 @@ import scala.collection.JavaConversions._
     val STIdx   = "st_idx"
     val Records = "records"
     val AttrIdx = "attr_idx"
+    val Z3      = "z3"
   }
 }
