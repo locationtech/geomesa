@@ -25,9 +25,11 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.joda.time.{Duration, Instant}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
+import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
+import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -35,6 +37,8 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
+
+  sequential
 
   val typeName = "track"
   val schema = SimpleFeatureTypes.createType(typeName, "trackId:String,*geom:LineString:srid=4326")
@@ -108,10 +112,13 @@ class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
       val fs = ds.getFeatureSource(typeName)
       fs.isInstanceOf[ReplayKafkaConsumerFeatureSource] must beTrue
 
-      val fc = fs.getFeatures
-      fc.size() mustEqual 2
-      fc.contains(track0v0) must beTrue
-      fc.contains(track3v0) must beTrue
+      val iter: RichSimpleFeatureIterator = fs.getFeatures.features()
+      val features = iter.toList
+      iter.close()
+
+      features must haveSize(2)
+      features must containSF(track0v0)
+      features must containSF(track3v0)
     }
   }
 
@@ -152,5 +159,20 @@ class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
       broker, zkConnect, new Instant(start), new Instant(end), Duration.millis(readBehind))
 
     new ReplayKafkaDataStoreFactory().createDataStore(props)
+  }
+
+  def containSF(expected: SimpleFeature): Matcher[Seq[SimpleFeature]] = {
+    val matcher = equalSF(expected)
+
+    seq: Seq[SimpleFeature] => seq.exists(matcher.test)
+  }
+
+  def equalSF(expected: SimpleFeature): Matcher[SimpleFeature] = {
+    sf: SimpleFeature => {
+      sf.getID mustEqual expected.getID
+      sf.getDefaultGeometry mustEqual expected.getDefaultGeometry
+      sf.getAttributes mustEqual expected.getAttributes
+      sf.getUserData mustEqual expected.getUserData
+    }
   }
 }

@@ -16,13 +16,8 @@
 
 package org.locationtech.geomesa.kafka
 
-import java.net.InetSocketAddress
-
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import kafka.server.KafkaConfig
-import kafka.utils.{TestUtils, TestZKUtils, Utils}
-import org.apache.zookeeper.server.{NIOServerCnxnFactory, ZooKeeperServer}
 import org.geotools.data._
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -195,7 +190,7 @@ class KafkaDataStoreTest extends Specification with TestKafkaServer with Logging
 
       //Setup consumer prior to writing feature so the feature will be written to the cache once the producer writes
       val cachedConsumerFS = cachedConsumerDS.getFeatureSource("testExpiration").asInstanceOf[KafkaConsumerFeatureSource]
-      val featureCache = cachedConsumerFS.features
+      val featureCache = cachedConsumerFS.asInstanceOf[LiveKafkaConsumerFeatureSource].featureCache
       cachedConsumerFS.qt.size() must be equalTo 0
 
       //Write test feature

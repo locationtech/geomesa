@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.kafka
 
-import com.google.common.cache.Cache
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.geotools.data.collection.DelegateFeatureReader
@@ -36,6 +35,7 @@ import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
 import org.opengis.filter.{And, Filter, IncludeFilter, Or}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
                                  schema: SimpleFeatureType,
@@ -55,7 +55,7 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   }
 
   def qt: Quadtree
-  def features: Cache[String, FeatureHolder]
+  def features: mutable.Map[String, FeatureHolder]
 
   override def getBoundsInternal(query: Query) =
     ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
@@ -82,10 +82,10 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
   type DFI = DelegateFeatureIterator[SimpleFeature]
 
-  def include(i: IncludeFilter) = new DFR(schema, new DFI(features.asMap().valuesIterator.map(_.sf)))
+  def include(i: IncludeFilter) = new DFR(schema, new DFI(features.valuesIterator.map(_.sf)))
 
   def fid(ids: FidFilterImpl): FR = {
-    val iter = ids.getIDs.flatMap(id => Option(features.getIfPresent(id.toString)).map(_.sf)).iterator
+    val iter = ids.getIDs.flatMap(id => features.get(id.toString).map(_.sf)).iterator
     new DFR(schema, new DFI(iter))
   }
 

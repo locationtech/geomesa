@@ -25,6 +25,9 @@ import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+
 class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
                                      schema: SimpleFeatureType,
                                      query: Query,
@@ -39,20 +42,25 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
 
   var qt = new SynchronizedQuadtree
 
-  val cb = CacheBuilder.newBuilder()
+  val featureCache: Cache[String, FeatureHolder] = {
 
-  if (expiry) {
-    cb.expireAfterWrite(expirationPeriod, TimeUnit.MILLISECONDS)
-      .removalListener(
-        new RemovalListener[String, FeatureHolder] {
-          def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
-            qt.remove(removal.getValue.env, removal.getValue.sf)
+    val cb = CacheBuilder.newBuilder()
+
+    if (expiry) {
+      cb.expireAfterWrite(expirationPeriod, TimeUnit.MILLISECONDS)
+        .removalListener(
+          new RemovalListener[String, FeatureHolder] {
+            def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
+              qt.remove(removal.getValue.env, removal.getValue.sf)
+            }
           }
-        }
-      )
+        )
+    }
+
+    cb.build()
   }
 
-  override val features: Cache[String, FeatureHolder] = cb.build()
+  override val features: mutable.Map[String, FeatureHolder] = featureCache.asMap().asScala
   
   // create a producer that reads from kafka and sends to the event bus that the kcfs has subscribed to
   new KafkaFeatureConsumer(schema, topic, kf, eb)
@@ -68,20 +76,20 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
   def processNewFeatures(update: CreateOrUpdate): Unit = {
     val sf = update.feature
     val id = update.id
-    Option(features.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
+    Option(featureCache.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
     val env = sf.geometry.getEnvelopeInternal
     qt.insert(env, sf)
-    features.put(sf.getID, FeatureHolder(sf, env))
+    featureCache.put(sf.getID, FeatureHolder(sf, env))
   }
 
   def removeFeature(toDelete: Delete): Unit = {
     val id = toDelete.id
-    Option(features.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
-    features.invalidate(toDelete.id)
+    Option(featureCache.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
+    featureCache.invalidate(toDelete.id)
   }
 
   def clear(): Unit = {
-    features.invalidateAll()
+    featureCache.invalidateAll()
     qt = new SynchronizedQuadtree
   }
 }

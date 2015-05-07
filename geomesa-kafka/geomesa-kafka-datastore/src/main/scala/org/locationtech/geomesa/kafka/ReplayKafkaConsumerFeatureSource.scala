@@ -15,7 +15,6 @@
  */
 package org.locationtech.geomesa.kafka
 
-import com.google.common.cache.{Cache, CacheBuilder}
 import com.vividsolutions.jts.geom.Envelope
 import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
@@ -24,7 +23,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.core.filter._
-import org.locationtech.geomesa.kafka.consumer.offsets.{LatestOffset, FindOffset}
+import org.locationtech.geomesa.kafka.consumer.offsets.{FindOffset, LatestOffset}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -64,7 +63,12 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
           .getOrElse((replayConfig.end.getMillis, Some(0)))
         val filter = s.filter.getOrElse(Filter.INCLUDE)
 
-        startIndex.map(si => Some(getReaderAtTime(si, startTime, filter))).getOrElse(None)
+        startIndex.map { si =>
+          val q = new Query(query)
+          q.setFilter(filter)
+
+          Some(getReaderAtTime(q, si, startTime))
+        }.getOrElse(None)
       }.getOrElse(None)
     }
 
@@ -103,14 +107,11 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     }
   }
 
-  private def getReaderAtTime(startIndex: Int, startTime: Long, filter: Filter) = {
+  private def getReaderAtTime(query: Query, startIndex: Int, startTime: Long) = {
 
     val endTime = startTime - replayConfig.readBehind.getMillis
 
-    val q = new Query(query)
-    q.setFilter(filter)
-
-    snapshot(startIndex, endTime).getReaderInternal(q)
+    snapshot(startIndex, endTime).getReaderInternal(query)
   }
 
   /**
@@ -176,10 +177,10 @@ class SnapshotConsumerFeatureSource(events: Seq[GeoMessage],
 
   override lazy val (qt, features) = processMessages
 
-  private def processMessages: (Quadtree, Cache[String, FeatureHolder]) = {
-    def features: Cache[String, FeatureHolder] = CacheBuilder.newBuilder().build()
-    def qt = new Quadtree
-    def seen = new mutable.HashSet[String]
+  private def processMessages: (Quadtree, mutable.Map[String, FeatureHolder]) = {
+    val features = new mutable.HashMap[String, FeatureHolder]()
+    val qt = new Quadtree
+    val seen = new mutable.HashSet[String]
 
     events.foreach {
       case CreateOrUpdate(ts, sf) =>

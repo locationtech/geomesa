@@ -180,19 +180,19 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
 
   override def createDataStore(params: ju.Map[String, Serializable]): DataStore = {
-    val brokers = KAFKA_BROKER_PARAM.lookUp(params).asInstanceOf[String]
-    val zk = ZOOKEEPERS_PARAM.lookUp(params).asInstanceOf[String]
-    val zkPath = Option(ZK_PATH.lookUp(params).asInstanceOf[String])
+    val broker   = KAFKA_BROKER_PARAM.lookUp(params).asInstanceOf[String]
+    val zk       = ZOOKEEPERS_PARAM.lookUp(params).asInstanceOf[String]
+    val zkPath   = Option(ZK_PATH.lookUp(params).asInstanceOf[String])
                      .map(_.trim)
                      .filterNot(_.isEmpty)
                      .map(p => if (p.startsWith("/")) p else "/" + p)
                      .map(p => if (p.endsWith("/")) p.substring(0, p.length - 1) else p)
                      .getOrElse("/geomesa/ds/kafka")
 
-    val partitions = Option(TOPIC_PARTITIONS.lookUp(params)).map(_.toString.toInt).getOrElse(1)
-    val replication = Option(TOPIC_REPLICATION.lookUp(params)).map(_.toString.toInt).getOrElse(1)
+    val partitions       = Option(TOPIC_PARTITIONS.lookUp(params)).map(_.toString.toInt).getOrElse(1)
+    val replication      = Option(TOPIC_REPLICATION.lookUp(params)).map(_.toString.toInt).getOrElse(1)
 
-    val fsFactory = createFeatureSourceFactory(brokers, zk, params)
+    val fsFactory = createFeatureSourceFactory(broker, zk, params)
 
     new KafkaDataStore(zk, zkPath, partitions, replication, fsFactory)
   }
