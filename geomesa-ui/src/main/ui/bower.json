@@ -14,6 +14,7 @@
     "lodash": "~2.4.1",
     "moment": "~2.7.0",
     "moment-timezone": "~0.1.0",
-    "openlayers" : "https://github.com/openlayers/ol3/releases/download/v3.2.1/v3.2.1.zip"
+    "openlayers" : "https://github.com/openlayers/ol3/releases/download/v3.2.1/v3.2.1.zip",
+    "openlayers2": "https://github.com/openlayers/openlayers/releases/download/release-2.13.1/OpenLayers-2.13.1.zip"
   }
 }
