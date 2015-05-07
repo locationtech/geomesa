@@ -124,11 +124,11 @@ object KafkaDataStoreFactoryParams {
 }
 
 object ReplayKafkaDataStoreFactoryParams {
-  val REPLAY_START_TIME  = new Param("replayStart", classOf[Long],
+  val REPLAY_START_TIME  = new Param("replayStart", classOf[java.lang.Long],
                                       "Lower bound on replay window, UTC epoic", true)
-  val REPLAY_END_TIME    = new Param("replayEnd", classOf[Long],
+  val REPLAY_END_TIME    = new Param("replayEnd", classOf[java.lang.Long],
                                       "Upper bound on replay window, UTC epoic", true)
-  val REPLAY_READ_BEHIND = new Param("replayReadBehind", classOf[Long],
+  val REPLAY_READ_BEHIND = new Param("replayReadBehind", classOf[java.lang.Long],
                                       "Milliseconds of log to log to read before requested read time", true)
 }
 
@@ -228,7 +228,8 @@ class ReplayKafkaDataStoreFactory extends KafkaDataStoreFactory {
   import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
   import org.locationtech.geomesa.kafka.ReplayKafkaDataStoreFactoryParams._
 
-  override def createFeatureSourceFactory(zk: String, params: ju.Map[String, Serializable]): FeatureSourceFactory = {
+  override def createFeatureSourceFactory(zk: String,
+                                          params: ju.Map[String, Serializable]): FeatureSourceFactory = {
 
     val start = new Instant(REPLAY_START_TIME.lookUp(params).asInstanceOf[Long])
     val end = new Instant(REPLAY_END_TIME.lookUp(params).asInstanceOf[Long])
@@ -247,4 +248,25 @@ class ReplayKafkaDataStoreFactory extends KafkaDataStoreFactory {
 
   override def canProcess(params: ju.Map[String, Serializable]): Boolean =
     getParametersInfo.forall(p => params.containsKey(p.key))
+}
+
+object ReplayKafkaDataStoreFactory {
+
+  def props(zookeepers: String,
+            startTime: Instant,
+            endTime: Instant,
+            readBehind: Duration): ju.Map[String, Serializable] = {
+
+    import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
+    import org.locationtech.geomesa.kafka.ReplayKafkaDataStoreFactoryParams._
+
+    import scala.collection.JavaConverters._
+
+    Map(ZOOKEEPERS_PARAM.key -> zookeepers,
+        REPLAY_START_TIME.key -> startTime.getMillis.asInstanceOf[Serializable],
+        REPLAY_END_TIME.key -> endTime.getMillis.asInstanceOf[Serializable],
+        REPLAY_READ_BEHIND.key -> readBehind.getMillis.asInstanceOf[Serializable]
+    ).asJava
+  }
+
 }

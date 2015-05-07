@@ -154,7 +154,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
       .map(msgDecoder.decode)
       .dropWhile(replayConfig.isBeforeRealStart)
       .takeWhile(replayConfig.isNotAfterEnd)
-      .foldLeft(Seq.empty[GeoMessage])((seq, elem) => elem +: seq)
+      .foldLeft(List.empty[GeoMessage])((seq, elem) => elem :: seq)
       .toArray
   }
 }

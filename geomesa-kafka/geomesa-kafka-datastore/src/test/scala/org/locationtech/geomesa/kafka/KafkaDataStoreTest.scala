@@ -37,21 +37,13 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class KafkaDataStoreTest extends Specification with Logging {
+class KafkaDataStoreTest extends Specification with TestKafkaServer with Logging {
 
   sequential
 
-  val brokerConf = TestUtils.createBrokerConfig(1)
-
-  val zkConnect = TestZKUtils.zookeeperConnect
-  val zk = new EmbeddedZookeeper(zkConnect)
-  val server = TestUtils.createServer(new KafkaConfig(brokerConf))
-
-  val host = brokerConf.getProperty("host.name")
-  val port = brokerConf.getProperty("port").toInt
   val ff = CommonFactoryFinder.getFilterFactory2
   val consumerParams = Map(
-    "brokers"    -> s"$host:$port",
+    "brokers"    -> broker,
     "zookeepers" -> zkConnect,
     "zkPath"     -> "/geomesa/kafka/testds",
     "isProducer" -> false)
@@ -224,31 +216,7 @@ class KafkaDataStoreTest extends Specification with Logging {
   }
 
   step {
-    try {
-      server.shutdown()
-      zk.shutdown()
-    } catch {
-      case _: Throwable =>
-    }
+    shutdown()
   }
 }
 
-
-class EmbeddedZookeeper(val connectString: String) {
-  val snapshotDir = TestUtils.tempDir()
-  val logDir = TestUtils.tempDir()
-  val tickTime = 500
-  val zookeeper = new ZooKeeperServer(snapshotDir, logDir, tickTime)
-  val port = connectString.split(":")(1).toInt
-  val factory = new NIOServerCnxnFactory()
-  factory.configure(new InetSocketAddress("127.0.0.1", port), 1024)
-  factory.startup(zookeeper)
-
-  def shutdown() {
-    try { zookeeper.shutdown() } catch { case _: Throwable => }
-    try { factory.shutdown() } catch { case _: Throwable => }
-    Utils.rm(logDir)
-    Utils.rm(snapshotDir)
-  }
-
-}
