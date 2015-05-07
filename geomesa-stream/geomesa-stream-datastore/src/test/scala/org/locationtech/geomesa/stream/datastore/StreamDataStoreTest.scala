@@ -7,6 +7,7 @@ import com.google.common.io.Resources
 import org.apache.commons.io.IOUtils
 import org.apache.commons.net.DefaultSocketFactory
 import org.geotools.data.DataStoreFinder
+import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -23,6 +24,7 @@ class StreamDataStoreTest extends Specification {
 
   "StreamDataStore" should {
 
+    val ff = CommonFactoryFinder.getFilterFactory2()
     val sourceConf =
       """
         |{
@@ -65,7 +67,17 @@ class StreamDataStoreTest extends Specification {
         count.incrementAndGet()
       }
     }
-    ds.asInstanceOf[StreamDataStore].registerListener(listener)
+    val sds = ds.asInstanceOf[StreamDataStore]
+    sds.registerListener(listener)
+
+    val count2 = new AtomicLong(0)
+    val listener2 = StreamListener { sf => count2.incrementAndGet() }
+    sds.registerListener(listener2)
+
+    val count3 = new AtomicLong(0)
+    val bboxFilter = ff.bbox("geom", 49.0, 79.0, 51.0, 80.0, "EPSG:4326")
+    val listener3 = StreamListener(bboxFilter, _ =>  count3.incrementAndGet())
+    sds.registerListener(listener3)
 
     val fs = ds.getFeatureSource("testdata")
 
@@ -88,7 +100,13 @@ class StreamDataStoreTest extends Specification {
     }
 
     "support listeners" >> {
-      count.get() must equalTo(3)
+      count.get() must equalTo(7)
+      count2.get() must equalTo(7)
+      count3.get() must equalTo(3)
+    }
+
+    "handle bbox filters" >> {
+      fs.getFeatures(bboxFilter).size() must be equalTo 3
     }
 
     "expire data after the appropriate amount of time" >> {
