@@ -24,6 +24,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.core.filter._
+import org.locationtech.geomesa.kafka.consumer.offsets.{LatestOffset, FindOffset}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._

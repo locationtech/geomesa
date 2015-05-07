@@ -16,11 +16,13 @@
 package org.locationtech.geomesa.kafka
 
 import kafka.message.MessageAndMetadata
+import org.locationtech.geomesa.kafka.consumer.{KafkaStreamLike, KafkaConsumer}
+import org.locationtech.geomesa.kafka.consumer.offsets.OffsetManager
 import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 
-class MockKafkaConsumerFactory extends KafkaConsumerFactory("mock-zoo") {
+class MockKafkaConsumerFactory extends KafkaConsumerFactory("mock-broker:9092", "mock-zoo") {
 
   override val kafkaConsumer = mock(classOf[KafkaConsumer[Array[Byte], Array[Byte]]])
 

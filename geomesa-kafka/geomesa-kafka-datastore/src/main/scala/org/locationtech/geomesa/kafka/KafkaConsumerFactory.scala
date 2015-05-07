@@ -16,25 +16,21 @@
 package org.locationtech.geomesa.kafka
 
 import java.util.Properties
-import java.util.concurrent.BlockingQueue
 
-import com.typesafe.scalalogging.slf4j.Logging
-import kafka.common.TopicAndPartition
 import kafka.consumer._
-import kafka.message.{Message, MessageAndMetadata}
 import kafka.serializer.{Decoder, DefaultDecoder}
 import org.apache.commons.lang3.RandomStringUtils
 import org.locationtech.geomesa.kafka.KafkaConsumerFactory.RawKafkaStream
-import org.locationtech.geomesa.kafka.OffsetManager.Offsets
-import org.locationtech.geomesa.kafka.RequestedOffset.MessagePredicate
+import org.locationtech.geomesa.kafka.consumer.KafkaConsumer
+import org.locationtech.geomesa.kafka.consumer.offsets.OffsetManager
 
 import scala.collection.Seq
 import scala.language.implicitConversions
 
-/**
+/** @param brokers a comma separated list of broker host names and ports
   * @param zookeepers the zookeeper connection string
   */
-class KafkaConsumerFactory(zookeepers: String) {
+class KafkaConsumerFactory(brokers: String, zookeepers: String) {
 
   /** The [[ConsumerConfig]] containing the given ``zookeepers``, a random Group ID and other fixed
     * properties.
@@ -44,6 +40,7 @@ class KafkaConsumerFactory(zookeepers: String) {
 
     val props = new Properties()
     props.put("zookeeper.connect", zookeepers)
+    props.put("metadata.broker.list", brokers)
     props.put("group.id", groupId)
     props.put("zookeeper.session.timeout.ms", "2000")
     props.put("zookeeper.sync.time.ms", "1000")
@@ -81,53 +78,4 @@ object KafkaConsumerFactory {
   type RawKafkaStream = KafkaStream[Array[Byte], Array[Byte]]
 
   val defaultDecoder: Decoder[Array[Byte]] = new DefaultDecoder(null)
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// Delete all code below when KafkaConsumer has been moved into GeoMesa //
-//////////////////////////////////////////////////////////////////////////
-
-
-
-/** This is a stub for KafkaConsumer, currently part of WT, until is is moved to GeoMesa. */
-class KafkaConsumer[K, V](val config: ConsumerConfig, keyDecoder: Decoder[K], valueDecoder: Decoder[V]) {
-
-  def createMessageStreams(topic: String,
-                           numStreams: Int,
-                           startFrom: RequestedOffset = NextOffset(config.groupId)): List[KafkaStreamLike[K, V]] = ???
-
-}
-
-class OffsetManager(val config: ConsumerConfig) extends AutoCloseable with Logging {
-
-  def getOffsets(topic: String, when: RequestedOffset): Offsets = ???
-
-  override def close(): Unit = {}
-}
-
-object OffsetManager extends Logging {
-  type Offsets = Map[TopicAndPartition, Long]
-}
-
-/** Copied from WT.  Delete when moved to GeoMesa. */
-sealed trait RequestedOffset
-
-case object EarliestOffset                          extends RequestedOffset
-case object LatestOffset                            extends RequestedOffset
-case class  NextOffset(group: String)               extends RequestedOffset
-case class  DateOffset(date: Long)                  extends RequestedOffset
-case class  FindOffset(predicate: MessagePredicate) extends RequestedOffset
-
-object RequestedOffset {
-  // 0 indicates a match, -1 indicates less than, 1 indicates greater than
-  type MessagePredicate = (Message) => Int
-}
-
-/** This is a stub for KafkaStreamLike, currently part of WT, until is is moved to GeoMesa. */
-class KafkaStreamLike[K, V](queue: BlockingQueue[FetchedDataChunk],
-                            timeoutMs: Long,
-                            keyDecoder: Decoder[K],
-                            valueDecoder: Decoder[V]) extends Iterable[MessageAndMetadata[K, V]] {
-  override def iterator: Iterator[MessageAndMetadata[K, V]] = ???
 }

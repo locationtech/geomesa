@@ -17,12 +17,14 @@ package org.locationtech.geomesa.kafka
 
 import java.{util => ju}
 
+import java.io.Serializable
 import kafka.producer.{Producer, ProducerConfig}
 import org.geotools.data.DataStore
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.joda.time.{Duration, Instant}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -34,9 +36,11 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
 
-  val topic = "tracker"
   val typeName = "track"
   val schema = SimpleFeatureTypes.createType(typeName, "trackId:String,*geom:LineString:srid=4326")
+
+  // the topic name is not configurable - it is the same as the name of the SFT
+  val topic = typeName
 
   val track0v0 = track("track0", "Point      (30 30)")
   val track0v1 = track("track0", "LineString (30 30, 35 30)")
@@ -93,13 +97,8 @@ class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
 
   )
 
+  createTopic()
   sendMessages(messages)
-
-  val kafkaFactory = new KafkaConsumerFactory(zkConnect)
-  val dsConf = {
-
-
-  }
 
   "replay" should {
 
@@ -125,6 +124,17 @@ class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
     new SimpleFeatureImpl(List[Object](id, geom), schema, new FeatureIdImpl(id))
   }
 
+  def createTopic(): Unit = {
+    // the topic must be created by KafkaDataStore because it also stores some data in zookeeper
+
+    val props = Map(
+      KAFKA_BROKER_PARAM.key -> broker,
+      ZOOKEEPERS_PARAM.key -> zkConnect,
+      IS_PRODUCER_PARAM.key -> true.asInstanceOf[Serializable]
+    )
+
+    new KafkaDataStoreFactory().createDataStore(props).createSchema(schema)
+  }
 
   def sendMessages(messages: Seq[GeoMessage]): Unit = {
     val props = new ju.Properties()
@@ -138,13 +148,9 @@ class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
   }
 
   def createDataStore(start: Long, end: Long, readBehind: Long): DataStore = {
-    val props = ReplayKafkaDataStoreFactory.props(zkConnect, new Instant(start), new Instant(end), Duration.millis(readBehind))
-    val ds = new ReplayKafkaDataStoreFactory().createDataStore(props)
+    val props = ReplayKafkaDataStoreFactory.props(
+      broker, zkConnect, new Instant(start), new Instant(end), Duration.millis(readBehind))
 
-    if (!ds.getTypeNames.contains(typeName)) {
-      ds.createSchema(schema)
-    }
-
-    ds
+    new ReplayKafkaDataStoreFactory().createDataStore(props)
   }
 }
