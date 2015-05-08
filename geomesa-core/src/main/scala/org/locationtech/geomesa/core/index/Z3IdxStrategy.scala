@@ -83,7 +83,8 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
 
     val lt = Z3Table.secondsInCurrentWeek(interval.getStart, epochWeekStart)
     val ut = Z3Table.secondsInCurrentWeek(interval.getEnd, epochWeekStart)
-    val z3ranges = Z3_CURVE.ranges(lx, ly, ux, uy, lt, ut, 10)
+    val z3ranges = Z3_CURVE.ranges(lx, ly, ux, uy, lt, ut, 8)
+    println(z3ranges.length)
     val prefix = Shorts.toByteArray(epochWeekStart.getWeeks.toShort)
 
     val accRanges = z3ranges.map { case (s, e) =>
@@ -119,8 +120,9 @@ object Z3IdxStrategy extends StrategyProvider {
       None
     } else if (spatialFilters(geomFilter.head) && !isFilterWholeWorld(geomFilter.head)) {
       val temporalFilter = temporal.head
-      val s = temporalFilter.asInstanceOf[PropertyIsBetween].getLowerBoundary.asInstanceOf[Literal].getValue.asInstanceOf[String]
-      val e = temporalFilter.asInstanceOf[PropertyIsBetween].getUpperBoundary.asInstanceOf[Literal].getValue.asInstanceOf[String]
+      val between = temporalFilter.asInstanceOf[PropertyIsBetween]
+      val s = between.getLowerBoundary.asInstanceOf[Literal].getValue
+      val e = between.getUpperBoundary.asInstanceOf[Literal].getValue
       if(Z3Table.epochWeeks(new DateTime(s)) != Z3Table.epochWeeks(new DateTime(e))) {
         None
       } else {
