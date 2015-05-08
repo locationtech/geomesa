@@ -1,15 +1,16 @@
 angular.module('geomesa.unique', [])
 
-    .controller('UniqueController', ['$scope', function($scope) {
+    .controller('UniqueController', ['$scope', '$http', function($scope, $http) {
         var request = createWPSExecuteRequest('Who', 'true', 'ASC', 'true');
-        OpenLayers.Request.POST({
+        
+        $http({
+            method: 'POST',
             url: 'http://geomesa:8080/geoserver/wps',
-            data: request,
-            success: function(outputs){
-                //For now just log results to console.
-                console.log(outputs.responseText);
-            }
-        });   
+            data: request
+        }).success(function(data, status, headers, config) {
+            // For now just log results to console
+            console.log(data);
+        });
     }]);
 
 function createWPSExecuteRequest(attribute, histogram, sort, sortByCount) {
