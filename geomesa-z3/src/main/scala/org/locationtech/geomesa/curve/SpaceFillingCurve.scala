@@ -23,9 +23,9 @@ trait SpaceFillingCurve[T] {
 
 class Z3SFC extends SpaceFillingCurve[Z3] {
 
-  override val xprec: Long = 21
-  override val yprec: Long = 21
-  override val tprec: Long = 21
+  override val xprec: Long = math.pow(2, 21).toLong
+  override val yprec: Long = math.pow(2, 21).toLong
+  override val tprec: Long = math.pow(2, 21).toLong
   override val tmax: Long = Weeks.weeks(1).toStandardSeconds.getSeconds
 
   override def index(x: Double, y: Double, t: Long): Z3 = {

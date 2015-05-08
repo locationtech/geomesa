@@ -232,7 +232,7 @@ class AccumuloDataStore(val connector: Connector,
   override def getSpatioTemporalTable(featureType: SimpleFeatureType): String =
     getSpatioTemporalTable(featureType.getTypeName)
 
-  def getZ3Table(featureType: SimpleFeatureType): String = getZ3Table(featureType.getTypeName)
+  override def getZ3Table(featureType: SimpleFeatureType): String = getZ3Table(featureType.getTypeName)
 
   def getZ3Table(featureName: String): String =
     metadata.readRequired(featureName, Z3_TABLE_KEY)
@@ -945,7 +945,7 @@ object AccumuloDataStore {
     formatTableName(catalogTable, featureType, TableSuffix.STIdx)
 
   def formatZ3TableName(catalogTable: String, featureType: SimpleFeatureType) =
-    formatTableName(catalogTable, featureType, TableSuffix.Z3)
+    formatTableName(catalogTable, featureType.getTypeName, TableSuffix.Z3)
 
   /**
    * Format attribute index table name for Accumulo...table name is stored in metadata for other usage

@@ -85,10 +85,10 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
 
     AttributeTable.attributeWriter(sft) match {
       // attribute writer is only used if there are indexed attributes
-      case None => featureWriter(Seq((stWriter, stBw), (recWriter, recBw)))
+      case None => featureWriter(Seq((stWriter, stBw), (z3Writer, z3bw), (recWriter, recBw)))
       case Some(attrWriter) =>
         val attrBw = multiBWWriter.getBatchWriter(ds.getAttributeTable(sft))
-        featureWriter(Seq((stWriter, stBw), (recWriter, recBw), (attrWriter, attrBw)))
+        featureWriter(Seq((stWriter, stBw), (z3Writer, z3bw), (recWriter, recBw), (attrWriter, attrBw)))
     }
   }
 

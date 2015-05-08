@@ -1,7 +1,7 @@
 package org.locationtech.geomesa.curve
 
 import com.google.common.primitives.Longs
-import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting}
+import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range => AccRange, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
@@ -83,10 +83,10 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
 }
 
 object Z3Iterator {
-  def configure(bs: BatchScanner, ll: Z3, ur: Z3) = {
-    val is = new IteratorSetting(1, "z3", "org.locationtech.geomesa.z3iterator.Z3Iterator")
+  def configure(ll: Z3, ur: Z3) = {
+    val is = new IteratorSetting(1, "z3", classOf[Z3Iterator].getCanonicalName)
     is.addOption("zmin", s"${ll.z}")
     is.addOption("zmax", s"${ur.z}")
-    bs.addScanIterator(is)
+    is
   }
 }

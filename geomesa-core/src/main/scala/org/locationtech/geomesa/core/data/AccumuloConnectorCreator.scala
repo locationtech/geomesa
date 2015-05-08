@@ -28,6 +28,11 @@ trait AccumuloConnectorCreator extends Logging {
   def getSpatioTemporalTable(sft: SimpleFeatureType): String
 
   /**
+   * Get the name of the Z3 index table in accumulo for the given feature
+   */
+  def getZ3Table(sft: SimpleFeatureType): String
+
+  /**
    * Get the name of the attribute index table in accumulo for the given feature
    */
   def getAttributeTable(sft: SimpleFeatureType): String

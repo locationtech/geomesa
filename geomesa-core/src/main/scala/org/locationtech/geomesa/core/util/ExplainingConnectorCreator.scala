@@ -30,6 +30,8 @@ class ExplainingConnectorCreator(ds: AccumuloDataStore, output: ExplainerOutputT
 
   override def getSpatioTemporalTable(sft: SimpleFeatureType) = ds.getSpatioTemporalTable(sft)
 
+  override def getZ3Table(sft: SimpleFeatureType): String = ds.getZ3Table(sft)
+
   override def getAttributeTable(sft: SimpleFeatureType) = ds.getAttributeTable(sft)
 
   override def getRecordTable(sft: SimpleFeatureType) = ds.getRecordTable(sft)

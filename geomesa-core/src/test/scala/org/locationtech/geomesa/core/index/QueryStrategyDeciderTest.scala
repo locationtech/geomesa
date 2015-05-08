@@ -171,7 +171,7 @@ class QueryStrategyDeciderTest extends Specification {
   "Attribute filters" should {
     "get the stidx strategy if not catalog" in {
       val fs = "attr1 ILIKE '2nd1%'"
-      getStrategy(fs, 0) must beAnInstanceOf[STIdxStrategy]
+      getStrategy(fs) must beAnInstanceOf[STIdxStrategy]
     }
   }
 

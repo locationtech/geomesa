@@ -23,10 +23,16 @@ object Z3Table {
 
   val EPOCH = new DateTime(0)
   val SFC = new Z3SFC
+  val FULL_ROW = new Text("F")
   val BIN_ROW = new Text("B")
   val EMPTY_BYTES = Array.empty[Byte]
   val EMPTY_VALUE = new Value(EMPTY_BYTES)
   val EMPTY_TEXT = new Text(EMPTY_BYTES)
+
+  def secondsInCurrentWeek(dtg: DateTime, weeks: Weeks) =
+    Seconds.secondsBetween(EPOCH, dtg).getSeconds - weeks.toStandardSeconds.getSeconds
+
+  def epochWeeks(dtg: DateTime) = Weeks.weeksBetween(EPOCH, new DateTime(dtg))
 
   def z3writer(sft: SimpleFeatureType): FeatureToMutations = {
     val dtgIndex =
@@ -34,15 +40,14 @@ object Z3Table {
         .map { desc => sft.indexOf(desc.getName) }
         .getOrElse { throw new IllegalArgumentException("Must have a date for a Z3 index")}
 
-
     (fw: FeatureToWrite) => {
       val geom = fw.feature.point
       val x = geom.getX
       val y = geom.getY
       val dtg = new DateTime(fw.feature.getAttribute(dtgIndex).asInstanceOf[Date])
-      val weeks = Weeks.weeksBetween(EPOCH, new DateTime(dtg))
+      val weeks = epochWeeks(dtg)
       val prefix = Shorts.toByteArray(weeks.getWeeks.toShort)
-      val secondsInWeek = Seconds.secondsBetween(EPOCH, dtg).getSeconds - weeks.toStandardSeconds.getSeconds
+      val secondsInWeek = secondsInCurrentWeek(dtg, weeks)
       val z3 = SFC.index(x, y, secondsInWeek)
       val z3idx = Longs.toByteArray(z3.z)
 
@@ -56,13 +61,18 @@ object Z3Table {
         val lexi = fw.feature.getAttribute(idx) match {
           case l: java.lang.Integer  => LexiTypeEncoders.LEXI_TYPES.encode(Int.box(l))
           case d: java.lang.Double   => LexiTypeEncoders.LEXI_TYPES.encode(Double.box(d))
+          case null                  => null
           case t                     => LexiTypeEncoders.LEXI_TYPES.encode(t)
+
         }
-        val cq = Bytes.concat(lexi.getBytes(Charsets.UTF_8))
-        m.put(d, new Text(cq), fw.columnVisibility, fw.dataValue)
+        if(lexi != null) {
+          val cq = lexi.getBytes(Charsets.UTF_8)
+          m.put(d, new Text(cq), fw.columnVisibility, fw.dataValue)
+        }
       }
       m.put(BIN_ROW, EMPTY_TEXT, fw.columnVisibility, EMPTY_VALUE)
-      Seq(m)      
+      m.put(FULL_ROW, EMPTY_TEXT, fw.columnVisibility, fw.dataValue)
+      Seq(m)
     }
 
   }
@@ -72,7 +82,7 @@ object Z3Table {
 
     val indexedAttributes = getAttributesToIndex(sft)
     val localityGroups: Map[Text, Text] =
-      indexedAttributes.map { case (name, _) => (name, name) }.toMap.+((BIN_ROW, BIN_ROW))
+      indexedAttributes.map { case (name, _) => (name, name) }.toMap.+((BIN_ROW, BIN_ROW)).+((FULL_ROW, FULL_ROW))
     tableOps.setLocalityGroups(z3Table, localityGroups.map { case (k, v) => (k.toString, ImmutableSet.of(v)) } )
   }
 
