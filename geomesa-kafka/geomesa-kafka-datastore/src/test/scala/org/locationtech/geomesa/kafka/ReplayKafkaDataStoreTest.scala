@@ -19,7 +19,8 @@ import java.{util => ju}
 
 import java.io.Serializable
 import kafka.producer.{Producer, ProducerConfig}
-import org.geotools.data.DataStore
+import org.geotools.data.{Query, DataStore}
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.joda.time.{Duration, Instant}
@@ -32,6 +33,7 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.locationtech.geomesa.core.filter._
 
 import scala.collection.JavaConversions._
 
@@ -102,28 +104,59 @@ class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
   )
 
   createTopic()
-  sendMessages(messages)
+  sendMessages()
 
   "replay" should {
 
-    "select features with no query or filter" >> {
+    "select the most recent version within the replay window when no message time is given" >> {
 
-      val ds = createDataStore(10000, 11100, 1000)
+      val ds = createDataStore(10000, 12000, 1000)
       val fs = ds.getFeatureSource(typeName)
       fs.isInstanceOf[ReplayKafkaConsumerFeatureSource] must beTrue
 
-      val iter: RichSimpleFeatureIterator = fs.getFeatures.features()
-      val features = iter.toList
-      iter.close()
+      val features = featuresToList(fs.getFeatures)
 
-      features must haveSize(2)
-      features must containSF(track0v0)
-      features must containSF(track3v0)
+      features must haveSize(3)
+      features must contain(track0v1, track1v0, track3v2)
+    }
+
+    "use the message time when given" >> {
+
+      val ds = createDataStore(10000, 20000, 1000)
+      val fs = ds.getFeatureSource(typeName)
+
+      "in a filter" >> {
+        val filter = ReplayKafkaConsumerFeatureSource.messageTimeEquals(new Instant(13000))
+
+        val features = featuresToList(fs.getFeatures(filter))
+
+        features must haveSize(2)
+        features must contain(track1v1, track2v0)
+      }
+
+      "in a query" >> {
+        val filter = ReplayKafkaConsumerFeatureSource.messageTimeEquals(new Instant(13000))
+        val query = new Query()
+        query.setFilter(filter)
+
+        val features = featuresToList(fs.getFeatures(filter))
+
+        features must haveSize(2)
+        features must contain(track1v1, track2v0)
+      }
+
     }
   }
 
   step {
     shutdown()
+  }
+
+  def featuresToList(sfc: SimpleFeatureCollection): List[SimpleFeature] = {
+    val iter: RichSimpleFeatureIterator = sfc.features()
+    val features = iter.toList
+    iter.close()
+    features
   }
 
   def track(id: String, track: String): SimpleFeature = {
@@ -143,7 +176,7 @@ class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
     new KafkaDataStoreFactory().createDataStore(props).createSchema(schema)
   }
 
-  def sendMessages(messages: Seq[GeoMessage]): Unit = {
+  def sendMessages(): Unit = {
     val props = new ju.Properties()
     props.put("metadata.broker.list", broker)
     props.put("serializer.class", "kafka.serializer.DefaultEncoder")
@@ -160,6 +193,8 @@ class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
 
     new ReplayKafkaDataStoreFactory().createDataStore(props)
   }
+
+  def contain(sf: SimpleFeature*): Matcher[Seq[SimpleFeature]] = contain(exactly(sf.map(equalSF) : _*))
 
   def containSF(expected: SimpleFeature): Matcher[Seq[SimpleFeature]] = {
     val matcher = equalSF(expected)

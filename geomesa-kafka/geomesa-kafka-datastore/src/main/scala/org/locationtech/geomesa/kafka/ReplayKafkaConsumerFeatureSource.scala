@@ -27,6 +27,7 @@ import org.locationtech.geomesa.kafka.consumer.offsets.{FindOffset, LatestOffset
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
+import org.opengis.filter.expression.Literal
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -163,8 +164,11 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
 
 object ReplayKafkaConsumerFeatureSource {
 
-  val KafkaMessageTimestampAttribute = "KafkaMessageTimestamp"
+  val MessageTimeAttributeName: String = "KafkaMessageTimestamp"
+  val MessageTimeAttributeLiteral: Literal = ff.literal(MessageTimeAttributeName)
 
+  def messageTimeEquals(time: Instant): Filter =
+    ff.equals(MessageTimeAttributeLiteral, ff.literal(time.getMillis))
 }
 
 
@@ -242,7 +246,7 @@ case class TimestampFilterSplit(ts: Option[Long], filter: Option[Filter])
 
 object TimestampFilterSplit {
 
-  import ReplayKafkaConsumerFeatureSource.KafkaMessageTimestampAttribute
+  import ReplayKafkaConsumerFeatureSource.MessageTimeAttributeName
 
   /** Look for a Kafka message timestamp filter in ``filter`` and if found, extract the requested timestamp
     * and return that timestamp and the remaining filters.
@@ -259,7 +263,7 @@ object TimestampFilterSplit {
 
     case eq: PropertyIsEqualTo =>
       val ts = checkOrder(eq.getExpression1, eq.getExpression2)
-        .filter(pl => pl.name == KafkaMessageTimestampAttribute && pl.literal.getValue.isInstanceOf[Long])
+        .filter(pl => pl.name == MessageTimeAttributeName && pl.literal.getValue.isInstanceOf[Long])
         .map(_.literal.getValue.asInstanceOf[Long])
       val f = ts.map(_ => None).getOrElse(Some(filter))
       Some(TimestampFilterSplit(ts, f))
