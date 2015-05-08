@@ -133,7 +133,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
 
   private def readMessages(): Array[GeoMessage] = {
 
-    val kafkaConsumer = kf.kafkaConsumer
+    val kafkaConsumer = kf.kafkaConsumer(topic)
     val offsetManager = kf.offsetManager
 
     val msgDecoder = new KafkaGeoMessageDecoder(schema)
@@ -147,7 +147,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     })
 
     // required: there is only 1 partition;  validate??
-    val stream = kafkaConsumer.createMessageStreams(topic, 1, offsetRequest).head
+    val stream = kafkaConsumer.createMessageStreams(1, offsetRequest).head
 
     // stop at the last offset even if before the end instant
     val lastOffset = offsetManager.getOffsets(topic, LatestOffset).head._2

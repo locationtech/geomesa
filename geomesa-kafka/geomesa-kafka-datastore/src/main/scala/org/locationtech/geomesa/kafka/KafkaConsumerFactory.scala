@@ -55,9 +55,9 @@ class KafkaConsumerFactory(brokers: String, zookeepers: String) {
 
   /** @return a new low level [[KafkaConsumer]]
     */
-  def kafkaConsumer: KafkaConsumer[Array[Byte], Array[Byte]] = {
+  def kafkaConsumer(topic: String): KafkaConsumer[Array[Byte], Array[Byte]] = {
     val decoder: DefaultDecoder = new DefaultDecoder(null)
-    new KafkaConsumer[Array[Byte], Array[Byte]](config, decoder, decoder)
+    new KafkaConsumer[Array[Byte], Array[Byte]](topic, config, decoder, decoder)
   }
 
   /** @return a new [[OffsetManager]]

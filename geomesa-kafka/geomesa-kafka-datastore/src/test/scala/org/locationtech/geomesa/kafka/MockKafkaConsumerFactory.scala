@@ -39,7 +39,8 @@ class MockKafkaConsumerFactory(val mk: MockKafka)
 
   import KafkaConsumerFactory._
 
-  override def kafkaConsumer = new MockKafkaConsumer[Array[Byte], Array[Byte]](mk, defaultDecoder, defaultDecoder)
+  override def kafkaConsumer(topic: String) =
+    new MockKafkaConsumer[Array[Byte], Array[Byte]](mk, topic, defaultDecoder, defaultDecoder)
 
   override val offsetManager = mock(classOf[OffsetManager])
 }
@@ -139,12 +140,11 @@ object MockKafkaStream {
 
 }
 
-class MockKafkaConsumer[K, V](mk: MockKafka, keyDecoder: Decoder[K], valueDecoder: Decoder[V])
-  extends KafkaConsumer(mk.consumerConfig, keyDecoder, valueDecoder) {
+class MockKafkaConsumer[K, V](mk: MockKafka, topic: String, keyDecoder: Decoder[K], valueDecoder: Decoder[V])
+  extends KafkaConsumer(topic, mk.consumerConfig, keyDecoder, valueDecoder) {
 
-  override def createMessageStreams(topic: String,
-                           numStreams: Int,
-                           startFrom: RequestedOffset = GroupOffset): List[KafkaStreamLike[K, V]] = {
+  override def createMessageStreams(numStreams: Int,
+                                    startFrom: RequestedOffset = GroupOffset): List[KafkaStreamLike[K, V]] = {
 
     val offsets = mk.kafkaConsumerFactory.offsetManager.getOffsets(topic, startFrom)
     val partitions = offsets.keys.toArray
@@ -188,7 +188,7 @@ abstract class MockOffsetManager(mk: MockKafka) extends OffsetManager(mk.consume
     case _                => throw new NotImplementedError()
   }
 
-  override def commitOffsets(offsets: Map[TopicAndPartition, OffsetAndMetadata]): Unit =
+  override def commitOffsets(offsets: Map[TopicAndPartition, OffsetAndMetadata], isAutoCommit: Boolean): Unit =
     savedOffsets ++= offsets
 
   override def close(): Unit = {}
@@ -205,16 +205,8 @@ abstract class MockOffsetManager(mk: MockKafka) extends OffsetManager(mk.consume
 
     partitions.flatMap { partition =>
       val tap = TopicAndPartition(topic, partition.partitionId)
-      val leader = partition.leader.map(l => Broker(l.host, l.port)).getOrElse(findNewLeader(tap, None, config))
-      val consumer = WrappedConsumer(createConsumer(leader.host, leader.port, config), tap, config)
-      try {
-        val consumerId = Request.OrdinaryConsumerId
-        val earliest = consumer.consumer.earliestOrLatestOffset(tap, OffsetRequest.EarliestTime, consumerId)
-        val latest = consumer.consumer.earliestOrLatestOffset(tap, OffsetRequest.LatestTime, consumerId)
-        binaryOffsetSearch(tap, predicate, (earliest, latest)).map(tap -> _)
-      } finally {
-        consumer.consumer.close()
-      }
+      val bounds = (0L, mk.data.get(tap).map(_.size : Long).getOrElse(0L))
+      binaryOffsetSearch(tap, predicate, bounds).map(tap -> _)
     }.toMap
 
   @tailrec
