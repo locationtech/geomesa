@@ -73,6 +73,21 @@ object FilterHelper {
       ff.or(filterList)
   }
 
+  def isFilterWholeWorld(f: Filter): Boolean = f match {
+      case op: BBOX       => isOperationGeomWholeWorld(op)
+      case op: Within     => isOperationGeomWholeWorld(op)
+      case op: Intersects => isOperationGeomWholeWorld(op)
+      case op: Overlaps   => isOperationGeomWholeWorld(op)
+      case _ => false
+    }
+
+  private def isOperationGeomWholeWorld[Op <: BinarySpatialOperator](op: Op): Boolean = {
+    val prop = checkOrder(op.getExpression1, op.getExpression2)
+    prop.map(_.literal.evaluate(null, classOf[Geometry])).exists(isWholeWorld)
+  }
+
+  def isWholeWorld[G <: Geometry](g: G): Boolean = g != null && g.union.covers(IndexSchema.everywhere)
+
   def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
     for( i <- 0 until inMP.getNumGeometries ) yield inMP.getGeometryN(i)
 

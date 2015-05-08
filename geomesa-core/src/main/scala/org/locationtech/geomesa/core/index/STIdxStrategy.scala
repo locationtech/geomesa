@@ -51,7 +51,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     output(s"Scanning ST index table for feature type ${sft.getTypeName}")
     output(s"Filter: ${query.getFilter}")
 
-     val dtgField = getDtgFieldName(sft)
+    val dtgField = getDtgFieldName(sft)
 
     // TODO: Select only the geometry filters which involve the indexed geometry type.
     // https://geomesa.atlassian.net/browse/GEOMESA-200
@@ -65,19 +65,14 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     output(s"Temporal filters: $temporalFilters")
     output(s"Other filters: $ecqlFilters")
 
-    val tweakedGeoms = geomFilters.map(updateTopologicalFilters(_, sft))
+    val tweakedGeomFilters = geomFilters.map(updateTopologicalFilters(_, sft))
 
-    output(s"Tweaked geom filters are $tweakedGeoms")
+    output(s"Tweaked geom filters are $tweakedGeomFilters")
 
     // standardize the two key query arguments:  polygon and date-range
-    val geomsToCover = tweakedGeoms.flatMap {
-      case bbox: BBOX =>
-        val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
-        Seq(bboxPoly)
-      case gf: BinarySpatialOperator =>
-        extractGeometry(gf)
-      case _ => Seq()
-    }
+    val geomsToCover = tweakedGeomFilters.flatMap(decomposeToGeometry)
+
+    output(s"GeomsToCover: $geomsToCover")
 
     val collectionToCover: Geometry = geomsToCover match {
       case Nil => null
@@ -87,11 +82,15 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val temporal = extractTemporal(dtgField)(temporalFilters)
     val interval = netInterval(temporal)
     val geometryToCover = netGeom(collectionToCover)
+
     val filter = buildFilter(geometryToCover, interval)
+    // This catches the case when a whole world query slips through DNF/CNF
+    // The union on this geometry collection is necessary at the moment but is not true
+    // If given spatial predicates like disjoint.
+    val ofilter = if (isWholeWorld(geometryToCover)) {
+      filterListAsAnd(temporalFilters)
+    } else filterListAsAnd(tweakedGeomFilters ++ temporalFilters)
 
-    output(s"GeomsToCover: $geomsToCover")
-
-    val ofilter = filterListAsAnd(tweakedGeoms ++ temporalFilters)
     if (ofilter.isEmpty) {
       logger.warn(s"Querying Accumulo without SpatioTemporal filter.")
     }
@@ -119,7 +118,16 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     qp.copy(table = table, iterators = iterators, numThreads = numThreads, hasDuplicates = hasDupes)
   }
 
-  def getSTIIIterCfg(iteratorConfig: IteratorConfig,
+  def decomposeToGeometry(f: Filter): Seq[Geometry] = f match {
+    case bbox: BBOX =>
+      val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
+      Seq(bboxPoly)
+    case gf: BinarySpatialOperator =>
+      extractGeometry(gf)
+    case _ => Seq()
+  }
+
+  private def getSTIIIterCfg(iteratorConfig: IteratorConfig,
                      query: Query,
                      featureType: SimpleFeatureType,
                      stFilter: Option[Filter],
@@ -163,6 +171,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
       "within-" + randomPrintableString(5),classOf[IndexIterator])
 
     configureStFilter(cfg, filter)
+
     configureVersion(cfg, version)
     if (transformsCoverFilter) {
       // apply the transform directly to the index iterator
@@ -251,7 +260,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 object STIdxStrategy extends StrategyProvider {
 
   override def getStrategy(filter: Filter, sft: SimpleFeatureType, hints: StrategyHints) =
-    if (spatialFilters(filter)) {
+    if (spatialFilters(filter) && !isFilterWholeWorld(filter)) {
       val geom = sft.getGeometryDescriptor.getLocalName
       val e1 = filter.asInstanceOf[BinarySpatialOperator].getExpression1
       val e2 = filter.asInstanceOf[BinarySpatialOperator].getExpression2

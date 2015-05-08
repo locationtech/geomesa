@@ -12,7 +12,7 @@ import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data._
 import org.geotools.data.collection.DelegateFeatureReader
-import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource, ContentFeatureStore}
+import org.geotools.data.store._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.filter.FidFilterImpl
@@ -36,10 +36,6 @@ case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
     case other: FeatureHolder => sf.equals(other.sf)
     case _ => false
   }
-}
-
-trait StreamListener {
-  def onNext(sf: SimpleFeature): Unit
 }
 
 class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int) extends ContentDataStore {
@@ -170,16 +166,17 @@ class StreamFeatureStore(entry: ContentEntry,
     val (_, geomLit) = splitBinOp(w)
     val geom = geomLit.evaluate(null).asInstanceOf[Geometry]
     val res = qt.query(geom.getEnvelopeInternal)
-    val filtered = res.asInstanceOf[java.util.List[SimpleFeature]].filter(sf => geom.contains(sf.point))
-    val fiter = new DFI(filtered.iterator)
-    new DFR(sft, fiter)
+    val fiter = new DFI(res.asInstanceOf[java.util.List[SimpleFeature]].iterator)
+    val filt = new FilteringFeatureIterator[SimpleFeature](fiter, w)
+    new DFR(sft, filt)
   }
 
   def bbox(b: BBOX): FR = {
     val bounds = JTS.toGeometry(b.getBounds)
     val res = qt.query(bounds.getEnvelopeInternal)
     val fiter = new DFI(res.asInstanceOf[java.util.List[SimpleFeature]].iterator)
-    new DFR(sft, fiter)
+    val filt = new FilteringFeatureIterator[SimpleFeature](fiter, b)
+    new DFR(sft, filt)
   }
 
   def splitBinOp(binop: BinarySpatialOperator): (PropertyName, Literal) =
@@ -220,3 +217,20 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
   override def isAvailable: Boolean = true
   override def getImplementationHints: ju.Map[RenderingHints.Key, _] = null
 }
+
+trait StreamListener {
+  def onNext(sf: SimpleFeature): Unit
+}
+
+object StreamListener {
+  def apply(f: Filter, fn: SimpleFeature => Unit) =
+    new StreamListener {
+      override def onNext(sf: SimpleFeature): Unit = if(f.evaluate(sf)) fn(sf)
+    }
+
+  def apply(fn: SimpleFeature => Unit) =
+    new StreamListener {
+      override def onNext(sf: SimpleFeature): Unit = fn(sf)
+    }
+}
+

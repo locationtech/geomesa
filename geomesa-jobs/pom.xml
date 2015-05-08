@@ -34,18 +34,10 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-core-accumulo1.5</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-feature-accumulo1.5</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
-        <!-- swap out to the shaded feature jar to avoid kryo conflicts -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-accumulo1.5</artifactId>
-            <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
