@@ -6,7 +6,7 @@ trait SpaceFillingCurve[T] {
   def xprec: Long
   def yprec: Long
   def tprec: Long
-  def tmax: Long
+  def tmax: Double
   def index(x: Double, y: Double, t: Long): T
   def invert(i: T): (Double, Double, Long)
   def ranges(lx: Double, ly: Double,
@@ -26,7 +26,7 @@ class Z3SFC extends SpaceFillingCurve[Z3] {
   override val xprec: Long = math.pow(2, 21).toLong
   override val yprec: Long = math.pow(2, 21).toLong
   override val tprec: Long = math.pow(2, 21).toLong
-  override val tmax: Long = Weeks.weeks(1).toStandardSeconds.getSeconds
+  override val tmax: Double = Weeks.weeks(1).toStandardSeconds.getSeconds.toDouble
 
   override def index(x: Double, y: Double, t: Long): Z3 = {
     val nx = normLon(x)
@@ -46,6 +46,6 @@ class Z3SFC extends SpaceFillingCurve[Z3] {
 
   override def invert(z: Z3): (Double, Double, Long) = {
     val (x,y,t) = z.decode
-    (denormLon(x), denormLat(y), denormT(t))
+    (denormLon(x), denormLat(y), denormT(t).toLong)
   }
 }
