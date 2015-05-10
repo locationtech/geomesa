@@ -17,10 +17,15 @@ angular.module('geomesa.map', [])
                         format: 'image/png',
                         transparent: true
                     });
-                var baseLayer = new ol.layer.Tile({
-                   source: new ol.source.MapQuest({layer: 'osm'})
-                });
 
+                scope.map = L.map(element[0], {
+                    center: L.latLng(-38.09, -76.85),
+                    zoom: 8,
+                    maxZoom: 18,
+                    minZoom: 3,
+                    attributionControl: false,
+                    layers: [baseLayer, wmsLayer]
+                });
             },
             link: function (scope, element, attrs) {
                 scope.selectedFeatures = [
