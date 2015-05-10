@@ -95,7 +95,6 @@ module.exports = function (grunt) {
                 '<%= appFiles.js %>',
                 // '<%= html2js.common.dest %>',
                 '<%= html2js.app.dest %>',
-                '<%= vendorFiles.css %>',
                 '<%= stylus.build.dest %>'
             ]
         }

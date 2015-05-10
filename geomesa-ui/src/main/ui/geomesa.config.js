@@ -38,18 +38,17 @@ module.exports = {
             'vendor/bower/d3/d3.js',
             'vendor/bower/lodash/dist/lodash.js',
             'vendor/bower/jquery/dist/jquery.js',
+            'vendor/bower/jquery-ui/jquery-ui.min.js',
             'vendor/bower/angular/angular.js',
             'vendor/bower/angular-route/angular-route.js',
             'vendor/bower/angular-resource/angular-resource.js',
             'vendor/bower/moment/moment.js',
             'vendor/bower/moment-timezone/builds/moment-timezone-with-data-2010-2020.min.js',
-            'vendor/bower/leaflet-dist/leaflet.js',
-            'vendor/bower/leaflet-providers/leaflet-providers.js',
             'vendor/bower/openlayers/build/ol.js',
             // TODO - test only
             'vendor/bower/angular-mocks/angular-mocks.js',
         ],
-        css: ['vendor/bower/openlayers/css/ol.css'],
+        //css: [], -To add vendor css files, use the main.styl file instead.
         assets: [
             'vendor/bower/font-awesome/fonts/*',
             'vendor/bower/bootstrap/fonts/*'

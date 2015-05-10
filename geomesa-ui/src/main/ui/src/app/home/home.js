@@ -15,8 +15,8 @@ angular.module('geomesa.home', [
 
         $scope.selectedPoint = {};
 
-        $scope.$watch('cql', function (cqlFilter) {
-            if (cqlFilter) {
+        $scope.$watch('cql', function (cqlFilter){
+            if ($scope.mapAPI.applyCQL){
                 $scope.mapAPI.applyCQL(cqlFilter);
             }
         });

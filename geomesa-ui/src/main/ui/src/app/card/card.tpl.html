@@ -1,12 +1,58 @@
-<div class="cards panel" ng-class="{hidden: cards.length === 0}">
+
+
+
+
+<div class="transparent-header" ng-hide="showhide">
+    <button id="maximizeBtn" class="btn btn-default btn-circle" style="outline: none;" ng-click="showhide = !showhide" > <i class="fa fa-plus"></i> </button>
+</div>
+
+<div class="cards panel ui-widget-content" ng-class="{hidden: cards.length === 0}" ng-init="showhide = true" ng-show="showhide" drag>
+    
+    <button id="minimizeBtn" class="btn btn-default btn-circle" style="outline: none;" ng-click="showhide = !showhide"> <i class="fa fa-minus"></i> </button>
+
     <div class="panel-body">
-        <div class="card" ng-repeat="card in cards" ng-class="{selected: selectedIndex === $index, right: $index > selectedIndex, left: $index < selectedIndex}">
-            <div class="card-row" ng-repeat="(k, v) in card">
-                <label>{{k}}:</label><label>{{v}}</label>
+        <div class="card" ng-repeat="card in cards" ng-class="{selected: selectedIndex === $index, right: $index > selectedIndex, left: $index < selectedIndex}" ng-click="testFunction(card)">
+            <!-- <div class="card-row" ng-repeat="(k, v) in card"> -->
+                <!-- <label>{{k}}:</label><label>{{v}}</label> -->
+            <!-- </div> -->
+
+            <div class="panel panel-default">
+                <div class="panel-heading"><label>Geometry:</label></br></div>
+                <div class="panel-body">
+                    <div ng-repeat="(k,v) in card.geometry">
+                        <label>{{k}}: {{v}}</label></br>
+                    </div>
+                </div>
             </div>
+            </br>
+
+            <div class="panel panel-default">
+                <div class="panel-heading"><label>Geometry Name: {{card.geometry_name}}</label></br></div>
+            </div>
+            </br>
+
+            <div class="panel panel-default">
+                <div class="panel-heading"><label>ID: {{card.id}}</label></br></div>
+            </div>
+            </br>
+
+            <div class="panel panel-default">
+                <div class="panel-heading"><label>Properties:</label></br></div>
+                <div class="panel-body">
+                    <div ng-repeat="(k,v) in card.properties">
+                        <label>{{k}}: {{v}}</label></br>
+                    </div>
+                </div>
+            </div>
+            </br>
+
+            <div class="panel panel-default">
+                <div class="panel-heading"><label>Type: {{card.type}}</label></br></div>
+            </div>
+            </br>
         </div>
         <div class="page-info">
-            <label>{{selectedIndex + 1}} of {{cards.length}}</label>
+            <label>{{selectedIndex + 1}} of {{cards.length}}</label></br>
         </div>
     </div>
     <div class="panel-footer">
