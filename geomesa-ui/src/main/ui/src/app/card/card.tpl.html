@@ -1,0 +1,16 @@
+<div class="cards panel" ng-class="{hidden: cards.length === 0}">
+    <div class="panel-body">
+        <div class="card" ng-repeat="card in cards" ng-class="{selected: selectedIndex === $index, right: $index > selectedIndex, left: $index < selectedIndex}">
+            <div class="card-row" ng-repeat="(k, v) in card">
+                <label>{{k}}:</label><label>{{v}}</label>
+            </div>
+        </div>
+        <div class="page-info">
+            <label>{{selectedIndex + 1}} of {{cards.length}}</label>
+        </div>
+    </div>
+    <div class="panel-footer">
+        <button class="btn btn-default" ng-click="updateIndex(-1)"><i class="fa fa-arrow-left"></i></button>
+        <button class="btn btn-default" ng-click="updateIndex(1)"><i class="fa fa-arrow-right"></i></button>
+    </div>
+</div>
