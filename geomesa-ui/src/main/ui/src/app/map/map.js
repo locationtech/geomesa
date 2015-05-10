@@ -9,6 +9,7 @@ angular.module('geomesa.map', [])
                 api: '=',
                 selectedFeatures: '=',
             },
+            templateUrl: 'map/map.tpl.html',
             leaflet: function (scope, element, attrs) {
                 //var baseLayer = L.tileLayer.provider('Stamen.TonerLite'),
                 var baseLayer = L.tileLayer.provider('MapQuestOpen.OSM'), 
