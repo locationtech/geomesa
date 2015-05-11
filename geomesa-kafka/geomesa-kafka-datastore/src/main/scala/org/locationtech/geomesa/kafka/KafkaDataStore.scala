@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.kafka
 
 import java.awt.RenderingHints.Key
-import java.io.{Closeable, Serializable}
+import java.io.Serializable
 import java.{util => ju}
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
@@ -42,7 +42,7 @@ class KafkaDataStore(broker: String,
                      replication: Int,
                      isProducer: Boolean,
                      expiry: Boolean,
-                     expirationPeriod: Long) extends ContentDataStore with Closeable with Logging {
+                     expirationPeriod: Long) extends ContentDataStore with Logging {
 
   import scala.collection.JavaConversions._
 
@@ -87,13 +87,13 @@ class KafkaDataStore(broker: String,
   private def getZkPath(typeName: String) = s"$zkPath/$typeName"
 
   val producerCache =
-    CacheBuilder.newBuilder().build[ContentEntry, KafkaProducerFeatureStore](
-      new CacheLoader[ContentEntry, KafkaProducerFeatureStore] {
+    CacheBuilder.newBuilder().build[ContentEntry, ContentFeatureSource](
+      new CacheLoader[ContentEntry, ContentFeatureSource] {
         override def load(entry: ContentEntry) = createProducerFeatureSource(entry)
       })
   val consumerCache =
-    CacheBuilder.newBuilder().build[ContentEntry, KafkaConsumerFeatureSource](
-      new CacheLoader[ContentEntry, KafkaConsumerFeatureSource] {
+    CacheBuilder.newBuilder().build[ContentEntry, ContentFeatureSource](
+      new CacheLoader[ContentEntry, ContentFeatureSource] {
         override def load(entry: ContentEntry) = createConsumerFeatureSource(entry)
       })
   val schemaCache =
@@ -106,7 +106,7 @@ class KafkaDataStore(broker: String,
     if(isProducer) producerCache.get(entry)
     else consumerCache.get(entry)
 
-  private def createProducerFeatureSource(entry: ContentEntry): KafkaProducerFeatureStore = {
+  private def createProducerFeatureSource(entry: ContentEntry): ContentFeatureSource = {
     val props = new ju.Properties()
     props.put("metadata.broker.list", broker)
     props.put("serializer.class", "kafka.serializer.DefaultEncoder")
@@ -114,7 +114,7 @@ class KafkaDataStore(broker: String,
     new KafkaProducerFeatureStore(entry, schemaCache.get(entry.getTypeName), broker, null, kafkaProducer)
   }
 
-  private def createConsumerFeatureSource(entry: ContentEntry): KafkaConsumerFeatureSource = {
+  private def createConsumerFeatureSource(entry: ContentEntry): ContentFeatureSource = {
     if (createTypeNames().contains(entry.getName)) {
       val topic = entry.getTypeName
       val eb = new EventBus(topic)
@@ -126,12 +126,6 @@ class KafkaDataStore(broker: String,
   def resolveTopicSchema(typeName: String): Option[SimpleFeatureType] =
     Option(zkClient.readData[String](getZkPath(typeName), true))
       .map(data => SimpleFeatureTypes.createType(typeName, data))
-
-  override def close(): Unit = {
-    consumerCache.asMap().values().foreach(_.close())
-    producerCache.asMap().values().foreach(_.close())
-    zkClient.close()
-  }
 }
 
 object KafkaDataStoreFactoryParams {

@@ -162,11 +162,6 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
       factory.canProcess(Map.empty[String, Serializable]) must beFalse
       factory.canProcess(Map(KAFKA_BROKER_PARAM.key -> "test", ZOOKEEPERS_PARAM.key -> "test")) must beTrue
     }
-
-    step {
-      consumerDS.asInstanceOf[KafkaDataStore].close()
-      producerDS.asInstanceOf[KafkaDataStore].close()
-    }
   }
 
   "KafkaDataStore with cachedConsumer" should {
@@ -210,11 +205,6 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
       featureCache.cleanUp() //remove old entries now that the TTL has passed
       featureCache.size() must be equalTo 0
       cachedConsumerFS.qt.size() must beEqualTo(0).eventually(10, 500.millis)
-
-      cachedConsumerDS.asInstanceOf[KafkaDataStore].close()
-      producerDS.asInstanceOf[KafkaDataStore].close()
-
-      success
     }
   }
 
