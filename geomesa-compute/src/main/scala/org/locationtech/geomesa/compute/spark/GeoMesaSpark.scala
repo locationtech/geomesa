@@ -24,7 +24,7 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.mapreduce.lib.util.{ConfiguratorBase, InputConfigurator}
-import org.apache.accumulo.core.client.mapreduce.{AccumuloInputFormat, RangeInputSplit}
+import org.apache.accumulo.core.client.mapreduce.{InputFormatBase, AccumuloInputFormat, RangeInputSplit}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
@@ -48,8 +48,8 @@ import scala.collection.JavaConversions._
 
 object GeoMesaSpark extends Logging {
 
-  class GeoSparkInputFormat extends GeoMesaInputFormat
-  {
+  class GeoSparkInputFormat extends GeoMesaInputFormat {
+
     private def init(conf: Configuration): Unit = if (sft == null) {
       val params = GeoMesaConfigurator.getDataStoreInParams(conf)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
@@ -79,9 +79,7 @@ object GeoMesaSpark extends Logging {
       logger.info(s"Got ${splits.toList.length} splits" +
         s" using desired=${desiredSplits} from ${accumuloSplits.length}")
       splits.toList
-
     }
-
   }
 
   def init(conf: SparkConf, ds: DataStore): SparkConf = {
@@ -114,8 +112,12 @@ object GeoMesaSpark extends Logging {
       dsParams,
       query.getTypeName,
       Some(filter))
-
-    sc.newAPIHadoopRDD(job.getConfiguration(),
+    InputFormatBase.setAutoAdjustRanges(job, false)
+    val runnableConf =job.getConfiguration()
+    InputConfigurator.setAutoAdjustRanges(classOf[AccumuloInputFormat], runnableConf, false)
+    InputConfigurator.setAutoAdjustRanges(classOf[GeoSparkInputFormat], runnableConf, false)
+    InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaInputFormat], runnableConf, false)
+    sc.newAPIHadoopRDD(runnableConf,
       classOf[GeoSparkInputFormat],
       classOf[Text],
       classOf[SimpleFeature]).map{ case (t, sf) => sf}
