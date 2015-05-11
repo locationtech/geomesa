@@ -19,9 +19,13 @@ package org.locationtech.geomesa.core.index
 import java.util.Map.Entry
 import java.util.{Map => JMap}
 
+import com.google.common.primitives.{Longs, Shorts}
+import com.vividsolutions.jts.geom.Coordinate
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.{DataUtilities, Query}
-import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.geometry.jts.{JTSFactoryFinder, ReferencedEnvelope}
+import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.QueryHints._
@@ -30,6 +34,7 @@ import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIt
 import org.locationtech.geomesa.core.sumNumericValueMutableMaps
 import org.locationtech.geomesa.core.util.CloseableIterator
 import org.locationtech.geomesa.core.util.CloseableIterator._
+import org.locationtech.geomesa.curve.{Z3, Z3SFC}
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.security.SecurityUtils
@@ -136,6 +141,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
     // Decode according to the SFT return type.
     // if this is a density query, expand the map
+/*
     if (query.getHints.containsKey(DENSITY_KEY)) {
       adaptDensityIterator(accumuloIterator, decoder)
     } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
@@ -145,7 +151,38 @@ case class QueryPlanner(sft: SimpleFeatureType,
     } else {
       adaptStandardIterator(accumuloIterator, query, decoder)
     }
+*/
+    adaptZ3Iterator(accumuloIterator, query)
   }
+
+  private val Z3CURVE = new Z3SFC
+  private val gt = JTSFactoryFinder.getGeometryFactory
+
+  def adaptZ3Iterator(iter: KVIter, query: Query): SFIter = {
+    val ft = SimpleFeatureTypes.createType(query.getTypeName, "dtg:Date,geom:Point:srid=4326")
+    val builder = new SimpleFeatureBuilder(ft)
+    iter.map { e =>
+      val k = e.getKey
+      val row = k.getRow.getBytes
+      val weekBytes = row.slice(0, 2)
+      val zbytes = row.slice(2, 10)
+      val idbytes = row.slice(10, Int.MaxValue)
+
+      val id = new String(idbytes)
+      val zvalue = Longs.fromByteArray(zbytes)
+      val z = Z3(zvalue)
+      val (x, y, t) = Z3CURVE.invert(z)
+      val pt = gt.createPoint(new Coordinate(x, y))
+      val week = Shorts.fromByteArray(weekBytes)
+      val seconds = week * Weeks.ONE.toStandardSeconds.getSeconds + Seconds.seconds(t.toInt).getSeconds
+
+      val dtg = new DateTime(seconds * 1000L)
+      builder.reset()
+      builder.addAll(Array[AnyRef](dtg, pt))
+      builder.buildFeature(id)
+    }
+  }
+
 
   /**
    * Standard iterator of simple features

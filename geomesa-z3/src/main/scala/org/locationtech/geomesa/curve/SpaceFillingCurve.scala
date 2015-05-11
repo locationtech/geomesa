@@ -14,11 +14,11 @@ trait SpaceFillingCurve[T] {
              lt: Long,   ut: Long,
              maxRecurse: Int): Seq[(Long, Long)]
   def normLon(x: Double) = math.ceil((180.0+x)/360.0*xprec).toInt
-  def denormLon(x: Int): Double = (x-180.0)/xprec*360.0
+  def denormLon(x: Double): Double = (x/xprec)*360.0-180.0
   def normLat(y: Double) = math.ceil((90.0+y)/180.0*yprec).toInt
-  def denormLat(y: Int): Double = (y-90.0)/yprec*180.0
+  def denormLat(y: Double): Double = (y/yprec)*180.0-90.0
   def normT(t: Long) = math.ceil(t/tmax * tprec).toInt
-  def denormT(t: Long) = t/tprec*tmax
+  def denormT(t: Long) = t*tmax/tprec
 }
 
 class Z3SFC extends SpaceFillingCurve[Z3] {

@@ -40,14 +40,14 @@ class Z3(val z: Long) extends AnyVal {
 
 object Z3 {
   final val MAX_BITS = 21
-  final val MAX_MASK = 0x1fffffL;
+  final val MAX_MASK = 0x1fffffL
   final val MAX_DIM = 3
 
   def apply(zvalue: Long) = new Z3(zvalue)
 
   /** insert 00 between every bit in value. Only first 21 bits can be considred. */
   def split(value: Long): Long = {
-    var x = value & MAX_MASK;
+    var x = value & MAX_MASK
     x = (x | x << 32) & 0x1f00000000ffffL
     x = (x | x << 16) & 0x1f0000ff0000ffL
     x = (x | x << 8)  & 0x100f00f00f00f00fL
