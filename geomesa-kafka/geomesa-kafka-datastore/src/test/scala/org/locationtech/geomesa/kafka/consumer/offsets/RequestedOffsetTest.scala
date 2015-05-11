@@ -8,16 +8,9 @@
 
 package org.locationtech.geomesa.kafka.consumer.offsets
 
-import java.util.Properties
-
-import com.typesafe.config.{ConfigFactory, Config}
-import kafka.common.{OffsetAndMetadata, TopicAndPartition}
-import kafka.consumer.ConsumerConfig
+import com.typesafe.config.ConfigFactory
 import kafka.message.Message
-import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
-import kafka.serializer.StringDecoder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.kafka.HasEmbeddedZookeeper
 import org.specs2.mutable.Specification
 import org.specs2.runner
 
@@ -28,25 +21,32 @@ class RequestedOffsetTest extends Specification {
     "be configurable via typesafe config" >> {
       "for earliest" >> {
         val conf = ConfigFactory.parseString("{ offset = \"earliest\" }")
-        val offset = RequestedOffset(conf)
-        offset must beSome(EarliestOffset)
+        RequestedOffset(conf) must beSome(EarliestOffset)
       }
       "for latest" >> {
         val conf = ConfigFactory.parseString("{ offset = \"latest\" }")
-        val offset = RequestedOffset(conf)
-        offset must beSome(LatestOffset)
+        RequestedOffset(conf) must beSome(LatestOffset)
+      }
+      "for dates" >> {
+        val conf = ConfigFactory.parseString("{ offset = \"date:999\" }")
+        RequestedOffset(conf) must beSome(DateOffset(999))
+      }
+      "for predicates" >> {
+        val conf = ConfigFactory.parseString(s"{ offset = ${classOf[TestPredicate].getName} }")
+        RequestedOffset(conf) must beAnInstanceOf[Some[FindOffset]]
       }
       "for empty" >> {
         val conf = ConfigFactory.parseString("{}")
-        val offset = RequestedOffset(conf)
-        offset must beNone
+        RequestedOffset(conf) must beNone
       }
       "for others" >> {
         val conf = ConfigFactory.parseString("{ offset = \"bogus\" }")
-        RequestedOffset(conf) must throwA[IllegalArgumentException]
+        RequestedOffset(conf) must beNone
       }
     }
   }
 }
 
-
+class TestPredicate extends FindMessage {
+  override val predicate = (m: Message) => 0
+}

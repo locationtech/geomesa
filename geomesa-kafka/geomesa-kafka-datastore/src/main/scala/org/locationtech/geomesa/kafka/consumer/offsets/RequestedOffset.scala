@@ -21,12 +21,19 @@ import scala.util.{Success, Try}
 sealed trait RequestedOffset
 
 object RequestedOffset {
-  def apply(config: Config): Option[RequestedOffset] = {
-    Try(config.getString("offset").toLowerCase(Locale.US)).toOption.map {
-      case "earliest" => EarliestOffset
-      case "latest"   => LatestOffset
-      case "group"    => GroupOffset
-      case o          => throw new IllegalArgumentException(s"Invalid offset $o")
+  def apply(conf: Config): Option[RequestedOffset] = {
+    if (!conf.hasPath("offset")) {
+      None
+    } else {
+      conf.getString("offset").toLowerCase(Locale.US) match {
+        case "earliest"                => Some(EarliestOffset)
+        case "latest"                  => Some(LatestOffset)
+        case "group"                   => Some(GroupOffset)
+        case d if d.startsWith("date") => Try(d.substring(5).trim.toLong).map(DateOffset).toOption
+        case _                         =>
+          Try(Class.forName(conf.getString("offset")).newInstance().asInstanceOf[FindMessage])
+              .map(f => FindOffset(f.predicate)).toOption
+      }
     }
   }
 }
@@ -49,4 +56,8 @@ object FindOffset {
       predicate(decoder.fromBytes(bb))
     }
   }
+}
+
+trait FindMessage {
+  def predicate: MessagePredicate
 }
