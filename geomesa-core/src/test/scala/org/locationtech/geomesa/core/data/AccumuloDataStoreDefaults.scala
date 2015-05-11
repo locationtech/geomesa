@@ -38,7 +38,7 @@ trait AccumuloDataStoreDefaults {
   val defaultName = "testType"
   val defaultFid = "fid-1"
 
-  val defaultTable = "AccumuloDataStoreTest"
+  val defaultTable = getClass.getSimpleName
 
   val ds = DataStoreFinder.getDataStore(Map(
     "instanceId"        -> "mycloud",
