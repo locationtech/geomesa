@@ -32,18 +32,19 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class KafkaDataStoreTest extends Specification with SpecWithEmbeddedZookeeper with Logging {
+class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Logging {
 
   val ff = CommonFactoryFinder.getFilterFactory2
   val consumerParams = Map(
     "brokers"    -> brokerConnect,
-    "zookeepers" -> zookeeperConnect,
+    "zookeepers" -> zkConnect,
     "zkPath"     -> "/geomesa/kafka/testds",
     "isProducer" -> false)
 
+
   val producerParams = Map(
     "brokers"    -> brokerConnect,
-    "zookeepers" -> zookeeperConnect,
+    "zookeepers" -> zkConnect,
     "zkPath"     -> "/geomesa/kafka/testds",
     "isProducer" -> true)
 
@@ -172,7 +173,7 @@ class KafkaDataStoreTest extends Specification with SpecWithEmbeddedZookeeper wi
     "expire messages correctly when expirationPeriod is set" >> {
       val cachedConsumerParams = Map(
         "brokers"          -> brokerConnect,
-        "zookeepers"       -> zookeeperConnect,
+        "zookeepers"       -> zkConnect,
         "zkPath"           -> "/geomesa/kafka/cachedtestds",
         "isProducer"       -> false,
         "expiry"           -> true,
@@ -180,13 +181,13 @@ class KafkaDataStoreTest extends Specification with SpecWithEmbeddedZookeeper wi
 
       val producerParams = Map(
         "brokers"    -> brokerConnect,
-        "zookeepers" -> zookeeperConnect,
+        "zookeepers" -> zkConnect,
         "zkPath"     -> "/geomesa/kafka/cachedtestds",
         "isProducer" -> true)
 
       //Setup datastores and schema
-      val cachedConsumerDS = DataStoreFinder.getDataStore(cachedConsumerParams).asInstanceOf[KafkaDataStore]
-      val producerDS = DataStoreFinder.getDataStore(producerParams).asInstanceOf[KafkaDataStore]
+      val cachedConsumerDS = DataStoreFinder.getDataStore(cachedConsumerParams)
+      val producerDS = DataStoreFinder.getDataStore(producerParams)
       val schemaExpiration = SimpleFeatureTypes.createType("testExpiration", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
       producerDS.createSchema(schemaExpiration)
 
@@ -210,10 +211,14 @@ class KafkaDataStoreTest extends Specification with SpecWithEmbeddedZookeeper wi
       featureCache.size() must be equalTo 0
       cachedConsumerFS.qt.size() must beEqualTo(0).eventually(10, 500.millis)
 
-      cachedConsumerDS.close()
-      producerDS.close()
+      cachedConsumerDS.asInstanceOf[KafkaDataStore].close()
+      producerDS.asInstanceOf[KafkaDataStore].close()
 
       success
     }
   }
+
+  step { shutdown() }
 }
+
+

@@ -16,14 +16,15 @@ import kafka.message.Message
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.StringDecoder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.kafka.SpecWithEmbeddedZookeeper
+import org.locationtech.geomesa.kafka.HasEmbeddedZookeeper
 import org.locationtech.geomesa.kafka.consumer.offsets._
+import org.specs2.mutable.Specification
 import org.specs2.runner
 
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[runner.JUnitRunner])
-class KafkaConsumerTest extends SpecWithEmbeddedZookeeper {
+class KafkaConsumerTest extends Specification with HasEmbeddedZookeeper {
 
   sequential
 
@@ -31,7 +32,7 @@ class KafkaConsumerTest extends SpecWithEmbeddedZookeeper {
     val consumerProps = new Properties
     consumerProps.put("group.id", group)
     consumerProps.put("metadata.broker.list", brokerConnect)
-    consumerProps.put("zookeeper.connect", zookeeperConnect)
+    consumerProps.put("zookeeper.connect", zkConnect)
     consumerProps.put("num.consumer.fetchers", "1")
     consumerProps.put("auto.commit.enable", "false")
     consumerProps.put("consumer.timeout.ms", "100")
@@ -44,12 +45,15 @@ class KafkaConsumerTest extends SpecWithEmbeddedZookeeper {
     producerProps.put("retry.backoff.ms", "100")
     producerProps.put("message.send.max.retries", "20") // we have to bump this up as zk is pretty flaky
     producerProps.put("serializer.class", "kafka.serializer.DefaultEncoder")
-    val producer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(producerProps))
 
-    def produceMessages(topic: String) =
+
+    def produceMessages(topic: String) = {
+      val producer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(producerProps))
       for (i <- 0 until 10) {
         producer.send(new KeyedMessage(topic, i.toString.getBytes("UTF-8"), s"test $i".getBytes("UTF-8")))
       }
+      producer.close()
+    }
 
     "read messages and shutdown appropriately" >> {
       val topic = "read-1"
@@ -180,11 +184,9 @@ class KafkaConsumerTest extends SpecWithEmbeddedZookeeper {
         message.key() mustEqual "7"
       }
     }
-
-    step {
-      producer.close()
-    }
   }
+
+  step { shutdown() }
 }
 
 

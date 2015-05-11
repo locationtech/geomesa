@@ -16,18 +16,19 @@ import kafka.message.Message
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.StringDecoder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.kafka.SpecWithEmbeddedZookeeper
+import org.locationtech.geomesa.kafka.HasEmbeddedZookeeper
+import org.specs2.mutable.Specification
 import org.specs2.runner
 
 @RunWith(classOf[runner.JUnitRunner])
-class OffsetManagerTest extends SpecWithEmbeddedZookeeper {
+class OffsetManagerTest extends Specification with HasEmbeddedZookeeper {
 
   "OffsetManager" should {
     "find offsets" >> {
       val props = new Properties
       props.put("group.id", "mygroup")
       props.put("metadata.broker.list", brokerConnect)
-      props.put("zookeeper.connect", zookeeperConnect)
+      props.put("zookeeper.connect", zkConnect)
       val config = new ConsumerConfig(props)
       val offsetManager = new OffsetManager(config)
 
@@ -63,6 +64,8 @@ class OffsetManagerTest extends SpecWithEmbeddedZookeeper {
       }
     }
   }
+
+  step { shutdown() }
 }
 
 
