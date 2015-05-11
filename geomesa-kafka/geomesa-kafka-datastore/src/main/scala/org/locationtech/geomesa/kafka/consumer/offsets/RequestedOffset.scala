@@ -8,12 +8,28 @@
 
 package org.locationtech.geomesa.kafka.consumer.offsets
 
+import java.util.Locale
+
+import com.typesafe.config.Config
 import kafka.message.Message
 import kafka.serializer.Decoder
 import org.locationtech.geomesa.kafka.consumer.offsets.FindOffset.MessagePredicate
 
+import scala.util.{Success, Try}
+
 
 sealed trait RequestedOffset
+
+object RequestedOffset {
+  def apply(config: Config): Option[RequestedOffset] = {
+    Try(config.getString("offset").toLowerCase(Locale.US)).toOption.map {
+      case "earliest" => EarliestOffset
+      case "latest"   => LatestOffset
+      case "group"    => GroupOffset
+      case o          => throw new IllegalArgumentException(s"Invalid offset $o")
+    }
+  }
+}
 
 case object EarliestOffset                          extends RequestedOffset
 case object LatestOffset                            extends RequestedOffset
