@@ -297,7 +297,18 @@ class LazySortedIterator(features: CloseableIterator[SimpleFeature],
   }
 
   def attributeToComparable[T <: Comparable[T]](prop: String)(implicit ct: ClassTag[T]): Ordering[SimpleFeature] =
-    Ordering.by[SimpleFeature, T](_.getAttribute(prop).asInstanceOf[T])
+    Ordering.by[SimpleFeature, T](_.getAttribute(prop).asInstanceOf[T])(new Ordering[T] {
+      val evo = implicitly[Ordering[T]]
+
+      override def compare(x: T, y: T): Int = {
+        (x, y) match {
+          case (null, null) => 0
+          case (null, _)    => -1
+          case (_, null)    => 1
+          case (_, _)       => evo.compare(x, y)
+        }
+      }
+    })
 
   override def hasNext: Boolean = sorted.hasNext
 
