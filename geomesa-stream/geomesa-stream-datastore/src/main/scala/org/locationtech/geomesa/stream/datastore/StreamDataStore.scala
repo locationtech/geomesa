@@ -8,22 +8,19 @@ import java.{util => ju}
 import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNotification}
 import com.google.common.collect.Lists
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom.{Envelope, Geometry}
+import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data._
-import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store._
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.filter.FidFilterImpl
-import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.stream.SimpleFeatureStreamSource
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
+import org.locationtech.geomesa.utils.index.{QuadTreeFeatureStore, SynchronizedQuadtree}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
 import org.opengis.filter.{And, Filter, IncludeFilter, Or}
 
@@ -107,14 +104,9 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int) extends C
 class StreamFeatureStore(entry: ContentEntry,
                          query: Query,
                          features: Cache[String, FeatureHolder],
-                         qt: SynchronizedQuadtree,
-                         sft: SimpleFeatureType)
-  extends ContentFeatureStore(entry, query) {
-
-  type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
-  type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
-  type DFI = DelegateFeatureIterator[SimpleFeature]
-
+                         val qt: SynchronizedQuadtree,
+                         val sft: SimpleFeatureType)
+  extends ContentFeatureStore(entry, query) with QuadTreeFeatureStore {
 
   override def canFilter: Boolean = true
 
@@ -162,28 +154,6 @@ class StreamFeatureStore(entry: ContentEntry,
     new DFR(sft, new DFI(composed))
   }
 
-  def within(w: Within): FR = {
-    val (_, geomLit) = splitBinOp(w)
-    val geom = geomLit.evaluate(null).asInstanceOf[Geometry]
-    val res = qt.query(geom.getEnvelopeInternal)
-    val fiter = new DFI(res.asInstanceOf[java.util.List[SimpleFeature]].iterator)
-    val filt = new FilteringFeatureIterator[SimpleFeature](fiter, w)
-    new DFR(sft, filt)
-  }
-
-  def bbox(b: BBOX): FR = {
-    val bounds = JTS.toGeometry(b.getBounds)
-    val res = qt.query(bounds.getEnvelopeInternal)
-    val fiter = new DFI(res.asInstanceOf[java.util.List[SimpleFeature]].iterator)
-    val filt = new FilteringFeatureIterator[SimpleFeature](fiter, b)
-    new DFR(sft, filt)
-  }
-
-  def splitBinOp(binop: BinarySpatialOperator): (PropertyName, Literal) =
-    binop.getExpression1 match {
-      case pn: PropertyName => (pn, binop.getExpression2.asInstanceOf[Literal])
-      case l: Literal       => (binop.getExpression2.asInstanceOf[PropertyName], l)
-    }
 
   override def getWriterInternal(query: Query, flags: Int) = throw new IllegalArgumentException("Not allowed")
 
