@@ -16,13 +16,8 @@
 
 package org.locationtech.geomesa.kafka
 
-import java.net.InetSocketAddress
-
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import kafka.server.KafkaConfig
-import kafka.utils.{TestUtils, TestZKUtils, Utils}
-import org.apache.zookeeper.server.{NIOServerCnxnFactory, ZooKeeperServer}
 import org.geotools.data._
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -37,27 +32,18 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class KafkaDataStoreTest extends Specification with Logging {
+class KafkaDataStoreTest extends Specification with SpecWithEmbeddedZookeeper with Logging {
 
-  val brokerConf = TestUtils.createBrokerConfig(1)
-
-  val zkConnect = TestZKUtils.zookeeperConnect
-  val zk = new EmbeddedZookeeper(zkConnect)
-  val server = TestUtils.createServer(new KafkaConfig(brokerConf))
-
-  val host = brokerConf.getProperty("host.name")
-  val port = brokerConf.getProperty("port").toInt
   val ff = CommonFactoryFinder.getFilterFactory2
   val consumerParams = Map(
-    "brokers"    -> s"$host:$port",
-    "zookeepers" -> zkConnect,
+    "brokers"    -> brokerConnect,
+    "zookeepers" -> zookeeperConnect,
     "zkPath"     -> "/geomesa/kafka/testds",
     "isProducer" -> false)
 
-
   val producerParams = Map(
-    "brokers"    -> s"$host:$port",
-    "zookeepers" -> zkConnect,
+    "brokers"    -> brokerConnect,
+    "zookeepers" -> zookeeperConnect,
     "zkPath"     -> "/geomesa/kafka/testds",
     "isProducer" -> true)
 
@@ -175,27 +161,32 @@ class KafkaDataStoreTest extends Specification with Logging {
       factory.canProcess(Map.empty[String, Serializable]) must beFalse
       factory.canProcess(Map(KAFKA_BROKER_PARAM.key -> "test", ZOOKEEPERS_PARAM.key -> "test")) must beTrue
     }
+
+    step {
+      consumerDS.asInstanceOf[KafkaDataStore].close()
+      producerDS.asInstanceOf[KafkaDataStore].close()
+    }
   }
 
   "KafkaDataStore with cachedConsumer" should {
     "expire messages correctly when expirationPeriod is set" >> {
       val cachedConsumerParams = Map(
-        "brokers"          -> s"$host:$port",
-        "zookeepers"       -> zkConnect,
+        "brokers"          -> brokerConnect,
+        "zookeepers"       -> zookeeperConnect,
         "zkPath"           -> "/geomesa/kafka/cachedtestds",
         "isProducer"       -> false,
         "expiry"           -> true,
         "expirationPeriod" -> 2000L)
 
       val producerParams = Map(
-        "brokers"    -> s"$host:$port",
-        "zookeepers" -> zkConnect,
+        "brokers"    -> brokerConnect,
+        "zookeepers" -> zookeeperConnect,
         "zkPath"     -> "/geomesa/kafka/cachedtestds",
         "isProducer" -> true)
 
       //Setup datastores and schema
-      val cachedConsumerDS = DataStoreFinder.getDataStore(cachedConsumerParams)
-      val producerDS = DataStoreFinder.getDataStore(producerParams)
+      val cachedConsumerDS = DataStoreFinder.getDataStore(cachedConsumerParams).asInstanceOf[KafkaDataStore]
+      val producerDS = DataStoreFinder.getDataStore(producerParams).asInstanceOf[KafkaDataStore]
       val schemaExpiration = SimpleFeatureTypes.createType("testExpiration", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
       producerDS.createSchema(schemaExpiration)
 
@@ -211,42 +202,18 @@ class KafkaDataStoreTest extends Specification with Logging {
       sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
       fw.write()
 
-      featureCache.size() must eventually(10, 500.millis)(beEqualTo(1))
-      cachedConsumerFS.qt.size() must eventually(10, 500.millis)(beEqualTo(1))
+      featureCache.size() must beEqualTo(1).eventually(10, 500.millis)
+      cachedConsumerFS.qt.size() must beEqualTo(1).eventually(10, 500.millis)
       Thread.sleep(2000) //sleep enough time to reach the expirationPeriod
 
       featureCache.cleanUp() //remove old entries now that the TTL has passed
       featureCache.size() must be equalTo 0
-      cachedConsumerFS.qt.size() must eventually(10, 500.millis)(beEqualTo(0))
+      cachedConsumerFS.qt.size() must beEqualTo(0).eventually(10, 500.millis)
+
+      cachedConsumerDS.close()
+      producerDS.close()
+
+      success
     }
   }
-
-  step {
-    try {
-      server.shutdown()
-      zk.shutdown()
-    } catch {
-      case _: Throwable =>
-    }
-  }
-}
-
-
-class EmbeddedZookeeper(val connectString: String) {
-  val snapshotDir = TestUtils.tempDir()
-  val logDir = TestUtils.tempDir()
-  val tickTime = 500
-  val zookeeper = new ZooKeeperServer(snapshotDir, logDir, tickTime)
-  val port = connectString.split(":")(1).toInt
-  val factory = new NIOServerCnxnFactory()
-  factory.configure(new InetSocketAddress("127.0.0.1", port), 1024)
-  factory.startup(zookeeper)
-
-  def shutdown() {
-    try { zookeeper.shutdown() } catch { case _: Throwable => }
-    try { factory.shutdown() } catch { case _: Throwable => }
-    Utils.rm(logDir)
-    Utils.rm(snapshotDir)
-  }
-
 }

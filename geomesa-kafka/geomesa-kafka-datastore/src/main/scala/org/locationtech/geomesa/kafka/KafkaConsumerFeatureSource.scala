@@ -16,9 +16,11 @@
 
 package org.locationtech.geomesa.kafka
 
+import java.io.Closeable
 import java.nio.charset.StandardCharsets
 import java.util
 import java.util.Properties
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Executors, TimeUnit}
 
 import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNotification}
@@ -61,14 +63,15 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
                                  expirationPeriod: Long)
   extends ContentFeatureStore(entry, query)
   with ContentFeatureSourceSecuritySupport
-  with ContentFeatureSourceReTypingSupport {
+  with ContentFeatureSourceReTypingSupport
+  with Closeable {
 
   var qt = new SynchronizedQuadtree
 
   val groupId = RandomStringUtils.randomAlphanumeric(5)
   val decoder = new AvroFeatureDecoder(schema, EncodingOptions.withUserData)
   // create a producer that reads from kafka and sends to the event bus
-  new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
+  val consumer = new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
 
   case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
     override def hashCode(): Int = sf.hashCode()
@@ -200,6 +203,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
     new FeatureIdImpl(ret.toString)
   }
 
+  override def close() = consumer.close()
   override def getWriterInternal(query: Query, flags: Int) = throw new IllegalArgumentException("Not allowed")
 }
 
@@ -212,7 +216,7 @@ case object Clear extends KafkaGeoMessage {
   def toMsg(topic: String) = new MSG(topic, KafkaProducerFeatureStore.CLEAR_KEY, EMPTY)
 }
 
-trait FeatureProducer {
+trait FeatureProducer extends Closeable {
   def eventBus: EventBus
   def produceFeatures(f: SimpleFeature): Unit = eventBus.post(CreateOrUpdate(f.getID, f))
   def deleteFeature(id: String): Unit = eventBus.post(Delete(id))
@@ -230,12 +234,13 @@ class KafkaFeatureConsumer(topic: String,
   private val whiteList = new Whitelist(topic)
   private val decoder: DefaultDecoder = new DefaultDecoder(null)
   private val stream = client.createMessageStreamsByFilter(whiteList, 1, decoder, decoder).head
+  private val running = new AtomicBoolean(true)
 
   val es = Executors.newSingleThreadExecutor()
   es.submit(new Runnable {
     override def run(): Unit = {
       val iter = stream.iterator()
-      while (iter.hasNext) {
+      while (running.get() && iter.hasNext) {
         val msg = iter.next()
         if(msg.key() != null) {
           if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.DELETE_KEY)) {
@@ -253,6 +258,12 @@ class KafkaFeatureConsumer(topic: String,
       }
     }
   })
+
+  override def close() = {
+    running.set(false)
+    es.shutdownNow()
+    client.shutdown()
+  }
 
   private def buildClientProps = {
     val props = new Properties()

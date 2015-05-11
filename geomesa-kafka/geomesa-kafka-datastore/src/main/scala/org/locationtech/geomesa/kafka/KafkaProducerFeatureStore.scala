@@ -15,6 +15,7 @@
  */
 package org.locationtech.geomesa.kafka
 
+import java.io.Closeable
 import java.nio.charset.StandardCharsets
 import java.{util => ju}
 
@@ -46,7 +47,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
                                 broker: String,
                                 query: Query,
                                 producer: Producer[Array[Byte], Array[Byte]])
-  extends ContentFeatureStore(entry, query) {
+  extends ContentFeatureStore(entry, query) with Closeable {
 
   val typeName = entry.getTypeName
 
@@ -132,6 +133,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
     override def close(): Unit = {}
   }
 
+  override def close() = producer.close()
   override def getCountInternal(query: Query): Int = 0
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = null
 }

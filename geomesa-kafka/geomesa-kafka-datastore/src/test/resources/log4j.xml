@@ -21,12 +21,12 @@
     </category>-->
 
     <category name="kafka">
-        <priority value="warn"/>
-    </category>
-    <category name="org.I0Itec.zkclient">
-        <priority value="warn"/>
+        <priority value="fatal"/>
     </category>
     <category name="org.apache.zookeeper">
+        <priority value="fatal"/>
+    </category>
+    <category name="org.I0Itec.zkclient">
         <priority value="warn"/>
     </category>
     <category name="org.apache.hadoop">

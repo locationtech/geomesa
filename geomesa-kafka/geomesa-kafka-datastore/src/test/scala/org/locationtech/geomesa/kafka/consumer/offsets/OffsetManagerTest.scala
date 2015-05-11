@@ -10,48 +10,57 @@ package org.locationtech.geomesa.kafka.consumer.offsets
 
 import java.util.Properties
 
+import kafka.common.{OffsetAndMetadata, TopicAndPartition}
 import kafka.consumer.ConsumerConfig
+import kafka.message.Message
+import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
+import kafka.serializer.StringDecoder
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+import org.locationtech.geomesa.kafka.SpecWithEmbeddedZookeeper
 import org.specs2.runner
 
 @RunWith(classOf[runner.JUnitRunner])
-class OffsetManagerTest extends Specification {
-
-  // TODO use mock kafka
+class OffsetManagerTest extends SpecWithEmbeddedZookeeper {
 
   "OffsetManager" should {
     "find offsets" >> {
-      skipped("integration")
       val props = new Properties
       props.put("group.id", "mygroup")
-      props.put("metadata.broker.list", "kafka1:9092,kafka1:9093,kafka1:9094")
-      props.put("zookeeper.connect", "zoo1,zoo2,zoo3")
-//      props.put("num.consumer.fetchers", "3")
+      props.put("metadata.broker.list", brokerConnect)
+      props.put("zookeeper.connect", zookeeperConnect)
       val config = new ConsumerConfig(props)
       val offsetManager = new OffsetManager(config)
 
-      val topic = "consume-1"
+      val topic = "test"
 
-      val when = GroupOffset
-//      val when = EarliestOffset
-//      val when = LatestOffset
-//      val when = LastReadOffset("mygroup")
-//      val when = DateOffset(1429206515955L) // test 9
-//      1429208754000 8
-//      1429211031093 19
-//      val when = DateOffset(1429211031092L) // test 16
-//      val decoder = new StringDecoder()
-//      val when = FindOffset((m) => {
-//        val bb = Array.ofDim[Byte](m.payload.remaining())
-//        m.payload.get(bb)
-//        decoder.fromBytes(bb).substring(5).toInt.compareTo(28)
-//      })
-//      val when = DateOffset(1429207361392L) // test 18
+      val producerProps = new Properties()
+      producerProps.put("metadata.broker.list", brokerConnect)
+      producerProps.put("serializer.class", "kafka.serializer.DefaultEncoder")
+      val producer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(producerProps))
+      for (i <- 0 until 10) {
+        producer.send(new KeyedMessage(topic, i.toString.getBytes("UTF-8"), s"test $i".getBytes("UTF-8")))
+      }
+      producer.close()
 
-      println(offsetManager.getOffsets(topic, when))
-
-      success
+      "by earliest" >> {
+        offsetManager.getOffsets(topic, EarliestOffset) mustEqual Map(TopicAndPartition(topic, 0) -> 0)
+      }
+      "by latest" >> {
+        offsetManager.getOffsets(topic, LatestOffset) mustEqual Map(TopicAndPartition(topic, 0) -> 10)
+      }
+      "by group" >> {
+        offsetManager.commitOffsets(Map(TopicAndPartition(topic, 0) -> OffsetAndMetadata(5)))
+        offsetManager.getOffsets(topic, GroupOffset) mustEqual Map(TopicAndPartition(topic, 0) -> 5)
+      }
+      "by binary search" >> {
+        val decoder = new StringDecoder()
+        val offset = FindOffset((m: Message) => {
+          val bb = Array.ofDim[Byte](m.payload.remaining())
+          m.payload.get(bb)
+          decoder.fromBytes(bb).substring(5).toInt.compareTo(7)
+        })
+        offsetManager.getOffsets(topic, offset) mustEqual Map(TopicAndPartition(topic, 0) -> 7)
+      }
     }
   }
 }
