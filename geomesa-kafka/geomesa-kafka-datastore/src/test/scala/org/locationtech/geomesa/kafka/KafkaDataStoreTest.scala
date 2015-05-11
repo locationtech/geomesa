@@ -34,6 +34,8 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Logging {
 
+  sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
+
   val ff = CommonFactoryFinder.getFilterFactory2
   val consumerParams = Map(
     "brokers"    -> brokerConnect,

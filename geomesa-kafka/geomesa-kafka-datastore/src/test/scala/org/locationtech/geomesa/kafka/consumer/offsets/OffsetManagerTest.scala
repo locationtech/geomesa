@@ -23,6 +23,8 @@ import org.specs2.runner
 @RunWith(classOf[runner.JUnitRunner])
 class OffsetManagerTest extends Specification with HasEmbeddedZookeeper {
 
+  sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
+
   "OffsetManager" should {
     "find offsets" >> {
       val props = new Properties

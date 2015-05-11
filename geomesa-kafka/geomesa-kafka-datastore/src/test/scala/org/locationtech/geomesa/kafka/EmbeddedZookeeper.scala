@@ -15,38 +15,51 @@ import kafka.utils.{TestUtils, Utils}
 import org.apache.zookeeper.server.{NIOServerCnxnFactory, ZooKeeperServer}
 
 trait HasEmbeddedZookeeper {
-
-  val zkPort = TestUtils.choosePort()
-  val zkConnect = "127.0.0.1:" + zkPort
-  val zk = new EmbeddedZookeeper(zkPort)
-
-  val brokerConf = TestUtils.createBrokerConfig(1)
-  brokerConf.setProperty("zookeeper.connect", zkConnect) // override to use a unique zookeeper
-  val server = TestUtils.createServer(new KafkaConfig(brokerConf))
-
-  val host = brokerConf.getProperty("host.name")
-  val port = brokerConf.getProperty("port").toInt
-  val brokerConnect = s"$host:$port"
-
-  def shutdown(): Unit =
-    try {
-      server.shutdown()
-      zk.shutdown()
-    } catch {
-      case e: Exception =>
-    }
+  val (brokerConnect, zkConnect) = EmbeddedZookeeper.connect()
+  def shutdown(): Unit = EmbeddedZookeeper.shutdown()
 }
 
-class EmbeddedZookeeper(val port: Int) {
+object EmbeddedZookeeper {
+
+  private var count = 0
+  private var kafka: EmbeddedKafka = null
+
+  def connect(): (String, String) = synchronized {
+    count += 1
+    if (count == 1) {
+      kafka = new EmbeddedKafka
+    }
+    (kafka.brokerConnect, kafka.zkConnect)
+  }
+
+  def shutdown(): Unit = synchronized {
+    count -= 1
+    if (count == 0) {
+      kafka.shutdown()
+    }
+  }
+}
+
+class EmbeddedKafka() {
+
+  private val zkPort = TestUtils.choosePort()
+  val zkConnect = "127.0.0.1:" + zkPort
+
   val snapshotDir = TestUtils.tempDir()
   val logDir = TestUtils.tempDir()
   val tickTime = 500
   val zookeeper = new ZooKeeperServer(snapshotDir, logDir, tickTime)
   val factory = new NIOServerCnxnFactory()
-  factory.configure(new InetSocketAddress("127.0.0.1", port), 1024)
+  factory.configure(new InetSocketAddress("127.0.0.1", zkPort), 1024)
   factory.startup(zookeeper)
 
+  private val brokerConf = TestUtils.createBrokerConfig(1)
+  brokerConf.setProperty("zookeeper.connect", zkConnect) // override to use a unique zookeeper
+  val brokerConnect = s"${brokerConf.getProperty("host.name")}:${brokerConf.getProperty("port")}"
+  private val server = TestUtils.createServer(new KafkaConfig(brokerConf))
+
   def shutdown(): Unit = {
+    try { server.shutdown() } catch { case _: Throwable => }
     try { zookeeper.shutdown() } catch { case _: Throwable => }
     try { factory.shutdown() } catch { case _: Throwable => }
     Utils.rm(logDir)
