@@ -15,12 +15,12 @@
  */
 package org.locationtech.geomesa.kafka
 
+import java.io.Serializable
 import java.{util => ju}
 
-import java.io.Serializable
 import kafka.producer.{Producer, ProducerConfig}
-import org.geotools.data.{Query, DataStore}
 import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.data.{DataStore, Query}
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.joda.time.{Duration, Instant}
@@ -33,7 +33,6 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.locationtech.geomesa.core.filter._
 
 import scala.collection.JavaConversions._
 

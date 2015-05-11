@@ -35,6 +35,12 @@
     <category name="hsqldb">
         <priority value="warn"/>
     </category>
+    <category name="kafka">
+        <priority value="warn"/>
+    </category>
+    <category name="org.I0Itec">
+        <priority value="warn"/>
+    </category>
 
     <root>
         <priority value="info"/>

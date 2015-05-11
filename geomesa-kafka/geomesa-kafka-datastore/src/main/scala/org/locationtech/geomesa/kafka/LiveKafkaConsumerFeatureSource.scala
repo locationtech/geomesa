@@ -24,6 +24,7 @@ import org.geotools.data.store.ContentEntry
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -35,14 +36,35 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
                                      kf: KafkaConsumerFactory,
                                      expiry: Boolean,
                                      expirationPeriod: Long)
-  extends KafkaConsumerFeatureSource(entry, schema, query, kf) {
+  extends KafkaConsumerFeatureSource(entry, schema, query) {
+
+  private[kafka] val featureCache = new LiveFeatureCache(schema, expiry, expirationPeriod)
 
   val eb = new EventBus(topic)
   eb.register(this)
 
+  // create a consumer that reads from kafka and sends to the event bus
+  new KafkaFeatureConsumer(schema, topic, kf, eb)
+
+  @Subscribe
+  def processProtocolMessage(msg: GeoMessage): Unit = msg match {
+    case update: CreateOrUpdate => featureCache.createOrUpdateFeature(update)
+    case del: Delete            => featureCache.removeFeature(del)
+    case clr: Clear             => featureCache.clear()
+    case _     => throw new IllegalArgumentException("Unknown message: " + msg)
+  }
+
+  override def getReaderForFilter(f: Filter): FR = featureCache.getReaderForFilter(f)
+}
+
+class LiveFeatureCache(override val schema: SimpleFeatureType,
+                       expiry: Boolean,
+                       expirationPeriod: Long)
+  extends KafkaConsumerFeatureCache {
+
   var qt = new SynchronizedQuadtree
 
-  val featureCache: Cache[String, FeatureHolder] = {
+  val cache: Cache[String, FeatureHolder] = {
 
     val cb = CacheBuilder.newBuilder()
 
@@ -60,36 +82,25 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
     cb.build()
   }
 
-  override val features: mutable.Map[String, FeatureHolder] = featureCache.asMap().asScala
-  
-  // create a producer that reads from kafka and sends to the event bus that the kcfs has subscribed to
-  new KafkaFeatureConsumer(schema, topic, kf, eb)
+  override val features: mutable.Map[String, FeatureHolder] = cache.asMap().asScala
 
-  @Subscribe
-  def processProtocolMessage(msg: GeoMessage): Unit = msg match {
-    case update: CreateOrUpdate => processNewFeatures(update)
-    case del: Delete            => removeFeature(del)
-    case clr: Clear             => clear()
-    case _     => throw new IllegalArgumentException("Unknown message: " + msg)
-  }
-
-  def processNewFeatures(update: CreateOrUpdate): Unit = {
+  def createOrUpdateFeature(update: CreateOrUpdate): Unit = {
     val sf = update.feature
     val id = update.id
-    Option(featureCache.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
+    Option(cache.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
     val env = sf.geometry.getEnvelopeInternal
     qt.insert(env, sf)
-    featureCache.put(sf.getID, FeatureHolder(sf, env))
+    cache.put(sf.getID, FeatureHolder(sf, env))
   }
 
   def removeFeature(toDelete: Delete): Unit = {
     val id = toDelete.id
-    Option(featureCache.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
-    featureCache.invalidate(toDelete.id)
+    Option(cache.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
+    cache.invalidate(toDelete.id)
   }
 
   def clear(): Unit = {
-    featureCache.invalidateAll()
+    cache.invalidateAll()
     qt = new SynchronizedQuadtree
   }
 }

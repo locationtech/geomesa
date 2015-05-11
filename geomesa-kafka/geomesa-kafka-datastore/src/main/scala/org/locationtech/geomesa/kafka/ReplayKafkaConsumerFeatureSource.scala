@@ -15,19 +15,16 @@
  */
 package org.locationtech.geomesa.kafka
 
-import com.vividsolutions.jts.geom.Envelope
 import com.vividsolutions.jts.index.quadtree.Quadtree
-import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
-import org.geotools.data.{EmptyFeatureReader, FeatureReader, Query}
-import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.geotools.data.store.ContentEntry
+import org.geotools.data.{EmptyFeatureReader, Query}
 import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.kafka.consumer.offsets.{FindOffset, LatestOffset}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
-import org.opengis.filter.expression.Literal
+import org.opengis.filter.expression.PropertyName
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -38,21 +35,13 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
                                        topic: String,
                                        kf: KafkaConsumerFactory,
                                        replayConfig: ReplayConfig)
-  extends ContentFeatureSource(entry, query) {
+  extends KafkaConsumerFeatureSource(entry, schema, query) {
 
   // messages are stored as an array where the most recent is at index 0
   private val messages: Array[GeoMessage] = readMessages()
 
-  override def getBoundsInternal(query: Query) =
-    ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
-
-  override def buildFeatureType(): SimpleFeatureType = schema
-
-  override def getCountInternal(query: Query): Int =
-    getReaderInternal(query).getIterator.size
-
-  override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val split = TimestampFilterSplit.split(query.getFilter)
+  override def getReaderForFilter(filter: Filter): FR = {
+    val split = TimestampFilterSplit.split(filter)
 
     val reader = if (messages.isEmpty) {
       // no data!
@@ -65,10 +54,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
         val filter = s.filter.getOrElse(Filter.INCLUDE)
 
         startIndex.map { si =>
-          val q = new Query(query)
-          q.setFilter(filter)
-
-          Some(getReaderAtTime(q, si, startTime))
+          Some(getReaderAtTime(filter, si, startTime))
         }.getOrElse(None)
       }.getOrElse(None)
     }
@@ -99,7 +85,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
       }
 
       // walk forward to the first message at ``time``
-      while (index >= 0 && messages(index).timestamp.getMillis > time) index -= 1
+      while (index >= 0 && messages(index).timestamp.getMillis < time) index -= 1
 
       if (index < messages.length) Some(index) else None
     } else {
@@ -108,18 +94,18 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     }
   }
 
-  private def getReaderAtTime(query: Query, startIndex: Int, startTime: Long) = {
+  private def getReaderAtTime(filter: Filter, startIndex: Int, startTime: Long) = {
 
     val endTime = startTime - replayConfig.readBehind.getMillis
 
-    snapshot(startIndex, endTime).getReaderInternal(query)
+    snapshot(startIndex, endTime).getReaderForFilter(filter)
   }
 
   /**
     * @param startIndex the index of the most recent message to process
     * @param endTime the time of the last message to process
     */
-  private def snapshot(startIndex: Int, endTime: Long): SnapshotConsumerFeatureSource = {
+  private def snapshot(startIndex: Int, endTime: Long): ReplaySnapshotFeatureCache = {
     val snapshot: Seq[GeoMessage] = messages.view
       .drop(startIndex)
       .takeWhile {
@@ -128,7 +114,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
         case e => e.timestamp.getMillis >= endTime
       }
 
-    new SnapshotConsumerFeatureSource(snapshot, entry, schema, query, kf)
+    new ReplaySnapshotFeatureCache(schema, snapshot)
   }
 
   private def readMessages(): Array[GeoMessage] = {
@@ -149,11 +135,11 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     // required: there is only 1 partition;  validate??
     val stream = kafkaConsumer.createMessageStreams(1, offsetRequest).head
 
-    // stop at the last offset even if before the end instant
+    // stop before the latest (next) offset even if before the end instant
     val lastOffset = offsetManager.getOffsets(topic, LatestOffset).head._2
 
     stream.iterator
-      .takeWhile(_.offset <= lastOffset)
+      .stopAfter(_.offset == lastOffset - 1)
       .map(msgDecoder.decode)
       .dropWhile(replayConfig.isBeforeRealStart)
       .takeWhile(replayConfig.isNotAfterEnd)
@@ -165,19 +151,15 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
 object ReplayKafkaConsumerFeatureSource {
 
   val MessageTimeAttributeName: String = "KafkaMessageTimestamp"
-  val MessageTimeAttributeLiteral: Literal = ff.literal(MessageTimeAttributeName)
+  val MessageTimeAttributeProp: PropertyName = ff.property(MessageTimeAttributeName)
 
   def messageTimeEquals(time: Instant): Filter =
-    ff.equals(MessageTimeAttributeLiteral, ff.literal(time.getMillis))
+    ff.equals(MessageTimeAttributeProp, ff.literal(time.getMillis))
 }
 
-
-class SnapshotConsumerFeatureSource(events: Seq[GeoMessage],
-                                    entry: ContentEntry,
-                                    schema: SimpleFeatureType,
-                                    query: Query,
-                                    kf: KafkaConsumerFactory)
-  extends KafkaConsumerFeatureSource(entry, schema, query, kf) {
+class ReplaySnapshotFeatureCache(override val schema: SimpleFeatureType,
+                                 events: Seq[GeoMessage])
+  extends KafkaConsumerFeatureCache {
 
   override lazy val (qt, features) = processMessages
 

@@ -20,7 +20,7 @@ import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
-import org.geotools.data.{FilteringFeatureReader, Query}
+import org.geotools.data.{FeatureReader, FilteringFeatureReader, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.filter.FidFilterImpl
@@ -38,12 +38,32 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
-                                 schema: SimpleFeatureType,
-                                 query: Query,
-                                 kf: KafkaConsumerFactory)
+                                          schema: SimpleFeatureType,
+                                          query: Query)
   extends ContentFeatureSource(entry, query)
   with ContentFeatureSourceSecuritySupport
   with ContentFeatureSourceReTypingSupport {
+
+  override def getBoundsInternal(query: Query) =
+    ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
+
+  override def buildFeatureType(): SimpleFeatureType = schema
+
+  override def getCountInternal(query: Query): Int =
+    getReaderInternal(query).getIterator.size
+
+  override val canFilter: Boolean = true
+
+  override def getReaderInternal(query: Query): FR = addSupport(query, getReaderForFilter(query.getFilter))
+
+  def getReaderForFilter(f: Filter): FR
+}
+
+abstract class KafkaConsumerFeatureCache {
+
+  type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
+  type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
+  type DFI = DelegateFeatureIterator[SimpleFeature]
 
   case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
     override def hashCode(): Int = sf.hashCode()
@@ -54,18 +74,11 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
     }
   }
 
+  def schema: SimpleFeatureType
+
   def qt: Quadtree
+
   def features: mutable.Map[String, FeatureHolder]
-
-  override def getBoundsInternal(query: Query) =
-    ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
-
-  override def buildFeatureType(): SimpleFeatureType = schema
-
-  override def getCountInternal(query: Query): Int =
-    getReaderInternal(query).getIterator.size
-
-  override def getReaderInternal(query: Query): FR = addSupport(query, getReaderForFilter(query.getFilter))
 
   def getReaderForFilter(f: Filter): FR =
     f match {
@@ -79,8 +92,6 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
         new FilteringFeatureReader[SimpleFeatureType, SimpleFeature](include(Filter.INCLUDE), f)
     }
 
-  type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
-  type DFI = DelegateFeatureIterator[SimpleFeature]
 
   def include(i: IncludeFilter) = new DFR(schema, new DFI(features.valuesIterator.map(_.sf)))
 
