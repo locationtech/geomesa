@@ -293,8 +293,6 @@ class LazySortedIterator(features: CloseableIterator[SimpleFeature],
       buf.append(features.next())
     }
     features.close()
-    val iter = buf.sortWith(comp).iterator
-
     CloseableIterator(buf.sortWith(comp).iterator)
   }
 
