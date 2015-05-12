@@ -20,6 +20,7 @@ import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator, SimpleFeatureSource}
+import org.geotools.feature.collection.SortedSimpleFeatureCollection
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.iterators.TemporalDensityIterator.createFeatureType
@@ -115,6 +116,7 @@ class CachingAccumuloFeatureCollection(source: SimpleFeatureSource, query: Query
     // use ListBuffer for constant append time and size
     val buf = scala.collection.mutable.ListBuffer.empty[SimpleFeature]
     val iter = super.features
+
     while (iter.hasNext) {
       buf.append(iter.next())
     }
@@ -147,7 +149,9 @@ trait CachingFeatureSource extends AccumuloAbstractFeatureSource {
     if (query.getStartIndex == null) {
       query.setStartIndex(0)
     }
-    featureCache.get(query)
+
+    // Uses mergesort
+    new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy)
   }
 
   override def getCount(query: Query): Int = getFeatures(query).size()
