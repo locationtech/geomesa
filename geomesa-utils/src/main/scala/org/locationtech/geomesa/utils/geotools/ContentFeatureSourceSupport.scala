@@ -17,7 +17,6 @@ package org.locationtech.geomesa.utils.geotools
 
 import org.geotools.data.store.{ContentFeatureSource, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, Query}
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /** Parent for any trait adding support to a [[ContentFeatureSource]] such as 'retype', 'sort', 'offset',
@@ -54,7 +53,7 @@ trait ContentFeatureSourceReTypingSupport extends ContentFeatureSourceSupport {
     
     // logic copied from ContentFeatureSource.getReader() but uses TypeUpdatingFeatureReader instead
     if (query.getPropertyNames != Query.ALL_NAMES) {
-      val target: SimpleFeatureType = SimpleFeatureTypeBuilder.retype(getSchema, query.getPropertyNames)
+      val target = FeatureUtils.retype(getSchema, query.getPropertyNames)
       if (!(target == reader.getFeatureType)) {
         result = new TypeUpdatingFeatureReader(result, target)
       }
