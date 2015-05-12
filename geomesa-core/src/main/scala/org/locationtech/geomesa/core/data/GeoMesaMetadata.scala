@@ -16,9 +16,13 @@
 
 package org.locationtech.geomesa.core.data
 
+import org.apache.accumulo.core.client.impl.{Tables, MasterClient}
+import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
+import org.apache.accumulo.core.security.thrift.TCredentials
+import org.apache.accumulo.trace.instrument.Tracer
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.core.data.AccumuloBackedMetadata._
 import org.locationtech.geomesa.core.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
@@ -33,18 +37,19 @@ import scala.collection.mutable
  */
 trait GeoMesaMetadata {
   def delete(featureName: String, numThreads: Int)
-  
+
   def insert(featureName: String, key: String, value: String)
   def insert(featureName: String, kvPairs: Map[String, String])
   def insert(featureName: String, key: String, value: String, vis: String)
-  
+
   def read(featureName: String, key: String): Option[String]
   def readRequired(featureName: String, key: String): String
   def readRequiredNoCache(featureName: String, key: String): Option[String]
-  
+
   def expireCache(featureName: String)
 
   def getFeatureTypes: Array[String]
+  def getTableSize(tableName: String): Long
 }
 
 class AccumuloBackedMetadata(connector: Connector,
@@ -223,6 +228,25 @@ class AccumuloBackedMetadata(connector: Connector,
     featureName
   }
 
+  // This lazily computed function helps shortcut getCount from scanning entire tables.
+  lazy val retrieveTableSize: (String) => Long =
+    if (connector.isInstanceOf[MockConnector]) {
+      (tableName: String) => -1
+    } else {
+      val masterClient = MasterClient.getConnection(connector.getInstance())
+      val tc = new TCredentials()
+      val mmi = masterClient.getMasterStats(Tracer.traceInfo(), tc)
+
+      (tableName: String) => {
+        val tableId = Tables.getTableId(connector.getInstance(), tableName)
+        val v = mmi.getTableMap.get(tableId)
+        v.getRecs
+      }
+    }
+
+  override def getTableSize(tableName: String): Long = {
+    retrieveTableSize(tableName)
+  }
 }
 
 object AccumuloBackedMetadata {

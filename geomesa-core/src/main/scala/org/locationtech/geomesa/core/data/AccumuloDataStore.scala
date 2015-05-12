@@ -712,6 +712,10 @@ class AccumuloDataStore(val connector: Connector,
       .getOrElse(ALL_TIME_BOUNDS)
   }
 
+  def getRecordTableSize(featureName: String): Long = {
+    metadata.getTableSize(getRecordTable(featureName))
+  }
+
   def stringToTimeBounds(value: String): Interval = {
     val longs = value.split(":").map(java.lang.Long.parseLong)
     require(longs(0) <= longs(1))

@@ -194,6 +194,8 @@ package object index {
     val RETURN_ENCODED       = new ClassKey(classOf[java.lang.Boolean])
 
     val MAP_AGGREGATION_KEY  = new ClassKey(classOf[java.lang.String])
+
+    val EXACT_COUNT          = new ClassKey(classOf[java.lang.Boolean])
   }
 
   type ExplainerOutputType = ( => String) => Unit
