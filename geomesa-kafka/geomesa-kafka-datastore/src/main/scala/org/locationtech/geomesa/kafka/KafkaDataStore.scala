@@ -42,8 +42,6 @@ class KafkaDataStore(zookeepers: String,
                      replication: Int,
                      fsFactory: FeatureSourceFactory) extends ContentDataStore with Logging {
 
-  ds =>
-
   import scala.collection.JavaConversions._
 
   val zkClient = {
@@ -89,20 +87,23 @@ class KafkaDataStore(zookeepers: String,
   val featureSourceCache =
     CacheBuilder.newBuilder().build[ContentEntry, ContentFeatureSource](
       new CacheLoader[ContentEntry, ContentFeatureSource] {
-        override def load(entry: ContentEntry) = fsFactory(ds, entry)
+        override def load(entry: ContentEntry) = {
+          val sft = schemaCache.get(entry.getTypeName)
+          fsFactory(entry, sft)
+        }
       })
 
   val schemaCache =
-    CacheBuilder.newBuilder().build(new CacheLoader[String, SimpleFeatureType] {
-      override def load(k: String): SimpleFeatureType =
-        resolveTopicSchema(k).getOrElse(throw new IllegalArgumentException("Unable to find schema"))
+    CacheBuilder.newBuilder().build(new CacheLoader[String, KafkaSimpleFeatureType] {
+      override def load(k: String): KafkaSimpleFeatureType =
+        resolveTopicSchema(k).getOrElse(throw new IllegalArgumentException(s"Unable to find schema with name $k"))
     })
 
   override def createFeatureSource(entry: ContentEntry) = featureSourceCache.get(entry)
   
-  def resolveTopicSchema(typeName: String): Option[SimpleFeatureType] =
+  def resolveTopicSchema(typeName: String): Option[KafkaSimpleFeatureType] =
     Option(zkClient.readData[String](getZkPath(typeName), true))
-      .map(data => SimpleFeatureTypes.createType(typeName, data))
+      .map(data => KafkaSimpleFeatureType(SimpleFeatureTypes.createType(typeName, data)))
 }
 
 object KafkaDataStoreFactoryParams {
@@ -132,43 +133,73 @@ object ReplayKafkaDataStoreFactoryParams {
 }
 
 object KafkaDataStore {
-  type FeatureSourceFactory = (KafkaDataStore, ContentEntry) => ContentFeatureSource
+  type FeatureSourceFactory = (ContentEntry, KafkaSimpleFeatureType) => ContentFeatureSource
 
-  def producerFeatureSourceFactory(broker: String): FeatureSourceFactory =
+  def producerFeatureSourceFactory(broker: String): FeatureSourceFactory = {
 
-    (ds: KafkaDataStore, entry: ContentEntry) => {
+    val config = {
       val props = new ju.Properties()
       props.put("metadata.broker.list", broker)
       props.put("serializer.class", "kafka.serializer.DefaultEncoder")
-      val kafkaProducer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(props))
-      new KafkaProducerFeatureStore(entry, ds.schemaCache.get(entry.getTypeName), broker, null, kafkaProducer)
+      new ProducerConfig(props)
     }
+
+    (entry: ContentEntry, sft: KafkaSimpleFeatureType) => {
+      val kafkaProducer = new Producer[Array[Byte], Array[Byte]](config)
+      new KafkaProducerFeatureStore(entry, sft, broker, null, kafkaProducer)
+    }
+  }
 
   def liveConsumerFeatureSourceFactory(kf: KafkaConsumerFactory,
                                        expiry: Boolean,
                                        expirationPeriod: Long): FeatureSourceFactory =
 
-    (ds: KafkaDataStore, entry: ContentEntry) => {
-      if (ds.createTypeNames().contains(entry.getName)) {
-        val topic = entry.getTypeName
-        val sft = ds.schemaCache.get(topic)
-        new LiveKafkaConsumerFeatureSource(entry, sft, null, topic, kf, expiry, expirationPeriod)
-      } else {
-        null
-      }
-  }
+    (entry: ContentEntry, sft: KafkaSimpleFeatureType) =>
+      new LiveKafkaConsumerFeatureSource(entry, sft, null, kf, expiry, expirationPeriod)
+
 
   def replayConsumerFeatureSourceFactory(kf: KafkaConsumerFactory, config: ReplayConfig): FeatureSourceFactory =
 
-    (ds: KafkaDataStore, entry: ContentEntry) => {
-      if (ds.createTypeNames().contains(entry.getName)) {
-        val topic = entry.getTypeName
-        val sft = ds.schemaCache.get(topic)
-        new ReplayKafkaConsumerFeatureSource(entry, sft, null, topic, kf, config)
-      } else {
-        null
-      }
-    }
+    (entry: ContentEntry, sft: KafkaSimpleFeatureType) =>
+      new ReplayKafkaConsumerFeatureSource(entry, sft, null, kf, config)
+}
+
+/** The [[KafkaDataStore]] requires additionally configuration to be included in the user data of the
+  * [[SimpleFeatureType]], including the name of the Kafka topic which is required.  Optionally,
+  * [[ReplayConfig]] may be included.
+  *
+  * This class allows that additional configuration to be stored and retrieved.
+  *
+  * @param sft the [[SimpleFeatureType]] with additional user data
+  */
+case class KafkaSimpleFeatureType(sft: SimpleFeatureType) extends AnyRef {
+
+  /** @return the name of the Kafka topic; defaults to the name of the [[SimpleFeatureType]] if not set
+    */
+  def topic: String = sft.getTypeName
+
+  /** @param name the name of the Kafka topic
+    *
+    * @return a copy of ``this`` containing a copy of the ``sft`` with the given topic ``name`` set in the
+    *         user data replacing any previously set topic name
+    */
+  def topic(name: String): KafkaSimpleFeatureType = ???
+
+
+  /** @return the [[ReplayConfig]], if any has been set
+    */
+  def replayConfig: Option[ReplayConfig] = ???
+
+  /** @param config the replay configuration
+    *
+    * @return a copy of ``this`` containing a copy of the ``sft`` with the given replay ``config`` set in
+    *         the user data replacing any previously set replay configuration
+    */
+  def replayConfig(config: ReplayConfig): KafkaSimpleFeatureType = ???
+
+
+  override def toString: String =
+    s"KafkaSimpleFeatureType: typeName=${sft.getTypeName}; topic=$topic; replayConfig=$replayConfig"
 }
 
 /** Standard factory for [[KafkaDataStore]] allows the creation of either a Producer DS or a Live

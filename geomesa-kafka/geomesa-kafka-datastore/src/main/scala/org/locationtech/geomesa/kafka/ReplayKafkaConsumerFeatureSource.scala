@@ -30,12 +30,13 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
-                                       schema: SimpleFeatureType,
+                                       kafkaType: KafkaSimpleFeatureType,
                                        query: Query,
-                                       topic: String,
                                        kf: KafkaConsumerFactory,
                                        replayConfig: ReplayConfig)
-  extends KafkaConsumerFeatureSource(entry, schema, query) {
+  extends KafkaConsumerFeatureSource(entry, kafkaType.sft, query) {
+
+  private val sft = kafkaType.sft
 
   // messages are stored as an array where the most recent is at index 0
   private val messages: Array[GeoMessage] = readMessages()
@@ -59,7 +60,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
       }.getOrElse(None)
     }
 
-    reader.getOrElse(new EmptyFeatureReader[SimpleFeatureType, SimpleFeature](schema))
+    reader.getOrElse(new EmptyFeatureReader[SimpleFeatureType, SimpleFeature](sft))
   }
 
   /** @return the index of the most recent [[GeoMessage]] at or before the given ``time``
@@ -114,15 +115,15 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
         case e => e.timestamp.getMillis >= endTime
       }
 
-    new ReplaySnapshotFeatureCache(schema, snapshot)
+    new ReplaySnapshotFeatureCache(sft, snapshot)
   }
 
   private def readMessages(): Array[GeoMessage] = {
-
+    val topic = kafkaType.topic
     val kafkaConsumer = kf.kafkaConsumer(topic)
     val offsetManager = kf.offsetManager
 
-    val msgDecoder = new KafkaGeoMessageDecoder(schema)
+    val msgDecoder = new KafkaGeoMessageDecoder(sft)
 
     // start 1 ms earlier because there might be multiple messages with the same timestamp
     val startTime = replayConfig.realStartTime.minus(1L)

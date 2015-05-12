@@ -27,7 +27,6 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.feature.AvroSimpleFeature
-import org.locationtech.geomesa.kafka.GeoMessage._
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
@@ -36,18 +35,19 @@ import org.opengis.filter.{Filter, Id}
 import scala.collection.JavaConversions._
 
 class KafkaProducerFeatureStore(entry: ContentEntry,
-                                schema: SimpleFeatureType,
+                                kafkaType: KafkaSimpleFeatureType,
                                 broker: String,
                                 query: Query,
                                 producer: Producer[Array[Byte], Array[Byte]])
   extends ContentFeatureStore(entry, query) {
 
-  val topic = entry.getTypeName
+  val sft = kafkaType.sft
+  val topic = kafkaType.topic
 
   override def getBoundsInternal(query: Query) =
     ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
 
-  override def buildFeatureType(): SimpleFeatureType = schema
+  override def buildFeatureType(): SimpleFeatureType = sft
 
   type FW = FeatureWriter[SimpleFeatureType, SimpleFeature]
 
@@ -82,7 +82,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
 
   class ModifyingFeatureWriter(query: Query) extends FW {
 
-    val msgEncoder = new KafkaGeoMessageEncoder(schema)
+    val msgEncoder = new KafkaGeoMessageEncoder(sft)
 
     private var id = 1L
     def getNextId: FeatureId = {
@@ -93,13 +93,13 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
 
     var toModify: Iterator[SimpleFeature] =
       if(query == null) Iterator[SimpleFeature]()
-      else if(query.getFilter == null) Iterator.continually(new AvroSimpleFeature(getNextId, schema))
+      else if(query.getFilter == null) Iterator.continually(new AvroSimpleFeature(getNextId, sft))
       else query.getFilter match {
         case ids: Id        =>
-          ids.getIDs.map(id => new AvroSimpleFeature(new FeatureIdImpl(id.toString), schema)).iterator
+          ids.getIDs.map(id => new AvroSimpleFeature(new FeatureIdImpl(id.toString), sft)).iterator
 
         case Filter.INCLUDE =>
-          Iterator.continually(new AvroSimpleFeature(new FeatureIdImpl(""), schema))
+          Iterator.continually(new AvroSimpleFeature(new FeatureIdImpl(""), sft))
       }
 
     def setIter(iter: Iterator[SimpleFeature]): Unit = {
@@ -107,7 +107,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
     }
 
     var curFeature: SimpleFeature = null
-    override def getFeatureType: SimpleFeatureType = schema
+    override def getFeatureType: SimpleFeatureType = sft
 
     override def next(): SimpleFeature = {
       curFeature = toModify.next()

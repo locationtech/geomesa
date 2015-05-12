@@ -30,21 +30,20 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
-                                     schema: SimpleFeatureType,
+                                     kafkaType: KafkaSimpleFeatureType,
                                      query: Query,
-                                     topic: String,
                                      kf: KafkaConsumerFactory,
                                      expiry: Boolean,
                                      expirationPeriod: Long)
-  extends KafkaConsumerFeatureSource(entry, schema, query) {
+  extends KafkaConsumerFeatureSource(entry, kafkaType.sft, query) {
 
-  private[kafka] val featureCache = new LiveFeatureCache(schema, expiry, expirationPeriod)
+  private[kafka] val featureCache = new LiveFeatureCache(kafkaType.sft, expiry, expirationPeriod)
 
-  val eb = new EventBus(topic)
+  val eb = new EventBus(kafkaType.topic)
   eb.register(this)
 
   // create a consumer that reads from kafka and sends to the event bus
-  new KafkaFeatureConsumer(schema, topic, kf, eb)
+  new KafkaFeatureConsumer(kafkaType, kf, eb)
 
   @Subscribe
   def processProtocolMessage(msg: GeoMessage): Unit = msg match {
@@ -105,14 +104,13 @@ class LiveFeatureCache(override val schema: SimpleFeatureType,
   }
 }
 
-class KafkaFeatureConsumer(schema: SimpleFeatureType,
-                           topic: String,
+class KafkaFeatureConsumer(kafkaType: KafkaSimpleFeatureType,
                            kf: KafkaConsumerFactory,
                            eventBus: EventBus) {
 
-  private val msgDecoder = new KafkaGeoMessageDecoder(schema)
+  private val msgDecoder = new KafkaGeoMessageDecoder(kafkaType.sft)
 
-  private val stream = kf.messageStreams(topic, 1).head
+  private val stream = kf.messageStreams(kafkaType.topic, 1).head
 
   val es = Executors.newSingleThreadExecutor()
   es.submit(new Runnable {
