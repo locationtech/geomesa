@@ -16,59 +16,34 @@
 
 package org.locationtech.geomesa.kafka
 
-import java.nio.charset.StandardCharsets
-import java.util
-import java.util.Properties
-import java.util.concurrent.{Executors, TimeUnit}
-
-import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNotification}
-import com.google.common.eventbus.{EventBus, Subscribe}
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
-import kafka.consumer.{Consumer, ConsumerConfig, Whitelist}
-import kafka.producer.KeyedMessage
-import kafka.serializer.DefaultDecoder
-import org.apache.commons.lang3.RandomStringUtils
+import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.geotools.data.collection.DelegateFeatureReader
-import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
+import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
 import org.geotools.data.{FilteringFeatureReader, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.filter.FidFilterImpl
-import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.feature.AvroFeatureDecoder
-import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
 import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceReTypingSupport
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.{Literal, PropertyName}
-import org.opengis.filter.identity.FeatureId
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
 import org.opengis.filter.{And, Filter, IncludeFilter, Or}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
-class KafkaConsumerFeatureSource(entry: ContentEntry,
+abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
                                  schema: SimpleFeatureType,
-                                 eb: EventBus,
                                  query: Query,
-                                 topic: String,
-                                 zookeepers: String,
-                                 expiry: Boolean,
-                                 expirationPeriod: Long)
-  extends ContentFeatureStore(entry, query)
+                                 kf: KafkaConsumerFactory)
+  extends ContentFeatureSource(entry, query)
   with ContentFeatureSourceSecuritySupport
   with ContentFeatureSourceReTypingSupport {
-
-  var qt = new SynchronizedQuadtree
-
-  val groupId = RandomStringUtils.randomAlphanumeric(5)
-  val decoder = new AvroFeatureDecoder(schema, EncodingOptions.withUserData)
-  // create a producer that reads from kafka and sends to the event bus
-  new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
 
   case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
     override def hashCode(): Int = sf.hashCode()
@@ -79,50 +54,8 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
     }
   }
 
-  val cb = CacheBuilder.newBuilder()
-
-  if (expiry) {
-    cb.expireAfterWrite(expirationPeriod, TimeUnit.MILLISECONDS)
-      .removalListener(
-        new RemovalListener[String, FeatureHolder] {
-          def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
-            qt.remove(removal.getValue.env, removal.getValue.sf)
-          }
-        }
-      )
-  }
-
-  val features: Cache[String, FeatureHolder] = cb.build()
-
-  eb.register(this)
-
-  @Subscribe
-  def processProtocolMessage(msg: KafkaGeoMessage): Unit = msg match {
-    case update: CreateOrUpdate => processNewFeatures(update)
-    case del: Delete            => removeFeature(del)
-    case Clear                  => clear()
-    case _     => throw new IllegalArgumentException("Should never happen")
-  }
-
-  def processNewFeatures(update: CreateOrUpdate): Unit = {
-    val sf = update.f
-    val id = update.id
-    Option(features.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
-    val env = sf.geometry.getEnvelopeInternal
-    qt.insert(env, sf)
-    features.put(sf.getID, FeatureHolder(sf, env))
-  }
-
-  def removeFeature(toDelete: Delete): Unit = {
-    val id = toDelete.id
-    Option(features.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
-    features.invalidate(toDelete.id)
-  }
-
-  def clear(): Unit = {
-    features.invalidateAll()
-    qt = new SynchronizedQuadtree
-  }
+  def qt: Quadtree
+  def features: mutable.Map[String, FeatureHolder]
 
   override def getBoundsInternal(query: Query) =
     ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
@@ -149,10 +82,10 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
   type DFI = DelegateFeatureIterator[SimpleFeature]
 
-  def include(i: IncludeFilter) = new DFR(schema, new DFI(features.asMap().valuesIterator.map(_.sf)))
+  def include(i: IncludeFilter) = new DFR(schema, new DFI(features.valuesIterator.map(_.sf)))
 
   def fid(ids: FidFilterImpl): FR = {
-    val iter = ids.getIDs.flatMap(id => Option(features.getIfPresent(id.toString)).map(_.sf)).iterator
+    val iter = ids.getIDs.flatMap(id => features.get(id.toString).map(_.sf)).iterator
     new DFR(schema, new DFI(iter))
   }
 
@@ -192,75 +125,4 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
       case pn: PropertyName => (pn, binop.getExpression2.asInstanceOf[Literal])
       case l: Literal       => (binop.getExpression2.asInstanceOf[PropertyName], l)
     }
-
-  private var id = 1L
-  def getNextId: FeatureId = {
-    val ret = id
-    id += 1
-    new FeatureIdImpl(ret.toString)
-  }
-
-  override def getWriterInternal(query: Query, flags: Int) = throw new IllegalArgumentException("Not allowed")
-}
-
-sealed trait KafkaGeoMessage
-case class CreateOrUpdate(id: String, f: SimpleFeature)  extends KafkaGeoMessage
-case class Delete(id: String) extends KafkaGeoMessage
-case object Clear extends KafkaGeoMessage {
-  type MSG = KeyedMessage[Array[Byte], Array[Byte]]
-  val EMPTY = Array.empty[Byte]
-  def toMsg(topic: String) = new MSG(topic, KafkaProducerFeatureStore.CLEAR_KEY, EMPTY)
-}
-
-trait FeatureProducer {
-  def eventBus: EventBus
-  def produceFeatures(f: SimpleFeature): Unit = eventBus.post(CreateOrUpdate(f.getID, f))
-  def deleteFeature(id: String): Unit = eventBus.post(Delete(id))
-  def deleteFeatures(ids: Seq[String]): Unit = ids.foreach(deleteFeature)
-  def clear(): Unit = eventBus.post(Clear)
-}
-
-class KafkaFeatureConsumer(topic: String,
-                           zookeepers: String,
-                           groupId: String,
-                           featureDecoder: AvroFeatureDecoder,
-                           override val eventBus: EventBus) extends FeatureProducer {
-
-  private val client = Consumer.create(new ConsumerConfig(buildClientProps))
-  private val whiteList = new Whitelist(topic)
-  private val decoder: DefaultDecoder = new DefaultDecoder(null)
-  private val stream = client.createMessageStreamsByFilter(whiteList, 1, decoder, decoder).head
-
-  val es = Executors.newSingleThreadExecutor()
-  es.submit(new Runnable {
-    override def run(): Unit = {
-      val iter = stream.iterator()
-      while (iter.hasNext) {
-        val msg = iter.next()
-        if(msg.key() != null) {
-          if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.DELETE_KEY)) {
-            val id = new String(msg.message(), StandardCharsets.UTF_8)
-            deleteFeature(id)
-          } else if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.CLEAR_KEY)) {
-            clear()
-          } else {
-            // only other key is the SCHEMA_KEY so ingore
-          }
-        } else {
-          val f = featureDecoder.decode(msg.message())
-          produceFeatures(f)
-        }
-      }
-    }
-  })
-
-  private def buildClientProps = {
-    val props = new Properties()
-    props.put("zookeeper.connect", zookeepers)
-    props.put("group.id", groupId)
-    props.put("zookeeper.session.timeout.ms", "2000")
-    props.put("zookeeper.sync.time.ms", "1000")
-    props.put("auto.commit.interval.ms", "1000")
-    props
-  }
 }

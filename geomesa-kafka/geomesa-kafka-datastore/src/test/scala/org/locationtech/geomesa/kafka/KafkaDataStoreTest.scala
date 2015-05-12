@@ -16,13 +16,8 @@
 
 package org.locationtech.geomesa.kafka
 
-import java.net.InetSocketAddress
-
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import kafka.server.KafkaConfig
-import kafka.utils.{TestUtils, TestZKUtils, Utils}
-import org.apache.zookeeper.server.{NIOServerCnxnFactory, ZooKeeperServer}
 import org.geotools.data._
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -37,19 +32,13 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class KafkaDataStoreTest extends Specification with Logging {
+class KafkaDataStoreTest extends Specification with TestKafkaServer with Logging {
 
-  val brokerConf = TestUtils.createBrokerConfig(1)
+  sequential
 
-  val zkConnect = TestZKUtils.zookeeperConnect
-  val zk = new EmbeddedZookeeper(zkConnect)
-  val server = TestUtils.createServer(new KafkaConfig(brokerConf))
-
-  val host = brokerConf.getProperty("host.name")
-  val port = brokerConf.getProperty("port").toInt
   val ff = CommonFactoryFinder.getFilterFactory2
   val consumerParams = Map(
-    "brokers"    -> s"$host:$port",
+    "brokers"    -> broker,
     "zookeepers" -> zkConnect,
     "zkPath"     -> "/geomesa/kafka/testds",
     "isProducer" -> false)
@@ -201,7 +190,7 @@ class KafkaDataStoreTest extends Specification with Logging {
 
       //Setup consumer prior to writing feature so the feature will be written to the cache once the producer writes
       val cachedConsumerFS = cachedConsumerDS.getFeatureSource("testExpiration").asInstanceOf[KafkaConsumerFeatureSource]
-      val featureCache = cachedConsumerFS.features
+      val featureCache = cachedConsumerFS.asInstanceOf[LiveKafkaConsumerFeatureSource].featureCache
       cachedConsumerFS.qt.size() must be equalTo 0
 
       //Write test feature
@@ -222,31 +211,7 @@ class KafkaDataStoreTest extends Specification with Logging {
   }
 
   step {
-    try {
-      server.shutdown()
-      zk.shutdown()
-    } catch {
-      case _: Throwable =>
-    }
+    shutdown()
   }
 }
 
-
-class EmbeddedZookeeper(val connectString: String) {
-  val snapshotDir = TestUtils.tempDir()
-  val logDir = TestUtils.tempDir()
-  val tickTime = 500
-  val zookeeper = new ZooKeeperServer(snapshotDir, logDir, tickTime)
-  val port = connectString.split(":")(1).toInt
-  val factory = new NIOServerCnxnFactory()
-  factory.configure(new InetSocketAddress("127.0.0.1", port), 1024)
-  factory.startup(zookeeper)
-
-  def shutdown() {
-    try { zookeeper.shutdown() } catch { case _: Throwable => }
-    try { factory.shutdown() } catch { case _: Throwable => }
-    Utils.rm(logDir)
-    Utils.rm(snapshotDir)
-  }
-
-}
