@@ -150,8 +150,10 @@ trait CachingFeatureSource extends AccumuloAbstractFeatureSource {
       query.setStartIndex(0)
     }
 
-    // Uses mergesort
-    new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy)
+    if (query.getSortBy == null)
+      featureCache.get(query)
+    else // Uses mergesort
+      new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy)
   }
 
   override def getCount(query: Query): Int = getFeatures(query).size()
