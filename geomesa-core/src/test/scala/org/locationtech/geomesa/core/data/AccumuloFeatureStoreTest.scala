@@ -16,45 +16,11 @@ import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
-@RunWith(classOf[JUnitRunner])
-class AccumuloFeatureStoreTest extends Specification with AccumuloDataStoreDefaults {
-  "AccumuloFeatureStore" should {
-    "handle time bounds" in {
-      val sftName = "TimeBoundsTest"
-      val sft = createSchema(sftName)
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
-      val sfBuilder = new SimpleFeatureBuilder(sft)
+trait GeoToolsFeatureStoreTester extends Specification with AccumuloDataStoreDefaults {
+  def sftName: String
 
-      val defaultInterval = ds.getTimeBounds(sft.getTypeName)
-      defaultInterval.getStartMillis must be equalTo 0
-
-      val date1 = new DateTime("2014-01-02").toDate
-      sfBuilder.addAll(List("johndoe", gf.createPoint(new Coordinate(0, 0)), date1))
-      val f1 = sfBuilder.buildFeature("f1")
-
-      fs.addFeatures(DataUtilities.collection(List(f1)))
-
-      val secondInterval = ds.getTimeBounds(sft.getTypeName)
-      secondInterval.getStartMillis must be equalTo date1.getTime
-      secondInterval.getEndMillis must be equalTo date1.getTime
-
-      val date2 = new DateTime("2014-01-03").toDate
-      sfBuilder.addAll(List("johndoe", gf.createPoint(new Coordinate(0, 0)), date2))
-      val f2 = sfBuilder.buildFeature("f2")
-
-      val date3 = new DateTime("2014-01-01").toDate
-      sfBuilder.addAll(List("johndoe", gf.createPoint(new Coordinate(0, 0)), date3))
-      val f3 = sfBuilder.buildFeature("f3")
-
-      fs.addFeatures(DataUtilities.collection(List(f2, f3)))
-
-      val thirdInterval = ds.getTimeBounds(sft.getTypeName)
-      thirdInterval.getStartMillis must be equalTo date3.getTime
-      thirdInterval.getEndMillis must be equalTo date2.getTime
-    }
-
+  "GeoTools Feature Stores" should {
     "handle sorting by attribute including nulls" in {
-      val sftName = "SortingTest"
       val sftSpec = "string:String,int:Integer,dtg:Date,geom:Point:srid=4326,float:Float"
       val sft = createSchema(sftName, sftSpec)
       val fs = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
@@ -79,10 +45,12 @@ class AccumuloFeatureStoreTest extends Specification with AccumuloDataStoreDefau
         ("claire", 7, new DateTime("2014-01-06").toDate, gf.createPoint(new Coordinate(0, -1)), 14.321)
       )
 
-      val featList = l.zipWithIndex.map{ case (features, index) => {
-        features.productIterator.foreach { sfBuilder.add }
+      val featList = l.zipWithIndex.map { case (features, index) =>
+        features.productIterator.foreach {
+          sfBuilder.add
+        }
         sfBuilder.buildFeature(s"$index")
-      }}
+      }
 
       fs.addFeatures(DataUtilities.collection(featList))
 
@@ -207,4 +175,60 @@ class AccumuloFeatureStoreTest extends Specification with AccumuloDataStoreDefau
       }
     }
   }
+}
+
+@RunWith(classOf[JUnitRunner])
+class AccumuloFeatureStoreTest extends GeoToolsFeatureStoreTester {
+  "AccumuloFeatureStore" should {
+    "handle time bounds" in {
+      val sftName = "TimeBoundsTest"
+      val sft = createSchema(sftName)
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
+      val sfBuilder = new SimpleFeatureBuilder(sft)
+
+      val defaultInterval = ds.getTimeBounds(sft.getTypeName)
+      defaultInterval.getStartMillis must be equalTo 0
+
+      val date1 = new DateTime("2014-01-02").toDate
+      sfBuilder.addAll(List("johndoe", gf.createPoint(new Coordinate(0, 0)), date1))
+      val f1 = sfBuilder.buildFeature("f1")
+
+      fs.addFeatures(DataUtilities.collection(List(f1)))
+
+      val secondInterval = ds.getTimeBounds(sft.getTypeName)
+      secondInterval.getStartMillis must be equalTo date1.getTime
+      secondInterval.getEndMillis must be equalTo date1.getTime
+
+      val date2 = new DateTime("2014-01-03").toDate
+      sfBuilder.addAll(List("johndoe", gf.createPoint(new Coordinate(0, 0)), date2))
+      val f2 = sfBuilder.buildFeature("f2")
+
+      val date3 = new DateTime("2014-01-01").toDate
+      sfBuilder.addAll(List("johndoe", gf.createPoint(new Coordinate(0, 0)), date3))
+      val f3 = sfBuilder.buildFeature("f3")
+
+      fs.addFeatures(DataUtilities.collection(List(f2, f3)))
+
+      val thirdInterval = ds.getTimeBounds(sft.getTypeName)
+      thirdInterval.getStartMillis must be equalTo date3.getTime
+      thirdInterval.getEndMillis must be equalTo date2.getTime
+    }
+  }
+
+  override def sftName: String = "AccumuloFeatureStoreTest"
+}
+
+@RunWith(classOf[JUnitRunner])
+class CachingAccumuloFeatureCollectionTest extends GeoToolsFeatureStoreTester {
+  override val ds = DataStoreFinder.getDataStore(Map(
+    "instanceId"        -> "mycloud",
+    "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+    "user"              -> "myuser",
+    "password"          -> "mypassword",
+    "tableName"         -> defaultTable,
+    "useMock"           -> "true",
+    "caching"           -> "true",
+    "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
+
+  override def sftName: String = "CachingAccumuloFeatureCollectionTest"
 }
