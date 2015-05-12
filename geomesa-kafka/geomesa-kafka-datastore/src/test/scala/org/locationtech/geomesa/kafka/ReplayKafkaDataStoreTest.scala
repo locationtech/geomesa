@@ -37,7 +37,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
+class ReplayKafkaDataStoreTest extends Specification with HasEmbeddedZookeeper {
 
   sequential
 
@@ -167,7 +167,7 @@ class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
     // the topic must be created by KafkaDataStore because it also stores some data in zookeeper
 
     val props = Map(
-      KAFKA_BROKER_PARAM.key -> broker,
+      KAFKA_BROKER_PARAM.key -> brokerConnect,
       ZOOKEEPERS_PARAM.key -> zkConnect,
       IS_PRODUCER_PARAM.key -> true.asInstanceOf[Serializable]
     )
@@ -177,7 +177,7 @@ class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
 
   def sendMessages(): Unit = {
     val props = new ju.Properties()
-    props.put("metadata.broker.list", broker)
+    props.put("metadata.broker.list", brokerConnect)
     props.put("serializer.class", "kafka.serializer.DefaultEncoder")
     val kafkaProducer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(props))
 
@@ -188,7 +188,7 @@ class ReplayKafkaDataStoreTest extends Specification with TestKafkaServer {
 
   def createDataStore(start: Long, end: Long, readBehind: Long): DataStore = {
     val props = ReplayKafkaDataStoreFactory.props(
-      broker, zkConnect, new Instant(start), new Instant(end), Duration.millis(readBehind))
+      brokerConnect, zkConnect, new Instant(start), new Instant(end), Duration.millis(readBehind))
 
     new ReplayKafkaDataStoreFactory().createDataStore(props)
   }

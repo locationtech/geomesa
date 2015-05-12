@@ -23,7 +23,7 @@
     <category name="kafka">
         <priority value="warn"/>
     </category>
-    <category name="org.I0Itec.zkclient">
+    <category name="org.I0Itec">
         <priority value="warn"/>
     </category>
     <category name="org.apache.zookeeper">
@@ -33,12 +33,6 @@
         <priority value="warn"/>
     </category>
     <category name="hsqldb">
-        <priority value="warn"/>
-    </category>
-    <category name="kafka">
-        <priority value="warn"/>
-    </category>
-    <category name="org.I0Itec">
         <priority value="warn"/>
     </category>
 

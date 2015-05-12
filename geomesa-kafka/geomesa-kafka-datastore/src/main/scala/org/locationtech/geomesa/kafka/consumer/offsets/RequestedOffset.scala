@@ -8,12 +8,35 @@
 
 package org.locationtech.geomesa.kafka.consumer.offsets
 
+import java.util.Locale
+
+import com.typesafe.config.Config
 import kafka.message.Message
 import kafka.serializer.Decoder
 import org.locationtech.geomesa.kafka.consumer.offsets.FindOffset.MessagePredicate
 
+import scala.util.{Success, Try}
+
 
 sealed trait RequestedOffset
+
+object RequestedOffset {
+  def apply(conf: Config): Option[RequestedOffset] = {
+    if (!conf.hasPath("offset")) {
+      None
+    } else {
+      conf.getString("offset").toLowerCase(Locale.US) match {
+        case "earliest"                => Some(EarliestOffset)
+        case "latest"                  => Some(LatestOffset)
+        case "group"                   => Some(GroupOffset)
+        case d if d.startsWith("date") => Try(d.substring(5).trim.toLong).map(DateOffset).toOption
+        case _                         =>
+          Try(Class.forName(conf.getString("offset")).newInstance().asInstanceOf[FindMessage])
+              .map(f => FindOffset(f.predicate)).toOption
+      }
+    }
+  }
+}
 
 case object EarliestOffset                          extends RequestedOffset
 case object LatestOffset                            extends RequestedOffset
@@ -33,4 +56,8 @@ object FindOffset {
       predicate(decoder.fromBytes(bb))
     }
   }
+}
+
+trait FindMessage {
+  def predicate: MessagePredicate
 }

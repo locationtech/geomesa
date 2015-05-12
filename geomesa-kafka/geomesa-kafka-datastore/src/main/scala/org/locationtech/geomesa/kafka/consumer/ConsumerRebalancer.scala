@@ -18,7 +18,7 @@ import kafka.common.{ConsumerRebalanceFailedException, TopicAndPartition}
 import kafka.consumer._
 import kafka.utils.ZkUtils._
 import kafka.utils._
-import org.I0Itec.zkclient.exception.ZkNodeExistsException
+import org.I0Itec.zkclient.exception.{ZkInterruptedException, ZkNodeExistsException}
 import org.I0Itec.zkclient.{IZkChildListener, IZkDataListener, IZkStateListener, ZkClient}
 import org.apache.zookeeper.Watcher.Event.KeeperState
 import org.locationtech.geomesa.kafka.consumer.offsets.RequestedOffset
@@ -226,6 +226,8 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
     val done = try {
       rebalance(ConsumerRebalancer.getCluster(zkClient))
     } catch {
+      case _: ZkInterruptedException | _: InterruptedException =>
+        false
       case e: Exception =>
         // occasionally, we may hit a ZK exception because the ZK state is changing while we are iterating.
         // For example, a ZK node can disappear between the time we get all children and the time we

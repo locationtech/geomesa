@@ -32,20 +32,20 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class KafkaDataStoreTest extends Specification with TestKafkaServer with Logging {
+class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Logging {
 
-  sequential
+  sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
 
   val ff = CommonFactoryFinder.getFilterFactory2
   val consumerParams = Map(
-    "brokers"    -> broker,
+    "brokers"    -> brokerConnect,
     "zookeepers" -> zkConnect,
     "zkPath"     -> "/geomesa/kafka/testds",
     "isProducer" -> false)
 
 
   val producerParams = Map(
-    "brokers"    -> s"$host:$port",
+    "brokers"    -> brokerConnect,
     "zookeepers" -> zkConnect,
     "zkPath"     -> "/geomesa/kafka/testds",
     "isProducer" -> true)
@@ -169,7 +169,7 @@ class KafkaDataStoreTest extends Specification with TestKafkaServer with Logging
   "KafkaDataStore with cachedConsumer" should {
     "expire messages correctly when expirationPeriod is set" >> {
       val cachedConsumerParams = Map(
-        "brokers"          -> s"$host:$port",
+        "brokers"          -> brokerConnect,
         "zookeepers"       -> zkConnect,
         "zkPath"           -> "/geomesa/kafka/cachedtestds",
         "isProducer"       -> false,
@@ -177,7 +177,7 @@ class KafkaDataStoreTest extends Specification with TestKafkaServer with Logging
         "expirationPeriod" -> 2000L)
 
       val producerParams = Map(
-        "brokers"    -> s"$host:$port",
+        "brokers"    -> brokerConnect,
         "zookeepers" -> zkConnect,
         "zkPath"     -> "/geomesa/kafka/cachedtestds",
         "isProducer" -> true)
@@ -200,13 +200,13 @@ class KafkaDataStoreTest extends Specification with TestKafkaServer with Logging
       sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
       fw.write()
 
-      featureCache.features.size must eventually(10, 500.millis)(beEqualTo(1))
-      featureCache.qt.size() must eventually(10, 500.millis)(beEqualTo(1))
+      featureCache.features.size must beEqualTo(1).eventually(10, 500.millis)
+      featureCache.qt.size() must beEqualTo(1).eventually(10, 500.millis)
       Thread.sleep(2000) //sleep enough time to reach the expirationPeriod
 
       featureCache.cache.cleanUp() //remove old entries now that the TTL has passed
       featureCache.features.size must be equalTo 0
-      featureCache.qt.size() must eventually(10, 500.millis)(beEqualTo(0))
+      featureCache.qt.size() must beEqualTo(0).eventually(10, 500.millis)
     }
   }
 
@@ -214,4 +214,3 @@ class KafkaDataStoreTest extends Specification with TestKafkaServer with Logging
     shutdown()
   }
 }
-
