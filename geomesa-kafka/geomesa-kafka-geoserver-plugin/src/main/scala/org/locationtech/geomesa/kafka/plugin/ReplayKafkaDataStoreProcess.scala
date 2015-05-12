@@ -27,7 +27,7 @@ import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.util.Try
+import scala.util.matching.Regex
 
 @DescribeProcess(
   title = "GeoMesa Build Replay From KafkaDataStore",
@@ -44,32 +44,26 @@ class ReplayKafkaDataStoreProcess(val catalog: Catalog) extends GeomesaKafkaProc
               sourceWorkspace: String,
               @DescribeParameter(name = "store", description = "Name of Source Store")
               sourceStore: String,
-              @DescribeParameter(name = "target workspace", description = "Target workspace, created if missing.")
-              targetWorkspace: String,
               @DescribeParameter(name = "startTime", description = "POSIX Start Time of the replay window.")
-              startTime: java.lang.Long, //Todo: change to something that can be used for Joda constructor
+              startTime: java.lang.Long,
               @DescribeParameter(name = "endTime", description = "POSIX End Time of the replay window.")
-              endTime: java.lang.Long,   //Todo: change to something that can be used for Joda constructor
+              endTime: java.lang.Long,
               @DescribeParameter(name = "readBehind", description = "The amount of time to pre-read in milliseconds.")
               readBehind: java.lang.Long
               ): String = {
 
     val sourceWorkSpaceInfo: WorkspaceInfo = getWorkSpace(sourceWorkspace)
-    val volatileWorkSpaceInfo: WorkspaceInfo = getVolatileWorkSpace(targetWorkspace)
 
-    val catalogBuilder = new CatalogBuilder(catalog)
-    catalogBuilder.setWorkspace(volatileWorkSpaceInfo)
-
-    // Is there a way of making the store a parameter?
     val sourceStoreInfo: DataStoreInfo = Option(catalog.getDataStoreByName(sourceWorkSpaceInfo.getName, sourceStore)).getOrElse {
-      throw new ProcessException(s"Unable to find store $sourceStore in workspace $targetWorkspace")
+      throw new ProcessException(s"Unable to find store $sourceStore in source workspace $sourceWorkspace")
     }
-
-    //create volatile SFT, todo: will need to use replay config here
-    val volatileSFT = createVolatileSFT(features, sourceStoreInfo, volatileWorkSpaceInfo.getName)
-
     // set the catalogBuilder to our store
+    val catalogBuilder = new CatalogBuilder(catalog)
+    catalogBuilder.setWorkspace(sourceWorkSpaceInfo)
     catalogBuilder.setStore(sourceStoreInfo)
+
+    // create volatile SFT, todo: will need to use replay config here
+    val volatileSFT = createVolatileSFT(features, sourceStoreInfo, sourceWorkSpaceInfo.getName)
 
     // add well known volatile keyword
     val volatileTypeInfo = catalogBuilder.buildFeatureType(volatileSFT.getName)
@@ -80,13 +74,14 @@ class ReplayKafkaDataStoreProcess(val catalog: Catalog) extends GeomesaKafkaProc
 
     // build the layer and mark as volatile
     val volatileLayerInfo = catalogBuilder.buildLayer(volatileTypeInfo)
+    // add the name of the volatile SFT associated with this new layer
     volatileLayerInfo.getMetadata.put(volatileHint, volatileHint)
-
+    volatileLayerInfo.getMetadata.put(volatileLayerSftHint, volatileSFT.getTypeName)
     // Add new layer with hints to geoserver
     catalog.add(volatileTypeInfo)
     catalog.add(volatileLayerInfo)
 
-    s"created workspace: ${volatileWorkSpaceInfo.getName} and layer: ${volatileLayerInfo.getName}"
+    s"created layer: ${volatileLayerInfo.getName}"
   }
 
   private def createVolatileSFT(features: SimpleFeatureCollection,
@@ -104,35 +99,13 @@ class ReplayKafkaDataStoreProcess(val catalog: Catalog) extends GeomesaKafkaProc
     val destinationSFT = sftBuilder.buildFeatureType()
     val ds = storeInfo.getDataStore(null).asInstanceOf[ContentDataStore]
     ds.createSchema(destinationSFT)
+    injectAge(storeInfo, destinationSFT)
     //verify by retrieving the stored sft
     val storedSFT = ds.getSchema(destinationSFT.getName)
     // check if layer exists
     if (checkForLayer(targetWorkspace, storedSFT.getTypeName))
       throw new ProcessException(s"Target layer already exists for SFT: ${storedSFT.getTypeName}")
     storedSFT
-  }
-
-  private def getVolatileWorkSpace(workspace: String): WorkspaceInfo = Option(catalog.getWorkspaceByName(workspace)) match {
-    case Some(wsi) => wsi
-    case _         =>
-      logger.info(s"Could not find workspace $workspace Attempting to create.")
-      val attempt = Try {
-        val ws = catalog.getFactory.createWorkspace()
-        val ns = catalog.getFactory.createNamespace()
-        ws.setName(workspace)
-        ws.getMetadata.put(volatileHint, volatileHint) // volatile hint needed for cleanup
-        ns.setPrefix(ws.getName)
-        ns.setURI("http://www.geomesa.org")
-        catalog.add(ws)
-        catalog.add(ns)
-        ws
-      } orElse Try {
-        logger.warn(s"Could not make workspace $workspace Attempting to use default workspace.")
-        catalog.getDefaultWorkspace
-      }
-      attempt.getOrElse {
-        throw new ProcessException(s"Unable to use default workspace.")
-      }
   }
   
   private def getWorkSpace(ws: String): WorkspaceInfo = Option(catalog.getWorkspaceByName(ws)) match {
@@ -149,6 +122,34 @@ class ReplayKafkaDataStoreProcess(val catalog: Catalog) extends GeomesaKafkaProc
 }
 
 object ReplayKafkaDataStoreProcess {
+  val volatileLayerSftHint: String = "kafka.geomesa.volatile.layer.sft"
+  val volatileSftAgeHint: String   = "kafka.geomesa.volatile.age.of.sft "
+  val volatileSftPattern: Regex = s"($volatileSftAgeHint)(.*)".r
   val volatileHint: String = "kafka.geomesa.volatile"
-  val volatileKW: Keyword = new Keyword(volatileHint) //Todo: make this accessible to other things
+  val volatileKW: Keyword = new Keyword(volatileHint)
+
+  private def makeAgeKey(sfts: String): String = volatileSftAgeHint + sfts
+  private def makeAgeKey(sft: SimpleFeatureType): String = makeAgeKey(sft.getTypeName)
+
+  def injectAge(dsi: DataStoreInfo, sft: SimpleFeatureType): Unit = {
+    dsi.getMetadata.put(makeAgeKey(sft), System.currentTimeMillis())
+  }
+
+  def getSftFromKey(key: String): Option[String] = key match {
+    case volatileSftPattern(hint, sftname) => Some(sftname)
+    case _                                 => None
+  }
+
+  def getVolatileAge(dsi: DataStoreInfo, sft: SimpleFeatureType): Option[Long] = {
+    getVolatileAge(dsi, sft.getTypeName)
+  }
+
+  def getVolatileAge(dsi: DataStoreInfo, sfts: String): Option[Long] = {
+    val meta = dsi.getMetadata
+    val ageKey = makeAgeKey(sfts)
+    meta.containsKey(ageKey) match {
+      case true => Some(meta.get(ageKey, classOf[Long]))
+      case _    => None
+    }
+  }
 }

@@ -18,8 +18,9 @@
 package org.locationtech.geomesa.kafka.plugin
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.geoserver.catalog.{DataStoreInfo, WorkspaceInfo, LayerInfo, Catalog}
-import org.geotools.process.factory.{DescribeResult, DescribeProcess}
+import org.geoserver.catalog.{Catalog, DataStoreInfo, LayerInfo}
+import org.geotools.process.factory.{DescribeProcess, DescribeResult}
+import org.joda.time.{Duration, Instant}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
@@ -31,30 +32,46 @@ import scala.util.Try
 )
 class ReplayKafkaLayerReaperProcess(val catalog: Catalog) extends GeomesaKafkaProcess with Logging {
   import org.locationtech.geomesa.kafka.plugin.ReplayKafkaDataStoreProcess._
+
+  implicit def longToInstant(l: Long): Instant = new Instant(l)
   @DescribeResult(name = "result", description = "If removal was successful, true.")
   def execute(): Boolean = {
     Try {
-      val replayWorkspaces = catalog.getWorkspaces.toList.flatMap(isReplayWorkspace)
-      // remove volatile schemas from replay workspaces
-      val replayDataStores = replayWorkspaces.flatMap(x => catalog.getDataStoresByWorkspace(x).toList)
-      replayDataStores.foreach(removeSchema)
-      // remove volatile layers
-      val replayLayers = catalog.getLayers.toList.flatMap(isReplayKafkaLayer)
-      replayLayers.foreach(catalog.remove)
+      val currentTime = new Instant(System.currentTimeMillis())
+      //Todo: make the look-back time configurable via the applicationContext.xml
+      val ageLimit = currentTime.minus(Duration.standardHours(1))
+
+      // Get DataStoreInfo Schema pairs for old Schemas
+      val oldOnly = for {
+        dsi <- catalog.getDataStores
+        schema <- getReplaySchemaNames(dsi)
+        age <- getVolatileAge(dsi, schema)
+        if age.isBefore(ageLimit)
+      } yield (dsi, schema)
+
+      // Remove old schemas from DataStores, return flattened list of them
+      val removedSchemas = oldOnly.flatMap{ case (dsi, oldSchema) =>
+        val ds = dsi.getDataStore(null)
+        val oldSchemas = ds.getNames.filter(_.getLocalPart.contains(oldSchema)).toList
+        oldSchemas.foreach(ds.removeSchema)
+        oldSchemas.map(_.getLocalPart)
+      }.toList
+
+      //TODO: Should this happen before calling remove schema?
+      // Remove Layers associated with removed schemas
+      val oldReplayLayers = for {
+        layer <- catalog.getLayers
+        schema <- removedSchemas
+        if isOldReplayLayer(layer, schema)
+      } yield layer
+
+      oldReplayLayers.foreach(catalog.remove)
     }.isSuccess
   }
 
-  private def isReplayWorkspace(w: WorkspaceInfo) = {
-    if (w.getMetadata.containsKey(volatileHint)) Some(w) else None
+  private def getReplaySchemaNames(dsi: DataStoreInfo): List[String] = {
+    dsi.getMetadata.keysIterator.flatMap(getSftFromKey).toList
   }
 
-  private def removeSchema(dsi: DataStoreInfo) = {
-    val ds = dsi.getDataStore(null)
-    ds.getNames.filter(_.getLocalPart.toLowerCase.contains("volatile")).foreach(ds.removeSchema)
-  }
-
-  private def isReplayKafkaLayer(l: LayerInfo) = {
-    if (l.getMetadata.containsKey(volatileHint)) Some(l) else None // No idea if this will work
-  }
-
+  private def isOldReplayLayer(l: LayerInfo, s: String): Boolean = l.getMetadata.containsValue(s)
 }
