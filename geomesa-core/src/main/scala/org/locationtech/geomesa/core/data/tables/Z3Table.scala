@@ -1,5 +1,6 @@
 package org.locationtech.geomesa.core.data.tables
 
+import java.nio.ByteBuffer
 import java.util.Date
 
 import com.google.common.base.Charsets
@@ -13,6 +14,7 @@ import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.feature.nio.AttributeAccessor.ByteBufferSimpleFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.`type`.GeometryDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
@@ -39,8 +41,11 @@ object Z3Table {
       index.getDtgDescriptor(sft)
         .map { desc => sft.indexOf(desc.getName) }
         .getOrElse { throw new IllegalArgumentException("Must have a date for a Z3 index")}
-
+    val writer = new ByteBufferSimpleFeatureSerializer(sft)
+    val buf = ByteBuffer.allocate(2048)
     (fw: FeatureToWrite) => {
+      val bytesWritten = writer.write(buf, fw.feature)
+      val payload = new Value(ByteBuffer.wrap(buf.array(), 0, bytesWritten).array())
       val geom = fw.feature.point
       val x = geom.getX
       val y = geom.getY
@@ -67,11 +72,11 @@ object Z3Table {
         }
         if(lexi != null) {
           val cq = lexi.getBytes(Charsets.UTF_8)
-          m.put(d, new Text(cq), fw.columnVisibility, fw.dataValue)
+          m.put(d, new Text(cq), fw.columnVisibility, payload)
         }
       }
       m.put(BIN_ROW, EMPTY_TEXT, fw.columnVisibility, EMPTY_VALUE)
-      m.put(FULL_ROW, EMPTY_TEXT, fw.columnVisibility, fw.dataValue)
+      m.put(FULL_ROW, EMPTY_TEXT, fw.columnVisibility, payload)
       Seq(m)
     }
 

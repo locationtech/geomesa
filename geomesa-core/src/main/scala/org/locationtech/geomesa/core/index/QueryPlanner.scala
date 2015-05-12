@@ -111,21 +111,23 @@ case class QueryPlanner(sft: SimpleFeatureType,
         val q1 = new Query(sft.getTypeName, ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env))
         val mixedQuery = DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
         val strategy = QueryStrategyDecider.chooseStrategy(sft, mixedQuery, hints, version)
-        val plan = strategy.getQueryPlan(mixedQuery, this, output)
-        Seq(StrategyPlan(strategy, plan))
+        val plans = strategy.getQueryPlan(mixedQuery, this, output)
+        plans.map { p => StrategyPlan(strategy, p) }
       } else {
         // As a pre-processing step, we examine the query/filter and split it into multiple queries.
         // TODO Work to make the queries non-overlapping
-        splitQueryOnOrs(query, output).map { q =>
+        splitQueryOnOrs(query, output).flatMap { q =>
           val strategy = QueryStrategyDecider.chooseStrategy(sft, q, hints, version)
           output(s"Strategy: ${strategy.getClass.getCanonicalName}")
           output(s"Transforms: ${getTransformDefinition(query).getOrElse("None")}")
-          val plan = strategy.getQueryPlan(q, this, output)
-          output(s"Table: ${plan.table}")
-          output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all" else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
-          output(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).mkString(", ")}")
-          output(s"Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", ", ", "]")}")
-          StrategyPlan(strategy, plan)
+          val plans = strategy.getQueryPlan(q, this, output)
+          plans.map { plan =>
+            output(s"Table: ${plan.table}")
+            output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all" else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
+            output(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).mkString(", ")}")
+            output(s"Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", ", ", "]")}")
+            StrategyPlan(strategy, plan)
+          }
         }
       }
     }, "plan")
@@ -141,7 +143,6 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
     // Decode according to the SFT return type.
     // if this is a density query, expand the map
-/*
     if (query.getHints.containsKey(DENSITY_KEY)) {
       adaptDensityIterator(accumuloIterator, decoder)
     } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
@@ -149,10 +150,10 @@ case class QueryPlanner(sft: SimpleFeatureType,
     } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
       adaptMapAggregationIterator(accumuloIterator, query, returnSFT, decoder)
     } else {
-      adaptStandardIterator(accumuloIterator, query, decoder)
+      //adaptStandardIterator(accumuloIterator, query, decoder)
+      adaptZ3Iterator(accumuloIterator, query)
     }
-*/
-    adaptZ3Iterator(accumuloIterator, query)
+
   }
 
   private val Z3CURVE = new Z3SFC

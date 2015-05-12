@@ -6,7 +6,8 @@ import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
-import org.joda.time.{DateTime, Weeks}
+import org.joda.time.{Interval, Weeks}
+import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.core.data.tables.Z3Table
 import org.locationtech.geomesa.core.filter
 import org.locationtech.geomesa.curve.{Z3Iterator, Z3SFC}
@@ -24,9 +25,9 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
   /**
    * Plans the query - strategy implementations need to define this
    */
-  override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType): QueryPlan = {
-    val sft             = queryPlanner.sft
-    val acc             = queryPlanner.acc
+  override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
+    val sft = queryPlanner.sft
+    val acc = queryPlanner.acc
 
     val dtgField = getDtgFieldName(sft)
 
@@ -65,7 +66,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     // If given spatial predicates like disjoint.
     val ofilter =
       if (isWholeWorld(geometryToCover)) filterListAsAnd(temporalFilters)
-      else                               filterListAsAnd(tweakedGeomFilters ++ temporalFilters)
+      else filterListAsAnd(tweakedGeomFilters ++ temporalFilters)
 
     if (ofilter.isEmpty) {
       logger.warn(s"Querying Accumulo without SpatioTemporal filter.")
@@ -79,12 +80,28 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     val (lx, ly, ux, uy) = (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
     val epochWeekStart = Weeks.weeksBetween(Z3Table.EPOCH, interval.getStart)
     val epochWeekEnd = Weeks.weeksBetween(Z3Table.EPOCH, interval.getEnd)
-    if(epochWeekStart != epochWeekEnd) throw new IllegalArgumentException("Spanning week not yet implemented")
+    val weeks = scala.Range.inclusive(epochWeekStart.getWeeks, epochWeekEnd.getWeeks)
+    if (weeks.length == 1) Seq(queryPlanForPrefix(weeks.head, interval, lx, ly, ux, uy, acc, sft, contained = false))
+    else {
+      val head +: xs :+ last = weeks.toList
+      val middleQPs = xs.map { w => queryPlanForPrefix(w, interval, lx, ly, ux, uy, acc, sft, contained = true) }
+      val edgePlans = Seq(head, last).map { w => queryPlanForPrefix(w, interval, lx, ly, ux, uy, acc, sft, contained = false) }
+      edgePlans ++ middleQPs
+    }
+  }
 
-    val lt = Z3Table.secondsInCurrentWeek(interval.getStart, epochWeekStart)
-    val ut = Z3Table.secondsInCurrentWeek(interval.getEnd, epochWeekStart)
+  def queryPlanForPrefix(week: Int, interval: Interval, lx: Double, ly: Double, ux: Double, uy: Double,
+          acc: AccumuloConnectorCreator, sft: SimpleFeatureType, 
+          contained: Boolean = true) = {
+    val epochWeekStart = Weeks.weeks(week)
+    val (lt, ut) = 
+      if(contained) (0, Weeks.ONE.toStandardSeconds.getSeconds)
+      else (
+        Z3Table.secondsInCurrentWeek(interval.getStart, epochWeekStart),
+        Z3Table.secondsInCurrentWeek(interval.getEnd, epochWeekStart))
+
     val z3ranges = Z3_CURVE.ranges(lx, ly, ux, uy, lt, ut, 8)
-    println(z3ranges.length)
+
     val prefix = Shorts.toByteArray(epochWeekStart.getWeeks.toShort)
 
     val accRanges = z3ranges.map { case (s, e) =>
@@ -123,15 +140,11 @@ object Z3IdxStrategy extends StrategyProvider {
       val between = temporalFilter.asInstanceOf[PropertyIsBetween]
       val s = between.getLowerBoundary.asInstanceOf[Literal].getValue
       val e = between.getUpperBoundary.asInstanceOf[Literal].getValue
-      if(Z3Table.epochWeeks(new DateTime(s)) != Z3Table.epochWeeks(new DateTime(e))) {
-        None
-      } else {
-        val geom = sft.getGeometryDescriptor.getLocalName
-        val e1 = geomFilter.head.asInstanceOf[BinarySpatialOperator].getExpression1
-        val e2 = geomFilter.head.asInstanceOf[BinarySpatialOperator].getExpression2
-        checkOrder(e1, e2).filter(_.name == geom).map(_ => StrategyDecision(new Z3IdxStrategy, -1))
-      }
-    } else {
+      val geom = sft.getGeometryDescriptor.getLocalName
+      val e1 = geomFilter.head.asInstanceOf[BinarySpatialOperator].getExpression1
+      val e2 = geomFilter.head.asInstanceOf[BinarySpatialOperator].getExpression2
+      checkOrder(e1, e2).filter(_.name == geom).map(_ => StrategyDecision(new Z3IdxStrategy, -1))
+     } else {
       None
     }
   }
