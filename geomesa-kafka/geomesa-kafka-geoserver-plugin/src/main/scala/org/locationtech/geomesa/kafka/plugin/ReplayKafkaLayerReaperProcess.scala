@@ -29,7 +29,7 @@ import scala.util.Try
   description = "Removes Kafka Replay Layers from GeoServer",
   version = "1.0.0"
 )
-class ReplayKafkaLayerReaper(val catalog: Catalog) extends GeomesaKafkaProcess with Logging {
+class ReplayKafkaLayerReaperProcess(val catalog: Catalog) extends GeomesaKafkaProcess with Logging {
   import org.locationtech.geomesa.kafka.plugin.ReplayKafkaDataStoreProcess._
   @DescribeResult(name = "result", description = "If removal was successful, true.")
   def execute(): Boolean = {

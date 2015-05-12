@@ -46,11 +46,11 @@ class ReplayKafkaDataStoreProcess(val catalog: Catalog) extends GeomesaKafkaProc
               sourceStore: String,
               @DescribeParameter(name = "target workspace", description = "Target workspace, created if missing.")
               targetWorkspace: String,
-              @DescribeParameter(name = "startTime", description = "Start Time of the replay window")
-              startTime: Integer, //Todo: change to something that can be used for Joda constructor
-              @DescribeParameter(name = "endTime", description = "End Time of the replay window")
-              endTime: Integer,   //Todo: change to something that can be used for Joda constructor
-              @DescribeParameter(name = "readBehind", description = "The amount of time to pre-read")
+              @DescribeParameter(name = "startTime", description = "POSIX Start Time of the replay window.")
+              startTime: java.lang.Long, //Todo: change to something that can be used for Joda constructor
+              @DescribeParameter(name = "endTime", description = "POSIX End Time of the replay window.")
+              endTime: java.lang.Long,   //Todo: change to something that can be used for Joda constructor
+              @DescribeParameter(name = "readBehind", description = "The amount of time to pre-read in milliseconds.")
               readBehind: java.lang.Long
               ): String = {
 

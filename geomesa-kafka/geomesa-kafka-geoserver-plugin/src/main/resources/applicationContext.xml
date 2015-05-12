@@ -38,4 +38,8 @@
         <constructor-arg index="0" ref="catalog"/>
     </bean>
 
+    <bean id="replayKafkaLayerReaper" class="org.locationtech.geomesa.kafka.plugin.ReplayKafkaLayerReaperProcess">
+        <constructor-arg index="0" ref="catalog"/>
+    </bean>
+
 </beans>
