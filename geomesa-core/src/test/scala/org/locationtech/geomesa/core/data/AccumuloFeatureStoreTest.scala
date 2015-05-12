@@ -96,8 +96,6 @@ class AccumuloFeatureStoreTest extends Specification with AccumuloDataStoreDefau
           case None => None
         }).toList
 
-        println(res)
-
         res.size must beEqualTo(featList.size)
         res must beSorted
         res.head must beLessThan(res(1))
