@@ -51,13 +51,13 @@
         <!-- wait 5 seconds before scheduling this task -->
         <property name="delay" value="5000"/>
         <!-- run the cleanup every five minutes -->
-        <property name="period" value="300000"/>
+        <property name="period" value="5000"/>
         <property name="fixedRate" value="true"/>
     </bean>
 
     <!-- Instantiate the reaper -->
     <bean id="replayKafkaCleanupTaskFactory"
-          class="org.springframework.scheduling.concurrent.ScheduledExecutorFactoryBean">
+          class="org.springframework.scheduling.concurrent.ScheduledExecutorFactoryBean" lazy-init="false">
         <property name="poolSize" value="1"/>
         <property name="continueScheduledExecutionAfterException" value="true"/>
         <property name="scheduledExecutorTasks">
