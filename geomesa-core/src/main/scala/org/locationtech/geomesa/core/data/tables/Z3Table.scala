@@ -1,6 +1,7 @@
 package org.locationtech.geomesa.core.data.tables
 
 import java.nio.ByteBuffer
+import java.util
 import java.util.Date
 
 import com.google.common.base.Charsets
@@ -45,7 +46,7 @@ object Z3Table {
     val buf = ByteBuffer.allocate(2048)
     (fw: FeatureToWrite) => {
       val bytesWritten = writer.write(buf, fw.feature)
-      val payload = new Value(ByteBuffer.wrap(buf.array(), 0, bytesWritten).array())
+      val payload = new Value(util.Arrays.copyOfRange(buf.array(), 0, bytesWritten))
       val geom = fw.feature.point
       val x = geom.getX
       val y = geom.getY
@@ -60,7 +61,7 @@ object Z3Table {
       
       val row = Bytes.concat(prefix, z3idx, idBytes)
       val m = new Mutation(row)
-
+/*
       val attrToIndex = getAttributesToIndex(sft)
       attrToIndex.foreach { case (d, idx) =>
         val lexi = fw.feature.getAttribute(idx) match {
@@ -75,6 +76,7 @@ object Z3Table {
           m.put(d, new Text(cq), fw.columnVisibility, payload)
         }
       }
+*/
       m.put(BIN_ROW, EMPTY_TEXT, fw.columnVisibility, EMPTY_VALUE)
       m.put(FULL_ROW, EMPTY_TEXT, fw.columnVisibility, payload)
       Seq(m)

@@ -3,6 +3,7 @@ package org.locationtech.geomesa.core.index
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
+import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
@@ -11,10 +12,13 @@ import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.core.data.tables.Z3Table
 import org.locationtech.geomesa.core.filter
 import org.locationtech.geomesa.curve.{Z3Iterator, Z3SFC}
+import org.locationtech.geomesa.iterators.LazySimpleFeatureFilteringIterator
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.Literal
 import org.opengis.filter.spatial.BinarySpatialOperator
 import org.opengis.filter.{Filter, PropertyIsBetween}
+
+import scala.collection.JavaConversions._
 
 class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
 
@@ -75,23 +79,31 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     output(s"Interval:  $interval")
     output(s"Filter: ${Option(filter).getOrElse("No Filter")}")
 
+    val iteratorSettings =
+      if(ecqlFilters.length == 0) None
+      else {
+        val ecqlAnd = if(ecqlFilters.length == 1) ecqlFilters.head else ff.and(ecqlFilters.toList)
+        val is = LazySimpleFeatureFilteringIterator.configure(sft, ecqlAnd)
+        Some(is)
+      }
+
     // setup Z3 iterator
     val env = geometryToCover.getEnvelopeInternal
     val (lx, ly, ux, uy) = (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
     val epochWeekStart = Weeks.weeksBetween(Z3Table.EPOCH, interval.getStart)
     val epochWeekEnd = Weeks.weeksBetween(Z3Table.EPOCH, interval.getEnd)
     val weeks = scala.Range.inclusive(epochWeekStart.getWeeks, epochWeekEnd.getWeeks)
-    if (weeks.length == 1) Seq(queryPlanForPrefix(weeks.head, interval, lx, ly, ux, uy, acc, sft, contained = false))
+    if (weeks.length == 1) Seq(queryPlanForPrefix(weeks.head, interval, lx, ly, ux, uy, acc, sft, iteratorSettings, contained = false))
     else {
       val head +: xs :+ last = weeks.toList
-      val middleQPs = xs.map { w => queryPlanForPrefix(w, interval, lx, ly, ux, uy, acc, sft, contained = true) }
-      val edgePlans = Seq(head, last).map { w => queryPlanForPrefix(w, interval, lx, ly, ux, uy, acc, sft, contained = false) }
+      val middleQPs = xs.map { w => queryPlanForPrefix(w, interval, lx, ly, ux, uy, acc, sft, iteratorSettings, contained = true) }
+      val edgePlans = Seq(head, last).map { w => queryPlanForPrefix(w, interval, lx, ly, ux, uy, acc, sft, iteratorSettings, contained = false) }
       edgePlans ++ middleQPs
     }
   }
 
   def queryPlanForPrefix(week: Int, interval: Interval, lx: Double, ly: Double, ux: Double, uy: Double,
-          acc: AccumuloConnectorCreator, sft: SimpleFeatureType, 
+          acc: AccumuloConnectorCreator, sft: SimpleFeatureType, is: Option[IteratorSetting],
           contained: Boolean = true) = {
     val epochWeekStart = Weeks.weeks(week)
     val (lt, ut) = 
@@ -115,7 +127,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     val iter = Z3Iterator.configure(Z3_CURVE.index(lx, ly, lt), Z3_CURVE.index(ux, uy, ut), 21)
 
     val table = acc.getZ3Table(sft)
-    BatchScanPlan(table, accRanges, Seq(iter), Seq(Z3Table.BIN_ROW), 8, hasDuplicates = false)
+    BatchScanPlan(table, accRanges, Seq(Some(iter), is).flatten, Seq(Z3Table.FULL_ROW), 8, hasDuplicates = false)
   }
 }
 

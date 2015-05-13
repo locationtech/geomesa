@@ -175,7 +175,7 @@ object AttributeAccessor {
         curoffset += uoffset
         curvoffset += uvoffset
       }
-      curvoffset
+      vstart + curvoffset
     }
 
   }
@@ -185,7 +185,11 @@ object AttributeAccessor {
 class LazySimpleFeature(id: String,
                         sft: SimpleFeatureType,
                         accessors: IndexedSeq[AttributeAccessor[_ <: AnyRef]],
-                        buf: ByteBuffer) extends SimpleFeature {
+                        var buf: ByteBuffer) extends SimpleFeature {
+
+  def setBuf(reuse: ByteBuffer): Unit = {
+    buf = reuse
+  }
 
   override def getType: SimpleFeatureType = sft
 
@@ -254,7 +258,7 @@ class LazySimpleFeature(id: String,
 
   override def setValue(newValue: scala.Any): Unit = ???
 
-  override def getName: Name = ???
+  override def getName: Name = sft.getName
 
   override def getUserData: util.Map[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef]
 }
