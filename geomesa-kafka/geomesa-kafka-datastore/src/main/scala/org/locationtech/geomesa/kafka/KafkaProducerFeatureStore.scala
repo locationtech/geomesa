@@ -35,14 +35,12 @@ import org.opengis.filter.{Filter, Id}
 import scala.collection.JavaConversions._
 
 class KafkaProducerFeatureStore(entry: ContentEntry,
-                                kafkaType: KafkaSimpleFeatureType,
+                                sft: SimpleFeatureType,
+                                topic: String,
                                 broker: String,
-                                query: Query,
-                                producer: Producer[Array[Byte], Array[Byte]])
+                                producer: Producer[Array[Byte], Array[Byte]],
+                                query: Query = null)
   extends ContentFeatureStore(entry, query) {
-
-  val sft = kafkaType.sft
-  val topic = kafkaType.topic
 
   override def getBoundsInternal(query: Query) =
     ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)

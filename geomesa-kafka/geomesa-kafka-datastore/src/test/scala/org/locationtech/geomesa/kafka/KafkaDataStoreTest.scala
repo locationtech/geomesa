@@ -19,10 +19,11 @@ package org.locationtech.geomesa.kafka
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data._
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.filter.ff
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -36,11 +37,12 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
 
   sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val zkPath = "/geomesa/kafka/testds"
+
   val consumerParams = Map(
     "brokers"    -> brokerConnect,
     "zookeepers" -> zkConnect,
-    "zkPath"     -> "/geomesa/kafka/testds",
+    "zkPath"     -> zkPath,
     "isProducer" -> false)
 
 
@@ -61,7 +63,10 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
     "consumerDS must not be null" >> { consumerDS must not beNull }
     "producerDS must not be null" >> { producerDS must not beNull }
 
-    val schema = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+    val schema = {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+      new KafkaDataStoreHelper().prepareForLive(sft, zkPath)
+    }
 
     "allow schemas to be created" >> {
       producerDS.createSchema(schema)
@@ -185,7 +190,10 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
       //Setup datastores and schema
       val cachedConsumerDS = DataStoreFinder.getDataStore(cachedConsumerParams)
       val producerDS = DataStoreFinder.getDataStore(producerParams)
-      val schemaExpiration = SimpleFeatureTypes.createType("testExpiration", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+      val schemaExpiration = {
+        val sft = SimpleFeatureTypes.createType("testExpiration", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+        new KafkaDataStoreHelper().prepareForLive(sft, zkPath)
+      }
       producerDS.createSchema(schemaExpiration)
 
       //Setup consumer prior to writing feature so the feature will be written to the cache once the producer writes

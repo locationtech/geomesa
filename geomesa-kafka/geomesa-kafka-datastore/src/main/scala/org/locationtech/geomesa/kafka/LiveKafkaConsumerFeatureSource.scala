@@ -30,20 +30,21 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
-                                     kafkaType: KafkaSimpleFeatureType,
-                                     query: Query,
+                                     sft: SimpleFeatureType,
+                                     topic: String,
                                      kf: KafkaConsumerFactory,
                                      expiry: Boolean,
-                                     expirationPeriod: Long)
-  extends KafkaConsumerFeatureSource(entry, kafkaType.sft, query) {
+                                     expirationPeriod: Long,
+                                     query: Query = null)
+  extends KafkaConsumerFeatureSource(entry, sft, query) {
 
-  private[kafka] val featureCache = new LiveFeatureCache(kafkaType.sft, expiry, expirationPeriod)
+  private[kafka] val featureCache = new LiveFeatureCache(sft, expiry, expirationPeriod)
 
-  val eb = new EventBus(kafkaType.topic)
+  val eb = new EventBus(topic)
   eb.register(this)
 
   // create a consumer that reads from kafka and sends to the event bus
-  new KafkaFeatureConsumer(kafkaType, kf, eb)
+  new KafkaFeatureConsumer(sft, topic, kf, eb)
 
   @Subscribe
   def processProtocolMessage(msg: GeoMessage): Unit = msg match {
@@ -104,13 +105,14 @@ class LiveFeatureCache(override val schema: SimpleFeatureType,
   }
 }
 
-class KafkaFeatureConsumer(kafkaType: KafkaSimpleFeatureType,
+class KafkaFeatureConsumer(sft: SimpleFeatureType,
+                           topic: String,
                            kf: KafkaConsumerFactory,
                            eventBus: EventBus) {
 
-  private val msgDecoder = new KafkaGeoMessageDecoder(kafkaType.sft)
+  private val msgDecoder = new KafkaGeoMessageDecoder(sft)
 
-  private val stream = kf.messageStreams(kafkaType.topic, 1).head
+  private val stream = kf.messageStreams(topic, 1).head
 
   val es = Executors.newSingleThreadExecutor()
   es.submit(new Runnable {

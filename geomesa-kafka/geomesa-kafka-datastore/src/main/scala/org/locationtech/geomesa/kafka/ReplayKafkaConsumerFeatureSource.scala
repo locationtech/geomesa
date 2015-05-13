@@ -31,13 +31,12 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
-                                       kafkaType: KafkaFeatureInfo,
-                                       query: Query,
+                                       sft: SimpleFeatureType,
+                                       topic: String,
                                        kf: KafkaConsumerFactory,
-                                       replayConfig: ReplayConfig)
-  extends KafkaConsumerFeatureSource(entry, kafkaType.sft, query) {
-
-  private val sft = kafkaType.sft
+                                       replayConfig: ReplayConfig,
+                                       query: Query = null)
+  extends KafkaConsumerFeatureSource(entry, sft, query) {
 
   // messages are stored as an array where the most recent is at index 0
   private val messages: Array[GeoMessage] = readMessages()
@@ -119,7 +118,6 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
   }
 
   private def readMessages(): Array[GeoMessage] = {
-    val topic = kafkaType.topic
     val kafkaConsumer = kf.kafkaConsumer(topic)
     val offsetManager = kf.offsetManager
 
@@ -234,10 +232,9 @@ object ReplayConfig extends Logging {
       val values = rcString.split('-').map(java.lang.Long.valueOf(_, 16))
 
       if (values.length != 3) {
-        logger.error("Unable to decode ReplayConfig. Wrong number of tokens splitting " + rcString);
+        logger.error("Unable to decode ReplayConfig. Wrong number of tokens splitting " + rcString)
         None
-      }
-      else {
+      } else {
 
         val start = new Instant(values(0))
         val end = new Instant(values(1))
@@ -245,10 +242,9 @@ object ReplayConfig extends Logging {
         Some(ReplayConfig(start, end, duration))
       }
     } catch {
-      case e: IllegalArgumentException  => {
-        logger.error("Exception thrown decoding ReplayConfig.",e);
+      case e: IllegalArgumentException  =>
+        logger.error("Exception thrown decoding ReplayConfig.", e)
         None
-      }
     }
   }
 }
