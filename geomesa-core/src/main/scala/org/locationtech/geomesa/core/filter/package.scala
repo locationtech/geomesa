@@ -321,12 +321,17 @@ package object filter {
    */
   def checkOrder(one: Expression, two: Expression): Option[PropertyLiteral] =
     (one, two) match {
-      case (p: PropertyName, l: Literal) => Some(PropertyLiteral(p.getPropertyName, l, None, false))
-      case (l: Literal, p: PropertyName) => Some(PropertyLiteral(p.getPropertyName, l, None, true))
+      case (p: PropertyName, l: Literal) => Some(PropertyLiteral(p.getPropertyName, l, None, flipped = false))
+      case (l: Literal, p: PropertyName) => Some(PropertyLiteral(p.getPropertyName, l, None, flipped = true))
       case (_: PropertyName, _: PropertyName) | (_: Literal, _: Literal) => None
+      case _ => None
+
+        // TODO: broken
+/*
       case _ =>
         val msg = s"Unhandled expressions in strategy: ${one.getClass.getName}, ${two.getClass.getName}"
         throw new RuntimeException(msg)
+*/
     }
 
   /**

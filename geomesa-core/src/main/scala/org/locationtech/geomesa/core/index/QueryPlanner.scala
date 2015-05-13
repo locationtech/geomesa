@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.core.index
 
+import java.nio.ByteBuffer
 import java.util.Map.Entry
 import java.util.{Map => JMap}
 
@@ -36,6 +37,7 @@ import org.locationtech.geomesa.core.util.CloseableIterator
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.curve.{Z3, Z3SFC}
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.feature.nio.{LazySimpleFeature, AttributeAccessor}
 import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
@@ -160,6 +162,18 @@ case class QueryPlanner(sft: SimpleFeatureType,
   private val gt = JTSFactoryFinder.getGeometryFactory
 
   def adaptZ3Iterator(iter: KVIter, query: Query): SFIter = {
+    val accessors = AttributeAccessor.buildSimpleFeatureTypeAttributeAccessors(sft)
+    iter.map { e =>
+      val k = e.getKey
+      val row = k.getRow.getBytes
+      val idbytes = row.slice(10, Int.MaxValue)
+      val id = new String(idbytes)
+      new LazySimpleFeature(id, sft, accessors, ByteBuffer.wrap(e.getValue.get()))
+    }
+  }
+
+/*
+  def adaptZ3Iterator(iter: KVIter, query: Query): SFIter = {
     val ft = SimpleFeatureTypes.createType(query.getTypeName, "dtg:Date,geom:Point:srid=4326")
     val builder = new SimpleFeatureBuilder(ft)
     iter.map { e =>
@@ -183,6 +197,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
       builder.buildFeature(id)
     }
   }
+*/
 
 
   /**
