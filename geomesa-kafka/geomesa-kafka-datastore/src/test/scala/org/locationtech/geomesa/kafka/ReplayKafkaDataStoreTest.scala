@@ -69,36 +69,37 @@ class ReplayKafkaDataStoreTest extends Specification with HasEmbeddedZookeeper {
 
   val messages: Seq[GeoMessage] = Seq(
 
-    CreateOrUpdate(new Instant(10993), track0v0),
-    CreateOrUpdate(new Instant(11001), track3v0),
+                                                    // offset
+    CreateOrUpdate(new Instant(10993), track0v0),   //  0
+    CreateOrUpdate(new Instant(11001), track3v0),   //  1
 
-    CreateOrUpdate(new Instant(11549), track3v1),
+    CreateOrUpdate(new Instant(11549), track3v1),   //  2
 
-    CreateOrUpdate(new Instant(11994), track0v1),
-    CreateOrUpdate(new Instant(11995), track1v0),
-    CreateOrUpdate(new Instant(11995), track3v2),
+    CreateOrUpdate(new Instant(11994), track0v1),   //  3
+    CreateOrUpdate(new Instant(11995), track1v0),   //  4
+    CreateOrUpdate(new Instant(11995), track3v2),   //  5
 
-    CreateOrUpdate(new Instant(12998), track1v1),
-    CreateOrUpdate(new Instant(13000), track2v0),
-    CreateOrUpdate(new Instant(13002), track3v3),
-    CreateOrUpdate(new Instant(13002), track0v2),
+    CreateOrUpdate(new Instant(12998), track1v1),   //  6
+    CreateOrUpdate(new Instant(13000), track2v0),   //  7
+    CreateOrUpdate(new Instant(13002), track3v3),   //  8
+    CreateOrUpdate(new Instant(13002), track0v2),   //  9
 
-    CreateOrUpdate(new Instant(13444), track1v2),
+    CreateOrUpdate(new Instant(13444), track1v2),   // 10
 
-    CreateOrUpdate(new Instant(13096), track2v1),
-    CreateOrUpdate(new Instant(13099), track3v4),
-    CreateOrUpdate(new Instant(14002), track0v3),
-    Delete(        new Instant(14005), "track1"),
+    CreateOrUpdate(new Instant(13096), track2v1),   // 11
+    CreateOrUpdate(new Instant(13099), track3v4),   // 12
+    CreateOrUpdate(new Instant(14002), track0v3),   // 13
+    Delete(        new Instant(14005), "track1"),   // 14
 
-    Delete(        new Instant(14990), "track3"),
-    CreateOrUpdate(new Instant(14999), track2v2),
-    Delete(        new Instant(15000), "track0"),
+    Delete(        new Instant(14990), "track3"),   // 15
+    CreateOrUpdate(new Instant(14999), track2v2),   // 16
+    Delete(        new Instant(15000), "track0"),   // 17
 
-    Clear(         new Instant(16003)),
+    Clear(         new Instant(16003)),             // 18
 
-    CreateOrUpdate(new Instant(16997), track2v3),
+    CreateOrUpdate(new Instant(16997), track2v3),   // 19
 
-    Delete(        new Instant(17000), "track3")
+    Delete(        new Instant(17000), "track3")    // 20
 
   )
 
@@ -143,7 +144,19 @@ class ReplayKafkaDataStoreTest extends Specification with HasEmbeddedZookeeper {
         features must haveSize(2)
         features must contain(track1v1, track2v0)
       }
+    }
 
+    "find messages with the same time" >> {
+
+      val ds = createDataStore(10000, 15000, 1000)
+      val fs = ds.getFeatureSource(typeName)
+
+      val filter = ReplayKafkaConsumerFeatureSource.messageTimeEquals(new Instant(12000))
+
+      val features = featuresToList(fs.getFeatures(filter))
+
+      features must haveSize(3)
+      features must contain(track0v1, track1v0, track3v2)
     }
   }
 

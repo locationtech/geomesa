@@ -68,10 +68,8 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
   private def indexAtTime(time: Long): Option[Int] = {
 
     if (replayConfig.isInWindow(time)) {
-      // look for first event before the given ``time`` because there may be
-      // multiple events at the same time
       // it doesn't matter what the message is, only the time
-      val key: GeoMessage = new Clear(new Instant(time - 1))
+      val key: GeoMessage = new Clear(new Instant(time))
 
       // reverse ordering for reverse ordered ``messages``
       val ordering = new Ordering[GeoMessage] {
@@ -85,8 +83,9 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
         index = -index - 1
       }
 
-      // walk forward to the first message at ``time``
-      while (index >= 0 && messages(index).timestamp.getMillis < time) index -= 1
+      // there may be multiple messages at the same time so there may be messages before ``index``
+      // that are before the given ``time
+      while (index > 0 && messages(index - 1).timestamp.getMillis < time) index -= 1
 
       if (index < messages.length) Some(index) else None
     } else {
