@@ -11,34 +11,42 @@ class Z3(val z: Long) extends AnyVal {
   def - (offset: Long) = new Z3(z - offset)
   def == (other: Z3) = other.z == z
 
-  def decode: (Int, Int, Int) = {
-    ( combine(z), combine(z >> 1), combine(z >> 2) )
-  }
+  def d0 = combine(z)
+  def d1 = combine(z >> 1)
+  def d2 = combine(z >> 2)
 
-  def dim(i: Int) = Z3.combine(z >> i)
+  def decode: (Int, Int, Int) = (d0, d1, d2)
+
+  def dim(i: Int): Int = if (i == 0) d0 else if (i == 1) d1 else if (i == 2) d2 else {
+    throw new IllegalArgumentException(s"Invalid dimension $i - valid dimensions are 0,1,2")
+  }
 
   def inRange(rmin: Z3, rmax: Z3): Boolean = {
     val (x, y, z) = decode
-    x >= rmin.dim(0) &&
-      x <= rmax.dim(0) &&
-      y >= rmin.dim(1) &&
-      y <= rmax.dim(1) &&
-      z >= rmin.dim(2) &&
-      z <= rmax.dim(2)
+    x >= rmin.d0 &&
+      x <= rmax.d0 &&
+      y >= rmin.d1 &&
+      y <= rmax.d1 &&
+      z >= rmin.d2 &&
+      z <= rmax.d2
   }
 
   def mid(p: Z3): Z3 = {
-    if (p.z < z)
-      new Z3(p.z + (z - p.z)/2)
-    else
-      new Z3(z + (p.z - z)/2)
+//    if (p.z < z)
+//      new Z3(p.z + (z - p.z)/2)
+//    else
+//      new Z3(z + (p.z - z)/2)
+    val (x, y, z) = decode
+    val (px, py, pz) = p.decode
+    Z3((x + px) / 2, (y + py) / 2, (z + pz) / 2)
   }
 
-  def bitsToString = f"(${z.toBinaryString}%16s)(${dim(0).toBinaryString}%8s,${dim(1).toBinaryString}%8s,${dim(2).toBinaryString}%8s)"
-  override def toString = f"$z ${decode}"
+  def bitsToString = f"(${z.toBinaryString.toLong}%016d)(${d0.toBinaryString.toLong}%08d,${d1.toBinaryString.toLong}%08d,${d2.toBinaryString.toLong}%08d)"
+  override def toString = f"$z $decode"
 }
 
 object Z3 {
+
   final val MAX_BITS = 21
   final val MAX_MASK = 0x1fffffL
   final val MAX_DIM = 3
@@ -75,22 +83,27 @@ object Z3 {
     new Z3(split(x) | split(y) << 1 | split(z) << 2)
   }
 
-  def unapply(z: Z3): Option[(Int, Int, Int)] =
-    Some(z.decode)
+  def unapply(z: Z3): Option[(Int, Int, Int)] = Some(z.decode)
 
+  /**
+   * Returns (litmax, bigmin) for the given range and point
+   */
   def zdivide(p: Z3, rmin: Z3, rmax: Z3): (Z3, Z3) = {
-    val (litmax,bigmin) = zdiv(load, MAX_DIM)(p.z, rmin.z, rmax.z)
+    val (litmax, bigmin) = zdiv(load, MAX_DIM)(p.z, rmin.z, rmax.z)
     (new Z3(litmax), new Z3(bigmin))
   }
 
-  /** Loads either 1000... or 0111... into starting at given bit index of a given dimention */
-  def load(target: Long, p: Long, bits: Int, dim: Int): Long = {
+  /** Loads either 1000... or 0111... into starting at given bit index of a given dimension */
+  private def load(target: Long, p: Long, bits: Int, dim: Int): Long = {
     val mask = ~(Z3.split(MAX_MASK >> (MAX_BITS-bits)) << dim)
     val wiped = target & mask
     wiped | (split(p) << dim)
   }
 
-  /** Recurse down the oct-tree and report all z-ranges which are contained in the cube defined by the min and max points */
+  /**
+   * Recurse down the oct-tree and report all z-ranges which are contained
+   * in the cube defined by the min and max points
+   */
   def zranges(min: Z3, max: Z3, maxRecurse: Int): Seq[(Long, Long)] = {
     var mq: MergeQueue = new MergeQueue
     val sr = Z3Range(min, max)
@@ -98,37 +111,37 @@ object Z3 {
     var recCounter = 0
     var reportCounter = 0
 
-    def _zranges(prefix: Long, offset: Int, quad: Long, level: Int): Unit = {
+    def zranges(prefix: Long, offset: Int, quad: Long, level: Int): Unit = {
       recCounter += 1
 
       val min: Long = prefix | (quad << offset) // QR + 000..
       val max: Long = min | (1L << offset) - 1 // QR + 111..
       val qr = Z3Range(new Z3(min), new Z3(max))
-      if(level < maxRecurse) {
-        if (sr contains qr) {
+      if (level < maxRecurse) {
+        if (sr containsInUserSpace qr) {
           // whole range matches, happy day
-          mq +=(qr.min.z, qr.max.z)
+          mq += (qr.min.z, qr.max.z)
           reportCounter += 1
-        } else if (offset > 0 && (sr overlaps qr)) {
+        } else if (offset > 0 && (sr overlapsInUserSpace qr)) { // TODO move this?
           // some portion of this range are excluded
-          _zranges(min, offset - MAX_DIM, 0, level + 1)
-          _zranges(min, offset - MAX_DIM, 1, level + 1)
-          _zranges(min, offset - MAX_DIM, 2, level + 1)
-          _zranges(min, offset - MAX_DIM, 3, level + 1)
-          _zranges(min, offset - MAX_DIM, 4, level + 1)
-          _zranges(min, offset - MAX_DIM, 5, level + 1)
-          _zranges(min, offset - MAX_DIM, 6, level + 1)
-          _zranges(min, offset - MAX_DIM, 7, level + 1)
+          zranges(min, offset - MAX_DIM, 0, level + 1)
+          zranges(min, offset - MAX_DIM, 1, level + 1)
+          zranges(min, offset - MAX_DIM, 2, level + 1)
+          zranges(min, offset - MAX_DIM, 3, level + 1)
+          zranges(min, offset - MAX_DIM, 4, level + 1)
+          zranges(min, offset - MAX_DIM, 5, level + 1)
+          zranges(min, offset - MAX_DIM, 6, level + 1)
+          zranges(min, offset - MAX_DIM, 7, level + 1)
           //let our children punt on each subrange
         }
-      } else if(sr overlaps qr) {
+      } else if (sr overlaps qr) {
         mq += (qr.min.z, qr.max.z)
       }
     }
 
-    var prefix: Long = 0
-    var offset = MAX_BITS*MAX_DIM
-    _zranges(prefix, offset, 0, 0) // the entire space
+    val prefix: Long = 0
+    val offset = MAX_BITS * MAX_DIM
+    zranges(prefix, offset, 0, 0) // the entire space
     mq.toSeq
   }
 
@@ -137,7 +150,7 @@ object Z3 {
    * LITMAX: maximum z-index in query range smaller than current point, xd
    * BIGMIN: minimum z-index in query range greater than current point, xd
    *
-   * @param load: function that knows how to load bits into appropraite dimention of a z-index
+   * @param load: function that knows how to load bits into appropraite dimension of a z-index
    * @param xd: z-index that is outside of the query range
    * @param rmin: minimum z-index of the query range, inclusive
    * @param rmax: maximum z-index of the query range, inclusive
@@ -196,4 +209,25 @@ object Z3 {
     (litmax, bigmin)
   }
 
+  /**
+   * Cuts Z-Range in two and trims based on user space, can be used to perform augmented binary search
+   *
+   * @param xd: division point
+   * @param inRange: is xd in query range
+   */
+  def cut(r: Z3Range, xd: Z3, inRange: Boolean): List[Z3Range] = {
+    if (r.min.z == r.max.z) {
+      Nil
+    } else if (inRange) {
+      if (xd.z == r.min.z)      // degenerate case, two nodes min has already been counted
+        Z3Range(r.max, r.max) :: Nil
+      else if (xd.z == r.max.z) // degenerate case, two nodes max has already been counted
+        Z3Range(r.min, r.min) :: Nil
+      else
+        Z3Range(r.min, xd - 1) :: Z3Range(xd + 1, r.max) :: Nil
+    } else {
+      val (litmax, bigmin) = Z3.zdivide(xd, r.min, r.max)
+      Z3Range(r.min, litmax) :: Z3Range(bigmin, r.max) :: Nil
+    }
+  }
 }
