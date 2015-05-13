@@ -15,6 +15,7 @@
  */
 package org.locationtech.geomesa.kafka
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.geotools.data.store.ContentEntry
 import org.geotools.data.{EmptyFeatureReader, Query}
@@ -30,7 +31,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
-                                       kafkaType: KafkaSimpleFeatureType,
+                                       kafkaType: KafkaFeatureInfo,
                                        query: Query,
                                        kf: KafkaConsumerFactory,
                                        replayConfig: ReplayConfig)
@@ -222,6 +223,36 @@ case class ReplayConfig(start: Instant, end: Instant, readBehind: Duration) {
   def isInWindow(time: Long): Boolean = !(start.isAfter(time) || end.isBefore(time))
 }
 
+object ReplayConfig extends Logging {
+
+  def encode(conf: ReplayConfig): String =
+    s"${conf.start.getMillis.toHexString}-${conf.end.getMillis.toHexString}-${conf.readBehind.getMillis.toHexString}"
+
+  def decode(rcString: String): Option[ReplayConfig] = {
+
+    try {
+      val values = rcString.split('-').map(java.lang.Long.valueOf(_, 16))
+
+      if (values.length != 3) {
+        logger.error("Unable to decode ReplayConfig. Wrong number of tokens splitting " + rcString);
+        None
+      }
+      else {
+
+        val start = new Instant(values(0))
+        val end = new Instant(values(1))
+        val duration = Duration.millis(values(2))
+        Some(ReplayConfig(start, end, duration))
+      }
+    } catch {
+      case e: IllegalArgumentException  => {
+        logger.error("Exception thrown decoding ReplayConfig.",e);
+        None
+      }
+    }
+  }
+}
+
 /** Splits a [[Filter]] into the requested Kafka Message Timestamp and the remaining filters
   */
 case class TimestampFilterSplit(ts: Option[Long], filter: Option[Filter])
@@ -322,3 +353,4 @@ object TimestampFilterSplit {
     }
   }
 }
+
