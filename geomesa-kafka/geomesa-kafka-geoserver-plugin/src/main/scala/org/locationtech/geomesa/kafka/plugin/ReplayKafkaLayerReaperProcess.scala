@@ -30,7 +30,7 @@ import scala.util.Try
   description = "Removes Kafka Replay Layers from GeoServer",
   version = "1.0.0"
 )
-class ReplayKafkaLayerReaperProcess(val catalog: Catalog, val hours: Int) extends GeomesaKafkaProcess with Logging {
+class ReplayKafkaLayerReaperProcess(val catalog: Catalog, val hours: Int) extends GeomesaKafkaProcess with Logging with Runnable {
   import org.locationtech.geomesa.kafka.plugin.ReplayKafkaDataStoreProcess._
 
   implicit def longToInstant(l: Long): Instant = new Instant(l)
@@ -73,4 +73,6 @@ class ReplayKafkaLayerReaperProcess(val catalog: Catalog, val hours: Int) extend
   }
 
   private def isOldReplayLayer(l: LayerInfo, s: String): Boolean = l.getMetadata.containsValue(s)
+
+  override def run(): Unit = execute()
 }
