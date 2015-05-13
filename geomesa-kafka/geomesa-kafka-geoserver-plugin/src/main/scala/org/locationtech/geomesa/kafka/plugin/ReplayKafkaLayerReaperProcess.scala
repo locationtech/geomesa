@@ -30,7 +30,7 @@ import scala.util.Try
   description = "Removes Kafka Replay Layers from GeoServer",
   version = "1.0.0"
 )
-class ReplayKafkaLayerReaperProcess(val catalog: Catalog) extends GeomesaKafkaProcess with Logging {
+class ReplayKafkaLayerReaperProcess(val catalog: Catalog, val hours: Int) extends GeomesaKafkaProcess with Logging {
   import org.locationtech.geomesa.kafka.plugin.ReplayKafkaDataStoreProcess._
 
   implicit def longToInstant(l: Long): Instant = new Instant(l)
@@ -38,8 +38,7 @@ class ReplayKafkaLayerReaperProcess(val catalog: Catalog) extends GeomesaKafkaPr
   def execute(): Boolean = {
     Try {
       val currentTime = new Instant(System.currentTimeMillis())
-      //Todo: make the look-back time configurable via the applicationContext.xml
-      val ageLimit = currentTime.minus(Duration.standardHours(1))
+      val ageLimit = currentTime.minus(Duration.standardHours(hours))
 
       // Get DataStoreInfo Schema pairs for old Schemas
       val oldOnly = for {

@@ -63,11 +63,16 @@ class ReplayKafkaDataStoreProcess(val catalog: Catalog) extends GeomesaKafkaProc
     catalogBuilder.setStore(sourceStoreInfo)
 
     // create volatile SFT, todo: will need to use replay config here
-    val volatileSFT = createVolatileSFT(features, sourceStoreInfo, sourceWorkSpaceInfo.getName)
+    val volatileSFT = createVolatileSFT(features, sourceStoreInfo)
+    // update store to save new metadata
+    catalog.save(sourceStoreInfo)
 
-    // add well known volatile keyword
+    // check for existing layer
+    if (checkForLayer(sourceWorkSpaceInfo.getName, volatileSFT.getTypeName))
+      throw new ProcessException(s"Target layer already exists for SFT: ${volatileSFT.getTypeName}")
+
+    // add a well known volatile keyword
     val volatileTypeInfo = catalogBuilder.buildFeatureType(volatileSFT.getName)
-    volatileTypeInfo.getKeywords.add(volatileKW) // Todo: this may be redundant, I don't check it
 
     // do some setup
     catalogBuilder.setupBounds(volatileTypeInfo)
@@ -77,7 +82,7 @@ class ReplayKafkaDataStoreProcess(val catalog: Catalog) extends GeomesaKafkaProc
     // add the name of the volatile SFT associated with this new layer
     volatileLayerInfo.getMetadata.put(volatileHint, volatileHint)
     volatileLayerInfo.getMetadata.put(volatileLayerSftHint, volatileSFT.getTypeName)
-    // Add new layer with hints to geoserver
+    // Add new layer with hints to GeoServer
     catalog.add(volatileTypeInfo)
     catalog.add(volatileLayerInfo)
 
@@ -85,8 +90,7 @@ class ReplayKafkaDataStoreProcess(val catalog: Catalog) extends GeomesaKafkaProc
   }
 
   private def createVolatileSFT(features: SimpleFeatureCollection,
-                                storeInfo: DataStoreInfo,
-                                targetWorkspace: String): SimpleFeatureType = {
+                                storeInfo: DataStoreInfo): SimpleFeatureType = {
     // Use features just to grab the parent SFT.
     // TODO: wire in bits for replay config
     val extantSFT: SimpleFeatureType = features.getSchema
@@ -102,9 +106,6 @@ class ReplayKafkaDataStoreProcess(val catalog: Catalog) extends GeomesaKafkaProc
     injectAge(storeInfo, destinationSFT)
     //verify by retrieving the stored sft
     val storedSFT = ds.getSchema(destinationSFT.getName)
-    // check if layer exists
-    if (checkForLayer(targetWorkspace, storedSFT.getTypeName))
-      throw new ProcessException(s"Target layer already exists for SFT: ${storedSFT.getTypeName}")
     storedSFT
   }
   

@@ -38,8 +38,13 @@
         <constructor-arg index="0" ref="catalog"/>
     </bean>
 
+    <!-- The cleanup WPS that removes outdated replay layers and schemas.-->
     <bean id="replayKafkaLayerReaper" class="org.locationtech.geomesa.kafka.plugin.ReplayKafkaLayerReaperProcess">
         <constructor-arg index="0" ref="catalog"/>
+        <constructor-arg index="1" value="1"/>
     </bean>
+
+    <!-- Definition for how often to run the reaper-->
+
 
 </beans>
