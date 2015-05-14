@@ -22,11 +22,11 @@ import kafka.message.{Message, MessageAndMetadata, MessageAndOffset}
 import kafka.producer.KeyedMessage
 import kafka.serializer.Decoder
 import org.locationtech.geomesa.kafka.MockKafka.KeyAndMessage
-import org.locationtech.geomesa.kafka.consumer.KafkaConsumer._
 import org.locationtech.geomesa.kafka.consumer._
 import org.locationtech.geomesa.kafka.consumer.offsets.FindOffset._
 import org.locationtech.geomesa.kafka.consumer.offsets.OffsetManager._
 import org.locationtech.geomesa.kafka.consumer.offsets._
+import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
@@ -40,9 +40,9 @@ class MockKafkaConsumerFactory(val mk: MockKafka)
   import KafkaConsumerFactory._
 
   override def kafkaConsumer(topic: String) =
-    new MockKafkaConsumer[Array[Byte], Array[Byte]](mk, topic, defaultDecoder, defaultDecoder)
+    MockKafkaConsumer[Array[Byte], Array[Byte]](mk, topic, defaultDecoder, defaultDecoder)
 
-  override val offsetManager = mock(classOf[OffsetManager])
+  override val offsetManager = new MockOffsetManager(mk)
 }
 
 object MockKafka {
@@ -140,15 +140,38 @@ object MockKafkaStream {
 
 }
 
-class MockKafkaConsumer[K, V](mk: MockKafka, topic: String, keyDecoder: Decoder[K], valueDecoder: Decoder[V])
-  extends KafkaConsumer(topic, mk.consumerConfig, keyDecoder, valueDecoder) {
+object MockKafkaConsumer {
 
-  override def createMessageStreams(numStreams: Int,
-                                    startFrom: RequestedOffset = GroupOffset): List[KafkaStreamLike[K, V]] = {
+  def apply[K, V](mk: MockKafka,
+                  topic: String,
+                  keyDecoder: Decoder[K],
+                  valueDecoder: Decoder[V]): KafkaConsumer[K, V] = {
+
+    val consumer = mock(classOf[KafkaConsumer[K, V]])
+    when(consumer.createMessageStreams(anyInt(), any(classOf[RequestedOffset])))
+      .thenAnswer(new Answer[List[KafkaStreamLike[K,V]]]() {
+
+      override def answer(invocation: InvocationOnMock): List[KafkaStreamLike[K, V]] = {
+
+        val numStreams = invocation.getArguments()(0).asInstanceOf[Int]
+        val startFrom = invocation.getArguments()(1).asInstanceOf[RequestedOffset]
+        createMessageStreams(mk, topic, keyDecoder, valueDecoder, numStreams, startFrom)
+      }
+    })
+
+    consumer
+  }
+
+  def createMessageStreams[K, V](mk: MockKafka,
+                                 topic: String,
+                                 keyDecoder: Decoder[K],
+                                 valueDecoder: Decoder[V],
+                                 numStreams: Int,
+                                 startFrom: RequestedOffset): List[KafkaStreamLike[K, V]] = {
 
     val offsets = mk.kafkaConsumerFactory.offsetManager.getOffsets(topic, startFrom)
     val partitions = offsets.keys.toArray
-    
+
     val numPartitionsPerStream =
       partitions.length / numStreams + (if (partitions.length % numStreams == 0) 0 else 1)
 
@@ -165,14 +188,14 @@ class MockKafkaConsumer[K, V](mk: MockKafka, topic: String, keyDecoder: Decoder[
 
     streams.toList
   }
-
-  def createMessageStreams(topic: String, numStreams: Int, startFrom: Offsets): List[KafkaStreamLike[K, V]] = ???
 }
 
-abstract class MockOffsetManager(mk: MockKafka) extends OffsetManager(mk.consumerConfig) {
+class MockOffsetManager(mk: MockKafka) extends OffsetManager(mk.consumerConfig) {
 
 
-  def findPartitions(topic: String): Seq[PartitionMetadata]
+  def findPartitions(topic: String): Seq[PartitionMetadata] =
+    mk.data.keySet.filter(_.topic == topic)
+      .map(tap => new PartitionMetadata(tap.partition, None, Seq.empty)).toSeq
 
   private var savedOffsets = Map.empty[TopicAndPartition, OffsetAndMetadata]
 
@@ -182,7 +205,7 @@ abstract class MockOffsetManager(mk: MockKafka) extends OffsetManager(mk.consume
   override def getOffsets(topic: String, partitions: Seq[PartitionMetadata], when: RequestedOffset): Offsets = when match {
     case GroupOffset      => getGroupOffsets(partitions.map(p => TopicAndPartition(topic, p.partitionId)), config)
     case EarliestOffset   => getOffsetsBefore(topic, partitions, OffsetRequest.EarliestTime, config)
-    case LatestOffset     => getOffsetsBefore(topic, partitions, OffsetRequest.LatestTime, config)
+    case LatestOffset     => getLatestOffset(topic, partitions)
     case DateOffset(date) => getOffsetsBefore(topic, partitions, date, config)
     case FindOffset(pred) => findOffsets(topic, partitions, pred, config)
     case _                => throw new NotImplementedError()
@@ -197,6 +220,12 @@ abstract class MockOffsetManager(mk: MockKafka) extends OffsetManager(mk.consume
     partitions.map(tap => (tap, savedOffsets.get(tap).map(_.offset).getOrElse(0L))).toMap
 
   def getOffsetsBefore(topic: String, partitions: Seq[PartitionMetadata], time: Long, config: ConsumerConfig): Offsets = ???
+
+  def getLatestOffset(topic: String, partitions: Seq[PartitionMetadata]): Offsets = {
+
+    partitions.map(pm => new TopicAndPartition(topic, pm.partitionId))
+      .map(tap => tap -> mk.nextOffset(tap)).toMap
+  }
 
   def findOffsets(topic: String,
                   partitions: Seq[PartitionMetadata],

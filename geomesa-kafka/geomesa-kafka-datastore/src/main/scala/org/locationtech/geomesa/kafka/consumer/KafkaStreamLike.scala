@@ -14,8 +14,6 @@ import kafka.consumer.{ConsumerTimeoutException, FetchedDataChunk, PartitionTopi
 import kafka.message.{MessageAndMetadata, MessageAndOffset}
 import kafka.serializer.Decoder
 
-import scala.collection.Iterator._
-
 /**
  * Replacement for kafka.consumer.KafkaStream - the original uses private methods we can't access
  */
@@ -24,7 +22,7 @@ class KafkaStreamLike[K, V](protected[consumer] val queue: BlockingQueue[Fetched
                             keyDecoder: Decoder[K],
                             valueDecoder: Decoder[V]) extends Iterable[MessageAndMetadata[K, V]] {
 
-  override val iterator = new KafkaStreamIterator
+  override val iterator: Iterator[MessageAndMetadata[K, V]] = new KafkaStreamIterator
 
   protected[consumer] def shutdown() = {
     queue.clear()
@@ -63,28 +61,6 @@ class KafkaStreamLike[K, V](protected[consumer] val queue: BlockingQueue[Fetched
       val message = messages.next()
       topicInfo.resetConsumeOffset(message.nextOffset)
       MessageAndMetadata(topic, partition, message.message, message.offset, keyDecoder, valueDecoder)
-    }
-
-    /** @param p the predicate defining when to stop
-      *
-      * @return a [[Iterator]] which will delegate to ``this`` and return all elements up to and including
-      *         the first element ``a`` for which p(a) == true after which no more calls will be made
-      *         to ``this.hasNext()``
-      */
-    def stopAfter(p: MessageAndMetadata[K, V] => Boolean): Iterator[MessageAndMetadata[K, V]] = new Iterator[MessageAndMetadata[K, V]] {
-      private var stop = false
-
-      override def hasNext = !stop && ksi.hasNext
-
-      override def next() = {
-        if (!stop) {
-          val next = ksi.next()
-          stop = p(next)
-          next
-        } else {
-          empty.next()
-        }
-      }
     }
   }
 }

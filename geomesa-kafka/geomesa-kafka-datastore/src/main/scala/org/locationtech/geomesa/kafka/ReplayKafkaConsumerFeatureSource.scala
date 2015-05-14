@@ -26,6 +26,7 @@ import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 import org.opengis.filter.expression.PropertyName
+import org.locationtech.geomesa.utils.InfiniteIterator._
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -39,7 +40,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
   extends KafkaConsumerFeatureSource(entry, sft, query) {
 
   // messages are stored as an array where the most recent is at index 0
-  private val messages: Array[GeoMessage] = readMessages()
+  private[kafka] val messages: Array[GeoMessage] = readMessages()
 
   override def getReaderForFilter(filter: Filter): FR = {
     val split = TimestampFilterSplit.split(filter)
@@ -222,6 +223,9 @@ case class ReplayConfig(start: Instant, end: Instant, readBehind: Duration) {
 }
 
 object ReplayConfig extends Logging {
+
+  def apply(start: Long, end: Long, readBehind: Long): ReplayConfig =
+    ReplayConfig(new Instant(start), new Instant(end), Duration.millis(readBehind))
 
   def encode(conf: ReplayConfig): String =
     s"${conf.start.getMillis.toHexString}-${conf.end.getMillis.toHexString}-${conf.readBehind.getMillis.toHexString}"
