@@ -1,3 +1,4 @@
 org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 org.locationtech.geomesa.filter.function.CurrentDateFunction
 org.locationtech.geomesa.filter.function.DateToLong
+org.locationtech.geomesa.filter.function.FastProperty

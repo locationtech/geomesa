@@ -29,7 +29,7 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.feature.ScalaSimpleFeature
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.scalding._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

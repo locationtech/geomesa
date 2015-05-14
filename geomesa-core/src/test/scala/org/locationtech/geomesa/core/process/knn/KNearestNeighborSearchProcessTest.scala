@@ -26,7 +26,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index.{Constants, IndexSchemaBuilder}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geohash.VincentyModel
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

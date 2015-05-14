@@ -34,7 +34,8 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index
-import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.SimpleFeatureEncoder
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -113,7 +114,8 @@ class AttributeIndexStrategyTest extends Specification {
   def execute(strategy: AttributeIdxStrategy, filter: String): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))
     val plan = strategy.getQueryPlan(query, queryPlanner, ExplainNull)
-    val results = strategy.execute(plan, ds, ExplainNull)
+    // TODO: FIX!!
+    val results = strategy.execute(plan.head, ds, ExplainNull)
     // adapt iterator no longer de-dupes, add dedupe wrapper
     queryPlanner.adaptIterator(results, query).map(_.getAttribute("name").toString).toSet.toList
   }
@@ -224,7 +226,8 @@ class AttributeIndexStrategyTest extends Specification {
       val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("name LIKE 'b%'"), ECQL.toFilter("count<27"), ECQL.toFilter("age<29"))).get
       val query = new Query(sftName, filter)
       val plan = strategy.getQueryPlan(query, queryPlanner, ExplainNull)
-      val results = strategy.execute(plan, ds, ExplainNull)
+      // TODO: FIX!!
+      val results = strategy.execute(plan.head, ds, ExplainNull)
       val resultNames = queryPlanner.adaptIterator(results, query).map(_.getAttribute("name").toString).toList
       resultNames must have size(1)
       resultNames must contain ("bill")

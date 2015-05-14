@@ -21,7 +21,7 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.IteratorExtensions.OptionMap
 import org.locationtech.geomesa.core.transform.TransformCreator
-import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter

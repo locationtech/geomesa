@@ -33,7 +33,7 @@ import org.locationtech.geomesa.core.filter.TestFilters._
 import org.locationtech.geomesa.core.index.SF_PROPERTY_START_TIME
 import org.locationtech.geomesa.core.iterators.TestData
 import org.locationtech.geomesa.core.iterators.TestData._
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._

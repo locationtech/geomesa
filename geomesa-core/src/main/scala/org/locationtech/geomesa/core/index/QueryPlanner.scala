@@ -20,13 +20,9 @@ import java.nio.ByteBuffer
 import java.util.Map.Entry
 import java.util.{Map => JMap}
 
-import com.google.common.primitives.{Longs, Shorts}
-import com.vividsolutions.jts.geom.Coordinate
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.{DataUtilities, Query}
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.{JTSFactoryFinder, ReferencedEnvelope}
-import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.QueryHints._
@@ -35,10 +31,10 @@ import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIt
 import org.locationtech.geomesa.core.sumNumericValueMutableMaps
 import org.locationtech.geomesa.core.util.CloseableIterator
 import org.locationtech.geomesa.core.util.CloseableIterator._
-import org.locationtech.geomesa.curve.{Z3, Z3SFC}
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.nio.{LazySimpleFeature, AttributeAccessor}
-import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.feature.nio.{AttributeAccessor, LazySimpleFeature}
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}

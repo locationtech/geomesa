@@ -23,7 +23,6 @@ import org.geotools.data.Query
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.locationtech.geomesa.core.util._
-import org.locationtech.geomesa.feature.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 

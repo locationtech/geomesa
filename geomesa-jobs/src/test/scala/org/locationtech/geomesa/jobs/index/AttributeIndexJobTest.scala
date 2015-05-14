@@ -27,7 +27,7 @@ import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.{SimpleFeatureEncoder, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.jobs.index.AttributeIndexJob._
 import org.locationtech.geomesa.jobs.scalding.{AccumuloSource, ConnectionParams, GeoMesaSource}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor

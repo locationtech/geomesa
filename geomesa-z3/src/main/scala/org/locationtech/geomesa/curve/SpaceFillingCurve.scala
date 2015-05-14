@@ -25,7 +25,7 @@ class Z3SFC extends SpaceFillingCurve[Z3] {
 
   override val xprec: Long = math.pow(2, 21).toLong
   override val yprec: Long = math.pow(2, 21).toLong
-  override val tprec: Long = math.pow(2, 21).toLong
+  override val tprec: Long = math.pow(2, 20).toLong
   override val tmax: Double = Weeks.weeks(1).toStandardSeconds.getSeconds.toDouble
 
   override def index(x: Double, y: Double, t: Long): Z3 = {

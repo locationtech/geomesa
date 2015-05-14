@@ -34,7 +34,7 @@ import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.index.QueryPlanners.JoinFunction
 import org.locationtech.geomesa.core.index.Strategy._
 import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}

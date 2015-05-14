@@ -24,7 +24,7 @@ import cascading.tuple._
 import com.twitter.scalding._
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred._
-import org.locationtech.geomesa.feature.ScalaSimpleFeature
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapred.{GeoMesaInputFormat, GeoMesaOutputFormat}
 import org.locationtech.geomesa.jobs.scalding._

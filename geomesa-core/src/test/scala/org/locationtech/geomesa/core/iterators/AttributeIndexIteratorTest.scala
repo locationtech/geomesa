@@ -34,7 +34,7 @@ import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
-import org.locationtech.geomesa.feature.SimpleFeatureEncoder
+import org.locationtech.geomesa.features.SimpleFeatureEncoder
 import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification

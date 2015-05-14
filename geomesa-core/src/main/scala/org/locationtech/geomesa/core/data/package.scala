@@ -22,7 +22,7 @@ import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.FeatureWriter
 import org.geotools.factory.Hints.ClassKey
 import org.joda.time.{DateTime, Interval}
-import org.locationtech.geomesa.feature.FeatureEncoding
+import org.locationtech.geomesa.features.FeatureEncoding
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 package object data {

@@ -27,7 +27,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-accumulo1.5</artifactId>
+            <artifactId>geomesa-feature-all</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

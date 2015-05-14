@@ -30,7 +30,7 @@ import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.index.Strategy._
 import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.spatial.BinarySpatialOperator

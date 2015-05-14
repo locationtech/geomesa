@@ -25,7 +25,7 @@ import org.apache.accumulo.core.data.Value
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.INTERNAL_GEOMESA_VERSION
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}

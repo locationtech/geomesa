@@ -44,7 +44,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.{IndexIterator, TestData}
 import org.locationtech.geomesa.core.util.{CloseableIterator, GeoMesaBatchWriterConfig, SelfClosingIterator}
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

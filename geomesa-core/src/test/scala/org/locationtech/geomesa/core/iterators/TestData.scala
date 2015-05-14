@@ -28,7 +28,8 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.{AccumuloFeatureStore, INTERNAL_GEOMESA_VERSION}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, FeatureEncoding, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

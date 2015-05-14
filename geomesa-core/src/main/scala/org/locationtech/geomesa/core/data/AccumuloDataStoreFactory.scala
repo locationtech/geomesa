@@ -28,7 +28,7 @@ import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import org.locationtech.geomesa.core.stats.StatWriter
-import org.locationtech.geomesa.feature.FeatureEncoding
+import org.locationtech.geomesa.features.FeatureEncoding
 import org.locationtech.geomesa.security
 
 import scala.collection.JavaConversions._

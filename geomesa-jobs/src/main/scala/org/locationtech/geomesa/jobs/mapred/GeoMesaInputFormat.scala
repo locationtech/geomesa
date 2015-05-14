@@ -33,8 +33,8 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.core.index.{getTransformSchema, _}
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.{ScalaSimpleFeature, SimpleFeatureDecoder}
+import org.locationtech.geomesa.features.{SimpleFeatureDecoder, FeatureEncoding, ScalaSimpleFeature}
+import FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -99,7 +99,8 @@ object GeoMesaInputFormat extends Logging {
       val hints = ds.strategyHints(sft)
       val version = ds.getGeomesaVersion(sft)
       val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, hints, version)
-      new STIdxStrategy().getQueryPlan(query, queryPlanner, ExplainNull)
+      // TODO: BROKEN!!!
+      new STIdxStrategy().getQueryPlan(query, queryPlanner, ExplainNull).head
     }
 
     // use the explain results to set the accumulo input format options

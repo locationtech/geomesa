@@ -10,7 +10,6 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.{Mutation, Value}
 import org.apache.hadoop.io.Text
-import org.calrissian.mango.types.LexiTypeEncoders
 import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
 import org.locationtech.geomesa.core.index

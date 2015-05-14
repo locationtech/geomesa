@@ -27,7 +27,8 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.DEFAULT_ENCODING
 import org.locationtech.geomesa.core.iterators.FeatureAggregatingIterator.Result
-import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 

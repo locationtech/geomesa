@@ -43,8 +43,9 @@ import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.util.{ExplainingConnectorCreator, GeoMesaBatchWriterConfig}
 import org.locationtech.geomesa.data.TableSplitter
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}

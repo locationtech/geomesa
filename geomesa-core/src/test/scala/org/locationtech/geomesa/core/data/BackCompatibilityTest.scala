@@ -16,24 +16,17 @@
 
 package org.locationtech.geomesa.core.data
 
-import java.util.Date
-
+import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
-import org.geotools.data.{FeatureSource, Query}
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.TestWithDataStore
-import org.locationtech.geomesa.feature.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class BackCompatibilityTest extends Specification with TestWithDataStore {
