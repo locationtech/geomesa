@@ -15,6 +15,8 @@
  */
 package org.locationtech.geomesa.tools.commands
 
+import java.util.regex.Pattern
+
 import com.beust.jcommander.Parameter
 
 class AccumuloParams {
@@ -50,6 +52,11 @@ class FeatureParams extends GeoMesaParams {
   var featureName: String = null
 }
 
+class OptionalFeatureParams extends GeoMesaParams {
+  @Parameter(names = Array("-fn", "--feature-name"), description = "Simple Feature Type name on which to operate", required = false)
+  var featureName: String = null
+}
+
 class RequiredCqlFilterParameters extends FeatureParams {
   @Parameter(names = Array("-q", "--cql"), description = "CQL predicate", required = true)
   var cqlFilter: String = null
@@ -72,4 +79,14 @@ class CreateFeatureParams extends FeatureParams {
 
   @Parameter(names = Array("-sh", "--shards"), description = "Number of shards to use for the storage tables (defaults to number of tservers)")
   var numShards: Integer = null
+}
+
+class ForceParams {
+  @Parameter(names = Array("-f", "--force"), description = "Force deletion without prompt", required = false)
+  var force: Boolean = false
+}
+
+class PatternParams {
+  @Parameter(names = Array("-pt", "--pattern"), description = "Regular expression to select items to delete", required = false)
+  var pattern: Pattern = null
 }

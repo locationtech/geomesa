@@ -17,7 +17,9 @@
 package org.locationtech.geomesa.convert.text
 
 import java.io.{PipedReader, PipedWriter}
+import java.util.concurrent.{TimeUnit, Executors}
 
+import com.google.common.collect.Queues
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.locationtech.geomesa.convert.Transformers.Expr
@@ -48,26 +50,47 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
     }
     val fields    = buildFields(conf.getConfigList("fields"))
     val idBuilder = buildIdBuilder(conf.getString("id-field"))
-    new DelimitedTextConverter(format, targetSFT, idBuilder, fields)
+    val pipeSize  = if(conf.hasPath("pipe-size")) conf.getInt("pipe-size") else 16*1024
+    new DelimitedTextConverter(format, targetSFT, idBuilder, fields, pipeSize)
   }
 }
 
 class DelimitedTextConverter(format: CSVFormat,
                              val targetSFT: SimpleFeatureType,
                              val idBuilder: Expr,
-                             val inputFields: IndexedSeq[Field])
+                             val inputFields: IndexedSeq[Field],
+                             val inputSize: Int = 16*1024)
   extends ToSimpleFeatureConverter[String] {
 
   var curString: String = null
+  val q = Queues.newArrayBlockingQueue[String](32)
+  // if the record to write is bigger than the buffer size of the PipedReader
+  // then the writer will block until the reader reads data off of the pipe.
+  // For this reason, we have to separate the reading and writing into two
+  // threads
   val writer = new PipedWriter()
-  val reader = new PipedReader(writer)
+  val reader = new PipedReader(writer, inputSize) // 16k records
   val parser = format.parse(reader).iterator()
+  val separator = format.getRecordSeparator
+
+  val es = Executors.newSingleThreadExecutor()
+  es.submit(new Runnable {
+    override def run(): Unit = {
+      while (true) {
+        val s = q.take()
+        if(s != null) {
+          writer.write(s)
+          writer.write(separator)
+          writer.flush()
+        }
+      }
+    }
+  })
 
   def fromInputType(string: String): Array[Any] = {
     import spire.syntax.cfor._
 
-    writer.write(string)
-    writer.write(format.getRecordSeparator)
+    q.put(string)
     val rec = parser.next()
     val len = rec.size()
     val ret = Array.ofDim[Any](len + 1)
@@ -79,6 +102,7 @@ class DelimitedTextConverter(format: CSVFormat,
   }
 
   override def close(): Unit = {
+    es.shutdownNow()
     writer.close()
     reader.close()
   }

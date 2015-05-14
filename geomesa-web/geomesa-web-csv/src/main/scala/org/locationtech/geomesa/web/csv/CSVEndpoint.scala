@@ -16,25 +16,27 @@
 
 package org.locationtech.geomesa.web.csv
 
-import java.io.File
+import java.io.{ByteArrayOutputStream, OutputStream, BufferedOutputStream, File}
+import java.net.URL
+import java.nio.charset.Charset
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
+import com.google.common.cache._
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.commons.io.FilenameUtils
-
-import scala.collection.mutable
-import scala.concurrent.Future
-import scala.util.{Success, Failure}
-
-import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
+import org.eclipse.xsd._
+import org.eclipse.xsd.util.{XSDConstants, XSDResourceImpl}
+import org.geotools.GML
+import org.geotools.gml.producer.FeatureTransformer
 import org.locationtech.geomesa.core.{TypeSchema, csv}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 
-class CSVEndpoint
-  extends GeoMesaScalatraServlet
-          with FileUploadSupport
-          with Logging {
+class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Logging {
+
   override val root: String = "csv"
 
   // caps CSV file size at 10MB
@@ -43,26 +45,18 @@ class CSVEndpoint
     case e: SizeConstraintExceededException => RequestEntityTooLarge("Uploaded file too large!")
   }
 
-  object Record {
-    import scala.concurrent.ExecutionContext.Implicits.global
+  class Record(val csvFile: File, val hasHeader: Boolean, var schema: TypeSchema)
 
-    def apply(localFile: File, hasHeader: Boolean): Record =
-      Record(localFile, Future(csv.guessTypes(localFile, hasHeader)), None, hasHeader)
+  val records: Cache[String, Record] = {
+    val removalListener = new RemovalListener[String, Record]() {
+      override def onRemoval(notification: RemovalNotification[String, Record]) =
+        cleanup(notification.getKey, notification.getValue)
+    }
+    CacheBuilder.newBuilder()
+        .expireAfterAccess(1, TimeUnit.HOURS)
+        .removalListener(removalListener)
+        .build()
   }
-  case class Record(csvFile: File,
-                    inferredSchemaF: Future[TypeSchema],
-                    shapefile: Option[File],
-                    hasHeader: Boolean) {
-    def inferredTS: TypeSchema =
-      inferredSchemaF.value.
-      getOrElse(throw new Exception("Inferred schema not available yet")) match {
-        case Success(ts) => ts
-        case Failure(ex) => throw ex
-      }
-    def inferredName: String = inferredTS.name
-    def inferredSchema: String = inferredTS.schema
-  }
-  val records = mutable.Map[String, Record]()
 
   post("/") {
     try {
@@ -71,82 +65,123 @@ class CSVEndpoint
       val csvFile = File.createTempFile(FilenameUtils.removeExtension(fileItem.name), ".csv")
       fileItem.write(csvFile)
       val hasHeader = params.get("hasHeader").map(_.toBoolean).getOrElse(true)
-      records += uuid -> Record(csvFile, hasHeader)
+      val schema = csv.guessTypes(csvFile, hasHeader)
+      records.put(uuid, new Record(csvFile, hasHeader, schema))
       Ok(uuid)
     } catch {
       case ex: Throwable =>
         logger.warn("Error uploading CSV", ex)
-        NotAcceptable(body = ex, reason = ex.getMessage)
+        NotAcceptable(reason = ex.getMessage)
     }
   }
 
-  get("/:csvid.csv/types") {
-    try {
-      val record = records(params("csvid"))
-      val TypeSchema(name, schema) = record.inferredTS
+  get("/types/:csvid") {
+    val record = records.getIfPresent(params("csvid"))
+    if (record == null) {
+      NotFound()
+    } else {
+      val TypeSchema(name, schema, _) = record.schema
       Ok(s"$name\n$schema")
-    } catch {
-      case ex: Throwable =>
-        logger.warn("Error inferring types", ex)
-        NotFound(body = ex, reason = ex.getMessage)
     }
   }
 
-  // for lat/lon geometry, add a new geometry field to the end of the requested schema
-  // and specify the latField and lonField in request parameters
-  post("/:csvid.shp") {
-    try {
-      val csvId = params("csvid")
-      val latlonFields = for (latf <- params.get("latField"); lonf <- params.get("lonField")) yield (latf, lonf)
-      val record = records(csvId)
-      val name = params.getOrElse("name", record.inferredName)
-      val schema = params.getOrElse("schema", record.inferredSchema)
-      val shapefile = csv.ingestCSV(record.csvFile, record.hasHeader, name, schema, latlonFields)
-      for (shpFile <- record.shapefile) { shpFile.delete() }  // clear if one exists already
-      records.update(csvId, record.copy(shapefile = Some(shapefile)))
-      Ok(csvId + ".shp")
-    } catch {
-      case ex: Throwable =>
-        logger.warn("Error creating shapefile", ex)
-        NotAcceptable(body = ex, reason = ex.getMessage)
+  post("/types/update/:csvid") {
+    val id = params("csvid")
+    val record = records.getIfPresent(id)
+    if (record == null) {
+      BadRequest(reason = s"$id doesn't exist")
+    } else {
+      val name = params.getOrElse("name", record.schema.name)
+      val schema = params.getOrElse("schema", record.schema.schema)
+      val latLon = for (latf <- params.get("latField"); lonf <- params.get("lonField")) yield (latf, lonf)
+      record.schema = TypeSchema(name, schema, latLon)
+      Ok()
     }
   }
 
-  get("/:csvid.shp") {
-    try {
-      val csvId = params("csvid")
-      val record = records(csvId)
-      record.shapefile match {
-        case Some(shpFile) =>
-          contentType = "application/octet-stream"
-          response.setHeader("Content-Disposition", s"attachment; filename=${shpFile.getName}")
-          Ok(shpFile)
-        case None => NotFound("Shapefile content has not been created")
+  get("/:csvid.gml") {
+    val id = params("csvid")
+    val record = records.getIfPresent(id)
+    if (record == null) {
+      NotFound()
+    } else {
+      contentType = "application/xml"
+      val file = record.csvFile
+      val header = record.hasHeader
+      try {
+        // before running the gml code, first create the XSD, otherwise it can cause deadlocks in geotools
+        getXsd(id, record, new ByteArrayOutputStream())
+
+        val fc = csv.csvToFeatures(file, header, record.schema)
+        val out = new BufferedOutputStream(response.getOutputStream)
+        val transformer = new FeatureTransformer()
+        transformer.getFeatureTypeNamespaces.declareNamespace(fc.getSchema,
+          "geomesa", s"feat:geomesa:$id")
+        transformer.addSchemaLocation(s"feat:geomesa:$id",
+          request.getRequestURL.toString.replaceAll("gml$", "xsd"))
+
+        transformer.setIndentation(2)
+        transformer.setCollectionBounding(true)
+        transformer.setEncoding(Charset.forName("utf-8"))
+        transformer.setGmlPrefixing(true)
+        transformer.setSrsName("http://www.opengis.net/gml/srs/epsg.xml#4326")
+
+        transformer.transform(fc, out)
+        out.flush()
+
+        Ok()
+      } catch {
+        case ex: Throwable =>
+          logger.error("Error creating GML", ex)
+          InternalServerError()
       }
-    } catch {
-      case ex: Throwable =>
-        logger.warn("Error retrieving shapefile", ex)
-        NotFound(body = ex, reason = ex.getMessage)
     }
   }
 
-  private def cleanup(csvId: String) {
-    for (record <- records.get(csvId)) {
-      record.csvFile.delete()
-      record.shapefile.foreach(_.delete())
+  get("/:csvid.xsd") {
+    val id = params("csvid")
+    val record = records.getIfPresent(id)
+    if (record == null) {
+      NotFound()
+    } else {
+      contentType = "application/xml"
+      try {
+        val out = new BufferedOutputStream(response.getOutputStream)
+        getXsd(id, record, out)
+        out.flush()
+        Ok()
+      } catch {
+        case ex: Throwable =>
+          logger.error("Error creating GML", ex)
+          InternalServerError()
+      }
     }
-    records -= csvId
   }
 
-  post("/:csvid.csv/delete") {
-    val csvId = params("csvid")
-    cleanup(csvId)
+  def getXsd(id: String, record: Record, out: OutputStream) = {
+    record.synchronized {
+      val sft = SimpleFeatureTypes.createType(record.schema.name, record.schema.schema)
+      val gml = new GML(GML.Version.GML2)
+      gml.setBaseURL(new URL("http://localhost"))
+      gml.setNamespace("geomesa", s"feat:geomesa:$id")
+      gml.encode(out, sft)
+    }
+  }
+
+  post("/delete/:csvid.csv") {
+    val id = params("csvid")
+    Option(records.getIfPresent(id)).foreach(cleanup(id, _))
     Ok()
   }
 
   delete("/:csvid.csv") {
-    val csvId = params("csvid")
-    cleanup(csvId)
+    val id = params("csvid")
+    Option(records.getIfPresent(id)).foreach(cleanup(id, _))
     Ok()
+  }
+
+  private def cleanup(id: String, record: Record) {
+    record.csvFile.delete()
+    records.invalidate(id)
   }
 }

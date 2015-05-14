@@ -25,10 +25,9 @@ import org.locationtech.geomesa.tools.ingest.{DelimitedIngest, ShpIngest}
 
 import scala.collection.JavaConversions._
 
-class IngestCommand(parent: JCommander) extends Command with Logging {
-
-  val params = new IngestParameters()
-  parent.addCommand(Command, params)
+class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
+  override val command = "ingest"
+  override val params = new IngestParameters()
 
   override def execute(): Unit = {
     val fmt = Option(params.format).getOrElse(getFileExtension(params.files(0)))
@@ -44,8 +43,6 @@ class IngestCommand(parent: JCommander) extends Command with Logging {
 }
 
 object IngestCommand {
-  val Command = "ingest"
-
   @Parameters(commandDescription = "Ingest a file of various formats into GeoMesa")
   class IngestParameters extends CreateFeatureParams {
     @Parameter(names = Array("-is", "--index-schema"), description = "GeoMesa index schema format string")
@@ -78,6 +75,9 @@ object IngestCommand {
     @Parameter(names = Array("-fmt", "--format"), description = "format of incoming data (csv | tsv | shp) " +
       "to override file extension recognition")
     var format: String = null
+
+    @Parameter(names = Array("--skip-header"), description = "flag to skip the first line (header) of a csv/tsv data file")
+    var skipHeader: Boolean = false
 
     @Parameter(names = Array("-ld", "--list-delimiter"), description = "character(s) to delimit list features")
     var listDelimiter: String = ","

@@ -157,24 +157,6 @@ class IndexSchemaTest extends Specification {
     }
   }
 
-  "IndexSchema " should {
-    "be able to run explainQuery" in {
-
-      val schema = IndexSchema("%~#s%foo#cstr%99#r::%~#s%0,4#gh::%~#s%4,3#gh%15#id",
-        dummyType, dummyEncoder)
-      val q = new Query()
-      val fs = s"INTERSECTS(${dummyType.getGeometryDescriptor.getLocalName}, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
-      val f = ECQL.toFilter(fs)
-      q.setFilter(f)
-
-      val queue = scala.collection.mutable.Queue[String]()
-      schema.explainQuery(q, s => queue.enqueue(Seq(s) : _*))
-
-      val explanation = queue.mkString(",\n")
-      explanation must not be null
-    }
-  }
-
   "IndexSchemaBuilder" should {
     "be able to create index schemas" in {
       val maxShard = 31

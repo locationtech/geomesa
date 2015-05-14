@@ -66,6 +66,7 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
         fw.write()
         fids.add(newFeature.getIdentifier)
       }
+      fw.close()
     }
     fids
   }

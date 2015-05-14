@@ -158,7 +158,7 @@ class TimingsImpl extends Timings {
     val total = entries.map(_._2.time).sum
     val percentTimes = entries.map { case (id, timing) =>
       timing.synchronized(s"$id: ${(timing.time * 100 / total.toDouble).formatted("%.1f%%")}" +
-          s" ${timing.average.formatted("%.4f")} ms avg")
+          s" ${timing.occurrences} times at ${timing.average.formatted("%.4f")} ms avg")
     }
     percentTimes.mkString(s"Total time: $total ms. Percent of time - ", ", ", "")
   }
@@ -168,30 +168,16 @@ class TimingsImpl extends Timings {
  * Useful for sharing timings between instances of a certain class
  *
  * @param moduloToLog
- * @param logTimings
- * @param logOccurrences
  */
-class AutoLoggingTimings(moduloToLog: Int = 1000, logTimings: Boolean = true, logOccurrences: Boolean = false)
-    extends TimingsImpl with Logging {
-
-  require(logTimings || logOccurrences, "Logging must be enabled for timings and/or occurrences")
+class AutoLoggingTimings(moduloToLog: Int = 1000) extends TimingsImpl with Logging {
 
   val count = new AtomicLong()
 
-  val log = if (logTimings && logOccurrences) {
-    () => {
-      logger.debug(averageTimes())
-      logger.debug(averageOccurrences())
-    }
-  } else if (logTimings) {
-    () => logger.debug(averageTimes())
-  } else {
-    () => logger.debug(averageOccurrences())
-  }
-
   override def occurrence(identifier: String, time: Long) = {
     super.occurrence(identifier, time)
-    if (count.incrementAndGet() % moduloToLog == 0) log()
+    if (count.incrementAndGet() % moduloToLog == 0) {
+      logger.debug(averageTimes())
+    }
   }
 }
 

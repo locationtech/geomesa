@@ -33,7 +33,7 @@ import org.locationtech.geomesa.core.security.SecurityUtils
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.core.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.{AvroSimpleFeatureFactory, FeatureEncoding, SimpleFeatureDecoder}
+import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}
@@ -62,6 +62,7 @@ case class QueryPlanner(schema: String,
   def getIterator(acc: AccumuloConnectorCreator,
                   sft: SimpleFeatureType,
                   query: Query,
+                  hints: StrategyHints,
                   output: ExplainerOutputType = log): CloseableIterator[Entry[Key,Value]] = {
 
     output(s"Running ${ExplainerOutputType.toString(query)}")
@@ -70,7 +71,7 @@ case class QueryPlanner(schema: String,
     val duplicatableData = IndexSchema.mayContainDuplicates(featureType)
 
     def flatten(queries: Seq[Query]): CloseableIterator[Entry[Key, Value]] =
-      queries.toIterator.ciFlatMap(configureScanners(acc, sft, _, isDensity, output))
+      queries.toIterator.ciFlatMap(configureScanners(acc, sft, _, hints, isDensity, output))
 
     // in some cases, where duplicates may appear in overlapping queries or the data itself, remove them
     def deduplicate(queries: Seq[Query]): CloseableIterator[Entry[Key, Value]] = {
@@ -130,18 +131,20 @@ case class QueryPlanner(schema: String,
   private def configureScanners(acc: AccumuloConnectorCreator,
                        sft: SimpleFeatureType,
                        derivedQuery: Query,
+                       hints: StrategyHints,
                        isADensity: Boolean,
                        output: ExplainerOutputType): SelfClosingIterator[Entry[Key, Value]] = {
     output(s"Transforms: ${derivedQuery.getHints.get(TRANSFORMS)}")
-    val strategy = QueryStrategyDecider.chooseStrategy(acc.catalogTableFormat(sft), sft, derivedQuery)
+    val strategy = QueryStrategyDecider.chooseStrategy(acc.catalogTableFormat(sft), sft, derivedQuery, hints)
 
     output(s"Strategy: ${strategy.getClass.getCanonicalName}")
     strategy.execute(acc, this, sft, derivedQuery, output)
   }
 
-  def query(query: Query, acc: AccumuloConnectorCreator): CloseableIterator[SimpleFeature] = {
+  def query(query: Query, acc: AccumuloConnectorCreator, hints: StrategyHints):
+      CloseableIterator[SimpleFeature] = {
     // Perform the query
-    val accumuloIterator = getIterator(acc, featureType, query)
+    val accumuloIterator = getIterator(acc, featureType, query, hints)
 
     // Convert Accumulo results to SimpleFeatures
     adaptIterator(accumuloIterator, query)
@@ -190,7 +193,7 @@ case class QueryPlanner(schema: String,
 
     val summedTimeSeries = timeSeriesStrings.map(decodeTimeSeries).reduce(combineTimeSeries)
 
-    val featureBuilder = AvroSimpleFeatureFactory.featureBuilder(returnSFT)
+    val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
     featureBuilder.reset()
     featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(summedTimeSeries))
 

@@ -29,6 +29,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class DelimitedTextConverterTest extends Specification {
 
+  sequential
+
   "DelimitedTextConverter" should {
 
     val data =
@@ -45,11 +47,15 @@ class DelimitedTextConverterTest extends Specification {
         |   format       = "DEFAULT",
         |   id-field     = "md5(string2bytes($0))",
         |   fields = [
-        |     { name = "oneup",  transform = "$1" },
-        |     { name = "phrase", transform = "concat($1, $2)" },
-        |     { name = "lat",    transform = "$3::double" },
-        |     { name = "lon",    transform = "$4::double" },
-        |     { name = "geom",   transform = "point($lat, $lon)" }
+        |     { name = "oneup",    transform = "$1" },
+        |     { name = "phrase",   transform = "concat($1, $2)" },
+        |     { name = "lat",      transform = "$3::double" },
+        |     { name = "lon",      transform = "$4::double" },
+        |     { name = "lit",      transform = "'hello'" },
+        |     { name = "geom",     transform = "point($lat, $lon)" }
+        |     { name = "l1",       transform = "concat($lit, $lit)" }
+        |     { name = "l2",       transform = "concat($l1,  $lit)" }
+        |     { name = "l3",       transform = "concat($l2,  $lit)" }
         |   ]
         | }
       """.stripMargin)
@@ -98,6 +104,16 @@ class DelimitedTextConverterTest extends Specification {
       res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
     }
 
+    "handle projecting to just the attributes in the SFT (and associated input dependencies)" >> {
+      // l3 has cascading dependencies
+      val subsft = SimpleFeatureTypes.createType("subsettest", "l3:String,geom:Point:srid=4326")
+      val conv = SimpleFeatureConverters.build[String](subsft, conf)
+      val res = conv.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
+      conv.close()
+
+      res.length must be equalTo 2
+    }
+
     "handle horrible quoting and nested separators" >> {
       val conf = ConfigFactory.parseString(
         """
@@ -127,5 +143,40 @@ class DelimitedTextConverterTest extends Specification {
       res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
     }
 
+    "handle records bigger than buffer size" >> {
+      // set the buffer size to 16 bytes and try to write records that are bigger than the buffer size
+
+      val sizeConf = ConfigFactory.parseString(
+        """
+          | converter = {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   pipe-size    = 16 // 16 bytes
+          |   fields = [
+          |     { name = "oneup",  transform = "$1" },
+          |     { name = "phrase", transform = "concat($1, $2)" },
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "lit",    transform = "'hello'" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](sft, sizeConf)
+      val data =
+        """
+          |1,hello,45.0,45.0
+          |2,world,90.0,90.0
+          |willfail,hello
+        """.stripMargin
+
+      val nonEmptyData = data.split("\n").toIterator.filterNot(s => "^\\s*$".r.findFirstIn(s).size > 0)
+      val res = converter.processInput(nonEmptyData).toList
+      converter.close()
+
+      res.size must be greaterThan 0
+    }
   }
 }

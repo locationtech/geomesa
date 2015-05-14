@@ -18,18 +18,18 @@ package org.locationtech.geomesa.core
 
 import java.io._
 import java.lang.{Double => jDouble, Integer => jInt}
-import java.util.{Date, Iterator => jIterator}
 import java.util.zip.{ZipEntry, ZipOutputStream}
+import java.util.{Date, Iterator => jIterator}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
-import org.apache.commons.csv.{CSVRecord, CSVFormat}
+import com.vividsolutions.jts.geom._
+import org.apache.commons.csv.{CSVFormat, CSVRecord}
 import org.apache.commons.io.FilenameUtils
 import org.geotools.data.DefaultTransaction
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
-import org.geotools.data.simple.{SimpleFeatureStore, SimpleFeatureCollection}
-import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureStore}
 import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.core.csv.CSVParser._
 import org.locationtech.geomesa.core.util.SftBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -39,66 +39,9 @@ import scala.collection.JavaConversions._
 import scala.io.Source
 import scala.util.Success
 
-case class TypeSchema(name: String, schema: String)
+case class TypeSchema(name: String, schema: String, latLonFields: Option[(String, String)])
+
 package object csv extends Logging {
-
-
-  // this can probably be cleaned up and simplified now that parsers don't need to do double duty...
-  def typeData(rawData: TraversableOnce[String]): Seq[Char] = {
-    def tryAllParsers(datum: String): Char =
-      CSVParser.parsers.view.map(_.parseAndType(datum)).collectFirst { case Success(x) => x } match {
-        case Some(x) => x._2
-        case None    => 's'   // should get to this anyway as StringParser is guaranteed to succeed
-      }
-
-    rawData.map(tryAllParsers).toSeq
-  }
-  
-  def sampleRecords(records: jIterator[CSVRecord], hasHeader: Boolean): (Seq[String], CSVRecord) =
-    if (hasHeader) {
-      val header = records.next
-      val record = records.next
-      (header.toSeq, record)
-    } else {
-      val record = records.next
-      val header = Seq.tabulate(record.size()) { n => s"C$n" }
-      (header, record)
-    }
-
-  def guessTypes(name: String,
-                 csvReader: Reader,
-                 hasHeader: Boolean = true,
-                 format: CSVFormat = CSVFormat.DEFAULT): TypeSchema = {
-    val records = format.parse(csvReader).iterator
-    val (header, record) = sampleRecords(records, hasHeader)
-    val typeChars = typeData(record.iterator)
-
-    val sftb = new SftBuilder
-    var defaultDateSet = false
-    var defaultGeomSet = false
-    for ((field, c) <- header.zip(typeChars)) { c match {
-      case 'i' =>
-        sftb.intType(field)
-      case 'd' =>
-        sftb.doubleType(field)
-      case 't' =>
-        sftb.date(field)
-        if (!defaultDateSet) {
-          sftb.withDefaultDtg(field)
-          defaultDateSet = true
-        }
-      case 'p' =>
-        if (defaultGeomSet) sftb.geometry(field)
-        else {
-          sftb.point(field, default = true)
-          defaultGeomSet = true
-        }
-      case 's' =>
-        sftb.stringType(field)
-    }}
-
-    TypeSchema(name, sftb.getSpec)
-  }
 
   def guessTypes(csvFile: File, hasHeader: Boolean): TypeSchema = {
     val typename = FilenameUtils.getBaseName(csvFile.getName)
@@ -108,14 +51,67 @@ package object csv extends Logging {
     guess
   }
 
-  val fieldParserMap =
-    Map[Class[_], CSVParser[_ <: AnyRef]](
-      classOf[jInt]    -> IntParser,
-      classOf[jDouble] -> DoubleParser,
-      classOf[Date]    -> TimeParser,
-      classOf[Point]   -> PointParser,
-      classOf[String]  -> StringParser
-    )
+  def csvToFeatures(csvFile: File,
+                    hasHeader: Boolean,
+                    typeSchema: TypeSchema): SimpleFeatureCollection = {
+    val sft = SimpleFeatureTypes.createType(typeSchema.name, typeSchema.schema)
+    buildFeatureCollection(csvFile, hasHeader, sft, typeSchema.latLonFields)
+  }
+
+  protected[csv] def tryParsers(rawData: TraversableOnce[String]): Seq[CSVParser[_]] = {
+    def tryAllParsers(datum: String) =
+      CSVParser.parsers.find(_.parse(datum).isSuccess).getOrElse(StringParser)
+    rawData.map(tryAllParsers).toSeq
+  }
+
+  protected[csv] def guessHeaders(record: CSVRecord, hasHeader: Boolean = true): Seq[String] =
+    if (hasHeader) record.toSeq else Seq.tabulate(record.size())(n => s"C$n")
+
+  protected[csv] def guessTypes(name: String,
+                 csvReader: Reader,
+                 hasHeader: Boolean = true,
+                 format: CSVFormat = CSVFormat.DEFAULT,
+                 numSamples: Int = 5): TypeSchema = {
+    assert(numSamples > 0)
+    val records = format.parse(csvReader).iterator.take(numSamples + 1).toSeq
+    assert(records.size > 1 || (!hasHeader && records.size > 0))
+
+    val headers = guessHeaders(records(0), hasHeader)
+    val sample = records.drop(1)
+
+    // make sure type chars are valid for first few records
+    val parsers = sample.map(tryParsers(_)).reduceLeft { (pc1, pc2)  =>
+      pc1.zip(pc2).map { case (p1, p2) => if (p1 == p2) p1 else StringParser }
+    }
+
+    val sftb = new SftBuilder
+    var defaultGeomSet = false
+    headers.zip(parsers).foreach { case (field, parser) =>
+      if (!defaultGeomSet && parser.isGeom) {
+        parser.buildSpec(sftb, field, true)
+        defaultGeomSet = true
+      } else {
+        parser.buildSpec(sftb, field)
+      }
+    }
+
+    TypeSchema(name, sftb.getSpec, None)
+  }
+
+  protected[csv] def getParser[A](clas: Class[A]) = clas match {
+    case c if c.isAssignableFrom(classOf[jInt])            => IntParser
+    case c if c.isAssignableFrom(classOf[jDouble])         => DoubleParser
+    case c if c.isAssignableFrom(classOf[Date])            => TimeParser
+    case c if c.isAssignableFrom(classOf[Point])           => PointParser
+    case c if c.isAssignableFrom(classOf[LineString])      => LineStringParser
+    case c if c.isAssignableFrom(classOf[Polygon])         => PolygonParser
+    case c if c.isAssignableFrom(classOf[MultiPoint])      => MultiPointParser
+    case c if c.isAssignableFrom(classOf[MultiLineString]) => MultiLineStringParser
+    case c if c.isAssignableFrom(classOf[MultiPolygon])    => MultiPolygonParser
+    case c if c.isAssignableFrom(classOf[Geometry])        => GeometryParser
+    case c if c.isAssignableFrom(classOf[String])          => StringParser
+    case _ => StringParser
+  }
 
   val gf = new GeometryFactory
 
@@ -136,9 +132,7 @@ package object csv extends Logging {
                    parsers: Seq[CSVParser[_<:AnyRef]],
                    lli: Option[(Int, Int)]): Option[SimpleFeature] =
     try {
-      fb.reset()
-      val fieldVals = record.iterator.toIterable.zip(parsers).
-                      map { case (v, p) => p.parse(v).get }.toArray
+      val fieldVals = record.iterator.toIterable.zip(parsers).map { case (v, p) => p.parse(v).get }.toArray
       fb.addAll(fieldVals)
       for ((lati, loni) <- lli) {
         val lat = fieldVals(lati).asInstanceOf[jDouble] // should be Doubles, as verified
@@ -147,7 +141,7 @@ package object csv extends Logging {
       }
       Some(fb.buildFeature(null))
     } catch {
-      case ex: Throwable => logger.info(s"Failed to parse CSV record:\n$record"); None
+      case ex: Exception => logger.info(s"Failed to parse CSV record:\n$record"); None
     }
 
   // if the types in sft do not match the data in the reader, the resulting FeatureCollection will be empty.
@@ -167,14 +161,17 @@ package object csv extends Logging {
 
     val latlonIdx = latlonFields.map { case (latf, lonf) => (idxOfField(latf), idxOfField(lonf)) }
     val fb = new SimpleFeatureBuilder(sft)
-    val parsers = sft.getTypes.map { t => fieldParserMap(t.getBinding) }
+    val parsers = sft.getTypes.map(t => getParser(t.getBinding))
     val fc = new DefaultFeatureCollection
     val records = CSVFormat.DEFAULT.parse(reader).iterator()
     if (hasHeader) { records.next } // burn off header rather than try (and fail) to parse it.
     for {
-      record <- records
-      f      <- buildFeature(record, fb, parsers, latlonIdx) // logs and discards lines that fail to parse but keeps processing
-    } fc.add(f)
+      record  <- records
+      // logs and discards lines that fail to parse but keeps processing
+      feature <- buildFeature(record, fb, parsers, latlonIdx)
+    } {
+      fc.add(feature)
+    }
     fc
   }
 

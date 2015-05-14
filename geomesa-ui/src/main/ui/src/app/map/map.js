@@ -9,6 +9,7 @@ angular.module('geomesa.map', [])
                 api: '=',
                 selectedFeatures: '=',
             },
+            templateUrl: 'map/map.tpl.html',
             leaflet: function (scope, element, attrs) {
                 //var baseLayer = L.tileLayer.provider('Stamen.TonerLite'),
                 var baseLayer = L.tileLayer.provider('MapQuestOpen.OSM'), 
@@ -73,6 +74,19 @@ angular.module('geomesa.map', [])
                         }
                     }
                 };
+
+                scope.heatmap = false;
+                scope.$watch('heatmap', function(heatmapEnabled){
+                        // Remove heatmap style if checkbox is false
+                        if (heatmapEnabled) {
+                            var params = {STYLES: 'heatmap'};
+                            wmsSource.updateParams(params);
+                        }
+                        else {
+                            delete wmsSource.getParams().STYLES;
+                            wmsSource.updateParams({});
+                        }
+                });
 
                 scope.map.on('singleclick', function(evt) {
                     var viewResolution = olView.getResolution(),
