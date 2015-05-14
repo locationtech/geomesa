@@ -1,52 +1,62 @@
 package org.locationtech.geomesa.kafka
 
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.opengis.feature.simple.SimpleFeatureType
+import java.util.UUID
 
-class KafkaDataStoreHelper {
+import org.locationtech.geomesa.utils.geotools.FeatureUtils
+import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureType
+
+object KafkaDataStoreHelper {
 
   private val TopicKey = "Topic"
   private val ReplayConfigKey = "ReplayConfig"
 
+  /** Creates a copy of the passed SimpleFeatureType, inserting the topic name (derived from zkPath) into user data.*/
   def prepareForLive(sft: SimpleFeatureType, zkPath: String) : SimpleFeatureType = {
 
-    val topic = buildTopicName(zkPath, sft)
-    val sftCopy = copySft(sft)
-    sftCopy.getUserData.put(TopicKey,topic)
-
-    sftCopy
+    val builder = FeatureUtils.builder(sft)
+    val preparedSft = builder.buildFeatureType()
+    insertTopic(preparedSft,buildTopicName(zkPath,sft))
+    preparedSft
   }
 
+
+  /** Creates a copy of the passed SimpleFeature type, inserting an encoded ReplayConfig into the user data. */
   def prepareForReplay(sft: SimpleFeatureType, rConfig: ReplayConfig) : SimpleFeatureType = {
-    val rcString = ReplayConfig.encode(rConfig);
-    val sftCopy = copySft(sft);
-    sftCopy.getUserData.put(ReplayConfigKey,rcString);
 
-    sftCopy
+    val builder = FeatureUtils.builder(sft)
+    builder.setName(buildReplayTypeName(sft.getTypeName))
+
+    // assumes topic has been prepared, need to check though...
+    val preparedSft = builder.buildFeatureType()
+    preparedSft.getUserData.put(ReplayConfigKey,ReplayConfig.encode(rConfig))
+    preparedSft
   }
 
-  def extractTopic(sft: SimpleFeatureType) : Option[String] =
-    Option(sft.getUserData.get(TopicKey)).map(_.asInstanceOf[String])
-
-
-  def extractReplayConfig(sft: SimpleFeatureType) : Option[ReplayConfig] = {
-    // this one is pretty cool, but not very readable :)
-    Option(sft.getUserData.get(ReplayConfigKey)).map(_.asInstanceOf[String]).map(ReplayConfig.decode(_).get)
+  /** modifies the passed SimpleFeature type, adding the topic string to user data */
+  def insertTopic(sft: SimpleFeatureType, topic: String) : SimpleFeatureType = {
+    sft.getUserData.put(TopicKey,topic)
+    sft
   }
+
+  def extractTopic(sft: SimpleFeatureType) : Option[String] = sft.userData[String](TopicKey)
+
+  /** Modifies the passed SimpleFeatureType, adding the encoded replay configString to the user data */
+  def insertReplayConfig(sft: SimpleFeatureType, configString : String): SimpleFeatureType = {
+    sft.getUserData.put(ReplayConfigKey, configString)
+    sft
+  }
+
+  def extractReplayConfig(sft: SimpleFeatureType) : Option[ReplayConfig] =
+    sft.userData[String](ReplayConfigKey).flatMap(ReplayConfig.decode)
 
   private def buildTopicName(zkPath: String, sft: SimpleFeatureType): String = {
-    return sft.getTypeName + "_" + zkPath;
+    sft.getTypeName + "_" + zkPath.replaceAll("/","-")  //kafka doesn't like slashes
   }
 
-  private def copySft(sft: SimpleFeatureType): SimpleFeatureType = {
-
-    val builder = new SimpleFeatureTypeBuilder()
-    builder.init(sft)
-    val preppedSft: SimpleFeatureType = builder.buildFeatureType()
-
-    // builder doesn't copy user data...
-    preppedSft.getUserData.putAll(sft.getUserData)
-
-    preppedSft
+  private def buildReplayTypeName(name: String): String = {
+    val uuid=UUID.randomUUID()
+    s"$name-REPLAY-$uuid"
   }
+
 }

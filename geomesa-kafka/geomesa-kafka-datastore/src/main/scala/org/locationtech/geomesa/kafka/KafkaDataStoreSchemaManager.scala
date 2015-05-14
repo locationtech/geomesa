@@ -18,35 +18,75 @@ package org.locationtech.geomesa.kafka
 import java.util
 
 import com.google.common.cache.{CacheLoader, CacheBuilder}
+import kafka.admin.AdminUtils
+import kafka.utils.ZKStringSerializer
+import org.I0Itec.zkclient.ZkClient
+import org.I0Itec.zkclient.exception.{ZkNoNodeException, ZkNodeExistsException}
 import org.geotools.data.DataStore
-import org.geotools.data.store.ContentEntry
+import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
+import scala.collection.JavaConverters._
+//import scala.collection.JavaConversions._
 
-abstract class KafkaDataStoreSchemaManager(zookeepers: String, zkPath: String) extends DataStore  {
+trait KafkaDataStoreSchemaManager extends DataStore  {
 
-  private[kafka] val schemaCache = CacheBuilder.newBuilder().build(
-    new CacheLoader[String, SimpleFeatureType] {
-      override def load(name: String): SimpleFeatureType = getSchema(name)
 
-    })
+  protected def zookeepers: String
+  protected def zkPath: String
+  protected def partitions: Int
+  protected def replication: Int
 
   override def getSchema(name: Name): SimpleFeatureType = getSchema(name.getLocalPart)
   
-  override def getSchema(typeName: String): SimpleFeatureType =
-    resolveTopicSchema(typeName)
-      .getOrElse(throw new IllegalArgumentException(s"Unable to find schema with name $typeName"))
+  override def getSchema(typeName: String): SimpleFeatureType = getFeatureConfig(typeName).sft
 
-  override def createSchema(featureType: SimpleFeatureType): Unit = ???
+  override def createSchema(featureType: SimpleFeatureType): Unit = {
 
-  override def getNames: util.List[Name] = ???
+    val kfc = KafkaFeatureConfig(featureType)  // this is guaranteed to have a topic
+
+    // build the schema node
+    val typeName = featureType.getTypeName
+    val schemaPath: String = getSchemaPath(typeName)
+    if (zkClient.exists(schemaPath)) {  // todo:  look into zk exceptions
+      throw new IllegalArgumentException(s"Type $typeName already exists")
+    }
+
+    val data = SimpleFeatureTypes.encodeType(featureType)
+    createZkNode(schemaPath, data)
+
+    // build the topic node
+    createZkNode(getTopicPath(typeName), kfc.topic)
+
+    // build the replay config node (optional)
+    // build the topic node
+    val replayPath = getSchemaPath(typeName)
+    kfc.replayConfig.foreach(r => createZkNode(getReplayConfigPath(typeName), ReplayConfig.encode(r))) // todo:  look into zk exceptions
+
+    //create the Kafka topic
+    AdminUtils.createTopic(zkClient, kfc.topic, partitions, replication)  // todo:  look into zk exceptions
+
+    // put it in the cache
+    schemaCache.put(typeName, kfc)
+
+  }
+
+  def getFeatureConfig(typeName: String) : KafkaFeatureConfig = schemaCache.get(typeName)
+
+  override def getNames: util.List[Name] = {
+
+    // this one is pretty good - toList not required
+    getTypeNames.asScala.map(name => new NameImpl(name) : Name).asJava
+
+  }
+  override def getTypeNames: util.List[String] = zkClient.getChildren(zkPath)  // todo: look into potential exceptions thrown
 
   override def removeSchema(typeName: Name): Unit = removeSchema(typeName.getLocalPart)
 
   override def removeSchema(typeName: String): Unit = {
     schemaCache.invalidate(typeName)
-    ???
+    ???  //todo: worry about zook, don't worry about topic
   }
 
   override def updateSchema(typeName: String, featureType: SimpleFeatureType): Unit =
@@ -56,5 +96,85 @@ abstract class KafkaDataStoreSchemaManager(zookeepers: String, zkPath: String) e
     throw new UnsupportedOperationException
 
 
-  private def resolveTopicSchema(typeName: String): Option[SimpleFeatureType] = ???
+  // todo: need to grab rc and topic from zk.  Also consider not returning an option
+  private def resolveTopicSchema(typeName: String): Option[KafkaFeatureConfig] = {
+
+    val schema = zkClient.readData[String](getSchemaPath(typeName))  //throws ZkNoNodeException if not found
+    val topic = zkClient.readData[String](getTopicPath(typeName))    // throws Zk...
+    val sft = SimpleFeatureTypes.createType(typeName, schema)
+    KafkaDataStoreHelper.insertTopic(sft, topic)
+    val replay = Option(zkClient.readData[String](getReplayConfigPath(typeName))) // throws Zk...
+    replay.map(KafkaDataStoreHelper.insertReplayConfig(sft,_))
+
+    Option(KafkaFeatureConfig(sft)) // does this really need to be an option?
+  }
+
+  private def getSchemaPath(typeName: String): String = {
+    s"$zkPath/$typeName"
+  }
+  private def getTopicPath(typeName: String): String = {
+    s"$zkPath/$typeName/Topic"
+  }
+  private def getReplayConfigPath(typeName: String): String = {
+    s"$zkPath/$typeName/ReplayConfig"
+  }
+
+  private val zkClient = {
+    // zkStringSerializer is required - otherwise topics won't be created correctly
+    val ret = new ZkClient(zookeepers, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
+
+    // build the top level zookeeper node
+    if (!ret.exists(zkPath)) {
+      try {
+        ret.createPersistent(zkPath, true)
+      } catch {
+        case e: ZkNodeExistsException => // it's ok, something else created before we could
+        case e: Exception => throw new RuntimeException(s"Could not create path in zookeeper at $zkPath", e)
+      }
+    }
+    ret
+  }
+
+  private def createZkNode(path: String, data: String) {
+    try {
+      zkClient.createPersistent(path, data)
+    } catch {
+      case e: ZkNodeExistsException =>
+        throw new IllegalArgumentException(s"Node $path already exists", e)
+      case e: Exception =>
+        throw new RuntimeException(s"Could not create path in zookeeper at $path", e)
+    }
+  }
+
+  private val schemaCache =
+    CacheBuilder.newBuilder().build(new CacheLoader[String, KafkaFeatureConfig] {
+      override def load(k: String): KafkaFeatureConfig =
+        resolveTopicSchema(k).getOrElse(throw new IllegalArgumentException(s"Unable to find schema with name $k"))
+    })
+}
+
+/** This is an internal configuration class shared between KafkaDataStore and the various feature sources
+  * (producer, live consumer, replay consumer).
+  *
+  * @constructor
+  *
+  * @param sft the [[SimpleFeatureType]]
+  * @throws IllegalArgumentException if ``sft`` has not been prepared by calling
+  *                                  ``KafkaDataStoreHelper.prepareForLive``
+  */
+@throws[IllegalArgumentException]
+private[kafka] case class KafkaFeatureConfig(sft: SimpleFeatureType) extends AnyRef {
+
+  /** the name of the Kafka topic */
+  val topic: String = KafkaDataStoreHelper.extractTopic(sft)
+    .getOrElse(throw new IllegalArgumentException(
+    s"The SimpleFeatureType '${sft.getTypeName}' may not be used with KafkaDataStore because it has "
+      + "not been 'prepared' via KafkaDataStoreHelper.prepareForLive"))
+
+
+  /** the [[ReplayConfig]], if any */
+  val replayConfig: Option[ReplayConfig] = KafkaDataStoreHelper.extractReplayConfig(sft)
+
+  override def toString: String =
+    s"KafkaSimpleFeatureType: typeName=${sft.getTypeName}; topic=$topic; replayConfig=$replayConfig"
 }
