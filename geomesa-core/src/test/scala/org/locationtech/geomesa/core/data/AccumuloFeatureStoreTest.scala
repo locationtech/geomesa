@@ -8,6 +8,7 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.{SortBy, SortOrder}
@@ -172,6 +173,17 @@ trait GeoToolsFeatureStoreTester extends Specification with AccumuloDataStoreDef
         res.size must beEqualTo(featList.size)
         res.reverse must beSorted
         res.head must beGreaterThan(res(1))
+      }
+
+      // This test case to show how the EXACT_COUNT Query Hint can be used.
+      // Since we can't get table sizes for MockAccumulo, we can't test both directions.
+      "also accept counting hints" >> {
+        val exactCountQuery = new Query("test", Filter.INCLUDE)
+        val sizeByQuery = fs.getFeatures(exactCountQuery).features.toList.size
+
+        exactCountQuery.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
+
+        fs.getCount(exactCountQuery) must equalTo(sizeByQuery)
       }
     }
   }
