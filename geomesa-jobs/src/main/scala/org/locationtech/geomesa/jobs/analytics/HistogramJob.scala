@@ -19,7 +19,7 @@ package org.locationtech.geomesa.jobs.analytics
 import com.twitter.algebird.Aggregator
 import com.twitter.scalding._
 import com.twitter.scalding.typed.UnsortedGrouped
-import org.apache.accumulo.core.data.{Mutation, Range => AcRange}
+import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.geotools.data.DataStoreFinder
@@ -103,10 +103,10 @@ class HistogramJob(args: Args) extends GeoMesaBaseJob(args) {
   // write out the histogram to a tsv file - we create the tabs ourselves since length isn't known
   if (writeToAccumulo) {
     aggregates.toTypedPipe
-      .flatMap { case (group, count) =>
+      .map{ case (group, count) =>
       val mut = new Mutation(new Text(s"$feature~$attribute~${group.productElement(group.productArity - 1).toString}"))
       mut.put(new Text(s"${group.productIterator.mkString("\t")}"), new Text(count.toString.getBytes), EMPTY_VALUE)
-      Seq(mut).map((null: Text, _))
+      (null: Text, mut)
     }.write(AccumuloSource(accOutput))
   } else {
     aggregates.toTypedPipe.map { case (group, count) => s"${group.productIterator.mkString("\t")}\t$count" }
@@ -169,10 +169,10 @@ object HistogramJob {
              uniqueBy: List[String]   = List.empty,
              writeToAccumulo: Boolean = false) = {
     val args = Seq(FEATURE_IN        -> List(feature),
-      ATTRIBUTE         -> List(attribute),
-      GROUP_BY          -> groupBy,
-      UNIQUE_BY         -> uniqueBy,
-      WRITE_TO_ACCUMULO -> List(writeToAccumulo.toString)).toMap ++ toInArgs(dsParams)
+                   ATTRIBUTE         -> List(attribute),
+                   GROUP_BY          -> groupBy,
+                   UNIQUE_BY         -> uniqueBy,
+                   WRITE_TO_ACCUMULO -> List(writeToAccumulo.toString)).toMap ++ toInArgs(dsParams)
     val instantiateJob = (args: Args) => new HistogramJob(args)
     GeoMesaBaseJob.runJob(conf, args, instantiateJob)
   }
