@@ -51,7 +51,7 @@
         <!-- wait 5 seconds before scheduling this task -->
         <property name="delay" value="5000"/>
         <!-- run the cleanup every five minutes -->
-        <property name="period" value="5000"/>
+        <property name="period" value="300000"/>
         <property name="fixedRate" value="true"/>
     </bean>
 
