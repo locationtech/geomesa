@@ -21,11 +21,11 @@ object InfiniteIterator {
 
   implicit class InfiniteIterator[A](val iter: Iterator[A]) {
 
-    /** @param p the predicate defining when to stop
+    /** @param p the predicate defining which element to stop after
       *
-      * @return a [[Iterator]] which will delegate to ``this`` and return all elements up to and including
-      *         the first element ``a`` for which p(a) == true after which no more calls will be made
-      *         to ``this.hasNext()``
+      * @return a [[Iterator]] which will delegate to the underlying iterator and return all elements up to
+      *         and including the first element ``a`` for which p(a) == true after which no more calls will
+      *         be made to the underlying iterator
       */
     def stopAfter(p: A => Boolean): Iterator[A] = new Iterator[A] {
       private var done = false
