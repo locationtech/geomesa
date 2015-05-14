@@ -16,19 +16,56 @@
 
 package org.locationtech.geomesa.core.index
 
-import java.util
-
 import org.geotools.data.Query
+import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.core.index.FilterHelper._
 import org.locationtech.geomesa.core.index.QueryHints._
-import org.locationtech.geomesa.utils.stats.Cardinality
-import org.opengis.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.RichIterator.RichIterator
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Id, PropertyIsLike}
 
 import scala.collection.JavaConversions._
 
+trait VersionedQueryStrategyDecider {
+  def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints, version: Int): Strategy
+}
+
+object VersionedQueryStrategyDecider {
+  def apply(version: Int): VersionedQueryStrategyDecider = version match {
+    case i if i <= 4 => new QueryStrategyDeciderV4
+    case 5           => new QueryStrategyDeciderV5
+  }
+}
+
 object QueryStrategyDecider {
+  // first element is null so that the array index aligns with the version
+  val strategies = Array[VersionedQueryStrategyDecider](null) ++ (1 to 5).map { i => VersionedQueryStrategyDecider(i) }
+
+  def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints, version: Int): Strategy =
+    strategies(version).chooseStrategy(sft, query, hints, version)
+
+  // TODO try to use wildcard values from the Filter itself (https://geomesa.atlassian.net/browse/GEOMESA-309)
+  // Currently pulling the wildcard values from the filter
+  // leads to inconsistent results...so use % as wildcard
+  val MULTICHAR_WILDCARD = "%"
+  val SINGLE_CHAR_WILDCARD = "_"
+  val NULLBYTE = Array[Byte](0.toByte)
+
+  /* Like queries that can be handled by current reverse index */
+  def likeEligible(filter: PropertyIsLike) = containsNoSingles(filter) && trailingOnlyWildcard(filter)
+
+  /* contains no single character wildcards */
+  def containsNoSingles(filter: PropertyIsLike) =
+    !filter.getLiteral.replace("\\\\", "").replace(s"\\$SINGLE_CHAR_WILDCARD", "").contains(SINGLE_CHAR_WILDCARD)
+
+  def trailingOnlyWildcard(filter: PropertyIsLike) =
+    (filter.getLiteral.endsWith(MULTICHAR_WILDCARD) &&
+      filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == filter.getLiteral.length - MULTICHAR_WILDCARD.length) ||
+      filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == -1
+
+}
+
+class QueryStrategyDeciderV4 extends VersionedQueryStrategyDecider {
 
   val REASONABLE_COST = 10000
   val OPTIMAL_COST = 10
@@ -69,7 +106,7 @@ object QueryStrategyDecider {
    *   * If filters are not identified, use the STIdxStrategy
    *            --> The ST Index is scanned (likely a full table scan) and the ECQL filters are applied
    */
-  private def processFilters(filters: Seq[Filter], sft: SimpleFeatureType, hints: StrategyHints): Strategy = {
+  def processFilters(filters: Seq[Filter], sft: SimpleFeatureType, hints: StrategyHints): Strategy = {
     // record strategy takes priority
     val recordStrategy = filters.iterator.flatMap(f => RecordIdxStrategy.getStrategy(f, sft, hints)).headOption
     recordStrategy match {
@@ -81,7 +118,7 @@ object QueryStrategyDecider {
   /**
    * We've already eliminated record filters - look for attribute + spatio-temporal filters
    */
-  private def processNonRecordFilters(filters: Seq[Filter],
+  def processNonRecordFilters(filters: Seq[Filter],
                                       sft: SimpleFeatureType,
                                       hints: StrategyHints): Strategy = {
     // look for reasonable cost attribute strategies - expensive ones will not be considered
@@ -110,23 +147,23 @@ object QueryStrategyDecider {
   }
 
 
-  // TODO try to use wildcard values from the Filter itself (https://geomesa.atlassian.net/browse/GEOMESA-309)
-  // Currently pulling the wildcard values from the filter
-  // leads to inconsistent results...so use % as wildcard
-  val MULTICHAR_WILDCARD = "%"
-  val SINGLE_CHAR_WILDCARD = "_"
-  val NULLBYTE = Array[Byte](0.toByte)
+}
 
-  /* Like queries that can be handled by current reverse index */
-  def likeEligible(filter: PropertyIsLike) = containsNoSingles(filter) && trailingOnlyWildcard(filter)
+class QueryStrategyDeciderV5 extends QueryStrategyDeciderV4 {
 
-  /* contains no single character wildcards */
-  def containsNoSingles(filter: PropertyIsLike) =
-    !filter.getLiteral.replace("\\\\", "").replace(s"\\$SINGLE_CHAR_WILDCARD", "").contains(SINGLE_CHAR_WILDCARD)
-
-  def trailingOnlyWildcard(filter: PropertyIsLike) =
-    (filter.getLiteral.endsWith(MULTICHAR_WILDCARD) &&
-      filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == filter.getLiteral.length - MULTICHAR_WILDCARD.length) ||
-      filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == -1
+  val ff = CommonFactoryFinder.getFilterFactory2
+  /**
+   * We've eliminated the best attribute strategies - look for spatio-temporal and use the best attribute
+   * strategy available as a fallback.
+   */
+  override def processStFilters(filters: Seq[Filter],
+                                fallback: Option[StrategyDecision],
+                                sft: SimpleFeatureType,
+                                hints: StrategyHints): Strategy = {
+    // finally, prefer spatial filters if available
+    val stStrategy = Z3IdxStrategy.getStrategy(ff.and(filters), sft, hints)
+    // fallback to the old STIdxStrategy
+    stStrategy.orElse(fallback).map(_.strategy).getOrElse(new STIdxStrategy)
+  }
 
 }

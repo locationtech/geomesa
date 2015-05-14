@@ -26,7 +26,8 @@ import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.{SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.feature.SimpleFeatureDecoder
+import org.locationtech.geomesa.features.{SimpleFeatureEncoder, SimpleFeatureDecoder}
 import org.locationtech.geomesa.jobs.GeoMesaBaseJob
 import org.locationtech.geomesa.jobs.scalding.ConnectionParams._
 import org.locationtech.geomesa.jobs.scalding._

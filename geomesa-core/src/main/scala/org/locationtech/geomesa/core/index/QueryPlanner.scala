@@ -16,12 +16,13 @@
 
 package org.locationtech.geomesa.core.index
 
+import java.nio.ByteBuffer
 import java.util.Map.Entry
 import java.util.{Map => JMap}
 
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.{DataUtilities, Query}
-import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.geometry.jts.{JTSFactoryFinder, ReferencedEnvelope}
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.QueryHints._
@@ -30,8 +31,10 @@ import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIt
 import org.locationtech.geomesa.core.sumNumericValueMutableMaps
 import org.locationtech.geomesa.core.util.CloseableIterator
 import org.locationtech.geomesa.core.util.CloseableIterator._
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.feature.nio.{AttributeAccessor, LazySimpleFeature}
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
@@ -106,21 +109,23 @@ case class QueryPlanner(sft: SimpleFeatureType,
         val q1 = new Query(sft.getTypeName, ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env))
         val mixedQuery = DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
         val strategy = QueryStrategyDecider.chooseStrategy(sft, mixedQuery, hints, version)
-        val plan = strategy.getQueryPlan(mixedQuery, this, output)
-        Seq(StrategyPlan(strategy, plan))
+        val plans = strategy.getQueryPlan(mixedQuery, this, output)
+        plans.map { p => StrategyPlan(strategy, p) }
       } else {
         // As a pre-processing step, we examine the query/filter and split it into multiple queries.
         // TODO Work to make the queries non-overlapping
-        splitQueryOnOrs(query, output).map { q =>
+        splitQueryOnOrs(query, output).flatMap { q =>
           val strategy = QueryStrategyDecider.chooseStrategy(sft, q, hints, version)
           output(s"Strategy: ${strategy.getClass.getCanonicalName}")
           output(s"Transforms: ${getTransformDefinition(query).getOrElse("None")}")
-          val plan = strategy.getQueryPlan(q, this, output)
-          output(s"Table: ${plan.table}")
-          output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all" else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
-          output(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).mkString(", ")}")
-          output(s"Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", ", ", "]")}")
-          StrategyPlan(strategy, plan)
+          val plans = strategy.getQueryPlan(q, this, output)
+          plans.map { plan =>
+            output(s"Table: ${plan.table}")
+            output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all" else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
+            output(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).mkString(", ")}")
+            output(s"Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", ", ", "]")}")
+            StrategyPlan(strategy, plan)
+          }
         }
       }
     }, "plan")
@@ -143,9 +148,53 @@ case class QueryPlanner(sft: SimpleFeatureType,
     } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
       adaptMapAggregationIterator(accumuloIterator, query, returnSFT, decoder)
     } else {
-      adaptStandardIterator(accumuloIterator, query, decoder)
+      //adaptStandardIterator(accumuloIterator, query, decoder)
+      adaptZ3Iterator(accumuloIterator, query)
+    }
+
+  }
+
+  private val Z3CURVE = new Z3SFC
+  private val gt = JTSFactoryFinder.getGeometryFactory
+
+  def adaptZ3Iterator(iter: KVIter, query: Query): SFIter = {
+    val accessors = AttributeAccessor.buildSimpleFeatureTypeAttributeAccessors(sft)
+    iter.map { e =>
+      val k = e.getKey
+      val row = k.getRow.getBytes
+      val idbytes = row.slice(10, Int.MaxValue)
+      val id = new String(idbytes)
+      new LazySimpleFeature(id, sft, accessors, ByteBuffer.wrap(e.getValue.get()))
     }
   }
+
+/*
+  def adaptZ3Iterator(iter: KVIter, query: Query): SFIter = {
+    val ft = SimpleFeatureTypes.createType(query.getTypeName, "dtg:Date,geom:Point:srid=4326")
+    val builder = new SimpleFeatureBuilder(ft)
+    iter.map { e =>
+      val k = e.getKey
+      val row = k.getRow.getBytes
+      val weekBytes = row.slice(0, 2)
+      val zbytes = row.slice(2, 10)
+      val idbytes = row.slice(10, Int.MaxValue)
+
+      val id = new String(idbytes)
+      val zvalue = Longs.fromByteArray(zbytes)
+      val z = Z3(zvalue)
+      val (x, y, t) = Z3CURVE.invert(z)
+      val pt = gt.createPoint(new Coordinate(x, y))
+      val week = Shorts.fromByteArray(weekBytes)
+      val seconds = week * Weeks.ONE.toStandardSeconds.getSeconds + Seconds.seconds(t.toInt).getSeconds
+
+      val dtg = new DateTime(seconds * 1000L)
+      builder.reset()
+      builder.addAll(Array[AnyRef](dtg, pt))
+      builder.buildFeature(id)
+    }
+  }
+*/
+
 
   /**
    * Standard iterator of simple features

@@ -16,12 +16,9 @@
 
 package org.locationtech.geomesa.core.index
 
-import java.util.Map.Entry
-
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, Polygon}
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
-import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
@@ -31,8 +28,8 @@ import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.index.Strategy._
 import org.locationtech.geomesa.core.iterators.{FEATURE_ENCODING, _}
-import org.locationtech.geomesa.core.util.{CloseableIterator, BatchMultiScanner, SelfClosingIterator}
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.core.util.{BatchMultiScanner, CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -45,7 +42,7 @@ trait Strategy extends Logging {
   /**
    * Plans the query - strategy implementations need to define this
    */
-  def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType): QueryPlan
+  def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType): Seq[QueryPlan]
 
   /**
    * Execute a query against this strategy

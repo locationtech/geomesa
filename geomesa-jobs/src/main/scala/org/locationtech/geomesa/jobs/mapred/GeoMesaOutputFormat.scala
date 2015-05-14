@@ -31,7 +31,7 @@ import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToMutati
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.core.index.{IndexSchema, IndexValueEncoder}
-import org.locationtech.geomesa.feature.SimpleFeatureEncoder
+import org.locationtech.geomesa.features.SimpleFeatureEncoder
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.SimpleFeature
 

@@ -22,7 +22,7 @@ import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.FeatureWriter
 import org.geotools.factory.Hints.ClassKey
 import org.joda.time.{DateTime, Interval}
-import org.locationtech.geomesa.feature.FeatureEncoding
+import org.locationtech.geomesa.features.FeatureEncoding
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 package object data {
@@ -55,6 +55,7 @@ import scala.collection.JavaConversions._
   val ST_IDX_TABLE_KEY       = "tables.idx.st.name"
   val ATTR_IDX_TABLE_KEY     = "tables.idx.attr.name"
   val RECORD_TABLE_KEY       = "tables.record.name"
+  val Z3_TABLE_KEY           = "tables.z3.name"
   val QUERIES_TABLE_KEY      = "tables.queries.name"
   val SHARED_TABLES_KEY      = "tables.sharing"
   val VERSION_KEY            = "version"
@@ -78,7 +79,8 @@ import scala.collection.JavaConversions._
   // 2 == sorted keys in the STIDX table
   // skipping 3 for integration...
   // 4 is kryo encoded index values
-  val INTERNAL_GEOMESA_VERSION = 4
+  // 5 == z3 index
+  val INTERNAL_GEOMESA_VERSION = 5
 
   // SimpleFeature Hints
   val TRANSFORMS           = new ClassKey(classOf[String])
@@ -98,5 +100,6 @@ import scala.collection.JavaConversions._
     val STIdx   = "st_idx"
     val Records = "records"
     val AttrIdx = "attr_idx"
+    val Z3      = "z3"
   }
 }

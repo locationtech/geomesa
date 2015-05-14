@@ -20,7 +20,7 @@ import java.io.{InputStream, OutputStream}
 
 import com.google.common.primitives.Ints
 import org.apache.hadoop.io.serializer.{Deserializer, Serialization, Serializer}
-import org.locationtech.geomesa.feature.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization._
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

@@ -30,11 +30,10 @@ import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.index.Strategy._
 import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.Literal
-import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator}
+import org.opengis.filter.spatial.BinarySpatialOperator
 
 class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 
@@ -115,17 +114,10 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val iterators = qp.iterators ++ List(Some(stiiIterCfg), densityIterCfg).flatten
     val numThreads = acc.getSuggestedSpatioTemporalThreads(sft)
     val hasDupes = IndexSchema.mayContainDuplicates(sft)
-    qp.copy(table = table, iterators = iterators, numThreads = numThreads, hasDuplicates = hasDupes)
+    val res = qp.copy(table = table, iterators = iterators, numThreads = numThreads, hasDuplicates = hasDupes)
+    Seq(res)
   }
 
-  def decomposeToGeometry(f: Filter): Seq[Geometry] = f match {
-    case bbox: BBOX =>
-      val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
-      Seq(bboxPoly)
-    case gf: BinarySpatialOperator =>
-      extractGeometry(gf)
-    case _ => Seq()
-  }
 
   private def getSTIIIterCfg(iteratorConfig: IteratorConfig,
                      query: Query,

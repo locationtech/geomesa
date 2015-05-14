@@ -120,6 +120,6 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     val table = acc.getRecordTable(sft)
     val threads = acc.getSuggestedRecordThreads(sft)
-    BatchScanPlan(table, ranges.toSeq, iters, Seq.empty, threads, false)
+    Seq(BatchScanPlan(table, ranges.toSeq, iters, Seq.empty, threads, hasDuplicates = false))
   }
 }

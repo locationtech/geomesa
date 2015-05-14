@@ -38,13 +38,14 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.Interval
 import org.locationtech.geomesa.core
 import org.locationtech.geomesa.core.data.AccumuloDataStore._
-import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
+import org.locationtech.geomesa.core.data.tables.{Z3Table, AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.util.{ExplainingConnectorCreator, GeoMesaBatchWriterConfig}
 import org.locationtech.geomesa.data.TableSplitter
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}
@@ -152,6 +153,7 @@ class AccumuloDataStore(val connector: Connector,
       }
     }
     val featureEncodingValue        = /*_*/fe.toString/*_*/
+    val z3TableValue                = formatZ3TableName(catalogTable, sft)
     val spatioTemporalIdxTableValue = formatSpatioTemporalIdxTableName(catalogTable, sft)
     val attrIdxTableValue           = formatAttrIdxTableName(catalogTable, sft)
     val recordTableValue            = formatRecordTableName(catalogTable, sft)
@@ -161,18 +163,21 @@ class AccumuloDataStore(val connector: Connector,
     val dataStoreVersion            = INTERNAL_GEOMESA_VERSION.toString
 
     // store each metadata in the associated key
-    val attributeMap = Map(ATTRIBUTES_KEY        -> attributesValue,
-                           SCHEMA_KEY            -> spatioTemporalSchemaValue,
-                           DTGFIELD_KEY          -> dtgFieldValue,
-                           FEATURE_ENCODING_KEY  -> featureEncodingValue,
-                           VISIBILITIES_KEY      -> writeVisibilities,
-                           ST_IDX_TABLE_KEY      -> spatioTemporalIdxTableValue,
-                           ATTR_IDX_TABLE_KEY    -> attrIdxTableValue,
-                           RECORD_TABLE_KEY      -> recordTableValue,
-                           QUERIES_TABLE_KEY     -> queriesTableValue,
-                           SHARED_TABLES_KEY     -> tableSharingValue,
-                           VERSION_KEY           -> dataStoreVersion
-                       )
+    val attributeMap =
+      Map(
+        ATTRIBUTES_KEY        -> attributesValue,
+        SCHEMA_KEY            -> spatioTemporalSchemaValue,
+        DTGFIELD_KEY          -> dtgFieldValue,
+        FEATURE_ENCODING_KEY  -> featureEncodingValue,
+        VISIBILITIES_KEY      -> writeVisibilities,
+        Z3_TABLE_KEY          -> z3TableValue,
+        ST_IDX_TABLE_KEY      -> spatioTemporalIdxTableValue,
+        ATTR_IDX_TABLE_KEY    -> attrIdxTableValue,
+        RECORD_TABLE_KEY      -> recordTableValue,
+        QUERIES_TABLE_KEY     -> queriesTableValue,
+        SHARED_TABLES_KEY     -> tableSharingValue,
+        VERSION_KEY           -> dataStoreVersion
+      )
 
     val featureName = getFeatureName(sft)
     metadata.insert(featureName, attributeMap)
@@ -228,6 +233,10 @@ class AccumuloDataStore(val connector: Connector,
   override def getSpatioTemporalTable(featureType: SimpleFeatureType): String =
     getSpatioTemporalTable(featureType.getTypeName)
 
+  override def getZ3Table(featureType: SimpleFeatureType): String = getZ3Table(featureType.getTypeName)
+
+  def getZ3Table(featureName: String): String =
+    metadata.readRequired(featureName, Z3_TABLE_KEY)
   /**
    * Read SpatioTemporal Index table name from store metadata
    */
@@ -285,12 +294,14 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   def createTablesForType(featureType: SimpleFeatureType, maxShard: Int) {
+    val z3Table                = formatZ3TableName(catalogTable, featureType)
     val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(catalogTable, featureType)
     val attributeIndexTable    = formatAttrIdxTableName(catalogTable, featureType)
     val recordTable            = formatRecordTableName(catalogTable, featureType)
 
-    List(spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach(ensureTableExists)
+    List(z3Table, spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach(ensureTableExists)
 
+    configureZ3Table(featureType, z3Table)
     configureRecordTable(featureType, recordTable)
     configureAttrIdxTable(featureType, attributeIndexTable)
     configureSpatioTemporalIdxTable(maxShard, featureType, spatioTemporalIdxTable)
@@ -304,6 +315,8 @@ class AccumuloDataStore(val connector: Connector,
         case e: TableExistsException => // this can happen with multiple threads but shouldn't cause any issues
       }
     }
+
+  def configureZ3Table(featureType: SimpleFeatureType, z3Table: String): Unit = Z3Table.configureTable(featureType, z3Table, tableOps)
 
   def configureRecordTable(featureType: SimpleFeatureType, recordTable: String): Unit = {
     val prefix = index.getTableSharingPrefix(featureType)
@@ -935,6 +948,9 @@ object AccumuloDataStore {
    */
   def formatSpatioTemporalIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
     formatTableName(catalogTable, featureType, TableSuffix.STIdx)
+
+  def formatZ3TableName(catalogTable: String, featureType: SimpleFeatureType) =
+    formatTableName(catalogTable, featureType.getTypeName, TableSuffix.Z3)
 
   /**
    * Format attribute index table name for Accumulo...table name is stored in metadata for other usage

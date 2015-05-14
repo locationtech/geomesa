@@ -22,8 +22,8 @@ import java.util.{Date, UUID}
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.core
-import org.locationtech.geomesa.feature.serialization.CacheKeyGenerator
-import org.locationtech.geomesa.feature.{KryoFeatureEncoder, ScalaSimpleFeature, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.serialization.CacheKeyGenerator
+import org.locationtech.geomesa.features.{KryoFeatureEncoder, ScalaSimpleFeature, SimpleFeatureDecoder, SimpleFeatureEncoder}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKBUtils

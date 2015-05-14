@@ -27,8 +27,9 @@ import org.geotools.feature.collection.BridgeIterator
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
-import org.locationtech.geomesa.feature.{AvroFeatureEncoder, AvroSimpleFeature}
+import org.locationtech.geomesa.features.{AvroFeatureEncoder, EncodingOption}
+import EncodingOption.EncodingOptions
+import org.locationtech.geomesa.features.avro.AvroSimpleFeature
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId

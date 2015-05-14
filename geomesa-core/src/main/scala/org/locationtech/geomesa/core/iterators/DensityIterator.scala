@@ -33,7 +33,7 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index.{IndexEntryDecoder, IndexSchema}
 import org.locationtech.geomesa.core.iterators.DensityIterator.{DENSITY_FEATURE_SFT_STRING, SparseMatrix}
 import org.locationtech.geomesa.core.iterators.FeatureAggregatingIterator._
-import org.locationtech.geomesa.feature.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, toRichSimpleFeatureIterator}
 import org.locationtech.geomesa.utils.geotools.{GridSnap, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils

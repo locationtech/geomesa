@@ -122,6 +122,15 @@ object FilterHelper {
       "meters")
   }
 
+  def decomposeToGeometry(f: Filter): Seq[Geometry] = f match {
+    case bbox: BBOX =>
+      val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
+      Seq(bboxPoly)
+    case gf: BinarySpatialOperator =>
+      extractGeometry(gf)
+    case _ => Seq()
+  }
+
   def extractGeometry(bso: BinarySpatialOperator): Seq[Geometry] = {
     bso match {
       // The Dwithin has already between rewritten.

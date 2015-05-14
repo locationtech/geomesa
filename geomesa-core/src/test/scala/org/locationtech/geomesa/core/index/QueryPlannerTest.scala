@@ -24,7 +24,7 @@ import org.geotools.data.Query
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.core.util.CloseableIterator
-import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureDecoder}
+import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureDecoder}
 import org.locationtech.geomesa.security._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature

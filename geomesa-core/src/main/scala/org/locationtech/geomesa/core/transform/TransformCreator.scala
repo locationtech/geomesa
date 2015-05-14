@@ -17,8 +17,8 @@
 package org.locationtech.geomesa.core.transform
 
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.feature._
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureEncoder}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._

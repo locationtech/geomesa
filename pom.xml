@@ -26,7 +26,7 @@
     <modules>
         <module>geomesa-utils</module>
         <module>geomesa-security</module>
-        <module>geomesa-feature</module>
+        <module>geomesa-features</module>
         <module>geomesa-filter</module>
         <module>geomesa-core</module>
         <module>geomesa-distributed-runtime</module>
@@ -40,6 +40,8 @@
         <module>geomesa-web</module>
         <module>geomesa-process</module>
         <module>geomesa-stream</module>
+        <module>geomesa-z3</module>
+        <module>geomesa-iterators</module>
     </modules>
 
     <properties>
@@ -501,7 +503,7 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-feature-accumulo1.5</artifactId>
+                <artifactId>geomesa-feature-all</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

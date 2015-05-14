@@ -34,7 +34,7 @@ import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.index.QueryPlanners.JoinFunction
 import org.locationtech.geomesa.core.index.Strategy._
 import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.feature.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
@@ -218,7 +218,8 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
   override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
     val (strippedQuery, filter) = partitionFilter(query, queryPlanner.sft)
     val (prop, range) = getPropertyAndRange(filter, queryPlanner.sft)
-    getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
+    val ret = getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
+    Seq(ret)
   }
 }
 
@@ -229,7 +230,8 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
   override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
     val (strippedQuery, filter) = partitionFilter(query, queryPlanner.sft)
     val (prop, range) = getPropertyAndRange(filter, queryPlanner.sft)
-    getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
+    val ret = getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
+    Seq(ret)
   }
 }
 
@@ -240,7 +242,8 @@ class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
   override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
     val (strippedQuery, extractedFilter) = partitionFilter(query, queryPlanner.sft)
     val (prop, range) = getPropertyAndRange(extractedFilter, queryPlanner.sft)
-    getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
+    val ret = getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
+    Seq(ret)
   }
 }
 

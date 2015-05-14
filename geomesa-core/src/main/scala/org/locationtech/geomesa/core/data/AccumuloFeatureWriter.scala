@@ -29,12 +29,12 @@ import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter._
-import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
+import org.locationtech.geomesa.core.data.tables.{Z3Table, AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.locationtech.geomesa.security.SecurityUtils
 import SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
-import org.locationtech.geomesa.feature.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureEncoder}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -78,15 +78,17 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
     val stWriter = SpatioTemporalTable.spatioTemporalWriter(stIndexEncoder)
     val stBw = multiBWWriter.getBatchWriter(ds.getSpatioTemporalTable(sft))
 
+    val z3Writer = Z3Table.z3writer(sft)
+    val z3bw = multiBWWriter.getBatchWriter(ds.getZ3Table(sft))
     val recWriter = RecordTable.recordWriter(sft)
     val recBw = multiBWWriter.getBatchWriter(ds.getRecordTable(sft))
 
     AttributeTable.attributeWriter(sft) match {
       // attribute writer is only used if there are indexed attributes
-      case None => featureWriter(Seq((stWriter, stBw), (recWriter, recBw)))
+      case None => featureWriter(Seq((stWriter, stBw), (z3Writer, z3bw), (recWriter, recBw)))
       case Some(attrWriter) =>
         val attrBw = multiBWWriter.getBatchWriter(ds.getAttributeTable(sft))
-        featureWriter(Seq((stWriter, stBw), (recWriter, recBw), (attrWriter, attrBw)))
+        featureWriter(Seq((stWriter, stBw), (z3Writer, z3bw), (recWriter, recBw), (attrWriter, attrBw)))
     }
   }
 
