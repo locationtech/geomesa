@@ -21,7 +21,7 @@ import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.{AvroFeatureDeserializer, ProjectingAvroFeatureDeserializer, AvroFeatureSerializer, AvroSimpleFeatureFactory}
-import org.locationtech.geomesa.features.kryo.serialization.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.{ProjectingKryoFeatureDeserializer, KryoFeatureSerializer}
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -116,7 +116,7 @@ class SimpleFeatureSerializersTest extends Specification {
 
       // KRYO with options
       val kryo2 = SimpleFeatureDeserializers(sft, SerializationType.KRYO, opts)
-      kryo2 must beAnInstanceOf[KryoFeatureDeserializer]
+      kryo2 must beAnInstanceOf[KryoFeatureSerializer]
       kryo2.options mustEqual opts
     }
   }
@@ -289,13 +289,8 @@ class SimpleFeatureSerializersTest extends Specification {
 
   "KryoFeatureEncoder" should {
 
-    "return the correct encoding" >> {
-      val encoder = new KryoFeatureEncoder(sft)
-      encoder.encoding mustEqual SerializationType.KRYO
-    }
-
     "be able to encode points" >> {
-      val encoder = new KryoFeatureEncoder(sft)
+      val encoder = new KryoFeatureSerializer(sft)
       val features = getFeatures
 
       val encoded = features.map(encoder.serialize)
@@ -304,7 +299,7 @@ class SimpleFeatureSerializersTest extends Specification {
     }
 
     "not include visibilities when not requested" >> {
-      val encoder = new KryoFeatureEncoder(sft)
+      val encoder = new KryoFeatureSerializer(sft)
       val expected = getFeatures.map(encoder.serialize)
 
       val featuresWithVis = getFeaturesWithVisibility
@@ -319,11 +314,11 @@ class SimpleFeatureSerializersTest extends Specification {
 
     "include user data when requested" >> {
       val noVis = {
-        val encoder = new KryoFeatureEncoder(sft, SerializationOptions.none)
+        val encoder = new KryoFeatureSerializer(sft, SerializationOptions.none)
         getFeatures.map(encoder.serialize)
       }
       val withVis = {
-        val encoder = new KryoFeatureEncoder(sft, SerializationOptions.withUserData)
+        val encoder = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
         getFeaturesWithVisibility.map(encoder.serialize)
       }
 
@@ -337,14 +332,9 @@ class SimpleFeatureSerializersTest extends Specification {
 
   "KryoFeatureDecoder" should {
 
-    "return the correct encoding" >> {
-      val decoder = new KryoFeatureDecoder(sft)
-      decoder.encoding mustEqual SerializationType.KRYO
-    }
-
     "be able to decode points" >> {
-      val encoder = new KryoFeatureEncoder(sft)
-      val decoder = new KryoFeatureDecoder(sft)
+      val encoder = new KryoFeatureSerializer(sft)
+      val decoder = new KryoFeatureSerializer(sft)
 
       val features = getFeatures
       val encoded = features.map(encoder.serialize)
@@ -354,8 +344,8 @@ class SimpleFeatureSerializersTest extends Specification {
     }
 
     "be able to decode points with user data" >> {
-      val encoder = new KryoFeatureEncoder(sft, SerializationOptions.withUserData)
-      val decoder = new KryoFeatureDecoder(sft, SerializationOptions.withUserData)
+      val encoder = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
+      val decoder = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
 
       val features = getFeaturesWithVisibility
       val encoded = features.map(encoder.serialize)
@@ -366,8 +356,8 @@ class SimpleFeatureSerializersTest extends Specification {
     }
 
     "be able to extract feature IDs" >> {
-      val encoder = new KryoFeatureEncoder(sft)
-      val decoder = new KryoFeatureDecoder(sft)
+      val encoder = new KryoFeatureSerializer(sft)
+      val decoder = new KryoFeatureSerializer(sft)
 
       val features = getFeatures
       val encoded = features.map(encoder.serialize)
@@ -378,19 +368,19 @@ class SimpleFeatureSerializersTest extends Specification {
     "work user data were encoded but are not expected by decoder" >> {
       // in this case the encoded user data will be ignored
       val sf = getFeaturesWithVisibility.head
-      val encoder = new KryoFeatureEncoder(sft, SerializationOptions.withUserData)
+      val encoder = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
       val encoded = encoder.serialize(sf)
 
-      val decoder = new KryoFeatureDecoder(sft, SerializationOptions.none)
+      val decoder = new KryoFeatureSerializer(sft, SerializationOptions.none)
 
       decoder.deserialize(encoded) must equalSF(sf, withoutUserData)
     }
 
     "fail when user data were not encoded but are expected by the decoder" >> {
-      val encoder = new KryoFeatureEncoder(sft, SerializationOptions.none)
+      val encoder = new KryoFeatureSerializer(sft, SerializationOptions.none)
       val encoded = encoder.serialize(getFeaturesWithVisibility.head)
 
-      val decoder = new KryoFeatureDecoder(sft, SerializationOptions.withUserData)
+      val decoder = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
 
       decoder.deserialize(encoded) must throwA[Exception]
     }
@@ -399,10 +389,10 @@ class SimpleFeatureSerializersTest extends Specification {
   "ProjectingKryoFeatureDecoder" should {
 
     "properly project features" >> {
-      val encoder = new KryoFeatureEncoder(sft)
+      val encoder = new KryoFeatureSerializer(sft)
 
       val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
-      val projectingDecoder = new ProjectingKryoFeatureDecoder(sft, projectedSft)
+      val projectingDecoder = new ProjectingKryoFeatureDeserializer(sft, projectedSft)
 
       val features = getFeatures
       val encoded = features.map(encoder.serialize)
@@ -419,10 +409,10 @@ class SimpleFeatureSerializersTest extends Specification {
     }
 
     "be able to decode points with user data" >> {
-      val encoder = new KryoFeatureEncoder(sft, SerializationOptions.withUserData)
+      val encoder = new KryoFeatureSerializer(sft, SerializationOptions.withUserData)
 
       val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
-      val decoder = new ProjectingKryoFeatureDecoder(sft, projectedSft, SerializationOptions.withUserData)
+      val decoder = new ProjectingKryoFeatureDeserializer(sft, projectedSft, SerializationOptions.withUserData)
 
       val features = getFeaturesWithVisibility
       val encoded = features.map(encoder.serialize)

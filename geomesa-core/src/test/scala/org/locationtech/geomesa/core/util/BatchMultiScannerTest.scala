@@ -21,7 +21,7 @@ import java.util.TimeZone
 
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.data.{Key, Value, Range => ARange}
+import org.apache.accumulo.core.data.{Key, Range => ARange, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
@@ -31,7 +31,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
-import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializer}
+import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.execute.Success
@@ -110,10 +110,10 @@ class BatchMultiScannerTest extends Specification {
     val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new ARange(prefix + kv.getKey.getColumnQualifier)
     val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction, batchSize)
 
-    val decoder = SimpleFeatureDecoder(sft, SerializationType.KRYO)
+    val decoder = SimpleFeatureDeserializers(sft, SerializationType.KRYO)
     val retrieved = bms.iterator.toList
     retrieved.foreach { e =>
-      val sf = decoder.decode(e.getValue.get())
+      val sf = decoder.deserialize(e.getValue.get())
       sf.getAttribute(attr) mustEqual value
     }
 

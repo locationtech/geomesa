@@ -11,7 +11,7 @@ package org.locationtech.geomesa.features.kryo
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.kryo.KryoFeatureCoder
+
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -41,7 +41,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
       val serializer = new KryoFeatureSerializer(sft, SerializationOptions.none)
-      val serialized = serializer.encode(sf)
+      val serialized = serializer.serialize(sf)
       println(serialized.length)
 
       val laz = serializer.lazyDeserialize(serialized)
@@ -237,7 +237,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
       val serializer = new KryoFeatureSerializer(sft, SerializationOptions.none)
-      val serialized = serializer.encode(sf)
+      val serialized = serializer.serialize(sf)
 
 //      val start = System.currentTimeMillis()
 //      (0 until 1000000).foreach { _ =>
@@ -247,9 +247,9 @@ class KryoBufferSimpleFeatureTest extends Specification {
 //      println(s"took ${System.currentTimeMillis() - start}ms")
 
       val start2 = System.currentTimeMillis()
-      var reusable = serializer.lazyDecode(serialized, null)
+      var reusable = serializer.lazyDeserialize(serialized, null)
       (0 until 1000000).foreach { _ =>
-        val laz = serializer.lazyDecode(serialized, reusable)
+        val laz = serializer.lazyDeserialize(serialized, reusable)
         laz.getAttribute(7)
       }
       println(s"took ${System.currentTimeMillis() - start2}ms")

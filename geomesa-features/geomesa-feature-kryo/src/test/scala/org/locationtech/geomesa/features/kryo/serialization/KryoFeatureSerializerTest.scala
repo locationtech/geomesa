@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.features.kryo
+package org.locationtech.geomesa.features.kryo.serialization
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.{Date, UUID}
 
 import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.kryo.serialization.KryoFeatureSerializer
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.languageFeature.postfixOps
 import scala.collection.JavaConversions._
+import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
 class KryoFeatureSerializerTest extends Specification {

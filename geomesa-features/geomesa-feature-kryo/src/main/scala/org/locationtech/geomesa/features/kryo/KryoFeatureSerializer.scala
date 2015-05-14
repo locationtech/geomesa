@@ -27,11 +27,11 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
 
   import KryoFeatureSerializer._
 
-  private val cacheKey = CacheKeyGenerator.cacheKeyForSFT(sft)
-  private val numAttributes = sft.getAttributeCount
+  protected[kryo] val cacheKey = CacheKeyGenerator.cacheKeyForSFT(sft)
+  protected[kryo] val numAttributes = sft.getAttributeCount
 
-  private val writers = getWriters(cacheKey, sft)
-  private val readers = getReaders(cacheKey, sft)
+  protected[kryo] val writers = getWriters(cacheKey, sft)
+  protected[kryo] val readers = getReaders(cacheKey, sft)
 
   override def serialize(sf: SimpleFeature): Array[Byte] = doWrite(sf)
   override def lazyDeserialize(bytes: Array[Byte], reusableFeature: SimpleFeature = null): SimpleFeature = {
@@ -59,15 +59,15 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
   private val doWrite: (SimpleFeature) => Array[Byte] = if (options.withUserData) writeWithUserData else write
   private val doRead: (Array[Byte]) => SimpleFeature = if (options.withUserData) readWithUserData else read
 
-  private def write(sf: SimpleFeature): Array[Byte] = writeSf(sf).toBytes
+  protected[kryo] def write(sf: SimpleFeature): Array[Byte] = writeSf(sf).toBytes
 
-  private def writeWithUserData(sf: SimpleFeature): Array[Byte] = {
+  protected[kryo] def writeWithUserData(sf: SimpleFeature): Array[Byte] = {
     val out = writeSf(sf)
     kryoWriter.writeGenericMap(out, sf.getUserData)
     out.toBytes
   }
 
-  private def writeSf(sf: SimpleFeature): Output = {
+  protected[kryo] def writeSf(sf: SimpleFeature): Output = {
     val offsets = getOffsets(cacheKey, numAttributes)
     val output = getOutput()
     output.writeInt(VERSION, true)
@@ -93,16 +93,22 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
     output
   }
 
-  private def read(bytes: Array[Byte]): SimpleFeature = readSf(bytes)._1
+  protected[kryo] def read(bytes: Array[Byte]): SimpleFeature = readSf(bytes)._1
 
-  private def readWithUserData(bytes: Array[Byte]): SimpleFeature = {
+  protected[kryo] def readWithUserData(bytes: Array[Byte]): SimpleFeature = {
     val (sf, input) = readSf(bytes)
+    // skip offset data
+    var i = 0
+    while (i < numAttributes) {
+      input.readInt(true)
+      i += 1
+    }
     val ud = kryoReader.readGenericMap(VERSION)(input)
     sf.getUserData.putAll(ud)
     sf
   }
 
-  private def readSf(bytes: Array[Byte]): (SimpleFeature, Input) = {
+  protected[kryo] def readSf(bytes: Array[Byte]): (SimpleFeature, Input) = {
     val input = getInput(bytes)
     input.setPosition(5) // skip version and offsets //TODO versions
     val id = input.readString()
@@ -125,7 +131,29 @@ class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
                                         projected: SimpleFeatureType,
                                         options: SerializationOptions = SerializationOptions.none)
     extends KryoFeatureSerializer(original, options) {
-  // TODO
+
+  import KryoFeatureSerializer._
+
+  private val numProjectedAttributes = projected.getAttributeCount
+
+  // TODO we can optimize this some
+  override protected[kryo] def readSf(bytes: Array[Byte]): (SimpleFeature, Input) = {
+    val input = getInput(bytes)
+    input.setPosition(5) // skip version and offsets //TODO versions
+    val id = input.readString()
+    val attributes = Array.ofDim[AnyRef](numProjectedAttributes)
+    var i = 0
+    while (i < numAttributes) {
+      val index = projected.indexOf(original.getDescriptor(i).getLocalName)
+      if (index != -1) {
+        attributes(index) = readers(i)(input)
+      } else {
+        readers(i)(input) // skip entry
+      }
+      i += 1
+    }
+    (new ScalaSimpleFeature(id, projected, attributes), input)
+  }
 }
 
 object KryoFeatureSerializer {
