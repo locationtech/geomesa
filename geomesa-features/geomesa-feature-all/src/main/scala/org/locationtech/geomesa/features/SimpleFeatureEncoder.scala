@@ -57,6 +57,8 @@ trait SimpleFeatureEncoder extends HasEncoding with HasEncodingOptions {
  */
 trait SimpleFeatureDecoder extends HasEncoding with HasEncodingOptions {
   def decode(featureBytes: Array[Byte]): SimpleFeature
+  def lazyDecode(featureBytes: Array[Byte], reusableFeature: SimpleFeature = null): SimpleFeature =
+    decode(featureBytes)
   def extractFeatureId(bytes: Array[Byte]): String
 }
 
