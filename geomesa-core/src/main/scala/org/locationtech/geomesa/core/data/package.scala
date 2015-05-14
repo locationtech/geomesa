@@ -22,7 +22,7 @@ import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.FeatureWriter
 import org.geotools.factory.Hints.ClassKey
 import org.joda.time.{DateTime, Interval}
-import org.locationtech.geomesa.features.FeatureEncoding
+import org.locationtech.geomesa.features.SerializationType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 package object data {
@@ -72,7 +72,7 @@ import scala.collection.JavaConversions._
   val EMPTY_VIZ            = new Text(EMPTY_STRING)
   val WHOLE_WORLD_BOUNDS   = "-180.0:180.0:-90.0:90.0"
   val ALL_TIME_BOUNDS      = new Interval(new DateTime(0l), new DateTime())  // Epoch till now
-  val DEFAULT_ENCODING     = FeatureEncoding.KRYO
+  val DEFAULT_ENCODING     = SerializationType.KRYO
 
   // 0 == old single table style
   // 1 == multi-table style

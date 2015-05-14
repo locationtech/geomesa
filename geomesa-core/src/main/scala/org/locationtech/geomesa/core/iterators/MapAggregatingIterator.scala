@@ -51,7 +51,7 @@ class MapAggregatingIterator(other: MapAggregatingIterator, env: IteratorEnviron
                               topSourceKey: Key,
                               topSourceValue: Value): MapAggregatingIteratorResult = {
 
-    val feature = originalDecoder.decode(topSourceValue.get)
+    val feature = originalDecoder.deserialize(topSourceValue.get)
     val currCounts = feature.getAttribute(mapAttribute).asInstanceOf[JMap[AnyRef, Int]].asScala
 
     val result = resultO.getOrElse(MapAggregatingIteratorResult(mapAttribute))

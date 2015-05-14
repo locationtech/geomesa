@@ -19,39 +19,39 @@ package org.locationtech.geomesa.features
 /**
  * Options to be applied when encoding.  The same options must be specified when decoding.
  */
-object EncodingOption extends Enumeration {
-  type EncodingOption = Value
+object SerializationOption extends Enumeration {
+  type SerializationOption = Value
 
   /**
-   * If this [[EncodingOption]] is specified then all user data of the simple feature will be
+   * If this [[SerializationOption]] is specified then all user data of the simple feature will be
    * serialized and deserialized.
    */
   val WithUserData = Value
 
 
-  implicit class EncodingOptions(val options: Set[EncodingOption]) extends AnyVal {
+  implicit class SerializationOptions(val options: Set[SerializationOption]) extends AnyVal {
 
     /**
      * @param value the value to search for
      * @return true iff ``this`` contains the given ``value``
      */
-    def contains(value: EncodingOption.Value) = options.contains(value)
+    def contains(value: SerializationOption.Value) = options.contains(value)
 
     /** @return true iff ``this`` contains ``EncodingOption.WITH_USER_DATA`` */
-    def withUserData: Boolean = options.contains(EncodingOption.WithUserData)
+    def withUserData: Boolean = options.contains(SerializationOption.WithUserData)
   }
 
-  object EncodingOptions {
+  object SerializationOptions {
 
     /**
      * An empty set of encoding options.
      */
-    val none: EncodingOptions = Set.empty[EncodingOption]
+    val none: SerializationOptions = Set.empty[SerializationOption]
 
     /**
-     * @return a new [[EncodingOptions]] containing just the ``EncodingOption.WITH_USER_DATA`` option
+     * @return a new [[SerializationOptions]] containing just the ``EncodingOption.WITH_USER_DATA`` option
      */
-    def withUserData: EncodingOptions = Set(EncodingOption.WithUserData)
+    def withUserData: SerializationOptions = Set(SerializationOption.WithUserData)
   }
 }
 

@@ -33,8 +33,8 @@ import org.locationtech.geomesa.core.util.CloseableIterator
 import org.locationtech.geomesa.core.util.CloseableIterator._
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.feature.nio.{AttributeAccessor, LazySimpleFeature}
-import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.SerializationType.SerializationType
+import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
@@ -48,7 +48,7 @@ import scala.reflect.ClassTag
  * Executes a query against geomesa
  */
 case class QueryPlanner(sft: SimpleFeatureType,
-                        featureEncoding: FeatureEncoding,
+                        featureEncoding: SerializationType,
                         stSchema: String,
                         acc: AccumuloConnectorCreator,
                         hints: StrategyHints,
@@ -58,8 +58,8 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
   case class StrategyPlan(strategy: Strategy, plan: QueryPlan)
 
-  val featureEncoder = SimpleFeatureEncoder(sft, featureEncoding)
-  val featureDecoder = SimpleFeatureDecoder(sft, featureEncoding)
+  val featureEncoder = SimpleFeatureSerializers(sft, featureEncoding)
+  val featureDecoder = SimpleFeatureDeserializers(sft, featureEncoding)
   val indexValueEncoder = IndexValueEncoder(sft, version)
 
   /**
@@ -137,7 +137,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
   def adaptIterator(accumuloIterator: KVIter, query: Query): SFIter = {
     // Perform a projecting decode of the simple feature
     val returnSFT = getReturnSFT(query)
-    val decoder = SimpleFeatureDecoder(returnSFT, featureEncoding)
+    val decoder = SimpleFeatureDeserializers(returnSFT, featureEncoding)
 
     // Decode according to the SFT return type.
     // if this is a density query, expand the map
@@ -199,9 +199,9 @@ case class QueryPlanner(sft: SimpleFeatureType,
   /**
    * Standard iterator of simple features
    */
-  def adaptStandardIterator(accumuloIterator: KVIter, query: Query, decoder: SimpleFeatureDecoder): SFIter = {
+  def adaptStandardIterator(accumuloIterator: KVIter, query: Query, decoder: SimpleFeatureDeserializer): SFIter = {
     val features = accumuloIterator.map { kv =>
-      val sf = decoder.decode(kv.getValue.get)
+      val sf = decoder.deserialize(kv.getValue.get)
       val visibility = kv.getKey.getColumnVisibility
       if (!EMPTY_VIZ.equals(visibility)) {
         SecurityUtils.setFeatureVisibility(sf, visibility.toString)
@@ -217,10 +217,10 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
   def adaptTemporalIterator(accumuloIterator: KVIter,
                             returnSFT: SimpleFeatureType,
-                            decoder: SimpleFeatureDecoder,
+                            decoder: SimpleFeatureDeserializer,
                             returnEncoded: Boolean): SFIter = {
     val timeSeriesStrings = accumuloIterator.map { kv =>
-      val encoded = decoder.decode(kv.getValue.get).getAttribute(TIME_SERIES).toString
+      val encoded = decoder.deserialize(kv.getValue.get).getAttribute(TIME_SERIES).toString
       decodeTimeSeries(encoded)
     }
     val summedTimeSeries = timeSeriesStrings.reduceOption(combineTimeSeries)
@@ -239,17 +239,17 @@ case class QueryPlanner(sft: SimpleFeatureType,
     feature.iterator
   }
 
-  def adaptDensityIterator(accumuloIterator: KVIter, decoder: SimpleFeatureDecoder): SFIter =
-    accumuloIterator.flatMap(kv => DensityIterator.expandFeature(decoder.decode(kv.getValue.get)))
+  def adaptDensityIterator(accumuloIterator: KVIter, decoder: SimpleFeatureDeserializer): SFIter =
+    accumuloIterator.flatMap(kv => DensityIterator.expandFeature(decoder.deserialize(kv.getValue.get)))
 
   def adaptMapAggregationIterator(accumuloIterator: CloseableIterator[Entry[Key, Value]],
                                   query: Query,
                                   returnSFT: SimpleFeatureType,
-                                  decoder: SimpleFeatureDecoder): CloseableIterator[SimpleFeature] = {
+                                  decoder: SimpleFeatureDeserializer): CloseableIterator[SimpleFeature] = {
     val aggregateKeyName = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
 
     val maps = accumuloIterator.map { kv =>
-      decoder.decode(kv.getValue.get).getAttribute(aggregateKeyName).asInstanceOf[JMap[AnyRef, Int]].asScala
+      decoder.deserialize(kv.getValue.get).getAttribute(aggregateKeyName).asInstanceOf[JMap[AnyRef, Int]].asScala
     }
 
     if (maps.nonEmpty) {

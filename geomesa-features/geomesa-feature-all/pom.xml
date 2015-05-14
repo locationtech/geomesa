@@ -14,6 +14,11 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-feature-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-kryo</artifactId>
             <version>${project.version}</version>
         </dependency>

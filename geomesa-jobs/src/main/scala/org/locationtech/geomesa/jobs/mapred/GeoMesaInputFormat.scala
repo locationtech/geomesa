@@ -33,8 +33,8 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.core.index.{getTransformSchema, _}
-import org.locationtech.geomesa.features.{SimpleFeatureDecoder, FeatureEncoding, ScalaSimpleFeature}
-import FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.SerializationType.SerializationType
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureDeserializer, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -136,7 +136,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] {
   val delegate = new AccumuloInputFormat
 
   var sft: SimpleFeatureType = null
-  var encoding: FeatureEncoding = null
+  var encoding: SerializationType = null
   var numShards: Int = -1
 
   private def init(conf: Configuration) = if (sft == null) {
@@ -182,7 +182,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] {
     // otherwise this kills memory
     val readers = splits.iterator.map(delegate.getRecordReader(_, job, reporter))
     val schema = GeoMesaConfigurator.getTransformSchema(job).getOrElse(sft)
-    val decoder = SimpleFeatureDecoder(schema, encoding)
+    val decoder = SimpleFeatureDeserializers(schema, encoding)
     new GeoMesaRecordReader(schema, decoder, readers, splits.length)
   }
 }
@@ -192,7 +192,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] {
  * simple features.
  */
 class GeoMesaRecordReader(sft: SimpleFeatureType,
-                          decoder: SimpleFeatureDecoder,
+                          decoder: SimpleFeatureDeserializer,
                           readers: Iterator[RecordReader[Key, Value]],
                           numReaders: Int) extends RecordReader[Text, SimpleFeature] {
 
@@ -234,7 +234,7 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
 
   override def next(key: Text, value: SimpleFeature) =
     if (nextInternal()) {
-      val sf = decoder.decode(delegateValue.get())
+      val sf = decoder.deserialize(delegateValue.get())
       // copy the decoded sf into the reused one passed in to this method
       key.set(sf.getID)
       value.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID) // value will be a ScalaSimpleFeature

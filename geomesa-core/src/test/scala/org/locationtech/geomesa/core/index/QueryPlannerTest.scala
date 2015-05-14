@@ -24,7 +24,7 @@ import org.geotools.data.Query
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.core.util.CloseableIterator
-import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureDecoder}
+import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializer}
 import org.locationtech.geomesa.security._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
@@ -45,10 +45,10 @@ class QueryPlannerTest extends Specification with Mockito {
       val query = mock[Query]
       query.getSortBy returns Array(SortBy.NATURAL_ORDER)
 
-      val planner = new QueryPlanner(sft, FeatureEncoding.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
+      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
       val iter = mock[CloseableIterator[Entry[Key,Value]]]
 
-      val result = planner.adaptStandardIterator(iter, query, mock[SimpleFeatureDecoder])
+      val result = planner.adaptStandardIterator(iter, query, mock[SimpleFeatureDeserializer])
 
       result.isInstanceOf[LazySortedIterator] must beTrue
     }
@@ -57,16 +57,16 @@ class QueryPlannerTest extends Specification with Mockito {
       val query = mock[Query]
       query.getSortBy returns null
 
-      val planner = new QueryPlanner(sft, FeatureEncoding.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
+      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
       val iter = mock[CloseableIterator[Entry[Key,Value]]]
 
-      val result = planner.adaptStandardIterator(iter, query, mock[SimpleFeatureDecoder])
+      val result = planner.adaptStandardIterator(iter, query, mock[SimpleFeatureDeserializer])
 
       result.isInstanceOf[LazySortedIterator] must beFalse
     }
 
     "decode and set visibility properly" >> {
-      val decoder = mock[SimpleFeatureDecoder]
+      val decoder = mock[SimpleFeatureDeserializer]
 
       val visibilities = Array("", "USER", "ADMIN")
       val expectedVis = visibilities.map(vis => if (vis.isEmpty) None else Some(vis))
@@ -79,7 +79,7 @@ class QueryPlannerTest extends Specification with Mockito {
 
       val features = entries.map { entry =>
         val feature = mock[SimpleFeature]
-        decoder.decode(entry.getValue.get()) returns feature
+        decoder.deserialize(entry.getValue.get()) returns feature
 
         val userData = new java.util.HashMap[AnyRef, AnyRef]
         feature.getUserData returns userData
@@ -87,7 +87,7 @@ class QueryPlannerTest extends Specification with Mockito {
         feature
       }
 
-      val planner = new QueryPlanner(sft, FeatureEncoding.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
+      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
       val iter = entries.iterator
       val query = mock[Query]
 

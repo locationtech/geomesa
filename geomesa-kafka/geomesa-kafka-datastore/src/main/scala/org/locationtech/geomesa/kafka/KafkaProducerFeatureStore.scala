@@ -27,9 +27,9 @@ import org.geotools.feature.collection.BridgeIterator
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.features.{AvroFeatureEncoder, EncodingOption}
-import EncodingOption.EncodingOptions
-import org.locationtech.geomesa.features.avro.AvroSimpleFeature
+import org.locationtech.geomesa.features.SerializationOption
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.avro.{AvroFeatureSerializer, AvroSimpleFeature}
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
@@ -88,7 +88,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
 
   class ModifyingFeatureWriter(query: Query) extends FW {
 
-    val encoder = new AvroFeatureEncoder(schema, EncodingOptions.withUserData)
+    val encoder = new AvroFeatureSerializer(schema, SerializationOptions.withUserData)
     private var id = 1L
     def getNextId: FeatureId = {
       val ret = id
@@ -124,7 +124,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
       producer.send(delMsg)
     }
     override def write(): Unit = {
-      val encoded = encoder.encode(curFeature)
+      val encoded = encoder.serialize(curFeature)
       val msg = new MSG(typeName, encoded)
       curFeature = null
       producer.send(msg)

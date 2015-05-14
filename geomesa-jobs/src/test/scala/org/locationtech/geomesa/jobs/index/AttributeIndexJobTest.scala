@@ -27,7 +27,7 @@ import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.features.{SimpleFeatureEncoder, ScalaSimpleFeatureFactory}
+import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SimpleFeatureSerializer, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.jobs.index.AttributeIndexJob._
 import org.locationtech.geomesa.jobs.scalding.{AccumuloSource, ConnectionParams, GeoMesaSource}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -86,7 +86,7 @@ class AttributeIndexJobTest extends Specification {
     val attrList = Seq((descriptor, sft.indexOf(descriptor.getName)))
     val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
     val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
-    val encoder = SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft))
+    val encoder = SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft))
 
     val expectedMutations = feats.flatMap { sf =>
       val toWrite = new FeatureToWrite(sf, ds.writeVisibilities, encoder, indexValueEncoder)

@@ -28,7 +28,7 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.data.DEFAULT_ENCODING
 import org.locationtech.geomesa.core.iterators.FeatureAggregatingIterator.Result
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -47,8 +47,8 @@ abstract class FeatureAggregatingIterator[T <: Result](val other: FeatureAggrega
   var simpleFeatureType: SimpleFeatureType = null
   var source: SortedKeyValueIterator[Key,Value] = null
 
-  var originalDecoder: SimpleFeatureDecoder = null
-  var featureEncoder: SimpleFeatureEncoder = null
+  var originalDecoder: SimpleFeatureDeserializer = null
+  var featureEncoder: SimpleFeatureSerializer = null
 
   var projectedSFTDef: String = null
 
@@ -66,8 +66,8 @@ abstract class FeatureAggregatingIterator[T <: Result](val other: FeatureAggrega
     simpleFeatureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, simpleFeatureTypeSpec)
     simpleFeatureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
 
-    val encodingOpt = Option(options.get(FEATURE_ENCODING)).map(FeatureEncoding.withName).getOrElse(DEFAULT_ENCODING)
-    originalDecoder = SimpleFeatureDecoder(simpleFeatureType, encodingOpt)
+    val encodingOpt = Option(options.get(FEATURE_ENCODING)).map(SerializationType.withName).getOrElse(DEFAULT_ENCODING)
+    originalDecoder = SimpleFeatureDeserializers(simpleFeatureType, encodingOpt)
 
     initProjectedSFTDefClassSpecificVariables(source, options, env)
 
@@ -75,7 +75,7 @@ abstract class FeatureAggregatingIterator[T <: Result](val other: FeatureAggrega
 
     // Use density SFT for the encoder since we are transforming the feature into
     // a sparse matrix as the result type of this iterator
-    featureEncoder = SimpleFeatureEncoder(projectedSFT, encodingOpt)
+    featureEncoder = SimpleFeatureSerializers(projectedSFT, encodingOpt)
     featureBuilder = AvroSimpleFeatureFactory.featureBuilder(projectedSFT)
   }
 
@@ -116,7 +116,7 @@ abstract class FeatureAggregatingIterator[T <: Result](val other: FeatureAggrega
 
       val feature = featureBuilder.buildFeature(Random.nextString(6))
       topKey = Some(topSourceKey)
-      topValue = Some(new Value(featureEncoder.encode(feature)))
+      topValue = Some(new Value(featureEncoder.serialize(feature)))
     }
   }
 

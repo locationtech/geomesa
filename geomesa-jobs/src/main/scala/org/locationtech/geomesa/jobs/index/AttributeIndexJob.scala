@@ -26,7 +26,7 @@ import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.features.SimpleFeatureEncoder
+import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SimpleFeatureSerializer}
 import org.locationtech.geomesa.jobs.GeoMesaBaseJob
 import org.locationtech.geomesa.jobs.scalding.ConnectionParams._
 import org.locationtech.geomesa.jobs.scalding._
@@ -58,7 +58,7 @@ class AttributeIndexJob(args: Args) extends GeoMesaBaseJob(args) {
   @transient lazy val sft = ds.getSchema(feature)
   @transient lazy val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
   @transient lazy val encoding = ds.getFeatureEncoding(sft)
-  @transient lazy val featureEncoder = SimpleFeatureEncoder(sft, encoding)
+  @transient lazy val featureEncoder = SimpleFeatureSerializers(sft, encoding)
   @transient lazy val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
   @transient lazy val visibilities = ds.writeVisibilities
   // the attributes we want to index

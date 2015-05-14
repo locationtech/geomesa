@@ -31,7 +31,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.data.tables.AttributeTable
-import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureDecoder}
+import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializer}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.execute.Success
@@ -110,7 +110,7 @@ class BatchMultiScannerTest extends Specification {
     val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new ARange(prefix + kv.getKey.getColumnQualifier)
     val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction, batchSize)
 
-    val decoder = SimpleFeatureDecoder(sft, FeatureEncoding.KRYO)
+    val decoder = SimpleFeatureDecoder(sft, SerializationType.KRYO)
     val retrieved = bms.iterator.toList
     retrieved.foreach { e =>
       val sf = decoder.decode(e.getValue.get())

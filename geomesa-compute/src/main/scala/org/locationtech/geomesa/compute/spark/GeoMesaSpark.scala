@@ -33,6 +33,8 @@ import org.geotools.data.{DataStore, DataStoreFinder, DefaultTransaction, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.index.{ExplainPrintln, STIdxStrategy, _}
+import org.locationtech.geomesa.features.SimpleFeatureDeserializers
+import org.locationtech.geomesa.features.kryo.serialization.{KryoFeatureSerializer, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -62,7 +64,7 @@ object GeoMesaSpark {
     val version = ds.getGeomesaVersion(sft)
     val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, ds.strategyHints(sft), version)
 
-    val qp = new STIdxStrategy().getQueryPlan(query, queryPlanner, ExplainPrintln)
+    val qp = new STIdxStrategy().getQueryPlan(query, queryPlanner, ExplainPrintln).head // TODO fix this
 
     ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, ds.connector.whoami(), ds.authToken)
 
@@ -77,8 +79,8 @@ object GeoMesaSpark {
 
     rdd.mapPartitions { iter =>
       val sft = SimpleFeatureTypes.createType(typeName, spec)
-      val decoder = SimpleFeatureDecoder(sft, featureEncoding)
-      iter.map { case (k: Key, v: Value) => decoder.decode(v.get()) }
+      val decoder = SimpleFeatureDeserializers(sft, featureEncoding)
+      iter.map { case (k: Key, v: Value) => decoder.deserialize(v.get()) }
     }
   }
 

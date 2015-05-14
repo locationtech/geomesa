@@ -19,8 +19,9 @@ package org.locationtech.geomesa.features
 import com.vividsolutions.jts.geom.Point
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.EncodingOption.EncodingOptions
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.avro.{AvroFeatureDeserializer, ProjectingAvroFeatureDeserializer, AvroFeatureSerializer, AvroSimpleFeatureFactory}
+import org.locationtech.geomesa.features.kryo.serialization.KryoFeatureSerializer
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -32,11 +33,11 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SimpleFeatureEncoderTest extends Specification {
+class SimpleFeatureSerializersTest extends Specification {
 
   sequential
 
-  val sftName = "SimpleFeatureEncoderTest"
+  val sftName = "SimpleFeatureSerializersTest"
   val sft = SimpleFeatureTypes.createType(sftName, "name:String,*geom:Point,dtg:Date")
 
   val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
@@ -69,26 +70,26 @@ class SimpleFeatureEncoderTest extends Specification {
   "SimpleFeatureEncoder" should {
 
     "have a properly working apply() method" >> {
-      val opts = EncodingOptions.withUserData
+      val opts = SerializationOptions.withUserData
 
       // AVRO without options
-      val avro1 = SimpleFeatureEncoder(sft, FeatureEncoding.AVRO)
-      avro1 must beAnInstanceOf[AvroFeatureEncoder]
-      avro1.options mustEqual EncodingOptions.none
+      val avro1 = SimpleFeatureSerializers(sft, SerializationType.AVRO)
+      avro1 must beAnInstanceOf[AvroFeatureSerializer]
+      avro1.options mustEqual SerializationOptions.none
 
       // AVRO with options
-      val avro2 = SimpleFeatureEncoder(sft, FeatureEncoding.AVRO, opts)
-      avro2 must beAnInstanceOf[AvroFeatureEncoder]
+      val avro2 = SimpleFeatureSerializers(sft, SerializationType.AVRO, opts)
+      avro2 must beAnInstanceOf[AvroFeatureSerializer]
       avro2.options mustEqual opts
 
       // KRYO without options
-      val kryo1 = SimpleFeatureEncoder(sft, FeatureEncoding.KRYO)
-      kryo1 must beAnInstanceOf[KryoFeatureEncoder]
-      kryo1.options mustEqual EncodingOptions.none
+      val kryo1 = SimpleFeatureSerializers(sft, SerializationType.KRYO)
+      kryo1 must beAnInstanceOf[KryoFeatureSerializer]
+      kryo1.options mustEqual SerializationOptions.none
 
       // KRYO with options
-      val kryo2 = SimpleFeatureEncoder(sft, FeatureEncoding.KRYO, opts)
-      kryo2 must beAnInstanceOf[KryoFeatureEncoder]
+      val kryo2 = SimpleFeatureSerializers(sft, SerializationType.KRYO, opts)
+      kryo2 must beAnInstanceOf[KryoFeatureSerializer]
       kryo2.options mustEqual opts
     }
   }
@@ -96,26 +97,26 @@ class SimpleFeatureEncoderTest extends Specification {
   "SimpleFeatureDecoder" should {
 
     "have a properly working apply() method" >> {
-      val opts = EncodingOptions.withUserData
+      val opts = SerializationOptions.withUserData
 
       // AVRO without options
-      val avro1 = SimpleFeatureDecoder(sft, FeatureEncoding.AVRO)
-      avro1 must beAnInstanceOf[AvroFeatureDecoder]
-      avro1.options mustEqual EncodingOptions.none
+      val avro1 = SimpleFeatureDeserializers(sft, SerializationType.AVRO)
+      avro1 must beAnInstanceOf[AvroFeatureDeserializer]
+      avro1.options mustEqual SerializationOptions.none
 
       // AVRO with options
-      val avro2 = SimpleFeatureDecoder(sft, FeatureEncoding.AVRO, opts)
-      avro2 must beAnInstanceOf[AvroFeatureDecoder]
+      val avro2 = SimpleFeatureDeserializers(sft, SerializationType.AVRO, opts)
+      avro2 must beAnInstanceOf[AvroFeatureDeserializer]
       avro2.options mustEqual opts
 
       // KRYO without options
-      val kryo1 = SimpleFeatureDecoder(sft, FeatureEncoding.KRYO)
-      kryo1 must beAnInstanceOf[KryoFeatureEncoder]
-      kryo1.options mustEqual EncodingOptions.none
+      val kryo1 = SimpleFeatureDeserializers(sft, SerializationType.KRYO)
+      kryo1 must beAnInstanceOf[KryoFeatureSerializer]
+      kryo1.options mustEqual SerializationOptions.none
 
       // KRYO with options
-      val kryo2 = SimpleFeatureDecoder(sft, FeatureEncoding.KRYO, opts)
-      kryo2 must beAnInstanceOf[KryoFeatureEncoder]
+      val kryo2 = SimpleFeatureDeserializers(sft, SerializationType.KRYO, opts)
+      kryo2 must beAnInstanceOf[KryoFeatureDeserializer]
       kryo2.options mustEqual opts
     }
   }
@@ -124,52 +125,47 @@ class SimpleFeatureEncoderTest extends Specification {
 
     "have a properly working apply() method" >> {
       val projectedSft = SimpleFeatureTypes.createType(sftName, "*geom:Point")
-      val opts = EncodingOptions.withUserData
+      val opts = SerializationOptions.withUserData
 
       // AVRO without options
-      val avro1 = ProjectingSimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.AVRO)
-      avro1 must beAnInstanceOf[ProjectingAvroFeatureDecoder]
-      avro1.options mustEqual EncodingOptions.none
+      val avro1 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.AVRO)
+      avro1 must beAnInstanceOf[ProjectingAvroFeatureDeserializer]
+      avro1.options mustEqual SerializationOptions.none
 
       // AVRO with options
-      val avro2 = ProjectingSimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.AVRO, opts)
-      avro2 must beAnInstanceOf[ProjectingAvroFeatureDecoder]
+      val avro2 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.AVRO, opts)
+      avro2 must beAnInstanceOf[ProjectingAvroFeatureDeserializer]
       avro2.options mustEqual opts
 
       // KRYO without options
-      val kryo1 = ProjectingSimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.KRYO)
-      kryo1 must beAnInstanceOf[KryoFeatureEncoder]
-      kryo1.options mustEqual EncodingOptions.none
+      val kryo1 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.KRYO)
+      kryo1 must beAnInstanceOf[KryoFeatureSerializer]
+      kryo1.options mustEqual SerializationOptions.none
 
       // KRYO with options
-      val kryo2 = ProjectingSimpleFeatureDecoder(sft, projectedSft, FeatureEncoding.KRYO, opts)
-      kryo2 must beAnInstanceOf[KryoFeatureEncoder]
+      val kryo2 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.KRYO, opts)
+      kryo2 must beAnInstanceOf[KryoFeatureSerializer]
       kryo2.options mustEqual opts
     }
   }
 
-  "AvroFeatureEncoder" should {
-
-    "return the correct encoding" >> {
-      val encoder = new AvroFeatureEncoder(sft)
-      encoder.encoding mustEqual FeatureEncoding.AVRO
-    }
+  "AvroFeatureSerializer" should {
 
     "be able to encode points" >> {
-      val encoder = new AvroFeatureEncoder(sft)
+      val encoder = new AvroFeatureSerializer(sft)
       val features = getFeatures
 
-      val encoded = features.map(encoder.encode)
+      val encoded = features.map(encoder.serialize)
       encoded must not(beNull)
       encoded must have size features.size
     }
 
     "not include user data when not requested" >> {
-      val encoder = new AvroFeatureEncoder(sft)
-      val expected = getFeatures.map(encoder.encode)
+      val encoder = new AvroFeatureSerializer(sft)
+      val expected = getFeatures.map(encoder.serialize)
 
       val featuresWithVis = getFeaturesWithVisibility
-      val actual = featuresWithVis.map(encoder.encode)
+      val actual = featuresWithVis.map(encoder.serialize)
 
       actual must haveSize(expected.size)
 
@@ -180,12 +176,12 @@ class SimpleFeatureEncoderTest extends Specification {
 
     "include user data when requested" >> {
       val noUserData = {
-        val encoder = new AvroFeatureEncoder(sft, EncodingOptions.none)
-        getFeatures.map(encoder.encode)
+        val encoder = new AvroFeatureSerializer(sft, SerializationOptions.none)
+        getFeatures.map(encoder.serialize)
       }
       val withUserData = {
-        val encoder = new AvroFeatureEncoder(sft, EncodingOptions.withUserData)
-        getFeaturesWithVisibility.map(encoder.encode)
+        val encoder = new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
+        getFeaturesWithVisibility.map(encoder.serialize)
       }
 
       withUserData must haveSize(noUserData.size)
@@ -196,42 +192,37 @@ class SimpleFeatureEncoderTest extends Specification {
     }
   }
 
-  "AvroFeatureDecoder" should {
-
-    "return the correct encoding" >> {
-      val decoder = new AvroFeatureDecoder(sft)
-      decoder.encoding mustEqual FeatureEncoding.AVRO
-    }
+  "AvroFeatureDeserializer" should {
 
     "be able to decode points" >> {
-      val encoder = new AvroFeatureEncoder(sft)
-      val decoder = new AvroFeatureDecoder(sft)
+      val encoder = new AvroFeatureSerializer(sft)
+      val decoder = new AvroFeatureDeserializer(sft)
 
       val features = getFeatures
-      val encoded = features.map(encoder.encode)
+      val encoded = features.map(encoder.serialize)
 
-      val decoded = encoded.map(decoder.decode)
+      val decoded = encoded.map(decoder.deserialize)
       decoded must equalFeatures(features, withoutUserData)
     }
 
     "be able to decode points with user data" >> {
-      val encoder = new AvroFeatureEncoder(sft, EncodingOptions.withUserData)
-      val decoder = new AvroFeatureDecoder(sft, EncodingOptions.withUserData)
+      val encoder = new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
+      val decoder = new AvroFeatureDeserializer(sft, SerializationOptions.withUserData)
 
       val features = getFeaturesWithVisibility
-      val encoded = features.map(encoder.encode)
+      val encoded = features.map(encoder.serialize)
 
-      val decoded = encoded.map(decoder.decode)
+      val decoded = encoded.map(decoder.deserialize)
 
       decoded must equalFeatures(features)
     }
 
     "be able to extract feature IDs" >> {
-      val encoder = new AvroFeatureEncoder(sft)
-      val decoder = new AvroFeatureDecoder(sft)
+      val encoder = new AvroFeatureSerializer(sft)
+      val decoder = new AvroFeatureDeserializer(sft)
 
       val features = getFeatures
-      val encoded = features.map(encoder.encode)
+      val encoded = features.map(encoder.serialize)
 
       encoded.map(decoder.extractFeatureId) mustEqual features.map(_.getID)
     }
@@ -239,35 +230,35 @@ class SimpleFeatureEncoderTest extends Specification {
     "work when user data were encoded but are not expected by decoder" >> {
       // in this case the encoded user data will be ignored
       val sf = getFeaturesWithVisibility.head
-      val encoder = new AvroFeatureEncoder(sft, EncodingOptions.withUserData)
-      val encoded = encoder.encode(sf)
+      val encoder = new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
+      val encoded = encoder.serialize(sf)
 
-      val decoder = new AvroFeatureDecoder(sft, EncodingOptions.none)
+      val decoder = new AvroFeatureDeserializer(sft, SerializationOptions.none)
 
-      decoder.decode(encoded) must equalSF(sf, withoutUserData)
+      decoder.deserialize(encoded) must equalSF(sf, withoutUserData)
     }
 
     "fail when user data were not encoded but are expected by the decoder" >> {
-      val encoder = new AvroFeatureEncoder(sft, EncodingOptions.none)
-      val encoded = encoder.encode(getFeaturesWithVisibility.head)
+      val encoder = new AvroFeatureSerializer(sft, SerializationOptions.none)
+      val encoded = encoder.serialize(getFeaturesWithVisibility.head)
 
-      val decoder = new AvroFeatureDecoder(sft, EncodingOptions.withUserData)
+      val decoder = new AvroFeatureDeserializer(sft, SerializationOptions.withUserData)
 
-      decoder.decode(encoded) must throwA[Exception]
+      decoder.deserialize(encoded) must throwA[Exception]
     }
   }
 
-  "ProjectingAvroFeatureDecoder" should {
+  "ProjectingAvroFeatureDeserializer" should {
 
     "properly project features" >> {
-      val encoder = new AvroFeatureEncoder(sft)
+      val encoder = new AvroFeatureSerializer(sft)
 
       val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
-      val projectingDecoder = new ProjectingAvroFeatureDecoder(sft, projectedSft)
+      val projectingDecoder = new ProjectingAvroFeatureDeserializer(sft, projectedSft)
 
       val features = getFeatures
-      val encoded = features.map(encoder.encode)
-      val decoded = encoded.map(projectingDecoder.decode)
+      val encoded = features.map(encoder.serialize)
+      val decoded = encoded.map(projectingDecoder.deserialize)
 
       decoded.map(_.getID) mustEqual features.map(_.getID)
       decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
@@ -280,15 +271,15 @@ class SimpleFeatureEncoderTest extends Specification {
     }
 
     "be able to decode points with user data" >> {
-      val encoder = new AvroFeatureEncoder(sft, EncodingOptions.withUserData)
+      val encoder = new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
 
       val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
-      val decoder = new ProjectingAvroFeatureDecoder(sft, projectedSft, EncodingOptions.withUserData)
+      val decoder = new ProjectingAvroFeatureDeserializer(sft, projectedSft, SerializationOptions.withUserData)
 
       val features = getFeaturesWithVisibility
-      val encoded = features.map(encoder.encode)
+      val encoded = features.map(encoder.serialize)
 
-      val decoded = encoded.map(decoder.decode)
+      val decoded = encoded.map(decoder.deserialize)
 
       forall(features.zip(decoded)) { case (in, out) =>
         out.getUserData mustEqual in.getUserData
@@ -300,24 +291,24 @@ class SimpleFeatureEncoderTest extends Specification {
 
     "return the correct encoding" >> {
       val encoder = new KryoFeatureEncoder(sft)
-      encoder.encoding mustEqual FeatureEncoding.KRYO
+      encoder.encoding mustEqual SerializationType.KRYO
     }
 
     "be able to encode points" >> {
       val encoder = new KryoFeatureEncoder(sft)
       val features = getFeatures
 
-      val encoded = features.map(encoder.encode)
+      val encoded = features.map(encoder.serialize)
       encoded must not(beNull)
       encoded must have size features.size
     }
 
     "not include visibilities when not requested" >> {
       val encoder = new KryoFeatureEncoder(sft)
-      val expected = getFeatures.map(encoder.encode)
+      val expected = getFeatures.map(encoder.serialize)
 
       val featuresWithVis = getFeaturesWithVisibility
-      val actual = featuresWithVis.map(encoder.encode)
+      val actual = featuresWithVis.map(encoder.serialize)
 
       actual must haveSize(expected.size)
 
@@ -328,12 +319,12 @@ class SimpleFeatureEncoderTest extends Specification {
 
     "include user data when requested" >> {
       val noVis = {
-        val encoder = new KryoFeatureEncoder(sft, EncodingOptions.none)
-        getFeatures.map(encoder.encode)
+        val encoder = new KryoFeatureEncoder(sft, SerializationOptions.none)
+        getFeatures.map(encoder.serialize)
       }
       val withVis = {
-        val encoder = new KryoFeatureEncoder(sft, EncodingOptions.withUserData)
-        getFeaturesWithVisibility.map(encoder.encode)
+        val encoder = new KryoFeatureEncoder(sft, SerializationOptions.withUserData)
+        getFeaturesWithVisibility.map(encoder.serialize)
       }
 
       withVis must haveSize(noVis.size)
@@ -348,7 +339,7 @@ class SimpleFeatureEncoderTest extends Specification {
 
     "return the correct encoding" >> {
       val decoder = new KryoFeatureDecoder(sft)
-      decoder.encoding mustEqual FeatureEncoding.KRYO
+      decoder.encoding mustEqual SerializationType.KRYO
     }
 
     "be able to decode points" >> {
@@ -356,20 +347,20 @@ class SimpleFeatureEncoderTest extends Specification {
       val decoder = new KryoFeatureDecoder(sft)
 
       val features = getFeatures
-      val encoded = features.map(encoder.encode)
+      val encoded = features.map(encoder.serialize)
 
-      val decoded = encoded.map(decoder.decode)
+      val decoded = encoded.map(decoder.deserialize)
       decoded must equalFeatures(features, withoutUserData)
     }
 
     "be able to decode points with user data" >> {
-      val encoder = new KryoFeatureEncoder(sft, EncodingOptions.withUserData)
-      val decoder = new KryoFeatureDecoder(sft, EncodingOptions.withUserData)
+      val encoder = new KryoFeatureEncoder(sft, SerializationOptions.withUserData)
+      val decoder = new KryoFeatureDecoder(sft, SerializationOptions.withUserData)
 
       val features = getFeaturesWithVisibility
-      val encoded = features.map(encoder.encode)
+      val encoded = features.map(encoder.serialize)
 
-      val decoded = encoded.map(decoder.decode)
+      val decoded = encoded.map(decoder.deserialize)
 
       decoded must equalFeatures(features)
     }
@@ -379,7 +370,7 @@ class SimpleFeatureEncoderTest extends Specification {
       val decoder = new KryoFeatureDecoder(sft)
 
       val features = getFeatures
-      val encoded = features.map(encoder.encode)
+      val encoded = features.map(encoder.serialize)
 
       encoded.map(decoder.extractFeatureId) mustEqual features.map(_.getID)
     }
@@ -387,21 +378,21 @@ class SimpleFeatureEncoderTest extends Specification {
     "work user data were encoded but are not expected by decoder" >> {
       // in this case the encoded user data will be ignored
       val sf = getFeaturesWithVisibility.head
-      val encoder = new KryoFeatureEncoder(sft, EncodingOptions.withUserData)
-      val encoded = encoder.encode(sf)
+      val encoder = new KryoFeatureEncoder(sft, SerializationOptions.withUserData)
+      val encoded = encoder.serialize(sf)
 
-      val decoder = new KryoFeatureDecoder(sft, EncodingOptions.none)
+      val decoder = new KryoFeatureDecoder(sft, SerializationOptions.none)
 
-      decoder.decode(encoded) must equalSF(sf, withoutUserData)
+      decoder.deserialize(encoded) must equalSF(sf, withoutUserData)
     }
 
     "fail when user data were not encoded but are expected by the decoder" >> {
-      val encoder = new KryoFeatureEncoder(sft, EncodingOptions.none)
-      val encoded = encoder.encode(getFeaturesWithVisibility.head)
+      val encoder = new KryoFeatureEncoder(sft, SerializationOptions.none)
+      val encoded = encoder.serialize(getFeaturesWithVisibility.head)
 
-      val decoder = new KryoFeatureDecoder(sft, EncodingOptions.withUserData)
+      val decoder = new KryoFeatureDecoder(sft, SerializationOptions.withUserData)
 
-      decoder.decode(encoded) must throwA[Exception]
+      decoder.deserialize(encoded) must throwA[Exception]
     }
   }
 
@@ -414,8 +405,8 @@ class SimpleFeatureEncoderTest extends Specification {
       val projectingDecoder = new ProjectingKryoFeatureDecoder(sft, projectedSft)
 
       val features = getFeatures
-      val encoded = features.map(encoder.encode)
-      val decoded = encoded.map(projectingDecoder.decode)
+      val encoded = features.map(encoder.serialize)
+      val decoded = encoded.map(projectingDecoder.deserialize)
 
       decoded.map(_.getID) mustEqual features.map(_.getID)
       decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
@@ -428,15 +419,15 @@ class SimpleFeatureEncoderTest extends Specification {
     }
 
     "be able to decode points with user data" >> {
-      val encoder = new KryoFeatureEncoder(sft, EncodingOptions.withUserData)
+      val encoder = new KryoFeatureEncoder(sft, SerializationOptions.withUserData)
 
       val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
-      val decoder = new ProjectingKryoFeatureDecoder(sft, projectedSft, EncodingOptions.withUserData)
+      val decoder = new ProjectingKryoFeatureDecoder(sft, projectedSft, SerializationOptions.withUserData)
 
       val features = getFeaturesWithVisibility
-      val encoded = features.map(encoder.encode)
+      val encoded = features.map(encoder.serialize)
 
-      val decoded = encoded.map(decoder.decode)
+      val decoded = encoded.map(decoder.deserialize)
 
       // when decoding any empty visibilities will be transformed to null
       forall(features.zip(decoded)) { case (in, out) =>

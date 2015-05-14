@@ -22,7 +22,7 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
 import com.twitter.chill.config.Config
 import com.twitter.scalding.serialization.KryoHadoop
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.serialization.KryoFeatureSerializer
 import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization
 import org.locationtech.geomesa.jobs.scalding.serialization.Kryo2SimpleFeatureSerializer._
 import org.opengis.feature.simple.SimpleFeature

@@ -31,7 +31,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter._
 import org.locationtech.geomesa.core.data.tables.{Z3Table, AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.security.SecurityUtils
 import SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
@@ -49,7 +49,7 @@ object AccumuloFeatureWriter {
 
   class FeatureToWrite(val feature: SimpleFeature,
                        defaultVisibility: String,
-                       encoder: SimpleFeatureEncoder,
+                       encoder: SimpleFeatureSerializer,
                        indexValueEncoder: IndexValueEncoder) {
     val visibility =
       new Text(feature.getUserData.getOrElse(FEATURE_VISIBILITY, defaultVisibility).asInstanceOf[String])
@@ -57,7 +57,7 @@ object AccumuloFeatureWriter {
     // the index value is the encoded date/time/fid
     lazy val indexValue = new Value(indexValueEncoder.encode(feature))
     // the data value is the encoded SimpleFeature
-    lazy val dataValue = new Value(encoder.encode(feature))
+    lazy val dataValue = new Value(encoder.serialize(feature))
   }
 
   def featureWriter(writers: Seq[(FeatureToMutations, BatchWriter)]): FeatureWriterFn =
@@ -65,7 +65,7 @@ object AccumuloFeatureWriter {
 }
 
 abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
-                                     encoder: SimpleFeatureEncoder,
+                                     encoder: SimpleFeatureSerializer,
                                      indexValueEncoder: IndexValueEncoder,
                                      stIndexEncoder: STIndexEncoder,
                                      ds: AccumuloDataStore,
@@ -132,7 +132,7 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
 }
 
 class AppendAccumuloFeatureWriter(sft: SimpleFeatureType,
-                                  encoder: SimpleFeatureEncoder,
+                                  encoder: SimpleFeatureSerializer,
                                   indexValueEncoder: IndexValueEncoder,
                                   stIndexEncoder: STIndexEncoder,
                                   ds: AccumuloDataStore,
@@ -154,7 +154,7 @@ class AppendAccumuloFeatureWriter(sft: SimpleFeatureType,
 }
 
 class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
-                                  encoder: SimpleFeatureEncoder,
+                                  encoder: SimpleFeatureSerializer,
                                   indexValueEncoder: IndexValueEncoder,
                                   stIndexEncoder: STIndexEncoder,
                                   ds: AccumuloDataStore,

@@ -29,7 +29,7 @@ import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.{AccumuloFeatureStore, INTERNAL_GEOMESA_VERSION}
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SerializationType, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -105,7 +105,7 @@ object TestData extends Logging {
   // This is a quick trick to make sure that the userData is set.
   lazy val featureType: SimpleFeatureType = getFeatureType()
 
-  lazy val featureEncoder = SimpleFeatureEncoder(getFeatureType(), FeatureEncoding.AVRO)
+  lazy val featureEncoder = SimpleFeatureSerializers(getFeatureType(), SerializationType.AVRO)
   lazy val indexValueEncoder = IndexValueEncoder(featureType, INTERNAL_GEOMESA_VERSION)
 
   lazy val indexEncoder = IndexSchema.buildKeyEncoder(featureType, schemaEncoding)

@@ -58,7 +58,7 @@ trait SetTopTransform extends IteratorFunctions with HasFeatureDecoder with HasT
    * @param key
    */
   def setTopTransform(key: Key): Unit = {
-    val sf = featureDecoder.decode(source.getTopValue.get)
+    val sf = featureDecoder.deserialize(source.getTopValue.get)
     reusableValue.set(transform(sf))
     topKey = key
     topValue = reusableValue
@@ -86,7 +86,7 @@ trait SetTopFilter extends IteratorFunctions with HasFeatureDecoder with HasFilt
    */
   def setTopFilter(key: Key): Unit = {
     val value = source.getTopValue
-    val sf = featureDecoder.decode(value.get)
+    val sf = featureDecoder.deserialize(value.get)
     if (filter.evaluate(sf)) {
       topKey = key
       topValue = value
@@ -114,7 +114,7 @@ trait SetTopFilterTransform extends IteratorFunctions with HasFeatureDecoder wit
    * @param key
    */
   def setTopFilterTransform(key: Key): Unit = {
-    val sf = featureDecoder.decode(source.getTopValue.get)
+    val sf = featureDecoder.deserialize(source.getTopValue.get)
     if (filter.evaluate(sf)) {
       reusableValue.set(transform(sf))
       topKey = key
@@ -146,7 +146,7 @@ trait SetTopIndexInclude
    */
   def setTopIndexInclude(key: Key): Unit = {
     val sf = indexEncoder.decode(source.getTopValue.get)
-    reusableValue.set(featureEncoder.encode(sf))
+    reusableValue.set(featureEncoder.serialize(sf))
     topKey = key
     topValue = reusableValue
   }
@@ -178,7 +178,7 @@ trait SetTopIndexFilter
     // the value contains the full-resolution geometry and time plus feature ID
     val sf = indexEncoder.decode(source.getTopValue.get)
     if (stFilter.evaluate(sf)) {
-      reusableValue.set(featureEncoder.encode(sf))
+      reusableValue.set(featureEncoder.serialize(sf))
       topKey = key
       topValue = reusableValue
     }

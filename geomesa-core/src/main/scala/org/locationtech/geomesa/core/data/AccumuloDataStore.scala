@@ -43,9 +43,9 @@ import org.locationtech.geomesa.core.index
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.util.{ExplainingConnectorCreator, GeoMesaBatchWriterConfig}
 import org.locationtech.geomesa.data.TableSplitter
-import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureEncoder}
-import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.SerializationType.SerializationType
+import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SerializationType, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}
@@ -79,7 +79,7 @@ class AccumuloDataStore(val connector: Connector,
                         val recordThreadsConfig: Option[Int] = None,
                         val writeThreadsConfig: Option[Int] = None,
                         val cachingConfig: Boolean = false,
-                        val featureEncoding: FeatureEncoding = DEFAULT_ENCODING)
+                        val featureEncoding: SerializationType = DEFAULT_ENCODING)
     extends AbstractDataStore(true) with AccumuloConnectorCreator with StrategyHintsProvider with Logging {
 
   // having at least as many shards as tservers provides optimal parallelism in queries
@@ -136,7 +136,7 @@ class AccumuloDataStore(val connector: Connector,
    * @param fe
    */
   private def writeMetadata(sft: SimpleFeatureType,
-                            fe: FeatureEncoding,
+                            fe: SerializationType,
                             spatioTemporalSchemaValue: String) {
 
     // compute the metadata values
@@ -697,10 +697,10 @@ class AccumuloDataStore(val connector: Connector,
    *
    * @throws RuntimeException if the feature encoding is missing or invalid
    */
-  def getFeatureEncoding(sft: SimpleFeatureType): FeatureEncoding = {
+  def getFeatureEncoding(sft: SimpleFeatureType): SerializationType = {
     val name = metadata.readRequired(sft.getTypeName, FEATURE_ENCODING_KEY)
     try {
-      FeatureEncoding.withName(name)
+      SerializationType.withName(name)
     } catch {
       case e: NoSuchElementException => throw new RuntimeException(s"Invalid Feature Encoding '$name'.")
     }
@@ -871,7 +871,7 @@ class AccumuloDataStore(val connector: Connector,
     checkWritePermissions(typeName)
     val sft = getSchema(typeName)
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
-    val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
+    val fe = SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
     val ive = IndexValueEncoder(sft, getGeomesaVersion(sft))
     val stEncoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
     new ModifyAccumuloFeatureWriter(sft, fe, ive, stEncoder, this, writeVisibilities, filter)
@@ -884,7 +884,7 @@ class AccumuloDataStore(val connector: Connector,
     checkWritePermissions(typeName)
     val sft = getSchema(typeName)
     val indexSchemaFmt = getIndexSchemaFmt(typeName)
-    val fe = SimpleFeatureEncoder(sft, getFeatureEncoding(sft))
+    val fe = SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
     val ive = IndexValueEncoder(sft, getGeomesaVersion(sft))
     val stEncoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
     new AppendAccumuloFeatureWriter(sft, fe, ive, stEncoder, this, writeVisibilities)

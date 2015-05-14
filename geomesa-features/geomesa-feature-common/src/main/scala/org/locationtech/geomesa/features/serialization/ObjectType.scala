@@ -6,14 +6,13 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  */
 
-package org.locationtech.geomesa.feature.serialization
+package org.locationtech.geomesa.features.serialization
 
-import java.util.{Collections, Map, List, UUID}
+import java.util.{Collections => jCollections, List => jList, Map => jMap, UUID}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
-import java.util.{Map => jMap, Collections => jCollections, List => jList}
 
 object ObjectType extends Enumeration {
 

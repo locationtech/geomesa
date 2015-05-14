@@ -67,7 +67,7 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
   override def handleKeyValue(resultO: Option[TemporalDensityIteratorResult],
                               topSourceKey: Key,
                               topSourceValue: Value): TemporalDensityIteratorResult = {
-    val date = originalDecoder.decode(topSourceValue.get()).getAttribute(dateTimeFieldName).asInstanceOf[Date]
+    val date = originalDecoder.deserialize(topSourceValue.get()).getAttribute(dateTimeFieldName).asInstanceOf[Date]
     val dateTime = new DateTime(date.getTime)
     val result = resultO.getOrElse(TemporalDensityIteratorResult())
     addResultDate(dateTime, result.timeSeries)

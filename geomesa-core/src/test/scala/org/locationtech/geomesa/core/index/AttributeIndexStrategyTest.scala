@@ -34,7 +34,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloDataStore
 import org.locationtech.geomesa.core.data.tables.AttributeTable
 import org.locationtech.geomesa.core.index
-import org.locationtech.geomesa.features.SimpleFeatureEncoder
+import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SimpleFeatureSerializer}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -105,7 +105,7 @@ class AttributeIndexStrategyTest extends Specification {
   val fs = ds.getFeatureSource(sftName).asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
   fs.addFeatures(featureCollection)
 
-  val featureEncoder = SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft))
+  val featureEncoder = SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft))
   val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
 
   val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft), ds.getIndexSchemaFmt(sftName), ds,

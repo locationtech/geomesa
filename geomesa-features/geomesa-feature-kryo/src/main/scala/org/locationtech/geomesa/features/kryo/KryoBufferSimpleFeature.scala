@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  */
 
-package org.locationtech.geomesa.feature.kryo
+package org.locationtech.geomesa.features.kryo
 
 import java.util.{Collection => jCollection, List => jList}
 
@@ -14,17 +14,10 @@ import com.esotericsoftware.kryo.io.Input
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.feature.FeatureEncoding._
-import org.locationtech.geomesa.feature.{FeatureEncoding, ScalaSimpleFeature, SimpleFeatureEncoder}
-import org.locationtech.geomesa.feature.serialization.{DatumReader, DecodingsVersionCache, KryoSerialization}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
-import org.opengis.filter.expression.PropertyName
 import org.opengis.geometry.BoundingBox
-import scala.collection.JavaConversions._
 
 object LazySimpleFeature {
   val NULL_BYTE = 0.asInstanceOf[Byte]

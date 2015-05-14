@@ -29,7 +29,7 @@ import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.index.Strategy._
 import org.locationtech.geomesa.core.iterators.{FEATURE_ENCODING, _}
 import org.locationtech.geomesa.core.util.{BatchMultiScanner, CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -111,7 +111,7 @@ object Strategy {
     qp.columnFamilies.foreach { c => scanner.fetchColumnFamily(c) }
   }
 
-  def configureFeatureEncoding(cfg: IteratorSetting, featureEncoding: FeatureEncoding) {
+  def configureFeatureEncoding(cfg: IteratorSetting, featureEncoding: SerializationType) {
     cfg.addOption(FEATURE_ENCODING, featureEncoding.toString)
   }
 
@@ -152,7 +152,7 @@ object Strategy {
 
   def configureRecordTableIterator(
       simpleFeatureType: SimpleFeatureType,
-      featureEncoding: FeatureEncoding,
+      featureEncoding: SerializationType,
       ecql: Option[Filter],
       query: Query): IteratorSetting = {
 
@@ -174,7 +174,7 @@ object Strategy {
   def getDensityIterCfg(query: Query,
                         geometryToCover: Geometry,
                         schema: String,
-                        featureEncoding: FeatureEncoding,
+                        featureEncoding: SerializationType,
                         featureType: SimpleFeatureType) = query match {
     case _ if query.getHints.containsKey(DENSITY_KEY) =>
       val clazz = classOf[DensityIterator]

@@ -30,7 +30,7 @@ import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.index.Strategy._
 import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.spatial.BinarySpatialOperator
@@ -124,7 +124,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
                      featureType: SimpleFeatureType,
                      stFilter: Option[Filter],
                      ecqlFilter: Option[Filter],
-                     featureEncoding: FeatureEncoding,
+                     featureEncoding: SerializationType,
                      version: Int): IteratorSetting = {
     iteratorConfig.iterator match {
       case IndexOnlyIterator =>
@@ -154,7 +154,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
   def configureIndexIterator(
       featureType: SimpleFeatureType,
       query: Query,
-      featureEncoding: FeatureEncoding,
+      featureEncoding: SerializationType,
       filter: Option[Filter],
       transformsCoverFilter: Boolean,
       version: Int): IteratorSetting = {
@@ -185,7 +185,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
   def configureSpatioTemporalIntersectingIterator(
       featureType: SimpleFeatureType,
       query: Query,
-      featureEncoding: FeatureEncoding,
+      featureEncoding: SerializationType,
       stFilter: Option[Filter],
       ecqlFilter: Option[Filter],
       isDensity: Boolean): IteratorSetting = {

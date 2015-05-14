@@ -49,6 +49,7 @@ class LazySimpleFeatureTest extends Specification {
       val buf = ByteBuffer.allocate(2048)
       val bytesWritten = writer.write(buf, sf)
       val serialized = util.Arrays.copyOfRange(buf.array(), 0, bytesWritten)
+      println(serialized.length)
 
       val accessors = AttributeAccessor.buildSimpleFeatureTypeAttributeAccessors(sft)
       val laz = new LazySimpleFeature("fakeid", sft, accessors, ByteBuffer.wrap(serialized))

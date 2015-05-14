@@ -28,7 +28,7 @@ import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import org.locationtech.geomesa.core.stats.StatWriter
-import org.locationtech.geomesa.features.FeatureEncoding
+import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.security
 
 import scala.collection.JavaConversions._
@@ -80,7 +80,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val authorizationsProvider = security.getAuthorizationsProvider(params, auths)
 
     val featureEncoding = featureEncParam.lookupOpt[String](params)
-      .map(FeatureEncoding.withName)
+      .map(SerializationType.withName)
       .getOrElse(DEFAULT_ENCODING)
 
     // stats defaults to true if not specified

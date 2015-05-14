@@ -68,7 +68,7 @@ class DensityIterator(other: DensityIterator, env: IteratorEnvironment)
   override def handleKeyValue(resultO: Option[DensityIteratorResult],
                               topSourceKey: Key,
                               topSourceValue: Value): DensityIteratorResult = {
-    val feature = originalDecoder.decode(topSourceValue.get)
+    val feature = originalDecoder.deserialize(topSourceValue.get)
     lazy val geoHashGeom = decoder.decode(topSourceKey).getDefaultGeometry.asInstanceOf[Geometry]
     val geometry = feature.getDefaultGeometry.asInstanceOf[Geometry]
     val result = resultO.getOrElse(DensityIteratorResult(geometry))  // result.result will get updated

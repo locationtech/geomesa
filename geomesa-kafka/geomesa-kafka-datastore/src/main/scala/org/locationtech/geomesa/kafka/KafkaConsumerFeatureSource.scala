@@ -37,8 +37,9 @@ import org.geotools.filter.FidFilterImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.features.{AvroFeatureDecoder, EncodingOption}
-import EncodingOption.EncodingOptions
+import org.locationtech.geomesa.features.SerializationOption
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.avro.AvroFeatureDeserializer
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
 import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceReTypingSupport
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -66,7 +67,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   var qt = new SynchronizedQuadtree
 
   val groupId = RandomStringUtils.randomAlphanumeric(5)
-  val decoder = new AvroFeatureDecoder(schema, EncodingOptions.withUserData)
+  val decoder = new AvroFeatureDeserializer(schema, SerializationOptions.withUserData)
   // create a producer that reads from kafka and sends to the event bus
   new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
 
@@ -223,7 +224,7 @@ trait FeatureProducer {
 class KafkaFeatureConsumer(topic: String,
                            zookeepers: String,
                            groupId: String,
-                           featureDecoder: AvroFeatureDecoder,
+                           featureDecoder: AvroFeatureDeserializer,
                            override val eventBus: EventBus) extends FeatureProducer {
 
   private val client = Consumer.create(new ConsumerConfig(buildClientProps))
@@ -247,7 +248,7 @@ class KafkaFeatureConsumer(topic: String,
             // only other key is the SCHEMA_KEY so ingore
           }
         } else {
-          val f = featureDecoder.decode(msg.message())
+          val f = featureDecoder.deserialize(msg.message())
           produceFeatures(f)
         }
       }

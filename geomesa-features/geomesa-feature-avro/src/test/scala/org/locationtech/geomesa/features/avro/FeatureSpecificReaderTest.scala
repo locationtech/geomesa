@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.features
+package org.locationtech.geomesa.features.avro
 
 import java.io._
 import java.text.SimpleDateFormat
@@ -26,8 +26,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.{Assert, Test}
-import org.locationtech.geomesa.features.EncodingOption.EncodingOptions
-import org.locationtech.geomesa.features.avro.{AvroSimpleFeature, AvroSimpleFeatureWriter, FeatureSpecificReader}
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -321,7 +320,7 @@ class FeatureSpecificReaderTest {
 
     // serialize
     val baos = new ByteArrayOutputStream()
-    val writer = new AvroSimpleFeatureWriter(sft, EncodingOptions.withUserData)
+    val writer = new AvroSimpleFeatureWriter(sft, SerializationOptions.withUserData)
     val encoder = EncoderFactory.get().binaryEncoder(baos, null)
     writer.write(sf, encoder)
     encoder.flush()
@@ -331,7 +330,7 @@ class FeatureSpecificReaderTest {
 
     // deserialize
     val bais = new ByteArrayInputStream(bytes)
-    val reader = new FeatureSpecificReader(sft, sft, EncodingOptions.withUserData)
+    val reader = new FeatureSpecificReader(sft, sft, SerializationOptions.withUserData)
     val decoder = DecoderFactory.get().binaryDecoder(bytes, 0, bytes.length, null)
     val result = reader.read(null, decoder)
     assertThat(result, is(not(nullValue(classOf[SimpleFeature]))))

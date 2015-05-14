@@ -6,21 +6,18 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  */
 
-package org.locationtech.geomesa.feature.kryo
+package org.locationtech.geomesa.features.kryo
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.util.{Date, UUID}
+import java.util.UUID
 
-import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
-import org.locationtech.geomesa.feature._
-import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.feature.kryo.KryoFeatureCoder
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
 import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
@@ -34,19 +31,20 @@ class KryoBufferSimpleFeatureTest extends Specification {
       val sf = new ScalaSimpleFeature("fakeid", sft)
 
       sf.setAttribute("a", "1")
-      sf.setAttribute("b", "1.0")
+//      sf.setAttribute("b", "1.0")
       sf.setAttribute("c", "5.37")
       sf.setAttribute("d", "-100")
-      sf.setAttribute("e", UUID.randomUUID())
+//      sf.setAttribute("e", UUID.randomUUID())
       sf.setAttribute("f", "mystring")
       sf.setAttribute("g", java.lang.Boolean.FALSE)
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serializer = new KryoFeatureCoder(sft, EncodingOptions.none)
+      val serializer = new KryoFeatureSerializer(sft, SerializationOptions.none)
       val serialized = serializer.encode(sf)
+      println(serialized.length)
 
-      val laz = serializer.lazyDecode(serialized)
+      val laz = serializer.lazyDeserialize(serialized)
 
       laz.getID mustEqual sf.getID
       laz.getAttribute("a") mustEqual sf.getAttribute("a")
@@ -238,7 +236,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serializer = new KryoFeatureCoder(sft, EncodingOptions.none)
+      val serializer = new KryoFeatureSerializer(sft, SerializationOptions.none)
       val serialized = serializer.encode(sf)
 
 //      val start = System.currentTimeMillis()

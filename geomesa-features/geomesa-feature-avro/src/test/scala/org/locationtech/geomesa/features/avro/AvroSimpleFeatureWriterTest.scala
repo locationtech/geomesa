@@ -25,7 +25,7 @@ import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactor
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.EncodingOption.EncodingOptions
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.locationtech.geomesa.features.serialization.{AbstractWriter, HintKeySerialization}
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
@@ -173,7 +173,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito {
       userData.put(java.lang.Integer.valueOf(5), null)
       userData.put(null, "null key")
 
-      val afw = new AvroSimpleFeatureWriter(sf.getType, EncodingOptions.withUserData)
+      val afw = new AvroSimpleFeatureWriter(sf.getType, SerializationOptions.withUserData)
       val encoder = mock[Encoder]
 
       afw.write(sf, encoder)

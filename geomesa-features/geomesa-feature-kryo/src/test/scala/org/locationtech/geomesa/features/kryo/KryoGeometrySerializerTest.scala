@@ -19,6 +19,7 @@ package org.locationtech.geomesa.features.kryo
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerializer
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

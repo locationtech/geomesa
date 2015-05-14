@@ -21,7 +21,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.core.data.tables.{AttributeIndexRow, AttributeTable}
 import org.locationtech.geomesa.core.data.{DEFAULT_ENCODING, INTERNAL_GEOMESA_VERSION}
-import org.locationtech.geomesa.features.SimpleFeatureEncoder
+import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SimpleFeatureSerializer}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
@@ -53,7 +53,7 @@ class AttributeTableTest extends Specification {
         feature.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
 
         val indexValueEncoder = IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION)
-        val featureEncoder = SimpleFeatureEncoder(sft, DEFAULT_ENCODING)
+        val featureEncoder = SimpleFeatureSerializers(sft, DEFAULT_ENCODING)
 
         val toWrite = new FeatureToWrite(feature, "", featureEncoder, indexValueEncoder)
         val mutations = AttributeTable.getAttributeIndexMutations(toWrite, descriptors, "")

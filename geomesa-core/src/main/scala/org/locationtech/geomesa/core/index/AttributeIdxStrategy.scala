@@ -34,7 +34,7 @@ import org.locationtech.geomesa.core.index.QueryPlanner._
 import org.locationtech.geomesa.core.index.QueryPlanners.JoinFunction
 import org.locationtech.geomesa.core.index.Strategy._
 import org.locationtech.geomesa.core.iterators._
-import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
@@ -137,7 +137,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 
   private def configureAttributeIndexIterator(
       featureType: SimpleFeatureType,
-      encoding: FeatureEncoding,
+      encoding: SerializationType,
       query: Query,
       stFilter: Option[Filter],
       ecqlFilter: Option[Filter],
@@ -181,7 +181,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 
   private def configureSpatioTemporalFilter(
       featureType: SimpleFeatureType,
-      encoding: FeatureEncoding,
+      encoding: SerializationType,
       stFilter: Option[Filter],
       version: Int) = {
 

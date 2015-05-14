@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.features.kryo
+package org.locationtech.geomesa.features.kryo.serialization
 
-import com.esotericsoftware.kryo.{Kryo, Serializer}
 import com.esotericsoftware.kryo.io.{Input, Output}
-import org.locationtech.geomesa.features.EncodingOption.EncodingOptions
+import com.esotericsoftware.kryo.{Kryo, Serializer}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.kryo.serialization.KryoSerialization
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.serialization.{DecodingsVersionCache, EncodingsCache}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -31,7 +30,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  * @param sft the type of simple feature
  * @param opts the encoding options (optional)
  */
-class SimpleFeatureSerializer(sft: SimpleFeatureType, opts: EncodingOptions = EncodingOptions.none)
+class SimpleFeatureSerializer(sft: SimpleFeatureType, opts: SerializationOptions = SerializationOptions.none)
   extends BaseSimpleFeatureSerializer(sft, opts) {
 
   type AttributeEncoding = EncodingsCache[Output]#AttributeEncoding
@@ -82,7 +81,7 @@ class FeatureIdSerializer extends Serializer[KryoFeatureId] {
  * @param transform
  */
 class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: SimpleFeatureType,
-                                          options: EncodingOptions)
+                                          options: SerializationOptions)
   extends BaseSimpleFeatureSerializer(transform, options) {
 
   type AttributeEncoding = EncodingsCache[Output]#AttributeEncoding
@@ -134,7 +133,7 @@ class TransformingSimpleFeatureSerializer(sft: SimpleFeatureType, transform: Sim
   }
 }
 
-abstract class BaseSimpleFeatureSerializer(sft: SimpleFeatureType, opts: EncodingOptions)
+abstract class BaseSimpleFeatureSerializer(sft: SimpleFeatureType, opts: SerializationOptions)
   extends Serializer[SimpleFeature] {
 
   val doWrite: (Kryo, Output, SimpleFeature) => Unit =

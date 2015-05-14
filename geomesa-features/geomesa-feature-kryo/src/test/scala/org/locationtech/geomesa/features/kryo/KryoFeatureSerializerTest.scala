@@ -21,8 +21,9 @@ import java.util.{Date, UUID}
 
 import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.EncodingOption.EncodingOptions
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.kryo.serialization.KryoFeatureSerializer
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
@@ -84,7 +85,7 @@ class KryoFeatureSerializerTest extends Specification {
         val vis = "u&usa&fouo"
         SecurityUtils.setFeatureVisibility(sf, vis)
 
-        val serializer = KryoFeatureSerializer(sft, EncodingOptions.none)
+        val serializer = KryoFeatureSerializer(sft, SerializationOptions.none)
 
         val serialized = serializer.write(sf)
         val deserialized = serializer.read(serialized)
@@ -102,7 +103,7 @@ class KryoFeatureSerializerTest extends Specification {
         val vis = "u&usa&fouo"
         SecurityUtils.setFeatureVisibility(sf, vis)
 
-        val serializer = KryoFeatureSerializer(sft, EncodingOptions.withUserData)
+        val serializer = KryoFeatureSerializer(sft, SerializationOptions.withUserData)
 
         val serialized = serializer.write(sf)
         val deserialized = serializer.read(serialized)
@@ -266,7 +267,7 @@ class KryoFeatureSerializerTest extends Specification {
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
       "when serializing" >> {
-        val serializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none)
+        val serializer = KryoFeatureSerializer(sft, projectedSft, SerializationOptions.none)
         val deserializer = KryoFeatureSerializer(projectedSft)
 
         val serialized = serializer.write(sf)
@@ -279,7 +280,7 @@ class KryoFeatureSerializerTest extends Specification {
 
       "when deserializing" >> {
         val serializer = KryoFeatureSerializer(sft)
-        val deserializer = KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none)
+        val deserializer = KryoFeatureSerializer(sft, projectedSft, SerializationOptions.none)
 
         val serialized = serializer.write(sf)
         val deserialized = deserializer.read(serialized)

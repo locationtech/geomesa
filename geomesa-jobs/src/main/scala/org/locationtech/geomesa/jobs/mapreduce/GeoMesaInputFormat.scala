@@ -32,8 +32,8 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.features.{SimpleFeatureDecoder, FeatureEncoding}
-import FeatureEncoding.FeatureEncoding
+import org.locationtech.geomesa.features.SerializationType.SerializationType
+import org.locationtech.geomesa.features.SimpleFeatureDeserializers
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -137,7 +137,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] {
   val delegate = new AccumuloInputFormat
 
   var sft: SimpleFeatureType = null
-  var encoding: FeatureEncoding = null
+  var encoding: SerializationType = null
   var numShards: Int = -1
 
   private def init(conf: Configuration) = if (sft == null) {
@@ -179,7 +179,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] {
     val splits = split.asInstanceOf[GroupedSplit].splits
     val readers = splits.map(delegate.createRecordReader(_, context)).toArray
     val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
-    val decoder = SimpleFeatureDecoder(schema, encoding)
+    val decoder = SimpleFeatureDeserializers(schema, encoding)
     new GeoMesaRecordReader(readers, decoder)
   }
 }
@@ -190,7 +190,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] {
  *
  * @param readers
  */
-class GeoMesaRecordReader(readers: Array[RecordReader[Key, Value]], decoder: SimpleFeatureDecoder)
+class GeoMesaRecordReader(readers: Array[RecordReader[Key, Value]], decoder: org.locationtech.geomesa.features.SimpleFeatureDeserializer)
     extends RecordReader[Text, SimpleFeature] {
 
   var currentFeature: SimpleFeature = null
@@ -238,7 +238,7 @@ class GeoMesaRecordReader(readers: Array[RecordReader[Key, Value]], decoder: Sim
       case None => false
       case Some(reader) =>
         if (reader.nextKeyValue()) {
-          currentFeature = decoder.decode(reader.getCurrentValue.get())
+          currentFeature = decoder.deserialize(reader.getCurrentValue.get())
           true
         } else {
           nextReader()

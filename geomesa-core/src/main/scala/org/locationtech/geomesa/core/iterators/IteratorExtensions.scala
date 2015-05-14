@@ -21,7 +21,7 @@ import org.locationtech.geomesa.core._
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.core.iterators.IteratorExtensions.OptionMap
 import org.locationtech.geomesa.core.transform.TransformCreator
-import org.locationtech.geomesa.features.{FeatureEncoding, SimpleFeatureDecoder, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -82,9 +82,8 @@ trait HasIndexValueDecoder extends HasVersion {
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     val version = options.get(GEOMESA_ITERATORS_VERSION).toInt
-    indexSft = SimpleFeatureTypes.createType(featureType.getTypeName,
-      options.get(GEOMESA_ITERATORS_SFT_INDEX_VALUE))
-    indexEncoder = IndexValueEncoder(indexSft, featureType, version)
+    indexEncoder = IndexValueEncoder(featureType, version)
+    indexSft = indexEncoder.indexSft
   }
 }
 
@@ -93,17 +92,17 @@ trait HasIndexValueDecoder extends HasVersion {
  */
 trait HasFeatureDecoder extends IteratorExtensions {
 
-  var featureDecoder: SimpleFeatureDecoder = null
-  var featureEncoder: SimpleFeatureEncoder = null
+  var featureDecoder: SimpleFeatureDeserializer = null
+  var featureEncoder: SimpleFeatureSerializer = null
   val defaultEncoding = org.locationtech.geomesa.core.data.DEFAULT_ENCODING
 
   // feature encoder/decoder
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     // this encoder is for the source sft
-    val encoding = Option(options.get(FEATURE_ENCODING)).map(FeatureEncoding.withName).getOrElse(defaultEncoding)
-    featureDecoder = SimpleFeatureDecoder(featureType, encoding)
-    featureEncoder = SimpleFeatureEncoder(featureType, encoding)
+    val encoding = Option(options.get(FEATURE_ENCODING)).map(SerializationType.withName).getOrElse(defaultEncoding)
+    featureDecoder = SimpleFeatureDeserializers(featureType, encoding)
+    featureEncoder = SimpleFeatureSerializers(featureType, encoding)
   }
 }
 
@@ -165,7 +164,7 @@ trait HasTransforms extends IteratorExtensions {
       targetFeatureType.decodeUserData(options, GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
 
       val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
-      val transformEncoding = Option(options.get(FEATURE_ENCODING)).map(FeatureEncoding.withName)
+      val transformEncoding = Option(options.get(FEATURE_ENCODING)).map(SerializationType.withName)
           .getOrElse(DEFAULT_ENCODING)
 
       transform = TransformCreator.createTransform(targetFeatureType, transformEncoding, transformString)

@@ -29,7 +29,7 @@ import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToMutati
 import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.core.index.{IndexSchema, IndexValueEncoder}
-import org.locationtech.geomesa.features.SimpleFeatureEncoder
+import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.SimpleFeature
 
@@ -107,7 +107,7 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
 
   val sftCache          = scala.collection.mutable.HashSet.empty[String]
   val writerCache       = scala.collection.mutable.Map.empty[String, Seq[TableAndMutations]]
-  val encoderCache      = scala.collection.mutable.Map.empty[String, SimpleFeatureEncoder]
+  val encoderCache      = scala.collection.mutable.Map.empty[String, org.locationtech.geomesa.features.SimpleFeatureSerializer]
   val indexEncoderCache = scala.collection.mutable.Map.empty[String, IndexValueEncoder]
 
   override def write(key: Text, value: SimpleFeature) = {
@@ -136,7 +136,7 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
       }
     })
 
-    val encoder = encoderCache.getOrElseUpdate(sftName, SimpleFeatureEncoder(sft, ds.getFeatureEncoding(sft)))
+    val encoder = encoderCache.getOrElseUpdate(sftName, SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft)))
     val ive = indexEncoderCache.getOrElseUpdate(sftName, IndexValueEncoder(sft, ds.getGeomesaVersion(sft)))
     val featureToWrite = new FeatureToWrite(value, ds.writeVisibilities, encoder, ive)
 

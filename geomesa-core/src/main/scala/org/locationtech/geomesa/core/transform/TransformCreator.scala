@@ -17,8 +17,8 @@
 package org.locationtech.geomesa.core.transform
 
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.features.FeatureEncoding.FeatureEncoding
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureEncoder}
+import org.locationtech.geomesa.features.SerializationType.SerializationType
+import org.locationtech.geomesa.features.{SimpleFeatureSerializers, ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -33,10 +33,10 @@ object TransformCreator {
    * SimpleFeatureEncoder instance which is not thread safe to optimize performance
    */
   def createTransform(targetFeatureType: SimpleFeatureType,
-                      featureEncoding: FeatureEncoding,
+                      featureEncoding: SerializationType,
                       transformString: String): (SimpleFeature => Array[Byte]) = {
 
-    val encoder = SimpleFeatureEncoder(targetFeatureType, featureEncoding)
+    val encoder = SimpleFeatureSerializers(targetFeatureType, featureEncoding)
     val defs = TransformProcess.toDefinition(transformString)
 
     val newSf = new ScalaSimpleFeature("reusable", targetFeatureType)
@@ -44,7 +44,7 @@ object TransformCreator {
     (feature: SimpleFeature) => {
         newSf.getIdentifier.setID(feature.getIdentifier.getID)
         defs.foreach { t => newSf.setAttribute(t.name, t.expression.evaluate(feature)) }
-        encoder.encode(newSf)
+        encoder.serialize(newSf)
       }
   }
 }

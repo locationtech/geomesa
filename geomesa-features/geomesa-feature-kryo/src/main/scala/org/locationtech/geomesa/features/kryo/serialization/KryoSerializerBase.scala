@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.features.kryo
+package org.locationtech.geomesa.features.kryo.serialization
 
 import java.io.{InputStream, OutputStream}
 

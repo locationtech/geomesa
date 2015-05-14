@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.features.kryo
+package org.locationtech.geomesa.features.kryo.serialization
 
 import java.io.{InputStream, OutputStream}
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.features.kryo.serialization.{KryoReader, KryoWriter}
 
 import scala.ref.SoftReference
 
