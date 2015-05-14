@@ -1,7 +1,8 @@
 angular.module('geomesa.home', [
     'geomesa.masthead',
     'geomesa.map',
-    'geomesa.card'
+    'geomesa.card',
+    'geomesa.unique'
 ])
     .config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/home', {
