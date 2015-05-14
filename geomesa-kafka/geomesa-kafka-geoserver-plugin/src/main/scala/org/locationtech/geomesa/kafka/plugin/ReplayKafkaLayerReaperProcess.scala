@@ -21,7 +21,6 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.geoserver.catalog.{Catalog, DataStoreInfo, LayerInfo}
 import org.geotools.process.factory.{DescribeProcess, DescribeResult}
 import org.joda.time.{Duration, Instant}
-
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -49,23 +48,16 @@ class ReplayKafkaLayerReaperProcess(val catalog: Catalog, val hours: Int)
         if age.isBefore(ageLimit)
       } yield (dsi, schema)
 
-      // Remove old schemas from DataStores, return flattened list of them
-      val removedSchemas = oldOnly.flatMap{ case (dsi, oldSchema) =>
-        val ds = dsi.getDataStore(null)
-        val oldSchemas = ds.getNames.filter(_.getLocalPart.contains(oldSchema)).toList
-        oldSchemas.foreach(ds.removeSchema)
-        oldSchemas.map(_.getLocalPart)
-      }.toList
-
-      //Todo: remove layers before calling remove schema
-      // Remove Layers associated with removed schemas
-      val oldReplayLayers = for {
+      for {
         layer <- catalog.getLayers
-        schema <- removedSchemas
-        if isOldReplayLayer(layer, schema)
-      } yield layer
-
-      oldReplayLayers.foreach(catalog.remove)
+        ds <- oldOnly.map(_._1.getDataStore(null))
+        oldSchema <- oldOnly.map(_._2)
+        oldName <- ds.getNames.filter(_.getLocalPart.contains(oldSchema))
+        if isOldReplayLayer(layer, oldName.getLocalPart)
+      } {
+        catalog.remove(layer)
+        ds.removeSchema(oldName)
+      }
     }.isSuccess
   }
 
@@ -75,9 +67,11 @@ class ReplayKafkaLayerReaperProcess(val catalog: Catalog, val hours: Int)
 
   private def isOldReplayLayer(l: LayerInfo, s: String): Boolean = l.getMetadata.containsValue(s)
 
+  private val message = "Running Replay Kafka Layer Cleaner"
+
   override def run(): Unit = {
-    logger.info("Running Replay Kafka Cleaner")
-    println("Did the thing")
+    logger.info(message)
+    println(message)
     execute()
   }
 }
