@@ -18,7 +18,7 @@
     <parent>
         <artifactId>geomesa-kafka-accumulo1.5</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.0.0-rc.7</version>
+        <version>1.1.0-rc.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
