@@ -1,56 +1,39 @@
 package org.locationtech.geomesa.curve
 
 /**
- * Represents a cube in defined by min and max as two opposing points
+ * Represents a cube in index space defined by min and max as two opposing points.
+ * All operations refer to index space.
  */
-case class Z3Range(min: Z3, max: Z3){
-  require(min.z < max.z || min.z == max.z, s"NOT: ${min.z} < ${max.z}")
+case class Z3Range(min: Z3, max: Z3) {
 
-  def mid = min mid max
+  require(min.z <= max.z, s"Not: $min < $max")
 
-  def length = max.z - min.z
+  def mid: Z3 = Z3((max.z - min.z) / 2)
 
-  def contains(bits: Z3) = {
+  def length: Int = (max.z - min.z + 1).toInt
+
+  def contains(bits: Z3): Boolean = bits.z >= min.z && bits.z <= max.z
+
+  def contains(r: Z3Range): Boolean = contains(r.min) && contains(r.max)
+
+  def overlaps(r: Z3Range): Boolean = contains(r.min) || contains(r.max)
+
+  def overlapsInUserSpace(r: Z3Range): Boolean =
+    overlaps(min.d0, max.d0, r.min.d0, r.max.d0) &&
+        overlaps(min.d1, max.d1, r.min.d1, r.max.d1) &&
+        overlaps(min.d2, max.d2, r.min.d2, r.max.d2)
+
+  private def overlaps(a1: Int, a2: Int, b1: Int, b2: Int) = math.max(a1, b1) <= math.min(a2, b2)
+
+  def containsInUserSpace(bits: Z3) = {
     val (x, y, z) = bits.decode
-    x >= min.dim(0) &&
-      x <= max.dim(0) &&
-      y >= min.dim(1) &&
-      y <= max.dim(1) &&
-      z >= min.dim(2) &&
-      z <= max.dim(2)
-
-  }
-  def contains(r: Z3Range): Boolean =
-    contains(r.min) && contains(r.max)
-
-  def overlaps(r: Z3Range): Boolean = {
-    def _overlaps(a1:Int, a2:Int, b1:Int, b2:Int) = math.max(a1,b1) <= math.min(a2,b2)
-    _overlaps(min.dim(0), max.dim(0), r.min.dim(0), r.max.dim(0)) &&
-      _overlaps(min.dim(1), max.dim(1), r.min.dim(1), r.max.dim(1)) &&
-      _overlaps(min.dim(2), max.dim(2), r.min.dim(2), r.max.dim(2))
+    x >= min.d0 &&
+        x <= max.d0 &&
+        y >= min.d1 &&
+        y <= max.d1 &&
+        z >= min.d2 &&
+        z <= max.d2
   }
 
-  def zdivide(xd: Z3): (Z3, Z3) =
-    Z3.zdivide(xd, min, max)
-
-  /**
-   * Cuts Z-Range in two, can be used to perform augmented binary search
-   * @param xd: division point
-   * @param inRange: is xd in query range
-   */
-  def cut(xd: Z3, inRange: Boolean): List[Z3Range] = {
-    if (min.z == max.z)
-      Nil
-    else if (inRange) {
-      if (xd.z == min.z)      // degenerate case, two nodes min has already been counted
-        Z3Range(max, max) :: Nil
-      else if (xd.z == max.z) // degenerate case, two nodes max has already been counted
-        Z3Range(min, min) :: Nil
-      else
-        Z3Range(min, xd-1) :: Z3Range(xd+1, max) :: Nil
-    } else {
-      val (litmax, bigmin) = Z3.zdivide(xd, min, max)
-      Z3Range(min, litmax) :: Z3Range(bigmin, max) :: Nil
-    }
-  }
+  def containsInUserSpace(r: Z3Range): Boolean = containsInUserSpace(r.min) && containsInUserSpace(r.max)
 }

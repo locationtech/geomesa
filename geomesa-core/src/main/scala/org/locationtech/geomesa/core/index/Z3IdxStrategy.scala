@@ -124,7 +124,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
         Range.followingPrefix(new Text(endRowBytes)), false)
     }
 
-    val iter = Z3Iterator.configure(Z3_CURVE.index(lx, ly, lt), Z3_CURVE.index(ux, uy, ut))
+    val iter = Z3Iterator.configure(Z3_CURVE.index(lx, ly, lt), Z3_CURVE.index(ux, uy, ut), 21)
 
     val table = acc.getZ3Table(sft)
     BatchScanPlan(table, accRanges, Seq(Some(iter), is).flatten, Seq(Z3Table.FULL_ROW), 8, hasDuplicates = false)
