@@ -28,7 +28,6 @@
         <module>geomesa-security</module>
         <module>geomesa-features</module>
         <module>geomesa-filter</module>
-        <module>geomesa-core</module>
         <module>geomesa-distributed-runtime</module>
         <module>geomesa-jobs</module>
         <module>geomesa-plugin</module>
@@ -42,6 +41,7 @@
         <module>geomesa-stream</module>
         <module>geomesa-z3</module>
         <module>geomesa-iterators</module>
+        <module>geomesa-accumulo</module>
     </modules>
 
     <properties>
