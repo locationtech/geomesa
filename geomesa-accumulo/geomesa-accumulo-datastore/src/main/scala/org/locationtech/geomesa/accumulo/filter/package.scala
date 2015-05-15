@@ -232,7 +232,8 @@ package object filter {
     val geom = sft.getGeometryDescriptor.getLocalName
     val primary = filter match {
       case f: BinarySpatialOperator =>
-        checkOrder(f.getExpression1, f.getExpression2).exists(p => p.name == null || p.name == geom)
+        checkOrder(f.getExpression1, f.getExpression2)
+            .exists(p => p.name == null || p.name.isEmpty || p.name == geom)
       case _ => false
     }
     primary && spatialFilters(filter)

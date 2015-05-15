@@ -2,7 +2,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
+import com.vividsolutions.jts.geom.{Point, Geometry, GeometryCollection}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
@@ -143,6 +143,9 @@ object Z3IdxStrategy extends StrategyProvider {
    * @return
    */
   override def getStrategy(filter: Filter, sft: SimpleFeatureType, hints: StrategyHints): Option[StrategyDecision] = {
+    if (sft.getGeometryDescriptor.getType.getBinding != classOf[Point]) {
+      return None
+    }
     val (geomFilter, other) = partitionGeom(filter, sft)
     val (temporal, _) = partitionTemporal(other, getDtgFieldName(sft))
     if(geomFilter.size == 0 || temporal.size == 0) {
