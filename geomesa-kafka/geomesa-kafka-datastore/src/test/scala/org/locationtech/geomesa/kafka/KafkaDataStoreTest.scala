@@ -19,13 +19,13 @@ package org.locationtech.geomesa.kafka
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data._
+import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.core.filter.ff
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -37,25 +37,24 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
 
   sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
 
+  val gf = JTSFactoryFinder.getGeometryFactory
+
   val zkPath = "/geomesa/kafka/testds"
-
-  val consumerParams = Map(
-    "brokers"    -> brokerConnect,
-    "zookeepers" -> zkConnect,
-    "zkPath"     -> zkPath,
-    "isProducer" -> false)
-
 
   val producerParams = Map(
     "brokers"    -> brokerConnect,
     "zookeepers" -> zkConnect,
-    "zkPath"     -> "/geomesa/kafka/testds",
+    "zkPath"     -> zkPath,
     "isProducer" -> true)
-
-  val gf = JTSFactoryFinder.getGeometryFactory
 
   "KafkaDataSource" should {
     import org.locationtech.geomesa.security._
+
+    val consumerParams = Map(
+      "brokers"    -> brokerConnect,
+      "zookeepers" -> zkConnect,
+      "zkPath"     -> zkPath,
+      "isProducer" -> false)
 
     val consumerDS = DataStoreFinder.getDataStore(consumerParams)
     val producerDS = DataStoreFinder.getDataStore(producerParams)
@@ -76,12 +75,23 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
       }
     }
 
+    "allow schemas to be deleted" >> {
+      val replaySFT = KafkaDataStoreHelper.prepareForReplay(schema, ReplayConfig(10000L, 20000L, 1000L))
+      val name = replaySFT.getTypeName
+
+      consumerDS.createSchema(replaySFT)
+      consumerDS.getTypeNames.toList must contain(name)
+
+      consumerDS.removeSchema(name)
+      consumerDS.getTypeNames.toList must not(contain(name))
+    }
+
     "allow features to be written" >> {
 
       // create the consumerFC first so that it is ready to receive features from the producer
       val consumerFC = consumerDS.getFeatureSource("test")
 
-      val store = producerDS.getFeatureSource("test").asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
+      val store = producerDS.getFeatureSource("test").asInstanceOf[SimpleFeatureStore]
       val fw = producerDS.getFeatureWriter("test", null, Transaction.AUTO_COMMIT)
       val sf = fw.next()
       sf.setAttributes(Array("smith", 30, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
@@ -173,19 +183,14 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
 
   "KafkaDataStore with cachedConsumer" should {
     "expire messages correctly when expirationPeriod is set" >> {
+
       val cachedConsumerParams = Map(
         "brokers"          -> brokerConnect,
         "zookeepers"       -> zkConnect,
-        "zkPath"           -> "/geomesa/kafka/cachedtestds",
+        "zkPath"           -> zkPath,
         "isProducer"       -> false,
         "expiry"           -> true,
         "expirationPeriod" -> 2000L)
-
-      val producerParams = Map(
-        "brokers"    -> brokerConnect,
-        "zookeepers" -> zkConnect,
-        "zkPath"     -> "/geomesa/kafka/cachedtestds",
-        "isProducer" -> true)
 
       //Setup datastores and schema
       val cachedConsumerDS = DataStoreFinder.getDataStore(cachedConsumerParams)
@@ -197,8 +202,8 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
       producerDS.createSchema(schemaExpiration)
 
       //Setup consumer prior to writing feature so the feature will be written to the cache once the producer writes
-      val cachedConsumerFS = cachedConsumerDS.getFeatureSource("testExpiration").asInstanceOf[KafkaConsumerFeatureSource]
-      val featureCache = cachedConsumerFS.asInstanceOf[LiveKafkaConsumerFeatureSource].featureCache
+      val cachedConsumerFS = cachedConsumerDS.getFeatureSource("testExpiration").asInstanceOf[LiveKafkaConsumerFeatureSource]
+      val featureCache = cachedConsumerFS.featureCache
       featureCache.qt.size() must be equalTo 0
 
       //Write test feature
@@ -208,7 +213,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
       sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
       fw.write()
 
-      featureCache.features.size must beEqualTo(1).eventually(10, 500.millis)
+      featureCache.features.size must beEqualTo(1).eventually(20, 1.second)
       featureCache.qt.size() must beEqualTo(1).eventually(10, 500.millis)
       Thread.sleep(2000) //sleep enough time to reach the expirationPeriod
 

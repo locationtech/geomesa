@@ -16,8 +16,12 @@
 
 package org.locationtech.geomesa.kafka
 
+import java.io.Serializable
+import java.{lang => jl, util => ju}
+
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import com.vividsolutions.jts.index.quadtree.Quadtree
+import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
 import org.geotools.data.{FeatureReader, FilteringFeatureReader, Query}
@@ -26,6 +30,7 @@ import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.filter.FidFilterImpl
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
 import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceReTypingSupport
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -59,7 +64,7 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   def getReaderForFilter(f: Filter): FR
 }
 
-abstract class KafkaConsumerFeatureCache {
+trait KafkaConsumerFeatureCache {
 
   type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
   type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
@@ -136,4 +141,25 @@ abstract class KafkaConsumerFeatureCache {
       case pn: PropertyName => (pn, binop.getExpression2.asInstanceOf[Literal])
       case l: Literal       => (binop.getExpression2.asInstanceOf[PropertyName], l)
     }
+}
+
+object KafkaConsumerFeatureSourceFactory {
+
+  val EXPIRY            = new Param("expiry", classOf[jl.Boolean], "Expiry", false, false)
+  val EXPIRATION_PERIOD = new Param("expirationPeriod", classOf[jl.Long], "Expiration Period in milliseconds", false)
+
+  def apply(brokers: String, zk: String, params: ju.Map[String, Serializable]): FeatureSourceFactory = {
+    val kf = new KafkaConsumerFactory(brokers, zk)
+
+    lazy val expiry = Option(EXPIRY.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
+    lazy val expirationPeriod = Option(EXPIRATION_PERIOD.lookUp(params)).map(_.toString.toLong).getOrElse(0L)
+
+    (entry: ContentEntry, fc: KafkaFeatureConfig) => fc.replayConfig match {
+      case None =>
+        new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expiry, expirationPeriod)
+
+      case Some(rc) =>
+        new ReplayKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, rc)
+    }
+  }
 }

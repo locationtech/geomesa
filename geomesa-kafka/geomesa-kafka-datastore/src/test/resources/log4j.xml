@@ -16,9 +16,9 @@
         </layout>
     </appender>
 
-    <!--<category name="org.locationtech.geomesa.kafka.consumer">
+    <category name="org.locationtech.geomesa.kafka">
         <priority value="debug"/>
-    </category>-->
+    </category>
 
     <category name="kafka">
         <priority value="warn"/>

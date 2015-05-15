@@ -18,7 +18,7 @@ package org.locationtech.geomesa.kafka
 import java.{util => ju}
 
 import com.vividsolutions.jts.geom.Envelope
-import kafka.producer.Producer
+import kafka.producer.{ProducerConfig, Producer}
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.feature.FeatureCollection
@@ -27,6 +27,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.feature.AvroSimpleFeature
+import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
@@ -136,4 +137,22 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
 
   override def getCountInternal(query: Query): Int = 0
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = null
+}
+
+object KafkaProducerFeatureStoreFactory {
+
+  def apply(broker: String): FeatureSourceFactory = {
+
+    val config = {
+      val props = new ju.Properties()
+      props.put("metadata.broker.list", broker)
+      props.put("serializer.class", "kafka.serializer.DefaultEncoder")
+      new ProducerConfig(props)
+    }
+
+    (entry: ContentEntry, fc: KafkaFeatureConfig) => {
+      val kafkaProducer = new Producer[Array[Byte], Array[Byte]](config)
+      new KafkaProducerFeatureStore(entry, fc.sft, fc.topic, broker, kafkaProducer)
+    }
+  }
 }
