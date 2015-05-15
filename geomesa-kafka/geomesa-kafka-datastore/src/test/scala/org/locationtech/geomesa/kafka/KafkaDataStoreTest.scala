@@ -65,7 +65,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
 
     val schema = {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      new KafkaDataStoreHelper().prepareForLive(sft, zkPath)
+      KafkaDataStoreHelper.prepareForLive(sft, zkPath)
     }
 
     "allow schemas to be created" >> {
@@ -192,7 +192,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
       val producerDS = DataStoreFinder.getDataStore(producerParams)
       val schemaExpiration = {
         val sft = SimpleFeatureTypes.createType("testExpiration", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-        new KafkaDataStoreHelper().prepareForLive(sft, zkPath)
+        KafkaDataStoreHelper.prepareForLive(sft, zkPath)
       }
       producerDS.createSchema(schemaExpiration)
 

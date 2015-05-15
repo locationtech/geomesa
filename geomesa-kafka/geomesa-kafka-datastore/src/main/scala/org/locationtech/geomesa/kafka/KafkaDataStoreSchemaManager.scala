@@ -38,10 +38,6 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
   protected def partitions: Int
   protected def replication: Int
 
-  override def getSchema(name: Name): SimpleFeatureType = getSchema(name.getLocalPart)
-  
-  override def getSchema(typeName: String): SimpleFeatureType = getFeatureConfig(typeName).sft
-
   override def createSchema(featureType: SimpleFeatureType): Unit = {
 
     val kfc = KafkaFeatureConfig(featureType)  // this is guaranteed to have a topic
@@ -76,25 +72,17 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
 
   override def getNames: util.List[Name] = {
 
-    // this one is pretty good - toList not required
-    getTypeNames.asScala.map(name => new NameImpl(name) : Name).asJava
+    zkClient.getChildren(zkPath).asScala.map(name => new NameImpl(name) : Name).asJava
 
   }
-  override def getTypeNames: util.List[String] = zkClient.getChildren(zkPath)  // todo: look into potential exceptions thrown
 
   override def removeSchema(typeName: Name): Unit = removeSchema(typeName.getLocalPart)
 
   override def removeSchema(typeName: String): Unit = {
     schemaCache.invalidate(typeName)
-    ???  //todo: worry about zook, don't worry about topic
+    ???  // todo: worry about zook, don't worry about topic.  what about other remote caches - do we set up a kafka
+         // listener looking for deletes? */
   }
-
-  override def updateSchema(typeName: String, featureType: SimpleFeatureType): Unit =
-    throw new UnsupportedOperationException
-
-  override def updateSchema(typeName: Name, featureType: SimpleFeatureType): Unit =
-    throw new UnsupportedOperationException
-
 
   // todo: need to grab rc and topic from zk.  Also consider not returning an option
   private def resolveTopicSchema(typeName: String): Option[KafkaFeatureConfig] = {
