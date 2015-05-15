@@ -82,6 +82,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     val encoding = queryPlanner.featureEncoding
     val version = acc.getGeomesaVersion(sft)
     val hasDupes = sft.getDescriptor(attributeName).isMultiValued
+    val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query)
 
     // choose which iterator we want to use - joining iterator or attribute only iterator
     val iteratorChoice: IteratorConfig =
@@ -100,7 +101,8 @@ trait AttributeIdxStrategy extends Strategy with Logging {
         }
 
         // there won't be any non-date/time-filters if the index only iterator has been selected
-        ScanPlan(acc.getAttributeTable(sft), range, attributeIterators.toSeq, Seq.empty, hasDupes)
+        val table = acc.getAttributeTable(sft)
+        ScanPlan(table, range, attributeIterators.toSeq, Seq.empty, kvsToFeatures, hasDupes)
 
       case RecordJoinIterator =>
         output("Using record join iterator")
@@ -126,7 +128,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
         val recordRanges = Seq(new AccRange()) // this will get overwritten in the join method
         val recordThreads = acc.getSuggestedRecordThreads(sft)
         val joinQuery =
-          BatchScanPlan(recordTable, recordRanges, recordIterators.toSeq, Seq.empty, recordThreads, hasDupes)
+          BatchScanPlan(recordTable, recordRanges, recordIterators.toSeq, Seq.empty, kvsToFeatures, recordThreads, hasDupes)
 
         val attrTable = acc.getAttributeTable(sft)
         val attrThreads = acc.getSuggestedAttributeThreads(sft)
@@ -215,7 +217,7 @@ class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
 
   import org.locationtech.geomesa.core.index.AttributeIndexStrategy._
 
-  override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
+  override def getQueryPlans(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
     val (strippedQuery, filter) = partitionFilter(query, queryPlanner.sft)
     val (prop, range) = getPropertyAndRange(filter, queryPlanner.sft)
     val ret = getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
@@ -227,7 +229,7 @@ class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
 
   import org.locationtech.geomesa.core.index.AttributeIndexStrategy._
 
-  override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
+  override def getQueryPlans(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
     val (strippedQuery, filter) = partitionFilter(query, queryPlanner.sft)
     val (prop, range) = getPropertyAndRange(filter, queryPlanner.sft)
     val ret = getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
@@ -239,7 +241,7 @@ class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
 
   import org.locationtech.geomesa.core.index.AttributeIndexStrategy._
 
-  override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
+  override def getQueryPlans(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
     val (strippedQuery, extractedFilter) = partitionFilter(query, queryPlanner.sft)
     val (prop, range) = getPropertyAndRange(extractedFilter, queryPlanner.sft)
     val ret = getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)

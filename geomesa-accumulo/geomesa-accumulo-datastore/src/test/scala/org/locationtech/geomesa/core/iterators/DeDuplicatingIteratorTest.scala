@@ -17,41 +17,32 @@
 
 package org.locationtech.geomesa.core.iterators
 
-import org.apache.accumulo.core.data.{Key, Value}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class DeDuplicatingIteratorTest extends Specification {
-  sequential
-
-  val key = new Key("test")
-  val value = new Value(Array[Byte](2.toByte))
-  val dedup = new DeDuplicator((key: Key, value: Value) => extractFeatureId(value))
-  def extractFeatureId(value: Value): String = {
-    val vString = value.toString
-    vString
-  }
 
   "DeDuplicatingIterator" should {
-    "return true for a unique element" in {
-      val bool = dedup.isUnique(key, value)
-
-      dedup.close()
-
-      bool must beTrue
-    }
-
-    "return true for a duplicate element" in {
-      val unique = dedup.isDuplicate(key, value)
-
-      val duplicate = dedup.isDuplicate(key, value)
-
-      dedup.close()
-
-      unique must beFalse
-      duplicate must beTrue
+    "filter on unique elements" in {
+      val sft = SimpleFeatureTypes.createType("test", "*geom:Point:srid=4326")
+      val attributes = Array[AnyRef]("POINT(0,0)")
+      val features = Seq(
+        new ScalaSimpleFeature("1", sft, attributes),
+        new ScalaSimpleFeature("2", sft, attributes),
+        new ScalaSimpleFeature("0", sft, attributes),
+        new ScalaSimpleFeature("1", sft, attributes),
+        new ScalaSimpleFeature("3", sft, attributes),
+        new ScalaSimpleFeature("4", sft, attributes),
+        new ScalaSimpleFeature("1", sft, attributes),
+        new ScalaSimpleFeature("3", sft, attributes)
+      )
+      val deduped = new DeDuplicatingIterator(features.toIterator).toSeq
+      deduped must haveLength(5)
+      deduped.map(_.getID) mustEqual Seq("1", "2", "0", "3", "4")
     }
   }
 }

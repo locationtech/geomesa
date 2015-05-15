@@ -70,7 +70,7 @@ object GeoMesaInputFormat extends Logging {
     // set up the underlying accumulo input format
     val user = AccumuloDataStoreFactory.params.userParam.lookUp(dsParams).asInstanceOf[String]
     val password = AccumuloDataStoreFactory.params.passwordParam.lookUp(dsParams).asInstanceOf[String]
-    InputFormatBase.setConnectorInfo(job, user, new PasswordToken(password.getBytes()))
+    InputFormatBase.setConnectorInfo(job, user, new PasswordToken(password.getBytes))
 
     val instance = AccumuloDataStoreFactory.params.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
     val zookeepers = AccumuloDataStoreFactory.params.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
@@ -99,15 +99,15 @@ object GeoMesaInputFormat extends Logging {
       val version = ds.getGeomesaVersion(sft)
       val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, hints, version)
       // TODO: BROKEN!!
-      new STIdxStrategy().getQueryPlan(query, queryPlanner, ExplainNull).head
+      new STIdxStrategy().getQueryPlans(query, queryPlanner, ExplainNull).head
     }
 
     // use the explain results to set the accumulo input format options
     InputFormatBase.setInputTableName(job, queryPlan.table)
-    if (!queryPlan.ranges.isEmpty) {
+    if (queryPlan.ranges.nonEmpty) {
       InputFormatBase.setRanges(job, queryPlan.ranges)
     }
-    if (!queryPlan.columnFamilies.isEmpty) {
+    if (queryPlan.columnFamilies.nonEmpty) {
       InputFormatBase.fetchColumns(job, queryPlan.columnFamilies.map(cf => new AccPair[Text, Text](cf, null)))
     }
     queryPlan.iterators.foreach(InputFormatBase.addIterator(job, _))

@@ -26,6 +26,7 @@ import org.geotools.geometry.jts.{JTSFactoryFinder, ReferencedEnvelope}
 import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.QueryHints._
+import org.locationtech.geomesa.core.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.core.iterators.TemporalDensityIterator._
 import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIterator, MapAggregatingIterator, TemporalDensityIterator}
 import org.locationtech.geomesa.core.sumNumericValueMutableMaps
@@ -66,40 +67,42 @@ case class QueryPlanner(sft: SimpleFeatureType,
    * Execute a query against geomesa
    */
   def query(query: Query): SFIter = {
-    // set up the iterator based on the query
-    val accumuloIterator = getIterator(query, log)
-    // convert accumulo results to SimpleFeatures
-    adaptIterator(accumuloIterator, query)
+    val strategyPlans = getStrategyPlans(query, log)
+
+    val features = strategyPlans.iterator.ciFlatMap { sp =>
+      val kvs = sp.strategy.execute(sp.plan, acc, log)
+      sp.plan.kvsToFeatures match {
+        case Left(oneToOne)   => kvs.map(oneToOne)
+        case Right(oneToMany) => CloseableIterator(kvs.flatMap(oneToMany), kvs.close())
+      }
+    }
+
+    val sortedFeatures = if (query.getSortBy != null && query.getSortBy.length > 0) {
+      new LazySortedIterator(features, query.getSortBy)
+    } else {
+      features
+    }
+
+    // TODO we should check on ors instead of length now
+    val dedupedFeatures = if (strategyPlans.length > 1 || strategyPlans.exists(_.plan.hasDuplicates)) {
+      new DeDuplicatingIterator(sortedFeatures)
+    } else {
+      sortedFeatures
+    }
+
+    adaptIterator(query, dedupedFeatures)
   }
 
   /**
    * Plan the query, but don't execute it - used for explain query
    */
   def planQuery(query: Query, output: ExplainerOutputType = log): Seq[QueryPlan] =
-    getQueryPlans(query, output).map(_.plan)
-
-  /**
-   * Gets the accumulo iterator returning raw key/value pairs
-   */
-  private def getIterator(query: Query, output: ExplainerOutputType): KVIter = {
-    val queryPlans = getQueryPlans(query, output)
-
-    val hasDupes = queryPlans.length > 1 || queryPlans.exists(_.plan.hasDuplicates)
-
-    val rawKvs = queryPlans.iterator.ciFlatMap(sp => sp.strategy.execute(sp.plan, acc, output))
-
-    if (hasDupes) {
-      val dedupe = (key: Key, value: Value) => featureDecoder.extractFeatureId(value.get)
-      new DeDuplicatingIterator(rawKvs, dedupe)
-    } else {
-      rawKvs
-    }
-  }
+    getStrategyPlans(query, output).map(_.plan)
 
   /**
    * Set up the query plans and strategies used to execute them
    */
-  private def getQueryPlans(query: Query, output: ExplainerOutputType): Seq[StrategyPlan] = {
+  private def getStrategyPlans(query: Query, output: ExplainerOutputType): Seq[StrategyPlan] = {
     output(s"Planning ${ExplainerOutputType.toString(query)}")
     implicit val timings = new TimingsImpl
     val queryPlans = profile({
@@ -109,7 +112,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
         val q1 = new Query(sft.getTypeName, ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env))
         val mixedQuery = DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
         val strategy = QueryStrategyDecider.chooseStrategy(sft, mixedQuery, hints, version)
-        val plans = strategy.getQueryPlan(mixedQuery, this, output)
+        val plans = strategy.getQueryPlans(mixedQuery, this, output)
         plans.map { p => StrategyPlan(strategy, p) }
       } else {
         // As a pre-processing step, we examine the query/filter and split it into multiple queries.
@@ -118,7 +121,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
           val strategy = QueryStrategyDecider.chooseStrategy(sft, q, hints, version)
           output(s"Strategy: ${strategy.getClass.getCanonicalName}")
           output(s"Transforms: ${getTransformDefinition(query).getOrElse("None")}")
-          val plans = strategy.getQueryPlan(q, this, output)
+          val plans = strategy.getQueryPlans(q, this, output)
           plans.map { plan =>
             output(s"Table: ${plan.table}")
             output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all" else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
@@ -133,100 +136,41 @@ case class QueryPlanner(sft: SimpleFeatureType,
     queryPlans
   }
 
-  // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures.
-  def adaptIterator(accumuloIterator: KVIter, query: Query): SFIter = {
+  // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures
+  def defaultKVsToFeatures(query: Query): FeatureFunction = {
     // Perform a projecting decode of the simple feature
     val returnSFT = getReturnSFT(query)
-    val decoder = SimpleFeatureDeserializers(returnSFT, featureEncoding)
+    val deserializer = SimpleFeatureDeserializers(returnSFT, featureEncoding)
+    val fn = (kv: Entry[Key, Value]) => {
+      val sf = deserializer.deserialize(kv.getValue.get)
+      applyVisibility(sf, kv.getKey)
+      sf
+    }
+    Left(fn)
+  }
 
+  def adaptIterator(query: Query, features: SFIter): SFIter = {
     // Decode according to the SFT return type.
     // if this is a density query, expand the map
     if (query.getHints.containsKey(DENSITY_KEY)) {
-      adaptDensityIterator(accumuloIterator, decoder)
+      adaptDensityIterator(features)
     } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
-      adaptTemporalIterator(accumuloIterator, returnSFT, decoder, query.getHints.containsKey(RETURN_ENCODED))
+      adaptTemporalIterator(features, getReturnSFT(query), query.getHints.containsKey(RETURN_ENCODED))
     } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
-      adaptMapAggregationIterator(accumuloIterator, query, returnSFT, decoder)
-    } else {
-      //adaptStandardIterator(accumuloIterator, query, decoder)
-      adaptZ3Iterator(accumuloIterator, query)
-    }
-
-  }
-
-  private val Z3CURVE = new Z3SFC
-  private val gt = JTSFactoryFinder.getGeometryFactory
-
-  def adaptZ3Iterator(iter: KVIter, query: Query): SFIter = {
-    val accessors = AttributeAccessor.buildSimpleFeatureTypeAttributeAccessors(sft)
-    iter.map { e =>
-      val k = e.getKey
-      val row = k.getRow.getBytes
-      val idbytes = row.slice(10, Int.MaxValue)
-      val id = new String(idbytes)
-      new LazySimpleFeature(id, sft, accessors, ByteBuffer.wrap(e.getValue.get()))
-    }
-  }
-
-/*
-  def adaptZ3Iterator(iter: KVIter, query: Query): SFIter = {
-    val ft = SimpleFeatureTypes.createType(query.getTypeName, "dtg:Date,geom:Point:srid=4326")
-    val builder = new SimpleFeatureBuilder(ft)
-    iter.map { e =>
-      val k = e.getKey
-      val row = k.getRow.getBytes
-      val weekBytes = row.slice(0, 2)
-      val zbytes = row.slice(2, 10)
-      val idbytes = row.slice(10, Int.MaxValue)
-
-      val id = new String(idbytes)
-      val zvalue = Longs.fromByteArray(zbytes)
-      val z = Z3(zvalue)
-      val (x, y, t) = Z3CURVE.invert(z)
-      val pt = gt.createPoint(new Coordinate(x, y))
-      val week = Shorts.fromByteArray(weekBytes)
-      val seconds = week * Weeks.ONE.toStandardSeconds.getSeconds + Seconds.seconds(t.toInt).getSeconds
-
-      val dtg = new DateTime(seconds * 1000L)
-      builder.reset()
-      builder.addAll(Array[AnyRef](dtg, pt))
-      builder.buildFeature(id)
-    }
-  }
-*/
-
-
-  /**
-   * Standard iterator of simple features
-   */
-  def adaptStandardIterator(accumuloIterator: KVIter, query: Query, decoder: SimpleFeatureDeserializer): SFIter = {
-    val features = accumuloIterator.map { kv =>
-      val sf = decoder.deserialize(kv.getValue.get)
-      val visibility = kv.getKey.getColumnVisibility
-      if (!EMPTY_VIZ.equals(visibility)) {
-        SecurityUtils.setFeatureVisibility(sf, visibility.toString)
-      }
-      sf
-    }
-    if (query.getSortBy != null && !query.getSortBy.isEmpty) {
-      new LazySortedIterator(features, query.getSortBy)
+      adaptMapAggregationIterator(features, getReturnSFT(query), query)
     } else {
       features
     }
   }
 
-  def adaptTemporalIterator(accumuloIterator: KVIter,
-                            returnSFT: SimpleFeatureType,
-                            decoder: SimpleFeatureDeserializer,
-                            returnEncoded: Boolean): SFIter = {
-    val timeSeriesStrings = accumuloIterator.map { kv =>
-      val encoded = decoder.deserialize(kv.getValue.get).getAttribute(TIME_SERIES).toString
-      decodeTimeSeries(encoded)
-    }
+  def adaptDensityIterator(features: SFIter): SFIter = features.flatMap(DensityIterator.expandFeature)
+
+  def adaptTemporalIterator(features: SFIter, sft: SimpleFeatureType, returnEncoded: Boolean): SFIter = {
+    val timeSeriesStrings = features.map(f => decodeTimeSeries(f.getAttribute(TIME_SERIES).toString))
     val summedTimeSeries = timeSeriesStrings.reduceOption(combineTimeSeries)
 
     val feature = summedTimeSeries.map { sum =>
-      val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
+      val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(sft)
       if (returnEncoded) {
         featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(sum))
       } else {
@@ -239,30 +183,24 @@ case class QueryPlanner(sft: SimpleFeatureType,
     feature.iterator
   }
 
-  def adaptDensityIterator(accumuloIterator: KVIter, decoder: SimpleFeatureDeserializer): SFIter =
-    accumuloIterator.flatMap(kv => DensityIterator.expandFeature(decoder.deserialize(kv.getValue.get)))
-
-  def adaptMapAggregationIterator(accumuloIterator: CloseableIterator[Entry[Key, Value]],
-                                  query: Query,
-                                  returnSFT: SimpleFeatureType,
-                                  decoder: SimpleFeatureDeserializer): CloseableIterator[SimpleFeature] = {
+  def adaptMapAggregationIterator(features: SFIter, sft: SimpleFeatureType, query: Query): SFIter = {
     val aggregateKeyName = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
 
-    val maps = accumuloIterator.map { kv =>
-      decoder.deserialize(kv.getValue.get).getAttribute(aggregateKeyName).asInstanceOf[JMap[AnyRef, Int]].asScala
-    }
+    val maps = features.map(_.getAttribute(aggregateKeyName).asInstanceOf[JMap[AnyRef, Int]].asScala)
 
     if (maps.nonEmpty) {
       val reducedMap = sumNumericValueMutableMaps(maps.toIterable).toMap // to immutable map
 
-      val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(returnSFT)
+      val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(sft)
       featureBuilder.reset()
       featureBuilder.add(reducedMap)
       featureBuilder.add(GeometryUtils.zeroPoint) // Filler value as Feature requires a geometry
       val result = featureBuilder.buildFeature(null)
 
       Iterator(result)
-    } else Iterator.empty
+    } else {
+      CloseableIterator.empty
+    }
   }
 
   // This function calculates the SimpleFeatureType of the returned SFs.
@@ -311,6 +249,13 @@ object QueryPlanner {
       val q = new Query(query)
       q.setFilter(filter)
       q
+    }
+  }
+
+  def applyVisibility(sf: SimpleFeature, key: Key): Unit = {
+    val visibility = key.getColumnVisibility
+    if (!EMPTY_VIZ.equals(visibility)) {
+      SecurityUtils.setFeatureVisibility(sf, visibility.toString)
     }
   }
 }

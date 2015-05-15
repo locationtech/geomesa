@@ -60,7 +60,7 @@ object RecordIdxStrategy extends StrategyProvider {
 
 class RecordIdxStrategy extends Strategy with Logging {
 
-  override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
+  override def getQueryPlans(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
 
     val sft = queryPlanner.sft
     val acc = queryPlanner.acc
@@ -120,6 +120,7 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     val table = acc.getRecordTable(sft)
     val threads = acc.getSuggestedRecordThreads(sft)
-    Seq(BatchScanPlan(table, ranges.toSeq, iters, Seq.empty, threads, hasDuplicates = false))
+    val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query)
+    Seq(BatchScanPlan(table, ranges.toSeq, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false))
   }
 }

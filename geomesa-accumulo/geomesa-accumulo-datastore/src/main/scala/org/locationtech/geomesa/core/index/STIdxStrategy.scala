@@ -37,7 +37,7 @@ import org.opengis.filter.spatial.BinarySpatialOperator
 
 class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 
-  override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
+  override def getQueryPlans(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
 
     val sft             = queryPlanner.sft
     val acc             = queryPlanner.acc
@@ -114,7 +114,8 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val iterators = qp.iterators ++ List(Some(stiiIterCfg), densityIterCfg).flatten
     val numThreads = acc.getSuggestedSpatioTemporalThreads(sft)
     val hasDupes = IndexSchema.mayContainDuplicates(sft)
-    val res = qp.copy(table = table, iterators = iterators, numThreads = numThreads, hasDuplicates = hasDupes)
+    val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query)
+    val res = qp.copy(table = table, iterators = iterators, kvsToFeatures = kvsToFeatures, numThreads = numThreads, hasDuplicates = hasDupes)
     Seq(res)
   }
 
@@ -245,7 +246,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     }
 
     // partially fill in, rest will be filled in later
-    BatchScanPlan(null, accRanges, iters, cf, -1, false)
+    BatchScanPlan(null, accRanges, iters, cf, null, -1, false)
   }
 }
 

@@ -42,27 +42,23 @@ class QueryPlannerTest extends Specification with Mockito {
 
   "adaptStandardIterator" should {
     "return a LazySortedIterator when the query has an order by clause" >> {
-      val query = mock[Query]
-      query.getSortBy returns Array(SortBy.NATURAL_ORDER)
+      val query = new Query(sft.getTypeName)
+      query.setSortBy(Array(SortBy.NATURAL_ORDER))
 
       val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
-      val iter = mock[CloseableIterator[Entry[Key,Value]]]
+      val result = planner.query(query)
 
-      val result = planner.adaptStandardIterator(iter, query, mock[SimpleFeatureDeserializer])
-
-      result.isInstanceOf[LazySortedIterator] must beTrue
+      result must beAnInstanceOf[LazySortedIterator]
     }
 
     "not return a LazySortedIterator when the query does not have an order by clause" >> {
-      val query = mock[Query]
-      query.getSortBy returns null
+      val query = new Query(sft.getTypeName)
+      query.setSortBy(null)
 
       val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
-      val iter = mock[CloseableIterator[Entry[Key,Value]]]
+      val result = planner.query(query)
 
-      val result = planner.adaptStandardIterator(iter, query, mock[SimpleFeatureDeserializer])
-
-      result.isInstanceOf[LazySortedIterator] must beFalse
+      result must not (beAnInstanceOf[LazySortedIterator])
     }
 
     "decode and set visibility properly" >> {
@@ -89,9 +85,9 @@ class QueryPlannerTest extends Specification with Mockito {
 
       val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
       val iter = entries.iterator
-      val query = mock[Query]
+      val query = new Query(sft.getTypeName)
 
-      val result = planner.adaptStandardIterator(iter, query, decoder)
+      val result = iter.map(planner.defaultKVsToFeatures(query).left.get)
 
       features.zip(expectedVis).foreach { case (feature, vis) =>
         result.hasNext must beTrue

@@ -16,21 +16,25 @@
 
 package org.locationtech.geomesa.core.index
 
+import java.util.Map.Entry
+
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.IteratorSetting
+import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.apache.hadoop.io.Text
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.core.index.KeyUtils._
-import org.locationtech.geomesa.core.index.QueryPlanners.JoinFunction
+import org.locationtech.geomesa.core.index.QueryPlanners.{FeatureFunction, JoinFunction}
 import org.locationtech.geomesa.utils.CartesianProductIterable
 import org.locationtech.geomesa.utils.geohash.{GeoHash, GeohashUtils}
-import org.apache.accumulo.core.data.{Range => AccRange, Value, Key}
+import org.opengis.feature.simple.SimpleFeature
 
 object QueryPlanners {
   type JoinFunction = (java.util.Map.Entry[Key, Value]) => AccRange
+  type FeatureFunction = Either[(Entry[Key, Value]) => SimpleFeature, (Entry[Key, Value]) => Iterator[SimpleFeature]]
 }
 
 sealed trait QueryPlan {
@@ -40,6 +44,7 @@ sealed trait QueryPlan {
   def columnFamilies: Seq[Text]
   def numThreads: Int
   def hasDuplicates: Boolean
+  def kvsToFeatures: FeatureFunction
 
   def join: Option[(JoinFunction, QueryPlan)] = None
 }
@@ -49,6 +54,7 @@ case class ScanPlan(table: String,
                     range: AccRange,
                     iterators: Seq[IteratorSetting],
                     columnFamilies: Seq[Text],
+                    kvsToFeatures: FeatureFunction,
                     hasDuplicates: Boolean) extends QueryPlan {
   val numThreads = 1
   val ranges = Seq(range)
@@ -59,6 +65,7 @@ case class BatchScanPlan(table: String,
                          ranges: Seq[AccRange],
                          iterators: Seq[IteratorSetting],
                          columnFamilies: Seq[Text],
+                         kvsToFeatures: FeatureFunction,
                          numThreads: Int,
                          hasDuplicates: Boolean) extends QueryPlan
 
@@ -71,6 +78,7 @@ case class JoinPlan(table: String,
                     hasDuplicates: Boolean,
                     joinFunction: JoinFunction,
                     joinQuery: BatchScanPlan) extends QueryPlan {
+  def kvsToFeatures: FeatureFunction = null // features will only be extracted from the join batch scan plan
   override val join = Some((joinFunction, joinQuery))
 }
 

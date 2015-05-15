@@ -466,7 +466,7 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-core-accumulo1.5</artifactId>
+                <artifactId>geomesa-accumulo-datastore</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

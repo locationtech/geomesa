@@ -29,7 +29,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
   /**
    * Plans the query - strategy implementations need to define this
    */
-  override def getQueryPlan(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
+  override def getQueryPlans(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
     val sft = queryPlanner.sft
     val acc = queryPlanner.acc
 
@@ -127,7 +127,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     val iter = Z3Iterator.configure(Z3_CURVE.index(lx, ly, lt), Z3_CURVE.index(ux, uy, ut), 21)
 
     val table = acc.getZ3Table(sft)
-    BatchScanPlan(table, accRanges, Seq(Some(iter), is).flatten, Seq(Z3Table.FULL_ROW), 8, hasDuplicates = false)
+    BatchScanPlan(table, accRanges, Seq(Some(iter), is).flatten, Seq(Z3Table.FULL_ROW), Z3Table.adaptZ3Iterator(sft), 8, hasDuplicates = false)
   }
 }
 

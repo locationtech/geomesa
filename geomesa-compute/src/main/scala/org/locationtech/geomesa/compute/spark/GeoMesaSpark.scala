@@ -64,7 +64,7 @@ object GeoMesaSpark {
     val version = ds.getGeomesaVersion(sft)
     val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, ds.strategyHints(sft), version)
 
-    val qp = new STIdxStrategy().getQueryPlan(query, queryPlanner, ExplainPrintln).head // TODO fix this
+    val qp = new STIdxStrategy().getQueryPlans(query, queryPlanner, ExplainPrintln).head // TODO fix this
 
     ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, ds.connector.whoami(), ds.authToken)
 

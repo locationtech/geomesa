@@ -119,7 +119,7 @@ class IndexValueEncoderImpl(val indexSft: SimpleFeatureType, fullSft: SimpleFeat
 
   override def encode(sf: SimpleFeature): Array[Byte] = {
     setAttributes(sf)
-    serializer.serialize(sf)
+    serializer.serialize(reusableFeature)
   }
 
   override def decode(bytes: Array[Byte]): SimpleFeature = {
