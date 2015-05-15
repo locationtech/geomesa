@@ -21,14 +21,13 @@ import com.google.common.cache.{CacheLoader, CacheBuilder}
 import kafka.admin.AdminUtils
 import kafka.utils.ZKStringSerializer
 import org.I0Itec.zkclient.ZkClient
-import org.I0Itec.zkclient.exception.{ZkNoNodeException, ZkNodeExistsException}
+import org.I0Itec.zkclient.exception.ZkNodeExistsException
 import org.geotools.data.DataStore
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConverters._
-//import scala.collection.JavaConversions._
 
 trait KafkaDataStoreSchemaManager extends DataStore  {
 
@@ -85,16 +84,16 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
   }
 
   // todo: need to grab rc and topic from zk.  Also consider not returning an option
-  private def resolveTopicSchema(typeName: String): Option[KafkaFeatureConfig] = {
+  private def resolveTopicSchema(typeName: String): KafkaFeatureConfig = {
 
-    val schema = zkClient.readData[String](getSchemaPath(typeName))  //throws ZkNoNodeException if not found
-    val topic = zkClient.readData[String](getTopicPath(typeName))    // throws Zk...
+    val schema = zkClient.readData[String](getSchemaPath(typeName)) //throws ZkNoNodeException if not found
+    val topic = zkClient.readData[String](getTopicPath(typeName)) // throws Zk...
     val sft = SimpleFeatureTypes.createType(typeName, schema)
     KafkaDataStoreHelper.insertTopic(sft, topic)
-    val replay = Option(zkClient.readData[String](getReplayConfigPath(typeName))) // throws Zk...
-    replay.map(KafkaDataStoreHelper.insertReplayConfig(sft,_))
+    val replay = Option(zkClient.readData[String](getReplayConfigPath(typeName), true))
+    replay.map(KafkaDataStoreHelper.insertReplayConfig(sft, _))
 
-    Option(KafkaFeatureConfig(sft)) // does this really need to be an option?
+    KafkaFeatureConfig(sft)
   }
 
   private def getSchemaPath(typeName: String): String = {
@@ -137,7 +136,7 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
   private val schemaCache =
     CacheBuilder.newBuilder().build(new CacheLoader[String, KafkaFeatureConfig] {
       override def load(k: String): KafkaFeatureConfig =
-        resolveTopicSchema(k).getOrElse(throw new IllegalArgumentException(s"Unable to find schema with name $k"))
+        resolveTopicSchema(k)
     })
 }
 

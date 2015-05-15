@@ -28,8 +28,6 @@ import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSo
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
-import org.opengis.feature.simple.SimpleFeatureType
-
 
 class KafkaDataStore(override val zookeepers: String,
                      override val zkPath: String,
