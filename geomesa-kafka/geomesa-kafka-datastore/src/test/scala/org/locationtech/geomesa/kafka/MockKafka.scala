@@ -21,7 +21,6 @@ import kafka.consumer.ConsumerConfig
 import kafka.message.{Message, MessageAndMetadata, MessageAndOffset}
 import kafka.producer.KeyedMessage
 import kafka.serializer.Decoder
-import org.locationtech.geomesa.kafka.MockKafka.KeyAndMessage
 import org.locationtech.geomesa.kafka.consumer._
 import org.locationtech.geomesa.kafka.consumer.offsets.FindOffset._
 import org.locationtech.geomesa.kafka.consumer.offsets.OffsetManager._
@@ -34,26 +33,12 @@ import org.mockito.stubbing.Answer
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 
-class MockKafkaConsumerFactory(val mk: MockKafka)
-  extends KafkaConsumerFactory("mock-broker:9092", "mock-zoo") {
-
-  import KafkaConsumerFactory._
-
-  override def kafkaConsumer(topic: String) =
-    MockKafkaConsumer[Array[Byte], Array[Byte]](mk, topic, defaultDecoder, defaultDecoder)
-
-  override val offsetManager = new MockOffsetManager(mk)
-}
-
-object MockKafka {
-  type KeyAndMessage = (Array[Byte], Array[Byte])
-}
-
 class MockKafka {
 
-  var data: Map[TopicAndPartition, Seq[KeyAndMessage]] = Map.empty
-  
-  def nextOffset(tap: TopicAndPartition): Long = data.get(tap).map(_.size : Long).getOrElse(0L)
+  var data: Map[TopicAndPartition, Seq[MockMessage]] = Map.empty
+
+  /** @return the latest offset for the given ``tap``, same as Kafka would */
+  def latestOffset(tap: TopicAndPartition): Long = data.get(tap).map(_.size : Long).getOrElse(0L)
 
   val kafkaConsumerFactory = new MockKafkaConsumerFactory(this)
   val consumerConfig = kafkaConsumerFactory.config
@@ -62,19 +47,15 @@ class MockKafka {
     */
   def send(keyedMessage: KeyedMessage[Array[Byte], Array[Byte]], partition: Int = 0): Unit = {
     val tap = new TopicAndPartition(keyedMessage.topic, partition)
-    val msg = new Message(keyedMessage.message, keyedMessage.key)
+    val oldMsgs = data.getOrElse(tap, Seq.empty)
+    val offset = oldMsgs.size
+    val msgs = oldMsgs :+ MockMessage(tap, keyedMessage, offset)
 
-    val msgs = data.getOrElse(tap, Seq.empty) :+ (keyedMessage.key, keyedMessage.message)
     data += (tap -> msgs)
   }
 
-  def fetch(tap: TopicAndPartition): Iterable[MessageAndOffset] = {
-    data.get(tap).map { seq =>
-      seq
-        .zipWithIndex
-        .map { case (km, o) => new MessageAndOffset(new Message(km._2, km._1), o) }
-    }.getOrElse(Seq.empty)
-  }
+  def fetch(tap: TopicAndPartition): Iterable[MessageAndOffset] =
+    data.getOrElse(tap, Seq.empty).map(_.asMessageAndOffset)
 
   def fetch(tap: TopicAndPartition, offset: Long, maxBytes: Int): Iterable[MessageAndOffset] = {
     fetch(tap)
@@ -91,28 +72,38 @@ class MockKafka {
   }
 }
 
+case class MockMessage(tap: TopicAndPartition, key: Array[Byte], msg: Array[Byte], offset: Long) {
+
+  def asMessage: Message = new Message(msg, key)
+
+  def asMessageAndOffset: MessageAndOffset = new MessageAndOffset(asMessage, offset)
+
+  def asMessageAndMetadata[K, V](keyDecoder: Decoder[K], valueDecoder: Decoder[V]): MessageAndMetadata[K, V] =
+    new MessageAndMetadata[K, V](tap.topic, tap.partition, asMessage, offset, keyDecoder, valueDecoder)
+}
+
+object MockMessage {
+  
+  def apply(tap: TopicAndPartition, kMessage: KeyedMessage[Array[Byte], Array[Byte]], offset: Long): MockMessage =
+    MockMessage(tap, kMessage.key, kMessage.message, offset)
+
+}
+
+class MockKafkaConsumerFactory(val mk: MockKafka)
+  extends KafkaConsumerFactory("mock-broker:9092", "mock-zoo") {
+
+  import KafkaConsumerFactory._
+
+  override def kafkaConsumer(topic: String) =
+    MockKafkaConsumer[Array[Byte], Array[Byte]](mk, topic, defaultDecoder, defaultDecoder)
+
+  override val offsetManager = new MockOffsetManager(mk)
+}
+
 object MockKafkaStream {
 
-  def apply[K, V](data: Seq[KeyedMessage[K, V]], offset: Int = 0): KafkaStreamLike[K, V] = {
-    apply(data.drop(offset).map { km =>
-      val mam = mock(classOf[MessageAndMetadata[K, V]])
-      when(mam.key()).thenReturn(km.key)
-      when(mam.message()).thenReturn(km.message)
-      mam
-    })
-  }
-
-  def apply[K, V](data: Seq[KeyAndMessage], keyDecoder: Decoder[K], valueDecoder: Decoder[V]): KafkaStreamLike[K, V] = {
-    apply(data.map { km =>
-      val mam = mock(classOf[MessageAndMetadata[K, V]])
-      val k = keyDecoder.fromBytes(km._1)
-      val v = valueDecoder.fromBytes(km._2)
-
-      when(mam.key()).thenReturn(k)
-      when(mam.message()).thenReturn(v)
-      mam
-    })
-  }
+  def apply[K, V](data: Seq[MockMessage], keyDecoder: Decoder[K], valueDecoder: Decoder[V]): KafkaStreamLike[K, V] =
+    apply(data.map(_.asMessageAndMetadata(keyDecoder, valueDecoder)))
 
   def apply[K, V](data: Seq[MessageAndMetadata[K, V]]): KafkaStreamLike[K, V] = {
     val ksl = mock(classOf[KafkaStreamLike[K, V]])
@@ -175,18 +166,23 @@ object MockKafkaConsumer {
     val numPartitionsPerStream =
       partitions.length / numStreams + (if (partitions.length % numStreams == 0) 0 else 1)
 
-    val streams = ArrayBuffer.empty[KafkaStreamLike[K, V]]
+    if (numPartitionsPerStream > 0) {
+      val streams = ArrayBuffer.empty[KafkaStreamLike[K, V]]
 
-    partitions.grouped(numPartitionsPerStream).foreach { streamPartitions =>
+      partitions.grouped(numPartitionsPerStream).foreach { streamPartitions =>
 
-      val data = streamPartitions.foldLeft(Seq.empty[KeyAndMessage]) { (all, tap) =>
-        all ++ mk.data(tap).drop(offsets(tap).asInstanceOf[Int])
+        val data = streamPartitions.foldLeft(Seq.empty[MockMessage]) { (all, tap) =>
+          all ++ mk.data(tap).drop(offsets(tap).asInstanceOf[Int])
+        }
+
+        streams.append(MockKafkaStream(data, keyDecoder, valueDecoder))
       }
 
-      streams.append(MockKafkaStream(data, keyDecoder, valueDecoder))
+      streams.toList
+    } else {
+      // no data for the topic
+      List.fill(numStreams)(MockKafkaStream(Seq.empty[MessageAndMetadata[K, V]]))
     }
-
-    streams.toList
   }
 }
 
@@ -221,11 +217,9 @@ class MockOffsetManager(mk: MockKafka) extends OffsetManager(mk.consumerConfig) 
 
   def getOffsetsBefore(topic: String, partitions: Seq[PartitionMetadata], time: Long, config: ConsumerConfig): Offsets = ???
 
-  def getLatestOffset(topic: String, partitions: Seq[PartitionMetadata]): Offsets = {
-
+  def getLatestOffset(topic: String, partitions: Seq[PartitionMetadata]): Offsets =
     partitions.map(pm => new TopicAndPartition(topic, pm.partitionId))
-      .map(tap => tap -> mk.nextOffset(tap)).toMap
-  }
+              .map(tap => tap -> mk.latestOffset(tap)).toMap
 
   def findOffsets(topic: String,
                   partitions: Seq[PartitionMetadata],

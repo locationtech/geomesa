@@ -68,8 +68,8 @@ object KafkaConsumerTestData {
 
     CreateOrUpdate(new Instant(13444), track1v2),   // 10
 
-    CreateOrUpdate(new Instant(13096), track2v1),   // 11
-    CreateOrUpdate(new Instant(13099), track3v4),   // 12
+    CreateOrUpdate(new Instant(13996), track2v1),   // 11
+    CreateOrUpdate(new Instant(13999), track3v4),   // 12
     CreateOrUpdate(new Instant(14002), track0v3),   // 13
     Delete(        new Instant(14005), "track1"),   // 14
 

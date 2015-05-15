@@ -66,7 +66,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
 
   /** @return the index of the most recent [[GeoMessage]] at or before the given ``time``
     */
-  private def indexAtTime(time: Long): Option[Int] = {
+  private[kafka] def indexAtTime(time: Long): Option[Int] = {
 
     if (replayConfig.isInWindow(time)) {
       // it doesn't matter what the message is, only the time
@@ -85,8 +85,8 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
       }
 
       // there may be multiple messages at the same time so there may be messages before ``index``
-      // that are before the given ``time
-      while (index > 0 && messages(index - 1).timestamp.getMillis < time) index -= 1
+      // that are at the given ``time``
+      while (index > 0 && messages(index - 1).timestamp.getMillis <= time) index -= 1
 
       if (index < messages.length) Some(index) else None
     } else {
