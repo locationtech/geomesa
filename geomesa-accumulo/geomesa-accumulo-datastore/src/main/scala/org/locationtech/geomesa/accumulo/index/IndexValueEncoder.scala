@@ -109,9 +109,13 @@ class IndexValueEncoderImpl(val indexSft: SimpleFeatureType, fullSft: SimpleFeat
   private val geomIndex = fullSft.indexOf(fullSft.getGeometryDescriptor.getLocalName)
   private val dtgIndex = index.getDtgFieldName(fullSft).map(fullSft.indexOf).getOrElse(-1)
   private val setAttributes = if (dtgIndex == -1) {
-    (sf: SimpleFeature) => reusableFeature.setAttribute(0, sf.getAttribute(geomIndex))
+    (sf: SimpleFeature) => {
+      reusableFeature.getIdentifier.setID(sf.getID)
+      reusableFeature.setAttribute(0, sf.getAttribute(geomIndex))
+    }
   } else {
     (sf: SimpleFeature) => {
+      reusableFeature.getIdentifier.setID(sf.getID)
       reusableFeature.setAttribute(0, sf.getAttribute(geomIndex))
       reusableFeature.setAttribute(1, sf.getAttribute(dtgIndex))
     }

@@ -46,7 +46,7 @@ object Z3Table {
         .map { desc => sft.indexOf(desc.getName) }
         .getOrElse { throw new IllegalArgumentException("Must have a date for a Z3 index")}
     val writer = new ByteBufferSimpleFeatureSerializer(sft)
-    val buf = ByteBuffer.allocate(2048)
+    val buf = ByteBuffer.allocate(8192) // TODO this is pretty high, but needs to fit each feature...
     (fw: FeatureToWrite) => {
       val bytesWritten = writer.write(buf, fw.feature)
       val payload = new Value(util.Arrays.copyOfRange(buf.array(), 0, bytesWritten))

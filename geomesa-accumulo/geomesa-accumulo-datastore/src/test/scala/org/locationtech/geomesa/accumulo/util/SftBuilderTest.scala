@@ -63,7 +63,7 @@ class SftBuilderTest extends Specification {
       val sft1 = new SftBuilder()
         .intType("i")
         .longType("l")
-        .recordSplitter("org.locationtech.geomesa.core.data.DigitSplitter", Map("fmt" ->"%02d", "min" -> "0", "max" -> "99"))
+        .recordSplitter(classOf[DigitSplitter].getName, Map("fmt" ->"%02d", "min" -> "0", "max" -> "99"))
         .build("test")
 
       // better - uses class directly (or at least less annoying)
@@ -77,7 +77,7 @@ class SftBuilderTest extends Specification {
         sft.getAttributeCount mustEqual 2
         sft.getAttributeDescriptors.map(_.getLocalName) must containAllOf(List("i", "l"))
 
-        sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
+        sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER) must be equalTo classOf[DigitSplitter].getName
         val opts = sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS).asInstanceOf[Map[String, String]]
         opts.size must be equalTo 3
         opts("fmt") must be equalTo "%02d"

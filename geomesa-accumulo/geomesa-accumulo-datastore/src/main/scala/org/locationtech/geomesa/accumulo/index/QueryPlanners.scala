@@ -78,7 +78,7 @@ case class JoinPlan(table: String,
                     hasDuplicates: Boolean,
                     joinFunction: JoinFunction,
                     joinQuery: BatchScanPlan) extends QueryPlan {
-  def kvsToFeatures: FeatureFunction = null // features will only be extracted from the join batch scan plan
+  def kvsToFeatures: FeatureFunction = joinQuery.kvsToFeatures
   override val join = Some((joinFunction, joinQuery))
 }
 

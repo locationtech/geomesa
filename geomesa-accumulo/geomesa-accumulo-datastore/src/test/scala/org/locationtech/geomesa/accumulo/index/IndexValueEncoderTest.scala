@@ -99,42 +99,6 @@ class IndexValueEncoderTest extends Specification {
       decoded.getID mustEqual(id)
     }
 
-    "encode and decode custom fields" in {
-      val sft = getSft(allSchema)
-
-      val s = "test"
-      val i: java.lang.Integer = 5
-      val d: java.lang.Double = 10d
-      val f: java.lang.Float = 1.0f
-      val u = UUID.randomUUID()
-
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
-        List(geom, dt, s, i, d, f, u, null), id)
-
-      val encoder = IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION)
-
-      // output
-      val value = encoder.encode(entry)
-
-      // requirements
-      value must not beNull
-
-      // return trip
-      val decoded = encoder.decode(value)
-
-      // requirements
-      decoded must not beNull;
-      decoded.getAttributeCount mustEqual(7)
-      decoded.getAttribute("geom") mustEqual geom
-      decoded.getID mustEqual id
-      decoded.getAttribute("dtg") mustEqual dt
-      decoded.getAttribute("d") mustEqual d
-      decoded.getAttribute("f") mustEqual f
-      decoded.getAttribute("i") mustEqual i
-      decoded.getAttribute("s") mustEqual s
-      decoded.getAttribute("u") mustEqual u
-    }
-
     "encode and decode null values" in {
       val sft = getSft(allSchema)
 
@@ -158,14 +122,9 @@ class IndexValueEncoderTest extends Specification {
 
       // requirements
       decoded must not beNull;
-      decoded.getAttributeCount mustEqual(7)
+      decoded.getAttributeCount mustEqual 2
       decoded.getAttribute("geom") mustEqual geom
       decoded.getID mustEqual id
-      decoded.getAttribute("d") mustEqual d
-      decoded.getAttribute("f") mustEqual f
-      decoded.getAttribute("i") mustEqual i
-      decoded.getAttribute("s") must beNull
-      decoded.getAttribute("u") must beNull
       decoded.getAttribute("dtg") must beNull
     }
 
@@ -181,7 +140,7 @@ class IndexValueEncoderTest extends Specification {
       decoded.getAttribute("geom") mustEqual geom
       decoded.getAttribute("dtg") mustEqual dt
       decoded.getID mustEqual id
-    }
+    }.pendingUntilFixed("We are not maintaining backwards compatibility anymore")
 
     "be at least as fast as before" in {
       skipped("for integration")

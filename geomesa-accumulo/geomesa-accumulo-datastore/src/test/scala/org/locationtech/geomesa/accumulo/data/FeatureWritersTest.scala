@@ -356,6 +356,7 @@ class FeatureWritersTest extends Specification {
           }
           map.toMap
         }
+
         origFeatures.size mustEqual 5
 
         val filter = CQL.toFilter("include")

@@ -131,7 +131,9 @@ object AttributeAccessor {
 
         case desc if classOf[java.util.Date].equals(desc.getType.getBinding)   =>
           AttributeWriter[java.util.Date] { (attr: java.util.Date, offset: Int, voffset: Int, buf: ByteBuffer) =>
-            buf.putLong(offset, attr.getTime)
+            if (attr != null) {
+              buf.putLong(offset, attr.getTime)
+            }
             (8, 0)
           }
 
