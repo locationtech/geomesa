@@ -218,6 +218,38 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       }
     }
 
+    "handle bboxes without property name" in {
+      val sftName = "bboxproptest"
+      val sft = createSchema(sftName)
+
+      addDefaultPoint(sft)
+
+      val filterNull = ff.bbox(ff.property(null.asInstanceOf[String]), 40, 44, 50, 54, "EPSG:4326")
+      val filterEmpty = ff.bbox(ff.property(""), 40, 44, 50, 54, "EPSG:4326")
+      val queryNull = new Query(sftName, filterNull)
+      val queryEmpty = new Query(sftName, filterEmpty)
+
+      val explainNull = {
+        val o = new ExplainString
+        ds.explainQuery(sftName, queryNull, o)
+        o.toString()
+      }
+      val explainEmpty = {
+        val o = new ExplainString
+        ds.explainQuery(sftName, queryEmpty, o)
+        o.toString()
+      }
+
+      explainNull must contain("Geometry filters: List([ null bbox POLYGON ((40 44, 40 54, 50 54, 50 44, 40 44)) ])")
+      explainEmpty must contain("Geometry filters: List([  bbox POLYGON ((40 44, 40 54, 50 54, 50 44, 40 44)) ])")
+
+      val featuresNull = ds.getFeatureSource(sftName).getFeatures(queryNull).features.toSeq.map(_.getID)
+      val featuresEmpty = ds.getFeatureSource(sftName).getFeatures(queryEmpty).features.toSeq.map(_.getID)
+
+      featuresNull mustEqual Seq("fid-1")
+      featuresEmpty mustEqual Seq("fid-1")
+    }
+
     "process an OR query correctly" in {
       val sftName = "ortest"
       val sft = createSchema(sftName)
@@ -1228,7 +1260,6 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         ds.explainQuery(sftName1, query, o)
         o.toString()
       }
-      println(explain)
       explain must not contain("GeoHashKeyPlanner: KeyInvalid")
     }
 
