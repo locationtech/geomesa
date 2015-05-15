@@ -25,7 +25,7 @@ import org.geotools.data.{Query, DataStoreFinder}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.AccumuloFeatureStore
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

@@ -21,7 +21,7 @@ import com.twitter.scalding._
 import com.twitter.scalding.typed.UnsortedGrouped
 import org.apache.hadoop.conf.Configuration
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.jobs.GeoMesaBaseJob
 import org.locationtech.geomesa.jobs.GeoMesaBaseJob.RichArgs
 import org.locationtech.geomesa.jobs.analytics.HistogramJob._

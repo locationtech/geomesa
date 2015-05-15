@@ -30,8 +30,8 @@ import org.apache.hadoop.io.{Text, Writable}
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
-import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.SimpleFeatureDeserializers
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator

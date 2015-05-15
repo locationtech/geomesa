@@ -18,7 +18,7 @@ package org.locationtech.geomesa.tools.commands
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.TableNotFoundException
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, TableSuffix}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, TableSuffix}
 import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.Runner.mkSubCommand
 import org.locationtech.geomesa.tools.commands.TableConfCommand._

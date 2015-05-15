@@ -16,8 +16,8 @@
 package org.locationtech.geomesa.tools
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core.data.AccumuloDataStore
-import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.tools.commands.CreateFeatureParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
@@ -58,7 +58,7 @@ object FeatureCreator extends Logging {
         sft.getUserData.put(SF_PROPERTY_START_TIME, dtField.getOrElse(Constants.SF_PROPERTY_START_TIME))
       }
 
-      sharedTable.foreach { org.locationtech.geomesa.core.index.setTableSharing(sft, _) }
+      sharedTable.foreach { org.locationtech.geomesa.accumulo.index.setTableSharing(sft, _) }
 
       if (maxShards.isDefined) {
         ds.createSchema(sft, maxShards.get)

@@ -21,11 +21,11 @@ import org.apache.accumulo.core.data.{Mutation, Range => AcRange}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
-import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
-import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.data.tables.SpatioTemporalTable
-import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
+import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.data.tables.SpatioTemporalTable
+import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.{SimpleFeatureDeserializers, SimpleFeatureSerializers}
 import org.locationtech.geomesa.jobs.GeoMesaBaseJob
 import org.locationtech.geomesa.jobs.scalding.ConnectionParams._

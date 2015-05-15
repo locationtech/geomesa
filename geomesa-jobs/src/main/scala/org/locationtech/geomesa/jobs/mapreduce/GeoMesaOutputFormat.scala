@@ -25,10 +25,10 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
-import org.locationtech.geomesa.core.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
-import org.locationtech.geomesa.core.index.{IndexSchema, IndexValueEncoder}
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
+import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.accumulo.index.{IndexSchema, IndexValueEncoder}
 import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.SimpleFeature

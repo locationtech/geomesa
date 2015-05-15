@@ -24,9 +24,9 @@ import org.geotools.data.DataStoreFinder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.AccumuloDataStore
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params
-import org.locationtech.geomesa.core.util.SftBuilder
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params
+import org.locationtech.geomesa.accumulo.util.SftBuilder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeature
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.tools.ingest.{ColsParser, ScaldingDelimitedIngestJob}

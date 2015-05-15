@@ -31,8 +31,8 @@ import org.apache.spark.serializer.KryoRegistrator
 import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.{DataStore, DataStoreFinder, DefaultTransaction, Query}
 import org.geotools.factory.CommonFactoryFinder
-import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index.{ExplainPrintln, STIdxStrategy, _}
+import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.index.{ExplainPrintln, STIdxStrategy, _}
 import org.locationtech.geomesa.features.SimpleFeatureDeserializers
 import org.locationtech.geomesa.features.kryo.serialization.{KryoFeatureSerializer, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

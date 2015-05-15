@@ -23,10 +23,10 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.DataStoreFinder
 import org.geotools.feature.DefaultFeatureCollection
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
-import org.locationtech.geomesa.core.data.tables.AttributeTable
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
+import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SimpleFeatureSerializer, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.jobs.index.AttributeIndexJob._
 import org.locationtech.geomesa.jobs.scalding.{AccumuloSource, ConnectionParams, GeoMesaSource}
@@ -84,7 +84,7 @@ class AttributeIndexJobTest extends Specification {
     val descriptor = sft.getDescriptor("name")
     descriptor.setIndexCoverage(IndexCoverage.JOIN)
     val attrList = Seq((descriptor, sft.indexOf(descriptor.getName)))
-    val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+    val prefix = org.locationtech.geomesa.accumulo.index.getTableSharingPrefix(sft)
     val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
     val encoder = SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft))
 

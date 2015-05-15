@@ -54,7 +54,7 @@ import scala.collection.JavaConversions._
 class BinaryViewerOutputFormat(gs: GeoServer)
     extends WFSGetFeatureOutputFormat(gs, Set("bin", BinaryViewerOutputFormat.MIME_TYPE)) {
 
-  import org.locationtech.geomesa.core.index.getDtgFieldName
+  import org.locationtech.geomesa.accumulo.index.getDtgFieldName
   import org.locationtech.geomesa.plugin.wfs.output.BinaryViewerOutputFormat._
 
   override def getMimeType(value: AnyRef, operation: Operation) = MIME_TYPE

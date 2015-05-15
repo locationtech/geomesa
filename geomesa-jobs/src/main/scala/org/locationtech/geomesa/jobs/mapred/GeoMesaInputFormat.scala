@@ -31,8 +31,8 @@ import org.apache.hadoop.mapred._
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
-import org.locationtech.geomesa.core.index.{getTransformSchema, _}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.accumulo.index.{getTransformSchema, _}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureDeserializer, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator

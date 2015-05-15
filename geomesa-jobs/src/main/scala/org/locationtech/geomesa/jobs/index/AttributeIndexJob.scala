@@ -21,11 +21,11 @@ import org.apache.accumulo.core.data.{Range => AcRange}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
-import org.locationtech.geomesa.core.data.AccumuloFeatureWriter.FeatureToWrite
-import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.data.tables.AttributeTable
-import org.locationtech.geomesa.core.index._
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
+import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
+import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SimpleFeatureSerializer}
 import org.locationtech.geomesa.jobs.GeoMesaBaseJob
 import org.locationtech.geomesa.jobs.scalding.ConnectionParams._
@@ -56,7 +56,7 @@ class AttributeIndexJob(args: Args) extends GeoMesaBaseJob(args) {
   // non-serializable resources - need to be lazy and transient so they are available to each mapper
   @transient lazy val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
   @transient lazy val sft = ds.getSchema(feature)
-  @transient lazy val prefix = org.locationtech.geomesa.core.index.getTableSharingPrefix(sft)
+  @transient lazy val prefix = org.locationtech.geomesa.accumulo.index.getTableSharingPrefix(sft)
   @transient lazy val encoding = ds.getFeatureEncoding(sft)
   @transient lazy val featureEncoder = SimpleFeatureSerializers(sft, encoding)
   @transient lazy val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))

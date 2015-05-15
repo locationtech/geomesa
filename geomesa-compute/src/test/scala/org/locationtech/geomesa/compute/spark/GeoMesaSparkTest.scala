@@ -32,8 +32,8 @@ import org.geotools.factory.Hints
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloDataStoreFactory}
-import org.locationtech.geomesa.core.index.Constants
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -58,7 +58,7 @@ class GeoMesaSparkTest extends Specification with Logging {
 
   val TEST_TABLE_NAME = "geomesa_spark_test"
 
-  import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
+  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
   lazy val dsParams = Map[String, String](
     zookeepersParam.key -> "dummy",
     instanceIdParam.key -> "dummy",
