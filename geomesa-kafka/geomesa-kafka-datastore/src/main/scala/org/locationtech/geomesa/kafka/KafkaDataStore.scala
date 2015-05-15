@@ -22,88 +22,37 @@ import java.{util => ju}
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.slf4j.Logging
-import kafka.admin.AdminUtils
 import kafka.producer.{Producer, ProducerConfig}
-import kafka.utils.ZKStringSerializer
-import org.I0Itec.zkclient.ZkClient
-import org.I0Itec.zkclient.exception.ZkNodeExistsException
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
-import org.geotools.feature.NameImpl
 import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
-class KafkaDataStore(zookeepers: String,
-                     zkPath: String,
-                     partitions: Int,
-                     replication: Int,
-                     fsFactory: FeatureSourceFactory) extends ContentDataStore with Logging {
 
-  import scala.collection.JavaConversions._
+class KafkaDataStore(override val zookeepers: String,
+                     override val zkPath: String,
+                     override val partitions: Int,
+                     override val replication: Int,
+                     fsFactory: FeatureSourceFactory)
+  extends ContentDataStore
+  with KafkaDataStoreSchemaManager
+  with Logging {
 
-  val zkClient = {
-    // zkStringSerializer is required - otherwise topics won't be created correctly
-    val ret = new ZkClient(zookeepers, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
-    if (!ret.exists(zkPath)) {
-      try {
-        ret.createPersistent(zkPath, true)
-      } catch {
-        case e: ZkNodeExistsException => // it's ok, something else created before we could
-        case e: Exception => throw new RuntimeException(s"Could not create path in zookeeper at $zkPath", e)
-      }
-    }
-    ret
-  }
-
-  override def createTypeNames() =
-    zkClient.getChildren(zkPath).map(new NameImpl(_))
-
-  override def createSchema(featureType: SimpleFeatureType) = {
-    val typeName = featureType.getTypeName
-    val path = getZkPath(typeName)
-
-    if (zkClient.exists(path)) {
-      throw new IllegalArgumentException(s"Type $typeName already exists")
-    }
-
-    val data = SimpleFeatureTypes.encodeType(featureType)
-    try {
-      zkClient.createPersistent(path, data)
-    } catch {
-      case e: ZkNodeExistsException =>
-        throw new IllegalArgumentException(s"Type $typeName already exists", e)
-      case e: Exception =>
-        throw new RuntimeException(s"Could not create path in zookeeper at $path", e)
-    }
-
-    AdminUtils.createTopic(zkClient, typeName, partitions, replication)
-  }
-
-  private def getZkPath(typeName: String) = s"$zkPath/$typeName"
+  override def createTypeNames() = getNames()
 
   val featureSourceCache =
     CacheBuilder.newBuilder().build[ContentEntry, ContentFeatureSource](
       new CacheLoader[ContentEntry, ContentFeatureSource] {
         override def load(entry: ContentEntry) = {
-          val sft = schemaCache.get(entry.getTypeName)
+          val sft = getFeatureConfig(entry.getTypeName)
           fsFactory(entry, sft)
         }
       })
 
-  val schemaCache =
-    CacheBuilder.newBuilder().build(new CacheLoader[String, KafkaFeatureConfig] {
-      override def load(k: String): KafkaFeatureConfig =
-        resolveTopicSchema(k).getOrElse(throw new IllegalArgumentException(s"Unable to find schema with name $k"))
-    })
-
   override def createFeatureSource(entry: ContentEntry) = featureSourceCache.get(entry)
-  
-  def resolveTopicSchema(typeName: String): Option[KafkaFeatureConfig] =
-    Option(zkClient.readData[String](getZkPath(typeName), true))
-      .map(data => KafkaFeatureConfig(SimpleFeatureTypes.createType(typeName, data)))
+
 }
 
 object KafkaDataStoreFactoryParams {
@@ -163,32 +112,6 @@ object KafkaDataStore {
     }
 }
 
-/** This is an internal configuration class shared between KafkaDataStore and the various feature sources
-  * (producer, live consumer, replay consumer).
-  *
-  * @constructor
-  *
-  * @param sft the [[SimpleFeatureType]]
-  * @throws IllegalArgumentException if ``sft`` has not been prepared by calling
-  *                                  ``KafkaDataStoreHelper.prepareForLive``
-  */
-@throws[IllegalArgumentException]
-private[kafka] case class KafkaFeatureConfig(sft: SimpleFeatureType) extends AnyRef {
-
-  /** the name of the Kafka topic */
-  val topic: String = new KafkaDataStoreHelper().extractTopic(sft)
-    .getOrElse(throw new IllegalArgumentException(
-          s"The SimpleFeatureType '${sft.getTypeName}' may not be used with KafkaDataStore because it has "
-            + "not been 'prepared' via KafkaDataStoreHelper.prepareForLive"))
-
-
-  /** the [[ReplayConfig]], if any */
-  val replayConfig: Option[ReplayConfig] = new KafkaDataStoreHelper().extractReplayConfig(sft)
-
-  override def toString: String =
-    s"KafkaSimpleFeatureType: typeName=${sft.getTypeName}; topic=$topic; replayConfig=$replayConfig"
-}
-
 /** A [[DataStoreFactorySpi]] to create a [[KafkaDataStore]] in either producer or consumer mode */
 class KafkaDataStoreFactory extends DataStoreFactorySpi {
 
@@ -231,7 +154,8 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
     }
   }
 
-  override def createNewDataStore(params: ju.Map[String, Serializable]): DataStore = ???
+  override def createNewDataStore(params: ju.Map[String, Serializable]): DataStore =
+    throw new UnsupportedOperationException
 
   override def getDisplayName: String = "Kafka Data Store"
   override def getDescription: String = "Kafka Data Store"
@@ -290,7 +214,7 @@ object ReplayKafkaDataStoreFactory {
     import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
     import org.locationtech.geomesa.kafka.ReplayKafkaDataStoreFactoryParams._
 
-    import scala.collection.JavaConverters._
+import scala.collection.JavaConverters._
 
     Map(
       KAFKA_BROKER_PARAM.key -> brokers,
