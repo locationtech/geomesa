@@ -26,7 +26,6 @@ import kafka.producer.{Producer, ProducerConfig}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
-import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
 
 class KafkaDataStore(override val zookeepers: String,
@@ -67,16 +66,6 @@ object KafkaDataStoreFactoryParams {
   // consumer params
   val EXPIRY             = new Param("expiry", classOf[java.lang.Boolean], "Expiry", false, false)
   val EXPIRATION_PERIOD  = new Param("expirationPeriod", classOf[java.lang.Long], "Expiration Period in milliseconds", false)
-}
-
-object ReplayKafkaDataStoreFactoryParams {
-  // replay consumer
-  val REPLAY_START_TIME  = new Param("replayStart", classOf[java.lang.Long],
-                                      "Lower bound on replay window, UTC epoic", true)
-  val REPLAY_END_TIME    = new Param("replayEnd", classOf[java.lang.Long],
-                                      "Upper bound on replay window, UTC epoic", true)
-  val REPLAY_READ_BEHIND = new Param("replayReadBehind", classOf[java.lang.Long],
-                                      "Milliseconds of log to log to read before requested read time", true)
 }
 
 object KafkaDataStore {
@@ -165,62 +154,4 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
 
   override def isAvailable: Boolean = true
   override def getImplementationHints: ju.Map[Key, _] = null
-}
-
-
-/** A [[KafkaDataStore]] factory for creating a Replay Consumer DS.
-  *
-  */
-class ReplayKafkaDataStoreFactory extends KafkaDataStoreFactory {
-
-  import org.locationtech.geomesa.kafka.KafkaDataStore._
-  import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
-  import org.locationtech.geomesa.kafka.ReplayKafkaDataStoreFactoryParams._
-
-  override def createFeatureSourceFactory(brokers: String,
-                                          zk: String,
-                                          params: ju.Map[String, Serializable]): FeatureSourceFactory = {
-
-    val start = new Instant(REPLAY_START_TIME.lookUp(params).asInstanceOf[Long])
-    val end = new Instant(REPLAY_END_TIME.lookUp(params).asInstanceOf[Long])
-    val readBehind = Duration.millis(REPLAY_READ_BEHIND.lookUp(params).asInstanceOf[Long])
-
-    val kf = new KafkaConsumerFactory(brokers, zk)
-    val rc = new ReplayConfig(start, end, readBehind)
-
-    KafkaDataStore.consumerFeatureSourceFactory(kf, expiry = false, 0)
-  }
-
-  override def getDisplayName: String = "Replay Kafka Data Store"
-  override def getDescription: String = "Query a Kafka Data Store at a specific point in history."
-
-  override def getParametersInfo: Array[Param] =
-    Array(KAFKA_BROKER_PARAM, ZOOKEEPERS_PARAM, REPLAY_START_TIME, REPLAY_END_TIME, REPLAY_READ_BEHIND)
-
-  override def canProcess(params: ju.Map[String, Serializable]): Boolean =
-    getParametersInfo.forall(p => params.containsKey(p.key))
-}
-
-object ReplayKafkaDataStoreFactory {
-
-  def props(brokers: String,
-            zookeepers: String,
-            startTime: Instant,
-            endTime: Instant,
-            readBehind: Duration): ju.Map[String, Serializable] = {
-
-    import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
-    import org.locationtech.geomesa.kafka.ReplayKafkaDataStoreFactoryParams._
-
-import scala.collection.JavaConverters._
-
-    Map(
-      KAFKA_BROKER_PARAM.key -> brokers,
-      ZOOKEEPERS_PARAM.key -> zookeepers,
-      REPLAY_START_TIME.key -> startTime.getMillis.asInstanceOf[Serializable],
-      REPLAY_END_TIME.key -> endTime.getMillis.asInstanceOf[Serializable],
-      REPLAY_READ_BEHIND.key -> readBehind.getMillis.asInstanceOf[Serializable]
-    ).asJava
-  }
-
 }
