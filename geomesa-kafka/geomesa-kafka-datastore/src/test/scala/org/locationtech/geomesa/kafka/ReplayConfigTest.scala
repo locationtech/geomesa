@@ -111,6 +111,28 @@ class ReplayConfigTest extends Specification with Mockito {
       result.isInWindow(21) must beFalse
       result.isInWindow(22) must beFalse
     }
+
+    "encode should encode correctly" >> {
+
+      val start = new Instant(1234)
+      val end = new Instant(4321)
+      val readBehind = Duration.millis(1024)
+
+      val rc = new ReplayConfig(start, end, readBehind)
+
+      ReplayConfig.encode(rc) mustEqual s"4d2-10e1-400"
+    }
+
+    "decode should decode correctly" >> {
+
+      val start = new Instant(1234)
+      val end = new Instant(4321)
+      val readBehind = Duration.millis(1024)
+      val rc = new ReplayConfig(start, end, readBehind)
+      val encoded = ReplayConfig.encode(rc)
+
+      ReplayConfig.decode(encoded) must beSome(rc)
+    }
   }
 
   def mockMessage(i: Long): GeoMessage = {

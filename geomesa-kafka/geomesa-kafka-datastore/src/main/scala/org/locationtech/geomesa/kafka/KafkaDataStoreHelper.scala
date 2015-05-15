@@ -8,8 +8,8 @@ import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureType
 
 object KafkaDataStoreHelper {
 
-  private val TopicKey = "Topic"
-  private val ReplayConfigKey = "ReplayConfig"
+  val TopicKey = "Topic"
+  val ReplayConfigKey = "ReplayConfig"
 
   /** Creates a copy of the passed SimpleFeatureType, inserting the topic name (derived from zkPath) into user data.*/
   def prepareForLive(sft: SimpleFeatureType, zkPath: String) : SimpleFeatureType = {
@@ -50,7 +50,7 @@ object KafkaDataStoreHelper {
   def extractReplayConfig(sft: SimpleFeatureType) : Option[ReplayConfig] =
     sft.userData[String](ReplayConfigKey).flatMap(ReplayConfig.decode)
 
-  private def buildTopicName(zkPath: String, sft: SimpleFeatureType): String = {
+  private[kafka] def buildTopicName(zkPath: String, sft: SimpleFeatureType): String = {
     sft.getTypeName + "_" + zkPath.replaceAll("/","-")  //kafka doesn't like slashes
   }
 

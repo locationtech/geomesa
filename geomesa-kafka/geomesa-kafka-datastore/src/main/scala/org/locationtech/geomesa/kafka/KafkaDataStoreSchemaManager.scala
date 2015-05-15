@@ -31,7 +31,6 @@ import scala.collection.JavaConverters._
 
 trait KafkaDataStoreSchemaManager extends DataStore  {
 
-
   protected def zookeepers: String
   protected def zkPath: String
   protected def partitions: Int
@@ -44,7 +43,7 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
     // build the schema node
     val typeName = featureType.getTypeName
     val schemaPath: String = getSchemaPath(typeName)
-    if (zkClient.exists(schemaPath)) {  // todo:  look into zk exceptions
+    if (zkClient.exists(schemaPath)) {
       throw new IllegalArgumentException(s"Type $typeName already exists")
     }
 
@@ -56,11 +55,11 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
 
     // build the replay config node (optional)
     // build the topic node
-    val replayPath = getSchemaPath(typeName)
-    kfc.replayConfig.foreach(r => createZkNode(getReplayConfigPath(typeName), ReplayConfig.encode(r))) // todo:  look into zk exceptions
+    kfc.replayConfig.foreach(r => createZkNode(getReplayConfigPath(typeName), ReplayConfig.encode(r)))
 
     //create the Kafka topic
-    AdminUtils.createTopic(zkClient, kfc.topic, partitions, replication)  // todo:  look into zk exceptions
+    if(!AdminUtils.topicExists(zkClient, kfc.topic))
+      AdminUtils.createTopic(zkClient, kfc.topic, partitions, replication)
 
     // put it in the cache
     schemaCache.put(typeName, kfc)
@@ -69,21 +68,22 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
 
   def getFeatureConfig(typeName: String) : KafkaFeatureConfig = schemaCache.get(typeName)
 
-  override def getNames: util.List[Name] = {
+  override def getNames: util.List[Name] = zkClient.getChildren(zkPath).asScala.map(
+    name => new NameImpl(name) : Name).asJava
 
-    zkClient.getChildren(zkPath).asScala.map(name => new NameImpl(name) : Name).asJava
-
-  }
 
   override def removeSchema(typeName: Name): Unit = removeSchema(typeName.getLocalPart)
 
   override def removeSchema(typeName: String): Unit = {
+
+    // clean up cache and zookeeper resources
     schemaCache.invalidate(typeName)
-    ???  // todo: worry about zook, don't worry about topic.  what about other remote caches - do we set up a kafka
-         // listener looking for deletes? */
+    zkClient.deleteRecursive(getSchemaPath(typeName))
+
+    // todo: what about other remote caches - do we set up a kafka listener looking for deletes? */
+
   }
 
-  // todo: need to grab rc and topic from zk.  Also consider not returning an option
   private def resolveTopicSchema(typeName: String): KafkaFeatureConfig = {
 
     val schema = zkClient.readData[String](getSchemaPath(typeName)) //throws ZkNoNodeException if not found
