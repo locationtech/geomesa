@@ -9,3 +9,4 @@
 **/.settings
 target
 atlassian*
+.DS_Store
