@@ -4,3 +4,38 @@ geomesa-map
     bottom 0
     right 0
     left 0
+    
+.toggler
+    z-index 12
+    position absolute
+    bottom 13%
+    left 4%
+    left 3%
+
+#toggle
+  position absolute
+  appearance none
+  cursor pointer
+  & + label
+    position absolute
+    cursor pointer
+    padding 10px
+    background #4285f4
+    width 100px
+    max-width inherit !important
+    border-radius 3px
+    padding 8px 10px
+    color #FFF
+    line-height 20px
+    font-size 12px
+    text-align center
+    -webkit-font-smoothing antialiased
+    cursor pointer
+    transition all 500ms ease
+    &:after
+      content "Default"
+  &:checked
+    & + label
+      background #dd6149
+      &:after
+        content "Heatmap"
