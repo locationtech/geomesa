@@ -154,18 +154,17 @@ class QueryStrategyDeciderV4 extends VersionedQueryStrategyDecider {
 class QueryStrategyDeciderV5 extends QueryStrategyDeciderV4 {
 
   val ff = CommonFactoryFinder.getFilterFactory2
+
   /**
-   * We've eliminated the best attribute strategies - look for spatio-temporal and use the best attribute
-   * strategy available as a fallback.
+   * Adds in a preferred z3 check before falling back to regular st index
    */
   override def processStFilters(filters: Seq[Filter],
                                 fallback: Option[StrategyDecision],
                                 sft: SimpleFeatureType,
                                 hints: StrategyHints): Strategy = {
-    // finally, prefer spatial filters if available
-    val stStrategy = Z3IdxStrategy.getStrategy(ff.and(filters), sft, hints)
+    // finally, prefer z3 if available
+    val z3Strategy = Z3IdxStrategy.getStrategy(ff.and(filters), sft, hints).map(_.strategy)
     // fallback to the old STIdxStrategy
-    stStrategy.orElse(fallback).map(_.strategy).getOrElse(new STIdxStrategy)
+    z3Strategy.getOrElse(super.processStFilters(filters, fallback, sft, hints))
   }
-
 }
