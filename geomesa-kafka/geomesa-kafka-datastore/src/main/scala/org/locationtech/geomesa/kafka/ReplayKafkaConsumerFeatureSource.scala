@@ -157,6 +157,12 @@ object ReplayKafkaConsumerFeatureSource {
     ff.equals(MessageTimeAttributeProp, ff.literal(time.getMillis))
 }
 
+/** Represents the state at a specific point in time.
+  *
+  * @param schema the SFT
+  * @param events must be ordered, with the most recent first; must consist of only [[CreateOrUpdate]] and
+  *               [[Delete]] messages
+  */
 class ReplaySnapshotFeatureCache(override val schema: SimpleFeatureType,
                                  events: Seq[GeoMessage])
   extends KafkaConsumerFeatureCache {
