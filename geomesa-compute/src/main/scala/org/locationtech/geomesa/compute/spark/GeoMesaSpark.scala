@@ -64,8 +64,7 @@ object GeoMesaSpark {
           sc: SparkContext,
           dsParams: Map[String, String],
           query: Query,
-          numberOfSplits: Option[Int])
-  {
+          numberOfSplits: Option[Int]): RDD[SimpleFeature] = {
     rdd(conf, sc, dsParams, query, false, numberOfSplits.getOrElse(-1))
   }
 
