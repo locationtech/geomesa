@@ -105,7 +105,9 @@ object Z3Table {
 
   def adaptZ3KryoIterator(sft: SimpleFeatureType): FeatureFunction = {
     val kryo = new KryoFeatureSerializer(sft)
-    val fn = (e: Entry[Key, Value]) => kryo.deserialize(e.getValue.get())
+    val fn = (e: Entry[Key, Value]) => {
+      kryo.deserialize(e.getValue.get())
+    }
     Left(fn)
   }
 
