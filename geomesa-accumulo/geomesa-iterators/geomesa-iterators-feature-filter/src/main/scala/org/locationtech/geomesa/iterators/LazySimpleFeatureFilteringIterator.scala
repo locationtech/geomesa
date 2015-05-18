@@ -11,17 +11,17 @@ import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.geotools.factory.GeoTools
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.feature.nio.{AttributeAccessor, LazySimpleFeature}
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class LazySimpleFeatureFilteringIterator extends SortedKeyValueIterator[Key, Value] with Logging {
+import scala.reflect.ClassTag
 
-  private var sft: SimpleFeatureType = null
-  private var accessors: IndexedSeq[AttributeAccessor[_ <: AnyRef]] = null
-  private var src: SortedKeyValueIterator[Key, Value] = null
-  private var reusableSimpleFeature: LazySimpleFeature = null
-  private var filter: Filter = null
+trait LazySFFilterIter extends SortedKeyValueIterator[Key, Value] with Logging {
+  var sft: SimpleFeatureType = null
+  var src: SortedKeyValueIterator[Key, Value] = null
+  var filter: Filter = null
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = ???
   override def init(source: SortedKeyValueIterator[Key, Value],
@@ -30,10 +30,11 @@ class LazySimpleFeatureFilteringIterator extends SortedKeyValueIterator[Key, Val
     LazySimpleFeatureFilteringIterator.initClassLoader(logger)
     src = source
     sft = SimpleFeatureTypes.createType("test", options.get("sft"))
-    accessors = AttributeAccessor.buildSimpleFeatureTypeAttributeAccessors(sft)
-    reusableSimpleFeature = new LazySimpleFeature("", sft, accessors, null)
     filter = ECQL.toFilter(options.get("cql"))
   }
+
+  def sf: SimpleFeature 
+  def initReusableFeature(buf: ByteBuffer): Unit
 
   override def next(): Unit = {
     src.next()
@@ -43,8 +44,8 @@ class LazySimpleFeatureFilteringIterator extends SortedKeyValueIterator[Key, Val
   def findTop(): Unit = {
     var found = false
     while(src.hasTop && !found) {
-      reusableSimpleFeature.setBuf(ByteBuffer.wrap(src.getTopValue.get()))
-      if(!filter.evaluate(reusableSimpleFeature)) src.next()
+      initReusableFeature(ByteBuffer.wrap(src.getTopValue.get()))
+      if(!filter.evaluate(sf)) src.next()
       else found = true
     }
   }
@@ -62,10 +63,50 @@ class LazySimpleFeatureFilteringIterator extends SortedKeyValueIterator[Key, Val
 
 
 }
+class LazyKryoFeatureFilteringIterator extends LazySFFilterIter {
+  var reusablesf: SimpleFeature = null
+
+  override def sf: SimpleFeature = reusablesf
+
+  var kryo: KryoFeatureSerializer = null
+  override def init(source: SortedKeyValueIterator[Key, Value],
+                    options: util.Map[String, String],
+                    env: IteratorEnvironment): Unit = {
+    super.init(source, options, env)
+    src = source
+    sft = SimpleFeatureTypes.createType("test", options.get("sft"))
+    kryo = new KryoFeatureSerializer(sft)
+    filter = ECQL.toFilter(options.get("cql"))
+  }
+
+  override def initReusableFeature(buf: ByteBuffer): Unit = {
+    reusablesf = kryo.lazyDeserialize(buf.array(), sf)
+  }
+}
+
+class LazyNIOFeatureFilteringIterator extends LazySFFilterIter {
+  var reusablesf: LazySimpleFeature = null
+  private var accessors: IndexedSeq[AttributeAccessor[_ <: AnyRef]] = null
+
+
+  override def sf: SimpleFeature = reusablesf
+
+  override def initReusableFeature(buf: ByteBuffer): Unit = reusablesf.setBuf(buf)
+  override def init(source: SortedKeyValueIterator[Key, Value],
+                    options: util.Map[String, String],
+                    env: IteratorEnvironment): Unit = {
+    super.init(source, options, env)
+    src = source
+    sft = SimpleFeatureTypes.createType("test", options.get("sft"))
+    accessors = AttributeAccessor.buildSimpleFeatureTypeAttributeAccessors(sft)
+    reusablesf = new LazySimpleFeature("", sft, accessors, null)
+    filter = ECQL.toFilter(options.get("cql"))
+  }
+}
 
 object LazySimpleFeatureFilteringIterator {
-  def configure(sft: SimpleFeatureType, filter: Filter) = {
-    val is = new IteratorSetting(5, "featurefilter", classOf[LazySimpleFeatureFilteringIterator].getCanonicalName)
+  def configure[T <: LazySFFilterIter](sft: SimpleFeatureType, filter: Filter)(implicit ct: ClassTag[T]) = {
+    val is = new IteratorSetting(5, "featurefilter", ct.runtimeClass.getCanonicalName)
     is.addOption("sft", SimpleFeatureTypes.encodeType(sft))
     is.addOption("cql", ECQL.toCQL(filter))
     is

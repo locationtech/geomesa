@@ -55,7 +55,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-iterators-feature-filter-accumulo1.5</artifactId>
+            <artifactId>geomesa-iterators-feature-filter</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

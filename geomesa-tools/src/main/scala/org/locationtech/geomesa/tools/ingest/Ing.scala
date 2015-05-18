@@ -7,18 +7,20 @@ import org.geotools.data.{DataStoreFinder, Transaction}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
+import scala.collection.JavaConversions._
 
 class Ing(args: Args) extends Job(args) {
 
-  import scala.collection.JavaConversions._
+
 
   class R {
     lazy val sft = SimpleFeatureTypes.createType("frz3", "dtg:Date,jsonrowid:String,registration:String,lat:Double,lon:Double,trackingdegrees:Integer,altitude:Integer,speedkt:Integer,squawk:String,radarid:String,planetype:String,tailname:String,datatimestamp:Long,departure:String,arrival:String,callsign:String:index=full,possibleonground:Boolean,vertspeed:Integer,callsign2:String,unknown1:Integer,*geom:Point:srid=4326:index=full:index-value=true")
     lazy val (ds, fw) = {
       val retds = DataStoreFinder.getDataStore(
-        Map("instanceId" -> "ds",
+        Map(
+          "instanceId" -> "ds",
           "zookeepers"   -> "zoo1,zoo2,zoo3",
-          "tableName" -> "frz3lazy",
+          "tableName" -> "frz3kryo",
           "user"->"root",
           "password"->"secret"))
 
@@ -78,6 +80,19 @@ object Ing extends App {
   run()
 
   def run(): Unit = {
+    lazy val sft = SimpleFeatureTypes.createType("frz3", "dtg:Date,jsonrowid:String,registration:String,lat:Double,lon:Double,trackingdegrees:Integer,altitude:Integer,speedkt:Integer,squawk:String,radarid:String,planetype:String,tailname:String,datatimestamp:Long,departure:String,arrival:String,callsign:String:index=full,possibleonground:Boolean,vertspeed:Integer,callsign2:String,unknown1:Integer,*geom:Point:srid=4326:index=full:index-value=true")
+    val retds = DataStoreFinder.getDataStore(
+      Map(
+        "instanceId" -> "ds",
+        "zookeepers"   -> "zoo1,zoo2,zoo3",
+        "tableName" -> "frz3kryo",
+        "user"->"root",
+        "password"->"secret"))
+
+    if(retds.getSchema("frz3") == null) {
+      retds.createSchema(sft)
+    }
+
      val conf = new Configuration()
 
     // setup ingest

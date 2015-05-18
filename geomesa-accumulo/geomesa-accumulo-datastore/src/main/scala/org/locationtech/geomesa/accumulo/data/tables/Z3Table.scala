@@ -1,7 +1,6 @@
 package org.locationtech.geomesa.accumulo.data.tables
 
 import java.nio.ByteBuffer
-import java.util
 import java.util.Date
 import java.util.Map.Entry
 
@@ -11,14 +10,13 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
-import org.geotools.data.Query
 import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
 import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index.QueryPlanners._
 import org.locationtech.geomesa.curve.Z3SFC
-import org.locationtech.geomesa.feature.nio.{LazySimpleFeature, AttributeAccessor}
-import org.locationtech.geomesa.feature.nio.AttributeAccessor.ByteBufferSimpleFeatureSerializer
+import org.locationtech.geomesa.feature.nio.{AttributeAccessor, LazySimpleFeature}
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.`type`.GeometryDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
@@ -45,11 +43,10 @@ object Z3Table {
       index.getDtgDescriptor(sft)
         .map { desc => sft.indexOf(desc.getName) }
         .getOrElse { throw new IllegalArgumentException("Must have a date for a Z3 index")}
-    val writer = new ByteBufferSimpleFeatureSerializer(sft)
-    val buf = ByteBuffer.allocate(2048)
+    val writer = new KryoFeatureSerializer(sft)
     (fw: FeatureToWrite) => {
-      val bytesWritten = writer.write(buf, fw.feature)
-      val payload = new Value(util.Arrays.copyOfRange(buf.array(), 0, bytesWritten))
+      val bytesWritten = writer.serialize(fw.feature)
+      val payload = new Value(bytesWritten)
       val geom = fw.feature.point
       val x = geom.getX
       val y = geom.getY
@@ -97,6 +94,12 @@ object Z3Table {
       new LazySimpleFeature(id, sft, accessors, ByteBuffer.wrap(e.getValue.get()))
       // TODO visibility
     }
+    Left(fn)
+  }
+
+  def adaptZ3KryoIterator(sft: SimpleFeatureType): FeatureFunction = {
+    val kryo = new KryoFeatureSerializer(sft)
+    val fn = (e: Entry[Key, Value]) => kryo.deserialize(e.getValue.get())
     Left(fn)
   }
 
