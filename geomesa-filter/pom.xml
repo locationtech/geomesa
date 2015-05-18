@@ -65,5 +65,15 @@
             <artifactId>specs2_2.10</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-cql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-feature-all</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

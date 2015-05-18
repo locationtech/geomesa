@@ -11,6 +11,12 @@ class FastProperty extends FunctionExpressionImpl(
     parameter("propertyIndex", classOf[Integer]))) {
 
   var idx = -1
+
+  def this(i: Int) = {
+    this()
+    idx = i
+  }
+
   override def evaluate(o: java.lang.Object): AnyRef = {
     if (idx == -1) {
       idx = getExpression(0).evaluate(null).asInstanceOf[Long].toInt
