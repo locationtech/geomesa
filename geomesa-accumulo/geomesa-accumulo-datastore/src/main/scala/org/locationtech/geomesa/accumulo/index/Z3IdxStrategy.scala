@@ -12,7 +12,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.filter
 import org.locationtech.geomesa.curve.{Z3Iterator, Z3SFC}
-import org.locationtech.geomesa.iterators.{LazyNIOFeatureFilteringIterator, LazySimpleFeatureFilteringIterator}
+import org.locationtech.geomesa.iterators.{LazyKryoFeatureFilteringIterator, LazyNIOFeatureFilteringIterator, LazySimpleFeatureFilteringIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.Literal
 import org.opengis.filter.spatial.BinarySpatialOperator
@@ -83,7 +83,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
       if(ecqlFilters.length == 0) None
       else {
         val ecqlAnd = if(ecqlFilters.length == 1) ecqlFilters.head else ff.and(ecqlFilters.toList)
-        val is = LazySimpleFeatureFilteringIterator.configure[LazyNIOFeatureFilteringIterator](sft, ecqlAnd)
+        val is = LazySimpleFeatureFilteringIterator.configure[LazyKryoFeatureFilteringIterator](sft, ecqlAnd)
         Some(is)
       }
 
@@ -126,7 +126,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
         Range.followingPrefix(new Text(endRowBytes)), false)
     }
 
-    val iter = Z3Iterator.configure(Z3_CURVE.index(lx, ly, lt), Z3_CURVE.index(ux, uy, ut), 21)
+    val iter = Z3Iterator.configure(Z3_CURVE.index(lx, ly, lt), Z3_CURVE.index(ux, uy, ut), 3)
 
     val table = acc.getZ3Table(sft)
     BatchScanPlan(table, accRanges, Seq(Some(iter), is).flatten, Seq(Z3Table.FULL_ROW), Z3Table.adaptZ3KryoIterator(sft), 8, hasDuplicates = false)
