@@ -16,12 +16,12 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.IteratorExtensions.OptionMap
 import org.locationtech.geomesa.accumulo.transform.TransformCreator
 import org.locationtech.geomesa.features._
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -118,7 +118,7 @@ trait HasSpatioTemporalFilter extends IteratorExtensions {
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     if (options.containsKey(ST_FILTER_PROPERTY_NAME)) {
-      val filter = ECQL.toFilter(options.get(ST_FILTER_PROPERTY_NAME))
+      val filter = FastFilterFactory.toFilter(options.get(ST_FILTER_PROPERTY_NAME))
       if (filter != Filter.INCLUDE) {
         stFilter = filter
       }
@@ -137,7 +137,7 @@ trait HasFilter extends IteratorExtensions {
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     if (options.containsKey(GEOMESA_ITERATORS_ECQL_FILTER)) {
-      val ecql = ECQL.toFilter(options.get(GEOMESA_ITERATORS_ECQL_FILTER))
+      val ecql = FastFilterFactory.toFilter(options.get(GEOMESA_ITERATORS_ECQL_FILTER))
       if (ecql != Filter.INCLUDE) {
         filter = ecql
       }

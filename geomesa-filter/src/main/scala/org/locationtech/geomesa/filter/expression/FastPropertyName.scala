@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.filter.expression
 
-import javax.xml.namespace.NamespaceContext
-
+import org.geotools.filter.expression.FilterVisitorExpressionWrapper
+import org.geotools.filter.{ExpressionType, FilterVisitor}
 import org.geotools.util.Converters
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.expression.{ExpressionVisitor, PropertyName}
@@ -18,7 +18,7 @@ import org.xml.sax.helpers.NamespaceSupport
 /**
  * Implementation of property name that looks up the value by index
  */
-class FastPropertyName(name: String) extends PropertyName {
+class FastPropertyName(name: String) extends PropertyName with org.geotools.filter.Expression {
 
   private var index: Int = -1
 
@@ -41,4 +41,11 @@ class FastPropertyName(name: String) extends PropertyName {
   override def evaluate[T](obj: AnyRef, target: Class[T]): T = Converters.convert(evaluate(obj), target)
 
   override def accept(visitor: ExpressionVisitor, extraData: AnyRef): AnyRef = visitor.visit(this, extraData)
+
+  // geotools filter methods - deprecated but still sometimes used
+  override def getType: Short = ExpressionType.ATTRIBUTE
+  override def getValue(feature: SimpleFeature): AnyRef = evaluate(feature.asInstanceOf[AnyRef])
+  override def evaluate(feature: SimpleFeature): AnyRef = evaluate(feature.asInstanceOf[AnyRef])
+  override def accept(visitor: FilterVisitor): Unit =
+    accept(new FilterVisitorExpressionWrapper(visitor), null)
 }

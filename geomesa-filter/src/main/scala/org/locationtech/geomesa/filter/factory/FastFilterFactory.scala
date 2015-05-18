@@ -8,12 +8,16 @@
 
 package org.locationtech.geomesa.filter.factory
 
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.expression.FastPropertyName
 import org.opengis.feature.`type`.Name
-import org.opengis.filter.FilterFactory2
 import org.opengis.filter.expression.PropertyName
+import org.opengis.filter.{Filter, FilterFactory2}
 import org.xml.sax.helpers.NamespaceSupport
 
+/**
+ * Filter factory that overrides property name
+ */
 class FastFilterFactory extends org.geotools.filter.FilterFactoryImpl with FilterFactory2 {
 
   override def property(name: String): PropertyName = new FastPropertyName(name)
@@ -21,4 +25,11 @@ class FastFilterFactory extends org.geotools.filter.FilterFactoryImpl with Filte
   override def property(name: Name): PropertyName = property(name.getLocalPart)
 
   override def property(name: String, namespaceContext: NamespaceSupport): PropertyName = property(name)
+}
+
+object FastFilterFactory {
+
+  val factory = new FastFilterFactory
+
+  def toFilter(ecql: String): Filter = ECQL.toFilter(ecql, factory)
 }

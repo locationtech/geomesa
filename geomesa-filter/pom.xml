@@ -53,6 +53,10 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
+            <artifactId>gt-cql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
             <artifactId>gt-transform</artifactId>
         </dependency>
         <dependency>
@@ -63,11 +67,6 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_2.10</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-cql</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
