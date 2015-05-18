@@ -24,7 +24,7 @@
     </parent>
 
     <artifactId>geomesa-accumulo-datastore</artifactId>
-    <name>GeoMesa Accumulo 1.5.x</name>
+    <name>GeoMesa Accumulo DataStore</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,15 +33,15 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils-accumulo1.5</artifactId>
+            <artifactId>geomesa-utils</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-filter-accumulo1.5</artifactId>
+            <artifactId>geomesa-filter</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-security-accumulo1.5</artifactId>
+            <artifactId>geomesa-security</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -50,7 +50,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-z3-accumulo1.5</artifactId>
+            <artifactId>geomesa-z3</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

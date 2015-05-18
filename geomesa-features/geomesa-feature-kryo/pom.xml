@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>geomesa-feature-kryo</artifactId>
+    <name>GeoMesa Features Kryo</name>
 
     <dependencies>
         <dependency>
@@ -36,7 +37,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-security-accumulo1.5</artifactId>
+            <artifactId>geomesa-security</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

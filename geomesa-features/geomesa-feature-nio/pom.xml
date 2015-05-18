@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>geomesa-feature-nio</artifactId>
+    <name>GeoMesa Features NIO</name>
 
     <dependencies>
         <dependency>
@@ -32,7 +33,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils-accumulo1.5</artifactId>
+            <artifactId>geomesa-utils</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
