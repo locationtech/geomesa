@@ -220,7 +220,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
 //    }
 
     "be faster than full deserialization" in {
-//      skipped("integration")
+      skipped("integration")
       val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("speed", spec)
 

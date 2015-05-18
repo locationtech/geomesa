@@ -163,7 +163,7 @@ object Z3IdxStrategy extends StrategyProvider {
    * @return
    */
   override def getStrategy(filter: Filter, sft: SimpleFeatureType, hints: StrategyHints): Option[StrategyDecision] = {
-    if (sft.getGeometryDescriptor.getType.getBinding != classOf[Point]) {
+    if (sft.getGeometryDescriptor.getType.getBinding != classOf[Point] || index.getDtgDescriptor(sft).isEmpty) {
       return None
     }
     val (geomFilter, other) = partitionGeom(filter, sft)
