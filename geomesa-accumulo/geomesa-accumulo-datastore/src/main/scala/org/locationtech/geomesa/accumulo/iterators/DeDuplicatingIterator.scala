@@ -30,24 +30,23 @@ import org.opengis.feature.simple.SimpleFeature
 class DeDuplicatingIterator(source: CloseableIterator[SimpleFeature], maxCacheSize: Int = 999999)
     extends CloseableIterator[SimpleFeature] {
 
-  private var nextEntry: SimpleFeature = null
   private val cache = scala.collection.mutable.HashSet.empty[String]
+  private var nextEntry = findNext()
 
-  override def next(): SimpleFeature = nextEntry
-
-  override def hasNext: Boolean = {
-    while (setNext() && (cache.size < maxCacheSize && !cache.add(nextEntry.getID))) {}
-    nextEntry != null
+  override def next(): SimpleFeature = {
+    val next = nextEntry
+    nextEntry = findNext()
+    next
   }
 
-  private def setNext(): Boolean = {
-    if (source.hasNext) {
-      nextEntry = source.next()
-      true
-    } else {
-      nextEntry = null
-      false
-    }
+  override def hasNext: Boolean = nextEntry != null
+
+  private def findNext(): SimpleFeature = {
+    var next: SimpleFeature = null
+    do {
+      next = if (source.hasNext) source.next() else null
+    } while (next != null && (if (cache.size < maxCacheSize) !cache.add(next.getID) else cache.contains(next.getID)))
+    next
   }
 
   override def close(): Unit = {
