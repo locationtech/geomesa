@@ -82,8 +82,9 @@ trait HasIndexValueDecoder extends HasVersion {
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     val version = options.get(GEOMESA_ITERATORS_VERSION).toInt
-    indexEncoder = IndexValueEncoder(featureType, version)
-    indexSft = indexEncoder.indexSft
+    indexSft = SimpleFeatureTypes.createType(featureType.getTypeName,
+      options.get(GEOMESA_ITERATORS_SFT_INDEX_VALUE))
+    indexEncoder = IndexValueEncoder(indexSft, featureType, version)
   }
 }
 

@@ -48,6 +48,26 @@ class IndexValueEncoderTest extends Specification {
     SimpleFeatureTypes.createType("IndexValueEncoderTest" + index.getAndIncrement, schema)
 
   "IndexValueEncoder" should {
+    "default to id,geom,date" in {
+      val sft = getSft()
+      IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION).fields must containAllOf(Seq("geom", "dtg"))
+    }
+    "default to id,geom if no date" in {
+      val sft = getSft("*geom:Geometry,foo:String")
+      IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION).fields must containAllOf(Seq("geom"))
+    }
+    "allow custom fields to be set" in {
+      val sft = getSft(s"*geom:Geometry:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
+      IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION).fields must containAllOf(Seq("geom", "dtg", "i", "f"))
+    }
+    "always include id,geom,dtg" in {
+      val sft = getSft(s"*geom:Geometry,dtg:Date,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
+      IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION).fields must containAllOf(Seq("geom", "dtg", "i", "f"))
+    }
+    "not allow complex types" in {
+      val sft = getSft(s"*geom:Geometry:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,l:List[String]:$OPT_INDEX_VALUE=true")
+      IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION).fields must containAllOf(Seq("geom", "dtg"))
+    }
 
     "encode and decode id,geom,date" in {
       val sft = getSft()
@@ -99,6 +119,42 @@ class IndexValueEncoderTest extends Specification {
       decoded.getID mustEqual(id)
     }
 
+    "encode and decode custom fields" in {
+      val sft = getSft(allSchema)
+
+      val s = "test"
+      val i: java.lang.Integer = 5
+      val d: java.lang.Double = 10d
+      val f: java.lang.Float = 1.0f
+      val u = UUID.randomUUID()
+
+      val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
+        List(geom, dt, s, i, d, f, u, null), id)
+
+      val encoder = IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION)
+
+      // output
+      val value = encoder.encode(entry)
+
+      // requirements
+      value must not beNull
+
+      // return trip
+      val decoded = encoder.decode(value)
+
+      // requirements
+      decoded must not beNull;
+      decoded.getAttributeCount mustEqual(7)
+      decoded.getAttribute("geom") mustEqual geom
+      decoded.getID mustEqual id
+      decoded.getAttribute("dtg") mustEqual dt
+      decoded.getAttribute("d") mustEqual d
+      decoded.getAttribute("f") mustEqual f
+      decoded.getAttribute("i") mustEqual i
+      decoded.getAttribute("s") mustEqual s
+      decoded.getAttribute("u") mustEqual u
+    }
+
     "encode and decode null values" in {
       val sft = getSft(allSchema)
 
@@ -122,9 +178,14 @@ class IndexValueEncoderTest extends Specification {
 
       // requirements
       decoded must not beNull;
-      decoded.getAttributeCount mustEqual 2
+      decoded.getAttributeCount mustEqual(7)
       decoded.getAttribute("geom") mustEqual geom
       decoded.getID mustEqual id
+      decoded.getAttribute("d") mustEqual d
+      decoded.getAttribute("f") mustEqual f
+      decoded.getAttribute("i") mustEqual i
+      decoded.getAttribute("s") must beNull
+      decoded.getAttribute("u") must beNull
       decoded.getAttribute("dtg") must beNull
     }
 
@@ -140,7 +201,7 @@ class IndexValueEncoderTest extends Specification {
       decoded.getAttribute("geom") mustEqual geom
       decoded.getAttribute("dtg") mustEqual dt
       decoded.getID mustEqual id
-    }.pendingUntilFixed("We are not maintaining backwards compatibility anymore")
+    }
 
     "be at least as fast as before" in {
       skipped("for integration")

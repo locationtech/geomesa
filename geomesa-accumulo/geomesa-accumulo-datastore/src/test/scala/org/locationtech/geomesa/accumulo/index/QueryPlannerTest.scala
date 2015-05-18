@@ -22,9 +22,10 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.accumulo.util.CloseableIterator
-import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializer}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializers, SerializationType, SimpleFeatureDeserializer}
 import org.locationtech.geomesa.security._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
@@ -32,20 +33,25 @@ import org.opengis.filter.sort.SortBy
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
 
 
 @RunWith(classOf[JUnitRunner])
-class QueryPlannerTest extends Specification with Mockito {
+class QueryPlannerTest extends Specification with Mockito with TestWithDataStore {
 
-  val schema = "*geom:Geometry,dtg:Date,s:String"
-  val sft = SimpleFeatureTypes.createType("QueryPlannerTest", schema)
+  override val spec = "*geom:Geometry,dtg:Date,s:String"
+  val schema = ds.getIndexSchemaFmt(sftName)
+  val sf = new ScalaSimpleFeature("id", sft)
+  sf.setAttributes(Array[AnyRef]("POINT(45 45)", "2014/10/10T00:00:00Z", "string"))
+
+  addFeatures(Seq(sf))
 
   "adaptStandardIterator" should {
     "return a LazySortedIterator when the query has an order by clause" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(Array(SortBy.NATURAL_ORDER))
 
-      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
+      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, ds, NoOpHints, INTERNAL_GEOMESA_VERSION)
       val result = planner.query(query)
 
       result must beAnInstanceOf[LazySortedIterator]
@@ -55,50 +61,31 @@ class QueryPlannerTest extends Specification with Mockito {
       val query = new Query(sft.getTypeName)
       query.setSortBy(null)
 
-      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
+      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, ds, NoOpHints, INTERNAL_GEOMESA_VERSION)
       val result = planner.query(query)
 
       result must not (beAnInstanceOf[LazySortedIterator])
     }
 
     "decode and set visibility properly" >> {
-      val decoder = mock[SimpleFeatureDeserializer]
+      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, ds, NoOpHints, INTERNAL_GEOMESA_VERSION)
+      val query = new Query(sft.getTypeName)
 
       val visibilities = Array("", "USER", "ADMIN")
       val expectedVis = visibilities.map(vis => if (vis.isEmpty) None else Some(vis))
 
-      val entries = visibilities.zipWithIndex.map { case (vis, ndx) =>
-        val key = new Key(new Text(ndx.toString), new Text("cf"), new Text("cf"), new Text(vis))
-        val value = new Value(Array(ndx.toByte))
+      val serializer = SimpleFeatureSerializers(sft, SerializationType.KRYO)
+
+      val value = new Value(serializer.serialize(sf))
+      val kvs =  visibilities.zipWithIndex.map { case (vis, ndx) =>
+        val key = new Key(new Text(ndx.toString), new Text("cf"), new Text("cq"), new Text(vis))
         new SimpleEntry[Key, Value](key, value)
       }
 
-      val features = entries.map { entry =>
-        val feature = mock[SimpleFeature]
-        decoder.deserialize(entry.getValue.get()) returns feature
+      val expectedResult = kvs.map(planner.defaultKVsToFeatures(query).left.get).map(_.visibility).toArray
 
-        val userData = new java.util.HashMap[AnyRef, AnyRef]
-        feature.getUserData returns userData
-
-        feature
-      }
-
-      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, mock[AccumuloConnectorCreator], NoOpHints, 0)
-      val iter = entries.iterator
-      val query = new Query(sft.getTypeName)
-
-      val result = iter.map(planner.defaultKVsToFeatures(query).left.get)
-
-      features.zip(expectedVis).foreach { case (feature, vis) =>
-        result.hasNext must beTrue
-
-        val next = result.next()
-        next mustEqual feature
-
-        next.visibility mustEqual vis
-      }
-
-      result.hasNext must beFalse
+      expectedResult must haveSize(kvs.length)
+      expectedResult mustEqual expectedVis
     }
   }
 }
