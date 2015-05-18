@@ -20,6 +20,7 @@ import com.esotericsoftware.kryo.{Kryo, Serializer}
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -47,6 +48,7 @@ case class KryoFeatureSerializer(serializer: Serializer[SimpleFeature])
 object KryoFeatureSerializer {
 
   val simpleFeatureImpls = Seq(classOf[ScalaSimpleFeature],
+                               classOf[KryoBufferSimpleFeature],
                                classOf[SimpleFeature],
                                classOf[SimpleFeatureImpl])
 
