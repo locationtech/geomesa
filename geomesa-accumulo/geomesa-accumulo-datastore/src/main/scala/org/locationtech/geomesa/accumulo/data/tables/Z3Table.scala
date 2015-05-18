@@ -7,6 +7,7 @@ import java.util.Map.Entry
 import com.google.common.base.Charsets
 import com.google.common.collect.ImmutableSet
 import com.google.common.primitives.{Bytes, Longs, Shorts}
+import com.vividsolutions.jts.geom.Point
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
@@ -18,7 +19,7 @@ import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.feature.nio.{AttributeAccessor, LazySimpleFeature}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.opengis.feature.`type`.GeometryDescriptor
+import org.opengis.feature.`type`.{GeometryType, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -43,6 +44,11 @@ object Z3Table {
       index.getDtgDescriptor(sft)
         .map { desc => sft.indexOf(desc.getName) }
         .getOrElse { throw new IllegalArgumentException("Must have a date for a Z3 index")}
+    if (sft.getGeometryDescriptor.getType.getBinding != classOf[Point]) {
+      // TODO more robust method for not using z3 with non-point geoms
+      // TODO also see org.locationtech.geomesa.accumulo.index.Z3IdxStrategy.getStrategy
+      return (fw: FeatureToWrite) => Seq.empty
+    }
     val writer = new KryoFeatureSerializer(sft)
     (fw: FeatureToWrite) => {
       val bytesWritten = writer.serialize(fw.feature)

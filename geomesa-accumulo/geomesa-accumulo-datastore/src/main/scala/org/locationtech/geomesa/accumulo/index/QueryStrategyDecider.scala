@@ -23,6 +23,7 @@ import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.utils.geotools.RichIterator.RichIterator
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Id, PropertyIsLike}
+import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
 
 import scala.collection.JavaConversions._
 
@@ -39,7 +40,8 @@ object VersionedQueryStrategyDecider {
 
 object QueryStrategyDecider {
   // first element is null so that the array index aligns with the version
-  val strategies = Array[VersionedQueryStrategyDecider](null) ++ (1 to 5).map { i => VersionedQueryStrategyDecider(i) }
+  val strategies = Array[VersionedQueryStrategyDecider](null) ++
+      (1 to INTERNAL_GEOMESA_VERSION).map(VersionedQueryStrategyDecider.apply)
 
   def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints, version: Int): Strategy =
     strategies(version).chooseStrategy(sft, query, hints, version)
@@ -152,18 +154,17 @@ class QueryStrategyDeciderV4 extends VersionedQueryStrategyDecider {
 class QueryStrategyDeciderV5 extends QueryStrategyDeciderV4 {
 
   val ff = CommonFactoryFinder.getFilterFactory2
+
   /**
-   * We've eliminated the best attribute strategies - look for spatio-temporal and use the best attribute
-   * strategy available as a fallback.
+   * Adds in a preferred z3 check before falling back to regular st index
    */
   override def processStFilters(filters: Seq[Filter],
                                 fallback: Option[StrategyDecision],
                                 sft: SimpleFeatureType,
                                 hints: StrategyHints): Strategy = {
-    // finally, prefer spatial filters if available
-    val stStrategy = Z3IdxStrategy.getStrategy(ff.and(filters), sft, hints)
+    // finally, prefer z3 if available
+    val z3Strategy = Z3IdxStrategy.getStrategy(ff.and(filters), sft, hints).map(_.strategy)
     // fallback to the old STIdxStrategy
-    stStrategy.orElse(fallback).map(_.strategy).getOrElse(new STIdxStrategy)
+    z3Strategy.getOrElse(super.processStFilters(filters, fallback, sft, hints))
   }
-
 }

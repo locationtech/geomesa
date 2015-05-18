@@ -48,6 +48,26 @@ class IndexValueEncoderTest extends Specification {
     SimpleFeatureTypes.createType("IndexValueEncoderTest" + index.getAndIncrement, schema)
 
   "IndexValueEncoder" should {
+    "default to id,geom,date" in {
+      val sft = getSft()
+      IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION).fields must containAllOf(Seq("geom", "dtg"))
+    }
+    "default to id,geom if no date" in {
+      val sft = getSft("*geom:Geometry,foo:String")
+      IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION).fields must containAllOf(Seq("geom"))
+    }
+    "allow custom fields to be set" in {
+      val sft = getSft(s"*geom:Geometry:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
+      IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION).fields must containAllOf(Seq("geom", "dtg", "i", "f"))
+    }
+    "always include id,geom,dtg" in {
+      val sft = getSft(s"*geom:Geometry,dtg:Date,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
+      IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION).fields must containAllOf(Seq("geom", "dtg", "i", "f"))
+    }
+    "not allow complex types" in {
+      val sft = getSft(s"*geom:Geometry:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,l:List[String]:$OPT_INDEX_VALUE=true")
+      IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION).fields must containAllOf(Seq("geom", "dtg"))
+    }
 
     "encode and decode id,geom,date" in {
       val sft = getSft()

@@ -1,17 +1,9 @@
 /*
- * Copyright 2014 Commonwealth Computer Research, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the License);
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an AS IS BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0 which
+ * accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
  */
 
 package org.locationtech.geomesa.accumulo
@@ -44,15 +36,17 @@ package object filter {
    * @return       A filter in DNF (described above).
    */
   def rewriteFilterInDNF(filter: Filter)(implicit ff: FilterFactory): Filter = {
-    val ll =  logicDistributionDNF(filter)
-    if(ll.size == 1) {
-      if(ll(0).size == 1) ll(0)(0)
-      else ff.and(ll(0))
-    }
-    else  {
+    val ll = logicDistributionDNF(filter)
+    if (ll.size == 1) {
+      if (ll.head.size == 1) {
+        ll.head.head
+      } else {
+        ff.and(ll.head)
+      }
+    } else {
       val children = ll.map { l =>
         l.size match {
-          case 1 => l(0)
+          case 1 => l.head
           case _ => ff.and(l)
         }
       }
@@ -238,7 +232,8 @@ package object filter {
     val geom = sft.getGeometryDescriptor.getLocalName
     val primary = filter match {
       case f: BinarySpatialOperator =>
-        checkOrder(f.getExpression1, f.getExpression2).exists(_.name == geom)
+        checkOrder(f.getExpression1, f.getExpression2)
+            .exists(p => p.name == null || p.name.isEmpty || p.name == geom)
       case _ => false
     }
     primary && spatialFilters(filter)
@@ -345,12 +340,4 @@ package object filter {
   def checkOrderUnsafe(one: Expression, two: Expression): PropertyLiteral =
     checkOrder(one, two)
         .getOrElse(throw new RuntimeException("Expressions did not contain valid property and literal"))
-
-  /**
-   * Holder for a property name, literal value(s), and the order they are in
-   */
-  case class PropertyLiteral(name: String,
-                             literal: Literal,
-                             secondary: Option[Literal],
-                             flipped: Boolean = false)
 }

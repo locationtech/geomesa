@@ -77,20 +77,20 @@ case class QueryPlanner(sft: SimpleFeatureType,
       }
     }
 
-    val sortedFeatures = if (query.getSortBy != null && query.getSortBy.length > 0) {
-      new LazySortedIterator(features, query.getSortBy)
+    // TODO we should check on ors instead of length now
+    val dedupedFeatures = if (strategyPlans.length > 1 || strategyPlans.exists(_.plan.hasDuplicates)) {
+      new DeDuplicatingIterator(features)
     } else {
       features
     }
 
-    // TODO we should check on ors instead of length now
-    val dedupedFeatures = if (strategyPlans.length > 1 || strategyPlans.exists(_.plan.hasDuplicates)) {
-      new DeDuplicatingIterator(sortedFeatures)
+    val sortedFeatures = if (query.getSortBy != null && query.getSortBy.length > 0) {
+      new LazySortedIterator(dedupedFeatures, query.getSortBy)
     } else {
-      sortedFeatures
+      dedupedFeatures
     }
 
-    adaptIterator(query, dedupedFeatures)
+    adaptIterator(query, sortedFeatures)
   }
 
   /**

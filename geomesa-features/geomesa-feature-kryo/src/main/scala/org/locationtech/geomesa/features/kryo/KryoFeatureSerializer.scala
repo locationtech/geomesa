@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.util.{Date, UUID}
+import java.util.{Date, List => jList, Map => jMap, UUID}
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.slf4j.Logging
@@ -16,6 +16,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.features.kryo.serialization.{KryoReader, KryoWriter}
+import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.features.serialization.{CacheKeyGenerator, ObjectType}
 import org.locationtech.geomesa.utils.cache.{SoftThreadLocal, SoftThreadLocalCache}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -32,6 +33,8 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
 
   protected[kryo] val writers = getWriters(cacheKey, sft)
   protected[kryo] val readers = getReaders(cacheKey, sft)
+
+  private lazy val legacySerializer = serialization.KryoFeatureSerializer(sft, sft, options)
 
   override def serialize(sf: SimpleFeature): Array[Byte] = doWrite(sf)
   override def lazyDeserialize(bytes: Array[Byte], reusableFeature: SimpleFeature = null): SimpleFeature = {
@@ -71,7 +74,6 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
     val offsets = getOffsets(cacheKey, numAttributes)
     val output = getOutput()
     output.writeInt(VERSION, true)
-    assert(output.position() == 1, "VERSION TOOK TOO MUCH SPACE") // TODO
     output.setPosition(5) // leave 4 bytes to write the offsets
     output.writeString(sf.getID)  // TODO optimize for uuids?
     var i = 0
@@ -110,7 +112,10 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
 
   protected[kryo] def readSf(bytes: Array[Byte]): (SimpleFeature, Input) = {
     val input = getInput(bytes)
-    input.setPosition(5) // skip version and offsets //TODO versions
+    if (input.readInt(true) == 1) {
+      return (legacySerializer.read(bytes), input)
+    }
+    input.setPosition(5) // skip version and offsets
     val id = input.readString()
     val attributes = Array.ofDim[AnyRef](numAttributes)
     var i = 0
@@ -135,11 +140,15 @@ class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
   import KryoFeatureSerializer._
 
   private val numProjectedAttributes = projected.getAttributeCount
+  private lazy val legacySerializer = serialization.KryoFeatureSerializer(original, projected, options)
 
   // TODO we can optimize this some
   override protected[kryo] def readSf(bytes: Array[Byte]): (SimpleFeature, Input) = {
     val input = getInput(bytes)
-    input.setPosition(5) // skip version and offsets //TODO versions
+    if (input.readInt(true) == 1) {
+      return (legacySerializer.read(bytes), input)
+    }
+    input.setPosition(5) // skip version and offsets
     val id = input.readString()
     val attributes = Array.ofDim[AnyRef](numProjectedAttributes)
     var i = 0
@@ -164,10 +173,10 @@ object KryoFeatureSerializer {
   val NULL_BYTE     = 0.asInstanceOf[Byte]
   val NON_NULL_BYTE = 1.asInstanceOf[Byte]
 
-  private[this] val inputs = new SoftThreadLocal[Input]()
+  private[this] val inputs  = new SoftThreadLocal[Input]()
   private[this] val outputs = new SoftThreadLocal[Output]()
   private[this] val readers = new SoftThreadLocalCache[String, List[(Input) => AnyRef]]()
-  private[this] val writers = new SoftThreadLocalCache[String, List[(Output, AnyRef) => Int]]()
+  private[this] val writers = new SoftThreadLocalCache[String, List[(Output, AnyRef) => Unit]]()
   private[this] val offsets = new SoftThreadLocalCache[String, Array[Int]]()
 
   lazy val kryoReader = new KryoReader()
@@ -179,6 +188,7 @@ object KryoFeatureSerializer {
     in
   }
 
+  // noinspection AccessorLikeMethodIsEmptyParen
   def getOutput(): Output = {
     val out = outputs.getOrElseUpdate(new Output(1024, -1))
     out.clear()
@@ -188,114 +198,157 @@ object KryoFeatureSerializer {
   def getOffsets(sft: String, size: Int): Array[Int] =
     offsets.getOrElseUpdate(sft, Array.ofDim[Int](size))
 
-  def getWriters(key: String, sft: SimpleFeatureType): List[(Output, AnyRef) => Int] = {
+  // noinspection UnitInMap
+  def getWriters(key: String, sft: SimpleFeatureType): List[(Output, AnyRef) => Unit] = {
     writers.getOrElseUpdate(key, sft.getAttributeDescriptors.map { ad =>
-      ObjectType.selectType(ad.getType.getBinding, sft.getUserData) match {
-        case (ObjectType.STRING, _) =>
-          (o: Output, v: AnyRef) => {
-            val pos = o.position()
-            o.writeString(v.asInstanceOf[String])
-            o.position() - pos
-          }
-        case (ObjectType.INT, _) =>
-          val w = (o: Output, v: AnyRef) => {
-            o.writeInt(v.asInstanceOf[Int])
-            4
-          }
-          writeNullable(w)_
-        case (ObjectType.LONG, _) =>
-          val w = (o: Output, v: AnyRef) => {
-            o.writeLong(v.asInstanceOf[Long])
-            8
-          }
-          writeNullable(w)_
-        case (ObjectType.FLOAT, _) =>
-          val w = (o: Output, v: AnyRef) => {
-            o.writeFloat(v.asInstanceOf[Float])
-            4
-          }
-          writeNullable(w)_
-        case (ObjectType.DOUBLE, _) =>
-          val w = (o: Output, v: AnyRef) => {
-            o.writeDouble(v.asInstanceOf[Double])
-            8
-          }
-          writeNullable(w)_
-        case (ObjectType.BOOLEAN, _) =>
-          val w = (o: Output, v: AnyRef) => {
-            o.writeBoolean(v.asInstanceOf[Boolean])
-            1
-          }
-          writeNullable(w)_
-        case (ObjectType.DATE, _) =>
-          val w = (o: Output, v: AnyRef) => {
-            o.writeLong(v.asInstanceOf[Date].getTime)
-            8
-          }
-          writeNullable(w)_
-        case (ObjectType.UUID, _) =>
-          val w = (o: Output, v: AnyRef) => {
-            val uuid = v.asInstanceOf[UUID]
-            o.writeLong(uuid.getMostSignificantBits)
-            o.writeLong(uuid.getLeastSignificantBits)
-            16
-          }
-          writeNullable(w)_
-        case (ObjectType.GEOMETRY, _) =>
-          val w = (o: Output, v: AnyRef) => {
-            val pos = o.position()
-            kryoWriter.selectGeometryWriter(o, v.asInstanceOf[Geometry])
-            o.position() - pos
-          }
-          writeNullable(w)_
-        case (ObjectType.HINTS, _) => null.asInstanceOf[(Output, AnyRef) => Int] // TODO
-        case (ObjectType.LIST, bindings) => null.asInstanceOf[(Output, AnyRef) => Int] // TODO
-        case (ObjectType.MAP, bindings) => null.asInstanceOf[(Output, AnyRef) => Int] // TODO
-      }
+      val (otype, bindings) = ObjectType.selectType(ad.getType.getBinding, ad.getUserData)
+      matchWriter(otype, bindings)
     }.toList)
   }
 
-  def writeNullable(wrapped: (Output, AnyRef) => Int)(o: Output, v: AnyRef): Int = {
-    if (v == null) {
-      o.write(NULL_BYTE)
-      1
-    } else {
-      o.write(NON_NULL_BYTE)
-      wrapped(o, v) + 1
+  def matchWriter(otype: ObjectType, bindings: Seq[ObjectType] = Seq.empty): (Output, AnyRef) => Unit = {
+    otype match {
+      case ObjectType.STRING =>
+        (o: Output, v: AnyRef) => o.writeString(v.asInstanceOf[String]) // write string supports nulls
+      case ObjectType.INT =>
+        val w = (o: Output, v: AnyRef) => o.writeInt(v.asInstanceOf[Int])
+        writeNullable(w)
+      case ObjectType.LONG =>
+        val w = (o: Output, v: AnyRef) => o.writeLong(v.asInstanceOf[Long])
+        writeNullable(w)
+      case ObjectType.FLOAT =>
+        val w = (o: Output, v: AnyRef) => o.writeFloat(v.asInstanceOf[Float])
+        writeNullable(w)
+      case ObjectType.DOUBLE =>
+        val w = (o: Output, v: AnyRef) => o.writeDouble(v.asInstanceOf[Double])
+        writeNullable(w)
+      case ObjectType.BOOLEAN =>
+        val w = (o: Output, v: AnyRef) => o.writeBoolean(v.asInstanceOf[Boolean])
+        writeNullable(w)
+      case ObjectType.DATE =>
+        val w = (o: Output, v: AnyRef) => o.writeLong(v.asInstanceOf[Date].getTime)
+        writeNullable(w)
+      case ObjectType.UUID =>
+        val w = (o: Output, v: AnyRef) => {
+          val uuid = v.asInstanceOf[UUID]
+          o.writeLong(uuid.getMostSignificantBits)
+          o.writeLong(uuid.getLeastSignificantBits)
+        }
+        writeNullable(w)
+      case ObjectType.GEOMETRY =>
+        writeNullable((o: Output, v: AnyRef) => kryoWriter.selectGeometryWriter(o, v.asInstanceOf[Geometry]))
+      case ObjectType.LIST =>
+        val valueWriter = matchWriter(bindings.head)
+        (o: Output, v: AnyRef) => {
+          val list = v.asInstanceOf[jList[AnyRef]]
+          if (list == null) {
+            o.writeInt(-1, true)
+          } else {
+            o.writeInt(list.size(), true)
+            val iter = list.iterator()
+            while (iter.hasNext) {
+              valueWriter(o, iter.next())
+            }
+          }
+        }
+      case ObjectType.MAP =>
+        val keyWriter = matchWriter(bindings.head)
+        val valueWriter = matchWriter(bindings(1))
+        (o: Output, v: AnyRef) => {
+          val map = v.asInstanceOf[jMap[AnyRef, AnyRef]]
+          if (map == null) {
+            o.writeInt(-1, true)
+          } else {
+            o.writeInt(map.size(), true)
+            val iter = map.entrySet.iterator()
+            while (iter.hasNext) {
+              val entry = iter.next()
+              keyWriter(o, entry.getKey)
+              valueWriter(o, entry.getValue)
+            }
+          }
+        }
+    }
+  }
+
+  def writeNullable(wrapped: (Output, AnyRef) => Unit): (Output, AnyRef) => Unit = {
+    (o: Output, v: AnyRef) => {
+      if (v == null) {
+        o.write(NULL_BYTE)
+      } else {
+        o.write(NON_NULL_BYTE)
+        wrapped(o, v)
+      }
     }
   }
 
   def getReaders(key: String, sft: SimpleFeatureType): List[(Input) => AnyRef] = {
     readers.getOrElseUpdate(key, sft.getAttributeDescriptors.map { ad =>
-      ObjectType.selectType(ad.getType.getBinding, sft.getUserData) match {
-        case (ObjectType.STRING, _) => (i: Input) => i.readString()
-        case (ObjectType.INT, _) => readNullable((i: Input) => i.readInt().asInstanceOf[AnyRef])_
-        case (ObjectType.LONG, _) => readNullable((i: Input) => i.readLong().asInstanceOf[AnyRef])_
-        case (ObjectType.FLOAT, _) => readNullable((i: Input) => i.readFloat().asInstanceOf[AnyRef])_
-        case (ObjectType.DOUBLE, _) => readNullable((i: Input) => i.readDouble().asInstanceOf[AnyRef])_
-        case (ObjectType.BOOLEAN, _) => readNullable((i: Input) => i.readBoolean().asInstanceOf[AnyRef])_
-        case (ObjectType.DATE, _) => readNullable((i: Input) => new Date(i.readLong()).asInstanceOf[AnyRef])_
-        case (ObjectType.UUID, _) =>
-          val w = (i: Input) => {
-            val mostSignificantBits = i.readLong()
-            val leastSignificantBits = i.readLong()
-            new UUID(mostSignificantBits, leastSignificantBits)
-          }
-          readNullable(w)_
-        case (ObjectType.GEOMETRY, _) =>
-          readNullable((i: Input) => kryoReader.selectGeometryReader(i))_
-        case (ObjectType.HINTS, _) => null.asInstanceOf[(Input) => AnyRef] // TODO
-        case (ObjectType.LIST, bindings) => null.asInstanceOf[(Input) => AnyRef] // TODO
-        case (ObjectType.MAP, bindings) => null.asInstanceOf[(Input) => AnyRef] // TODO
-      }
+      val (otype, bindings)  = ObjectType.selectType(ad.getType.getBinding, ad.getUserData)
+      matchReader(otype, bindings)
     }.toList)
   }
 
-  def readNullable(wrapped: (Input) => AnyRef)(i: Input): AnyRef = {
-    if (i.read() == NULL_BYTE) {
-      null
-    } else {
-      wrapped(i)
+  def matchReader(otype: ObjectType, bindings: Seq[ObjectType] = Seq.empty): (Input) => AnyRef = {
+    otype match {
+      case ObjectType.STRING => (i: Input) => i.readString()
+      case ObjectType.INT => readNullable((i: Input) => i.readInt().asInstanceOf[AnyRef])
+      case ObjectType.LONG => readNullable((i: Input) => i.readLong().asInstanceOf[AnyRef])
+      case ObjectType.FLOAT => readNullable((i: Input) => i.readFloat().asInstanceOf[AnyRef])
+      case ObjectType.DOUBLE => readNullable((i: Input) => i.readDouble().asInstanceOf[AnyRef])
+      case ObjectType.BOOLEAN => readNullable((i: Input) => i.readBoolean().asInstanceOf[AnyRef])
+      case ObjectType.DATE => readNullable((i: Input) => new Date(i.readLong()).asInstanceOf[AnyRef])
+      case ObjectType.UUID =>
+        val w = (i: Input) => {
+          val mostSignificantBits = i.readLong()
+          val leastSignificantBits = i.readLong()
+          new UUID(mostSignificantBits, leastSignificantBits)
+        }
+        readNullable(w)
+      case ObjectType.GEOMETRY => readNullable((i: Input) => kryoReader.selectGeometryReader(i))
+      case ObjectType.LIST =>
+        val valueReader = matchReader(bindings.head)
+        (i: Input) => {
+          val size = i.readInt(true)
+          if (size == -1) {
+            null
+          } else {
+            val list = new java.util.ArrayList[AnyRef](size)
+            var index = 0
+            while (index < size) {
+              list.add(valueReader(i))
+              index += 1
+            }
+            list
+          }
+        }
+      case ObjectType.MAP =>
+        val keyReader = matchReader(bindings.head)
+        val valueReader = matchReader(bindings(1))
+        (i: Input) => {
+          val size = i.readInt(true)
+          if (size == -1) {
+            null
+          } else {
+            val map = new java.util.HashMap[AnyRef, AnyRef](size)
+            var index = 0
+            while (index < size) {
+              map.put(keyReader(i), valueReader(i))
+              index += 1
+            }
+            map
+          }
+        }
+    }
+  }
+
+  def readNullable(wrapped: (Input) => AnyRef): (Input) => AnyRef = {
+    (i: Input) => {
+      if (i.read() == NULL_BYTE) {
+        null
+      } else {
+        wrapped(i)
+      }
     }
   }
 }
