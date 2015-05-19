@@ -58,9 +58,6 @@ class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: 
     reuse = DecoderFactory.get().directBinaryDecoder(is, reuse)
     reader.read(null, reuse)
   }
-
-  override def extractFeatureId(bytes: Array[Byte]): String =
-    FeatureSpecificReader.extractId(new ByteArrayInputStream(bytes), reuse)
 }
 
 /**

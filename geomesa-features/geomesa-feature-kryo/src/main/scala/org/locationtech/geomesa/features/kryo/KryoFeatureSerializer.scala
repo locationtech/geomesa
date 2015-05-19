@@ -39,27 +39,7 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
   def getReusableFeature: KryoBufferSimpleFeature = new KryoBufferSimpleFeature(sft, readers)
 
   override def serialize(sf: SimpleFeature): Array[Byte] = doWrite(sf)
-  override def lazyDeserialize(bytes: Array[Byte], reusableFeature: SimpleFeature = null): SimpleFeature = {
-    val sf = if (reusableFeature == null) {
-      getReusableFeature
-    } else {
-      try {
-        reusableFeature.asInstanceOf[KryoBufferSimpleFeature]
-      } catch {
-        case e: Exception =>
-          logger.warn(s"Reusable feature must be of type ${classOf[KryoBufferSimpleFeature]}")
-          getReusableFeature.asInstanceOf[KryoBufferSimpleFeature]
-      }
-    }
-    sf.setBuffer(bytes)
-    sf
-  }
   override def deserialize(bytes: Array[Byte]): SimpleFeature = doRead(bytes)
-  override def extractFeatureId(bytes: Array[Byte]): String = {
-    val input = getInput(bytes)
-    input.setPosition(5) // skip version and offsets
-    input.readString()
-  }
 
   private val doWrite: (SimpleFeature) => Array[Byte] = if (options.withUserData) writeWithUserData else write
   private val doRead: (Array[Byte]) => SimpleFeature = if (options.withUserData) readWithUserData else read
@@ -78,21 +58,25 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
     output.writeInt(VERSION, true)
     output.setPosition(5) // leave 4 bytes to write the offsets
     output.writeString(sf.getID)  // TODO optimize for uuids?
+    // write attributes and keep track off offset into byte array
     var i = 0
     while (i < numAttributes) {
       offsets(i) = output.position()
       writers(i)(output, sf.getAttribute(i))
       i += 1
     }
+    // write the offsets - variable width
     i = 0
     val offsetStart = output.position()
     while (i < numAttributes) {
       output.writeInt(offsets(i), true)
       i += 1
     }
+    // got back and write the start position for the offsets
     val total = output.position()
     output.setPosition(1)
     output.writeInt(offsetStart)
+    // reset the position back to the end of the buffer so we can keep writing more things (e.g. user data)
     output.setPosition(total)
     output
   }
@@ -142,34 +126,59 @@ class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
   import KryoFeatureSerializer._
 
   private val numProjectedAttributes = projected.getAttributeCount
+  private val offsets = Array.fill[Int](numProjectedAttributes)(-1)
+  private val readersInOrder = Array.ofDim[(Input) => AnyRef](numProjectedAttributes)
+  private val indices = Array.ofDim[Int](numAttributes)
+
   private lazy val legacySerializer = serialization.KryoFeatureSerializer(original, projected, options)
+
+  setup()
+
+  private def setup(): Unit = {
+    var i = 0
+    while (i < numAttributes) {
+      val index = projected.indexOf(original.getDescriptor(i).getLocalName)
+      indices(i) = index
+      if (index != -1) {
+        readersInOrder(index) = readers(i)
+      }
+      i += 1
+    }
+  }
 
   override def getReusableFeature = throw new NotImplementedError()
 
-  // TODO we can optimize this some
   override protected[kryo] def readSf(bytes: Array[Byte]): (SimpleFeature, Input) = {
     val input = getInput(bytes)
     if (input.readInt(true) == 1) {
       return (legacySerializer.read(bytes), input)
     }
-    input.setPosition(5) // skip version and offsets
-    val id = input.readString()
     val attributes = Array.ofDim[AnyRef](numProjectedAttributes)
+    // read in the offsets
+    val offsetStart = input.readInt()
+    val id = input.readString()
+    input.setPosition(offsetStart)
     var i = 0
     while (i < numAttributes) {
-      val index = projected.indexOf(original.getDescriptor(i).getLocalName)
-      if (index != -1) {
-        attributes(index) = readers(i)(input)
-      } else {
-        readers(i)(input) // skip entry
+      val offset = input.readInt(true)
+      if (indices(i) != -1) {
+        offsets(indices(i)) = offset
       }
       i += 1
     }
+    // read in the values
+    i = 0
+    while (i < numProjectedAttributes) {
+      if (offsets(i) != -1) {
+        input.setPosition(offsets(i))
+        attributes(i) = readersInOrder(i)(input)
+      }
+      i += 1
+    }
+    // reset position so we can read user data if needed
+    input.setPosition(offsetStart)
     (new ScalaSimpleFeature(id, projected, attributes), input)
   }
-
-  override def lazyDeserialize(bytes: Array[Byte], reusableFeature: SimpleFeature): SimpleFeature =
-    throw new NotImplementedError()
 }
 
 object KryoFeatureSerializer {
@@ -182,8 +191,8 @@ object KryoFeatureSerializer {
 
   private[this] val inputs  = new SoftThreadLocal[Input]()
   private[this] val outputs = new SoftThreadLocal[Output]()
-  private[this] val readers = new SoftThreadLocalCache[String, List[(Input) => AnyRef]]()
-  private[this] val writers = new SoftThreadLocalCache[String, List[(Output, AnyRef) => Unit]]()
+  private[this] val readers = new SoftThreadLocalCache[String, Array[(Input) => AnyRef]]()
+  private[this] val writers = new SoftThreadLocalCache[String, Array[(Output, AnyRef) => Unit]]()
   private[this] val offsets = new SoftThreadLocalCache[String, Array[Int]]()
 
   lazy val kryoReader = new KryoReader()
@@ -206,11 +215,11 @@ object KryoFeatureSerializer {
     offsets.getOrElseUpdate(sft, Array.ofDim[Int](size))
 
   // noinspection UnitInMap
-  def getWriters(key: String, sft: SimpleFeatureType): List[(Output, AnyRef) => Unit] = {
+  def getWriters(key: String, sft: SimpleFeatureType): Array[(Output, AnyRef) => Unit] = {
     writers.getOrElseUpdate(key, sft.getAttributeDescriptors.map { ad =>
       val (otype, bindings) = ObjectType.selectType(ad.getType.getBinding, ad.getUserData)
       matchWriter(otype, bindings)
-    }.toList)
+    }.toArray)
   }
 
   def matchWriter(otype: ObjectType, bindings: Seq[ObjectType] = Seq.empty): (Output, AnyRef) => Unit = {
@@ -289,11 +298,11 @@ object KryoFeatureSerializer {
     }
   }
 
-  def getReaders(key: String, sft: SimpleFeatureType): List[(Input) => AnyRef] = {
+  def getReaders(key: String, sft: SimpleFeatureType): Array[(Input) => AnyRef] = {
     readers.getOrElseUpdate(key, sft.getAttributeDescriptors.map { ad =>
       val (otype, bindings)  = ObjectType.selectType(ad.getType.getBinding, ad.getUserData)
       matchReader(otype, bindings)
-    }.toList)
+    }.toArray)
   }
 
   def matchReader(otype: ObjectType, bindings: Seq[ObjectType] = Seq.empty): (Input) => AnyRef = {

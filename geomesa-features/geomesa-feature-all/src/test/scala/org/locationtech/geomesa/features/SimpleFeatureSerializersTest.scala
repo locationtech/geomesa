@@ -217,16 +217,6 @@ class SimpleFeatureSerializersTest extends Specification {
       decoded must equalFeatures(features)
     }
 
-    "be able to extract feature IDs" >> {
-      val encoder = new AvroFeatureSerializer(sft)
-      val decoder = new AvroFeatureDeserializer(sft)
-
-      val features = getFeatures
-      val encoded = features.map(encoder.serialize)
-
-      encoded.map(decoder.extractFeatureId) mustEqual features.map(_.getID)
-    }
-
     "work when user data were encoded but are not expected by decoder" >> {
       // in this case the encoded user data will be ignored
       val sf = getFeaturesWithVisibility.head
@@ -353,16 +343,6 @@ class SimpleFeatureSerializersTest extends Specification {
       val decoded = encoded.map(decoder.deserialize)
 
       decoded must equalFeatures(features)
-    }
-
-    "be able to extract feature IDs" >> {
-      val encoder = new KryoFeatureSerializer(sft)
-      val decoder = new KryoFeatureSerializer(sft)
-
-      val features = getFeatures
-      val encoded = features.map(encoder.serialize)
-
-      encoded.map(decoder.extractFeatureId) mustEqual features.map(_.getID)
     }
 
     "work user data were encoded but are not expected by decoder" >> {

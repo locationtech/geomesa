@@ -16,14 +16,15 @@
 
 package org.locationtech.geomesa.accumulo.util
 
+import com.typesafe.scalalogging.slf4j.Logging
 import org.junit.{Assert, Test}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 
-class BoundingBoxUtilTest {
+class BoundingBoxUtilTest extends Logging {
   @Test def getRangesTest {
     val bbox: BoundingBox = BoundingBox.apply(GeoHash.apply("tmzcrzpt").getPoint, GeoHash.apply("ttb12p21").getPoint)
     val ranges = BoundingBoxUtil.getRanges(bbox)
-    println(ranges)
+    logger.debug("" + ranges)
     Assert.assertEquals(15, ranges.size)
   }
 }

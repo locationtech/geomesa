@@ -57,7 +57,7 @@ class ProximitySearchProcess extends Logging {
 
                ): SimpleFeatureCollection = {
 
-    logger.info("Attempting Geomesa Proximity Search on collection type " + dataFeatures.getClass.getName)
+    logger.debug("Attempting Geomesa Proximity Search on collection type " + dataFeatures.getClass.getName)
 
     if(!dataFeatures.isInstanceOf[AccumuloFeatureCollection]) {
       logger.warn("The provided data feature collection type may not support geomesa proximity search: "+dataFeatures.getClass.getName)
@@ -102,7 +102,7 @@ class ProximityVisitor(inputFeatures: SimpleFeatureCollection,
   def setValue(r: SimpleFeatureCollection) = resultCalc = ProximityResult(r)
 
   def proximitySearch(source: SimpleFeatureSource, query: Query) = {
-    logger.info("Running Geomesa Proximity Search on source type "+source.getClass.getName)
+    logger.debug("Running Geomesa Proximity Search on source type "+source.getClass.getName)
     val combinedFilter = ff.and(query.getFilter, dwithinFilters("meters"))
     source.getFeatures(combinedFilter)
   }

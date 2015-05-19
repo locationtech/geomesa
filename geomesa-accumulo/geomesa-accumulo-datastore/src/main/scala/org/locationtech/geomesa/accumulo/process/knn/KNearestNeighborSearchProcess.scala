@@ -66,7 +66,7 @@ class KNearestNeighborSearchProcess extends Logging {
                maxSearchDistance: java.lang.Double
                ): SimpleFeatureCollection = {
 
-    logger.info("Attempting Geomesa K-Nearest Neighbor Search on collection type " + dataFeatures.getClass.getName)
+    logger.debug("Attempting Geomesa K-Nearest Neighbor Search on collection type " + dataFeatures.getClass.getName)
 
     if(!dataFeatures.isInstanceOf[AccumuloFeatureCollection]) {
       logger.warn("The provided data feature collection type may not support geomesa KNN search: "+dataFeatures.getClass.getName)
@@ -112,7 +112,7 @@ class KNNVisitor( inputFeatures:     SimpleFeatureCollection,
     *
     */
   def kNNSearch(source: SimpleFeatureSource, query: Query) = {
-    logger.info("Running Geomesa K-Nearest Neighbor Search on source type " + source.getClass.getName)
+    logger.debug("Running Geomesa K-Nearest Neighbor Search on source type " + source.getClass.getName)
 
     // create a new Feature collection to hold the results of the KNN search around each point
     val resultCollection = new DefaultFeatureCollection

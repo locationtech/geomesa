@@ -94,12 +94,12 @@ class AttributeIndexIterator
       }
 
       case IndexCoverage.JOIN => (stFilter, transform) match {
-        case (null, null)                         => setTopIndexInclude
-        case (_, null)                            => setTopIndexFilter
-        case (null, _) if (attributeType == null) => setTopIndexTransform
-        case (null, _)                            => setTopIndexTransformAttr
-        case (_, _)    if (attributeType == null) => setTopIndexFilterTransform
-        case (_, _)                               => setTopIndexFilterTransformAttr
+        case (null, null)                       => setTopIndexInclude
+        case (_, null)                          => setTopIndexFilter
+        case (null, _) if attributeType == null => setTopIndexTransform
+        case (null, _)                          => setTopIndexTransformAttr
+        case (_, _)    if attributeType == null => setTopIndexFilterTransform
+        case (_, _)                             => setTopIndexFilterTransformAttr
       }
     }
   }

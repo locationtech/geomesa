@@ -49,7 +49,7 @@ class QueryProcess extends Logging {
                filter: Filter
                ): SimpleFeatureCollection = {
 
-    logger.info("Attempting Geomesa query on type " + features.getClass.getName)
+    logger.debug("Attempting Geomesa query on type " + features.getClass.getName)
 
     if(features.isInstanceOf[ReTypingFeatureCollection]) {
       logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
@@ -84,7 +84,7 @@ class QueryVisitor(features: SimpleFeatureCollection,
   def setValue(r: SimpleFeatureCollection) = resultCalc = QueryResult(r)
 
   def query(source: SimpleFeatureSource, query: Query) = {
-    logger.info("Running Geomesa query on source type "+source.getClass.getName)
+    logger.debug("Running Geomesa query on source type "+source.getClass.getName)
     val combinedFilter = ff.and(query.getFilter, filter)
     source.getFeatures(combinedFilter)
   }

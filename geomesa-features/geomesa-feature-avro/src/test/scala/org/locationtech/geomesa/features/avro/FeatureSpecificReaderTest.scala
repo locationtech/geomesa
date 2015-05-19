@@ -20,6 +20,7 @@ import java.io._
 import java.text.SimpleDateFormat
 import java.util.UUID
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{LineString, Point, Polygon}
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 import org.geotools.data.DataUtilities
@@ -37,7 +38,7 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.Random
 
-class FeatureSpecificReaderTest {
+class FeatureSpecificReaderTest extends Logging {
 
 
   def createTypeWithGeo: AvroSimpleFeature = {
@@ -342,11 +343,11 @@ class FeatureSpecificReaderTest {
 
   @Test
   def speedTestWithStringFields() = {
-    println("Beginning Performance Testing against file...")
+    logger.debug("Beginning Performance Testing against file...")
     val numFields = 60
     val numRecords = 1000
-    println(f"Number of fields: $numFields%d")
-    println(f"Number of records: $numRecords%d")
+    logger.debug(f"Number of fields: $numFields%d")
+    logger.debug(f"Number of records: $numRecords%d")
 
     val geoSchema = buildStringSchema(numFields)
     val sfList = for (i <- (0 until numRecords).toList) yield  createStringFeatures(geoSchema, numFields, i.toString)
@@ -360,13 +361,13 @@ class FeatureSpecificReaderTest {
     val pipeStart = System.currentTimeMillis()
     readPipeFile(pipeFile, oldType)
     val pipeTime = System.currentTimeMillis() - pipeStart
-    println(f"Text Read time $pipeTime%dms")
+    logger.debug(f"Text Read time $pipeTime%dms")
 
     val fsr = new FeatureSpecificReader(oldType, subsetType)
     val avroStart = System.currentTimeMillis()
     readAvroWithFsr(fsr, avroFile)
     val avroTime = System.currentTimeMillis() - avroStart
-    println(f"Avro Subset Read time $avroTime%dms")
+    logger.debug(f"Avro Subset Read time $avroTime%dms")
 
   }
 

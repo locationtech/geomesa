@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.util.{Collection => jCollection, List => jList}
+import java.util.{Collection => jCollection, HashMap => jHashMap, List => jList, Map => jMap}
 
 import com.esotericsoftware.kryo.io.Input
 import com.vividsolutions.jts.geom.Geometry
@@ -16,11 +16,11 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.expression.PropertyName
+import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
 
 import scala.collection.JavaConversions._
@@ -29,14 +29,29 @@ object LazySimpleFeature {
   val NULL_BYTE = 0.asInstanceOf[Byte]
 }
 
-class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: List[(Input) => AnyRef]) extends SimpleFeature {
+class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: Array[(Input) => AnyRef]) extends SimpleFeature {
 
   private val input = new Input
   private val offsets = Array.ofDim[Int](sft.getAttributeCount)
-
-  private var id: String = null
+  private lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
+  private var userData: jHashMap[AnyRef, AnyRef] = null
 
   private var binaryTransform: () => Array[Byte] = input.getBuffer
+
+  def transform(): Array[Byte] = binaryTransform()
+
+  def setBuffer(bytes: Array[Byte]) = {
+    input.setBuffer(bytes)
+    // reset our offsets
+    input.setPosition(1) // skip version
+    input.setPosition(input.readInt()) // set to offsets start
+    var i = 0
+    while (i < offsets.length) {
+      offsets(i) = input.readInt(true)
+      i += 1
+    }
+    userData = null
+  }
 
   def setTransforms(transforms: String, transformSchema: SimpleFeatureType) = {
     val tdefs = TransformProcess.toDefinition(transforms)
@@ -48,10 +63,10 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: List[(Input) => A
         val buf = input.getBuffer
         var length = offsets(0) // space for version, offset block and ID
         val offsetsAndLengths = indices.map { i =>
-          val l = (if (i < offsets.length - 1) offsets(i + 1) else buf.length) - offsets(i)
-          length += l
-          (offsets(i), l)
-        }
+            val l = (if (i < offsets.length - 1) offsets(i + 1) else buf.length) - offsets(i)
+            length += l
+            (offsets(i), l)
+          }
         val dst = Array.ofDim[Byte](length)
         // copy the version, offset block and id - offset block isn't used by non-lazy deserialization
         System.arraycopy(buf, 0, dst, 0, offsets(0))
@@ -78,72 +93,73 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: List[(Input) => A
     }
   }
 
-  lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
-
-  def setBuffer(bytes: Array[Byte]) = {
-    input.setBuffer(bytes)
-    // reset our offsets
-    input.setPosition(1) // skip version
-    input.setPosition(input.readInt()) // set to offsets start
-    var i = 0
-    while (i < offsets.length) {
-      offsets(i) = input.readInt(true)
-      i += 1
-    }
-  }
-
   override def getAttribute(index: Int) = {
     input.setPosition(offsets(index))
     readers(index)(input)
   }
 
-  def transform(): Array[Byte] = binaryTransform()
+  override def getType: SimpleFeatureType = sft
+  override def getFeatureType: SimpleFeatureType = sft
+  override def getName: Name = sft.getName
 
-  override def getFeatureType = sft
-  override def getType = sft
-  override def getIdentifier = new FeatureIdImpl(getID)
-  override def getID = {
-    // TODO this needs to reference the featureId, as it can be updated
+  override def getIdentifier: FeatureId = new FeatureIdImpl(getID)
+  override def getID: String = {
     input.setPosition(5)
     input.readString()
   }
-  override def getName = sft.getName
 
-  override def getAttribute(name: Name) = getAttribute(name.getLocalPart)
-  override def getAttribute(name: String) = {
+  override def getAttribute(name: Name): AnyRef = getAttribute(name.getLocalPart)
+  override def getAttribute(name: String): Object = {
     val index = sft.indexOf(name)
     if (index == -1) null else getAttribute(index)
   }
 
-  override def getDefaultGeometry: Object = if (geomIndex == -1) null else getAttribute(geomIndex)
-  override def getAttributeCount = sft.getAttributeCount
+  override def getDefaultGeometry: AnyRef = getAttribute(geomIndex)
+  override def getAttributeCount: Int = sft.getAttributeCount
 
   override def getBounds: BoundingBox = getDefaultGeometry match {
     case g: Geometry => new ReferencedEnvelope(g.getEnvelopeInternal, sft.getCoordinateReferenceSystem)
-    case _ => new ReferencedEnvelope(sft.getCoordinateReferenceSystem)
+    case _           => new ReferencedEnvelope(sft.getCoordinateReferenceSystem)
   }
+
+  override def getAttributes: jList[AnyRef] = {
+    val attributes = new java.util.ArrayList[AnyRef](offsets.length)
+    var i = 0
+    while (i < offsets.length) {
+      attributes.add(getAttribute(i))
+      i += 1
+    }
+    attributes
+  }
+
+  override def getUserData: jMap[AnyRef, AnyRef] = {
+    if (userData == null) {
+      userData = new jHashMap[AnyRef, AnyRef]()
+    }
+    userData
+  }
+
+  override def getDefaultGeometryProperty = ???
+  override def getProperties: jCollection[Property] = ???
+  override def getProperties(name: Name) = ???
+  override def getProperties(name: String) = ???
+  override def getProperty(name: Name) = ???
+  override def getProperty(name: String) = ???
+  override def getValue = ???
+  override def getDescriptor = ???
 
   override def setAttribute(name: Name, value: Object) = ???
   override def setAttribute(name: String, value: Object) = ???
   override def setAttribute(index: Int, value: Object) = ???
   override def setAttributes(vals: jList[Object]) = ???
   override def setAttributes(vals: Array[Object]) = ???
-  override def getAttributes: jList[Object] = ???
   override def setDefaultGeometry(geo: Object) = ???
-  override def getDefaultGeometryProperty = ???
   override def setDefaultGeometryProperty(geoAttr: GeometryAttribute) = ???
-  override def getProperties: jCollection[Property] = ???
-  override def getProperties(name: Name) = ???
-  override def getProperties(name: String) = ???
-  override def getProperty(name: Name) = ???
-  override def getProperty(name: String) = ???
-  override def getUserData = ???
-  override def getValue = ???
   override def setValue(newValue: Object) = ???
   override def setValue(values: jCollection[Property]) = ???
-  override def getDescriptor = ???
+
   override def isNillable = true
   override def validate() = ???
 
-  override def toString = s"LazyKryoSimpleFeature:$getID"
+  override def toString = s"KryoBufferSimpleFeature:$getID"
 }

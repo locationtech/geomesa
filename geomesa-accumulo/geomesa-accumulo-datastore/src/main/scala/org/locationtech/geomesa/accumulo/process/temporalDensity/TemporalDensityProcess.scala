@@ -63,9 +63,9 @@ class TemporalDensityProcess extends Logging {
 
                ): SimpleFeatureCollection = {
 
-    logger.info("Attempting Geomesa temporal density on type " + features.getClass.getName)
+    logger.debug("Attempting Geomesa temporal density on type " + features.getClass.getName)
 
-    if(features.isInstanceOf[ReTypingFeatureCollection]){
+    if (features.isInstanceOf[ReTypingFeatureCollection]) {
       logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
 
@@ -96,7 +96,7 @@ class TemporalDensityVisitor(features: SimpleFeatureCollection, interval: Interv
   def setValue(r: SimpleFeatureCollection) = resultCalc = TDResult(r)
 
   def query(source: SimpleFeatureSource, query: Query) = {
-    logger.info("Running Geomesa temporal density process on source type " + source.getClass.getName)
+    logger.debug("Running Geomesa temporal density process on source type " + source.getClass.getName)
     query.getHints.put(QueryHints.TEMPORAL_DENSITY_KEY, java.lang.Boolean.TRUE)
     query.getHints.put(QueryHints.TIME_INTERVAL_KEY, interval)
     query.getHints.put(QueryHints.TIME_BUCKETS_KEY, buckets)

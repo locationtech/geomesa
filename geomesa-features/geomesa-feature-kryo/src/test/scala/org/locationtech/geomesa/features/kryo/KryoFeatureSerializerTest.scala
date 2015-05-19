@@ -40,7 +40,7 @@ class KryoFeatureSerializerTest extends Specification {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serializer = new KryoFeatureSerializer(sft, SerializationOptions.none)
+      val serializer = new KryoFeatureSerializer(sft)
       val serialized = serializer.serialize(sf)
       val deserialized = serializer.deserialize(serialized)
 
@@ -113,7 +113,6 @@ class KryoFeatureSerializerTest extends Specification {
     }
 
     "correctly project features" in {
-
       val sft = SimpleFeatureTypes.createType("fullType", "name:String,*geom:Point,dtg:Date")
       val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point")
 
@@ -122,29 +121,36 @@ class KryoFeatureSerializerTest extends Specification {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-//      "when serializing" >> {
-//        val serializer = new KryoFeatureSerializer(sft, projectedSft, EncodingOptions.none)
-//        val deserializer = KryoFeatureSerializer(projectedSft)
-//
-//        val serialized = serializer.write(sf)
-//        val deserialized = deserializer.read(serialized)
-//
-//        deserialized.getID mustEqual sf.getID
-//        deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
-//        deserialized.getAttributeCount mustEqual 1
-//      }
+      val serializer = new KryoFeatureSerializer(sft)
+      val deserializer = new ProjectingKryoFeatureDeserializer(sft, projectedSft)
 
-      "when deserializing" >> {
-        val serializer = new KryoFeatureSerializer(sft)
-        val deserializer = new ProjectingKryoFeatureDeserializer(sft, projectedSft, SerializationOptions.none)
+      val serialized = serializer.write(sf)
+      val deserialized = deserializer.read(serialized)
 
-        val serialized = serializer.write(sf)
-        val deserialized = deserializer.read(serialized)
+      deserialized.getID mustEqual sf.getID
+      deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
+      deserialized.getAttributeCount mustEqual 1
+    }
 
-        deserialized.getID mustEqual sf.getID
-        deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
-        deserialized.getAttributeCount mustEqual 1
-      }
+    "correctly project features to larger sfts" in {
+      val sft = SimpleFeatureTypes.createType("fullType", "name:String,*geom:Point,dtg:Date")
+      val projectedSft = SimpleFeatureTypes.createType("projectedType",
+        "name1:String,name2:String,*geom:Point,otherDate:Date")
+
+      val sf = new ScalaSimpleFeature("testFeature", sft)
+      sf.setAttribute("name", "foo")
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+      val serializer = new KryoFeatureSerializer(sft)
+      val deserializer = new ProjectingKryoFeatureDeserializer(sft, projectedSft)
+
+      val serialized = serializer.write(sf)
+      val deserialized = deserializer.read(serialized)
+
+      deserialized.getID mustEqual sf.getID
+      deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
+      deserialized.getAttributeCount mustEqual 4
     }
 
     "be backwards compatible" in {
@@ -187,18 +193,18 @@ class KryoFeatureSerializerTest extends Specification {
       val serializer = new KryoFeatureSerializer(sft, SerializationOptions.none)
       val serialized = serializer.serialize(sf)
 
-//      val start = System.currentTimeMillis()
-//      (0 until 1000000).foreach { _ =>
-//        val de = serializer.read(serialized)
-//        de.getAttribute(1)
-//      }
-//      println(s"took ${System.currentTimeMillis() - start}ms")
+      val start = System.currentTimeMillis()
+      (0 until 1000000).foreach { _ =>
+        val de = serializer.read(serialized)
+        de.getAttribute(1)
+      }
+      println(s"took ${System.currentTimeMillis() - start}ms")
 
       val start2 = System.currentTimeMillis()
-      val reusable = serializer.lazyDeserialize(serialized, null)
+      val reusable = serializer.getReusableFeature
       (0 until 1000000).foreach { _ =>
-        val laz = serializer.lazyDeserialize(serialized, reusable)
-        laz.getAttribute(7)
+        reusable.setBuffer(serialized)
+        reusable.getAttribute(7)
       }
       println(s"took ${System.currentTimeMillis() - start2}ms")
 

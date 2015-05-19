@@ -93,7 +93,7 @@ class TubeSelectProcess extends Logging {
 
                ): SimpleFeatureCollection = {
 
-    logger.info("Tube selecting on collection type "+featureCollection.getClass.getName)
+    logger.debug("Tube selecting on collection type "+featureCollection.getClass.getName)
 
     // assume for now that firstFeatures is a singleton collection
     val tubeVisitor = new TubeVisitor(
@@ -151,7 +151,7 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
 
   def tubeSelect(source: SimpleFeatureSource, query: Query): SimpleFeatureCollection = {
 
-    logger.info("Visiting source type: "+source.getClass.getName)
+    logger.debug("Visiting source type: "+source.getClass.getName)
 
     val geomProperty = ff.property(source.getSchema.getGeometryDescriptor.getName)
     val dateProperty = ff.property(source.getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])

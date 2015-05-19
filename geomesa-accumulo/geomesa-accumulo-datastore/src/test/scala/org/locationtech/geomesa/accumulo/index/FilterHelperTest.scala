@@ -127,7 +127,7 @@ class FilterHelperTest extends Specification with Mockito with Logging {
 
         val extractedInterval = extractDT(Seq(filter))
         val expectedInterval = new Interval(start, end)
-        println(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
+        logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)
       }
     }

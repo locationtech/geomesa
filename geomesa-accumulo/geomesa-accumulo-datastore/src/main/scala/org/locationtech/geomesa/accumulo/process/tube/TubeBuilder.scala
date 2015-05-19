@@ -142,7 +142,7 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
   }
 
   override def createTube = {
-    logger.info("Creating tube with no gap filling")
+    logger.debug("Creating tube with no gap filling")
 
     val transformed = transform(tubeFeatures, dtgField)
     val buffered = buffer(transformed, bufferDistance)
@@ -166,7 +166,7 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
   def nextId = id.getAndIncrement.toString
 
   override def createTube = {
-    logger.info("Creating tube with line gap fill")
+    logger.debug("Creating tube with line gap fill")
 
     val transformed = transform(tubeFeatures, dtgField)
     val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }

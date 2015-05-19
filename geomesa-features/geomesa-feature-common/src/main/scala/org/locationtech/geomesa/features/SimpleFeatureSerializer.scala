@@ -47,7 +47,4 @@ trait SimpleFeatureSerializer extends HasEncodingOptions {
  */
 trait SimpleFeatureDeserializer extends HasEncodingOptions {
   def deserialize(bytes: Array[Byte]): SimpleFeature
-  def lazyDeserialize(bytes: Array[Byte], reusableFeature: SimpleFeature = null): SimpleFeature =
-    deserialize(bytes)
-  def extractFeatureId(bytes: Array[Byte]): String
 }
