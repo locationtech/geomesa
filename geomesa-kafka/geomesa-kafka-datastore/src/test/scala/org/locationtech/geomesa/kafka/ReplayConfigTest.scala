@@ -27,7 +27,7 @@ class ReplayConfigTest extends Specification with Mockito {
 
   "ReplayConfig" should {
 
-    "throw an execption if start is after end" >> {
+    "throw an exception if start is after end" >> {
 
       val start = new Instant(19)
       val end = new Instant(15)

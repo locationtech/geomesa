@@ -15,9 +15,9 @@
  */
 package org.locationtech.geomesa.utils.geotools
 
+import org.geotools.data.Query
 import org.geotools.data.store.{ContentFeatureSource, ContentFeatureStore}
-import org.geotools.data.{FeatureReader, Query}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.FR
 
 /** Parent for any trait adding support to a [[ContentFeatureSource]] such as 'retype', 'sort', 'offset',
   * or 'limit'.
@@ -31,8 +31,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * their ``addSupport`` implementation so that support can be chained and applied left to right.
   */
 trait ContentFeatureSourceSupport {
-
-  type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
 
   /** Adds support to given ``reader``, based on the ``query`` and returns a wrapped [[FR]].  Sub-traits
     * must override.

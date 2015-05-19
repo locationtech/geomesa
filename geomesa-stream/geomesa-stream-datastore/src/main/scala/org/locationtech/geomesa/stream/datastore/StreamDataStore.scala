@@ -11,15 +11,14 @@ import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data._
-import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store._
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.filter.FidFilterImpl
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.stream.SimpleFeatureStreamSource
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{DFI, DFR, FR}
 import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -110,11 +109,6 @@ class StreamFeatureStore(entry: ContentEntry,
                          qt: SynchronizedQuadtree,
                          sft: SimpleFeatureType)
   extends ContentFeatureStore(entry, query) {
-
-  type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
-  type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
-  type DFI = DelegateFeatureIterator[SimpleFeature]
-
 
   override def canFilter: Boolean = true
 

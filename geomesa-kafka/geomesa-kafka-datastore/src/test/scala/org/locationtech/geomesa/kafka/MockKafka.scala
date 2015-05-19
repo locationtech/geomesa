@@ -218,8 +218,12 @@ class MockOffsetManager(mk: MockKafka) extends OffsetManager(mk.consumerConfig) 
   def getOffsetsBefore(topic: String, partitions: Seq[PartitionMetadata], time: Long, config: ConsumerConfig): Offsets = ???
 
   def getLatestOffset(topic: String, partitions: Seq[PartitionMetadata]): Offsets =
-    partitions.map(pm => new TopicAndPartition(topic, pm.partitionId))
-              .map(tap => tap -> mk.latestOffset(tap)).toMap
+    if (partitions.nonEmpty) {
+      partitions.map(pm => new TopicAndPartition(topic, pm.partitionId))
+        .map(tap => tap -> mk.latestOffset(tap)).toMap
+    } else {
+      Map(new TopicAndPartition(topic, 0) -> 0L)
+    }
 
   def findOffsets(topic: String,
                   partitions: Seq[PartitionMetadata],

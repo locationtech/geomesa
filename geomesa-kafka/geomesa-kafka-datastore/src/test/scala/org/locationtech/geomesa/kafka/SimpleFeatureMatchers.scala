@@ -24,10 +24,6 @@ trait SimpleFeatureMatchers extends Specification {
   def containFeatures(sf: SimpleFeature*): Matcher[Seq[SimpleFeature]] =
     contain(exactly(sf.map(equalSF) : _*))
 
-  def containGeoMessages(sfs: Seq[GeoMessage]): Matcher[Seq[GeoMessage]] =
-    contain(exactly(sfs.map(equalGeoMessage) : _*))
-
-
   def containSF(expected: SimpleFeature): Matcher[Seq[SimpleFeature]] = {
     val matcher = equalSF(expected)
 
@@ -42,7 +38,13 @@ trait SimpleFeatureMatchers extends Specification {
       sf.getUserData mustEqual expected.getUserData
     }
   }
-  
+
+  def containGeoMessages(sfs: Seq[GeoMessage]): Matcher[Seq[GeoMessage]] =
+    contain(exactly(sfs.map(equalGeoMessage) : _*))
+
+  def equalGeoMessages(expected: Seq[GeoMessage]): Matcher[Seq[GeoMessage]] =
+    contain(exactly(expected.map(equalGeoMessage) : _*))
+
   def equalGeoMessage(expected: GeoMessage): Matcher[GeoMessage] = expected match {
     case _: Delete => equalTo(expected)
     case _: Clear => equalTo(expected)

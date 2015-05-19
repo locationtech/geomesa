@@ -15,11 +15,18 @@
  */
 package org.locationtech.geomesa.kafka
 
+import org.geotools.data.EmptyFeatureReader
 import org.joda.time.Instant
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.FR
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
+import org.specs2.matcher.{MatchResult, ValueCheck}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.annotation.tailrec
 
 @RunWith(classOf[JUnitRunner])
 class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito with SimpleFeatureMatchers {
@@ -144,6 +151,79 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
         fs.indexAtTime(12510) must beNone
       }
     }
+
+    "create a snapshot" >> {
+
+      val msgs = Seq(
+        CreateOrUpdate(new Instant(10993), track0v0), // 0
+        CreateOrUpdate(new Instant(11001), track3v0), // 1
+        CreateOrUpdate(new Instant(11549), track3v1), // 2
+
+        CreateOrUpdate(new Instant(11994), track0v1), // 3
+        CreateOrUpdate(new Instant(11995), track1v0), // 4
+        CreateOrUpdate(new Instant(11995), track3v2), // 5
+
+        CreateOrUpdate(new Instant(12998), track1v1), // 6
+        CreateOrUpdate(new Instant(13000), track2v0), // 7
+        CreateOrUpdate(new Instant(13002), track3v3), // 8
+        CreateOrUpdate(new Instant(13002), track0v2)) // 9
+
+      val replayConfig = ReplayConfig(10000L, 13100L, 300L)
+      val fs = featureSource(msgs, replayConfig)
+
+      "using a given valid time" >> {
+        val expected = msgs.slice(3, 6).reverse
+        val result = fs.snapshot(Some(12000L))
+        result must beSome(equalsSnapshot(expected))
+      }
+
+      "using the most recent time if none is given" >> {
+        val expected = msgs.slice(6, 10).reverse
+        val result = fs.snapshot(None)
+        result must beSome(equalsSnapshot(expected))
+      }
+
+      "or not if time is invalid" >> {
+        val result = fs.snapshot(Some(20000L))
+        result must beNone
+      }
+
+      "or not if no data is available" >> {
+        val result = fs.snapshot(Some(11900L))
+        result must beNone
+      }
+    }
+
+    "get a reader containing the correct features" >> {
+      val msgs = Seq(
+        CreateOrUpdate(new Instant(10993), track0v0), // 0
+        CreateOrUpdate(new Instant(11001), track3v0), // 1
+        CreateOrUpdate(new Instant(11549), track3v1), // 2
+
+        CreateOrUpdate(new Instant(11994), track0v1), // 3
+        CreateOrUpdate(new Instant(11995), track1v0), // 4
+        CreateOrUpdate(new Instant(11995), track3v2), // 5
+
+        CreateOrUpdate(new Instant(12998), track1v1), // 6
+        CreateOrUpdate(new Instant(13000), track2v0), // 7
+        CreateOrUpdate(new Instant(13002), track3v3), // 8
+        CreateOrUpdate(new Instant(13002), track0v2)) // 9
+
+      val replayConfig = ReplayConfig(10000, 12000L, 100L)
+      val fs = featureSource(msgs, replayConfig)
+
+      val result = fs.getReaderForFilter(Filter.INCLUDE)
+      validateFR(result, expect(track0v1, track1v0, track3v2))
+    }
+
+    "or an empty reader if no data" >> {
+      val replayConfig = ReplayConfig(12000, 12000L, 100L)
+      val fs = featureSource(Seq.empty[GeoMessage], replayConfig)
+
+      val result = fs.getReaderForFilter(Filter.INCLUDE)
+      result must beAnInstanceOf[EmptyFeatureReader[SimpleFeatureType, SimpleFeature]]
+      result.getFeatureType mustEqual sft
+    }
   }
 
   def featureSource(messages: Seq[GeoMessage], replayConfig: ReplayConfig): ReplayKafkaConsumerFeatureSource = {
@@ -156,5 +236,40 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
     messages.foreach(msg => mockKafka.send(encoder.encodeMessage(topic, msg)))
 
     new ReplayKafkaConsumerFeatureSource(entry, sft, topic, consumerFactory, replayConfig)
+  }
+
+  def equalsSnapshot(expectedMsgs: Seq[GeoMessage]): ValueCheck[ReplaySnapshotFeatureCache] = {
+    s: ReplaySnapshotFeatureCache =>
+      s.schema mustEqual sft
+      s.events must equalGeoMessages(expectedMsgs)
+  }
+
+  def expect(sf: SimpleFeature*): Set[SimpleFeature] = {
+    // duplicate transport encode and decode - changes SimpleFeatureImplementation
+    val sfEncoder = new GeoMessageEncoder(sft).sfEncoder
+    val sfDecoder = new GeoMessageDecoder(sft).sfDecoder
+    sf.map(sf => sfDecoder.decode(sfEncoder.encode(sf))).toSet
+  }
+
+  def validateFR(actual: FR, expected: Set[SimpleFeature]): MatchResult[Any] = {
+
+    @tailrec
+    def loop(reader: FR, expected: Set[SimpleFeature]): MatchResult[Any] = {
+      if (!reader.hasNext) {
+        // exhausted reader - must have matched all expected features
+        expected must beEmpty
+      } else {
+        val next = reader.next()
+
+        val result = expected aka s"Unexpected value found: $next" must contain(next)
+        if (!result.isSuccess) {
+          result
+        } else {
+          loop(reader, expected - next)
+        }
+      }
+    }
+
+    loop(actual, expected)
   }
 }

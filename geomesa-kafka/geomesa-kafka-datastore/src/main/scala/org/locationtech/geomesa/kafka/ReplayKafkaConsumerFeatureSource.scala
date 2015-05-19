@@ -23,6 +23,7 @@ import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.kafka.consumer.offsets.{FindOffset, LatestOffset}
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.FR
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 import org.opengis.filter.expression.PropertyName
@@ -39,29 +40,38 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
                                        query: Query = null)
   extends KafkaConsumerFeatureSource(entry, sft, query) {
 
+  import TimestampFilterSplit.split
+
   // messages are stored as an array where the most recent is at index 0
   private[kafka] val messages: Array[GeoMessage] = readMessages()
 
   override def getReaderForFilter(filter: Filter): FR = {
-    val split = TimestampFilterSplit.split(filter)
 
-    val reader = if (messages.isEmpty) {
+    val reader: Option[FR] = if (messages.isEmpty) {
       // no data!
       None
     } else {
-      split.map { s =>
-        val (startTime, startIndex) = s.ts
-          .map(ts => (ts, indexAtTime(ts)))
-          .getOrElse((replayConfig.end.getMillis, Some(0)))
-        val filter = s.filter.getOrElse(Filter.INCLUDE)
+      split(filter).flatMap { tfs =>
+        val time = tfs.ts
+        val filter = tfs.filter.getOrElse(Filter.INCLUDE)
 
-        startIndex.map { si =>
-          Some(getReaderAtTime(filter, si, startTime))
-        }.getOrElse(None)
-      }.getOrElse(None)
+        snapshot(time).map(_.getReaderForFilter(filter))
+      }
     }
 
     reader.getOrElse(new EmptyFeatureReader[SimpleFeatureType, SimpleFeature](sft))
+  }
+
+  private[kafka] def snapshot(time: Option[Long]): Option[ReplaySnapshotFeatureCache] = {
+
+    val (startTime, startIndex) = time
+      .map(ts => (ts, indexAtTime(ts)))
+      .getOrElse((replayConfig.end.getMillis, Some(0)))
+
+    startIndex.map { si =>
+      val endTime = startTime - replayConfig.readBehind.getMillis
+      snapshot(si, endTime)
+    }.getOrElse(None)
   }
 
   /** @return the index of the most recent [[GeoMessage]] at or before the given ``time``
@@ -95,18 +105,11 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     }
   }
 
-  private def getReaderAtTime(filter: Filter, startIndex: Int, startTime: Long) = {
-
-    val endTime = startTime - replayConfig.readBehind.getMillis
-
-    snapshot(startIndex, endTime).getReaderForFilter(filter)
-  }
-
   /**
     * @param startIndex the index of the most recent message to process
     * @param endTime the time of the last message to process
     */
-  private def snapshot(startIndex: Int, endTime: Long): ReplaySnapshotFeatureCache = {
+  private def snapshot(startIndex: Int, endTime: Long): Option[ReplaySnapshotFeatureCache] = {
     val snapshot: Seq[GeoMessage] = messages.view
       .drop(startIndex)
       .takeWhile {
@@ -115,7 +118,11 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
         case e => e.timestamp.getMillis >= endTime
       }
 
-    new ReplaySnapshotFeatureCache(sft, snapshot)
+    if (snapshot.isEmpty) {
+      None
+    } else {
+      Some(ReplaySnapshotFeatureCache(sft, snapshot))
+    }
   }
 
   private def readMessages(): Array[GeoMessage] = {
@@ -163,8 +170,9 @@ object ReplayKafkaConsumerFeatureSource {
   * @param events must be ordered, with the most recent first; must consist of only [[CreateOrUpdate]] and
   *               [[Delete]] messages
   */
-class ReplaySnapshotFeatureCache(override val schema: SimpleFeatureType,
-                                 events: Seq[GeoMessage])
+private[kafka] case class ReplaySnapshotFeatureCache(override val schema: SimpleFeatureType,
+                                                     events: Seq[GeoMessage])
+
   extends KafkaConsumerFeatureCache {
 
   override lazy val (qt, features) = processMessages
