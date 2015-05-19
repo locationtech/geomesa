@@ -56,6 +56,23 @@ object GeoMesaInputFormat extends Logging {
   }
 
   /**
+   * Configure the number of desired splits. This should be called with the final intended
+   * value. In general, you should use the number of shards * a guess about the number of
+   * partitions or splits you want per shard. The default is 2. Behavior is undefined for
+   * numbers less than 1.
+   *
+   * @param conf
+   * @param desiredSplits
+   */
+  def configureSplits(conf : Configuration, desiredSplits : Int): Unit = {
+    conf.setInt("SplitsDesired", desiredSplits)
+  }
+
+  def getConfiguredSplits(conf : Configuration): Int ={
+    conf.getInt("SplitsDesired", -1)
+  }
+
+  /**
    * Configure the input format.
    *
    * This is a single method, as we have to calculate several things to pass to the underlying
@@ -146,7 +163,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with Logging {
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     encoding = ds.getFeatureEncoding(sft)
     numShards = Math.max(IndexSchema.maxShard(ds.getIndexSchemaFmt(sft.getTypeName)), 1)
-    desiredSplitCount = conf.getInt("SplitsDesired", desiredSplitCount)
+    desiredSplitCount = GeoMesaInputFormat.getConfiguredSplits(conf)
   }
 
   /**
@@ -154,19 +171,18 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with Logging {
    *
    * Our delegated AccumuloInputFormat creates a split for each range - because we set a lot of ranges in
    * geomesa, that creates too many mappers. Instead, we try to group the ranges by tservers. We use the
-   * number of shards in the schema as a proxy for number of tservers. We also know that each range will
-   * only have a single location, because we always set autoAdjustRanges in the configure method above.
+   * number of shards in the schema as a proxy for number of tservers.
    */
-  override def getSplits(context: JobContext) : java.util.List[InputSplit] = {
+  override def getSplits(context: JobContext): java.util.List[InputSplit] = {
     init(context.getConfiguration)
     val accumuloSplits = delegate.getSplits(context)
-    var groupSize = Math.max(numShards * 2, accumuloSplits.length / (numShards * 2)) // preserve original behavior.
-    if (desiredSplitCount != -1)
-    {
+    // fallback on creating 2 mappers per node if desiredSplits is unset.
+    // Account for case where there are less splits than shards
+    var groupSize = Math.max(numShards * 2, accumuloSplits.length / (numShards * 2))
+    if (desiredSplitCount != -1) {
       groupSize = Math.max(1, accumuloSplits.length / desiredSplitCount)
     }
 
-   // We know each range will only have a single location because of autoAdjustRanges
     val splits = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
       splits.grouped(groupSize).map { group =>
         val split = new GroupedSplit()

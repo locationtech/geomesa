@@ -65,7 +65,7 @@ object GeoMesaSpark {
           dsParams: Map[String, String],
           query: Query,
           numberOfSplits: Option[Int]): RDD[SimpleFeature] = {
-    rdd(conf, sc, dsParams, query, false, numberOfSplits.getOrElse(-1))
+    rdd(conf, sc, dsParams, query, false, numberOfSplits)
   }
 
   def rdd(conf: Configuration,
@@ -73,7 +73,7 @@ object GeoMesaSpark {
           dsParams: Map[String, String],
           query: Query,
           useMock: Boolean = false,
-          numberOfSplits: Int = -1): RDD[SimpleFeature] = {
+          numberOfSplits: Option[Int] = None): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     val typeName = query.getTypeName
     val sft = ds.getSchema(typeName)
@@ -107,9 +107,9 @@ object GeoMesaSpark {
         qp.columnFamilies.map(cf => new AccPair[Text, Text](cf, null)))
     }
 
-    if (numberOfSplits != -1) {
-      conf.setInt("SplitsDesired",
-        numberOfSplits * sc.getExecutorStorageStatus.length)
+    if (numberOfSplits.isDefined) {
+      GeoMesaInputFormat.configureSplits(conf,
+        numberOfSplits.get * sc.getExecutorStorageStatus.length)
       InputConfigurator.setAutoAdjustRanges(classOf[AccumuloInputFormat], conf, false)
       InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaInputFormat], conf, false)
     }

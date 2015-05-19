@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.jobs.interop.mapreduce;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -61,6 +62,16 @@ public class GeoMesaInputFormat extends InputFormat<Text, SimpleFeature> {
                 JavaConverters.asScalaMapConverter(dataStoreParams).asScala()
                               .toMap(Predef.<Tuple2<String, String>>conforms());
         GeoMesaInputFormat$.MODULE$.configure(job, scalaParams, query);
+    }
+
+    public static void configureSplits(Configuration conf, Integer desiredSplits)
+    {
+        GeoMesaInputFormat$.MODULE$.configureSplits(conf,desiredSplits);
+    }
+
+    public static int getConfiguredSplits(Configuration conf)
+    {
+        return GeoMesaInputFormat$.MODULE$.getConfiguredSplits(conf);
     }
 
     @Deprecated
