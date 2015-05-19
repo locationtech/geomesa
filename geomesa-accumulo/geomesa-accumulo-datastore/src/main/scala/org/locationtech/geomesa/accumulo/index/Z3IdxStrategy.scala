@@ -8,15 +8,13 @@ import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.joda.time.Weeks
-import org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.{filter, index}
 import org.locationtech.geomesa.curve.{Z3Iterator, Z3SFC}
 import org.locationtech.geomesa.iterators.{KryoLazyFilterTransformIterator, LazyFilterTransformIterator}
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.expression.Literal
+import org.opengis.filter.Filter
 import org.opengis.filter.spatial.BinarySpatialOperator
-import org.opengis.filter.{Filter, PropertyIsBetween}
 
 import scala.collection.JavaConversions._
 
@@ -145,7 +143,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     val iter = Z3Iterator.configure(Z3_CURVE.index(lx, ly, lt), Z3_CURVE.index(ux, uy, ut), Z3_ITER_PRIORITY)
 
     val adaptIter = Z3Table.adaptZ3KryoIterator(finalSft)
-    BatchScanPlan(table, accRanges, Seq(Some(iter), is).flatten, Seq(Z3Table.FULL_ROW), adaptIter, 8, hasDuplicates = false)
+    BatchScanPlan(table, accRanges, Seq(Some(iter), is).flatten, Seq(Z3Table.FULL_ROW), adaptIter, 32, hasDuplicates = false)
   }
 }
 
@@ -167,14 +165,11 @@ object Z3IdxStrategy extends StrategyProvider {
       return None
     }
     val (geomFilter, other) = partitionGeom(filter, sft)
-    val (temporal, _) = partitionTemporal(other, getDtgFieldName(sft))
+    val dtgFieldName = getDtgFieldName(sft)
+    val (temporal, _) = partitionTemporal(other, dtgFieldName)
     if(geomFilter.size == 0 || temporal.size == 0) {
       None
     } else if (spatialFilters(geomFilter.head) && !isFilterWholeWorld(geomFilter.head)) {
-      val temporalFilter = temporal.head
-      val between = temporalFilter.asInstanceOf[PropertyIsBetween]
-      val s = between.getLowerBoundary.asInstanceOf[Literal].getValue
-      val e = between.getUpperBoundary.asInstanceOf[Literal].getValue
       val geom = sft.getGeometryDescriptor.getLocalName
       val e1 = geomFilter.head.asInstanceOf[BinarySpatialOperator].getExpression1
       val e2 = geomFilter.head.asInstanceOf[BinarySpatialOperator].getExpression2

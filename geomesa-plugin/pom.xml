@@ -89,6 +89,13 @@
             <groupId>com.typesafe</groupId>
             <artifactId>scalalogging-slf4j_2.10</artifactId>
         </dependency>
+
+        <!-- TODO: we are shading too many commons projects -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-vfs2</artifactId>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
