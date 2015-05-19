@@ -56,7 +56,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
     "print values" in {
       skipped("used for debugging")
       val scanner = connector.createScanner(ds.getZ3Table(sftName), new Authorizations())
-      scanner.foreach(println)
+      scanner.foreach(e => println(e.getKey.getRow().getBytes.toSeq))
       println()
       success
     }
