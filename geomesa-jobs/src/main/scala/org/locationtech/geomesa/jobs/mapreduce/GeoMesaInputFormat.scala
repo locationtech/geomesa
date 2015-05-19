@@ -145,7 +145,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with Logging {
     val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     encoding = ds.getFeatureEncoding(sft)
-    numShards = IndexSchema.maxShard(ds.getIndexSchemaFmt(sft.getTypeName))
+    numShards = Math.max(IndexSchema.maxShard(ds.getIndexSchemaFmt(sft.getTypeName)), 1)
     desiredSplitCount = conf.getInt("SplitsDesired", desiredSplitCount)
   }
 
