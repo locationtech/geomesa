@@ -36,13 +36,9 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
 
     val dtgField = getDtgFieldName(sft)
 
-    // TODO: Select only the geometry filters which involve the indexed geometry type.
-    // https://geomesa.atlassian.net/browse/GEOMESA-200
-    // Simiarly, we should only extract temporal filters for the index date field.
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter, sft)
     val (temporalFilters, ecqlFilters) = partitionTemporal(otherFilters, dtgField)
 
-    // TODO: Currently, we assume no additional predicates other than space and time in Z3
     output(s"Geometry filters: $geomFilters")
     output(s"Temporal filters: $temporalFilters")
     output(s"Other filters: $ecqlFilters")
@@ -81,7 +77,12 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     output(s"Filter: ${Option(filter).getOrElse("No Filter")}")
 
     val iteratorSettings = {
-      val transforms = index.getTransformDefinition(query)
+      val transforms = for {
+        tdef <- index.getTransformDefinition(query)
+        tsft <- index.getTransformSchema(query)
+      } yield { (tdef, tsft) }
+
+      output(s"Transforms: $transforms")
       val ecql = ecqlFilters.length match {
         case 0 => None
         case 1 => Some(ecqlFilters.head)

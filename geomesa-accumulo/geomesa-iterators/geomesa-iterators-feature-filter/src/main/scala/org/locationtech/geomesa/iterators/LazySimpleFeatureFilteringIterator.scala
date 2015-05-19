@@ -28,6 +28,7 @@ trait LazyFilterTransformIterator extends SortedKeyValueIterator[Key, Value] wit
   var src: SortedKeyValueIterator[Key, Value] = null
   var filter: Filter = null
   var transform: String = null
+  var transformSchema: SimpleFeatureType = null
   var topValue: Value = new Value()
 
   override def init(source: SortedKeyValueIterator[Key, Value],
@@ -37,7 +38,8 @@ trait LazyFilterTransformIterator extends SortedKeyValueIterator[Key, Value] wit
     src = source
     sft = SimpleFeatureTypes.createType("test", options.get(SFT_OPT))
     filter = Option(options.get(CQL_OPT)).map(FastFilterFactory.toFilter).orNull
-    transform = Option(options.get(TRANS_OPT)).orNull
+    transform = Option(options.get(TRANSFORM_DEFINITIONS_OPT)).orNull
+    transformSchema = Option(options.get(TRANSFORM_SCHEMA_OPT)).map(SimpleFeatureTypes.createType("", _)).orNull
   }
 
   def sf: SimpleFeature
@@ -92,8 +94,8 @@ class KryoLazyFilterTransformIterator extends LazyFilterTransformIterator {
     super.init(source, options, env)
     kryo = new KryoFeatureSerializer(sft)
     reusablesf = kryo.getReusableFeature
-    if (transform != null) {
-      reusablesf.setTransforms(transform)
+    if (transform != null && transformSchema != null) {
+      reusablesf.setTransforms(transform, transformSchema)
     }
   }
 
@@ -124,19 +126,23 @@ class NIOLazyFilterTransformIterator extends LazyFilterTransformIterator {
 
 object LazyFilterTransformIterator {
 
-  val SFT_OPT   = "sft"
-  val CQL_OPT   = "cql"
-  val TRANS_OPT = "trans"
+  val SFT_OPT                   = "sft"
+  val CQL_OPT                   = "cql"
+  val TRANSFORM_SCHEMA_OPT      = "tsft"
+  val TRANSFORM_DEFINITIONS_OPT = "tdefs"
 
   def configure[T <: LazyFilterTransformIterator](sft: SimpleFeatureType,
                                                   filter: Option[Filter],
-                                                  transform: Option[String],
+                                                  transform: Option[(String, SimpleFeatureType)],
                                                   priority: Int)(implicit ct: ClassTag[T]) = {
     assert(filter.isDefined || transform.isDefined, "No options configured")
     val is = new IteratorSetting(priority, "featurefilter", ct.runtimeClass.getCanonicalName)
     is.addOption(SFT_OPT, SimpleFeatureTypes.encodeType(sft))
     filter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
-    transform.foreach(t => is.addOption(TRANS_OPT, t))
+    transform.foreach { case (tdef, tsft) =>
+      is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)
+      is.addOption(TRANSFORM_SCHEMA_OPT, SimpleFeatureTypes.encodeType(tsft))
+    }
     is
   }
 

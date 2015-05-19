@@ -38,10 +38,12 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: List[(Input) => A
 
   private var binaryTransform: () => Array[Byte] = input.getBuffer
 
-  def setTransforms(transforms: String) = {
+  def setTransforms(transforms: String, transformSchema: SimpleFeatureType) = {
     val tdefs = TransformProcess.toDefinition(transforms)
-    binaryTransform = if (tdefs.forall(_.expression.isInstanceOf[PropertyName])) {
-      val indices = tdefs.map(d => sft.indexOf(d.expression.asInstanceOf[PropertyName].getPropertyName))
+    val isSimpleMapping = tdefs.forall(_.expression.isInstanceOf[PropertyName])
+    binaryTransform = if (isSimpleMapping) {
+      // simple mapping of existing fields - we can array copy the existing data without parsing it
+      val indices = transformSchema.getAttributeDescriptors.map(d => sft.indexOf(d.getLocalName))
       () => {
         val buf = input.getBuffer
         var length = offsets(0) // space for version, offset block and ID
@@ -62,10 +64,8 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: List[(Input) => A
       }
     } else {
       // not just a mapping, but has actual functions/transforms - we have to evaluate the expressions
-      val spec = tdefs.map(t => s"${t.name}:${t.binding}").mkString(",")
-      val targetFeatureType = SimpleFeatureTypes.createType("transform", spec)
-      val serializer = new KryoFeatureSerializer(targetFeatureType)
-      val sf = new ScalaSimpleFeature("reusable", targetFeatureType)
+      val serializer = new KryoFeatureSerializer(transformSchema)
+      val sf = new ScalaSimpleFeature("reusable", transformSchema)
       () => {
         sf.getIdentifier.setID(getID)
         var i = 0
