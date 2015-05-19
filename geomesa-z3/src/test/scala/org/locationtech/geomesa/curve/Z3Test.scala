@@ -36,9 +36,31 @@ class Z3Test extends Specification {
       val (x, y, t) = (nextDim(), nextDim(), nextDim())
       val z = Z3(x, y, t)
       z match { case Z3(zx, zy, zt) =>
-        x mustEqual zx
-        y mustEqual zy
-        t mustEqual zt
+        zx mustEqual x
+        zy mustEqual y
+        zt mustEqual t
+      }
+    }
+
+    "apply and unapply min values" >> {
+      val (x, y, t) = (0, 0, 0)
+      val z = Z3(x, y, t)
+      z match {
+        case Z3(zx, zy, zt) =>
+          zx mustEqual x
+          zy mustEqual y
+          zt mustEqual t
+      }
+    }
+
+    "apply and unapply max values" >> {
+      val z3curve = new Z3SFC
+      val (x, y, t) = (z3curve.xprec, z3curve.yprec, z3curve.tprec)
+      val z = Z3(x.toInt, y.toInt, t.toInt)
+      z match { case Z3(zx, zy, zt) =>
+        zx mustEqual x
+        zy mustEqual y
+        zt mustEqual t
       }
     }
 

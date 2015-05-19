@@ -54,18 +54,29 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
   import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 
-  case class StrategyPlan(strategy: Strategy, plan: QueryPlan)
-
   val featureEncoder = SimpleFeatureSerializers(sft, featureEncoding)
   val featureDecoder = SimpleFeatureDeserializers(sft, featureEncoding)
   val indexValueEncoder = IndexValueEncoder(sft, version)
 
   /**
+   * Plan the query, but don't execute it - used for explain query
+   */
+  def planQuery(query: Query, output: ExplainerOutputType = log): Seq[QueryPlan] =
+    getStrategyPlans(query, output)._1.map(_.plan)
+
+  /**
    * Execute a query against geomesa
    */
   def query(query: Query): SFIter = {
-    val strategyPlans = getStrategyPlans(query, log)
+    val (plans, numClauses) = getStrategyPlans(query, log)
+    val dedupe = numClauses > 1 || plans.exists(_.plan.hasDuplicates)
+    executePlans(query, plans, dedupe)
+  }
 
+  /**
+   * Execute a query plan. Split out to allow for easier testing.
+   */
+  def executePlans(query: Query, strategyPlans: Seq[StrategyPlan], deduplicate: Boolean): SFIter = {
     val features = strategyPlans.iterator.ciFlatMap { sp =>
       val kvs = sp.strategy.execute(sp.plan, acc, log)
       sp.plan.kvsToFeatures match {
@@ -74,12 +85,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
       }
     }
 
-    // TODO we should check on ors instead of length now
-    val dedupedFeatures = if (strategyPlans.length > 1 || strategyPlans.exists(_.plan.hasDuplicates)) {
-      new DeDuplicatingIterator(features)
-    } else {
-      features
-    }
+    val dedupedFeatures = if (deduplicate) new DeDuplicatingIterator(features) else features
 
     val sortedFeatures = if (query.getSortBy != null && query.getSortBy.length > 0) {
       new LazySortedIterator(dedupedFeatures, query.getSortBy)
@@ -91,18 +97,13 @@ case class QueryPlanner(sft: SimpleFeatureType,
   }
 
   /**
-   * Plan the query, but don't execute it - used for explain query
+   * Set up the query plans and strategies used to execute them.
+   * Returns the strategy plans and the number of distinct OR clauses, needed for determining deduplication
    */
-  def planQuery(query: Query, output: ExplainerOutputType = log): Seq[QueryPlan] =
-    getStrategyPlans(query, output).map(_.plan)
-
-  /**
-   * Set up the query plans and strategies used to execute them
-   */
-  private def getStrategyPlans(query: Query, output: ExplainerOutputType): Seq[StrategyPlan] = {
+  private def getStrategyPlans(query: Query, output: ExplainerOutputType): (Seq[StrategyPlan], Int) = {
     output(s"Planning ${ExplainerOutputType.toString(query)}")
     implicit val timings = new TimingsImpl
-    val queryPlans = profile({
+    val (queryPlans, numClauses) = profile({
       val isDensity = query.getHints.containsKey(BBOX_KEY)
       if (isDensity) {
         val env = query.getHints.get(BBOX_KEY).asInstanceOf[ReferencedEnvelope]
@@ -110,16 +111,16 @@ case class QueryPlanner(sft: SimpleFeatureType,
         val mixedQuery = DataUtilities.mixQueries(q1, query, "geomesa.mixed.query")
         val strategy = QueryStrategyDecider.chooseStrategy(sft, mixedQuery, hints, version)
         val plans = strategy.getQueryPlans(mixedQuery, this, output)
-        plans.map { p => StrategyPlan(strategy, p) }
+        (plans.map { p => StrategyPlan(strategy, p) }, 1)
       } else {
         // As a pre-processing step, we examine the query/filter and split it into multiple queries.
         // TODO Work to make the queries non-overlapping
-        splitQueryOnOrs(query, output).flatMap { q =>
+        val splitQueries = splitQueryOnOrs(query, output)
+        val plans = splitQueries.flatMap { q =>
           val strategy = QueryStrategyDecider.chooseStrategy(sft, q, hints, version)
           output(s"Strategy: ${strategy.getClass.getCanonicalName}")
           output(s"Transforms: ${getTransformDefinition(query).getOrElse("None")}")
-          val plans = strategy.getQueryPlans(q, this, output)
-          plans.map { plan =>
+          strategy.getQueryPlans(q, this, output).map { plan =>
             output(s"Table: ${plan.table}")
             output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all" else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
             output(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).mkString(", ")}")
@@ -127,10 +128,11 @@ case class QueryPlanner(sft: SimpleFeatureType,
             StrategyPlan(strategy, plan)
           }
         }
+        (plans, splitQueries.length)
       }
     }, "plan")
-    output(s"Query Planning took ${timings.time("plan")} milliseconds.")
-    queryPlans
+    output(s"Query planning took ${timings.time("plan")} ms for $numClauses distinct queries.")
+    (queryPlans, numClauses)
   }
 
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures

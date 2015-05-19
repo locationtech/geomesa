@@ -242,3 +242,4 @@ trait StrategyProvider {
 }
 
 case class StrategyDecision(strategy: Strategy, cost: Long)
+case class StrategyPlan(strategy: Strategy, plan: QueryPlan)
