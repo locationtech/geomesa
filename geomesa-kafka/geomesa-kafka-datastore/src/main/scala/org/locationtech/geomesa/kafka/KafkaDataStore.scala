@@ -36,14 +36,15 @@ class KafkaDataStore(override val zookeepers: String,
   with KafkaDataStoreSchemaManager
   with Logging {
 
+  kds =>
+
   override def createTypeNames() = getNames()
 
   val featureSourceCache =
     CacheBuilder.newBuilder().build[ContentEntry, ContentFeatureSource](
       new CacheLoader[ContentEntry, ContentFeatureSource] {
         override def load(entry: ContentEntry) = {
-          val sft = getFeatureConfig(entry.getTypeName)
-          fsFactory(entry, sft)
+          fsFactory(entry, kds)
         }
       })
 
@@ -61,7 +62,7 @@ object KafkaDataStoreFactoryParams {
 }
 
 object KafkaDataStore {
-  type FeatureSourceFactory = (ContentEntry, KafkaFeatureConfig) => ContentFeatureSource
+  type FeatureSourceFactory = (ContentEntry, KafkaDataStoreSchemaManager) => ContentFeatureSource
 }
 
 /** A [[DataStoreFactorySpi]] to create a [[KafkaDataStore]] in either producer or consumer mode */

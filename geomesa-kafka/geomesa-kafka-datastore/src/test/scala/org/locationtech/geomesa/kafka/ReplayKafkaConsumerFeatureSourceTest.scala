@@ -15,7 +15,8 @@
  */
 package org.locationtech.geomesa.kafka
 
-import org.geotools.data.EmptyFeatureReader
+import org.geotools.data.{Transaction, EmptyFeatureReader}
+import org.geotools.data.store.{ContentDataStore, ContentState, ContentEntry}
 import org.joda.time.Instant
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.FR
@@ -169,18 +170,32 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
         CreateOrUpdate(new Instant(13002), track0v2)) // 9
 
       val replayConfig = ReplayConfig(10000L, 13100L, 300L)
-      val fs = featureSource(msgs, replayConfig)
+      lazy val replayType = KafkaDataStoreHelper.prepareForReplay(sft, replayConfig)
+      lazy val fs = featureSource(msgs, replayConfig)
+
+      def equalsSnapshot(expectedMsgs: Seq[GeoMessage], replayTime: Long): ValueCheck[ReplaySnapshotFeatureCache] = {
+        val helper = new ReplayTimeHelper(replayType, replayTime)
+
+        val expectedWithTime = expectedMsgs.map {
+          case CreateOrUpdate(ts, sf) => CreateOrUpdate(ts, helper.addReplayTime(sf))
+          case a => a
+        }
+
+        s: ReplaySnapshotFeatureCache =>
+          s.schema mustEqual sft
+          s.events must equalGeoMessages(expectedMsgs)
+      }
 
       "using a given valid time" >> {
         val expected = msgs.slice(3, 6).reverse
         val result = fs.snapshot(Some(12000L))
-        result must beSome(equalsSnapshot(expected))
+        result must beSome(equalsSnapshot(expected, 12000L))
       }
 
       "using the most recent time if none is given" >> {
         val expected = msgs.slice(6, 10).reverse
         val result = fs.snapshot(None)
-        result must beSome(equalsSnapshot(expected))
+        result must beSome(equalsSnapshot(expected, 13100L))
       }
 
       "or not if time is invalid" >> {
@@ -227,6 +242,18 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
   }
 
   def featureSource(messages: Seq[GeoMessage], replayConfig: ReplayConfig): ReplayKafkaConsumerFeatureSource = {
+    val replayType = KafkaDataStoreHelper.prepareForReplay(sft, replayConfig)
+
+    featureSource(messages, replayConfig, replayType)
+  }
+
+  def featureSource(messages: Seq[GeoMessage], replayType: SimpleFeatureType): ReplayKafkaConsumerFeatureSource = {
+    val replayConfig = KafkaDataStoreHelper.extractReplayConfig(replayType).get
+
+    featureSource(messages, replayConfig, replayType)
+  }
+
+  def featureSource(messages: Seq[GeoMessage], replayConfig: ReplayConfig, replayType: SimpleFeatureType): ReplayKafkaConsumerFeatureSource = {
     val mockKafka = new MockKafka
     val consumerFactory = mockKafka.kafkaConsumerFactory
 
@@ -235,13 +262,7 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
     val encoder = new KafkaGeoMessageEncoder(sft)
     messages.foreach(msg => mockKafka.send(encoder.encodeMessage(topic, msg)))
 
-    new ReplayKafkaConsumerFeatureSource(entry, sft, topic, consumerFactory, replayConfig)
-  }
-
-  def equalsSnapshot(expectedMsgs: Seq[GeoMessage]): ValueCheck[ReplaySnapshotFeatureCache] = {
-    s: ReplaySnapshotFeatureCache =>
-      s.schema mustEqual sft
-      s.events must equalGeoMessages(expectedMsgs)
+    new ReplayKafkaConsumerFeatureSource(entry, replayType, sft, topic, consumerFactory, replayConfig)
   }
 
   @tailrec

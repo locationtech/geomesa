@@ -19,6 +19,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.geotools.data.store.ContentEntry
 import org.geotools.data.{EmptyFeatureReader, Query}
+import org.geotools.feature.simple.{SimpleFeatureTypeBuilder, SimpleFeatureBuilder}
 import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.kafka.consumer.offsets.{FindOffset, LatestOffset}
@@ -33,12 +34,13 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
-                                       sft: SimpleFeatureType,
+                                       replaySFT: SimpleFeatureType,
+                                       liveSFT: SimpleFeatureType,
                                        topic: String,
                                        kf: KafkaConsumerFactory,
                                        replayConfig: ReplayConfig,
                                        query: Query = null)
-  extends KafkaConsumerFeatureSource(entry, sft, query) {
+  extends KafkaConsumerFeatureSource(entry, replaySFT, query) {
 
   import TimestampFilterSplit.split
 
@@ -59,7 +61,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
       }
     }
 
-    reader.getOrElse(new EmptyFeatureReader[SimpleFeatureType, SimpleFeature](sft))
+    reader.getOrElse(new EmptyFeatureReader[SimpleFeatureType, SimpleFeature](replaySFT))
   }
 
   private[kafka] def snapshot(time: Option[Long]): Option[ReplaySnapshotFeatureCache] = {
@@ -70,7 +72,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
 
     startIndex.map { si =>
       val endTime = startTime - replayConfig.readBehind.getMillis
-      snapshot(si, endTime)
+      snapshot(startTime, si, endTime)
     }.getOrElse(None)
   }
 
@@ -109,7 +111,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     * @param startIndex the index of the most recent message to process
     * @param endTime the time of the last message to process
     */
-  private def snapshot(startIndex: Int, endTime: Long): Option[ReplaySnapshotFeatureCache] = {
+  private def snapshot(time: Long, startIndex: Int, endTime: Long): Option[ReplaySnapshotFeatureCache] = {
     val snapshot: Seq[GeoMessage] = messages.view
       .drop(startIndex)
       .takeWhile {
@@ -121,7 +123,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     if (snapshot.isEmpty) {
       None
     } else {
-      Some(ReplaySnapshotFeatureCache(sft, snapshot))
+      Some(ReplaySnapshotFeatureCache(replaySFT, time, snapshot))
     }
   }
 
@@ -129,7 +131,8 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     val kafkaConsumer = kf.kafkaConsumer(topic)
     val offsetManager = kf.offsetManager
 
-    val msgDecoder = new KafkaGeoMessageDecoder(sft)
+    // use the liveSFT to decode becuase that's the type that was used to encode
+    val msgDecoder = new KafkaGeoMessageDecoder(liveSFT)
 
     // start 1 ms earlier because there might be multiple messages with the same timestamp
     val startTime = replayConfig.realStartTime.minus(1L)
@@ -155,14 +158,41 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
   }
 }
 
-object ReplayKafkaConsumerFeatureSource {
+object ReplayTimeHelper {
 
-  val MessageTimeAttributeName: String = "KafkaMessageTimestamp"
-  val MessageTimeAttributeProp: PropertyName = ff.property(MessageTimeAttributeName)
+  val AttributeName: String = "KafkaReplayTimestamp"
+  val AttributeProp: PropertyName = ff.property(AttributeName)
 
-  def messageTimeEquals(time: Instant): Filter =
-    ff.equals(MessageTimeAttributeProp, ff.literal(time.getMillis))
+  def addReplayTimeAttribute(builder: SimpleFeatureTypeBuilder): Unit =
+    builder.add(AttributeName, classOf[java.lang.Long])
+  
+  def toFilter(time: Instant): Filter =
+    ff.equals(AttributeProp, ff.literal(time.getMillis))
+
+  def fromFilter(filter: PropertyIsEqualTo): Option[Long] = {
+    checkOrder(filter.getExpression1, filter.getExpression2)
+      .filter(pl => pl.name == AttributeName && pl.literal.getValue.isInstanceOf[java.lang.Long])
+      .map(_.literal.getValue.asInstanceOf[Long])
+  }
 }
+
+/** @param sft the [[SimpleFeatureType]] - must contain the replay time attribute
+  * @param replayTime the current replay time
+  */
+class ReplayTimeHelper(sft: SimpleFeatureType, replayTime: Long) {
+  import ReplayTimeHelper._
+
+  lazy val builder = new SimpleFeatureBuilder(sft)
+  lazy val attrIndex = sft.indexOf(AttributeName)
+
+  /** Copy the given ``sf`` and add a value for the replay time attribute. */
+  def addReplayTime(sf: SimpleFeature): SimpleFeature = {
+    builder.init(sf)
+    builder.set(attrIndex, replayTime)
+    builder.buildFeature(sf.getID)
+  }
+}
+
 
 /** Represents the state at a specific point in time.
   *
@@ -171,6 +201,7 @@ object ReplayKafkaConsumerFeatureSource {
   *               [[Delete]] messages
   */
 private[kafka] case class ReplaySnapshotFeatureCache(override val schema: SimpleFeatureType,
+                                                     replayTime: Long,
                                                      events: Seq[GeoMessage])
 
   extends KafkaConsumerFeatureCache {
@@ -182,6 +213,8 @@ private[kafka] case class ReplaySnapshotFeatureCache(override val schema: Simple
     val qt = new Quadtree
     val seen = new mutable.HashSet[String]
 
+    val timeHelper = new ReplayTimeHelper(schema, replayTime)
+
     events.foreach {
       case CreateOrUpdate(ts, sf) =>
         val id = sf.getID
@@ -189,9 +222,10 @@ private[kafka] case class ReplaySnapshotFeatureCache(override val schema: Simple
         // starting with the most recent so if haven't seen it yet, add it, otherwise keep newer version
         if (!seen(id)) {
           val env = sf.geometry.getEnvelopeInternal
+          val modSF = timeHelper.addReplayTime(sf)
 
-          qt.insert(env, sf)
-          features.put(id, FeatureHolder(sf, env))
+          qt.insert(env, modSF)
+          features.put(id, FeatureHolder(modSF, env))
           seen.add(id)
         }
 
@@ -273,8 +307,6 @@ case class TimestampFilterSplit(ts: Option[Long], filter: Option[Filter])
 
 object TimestampFilterSplit {
 
-  import ReplayKafkaConsumerFeatureSource.MessageTimeAttributeName
-
   /** Look for a Kafka message timestamp filter in ``filter`` and if found, extract the requested timestamp
     * and return that timestamp and the remaining filters.
     *
@@ -289,9 +321,7 @@ object TimestampFilterSplit {
   def split(filter: Filter): Option[TimestampFilterSplit] = filter match {
 
     case eq: PropertyIsEqualTo =>
-      val ts = checkOrder(eq.getExpression1, eq.getExpression2)
-        .filter(pl => pl.name == MessageTimeAttributeName && pl.literal.getValue.isInstanceOf[Long])
-        .map(_.literal.getValue.asInstanceOf[Long])
+      val ts = ReplayTimeHelper.fromFilter(eq)
       val f = ts.map(_ => None).getOrElse(Some(filter))
       Some(TimestampFilterSplit(ts, f))
 
@@ -317,7 +347,7 @@ object TimestampFilterSplit {
 
   def split(op: BinaryLogicOperator, combiner: SplitCombiner): Option[TimestampFilterSplit] = {
     val children = op.getChildren.asScala
-    val childSplits = children.map(split).flatten
+    val childSplits = children.flatMap(c => split(c))
 
     if (childSplits.size != children.size) {
       // one or more children are invalid

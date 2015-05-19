@@ -68,6 +68,13 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
 
   def getFeatureConfig(typeName: String) : KafkaFeatureConfig = schemaCache.get(typeName)
 
+  /** Extracts the prepared-for-live [[SimpleFeatureType]] which the given prepared-for-replay
+    * ``replayType`` is based on.
+    */
+  def getLiveFeatureType(replayType: SimpleFeatureType): Option[SimpleFeatureType] = {
+    KafkaDataStoreHelper.extractLiveTypeName(replayType).map(schemaCache.get(_).sft)
+  }
+
   override def getNames: util.List[Name] = zkClient.getChildren(zkPath).asScala.map(
     name => new NameImpl(name) : Name).asJava
 

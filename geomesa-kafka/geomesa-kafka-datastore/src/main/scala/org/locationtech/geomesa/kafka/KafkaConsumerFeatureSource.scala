@@ -155,12 +155,20 @@ object KafkaConsumerFeatureSourceFactory {
       }
     }
 
-    (entry: ContentEntry, fc: KafkaFeatureConfig) => fc.replayConfig match {
-      case None =>
-        new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod)
+    (entry: ContentEntry, schemaManager: KafkaDataStoreSchemaManager) => {
+      val fc = schemaManager.getFeatureConfig(entry.getTypeName)
 
-      case Some(rc) =>
-        new ReplayKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, rc)
+      fc.replayConfig match {
+        case None =>
+          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod)
+
+        case Some(rc) =>
+          val replaySFT = fc.sft
+          val liveSFT = schemaManager.getLiveFeatureType(replaySFT)
+            .getOrElse(throw new IllegalArgumentException(
+              "Cannot create Replay FeatureSource because SFT has not been properly prepared."))
+          new ReplayKafkaConsumerFeatureSource(entry, replaySFT, liveSFT, fc.topic, kf, rc)
+      }
     }
   }
 }

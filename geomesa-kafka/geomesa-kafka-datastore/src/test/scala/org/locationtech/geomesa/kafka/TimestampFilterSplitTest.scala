@@ -31,7 +31,7 @@ class TimestampFilterSplitTest extends Specification with Mockito {
 
     val time = 123456789L
     val timeLiteral = ff.literal(time)
-    val prop = ff.property(ReplayKafkaConsumerFeatureSource.MessageTimeAttributeName)
+    val prop = ff.property(ReplayTimeHelper.AttributeName)
 
     "find the timestamp by itself" >> {
 

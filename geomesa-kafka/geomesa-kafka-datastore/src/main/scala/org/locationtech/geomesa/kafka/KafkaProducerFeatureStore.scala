@@ -150,7 +150,8 @@ object KafkaProducerFeatureStoreFactory {
       new ProducerConfig(props)
     }
 
-    (entry: ContentEntry, fc: KafkaFeatureConfig) => {
+    (entry: ContentEntry, schemaManager: KafkaDataStoreSchemaManager) => {
+      val fc = schemaManager.getFeatureConfig(entry.getTypeName)
       val kafkaProducer = new Producer[Array[Byte], Array[Byte]](config)
       new KafkaProducerFeatureStore(entry, fc.sft, fc.topic, broker, kafkaProducer)
     }

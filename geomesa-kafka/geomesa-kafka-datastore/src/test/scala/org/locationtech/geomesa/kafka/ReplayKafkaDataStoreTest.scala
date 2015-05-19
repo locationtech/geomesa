@@ -72,7 +72,7 @@ class ReplayKafkaDataStoreTest
       val fs = createReplayFeatureSource(10000, 20000, 1000)
 
       "in a filter" >> {
-        val filter = ReplayKafkaConsumerFeatureSource.messageTimeEquals(new Instant(13000))
+        val filter = ReplayTimeHelper.toFilter(new Instant(13000))
 
         val features = featuresToList(fs.getFeatures(filter))
 
@@ -81,7 +81,7 @@ class ReplayKafkaDataStoreTest
       }
 
       "in a query" >> {
-        val filter = ReplayKafkaConsumerFeatureSource.messageTimeEquals(new Instant(13000))
+        val filter = ReplayTimeHelper.toFilter(new Instant(13000))
         val query = new Query()
         query.setFilter(filter)
 
@@ -96,7 +96,7 @@ class ReplayKafkaDataStoreTest
 
       val fs = createReplayFeatureSource(10000, 15000, 1000)
 
-      val filter = ReplayKafkaConsumerFeatureSource.messageTimeEquals(new Instant(12000))
+      val filter = ReplayTimeHelper.toFilter(new Instant(12000))
 
       val features = featuresToList(fs.getFeatures(filter))
 

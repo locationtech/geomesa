@@ -1,10 +1,12 @@
 package org.locationtech.geomesa.kafka
 
+import org.geotools.feature.AttributeTypeBuilder
 import org.joda.time.{Duration, Instant}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
@@ -103,12 +105,9 @@ class KafkaDataStoreHelperTest extends Specification {
       val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
       val prepped = KafkaDataStoreHelper.prepareForReplay(sft,rc)
 
-      // check that it is a different instance and a few key properties match (don't check typename!)
+      // check that it is a different instance and a few key properties match
+      // don't check typename or attributes!
       prepped must not beTheSameAs sft
-      prepped.getAttributeCount mustEqual sft.getAttributeCount
-      prepped.getAttributeDescriptors.asScala must containTheSameElementsAs(sft.getAttributeDescriptors.asScala)
-      prepped.getTypes.size mustEqual sft.getTypes.size
-      prepped.getTypes.asScala must containTheSameElementsAs(sft.getTypes.asScala)
 
       //check that the rc entry has been added
       prepped.getUserData.size() mustEqual (sft.getUserData.size() + 1)
@@ -140,6 +139,73 @@ class KafkaDataStoreHelperTest extends Specification {
       val prepped2 = KafkaDataStoreHelper.prepareForReplay(sft,rc)
 
       prepped.getTypeName mustNotEqual prepped2.getTypeName
+    }
+
+    "prepareForReplay adds message timestamp attribute" >> {
+
+      val sft = {
+        val schema = SimpleFeatureTypes.createType("test", "name:String,age:Int,*geom:Point:srid=4326")
+        KafkaDataStoreHelper.prepareForLive(schema, "/test/path")
+      }
+
+      val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
+      val prepped = KafkaDataStoreHelper.prepareForReplay(sft, rc)
+
+      val (expectedAttribType, expectedAttribute) = {
+        val builder = new AttributeTypeBuilder()
+        builder.setBinding(classOf[java.lang.Long])
+        builder.setName(ReplayTimeHelper.AttributeName)
+
+        val attribType = builder.buildType
+        val attrib = builder.buildDescriptor(ReplayTimeHelper.AttributeName, attribType)
+
+        (attribType, attrib)
+      }
+
+      val expectedDescriptors = sft.getAttributeDescriptors.asScala :+ expectedAttribute
+      val expectedTypes = sft.getTypes.asScala :+ expectedAttribType
+
+      prepped.getAttributeCount mustEqual sft.getAttributeCount + 1
+      prepped.getAttributeDescriptors.asScala must containTheSameElementsAs(expectedDescriptors)
+      prepped.getTypes.size mustEqual sft.getTypes.size + 1
+      prepped.getTypes.asScala must containTheSameElementsAs(expectedTypes)
+    }
+
+    "be able to extractLiveTypeName" >> {
+
+      "from a replay type" >> {
+        val sft = SimpleFeatureTypes.createType("test-REPLAY-blah", "name:String,age:Int,*geom:Point:srid=4326")
+        val result = KafkaDataStoreHelper.extractLiveTypeName(sft)
+        result must beSome("test")
+      }
+
+      "or none from a non-replay type" >> {
+        val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,*geom:Point:srid=4326")
+        val result = KafkaDataStoreHelper.extractLiveTypeName(sft)
+        result must beNone
+      }
+    }
+
+    "correctly determine if isPreparedForLive" >> {
+
+      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,*geom:Point:srid=4326")
+      val live = KafkaDataStoreHelper.prepareForLive(sft, "/test/path")
+      val replay = KafkaDataStoreHelper.prepareForReplay(live, ReplayConfig(0,0,0))
+
+      KafkaDataStoreHelper.isPreparedForLive(sft) must beFalse
+      KafkaDataStoreHelper.isPreparedForLive(live) must beTrue
+      KafkaDataStoreHelper.isPreparedForLive(replay) must beFalse
+    }
+
+    "correctly determine if isPreparedForReplay" >> {
+
+      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,*geom:Point:srid=4326")
+      val live = KafkaDataStoreHelper.prepareForLive(sft, "/test/path")
+      val replay = KafkaDataStoreHelper.prepareForReplay(live, ReplayConfig(0,0,0))
+
+      KafkaDataStoreHelper.isPreparedForReplay(sft) must beFalse
+      KafkaDataStoreHelper.isPreparedForReplay(live) must beFalse
+      KafkaDataStoreHelper.isPreparedForReplay(replay) must beTrue
     }
   }
 }

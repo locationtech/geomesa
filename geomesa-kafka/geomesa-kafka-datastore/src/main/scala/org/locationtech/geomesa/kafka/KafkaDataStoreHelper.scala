@@ -26,6 +26,7 @@ object KafkaDataStoreHelper {
 
     val builder = FeatureUtils.builder(sft)
     builder.setName(buildReplayTypeName(sft.getTypeName))
+    ReplayTimeHelper.addReplayTimeAttribute(builder)
 
     // assumes topic has been prepared, need to check though...
     val preparedSft = builder.buildFeatureType()
@@ -50,13 +51,37 @@ object KafkaDataStoreHelper {
   def extractReplayConfig(sft: SimpleFeatureType) : Option[ReplayConfig] =
     sft.userData[String](ReplayConfigKey).flatMap(ReplayConfig.decode)
 
+  /** Extracts the name of the prepared-for-live [[SimpleFeatureType]] which the given prepared-for-replay
+    * ``replayType`` is based on.
+    *
+    * @param replayType a [[SimpleFeatureType]] that has been prepared for replay
+    * @return the name of the live simple feature or ``None`` if ``replayType`` was not prepared for replay
+    */
+  def extractLiveTypeName(replayType: SimpleFeatureType): Option[String] = {
+    val replayName = replayType.getTypeName
+    val index = replayName.indexOf(replayIdentifier)
+
+    if (index > 0) {
+      Some(replayName.substring(0, index))
+    } else {
+      None
+    }
+  }
+  
+  def isPreparedForLive(sft: SimpleFeatureType): Boolean =
+    sft.getUserData.containsKey(TopicKey) && !sft.getUserData.containsKey(ReplayConfigKey)
+
+  def isPreparedForReplay(sft: SimpleFeatureType): Boolean = sft.getUserData.containsKey(ReplayConfigKey)
+
   private[kafka] def buildTopicName(zkPath: String, sft: SimpleFeatureType): String = {
     sft.getTypeName + "_" + zkPath.replaceAll("/","-")  //kafka doesn't like slashes
   }
 
+  private val replayIdentifier = "-REPLAY-"
+
   private def buildReplayTypeName(name: String): String = {
     val uuid=UUID.randomUUID()
-    s"$name-REPLAY-$uuid"
+    s"$name$replayIdentifier$uuid"
   }
 
 }

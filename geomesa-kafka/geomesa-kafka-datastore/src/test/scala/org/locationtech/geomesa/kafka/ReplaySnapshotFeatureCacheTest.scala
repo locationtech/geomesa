@@ -17,8 +17,8 @@ package org.locationtech.geomesa.kafka
 
 import org.joda.time.Instant
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
+import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -27,23 +27,29 @@ class ReplaySnapshotFeatureCacheTest extends Specification with SimpleFeatureMat
 
   import KafkaConsumerTestData._
 
+  // the ReplayConfig here doesn't matter
+  val replayType = KafkaDataStoreHelper.prepareForReplay(sft, ReplayConfig(0, 0, 0))
+
+  // replay time is arbitary for this test
+  val replayTime = 1000L
+
   "ReplaySnapshotFeatureCache" should {
 
     "correctly process a create message" >> {
       val msgs = Seq(CreateOrUpdate(new Instant(1000L), track0v0))
 
-      val cache = new ReplaySnapshotFeatureCache(sft, msgs)
+      val cache = new ReplaySnapshotFeatureCache(replayType, replayTime, msgs)
 
       cache.features must haveSize(1)
 
       val holder = cache.features("track0")
-      holder.sf must equalSF(track0v0)
+      holder.sf must equalSFWithReplayTime(track0v0)
 
       cache.qt.size() mustEqual 1
       val queryResult = cache.qt.query(holder.env)
       queryResult.size() mustEqual 1
       queryResult.get(0) must beAnInstanceOf[SimpleFeature]
-      queryResult.get(0).asInstanceOf[SimpleFeature] must equalSF(track0v0)
+      queryResult.get(0).asInstanceOf[SimpleFeature] must equalSFWithReplayTime(track0v0)
     }
 
     "use the most recent version of a feature" >> {
@@ -53,18 +59,18 @@ class ReplaySnapshotFeatureCacheTest extends Specification with SimpleFeatureMat
         CreateOrUpdate(new Instant(3000L), track0v1),
         CreateOrUpdate(new Instant(2000L), track0v0))
 
-      val cache = new ReplaySnapshotFeatureCache(sft, msgs)
+      val cache = new ReplaySnapshotFeatureCache(replayType, replayTime, msgs)
 
       cache.features must haveSize(1)
 
       val holder = cache.features("track0")
-      holder.sf must equalSF(track0v3)
+      holder.sf must equalSFWithReplayTime(track0v3)
 
       cache.qt.size() mustEqual 1
       val queryResult = cache.qt.query(holder.env)
       queryResult.size() mustEqual 1
       queryResult.get(0) must beAnInstanceOf[SimpleFeature]
-      queryResult.get(0).asInstanceOf[SimpleFeature] must equalSF(track0v3)
+      queryResult.get(0).asInstanceOf[SimpleFeature] must equalSFWithReplayTime(track0v3)
     }
 
     "exclude deleted features" >> {
@@ -73,7 +79,7 @@ class ReplaySnapshotFeatureCacheTest extends Specification with SimpleFeatureMat
         CreateOrUpdate(new Instant(4000L), track0v2)
       )
 
-      val cache = new ReplaySnapshotFeatureCache(sft, msgs)
+      val cache = new ReplaySnapshotFeatureCache(replayType, replayTime, msgs)
 
       cache.features must haveSize(0)
       cache.features.get("track0") must beNone
@@ -88,27 +94,32 @@ class ReplaySnapshotFeatureCacheTest extends Specification with SimpleFeatureMat
         CreateOrUpdate(new Instant(4000L), track0v2)
       )
 
-      val cache = new ReplaySnapshotFeatureCache(sft, msgs)
+      val cache = new ReplaySnapshotFeatureCache(replayType, replayTime, msgs)
 
       cache.features must haveSize(1)
 
       val holder = cache.features("track0")
-      holder.sf must equalSF(track0v3)
+      holder.sf must equalSFWithReplayTime(track0v3)
 
       cache.qt.size() mustEqual 1
       val queryResult = cache.qt.query(holder.env)
       queryResult.size() mustEqual 1
       queryResult.get(0) must beAnInstanceOf[SimpleFeature]
-      queryResult.get(0).asInstanceOf[SimpleFeature] must equalSF(track0v3)
+      queryResult.get(0).asInstanceOf[SimpleFeature] must equalSFWithReplayTime(track0v3)
     }
 
     "not handle Clear messages" >> {
       val msgs = Seq(Clear(new Instant(1000L)))
 
-      val cache = new ReplaySnapshotFeatureCache(sft, msgs)
+      val cache = new ReplaySnapshotFeatureCache(sft, replayTime, msgs)
       
       // features is populated lazily
       cache.features must throwA[IllegalStateException]
     }
+  }
+
+  def equalSFWithReplayTime(expected: SimpleFeature): Matcher[SimpleFeature] = {
+    val expectedWithReplayTime = new ReplayTimeHelper(replayType, replayTime).addReplayTime(expected)
+    equalSF(expectedWithReplayTime)
   }
 }
