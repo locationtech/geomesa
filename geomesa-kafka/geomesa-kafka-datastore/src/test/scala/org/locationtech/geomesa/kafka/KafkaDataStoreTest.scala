@@ -181,48 +181,6 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedZookeeper with Lo
     }
   }
 
-  "KafkaDataStore with cachedConsumer" should {
-    "expire messages correctly when expirationPeriod is set" >> {
-
-      val cachedConsumerParams = Map(
-        "brokers"          -> brokerConnect,
-        "zookeepers"       -> zkConnect,
-        "zkPath"           -> zkPath,
-        "isProducer"       -> false,
-        "expiry"           -> true,
-        "expirationPeriod" -> 2000L)
-
-      //Setup datastores and schema
-      val cachedConsumerDS = DataStoreFinder.getDataStore(cachedConsumerParams)
-      val producerDS = DataStoreFinder.getDataStore(producerParams)
-      val schemaExpiration = {
-        val sft = SimpleFeatureTypes.createType("testExpiration", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-        KafkaDataStoreHelper.prepareForLive(sft, zkPath)
-      }
-      producerDS.createSchema(schemaExpiration)
-
-      //Setup consumer prior to writing feature so the feature will be written to the cache once the producer writes
-      val cachedConsumerFS = cachedConsumerDS.getFeatureSource("testExpiration").asInstanceOf[LiveKafkaConsumerFeatureSource]
-      val featureCache = cachedConsumerFS.featureCache
-      featureCache.qt.size() must be equalTo 0
-
-      //Write test feature
-      val fw = producerDS.getFeatureWriter("testExpiration", null, Transaction.AUTO_COMMIT)
-      val sf = fw.next()
-      sf.setAttributes(Array("jones", 30, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
-      sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
-      fw.write()
-
-      featureCache.features.size must beEqualTo(1).eventually(20, 1.second)
-      featureCache.qt.size() must beEqualTo(1).eventually(10, 500.millis)
-      Thread.sleep(2000) //sleep enough time to reach the expirationPeriod
-
-      featureCache.cache.cleanUp() //remove old entries now that the TTL has passed
-      featureCache.features.size must be equalTo 0
-      featureCache.qt.size() must beEqualTo(0).eventually(10, 500.millis)
-    }
-  }
-
   step {
     shutdown()
   }

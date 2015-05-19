@@ -17,6 +17,7 @@ package org.locationtech.geomesa.kafka
 
 import java.util.concurrent.{Executors, TimeUnit}
 
+import com.google.common.base.Ticker
 import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNotification}
 import com.google.common.eventbus.{EventBus, Subscribe}
 import com.typesafe.scalalogging.slf4j.Logging
@@ -35,12 +36,12 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
                                      sft: SimpleFeatureType,
                                      topic: String,
                                      kf: KafkaConsumerFactory,
-                                     expiry: Boolean,
-                                     expirationPeriod: Long,
+                                     expirationPeriod: Option[Long] = None,
                                      query: Query = null)
+                                    (implicit ticker: Ticker = Ticker.systemTicker())
   extends KafkaConsumerFeatureSource(entry, sft, query) {
 
-  private[kafka] val featureCache = new LiveFeatureCache(sft, expiry, expirationPeriod)
+  private[kafka] val featureCache = new LiveFeatureCache(sft, expirationPeriod)
 
   val eb = new EventBus(topic)
   eb.register(this)
@@ -59,19 +60,23 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
   override def getReaderForFilter(f: Filter): FR = featureCache.getReaderForFilter(f)
 }
 
+/** @param schema the [[SimpleFeatureType]]
+  * @param expirationPeriod the number of milliseconds after write to expire a feature or ``None`` to not
+  *                         expire
+  * @param ticker used to determine elapsed time for expiring entries
+  */
 class LiveFeatureCache(override val schema: SimpleFeatureType,
-                       expiry: Boolean,
-                       expirationPeriod: Long)
+                       expirationPeriod: Option[Long])(implicit ticker: Ticker)
   extends KafkaConsumerFeatureCache {
 
   var qt = new SynchronizedQuadtree
 
   val cache: Cache[String, FeatureHolder] = {
 
-    val cb = CacheBuilder.newBuilder()
+    val cb = CacheBuilder.newBuilder().ticker(ticker)
 
-    if (expiry) {
-      cb.expireAfterWrite(expirationPeriod, TimeUnit.MILLISECONDS)
+    expirationPeriod.map { ep =>
+      cb.expireAfterWrite(ep, TimeUnit.MILLISECONDS)
         .removalListener(
           new RemovalListener[String, FeatureHolder] {
             def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {

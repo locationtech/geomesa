@@ -63,16 +63,16 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   def getReaderForFilter(f: Filter): FR
 }
 
-trait KafkaConsumerFeatureCache {
+case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
+  override def hashCode(): Int = sf.hashCode()
 
-  case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
-    override def hashCode(): Int = sf.hashCode()
-
-    override def equals(obj: scala.Any): Boolean = obj match {
-      case other: FeatureHolder => sf.equals(other.sf)
-      case _ => false
-    }
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case other: FeatureHolder => sf.equals(other.sf)
+    case _ => false
   }
+}
+
+trait KafkaConsumerFeatureCache {
 
   def schema: SimpleFeatureType
 
@@ -146,12 +146,18 @@ object KafkaConsumerFeatureSourceFactory {
   def apply(brokers: String, zk: String, params: ju.Map[String, Serializable]): FeatureSourceFactory = {
     val kf = new KafkaConsumerFactory(brokers, zk)
 
-    lazy val expiry = Option(EXPIRY.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
-    lazy val expirationPeriod = Option(EXPIRATION_PERIOD.lookUp(params)).map(_.toString.toLong).getOrElse(0L)
+    lazy val expirationPeriod: Option[Long] = {
+      val expiry = Option(EXPIRY.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
+      if (expiry) {
+        Option(EXPIRATION_PERIOD.lookUp(params)).map(_.toString.toLong).orElse(Some(0L))
+      } else {
+        None
+      }
+    }
 
     (entry: ContentEntry, fc: KafkaFeatureConfig) => fc.replayConfig match {
       case None =>
-        new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expiry, expirationPeriod)
+        new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod)
 
       case Some(rc) =>
         new ReplayKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, rc)

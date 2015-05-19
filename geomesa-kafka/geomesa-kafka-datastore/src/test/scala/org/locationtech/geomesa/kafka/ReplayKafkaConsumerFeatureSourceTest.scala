@@ -244,32 +244,22 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
       s.events must equalGeoMessages(expectedMsgs)
   }
 
-  def expect(sf: SimpleFeature*): Set[SimpleFeature] = {
-    // duplicate transport encode and decode - changes SimpleFeatureImplementation
-    val sfEncoder = new GeoMessageEncoder(sft).sfEncoder
-    val sfDecoder = new GeoMessageDecoder(sft).sfDecoder
-    sf.map(sf => sfDecoder.decode(sfEncoder.encode(sf))).toSet
-  }
+  @tailrec
+  final def validateFR(actual: FR, expected: Set[SimpleFeature]): MatchResult[Any] = {
 
-  def validateFR(actual: FR, expected: Set[SimpleFeature]): MatchResult[Any] = {
+    if (!actual.hasNext) {
+      // exhausted - must be expecting none
+      expected must beEmpty
+    } else {
+      val next = actual.next()
 
-    @tailrec
-    def loop(reader: FR, expected: Set[SimpleFeature]): MatchResult[Any] = {
-      if (!reader.hasNext) {
-        // exhausted reader - must have matched all expected features
-        expected must beEmpty
+      val result = expected aka s"Unexpected value found: $next" must contain(next)
+      if (!result.isSuccess) {
+        result
       } else {
-        val next = reader.next()
-
-        val result = expected aka s"Unexpected value found: $next" must contain(next)
-        if (!result.isSuccess) {
-          result
-        } else {
-          loop(reader, expected - next)
-        }
+        validateFR(actual, expected - next)
       }
     }
 
-    loop(actual, expected)
   }
 }
