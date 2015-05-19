@@ -16,13 +16,12 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.nio.ByteBuffer
 import java.util.Map.Entry
 import java.util.{Map => JMap}
 
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.{DataUtilities, Query}
-import org.geotools.geometry.jts.{JTSFactoryFinder, ReferencedEnvelope}
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.filter._
 import org.locationtech.geomesa.accumulo.index.QueryHints._
@@ -32,8 +31,6 @@ import org.locationtech.geomesa.accumulo.iterators.{DeDuplicatingIterator, Densi
 import org.locationtech.geomesa.accumulo.sumNumericValueMutableMaps
 import org.locationtech.geomesa.accumulo.util.CloseableIterator
 import org.locationtech.geomesa.accumulo.util.CloseableIterator._
-import org.locationtech.geomesa.curve.Z3SFC
-import org.locationtech.geomesa.feature.nio.{AttributeAccessor, LazySimpleFeature}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.security.SecurityUtils
