@@ -20,23 +20,29 @@ import org.opengis.filter.Filter
 
 import scala.reflect.ClassTag
 
-trait LazySFFilterIter extends SortedKeyValueIterator[Key, Value] with Logging {
+trait LazyFilterTransformIterator extends SortedKeyValueIterator[Key, Value] with Logging {
+
+  import LazyFilterTransformIterator._
 
   var sft: SimpleFeatureType = null
   var src: SortedKeyValueIterator[Key, Value] = null
   var filter: Filter = null
+  var transform: String = null
+  var topValue: Value = new Value()
 
   override def init(source: SortedKeyValueIterator[Key, Value],
-                    options: util.Map[String, String],
+                    options: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
-    LazySimpleFeatureFilteringIterator.initClassLoader(logger)
+    LazyFilterTransformIterator.initClassLoader(logger)
     src = source
-    sft = SimpleFeatureTypes.createType("test", options.get("sft"))
-    filter = FastFilterFactory.toFilter(options.get("cql"))
+    sft = SimpleFeatureTypes.createType("test", options.get(SFT_OPT))
+    filter = Option(options.get(CQL_OPT)).map(FastFilterFactory.toFilter).orNull
+    transform = Option(options.get(TRANS_OPT)).orNull
   }
 
   def sf: SimpleFeature
   def initReusableFeature(buf: Array[Byte]): Unit
+  def setTransform(): Unit
 
   override def next(): Unit = {
     src.next()
@@ -47,7 +53,7 @@ trait LazySFFilterIter extends SortedKeyValueIterator[Key, Value] with Logging {
     var found = false
     while (!found && src.hasTop) {
       initReusableFeature(src.getTopValue.get())
-      if (filter.evaluate(sf)) {
+      if (filter == null || filter.evaluate(sf)) {
         found = true
       } else {
         src.next()
@@ -56,7 +62,13 @@ trait LazySFFilterIter extends SortedKeyValueIterator[Key, Value] with Logging {
   }
 
   override def getTopKey: Key = src.getTopKey
-  override def getTopValue: Value = src.getTopValue
+  override def getTopValue: Value =
+    if (transform == null) {
+      src.getTopValue
+    } else {
+      setTransform()
+      topValue
+    }
   override def hasTop: Boolean = src.hasTop
 
   override def seek(range: Range, columnFamilies: jCollection[ByteSequence], inclusive: Boolean): Unit = {
@@ -67,7 +79,7 @@ trait LazySFFilterIter extends SortedKeyValueIterator[Key, Value] with Logging {
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = ???
 }
 
-class LazyKryoFeatureFilteringIterator extends LazySFFilterIter {
+class KryoLazyFilterTransformIterator extends LazyFilterTransformIterator {
 
   private var kryo: KryoFeatureSerializer = null
   private var reusablesf: KryoBufferSimpleFeature = null
@@ -80,12 +92,17 @@ class LazyKryoFeatureFilteringIterator extends LazySFFilterIter {
     super.init(source, options, env)
     kryo = new KryoFeatureSerializer(sft)
     reusablesf = kryo.getReusableFeature
+    if (transform != null) {
+      reusablesf.setTransforms(transform)
+    }
   }
 
   override def initReusableFeature(buf: Array[Byte]): Unit = reusablesf.setBuffer(buf)
+
+  override def setTransform(): Unit = topValue.set(reusablesf.transform())
 }
 
-class LazyNIOFeatureFilteringIterator extends LazySFFilterIter {
+class NIOLazyFilterTransformIterator extends LazyFilterTransformIterator {
 
   private var accessors: IndexedSeq[AttributeAccessor[_ <: AnyRef]] = null
   private var reusablesf: LazySimpleFeature = null
@@ -101,23 +118,32 @@ class LazyNIOFeatureFilteringIterator extends LazySFFilterIter {
   }
 
   override def initReusableFeature(buf: Array[Byte]): Unit = reusablesf.setBuf(ByteBuffer.wrap(buf))
+
+  override def setTransform(): Unit = topValue.set(src.getTopValue.get()) // TODO
 }
 
-object LazySimpleFeatureFilteringIterator {
+object LazyFilterTransformIterator {
 
-  def configure[T <: LazySFFilterIter](sft: SimpleFeatureType, filter: Filter)(implicit ct: ClassTag[T]) = {
-    val is = new IteratorSetting(5, "featurefilter", ct.runtimeClass.getCanonicalName)
-    is.addOption("sft", SimpleFeatureTypes.encodeType(sft))
-    is.addOption("cql", ECQL.toCQL(filter))
+  val SFT_OPT   = "sft"
+  val CQL_OPT   = "cql"
+  val TRANS_OPT = "trans"
+
+  def configure[T <: LazyFilterTransformIterator](sft: SimpleFeatureType,
+                                                  filter: Option[Filter],
+                                                  transform: Option[String],
+                                                  priority: Int)(implicit ct: ClassTag[T]) = {
+    assert(filter.isDefined || transform.isDefined, "No options configured")
+    val is = new IteratorSetting(priority, "featurefilter", ct.runtimeClass.getCanonicalName)
+    is.addOption(SFT_OPT, SimpleFeatureTypes.encodeType(sft))
+    filter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
+    transform.foreach(t => is.addOption(TRANS_OPT, t))
     is
   }
 
-  val initialized = new ThreadLocal[Boolean] {
-    override def initialValue(): Boolean = false
-  }
+  private var initialized = false
 
-  def initClassLoader(log: Logger) =
-    if(!initialized.get()) {
+  def initClassLoader(log: Logger) = synchronized {
+    if (!initialized) {
       try {
         log.trace("Initializing classLoader")
         // locate the geomesa-distributed-runtime jar
@@ -144,8 +170,8 @@ object LazySimpleFeatureFilteringIterator {
         case t: Throwable =>
           if(log != null) log.error("Failed to initialize GeoTools' ClassLoader ", t)
       } finally {
-        initialized.set(true)
+        initialized = true
       }
     }
-
+  }
 }

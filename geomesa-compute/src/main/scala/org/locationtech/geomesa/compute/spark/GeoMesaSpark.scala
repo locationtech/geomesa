@@ -31,9 +31,9 @@ import org.apache.spark.serializer.KryoRegistrator
 import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.{DataStore, DataStoreFinder, DefaultTransaction, Query}
 import org.geotools.factory.CommonFactoryFinder
-import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.{ExplainPrintln, STIdxStrategy, _}
-import org.locationtech.geomesa.features.SimpleFeatureDeserializers
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.index.{ExplainNull, QueryPlanner, STIdxStrategy}
+import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.features.kryo.serialization.{KryoFeatureSerializer, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -49,7 +49,7 @@ object GeoMesaSpark {
     
     conf.set("spark.executor.extraJavaOptions", extraOpts)
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getCanonicalName)
+    conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
   }
 
   def typeProp(typeName: String) = s"geomesa.types.$typeName"
@@ -64,7 +64,7 @@ object GeoMesaSpark {
     val version = ds.getGeomesaVersion(sft)
     val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, ds.strategyHints(sft), version)
 
-    val qp = new STIdxStrategy().getQueryPlans(query, queryPlanner, ExplainPrintln).head // TODO fix this
+    val qp = new STIdxStrategy().getQueryPlans(query, queryPlanner, ExplainNull).head // TODO fix this
 
     ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, ds.connector.whoami(), ds.authToken)
 
@@ -145,7 +145,6 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
           override def load(key: String): SimpleFeatureSerializer = new SimpleFeatureSerializer(typeCache.get(key))
         })
 
-
       override def write(kryo: Kryo, out: Output, feature: SimpleFeature): Unit = {
         val typeName = feature.getFeatureType.getTypeName
         out.writeString(typeName)
@@ -158,6 +157,7 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
       }
     }
 
-    KryoFeatureSerializer.setupKryo(kryo, serializer)
+    kryo.setReferences(false)
+    SimpleFeatureSerializers.simpleFeatureImpls.foreach(kryo.register(_, serializer, kryo.getNextRegistrationId))
   }
 }

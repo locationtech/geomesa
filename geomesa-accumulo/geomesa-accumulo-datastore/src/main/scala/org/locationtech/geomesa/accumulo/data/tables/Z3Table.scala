@@ -43,8 +43,8 @@ object Z3Table {
     val dtgIndex =
       index.getDtgDescriptor(sft)
         .map { desc => sft.indexOf(desc.getName) }
-        .getOrElse { throw new IllegalArgumentException("Must have a date for a Z3 index")}
-    if (sft.getGeometryDescriptor.getType.getBinding != classOf[Point]) {
+        .getOrElse(-1)
+    if (dtgIndex == -1 || sft.getGeometryDescriptor.getType.getBinding != classOf[Point]) {
       // TODO more robust method for not using z3 with non-point geoms
       // TODO also see org.locationtech.geomesa.accumulo.index.Z3IdxStrategy.getStrategy
       return (fw: FeatureToWrite) => Seq.empty

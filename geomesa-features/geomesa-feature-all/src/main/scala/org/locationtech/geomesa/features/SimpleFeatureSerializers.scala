@@ -8,11 +8,13 @@
 
 package org.locationtech.geomesa.features
 
+import org.geotools.feature.simple.SimpleFeatureImpl
+import org.locationtech.geomesa.feature.nio.LazySimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.avro._
 import org.locationtech.geomesa.features.kryo._
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 
 object SimpleFeatureDeserializers {
@@ -54,6 +56,13 @@ object ProjectingSimpleFeatureDeserializers {
 }
 
 object SimpleFeatureSerializers {
+
+  val simpleFeatureImpls = Seq(classOf[ScalaSimpleFeature],
+                               classOf[KryoBufferSimpleFeature],
+                               classOf[LazySimpleFeature],
+                               classOf[AvroSimpleFeature],
+                               classOf[SimpleFeature],
+                               classOf[SimpleFeatureImpl])
 
   /**
    * @param sft the simple feature type to be encoded

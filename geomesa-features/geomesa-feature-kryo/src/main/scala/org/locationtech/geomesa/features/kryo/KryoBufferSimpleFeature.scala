@@ -14,60 +14,69 @@ import com.esotericsoftware.kryo.io.Input
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.process.vector.TransformProcess
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
+import org.opengis.filter.expression.PropertyName
 import org.opengis.geometry.BoundingBox
+
+import scala.collection.JavaConversions._
 
 object LazySimpleFeature {
   val NULL_BYTE = 0.asInstanceOf[Byte]
 }
 
-class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: List[(Input) => AnyRef], transforms: Option[String] = None) extends SimpleFeature {
+class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: List[(Input) => AnyRef]) extends SimpleFeature {
 
   private val input = new Input
   private val offsets = Array.ofDim[Int](sft.getAttributeCount)
 
   private var id: String = null
 
-//  private lazy val binaryTransform: () => Array[Byte] = transforms match {
-//    case None => () => input.getBuffer
-//    case Some(t) =>
-//      val tdefs = TransformProcess.toDefinition(t)
-//      if (tdefs.forall(_.expression.isInstanceOf[PropertyName])) {
-//        val indices = tdefs.map(d => sft.indexOf(d.expression.asInstanceOf[PropertyName].getPropertyName))
-//        val maxIndex = indices.max
-//        val last = maxIndex == offsets.length - 1
-//        () => {
-//          val buf = input.getBuffer
-//          if (last) { ensureOffsets(maxIndex) } else { ensureOffsets(maxIndex + 1) }
-//          var length = 0
-//          val offsetsAndLengths = indices.map { i =>
-//            val l = (if (i < offsets.length - 1) offsets(i + 1) else buf.length) - offsets(i)
-//            length += l
-//            (offsets(i), l)
-//          }
-//          val dst = Array.ofDim[Byte](length)
-//          var dstPos = 0
-//          offsetsAndLengths.foreach { case (o, l) =>
-//            System.arraycopy(buf, o, dst, dstPos, l)
-//            dstPos += l
-//          }
-//          dst
-//        }
-//      } else {
-//        // not just a mapping, but has actual functions/transforms
-//        val spec = tdefs.map(t => s"${t.name}:${t.binding}").mkString(",")
-//        val targetFeatureType = SimpleFeatureTypes.createType("t", spec)
-//        val encoder = SimpleFeatureEncoder(targetFeatureType, FeatureEncoding.KRYO)
-//        val sf = new ScalaSimpleFeature("reusable", targetFeatureType)
-//        () => {
-//          sf.getIdentifier.setID(getID)
-//          tdefs.foreach(t => sf.setAttribute(t.name, t.expression.evaluate(this)))
-//          encoder.encode(sf)
-//        }
-//      }
-//  }
+  private var binaryTransform: () => Array[Byte] = input.getBuffer
+
+  def setTransforms(transforms: String) = {
+    val tdefs = TransformProcess.toDefinition(transforms)
+    binaryTransform = if (tdefs.forall(_.expression.isInstanceOf[PropertyName])) {
+      val indices = tdefs.map(d => sft.indexOf(d.expression.asInstanceOf[PropertyName].getPropertyName))
+      () => {
+        val buf = input.getBuffer
+        var length = offsets(0) // space for version, offset block and ID
+        val offsetsAndLengths = indices.map { i =>
+          val l = (if (i < offsets.length - 1) offsets(i + 1) else buf.length) - offsets(i)
+          length += l
+          (offsets(i), l)
+        }
+        val dst = Array.ofDim[Byte](length)
+        // copy the version, offset block and id - offset block isn't used by non-lazy deserialization
+        System.arraycopy(buf, 0, dst, 0, offsets(0))
+        var dstPos = offsets(0)
+        offsetsAndLengths.foreach { case (o, l) =>
+          System.arraycopy(buf, o, dst, dstPos, l)
+          dstPos += l
+        }
+        dst
+      }
+    } else {
+      // not just a mapping, but has actual functions/transforms - we have to evaluate the expressions
+      val spec = tdefs.map(t => s"${t.name}:${t.binding}").mkString(",")
+      val targetFeatureType = SimpleFeatureTypes.createType("transform", spec)
+      val serializer = new KryoFeatureSerializer(targetFeatureType)
+      val sf = new ScalaSimpleFeature("reusable", targetFeatureType)
+      () => {
+        sf.getIdentifier.setID(getID)
+        var i = 0
+        while (i < tdefs.size) {
+          sf.setAttribute(i, tdefs(i).expression.evaluate(this))
+          i += 1
+        }
+        serializer.serialize(sf)
+      }
+    }
+  }
 
   lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
 
@@ -88,7 +97,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: List[(Input) => A
     readers(index)(input)
   }
 
-//  def transform(): Array[Byte] = binaryTransform()
+  def transform(): Array[Byte] = binaryTransform()
 
   override def getFeatureType = sft
   override def getType = sft

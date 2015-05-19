@@ -41,7 +41,7 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
   override def serialize(sf: SimpleFeature): Array[Byte] = doWrite(sf)
   override def lazyDeserialize(bytes: Array[Byte], reusableFeature: SimpleFeature = null): SimpleFeature = {
     val sf = if (reusableFeature == null) {
-      getReusableFeature.asInstanceOf[KryoBufferSimpleFeature]
+      getReusableFeature
     } else {
       try {
         reusableFeature.asInstanceOf[KryoBufferSimpleFeature]
@@ -144,7 +144,7 @@ class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
   private val numProjectedAttributes = projected.getAttributeCount
   private lazy val legacySerializer = serialization.KryoFeatureSerializer(original, projected, options)
 
-  override def getReusableFeature = new KryoBufferSimpleFeature(projected, readers) // TODO fix this
+  override def getReusableFeature = throw new NotImplementedError()
 
   // TODO we can optimize this some
   override protected[kryo] def readSf(bytes: Array[Byte]): (SimpleFeature, Input) = {
@@ -169,7 +169,7 @@ class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
   }
 
   override def lazyDeserialize(bytes: Array[Byte], reusableFeature: SimpleFeature): SimpleFeature =
-    throw new NotImplementedError() // TODO
+    throw new NotImplementedError()
 }
 
 object KryoFeatureSerializer {

@@ -435,7 +435,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
       val path = Runner.getClass.getResource("/test_valid_wkt.csv")
       val ingest = new ScaldingDelimitedIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
         new Args(csvWktParams.updated(IngestParams.SFT_SPEC,
-        List("time:Date,*geom:Point:srid=4326")) ++ Map(IngestParams.COLS -> List("1-2")))))
+        List("time:Date,*geom:Geometry:srid=4326")) ++ Map(IngestParams.COLS -> List("1-2")))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
     }
@@ -444,7 +444,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
       val path = Runner.getClass.getResource("/test_valid_wkt.tsv")
       val ingest = new ScaldingDelimitedIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
           new Args(csvWktParams.updated(IngestParams.SFT_SPEC,
-        List("time:Date,*geom:Point:srid=4326")).updated(IngestParams.FORMAT, List("TSV"))
+        List("time:Date,*geom:Geometry:srid=4326")).updated(IngestParams.FORMAT, List("TSV"))
         ++ Map(IngestParams.COLS -> List("1-2")))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
