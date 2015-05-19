@@ -16,9 +16,11 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.Key
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.utils.text.WKBUtils
 
 trait Decoder[T] {
   def decode(key: Key): T
@@ -43,3 +45,9 @@ case class DateDecoder(orderSeq: Seq[TextExtractor], fs: String) extends Extract
 case class IdDecoder(orderedSeq: Seq[TextExtractor]) extends ExtractingDecoder[String] {
   def decode(key: Key): String = seqExtract(orderedSeq, key).replaceAll("_+$", "")
 }
+
+case class GeometryDecoder(orderedSeq: Seq[ColumnQualifierExtractor]) extends ExtractingDecoder[Geometry] {
+  def decode(key: Key): Geometry =
+    WKBUtils.read(seqExtract(orderedSeq, key).takeWhile(c => c != '.'))
+}
+

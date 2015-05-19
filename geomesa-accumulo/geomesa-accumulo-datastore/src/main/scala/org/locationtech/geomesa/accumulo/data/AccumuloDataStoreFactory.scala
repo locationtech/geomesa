@@ -157,6 +157,8 @@ object AccumuloDataStoreFactory {
     val tableNameParam      = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
     val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false)
     val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false)
+    val shardsParam         = new Param("shards", classOf[Integer], "Accumulo number of shards to use for writing coverage data", false)
+    val writeMemoryParam    = new Param("writeMemory", classOf[Integer], "The memory allocation to use for writing records", false)
     val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false)
     val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false)
     val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false)

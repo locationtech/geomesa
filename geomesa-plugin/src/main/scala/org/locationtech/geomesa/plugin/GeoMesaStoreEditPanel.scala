@@ -5,7 +5,7 @@ import org.apache.wicket.markup.html.form.{Form, FormComponent}
 import org.apache.wicket.markup.html.panel.Panel
 import org.apache.wicket.model.{IModel, ResourceModel}
 import org.geoserver.web.data.store.StoreEditPanel
-import org.geoserver.web.data.store.panel.{ParamPanel, PasswordParamPanel, TextParamPanel}
+import org.geoserver.web.data.store.panel.{CheckBoxParamPanel, ParamPanel, PasswordParamPanel, TextParamPanel}
 import org.geoserver.web.util.MapModel
 import org.geotools.data.DataAccessFactory.Param
 
@@ -48,6 +48,16 @@ abstract class GeoMesaStoreEditPanel (componentId: String, storeEditForm: Form[_
         new MapModel(paramsModel, paramName).asInstanceOf[IModel[_]],
         new ResourceModel(resourceKey, paramName), required)
     addPanel(passParamPanel, param, resourceKey)
+  }
+
+  def addCheckBoxPanel(paramsModel: IModel[_], param: Param): FormComponent[_] = {
+    val paramName = param.key
+    val resourceKey = getClass.getSimpleName + "." + paramName
+    val checkboxPanel =
+      new CheckBoxParamPanel(paramName,
+        new MapModel(paramsModel, paramName).asInstanceOf[IModel[_]],
+        new ResourceModel(resourceKey, paramName))
+    addPanel(checkboxPanel, param, resourceKey)
   }
 
   def addPanel(paramPanel: Panel with ParamPanel, param: Param, resourceKey: String): FormComponent[_] = {

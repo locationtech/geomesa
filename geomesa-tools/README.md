@@ -9,7 +9,7 @@ To begin using the command line tools, first build the full GeoMesa project from
 
     mvn clean install
     
-You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-bin.tar.gz" 
+You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-{version}-bin.tar.gz"
 in the geomesa-assemble/target directory. Untar this file with
 
     tar xvfz geomesa-assemble/target/geomesa-${version}-bin.tar.gz
@@ -35,12 +35,15 @@ This should print out the following usage text:
       Commands:
         create       Create a feature definition in a GeoMesa catalog
         delete       Delete a feature's data and definition from a GeoMesa catalog
+        deleteraster Delete a raster table
         describe     Describe the attributes of a given feature in GeoMesa
         explain      Explain how a GeoMesa query will be executed
         export       Export a GeoMesa feature
         help         Show help
         ingest       Ingest a file of various formats into GeoMesa
+        ingestraster Ingest a raster file or raster files in a directory into GeoMesa
         list         List GeoMesa features for a given catalog
+        querystats   Export queries and statistics about the last X number of queries to a CSV file.
         tableconf    Perform table configuration operations
                 
 This usage text lists the available commands. To see help for an individual command run `geomesa help <command-name>` which for example
@@ -191,6 +194,41 @@ To remove a feature type and it's associated data from a catalog table, use the 
 ####Example:
     geomesa removeschema -u username -p password -i instname -z zoo1,zoo2,zoo3 -c test_catalog -fn testfeature1
     geomesa removeschema -u username -p password -i instname -z zoo1,zoo2,zoo3 -c test_catalog -pt 'testfeatures\d+'
+    
+    
+### deleteraster
+To delete a specific raster table use the `deleteraster` command.
+
+####Usage (required options denoted with star):
+    $ geomesa help deleteraster
+    Delete a GeoMesa Raster Store 
+    Usage: deleteraster [options]
+      Options:
+        -a, --auths
+           Accumulo authorizations
+        -f, --force
+           Force deletion of feature without prompt
+           Default: false
+        -i, --instance
+           Accumulo instance name
+        -mc, --mock
+           Run everything with a mock accumulo instance instead of a real one
+           Default: false
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+      * -t, --raster-table
+           Accumulo table for storing raster data
+      * -u, --user
+           Accumulo user name
+        -v, --visibilities
+           Accumulo scan visibilities
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+
+####Example:
+    geomesa deleteraster -u username -p password -t somerastertable -f
+    
 
 ### deletecatalog
 To delete a GeoMesa catalog completely (and all features in it) use the `deletecatalog` command.
@@ -476,6 +514,79 @@ The file type is inferred from the extension of the file, so ensure that the for
 ##### Ingest a shape file
     geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
 
+### ingestraster
+To ingest one or multiple raster image files into Geomesa, use the `ingestraster` command. Input files, Geotiff or
+DTED, are located on local file system. If chunking (only works for single file) is specified by option `-ck`,
+input file is cut into chunks by size in kilobytes (option `-cs or --chunk-size`) and chunks are ingested. Ingestion
+is done in local or distributed mode (by option `-m or --mode`, default is local). In local mode, files are ingested
+directly from local host into Accumulo tables. In distributed mode, raster files are serialized and stored in a HDFS
+directory from where they are ingested.
+
+*Note:* Make sure GDAL is installed when doing chunking that depends on GDAL utility `gdal_translate`.
+
+*Note:* It assumes input raster files have CRS set to EPSG:4326. For non-EPSG:4326 files, they need to be converted into
+EPSG:4326 raster files before ingestion. An example of doing conversion with GDAL utility is `gdalwarp -t_srs EPSG:4326
+input_file out_file`.
+
+####Usage (required options denoted with star):
+    $ geomesa help ingestraster
+    Ingest a raster file or files in a directory into GeoMesa
+    Usage: ingestraster [options]
+      Options:
+        -a, --auths
+           Accumulo authorizations
+        -ck, --chunk
+           Create raster chunks before ingestion
+           Default: false
+        -cs, --chunk-size
+           Desired size (in kilobytes) of each chunk
+           Default: 600
+      * -f, --file
+           Single raster file or directory of raster files to be ingested
+        -fmt, --format
+           Format of incoming raster data (geotiff | DTED) to override file
+           extension recognition
+        -i, --instance
+           Accumulo instance name
+        -mc, --mock
+           Run everything with a mock accumulo instance instead of a real one
+           (true/false)
+           Default: false
+        -m, --mode
+           Ingestion mode (local | distributed, default to local)
+           Default: local
+        -par, --parallel-level
+           Maximum number of local threads for ingesting multiple raster files
+           (default to 1)
+           Default: 1
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+        -qt, --query-threads
+           Threads for quering raster data
+      * -t, --raster-table
+           Accumulo table for storing raster data
+        -sh, --shards
+           Number of shards to use for the storage tables (defaults to number of
+           tservers)
+        -tm, --timestamp
+           Ingestion time (default to current time)
+      * -u, --user
+           Accumulo user name
+        -v, --visibilities
+           Accumulo scan visibilities
+        -wm, --write-memory
+           Memory allocation for ingestion operation
+        -wt, --write-threads
+           Threads for writing raster data
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+
+#### Example commands:
+    geomesa ingestraster -u username -p password -t geomesa_raster -f /some/local/path/to/raster.tif
+
+    geomesa ingestraster -u username -p password -t geomesa_raster -ck -cs 1000 -m distributed -f /some/path/to/raster.tif
+
 ### list
 To list the features on a specified catalog table, use the `list` command.  
 
@@ -505,6 +616,42 @@ To list the features on a specified catalog table, use the `list` command.
 
 #### Example command:
     geomesa list -u username -p password -c test_catalog
+    
+### querystats
+Export queries and statistics logged for raster tables by using the `querystats` command.
+
+####Usage (required options denoted with star):
+    $ geomesa help querystats
+    Export queries and statistics about the last X number of queries to a CSV file.
+    Usage: querystats [options]
+      Options:
+        -a, --auths
+           Accumulo authorizations
+        -i, --instance
+           Accumulo instance name
+        -mc, --mock
+           Run everything with a mock accumulo instance instead of a real one
+           (true/false)
+           Default: false
+        -num, --number-of-records
+           Number of query records to export from Accumulo
+           Default: 1000
+        -o, --output
+           Name of the file to output to
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+      * -t, --raster-table
+           Accumulo table for storing raster data
+      * -u, --user
+           Accumulo user name
+        -v, --visibilities
+           Accumulo scan visibilities
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+
+#### Example command:
+    geomesa querystats -u username -p password -t somerastertable -num 10
     
 ### tableconf
 To list, describe, and update the configuration parameters on a specified table, use the `tableconf` command. 

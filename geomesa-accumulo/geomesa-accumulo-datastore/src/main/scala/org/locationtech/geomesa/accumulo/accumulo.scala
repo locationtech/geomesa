@@ -37,6 +37,7 @@ package object accumulo {
   val DEFAULT_CACHE_SIZE_NAME                = "geomesa.index.cache-size"
   val DEFAULT_CACHE_TABLE_NAME               = "geomesa.index.cache-table"
   val DEFAULT_AGGREGATOR_CLASS_PROPERTY_NAME = "geomesa.iterators.aggregator-class"
+  val DEFAULT_FILTER_PROPERTY_NAME           = "geomesa.iterators.filter-name"
 
   val GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE      = "geomesa.iterators.aggregator-types"
   val GEOMESA_ITERATORS_SFT_NAME                 = "geomesa.iterators.sft-name"
