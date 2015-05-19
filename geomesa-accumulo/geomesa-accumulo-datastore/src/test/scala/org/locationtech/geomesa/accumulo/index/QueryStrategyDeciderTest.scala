@@ -76,6 +76,9 @@ class QueryStrategyDeciderTest extends Specification {
   def getAttributeIdxStrategy(filterString: String) =
     getStrategyT(filterString, ClassTag(classOf[AttributeIdxStrategy]))
 
+  def getZ3Strategy(filterString: String) =
+    getStrategyT(filterString, ClassTag(classOf[Z3IdxStrategy]))
+
   "Good spatial predicates" should {
     "get the stidx strategy" in {
       forall(goodSpatialPredicates){ getStStrategy }
@@ -227,6 +230,16 @@ class QueryStrategyDeciderTest extends Specification {
 
     "get the stidx strategy with attributeAndGeometricPredicates" in {
       forall(attributeAndGeometricPredicates) { getStStrategy }
+    }
+
+    "get the z3 strategy with spatio-temporal queries" in {
+      forall(spatioTemporalPredicates) { getZ3Strategy }
+      val morePredicates = temporalPredicates.drop(1).flatMap(p => goodSpatialPredicates.map(_ + " AND " + p))
+      forall(morePredicates) { getZ3Strategy }
+      val withAttrs = temporalPredicates.drop(1).flatMap(p => attributeAndGeometricPredicates.map(_ + " AND " + p))
+      forall(withAttrs) { getZ3Strategy }
+      val wholeWorld = "BBOX(geom,-180,-90,180,90) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
+      getZ3Strategy(wholeWorld)
     }
 
     "get the attribute strategy with attrIdxStrategyPredicates" in {

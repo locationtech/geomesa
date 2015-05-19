@@ -1249,14 +1249,14 @@ class AccumuloDataStoreTest extends Specification {
       // Let's read out what we wrote.
       val features = SelfClosingIterator(ds.getFeatureSource(sftName1).getFeatures(query).features).toList
       features.size mustEqual 1
-      features(0).getID mustEqual "fid-sft1"
+      features.head.getID mustEqual "fid-sft1"
 
       val explain = {
         val o = new ExplainString
         ds.explainQuery(sftName1, query, o)
         o.toString()
       }
-      explain must not contain("GeoHashKeyPlanner: KeyInvalid")
+      explain must not contain "GeoHashKeyPlanner: KeyInvalid"
     }
 
     "transform index value data correctly" in {

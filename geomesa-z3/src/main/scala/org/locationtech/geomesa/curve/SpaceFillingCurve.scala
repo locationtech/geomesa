@@ -17,7 +17,7 @@ trait SpaceFillingCurve[T] {
   def denormLon(x: Double): Double = (x / xprec) * 360.0 - 180.0
   def normLat(y: Double) = math.ceil((90.0 + y) / 180.0 * yprec).toInt
   def denormLat(y: Double): Double = (y / yprec) * 180.0 - 90.0
-  def normT(t: Long) = math.ceil(t / tmax * tprec).toInt
+  def normT(t: Long) = math.max(0, math.ceil(t / tmax * tprec).toInt)
   def denormT(t: Long) = t * tmax / tprec
 }
 

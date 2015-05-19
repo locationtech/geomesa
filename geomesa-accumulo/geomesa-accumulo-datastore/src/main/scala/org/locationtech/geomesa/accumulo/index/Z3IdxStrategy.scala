@@ -10,7 +10,7 @@ import org.geotools.data.Query
 import org.joda.time.Weeks
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.{filter, index}
-import org.locationtech.geomesa.curve.{Z3, Z3Iterator, Z3SFC}
+import org.locationtech.geomesa.curve.{Z3Iterator, Z3SFC}
 import org.locationtech.geomesa.iterators.{KryoLazyFilterTransformIterator, LazyFilterTransformIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -130,7 +130,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
 }
 
 object Z3IdxStrategy extends StrategyProvider {
-  import FilterHelper._
+
   import filter._
 
   val Z3_ITER_PRIORITY = 21
@@ -149,9 +149,7 @@ object Z3IdxStrategy extends StrategyProvider {
     val (geomFilter, other) = partitionGeom(filter, sft)
     val dtgFieldName = getDtgFieldName(sft)
     val (temporal, _) = partitionTemporal(other, dtgFieldName)
-    if(geomFilter.size == 0 || temporal.size == 0) {
-      None
-    } else if (spatialFilters(geomFilter.head) && !isFilterWholeWorld(geomFilter.head)) {
+    if (geomFilter.nonEmpty && temporal.nonEmpty && spatialFilters(geomFilter.head)) {
       val geom = sft.getGeometryDescriptor.getLocalName
       val e1 = geomFilter.head.asInstanceOf[BinarySpatialOperator].getExpression1
       val e2 = geomFilter.head.asInstanceOf[BinarySpatialOperator].getExpression2
