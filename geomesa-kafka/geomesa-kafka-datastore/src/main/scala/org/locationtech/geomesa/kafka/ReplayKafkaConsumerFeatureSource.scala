@@ -40,7 +40,8 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
                                        kf: KafkaConsumerFactory,
                                        replayConfig: ReplayConfig,
                                        query: Query = null)
-  extends KafkaConsumerFeatureSource(entry, replaySFT, query) {
+  extends KafkaConsumerFeatureSource(entry, replaySFT, query)
+  with Logging {
 
   import TimestampFilterSplit.split
 
@@ -146,13 +147,18 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     // required: there is only 1 partition;  validate??
     val stream = kafkaConsumer.createMessageStreams(1, offsetRequest).head
 
-    stream.iterator
+    val msgs = stream.iterator
       .stopOnTimeout
       .map(msgDecoder.decode)
       .dropWhile(replayConfig.isBeforeRealStart)
       .takeWhile(replayConfig.isNotAfterEnd)
       .foldLeft(List.empty[GeoMessage])((seq, elem) => elem :: seq)
       .toArray
+
+    logger.debug("Read {} messages from {} using {}",
+      msgs.length.asInstanceOf[AnyRef], topic, replayConfig)
+
+    msgs
   }
 }
 

@@ -25,8 +25,8 @@ import scala.collection.JavaConverters._
 
 trait SimpleFeatureMatchers extends Specification {
 
-  def containFeatures(sf: SimpleFeature*): Matcher[Seq[SimpleFeature]] =
-    contain(exactly(sf.map(equalSF) : _*))
+  def containFeatures(sf: Set[SimpleFeature]): Matcher[Seq[SimpleFeature]] =
+    contain(exactly(sf.map(equalSF).toSeq : _*))
 
   def containSF(expected: SimpleFeature): Matcher[Seq[SimpleFeature]] = {
     val matcher = equalSF(expected)

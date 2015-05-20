@@ -17,7 +17,7 @@
     </appender>
 
     <category name="org.locationtech.geomesa.kafka">
-        <priority value="debug"/>
+        <priority value="info"/>
     </category>
 
     <category name="kafka">

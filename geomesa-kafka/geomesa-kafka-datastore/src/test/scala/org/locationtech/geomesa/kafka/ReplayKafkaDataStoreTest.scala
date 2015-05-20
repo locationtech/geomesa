@@ -18,7 +18,10 @@ package org.locationtech.geomesa.kafka
 import java.io.Serializable
 import java.{util => ju}
 
+import com.typesafe.scalalogging.slf4j.Logging
+import kafka.admin.AdminUtils
 import kafka.producer.{Producer, ProducerConfig}
+import org.I0Itec.zkclient.ZkClient
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.{DataStore, Query}
 import org.joda.time.Instant
@@ -28,7 +31,6 @@ import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.BeforeExample
 
 import scala.collection.JavaConversions._
 
@@ -37,39 +39,37 @@ class ReplayKafkaDataStoreTest
   extends Specification
   with HasEmbeddedZookeeper
   with SimpleFeatureMatchers
-  with BeforeExample {
+  with Logging {
 
   import KafkaConsumerTestData._
-
-  sequential
 
   val zkPath = "/kafkaDS/test"
   val sftName = sft.getTypeName
 
-  // delay initialization until ``before`` is called
+  // lazy initialization to avoid blowing up test framework if initialization fails
   lazy val dataStore = createDataStore
-  lazy val liveSFT = createLiveSFT
-
-  override def before = {
-    sendMessages()
+  lazy val liveSFT = {
+    val result = createLiveSFT
+    sendMessages(result)
+    result
   }
 
   "replay" should {
 
     "select the most recent version within the replay window when no message time is given" >> {
 
-      val fs = createReplayFeatureSource(10000, 12000, 1000)
+      val (replayType, fs) = createReplayFeatureSource(10000, 12000, 1000)
       fs.isInstanceOf[ReplayKafkaConsumerFeatureSource] must beTrue
 
       val features = featuresToList(fs.getFeatures)
 
       features must haveSize(3)
-      features must containFeatures(track0v1, track1v0, track3v2)
+      features must containFeatures(expect(replayType, 12000L, track0v1, track1v0, track3v2))
     }
 
     "use the message time when given" >> {
 
-      val fs = createReplayFeatureSource(10000, 20000, 1000)
+      val (replayType, fs) = createReplayFeatureSource(10000, 20000, 1000)
 
       "in a filter" >> {
         val filter = ReplayTimeHelper.toFilter(new Instant(13000))
@@ -77,7 +77,7 @@ class ReplayKafkaDataStoreTest
         val features = featuresToList(fs.getFeatures(filter))
 
         features must haveSize(2)
-        features must containFeatures(track1v1, track2v0)
+        features must containFeatures(expect(replayType, 13000L, track1v1, track2v0))
       }
 
       "in a query" >> {
@@ -88,20 +88,20 @@ class ReplayKafkaDataStoreTest
         val features = featuresToList(fs.getFeatures(filter))
 
         features must haveSize(2)
-        features must containFeatures(track1v1, track2v0)
+        features must containFeatures(expect(replayType, 13000L, track1v1, track2v0))
       }
     }
 
     "find messages with the same time" >> {
 
-      val fs = createReplayFeatureSource(10000, 15000, 1000)
+      val (replayType, fs) = createReplayFeatureSource(10000, 15000, 1000)
 
       val filter = ReplayTimeHelper.toFilter(new Instant(12000))
 
       val features = featuresToList(fs.getFeatures(filter))
 
       features must haveSize(3)
-      features must containFeatures(track0v1, track1v0, track3v2)
+      features must containFeatures(expect(replayType, 12000L, track0v1, track1v0, track3v2))
     }
   }
 
@@ -130,25 +130,43 @@ class ReplayKafkaDataStoreTest
   def createLiveSFT: SimpleFeatureType = {
     val prepped = KafkaDataStoreHelper.prepareForLive(sft, zkPath)
     dataStore.createSchema(prepped)
+
+    val topic = KafkaDataStoreHelper.extractTopic(prepped)
+    topic must beSome
+
+    val zkClient = new ZkClient(zkConnect)
+    try {
+      AdminUtils.topicExists(zkClient, topic.get) must beTrue
+    } finally {
+      zkClient.close()
+    }
+
     prepped
   }
 
-  def sendMessages(): Unit = {
+  def sendMessages(sft: SimpleFeatureType): Unit = {
     val props = new ju.Properties()
     props.put("metadata.broker.list", brokerConnect)
     props.put("serializer.class", "kafka.serializer.DefaultEncoder")
     val kafkaProducer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(props))
 
     val encoder = new KafkaGeoMessageEncoder(sft)
-    val topic = KafkaFeatureConfig(liveSFT).topic
+    val topic = KafkaFeatureConfig(sft).topic
+
+    logger.info("Sending {} messages to Kafka (zoo={}) (topic={})",
+      messages.size.asInstanceOf[AnyRef], zkConnect, topic)
 
     messages.foreach(msg => kafkaProducer.send(encoder.encodeMessage(topic, msg)))
+
+    logger.info("Completed message send", messages.size.asInstanceOf[AnyRef], zkConnect)
   }
 
-  def createReplayFeatureSource(start: Long, end: Long, readBehind: Long): SimpleFeatureSource = {
+  def createReplayFeatureSource(start: Long, end: Long, readBehind: Long): (SimpleFeatureType, SimpleFeatureSource) = {
     val rc = ReplayConfig(start, end, readBehind)
     val replaySFT = KafkaDataStoreHelper.prepareForReplay(liveSFT, rc)
     dataStore.createSchema(replaySFT)
-    dataStore.getFeatureSource(replaySFT.getTypeName)
+
+    val fs = dataStore.getFeatureSource(replaySFT.getTypeName)
+    (replaySFT, fs)
   }
 }

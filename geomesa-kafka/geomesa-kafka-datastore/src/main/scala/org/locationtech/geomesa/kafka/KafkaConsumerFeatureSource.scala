@@ -144,7 +144,6 @@ object KafkaConsumerFeatureSourceFactory {
   val EXPIRATION_PERIOD = new Param("expirationPeriod", classOf[jl.Long], "Expiration Period in milliseconds", false)
 
   def apply(brokers: String, zk: String, params: ju.Map[String, Serializable]): FeatureSourceFactory = {
-    val kf = new KafkaConsumerFactory(brokers, zk)
 
     lazy val expirationPeriod: Option[Long] = {
       val expiry = Option(EXPIRY.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
@@ -156,6 +155,7 @@ object KafkaConsumerFeatureSourceFactory {
     }
 
     (entry: ContentEntry, schemaManager: KafkaDataStoreSchemaManager) => {
+      val kf = new KafkaConsumerFactory(brokers, zk)
       val fc = schemaManager.getFeatureConfig(entry.getTypeName)
 
       fc.replayConfig match {
