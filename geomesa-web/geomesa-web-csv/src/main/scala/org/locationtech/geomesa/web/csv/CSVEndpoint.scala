@@ -27,7 +27,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.commons.io.FilenameUtils
 import org.geotools.GML
 import org.geotools.gml.producer.FeatureTransformer
-import org.locationtech.geomesa.core.{TypeSchema, csv}
+import org.locationtech.geomesa.accumulo.{TypeSchema, csv}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
 import org.locationtech.geomesa.web.scalatra.{User, PkiAuthenticationSupport}

@@ -24,11 +24,11 @@ import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.feature.FeatureCollection
 import org.geotools.feature.collection.BridgeIterator
-import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
-import org.locationtech.geomesa.feature.{AvroFeatureEncoder, AvroSimpleFeature}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
@@ -87,23 +87,27 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
 
   class ModifyingFeatureWriter(query: Query) extends FW {
 
-    val encoder = new AvroFeatureEncoder(schema, EncodingOptions.withUserData)
+    val encoder = new KryoFeatureSerializer(schema, SerializationOptions.withUserData)
+    val reuse = new ScalaSimpleFeature("", schema)
     private var id = 1L
-    def getNextId: FeatureId = {
+    def getNextId: String = {
       val ret = id
       id += 1
-      new FeatureIdImpl(ret.toString)
+      s"$ret"
     }
 
     var toModify: Iterator[SimpleFeature] =
       if(query == null) Iterator[SimpleFeature]()
-      else if(query.getFilter == null) Iterator.continually(new AvroSimpleFeature(getNextId, schema))
+      else if(query.getFilter == null) Iterator.continually {
+        reuse.getIdentifier.setID(getNextId)
+        reuse
+      }
       else query.getFilter match {
         case ids: Id        =>
-          ids.getIDs.map(id => new AvroSimpleFeature(new FeatureIdImpl(id.toString), schema)).iterator
+          ids.getIDs.map(id => new ScalaSimpleFeature(id.toString, schema)).iterator
 
         case Filter.INCLUDE =>
-          Iterator.continually(new AvroSimpleFeature(new FeatureIdImpl(""), schema))
+          Iterator.continually(new ScalaSimpleFeature("", schema))
       }
 
     def setIter(iter: Iterator[SimpleFeature]): Unit = {
@@ -123,7 +127,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
       producer.send(delMsg)
     }
     override def write(): Unit = {
-      val encoded = encoder.encode(curFeature)
+      val encoded = encoder.serialize(curFeature)
       val msg = new MSG(typeName, encoded)
       curFeature = null
       producer.send(msg)

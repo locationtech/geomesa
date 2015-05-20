@@ -22,6 +22,7 @@ import java.util.UUID
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat
 import org.apache.accumulo.core.client.mapreduce.lib.util.{ConfiguratorBase, InputConfigurator}
 import org.apache.accumulo.core.util.{Pair => AccPair}
@@ -33,27 +34,30 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.{DataStore, DataStoreFinder, DefaultTransaction, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.core.data._
-import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.kryo.{KryoFeatureSerializer, SimpleFeatureSerializer}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.index
+import org.locationtech.geomesa.accumulo.index.{ExplainNull, QueryPlanner, STIdxStrategy}
+import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
+import org.locationtech.geomesa.features.SimpleFeatureSerializers
+import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
-import org.locationtech.geomesa.jobs.interop.mapreduce._
+import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.filter._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 
-object GeoMesaSpark {
+object GeoMesaSpark extends Logging {
 
   def init(conf: SparkConf, ds: DataStore): SparkConf = {
-    val typeOptions = ds.getTypeNames.map { t => (t, SimpleFeatureTypes.encodeType(ds.getSchema(t)))}
-    typeOptions.foreach { case (k, v) => System.setProperty(typeProp(k), v)}
-    val extraOpts = typeOptions.map { case (k, v) => jOpt(k, v)}.mkString(" ")
-
+    val typeOptions = ds.getTypeNames.map { t => (t, SimpleFeatureTypes.encodeType(ds.getSchema(t))) }
+    typeOptions.foreach { case (k,v) => System.setProperty(typeProp(k), v) }
+    val extraOpts = typeOptions.map { case (k,v) => jOpt(k, v) }.mkString(" ")
+    
     conf.set("spark.executor.extraJavaOptions", extraOpts)
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getCanonicalName)
+    conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
   }
 
   def typeProp(typeName: String) = s"geomesa.types.$typeName"
@@ -83,7 +87,13 @@ object GeoMesaSpark {
     val version = ds.getGeomesaVersion(sft)
     val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, ds.strategyHints(sft), version)
 
-    val qp = new STIdxStrategy().getQueryPlan(query, queryPlanner, ExplainPrintln)
+    val qps = new STIdxStrategy().getQueryPlans(query, queryPlanner, ExplainNull)
+    if (qps.length > 1) {
+      logger.error("The query being executed requires multiple scans, which is not currently " +
+          "supported by geomesa. Your result set will be partially incomplete. This is most likely due to " +
+          s"an OR clause in your query. Query: ${QueryStatTransform.filterToString(query.getFilter)}")
+    }
+    val qp = qps.head
 
     ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, ds.connector.whoami(), ds.authToken)
 
@@ -120,7 +130,7 @@ object GeoMesaSpark {
       GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
     }
 
-    getTransformSchema(query).foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+    index.getTransformSchema(query).foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
 
     sc.newAPIHadoopRDD(conf, classOf[GeoMesaInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
 
@@ -161,10 +171,10 @@ object GeoMesaSpark {
       val df = new SimpleDateFormat("yyyyMMdd")
       val ff = CommonFactoryFinder.getFilterFactory2
       val exp = ff.property(dateField)
-      iter.map { f => (df.format(exp.evaluate(f).asInstanceOf[java.util.Date]), f)}
+      iter.map { f => (df.format(exp.evaluate(f).asInstanceOf[java.util.Date]), f) }
     }
-    val groupedByDay = dayAndFeature.groupBy { case (date, _) => date}
-    groupedByDay.map { case (date, iter) => (date, iter.size)}
+    val groupedByDay = dayAndFeature.groupBy { case (date, _) => date }
+    groupedByDay.map { case (date, iter) => (date, iter.size) }
   }
 
 }
@@ -187,7 +197,6 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
           override def load(key: String): SimpleFeatureSerializer = new SimpleFeatureSerializer(typeCache.get(key))
         })
 
-
       override def write(kryo: Kryo, out: Output, feature: SimpleFeature): Unit = {
         val typeName = feature.getFeatureType.getTypeName
         out.writeString(typeName)
@@ -200,6 +209,7 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
       }
     }
 
-    KryoFeatureSerializer.setupKryo(kryo, serializer)
+    kryo.setReferences(false)
+    SimpleFeatureSerializers.simpleFeatureImpls.foreach(kryo.register(_, serializer, kryo.getNextRegistrationId))
   }
 }

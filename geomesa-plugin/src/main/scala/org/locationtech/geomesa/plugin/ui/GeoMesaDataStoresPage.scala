@@ -25,8 +25,8 @@ import org.apache.wicket.markup.html.list.{ListItem, ListView}
 import org.geoserver.catalog.StoreInfo
 import org.geoserver.web.data.store.{StorePanel, StoreProvider}
 import org.geotools.data.{DataStoreFinder, Query}
-import org.locationtech.geomesa.core.data.AccumuloDataStore
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.plugin.ui.components.DataStoreInfoPanel
 
 import scala.collection.JavaConverters._

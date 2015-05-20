@@ -24,7 +24,7 @@ import com.twitter.scalding.Args
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred.{JobConf, OutputCollector, RecordReader, RecordWriter}
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConverters._
