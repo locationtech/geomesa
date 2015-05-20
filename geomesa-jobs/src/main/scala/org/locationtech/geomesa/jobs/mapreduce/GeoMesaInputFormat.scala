@@ -176,9 +176,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with Logging {
         split
       }
     }
-    //we've dumped all ranges into groups by location, and tried to get enough splits by breaking up those groups.
-    //we may eventually need to go ahead and do some pretty grim mojo to break each split down small enough
-    //so that we don't blow executor's memory pools. Right now, that's not happening, so I'm not going to push it.
+
     logger.info(s"Got ${splitsSet.toList.length} splits" +
       s" using desired=$desiredSplitCount from ${accumuloSplits.length}")
     splitsSet.toList
