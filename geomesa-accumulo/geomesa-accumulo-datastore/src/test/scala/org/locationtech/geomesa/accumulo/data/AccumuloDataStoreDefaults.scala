@@ -1,16 +1,16 @@
-package org.locationtech.geomesa.core.data
+package org.locationtech.geomesa.accumulo.data
 
 import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}
 
-import org.geotools.data.{DataStoreFinder, DataStore}
+import org.geotools.data.{DataStore, DataStoreFinder}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.core.index._
-import org.locationtech.geomesa.feature.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
@@ -23,7 +23,7 @@ import scala.collection.JavaConversions._
  */
 trait AccumuloDataStoreDefaults {
   val ff = CommonFactoryFinder.getFilterFactory2
-  val geotimeAttributes = org.locationtech.geomesa.core.index.spec
+  val geotimeAttributes = org.locationtech.geomesa.accumulo.index.spec
   val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
   val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
   val WGS84 = DefaultGeographicCRS.WGS84

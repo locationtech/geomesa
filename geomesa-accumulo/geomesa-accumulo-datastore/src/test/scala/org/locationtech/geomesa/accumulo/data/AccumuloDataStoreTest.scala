@@ -17,7 +17,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.text.SimpleDateFormat
-import java.util.{Date, TimeZone}
+import java.util.Date
 
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.accumulo.core.client.IteratorSetting
@@ -31,14 +31,13 @@ import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.feature.{DefaultFeatureCollection, NameImpl}
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.CRS
-import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index._
@@ -50,9 +49,7 @@ import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.opengis.filter.sort.{SortBy, SortOrder}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -60,34 +57,7 @@ import scala.collection.JavaConversions._
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreTest extends Specification {
-
-  val ff = CommonFactoryFinder.getFilterFactory2
-  val geotimeAttributes = org.locationtech.geomesa.accumulo.index.spec
-  val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
-  val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
-  val WGS84 = DefaultGeographicCRS.WGS84
-  val gf = JTSFactoryFinder.getGeometryFactory
-
-  val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-  df.setTimeZone(TimeZone.getTimeZone("UTC"))
-
-  val defaultSchema = "name:String,geom:Point:srid=4326,dtg:Date"
-  val defaultGeom = WKTUtils.read("POINT(45.0 49.0)")
-  val defaultDtg = new Date(100000)
-  val defaultName = "testType"
-  val defaultFid = "fid-1"
-
-  val defaultTable = "AccumuloDataStoreTest"
-
-  val ds = DataStoreFinder.getDataStore(Map(
-    "instanceId"        -> "mycloud",
-    "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "user"              -> "myuser",
-    "password"          -> "mypassword",
-    "tableName"         -> defaultTable,
-    "useMock"           -> "true",
-    "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
+class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults {
 
   "AccumuloDataStore" should {
     "create a store" in {
