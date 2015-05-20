@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.jobs.interop.mapreduce;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
