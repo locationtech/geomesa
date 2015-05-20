@@ -227,11 +227,12 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
 
     "or an empty reader if no data" >> {
       val replayConfig = ReplayConfig(12000, 12000L, 100L)
-      val fs = featureSource(Seq.empty[GeoMessage], replayConfig)
+      val replayType = KafkaDataStoreHelper.prepareForReplay(sft, replayConfig)
+      val fs = featureSource(Seq.empty[GeoMessage], replayType)
 
       val result = fs.getReaderForFilter(Filter.INCLUDE)
       result must beAnInstanceOf[EmptyFeatureReader[SimpleFeatureType, SimpleFeature]]
-      result.getFeatureType mustEqual sft
+      result.getFeatureType mustEqual replayType
     }
   }
 

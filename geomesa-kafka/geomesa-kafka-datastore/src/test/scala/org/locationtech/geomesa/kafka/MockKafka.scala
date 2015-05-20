@@ -15,9 +15,11 @@
  */
 package org.locationtech.geomesa.kafka
 
+import java.util.Properties
+
 import kafka.api._
 import kafka.common.{OffsetAndMetadata, TopicAndPartition}
-import kafka.consumer.ConsumerConfig
+import kafka.consumer.{ConsumerTimeoutException, ConsumerConfig}
 import kafka.message.{Message, MessageAndMetadata, MessageAndOffset}
 import kafka.producer.KeyedMessage
 import kafka.serializer.Decoder
@@ -32,6 +34,7 @@ import org.mockito.stubbing.Answer
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConverters._
 
 class MockKafka {
 
@@ -94,29 +97,37 @@ class MockKafkaConsumerFactory(val mk: MockKafka)
 
   import KafkaConsumerFactory._
 
-  override def kafkaConsumer(topic: String) =
-    MockKafkaConsumer[Array[Byte], Array[Byte]](mk, topic, defaultDecoder, defaultDecoder)
+  override def kafkaConsumer(topic: String, extraConfig: Map[String, String] = Map.empty) =
+    MockKafkaConsumer[Array[Byte], Array[Byte]](mk, topic, defaultDecoder, defaultDecoder, extraConfig)
 
   override val offsetManager = new MockOffsetManager(mk)
 }
 
 object MockKafkaStream {
 
-  def apply[K, V](data: Seq[MockMessage], keyDecoder: Decoder[K], valueDecoder: Decoder[V]): KafkaStreamLike[K, V] =
-    apply(data.map(_.asMessageAndMetadata(keyDecoder, valueDecoder)))
+  def apply[K, V](data: Seq[MockMessage],
+                  keyDecoder: Decoder[K],
+                  valueDecoder: Decoder[V],
+                  timeoutEnabled: Boolean): KafkaStreamLike[K, V] =
+    apply(data.map(_.asMessageAndMetadata(keyDecoder, valueDecoder)), timeoutEnabled)
 
-  def apply[K, V](data: Seq[MessageAndMetadata[K, V]]): KafkaStreamLike[K, V] = {
+  def apply[K, V](data: Seq[MessageAndMetadata[K, V]],
+                  timeoutEnabled: Boolean): KafkaStreamLike[K, V] = {
+
     val ksl = mock(classOf[KafkaStreamLike[K, V]])
 
     // Kafka consumer iterators will block until there is a new message
     // for testing, throw an exception if a consumer tries to read beyond ``data``
+    // if the client specified a consumer timeout then a ConsumerTimeoutException will be expected
+    val endException = if (timeoutEnabled)
+      () => throw new ConsumerTimeoutException()
+    else
+      () => throw new IllegalStateException("Attempting to read beyond given mock data.")
+
     val end: Iterator[MessageAndMetadata[K, V]] = new Iterator[MessageAndMetadata[K, V]] {
 
-      override def hasNext: Boolean =
-        throw new IllegalStateException("Attempting to read beyond given mock data.")
-
-      override def next(): MessageAndMetadata[K, V] =
-        throw new IllegalStateException("Attempting to read beyond given mock data.")
+      override def hasNext: Boolean = throw endException()
+      override def next(): MessageAndMetadata[K, V] = throw endException()
     }
 
     when(ksl.iterator).thenAnswer(new Answer[Iterator[MessageAndMetadata[K, V]]] {
@@ -136,7 +147,10 @@ object MockKafkaConsumer {
   def apply[K, V](mk: MockKafka,
                   topic: String,
                   keyDecoder: Decoder[K],
-                  valueDecoder: Decoder[V]): KafkaConsumer[K, V] = {
+                  valueDecoder: Decoder[V],
+                  extraConfig: Map[String, String]): KafkaConsumer[K, V] = {
+
+    val timeoutEnabled = extraConfig.get("consumer.timeout.ms").exists(_.toInt >= 0)
 
     val consumer = mock(classOf[KafkaConsumer[K, V]])
     when(consumer.createMessageStreams(anyInt(), any(classOf[RequestedOffset])))
@@ -146,7 +160,7 @@ object MockKafkaConsumer {
 
         val numStreams = invocation.getArguments()(0).asInstanceOf[Int]
         val startFrom = invocation.getArguments()(1).asInstanceOf[RequestedOffset]
-        createMessageStreams(mk, topic, keyDecoder, valueDecoder, numStreams, startFrom)
+        createMessageStreams(mk, topic, keyDecoder, valueDecoder, numStreams, startFrom, timeoutEnabled)
       }
     })
 
@@ -158,7 +172,8 @@ object MockKafkaConsumer {
                                  keyDecoder: Decoder[K],
                                  valueDecoder: Decoder[V],
                                  numStreams: Int,
-                                 startFrom: RequestedOffset): List[KafkaStreamLike[K, V]] = {
+                                 startFrom: RequestedOffset,
+                                 timeoutEnabled: Boolean): List[KafkaStreamLike[K, V]] = {
 
     val offsets = mk.kafkaConsumerFactory.offsetManager.getOffsets(topic, startFrom)
     val partitions = offsets.keys.toArray
@@ -175,13 +190,13 @@ object MockKafkaConsumer {
           all ++ mk.data(tap).drop(offsets(tap).asInstanceOf[Int])
         }
 
-        streams.append(MockKafkaStream(data, keyDecoder, valueDecoder))
+        streams.append(MockKafkaStream(data, keyDecoder, valueDecoder, timeoutEnabled))
       }
 
       streams.toList
     } else {
       // no data for the topic
-      List.fill(numStreams)(MockKafkaStream(Seq.empty[MessageAndMetadata[K, V]]))
+      List.fill(numStreams)(MockKafkaStream(Seq.empty[MessageAndMetadata[K, V]], timeoutEnabled))
     }
   }
 }

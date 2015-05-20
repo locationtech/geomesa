@@ -20,11 +20,12 @@ import java.util.Properties
 import kafka.consumer._
 import kafka.serializer.{Decoder, DefaultDecoder}
 import org.apache.commons.lang3.RandomStringUtils
-import org.locationtech.geomesa.kafka.KafkaConsumerFactory.RawKafkaStream
+import org.locationtech.geomesa.kafka.KafkaConsumerFactory.{RawKafkaConsumer, RawKafkaStream}
 import org.locationtech.geomesa.kafka.consumer.KafkaConsumer
 import org.locationtech.geomesa.kafka.consumer.offsets.OffsetManager
 
 import scala.collection.Seq
+import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
 /** @param brokers a comma separated list of broker host names and ports
@@ -32,10 +33,7 @@ import scala.language.implicitConversions
   */
 class KafkaConsumerFactory(brokers: String, zookeepers: String) {
 
-  /** The [[ConsumerConfig]] containing the given ``zookeepers``, a random Group ID and other fixed
-    * properties.
-    */
-  val config: ConsumerConfig  = {
+  private val props = {
     val groupId = RandomStringUtils.randomAlphanumeric(5)
 
     val props = new Properties()
@@ -46,8 +44,13 @@ class KafkaConsumerFactory(brokers: String, zookeepers: String) {
     props.put("zookeeper.sync.time.ms", "1000")
     props.put("auto.commit.interval.ms", "1000")
 
-    new ConsumerConfig(props)
+    props
   }
+
+  /** The [[ConsumerConfig]] containing the given ``zookeepers``, a random Group ID and other fixed
+    * properties.
+    */
+  val config: ConsumerConfig  = new ConsumerConfig(props)
 
   /** @return a new high level [[ConsumerConfig]]
     */
@@ -55,9 +58,12 @@ class KafkaConsumerFactory(brokers: String, zookeepers: String) {
 
   /** @return a new low level [[KafkaConsumer]]
     */
-  def kafkaConsumer(topic: String): KafkaConsumer[Array[Byte], Array[Byte]] = {
+  def kafkaConsumer(topic: String, extraConfig: Map[String, String] = Map.empty): RawKafkaConsumer = {
+
+    val fullConfig = config(extraConfig)
+
     val decoder: DefaultDecoder = new DefaultDecoder(null)
-    new KafkaConsumer[Array[Byte], Array[Byte]](topic, config, decoder, decoder)
+    new KafkaConsumer[Array[Byte], Array[Byte]](topic, fullConfig, decoder, decoder)
   }
 
   /** @return a new [[OffsetManager]]
@@ -71,10 +77,22 @@ class KafkaConsumerFactory(brokers: String, zookeepers: String) {
     val decoder = KafkaConsumerFactory.defaultDecoder
     client.createMessageStreamsByFilter(whiteList, 1, decoder, decoder)
   }
+
+  private def config(extraConfig: Map[String, String]): ConsumerConfig = {
+    if (extraConfig.isEmpty) {
+      config
+    } else {
+      val allProps = new Properties()
+      allProps.putAll(props)
+      allProps.putAll(extraConfig.asJava)
+      new ConsumerConfig(allProps)
+    }
+  }
 }
 
 object KafkaConsumerFactory {
 
+  type RawKafkaConsumer = KafkaConsumer[Array[Byte], Array[Byte]]
   type RawKafkaStream = KafkaStream[Array[Byte], Array[Byte]]
 
   val defaultDecoder: Decoder[Array[Byte]] = new DefaultDecoder(null)

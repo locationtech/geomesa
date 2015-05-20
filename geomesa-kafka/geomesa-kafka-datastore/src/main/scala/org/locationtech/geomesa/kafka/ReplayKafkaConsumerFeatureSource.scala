@@ -19,16 +19,16 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.geotools.data.store.ContentEntry
 import org.geotools.data.{EmptyFeatureReader, Query}
-import org.geotools.feature.simple.{SimpleFeatureTypeBuilder, SimpleFeatureBuilder}
+import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.joda.time.{Duration, Instant}
 import org.locationtech.geomesa.core.filter._
-import org.locationtech.geomesa.kafka.consumer.offsets.{FindOffset, LatestOffset}
+import org.locationtech.geomesa.kafka.consumer.offsets.FindOffset
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.FR
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 import org.opengis.filter.expression.PropertyName
-import org.locationtech.geomesa.utils.InfiniteIterator._
+import org.locationtech.geomesa.kafka.consumer.KafkaStreamLike.KafkaStreamLikeIterator
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -128,8 +128,9 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
   }
 
   private def readMessages(): Array[GeoMessage] = {
-    val kafkaConsumer = kf.kafkaConsumer(topic)
-    val offsetManager = kf.offsetManager
+
+    // don't want to block waiting for more messages so specify  a timeout
+    val kafkaConsumer = kf.kafkaConsumer(topic, Map("consumer.timeout.ms" -> "250"))
 
     // use the liveSFT to decode becuase that's the type that was used to encode
     val msgDecoder = new KafkaGeoMessageDecoder(liveSFT)
@@ -145,11 +146,8 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     // required: there is only 1 partition;  validate??
     val stream = kafkaConsumer.createMessageStreams(1, offsetRequest).head
 
-    // stop before the latest (next) offset even if before the end instant
-    val lastOffset = offsetManager.getOffsets(topic, LatestOffset).head._2
-
     stream.iterator
-      .stopAfter(_.offset == lastOffset - 1)
+      .stopOnTimeout
       .map(msgDecoder.decode)
       .dropWhile(replayConfig.isBeforeRealStart)
       .takeWhile(replayConfig.isNotAfterEnd)

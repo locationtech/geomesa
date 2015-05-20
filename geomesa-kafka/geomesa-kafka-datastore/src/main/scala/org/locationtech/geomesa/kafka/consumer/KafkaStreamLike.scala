@@ -30,12 +30,11 @@ class KafkaStreamLike[K, V](protected[consumer] val queue: BlockingQueue[Fetched
   }
 
   class KafkaStreamIterator extends Iterator[MessageAndMetadata[K, V]] {
-    ksi =>
 
     private var topicInfo: PartitionTopicInfo = null
     private var messages: Iterator[MessageAndOffset] = Iterator.empty
 
-    override def hasNext = if (messages.hasNext) { true } else {
+    override def hasNext: Boolean = if (messages.hasNext) { true } else {
       try {
         val chunk = if (timeoutMs < 0) { queue.take() } else {
           Option(queue.poll(timeoutMs, TimeUnit.MILLISECONDS)).getOrElse(throw new ConsumerTimeoutException)
@@ -56,6 +55,8 @@ class KafkaStreamLike[K, V](protected[consumer] val queue: BlockingQueue[Fetched
     }
 
     override def next() = {
+      if (!hasNext) throw new NoSuchElementException
+
       val topic = topicInfo.topic
       val partition = topicInfo.partitionId
       val message = messages.next()
@@ -67,4 +68,29 @@ class KafkaStreamLike[K, V](protected[consumer] val queue: BlockingQueue[Fetched
 
 object KafkaStreamLike {
   val shutdownMessage = FetchedDataChunk(null, null, -1)
+
+  implicit class KafkaStreamLikeIterator[K, V](ksi: Iterator[MessageAndMetadata[K, V]]) {
+
+    def stopOnTimeout: Iterator[MessageAndMetadata[K, V]] = new Iterator[MessageAndMetadata[K, V]] {
+      private var timeout = false
+
+      override def hasNext = {
+        try {
+          // once timeout has occurred, don't try again
+          !timeout && ksi.hasNext
+        } catch {
+          case e: ConsumerTimeoutException =>
+            timeout = true
+            false
+        }
+      }
+
+      override def next() = {
+        if (!hasNext) throw new NoSuchElementException
+
+        ksi.next()
+      }
+    }
+
+  }
 }
