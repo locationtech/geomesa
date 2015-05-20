@@ -43,7 +43,7 @@ object GeoMesaConfigurator {
   private val sftKey           = s"$prefix.sft"
   private val transformsKey    = s"$prefix.transforms.schema"
   private val transformNameKey = s"$prefix.transforms.name"
-  private val desiredSplits = s"$prefix.splitCount.userPreference"
+  private val desiredSplits    = s"$prefix.mapreduce.split.count.strongHint"
   private val serializersKey   = "io.serializations"
 
   private val writableSerialization      = classOf[WritableSerialization].getName
