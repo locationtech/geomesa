@@ -23,19 +23,17 @@ import java.util.concurrent.{Executors, TimeUnit}
 
 import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNotification}
 import com.google.common.eventbus.{EventBus, Subscribe}
-import com.vividsolutions.jts.geom.{Envelope, Geometry}
+import com.vividsolutions.jts.geom.Envelope
 import kafka.consumer.{Consumer, ConsumerConfig, Whitelist}
 import kafka.producer.KeyedMessage
 import kafka.serializer.DefaultDecoder
 import org.apache.commons.lang3.RandomStringUtils
-import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FilteringFeatureReader, Query}
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.filter.FidFilterImpl
 import org.geotools.filter.identity.FeatureIdImpl
-import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -43,9 +41,8 @@ import org.locationtech.geomesa.features.avro.AvroFeatureDeserializer
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
 import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceReTypingSupport
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
+import org.locationtech.geomesa.utils.index.{QuadTreeFeatureStore, SynchronizedQuadtree}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
 import org.opengis.filter.{And, Filter, IncludeFilter, Or}
@@ -53,7 +50,7 @@ import org.opengis.filter.{And, Filter, IncludeFilter, Or}
 import scala.collection.JavaConversions._
 
 class KafkaConsumerFeatureSource(entry: ContentEntry,
-                                 schema: SimpleFeatureType,
+                                 val sft: SimpleFeatureType,
                                  eb: EventBus,
                                  query: Query,
                                  topic: String,
@@ -62,7 +59,10 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
                                  expirationPeriod: Long)
   extends ContentFeatureStore(entry, query)
   with ContentFeatureSourceSecuritySupport
-  with ContentFeatureSourceReTypingSupport {
+  with ContentFeatureSourceReTypingSupport
+  with QuadTreeFeatureStore {
+
+  override type FR = QuadTreeFeatureStore#FR
 
   var qt = new SynchronizedQuadtree
 
@@ -128,7 +128,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   override def getBoundsInternal(query: Query) =
     ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
 
-  override def buildFeatureType(): SimpleFeatureType = schema
+  override def buildFeatureType(): SimpleFeatureType = sft
 
   override def getCountInternal(query: Query): Int =
     getReaderInternal(query).getIterator.size
@@ -147,14 +147,11 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
         new FilteringFeatureReader[SimpleFeatureType, SimpleFeature](include(Filter.INCLUDE), f)
     }
 
-  type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
-  type DFI = DelegateFeatureIterator[SimpleFeature]
-
-  def include(i: IncludeFilter) = new DFR(schema, new DFI(features.asMap().valuesIterator.map(_.sf)))
+  def include(i: IncludeFilter) = new DFR(sft, new DFI(features.asMap().valuesIterator.map(_.sf)))
 
   def fid(ids: FidFilterImpl): FR = {
     val iter = ids.getIDs.flatMap(id => Option(features.getIfPresent(id.toString)).map(_.sf)).iterator
-    new DFR(schema, new DFI(iter))
+    new DFR(sft, new DFI(iter))
   }
 
   private val ff = CommonFactoryFinder.getFilterFactory2
@@ -169,30 +166,8 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   def or(o: Or): FR = {
     val readers = o.getChildren.map(getReaderForFilter).map(_.getIterator)
     val composed = readers.foldLeft(Iterator[SimpleFeature]())(_ ++ _)
-    new DFR(schema, new DFI(composed))
+    new DFR(sft, new DFI(composed))
   }
-
-  def within(w: Within): FR = {
-    val (_, geomLit) = splitBinOp(w)
-    val geom = geomLit.evaluate(null).asInstanceOf[Geometry]
-    val res = qt.query(geom.getEnvelopeInternal)
-    val filtered = res.asInstanceOf[java.util.List[SimpleFeature]].filter(sf => geom.contains(sf.point))
-    val fiter = new DFI(filtered.iterator)
-    new DFR(schema, fiter)
-  }
-
-  def bbox(b: BBOX): FR = {
-    val bounds = JTS.toGeometry(b.getBounds)
-    val res = qt.query(bounds.getEnvelopeInternal)
-    val fiter = new DFI(res.asInstanceOf[java.util.List[SimpleFeature]].iterator)
-    new DFR(schema, fiter)
-  }
-
-  def splitBinOp(binop: BinarySpatialOperator): (PropertyName, Literal) =
-    binop.getExpression1 match {
-      case pn: PropertyName => (pn, binop.getExpression2.asInstanceOf[Literal])
-      case l: Literal       => (binop.getExpression2.asInstanceOf[PropertyName], l)
-    }
 
   private var id = 1L
   def getNextId: FeatureId = {

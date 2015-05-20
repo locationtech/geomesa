@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa</artifactId>
-    <version>1.0.0-rc.7-SNAPSHOT</version>
+    <version>1.1.0-rc.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>GeoMesa</name>
 
@@ -632,6 +632,12 @@
             <dependency>
                 <groupId>org.apache.accumulo</groupId>
                 <artifactId>accumulo-core</artifactId>
+                <version>${accumulo.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.accumulo</groupId>
+                <artifactId>accumulo-server</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
             </dependency>

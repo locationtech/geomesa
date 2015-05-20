@@ -20,6 +20,7 @@ import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator, SimpleFeatureSource}
+import org.geotools.feature.collection.SortedSimpleFeatureCollection
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator.createFeatureType
@@ -53,7 +54,29 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource with Logging w
 
   def getDataStore: AccumuloDataStore = dataStore
 
-  override def getCount(query: Query) = getFeaturesNoCache(query).features().size
+  def longCount = dataStore.getRecordTableSize(featureName.getLocalPart)
+
+  // The default behavior for getCount is to use Accumulo to look up the number of entries in
+  //  the record table for a feature.
+  //  This approach gives a rough upper count for the size of the query results.
+  //  For Filter.INCLUDE, this is likely pretty close; all others, it is a lie.
+
+  // Since users may want *actual* counts, there are two ways to force exact counts.
+  //  First, one can set the System property "geomesa.force.count".
+  //  Second, there is an EXACT_COUNT query hint.
+  override def getCount(query: Query) = {
+    val exactCount = query.getHints.get(EXACT_COUNT) == java.lang.Boolean.TRUE ||
+                     System.getProperty("geomesa.force.count") == "true"
+
+    if (exactCount || longCount == -1) {
+      getFeaturesNoCache(query).features().size
+    } else {
+      longCount match {
+        case _ if longCount > Int.MaxValue      => Int.MaxValue
+        case _                                  => longCount.toInt
+      }
+    }
+  }
 
   override def getQueryCapabilities =
     new QueryCapabilities() {
@@ -115,6 +138,7 @@ class CachingAccumuloFeatureCollection(source: SimpleFeatureSource, query: Query
     // use ListBuffer for constant append time and size
     val buf = scala.collection.mutable.ListBuffer.empty[SimpleFeature]
     val iter = super.features
+
     while (iter.hasNext) {
       buf.append(iter.next())
     }
@@ -147,7 +171,11 @@ trait CachingFeatureSource extends AccumuloAbstractFeatureSource {
     if (query.getStartIndex == null) {
       query.setStartIndex(0)
     }
-    featureCache.get(query)
+
+    if (query.getSortBy == null)
+      featureCache.get(query)
+    else // Uses mergesort
+      new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy)
   }
 
   override def getCount(query: Query): Int = getFeatures(query).size()

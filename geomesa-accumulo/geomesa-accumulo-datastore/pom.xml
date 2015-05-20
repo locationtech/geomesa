@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-accumulo</artifactId>
-        <version>1.0.0-rc.7-SNAPSHOT</version>
+        <version>1.1.0-rc.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>geomesa-accumulo-datastore</artifactId>
@@ -123,6 +123,10 @@
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-server</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>

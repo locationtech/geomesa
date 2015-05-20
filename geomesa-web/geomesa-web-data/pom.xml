@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa-web</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.0.0-rc.7-SNAPSHOT</version>
+        <version>1.1.0-rc.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
