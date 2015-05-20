@@ -36,7 +36,11 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
   protected def partitions: Int
   protected def replication: Int
 
-  override def createSchema(featureType: SimpleFeatureType): Unit = {
+  //
+  // todo:  consistent exception handling across all methods
+  // todo   - catch and rethrow a known/consistent exception with helpful msg
+  //
+   override def createSchema(featureType: SimpleFeatureType): Unit = {
 
     val kfc = KafkaFeatureConfig(featureType)  // this is guaranteed to have a topic
 
@@ -72,7 +76,13 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
     * ``replayType`` is based on.
     */
   def getLiveFeatureType(replayType: SimpleFeatureType): Option[SimpleFeatureType] = {
-    KafkaDataStoreHelper.extractLiveTypeName(replayType).map(schemaCache.get(_).sft)
+
+    try {
+      KafkaDataStoreHelper.extractLiveTypeName(replayType).map(schemaCache.get(_).sft)
+    }
+    catch {
+      case _ => None
+    }
   }
 
   override def getNames: util.List[Name] = zkClient.getChildren(zkPath).asScala.map(
@@ -87,7 +97,8 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
     schemaCache.invalidate(typeName)
     zkClient.deleteRecursive(getSchemaPath(typeName))
 
-    // todo: what about other remote caches - do we set up a kafka listener looking for deletes? */
+    // todo: what about other remote caches - do we set up a kafka listener looking for deletes?
+    // todo: what about kafka - who has the responsibility to clean the kafka topic up?
 
   }
 
@@ -103,13 +114,13 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
     KafkaFeatureConfig(sft)
   }
 
-  private def getSchemaPath(typeName: String): String = {
+  def getSchemaPath(typeName: String): String = {
     s"$zkPath/$typeName"
   }
-  private def getTopicPath(typeName: String): String = {
+  def getTopicPath(typeName: String): String = {
     s"$zkPath/$typeName/Topic"
   }
-  private def getReplayConfigPath(typeName: String): String = {
+  def getReplayConfigPath(typeName: String): String = {
     s"$zkPath/$typeName/ReplayConfig"
   }
 
@@ -172,3 +183,5 @@ private[kafka] case class KafkaFeatureConfig(sft: SimpleFeatureType) extends Any
   override def toString: String =
     s"KafkaSimpleFeatureType: typeName=${sft.getTypeName}; topic=$topic; replayConfig=$replayConfig"
 }
+
+
