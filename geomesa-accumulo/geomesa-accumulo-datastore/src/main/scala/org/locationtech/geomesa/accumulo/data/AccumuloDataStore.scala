@@ -38,7 +38,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.Interval
 import org.locationtech.geomesa.accumulo
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore._
-import org.locationtech.geomesa.accumulo.data.tables.{Z3Table, AttributeTable, RecordTable, SpatioTemporalTable}
+import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.{ExplainingConnectorCreator, GeoMesaBatchWriterConfig}
@@ -336,7 +336,7 @@ class AccumuloDataStore(val connector: Connector,
   // configure splits for each of the attribute names
   def configureAttrIdxTable(featureType: SimpleFeatureType, attributeIndexTable: String): Unit = {
     val indexedAttrs = SimpleFeatureTypes.getSecondaryIndexedAttributes(featureType)
-    if (!indexedAttrs.isEmpty) {
+    if (indexedAttrs.nonEmpty) {
       val prefix = index.getTableSharingPrefix(featureType)
       val prefixFn = AttributeTable.getAttributeIndexRowPrefix(prefix, _: AttributeDescriptor)
       val names = indexedAttrs.map(prefixFn).map(new Text(_))
@@ -442,25 +442,15 @@ class AccumuloDataStore(val connector: Connector,
     }
 
   private def deleteSharedTables(sft: SimpleFeatureType) = {
-    val stTableName = getSpatioTemporalTable(sft)
-    val attrTableName = getAttributeTable(sft)
-    val recordTableName = getRecordTable(sft)
-
+    val auths = authorizationsProvider.getAuthorizations
     val numThreads = queryThreadsConfig.getOrElse(Math.min(MAX_QUERY_THREADS,
       Math.max(MIN_QUERY_THREADS, getSpatioTemporalMaxShard(sft))))
 
-    val stBatchDeleter =
-      connector.createBatchDeleter(stTableName, authorizationsProvider.getAuthorizations, numThreads, defaultBWConfig)
-
-    SpatioTemporalTable.deleteFeaturesFromTable(connector, stBatchDeleter, sft)
-
-    val atBatchDeleter =
-      connector.createBatchDeleter(attrTableName, authorizationsProvider.getAuthorizations, numThreads, defaultBWConfig)
-    AttributeTable.deleteFeaturesFromTable(connector, atBatchDeleter, sft)
-
-    val recordBatchDeleter =
-      connector.createBatchDeleter(recordTableName, authorizationsProvider.getAuthorizations, numThreads, defaultBWConfig)
-    RecordTable.deleteFeaturesFromTable(connector, recordBatchDeleter, sft)
+    GeoMesaTable.getTablesAndNames(sft, this).foreach { case (table, name) =>
+      val deleter = connector.createBatchDeleter(name, auths, numThreads, defaultBWConfig)
+      table.deleteFeaturesForType(sft, deleter)
+      deleter.close()
+    }
   }
 
   // NB: We are *not* currently deleting the query table and/or query information.
@@ -870,11 +860,9 @@ class AccumuloDataStore(val connector: Connector,
     validateMetadata(typeName)
     checkWritePermissions(typeName)
     val sft = getSchema(typeName)
-    val indexSchemaFmt = getIndexSchemaFmt(typeName)
     val fe = SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
     val ive = IndexValueEncoder(sft, getGeomesaVersion(sft))
-    val stEncoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
-    new ModifyAccumuloFeatureWriter(sft, fe, ive, stEncoder, this, writeVisibilities, filter)
+    new ModifyAccumuloFeatureWriter(sft, fe, ive, this, writeVisibilities, filter)
   }
 
   /* optimized for GeoTools API to return writer ONLY for appending (aka don't scan table) */
@@ -883,11 +871,9 @@ class AccumuloDataStore(val connector: Connector,
     validateMetadata(typeName)
     checkWritePermissions(typeName)
     val sft = getSchema(typeName)
-    val indexSchemaFmt = getIndexSchemaFmt(typeName)
     val fe = SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
     val ive = IndexValueEncoder(sft, getGeomesaVersion(sft))
-    val stEncoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
-    new AppendAccumuloFeatureWriter(sft, fe, ive, stEncoder, this, writeVisibilities)
+    new AppendAccumuloFeatureWriter(sft, fe, ive, this, writeVisibilities)
   }
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE
@@ -933,7 +919,7 @@ object AccumuloDataStore {
    * @return
    */
   def formatRecordTableName(catalogTable: String, featureType: SimpleFeatureType) =
-    formatTableName(catalogTable, featureType, TableSuffix.Records)
+    formatTableName(catalogTable, featureType, RecordTable.suffix)
 
   /**
    * Format spatio-temoral index table name for Accumulo...table name is stored in metadata for other usage
@@ -943,10 +929,10 @@ object AccumuloDataStore {
    * @return
    */
   def formatSpatioTemporalIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
-    formatTableName(catalogTable, featureType, TableSuffix.STIdx)
+    formatTableName(catalogTable, featureType, SpatioTemporalTable.suffix)
 
   def formatZ3TableName(catalogTable: String, featureType: SimpleFeatureType) =
-    formatTableName(catalogTable, featureType.getTypeName, TableSuffix.Z3)
+    formatTableName(catalogTable, featureType.getTypeName, Z3Table.suffix)
 
   /**
    * Format attribute index table name for Accumulo...table name is stored in metadata for other usage
@@ -956,7 +942,7 @@ object AccumuloDataStore {
    * @return
    */
   def formatAttrIdxTableName(catalogTable: String, featureType: SimpleFeatureType) =
-    formatTableName(catalogTable, featureType, TableSuffix.AttrIdx)
+    formatTableName(catalogTable, featureType, AttributeTable.suffix)
 
   /**
    * Format queries table name for Accumulo...table name is stored in metadata for other usage

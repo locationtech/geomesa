@@ -8,8 +8,10 @@ import com.google.common.base.Charsets
 import com.google.common.collect.ImmutableSet
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom.Point
+import org.apache.accumulo.core.client.BatchDeleter
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
+import org.apache.accumulo.core.data.{Range => aRange}
 import org.apache.hadoop.io.Text
 import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
@@ -19,17 +21,17 @@ import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.feature.nio.{AttributeAccessor, LazySimpleFeature}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.opengis.feature.`type`.{GeometryType, GeometryDescriptor}
+import org.opengis.feature.`type`.GeometryDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
-object Z3Table {
+object Z3Table extends GeoMesaTable {
 
   val EPOCH = new DateTime(0)
   val SFC = new Z3SFC
-  val FULL_ROW = new Text("F")
-  val BIN_ROW = new Text("B")
+  val FULL_CF = new Text("F")
+  val BIN_CF = new Text("B")
   val EMPTY_BYTES = Array.empty[Byte]
   val EMPTY_VALUE = new Value(EMPTY_BYTES)
   val EMPTY_TEXT = new Text(EMPTY_BYTES)
@@ -39,55 +41,60 @@ object Z3Table {
 
   def epochWeeks(dtg: DateTime) = Weeks.weeksBetween(EPOCH, new DateTime(dtg))
 
-  def z3writer(sft: SimpleFeatureType): FeatureToMutations = {
-    val dtgIndex =
-      index.getDtgDescriptor(sft)
+  override def supports(sft: SimpleFeatureType): Boolean =
+    sft.getGeometryDescriptor.getType.getBinding == classOf[Point] && index.getDtgFieldName(sft).isDefined
+
+  override val suffix: String = "z3"
+
+  override def writer(sft: SimpleFeatureType): Option[FeatureToMutations] = {
+    val dtgIndex = index.getDtgDescriptor(sft)
         .map { desc => sft.indexOf(desc.getName) }
-        .getOrElse(-1)
-    if (dtgIndex == -1 || sft.getGeometryDescriptor.getType.getBinding != classOf[Point]) {
-      // TODO more robust method for not using z3 with non-point geoms
-      // TODO also see org.locationtech.geomesa.accumulo.index.Z3IdxStrategy.getStrategy
-      return (fw: FeatureToWrite) => Seq.empty
-    }
+        .getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
     val writer = new KryoFeatureSerializer(sft)
-    (fw: FeatureToWrite) => {
-      val bytesWritten = writer.serialize(fw.feature)
-      val payload = new Value(bytesWritten)
-      val geom = fw.feature.point
-      val x = geom.getX
-      val y = geom.getY
-      val dtg = new DateTime(fw.feature.getAttribute(dtgIndex).asInstanceOf[Date])
-      val weeks = epochWeeks(dtg)
-      val prefix = Shorts.toByteArray(weeks.getWeeks.toShort)
-      val secondsInWeek = secondsInCurrentWeek(dtg, weeks)
-      val z3 = SFC.index(x, y, secondsInWeek)
-      val z3idx = Longs.toByteArray(z3.z)
-
-      val idBytes = fw.feature.getID.getBytes(Charsets.UTF_8)
-      
-      val row = Bytes.concat(prefix, z3idx, idBytes)
-      val m = new Mutation(row)
-/*
-      val attrToIndex = getAttributesToIndex(sft)
-      attrToIndex.foreach { case (d, idx) =>
-        val lexi = fw.feature.getAttribute(idx) match {
-          case l: java.lang.Integer  => LexiTypeEncoders.LEXI_TYPES.encode(Int.box(l))
-          case d: java.lang.Double   => LexiTypeEncoders.LEXI_TYPES.encode(Double.box(d))
-          case null                  => null
-          case t                     => LexiTypeEncoders.LEXI_TYPES.encode(t)
-
-        }
-        if(lexi != null) {
-          val cq = lexi.getBytes(Charsets.UTF_8)
-          m.put(d, new Text(cq), fw.columnVisibility, payload)
-        }
-      }
-*/
-      m.put(BIN_ROW, EMPTY_TEXT, fw.columnVisibility, EMPTY_VALUE)
-      m.put(FULL_ROW, EMPTY_TEXT, fw.columnVisibility, payload)
-      Seq(m)
+    val fn = (fw: FeatureToWrite) => {
+      val mutation = new Mutation(getRowKey(fw, dtgIndex))
+      // TODO if we know we're using kryo we don't need to reserialize
+      val payload = new Value(writer.serialize(fw.feature))
+      mutation.put(BIN_CF, EMPTY_TEXT, fw.columnVisibility, EMPTY_VALUE)
+      mutation.put(FULL_CF, EMPTY_TEXT, fw.columnVisibility, payload)
+      Seq(mutation)
     }
+    Some(fn)
+  }
 
+  override def remover(sft: SimpleFeatureType): Option[FeatureToMutations] = {
+    val dtgIndex = index.getDtgDescriptor(sft)
+        .map { desc => sft.indexOf(desc.getName) }
+        .getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
+    val fn = (fw: FeatureToWrite) => {
+      val mutation = new Mutation(getRowKey(fw, dtgIndex))
+      mutation.putDelete(BIN_CF, EMPTY_TEXT, fw.columnVisibility)
+      mutation.putDelete(FULL_CF, EMPTY_TEXT, fw.columnVisibility)
+      Seq(mutation)
+    }
+    Some(fn)
+  }
+
+  override def deleteFeaturesForType(sft: SimpleFeatureType, bd: BatchDeleter): Unit = {
+    bd.setRanges(Seq(new aRange()))
+    bd.delete()
+  }
+
+  private def getRowKey(ftw: FeatureToWrite, dtgIndex: Int): Array[Byte] = {
+    val geom = ftw.feature.point
+    val x = geom.getX
+    val y = geom.getY
+    val dtg = new DateTime(ftw.feature.getAttribute(dtgIndex).asInstanceOf[Date])
+    val weeks = epochWeeks(dtg)
+    val prefix = Shorts.toByteArray(weeks.getWeeks.toShort)
+
+    val secondsInWeek = secondsInCurrentWeek(dtg, weeks)
+    val z3 = SFC.index(x, y, secondsInWeek)
+    val z3idx = Longs.toByteArray(z3.z)
+
+    val idBytes = ftw.feature.getID.getBytes(Charsets.UTF_8)
+
+    Bytes.concat(prefix, z3idx, idBytes)
   }
 
   def adaptZ3Iterator(sft: SimpleFeatureType): FeatureFunction = {
@@ -106,6 +113,7 @@ object Z3Table {
   def adaptZ3KryoIterator(sft: SimpleFeatureType): FeatureFunction = {
     val kryo = new KryoFeatureSerializer(sft)
     val fn = (e: Entry[Key, Value]) => {
+      // TODO lazy features if we know it's read-only?
       kryo.deserialize(e.getValue.get())
     }
     Left(fn)
@@ -145,7 +153,7 @@ object Z3Table {
 
     val indexedAttributes = getAttributesToIndex(sft)
     val localityGroups: Map[Text, Text] =
-      indexedAttributes.map { case (name, _) => (name, name) }.toMap.+((BIN_ROW, BIN_ROW)).+((FULL_ROW, FULL_ROW))
+      indexedAttributes.map { case (name, _) => (name, name) }.toMap.+((BIN_CF, BIN_CF)).+((FULL_CF, FULL_CF))
     tableOps.setLocalityGroups(z3Table, localityGroups.map { case (k, v) => (k.toString, ImmutableSet.of(v)) } )
   }
 

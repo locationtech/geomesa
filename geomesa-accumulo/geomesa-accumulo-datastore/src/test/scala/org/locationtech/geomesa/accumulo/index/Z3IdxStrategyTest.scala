@@ -11,11 +11,13 @@ package org.locationtech.geomesa.accumulo.index
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
+import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType}
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -139,9 +141,28 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       forall(features)((f: SimpleFeature) => f.getAttribute("geom") must not(beNull))
       forall(features)((f: SimpleFeature) => f.getAttribute("derived").asInstanceOf[String] must beMatching("myname\\d"))
     }
+
+    "apply transforms using only the row key" >> {
+      val filter = "bbox(geom, 35, 55, 45, 75)" +
+          " AND dtg during 2010-05-07T06:00:00.000Z/2010-05-08T00:00:00.000Z"
+      val (_, qps) = getQueryPlans(filter, Some(Array("geom", "dtg")))
+      forall(qps)((s: StrategyPlan) => s.plan.columnFamilies must containTheSameElementsAs(Seq(Z3Table.BIN_CF)))
+
+      val features = execute(filter, Some(Array("geom", "dtg")))
+      features must haveSize(4)
+      features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
+      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 2)
+      forall(features)((f: SimpleFeature) => f.getAttribute("geom") must not(beNull))
+      forall(features)((f: SimpleFeature) => f.getAttribute("dtg") must not(beNull))
+    }.pendingUntilFixed("not implemented")
   }
 
   def execute(ecql: String, transforms: Option[Array[String]] = None) = {
+    val (query, qps) = getQueryPlans(ecql, transforms)
+    queryPlanner.executePlans(query, qps, deduplicate = false).toSeq
+  }
+
+  def getQueryPlans(ecql: String, transforms: Option[Array[String]] = None): (Query, Seq[StrategyPlan]) = {
     val filter = org.locationtech.geomesa.accumulo.filter.rewriteFilterInDNF(ECQL.toFilter(ecql))
     val query = transforms match {
       case None    => new Query(sftName, filter)
@@ -150,7 +171,6 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
         setQueryTransforms(q, sft)
         q
     }
-    val qps = strategy.getQueryPlans(query, queryPlanner, output).map(qp => StrategyPlan(strategy, qp))
-    queryPlanner.executePlans(query, qps, deduplicate = false).toSeq
+    (query, strategy.getQueryPlans(query, queryPlanner, output).map(qp => StrategyPlan(strategy, qp)))
   }
 }

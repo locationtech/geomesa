@@ -29,7 +29,7 @@ import org.geotools.data.{DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
-import org.locationtech.geomesa.accumulo.data.tables.{Z3Table, AttributeTable, RecordTable, SpatioTemporalTable}
+import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.security.SecurityUtils
@@ -43,7 +43,8 @@ import scala.collection.JavaConversions._
 object AccumuloFeatureWriter {
 
   type FeatureToMutations = (FeatureToWrite) => Seq[Mutation]
-  type FeatureWriterFn = (FeatureToWrite) => Unit
+  type FeatureWriterFn    = (FeatureToWrite) => Unit
+  type TableAndWriter     = (String, FeatureToMutations)
 
   type AccumuloRecordWriter = RecordWriter[Key, Value]
 
@@ -60,14 +61,29 @@ object AccumuloFeatureWriter {
     lazy val dataValue = new Value(encoder.serialize(feature))
   }
 
-  def featureWriter(writers: Seq[(FeatureToMutations, BatchWriter)]): FeatureWriterFn =
-    feature => writers.foreach { case (fToM, bw) => bw.addMutations(fToM(feature)) }
+  def featureWriter(writers: Seq[(BatchWriter, FeatureToMutations)]): FeatureWriterFn =
+    feature => writers.foreach { case (bw, fToM) => bw.addMutations(fToM(feature)) }
+
+  /**
+   * Gets writers and table names for each table (e.g. index) that supports the sft
+   */
+  def getTablesAndWriters(sft: SimpleFeatureType, ds: AccumuloConnectorCreator): Seq[TableAndWriter] = {
+    val tablesAndNames = GeoMesaTable.getTablesAndNames(sft, ds)
+    tablesAndNames.flatMap { case (table, name) => table.writer(sft).map((name, _)) }
+  }
+
+  /**
+   * Gets removers and table names for each table (e.g. index) that supports the sft
+   */
+  def getTablesAndRemovers(sft: SimpleFeatureType, ds: AccumuloConnectorCreator): Seq[TableAndWriter] = {
+    val tablesAndNames = GeoMesaTable.getTablesAndNames(sft, ds)
+    tablesAndNames.flatMap { case (table, name) => table.remover(sft).map((name, _)) }
+  }
 }
 
 abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
                                      encoder: SimpleFeatureSerializer,
                                      indexValueEncoder: IndexValueEncoder,
-                                     stIndexEncoder: STIndexEncoder,
                                      ds: AccumuloDataStore,
                                      defaultVisibility: String) extends SimpleFeatureWriter with Logging {
 
@@ -75,21 +91,10 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
 
   // A "writer" is a function that takes a simple feature and writes it to an index or table
   protected val writer: FeatureWriterFn = {
-    val stWriter = SpatioTemporalTable.spatioTemporalWriter(stIndexEncoder)
-    val stBw = multiBWWriter.getBatchWriter(ds.getSpatioTemporalTable(sft))
-
-    val z3Writer = Z3Table.z3writer(sft)
-    val z3bw = multiBWWriter.getBatchWriter(ds.getZ3Table(sft))
-    val recWriter = RecordTable.recordWriter(sft)
-    val recBw = multiBWWriter.getBatchWriter(ds.getRecordTable(sft))
-
-    AttributeTable.attributeWriter(sft) match {
-      // attribute writer is only used if there are indexed attributes
-      case None => featureWriter(Seq((stWriter, stBw), (z3Writer, z3bw), (recWriter, recBw)))
-      case Some(attrWriter) =>
-        val attrBw = multiBWWriter.getBatchWriter(ds.getAttributeTable(sft))
-        featureWriter(Seq((stWriter, stBw), (z3Writer, z3bw), (recWriter, recBw), (attrWriter, attrBw)))
+    val writers = getTablesAndWriters(sft, ds).map {
+      case (table, write) => (multiBWWriter.getBatchWriter(table), write)
     }
+    featureWriter(writers)
   }
 
   /* Return a String representing nextId - use UUID.random for universal uniqueness across multiple ingest nodes */
@@ -134,10 +139,9 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
 class AppendAccumuloFeatureWriter(sft: SimpleFeatureType,
                                   encoder: SimpleFeatureSerializer,
                                   indexValueEncoder: IndexValueEncoder,
-                                  stIndexEncoder: STIndexEncoder,
                                   ds: AccumuloDataStore,
                                   defaultVisibility: String)
-  extends AccumuloFeatureWriter(sft, encoder, indexValueEncoder, stIndexEncoder, ds, defaultVisibility) {
+  extends AccumuloFeatureWriter(sft, encoder, indexValueEncoder, ds, defaultVisibility) {
 
   var currentFeature: SimpleFeature = null
 
@@ -156,11 +160,10 @@ class AppendAccumuloFeatureWriter(sft: SimpleFeatureType,
 class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
                                   encoder: SimpleFeatureSerializer,
                                   indexValueEncoder: IndexValueEncoder,
-                                  stIndexEncoder: STIndexEncoder,
                                   ds: AccumuloDataStore,
                                   defaultVisibility: String,
                                   filter: Filter)
-  extends AccumuloFeatureWriter(sft, encoder, indexValueEncoder, stIndexEncoder, ds, defaultVisibility) {
+  extends AccumuloFeatureWriter(sft, encoder, indexValueEncoder, ds, defaultVisibility) {
 
   val reader = ds.getFeatureReader(sft.getTypeName, new Query(sft.getTypeName, filter))
 
@@ -172,20 +175,10 @@ class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
   // version of the datastore (i.e. single table vs catalog
   // table + index tables)
   val remover: FeatureWriterFn = {
-
-    val stWriter = SpatioTemporalTable.spatioTemporalRemover(stIndexEncoder)
-    val stBw = multiBWWriter.getBatchWriter(ds.getSpatioTemporalTable(sft))
-
-    val recWriter = RecordTable.recordRemover(sft)
-    val recBw = multiBWWriter.getBatchWriter(ds.getRecordTable(sft))
-
-    AttributeTable.attributeRemover(sft) match {
-      // attribute writer is only used if there are indexed attributes
-      case None => featureWriter(Seq((stWriter, stBw), (recWriter, recBw)))
-      case Some(attrWriter) =>
-        val attrBw = multiBWWriter.getBatchWriter(ds.getAttributeTable(sft))
-        featureWriter(Seq((stWriter, stBw), (recWriter, recBw), (attrWriter, attrBw)))
+    val writers = getTablesAndRemovers(sft, ds).map {
+      case (table, write) => (multiBWWriter.getBatchWriter(table), write)
     }
+    featureWriter(writers)
   }
 
   override def remove() = if (original != null) {

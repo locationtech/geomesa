@@ -17,16 +17,17 @@
 package org.locationtech.geomesa.accumulo.data.tables
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.{BatchDeleter, BatchWriter, Connector}
+import org.apache.accumulo.core.client.BatchDeleter
 import org.apache.accumulo.core.data
 import org.apache.accumulo.core.data.Key
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToWrite, FeatureToMutations}
-import org.locationtech.geomesa.accumulo.index.{IndexSchema, STIndexEncoder, _}
+import org.locationtech.geomesa.accumulo
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
+import org.locationtech.geomesa.accumulo.index.{IndexSchema, _}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
-object SpatioTemporalTable extends Logging {
+object SpatioTemporalTable extends GeoMesaTable with Logging {
 
   val INDEX_FLAG = "0"
   val DATA_FLAG = "1"
@@ -34,20 +35,29 @@ object SpatioTemporalTable extends Logging {
   val INDEX_CHECK = s"~$INDEX_FLAG~"
   val DATA_CHECK = s"~$DATA_FLAG~"
 
+  override def supports(sft: SimpleFeatureType): Boolean = true
+
+  override val suffix: String = "st_idx"
+
+  override def writer(sft: SimpleFeatureType): Option[FeatureToMutations] = {
+    val indexSchema = sft.getUserData.get(accumulo.index.SFT_INDEX_SCHEMA).asInstanceOf[String]
+    val stEncoder = IndexSchema.buildKeyEncoder(sft, indexSchema)
+    Some((toWrite: FeatureToWrite) => stEncoder.encode(toWrite))
+  }
+
+  override def remover(sft: SimpleFeatureType): Option[FeatureToMutations] = {
+    val indexSchema = sft.getUserData.get(accumulo.index.SFT_INDEX_SCHEMA).asInstanceOf[String]
+    val stEncoder = IndexSchema.buildKeyEncoder(sft, indexSchema)
+    Some((toWrite: FeatureToWrite) => stEncoder.encode(toWrite, delete = true))
+  }
+
   // index rows have an index flag as part of the schema
   def isIndexEntry(key: Key): Boolean = key.getRow.find(INDEX_CHECK) != -1
 
   // data rows have a data flag as part of the schema
   def isDataEntry(key: Key): Boolean = key.getRow.find(DATA_CHECK) != -1
 
-  def spatioTemporalWriter(encoder: STIndexEncoder): FeatureToMutations =
-    (toWrite: FeatureToWrite) => encoder.encode(toWrite)
-
-  /** Creates a function to remove spatio temporal index entries for a feature **/
-  def spatioTemporalRemover(encoder: STIndexEncoder): FeatureToMutations =
-    (toWrite: FeatureToWrite) => encoder.encode(toWrite, true)
-
-  def deleteFeaturesFromTable(conn: Connector, bd: BatchDeleter, sft: SimpleFeatureType): Unit = {
+  override def deleteFeaturesForType(sft: SimpleFeatureType, bd: BatchDeleter): Unit = {
     val MIN_START = "\u0000"
     val MAX_END = "~"
 
