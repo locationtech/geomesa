@@ -55,22 +55,6 @@ object GeoMesaInputFormat extends Logging {
     configure(job, dsParams, query)
   }
 
-  /**
-   * Configure the number of desired splits. This should be called with the final intended
-   * value. In general, you should use the number of shards * a guess about the number of
-   * partitions or splits you want per shard. The default is 2. Behavior is undefined for
-   * numbers less than 1.
-   *
-   * @param conf
-   * @param desiredSplits
-   */
-  def configureSplits(conf : Configuration, desiredSplits : Int): Unit = {
-    conf.setInt("SplitsDesired", desiredSplits)
-  }
-
-  def getConfiguredSplits(conf : Configuration): Int ={
-    conf.getInt("SplitsDesired", -1)
-  }
 
   /**
    * Configure the input format.
@@ -163,7 +147,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with Logging {
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     encoding = ds.getFeatureEncoding(sft)
     numShards = Math.max(IndexSchema.maxShard(ds.getIndexSchemaFmt(sft.getTypeName)), 1)
-    desiredSplitCount = GeoMesaInputFormat.getConfiguredSplits(conf)
+    desiredSplitCount = GeoMesaConfigurator.getDesiredSplits(conf)
   }
 
   /**
@@ -178,12 +162,13 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with Logging {
     val accumuloSplits = delegate.getSplits(context)
     // fallback on creating 2 mappers per node if desiredSplits is unset.
     // Account for case where there are less splits than shards
-    var groupSize = Math.max(numShards * 2, accumuloSplits.length / (numShards * 2))
-    if (desiredSplitCount != -1) {
-      groupSize = Math.max(1, accumuloSplits.length / desiredSplitCount)
+    val groupSize =  if (desiredSplitCount > 1) {
+      Math.max(1, accumuloSplits.length / desiredSplitCount)
+    } else {
+      Math.max(numShards * 2, accumuloSplits.length / (numShards * 2))
     }
 
-    val splits = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
+    val splitsSet = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
       splits.grouped(groupSize).map { group =>
         val split = new GroupedSplit()
         split.location = location
@@ -194,9 +179,9 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with Logging {
     //we've dumped all ranges into groups by location, and tried to get enough splits by breaking up those groups.
     //we may eventually need to go ahead and do some pretty grim mojo to break each split down small enough
     //so that we don't blow executor's memory pools. Right now, that's not happening, so I'm not going to push it.
-    logger.info(s"Got ${splits.toList.length} splits" +
-      s" using desired=${desiredSplitCount} from ${accumuloSplits.length}")
-    splits.toList
+    logger.info(s"Got ${splitsSet.toList.length} splits" +
+      s" using desired=$desiredSplitCount from ${accumuloSplits.length}")
+    splitsSet.toList
   }
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {

@@ -108,7 +108,7 @@ object GeoMesaSpark {
     }
 
     if (numberOfSplits.isDefined) {
-      GeoMesaInputFormat.configureSplits(conf,
+      GeoMesaConfigurator.setDesiredSplits(conf,
         numberOfSplits.get * sc.getExecutorStorageStatus.length)
       InputConfigurator.setAutoAdjustRanges(classOf[AccumuloInputFormat], conf, false)
       InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaInputFormat], conf, false)

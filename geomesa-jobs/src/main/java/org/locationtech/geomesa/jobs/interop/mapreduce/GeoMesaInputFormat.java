@@ -64,16 +64,6 @@ public class GeoMesaInputFormat extends InputFormat<Text, SimpleFeature> {
         GeoMesaInputFormat$.MODULE$.configure(job, scalaParams, query);
     }
 
-    public static void configureSplits(Configuration conf, Integer desiredSplits)
-    {
-        GeoMesaInputFormat$.MODULE$.configureSplits(conf,desiredSplits);
-    }
-
-    public static int getConfiguredSplits(Configuration conf)
-    {
-        return GeoMesaInputFormat$.MODULE$.getConfiguredSplits(conf);
-    }
-
     @Deprecated
     public static void configure(Job job,
                                  Map<String, String> dataStoreParams,
