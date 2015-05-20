@@ -33,6 +33,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.accumulo.index.{getTransformSchema, _}
+import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureDeserializer, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
@@ -99,8 +100,13 @@ object GeoMesaInputFormat extends Logging {
       val hints = ds.strategyHints(sft)
       val version = ds.getGeomesaVersion(sft)
       val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, hints, version)
-      // TODO: BROKEN!!!
-      new STIdxStrategy().getQueryPlans(query, queryPlanner, ExplainNull).head
+      val qps = new STIdxStrategy().getQueryPlans(query, queryPlanner, ExplainNull)
+      if (qps.length > 1) {
+        logger.error("The query being executed requires multiple scans, which is not currently " +
+            "supported by geomesa. Your result set will be partially incomplete. This is most likely due " +
+            s"to an OR clause in your query. Query: ${QueryStatTransform.filterToString(query.getFilter)}")
+      }
+      qps.head
     }
 
     // use the explain results to set the accumulo input format options
