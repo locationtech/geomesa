@@ -43,6 +43,7 @@ object GeoMesaConfigurator {
   private val sftKey           = s"$prefix.sft"
   private val transformsKey    = s"$prefix.transforms.schema"
   private val transformNameKey = s"$prefix.transforms.name"
+  private val desiredSplits    = s"$prefix.mapreduce.split.count.strongHint"
   private val serializersKey   = "io.serializations"
 
   private val writableSerialization      = classOf[WritableSerialization].getName
@@ -69,6 +70,20 @@ object GeoMesaConfigurator {
     conf.set(sftKey, featureType)
   def getFeatureType(job: Job): String = getFeatureType(job.getConfiguration)
   def getFeatureType(conf: Configuration): String = conf.get(sftKey)
+
+  /**
+   * Configure the number of desired splits. This should be called with the final intended
+   * value. In general, you should use the number of shards * a guess about the number of
+   * partitions or splits you want per shard. The default is 2. Behavior is undefined for
+   * numbers less than 1.
+   *
+   * @param conf
+   * @param countOfSplits
+   */
+  def setDesiredSplits(conf: Configuration, countOfSplits : Int) : Unit =
+    conf.setInt(desiredSplits, countOfSplits)
+  def getDesiredSplits(job : Job): Int = getDesiredSplits(job.getConfiguration)
+  def getDesiredSplits(conf : Configuration): Int = conf.getInt(desiredSplits, -1)
 
   // set/get the cql filter
   def setFilter(conf: Configuration, filter: String): Unit = conf.set(filterKey, filter)

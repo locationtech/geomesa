@@ -55,6 +55,7 @@ object GeoMesaInputFormat extends Logging {
     configure(job, dsParams, query)
   }
 
+
   /**
    * Configure the input format.
    *
@@ -131,20 +132,22 @@ object GeoMesaInputFormat extends Logging {
 /**
  * Input format that allows processing of simple features from GeoMesa based on a CQL query
  */
-class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] {
+class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with Logging {
 
   val delegate = new AccumuloInputFormat
 
   var sft: SimpleFeatureType = null
   var encoding: FeatureEncoding = null
   var numShards: Int = -1
+  var desiredSplitCount: Int = -1
 
   private def init(conf: Configuration) = if (sft == null) {
     val params = GeoMesaConfigurator.getDataStoreInParams(conf)
     val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     encoding = ds.getFeatureEncoding(sft)
-    numShards = IndexSchema.maxShard(ds.getIndexSchemaFmt(sft.getTypeName))
+    numShards = Math.max(IndexSchema.maxShard(ds.getIndexSchemaFmt(sft.getTypeName)), 1)
+    desiredSplitCount = GeoMesaConfigurator.getDesiredSplits(conf)
   }
 
   /**
@@ -152,17 +155,20 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] {
    *
    * Our delegated AccumuloInputFormat creates a split for each range - because we set a lot of ranges in
    * geomesa, that creates too many mappers. Instead, we try to group the ranges by tservers. We use the
-   * number of shards in the schema as a proxy for number of tservers. We also know that each range will
-   * only have a single location, because we always set autoAdjustRanges in the configure method above.
+   * number of shards in the schema as a proxy for number of tservers.
    */
   override def getSplits(context: JobContext): java.util.List[InputSplit] = {
     init(context.getConfiguration)
     val accumuloSplits = delegate.getSplits(context)
-    // try to create 2 mappers per node - account for case where there are less splits than shards
-    val groupSize = Math.max(numShards * 2, accumuloSplits.length / (numShards * 2))
+    // fallback on creating 2 mappers per node if desiredSplits is unset.
+    // Account for case where there are less splits than shards
+    val groupSize =  if (desiredSplitCount > 0) {
+      Math.max(1, accumuloSplits.length / desiredSplitCount)
+    } else {
+      Math.max(numShards * 2, accumuloSplits.length / (numShards * 2))
+    }
 
-    // We know each range will only have a single location because of autoAdjustRanges
-    val splits = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
+    val splitsSet = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
       splits.grouped(groupSize).map { group =>
         val split = new GroupedSplit()
         split.location = location
@@ -170,7 +176,10 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] {
         split
       }
     }
-    splits.toList
+
+    logger.debug(s"Got ${splitsSet.toList.length} splits" +
+      s" using desired=$desiredSplitCount from ${accumuloSplits.length}")
+    splitsSet.toList
   }
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {
