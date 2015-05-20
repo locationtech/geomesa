@@ -35,9 +35,8 @@ import org.geotools.filter.FidFilterImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.avro.AvroFeatureDeserializer
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
 import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceReTypingSupport
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -67,7 +66,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   var qt = new SynchronizedQuadtree
 
   val groupId = RandomStringUtils.randomAlphanumeric(5)
-  val decoder = new AvroFeatureDeserializer(schema, SerializationOptions.withUserData)
+  val decoder = new KryoFeatureSerializer(getSchema, SerializationOptions.withUserData)
   // create a producer that reads from kafka and sends to the event bus
   new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
 
@@ -199,7 +198,7 @@ trait FeatureProducer {
 class KafkaFeatureConsumer(topic: String,
                            zookeepers: String,
                            groupId: String,
-                           featureDecoder: AvroFeatureDeserializer,
+                           featureDecoder: KryoFeatureSerializer,
                            override val eventBus: EventBus) extends FeatureProducer {
 
   private val client = Consumer.create(new ConsumerConfig(buildClientProps))

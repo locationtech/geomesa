@@ -39,7 +39,7 @@ class DataStoreHelper(params: GeoMesaParams) extends AccumuloProperties {
 
   /**
    * Create a new catalog table in geomesa if one does not already exist
-   * @throws an Exception if the catalog already exists
+   * @throws Exception if the catalog already exists
    */
   def createNewDataStore(): AccumuloDataStore =
     if (catalogExists) {
@@ -71,7 +71,7 @@ class DataStoreHelper(params: GeoMesaParams) extends AccumuloProperties {
 
   /**
    * Get a handle to a datastore for a pre-existing catalog table
-   * @throws an Exception if the catalog table does not exist in accumulo
+   * @throws Exception if the catalog table does not exist in accumulo
    */
   def getExistingStore() =
     if (catalogExists) {

@@ -20,7 +20,6 @@ import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.GML
 import org.geotools.GML.Version
@@ -28,16 +27,13 @@ import org.geotools.data.DataUtilities
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureStore}
 import org.geotools.geojson.feature.FeatureJSON
-import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.filter.function._
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.commands.ExportCommand.ExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
-import scala.util.Try
 
 trait FeatureExporter extends AutoCloseable with Flushable {
   def write(featureCollection: SimpleFeatureCollection): Unit
@@ -205,7 +201,7 @@ class BinFileExport(os: OutputStream,
                     lonAttribute: Option[String],
                     lblAttribute: Option[String]) extends FeatureExporter {
 
-  import org.locationtech.geomesa.filter.function.BinaryOutputEncoder._
+  import BinaryOutputEncoder._
 
   val id = idAttribute.orElse(Some("id"))
   val latLon = latAttribute.flatMap(lat => lonAttribute.map(lon => (lat, lon)))
