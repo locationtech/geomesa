@@ -38,8 +38,10 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index.{ExplainNull, QueryPlanner, STIdxStrategy}
 import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
-import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SimpleFeatureDeserializers}
-import org.locationtech.geomesa.features.kryo.serialization.{KryoFeatureSerializer, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.SimpleFeatureSerializers
+import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
+import org.locationtech.geomesa.jobs.GeoMesaConfigurator
+import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
