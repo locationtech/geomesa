@@ -20,12 +20,11 @@ package org.locationtech.geomesa.accumulo.data.tables
 import java.util.{Collection => JCollection, Date, Locale, Map => JMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToWrite, FeatureToMutations}
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -42,9 +41,12 @@ import scala.util.{Failure, Success, Try}
  */
 object AttributeTable extends GeoMesaTable with Logging {
 
-  /** Creates a function to write a feature to the attribute index **/
-  def attributeWriter(sft: SimpleFeatureType): Option[FeatureToMutations] = {
+  override def supports(sft: SimpleFeatureType) =
+    SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).nonEmpty
 
+  override val suffix: String = "attr_idx"
+
+  override def writer(sft: SimpleFeatureType): Option[FeatureToMutations] = {
     val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
     if (indexedAttributes.isEmpty) {
       None
@@ -58,8 +60,7 @@ object AttributeTable extends GeoMesaTable with Logging {
     }
   }
 
-  /** Creates a function to remove attribute index entries for a feature **/
-  def attributeRemover(sft: SimpleFeatureType): Option[FeatureToMutations] = {
+  override def remover(sft: SimpleFeatureType): Option[FeatureToMutations] = {
     val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
     if (indexedAttributes.isEmpty) {
       None
@@ -69,7 +70,7 @@ object AttributeTable extends GeoMesaTable with Logging {
       val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName)}
       val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
 
-      Some((toWrite: FeatureToWrite) => getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix, true))
+      Some((toWrite: FeatureToWrite) => getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix, delete = true))
     }
   }
 

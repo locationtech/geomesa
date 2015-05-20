@@ -52,9 +52,6 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 
     val dtgField = getDtgFieldName(sft)
 
-    // TODO: Select only the geometry filters which involve the indexed geometry type.
-    // https://geomesa.atlassian.net/browse/GEOMESA-200
-    // Simiarly, we should only extract temporal filters for the index date field.
     val (geomFilters, otherFilters) = partitionGeom(query.getFilter, sft)
     val (temporalFilters, ecqlFilters) = partitionTemporal(otherFilters, dtgField)
 

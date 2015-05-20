@@ -25,9 +25,10 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.accumulo
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.accumulo.data.{AccumuloFeatureWriter, AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.accumulo.index.{IndexSchema, IndexValueEncoder}
 import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
@@ -123,16 +124,12 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
     }
 
     val writers = writerCache.getOrElseUpdate(sftName, {
-      val stEncoder = IndexSchema.buildKeyEncoder(sft, ds.getIndexSchemaFmt(sft.getTypeName))
-      val stWriter = SpatioTemporalTable.spatioTemporalWriter(stEncoder)
-      val stTable = new Text(ds.getSpatioTemporalTable(sft))
-      val recWriter = RecordTable.recordWriter(sft)
-      val recTable = new Text(ds.getRecordTable(sft))
-      AttributeTable.attributeWriter(sft) match {
-        case None => Seq((stTable, stWriter), (recTable, recWriter))
-        case Some(attrWriter) =>
-          val attrTable = new Text(ds.getAttributeTable(sft))
-          Seq((stTable, stWriter), (recTable, recWriter), (attrTable, attrWriter))
+      if (sft.getUserData.get(accumulo.index.SFT_INDEX_SCHEMA) == null) {
+        // needed for st writer
+        sft.getUserData.put(accumulo.index.SFT_INDEX_SCHEMA, ds.getIndexSchemaFmt(sft.getTypeName))
+      }
+      AccumuloFeatureWriter.getTablesAndWriters(sft, ds).map {
+        case (table, writer) => (new Text(table), writer)
       }
     })
 

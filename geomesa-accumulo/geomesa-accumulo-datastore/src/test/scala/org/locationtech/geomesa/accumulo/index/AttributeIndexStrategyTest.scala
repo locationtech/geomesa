@@ -113,11 +113,9 @@ class AttributeIndexStrategyTest extends Specification {
 
   def execute(strategy: AttributeIdxStrategy, filter: String): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))
-    val plan = strategy.getQueryPlans(query, queryPlanner, ExplainNull)
-    // TODO: FIX!!
-    val results = strategy.execute(plan.head, ds, ExplainNull)
-    // adapt iterator no longer de-dupes, add dedupe wrapper
-    results.map(plan.head.kvsToFeatures.left.get).map(_.getAttribute("name").toString).toSet.toList
+    val plans = strategy.getQueryPlans(query, queryPlanner, ExplainNull).map(StrategyPlan(strategy, _))
+    val results = queryPlanner.executePlans(query, plans, true)
+    results.map(_.getAttribute("name").toString).toList
   }
 
   "AttributeIndexStrategy" should {
@@ -225,9 +223,8 @@ class AttributeIndexStrategyTest extends Specification {
       val strategy = new AttributeIdxLikeStrategy
       val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("name LIKE 'b%'"), ECQL.toFilter("count<27"), ECQL.toFilter("age<29"))).get
       val query = new Query(sftName, filter)
-      val plan = strategy.getQueryPlans(query, queryPlanner, ExplainNull)
-      // TODO: FIX!!
-      val results = strategy.execute(plan.head, ds, ExplainNull).map(queryPlanner.defaultKVsToFeatures(query).left.get)
+      val plans = strategy.getQueryPlans(query, queryPlanner, ExplainNull).map(StrategyPlan(strategy, _))
+      val results = queryPlanner.executePlans(query, plans, true)
       val resultNames = results.map(_.getAttribute("name").toString).toList
       resultNames must have size(1)
       resultNames must contain ("bill")

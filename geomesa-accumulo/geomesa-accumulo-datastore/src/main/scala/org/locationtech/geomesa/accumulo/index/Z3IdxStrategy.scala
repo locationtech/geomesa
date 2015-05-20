@@ -125,7 +125,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     val iter = Z3Iterator.configure(Z3_CURVE.index(lx, ly, lt), Z3_CURVE.index(ux, uy, ut), Z3_ITER_PRIORITY)
 
     val adaptIter = Z3Table.adaptZ3KryoIterator(returnSft)
-    BatchScanPlan(table, accRanges, Seq(Some(iter), is).flatten, Seq(Z3Table.FULL_ROW), adaptIter, 8, hasDuplicates = false)
+    BatchScanPlan(table, accRanges, Seq(Some(iter), is).flatten, Seq(Z3Table.FULL_CF), adaptIter, 8, hasDuplicates = false)
   }
 }
 
@@ -135,6 +135,7 @@ object Z3IdxStrategy extends StrategyProvider {
 
   val Z3_ITER_PRIORITY = 21
   val FILTERING_ITER_PRIORITY = 25
+
   /**
    * Returns details on a potential strategy if the filter is valid for this strategy.
    *
@@ -143,13 +144,10 @@ object Z3IdxStrategy extends StrategyProvider {
    * @return
    */
   override def getStrategy(filter: Filter, sft: SimpleFeatureType, hints: StrategyHints): Option[StrategyDecision] = {
-    if (sft.getGeometryDescriptor.getType.getBinding != classOf[Point] || index.getDtgDescriptor(sft).isEmpty) {
-      return None
-    }
     val (geomFilter, other) = partitionGeom(filter, sft)
     val dtgFieldName = getDtgFieldName(sft)
     val (temporal, _) = partitionTemporal(other, dtgFieldName)
-    if (geomFilter.nonEmpty && temporal.nonEmpty && spatialFilters(geomFilter.head)) {
+    if (Z3Table.supports(sft) && geomFilter.nonEmpty && temporal.nonEmpty && spatialFilters(geomFilter.head)) {
       val geom = sft.getGeometryDescriptor.getLocalName
       val e1 = geomFilter.head.asInstanceOf[BinarySpatialOperator].getExpression1
       val e2 = geomFilter.head.asInstanceOf[BinarySpatialOperator].getExpression2

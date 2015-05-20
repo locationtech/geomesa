@@ -16,34 +16,37 @@
 
 package org.locationtech.geomesa.accumulo.data.tables
 
-import org.apache.accumulo.core.client.BatchWriter
-import org.apache.accumulo.core.data.{Mutation, Value}
-import org.apache.accumulo.core.security.ColumnVisibility
+import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
 import org.locationtech.geomesa.accumulo.data._
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import org.opengis.feature.simple.SimpleFeatureType
 
 // TODO: Implement as traits and cache results to gain flexibility and speed-up.
 // https://geomesa.atlassian.net/browse/GEOMESA-344
 object RecordTable extends GeoMesaTable {
 
-  /** Creates a function to write a feature to the Record Table **/
-  def recordWriter(sft: SimpleFeatureType): FeatureToMutations = {
+  override def supports(sft: SimpleFeatureType) = true
+
+  override val suffix: String = "records"
+
+  override def writer(sft: SimpleFeatureType): Option[FeatureToMutations] = {
     val rowIdPrefix = org.locationtech.geomesa.accumulo.index.getTableSharingPrefix(sft)
-    (toWrite: FeatureToWrite) => {
+    val fn = (toWrite: FeatureToWrite) => {
       val m = new Mutation(getRowKey(rowIdPrefix, toWrite.feature.getID))
       m.put(SFT_CF, EMPTY_COLQ, toWrite.columnVisibility, toWrite.dataValue)
       Seq(m)
     }
+    Some(fn)
   }
 
-  def recordRemover(sft: SimpleFeatureType): FeatureToMutations = {
+  override def remover(sft: SimpleFeatureType): Option[FeatureToMutations] = {
     val rowIdPrefix = org.locationtech.geomesa.accumulo.index.getTableSharingPrefix(sft)
-    (toWrite: FeatureToWrite) => {
+    val fn = (toWrite: FeatureToWrite) => {
       val m = new Mutation(getRowKey(rowIdPrefix, toWrite.feature.getID))
       m.putDelete(SFT_CF, EMPTY_COLQ, toWrite.columnVisibility)
       Seq(m)
     }
+    Some(fn)
   }
 
   def getRowKey(rowIdPrefix: String, id: String): String = rowIdPrefix + id

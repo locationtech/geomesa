@@ -16,9 +16,11 @@
 
 package org.locationtech.geomesa.accumulo.data.tables
 
-import org.apache.accumulo.core.client.{BatchDeleter, Connector}
+import org.apache.accumulo.core.client.BatchDeleter
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.hadoop.io.Text
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
+import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index._
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -26,18 +28,44 @@ import scala.collection.JavaConversions._
 
 trait GeoMesaTable {
 
-  def deleteFeaturesFromTable(conn: Connector, bd: BatchDeleter, sft: SimpleFeatureType): Unit = {
-    val MIN_START = "\u0000"
-    val MAX_END = "~"
+  /**
+   * Is the table compatible with the given feature type
+   */
+  def supports(sft: SimpleFeatureType): Boolean
 
+  /**
+   * The name used to identify the table
+   */
+  def suffix: String
+
+  /**
+   * Creates a function to write a feature to the table
+   */
+  def writer(sft: SimpleFeatureType): Option[FeatureToMutations]
+
+  /**
+   * Creates a function to delete a feature to the table
+   */
+  def remover(sft: SimpleFeatureType): Option[FeatureToMutations]
+
+  /**
+   * Deletes all features from the table
+   */
+  def deleteFeaturesForType(sft: SimpleFeatureType, bd: BatchDeleter): Unit = {
     val prefix = getTableSharingPrefix(sft)
-
-    //val range = new data.Range(prefix + MIN_START, prefix + MAX_END)
     val range = new AccRange(new Text(prefix), true, AccRange.followingPrefix(new Text(prefix)), false)
-
     bd.setRanges(Seq(range))
     bd.delete()
-    bd.close()
   }
+}
 
+object GeoMesaTable {
+
+  def getTablesAndNames(sft: SimpleFeatureType, acc: AccumuloConnectorCreator): Seq[(GeoMesaTable, String)] = {
+    val rec  = (RecordTable, acc.getRecordTable(sft))
+    val z3   = (Z3Table, acc.getZ3Table(sft))
+    val st   = (SpatioTemporalTable, acc.getSpatioTemporalTable(sft))
+    val attr = (AttributeTable, acc.getAttributeTable(sft))
+    Seq(rec, z3, st, attr).filter(_._1.supports(sft))
+  }
 }
