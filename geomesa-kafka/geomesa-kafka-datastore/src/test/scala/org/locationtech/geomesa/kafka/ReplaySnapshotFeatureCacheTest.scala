@@ -30,7 +30,7 @@ class ReplaySnapshotFeatureCacheTest extends Specification with SimpleFeatureMat
   // the ReplayConfig here doesn't matter
   val replayType = KafkaDataStoreHelper.prepareForReplay(sft, ReplayConfig(0, 0, 0))
 
-  // replay time is arbitary for this test
+  // replay time is arbitrary for this test
   val replayTime = 1000L
 
   "ReplaySnapshotFeatureCache" should {

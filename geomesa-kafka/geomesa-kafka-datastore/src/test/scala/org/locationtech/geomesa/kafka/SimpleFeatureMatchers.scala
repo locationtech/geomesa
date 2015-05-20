@@ -16,10 +16,11 @@
 package org.locationtech.geomesa.kafka
 
 import java.util.{List => JList}
-import org.locationtech.geomesa.kafka.KafkaConsumerTestData._
-import org.opengis.feature.simple.SimpleFeature
-import org.specs2.matcher.{ValueCheck, Matcher}
+
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.specs2.matcher.{Matcher, ValueCheck}
 import org.specs2.mutable.Specification
+
 import scala.collection.JavaConverters._
 
 trait SimpleFeatureMatchers extends Specification {
@@ -77,13 +78,9 @@ trait SimpleFeatureMatchers extends Specification {
     }
   }
 
-  /** Transforms [[SimpleFeature]]s as would happen during Kafka transport as an alternative to using
-    * a custom matcher.
-    */
-  def expect(sf: SimpleFeature*): Set[SimpleFeature] = {
-    // duplicate transport encode and decode - changes SimpleFeatureImplementation
-    val sfEncoder = new GeoMessageEncoder(sft).sfEncoder
-    val sfDecoder = new GeoMessageDecoder(sft).sfDecoder
-    sf.map(sf => sfDecoder.decode(sfEncoder.encode(sf))).toSet
+  // modifies simple features switch to the replay type and adding replay time attribute
+  def expect(replayType: SimpleFeatureType, replayTime: Long, sf: SimpleFeature*): Set[SimpleFeature] = {
+    val helper = new ReplayTimeHelper(replayType, replayTime)
+    sf.map(helper.addReplayTime).toSet
   }
 }

@@ -15,8 +15,7 @@
  */
 package org.locationtech.geomesa.kafka
 
-import org.geotools.data.{Transaction, EmptyFeatureReader}
-import org.geotools.data.store.{ContentDataStore, ContentState, ContentEntry}
+import org.geotools.data.EmptyFeatureReader
 import org.joda.time.Instant
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.FR
@@ -171,18 +170,12 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
 
       val replayConfig = ReplayConfig(10000L, 13100L, 300L)
       lazy val replayType = KafkaDataStoreHelper.prepareForReplay(sft, replayConfig)
-      lazy val fs = featureSource(msgs, replayConfig)
+      lazy val fs = featureSource(msgs, replayType)
 
       def equalsSnapshot(expectedMsgs: Seq[GeoMessage], replayTime: Long): ValueCheck[ReplaySnapshotFeatureCache] = {
-        val helper = new ReplayTimeHelper(replayType, replayTime)
-
-        val expectedWithTime = expectedMsgs.map {
-          case CreateOrUpdate(ts, sf) => CreateOrUpdate(ts, helper.addReplayTime(sf))
-          case a => a
-        }
-
         s: ReplaySnapshotFeatureCache =>
-          s.schema mustEqual sft
+          s.schema mustEqual replayType
+          s.replayTime mustEqual replayTime
           s.events must equalGeoMessages(expectedMsgs)
       }
 
@@ -224,11 +217,12 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
         CreateOrUpdate(new Instant(13002), track3v3), // 8
         CreateOrUpdate(new Instant(13002), track0v2)) // 9
 
-      val replayConfig = ReplayConfig(10000, 12000L, 100L)
-      val fs = featureSource(msgs, replayConfig)
+      val replayConfig = ReplayConfig(10000L, 12000L, 100L)
+      val replayType = KafkaDataStoreHelper.prepareForReplay(sft, replayConfig)
+      val fs = featureSource(msgs, replayType)
 
       val result = fs.getReaderForFilter(Filter.INCLUDE)
-      validateFR(result, expect(track0v1, track1v0, track3v2))
+      validateFR(result, expect(replayType, 12000L, track0v1, track1v0, track3v2))
     }
 
     "or an empty reader if no data" >> {
