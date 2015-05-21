@@ -30,7 +30,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class LazySortedIteratorTest extends Specification with Mockito {
 
-  val ff = CommonFactoryFinder.getFilterFactory
+  val filterFactory = CommonFactoryFinder.getFilterFactory
   
   "LazySortedIterator" should {
 
@@ -95,7 +95,7 @@ class LazySortedIteratorTest extends Specification with Mockito {
 
     "be able to sort by an attribute asc" >> {
       val features = CloseableIterator(Iterator(b, c2, d, a, c1))
-      val sortBy = Array(ff.sort("name", SortOrder.ASCENDING))
+      val sortBy = Array(filterFactory.sort("name", SortOrder.ASCENDING))
 
       // sort is stable
       test(features, sortBy, Seq(a, b, c2, c1, d))
@@ -103,7 +103,7 @@ class LazySortedIteratorTest extends Specification with Mockito {
 
     "be able to sort by an attribute desc" >> {
       val features = CloseableIterator(Iterator(b, c2, d, a, c1))
-      val sortBy = Array(ff.sort("name", SortOrder.DESCENDING))
+      val sortBy = Array(filterFactory.sort("name", SortOrder.DESCENDING))
 
       // sort is stable
       test(features, sortBy, Seq(d, c2, c1, b, a))
@@ -111,14 +111,14 @@ class LazySortedIteratorTest extends Specification with Mockito {
 
     "be able to sort by an attribute and id" >> {
       val features = CloseableIterator(Iterator(b, c2, d, a, c1))
-      val sortBy = Array(ff.sort("name", SortOrder.ASCENDING), SortBy.NATURAL_ORDER)
+      val sortBy = Array(filterFactory.sort("name", SortOrder.ASCENDING), SortBy.NATURAL_ORDER)
 
       test(features, sortBy, Seq(a, b, c1, c2, d))
     }
 
     "be able to sort by an multiple attributes" >> {
       val features = CloseableIterator(Iterator(a, b, c1, d, c2))
-      val sortBy = Array(ff.sort("age", SortOrder.DESCENDING), ff.sort("name", SortOrder.ASCENDING))
+      val sortBy = Array(filterFactory.sort("age", SortOrder.DESCENDING), filterFactory.sort("name", SortOrder.ASCENDING))
 
       test(features, sortBy, Seq(b, c2, a, c1, d))
     }

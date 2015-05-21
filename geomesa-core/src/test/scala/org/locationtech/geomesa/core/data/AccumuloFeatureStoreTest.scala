@@ -8,6 +8,7 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.core.data.AccumuloDataStoreDefaults
 import org.locationtech.geomesa.core.index._
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.filter.Filter
@@ -29,8 +30,8 @@ trait GeoToolsFeatureStoreTester extends Specification with AccumuloDataStoreDef
 
       "support sorting" >> {
         fs.getQueryCapabilities.supportsSorting(Array(SortBy.NATURAL_ORDER)) must beTrue
-        fs.getQueryCapabilities.supportsSorting(Array(ff.sort("dtg", SortOrder.ASCENDING))) must beTrue
-        fs.getQueryCapabilities.supportsSorting(Array(ff.sort("dtg", SortOrder.DESCENDING))) must beTrue
+        fs.getQueryCapabilities.supportsSorting(Array(filterFactory.sort("dtg", SortOrder.ASCENDING))) must beTrue
+        fs.getQueryCapabilities.supportsSorting(Array(filterFactory.sort("dtg", SortOrder.DESCENDING))) must beTrue
       }
 
       val l = List(
@@ -57,7 +58,7 @@ trait GeoToolsFeatureStoreTester extends Specification with AccumuloDataStoreDef
 
       "sort ascending on String" >> {
         val dtgAscendingQ = new Query("test", Filter.INCLUDE)
-        dtgAscendingQ.setSortBy(Array(ff.sort("string", SortOrder.ASCENDING)))
+        dtgAscendingQ.setSortBy(Array(filterFactory.sort("string", SortOrder.ASCENDING)))
 
         val features = fs.getFeatures(dtgAscendingQ).features().toIterator
         val res: Seq[Option[String]] = features.map(feature => Option(feature.getAttribute("string")) match {
@@ -72,7 +73,7 @@ trait GeoToolsFeatureStoreTester extends Specification with AccumuloDataStoreDef
 
       "sort descending on String" >> {
         val dtgDescending = new Query("test", Filter.INCLUDE)
-        dtgDescending.setSortBy(Array(ff.sort("string", SortOrder.DESCENDING)))
+        dtgDescending.setSortBy(Array(filterFactory.sort("string", SortOrder.DESCENDING)))
 
         val features = fs.getFeatures(dtgDescending).features().toIterator
         val res: Seq[Option[String]] = features.map(feature => Option(feature.getAttribute("string")) match {
@@ -87,7 +88,7 @@ trait GeoToolsFeatureStoreTester extends Specification with AccumuloDataStoreDef
 
       "sort ascending on Integer" >> {
         val dtgAscendingQ = new Query("test", Filter.INCLUDE)
-        dtgAscendingQ.setSortBy(Array(ff.sort("int", SortOrder.ASCENDING)))
+        dtgAscendingQ.setSortBy(Array(filterFactory.sort("int", SortOrder.ASCENDING)))
 
         val features = fs.getFeatures(dtgAscendingQ).features().toIterator
         val res: Seq[Option[Integer]] = features.map(feature => Option(feature.getAttribute("int")) match {
@@ -102,7 +103,7 @@ trait GeoToolsFeatureStoreTester extends Specification with AccumuloDataStoreDef
 
       "sort descending on Integer" >> {
         val dtgDescending = new Query("test", Filter.INCLUDE)
-        dtgDescending.setSortBy(Array(ff.sort("int", SortOrder.DESCENDING)))
+        dtgDescending.setSortBy(Array(filterFactory.sort("int", SortOrder.DESCENDING)))
 
         val features = fs.getFeatures(dtgDescending).features().toIterator
         val res: Seq[Option[Integer]] = features.map(feature => Option(feature.getAttribute("int")) match {
@@ -117,7 +118,7 @@ trait GeoToolsFeatureStoreTester extends Specification with AccumuloDataStoreDef
 
       "sort ascending on Date" >> {
         val dtgAscendingQ = new Query("test", Filter.INCLUDE)
-        dtgAscendingQ.setSortBy(Array(ff.sort("dtg", SortOrder.ASCENDING)))
+        dtgAscendingQ.setSortBy(Array(filterFactory.sort("dtg", SortOrder.ASCENDING)))
 
         val features = fs.getFeatures(dtgAscendingQ).features().toIterator
         val res: Seq[Option[Long]] = features.map(feature => Option(feature.getAttribute("dtg")) match {
@@ -132,7 +133,7 @@ trait GeoToolsFeatureStoreTester extends Specification with AccumuloDataStoreDef
 
       "sort descending on Date" >> {
         val dtgDescending = new Query("test", Filter.INCLUDE)
-        dtgDescending.setSortBy(Array(ff.sort("dtg", SortOrder.DESCENDING)))
+        dtgDescending.setSortBy(Array(filterFactory.sort("dtg", SortOrder.DESCENDING)))
 
         val features = fs.getFeatures(dtgDescending).features().toIterator
         val res: Seq[Option[Long]] = features.map(feature => Option(feature.getAttribute("dtg")) match {
@@ -147,7 +148,7 @@ trait GeoToolsFeatureStoreTester extends Specification with AccumuloDataStoreDef
 
       "sort ascending on Float" >> {
         val dtgAscendingQ = new Query("test", Filter.INCLUDE)
-        dtgAscendingQ.setSortBy(Array(ff.sort("float", SortOrder.ASCENDING)))
+        dtgAscendingQ.setSortBy(Array(filterFactory.sort("float", SortOrder.ASCENDING)))
 
         val features = fs.getFeatures(dtgAscendingQ).features().toIterator
         val res: Seq[Option[Float]] = features.map(feature => Option(feature.getAttribute("float")) match {
@@ -162,7 +163,7 @@ trait GeoToolsFeatureStoreTester extends Specification with AccumuloDataStoreDef
 
       "sort descending on Float" >> {
         val dtgDescending = new Query("test", Filter.INCLUDE)
-        dtgDescending.setSortBy(Array(ff.sort("float", SortOrder.DESCENDING)))
+        dtgDescending.setSortBy(Array(filterFactory.sort("float", SortOrder.DESCENDING)))
 
         val features = fs.getFeatures(dtgDescending).features().toIterator
         val res: Seq[Option[Float]] = features.map(feature => Option(feature.getAttribute("float")) match {

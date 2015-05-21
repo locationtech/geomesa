@@ -83,7 +83,7 @@ class AttributeIndexFilteringIteratorTest extends Specification {
 
   fs.addFeatures(featureCollection)
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   val hints = new UserDataStrategyHints()
 
@@ -94,26 +94,26 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       // Test single wildcard, trailing, leading, and both trailing & leading wildcards
 
       // % should return all features
-      val wildCardQuery = new Query(sftName, ff.like(ff.property("name"),"%"))
+      val wildCardQuery = new Query(sftName, filterFactory.like(filterFactory.property("name"),"%"))
       QueryStrategyDecider.chooseStrategy(sft, wildCardQuery, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[AttributeIdxLikeStrategy]
       fs.getFeatures().features.size mustEqual 16
 
       forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter
-        val leftWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter"))
+        val leftWildCard = new Query(sftName, filterFactory.like(filterFactory.property("name"),s"%$letter"))
         QueryStrategyDecider.chooseStrategy(sft, leftWildCard, hints, INTERNAL_GEOMESA_VERSION) must
             beAnInstanceOf[STIdxStrategy]
         fs.getFeatures(leftWildCard).features.size mustEqual 4
 
         // Double wildcards should be ST
-        val doubleWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter%"))
+        val doubleWildCard = new Query(sftName, filterFactory.like(filterFactory.property("name"),s"%$letter%"))
         QueryStrategyDecider.chooseStrategy(sft, doubleWildCard, hints, INTERNAL_GEOMESA_VERSION) must
             beAnInstanceOf[STIdxStrategy]
         fs.getFeatures(doubleWildCard).features.size mustEqual 4
 
         // should return the 4 features for this letter
-        val rightWildcard = new Query(sftName, ff.like(ff.property("name"),s"$letter%"))
+        val rightWildcard = new Query(sftName, filterFactory.like(filterFactory.property("name"),s"$letter%"))
         QueryStrategyDecider.chooseStrategy(sft, rightWildcard, hints, INTERNAL_GEOMESA_VERSION) must
             beAnInstanceOf[AttributeIdxLikeStrategy]
         fs.getFeatures(rightWildcard).features.size mustEqual 4
@@ -127,15 +127,15 @@ class AttributeIndexFilteringIteratorTest extends Specification {
       QueryStrategyDecider.chooseStrategy(sft, query, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[AttributeIdxEqualsStrategy]
 
-      val leftWildCard = new Query(sftName, ff.like(ff.property("name"), "%b"), Array("geom"))
+      val leftWildCard = new Query(sftName, filterFactory.like(filterFactory.property("name"), "%b"), Array("geom"))
       QueryStrategyDecider.chooseStrategy(sft, leftWildCard, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[STIdxStrategy]
 
-      val doubleWildCard = new Query(sftName, ff.like(ff.property("name"), "%b%"), Array("geom"))
+      val doubleWildCard = new Query(sftName, filterFactory.like(filterFactory.property("name"), "%b%"), Array("geom"))
       QueryStrategyDecider.chooseStrategy(sft, doubleWildCard, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[STIdxStrategy]
 
-      val rightWildcard = new Query(sftName, ff.like(ff.property("name"), "b%"), Array("geom"))
+      val rightWildcard = new Query(sftName, filterFactory.like(filterFactory.property("name"), "b%"), Array("geom"))
       QueryStrategyDecider.chooseStrategy(sft, rightWildcard, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[AttributeIdxLikeStrategy]
 
@@ -155,7 +155,7 @@ class AttributeIndexFilteringIteratorTest extends Specification {
     }
 
     "handle corner case with attr idx, bbox, and no temporal filter" in {
-      val filter = ff.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
+      val filter = filterFactory.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
       val query = new Query(sftName, filter, Array("geom"))
       QueryStrategyDecider.chooseStrategy(sft, query, hints, INTERNAL_GEOMESA_VERSION) must
           beAnInstanceOf[STIdxStrategy]

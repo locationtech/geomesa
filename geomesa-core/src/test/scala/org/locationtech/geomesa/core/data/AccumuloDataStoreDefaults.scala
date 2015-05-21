@@ -22,7 +22,7 @@ import scala.collection.JavaConversions._
  * in AccumuloDataStoreTest and AccumuloFeatureStoreTest.
  */
 trait AccumuloDataStoreDefaults {
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
   val geotimeAttributes = org.locationtech.geomesa.core.index.spec
   val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
   val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)

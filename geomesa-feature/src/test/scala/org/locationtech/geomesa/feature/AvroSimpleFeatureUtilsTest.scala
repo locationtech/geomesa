@@ -182,7 +182,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val orig = Map(1 -> 2, 2 -> 3, 3 -> 4, 4 -> 1)
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[Int], classOf[Int])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toSet mustEqual orig.toSet
         }
         "in java" >> {
           val orig = Map(
@@ -193,7 +193,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           )
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[Integer], classOf[Integer])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toSet mustEqual orig.toSet
         }
       }
       "of longs" >> {
@@ -201,7 +201,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val orig = Map(1L -> 2L, 2L -> 4L, 3L -> 3L, 4L -> 1L)
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[Long], classOf[Long])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toSet mustEqual orig.toSet
         }
         "in java" >> {
           val orig = Map(
@@ -213,7 +213,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava,
             classOf[java.lang.Long], classOf[java.lang.Long])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toSet mustEqual orig.toSet
         }
       }
       "of strings" >> {
@@ -221,7 +221,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val orig = Map("1" -> "one", "two" -> "2", "three" -> "3", "four" -> "4")
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[String], classOf[String])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toSet mustEqual orig.toSet
         }
         "in java" >> {
           val orig = Map(
@@ -233,7 +233,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava,
             classOf[java.lang.String], classOf[java.lang.String])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toSet mustEqual orig.toSet
         }
         "that are empty" >> {
           val orig = Map("" -> "", "two" -> "")
@@ -247,7 +247,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val orig = Map(1.0 -> 2.0, 2.0 -> 3.0, 3.0 -> 4.0, 4.0 -> 1.0)
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[Double], classOf[Double])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toSet mustEqual orig.toSet
         }
         "in java" >> {
           val orig = Map(
@@ -259,7 +259,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava,
             classOf[java.lang.Double], classOf[java.lang.Double])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toSet mustEqual orig.toSet
         }
       }
       "of floats" >> {
@@ -267,7 +267,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val orig = Map(1.0f -> 1.1f, 2.0f -> 2.1f, 3.0f -> 3.1f, 4.0f -> 4.1f)
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[Float], classOf[Float])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toSet mustEqual orig.toSet
         }
         "in java" >> {
           val orig = Map(
@@ -279,7 +279,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava,
             classOf[java.lang.Float], classOf[java.lang.Float])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toSet mustEqual orig.toSet
         }
       }
       "of dates" >> {
@@ -290,13 +290,13 @@ class AvroSimpleFeatureUtilsTest extends Specification {
         )
         val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[Date], classOf[Date])
         val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-        decoded.asScala mustEqual orig
+        decoded.asScala.toSet mustEqual orig.toSet
       }
       "of mixed keys and values" >> {
         val orig = Map("key1" -> new Date(0), "key2" -> new Date(), "key3" -> new Date(99999))
         val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[String], classOf[Date])
         val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-        decoded.asScala mustEqual orig
+        decoded.asScala.toSet mustEqual orig.toSet
       }
     }
 
