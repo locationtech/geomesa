@@ -29,7 +29,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{After, Specification}
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -56,7 +56,8 @@ class ReplayKafkaDataStoreTest
 
   "replay" should {
 
-    "select the most recent version within the replay window when no message time is given" >> {
+    "select the most recent version within the replay window when no message time is given" in
+      new ReplayContext {
 
       val (replayType, fs) = createReplayFeatureSource(10000, 12000, 1000)
       fs.isInstanceOf[ReplayKafkaConsumerFeatureSource] must beTrue
@@ -67,7 +68,7 @@ class ReplayKafkaDataStoreTest
       features must containFeatures(expect(replayType, 12000L, track0v1, track1v0, track3v2))
     }
 
-    "use the message time when given" >> {
+    "use the message time when given" in new ReplayContext {
 
       val (replayType, fs) = createReplayFeatureSource(10000, 20000, 1000)
 
@@ -92,7 +93,7 @@ class ReplayKafkaDataStoreTest
       }
     }
 
-    "find messages with the same time" >> {
+    "find messages with the same time" in new ReplayContext {
 
       val (replayType, fs) = createReplayFeatureSource(10000, 15000, 1000)
 
@@ -161,12 +162,24 @@ class ReplayKafkaDataStoreTest
     logger.info("Completed message send", messages.size.asInstanceOf[AnyRef], zkConnect)
   }
 
-  def createReplayFeatureSource(start: Long, end: Long, readBehind: Long): (SimpleFeatureType, SimpleFeatureSource) = {
-    val rc = ReplayConfig(start, end, readBehind)
-    val replaySFT = KafkaDataStoreHelper.prepareForReplay(liveSFT, rc)
-    dataStore.createSchema(replaySFT)
+  trait ReplayContext extends After {
 
-    val fs = dataStore.getFeatureSource(replaySFT.getTypeName)
-    (replaySFT, fs)
+    private var toCleanup = Seq.empty[SimpleFeatureType]
+
+    def createReplayFeatureSource(start: Long, end: Long, readBehind: Long): (SimpleFeatureType, SimpleFeatureSource) = {
+      val rc = ReplayConfig(start, end, readBehind)
+      val replaySFT = KafkaDataStoreHelper.prepareForReplay(liveSFT, rc)
+      dataStore.createSchema(replaySFT)
+
+      val fs = dataStore.getFeatureSource(replaySFT.getTypeName)
+
+      toCleanup +:= replaySFT
+
+      (replaySFT, fs)
+    }
+
+    override def after: Unit = {
+      toCleanup.foreach(sft => dataStore.removeSchema(sft.getTypeName))
+    }
   }
 }
