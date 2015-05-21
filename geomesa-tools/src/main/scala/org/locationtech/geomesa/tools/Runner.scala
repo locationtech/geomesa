@@ -34,6 +34,7 @@ object Runner extends Logging {
     val describe     = new DescribeCommand(jc)
     val ingest       = new IngestCommand(jc)
     val ingestraster = new IngestRasterCommand(jc)
+    val deleteraster = new DeleteRasterCommand(jc)
     val create       = new CreateCommand(jc)
     val explain      = new ExplainCommand(jc)
     val help         = new HelpCommand(jc)
@@ -57,6 +58,7 @@ object Runner extends Logging {
         case DescribeCommand.Command        => describe
         case IngestCommand.Command          => ingest
         case IngestRasterCommand.Command    => ingestraster
+        case DeleteRasterCommand.Command    => deleteraster
         case CreateCommand.Command          => create
         case ExplainCommand.Command         => explain
         case HelpCommand.Command            => help

@@ -48,7 +48,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   coverageName = table
 
   val dostats = if (collectStats == "null") false else true
-  val ars = AccumuloRasterStore(user, password, instanceId, zookeepers, table, auths, "", collectStats = dostats)
+  val ars = AccumuloRasterStore(user, password, instanceId, zookeepers, table, auths, visibilities, collectStats = dostats)
 
   // TODO: Either this is needed for rasterToCoverages or remove it.
   this.crs = Try(CRS.decode("EPSG:4326")).getOrElse(DefaultGeographicCRS.WGS84)

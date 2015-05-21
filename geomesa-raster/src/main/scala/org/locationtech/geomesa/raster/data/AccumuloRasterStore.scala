@@ -22,6 +22,7 @@ import java.util.concurrent.{Callable, TimeUnit}
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.ImmutableSetMultimap
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.security.{Authorizations, TablePermission}
@@ -56,6 +57,7 @@ trait RasterOperations extends StrategyHelpers {
   def getAvailabilityMap(): ImmutableSetMultimap[Double, Int]
   def getGridRange(): GridEnvelope2D
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams): BufferedImage
+  def deleteRasterTable(): Unit
 }
 
 class AccumuloRasterStore(val connector: Connector,
@@ -66,7 +68,7 @@ class AccumuloRasterStore(val connector: Connector,
                   writeMemoryConfig: Option[String] = None,
                   writeThreadsConfig: Option[Int] = None,
                   queryThreadsConfig: Option[Int] = None,
-                  collectStats: Boolean = false) extends RasterOperations with MethodProfiling with StatWriter {
+                  collectStats: Boolean = false) extends RasterOperations with MethodProfiling with StatWriter with Logging {
   //By default having at least as many shards as tservers provides optimal parallelism in queries
   val shards = shardsConfig.getOrElse(connector.instanceOperations().getTabletServers.size())
   val writeMemory = writeMemoryConfig.getOrElse("10000").toLong
@@ -79,8 +81,9 @@ class AccumuloRasterStore(val connector: Connector,
   val schema = RasterIndexSchema("")
   lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner(schema)
 
-  private val tableOps = connector.tableOperations()
+  private val tableOps    = connector.tableOperations()
   private val securityOps = connector.securityOperations
+  private val profileTable  = s"${tableName}_queries"
   private def getBoundsRowID = tableName + "_bounds"
   
   //TODO: WCS: this needs to be implemented .. or  maybe not
@@ -105,7 +108,7 @@ class AccumuloRasterStore(val connector: Connector,
         timings.time("scanning") - timings.time("planning"),
         timings.time("mosaic"),
         numRasters)
-      this.writeStat(stat, s"${tableName}_queries")
+      this.writeStat(stat, profileTable)
     }
     image
   }
@@ -124,7 +127,7 @@ class AccumuloRasterStore(val connector: Connector,
   }
 
   def getQueryRecords(numRecords: Int): Iterator[String] = {
-    val scanner = connector.createScanner(s"${tableName}_queries", authorizationsProvider.getAuthorizations)
+    val scanner = connector.createScanner(profileTable, authorizationsProvider.getAuthorizations)
     scanner.iterator.take(numRecords).map(RasterQueryStatTransform.decodeStat)
   }
 
@@ -247,7 +250,7 @@ class AccumuloRasterStore(val connector: Connector,
     val user = connector.whoami
     val defaultVisibilities = authorizationsProvider.getAuthorizations.toString.replaceAll(",", "&")
     if (!tableOps.exists(tableName)) {
-        createTables(user, defaultVisibilities, Array(tableName, s"${tableName}_queries"):_*)
+        createTables(user, defaultVisibilities, Array(tableName, profileTable):_*)
     }
   }
 
@@ -270,6 +273,37 @@ class AccumuloRasterStore(val connector: Connector,
       } catch {
         case e: TableExistsException => // this can happen with multiple threads but shouldn't cause any issues
       }
+    }
+  }
+
+  def deleteRasterTable(): Unit = {
+    deleteMetaData()
+    deleteTable(profileTable)
+    deleteTable(tableName)
+  }
+
+  private def deleteTable(table: String): Unit = {
+    try {
+      if (tableOps.exists(table)) {
+        tableOps.delete(table)
+      }
+    } catch {
+      case e: Exception => logger.warn(s"Error occurred when attempting to delete table: $table", e)
+    }
+  }
+
+  private def deleteMetaData(): Unit = {
+    try {
+      if (tableOps.exists(GEOMESA_RASTER_BOUNDS_TABLE)) {
+        val deleter = connector.createBatchDeleter(GEOMESA_RASTER_BOUNDS_TABLE, getAuths(), 3, bwConfig)
+        val deleteRange = new Range(getBoundsRowID)
+        deleter.setRanges(Seq(deleteRange))
+        deleter.delete()
+        deleter.close()
+        AccumuloRasterStore.boundsCache.invalidate(tableName)
+      }
+    } catch {
+      case e: Exception => logger.warn(s"Error occurred when attempting to delete Metadata for table: $tableName")
     }
   }
 
