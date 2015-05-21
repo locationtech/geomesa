@@ -27,17 +27,14 @@ class LiveFeatureCacheTest extends Specification with Mockito with SimpleFeature
 
   import KafkaConsumerTestData._
 
+  implicit val ticker = Ticker.systemTicker()
+
   "LiveFeatureCache" should {
 
-    sequential
-
-    val lfc = new LiveFeatureCache(sft, None)(Ticker.systemTicker())
-
     "handle a CreateOrUpdate message" >> {
+      val lfc = new LiveFeatureCache(sft, None)
 
-      val msg = CreateOrUpdate(new Instant(1000), track0v0)
-
-      lfc.createOrUpdateFeature(msg)
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(1000), track0v0))
 
       lfc.cache.size() mustEqual 1
       lfc.cache.getIfPresent("track0") must equalFeatureHolder(track0v0)
@@ -49,11 +46,11 @@ class LiveFeatureCacheTest extends Specification with Mockito with SimpleFeature
       lfc.qt.queryAll() must containFeatureHolders(track0v0)
     }
 
-    "and a second CreateOrUpdate message" >> {
+    "handle two CreateOrUpdate messages" >> {
+      val lfc = new LiveFeatureCache(sft, None)
 
-      val msg = CreateOrUpdate(new Instant(2000), track1v0)
-
-      lfc.createOrUpdateFeature(msg)
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(1000), track0v0))
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(2000), track1v0))
 
       lfc.cache.size() mustEqual 2
       lfc.cache.getIfPresent("track1") must equalFeatureHolder(track1v0)
@@ -65,11 +62,12 @@ class LiveFeatureCacheTest extends Specification with Mockito with SimpleFeature
       lfc.qt.queryAll() must containFeatureHolders(track0v0, track1v0)
     }
 
-    "and use the most recent version of a feature" >> {
+    "use the most recent version of a feature" >> {
+      val lfc = new LiveFeatureCache(sft, None)
 
-      val msg = CreateOrUpdate(new Instant(3000), track0v1)
-
-      lfc.createOrUpdateFeature(msg)
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(1000), track0v0))
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(2000), track1v0))
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(3000), track0v1))
 
       lfc.cache.size() mustEqual 2
       lfc.cache.getIfPresent("track0") must equalFeatureHolder(track0v1)
@@ -81,11 +79,13 @@ class LiveFeatureCacheTest extends Specification with Mockito with SimpleFeature
       lfc.qt.queryAll() must containFeatureHolders(track0v1, track1v0)
     }
 
-    "and handle a Delete message" >> {
+    "handle a Delete message" >> {
+      val lfc = new LiveFeatureCache(sft, None)
 
-      val msg = Delete(new Instant(4000), "track0")
-
-      lfc.removeFeature(msg)
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(1000), track0v0))
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(2000), track1v0))
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(3000), track0v1))
+      lfc.removeFeature(Delete(new Instant(4000), "track0"))
 
       lfc.cache.size() mustEqual 1
       lfc.cache.getIfPresent("track0") must beNull
@@ -97,24 +97,16 @@ class LiveFeatureCacheTest extends Specification with Mockito with SimpleFeature
       lfc.qt.queryAll() must containFeatureHolders(track1v0)
     }
 
-    "and a more CreateOrUpdate message" >> {
+    "handle a Clear message" >> {
+      val lfc = new LiveFeatureCache(sft, None)
 
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(1000), track0v0))
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(2000), track1v0))
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(3000), track0v1))
+      lfc.removeFeature(Delete(new Instant(4000), "track0"))
       lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(5000), track2v0))
       lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(5005), track1v2))
       lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(5010), track3v0))
-
-      lfc.cache.size() mustEqual 3
-
-      lfc.features must haveSize(3)
-      lfc.features.get("track1") must beSome(featureHolder(track1v2))
-      lfc.features.get("track2") must beSome(featureHolder(track2v0))
-      lfc.features.get("track3") must beSome(featureHolder(track3v0))
-
-      lfc.qt.size() mustEqual 3
-      lfc.qt.queryAll() must containFeatureHolders(track1v2, track2v0, track3v0)
-    }
-
-    "and handle a Clear message" >> {
 
       lfc.clear()
 
@@ -126,17 +118,12 @@ class LiveFeatureCacheTest extends Specification with Mockito with SimpleFeature
 
   "LiveFeatureCache with expiry" should {
 
-    sequential
-
-    implicit val ticker = new MockTicker
-    ticker.tic = 1000000L // ns
-
-    val lfc = new LiveFeatureCache(sft, Some(5L)) // ms
-
     "handle a CreateOrUpdate message" >> {
+      implicit val ticker = new MockTicker
+      ticker.tic = 1000000L // ns
 
-      val msg = CreateOrUpdate(new Instant(1000), track0v0)
-      lfc.createOrUpdateFeature(msg)
+      val lfc = new LiveFeatureCache(sft, Some(5L)) // ms
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(1000), track0v0))
 
       ticker.tic = 2000000L // ns
 
@@ -150,7 +137,12 @@ class LiveFeatureCacheTest extends Specification with Mockito with SimpleFeature
       lfc.qt.queryAll() must containFeatureHolders(track0v0)
     }
 
-    "and expire message correctly" >> {
+    "expire message correctly" >> {
+      implicit val ticker = new MockTicker
+      ticker.tic = 1000000L // ns
+
+      val lfc = new LiveFeatureCache(sft, Some(5L)) // ms
+      lfc.createOrUpdateFeature(CreateOrUpdate(new Instant(1000), track0v0))
 
       ticker.tic = 7000000L
       lfc.cache.cleanUp()
