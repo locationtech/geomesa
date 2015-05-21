@@ -61,6 +61,9 @@ import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults {
+
+  sequential
+
   "AccumuloDataStore" should {
     "create a store" in {
       ds must not beNull
@@ -203,8 +206,8 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
       // compose a CQL query that uses a polygon that is disjoint with the feature bounds
       val geomFactory = JTSFactoryFinder.getGeometryFactory
-      val q = ff.dwithin(ff.property("geom"),
-        ff.literal(geomFactory.createPoint(new Coordinate(45.000001, 48.99999))), 100.0, "meters")
+      val q = filterFactory.dwithin(filterFactory.property("geom"),
+        filterFactory.literal(geomFactory.createPoint(new Coordinate(45.000001, 48.99999))), 100.0, "meters")
       val query = new Query(sftName, q)
 
       // Let's read out what we wrote.
@@ -246,12 +249,12 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       }
 
       val geomFactory = JTSFactoryFinder.getGeometryFactory
-      val urq = ff.dwithin(ff.property("geom"),
-        ff.literal(geomFactory.createPoint(new Coordinate( 0.0005,  0.0005))), 150.0, "meters")
-      val llq = ff.dwithin(ff.property("geom"),
-        ff.literal(geomFactory.createPoint(new Coordinate(-0.0005, -0.0005))), 150.0, "meters")
-      val orq = ff.or(urq, llq)
-      val andq = ff.and(urq, llq)
+      val urq = filterFactory.dwithin(filterFactory.property("geom"),
+        filterFactory.literal(geomFactory.createPoint(new Coordinate( 0.0005,  0.0005))), 150.0, "meters")
+      val llq = filterFactory.dwithin(filterFactory.property("geom"),
+        filterFactory.literal(geomFactory.createPoint(new Coordinate(-0.0005, -0.0005))), 150.0, "meters")
+      val orq = filterFactory.or(urq, llq)
+      val andq = filterFactory.and(urq, llq)
       val urQuery  = new Query(sftName,  urq)
       val llQuery  = new Query(sftName,  llq)
       val orQuery  = new Query(sftName,  orq)
@@ -326,7 +329,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
       addDefaultPoint(sft)
 
-      val filter = ff.bbox("geom", 44.0, 48.0, 46.0, 50.0, "EPSG:4326")
+      val filter = filterFactory.bbox("geom", 44.0, 48.0, 46.0, 50.0, "EPSG:4326")
       val query = new Query(sftName, filter)
       query.setPropertyNames(Array("geom"))
 
@@ -460,32 +463,32 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       fs.addFeatures(featureCollection)
 
       "default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
-        val spatial = ff.bbox("geom", -230, -110, 230, 110, CRS.toSRS(WGS84))
+        val spatial = filterFactory.bbox("geom", -230, -110, 230, 110, CRS.toSRS(WGS84))
         val query = new Query(sftName, spatial)
         val results = fs.getFeatures(query)
         results.size() mustEqual 361
       }
 
       "greater than 180 lon diff non-IDL-wrapping geoserver BBOX" in {
-        val spatial = ff.bbox("geom", -100, 1.1, 100, 4.1, CRS.toSRS(WGS84))
+        val spatial = filterFactory.bbox("geom", -100, 1.1, 100, 4.1, CRS.toSRS(WGS84))
         val query = new Query(sftName, spatial)
         val results = fs.getFeatures(query)
         results.size() mustEqual 6
       }
 
       "small IDL-wrapping geoserver BBOXes" in {
-        val spatial1 = ff.bbox("geom", -181.1, -90, -175.1, 90, CRS.toSRS(WGS84))
-        val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
-        val binarySpatial = ff.or(spatial1, spatial2)
+        val spatial1 = filterFactory.bbox("geom", -181.1, -90, -175.1, 90, CRS.toSRS(WGS84))
+        val spatial2 = filterFactory.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
+        val binarySpatial = filterFactory.or(spatial1, spatial2)
         val query = new Query(sftName, binarySpatial)
         val results = fs.getFeatures(query)
         results.size() mustEqual 10
       }
 
       "large IDL-wrapping geoserver BBOXes" in {
-        val spatial1 = ff.bbox("geom", -181.1, -90, 40.1, 90, CRS.toSRS(WGS84))
-        val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
-        val binarySpatial = ff.or(spatial1, spatial2)
+        val spatial1 = filterFactory.bbox("geom", -181.1, -90, 40.1, 90, CRS.toSRS(WGS84))
+        val spatial2 = filterFactory.bbox("geom", 175.1, -90, 181.1, 90, CRS.toSRS(WGS84))
+        val binarySpatial = filterFactory.or(spatial1, spatial2)
         val query = new Query(sftName, binarySpatial)
         val results = fs.getFeatures(query)
         results.size() mustEqual 226
@@ -494,8 +497,6 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
     }
 
     "provide ability to configure authorizations" in {
-
-      sequential
 
       "by static auths" in {
         // create the data store
@@ -634,7 +635,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       fs.addFeatures(DataUtilities.collection(List(one, two)))
 
       "query indexed attribute" >> {
-        val q1 = ff.equals(ff.property("name"), ff.literal("one"))
+        val q1 = filterFactory.equals(filterFactory.property("name"), filterFactory.literal("one"))
         val fr = ds.getFeatureReader(sftName, new Query(sftName, q1))
         val results = CloseableIterator(fr).toList
         results must haveLength(1)
@@ -642,7 +643,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       }
 
       "query non-indexed attributes" >> {
-        val q2 = ff.equals(ff.property("numattr"), ff.literal(2))
+        val q2 = filterFactory.equals(filterFactory.property("numattr"), filterFactory.literal(2))
         val fr = ds.getFeatureReader(sftName, new Query(sftName, q2))
         val results = CloseableIterator(fr).toList
         results must haveLength(1)
@@ -971,7 +972,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
       fs.addFeatures(new ListFeatureCollection(sft, features))
 
-      val filter = ff.id(ff.featureId("2"))
+      val filter = filterFactory.id(filterFactory.featureId("2"))
       val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
       writer.hasNext must beTrue
       val feat = writer.next

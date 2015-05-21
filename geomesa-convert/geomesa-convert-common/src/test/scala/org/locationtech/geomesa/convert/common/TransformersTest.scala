@@ -133,7 +133,7 @@ class TransformersTest extends Specification {
 
         "uuid" >> {
           val exp = Transformers.parseTransform("uuid()")
-          exp.eval(Array(null)) must anInstanceOf[String]
+          exp.eval(Array(null)).isInstanceOf[String] must beTrue
         }
 
         "base64" >> {

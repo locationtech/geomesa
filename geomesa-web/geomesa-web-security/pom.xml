@@ -49,8 +49,11 @@
 
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.10</artifactId>
-            <scope>test</scope>
+            <artifactId>specs2-junit_2.10</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-mock_2.10</artifactId>
         </dependency>
     </dependencies>
 

@@ -31,7 +31,7 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class FilterHelperTest extends Specification with Mockito with Logging {
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   val min = IndexSchema.minDateTime
   val max = IndexSchema.maxDateTime
@@ -45,26 +45,26 @@ class FilterHelperTest extends Specification with Mockito with Logging {
   val dtAndDtPairs = for( dt <- dts; dtPair <- dtPairs) yield (dt, dtPair)
 
   val dtFieldName = "dtg"
-  val dtp = ff.property(dtFieldName)
+  val dtp = filterFactory.property(dtFieldName)
 
-  def fAfterDate(dt: DateTime): Filter = ff.after(dtp, dt2lit(dt))
-  def fDateAfter(dt: DateTime): Filter = ff.after(dt2lit(dt), dtp)
-  def fBeforeDate(dt: DateTime): Filter = ff.before(dtp, dt2lit(dt))
-  def fDateBefore(dt: DateTime): Filter = ff.before(dt2lit(dt), dtp)
+  def fAfterDate(dt: DateTime): Filter = filterFactory.after(dtp, dt2lit(dt))
+  def fDateAfter(dt: DateTime): Filter = filterFactory.after(dt2lit(dt), dtp)
+  def fBeforeDate(dt: DateTime): Filter = filterFactory.before(dtp, dt2lit(dt))
+  def fDateBefore(dt: DateTime): Filter = filterFactory.before(dt2lit(dt), dtp)
 
-  def fLTDate(dt: DateTime): Filter = ff.less(dtp, dt2lit(dt))
-  def fDateLT(dt: DateTime): Filter = ff.less(dt2lit(dt), dtp)
-  def fGTDate(dt: DateTime): Filter = ff.greater(dtp, dt2lit(dt))
-  def fDateGT(dt: DateTime): Filter = ff.greater(dt2lit(dt), dtp)
-  def fLEDate(dt: DateTime): Filter = ff.lessOrEqual(dtp, dt2lit(dt))
-  def fDateLE(dt: DateTime): Filter = ff.lessOrEqual(dt2lit(dt), dtp)
-  def fGEDate(dt: DateTime): Filter = ff.greaterOrEqual(dtp, dt2lit(dt))
-  def fDateGE(dt: DateTime): Filter = ff.greaterOrEqual(dt2lit(dt), dtp)
+  def fLTDate(dt: DateTime): Filter = filterFactory.less(dtp, dt2lit(dt))
+  def fDateLT(dt: DateTime): Filter = filterFactory.less(dt2lit(dt), dtp)
+  def fGTDate(dt: DateTime): Filter = filterFactory.greater(dtp, dt2lit(dt))
+  def fDateGT(dt: DateTime): Filter = filterFactory.greater(dt2lit(dt), dtp)
+  def fLEDate(dt: DateTime): Filter = filterFactory.lessOrEqual(dtp, dt2lit(dt))
+  def fDateLE(dt: DateTime): Filter = filterFactory.lessOrEqual(dt2lit(dt), dtp)
+  def fGEDate(dt: DateTime): Filter = filterFactory.greaterOrEqual(dtp, dt2lit(dt))
+  def fDateGE(dt: DateTime): Filter = filterFactory.greaterOrEqual(dt2lit(dt), dtp)
 
-  def during(dt1: DateTime, dt2: DateTime): Filter = ff.during(dtp, dts2lit(dt1, dt2))
+  def during(dt1: DateTime, dt2: DateTime): Filter = filterFactory.during(dtp, dts2lit(dt1, dt2))
   def during(dtTuple: (DateTime, DateTime)): Filter = during(dtTuple._1, dtTuple._2)
 
-  def between(dt1: DateTime, dt2: DateTime): Filter = ff.between(dtp, dt2lit(dt1), dt2lit(dt2))
+  def between(dt1: DateTime, dt2: DateTime): Filter = filterFactory.between(dtp, dt2lit(dt1), dt2lit(dt2))
   def between(dtTuple: (DateTime, DateTime)): Filter = between(dtTuple._1, dtTuple._2)
 
   def interval(dtTuple: (DateTime, DateTime)) = new Interval(dtTuple._1, dtTuple._2)

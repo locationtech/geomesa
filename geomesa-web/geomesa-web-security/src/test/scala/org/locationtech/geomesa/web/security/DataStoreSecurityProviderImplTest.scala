@@ -59,10 +59,22 @@ class DataStoreSecurityProviderImplTest extends Specification with Mockito {
 
     val provider = new DataStoreSecurityProviderImpl
 
+    def validate(secureFc: FeatureCollection[SimpleFeatureType, SimpleFeature]): MatchResult[Boolean] = {
+      val iter = secureFc.features()
+
+      iter.hasNext must beTrue
+      iter.next mustEqual features(1)
+
+      iter.hasNext must beTrue
+      iter.next mustEqual features(4)
+
+      iter.hasNext must beFalse
+    }
+
     "be able to secure a feature reader " >> {
 
       val fr = new DelegateFeatureReader[SimpleFeatureType, SimpleFeature](testSFT, new DelegateFeatureIterator[SimpleFeature](features.iterator))
-      
+
       val secureFr = provider.secure(fr)
 
       secureFr.hasNext must beTrue
@@ -115,17 +127,7 @@ class DataStoreSecurityProviderImplTest extends Specification with Mockito {
       }
     }
 
-    def validate(secureFc: FeatureCollection[SimpleFeatureType, SimpleFeature]): MatchResult[Boolean] = {
-      val iter = secureFc.features()
 
-      iter.hasNext must beTrue
-      iter.next mustEqual features(1)
-
-      iter.hasNext must beTrue
-      iter.next mustEqual features(4)
-
-      iter.hasNext must beFalse
-    }
   }
 
   "GMSecureFeatureSource" should {

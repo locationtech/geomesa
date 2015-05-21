@@ -14,10 +14,11 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
-class GenericSimpleFeatureStreamSourceTest extends Specification  {
+class GenericSimpleFeatureStreamSourceTest extends Specification {
 
   "GenericSimpleFeatureStreamSource" should {
 
