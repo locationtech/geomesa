@@ -35,7 +35,6 @@ import scala.util.Try
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreSchemaManagerTest
   extends Specification
-  with Logging
   with HasEmbeddedZookeeper {
 
   // todo: missing tests -
@@ -308,16 +307,16 @@ class ZkContext(val zkConnect: String) extends After with Logging {
 
   val zkClient = new ZkClient(zkConnect, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
   val zkPath = createRandomZkNode(zkClient)
-  logger.info(s"created $zkPath")
+  logger.trace(s"created $zkPath")
 
   override def after = {
-    logger.info(s"cleaning up $zkPath")
+    logger.trace(s"cleaning up $zkPath")
     zkClient.deleteRecursive(zkPath)
   }
 
   private def createRandomZkNode(zkClient: ZkClient): String = {
-    val randomPath = s"/kdssmTestalt-${UUID.randomUUID}"
-    logger.debug(s"creating zkPath (alt): $randomPath")
+    val randomPath = s"/kdssmTest-${UUID.randomUUID}"
+    logger.trace(s"creating zkPath: $randomPath")
     zkClient.createPersistent(randomPath)
     randomPath
   }
