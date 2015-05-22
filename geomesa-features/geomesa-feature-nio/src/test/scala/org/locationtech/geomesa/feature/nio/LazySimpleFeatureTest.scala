@@ -13,7 +13,8 @@ import java.util
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.nio.AttributeAccessor.ByteBufferSimpleFeatureSerializer
+import org.locationtech.geomesa.features.nio.{LazySimpleFeature, AttributeAccessor}
+import AttributeAccessor.ByteBufferSimpleFeatureSerializer
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification

@@ -1,4 +1,4 @@
-package org.locationtech.geomesa.feature.nio
+package org.locationtech.geomesa.features.nio
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets

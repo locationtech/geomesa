@@ -11,8 +11,9 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.geotools.factory.GeoTools
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.feature.nio.{AttributeAccessor, LazySimpleFeature}
+import org.locationtech.geomesa.feature.nio.AttributeAccessor
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
+import org.locationtech.geomesa.features.nio.{AttributeAccessor, LazySimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

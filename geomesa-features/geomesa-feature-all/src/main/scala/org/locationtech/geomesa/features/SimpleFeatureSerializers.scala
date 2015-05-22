@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.features
 
 import org.geotools.feature.simple.SimpleFeatureImpl
-import org.locationtech.geomesa.feature.nio.LazySimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.avro._
 import org.locationtech.geomesa.features.kryo._
+import org.locationtech.geomesa.features.nio.LazySimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 
