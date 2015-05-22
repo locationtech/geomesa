@@ -114,10 +114,18 @@ object AccumuloCoverageStore extends Logging {
     val writeThreadsConfig = writeThreadsParam.lookupOpt(config)
     val queryThreadsConfig = queryThreadsParam.lookupOpt(config)
 
-    val rasterStore = AccumuloRasterStore(userName, password, instanceId, zookeepers,
-                                  tableName, visibility, authorizations, useMock,
-                                  shardsConfig, writeMemoryConfig, writeThreadsConfig,
-                                  queryThreadsConfig)
+    val rasterStore = AccumuloRasterStore(userName,
+                                          password,
+                                          instanceId,
+                                          zookeepers,
+                                          tableName,
+                                          authorizations,
+                                          visibility,
+                                          useMock,
+                                          shardsConfig,
+                                          writeMemoryConfig,
+                                          writeThreadsConfig,
+                                          queryThreadsConfig)
 
     val dsConnectConfig: Map[String, String] = Map(
       IngestRasterParams.ACCUMULO_INSTANCE -> instanceId,

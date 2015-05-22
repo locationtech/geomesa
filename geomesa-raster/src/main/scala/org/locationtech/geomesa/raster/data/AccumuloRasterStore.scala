@@ -56,6 +56,7 @@ trait RasterOperations extends StrategyHelpers {
   def getAvailabilityMap(): ImmutableSetMultimap[Double, Int]
   def getGridRange(): GridEnvelope2D
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams): BufferedImage
+  def deleteTable(): Unit
 }
 
 class AccumuloRasterStore(val connector: Connector,
@@ -79,8 +80,9 @@ class AccumuloRasterStore(val connector: Connector,
   val schema = RasterIndexSchema("")
   lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner(schema)
 
-  private val tableOps = connector.tableOperations()
+  private val tableOps    = connector.tableOperations()
   private val securityOps = connector.securityOperations
+  private val profileTable  = s"${tableName}_queries"
   private def getBoundsRowID = tableName + "_bounds"
   
   //TODO: WCS: this needs to be implemented .. or  maybe not
@@ -105,7 +107,7 @@ class AccumuloRasterStore(val connector: Connector,
         timings.time("scanning") - timings.time("planning"),
         timings.time("mosaic"),
         numRasters)
-      this.writeStat(stat, s"${tableName}_queries")
+      this.writeStat(stat, profileTable)
     }
     image
   }
@@ -124,7 +126,7 @@ class AccumuloRasterStore(val connector: Connector,
   }
 
   def getQueryRecords(numRecords: Int): Iterator[String] = {
-    val scanner = connector.createScanner(s"${tableName}_queries", authorizationsProvider.getAuthorizations)
+    val scanner = connector.createScanner(profileTable, authorizationsProvider.getAuthorizations)
     scanner.iterator.take(numRecords).map(RasterQueryStatTransform.decodeStat)
   }
 
@@ -247,7 +249,7 @@ class AccumuloRasterStore(val connector: Connector,
     val user = connector.whoami
     val defaultVisibilities = authorizationsProvider.getAuthorizations.toString.replaceAll(",", "&")
     if (!tableOps.exists(tableName)) {
-        createTables(user, defaultVisibilities, Array(tableName, s"${tableName}_queries"):_*)
+        createTables(user, defaultVisibilities, Array(tableName, profileTable):_*)
     }
   }
 
@@ -269,6 +271,41 @@ class AccumuloRasterStore(val connector: Connector,
         tableOps.create(tableName)
       } catch {
         case e: TableExistsException => // this can happen with multiple threads but shouldn't cause any issues
+      }
+    }
+  }
+
+  def deleteTable(): Unit = {
+    deleteMetaData()
+    deleteProfileTable()
+    deleteRasterTable()
+  }
+
+  private def deleteRasterTable(): Unit = {
+    try {
+      if (tableOps.exists(tableName)) {
+        tableOps.delete(tableName)
+      }
+    }
+  }
+
+  private def deleteProfileTable(): Unit = {
+    try {
+      if (tableOps.exists(profileTable)) {
+        tableOps.delete(profileTable)
+      }
+    }
+  }
+
+  private def deleteMetaData(): Unit = {
+    try {
+      if (tableOps.exists(GEOMESA_RASTER_BOUNDS_TABLE)) {
+        val deleter = connector.createBatchDeleter(GEOMESA_RASTER_BOUNDS_TABLE, getAuths(), 3, bwConfig)
+        val deleteRange = new Range(getBoundsRowID)
+        deleter.setRanges(Seq(deleteRange))
+        deleter.delete()
+        deleter.close()
+        AccumuloRasterStore.boundsCache.invalidate(tableName)
       }
     }
   }

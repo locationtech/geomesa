@@ -16,18 +16,12 @@
 
 package org.locationtech.geomesa.tools.commands
 
-import java.util.concurrent.TimeUnit
-
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.BatchWriterConfig
 import org.apache.accumulo.core.data.{Range => ARange}
-import org.locationtech.geomesa.raster.AccumuloStoreHelper
-import org.locationtech.geomesa.raster.data.GEOMESA_RASTER_BOUNDS_TABLE
+import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.tools.AccumuloProperties
 import org.locationtech.geomesa.tools.commands.DeleteRasterCommand._
-
-import scala.collection.JavaConversions._
 
 class DeleteRasterCommand(parent: JCommander) extends Command with Logging with AccumuloProperties {
   val command = "deleteraster"
@@ -41,40 +35,14 @@ class DeleteRasterCommand(parent: JCommander) extends Command with Logging with 
     val instance = Option(params.instance).getOrElse(instanceName)
     val zookeepers = Option(params.zookeepers).getOrElse(zookeepersProp)
     val authsParam = Option(params.auths).getOrElse("")
+    val visibilities = Option(params.visibilities).getOrElse("")
     val useMock = params.useMock
-    lazy val accumuloConnector = AccumuloStoreHelper.buildAccumuloConnector(user, pass, instance, zookeepers, useMock)
-    lazy val authProv = AccumuloStoreHelper.getAuthorizationsProvider(authsParam.split(","), accumuloConnector)
-    lazy val tableOps = accumuloConnector.tableOperations()
-    lazy val bwConfig: BatchWriterConfig =
-      new BatchWriterConfig().setMaxWriteThreads(3).setTimeout(30L, TimeUnit.SECONDS)
-    lazy val auths = authProv.getAuthorizations
+
+    lazy val RasterStore =
+      AccumuloRasterStore(user, pass, instance, zookeepers, table, authsParam, visibilities, useMock)
 
     if (params.forceDelete || promptConfirm(table)) {
-      //These steps are run individually in case execution
-      //is interrupted or tables/rows are delete by other means
-      try {
-        if (tableOps.exists(table)) {
-          logger.info(s"Deleting GeoMesa Raster Table: '$table'")
-          tableOps.delete(table)
-        }
-      }
-      try {
-        val queryinfo = s"${table}_queries"
-        if (tableOps.exists(queryinfo)) {
-          logger.info(s"Deleting Query logs table: '$queryinfo'")
-          tableOps.delete(queryinfo)
-        }
-      }
-      try {
-        if (tableOps.exists(GEOMESA_RASTER_BOUNDS_TABLE)) {
-          logger.info(s"Removing Metadata for table: '$table'")
-          val deleter = accumuloConnector.createBatchDeleter(GEOMESA_RASTER_BOUNDS_TABLE, auths, 3, bwConfig)
-          val deleteRange = new ARange(s"${table}_bounds")
-          deleter.setRanges(Seq(deleteRange))
-          deleter.delete()
-          deleter.close()
-        }
-      }
+      RasterStore.deleteTable()
     } else {
       logger.info(s"Cancelled deletion of GeoMesa Raster Table: '$table'")
     }
