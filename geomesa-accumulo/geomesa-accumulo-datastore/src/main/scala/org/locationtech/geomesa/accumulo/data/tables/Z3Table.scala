@@ -18,7 +18,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMu
 import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index.QueryPlanners._
 import org.locationtech.geomesa.curve.Z3SFC
-import org.locationtech.geomesa.feature.nio.AttributeAccessor
+import org.locationtech.geomesa.features.nio.AttributeAccessor
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.nio.{AttributeAccessor, LazySimpleFeature}
 import org.locationtech.geomesa.utils.geotools.Conversions._
