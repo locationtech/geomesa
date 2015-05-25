@@ -42,7 +42,7 @@ class DeleteRasterCommand(parent: JCommander) extends Command with Logging with 
       AccumuloRasterStore(user, pass, instance, zookeepers, table, authsParam, visibilities, useMock)
 
     if (params.forceDelete || promptConfirm(table)) {
-      RasterStore.deleteTable()
+      RasterStore.deleteRasterTable()
     } else {
       logger.info(s"Cancelled deletion of GeoMesa Raster Table: '$table'")
     }

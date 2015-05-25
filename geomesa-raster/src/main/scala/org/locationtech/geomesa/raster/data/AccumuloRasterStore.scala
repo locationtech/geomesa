@@ -56,7 +56,7 @@ trait RasterOperations extends StrategyHelpers {
   def getAvailabilityMap(): ImmutableSetMultimap[Double, Int]
   def getGridRange(): GridEnvelope2D
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams): BufferedImage
-  def deleteTable(): Unit
+  def deleteRasterTable(): Unit
 }
 
 class AccumuloRasterStore(val connector: Connector,
@@ -275,24 +275,16 @@ class AccumuloRasterStore(val connector: Connector,
     }
   }
 
-  def deleteTable(): Unit = {
+  def deleteRasterTable(): Unit = {
     deleteMetaData()
-    deleteProfileTable()
-    deleteRasterTable()
+    deleteTable(profileTable)
+    deleteTable(tableName)
   }
 
-  private def deleteRasterTable(): Unit = {
+  private def deleteTable(table: String): Unit = {
     try {
-      if (tableOps.exists(tableName)) {
-        tableOps.delete(tableName)
-      }
-    }
-  }
-
-  private def deleteProfileTable(): Unit = {
-    try {
-      if (tableOps.exists(profileTable)) {
-        tableOps.delete(profileTable)
+      if (tableOps.exists(table)) {
+        tableOps.delete(table)
       }
     }
   }
