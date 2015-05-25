@@ -35,6 +35,7 @@ This should print out the following usage text:
       Commands:
         create       Create a feature definition in a GeoMesa catalog
         delete       Delete a feature's data and definition from a GeoMesa catalog
+        deleteraster Delete a raster table
         describe     Describe the attributes of a given feature in GeoMesa
         explain      Explain how a GeoMesa query will be executed
         export       Export a GeoMesa feature
@@ -42,6 +43,7 @@ This should print out the following usage text:
         ingest       Ingest a file of various formats into GeoMesa
         ingestraster Ingest a raster file or raster files in a directory into GeoMesa
         list         List GeoMesa features for a given catalog
+        querystats   Export queries and statistics about the last X number of queries to a CSV file.
         tableconf    Perform table configuration operations
                 
 This usage text lists the available commands. To see help for an individual command run `geomesa help <command-name>` which for example
@@ -188,6 +190,39 @@ To delete a feature on a specified catalog table, use the `delete` command.
     
 ####Example:
     geomesa delete -u username -p password -i instname -z zoo1,zoo2,zoo3 -c test_delete -fn testing
+    
+### deleteraster
+To delete a specific raster table use the `deleteraster` command.
+
+####Usage (required options denoted with star):
+    $ geomesa help deleteraster
+    Delete a GeoMesa Raster Store 
+    Usage: deleteraster [options]
+      Options:
+        -a, --auths
+           Accumulo authorizations
+        -f, --force
+           Force deletion of feature without prompt
+           Default: false
+        -i, --instance
+           Accumulo instance name
+        -mc, --mock
+           Run everything with a mock accumulo instance instead of a real one
+           Default: false
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+      * -t, --raster-table
+           Accumulo table for storing raster data
+      * -u, --user
+           Accumulo user name
+        -v, --visibilities
+           Accumulo scan visibilities
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+
+####Example:
+    geomesa deleteraster -u username -p password -t somerastertable -f
 
 ### describe
 To describe the attributes of a feature on a specified catalog table, use the `describe` command.  
@@ -503,6 +538,42 @@ To list the features on a specified catalog table, use the `list` command.
 
 #### Example command:
     geomesa list -u username -p password -c test_catalog
+    
+### querystats
+Export queries and statistics logged for raster tables by using the `querystats` command.
+
+####Usage (required options denoted with star):
+    $ geomesa help querystats
+    Export queries and statistics about the last X number of queries to a CSV file.
+    Usage: querystats [options]
+      Options:
+        -a, --auths
+           Accumulo authorizations
+        -i, --instance
+           Accumulo instance name
+        -mc, --mock
+           Run everything with a mock accumulo instance instead of a real one
+           (true/false)
+           Default: false
+        -num, --number-of-records
+           Number of query records to export from Accumulo
+           Default: 1000
+        -o, --output
+           Name of the file to output to
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+      * -t, --raster-table
+           Accumulo table for storing raster data
+      * -u, --user
+           Accumulo user name
+        -v, --visibilities
+           Accumulo scan visibilities
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+
+#### Example command:
+    geomesa querystats -u username -p password -t somerastertable -num 10
     
 ### tableconf
 To list, describe, and update the configuration parameters on a specified table, use the `tableconf` command. 

@@ -62,7 +62,7 @@ object DeleteRasterCommand {
         "Please ensure stdout is not redirected or --force flag is set")
     }
 
-  @Parameters(commandDescription = "Delete a GeoMesa Raster Store")
+  @Parameters(commandDescription = "Delete a GeoMesa Raster Table")
   class DeleteRasterParams extends RasterParams {
     @Parameter(names = Array("-f", "--force"), description = "Force deletion of feature without prompt", required = false)
     var forceDelete: Boolean = false

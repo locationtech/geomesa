@@ -22,6 +22,7 @@ import java.util.concurrent.{Callable, TimeUnit}
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.ImmutableSetMultimap
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.security.{Authorizations, TablePermission}
@@ -67,7 +68,7 @@ class AccumuloRasterStore(val connector: Connector,
                   writeMemoryConfig: Option[String] = None,
                   writeThreadsConfig: Option[Int] = None,
                   queryThreadsConfig: Option[Int] = None,
-                  collectStats: Boolean = false) extends RasterOperations with MethodProfiling with StatWriter {
+                  collectStats: Boolean = false) extends RasterOperations with MethodProfiling with StatWriter with Logging {
   //By default having at least as many shards as tservers provides optimal parallelism in queries
   val shards = shardsConfig.getOrElse(connector.instanceOperations().getTabletServers.size())
   val writeMemory = writeMemoryConfig.getOrElse("10000").toLong
@@ -286,6 +287,8 @@ class AccumuloRasterStore(val connector: Connector,
       if (tableOps.exists(table)) {
         tableOps.delete(table)
       }
+    } catch {
+      case e: Exception => logger.warn(s"Error occurred when attempting to delete table: $table", e)
     }
   }
 
@@ -299,6 +302,8 @@ class AccumuloRasterStore(val connector: Connector,
         deleter.close()
         AccumuloRasterStore.boundsCache.invalidate(tableName)
       }
+    } catch {
+      case e: Exception => logger.warn(s"Error occurred when attempting to delete Metadata for table: $tableName")
     }
   }
 
