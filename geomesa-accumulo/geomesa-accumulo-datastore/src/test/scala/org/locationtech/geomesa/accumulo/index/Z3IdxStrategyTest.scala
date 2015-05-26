@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.index
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
-import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -45,8 +44,14 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val sf = new ScalaSimpleFeature(s"$i", sft)
       sf.setAttributes(Array[AnyRef](name, dtg, geom))
       sf
+    } ++ (20 until 30).map { i =>
+      val name = s"name$i"
+      val dtg = s"2010-05-${i}T${i-10}:00:00.000Z"
+      val geom = s"POINT(40 8${i - 20})"
+      val sf = new ScalaSimpleFeature(s"$i", sft)
+      sf.setAttributes(Array[AnyRef](name, dtg, geom))
+      sf
     }
-
   addFeatures(features)
 
   implicit val ff = CommonFactoryFinder.getFilterFactory2
@@ -107,8 +112,16 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, -180, -90, 180, 90)" +
           " AND dtg during 2010-05-07T06:00:00.000Z/2010-05-21T00:00:00.000Z"
       val features = execute(filter)
-      features must haveSize(14)
-      features.map(_.getID.toInt) must containTheSameElementsAs(6 to 19)
+      features must haveSize(15)
+      features.map(_.getID.toInt) must containTheSameElementsAs(6 to 20)
+    }
+
+    "work with whole world filter across 3 week periods" >> {
+      val filter = "bbox(geom, -180, -90, 180, 90)" +
+        " AND dtg during 2010-05-08T06:00:00.000Z/2010-05-30T00:00:00.000Z"
+      val features = execute(filter)
+      features must haveSize(20)
+      features.map(_.getID.toInt) must containTheSameElementsAs(10 to 29)
     }
 
     "apply secondary filters" >> {

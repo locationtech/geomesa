@@ -100,7 +100,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
         queryPlanForPrefix(w, 0, oneWeekInSeconds, lx, ly, ux, uy, z3table, returnSft, iterators, contained = true)
       }
       val startQP = queryPlanForPrefix(head, lt, oneWeekInSeconds, lx, ly, ux, uy, z3table, returnSft, iterators, contained = false)
-      val endQP   = queryPlanForPrefix(head, 0, ut, lx, ly, ux, uy, z3table, returnSft, iterators, contained = false)
+      val endQP   = queryPlanForPrefix(last, 0, ut, lx, ly, ux, uy, z3table, returnSft, iterators, contained = false)
       Seq(startQP, endQP) ++ middleQPs
     }
   }
