@@ -62,10 +62,16 @@ trait GeoMesaTable {
 object GeoMesaTable {
 
   def getTablesAndNames(sft: SimpleFeatureType, acc: AccumuloConnectorCreator): Seq[(GeoMesaTable, String)] = {
+    val version = acc.getGeomesaVersion(sft)
     val rec  = (RecordTable, acc.getRecordTable(sft))
-    val z3   = (Z3Table, acc.getZ3Table(sft))
     val st   = (SpatioTemporalTable, acc.getSpatioTemporalTable(sft))
     val attr = (AttributeTable, acc.getAttributeTable(sft))
-    Seq(rec, z3, st, attr).filter(_._1.supports(sft))
+    val tables = if (version < 5) {
+      Seq(rec, st, attr)
+    } else {
+      val z3 = (Z3Table, acc.getZ3Table(sft))
+      Seq(rec, z3, st, attr)
+    }
+    tables.filter(_._1.supports(sft))
   }
 }
