@@ -15,8 +15,6 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.filter.FilterVisitor
-import org.opengis.filter.spatial.BBOX
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -25,11 +23,7 @@ class FastPropertyTest extends Specification {
 
   "FastProperty" should {
     "evaluate" >> {
-      // org.geotools.filter.FilterFactoryImpl
-      val ff = CommonFactoryFinder.getFilterFactory2()
-//      ff.bbox(ff.property("geom"), null)
       val filter = ECQL.toFilter("bbox(geom,-180,-90,180,90)")
-//      filter.accept(FilterVisitor)
       val sft = SimpleFeatureTypes.createType("FastPropertyTest", "name:String,*geom:Point:srid=4326")
       val sf = new ScalaSimpleFeature("id", sft)
       sf.setAttributes(Array[AnyRef]("myname", "POINT(45 45)"))

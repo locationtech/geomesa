@@ -32,10 +32,6 @@ class Z3(val z: Long) extends AnyVal {
   }
 
   def mid(p: Z3): Z3 = {
-//    if (p.z < z)
-//      new Z3(p.z + (z - p.z)/2)
-//    else
-//      new Z3(z + (p.z - z)/2)
     val (x, y, z) = decode
     val (px, py, pz) = p.decode
     Z3((x + px) / 2, (y + py) / 2, (z + pz) / 2)

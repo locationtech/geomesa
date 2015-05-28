@@ -90,7 +90,6 @@
             <artifactId>scalalogging-slf4j_2.10</artifactId>
         </dependency>
 
-        <!-- TODO: we are shading too many commons projects -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-vfs2</artifactId>

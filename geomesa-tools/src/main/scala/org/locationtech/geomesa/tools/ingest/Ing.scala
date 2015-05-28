@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013-2015 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.locationtech.geomesa.tools.ingest
 
 import com.twitter.scalding._
@@ -10,9 +26,6 @@ import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
 import scala.collection.JavaConversions._
 
 class Ing(args: Args) extends Job(args) {
-
-
-
   class R {
     lazy val sft = SimpleFeatureTypes.createType("frz3", "dtg:Date,jsonrowid:String,registration:String,lat:Double,lon:Double,trackingdegrees:Integer,altitude:Integer,speedkt:Integer,squawk:String,radarid:String,planetype:String,tailname:String,datatimestamp:Long,departure:String,arrival:String,callsign:String:index=full,possibleonground:Boolean,vertspeed:Integer,callsign2:String,unknown1:Integer,*geom:Point:srid=4326:index=full:index-value=true")
     lazy val (ds, fw) = {
@@ -93,7 +106,7 @@ object Ing extends App {
       retds.createSchema(sft)
     }
 
-     val conf = new Configuration()
+    val conf = new Configuration()
 
     // setup ingest
     val mode = Hdfs(strict = true, conf)
@@ -104,6 +117,5 @@ object Ing extends App {
 
     //block until job is completed.
     flow.complete()
-   }
-
+  }
 }

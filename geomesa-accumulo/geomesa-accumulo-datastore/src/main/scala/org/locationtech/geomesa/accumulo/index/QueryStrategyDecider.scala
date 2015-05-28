@@ -162,9 +162,8 @@ class QueryStrategyDeciderV5 extends QueryStrategyDeciderV4 {
                                 fallback: Option[StrategyDecision],
                                 sft: SimpleFeatureType,
                                 hints: StrategyHints): Strategy = {
-    // finally, prefer z3 if available
+    // Prefer z3 index if it is available, else fallback to the old STIdxStrategy
     val z3Strategy = Z3IdxStrategy.getStrategy(ff.and(filters), sft, hints).map(_.strategy)
-    // fallback to the old STIdxStrategy
     z3Strategy.getOrElse(super.processStFilters(filters, fallback, sft, hints))
   }
 }

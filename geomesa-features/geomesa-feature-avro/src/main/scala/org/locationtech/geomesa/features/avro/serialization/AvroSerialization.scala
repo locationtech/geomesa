@@ -40,8 +40,6 @@ object AvroSerialization
 /** Implemenation of [[AbstractWriter]] for Avro. */
 class AvroWriter extends AbstractWriter[Encoder] {
 
-  import AvroSerialization._
-
   override val writeString: DatumWriter[Encoder, String] = (encoder, str) => encoder.writeString(str)
   override val writeInt: DatumWriter[Encoder, Int] = (encoder, int) => encoder.writeInt(int)
   override val writePositiveInt: DatumWriter[Encoder, Int] = writeInt // no optimization
@@ -55,10 +53,10 @@ class AvroWriter extends AbstractWriter[Encoder] {
   override def writeNullable[T](writeRaw: DatumWriter[Encoder, T]): DatumWriter[Encoder, T] =
     (encoder, raw) => {
       if (raw != null) {
-        encoder.writeIndex(NOT_NULL_INDEX)
+        encoder.writeIndex(AvroSerialization.NOT_NULL_INDEX)
         writeRaw(encoder, raw)
       } else {
-        encoder.writeIndex(NULL_INDEX)
+        encoder.writeIndex(AvroSerialization.NULL_INDEX)
         encoder.writeNull()
       }
   }

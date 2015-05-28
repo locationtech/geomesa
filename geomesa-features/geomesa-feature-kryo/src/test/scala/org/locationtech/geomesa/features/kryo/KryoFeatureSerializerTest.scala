@@ -10,6 +10,7 @@ package org.locationtech.geomesa.features.kryo
 
 import java.util.{Date, UUID}
 
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -21,7 +22,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class KryoFeatureSerializerTest extends Specification {
+class KryoFeatureSerializerTest extends Specification with Logging {
 
   "KryoFeatureSerializer" should {
 
@@ -198,7 +199,7 @@ class KryoFeatureSerializerTest extends Specification {
         val de = serializer.read(serialized)
         de.getAttribute(1)
       }
-      println(s"took ${System.currentTimeMillis() - start}ms")
+      logger.debug(s"took ${System.currentTimeMillis() - start}ms")
 
       val start2 = System.currentTimeMillis()
       val reusable = serializer.getReusableFeature
@@ -206,10 +207,9 @@ class KryoFeatureSerializerTest extends Specification {
         reusable.setBuffer(serialized)
         reusable.getAttribute(7)
       }
-      println(s"took ${System.currentTimeMillis() - start2}ms")
+      logger.debug(s"took ${System.currentTimeMillis() - start2}ms")
 
-      println()
-      println()
+      logger.debug("\n\n")
       success
     }
   }

@@ -10,15 +10,13 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom.Point
 import org.apache.accumulo.core.client.BatchDeleter
 import org.apache.accumulo.core.client.admin.TableOperations
-import org.apache.accumulo.core.data.{Key, Mutation, Value}
-import org.apache.accumulo.core.data.{Range => aRange}
+import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => aRange}
 import org.apache.hadoop.io.Text
 import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
 import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index.QueryPlanners._
 import org.locationtech.geomesa.curve.Z3SFC
-import org.locationtech.geomesa.features.nio.AttributeAccessor
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.nio.{AttributeAccessor, LazySimpleFeature}
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -120,38 +118,7 @@ object Z3Table extends GeoMesaTable {
     Left(fn)
   }
 
-  /*
-  private val Z3CURVE = new Z3SFC
-  private val gt = JTSFactoryFinder.getGeometryFactory
-  def adaptZ3Iterator(iter: KVIter, query: Query): SFIter = {
-    val ft = SimpleFeatureTypes.createType(query.getTypeName, "dtg:Date,geom:Point:srid=4326")
-    val builder = new SimpleFeatureBuilder(ft)
-    iter.map { e =>
-      val k = e.getKey
-      val row = k.getRow.getBytes
-      val weekBytes = row.slice(0, 2)
-      val zbytes = row.slice(2, 10)
-      val idbytes = row.slice(10, Int.MaxValue)
-
-      val id = new String(idbytes)
-      val zvalue = Longs.fromByteArray(zbytes)
-      val z = Z3(zvalue)
-      val (x, y, t) = Z3CURVE.invert(z)
-      val pt = gt.createPoint(new Coordinate(x, y))
-      val week = Shorts.fromByteArray(weekBytes)
-      val seconds = week * Weeks.ONE.toStandardSeconds.getSeconds + Seconds.seconds(t.toInt).getSeconds
-
-      val dtg = new DateTime(seconds * 1000L)
-      builder.reset()
-      builder.addAll(Array[AnyRef](dtg, pt))
-      builder.buildFeature(id)
-    }
-  }
-*/
-
   def configureTable(sft: SimpleFeatureType, z3Table: String, tableOps: TableOperations): Unit = {
-    import scala.collection.JavaConversions._
-
     val indexedAttributes = getAttributesToIndex(sft)
     val localityGroups: Map[Text, Text] =
       indexedAttributes.map { case (name, _) => (name, name) }.toMap.+((BIN_CF, BIN_CF)).+((FULL_CF, FULL_CF))
