@@ -1,12 +1,13 @@
-package org.locationtech.geomesa.curve
+package org.locationtech.geomesa.accumulo.iterators
 
 import java.util
 
-import com.google.common.primitives.{Longs, Bytes}
-import org.apache.accumulo.core.data.{ByteSequence, Range, Key, Value}
+import com.google.common.primitives.{Bytes, Longs}
+import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.curve.Z3SFC
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

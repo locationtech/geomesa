@@ -8,17 +8,10 @@
 
 package org.locationtech.geomesa.curve
 
-import java.util
-
-import com.google.common.primitives.{Bytes, Longs}
-import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
-import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.apache.hadoop.io.Text
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

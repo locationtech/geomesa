@@ -9,8 +9,9 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.joda.time.Weeks
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
+import org.locationtech.geomesa.accumulo.iterators.Z3Iterator
 import org.locationtech.geomesa.accumulo.{filter, index}
-import org.locationtech.geomesa.curve.{Z3Iterator, Z3SFC}
+import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.iterators.{KryoLazyFilterTransformIterator, LazyFilterTransformIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
