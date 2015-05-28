@@ -43,5 +43,7 @@ class ExplainingConnectorCreator(ds: AccumuloDataStore, output: ExplainerOutputT
 
   override def getSuggestedAttributeThreads(sft: SimpleFeatureType) = ds.getSuggestedAttributeThreads(sft)
 
+  override def getSuggestedZ3Threads(sft: SimpleFeatureType) = ds.getSuggestedZ3Threads(sft)
+
   override def getGeomesaVersion(sft: SimpleFeatureType): Int = ds.getGeomesaVersion(sft)
 }

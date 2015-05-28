@@ -58,6 +58,11 @@ trait AccumuloConnectorCreator extends Logging {
   def getSuggestedRecordThreads(sft: SimpleFeatureType): Int
 
   /**
+   * Gets a suggested number of threads for querying the z3 table for the given feature
+   */
+  def getSuggestedZ3Threads(sft: SimpleFeatureType): Int
+
+  /**
    * Gets a single-range scanner for the given table
    */
   def getScanner(table: String): Scanner

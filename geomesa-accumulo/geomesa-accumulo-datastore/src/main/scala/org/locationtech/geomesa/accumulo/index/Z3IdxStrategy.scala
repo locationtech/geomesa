@@ -83,6 +83,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
 
     val returnSft = getTransformSchema(query).getOrElse(sft)
     val z3table = acc.getZ3Table(sft)
+    val numThreads = acc.getSuggestedZ3Threads(sft)
 
     // setup Z3 iterator
     val env = geometryToCover.getEnvelopeInternal
@@ -93,15 +94,15 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     val lt = Z3Table.secondsInCurrentWeek(interval.getStart, epochWeekStart)
     val ut = Z3Table.secondsInCurrentWeek(interval.getEnd, epochWeekStart)
     if (weeks.length == 1) {
-      Seq(queryPlanForPrefix(weeks.head, lt ,ut, lx, ly, ux, uy, z3table, returnSft, iterators, contained = false))
+      Seq(queryPlanForPrefix(weeks.head, lt ,ut, lx, ly, ux, uy, z3table, returnSft, iterators, numThreads, contained = false))
     } else {
       val oneWeekInSeconds = Weeks.ONE.toStandardSeconds.getSeconds
       val head +: xs :+ last = weeks.toList
       val middleQPs = xs.map { w =>
-        queryPlanForPrefix(w, 0, oneWeekInSeconds, lx, ly, ux, uy, z3table, returnSft, iterators, contained = true)
+        queryPlanForPrefix(w, 0, oneWeekInSeconds, lx, ly, ux, uy, z3table, returnSft, iterators, numThreads, contained = true)
       }
-      val startQP = queryPlanForPrefix(head, lt, oneWeekInSeconds, lx, ly, ux, uy, z3table, returnSft, iterators, contained = false)
-      val endQP   = queryPlanForPrefix(last, 0, ut, lx, ly, ux, uy, z3table, returnSft, iterators, contained = false)
+      val startQP = queryPlanForPrefix(head, lt, oneWeekInSeconds, lx, ly, ux, uy, z3table, returnSft, iterators, numThreads, contained = false)
+      val endQP   = queryPlanForPrefix(last, 0, ut, lx, ly, ux, uy, z3table, returnSft, iterators, numThreads, contained = false)
       Seq(startQP, endQP) ++ middleQPs
     }
   }
@@ -109,6 +110,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
   def queryPlanForPrefix(week: Int, lt: Long, ut: Long,
                          lx: Double, ly: Double, ux: Double, uy: Double,
                          table: String, returnSft: SimpleFeatureType, is: Option[IteratorSetting],
+                         numThreads: Int,
                          contained: Boolean = true) = {
     val epochWeekStart = Weeks.weeks(week)
     val prefix = Shorts.toByteArray(epochWeekStart.getWeeks.toShort)
@@ -126,7 +128,8 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     val iter = Z3Iterator.configure(Z3_CURVE.index(lx, ly, lt), Z3_CURVE.index(ux, uy, ut), Z3_ITER_PRIORITY)
 
     val adaptIter = Z3Table.adaptZ3KryoIterator(returnSft)
-    BatchScanPlan(table, accRanges, Seq(Some(iter), is).flatten, Seq(Z3Table.FULL_CF), adaptIter, 8, hasDuplicates = false)
+    val iters = Seq(Some(iter), is).flatten
+    BatchScanPlan(table, accRanges, iters, Seq(Z3Table.FULL_CF), adaptIter, numThreads, hasDuplicates = false)
   }
 }
 

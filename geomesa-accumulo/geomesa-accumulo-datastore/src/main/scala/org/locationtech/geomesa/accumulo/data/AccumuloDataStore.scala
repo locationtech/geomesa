@@ -891,6 +891,8 @@ class AccumuloDataStore(val connector: Connector,
 
   override def getSuggestedRecordThreads(sft: SimpleFeatureType): Int = recordScanThreads
 
+  override def getSuggestedZ3Threads(sft: SimpleFeatureType): Int = queryThreadsConfig.getOrElse(8)
+
   override def getBatchScanner(table: String, numThreads: Int): BatchScanner =
     connector.createBatchScanner(table, authorizationsProvider.getAuthorizations, numThreads)
 
