@@ -26,7 +26,7 @@ import org.locationtech.geomesa.core.data._
 import org.locationtech.geomesa.core.filter._
 import org.locationtech.geomesa.core.index.QueryHints._
 import org.locationtech.geomesa.core.iterators.TemporalDensityIterator._
-import org.locationtech.geomesa.core.iterators.{DeDuplicatingIterator, DensityIterator, MapAggregatingIterator, TemporalDensityIterator}
+import org.locationtech.geomesa.core.iterators._
 import org.locationtech.geomesa.core.sumNumericValueMutableMaps
 import org.locationtech.geomesa.core.util.CloseableIterator
 import org.locationtech.geomesa.core.util.CloseableIterator._
@@ -142,6 +142,8 @@ case class QueryPlanner(sft: SimpleFeatureType,
       adaptTemporalIterator(accumuloIterator, returnSFT, decoder, query.getHints.containsKey(RETURN_ENCODED))
     } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
       adaptMapAggregationIterator(accumuloIterator, query, returnSFT, decoder)
+    } else if (query.getHints.containsKey(QUERY_SIZE_KEY)) {
+      adaptQuerySizeIterator(accumuloIterator, query, decoder)
     } else {
       adaptStandardIterator(accumuloIterator, query, decoder)
     }
@@ -164,6 +166,35 @@ case class QueryPlanner(sft: SimpleFeatureType,
     } else {
       features
     }
+  }
+
+  /**
+   * Standard iterator of simple features
+   */
+  def adaptQuerySizeIterator(accumuloIterator: KVIter, query: Query, decoder: SimpleFeatureDecoder): SFIter = {
+
+    val querySizeIterator = accumuloIterator.map { kv =>
+      decoder.decode(kv.getValue.get)
+    }
+
+    var scannedBytes: Long = 0
+    var scannedRecords: Long = 0
+    var resultBytes: Long = 0
+    var resultRecords: Long = 0
+    while(querySizeIterator.hasNext) { // TODO How do I do this in a Scala-y way?
+      val cur = querySizeIterator.next()
+      scannedBytes += cur.getAttribute(QuerySizeIterator.SCAN_BYTES_ATTRIBUTE).asInstanceOf[Long]
+      scannedRecords += cur.getAttribute(QuerySizeIterator.SCAN_RECORDS_ATTRIBUTE).asInstanceOf[Long]
+      resultBytes += cur.getAttribute(QuerySizeIterator.RESULT_BYTES_ATTRIBUTE).asInstanceOf[Long]
+      resultRecords += cur.getAttribute(QuerySizeIterator.RESULT_RECORDS_ATTRIBUTE).asInstanceOf[Long]
+    }
+    val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(getReturnSFT(query))
+    featureBuilder.set(QuerySizeIterator.SCAN_BYTES_ATTRIBUTE, scannedBytes)
+    featureBuilder.set(QuerySizeIterator.SCAN_RECORDS_ATTRIBUTE, scannedRecords)
+    featureBuilder.set(QuerySizeIterator.RESULT_BYTES_ATTRIBUTE, resultBytes)
+    featureBuilder.set(QuerySizeIterator.RESULT_RECORDS_ATTRIBUTE, resultRecords)
+
+    CloseableIterator(Iterator(featureBuilder.buildFeature("resultFeature")))
   }
 
   def adaptTemporalIterator(accumuloIterator: KVIter,
@@ -225,6 +256,9 @@ case class QueryPlanner(sft: SimpleFeatureType,
     } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
       val mapAggregationAttribute = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
       val spec = MapAggregatingIterator.projectedSFTDef(mapAggregationAttribute, sft)
+      SimpleFeatureTypes.createType(sft.getTypeName, spec)
+    } else if (query.getHints.containsKey(QUERY_SIZE_KEY)) {
+      val spec = QuerySizeIterator.QUERY_SIZE_FEATURE_SFT_STRING
       SimpleFeatureTypes.createType(sft.getTypeName, spec)
     } else {
       getTransformSchema(query).getOrElse(sft)

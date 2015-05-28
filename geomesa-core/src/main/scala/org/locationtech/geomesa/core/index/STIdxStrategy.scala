@@ -112,7 +112,26 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val qp = planQuery(filter, iteratorConfig.iterator, output, keyPlanner, cfPlanner)
 
     val table = acc.getSpatioTemporalTable(sft)
-    val iterators = qp.iterators ++ List(Some(stiiIterCfg), densityIterCfg).flatten
+    var iterators: Seq[IteratorSetting] = qp.iterators ++ List(Some(stiiIterCfg), densityIterCfg).flatten
+
+    if(query.getHints.containsKey(QUERY_SIZE_KEY)) {
+      val cfg = new IteratorSetting(iteratorPriority_SimpleFeatureFilteringIterator, "query-size-iterator", classOf[QuerySizeIterator])
+      //cfg.addOption(QuerySizeIterator.ORIGINAL_SFT_OPTION,sft) // JNH: This requires the original ECQL filter.
+
+      val combinedFilter = (ofilter, ecql) match {
+        case (Some(st), Some(ecql)) => filterListAsAnd(Seq(st, ecql))
+        case (Some(_), None)        => ofilter
+        case (None, Some(_))        => ecql
+        case (None, None)           => None
+      }
+      configureFeatureType(cfg, sft)
+      configureFeatureEncoding(cfg, featureEncoding)
+      configureTransforms(cfg, query)  // Do we need transforms?
+      configureEcqlFilter(cfg, combinedFilter.map(ECQL.toCQL))
+
+      iterators = Seq(cfg)
+    }
+
     val numThreads = acc.getSuggestedSpatioTemporalThreads(sft)
     val hasDupes = IndexSchema.mayContainDuplicates(sft)
     qp.copy(table = table, iterators = iterators, numThreads = numThreads, hasDuplicates = hasDupes)
