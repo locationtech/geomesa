@@ -16,6 +16,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import java.sql.Timestamp
 import java.util.{Date, Locale, UUID}
 
 import com.typesafe.config.{Config, ConfigFactory}
@@ -386,6 +387,7 @@ object SimpleFeatureTypes {
     classOf[MultiPolygon]        -> "MultiPolygon",
     classOf[GeometryCollection]  -> "GeometryCollection",
     classOf[Date]                -> "Date",
+    classOf[Timestamp]           -> "java.sql.Timestamp",
     classOf[java.util.List[_]]   -> "List",
     classOf[java.util.Map[_, _]] -> "Map"
   )
@@ -415,7 +417,9 @@ object SimpleFeatureTypes {
     "true"              -> classOf[java.lang.Boolean],
     "false"             -> classOf[java.lang.Boolean],
     "UUID"              -> classOf[UUID],
-    "Date"              -> classOf[Date]
+    "Date"              -> classOf[Date],
+    "Timestamp"         -> classOf[Timestamp],
+    "java.sql.Timestamp" -> classOf[Timestamp]
   )
 
   private val geometryTypeMap = Map(

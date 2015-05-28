@@ -16,9 +16,11 @@
 
 package org.locationtech.geomesa.core.data
 
+import java.sql.Timestamp
 import java.text.SimpleDateFormat
-import java.util.TimeZone
+import java.util.{Date, TimeZone}
 
+import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.factory.Hints
@@ -127,6 +129,38 @@ class FeatureWritersTest extends Specification {
         featureIdMap.size mustEqual 2
         featureIdMap should contain( "tom" -> "id2")
         featureIdMap should contain( "billy" -> "id1")
+      }
+      "properly read/write java.sql.Timestamp attributes" in {
+        val ds = createStore
+        val sftName = "timestampType"
+        val sft = SimpleFeatureTypes.createType(sftName, s"geom:Geometry:srid=4326,dtg:java.sql.Timestamp,dtg2:java.sql.Timestamp")
+        sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+        val sdf = new SimpleDateFormat("yyyyMMddHHmmss")
+        sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))
+        ds.createSchema(sft)
+        val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+
+        val featureCollection = new DefaultFeatureCollection(sftName, sft)
+
+        val timestampFeature = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "id1")
+        val geom = WKTUtils.read("POINT(45.0 49.0)")
+        timestampFeature.setDefaultGeometry(geom)
+        val timestampTime = sdf.parse("20150529060013").getTime
+        timestampFeature.setAttribute("dtg", new Timestamp(timestampTime))
+        val timestampTime2 = sdf.parse("20150529081031").getTime
+        timestampFeature.setAttribute("dtg2", new Timestamp(timestampTime2))
+
+        featureCollection.add(timestampFeature)
+
+        fs.addFeatures(featureCollection)
+
+        // though we pass Timestamp in the spec, Date-s get returned. Avro? GeoMesa?
+        val ans = getFeatures(sftName, fs, "include")
+        ans.hasNext must beTrue
+        val feat = ans.next()
+        ans.hasNext must beFalse
+        feat.getAttribute("dtg").asInstanceOf[Date].getTime mustEqual timestampTime
+        feat.getAttribute("dtg2").asInstanceOf[Date].getTime mustEqual timestampTime2
       }
 
       "be able to replace all features in a store using a general purpose FeatureWriter" in {
