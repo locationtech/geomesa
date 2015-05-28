@@ -103,7 +103,7 @@ object Z3Table extends GeoMesaTable {
       val row = k.getRow.getBytes
       val idbytes = row.slice(10, Int.MaxValue)
       val id = new String(idbytes)
-      Iterator(new LazySimpleFeature(id, sft, accessors, ByteBuffer.wrap(e.getValue.get())))
+      new LazySimpleFeature(id, sft, accessors, ByteBuffer.wrap(e.getValue.get()))
       // TODO visibility
     }
   }
@@ -112,7 +112,7 @@ object Z3Table extends GeoMesaTable {
     val kryo = new KryoFeatureSerializer(sft)
     (e: Entry[Key, Value]) => {
       // TODO lazy features if we know it's read-only?
-      Iterator(kryo.deserialize(e.getValue.get()))
+      kryo.deserialize(e.getValue.get())
     }
   }
 
