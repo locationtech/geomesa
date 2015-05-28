@@ -30,12 +30,7 @@ class TypeUpdatingFeatureReader(delegate: FeatureReader[SimpleFeatureType, Simpl
 
   override val getDelegate: FeatureReader[SimpleFeatureType, SimpleFeature] = delegate
 
-  override def next(): SimpleFeature = {
-    val org = delegate.next()
-    val mod = DataUtilities.reType(featureType, org, false)
-    mod.getUserData.putAll(org.getUserData)
-    mod
-  }
+  override def next(): SimpleFeature = FeatureUtils.retype(delegate.next(), featureType)
 
   override def hasNext: Boolean = delegate.hasNext
   override def getFeatureType: SimpleFeatureType = featureType

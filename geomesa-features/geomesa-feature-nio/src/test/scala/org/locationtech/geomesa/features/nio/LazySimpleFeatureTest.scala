@@ -6,17 +6,15 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  */
 
-package org.locationtech.geomesa.feature.nio
+package org.locationtech.geomesa.features.nio
 
 import java.nio.ByteBuffer
 import java.util
-import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.nio.{LazySimpleFeature, AttributeAccessor}
-import AttributeAccessor.ByteBufferSimpleFeatureSerializer
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.nio.AttributeAccessor.ByteBufferSimpleFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

@@ -15,11 +15,10 @@
  */
 package org.locationtech.geomesa.kafka
 
-import java.nio.charset.StandardCharsets
 import java.{util => ju}
 
 import com.vividsolutions.jts.geom.Envelope
-import kafka.producer.{KeyedMessage, Producer}
+import kafka.producer.{Producer, ProducerConfig}
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.feature.FeatureCollection
@@ -27,8 +26,7 @@ import org.geotools.feature.collection.BridgeIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
@@ -36,24 +34,18 @@ import org.opengis.filter.{Filter, Id}
 
 import scala.collection.JavaConversions._
 
-object KafkaProducerFeatureStore {
-  val DELETE_KEY = "delete".getBytes(StandardCharsets.UTF_8)
-  val CLEAR_KEY  = "clear".getBytes(StandardCharsets.UTF_8)
-}
-
 class KafkaProducerFeatureStore(entry: ContentEntry,
-                                schema: SimpleFeatureType,
+                                sft: SimpleFeatureType,
+                                topic: String,
                                 broker: String,
-                                query: Query,
-                                producer: Producer[Array[Byte], Array[Byte]])
+                                producer: Producer[Array[Byte], Array[Byte]],
+                                query: Query = null)
   extends ContentFeatureStore(entry, query) {
-
-  val typeName = entry.getTypeName
 
   override def getBoundsInternal(query: Query) =
     ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
 
-  override def buildFeatureType(): SimpleFeatureType = schema
+  override def buildFeatureType(): SimpleFeatureType = sft
 
   type FW = FeatureWriter[SimpleFeatureType, SimpleFeature]
 
@@ -78,17 +70,18 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
     case _              => super.removeFeatures(filter)
   }
 
-  def clearFeatures(): Unit = producer.send(Clear.toMsg(typeName))
-
-  type MSG = KeyedMessage[Array[Byte], Array[Byte]]
+  def clearFeatures(): Unit = {
+    val msg = GeoMessage.clear()
+    producer.send(KafkaGeoMessageEncoder.encodeClearMessage(topic, msg))
+  }
 
   override def getWriterInternal(query: Query, flags: Int) =
     new ModifyingFeatureWriter(query)
 
   class ModifyingFeatureWriter(query: Query) extends FW {
 
-    val encoder = new KryoFeatureSerializer(schema, SerializationOptions.withUserData)
-    val reuse = new ScalaSimpleFeature("", schema)
+    val msgEncoder = new KafkaGeoMessageEncoder(sft)
+    val reuse = new ScalaSimpleFeature("", sft)
     private var id = 1L
     def getNextId: String = {
       val ret = id
@@ -104,10 +97,10 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
       }
       else query.getFilter match {
         case ids: Id        =>
-          ids.getIDs.map(id => new ScalaSimpleFeature(id.toString, schema)).iterator
+          ids.getIDs.map(id => new ScalaSimpleFeature(id.toString, sft)).iterator
 
         case Filter.INCLUDE =>
-          Iterator.continually(new ScalaSimpleFeature("", schema))
+          Iterator.continually(new ScalaSimpleFeature("", sft))
       }
 
     def setIter(iter: Iterator[SimpleFeature]): Unit = {
@@ -115,27 +108,54 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
     }
 
     var curFeature: SimpleFeature = null
-    override def getFeatureType: SimpleFeatureType = schema
+    override def getFeatureType: SimpleFeatureType = sft
+
     override def next(): SimpleFeature = {
       curFeature = toModify.next()
       curFeature
     }
+
     override def remove(): Unit = {
-      val bytes = curFeature.getID.getBytes(StandardCharsets.UTF_8)
-      val delMsg = new MSG(typeName, KafkaProducerFeatureStore.DELETE_KEY, bytes)
+      val msg = GeoMessage.delete(curFeature.getID)
       curFeature = null
-      producer.send(delMsg)
+
+      send(msg)
     }
+
     override def write(): Unit = {
-      val encoded = encoder.serialize(curFeature)
-      val msg = new MSG(typeName, encoded)
+      val msg = GeoMessage.createOrUpdate(curFeature)
       curFeature = null
-      producer.send(msg)
+
+      send(msg)
     }
+
     override def hasNext: Boolean = toModify.hasNext
     override def close(): Unit = {}
+
+    private def send(msg: GeoMessage): Unit = {
+      producer.send(msgEncoder.encodeMessage(topic, msg))
+    }
   }
 
   override def getCountInternal(query: Query): Int = 0
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = null
+}
+
+object KafkaProducerFeatureStoreFactory {
+
+  def apply(broker: String): FeatureSourceFactory = {
+
+    val config = {
+      val props = new ju.Properties()
+      props.put("metadata.broker.list", broker)
+      props.put("serializer.class", "kafka.serializer.DefaultEncoder")
+      new ProducerConfig(props)
+    }
+
+    (entry: ContentEntry, schemaManager: KafkaDataStoreSchemaManager) => {
+      val fc = schemaManager.getFeatureConfig(entry.getTypeName)
+      val kafkaProducer = new Producer[Array[Byte], Array[Byte]](config)
+      new KafkaProducerFeatureStore(entry, fc.sft, fc.topic, broker, kafkaProducer)
+    }
+  }
 }
