@@ -218,29 +218,33 @@ class KafkaFeatureConsumer(topic: String,
           val iter = stream.iterator()
           while (iter.hasNext()) {
             val msg = iter.next()
-            if (msg.key() != null) {
-              if (util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.DELETE_KEY)) {
-                val id = new String(msg.message(), StandardCharsets.UTF_8)
-                deleteFeature(id)
-              } else if (util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.CLEAR_KEY)) {
-                clear()
+            if (msg != null) {
+              count = 0 // reset error count
+              if (msg.key() != null) {
+                if (util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.DELETE_KEY)) {
+                  val id = new String(msg.message(), StandardCharsets.UTF_8)
+                  deleteFeature(id)
+                } else if (util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.CLEAR_KEY)) {
+                  clear()
+                } else {
+                  // only other key is the SCHEMA_KEY so ingore
+                }
               } else {
-                // only other key is the SCHEMA_KEY so ingore
+                val f = featureDecoder.deserialize(msg.message())
+                produceFeatures(f)
               }
-            } else {
-              val f = featureDecoder.deserialize(msg.message())
-              produceFeatures(f)
             }
           }
         } catch {
           case t: InterruptedException =>
             logger.error("Caught interrupted exception in consumer", t)
+            Thread.currentThread().interrupt()
             cont = false
 
           case t: Throwable =>
             logger.error("Caught exception while running consumer", t)
             count += 1
-            if(count == 300) {
+            if (count == 300) {
               count = 0
               cont = false
             } else {
