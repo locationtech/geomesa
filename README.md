@@ -21,7 +21,7 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 GeoMesa artifacts can be downloaded from the [LocationTech Maven repository](https://repo.locationtech.org/content/repositories/geomesa-releases/)
 
 Snapshots are availabile in the [LocationTech Snapshots Repository](https://repo.locationtech.org/content/repositories/geomesa-snapshots/)
-
+/frLive
 
 ## Building Instructions
 

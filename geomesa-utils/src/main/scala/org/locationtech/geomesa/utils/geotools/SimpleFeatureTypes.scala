@@ -20,20 +20,27 @@ import java.util.{Date, Locale, UUID}
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.vividsolutions.jts.geom._
+import org.geotools.data.FeatureReader
+import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.feature.AttributeTypeBuilder
+import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser.{ListAttributeType, MapAttributeType, SimpleAttributeType}
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
 import scala.util.parsing.combinator.JavaTokenParsers
 
 object SimpleFeatureTypes {
+
+  type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
+  type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
+  type DFI = DelegateFeatureIterator[SimpleFeature]
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
 

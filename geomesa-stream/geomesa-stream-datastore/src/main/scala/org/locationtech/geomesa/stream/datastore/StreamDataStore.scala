@@ -18,6 +18,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.stream.SimpleFeatureStreamSource
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{DFI, DFR, FR}
 import org.locationtech.geomesa.utils.index.{QuadTreeFeatureStore, SynchronizedQuadtree}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

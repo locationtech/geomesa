@@ -10,7 +10,7 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom.Point
 import org.apache.accumulo.core.client.BatchDeleter
 import org.apache.accumulo.core.client.admin.TableOperations
-import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => aRange}
+import org.apache.accumulo.core.data.{Key, Mutation, Range => aRange, Value}
 import org.apache.hadoop.io.Text
 import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
