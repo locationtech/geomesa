@@ -192,6 +192,30 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       splits.last mustEqual new Text("99")
     }
 
+    "allow for a configurable number of threads in z3 queries" in {
+      val sftName = "z3threads"
+      val sft = createSchema(sftName)
+      val param = AccumuloDataStoreFactory.params.queryThreadsParam.getName
+      val query = new Query(sftName, ECQL.toFilter("bbox(geom,-75,-75,-60,-60) AND " +
+          "dtg DURING 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z"))
+      def testThreads(numThreads: Int) = {
+        val params = dsParams ++ Map(param -> numThreads)
+        val dst = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+        val qpt = dst.getQueryPlan(sftName, query)
+        qpt must haveSize(1)
+        qpt.head.table mustEqual dst.getZ3Table(sftName)
+        qpt.head.numThreads mustEqual numThreads
+      }
+
+      forall(Seq(1, 5, 8, 20, 100))(testThreads)
+
+      // check default
+      val qpt = ds.getQueryPlan(sftName, query)
+      qpt must haveSize(1)
+      qpt.head.table mustEqual ds.getZ3Table(sftName)
+      qpt.head.numThreads mustEqual 8
+    }
+
     "process a DWithin query correctly" in {
       // create the data store
       val sftName = "dwithintest"
