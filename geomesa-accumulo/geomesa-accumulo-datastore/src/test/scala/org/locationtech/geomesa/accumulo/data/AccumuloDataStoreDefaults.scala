@@ -40,14 +40,15 @@ trait AccumuloDataStoreDefaults {
 
   val defaultTable = getClass.getSimpleName
 
-  val ds = DataStoreFinder.getDataStore(Map(
+  val dsParams = Map(
     "instanceId"        -> "mycloud",
     "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
     "user"              -> "myuser",
     "password"          -> "mypassword",
     "tableName"         -> defaultTable,
     "useMock"           -> "true",
-    "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
+    "featureEncoding"   -> "avro")
+  val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
 
   /**
    * Create a schema. Schema name should be unique, otherwise tests will interfere with each other.
