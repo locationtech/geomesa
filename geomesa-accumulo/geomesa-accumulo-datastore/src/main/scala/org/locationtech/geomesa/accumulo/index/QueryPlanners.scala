@@ -34,7 +34,7 @@ import org.opengis.feature.simple.SimpleFeature
 
 object QueryPlanners {
   type JoinFunction = (java.util.Map.Entry[Key, Value]) => AccRange
-  type FeatureFunction = Either[(Entry[Key, Value]) => SimpleFeature, (Entry[Key, Value]) => Iterator[SimpleFeature]]
+  type FeatureFunction = (Entry[Key, Value]) => Iterator[SimpleFeature]
 }
 
 sealed trait QueryPlan {

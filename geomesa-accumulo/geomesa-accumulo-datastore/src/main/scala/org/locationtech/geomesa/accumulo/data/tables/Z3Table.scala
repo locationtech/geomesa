@@ -98,24 +98,22 @@ object Z3Table extends GeoMesaTable {
 
   def adaptZ3Iterator(sft: SimpleFeatureType): FeatureFunction = {
     val accessors = AttributeAccessor.buildSimpleFeatureTypeAttributeAccessors(sft)
-    val fn = (e: Entry[Key, Value]) => {
+    (e: Entry[Key, Value]) => {
       val k = e.getKey
       val row = k.getRow.getBytes
       val idbytes = row.slice(10, Int.MaxValue)
       val id = new String(idbytes)
-      new LazySimpleFeature(id, sft, accessors, ByteBuffer.wrap(e.getValue.get()))
+      Iterator(new LazySimpleFeature(id, sft, accessors, ByteBuffer.wrap(e.getValue.get())))
       // TODO visibility
     }
-    Left(fn)
   }
 
   def adaptZ3KryoIterator(sft: SimpleFeatureType): FeatureFunction = {
     val kryo = new KryoFeatureSerializer(sft)
-    val fn = (e: Entry[Key, Value]) => {
+    (e: Entry[Key, Value]) => {
       // TODO lazy features if we know it's read-only?
-      kryo.deserialize(e.getValue.get())
+      Iterator(kryo.deserialize(e.getValue.get()))
     }
-    Left(fn)
   }
 
   def configureTable(sft: SimpleFeatureType, z3Table: String, tableOps: TableOperations): Unit = {
