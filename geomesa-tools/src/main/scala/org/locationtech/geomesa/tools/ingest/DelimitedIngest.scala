@@ -24,7 +24,7 @@ import org.apache.accumulo.core.client.Connector
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
-import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.Utils.Modes._

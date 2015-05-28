@@ -28,7 +28,7 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.minicluster.MiniAccumuloCluster
 import org.apache.hadoop.io.Text
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
+import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

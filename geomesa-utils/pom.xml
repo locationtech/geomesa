@@ -18,13 +18,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-accumulo1.5</artifactId>
+        <artifactId>geomesa</artifactId>
         <version>1.1.0-rc.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-utils-accumulo1.5</artifactId>
-    <name>GeoMesa Utils - [Accumulo 1.5.x]</name>
+    <artifactId>geomesa-utils</artifactId>
+    <name>GeoMesa Utils</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

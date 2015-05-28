@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-stream-accumulo1.5</artifactId>
+        <artifactId>geomesa-stream</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.1.0-rc.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-stream-generic-accumulo1.5</artifactId>
-    <name>GeoMesa Stream Generic - [Accumulo1.5]</name>
+    <artifactId>geomesa-stream-generic</artifactId>
+    <name>GeoMesa Stream Generic</name>
 
     <properties>
         <camel.version>2.14.1</camel.version>
@@ -17,17 +17,17 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-stream-api-accumulo1.5</artifactId>
+            <artifactId>geomesa-stream-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-common-accumulo1.5</artifactId>
+            <artifactId>geomesa-convert-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-accumulo1.5</artifactId>
+            <artifactId>geomesa-feature-all</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -75,7 +75,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-text-accumulo1.5</artifactId>
+            <artifactId>geomesa-convert-text</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

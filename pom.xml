@@ -18,17 +18,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.locationtech.geomesa</groupId>
-    <artifactId>geomesa-accumulo1.5</artifactId>
+    <artifactId>geomesa</artifactId>
     <version>1.1.0-rc.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>GeoMesa - [Accumulo 1.5.x]</name>
+    <name>GeoMesa</name>
 
     <modules>
         <module>geomesa-utils</module>
         <module>geomesa-security</module>
-        <module>geomesa-feature</module>
+        <module>geomesa-features</module>
         <module>geomesa-filter</module>
-        <module>geomesa-core</module>
         <module>geomesa-distributed-runtime</module>
         <module>geomesa-jobs</module>
         <module>geomesa-plugin</module>
@@ -40,6 +39,8 @@
         <module>geomesa-web</module>
         <module>geomesa-process</module>
         <module>geomesa-stream</module>
+        <module>geomesa-z3</module>
+        <module>geomesa-accumulo</module>
     </modules>
 
     <properties>
@@ -402,6 +403,11 @@
                 <version>3.3</version>
             </dependency>
             <dependency>
+                <groupId>com.esotericsoftware.kryo</groupId>
+                <artifactId>kryo</artifactId>
+                <version>2.21</version>
+            </dependency>
+            <dependency>
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
                 <version>2.10.0</version>
@@ -464,70 +470,70 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-core-accumulo1.5</artifactId>
+                <artifactId>geomesa-accumulo-datastore</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-core-accumulo1.5</artifactId>
+                <artifactId>geomesa-core</artifactId>
                 <version>${project.version}</version>
                 <type>test-jar</type>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-utils-accumulo1.5</artifactId>
+                <artifactId>geomesa-utils</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-filter-accumulo1.5</artifactId>
+                <artifactId>geomesa-filter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-plugin-accumulo1.5</artifactId>
+                <artifactId>geomesa-plugin</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-plugin-accumulo1.5</artifactId>
+                <artifactId>geomesa-plugin</artifactId>
                 <classifier>geoserver-plugin</classifier>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
+                <artifactId>geomesa-distributed-runtime</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-feature-accumulo1.5</artifactId>
+                <artifactId>geomesa-feature-all</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-tools-accumulo1.5</artifactId>
+                <artifactId>geomesa-tools</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-jobs-accumulo1.5</artifactId>
+                <artifactId>geomesa-jobs</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-compute-accumulo1.5</artifactId>
+                <artifactId>geomesa-compute</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-compute-accumulo1.5</artifactId>
+                <artifactId>geomesa-compute</artifactId>
                 <classifier>shaded</classifier>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-assemble-accumulo1.5</artifactId>
+                <artifactId>geomesa-assemble</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -871,42 +877,47 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-process-accumulo1.5</artifactId>
+                <artifactId>geomesa-process</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-web-accumulo1.5</artifactId>
+                <artifactId>geomesa-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-web-csv-accumulo1.5</artifactId>
+                <artifactId>geomesa-web-csv</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-web-data-accumulo1.5</artifactId>
+                <artifactId>geomesa-web-data</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-web-core-accumulo1.5</artifactId>
+                <artifactId>geomesa-web-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-stream-geoserver-plugin-accumulo1.5</artifactId>
+                <artifactId>geomesa-stream-geoserver-plugin</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-security-accumulo1.5</artifactId>
+                <artifactId>geomesa-security</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-web-security-accumulo1.5</artifactId>
+                <artifactId>geomesa-web-security</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-z3</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
@@ -1025,7 +1036,7 @@
                 <configuration>
                     <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
                     <runOnlyOnce>false</runOnlyOnce>
-                    <verbose>true</verbose>
+                    <verbose>false</verbose>
                     <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
                     <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>

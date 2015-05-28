@@ -18,10 +18,10 @@ package org.locationtech.geomesa.jobs.mapreduce
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
-import org.apache.hadoop.conf.Configuration
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.{AvroSimpleFeature, ScalaSimpleFeature, ScalaSimpleFeatureFactory}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeature
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification

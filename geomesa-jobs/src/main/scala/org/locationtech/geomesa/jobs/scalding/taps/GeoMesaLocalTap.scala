@@ -28,8 +28,8 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.feature.ScalaSimpleFeature
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.scalding._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -52,7 +52,7 @@ case class GeoMesaLocalTap(readOrWrite: AccessMode, scheme: GeoMesaLocalScheme) 
     val transform = options.transform.getOrElse(Query.ALL_NAMES)
     val query = new Query(options.feature, cql, transform)
     val reader = ds.getFeatureReader(options.feature, query)
-    val sft = org.locationtech.geomesa.core.index.getTransformSchema(query).getOrElse(ds.getSchema(options.feature))
+    val sft = org.locationtech.geomesa.accumulo.index.getTransformSchema(query).getOrElse(ds.getSchema(options.feature))
 
     val iterator = new GMRecordReader() with Closeable {
 

@@ -22,7 +22,7 @@ import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.feature.{DefaultFeatureCollection, FeatureCollection}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.AvroSimpleFeature
+import org.locationtech.geomesa.features.avro.AvroSimpleFeature
 import org.locationtech.geomesa.security._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name

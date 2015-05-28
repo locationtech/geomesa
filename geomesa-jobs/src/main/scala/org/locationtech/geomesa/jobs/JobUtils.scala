@@ -22,7 +22,7 @@ import java.net.{URLClassLoader, URLDecoder}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.conf.Configuration
-import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 
 import scala.io.Source
 import scala.util.Try

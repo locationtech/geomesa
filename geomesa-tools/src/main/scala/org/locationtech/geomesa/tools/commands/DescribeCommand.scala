@@ -17,7 +17,7 @@ package org.locationtech.geomesa.tools.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.core.data.extractDtgField
+import org.locationtech.geomesa.accumulo.data.extractDtgField
 import org.locationtech.geomesa.tools.commands.DescribeCommand._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.opengis.feature.`type`.AttributeDescriptor

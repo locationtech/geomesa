@@ -20,7 +20,7 @@ import java.io.{InputStream, OutputStream}
 
 import com.google.common.primitives.Ints
 import org.apache.hadoop.io.serializer.{Deserializer, Serialization, Serializer}
-import org.locationtech.geomesa.feature.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.serialization.KryoFeatureSerializer
 import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization._
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -33,9 +33,9 @@ class SimpleFeatureSerialization extends Serialization[SimpleFeature] {
 
   override def accept(c: Class[_]) = classOf[SimpleFeature].isAssignableFrom(c)
 
-  override def getSerializer(c: Class[SimpleFeature]) = new SimpleFeatureSerializer
+  override def getSerializer(c: Class[SimpleFeature]) = new HadoopSimpleFeatureSerializer
 
-  override def getDeserializer(c: Class[SimpleFeature]) = new SimpleFeatureDeserializer
+  override def getDeserializer(c: Class[SimpleFeature]) = new HadoopSimpleFeatureDeserializer
 }
 
 object SimpleFeatureSerialization {
@@ -72,7 +72,7 @@ object SimpleFeatureSerialization {
  * Serializer class that delegates to kryo serialization. We also have to encode the sft, however.
  * It would be nice if there was some way to avoid doing that, but it seems impossible to avoid.
  */
-class SimpleFeatureSerializer extends Serializer[SimpleFeature] {
+class HadoopSimpleFeatureSerializer extends Serializer[SimpleFeature] {
 
   var out: OutputStream = null
 
@@ -92,7 +92,7 @@ class SimpleFeatureSerializer extends Serializer[SimpleFeature] {
 /**
  * Deserializer class that delegates to kryo serialization, plus the sft.
  */
-class SimpleFeatureDeserializer extends Deserializer[SimpleFeature] {
+class HadoopSimpleFeatureDeserializer extends Deserializer[SimpleFeature] {
 
   var in: InputStream = null
 

@@ -22,7 +22,7 @@ import com.typesafe.config.Config
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr, FieldLookup, FunctionExpr}
-import org.locationtech.geomesa.feature.AvroSimpleFeature
+import org.locationtech.geomesa.features.avro.AvroSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._

@@ -32,7 +32,7 @@
 
   <bean id="accumuloDataStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
         <property name="id" value="accumuloDataStorePanel"/>
-        <property name="factoryClass" value="org.locationtech.geomesa.core.data.AccumuloDataStoreFactory"/>
+        <property name="factoryClass" value="org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory"/>
         <property name="iconBase" value="org.geoserver.web.GeoServerApplication"/>
         <property name="icon" value="img/icons/geosilk/database_vector.png"/>
         <property name="componentClass"

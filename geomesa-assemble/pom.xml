@@ -18,14 +18,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-accumulo1.5</artifactId>
+        <artifactId>geomesa</artifactId>
         <version>1.1.0-rc.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
 
-    <artifactId>geomesa-assemble-accumulo1.5</artifactId>
-    <name>GeoMesa Assemble - [Accumulo 1.5.x]</name>
+    <artifactId>geomesa-assemble</artifactId>
+    <name>GeoMesa Assemble</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -34,69 +34,64 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-core-accumulo1.5</artifactId>
+            <artifactId>geomesa-accumulo-datastore</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils-accumulo1.5</artifactId>
+            <artifactId>geomesa-utils</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-filter-accumulo1.5</artifactId>
+            <artifactId>geomesa-filter</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-accumulo1.5</artifactId>
-            <scope>provided</scope>
+            <artifactId>geomesa-feature-all</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-accumulo1.5</artifactId>
+            <artifactId>geomesa-tools</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-tools-accumulo1.5</artifactId>
+            <artifactId>geomesa-jobs</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-jobs-accumulo1.5</artifactId>
+            <artifactId>geomesa-process</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-process-accumulo1.5</artifactId>
+            <artifactId>geomesa-distributed-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-plugin-accumulo1.5</artifactId>
+            <artifactId>geomesa-plugin</artifactId>
             <classifier>geoserver-plugin</classifier>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-stream-geoserver-plugin-accumulo1.5</artifactId>
+            <artifactId>geomesa-stream-geoserver-plugin</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-web-core-accumulo1.5</artifactId>
+            <artifactId>geomesa-web-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-web-csv-accumulo1.5</artifactId>
+            <artifactId>geomesa-web-csv</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-web-data-accumulo1.5</artifactId>
+            <artifactId>geomesa-web-data</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-web-security-accumulo1.5</artifactId>
+            <artifactId>geomesa-web-security</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-compute-accumulo1.5</artifactId>
+            <artifactId>geomesa-compute</artifactId>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>

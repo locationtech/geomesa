@@ -25,7 +25,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.compute.spark.GeoMesaSpark
-import org.locationtech.geomesa.core.data._
+import org.locationtech.geomesa.accumulo.data._
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._

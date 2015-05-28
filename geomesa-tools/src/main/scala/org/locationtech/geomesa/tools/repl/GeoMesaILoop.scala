@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.tools.repl
 
-import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.jobs.scalding._
 
 import scala.tools.nsc.interpreter.ILoop

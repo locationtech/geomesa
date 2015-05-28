@@ -22,9 +22,9 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.core.data.AccumuloFeatureStore
-import org.locationtech.geomesa.core.index
-import org.locationtech.geomesa.core.stats.StatWriter
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
+import org.locationtech.geomesa.accumulo.index
+import org.locationtech.geomesa.accumulo.stats.StatWriter
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools._

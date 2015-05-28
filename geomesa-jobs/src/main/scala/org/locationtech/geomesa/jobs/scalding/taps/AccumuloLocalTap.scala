@@ -28,7 +28,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{BatchWriter, MultiTableBatchWriter, ZooKeeperInstance}
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.core.util.GeoMesaBatchWriterConfig
+import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.jobs.scalding._
 
 import scala.collection.JavaConversions._

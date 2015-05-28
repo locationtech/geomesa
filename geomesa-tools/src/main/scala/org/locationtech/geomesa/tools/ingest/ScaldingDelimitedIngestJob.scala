@@ -31,9 +31,9 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.Converters
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.core.data.AccumuloDataStore
-import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.{params => dsp}
-import org.locationtech.geomesa.core.index.Constants
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.{params => dsp}
+import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.jobs.scalding.MultipleUsefulTextLineFiles
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.tools.ingest.ScaldingDelimitedIngestJob._

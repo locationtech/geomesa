@@ -23,7 +23,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
 
 import scala.collection.JavaConversions._
 

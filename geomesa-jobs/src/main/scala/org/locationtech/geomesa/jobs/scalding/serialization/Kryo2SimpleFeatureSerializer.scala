@@ -22,7 +22,7 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
 import com.twitter.chill.config.Config
 import com.twitter.scalding.serialization.KryoHadoop
-import org.locationtech.geomesa.feature.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization
 import org.locationtech.geomesa.jobs.scalding.serialization.Kryo2SimpleFeatureSerializer._
 import org.opengis.feature.simple.SimpleFeature
@@ -66,7 +66,7 @@ class SimpleFeatureKryoHadoop(config: Config) extends KryoHadoop(config) {
   override def newKryo(): Kryo = {
     val kryo = super.newKryo()
     val serializer = new Kryo2SimpleFeatureSerializer
-    KryoFeatureSerializer.simpleFeatureImpls.foreach(kryo.register(_, serializer))
+    SimpleFeatureSerializers.simpleFeatureImpls.foreach(kryo.register(_, serializer))
     kryo
   }
 }

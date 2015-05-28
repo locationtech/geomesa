@@ -32,7 +32,7 @@ import org.apache.wicket.markup.html.panel.Fragment
 import org.apache.wicket.model.{Model, PropertyModel}
 import org.apache.wicket.{AttributeModifier, PageParameters, ResourceReference}
 import org.geoserver.web.GeoServerBasePage
-import org.locationtech.geomesa.core.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 

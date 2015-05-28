@@ -16,33 +16,34 @@
 
 package org.locationtech.geomesa.utils.geohash
 
+import com.typesafe.scalalogging.slf4j.Logging
 import org.junit.{Assert, Test}
 
-class BoundingBoxTest {
+class BoundingBoxTest extends Logging {
   @Test def boundingBoxTest {
     var bbox = BoundingBox.apply(GeoHash.apply("dqb00").getPoint, GeoHash.apply("dqbxx").getPoint)
     var hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox)
-    println(hashes.size + "\n" + hashes)
+    logger.debug(hashes.size + "\n" + hashes)
     Assert.assertEquals(24, hashes.size)
 
     bbox = BoundingBox.apply(-78, -77.895029, 38.045834, 38)
     hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
-    println(hashes.size + "\n" + hashes)
+    logger.debug(hashes.size + "\n" + hashes)
     Assert.assertEquals(6, hashes.size)
 
     bbox = BoundingBox.apply(-78, -77.89503, 38.0458335, 38)
     hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
-    println(hashes.size + "\n" + hashes)
+    logger.debug(hashes.size + "\n" + hashes)
     Assert.assertEquals(6, hashes.size)
 
     bbox = BoundingBox.apply(-50, 50, -40, 40)
     hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
-    println(hashes.size + "\n" + hashes)
+    logger.debug(hashes.size + "\n" + hashes)
     Assert.assertEquals(8, hashes.size)
 
     bbox = BoundingBox.apply(1, 1, 1, 1)
     hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
-    println(hashes.size + "\n" + hashes)
+    logger.debug(hashes.size + "\n" + hashes)
     Assert.assertEquals(1, hashes.size)
 
   }
