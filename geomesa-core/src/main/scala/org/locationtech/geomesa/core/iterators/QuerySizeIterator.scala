@@ -34,11 +34,14 @@ class QuerySizeIterator extends GeomesaFilteringIterator with HasFeatureDecoder 
   var featureBuilder: SimpleFeatureBuilder = null
   var querySizeFeatureEncoder: SimpleFeatureEncoder = null
 
-  override def init(source: SortedKeyValueIterator[Key, Value], options: util.Map[String, String], env: IteratorEnvironment): Unit = {
+  override def init(source: SortedKeyValueIterator[Key, Value],
+                    options: util.Map[String, String],
+                    env: IteratorEnvironment): Unit = {
     super.init(source, options, env)
     initFeatureType(options)
     // Need to grab the original SFT in order to properly decode/filter
-    val originalSFT = SimpleFeatureTypes.createType("QuerySizeHijackedIteratorSFT",options.get(core.GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
+    val originalSFT =
+      SimpleFeatureTypes.createType(ORIGINAL_SFT_OPTION,options.get(core.GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
     super[HasFilter].init(originalSFT, options)
     super[HasFeatureDecoder].init(originalSFT, options)
 
@@ -52,7 +55,7 @@ class QuerySizeIterator extends GeomesaFilteringIterator with HasFeatureDecoder 
     featureBuilder.reset()
     topKey = new Key(source.getTopKey)
 
-    val curNumBytes: Long = source.getTopValue.get.length // Could this be wrong?
+    val curNumBytes: Long = source.getTopValue.getSize
 
     featureBuilder.set(SCAN_BYTES_ATTRIBUTE, curNumBytes)
     featureBuilder.set(SCAN_RECORDS_ATTRIBUTE, 1)
@@ -74,9 +77,11 @@ class QuerySizeIterator extends GeomesaFilteringIterator with HasFeatureDecoder 
 }
 
 object QuerySizeIterator {
-  val QUERY_SIZE_FEATURE_SFT_STRING =  "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date,scanSizeBytes:Long,resultSizeBytes:Long,scanNumRecords:Long,resultNumRecords:Long"
+  val QUERY_SIZE_FEATURE_SFT_STRING =
+    "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date,scanSizeBytes:Long,resultSizeBytes:Long,scanNumRecords:Long,resultNumRecords:Long"
   val querySizeSFT = SimpleFeatureTypes.createType("querySize", QUERY_SIZE_FEATURE_SFT_STRING)
   val SCAN_BYTES_ATTRIBUTE = "scanSizeBytes"
+  val SCAN_KEY_BYTES_ATTRIBUTE = "scanKeyBytes"
   val SCAN_RECORDS_ATTRIBUTE = "scanNumRecords"
   val RESULT_BYTES_ATTRIBUTE = "resultSizeBytes"
   val RESULT_RECORDS_ATTRIBUTE = "resultNumRecords"

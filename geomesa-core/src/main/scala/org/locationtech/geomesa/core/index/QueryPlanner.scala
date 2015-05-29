@@ -181,13 +181,14 @@ case class QueryPlanner(sft: SimpleFeatureType,
     var scannedRecords: Long = 0
     var resultBytes: Long = 0
     var resultRecords: Long = 0
-    while(querySizeIterator.hasNext) { // TODO How do I do this in a Scala-y way?
+    while(querySizeIterator.hasNext) {
       val cur = querySizeIterator.next()
       scannedBytes += cur.getAttribute(QuerySizeIterator.SCAN_BYTES_ATTRIBUTE).asInstanceOf[Long]
       scannedRecords += cur.getAttribute(QuerySizeIterator.SCAN_RECORDS_ATTRIBUTE).asInstanceOf[Long]
       resultBytes += cur.getAttribute(QuerySizeIterator.RESULT_BYTES_ATTRIBUTE).asInstanceOf[Long]
       resultRecords += cur.getAttribute(QuerySizeIterator.RESULT_RECORDS_ATTRIBUTE).asInstanceOf[Long]
     }
+    querySizeIterator.close()
     val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(getReturnSFT(query))
     featureBuilder.set(QuerySizeIterator.SCAN_BYTES_ATTRIBUTE, scannedBytes)
     featureBuilder.set(QuerySizeIterator.SCAN_RECORDS_ATTRIBUTE, scannedRecords)
