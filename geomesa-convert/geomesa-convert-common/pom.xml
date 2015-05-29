@@ -17,14 +17,14 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-convert-accumulo1.5</artifactId>
+        <artifactId>geomesa-convert</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.1.0-rc.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-convert-common-accumulo1.5</artifactId>
-    <name>GeoMesa Convert Common - [Accumulo 1.5.x]</name>
+    <artifactId>geomesa-convert-common</artifactId>
+    <name>GeoMesa Convert Common</name>
 
     <dependencies>
         <dependency>
@@ -37,7 +37,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-accumulo1.5</artifactId>
+            <artifactId>geomesa-feature-all</artifactId>
         </dependency>
         <dependency>
             <groupId>org.spire-math</groupId>

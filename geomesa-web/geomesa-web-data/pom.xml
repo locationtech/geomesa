@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-web-accumulo1.5</artifactId>
+        <artifactId>geomesa-web</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.1.0-rc.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-web-data-accumulo1.5</artifactId>
-    <name>GeoMesa Web Data [Accumulo 1.5.x]</name>
+    <artifactId>geomesa-web-data</artifactId>
+    <name>GeoMesa Web Data</name>
     <description>Provides direct REST access to GeoMesa data</description>
 
     <dependencies>
@@ -18,17 +18,17 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-web-core-accumulo1.5</artifactId>
+            <artifactId>geomesa-web-core</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-core-accumulo1.5</artifactId>
+            <artifactId>geomesa-accumulo-datastore</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-tools-accumulo1.5</artifactId>
+            <artifactId>geomesa-tools</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>

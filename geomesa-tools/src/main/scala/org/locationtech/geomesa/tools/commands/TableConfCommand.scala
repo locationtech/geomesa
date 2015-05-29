@@ -18,7 +18,8 @@ package org.locationtech.geomesa.tools.commands
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.TableNotFoundException
-import org.locationtech.geomesa.core.data.{AccumuloDataStore, TableSuffix}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable, Z3Table}
 import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.Runner.mkSubCommand
 import org.locationtech.geomesa.tools.commands.TableConfCommand._
@@ -102,10 +103,11 @@ object TableConfCommand {
   
   def getTableName(ds: AccumuloDataStore, params: ListParams) =
     params.tableSuffix match {
-      case TableSuffix.STIdx   => params.ds.getSpatioTemporalTable(params.featureName)
-      case TableSuffix.AttrIdx => params.ds.getAttributeTable(params.featureName)
-      case TableSuffix.Records => params.ds.getRecordTable(params.featureName)
-      case _                   => throw new Exception(s"Invalid table suffix: ${params.tableSuffix}")
+      case SpatioTemporalTable.suffix => params.ds.getSpatioTemporalTable(params.featureName)
+      case AttributeTable.suffix      => params.ds.getAttributeTable(params.featureName)
+      case RecordTable.suffix         => params.ds.getRecordTable(params.featureName)
+      case Z3Table.suffix             => params.ds.getZ3Table(params.featureName)
+      case _                          => throw new Exception(s"Invalid table suffix: ${params.tableSuffix}")
     }
   
   @Parameters(commandDescription = "Perform table configuration operations")

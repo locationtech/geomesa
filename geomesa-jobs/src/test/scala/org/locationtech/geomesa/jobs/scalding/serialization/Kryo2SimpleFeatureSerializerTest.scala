@@ -19,7 +19,7 @@ package org.locationtech.geomesa.jobs.scalding.serialization
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.twitter.chill.config.Config
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.feature.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
+import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, ScalaSimpleFeature}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

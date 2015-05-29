@@ -28,7 +28,7 @@ import org.locationtech.geomesa.plugin.GeoMesaStoreEditPanel
 class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
     extends GeoMesaStoreEditPanel(componentId, storeEditForm) {
 
-  import org.locationtech.geomesa.core.data.AccumuloDataStoreFactory.params._
+  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
 
   val model = storeEditForm.getModel
   setDefaultModel(model)

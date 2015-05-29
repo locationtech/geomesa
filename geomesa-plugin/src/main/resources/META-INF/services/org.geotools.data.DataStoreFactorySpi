@@ -1,1 +1,1 @@
-org.locationtech.geomesa.core.data.AccumuloDataStoreFactory
+accumulo.data.AccumuloDataStoreFactory

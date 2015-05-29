@@ -19,12 +19,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-accumulo1.5</artifactId>
+        <artifactId>geomesa</artifactId>
         <version>1.1.0-rc.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
-    <name>GeoMesa Distributed Runtime - [Accumulo 1.5.x]</name>
+    <artifactId>geomesa-distributed-runtime</artifactId>
+    <name>GeoMesa Distributed Runtime</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,7 +33,7 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-core-accumulo1.5</artifactId>
+            <artifactId>geomesa-accumulo-datastore</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>

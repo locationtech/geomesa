@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-stream-accumulo1.5</artifactId>
+        <artifactId>geomesa-stream</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.1.0-rc.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-stream-geoserver-plugin-accumulo1.5</artifactId>
-    <name>GeoMesa Stream GeoServer Plugin - [Accumulo1.5.x]</name>
+    <artifactId>geomesa-stream-geoserver-plugin</artifactId>
+    <name>GeoMesa Stream GeoServer Plugin</name>
 
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-stream-datastore-accumulo1.5</artifactId>
+            <artifactId>geomesa-stream-datastore</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

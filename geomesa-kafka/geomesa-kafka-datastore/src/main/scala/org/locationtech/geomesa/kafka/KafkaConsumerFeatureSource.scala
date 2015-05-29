@@ -23,6 +23,7 @@ import java.util.concurrent.{Executors, TimeUnit}
 
 import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNotification}
 import com.google.common.eventbus.{EventBus, Subscribe}
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Envelope
 import kafka.consumer.{Consumer, ConsumerConfig, Whitelist}
 import kafka.producer.KeyedMessage
@@ -35,8 +36,8 @@ import org.geotools.filter.FidFilterImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.feature.AvroFeatureDecoder
-import org.locationtech.geomesa.feature.EncodingOption.EncodingOptions
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
 import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceReTypingSupport
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -66,9 +67,9 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   var qt = new SynchronizedQuadtree
 
   val groupId = RandomStringUtils.randomAlphanumeric(5)
-  val decoder = new AvroFeatureDecoder(sft, EncodingOptions.withUserData)
+  val decoder = new KryoFeatureSerializer(getSchema, SerializationOptions.withUserData)
   // create a producer that reads from kafka and sends to the event bus
-  new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
+  val consumer = new KafkaFeatureConsumer(topic, zookeepers, groupId, decoder, eb)
 
   case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
     override def hashCode(): Int = sf.hashCode()
@@ -176,6 +177,7 @@ class KafkaConsumerFeatureSource(entry: ContentEntry,
   }
 
   override def getWriterInternal(query: Query, flags: Int) = throw new IllegalArgumentException("Not allowed")
+
 }
 
 sealed trait KafkaGeoMessage
@@ -198,8 +200,8 @@ trait FeatureProducer {
 class KafkaFeatureConsumer(topic: String,
                            zookeepers: String,
                            groupId: String,
-                           featureDecoder: AvroFeatureDecoder,
-                           override val eventBus: EventBus) extends FeatureProducer {
+                           featureDecoder: KryoFeatureSerializer,
+                           override val eventBus: EventBus) extends FeatureProducer with Logging {
 
   private val client = Consumer.create(new ConsumerConfig(buildClientProps))
   private val whiteList = new Whitelist(topic)
@@ -209,21 +211,45 @@ class KafkaFeatureConsumer(topic: String,
   val es = Executors.newSingleThreadExecutor()
   es.submit(new Runnable {
     override def run(): Unit = {
-      val iter = stream.iterator()
-      while (iter.hasNext) {
-        val msg = iter.next()
-        if(msg.key() != null) {
-          if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.DELETE_KEY)) {
-            val id = new String(msg.message(), StandardCharsets.UTF_8)
-            deleteFeature(id)
-          } else if(util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.CLEAR_KEY)) {
-            clear()
-          } else {
-            // only other key is the SCHEMA_KEY so ingore
+      var cont = true
+      var count = 0
+      while (cont) {
+        try {
+          val iter = stream.iterator()
+          while (iter.hasNext()) {
+            val msg = iter.next()
+            if (msg != null) {
+              count = 0 // reset error count
+              if (msg.key() != null) {
+                if (util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.DELETE_KEY)) {
+                  val id = new String(msg.message(), StandardCharsets.UTF_8)
+                  deleteFeature(id)
+                } else if (util.Arrays.equals(msg.key(), KafkaProducerFeatureStore.CLEAR_KEY)) {
+                  clear()
+                } else {
+                  // only other key is the SCHEMA_KEY so ingore
+                }
+              } else {
+                val f = featureDecoder.deserialize(msg.message())
+                produceFeatures(f)
+              }
+            }
           }
-        } else {
-          val f = featureDecoder.decode(msg.message())
-          produceFeatures(f)
+        } catch {
+          case t: InterruptedException =>
+            logger.error("Caught interrupted exception in consumer", t)
+            Thread.currentThread().interrupt()
+            cont = false
+
+          case t: Throwable =>
+            logger.error("Caught exception while running consumer", t)
+            count += 1
+            if (count == 300) {
+              count = 0
+              cont = false
+            } else {
+              Thread.sleep(1000)
+            }
         }
       }
     }

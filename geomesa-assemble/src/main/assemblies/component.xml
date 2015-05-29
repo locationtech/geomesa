@@ -73,8 +73,8 @@
             <outputDirectory>docs/compute</outputDirectory>
         </file>
         <file>
-            <source>../geomesa-core/README.md</source>
-            <outputDirectory>docs/core</outputDirectory>
+            <source>../geomesa-accumulo/geomesa-accumulo-datastore/README.md</source>
+            <outputDirectory>docs/accumulo</outputDirectory>
         </file>
         <file>
             <source>../geomesa-jobs/README.md</source>
