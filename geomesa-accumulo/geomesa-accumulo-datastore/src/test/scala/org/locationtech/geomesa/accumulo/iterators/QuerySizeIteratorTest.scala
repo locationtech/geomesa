@@ -15,26 +15,21 @@
  */
 
 
-package org.locationtech.geomesa.core.iterators
-
-import java.io.{Serializable => JSerializable}
-import java.util.{Date, Map => JMap}
+package org.locationtech.geomesa.accumulo.iterators
 
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.core.TestWithDataStore
-import org.locationtech.geomesa.core.index.QueryHints
-import org.locationtech.geomesa.feature.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.index.QueryHints
+import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
 import scala.io.Source
 import scala.languageFeature.postfixOps
-import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class QuerySizeIteratorTest extends Specification with TestWithDataStore {
@@ -92,9 +87,9 @@ class QuerySizeIteratorTest extends Specification with TestWithDataStore {
       val returnSizeBytes = result.getAttribute(QuerySizeIterator.RESULT_BYTES_ATTRIBUTE).asInstanceOf[Long]
       val returnRecords = result.getAttribute(QuerySizeIterator.RESULT_RECORDS_ATTRIBUTE).asInstanceOf[Long]
       val returnKeyBytes = result.getAttribute(QuerySizeIterator.RESULT_KEY_BYTES_ATTRIBUTE).asInstanceOf[Long]
-
+      
       val expectedNumRecords = 10
-      val currentExpectedSizeInBytes = 30
+      val currentExpectedSizeInBytes = 36
       val currentExpectedKeySizeInBytes = 44
 
       scanRecords should be greaterThan expectedNumRecords

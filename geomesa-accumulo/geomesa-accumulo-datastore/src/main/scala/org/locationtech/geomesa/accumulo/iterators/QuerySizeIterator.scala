@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.core.iterators
+package org.locationtech.geomesa.accumulo.iterators
 
 import java.util
 
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.locationtech.geomesa.core
-import org.locationtech.geomesa.core.iterators.QuerySizeIterator._
-import org.locationtech.geomesa.feature.{FeatureEncoding, SimpleFeatureEncoder}
+import org.locationtech.geomesa.accumulo.iterators.QuerySizeIterator._
+import org.locationtech.geomesa.features.{SimpleFeatureSerializer, SimpleFeatureSerializers}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 /**
@@ -32,7 +31,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 class QuerySizeIterator extends GeomesaFilteringIterator with HasFeatureDecoder with HasFilter with HasFeatureType {
 
   var featureBuilder: SimpleFeatureBuilder = null
-  var querySizeFeatureEncoder: SimpleFeatureEncoder = null
+  var querySizeFeatureEncoder: SimpleFeatureSerializer = null
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: util.Map[String, String],
@@ -41,8 +40,8 @@ class QuerySizeIterator extends GeomesaFilteringIterator with HasFeatureDecoder 
     initFeatureType(options)
     super.init(featureType, options)
 
-    featureBuilder = new SimpleFeatureBuilder(querySizeSFT)
-    querySizeFeatureEncoder = SimpleFeatureEncoder(querySizeSFT, FeatureEncoding.KRYO)
+    featureBuilder = new SimpleFeatureBuilder(querySizeSFT )
+    querySizeFeatureEncoder = SimpleFeatureSerializers(querySizeSFT, org.locationtech.geomesa.accumulo.data.DEFAULT_ENCODING)
   }
 
   // We understand the init/seek/hasTop/next lifecycle, so do this.
@@ -70,7 +69,7 @@ class QuerySizeIterator extends GeomesaFilteringIterator with HasFeatureDecoder 
       scanRecords += 1
       scanKeyBytes += keyBytes
 
-      if (filter.evaluate(featureDecoder.decode(source.getTopValue.get))) {
+      if (filter.evaluate(featureDecoder.deserialize(source.getTopValue.get))) {
         resultBytes += curNumBytes
         resultRecords += 1
         resultKeyBytes += keyBytes
@@ -86,7 +85,7 @@ class QuerySizeIterator extends GeomesaFilteringIterator with HasFeatureDecoder 
     featureBuilder.set(RESULT_KEY_BYTES_ATTRIBUTE, resultKeyBytes)
 
     if (scanRecords > 0) {
-      topValue = new Value(querySizeFeatureEncoder.encode(featureBuilder.buildFeature("feature")))
+      topValue = new Value(querySizeFeatureEncoder.serialize(featureBuilder.buildFeature("feature")))
     } else {
       topKey = null
       topValue = null

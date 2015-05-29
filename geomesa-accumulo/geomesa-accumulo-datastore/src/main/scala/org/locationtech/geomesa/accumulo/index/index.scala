@@ -196,6 +196,7 @@ package object index {
     val MAP_AGGREGATION_KEY  = new ClassKey(classOf[java.lang.String])
 
     val EXACT_COUNT          = new ClassKey(classOf[java.lang.Boolean])
+    val QUERY_SIZE_KEY       = new ClassKey(classOf[java.lang.Boolean])
   }
 
   type ExplainerOutputType = ( => String) => Unit

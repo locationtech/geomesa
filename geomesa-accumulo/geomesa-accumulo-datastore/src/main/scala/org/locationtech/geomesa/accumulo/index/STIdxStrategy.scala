@@ -30,6 +30,7 @@ import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.accumulo.iterators.QuerySizeIterator
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -108,7 +109,11 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val qp = planQuery(filter, iteratorConfig.iterator, output, keyPlanner, cfPlanner)
 
     val table = acc.getSpatioTemporalTable(sft)
-    val iterators = qp.iterators ++ List(Some(stiiIterCfg), densityIterCfg).flatten
+
+    val iterators = if(query.getHints.containsKey(QUERY_SIZE_KEY)) // Query size is meant to be dominant
+      getQuerySizeIteratorConfig(query, sft, featureEncoding, ecql, ofilter)
+    else qp.iterators ++ List(Some(stiiIterCfg), densityIterCfg).flatten
+
     val numThreads = acc.getSuggestedSpatioTemporalThreads(sft)
     val hasDupes = IndexSchema.mayContainDuplicates(sft)
     val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query)
@@ -116,6 +121,28 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     Seq(res)
   }
 
+  private def getQuerySizeIteratorConfig(query: Query,
+                                         sft: SimpleFeatureType,
+                                         featureEncoding: SerializationType,
+                                         ecql: Option[Filter],
+                                         ofilter: Option[Filter]): Seq[IteratorSetting] = {
+    val cfg = new IteratorSetting(iteratorPriority_SimpleFeatureFilteringIterator,
+      "query-size-iterator",
+      classOf[QuerySizeIterator])
+
+    val combinedFilter = (ofilter, ecql) match {
+      case (Some(st), Some(ecql)) => filterListAsAnd(Seq(st, ecql))
+      case (Some(_), None) => ofilter
+      case (None, Some(_)) => ecql
+      case (None, None) => None
+    }
+    configureFeatureType(cfg, sft)
+    configureFeatureEncoding(cfg, featureEncoding)
+    configureTransforms(cfg, query)
+    configureEcqlFilter(cfg, combinedFilter.map(ECQL.toCQL))
+
+    Seq(cfg)
+  }
 
   private def getSTIIIterCfg(iteratorConfig: IteratorConfig,
                      query: Query,
