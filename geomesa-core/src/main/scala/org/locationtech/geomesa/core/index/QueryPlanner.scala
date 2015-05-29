@@ -181,19 +181,25 @@ case class QueryPlanner(sft: SimpleFeatureType,
     var scannedRecords: Long = 0
     var resultBytes: Long = 0
     var resultRecords: Long = 0
+    var scannedKeyBytes: Long = 0
+    var resultKeyBytes: Long = 0
     while(querySizeIterator.hasNext) {
       val cur = querySizeIterator.next()
       scannedBytes += cur.getAttribute(QuerySizeIterator.SCAN_BYTES_ATTRIBUTE).asInstanceOf[Long]
       scannedRecords += cur.getAttribute(QuerySizeIterator.SCAN_RECORDS_ATTRIBUTE).asInstanceOf[Long]
+      scannedKeyBytes += cur.getAttribute(QuerySizeIterator.SCAN_KEY_BYTES_ATTRIBUTE).asInstanceOf[Long]
       resultBytes += cur.getAttribute(QuerySizeIterator.RESULT_BYTES_ATTRIBUTE).asInstanceOf[Long]
       resultRecords += cur.getAttribute(QuerySizeIterator.RESULT_RECORDS_ATTRIBUTE).asInstanceOf[Long]
+      resultKeyBytes += cur.getAttribute(QuerySizeIterator.RESULT_KEY_BYTES_ATTRIBUTE).asInstanceOf[Long]
     }
     querySizeIterator.close()
     val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(getReturnSFT(query))
     featureBuilder.set(QuerySizeIterator.SCAN_BYTES_ATTRIBUTE, scannedBytes)
     featureBuilder.set(QuerySizeIterator.SCAN_RECORDS_ATTRIBUTE, scannedRecords)
+    featureBuilder.set(QuerySizeIterator.SCAN_KEY_BYTES_ATTRIBUTE, scannedKeyBytes)
     featureBuilder.set(QuerySizeIterator.RESULT_BYTES_ATTRIBUTE, resultBytes)
     featureBuilder.set(QuerySizeIterator.RESULT_RECORDS_ATTRIBUTE, resultRecords)
+    featureBuilder.set(QuerySizeIterator.RESULT_KEY_BYTES_ATTRIBUTE, resultKeyBytes)
 
     CloseableIterator(Iterator(featureBuilder.buildFeature("resultFeature")))
   }

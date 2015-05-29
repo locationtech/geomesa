@@ -61,8 +61,6 @@ class QuerySizeIteratorTest extends Specification with TestWithDataStore {
   "QuerySizeIterator" should {
 
     "calculate correct aggregated totals" in {
-      val random = new Random(randomSeed)
-
       val feats = (0 until 150).map { i =>
         val id = i.toString
         val dtg = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate
@@ -70,7 +68,7 @@ class QuerySizeIteratorTest extends Specification with TestWithDataStore {
         ScalaSimpleFeatureFactory.buildFeature(sft, Array(dtg, geom), id)
       }
 
-      val otherFeats = (-90 until 90).map { i => // Add extra points around the boundry to check proper filtering
+      val otherFeats = (-90 until 90).map { i => // Add extra points around the boundary to check proper filtering
         val id = (i+151).toString
         val dtg = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate
         val geom = "POINT(-101 " + i + ")"
@@ -90,16 +88,23 @@ class QuerySizeIteratorTest extends Specification with TestWithDataStore {
 
       val scanSizeBytes = result.getAttribute(QuerySizeIterator.SCAN_BYTES_ATTRIBUTE).asInstanceOf[Long]
       val scanRecords = result.getAttribute(QuerySizeIterator.SCAN_RECORDS_ATTRIBUTE).asInstanceOf[Long]
+      val scanKeyBytes = result.getAttribute(QuerySizeIterator.SCAN_KEY_BYTES_ATTRIBUTE).asInstanceOf[Long]
       val returnSizeBytes = result.getAttribute(QuerySizeIterator.RESULT_BYTES_ATTRIBUTE).asInstanceOf[Long]
       val returnRecords = result.getAttribute(QuerySizeIterator.RESULT_RECORDS_ATTRIBUTE).asInstanceOf[Long]
+      val returnKeyBytes = result.getAttribute(QuerySizeIterator.RESULT_KEY_BYTES_ATTRIBUTE).asInstanceOf[Long]
 
       val expectedNumRecords = 10
       val currentExpectedSizeInBytes = 30
+      val currentExpectedKeySizeInBytes = 44
 
       scanRecords should be greaterThan expectedNumRecords
+      scanSizeBytes should be greaterThan returnSizeBytes
+      scanKeyBytes should be greaterThan returnKeyBytes
+      // Give an expanded range on Byte sizes
       returnSizeBytes should be greaterThan (currentExpectedSizeInBytes-1)*expectedNumRecords
-      // Give an expanded range on size
       returnSizeBytes should be lessThan (currentExpectedSizeInBytes+1)*expectedNumRecords
+      returnKeyBytes should be greaterThan (currentExpectedKeySizeInBytes-1)*expectedNumRecords
+      returnKeyBytes should be lessThan (currentExpectedKeySizeInBytes+1)*expectedNumRecords
       returnRecords should be equalTo expectedNumRecords
     }
   }

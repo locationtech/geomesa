@@ -53,22 +53,27 @@ class QuerySizeIterator extends GeomesaFilteringIterator with HasFeatureDecoder 
   override def setTopConditionally() = {
 
     featureBuilder.reset()
+    val keyBytes: Long = source.getTopKey.getLength
     topKey = new Key(source.getTopKey)
 
     val curNumBytes: Long = source.getTopValue.getSize
 
     featureBuilder.set(SCAN_BYTES_ATTRIBUTE, curNumBytes)
     featureBuilder.set(SCAN_RECORDS_ATTRIBUTE, 1)
+    featureBuilder.set(SCAN_KEY_BYTES_ATTRIBUTE, keyBytes)
 
     var resultBytes: Long = 0
     var resultRecords: Long = 0
+    var resultKeyBytes: Long = 0
 
     if (filter.evaluate(featureDecoder.decode(source.getTopValue.get))) {
       resultBytes = curNumBytes
       resultRecords = 1
+      resultKeyBytes = keyBytes
     }
     featureBuilder.set(RESULT_BYTES_ATTRIBUTE, resultBytes)
     featureBuilder.set(RESULT_RECORDS_ATTRIBUTE, resultRecords)
+    featureBuilder.set(RESULT_KEY_BYTES_ATTRIBUTE, resultKeyBytes)
     val feature = featureBuilder.buildFeature("feature")
 
     topValue = new Value(querySizeFeatureEncoder.encode(feature))
@@ -78,12 +83,15 @@ class QuerySizeIterator extends GeomesaFilteringIterator with HasFeatureDecoder 
 
 object QuerySizeIterator {
   val QUERY_SIZE_FEATURE_SFT_STRING =
-    "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date,scanSizeBytes:Long,resultSizeBytes:Long,scanNumRecords:Long,resultNumRecords:Long"
+    "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date,"+
+    "scanSizeBytes:Long,resultSizeBytes:Long,scanNumRecords:Long,resultNumRecords:Long,"+
+    "scanKeyBytes:Long,resultKeyBytes:Long"
   val querySizeSFT = SimpleFeatureTypes.createType("querySize", QUERY_SIZE_FEATURE_SFT_STRING)
   val SCAN_BYTES_ATTRIBUTE = "scanSizeBytes"
   val SCAN_KEY_BYTES_ATTRIBUTE = "scanKeyBytes"
   val SCAN_RECORDS_ATTRIBUTE = "scanNumRecords"
   val RESULT_BYTES_ATTRIBUTE = "resultSizeBytes"
   val RESULT_RECORDS_ATTRIBUTE = "resultNumRecords"
+  val RESULT_KEY_BYTES_ATTRIBUTE = "resultKeyBytes"
   val ORIGINAL_SFT_OPTION = "originalSFT"
 }
