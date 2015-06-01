@@ -33,6 +33,7 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.temporal.Instant
 
+import scala.reflect.ClassTag
 import scala.util.Try
 
 object Conversions {
@@ -52,7 +53,7 @@ object Conversions {
   }
 
   implicit class RichSimpleFeatureReader(val r: FeatureReader[SimpleFeatureType, SimpleFeature]) extends AnyVal {
-    def getIterator = new Iterator[SimpleFeature] {
+    def getIterator: Iterator[SimpleFeature] = new Iterator[SimpleFeature] {
       override def hasNext: Boolean = r.hasNext
       override def next(): SimpleFeature = r.next()
     }
@@ -97,9 +98,27 @@ object Conversions {
       }
     }
 
+    def userData[T](key: AnyRef)(implicit ct: ClassTag[T]): Option[T] = {
+      Option(sf.getUserData.get(key)).flatMap {
+        case ct(x) => Some(x)
+        case _ => None
+      }
+    }
   }
 
+  implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
+
+    def userData[T](key: AnyRef)(implicit ct: ClassTag[T]): Option[T] = {
+      Option(sft.getUserData.get(key)).flatMap {
+        case ct(x) => Some(x)
+        case _ => None
+      }
+    }
+  }
 }
+
+
+
 
 object RichIterator {
   implicit class RichIterator[T](val iter: Iterator[T]) extends AnyVal {

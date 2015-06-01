@@ -15,12 +15,10 @@
  */
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.data.FeatureReader
-import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.factory.Hints
-import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{DFI, DFR, FR}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mock.Mockito
@@ -31,10 +29,6 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class TypeUpdatingFeatureReaderTest extends Specification with Mockito {
-
-  type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
-  type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
-  type DFI = DelegateFeatureIterator[SimpleFeature]
 
   val sftName = "TypeUpdatingFeatureReaderTest"
   val sft = SimpleFeatureTypes.createType(sftName, "name:String,*geom:Point,dtg:Date")

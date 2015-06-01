@@ -18,11 +18,12 @@ package org.locationtech.geomesa.utils.geotools
 
 import com.vividsolutions.jts.geom.Geometry
 import org.junit.runner.RunWith
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
 
 @RunWith(classOf[JUnitRunner])
@@ -137,5 +138,70 @@ sequential
 
       sf.geometry must throwA[ClassCastException]
     }
+
+    "provide type safe access to user data" >> {
+
+      val expected: Integer = 5
+
+      val userData = Map[AnyRef, AnyRef]("key" -> expected).asJava
+      sf.getUserData returns userData
+
+      "when type is correct" >> {
+
+        val result = sf.userData[Integer]("key")
+        result must beSome(expected)
+      }
+
+      "or none when type is not correct" >> {
+
+        val result = sf.userData[String]("key")
+        result must beNone
+      }
+
+      "or none when value does not exist" >> {
+
+        val result: Option[String] = sf.userData[String]("foo")
+        result must beNone
+      }
+    }
+  }
+
+  "RichSimpleFeatureType" should {
+
+    import Conversions.RichSimpleFeatureType
+
+    val sft = mock[SimpleFeatureType]
+
+    "support implicit conversion" >> {
+      val rsft: RichSimpleFeatureType = sft
+      success
+    }
+
+    "provide type safe access to user data" >> {
+
+      val expected: Integer = 5
+
+      val userData = Map[AnyRef, AnyRef]("key" -> expected).asJava
+      sft.getUserData returns userData
+
+      "when type is correct" >> {
+
+        val result = sft.userData[Integer]("key")
+        result must beSome(expected)
+      }
+
+      "or none when type is not correct" >> {
+
+        val result = sft.userData[String]("key")
+        result must beNone
+      }
+
+      "or none when value does not exist" >> {
+
+        val result: Option[String] = sft.userData[String]("foo")
+        result must beNone
+      }
+    }
+
   }
 }

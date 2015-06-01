@@ -1,21 +1,17 @@
 package org.locationtech.geomesa.utils.index
 
 import com.vividsolutions.jts.geom.Geometry
-import org.geotools.data.FeatureReader
-import org.geotools.data.collection.DelegateFeatureReader
+import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.geotools.data.store.FilteringFeatureIterator
-import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.geometry.jts.JTS
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{DFI, DFR, FR}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
 
 trait QuadTreeFeatureStore {
-  type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
-  type DFR = DelegateFeatureReader[SimpleFeatureType, SimpleFeature]
-  type DFI = DelegateFeatureIterator[SimpleFeature]
 
-  def qt: SynchronizedQuadtree
+  def qt: Quadtree
   def sft: SimpleFeatureType
 
   def within(w: Within): FR = {
