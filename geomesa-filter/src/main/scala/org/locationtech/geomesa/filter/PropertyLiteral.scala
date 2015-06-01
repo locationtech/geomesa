@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  */
 
-package org.locationtech.geomesa.accumulo.filter
+package org.locationtech.geomesa.filter
 
 import org.opengis.filter.expression.Literal
 

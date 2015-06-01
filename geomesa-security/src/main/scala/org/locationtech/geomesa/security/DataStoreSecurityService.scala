@@ -20,7 +20,7 @@ import java.util.ServiceLoader
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.{FeatureReader, FeatureSource, Query}
 import org.geotools.feature.FeatureCollection
-import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceSupport
+import org.locationtech.geomesa.utils.geotools.{FR, ContentFeatureSourceSupport}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /** A service for adding to security to feature readers.

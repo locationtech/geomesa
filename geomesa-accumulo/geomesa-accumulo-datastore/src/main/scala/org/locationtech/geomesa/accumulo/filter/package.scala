@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.accumulo
 
 import org.geotools.factory.CommonFactoryFinder
+import org.locationtech.geomesa.filter.checkOrder
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
-import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{BinaryTemporalOperator, TEquals}
 
@@ -306,34 +306,4 @@ package object filter {
       case b: Or => b.getChildren.toSeq.flatMap(decomposeOr)
       case f: Filter => Seq(f)
     }
-
-  /**
-   * Checks the order of properties and literals in the expression
-   *
-   * @param one
-   * @param two
-   * @return (prop, literal, whether the order was flipped)
-   */
-  def checkOrder(one: Expression, two: Expression): Option[PropertyLiteral] =
-    (one, two) match {
-      case (p: PropertyName, l: Literal) => Some(PropertyLiteral(p.getPropertyName, l, None, flipped = false))
-      case (l: Literal, p: PropertyName) => Some(PropertyLiteral(p.getPropertyName, l, None, flipped = true))
-      case (_: PropertyName, _: PropertyName) | (_: Literal, _: Literal) => None
-      case _ =>
-        val msg = s"Unhandled expressions in strategy: ${one.getClass.getName}, ${two.getClass.getName}"
-        throw new RuntimeException(msg)
-
-    }
-
-  /**
-   * Checks the order of properties and literals in the expression - if the expression does not contain
-   * a property and a literal, throws an exception.
-   *
-   * @param one
-   * @param two
-   * @return
-   */
-  def checkOrderUnsafe(one: Expression, two: Expression): PropertyLiteral =
-    checkOrder(one, two)
-        .getOrElse(throw new RuntimeException("Expressions did not contain valid property and literal"))
 }

@@ -26,6 +26,7 @@
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka_2.10</artifactId>
                 <version>${kafka.version}</version>
+                <scope>provided</scope>
                 <exclusions>
                     <exclusion>
                         <artifactId>slf4j-log4j12</artifactId>
@@ -34,10 +35,6 @@
                     <exclusion>
                         <groupId>org.xerial.snappy</groupId>
                         <artifactId>snappy-java</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>net.sf.jopt-simple</groupId>
-                        <artifactId>jopt-simple</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

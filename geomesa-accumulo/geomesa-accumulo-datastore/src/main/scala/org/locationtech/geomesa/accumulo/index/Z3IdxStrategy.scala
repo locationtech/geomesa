@@ -2,7 +2,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Geometry, GeometryCollection, Point}
+import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
@@ -12,6 +12,7 @@ import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.iterators.Z3Iterator
 import org.locationtech.geomesa.accumulo.{filter, index}
 import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.filter.checkOrder
 import org.locationtech.geomesa.iterators.{KryoLazyFilterTransformIterator, LazyFilterTransformIterator}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
