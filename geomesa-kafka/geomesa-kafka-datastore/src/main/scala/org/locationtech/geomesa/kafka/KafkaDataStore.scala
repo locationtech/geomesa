@@ -40,7 +40,7 @@ class KafkaDataStore(override val zookeepers: String,
 
   override def createTypeNames() = getNames()
 
-  val featureSourceCache =
+  private val featureSourceCache =
     CacheBuilder.newBuilder().build[ContentEntry, ContentFeatureSource](
       new CacheLoader[ContentEntry, ContentFeatureSource] {
         override def load(entry: ContentEntry) = {
@@ -50,6 +50,10 @@ class KafkaDataStore(override val zookeepers: String,
 
   override def createFeatureSource(entry: ContentEntry) = featureSourceCache.get(entry)
 
+  override def dispose(): Unit = {
+    super[ContentDataStore].dispose()
+    super[KafkaDataStoreSchemaManager].dispose()
+  }
 }
 
 object KafkaDataStoreFactoryParams {
@@ -72,16 +76,16 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   import org.locationtech.geomesa.kafka.KafkaDataStoreFactoryParams._
 
   override def createDataStore(params: ju.Map[String, Serializable]): DataStore = {
-    val broker   = KAFKA_BROKER_PARAM.lookUp(params).asInstanceOf[String]
-    val zk       = ZOOKEEPERS_PARAM.lookUp(params).asInstanceOf[String]
-    val zkPath   = KafkaDataStoreHelper.cleanZkPath(ZK_PATH.lookUp(params).asInstanceOf[String])
+    val broker = KAFKA_BROKER_PARAM.lookUp(params).asInstanceOf[String]
+    val zkHost = ZOOKEEPERS_PARAM.lookUp(params).asInstanceOf[String]
+    val zkPath = KafkaDataStoreHelper.cleanZkPath(ZK_PATH.lookUp(params).asInstanceOf[String])
 
-    val partitions       = Option(TOPIC_PARTITIONS.lookUp(params)).map(_.toString.toInt).getOrElse(1)
-    val replication      = Option(TOPIC_REPLICATION.lookUp(params)).map(_.toString.toInt).getOrElse(1)
+    val partitions  = Option(TOPIC_PARTITIONS.lookUp(params)).map(_.toString.toInt).getOrElse(1)
+    val replication = Option(TOPIC_REPLICATION.lookUp(params)).map(_.toString.toInt).getOrElse(1)
 
-    val fsFactory = createFeatureSourceFactory(broker, zk, params)
+    val fsFactory = createFeatureSourceFactory(broker, zkHost, params)
 
-    new KafkaDataStore(zk, zkPath, partitions, replication, fsFactory)
+    new KafkaDataStore(zkHost, zkPath, partitions, replication, fsFactory)
   }
 
   def createFeatureSourceFactory(brokers: String,

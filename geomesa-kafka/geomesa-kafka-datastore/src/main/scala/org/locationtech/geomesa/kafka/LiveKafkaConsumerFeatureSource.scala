@@ -25,7 +25,7 @@ import org.geotools.data.Query
 import org.geotools.data.store.ContentEntry
 import org.locationtech.geomesa.kafka.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.FR
+import org.locationtech.geomesa.utils.geotools.FR
 import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -76,7 +76,7 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
 
     val cb = CacheBuilder.newBuilder().ticker(ticker)
 
-    expirationPeriod.map { ep =>
+    expirationPeriod.foreach { ep =>
       cb.expireAfterWrite(ep, TimeUnit.MILLISECONDS)
         .removalListener(
           new RemovalListener[String, FeatureHolder] {
@@ -94,11 +94,11 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
 
   def createOrUpdateFeature(update: CreateOrUpdate): Unit = {
     val sf = update.feature
-    val id = update.id
+    val id = sf.getID
     Option(cache.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
     val env = sf.geometry.getEnvelopeInternal
     qt.insert(env, sf)
-    cache.put(sf.getID, FeatureHolder(sf, env))
+    cache.put(id, FeatureHolder(sf, env))
   }
 
   def removeFeature(toDelete: Delete): Unit = {

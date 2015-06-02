@@ -27,7 +27,8 @@ import scala.collection.JavaConversions._
 object KafkaConsumerTestData {
 
   val typeName = "track"
-  val sft = SimpleFeatureTypes.createType(typeName, "trackId:String,*geom:LineString:srid=4326")
+  val sft = KafkaDataStoreHelper.createStreamingSFT(
+    SimpleFeatureTypes.createType(typeName, "trackId:String,*geom:LineString:srid=4326"), "/test")
 
   val track0v0 = track("track0", "LineString (30 30, 30 30)")
   val track0v1 = track("track0", "LineString (30 30, 35 30)")

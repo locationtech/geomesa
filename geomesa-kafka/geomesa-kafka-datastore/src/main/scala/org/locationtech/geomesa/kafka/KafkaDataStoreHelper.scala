@@ -6,59 +6,74 @@ import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.opengis.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureType
 
+/** Utilities for managing the user data in [[SimpleFeatureType]]s as required by [[KafkaDataStore]]
+  * 
+  */
 object KafkaDataStoreHelper {
 
   val TopicKey = "Topic"
   val ReplayConfigKey = "ReplayConfig"
 
-  /** Creates a copy of the passed SimpleFeatureType, inserting the topic name (derived from zkPath) into user data.*/
-  def prepareForLive(sft: SimpleFeatureType, zkPath: String) : SimpleFeatureType = {
-
-    val builder = FeatureUtils.builder(sft)
-    val preparedSft = builder.buildFeatureType()
-    insertTopic(preparedSft,buildTopicName(zkPath,sft))
-    preparedSft
+  /** Creates a copy of the passed [[SimpleFeatureType]] with additional user data specifying the topic name
+    * (derived from the given `zkPath`).  The [[KafkaDataStore]] requires the additional user data.  Only
+    * "Streaming SFTs" returned by this method and "Replay SFTs" created by `createReplaySFT` may
+    * be used with [[KafkaDataStore]].  Calling `createSchema(sft)` on a [[KafkaDataStore]] with any other
+    * SFT will result in an [[IllegalArgumentException]] being thrown.
+    *
+    * @param sft the [[SimpleFeatureType]] to be used with a [[KafkaDataStore]]
+    * @param zkPath the base zookeeper path where [[SimpleFeatureType]]s are stored; MUST match the zkPath
+    *               used to create the [[KafkaDataStore]]; also used to generate the name of the Kafka topic
+    * @return a copy of the given ``sft`` that is ready to be used with a [[KafkaDataStore]]
+    */
+  def createStreamingSFT(sft: SimpleFeatureType, zkPath: String) : SimpleFeatureType = {
+    val streamingSft = FeatureUtils.builder(sft).buildFeatureType()
+    insertTopic(streamingSft, buildTopicName(zkPath, sft))
+    streamingSft
   }
 
-
-  /** Creates a copy of the passed SimpleFeature type, inserting an encoded ReplayConfig into the user data. */
-  def prepareForReplay(sft: SimpleFeatureType, rConfig: ReplayConfig) : SimpleFeatureType = {
+  /** Creates a copy of the passed SimpleFeature type with additional user data representing the given
+    * [[ReplayConfig]] (encoded as a [[String]]).  The [[KafkaDataStore]] requires the additional user data.
+    * Only "Streaming SFTs" returned by `createStreamingSFT` and "Replay SFTs" created by this method may
+    * be used with [[KafkaDataStore]].  Calling `createSchema(sft)` on a [[KafkaDataStore]] with any other
+    * SFT will result in an [[IllegalArgumentException]] being thrown.
+    *
+    * @param sft the [[SimpleFeatureType]] to prepare for replay; must have been previously prepared for live
+    *
+    */
+  def createReplaySFT(sft: SimpleFeatureType, rConfig: ReplayConfig) : SimpleFeatureType = {
+    require(isStreamingSFT(sft),
+      "Only \"Streaming SFTs\" created by 'createStreamingSFT' can be used with 'createReplaySFT'.")
 
     val builder = FeatureUtils.builder(sft)
     builder.setName(buildReplayTypeName(sft.getTypeName))
     ReplayTimeHelper.addReplayTimeAttribute(builder)
 
-    // assumes topic has been prepared, need to check though...
-    val preparedSft = builder.buildFeatureType()
-    preparedSft.getUserData.put(ReplayConfigKey,ReplayConfig.encode(rConfig))
-    preparedSft
+    val replaySft = builder.buildFeatureType()
+    replaySft.getUserData.put(ReplayConfigKey, ReplayConfig.encode(rConfig))
+    replaySft
   }
 
   /** modifies the passed SimpleFeature type, adding the topic string to user data */
-  def insertTopic(sft: SimpleFeatureType, topic: String) : SimpleFeatureType = {
+  private[kafka] def insertTopic(sft: SimpleFeatureType, topic: String): Unit =
     sft.getUserData.put(TopicKey,topic)
-    sft
-  }
 
-  def extractTopic(sft: SimpleFeatureType) : Option[String] = sft.userData[String](TopicKey)
+  private[kafka] def extractTopic(sft: SimpleFeatureType) : Option[String] = sft.userData[String](TopicKey)
 
   /** Modifies the passed SimpleFeatureType, adding the encoded replay configString to the user data */
-  def insertReplayConfig(sft: SimpleFeatureType, configString : String): SimpleFeatureType = {
+  private[kafka] def insertReplayConfig(sft: SimpleFeatureType, configString : String): Unit =
     sft.getUserData.put(ReplayConfigKey, configString)
-    sft
-  }
 
-  def extractReplayConfig(sft: SimpleFeatureType) : Option[ReplayConfig] =
+  private[kafka] def extractReplayConfig(sft: SimpleFeatureType) : Option[ReplayConfig] =
     sft.userData[String](ReplayConfigKey).flatMap(ReplayConfig.decode)
 
-  /** Extracts the name of the prepared--for-live [[SimpleFeatureType]] which the given prepared-for-replay
-    * ``replayType`` is based on.
+  /** Extracts the name of the "Streaming SFT" [[SimpleFeatureType]] which the given "Replay SFT" is based on.
     *
-    * @param replayType a [[SimpleFeatureType]] that has been prepared for replay
-    * @return the name of the live simple feature or ``None`` if ``replayType`` was not prepared for replay
+    * @param replaySFT a [[SimpleFeatureType]] that has been prepared for replay
+    * @return the name of the streaming simple feature or ``None`` if ``replaySFT`` was not produced by
+    *         'createReplaySFT'
     */
-  def extractLiveTypeName(replayType: SimpleFeatureType): Option[String] = {
-    val replayName = replayType.getTypeName
+  def extractStreamingTypeName(replaySFT: SimpleFeatureType): Option[String] = {
+    val replayName = replaySFT.getTypeName
     val index = replayName.indexOf(replayIdentifier)
 
     if (index > 0) {
@@ -67,13 +82,18 @@ object KafkaDataStoreHelper {
       None
     }
   }
-  
-  def isPreparedForLive(sft: SimpleFeatureType): Boolean =
+
+  /** @return true if the given sft was produced by createStreamingSFT otherwise false
+    */
+  def isStreamingSFT(sft: SimpleFeatureType): Boolean =
     sft.getUserData.containsKey(TopicKey) && !sft.getUserData.containsKey(ReplayConfigKey)
 
-  def isPreparedForReplay(sft: SimpleFeatureType): Boolean = sft.getUserData.containsKey(ReplayConfigKey)
+  /** @return true if the given sft was produced by createReplaySFT otherwise false
+    */
+  def isPreparedForReplay(sft: SimpleFeatureType): Boolean =
+    sft.getUserData.containsKey(TopicKey) && sft.getUserData.containsKey(ReplayConfigKey)
 
-  final val DefaultZkPath: String = "/geomesa/ds/kafka"
+  val DefaultZkPath: String = "/geomesa/ds/kafka"
 
   /** Cleans up a zk path parameter - trims, prepends with "/" if needed, strips trailing "/" if needed.
     * Defaults to "/geomesa/ds/kafka" if rawPath is null or empty.
@@ -81,7 +101,8 @@ object KafkaDataStoreHelper {
     * @return
     */
   def cleanZkPath(rawPath: String, default: String = DefaultZkPath): String = {
-    Option(rawPath).map(_.trim)  // handle null
+    Option(rawPath)
+      .map(_.trim)  // handle null
       .filterNot(_.isEmpty)  // handle empty string
       .map(p => if (p.startsWith("/")) p else "/" + p)  // leading '/'
       .map(p => if (p.endsWith("/") && (p.length > 1)) p.substring(0, p.length - 1) else p)  // trailing '/'
@@ -96,7 +117,7 @@ object KafkaDataStoreHelper {
   private val replayIdentifier = "-REPLAY-"
 
   private def buildReplayTypeName(name: String): String = {
-    val uuid=UUID.randomUUID()
+    val uuid = UUID.randomUUID()
     s"$name$replayIdentifier$uuid"
   }
 

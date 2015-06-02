@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo
 
 import org.geotools.factory.CommonFactoryFinder
+import org.locationtech.geomesa.filter.checkOrder
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.spatial._
@@ -305,8 +306,4 @@ package object filter {
       case b: Or => b.getChildren.toSeq.flatMap(decomposeOr)
       case f: Filter => Seq(f)
     }
-
-  val checkOrder = org.locationtech.geomesa.filter.checkOrder _
-
-  val checkOrderUnsafe = org.locationtech.geomesa.filter.checkOrderUnsafe _
 }

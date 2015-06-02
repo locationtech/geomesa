@@ -30,6 +30,10 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConverters._
 import scala.util.Try
 
+/** A partial implementation of [[DataStore]] implementing all methods related to [[SimpleFeatureType]]s.
+  *
+  * See GEOMESA-818 for additional considerations.
+  */
 trait KafkaDataStoreSchemaManager extends DataStore  {
 
   protected def zookeepers: String
@@ -37,11 +41,7 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
   protected def partitions: Int
   protected def replication: Int
 
-  //
-  // todo:  consistent exception handling across all methods
-  // todo   - catch and rethrow a known/consistent exception with helpful msg
-  //
-   override def createSchema(featureType: SimpleFeatureType): Unit = {
+  override def createSchema(featureType: SimpleFeatureType): Unit = {
 
     val kfc = KafkaFeatureConfig(featureType)  // this is guaranteed to have a topic
 
@@ -63,12 +63,12 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
     kfc.replayConfig.foreach(r => createZkNode(getReplayConfigPath(typeName), ReplayConfig.encode(r)))
 
     //create the Kafka topic
-    if(!AdminUtils.topicExists(zkClient, kfc.topic))
+    if(!AdminUtils.topicExists(zkClient, kfc.topic)) {
       AdminUtils.createTopic(zkClient, kfc.topic, partitions, replication)
+    }
 
     // put it in the cache
     schemaCache.put(typeName, kfc)
-
   }
 
   def getFeatureConfig(typeName: String) : KafkaFeatureConfig = schemaCache.get(typeName)
@@ -79,12 +79,12 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
   def getLiveFeatureType(replayType: SimpleFeatureType): Option[SimpleFeatureType] = {
 
     Try {
-      KafkaDataStoreHelper.extractLiveTypeName(replayType).map(schemaCache.get(_).sft)
+      KafkaDataStoreHelper.extractStreamingTypeName(replayType).map(schemaCache.get(_).sft)
     }.getOrElse(None)
   }
 
-  override def getNames: util.List[Name] = zkClient.getChildren(zkPath).asScala.map(
-    name => new NameImpl(name) : Name).asJava
+  override def getNames: util.List[Name] =
+    zkClient.getChildren(zkPath).asScala.map(name => new NameImpl(name) : Name).asJava
 
 
   override def removeSchema(typeName: Name): Unit = removeSchema(typeName.getLocalPart)
@@ -94,10 +94,10 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
     // clean up cache and zookeeper resources
     schemaCache.invalidate(typeName)
     zkClient.deleteRecursive(getSchemaPath(typeName))
+  }
 
-    // todo: what about other remote caches - do we set up a kafka listener looking for deletes?
-    // todo: what about kafka - who has the responsibility to clean the kafka topic up?
-
+  override def dispose(): Unit = {
+    zkClient.close()
   }
 
   private def resolveTopicSchema(typeName: String): KafkaFeatureConfig = {
@@ -107,7 +107,7 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
     val sft = SimpleFeatureTypes.createType(typeName, schema)
     KafkaDataStoreHelper.insertTopic(sft, topic)
     val replay = Option(zkClient.readData[String](getReplayConfigPath(typeName), true))
-    replay.map(KafkaDataStoreHelper.insertReplayConfig(sft, _))
+    replay.foreach(KafkaDataStoreHelper.insertReplayConfig(sft, _))
 
     KafkaFeatureConfig(sft)
   }
@@ -166,7 +166,7 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
   *                                  ``KafkaDataStoreHelper.prepareForLive``
   */
 @throws[IllegalArgumentException]
-private[kafka] case class KafkaFeatureConfig(sft: SimpleFeatureType) extends AnyRef {
+private[kafka] case class KafkaFeatureConfig(sft: SimpleFeatureType) {
 
   /** the name of the Kafka topic */
   val topic: String = KafkaDataStoreHelper.extractTopic(sft)
@@ -179,5 +179,5 @@ private[kafka] case class KafkaFeatureConfig(sft: SimpleFeatureType) extends Any
   val replayConfig: Option[ReplayConfig] = KafkaDataStoreHelper.extractReplayConfig(sft)
 
   override def toString: String =
-    s"KafkaSimpleFeatureType: typeName=${sft.getTypeName}; topic=$topic; replayConfig=$replayConfig"
+    s"KafkaFeatureConfig: typeName=${sft.getTypeName}; topic=$topic; replayConfig=$replayConfig"
 }

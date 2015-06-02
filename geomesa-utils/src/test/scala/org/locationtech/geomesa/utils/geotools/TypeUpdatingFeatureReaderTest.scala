@@ -18,7 +18,6 @@ package org.locationtech.geomesa.utils.geotools
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{DFI, DFR, FR}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mock.Mockito

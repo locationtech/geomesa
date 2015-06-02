@@ -79,11 +79,8 @@
             <artifactId>kafka_2.10</artifactId>
         </dependency>
         <dependency>
-            <!--This is a compile dependency of Kafka and also KafkaGeoMessageConsoleConsumer -->
             <groupId>net.sf.jopt-simple</groupId>
             <artifactId>jopt-simple</artifactId>
-            <version>3.2</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>

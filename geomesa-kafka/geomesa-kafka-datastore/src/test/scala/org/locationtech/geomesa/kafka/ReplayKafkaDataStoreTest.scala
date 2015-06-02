@@ -57,7 +57,7 @@ class ReplayKafkaDataStoreTest
     "allowCreation of SFT and sending of messages" >> {
 
       dataStore = createDataStore
-      liveSFT = KafkaDataStoreHelper.prepareForLive(sft, zkPath)
+      liveSFT = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
 
       dataStore.createSchema(liveSFT)
 
@@ -220,7 +220,7 @@ class ReplayKafkaDataStoreTest
 
     def createReplayFeatureSource(start: Long, end: Long, readBehind: Long): (SimpleFeatureType, SimpleFeatureSource) = {
       val rc = ReplayConfig(start, end, readBehind)
-      val replaySFT = KafkaDataStoreHelper.prepareForReplay(liveSFT, rc)
+      val replaySFT = KafkaDataStoreHelper.createReplaySFT(liveSFT, rc)
       dataStore.createSchema(replaySFT)
 
       val fs = dataStore.getFeatureSource(replaySFT.getTypeName)

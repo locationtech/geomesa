@@ -25,9 +25,9 @@ import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.feature.FeatureCollection
 import org.geotools.feature.collection.BridgeIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
+import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
@@ -44,7 +44,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
   extends ContentFeatureStore(entry, query) with Logging {
 
   override def getBoundsInternal(query: Query) =
-    ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
+    ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), CRS_EPSG_4326)
 
   override def buildFeatureType(): SimpleFeatureType = sft
 
@@ -74,7 +74,9 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
   def clearFeatures(): Unit = {
     val msg = GeoMessage.clear()
     logger.debug("sending message: {}", msg)
-    producer.send(KafkaGeoMessageEncoder.encodeClearMessage(topic, msg))
+
+    val encoder = new KafkaGeoMessageEncoder(sft)
+    producer.send(encoder.encodeClearMessage(topic, msg))
   }
 
   override def getWriterInternal(query: Query, flags: Int) =

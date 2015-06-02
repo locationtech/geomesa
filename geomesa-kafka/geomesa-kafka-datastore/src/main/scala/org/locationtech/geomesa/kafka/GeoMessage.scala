@@ -46,10 +46,7 @@ object GeoMessage {
   *
   * @param feature the [[SimpleFeature]]
   */
-case class CreateOrUpdate(override val timestamp: Instant, feature: SimpleFeature) extends GeoMessage {
-
-  val id = feature.getID
-}
+case class CreateOrUpdate(override val timestamp: Instant, feature: SimpleFeature) extends GeoMessage
 
 /** Delete an existing [[SimpleFeature]]
   *
@@ -67,7 +64,7 @@ case class Clear(override val timestamp: Instant) extends GeoMessage
   *
   * The following encoding is used:
   *
-  * Key: version (1 byte) type (1 byte) timstamp (8 bytes)
+  * Key: version (1 byte) type (1 byte) timestamp (8 bytes)
   *
   * The current version is 1
   * The type is 'C' for create or update, 'D' for delete and 'X' for clear
@@ -86,9 +83,20 @@ object GeoMessageEncoder {
   val clearType: Byte = 'X'
 
   private val EMPTY = Array.empty[Byte]
+}
+
+/** Encodes [[GeoMessage]]s.
+  *
+  * @param schema the [[SimpleFeatureType]]; required to serialize [[CreateOrUpdate]] messages
+  */
+class GeoMessageEncoder(schema: SimpleFeatureType) {
+
+  import GeoMessageEncoder._
+
+  private lazy val serializer: SimpleFeatureSerializer =
+    new KryoFeatureSerializer(schema, SerializationOptions.withUserData)
 
   def encodeKey(msg: GeoMessage): Array[Byte] = {
-
     val msgType: Byte = msg match {
       case c: CreateOrUpdate => createOrUpdateType
       case d: Delete => deleteType
@@ -103,21 +111,6 @@ object GeoMessageEncoder {
     bb.array()
   }
 
-  def encodeClearMessage(msg: Clear): Array[Byte] = EMPTY
-
-  def encodeDeleteMessage(msg: Delete): Array[Byte] = msg.id.getBytes(StandardCharsets.UTF_8)
-}
-
-/** Encodes [[GeoMessage]]s.
-  *
-  * @param schema the [[SimpleFeatureType]]; required to serialize [[CreateOrUpdate]] messages
-  */
-class GeoMessageEncoder(schema: SimpleFeatureType) {
-
-  import GeoMessageEncoder._
-
-  val serializer: SimpleFeatureSerializer = new KryoFeatureSerializer(schema, SerializationOptions.withUserData)
-
   def encodeMessage(msg: GeoMessage): Array[Byte] = msg match {
     case c: CreateOrUpdate =>
       encodeCreateOrUpdateMessage(c)
@@ -130,6 +123,10 @@ class GeoMessageEncoder(schema: SimpleFeatureType) {
   }
 
   def encodeCreateOrUpdateMessage(msg: CreateOrUpdate): Array[Byte] = serializer.serialize(msg.feature)
+
+  def encodeDeleteMessage(msg: Delete): Array[Byte] = msg.id.getBytes(StandardCharsets.UTF_8)
+
+  def encodeClearMessage(msg: Clear): Array[Byte] = EMPTY
 }
 
 /** Decodes an encoded [[GeoMessage]].
@@ -140,8 +137,15 @@ class GeoMessageDecoder(schema: SimpleFeatureType) extends Logging {
 
   case class MsgKey(version: Byte, msgType: Byte, ts: Instant)
 
-  val serializer: SimpleFeatureDeserializer = new KryoFeatureSerializer(schema, SerializationOptions.withUserData)
+  private val serializer: SimpleFeatureDeserializer =
+    new KryoFeatureSerializer(schema, SerializationOptions.withUserData)
 
+  /** Decodes an encoded [[GeoMessage]] represented by the given ``key`` and ``msg``.
+    *
+    * @param key the encoded message key
+    * @param msg the encoded message body
+    * @return the decoded [[GeoMessage]]
+    */
   def decode(key: Array[Byte], msg: Array[Byte]): GeoMessage = {
     val MsgKey(version, msgType, ts) = decodeKey(key)
 
@@ -152,24 +156,35 @@ class GeoMessageDecoder(schema: SimpleFeatureType) extends Logging {
     }
   }
 
-  def decodeKey(key: Array[Byte]): MsgKey = {
-    if (key == null) {
-      throw new IllegalArgumentException("Invalid null key.")
-    }
-    if (key.length != 10) {
-      throw new IllegalArgumentException(s"Invalid message key.  Expecting 10 bytes but found ${key.length}: "
-        + s"${new String(key, StandardCharsets.UTF_8)}")
+  protected def decodeKey(key: Array[Byte]): MsgKey = {
+
+    def keyToString = if (key == null) "null" else s"'${new String(key, StandardCharsets.UTF_8)}'"
+
+    if (key == null || key.length == 0) {
+      throw new IllegalArgumentException(
+        s"Invalid message key: $keyToString.  Cannot determine serialization version.")
     }
 
     val buffer = ByteBuffer.wrap(key)
     val version = buffer.get()
-    val msgType = buffer.get()
-    val ts = new Instant(buffer.getLong)
 
-    MsgKey(version, msgType, ts)
+    if (version == 1) {
+      if (key.length != 10) {
+        throw new IllegalArgumentException(
+          s"Invalid version 1 message key: $keyToString.  Expecting 10 bytes but found ${key.length}.")
+      }
+
+      val msgType = buffer.get()
+      val ts = new Instant(buffer.getLong)
+
+      MsgKey(version, msgType, ts)
+    } else {
+      throw new IllegalArgumentException(
+        s"Invalid message key: $keyToString.  Unknown serialization version: $version")
+    }
   }
 
-  def decodeVersion1(msgType: Byte, ts: Instant, msg: Array[Byte]): GeoMessage = msgType match {
+  private def decodeVersion1(msgType: Byte, ts: Instant, msg: Array[Byte]): GeoMessage = msgType match {
     case GeoMessageEncoder.createOrUpdateType =>
       val sf = serializer.deserialize(msg)
       CreateOrUpdate(ts, sf)

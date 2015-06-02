@@ -81,6 +81,6 @@ trait SimpleFeatureMatchers extends Specification {
   // modifies simple features switch to the replay type and adding replay time attribute
   def expect(replayType: SimpleFeatureType, replayTime: Long, sf: SimpleFeature*): Set[SimpleFeature] = {
     val helper = new ReplayTimeHelper(replayType, replayTime)
-    sf.map(helper.addReplayTime).toSet
+    sf.map(helper.reType).toSet
   }
 }

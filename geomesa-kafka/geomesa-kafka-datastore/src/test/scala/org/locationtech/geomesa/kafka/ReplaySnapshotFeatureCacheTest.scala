@@ -28,7 +28,7 @@ class ReplaySnapshotFeatureCacheTest extends Specification with SimpleFeatureMat
   import KafkaConsumerTestData._
 
   // the ReplayConfig here doesn't matter
-  val replayType = KafkaDataStoreHelper.prepareForReplay(sft, ReplayConfig(0, 0, 0))
+  val replayType = KafkaDataStoreHelper.createReplaySFT(sft, ReplayConfig(0, 0, 0))
 
   // replay time is arbitrary for this test
   val replayTime = 1000L
@@ -119,7 +119,7 @@ class ReplaySnapshotFeatureCacheTest extends Specification with SimpleFeatureMat
   }
 
   def equalSFWithReplayTime(expected: SimpleFeature): Matcher[SimpleFeature] = {
-    val expectedWithReplayTime = new ReplayTimeHelper(replayType, replayTime).addReplayTime(expected)
+    val expectedWithReplayTime = new ReplayTimeHelper(replayType, replayTime).reType(expected)
     equalSF(expectedWithReplayTime)
   }
 }

@@ -64,7 +64,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with Loggin
 
     val schema = {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      KafkaDataStoreHelper.prepareForLive(sft, zkPath)
+      KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
     }
 
     "allow schemas to be created" >> {
@@ -76,7 +76,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with Loggin
     }
 
     "allow schemas to be deleted" >> {
-      val replaySFT = KafkaDataStoreHelper.prepareForReplay(schema, ReplayConfig(10000L, 20000L, 1000L))
+      val replaySFT = KafkaDataStoreHelper.createReplaySFT(schema, ReplayConfig(10000L, 20000L, 1000L))
       val name = replaySFT.getTypeName
 
       consumerDS.createSchema(replaySFT)

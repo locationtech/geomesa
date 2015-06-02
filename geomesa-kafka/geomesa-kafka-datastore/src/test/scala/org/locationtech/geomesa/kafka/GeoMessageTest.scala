@@ -37,7 +37,7 @@ class GeoMessageTest extends Specification with Mockito {
 
   sequential
 
-  type ProducerMsg = KafkaGeoMessageEncoder.MSG
+  type ProducerMsg = KafkaGeoMessageEncoder#MSG
   type ConsumerMsg = KafkaGeoMessageDecoder#MSG
   
   val topic = "test_topic"
@@ -121,7 +121,6 @@ class GeoMessageTest extends Specification with Mockito {
       decoded.isInstanceOf[CreateOrUpdate] must beTrue
 
       val cu = decoded.asInstanceOf[CreateOrUpdate]
-      cu.id mustEqual sf.getID
       cu.feature must equalSF(sf)
     }
   }
@@ -135,7 +134,7 @@ class GeoMessageTest extends Specification with Mockito {
         null,
         "garbage".getBytes(StandardCharsets.UTF_8))
 
-      decoder.decode(msg) must throwAn[IllegalArgumentException]("Invalid null key")
+      decoder.decode(msg) must throwAn[IllegalArgumentException]("Invalid message key: null")
     }
 
     "throw an exception if the message key length is incorrect" >> {
@@ -145,7 +144,7 @@ class GeoMessageTest extends Specification with Mockito {
         Array[Byte](1, 1, 1),
         "garbage".getBytes(StandardCharsets.UTF_8))
 
-      decoder.decode(msg) must throwAn[IllegalArgumentException]("Invalid message key")
+      decoder.decode(msg) must throwAn[IllegalArgumentException]("Expecting 10 bytes")
     }
 
     "throw an exception if the version number is incorrect" >> {

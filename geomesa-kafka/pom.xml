@@ -18,6 +18,9 @@
     <properties>
         <kafka.version>0.8.2.1</kafka.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
+
+        <!--Match version used by Kafka -->
+        <jopt.simple.version>3.2</jopt.simple.version>
     </properties>
 
     <dependencyManagement>
@@ -71,6 +74,12 @@
                         <artifactId>jopt-simple</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>net.sf.jopt-simple</groupId>
+                <artifactId>jopt-simple</artifactId>
+                <version>3.2</version>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

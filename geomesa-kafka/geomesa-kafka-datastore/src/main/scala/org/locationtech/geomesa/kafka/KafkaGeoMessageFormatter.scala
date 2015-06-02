@@ -34,8 +34,8 @@ import org.opengis.feature.simple.SimpleFeatureType
   *   --property sft.name={sftName}
   *   --property sft.spec={sftSpec}
   *
-  * In order to pass the spec via a command argument all "=" characters must be replaced by "%61".  Any
-  * "%" characters that exist prior to replacement of "=" must be replaced by "%37".
+  * In order to pass the spec via a command argument all "%" characters must be replaced by "%37" and all
+  * "=" characters must be replaced by "%61".
   *
   * @see KafkaDataStoreLogViewer for an alternative to kafka-console-consumer
   */
@@ -102,7 +102,7 @@ object KafkaDataStoreLogViewer extends Logging {
       .describedAs("string")
       .ofType(classOf[String])
 
-    val sftNameOpt = parser.accepts("sft",
+    val sftNameOpt = parser.accepts("sftName",
       "REQUIRED: The name of Simple Feature Type.")
       .withRequiredArg
       .describedAs("string")

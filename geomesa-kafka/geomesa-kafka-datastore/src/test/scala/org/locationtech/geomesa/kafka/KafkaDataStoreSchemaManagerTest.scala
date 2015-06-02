@@ -55,7 +55,7 @@ class KafkaDataStoreSchemaManagerTest
     val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
     val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
 
-    Try(datastore.createSchema(KafkaDataStoreHelper.prepareForReplay(sft, rc))) must beFailedTry
+    Try(datastore.createSchema(KafkaDataStoreHelper.createReplaySFT(sft, rc))) must beFailedTry
   }
 
   "create prepped live should have exactly one schema node and exactly one topic node" in new ZkContext(zkConnect) {
@@ -63,7 +63,7 @@ class KafkaDataStoreSchemaManagerTest
     val datastore = new TestDataStore(zkConnect, zkPath)
     val typename = "test-create-live"
     val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    datastore.createSchema(KafkaDataStoreHelper.prepareForLive(sft, zkPath))
+    datastore.createSchema(KafkaDataStoreHelper.createStreamingSFT(sft, zkPath))
 
     zkClient.countChildren(zkPath) mustEqual 1
 
@@ -89,10 +89,10 @@ class KafkaDataStoreSchemaManagerTest
     val datastore = new TestDataStore(zkConnect, zkPath)
     val typename = "test-create-live-already-exists"
     val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    datastore.createSchema(KafkaDataStoreHelper.prepareForLive(sft, zkPath))
+    datastore.createSchema(KafkaDataStoreHelper.createStreamingSFT(sft, zkPath))
 
     val sft2 = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    Try(datastore.createSchema(KafkaDataStoreHelper.prepareForLive(sft2, zkPath))) must beFailedTry
+    Try(datastore.createSchema(KafkaDataStoreHelper.createStreamingSFT(sft2, zkPath))) must beFailedTry
   }
 
   "create prepped replay should have exactly one schema node and exactly one topic node and one replay node" in new ZkContext(zkConnect) {
@@ -102,8 +102,8 @@ class KafkaDataStoreSchemaManagerTest
     val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
     val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
 
-    datastore.createSchema(KafkaDataStoreHelper.prepareForReplay(
-      KafkaDataStoreHelper.prepareForLive(sft, zkPath), rc))
+    datastore.createSchema(KafkaDataStoreHelper.createReplaySFT(
+      KafkaDataStoreHelper.createStreamingSFT(sft, zkPath), rc))
 
     zkClient.countChildren(zkPath) mustEqual 1
 
@@ -141,8 +141,8 @@ class KafkaDataStoreSchemaManagerTest
     val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
     val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
 
-    val prepped = KafkaDataStoreHelper.prepareForReplay(
-      KafkaDataStoreHelper.prepareForLive(sft, zkPath), rc)
+    val prepped = KafkaDataStoreHelper.createReplaySFT(
+      KafkaDataStoreHelper.createStreamingSFT(sft, zkPath), rc)
 
     datastore.createSchema(prepped)
 
@@ -161,11 +161,11 @@ class KafkaDataStoreSchemaManagerTest
     val typename = "test-getnames"
 
     val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.prepareForLive(sft, zkPath)
+    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
     datastore.createSchema(livePrepped)
 
     val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-    val replayPrepped = KafkaDataStoreHelper.prepareForReplay(livePrepped, rc)
+    val replayPrepped = KafkaDataStoreHelper.createReplaySFT(livePrepped, rc)
     datastore.createSchema(replayPrepped)
 
     val names = datastore.getNames().asScala
@@ -182,11 +182,11 @@ class KafkaDataStoreSchemaManagerTest
     val typename = "test-remove-string"
 
     val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.prepareForLive(sft, zkPath)
+    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
     datastore.createSchema(livePrepped)
 
     val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-    val replayPrepped = KafkaDataStoreHelper.prepareForReplay(livePrepped, rc)
+    val replayPrepped = KafkaDataStoreHelper.createReplaySFT(livePrepped, rc)
     datastore.createSchema(replayPrepped)
 
     // verify there are two
@@ -210,11 +210,11 @@ class KafkaDataStoreSchemaManagerTest
     val typename = "test-remove-name"
 
     val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.prepareForLive(sft, zkPath)
+    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
     datastore.createSchema(livePrepped)
 
     val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-    val replayPrepped = KafkaDataStoreHelper.prepareForReplay(livePrepped, rc)
+    val replayPrepped = KafkaDataStoreHelper.createReplaySFT(livePrepped, rc)
     datastore.createSchema(replayPrepped)
 
     // verify there are two
@@ -239,11 +239,11 @@ class KafkaDataStoreSchemaManagerTest
     val typename = "test-getlive"
 
     val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.prepareForLive(sft, zkPath)
+    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
     datastore.createSchema(livePrepped)
 
     val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-    val replayPrepped = KafkaDataStoreHelper.prepareForReplay(livePrepped, rc)
+    val replayPrepped = KafkaDataStoreHelper.createReplaySFT(livePrepped, rc)
     datastore.createSchema(replayPrepped)
 
     val origSft = datastore.getLiveFeatureType(replayPrepped).
@@ -259,11 +259,11 @@ class KafkaDataStoreSchemaManagerTest
     val typename = "test-getlive-noexists"
 
     val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.prepareForLive(sft, zkPath)
+    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
     datastore.createSchema(livePrepped)
 
     val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-    val replayPrepped = KafkaDataStoreHelper.prepareForReplay(livePrepped, rc)
+    val replayPrepped = KafkaDataStoreHelper.createReplaySFT(livePrepped, rc)
     datastore.createSchema(replayPrepped)
 
     datastore.removeSchema(livePrepped.getTypeName)
@@ -278,7 +278,7 @@ class KafkaDataStoreSchemaManagerTest
     val typename = "test-test-live-notreplay"
 
     val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.prepareForLive(sft, zkPath)
+    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
     datastore.createSchema(livePrepped)
 
     datastore.getLiveFeatureType(livePrepped) must beNone

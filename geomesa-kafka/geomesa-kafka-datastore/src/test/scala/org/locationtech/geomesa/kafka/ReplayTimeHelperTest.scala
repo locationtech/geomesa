@@ -75,7 +75,7 @@ class ReplayTimeHelperTest extends Specification with Mockito {
       val helper = new ReplayTimeHelper(sft, time)
 
       val sf = KafkaConsumerTestData.track0v0
-      val result: SimpleFeature = helper.addReplayTime(sf)
+      val result: SimpleFeature = helper.reType(sf)
       result.getAttributeCount mustEqual sf.getAttributeCount + 1
 
       sf.getAttribute(ReplayTimeHelper.AttributeName) must beNull

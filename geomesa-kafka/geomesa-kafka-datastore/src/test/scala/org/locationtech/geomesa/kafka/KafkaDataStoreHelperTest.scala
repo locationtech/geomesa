@@ -73,7 +73,7 @@ class KafkaDataStoreHelperTest extends Specification {
 
     "prepareForLive method creates a copy of the original sft" >> {
       val sft = SimpleFeatureTypes.createType("testy", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val prepped = KafkaDataStoreHelper.prepareForLive(sft,"/my/root/path")
+      val prepped = KafkaDataStoreHelper.createStreamingSFT(sft,"/my/root/path")
 
       // check that it is a different instance and a few key properties match
       prepped must not beTheSameAs sft
@@ -87,7 +87,7 @@ class KafkaDataStoreHelperTest extends Specification {
 
     "prepareForLive method adds topic data into the sft" >> {
       val sft = SimpleFeatureTypes.createType("testy", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val prepped = KafkaDataStoreHelper.prepareForLive(sft,"/my/root/path")
+      val prepped = KafkaDataStoreHelper.createStreamingSFT(sft,"/my/root/path")
 
       //check that the topic entry has been added
       prepped.getUserData.size() mustEqual (sft.getUserData.size() + 1)
@@ -96,110 +96,106 @@ class KafkaDataStoreHelperTest extends Specification {
 
     "prepareForLive topics are unique to (type name, path) combos" >> {
       val sft = SimpleFeatureTypes.createType("typename1", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val prepped = KafkaDataStoreHelper.prepareForLive(sft,"/my/root/path")
+      val prepped = KafkaDataStoreHelper.createStreamingSFT(sft,"/my/root/path")
 
 
       val sftDiffSpec = SimpleFeatureTypes.createType("typename1", "age:Int,dtg:Date,*geom:Point:srid=4326")
-      val preppedDiffSpec = KafkaDataStoreHelper.prepareForLive(sftDiffSpec,"/my/root/path")
+      val preppedDiffSpec = KafkaDataStoreHelper.createStreamingSFT(sftDiffSpec,"/my/root/path")
 
       // topic should be same if only specs differ
       KafkaDataStoreHelper.extractTopic(preppedDiffSpec) mustEqual KafkaDataStoreHelper.extractTopic(prepped)
 
       val sftDiffName = SimpleFeatureTypes.createType("typename2", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val preppedDiffName = KafkaDataStoreHelper.prepareForLive(sftDiffName,"/my/root/path")
+      val preppedDiffName = KafkaDataStoreHelper.createStreamingSFT(sftDiffName,"/my/root/path")
 
       // topic should differ if name differs and zkpath same
       KafkaDataStoreHelper.extractTopic(preppedDiffName) mustNotEqual KafkaDataStoreHelper.extractTopic(prepped)
 
-      val preppedDiffPath = KafkaDataStoreHelper.prepareForLive(sft,"/my/other/root/path")
+      val preppedDiffPath = KafkaDataStoreHelper.createStreamingSFT(sft,"/my/other/root/path")
 
       //topic should differ if name is same and path differs
       KafkaDataStoreHelper.extractTopic(preppedDiffPath) mustNotEqual KafkaDataStoreHelper.extractTopic(prepped)
 
     }
 
-    "prepareForReplay method creates a copy of the original sft" >> {
-      val sft = SimpleFeatureTypes.createType("testy", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-      val prepped = KafkaDataStoreHelper.prepareForReplay(sft,rc)
-
-      // check that it is a different instance and a few key properties match
-      // don't check typename or attributes!
-      prepped must not beTheSameAs sft
-
-      //check that the rc entry has been added
-      prepped.getUserData.size() mustEqual (sft.getUserData.size() + 1)
-      prepped.getUserData.get(KafkaDataStoreHelper.ReplayConfigKey) must not be null
-    }
-
-    "prepareForReplay method adds replay config data into the sft" >> {
-      val sft = SimpleFeatureTypes.createType("testy", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-      val prepped = KafkaDataStoreHelper.prepareForReplay(sft,rc)
-
-      //check that the rc entry has been added
-      prepped.getUserData.size() mustEqual (sft.getUserData.size() + 1)
-      prepped.getUserData.get(KafkaDataStoreHelper.ReplayConfigKey) must not be null
-    }
-
-    "prepareForReplay method changes the typename" >> {
-      val sft = SimpleFeatureTypes.createType("testy", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-      val prepped = KafkaDataStoreHelper.prepareForReplay(sft,rc)
-
-      prepped.getTypeName mustNotEqual sft.getTypeName
-    }
-
-    "prepareForReplay method creates unique typename" >> {
-      val sft = SimpleFeatureTypes.createType("testy", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-      val prepped = KafkaDataStoreHelper.prepareForReplay(sft,rc)
-      val prepped2 = KafkaDataStoreHelper.prepareForReplay(sft,rc)
-
-      prepped.getTypeName mustNotEqual prepped2.getTypeName
-    }
-
-    "prepareForReplay adds message timestamp attribute" >> {
-
+    "prepareForReplay" should {
       val sft = {
         val schema = SimpleFeatureTypes.createType("test", "name:String,age:Int,*geom:Point:srid=4326")
-        KafkaDataStoreHelper.prepareForLive(schema, "/test/path")
+        KafkaDataStoreHelper.createStreamingSFT(schema, "/test/path")
       }
 
-      val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-      val prepped = KafkaDataStoreHelper.prepareForReplay(sft, rc)
+      "create a copy of the original sft" >> {
 
-      val (expectedAttribType, expectedAttribute) = {
-        val builder = new AttributeTypeBuilder()
-        builder.setBinding(classOf[Date])
-        builder.setName(ReplayTimeHelper.AttributeName)
+        val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
+        val prepped = KafkaDataStoreHelper.createReplaySFT(sft, rc)
 
-        val attribType = builder.buildType
-        val attrib = builder.buildDescriptor(ReplayTimeHelper.AttributeName, attribType)
+        // check that it is a different instance and a few key properties match
+        // don't check typename or attributes!
+        prepped must not beTheSameAs sft
 
-        (attribType, attrib)
+        //check that the rc entry has been added
+        prepped.getUserData.size() mustEqual (sft.getUserData.size() + 1)
+        prepped.getUserData.get(KafkaDataStoreHelper.ReplayConfigKey) must not be null
       }
 
-      val expectedDescriptors = sft.getAttributeDescriptors.asScala :+ expectedAttribute
-      val expectedTypes = sft.getTypes.asScala :+ expectedAttribType
+      "add replay config data into the sft" >> {
+        val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
+        val prepped = KafkaDataStoreHelper.createReplaySFT(sft, rc)
 
-      prepped.getAttributeCount mustEqual sft.getAttributeCount + 1
-      prepped.getAttributeDescriptors.asScala must containTheSameElementsAs(expectedDescriptors)
-      prepped.getTypes.size mustEqual sft.getTypes.size + 1
-      prepped.getTypes.asScala must containTheSameElementsAs(expectedTypes)
+        //check that the rc entry has been added
+        prepped.getUserData.size() mustEqual (sft.getUserData.size() + 1)
+        prepped.getUserData.get(KafkaDataStoreHelper.ReplayConfigKey) must not be null
+      }
+
+      "change the typename" >> {
+        val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
+        val prepped = KafkaDataStoreHelper.createReplaySFT(sft, rc)
+
+        prepped.getTypeName mustNotEqual sft.getTypeName
+
+        "to a unique value" >> {
+          val prepped2 = KafkaDataStoreHelper.createReplaySFT(sft, rc)
+
+          prepped.getTypeName mustNotEqual prepped2.getTypeName
+        }
+      }
+
+      "add message timestamp attribute" >> {
+        val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
+        val prepped = KafkaDataStoreHelper.createReplaySFT(sft, rc)
+
+        val (expectedAttribType, expectedAttribute) = {
+          val builder = new AttributeTypeBuilder()
+          builder.setBinding(classOf[Date])
+          builder.setName(ReplayTimeHelper.AttributeName)
+
+          val attribType = builder.buildType
+          val attrib = builder.buildDescriptor(ReplayTimeHelper.AttributeName, attribType)
+
+          (attribType, attrib)
+        }
+
+        val expectedDescriptors = sft.getAttributeDescriptors.asScala :+ expectedAttribute
+        val expectedTypes = sft.getTypes.asScala :+ expectedAttribType
+
+        prepped.getAttributeCount mustEqual sft.getAttributeCount + 1
+        prepped.getAttributeDescriptors.asScala must containTheSameElementsAs(expectedDescriptors)
+        prepped.getTypes.size mustEqual sft.getTypes.size + 1
+        prepped.getTypes.asScala must containTheSameElementsAs(expectedTypes)
+      }
     }
 
     "be able to extractLiveTypeName" >> {
 
       "from a replay type" >> {
         val sft = SimpleFeatureTypes.createType("test-REPLAY-blah", "name:String,age:Int,*geom:Point:srid=4326")
-        val result = KafkaDataStoreHelper.extractLiveTypeName(sft)
+        val result = KafkaDataStoreHelper.extractStreamingTypeName(sft)
         result must beSome("test")
       }
 
       "or none from a non-replay type" >> {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,*geom:Point:srid=4326")
-        val result = KafkaDataStoreHelper.extractLiveTypeName(sft)
+        val result = KafkaDataStoreHelper.extractStreamingTypeName(sft)
         result must beNone
       }
     }
@@ -207,19 +203,19 @@ class KafkaDataStoreHelperTest extends Specification {
     "correctly determine if isPreparedForLive" >> {
 
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,*geom:Point:srid=4326")
-      val live = KafkaDataStoreHelper.prepareForLive(sft, "/test/path")
-      val replay = KafkaDataStoreHelper.prepareForReplay(live, ReplayConfig(0,0,0))
+      val live = KafkaDataStoreHelper.createStreamingSFT(sft, "/test/path")
+      val replay = KafkaDataStoreHelper.createReplaySFT(live, ReplayConfig(0,0,0))
 
-      KafkaDataStoreHelper.isPreparedForLive(sft) must beFalse
-      KafkaDataStoreHelper.isPreparedForLive(live) must beTrue
-      KafkaDataStoreHelper.isPreparedForLive(replay) must beFalse
+      KafkaDataStoreHelper.isStreamingSFT(sft) must beFalse
+      KafkaDataStoreHelper.isStreamingSFT(live) must beTrue
+      KafkaDataStoreHelper.isStreamingSFT(replay) must beFalse
     }
 
     "correctly determine if isPreparedForReplay" >> {
 
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,*geom:Point:srid=4326")
-      val live = KafkaDataStoreHelper.prepareForLive(sft, "/test/path")
-      val replay = KafkaDataStoreHelper.prepareForReplay(live, ReplayConfig(0,0,0))
+      val live = KafkaDataStoreHelper.createStreamingSFT(sft, "/test/path")
+      val replay = KafkaDataStoreHelper.createReplaySFT(live, ReplayConfig(0,0,0))
 
       KafkaDataStoreHelper.isPreparedForReplay(sft) must beFalse
       KafkaDataStoreHelper.isPreparedForReplay(live) must beFalse

@@ -19,40 +19,26 @@ import kafka.message.{Message, MessageAndMetadata}
 import kafka.producer.KeyedMessage
 import org.opengis.feature.simple.SimpleFeatureType
 
-
-/** Encodes [[Clear]] and [[Delete]] messages for transport via Kafka.
-  *
-  */
-object KafkaGeoMessageEncoder {
-
-  import GeoMessageEncoder.encodeKey
-
-  type MSG = KeyedMessage[Array[Byte], Array[Byte]]
-
-  def encodeClearMessage(topic: String, msg: Clear): MSG =
-    new MSG(topic, encodeKey(msg), GeoMessageEncoder.encodeClearMessage(msg))
-
-  def encodeDeleteMessage(topic: String, msg: Delete): MSG =
-    new MSG(topic, encodeKey(msg), GeoMessageEncoder.encodeDeleteMessage(msg))
-}
-
 /** Encodes [[GeoMessage]]s for transport via Kafka.
   *
   * @param schema the [[SimpleFeatureType]]; required to serialize [[CreateOrUpdate]] messages
   */
 class KafkaGeoMessageEncoder(schema: SimpleFeatureType) extends GeoMessageEncoder(schema) {
 
-  import GeoMessageEncoder._
-  import KafkaGeoMessageEncoder._
+  type MSG = KeyedMessage[Array[Byte], Array[Byte]]
 
-  def encodeMessage(topic: String, msg: GeoMessage): MSG = new MSG(topic, encodeKey(msg), encodeMessage(msg))
+  def encodeMessage(topic: String, msg: GeoMessage): MSG =
+    new MSG(topic, encodeKey(msg), encodeMessage(msg))
 
-  val encodeClearMessage: (String, Clear) => MSG = KafkaGeoMessageEncoder.encodeClearMessage
+  def encodeClearMessage(topic: String, msg: Clear): MSG =
+    new MSG(topic, encodeKey(msg), encodeClearMessage(msg))
 
-  val encodeDeleteMessage: (String, Delete) => MSG = KafkaGeoMessageEncoder.encodeDeleteMessage
+  def encodeDeleteMessage(topic: String, msg: Delete): MSG =
+    new MSG(topic, encodeKey(msg), encodeDeleteMessage(msg))
 
   def encodeCreateOrUpdateMessage(topic: String, msg: CreateOrUpdate): MSG =
     new MSG(topic, encodeKey(msg), encodeCreateOrUpdateMessage(msg))
+
 }
 
 /** Decodes a [[GeoMessage]] transported via Kafka.

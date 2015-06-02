@@ -29,7 +29,7 @@ import org.locationtech.geomesa.kafka.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.kafka.consumer.KafkaStreamLike.KafkaStreamLikeIterator
 import org.locationtech.geomesa.kafka.consumer.offsets.FindOffset
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.FR
+import org.locationtech.geomesa.utils.geotools.FR
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 import org.opengis.filter.expression.PropertyName
@@ -97,7 +97,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
       var index = java.util.Arrays.binarySearch(messages, key, ordering)
 
       if (index < 0) {
-        // no message found at sought time
+        // no message found at sought time; convert to index of first message before ``time``
         index = -index - 1
       }
 
@@ -203,7 +203,7 @@ class ReplayTimeHelper(sft: SimpleFeatureType, replayTime: Long) {
   require(attrIndex >= 0, s"Invalid SFT.  The $AttributeName attribute is missing.")
 
   /** Copy the given ``sf`` and add a value for the replay time attribute. */
-  def addReplayTime(sf: SimpleFeature): SimpleFeature = {
+  def reType(sf: SimpleFeature): SimpleFeature = {
     builder.init(sf)
     builder.set(attrIndex, replayDate)
     builder.buildFeature(sf.getID)
@@ -239,7 +239,7 @@ private[kafka] case class ReplaySnapshotFeatureCache(override val sft: SimpleFea
         // starting with the most recent so if haven't seen it yet, add it, otherwise keep newer version
         if (!seen(id)) {
           val env = sf.geometry.getEnvelopeInternal
-          val modSF = timeHelper.addReplayTime(sf)
+          val modSF = timeHelper.reType(sf)
 
           qt.insert(env, modSF)
           features.put(id, FeatureHolder(modSF, env))

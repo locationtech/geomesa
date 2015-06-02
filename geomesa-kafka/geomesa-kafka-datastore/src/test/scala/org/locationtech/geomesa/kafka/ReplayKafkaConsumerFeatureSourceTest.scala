@@ -18,7 +18,7 @@ package org.locationtech.geomesa.kafka
 import org.geotools.data.EmptyFeatureReader
 import org.joda.time.Instant
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.FR
+import org.locationtech.geomesa.utils.geotools.FR
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.matcher.{MatchResult, ValueCheck}
@@ -169,7 +169,7 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
         CreateOrUpdate(new Instant(13002), track0v2)) // 9
 
       val replayConfig = ReplayConfig(10000L, 13100L, 300L)
-      lazy val replayType = KafkaDataStoreHelper.prepareForReplay(sft, replayConfig)
+      lazy val replayType = KafkaDataStoreHelper.createReplaySFT(sft, replayConfig)
       lazy val fs = featureSource(msgs, replayType)
 
       def equalsSnapshot(expectedMsgs: Seq[GeoMessage], replayTime: Long): ValueCheck[ReplaySnapshotFeatureCache] = {
@@ -218,7 +218,7 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
         CreateOrUpdate(new Instant(13002), track0v2)) // 9
 
       val replayConfig = ReplayConfig(10000L, 12000L, 100L)
-      val replayType = KafkaDataStoreHelper.prepareForReplay(sft, replayConfig)
+      val replayType = KafkaDataStoreHelper.createReplaySFT(sft, replayConfig)
       val fs = featureSource(msgs, replayType)
 
       val result = fs.getReaderForFilter(Filter.INCLUDE)
@@ -227,7 +227,7 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
 
     "or an empty reader if no data" >> {
       val replayConfig = ReplayConfig(12000, 12000L, 100L)
-      val replayType = KafkaDataStoreHelper.prepareForReplay(sft, replayConfig)
+      val replayType = KafkaDataStoreHelper.createReplaySFT(sft, replayConfig)
       val fs = featureSource(Seq.empty[GeoMessage], replayType)
 
       val result = fs.getReaderForFilter(Filter.INCLUDE)
@@ -237,7 +237,7 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
   }
 
   def featureSource(messages: Seq[GeoMessage], replayConfig: ReplayConfig): ReplayKafkaConsumerFeatureSource = {
-    val replayType = KafkaDataStoreHelper.prepareForReplay(sft, replayConfig)
+    val replayType = KafkaDataStoreHelper.createReplaySFT(sft, replayConfig)
 
     featureSource(messages, replayConfig, replayType)
   }

@@ -21,6 +21,7 @@ import java.util.Date
 import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Polygon}
 import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.accumulo.filter._
+import org.locationtech.geomesa.filter.checkOrder
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils

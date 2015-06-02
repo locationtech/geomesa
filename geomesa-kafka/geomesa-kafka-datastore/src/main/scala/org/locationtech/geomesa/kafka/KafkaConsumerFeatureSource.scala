@@ -26,13 +26,11 @@ import org.geotools.data.{FilteringFeatureReader, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.FidFilterImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.kafka.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
-import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceReTypingSupport
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{DFI, DFR, FR}
+import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.QuadTreeFeatureStore
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
@@ -49,7 +47,7 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   with ContentFeatureSourceReTypingSupport {
 
   override def getBoundsInternal(query: Query) =
-    ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
+    ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), CRS_EPSG_4326)
 
   override def buildFeatureType(): SimpleFeatureType = schema
 
