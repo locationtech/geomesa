@@ -142,6 +142,7 @@ object AccumuloRasterQueryPlanner {
   def constructRasterFilter(geom: Geometry, featureType: SimpleFeatureType): Filter = {
     val property = ff.property(featureType.getGeometryDescriptor.getLocalName)
     val bounds = ff.literal(geom)
+    // note: overlaps is not sufficient see DE-9IM definition
     ff.and(ff.intersects(property, bounds), ff.not(ff.touches(property, bounds)))
   }
 
