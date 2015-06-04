@@ -11,12 +11,12 @@ object passed to `createSchema(SimpleFeatureType)`.  These hints are added throu
 methods:
     
     
-    KafkaDataStoreHelper.prepareForLive(sft: SimpleFeatureType, zkPath: String) : SimpleFeatureType
-    KafkaDataStoreHelper.prepareForReplay(sft: SimpleFeatureType, rc: ReplayConfig) : SimpleFeatureType
+    KafkaDataStoreHelper.createStreamingSFT(sft: SimpleFeatureType, zkPath: String) : SimpleFeatureType
+    KafkaDataStoreHelper.createReplaySFT(sft: SimpleFeatureType, rc: ReplayConfig) : SimpleFeatureType
     
 ###Data Producers
 
-Data *producers* should build a SimpleFeatureType object and pass it to `prepareForLive` along with a zookeeper path that 
+Data *producers* should build a SimpleFeatureType object and pass it to `createStreamingSFT` along with a zookeeper path that 
 must be unique for a given KafkaDataStore.  The Producer should pass the returned SimpleFeature type to the call to
 `Datastore.createSchema`.  For example:
 
@@ -26,8 +26,8 @@ must be unique for a given KafkaDataStore.  The Producer should pass the returne
     ...
     
     val zkPath = "/a/unique/zkpath"
-    val preppedOutputSft = KafkaDataStoreHelper.prepareForLive(outputSFT, zkPath)
-    if(!ds.getTypeNames.contains(outputSFTName)) ds.createSchema(preppedOutputSft)
+    val streamingSFT = KafkaDataStoreHelper.createStreamingSFT(outputSFT, zkPath)
+    ds.createSchema(streamingSFT)
     
 ###Data Consumers (Live Mode)
 
@@ -37,7 +37,7 @@ Data *consumers* that are running in *live* mode access the DataStore through th
 
 Data *consumers* that are running in *replay* mode will have to first create a new replay schema in the DataStore that 
 is derived from the original schema.  The consumer should get the SimpleFeatureType for original schema and use it (
-along with a `ReplayConfig`) to create the derived schema via a call to `DataStore.prepareForReplay()`.
+along with a `ReplayConfig`) to create the derived schema via a call to `DataStore.createReplaySFT()`.
 
     val datastore = ...
     val typename = ...
@@ -45,7 +45,7 @@ along with a `ReplayConfig`) to create the derived schema via a call to `DataSto
     val rc = new ReplayConfig(replayStart, replayEnd, readBehind)
 
     // create the replay schema from the original schema and replay params
-    datastore.createSchema(KafkaDataStoreHelper.prepareForReplay(sft,rc))
+    datastore.createSchema(KafkaDataStoreHelper.createReplaySFT(sft, rc))
 
 It should be noted that the new schema will have a different type name and an additional attribute in the schema (time) 
 from the original SimpleFeatureType.
@@ -62,7 +62,7 @@ this formatter call the kafka-console consumer with these additional arguments:
 In order to pass the spec via a command argument all `%` characters must be replaced by `%37` and all `=`
 characters must be replaced by `%61`.
 
-A slightly easer to use but slightly less flexible alternative is to use the `KafkaDataStoreLogViewer` instead
+A slightly easier to use but slightly less flexible alternative is to use the `KafkaDataStoreLogViewer` instead
 of the `kafka-log-viewer`.  To use the `KafkaDataStoreLogViewer` first copy the
 geomesa-kafka-geoserver-plugin.jar to $KAFKA_HOME/libs.  Then create a copy of
 $KAFKA_HOME/bin/kafka-console-consumer.sh called "kafka-ds-log-viewer" and in the copy replace the classname
