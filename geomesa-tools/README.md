@@ -565,9 +565,6 @@ input_file out_file`.
            Threads for quering raster data
       * -t, --raster-table
            Accumulo table for storing raster data
-        -sh, --shards
-           Number of shards to use for the storage tables (defaults to number of
-           tservers)
         -tm, --timestamp
            Ingestion time (default to current time)
       * -u, --user

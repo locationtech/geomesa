@@ -40,15 +40,21 @@ class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
   writeParameters = null
 
   override def getReader(source: AnyRef) = getReader(source, null)
+
   override def getReader(source: AnyRef, hints: Hints) = source match {
     case file: File => new GeoMesaCoverageReader(file.getPath, hints)
     case path: String => new GeoMesaCoverageReader(path, hints)
     case unk => throw new Exception(s"unexpected data type for reader source: ${Option(unk).map(_.getClass.getName).getOrElse("null")}")
   }
+
   override def accepts(input: AnyRef) = true
+
   override def accepts(source: AnyRef, hints: Hints) = true
+
   override def getWriter(destination: AnyRef) = throw new UnsupportedOperationException("Unsupported")
+
   override def getWriter(destination: AnyRef, hints: Hints) = throw new UnsupportedOperationException("Unsupported")
+
   override def getDefaultImageIOWriteParameters = throw new UnsupportedOperationException("Unsupported")
 }
 

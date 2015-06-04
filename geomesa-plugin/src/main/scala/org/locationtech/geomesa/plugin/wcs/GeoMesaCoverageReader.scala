@@ -25,7 +25,7 @@ import org.geotools.geometry.GeneralEnvelope
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.util.Utilities
-import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.raster.data.{AccumuloRasterStore, GeoMesaCoverageQueryParams}
 import org.opengis.parameter.GeneralParameterValue
@@ -33,7 +33,7 @@ import org.opengis.parameter.GeneralParameterValue
 import scala.util.Try
 
 object GeoMesaCoverageReader {
-  val GeoServerDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  val GeoServerDateFormat = ISODateTimeFormat.dateTime()
   val DefaultDateString = GeoServerDateFormat.print(new DateTime(DateTimeZone.forID("UTC")))
   val FORMAT = """accumulo://(.*):(.*)@(.*)/(.*)#zookeepers=([^#]*)(?:#auths=)?([^#]*)(?:#visibilities=)?([^#]*)(?:#collectStats=)?([^#]*)$""".r
 }
@@ -50,13 +50,11 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   val dostats = if (collectStats == "null") false else true
   val ars = AccumuloRasterStore(user, password, instanceId, zookeepers, table, auths, visibilities, collectStats = dostats)
 
-  // TODO: Either this is needed for rasterToCoverages or remove it.
-  this.crs = Try(CRS.decode("EPSG:4326")).getOrElse(DefaultGeographicCRS.WGS84)
-  this.originalEnvelope = getBounds()
-  this.originalEnvelope.setCoordinateReferenceSystem(this.crs)
-  this.originalGridRange = getGridRange()
-  this.coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(this.hints)
-  // TODO: Provide writeVisibilites??  Sort out read visibilites
+  crs = Try(CRS.decode("EPSG:4326")).getOrElse(DefaultGeographicCRS.WGS84)
+  originalEnvelope = getBounds
+  originalEnvelope.setCoordinateReferenceSystem(crs)
+  originalGridRange = getGridRange
+  coverageFactory = CoverageFactoryFinder.getGridCoverageFactory(hints)
 
   /**
    * Default implementation does not allow a non-default coverage name
@@ -76,7 +74,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
 
   override def getFormat = new GeoMesaCoverageFormat
 
-  override def getOriginalGridRange() = this.originalGridRange
+  override def getOriginalGridRange = this.originalGridRange
 
   override def getOriginalGridRange(coverageName: String) = this.originalGridRange
 
@@ -88,18 +86,16 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     val mosaic = ars.getMosaicedRaster(rq, params)
     if (mosaic == null) null
     else {
-      val coverage = this.coverageFactory.create(coverageName, mosaic, params.envelope)
+      val coverage = coverageFactory.create(coverageName, mosaic, params.envelope)
       mosaic.flush()
       coverage
     }
   }
 
-  def getBounds(): GeneralEnvelope = {
-    val bbox = ars.getBounds()
+  def getBounds: GeneralEnvelope = {
+    val bbox = ars.getBounds
     new GeneralEnvelope(Array(bbox.minLon, bbox.minLat), Array(bbox.maxLon, bbox.maxLat))
   }
 
-  def getGridRange(): GridEnvelope2D = {
-    ars.getGridRange()
-  }
+  def getGridRange: GridEnvelope2D = ars.getGridRange
 }

@@ -54,7 +54,6 @@ object RasterUtils {
     val WRITE_MEMORY        = "geomesa-tools.ingestraster.write.memory"
     val WRITE_THREADS       = "geomesa-tools.ingestraster.write.threads"
     val QUERY_THREADS       = "geomesa-tools.ingestraster.query.threads"
-    val SHARDS              = "geomesa-tools.ingestraster.shards"
     val PARLEVEL            = "geomesa-tools.ingestraster.parallel.level"
     val CHUNKSIZE           = "geomesa-tools.ingestraster.chunk.size"
     val IS_TEST_INGEST      = "geomesa.tools.ingestraster.is-test-ingest"

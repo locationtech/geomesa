@@ -16,7 +16,6 @@
 
 package org.locationtech.geomesa.raster.data
 
-import java.awt.image.BufferedImage
 import java.io.Serializable
 import java.util.Map.Entry
 import java.util.concurrent.{Callable, TimeUnit}
@@ -27,7 +26,7 @@ import com.google.common.collect.ImmutableSetMultimap
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
-import org.apache.accumulo.core.security.{Authorizations, TablePermission}
+import org.apache.accumulo.core.security.TablePermission
 import org.geotools.coverage.grid.GridEnvelope2D
 import org.joda.time.DateTime
 import org.locationtech.geomesa.accumulo.index.Strategy._
@@ -43,36 +42,14 @@ import org.locationtech.geomesa.utils.stats.{MethodProfiling, NoOpTimings, Timin
 
 import scala.collection.JavaConversions._
 
-trait RasterOperations {
-  def getTable(): String
-  def ensureBoundsTableExists(): Unit
-  def createTableStructure(): Unit
-  def getAuths(): Authorizations
-  def getVisibility(): String
-  def getConnector(): Connector
-  def getRasters(rasterQuery: RasterQuery)(implicit timings: Timings): Iterator[Raster]
-  def getQueryRecords(numRecords: Int): Iterator[String]
-  def putRaster(raster: Raster): Unit
-  def getBounds(): BoundingBox
-  def getAvailableResolutions(): Seq[Double]
-  def getAvailableGeoHashLengths(): Set[Int]
-  def getAvailabilityMap(): ImmutableSetMultimap[Double, Int]
-  def getGridRange(): GridEnvelope2D
-  def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams): BufferedImage
-  def deleteRasterTable(): Unit
-}
-
 class AccumuloRasterStore(val connector: Connector,
                   val tableName: String,
                   val authorizationsProvider: AuthorizationsProvider,
                   val writeVisibilities: String,
-                  shardsConfig: Option[Int] = None,
                   writeMemoryConfig: Option[String] = None,
                   writeThreadsConfig: Option[Int] = None,
                   queryThreadsConfig: Option[Int] = None,
-                  collectStats: Boolean = false) extends RasterOperations with MethodProfiling with StatWriter with Logging {
-  //By default having at least as many shards as tservers provides optimal parallelism in queries
-  val shards = shardsConfig.getOrElse(connector.instanceOperations().getTabletServers.size())
+                  collectStats: Boolean = false) extends MethodProfiling with StatWriter with Logging {
   val writeMemory = writeMemoryConfig.getOrElse("10000").toLong
   val writeThreads = writeThreadsConfig.getOrElse(10)
   val bwConfig: BatchWriterConfig =
@@ -83,18 +60,12 @@ class AccumuloRasterStore(val connector: Connector,
   val schema = RasterIndexSchema()
   lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner(schema)
 
-  private val tableOps    = connector.tableOperations()
-  private val securityOps = connector.securityOperations
-  private val profileTable  = s"${tableName}_queries"
+  private val tableOps       = connector.tableOperations()
+  private val securityOps    = connector.securityOperations
+  private val profileTable   = s"${tableName}_queries"
   private def getBoundsRowID = tableName + "_bounds"
-  
-  //TODO: WCS: this needs to be implemented .. or  maybe not
-  //lazy val aRasterReader = new AccumuloRasterReader(tableName)
 
-  def getAuths() = authorizationsProvider.getAuthorizations
-  def getVisibility() = writeVisibilities
-  def getConnector() = connector
-  def getTable() = tableName
+  def getAuths = authorizationsProvider.getAuthorizations
 
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams) = {
     implicit val timings = if (collectStats) new TimingsImpl else NoOpTimings
@@ -133,7 +104,7 @@ class AccumuloRasterStore(val connector: Connector,
     scanner.iterator.take(numRecords).map(RasterQueryStatTransform.decodeStat)
   }
 
-  def getBounds(): BoundingBox = {
+  def getBounds: BoundingBox = {
     ensureBoundsTableExists()
     val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, authorizationsProvider.getAuthorizations)
     scanner.setRange(new Range(getBoundsRowID))
@@ -146,23 +117,23 @@ class AccumuloRasterStore(val connector: Connector,
     }
   }
 
-  def getAvailableResolutions(): Seq[Double] = {
+  def getAvailableResolutions: Seq[Double] = {
     // TODO: Consider adding resolutions + extent info  https://geomesa.atlassian.net/browse/GEOMESA-645
-    getAvailabilityMap().keySet.toSeq.sorted
+    getAvailabilityMap.keySet.toSeq.sorted
   }
 
-  def getAvailableGeoHashLengths(): Set[Int] = {
-    getAvailabilityMap().values().toSet
+  def getAvailableGeoHashLengths: Set[Int] = {
+    getAvailabilityMap.values().toSet
   }
 
-  def getAvailabilityMap(): ImmutableSetMultimap[Double, Int] = {
+  def getAvailabilityMap: ImmutableSetMultimap[Double, Int] = {
     AccumuloRasterStore.boundsCache.get(tableName, callable)
   }
 
   def callable = new Callable[ImmutableSetMultimap[Double, Int]] {
     override def call(): ImmutableSetMultimap[Double, Int] = {
       ensureBoundsTableExists()
-      val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths())
+      val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths)
       scanner.setRange(new Range(getBoundsRowID))
       val scanResultingKeys = SelfClosingScanner(scanner).map(_.getKey).toSeq
       val geohashlens = scanResultingKeys.map(_.getColumnFamily.toString).map(lexiDecodeStringToInt)
@@ -173,9 +144,9 @@ class AccumuloRasterStore(val connector: Connector,
     }
   }
 
-  def getGridRange(): GridEnvelope2D = {
-    val bounds = getBounds()
-    val resolutions = getAvailableResolutions()
+  def getGridRange: GridEnvelope2D = {
+    val bounds = getBounds
+    val resolutions = getAvailableResolutions
     // If no resolutions are available, then we have an empty table so assume 1.0 for now
     val resolution = resolutions match {
       case Nil => 1.0
@@ -217,7 +188,7 @@ class AccumuloRasterStore(val connector: Connector,
   }
 
   def putRasters(rasters: Seq[Raster]) {
-    rasters.foreach { putRaster(_) }
+    rasters.foreach(putRaster)
   }
 
   def putRaster(raster: Raster) {
@@ -297,7 +268,7 @@ class AccumuloRasterStore(val connector: Connector,
   private def deleteMetaData(): Unit = {
     try {
       if (tableOps.exists(GEOMESA_RASTER_BOUNDS_TABLE)) {
-        val deleter = connector.createBatchDeleter(GEOMESA_RASTER_BOUNDS_TABLE, getAuths(), 3, bwConfig)
+        val deleter = connector.createBatchDeleter(GEOMESA_RASTER_BOUNDS_TABLE, getAuths, 3, bwConfig)
         val deleteRange = new Range(getBoundsRowID)
         deleter.setRanges(Seq(deleteRange))
         deleter.delete()
@@ -323,7 +294,6 @@ object AccumuloRasterStore {
             auths: String,
             writeVisibilities: String,
             useMock: Boolean = false,
-            shardsConfig: Option[Int] = None,
             writeMemoryConfig: Option[String] = None,
             writeThreadsConfig: Option[Int] = None,
             queryThreadsConfig: Option[Int] = None,
@@ -334,7 +304,7 @@ object AccumuloRasterStore {
     val authorizationsProvider = AccumuloStoreHelper.getAuthorizationsProvider(auths.split(","), conn)
 
     val rasterStore = new AccumuloRasterStore(conn, tableName, authorizationsProvider, writeVisibilities,
-                        shardsConfig, writeMemoryConfig, writeThreadsConfig, queryThreadsConfig, collectStats)
+                        writeMemoryConfig, writeThreadsConfig, queryThreadsConfig, collectStats)
     // this will actually create the Accumulo Table
     rasterStore.createTableStructure()
 
@@ -350,14 +320,13 @@ object AccumuloRasterStore {
     val vis: String          = visibilityParam.lookupOpt[String](config).getOrElse("")
     val tablename: String    = tableNameParam.lookUp(config).asInstanceOf[String]
     val useMock: Boolean     = mockParam.lookUp(config).asInstanceOf[String].toBoolean
-    val shards: Option[Int]  = shardsParam.lookupOpt[Int](config)
     val wMem: Option[String] = writeMemoryParam.lookupOpt[String](config)
     val wThread: Option[Int] = writeThreadsParam.lookupOpt[Int](config)
     val qThread: Option[Int] = queryThreadsParam.lookupOpt[Int](config)
     val cStats: Boolean      = java.lang.Boolean.valueOf(statsParam.lookupOpt[Boolean](config).getOrElse(false))
 
     AccumuloRasterStore(username, password, instance, zookeepers, auths, vis,
-      tablename, useMock, shards, wMem, wThread, qThread, cStats)
+      tablename, useMock, wMem, wThread, qThread, cStats)
   }
 
   val boundsCache =

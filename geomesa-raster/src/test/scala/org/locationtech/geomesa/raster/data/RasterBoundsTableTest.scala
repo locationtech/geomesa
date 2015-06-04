@@ -41,7 +41,7 @@ class RasterBoundsTableTest extends Specification{
       val theStore = createMockRasterStore(tableName)
 
       // get bounds
-      val theBounds = theStore.getBounds()
+      val theBounds = theStore.getBounds
 
       theBounds must beAnInstanceOf[BoundingBox]
       theBounds must beEqualTo(wholeWorld)
@@ -56,7 +56,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster)
 
       // get bounds
-      val theBounds = theStore.getBounds()
+      val theBounds = theStore.getBounds
 
       theBounds must beAnInstanceOf[BoundingBox]
       theBounds.maxLon must beEqualTo(50.0)
@@ -76,7 +76,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster2)
 
       // get bounds
-      val theBounds = theStore.getBounds()
+      val theBounds = theStore.getBounds
 
       theBounds must beAnInstanceOf[BoundingBox]
       theBounds.maxLon must beEqualTo(50.0)
@@ -96,7 +96,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster2)
 
       // get bounds
-      val theBounds = theStore.getBounds()
+      val theBounds = theStore.getBounds
 
       theBounds must beAnInstanceOf[BoundingBox]
       theBounds.maxLon must beEqualTo(50.0)
@@ -116,7 +116,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster2)
 
       // get bounds
-      val theBounds = theStore.getBounds()
+      val theBounds = theStore.getBounds
 
       theBounds must beAnInstanceOf[BoundingBox]
       theBounds.maxLon must beEqualTo(50.0)
@@ -136,7 +136,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster2)
 
       // get bounds
-      val theBounds = theStore.getBounds()
+      val theBounds = theStore.getBounds
 
       theBounds must beAnInstanceOf[BoundingBox]
       theBounds.maxLon must beEqualTo(180.0)
@@ -150,7 +150,7 @@ class RasterBoundsTableTest extends Specification{
       val theStore = createMockRasterStore(tableName)
 
       // get bounds
-      val theResolutions = theStore.getAvailableResolutions()
+      val theResolutions = theStore.getAvailableResolutions
 
       theResolutions must beEmpty[Seq[Double]]
     }
@@ -164,7 +164,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster)
 
       // get bounds
-      val theResolutions = theStore.getAvailableResolutions()
+      val theResolutions = theStore.getAvailableResolutions
 
       theResolutions must not(beEmpty[Seq[Double]])
       theResolutions.size must beEqualTo(1)
@@ -182,7 +182,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster2)
 
       // get bounds
-      val theResolutions = theStore.getAvailableResolutions()
+      val theResolutions = theStore.getAvailableResolutions
 
       theResolutions must not(beEmpty[Seq[Double]])
       theResolutions.size must beEqualTo(1)
@@ -204,7 +204,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster4)
 
       // get bounds
-      val theResolutions = theStore.getAvailableResolutions()
+      val theResolutions = theStore.getAvailableResolutions
 
       theResolutions must not(beEmpty[Seq[Double]])
       theResolutions.size must beEqualTo(1)
@@ -228,7 +228,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster5)
 
       // get bounds
-      val theResolutions = theStore.getAvailableResolutions()
+      val theResolutions = theStore.getAvailableResolutions
 
       theResolutions must not(beEmpty[Seq[Double]])
       theResolutions.size must beEqualTo(5)
@@ -240,7 +240,7 @@ class RasterBoundsTableTest extends Specification{
       val theStore = createMockRasterStore(tableName)
 
       // get GridRange
-      val theGridRange = theStore.getGridRange()
+      val theGridRange = theStore.getGridRange
 
       theGridRange.width must beEqualTo(360)
       theGridRange.height must beEqualTo(180)
@@ -255,7 +255,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster)
 
       // get GridRange
-      val theGridRange = theStore.getGridRange()
+      val theGridRange = theStore.getGridRange
 
       theGridRange.width must beEqualTo(50)
       theGridRange.height must beEqualTo(50)
@@ -276,7 +276,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster4)
 
       // get GridRange
-      val theGridRange = theStore.getGridRange()
+      val theGridRange = theStore.getGridRange
 
       theGridRange.width must beEqualTo(100)
       theGridRange.height must beEqualTo(100)
@@ -299,7 +299,7 @@ class RasterBoundsTableTest extends Specification{
       theStore.putRaster(testRaster5)
 
       // get GridRange
-      val theGridRange = theStore.getGridRange()
+      val theGridRange = theStore.getGridRange
 
       theGridRange.width must beEqualTo(1280)
       theGridRange.height must beEqualTo(1280)

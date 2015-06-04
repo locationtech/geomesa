@@ -114,7 +114,6 @@ class IngestRasterCommand(parent: JCommander) extends Command(parent) with Accum
       IngestRasterParams.WRITE_MEMORY      -> Option(params.writeMemory),
       IngestRasterParams.WRITE_THREADS     -> Option(params.writeThreads).map(_.toString),
       IngestRasterParams.QUERY_THREADS     -> Option(params.queryThreads).map(_.toString),
-      IngestRasterParams.SHARDS            -> Option(params.numShards).map(_.toString),
       IngestRasterParams.PARLEVEL          -> Some(params.parLevel.toString),
       IngestRasterParams.CHUNKSIZE         -> Some(params.chunkSize.toString)
     )

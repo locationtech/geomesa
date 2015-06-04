@@ -48,6 +48,6 @@ case class IdDecoder(orderedSeq: Seq[TextExtractor]) extends ExtractingDecoder[S
 
 case class GeometryDecoder(orderedSeq: Seq[ColumnQualifierExtractor]) extends ExtractingDecoder[Geometry] {
   def decode(key: Key): Geometry =
-    WKBUtils.read(seqExtract(orderedSeq, key).takeWhile(c => c != '.'))
+    WKBUtils.read(seqExtract(orderedSeq, key).takeWhile(_ != '.'))
 }
 

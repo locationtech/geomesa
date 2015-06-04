@@ -29,11 +29,8 @@ import scala.collection.JavaConversions._
 class BBOXCombiner extends Combiner {
   import org.locationtech.geomesa.accumulo.iterators.BBOXCombiner._
   override def reduce(p1: Key, p2: util.Iterator[Value]): Value = {
-    if(p2.hasNext) {
-      bboxToValue(reduceValuesToBoundingBox(p2))
-    } else {
-      new Value()
-    }
+    if (p2.hasNext) bboxToValue(reduceValuesToBoundingBox(p2))
+    else new Value()
   }
 }
 

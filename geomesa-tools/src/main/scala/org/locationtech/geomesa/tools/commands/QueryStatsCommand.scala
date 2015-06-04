@@ -29,7 +29,7 @@ class QueryStatsCommand(parent: JCommander) extends Command(parent) with Accumul
   override val params = new QueryStatsParameters()
 
   override def execute() = {
-    val queryRecords = createRasterStore(params)
+    val queryRecords = createRasterStore
       .getQueryRecords(params.numRecords * RasterQueryStatTransform.NUMBER_OF_CQ_DATA_TYPES)
     val fw = getFileWriter
     val out = new BufferedWriter(fw)
@@ -40,7 +40,7 @@ class QueryStatsCommand(parent: JCommander) extends Command(parent) with Accumul
     out.close()
   }
 
-  def createRasterStore(config: QueryStatsParameters): AccumuloRasterStore = {
+  def createRasterStore: AccumuloRasterStore = {
     val password = getPassword(params.password)
     val auths = Option(params.auths)
     AccumuloRasterStore(params.user, password,

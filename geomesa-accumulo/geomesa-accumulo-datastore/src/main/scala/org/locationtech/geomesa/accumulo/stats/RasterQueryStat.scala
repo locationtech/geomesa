@@ -39,10 +39,10 @@ case class RasterQueryStat(featureName:   String,
 object RasterQueryStatTransform extends StatTransform[RasterQueryStat] {
 
   private val CQ_QUERY = "rasterQuery"
-  private val CQ_PLANTIME = "timePlanning"
-  private val CQ_SCANTIME = "timeScanning"
-  private val CQ_MOSAICTIME = "timeMosaicing"
-  private val CQ_TIME = "timeTotal"
+  private val CQ_PLANTIME = "timePlanning_ms"
+  private val CQ_SCANTIME = "timeScanning_ms"
+  private val CQ_MOSAICTIME = "timeMosaicing_ms"
+  private val CQ_TIME = "timeTotal_ms"
   private val CQ_HITS = "hits"
   val reverseEncoder = new LongReverseEncoder()
   val NUMBER_OF_CQ_DATA_TYPES = 6
@@ -55,10 +55,10 @@ object RasterQueryStatTransform extends StatTransform[RasterQueryStat] {
     val mutation = createMutation(stat)
     val cf = createRandomColumnFamily
     mutation.put(cf, CQ_QUERY, stat.rasterQuery)
-    mutation.put(cf, CQ_PLANTIME, stat.planningTime + "ms")
-    mutation.put(cf, CQ_SCANTIME, stat.scanTime + "ms")
-    mutation.put(cf, CQ_MOSAICTIME, stat.mosaicTime + "ms")
-    mutation.put(cf, CQ_TIME, (stat.scanTime + stat.planningTime + stat.mosaicTime) + "ms")
+    mutation.put(cf, CQ_PLANTIME, s"${stat.planningTime}")
+    mutation.put(cf, CQ_SCANTIME, s"${stat.scanTime}")
+    mutation.put(cf, CQ_MOSAICTIME, s"${stat.mosaicTime}")
+    mutation.put(cf, CQ_TIME, s"${stat.scanTime + stat.planningTime + stat.mosaicTime}")
     mutation.put(cf, CQ_HITS, stat.numResults.toString)
     mutation
   }
@@ -77,9 +77,9 @@ object RasterQueryStatTransform extends StatTransform[RasterQueryStat] {
     entries.foreach { e =>
       e.getKey.getColumnQualifier.toString match {
         case CQ_QUERY => values.put(CQ_QUERY, e.getValue.toString)
-        case CQ_PLANTIME => values.put(CQ_PLANTIME, e.getValue.toString.stripSuffix("ms").toLong)
-        case CQ_SCANTIME => values.put(CQ_SCANTIME, e.getValue.toString.stripSuffix("ms").toLong)
-        case CQ_MOSAICTIME => values.put(CQ_MOSAICTIME, e.getValue.toString.stripSuffix("ms").toLong)
+        case CQ_PLANTIME => values.put(CQ_PLANTIME, e.getValue.toString.toLong)
+        case CQ_SCANTIME => values.put(CQ_SCANTIME, e.getValue.toString.toLong)
+        case CQ_MOSAICTIME => values.put(CQ_MOSAICTIME, e.getValue.toString.toLong)
         case CQ_HITS => values.put(CQ_HITS, e.getValue.toString.toInt)
         case CQ_TIME => // time is an aggregate, doesn't need to map back to anything
         case _ => logger.warn(s"Unmapped entry in query stat: ${e.getKey.getColumnQualifier.toString}")

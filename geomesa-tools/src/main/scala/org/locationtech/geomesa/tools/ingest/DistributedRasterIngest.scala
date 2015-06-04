@@ -104,7 +104,6 @@ class RemoteRasterIngest(config: Map[String, Option[String]]) extends RasterInge
       List(
         IngestRasterParams.AUTHORIZATIONS  -> config(IngestRasterParams.AUTHORIZATIONS),
         IngestRasterParams.VISIBILITIES    -> config(IngestRasterParams.VISIBILITIES),
-        IngestRasterParams.SHARDS          -> config(IngestRasterParams.SHARDS),
         IngestRasterParams.PARLEVEL        -> config(IngestRasterParams.PARLEVEL),
         IngestRasterParams.TIME            -> config(IngestRasterParams.TIME),
         IngestRasterParams.WRITE_MEMORY    -> config(IngestRasterParams.WRITE_MEMORY),

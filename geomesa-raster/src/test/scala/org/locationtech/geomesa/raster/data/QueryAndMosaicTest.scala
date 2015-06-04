@@ -81,7 +81,7 @@ class QueryAndMosaicTest extends Specification {
       val query = generateQuery(-77.1152343750, -77.104248046875, 43.001220703125, 43.0122070313125)
 
       //view results
-      rasterStore must beAnInstanceOf[RasterOperations]
+      rasterStore must beAnInstanceOf[AccumuloRasterStore]
       val rasters = rasterStore.getRasters(query).toList
       val (mosaic, count) = RasterUtils.mosaicChunks(rasters.iterator, 16, 16, testBBox)
       count mustEqual 1

@@ -47,7 +47,6 @@ import scala.util.Try
 case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging with IndexFilterHelpers {
 
   def modifyHashRange(hash: String, expectedLen: Int, res: String): ARange = expectedLen match {
-    // JNH: Think about 0-bit GH some more.
     case 0                                     => new ARange(new Text(s"$res~"))
     case lucky if expectedLen == hash.length   => new ARange(new Text(s"$res~$hash"))
     case shorten if expectedLen < hash.length  => new ARange(new Text(s"$res~${hash.substring(0, expectedLen)}"))
@@ -55,7 +54,7 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
   }
 
   def getQueryPlan(rq: RasterQuery, resAndGeoHashMap: ImmutableSetMultimap[Double, Int]): Option[QueryPlan] = {
-    val availableResolutions = resAndGeoHashMap.keys.toList.distinct.sorted
+    val availableResolutions = resAndGeoHashMap.keySet().toList.sorted
 
     // Step 1. Pick resolution
 
@@ -125,9 +124,8 @@ case class AccumuloRasterQueryPlanner(schema: RasterIndexSchema) extends Logging
     ret
   }
 
-  def configureRasterFilter(cfg: IteratorSetting, filter: Filter) = {
+  def configureRasterFilter(cfg: IteratorSetting, filter: Filter) =
     cfg.addOption(GEOMESA_ITERATORS_ECQL_FILTER, ECQL.toCQL(filter))
-  }
 
   def configureRasterMetadataFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) = {
     val encodedSimpleFeatureType = SimpleFeatureTypes.encodeType(featureType)
@@ -150,9 +148,11 @@ object AccumuloRasterQueryPlanner {
 }
 
 case class ResolutionPlanner(ires: Double) extends KeyPlanner {
-  def getKeyPlan(filter: KeyPlanningFilter, indexOnly: Boolean, output: ExplainerOutputType) = KeyListTiered(List(lexiEncodeDoubleToString(ires)))
+  def getKeyPlan(filter: KeyPlanningFilter, indexOnly: Boolean, output: ExplainerOutputType) =
+    KeyListTiered(List(lexiEncodeDoubleToString(ires)))
 }
 
 case class BandPlanner(band: String) extends KeyPlanner {
-  def getKeyPlan(filter:KeyPlanningFilter, indexOnly: Boolean, output: ExplainerOutputType) = KeyListTiered(List(band))
+  def getKeyPlan(filter:KeyPlanningFilter, indexOnly: Boolean, output: ExplainerOutputType) =
+    KeyListTiered(List(band))
 }
