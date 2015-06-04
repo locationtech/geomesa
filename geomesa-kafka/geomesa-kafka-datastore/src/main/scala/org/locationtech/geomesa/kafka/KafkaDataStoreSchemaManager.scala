@@ -29,6 +29,7 @@ import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConverters._
 import scala.util.Try
+import scala.util.control.NonFatal
 
 /** A partial implementation of [[DataStore]] implementing all methods related to [[SimpleFeatureType]]s.
   *
@@ -73,8 +74,7 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
 
   def getFeatureConfig(typeName: String) : KafkaFeatureConfig = schemaCache.get(typeName)
 
-  /** Extracts the prepared-for-live [[SimpleFeatureType]] which the given prepared-for-replay
-    * ``replayType`` is based on.
+  /** Extracts the "Streaming SFT" which the given "Replay SFT" is based on.
     */
   def getLiveFeatureType(replayType: SimpleFeatureType): Option[SimpleFeatureType] = {
 
@@ -91,9 +91,19 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
 
   override def removeSchema(typeName: String): Unit = {
 
+    // grab feature config before deleting it
+    val fct = Try { getFeatureConfig(typeName) }
+
     // clean up cache and zookeeper resources
     schemaCache.invalidate(typeName)
     zkClient.deleteRecursive(getSchemaPath(typeName))
+
+    // delete topic for "Streaming SFTs" but not for "Replay SFTs"
+    fct.foreach { fc =>
+      if (KafkaDataStoreHelper.isStreamingSFT(fc.sft) && AdminUtils.topicExists(zkClient, fc.topic)) {
+        AdminUtils.deleteTopic(zkClient, fc.topic)
+      }
+    }
   }
 
   override def dispose(): Unit = {
@@ -144,7 +154,7 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
     } catch {
       case e: ZkNodeExistsException =>
         throw new IllegalArgumentException(s"Node $path already exists", e)
-      case e: Exception =>
+      case NonFatal(e) =>
         throw new RuntimeException(s"Could not create path in zookeeper at $path", e)
     }
   }

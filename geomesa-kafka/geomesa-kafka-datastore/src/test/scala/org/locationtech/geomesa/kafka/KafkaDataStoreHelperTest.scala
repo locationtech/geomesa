@@ -71,7 +71,7 @@ class KafkaDataStoreHelperTest extends Specification {
       KafkaDataStoreHelper.extractReplayConfig(sft) must beSome(rc)
     }
 
-    "prepareForLive method creates a copy of the original sft" >> {
+    "createStreamingSFT method creates a copy of the original sft" >> {
       val sft = SimpleFeatureTypes.createType("testy", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
       val prepped = KafkaDataStoreHelper.createStreamingSFT(sft,"/my/root/path")
 
@@ -85,7 +85,7 @@ class KafkaDataStoreHelperTest extends Specification {
 
     }
 
-    "prepareForLive method adds topic data into the sft" >> {
+    "createStreamingSFT method adds topic data into the sft" >> {
       val sft = SimpleFeatureTypes.createType("testy", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
       val prepped = KafkaDataStoreHelper.createStreamingSFT(sft,"/my/root/path")
 
@@ -94,7 +94,7 @@ class KafkaDataStoreHelperTest extends Specification {
       prepped.getUserData.get(KafkaDataStoreHelper.TopicKey) must not be null
     }
 
-    "prepareForLive topics are unique to (type name, path) combos" >> {
+    "createStreamingSFT topics are unique to (type name, path) combos" >> {
       val sft = SimpleFeatureTypes.createType("typename1", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
       val prepped = KafkaDataStoreHelper.createStreamingSFT(sft,"/my/root/path")
 
@@ -118,43 +118,42 @@ class KafkaDataStoreHelperTest extends Specification {
 
     }
 
-    "prepareForReplay" should {
-      val sft = {
-        val schema = SimpleFeatureTypes.createType("test", "name:String,age:Int,*geom:Point:srid=4326")
-        KafkaDataStoreHelper.createStreamingSFT(schema, "/test/path")
-      }
+    "createReplaySFT" should {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,*geom:Point:srid=4326")
+      val streamingSft = KafkaDataStoreHelper.createStreamingSFT(sft, "/test/path")
 
       "create a copy of the original sft" >> {
 
         val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-        val prepped = KafkaDataStoreHelper.createReplaySFT(sft, rc)
+        val prepped = KafkaDataStoreHelper.createReplaySFT(streamingSft, rc)
 
         // check that it is a different instance and a few key properties match
         // don't check typename or attributes!
-        prepped must not beTheSameAs sft
+        prepped must not beTheSameAs streamingSft
 
         //check that the rc entry has been added
-        prepped.getUserData.size() mustEqual (sft.getUserData.size() + 1)
+        prepped.getUserData.size() mustEqual (streamingSft.getUserData.size() + 1)
         prepped.getUserData.get(KafkaDataStoreHelper.ReplayConfigKey) must not be null
       }
 
       "add replay config data into the sft" >> {
         val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-        val prepped = KafkaDataStoreHelper.createReplaySFT(sft, rc)
+        val prepped = KafkaDataStoreHelper.createReplaySFT(streamingSft, rc)
 
         //check that the rc entry has been added
-        prepped.getUserData.size() mustEqual (sft.getUserData.size() + 1)
+        prepped.getUserData.size() mustEqual (streamingSft.getUserData.size() + 1)
         prepped.getUserData.get(KafkaDataStoreHelper.ReplayConfigKey) must not be null
       }
 
       "change the typename" >> {
         val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-        val prepped = KafkaDataStoreHelper.createReplaySFT(sft, rc)
+        val prepped = KafkaDataStoreHelper.createReplaySFT(streamingSft, rc)
 
-        prepped.getTypeName mustNotEqual sft.getTypeName
+        prepped.getTypeName mustNotEqual streamingSft.getTypeName
+        prepped.getTypeName must contain(streamingSft.getTypeName) and contain("REPLAY")
 
         "to a unique value" >> {
-          val prepped2 = KafkaDataStoreHelper.createReplaySFT(sft, rc)
+          val prepped2 = KafkaDataStoreHelper.createReplaySFT(streamingSft, rc)
 
           prepped.getTypeName mustNotEqual prepped2.getTypeName
         }
@@ -162,7 +161,7 @@ class KafkaDataStoreHelperTest extends Specification {
 
       "add message timestamp attribute" >> {
         val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-        val prepped = KafkaDataStoreHelper.createReplaySFT(sft, rc)
+        val prepped = KafkaDataStoreHelper.createReplaySFT(streamingSft, rc)
 
         val (expectedAttribType, expectedAttribute) = {
           val builder = new AttributeTypeBuilder()
@@ -175,13 +174,18 @@ class KafkaDataStoreHelperTest extends Specification {
           (attribType, attrib)
         }
 
-        val expectedDescriptors = sft.getAttributeDescriptors.asScala :+ expectedAttribute
-        val expectedTypes = sft.getTypes.asScala :+ expectedAttribType
+        val expectedDescriptors = streamingSft.getAttributeDescriptors.asScala :+ expectedAttribute
+        val expectedTypes = streamingSft.getTypes.asScala :+ expectedAttribType
 
-        prepped.getAttributeCount mustEqual sft.getAttributeCount + 1
+        prepped.getAttributeCount mustEqual streamingSft.getAttributeCount + 1
         prepped.getAttributeDescriptors.asScala must containTheSameElementsAs(expectedDescriptors)
-        prepped.getTypes.size mustEqual sft.getTypes.size + 1
+        prepped.getTypes.size mustEqual streamingSft.getTypes.size + 1
         prepped.getTypes.asScala must containTheSameElementsAs(expectedTypes)
+      }
+
+      "fail if the SFT is not a Streaming SFT" >> {
+        val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
+        KafkaDataStoreHelper.createReplaySFT(sft, rc) must throwA[IllegalArgumentException]
       }
     }
 
@@ -257,6 +261,15 @@ class KafkaDataStoreHelperTest extends Specification {
       // check // string
       val doubleSlash = "//"
       KafkaDataStoreHelper.cleanZkPath(doubleSlash) mustEqual "/"
+    }
+
+    "buildTopicName should combine zkPath and SFT name" >> {
+
+      val zkPath = "/test/zk/path"
+      val sft = SimpleFeatureTypes.createType("testType", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+
+      val topic = KafkaDataStoreHelper.buildTopicName(zkPath, sft)
+      topic mustEqual "test-zk-path-testType"
     }
   }
 }

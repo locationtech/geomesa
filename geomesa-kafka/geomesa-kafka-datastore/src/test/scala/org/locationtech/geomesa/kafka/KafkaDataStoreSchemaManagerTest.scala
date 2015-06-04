@@ -19,7 +19,7 @@ import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
 import kafka.admin.AdminUtils
-import kafka.utils.ZKStringSerializer
+import kafka.utils.{ZkUtils, ZKStringSerializer}
 import org.I0Itec.zkclient.ZkClient
 import org.geotools.data.store.{ContentDataStore, ContentEntry}
 import org.geotools.feature.NameImpl
@@ -27,10 +27,11 @@ import org.joda.time.{Duration, Instant}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
+import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.{After, Specification}
 import org.specs2.runner.JUnitRunner
+
 import scala.collection.JavaConverters._
-import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreSchemaManagerTest
@@ -40,248 +41,322 @@ class KafkaDataStoreSchemaManagerTest
   // todo: missing tests -
   // todo    test general exception handling (use zk mock for this?)
 
-  "create without being prepped should fail " in new ZkContext(zkConnect) {
+  "createSchema" should {
 
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-create-no-prep"
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    Try(datastore.createSchema(sft)) must beFailedTry
-  }
+    "fail if SFT is not a Streaming or Replay type" in new ZkContext(zkConnect) {
 
-  "create prepped for Replay without being prepped Live should fail " in new ZkContext(zkConnect) {
+      val typename = "test-create-no-topic"
+      val sft = createSFT(typename)
 
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-create-replay-no-prep"
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
+      val datastore = new TestDataStore(zkConnect, zkPath)
+      datastore.createSchema(sft) must throwA[IllegalArgumentException]
+    }
 
-    Try(datastore.createSchema(KafkaDataStoreHelper.createReplaySFT(sft, rc))) must beFailedTry
-  }
+    "with a Streaming SFT" should {
 
-  "create prepped live should have exactly one schema node and exactly one topic node" in new ZkContext(zkConnect) {
+      "result in exactly one schema node and exactly one topic node" in new ZkContext(zkConnect) {
 
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-create-live"
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    datastore.createSchema(KafkaDataStoreHelper.createStreamingSFT(sft, zkPath))
+        val datastore = new TestDataStore(zkConnect, zkPath)
+        val typename = "test-create-live"
+        val sft = createStreamingSFT(typename)
+        datastore.createSchema(sft)
 
-    zkClient.countChildren(zkPath) mustEqual 1
+        zkClient.countChildren(zkPath) mustEqual 1
 
-    val zChildren = zkClient.getChildren(zkPath)
-    zChildren.size() mustEqual 1
+        val zChildren = zkClient.getChildren(zkPath)
+        zChildren.size() mustEqual 1
 
-    zChildren.get(0) mustEqual typename
-    val sPath = datastore.getSchemaPath(typename)
-    val encoded = zkClient.readData[String](sPath)
-    SimpleFeatureTypes.createType(typename, encoded)
+        zChildren.get(0) mustEqual typename
+        val sPath = datastore.getSchemaPath(typename)
+        val encoded = zkClient.readData[String](sPath)
+        encoded mustEqual SimpleFeatureTypes.encodeType(sft)
 
-    val sChildren = zkClient.getChildren(sPath)
-    sChildren.size() mustEqual 1
-    sChildren.get(0) mustEqual "Topic"
-    // just check no exceptions
+        val sChildren = zkClient.getChildren(sPath)
+        sChildren.size() mustEqual 1
+        sChildren.get(0) mustEqual "Topic"
 
-    val topic = zkClient.readData[String](datastore.getTopicPath(typename))
-    AdminUtils.topicExists(zkClient, topic) must beTrue
-  }
+        val topic = zkClient.readData[String](datastore.getTopicPath(typename))
+        AdminUtils.topicExists(zkClient, topic) must beTrue
+      }
+    }
 
-  "create should fail if type already created" in new ZkContext(zkConnect) {
+    "with a Replay SFT" should {
 
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-create-live-already-exists"
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    datastore.createSchema(KafkaDataStoreHelper.createStreamingSFT(sft, zkPath))
+      "result in exactly one schema node and exactly one topic node and one replay node" in new ZkContext(zkConnect) {
 
-    val sft2 = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    Try(datastore.createSchema(KafkaDataStoreHelper.createStreamingSFT(sft2, zkPath))) must beFailedTry
-  }
+        val datastore = new TestDataStore(zkConnect, zkPath)
+        val typename = "test-create-replay"
+        val sft = createReplaySFT(typename)
+        datastore.createSchema(sft)
 
-  "create prepped replay should have exactly one schema node and exactly one topic node and one replay node" in new ZkContext(zkConnect) {
+        zkClient.countChildren(zkPath) mustEqual 1
 
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-create-replay"
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
+        val zChildren = zkClient.getChildren(zkPath)
+        zChildren.size() mustEqual 1
 
-    datastore.createSchema(KafkaDataStoreHelper.createReplaySFT(
-      KafkaDataStoreHelper.createStreamingSFT(sft, zkPath), rc))
+        val replayTypename = zChildren.get(0)
+        replayTypename mustEqual sft.getTypeName
 
-    zkClient.countChildren(zkPath) mustEqual 1
+        val sPath = datastore.getSchemaPath(replayTypename)
+        val encoded = zkClient.readData[String](sPath)
+        encoded mustEqual SimpleFeatureTypes.encodeType(sft)
 
-    val zChildren = zkClient.getChildren(zkPath)
-    zChildren.size() mustEqual 1
+        val sChildren = zkClient.getChildren(sPath).asScala
+        sChildren.size mustEqual 2
+        sChildren must contain("Topic", "ReplayConfig")
 
-    val replayTypename = zChildren.get(0)
-    replayTypename must contain(typename) and contain("REPLAY")
+        val topic = zkClient.readData[String](datastore.getTopicPath(replayTypename))
+        AdminUtils.topicExists(zkClient, topic) must beTrue
 
-    val sPath = datastore.getSchemaPath(replayTypename)
-    val encoded = zkClient.readData[String](sPath)
-    SimpleFeatureTypes.createType(typename, encoded)
-    // just check no exceptions
+        val encodeReplayConfig = zkClient.readData[String](datastore.getReplayConfigPath(replayTypename))
+        ReplayConfig.decode(encodeReplayConfig) must beSome(replayConfig)
+      }
+    }
 
-    val sChildren = zkClient.getChildren(sPath).asScala
-    sChildren.size mustEqual 2
-    sChildren must contain("Topic", "ReplayConfig")
+    "fail if type already created" in new ZkContext(zkConnect) {
 
-    val topic = zkClient.readData[String](datastore.getTopicPath(replayTypename))
-    AdminUtils.topicExists(zkClient, topic) must beTrue
-  }
+      val datastore = new TestDataStore(zkConnect, zkPath)
+      val typename = "test-live-already-exists"
+      val sft = createStreamingSFT(typename)
+      datastore.createSchema(sft)
 
-  "getFeatureConfig where type doesn't exists throws exception " in new ZkContext(zkConnect) {
-
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typeName = "test-get-doesNotExist"
-
-    Try(datastore.getFeatureConfig(typeName)) must beFailedTry
-  }
-
-  "getFeatureConfig can retrieve an existing schema" in new ZkContext(zkConnect) {
-
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-get"
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-
-    val prepped = KafkaDataStoreHelper.createReplaySFT(
-      KafkaDataStoreHelper.createStreamingSFT(sft, zkPath), rc)
-
-    datastore.createSchema(prepped)
-
-    val fct = Try(datastore.getFeatureConfig(prepped.getTypeName))
-    fct must beSuccessfulTry
-    KafkaDataStoreHelper.extractTopic(prepped) must beSome(fct.get.topic)
-    val fc = fct.get
-    fc.replayConfig must beSome(rc)
-    fc.sft mustEqual prepped
-    fc.sft.getUserData mustEqual prepped.getUserData
-  }
-
-  "getNames returns all created types" in new ZkContext(zkConnect) {
-
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-getnames"
-
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
-    datastore.createSchema(livePrepped)
-
-    val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-    val replayPrepped = KafkaDataStoreHelper.createReplaySFT(livePrepped, rc)
-    datastore.createSchema(replayPrepped)
-
-    val names = datastore.getNames().asScala
-    val expected = List(livePrepped.getTypeName, replayPrepped.getTypeName).
-      map(name => new NameImpl(name): Name)
-
-    names must containTheSameElementsAs(expected)
-  }
-
-  "removeSchema (string) should remove the specified schema" in new ZkContext(zkConnect) {
-
-    //create two schemas (one replay, one live)
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-remove-string"
-
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
-    datastore.createSchema(livePrepped)
-
-    val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-    val replayPrepped = KafkaDataStoreHelper.createReplaySFT(livePrepped, rc)
-    datastore.createSchema(replayPrepped)
-
-    // verify there are two
-    datastore.getNames.size mustEqual 2
-
-    // now remove the replay
-    datastore.removeSchema(replayPrepped.getTypeName)
-
-    datastore.getNames.size mustEqual 1
-    Try(datastore.getFeatureConfig(replayPrepped.getTypeName)) must beAFailedTry
-    Try(datastore.getFeatureConfig(livePrepped.getTypeName)) must beASuccessfulTry
-
-    zkClient.exists(datastore.getSchemaPath(replayPrepped.getTypeName)) must beFalse
-    zkClient.exists(datastore.getSchemaPath(livePrepped.getTypeName)) must beTrue
-  }
-
-  "removeSchema (Name) should remove the specified schema" in new ZkContext(zkConnect) {
-
-    //create two schemas (one replay, one live)
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-remove-name"
-
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
-    datastore.createSchema(livePrepped)
-
-    val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-    val replayPrepped = KafkaDataStoreHelper.createReplaySFT(livePrepped, rc)
-    datastore.createSchema(replayPrepped)
-
-    // verify there are two
-    datastore.getNames.size mustEqual 2
-
-    // now remove the replay
-    datastore.removeSchema(new NameImpl(replayPrepped.getTypeName))
-
-    datastore.getNames.size mustEqual 1
-    Try(datastore.getFeatureConfig(replayPrepped.getTypeName)) must beAFailedTry
-    Try(datastore.getFeatureConfig(livePrepped.getTypeName)) must beASuccessfulTry
-
-    zkClient.exists(datastore.getSchemaPath(replayPrepped.getTypeName)) must beFalse
-    zkClient.exists(datastore.getSchemaPath(livePrepped.getTypeName)) must beTrue
+      val sft2 = createStreamingSFT(typename)
+      datastore.createSchema(sft2) must throwA[IllegalArgumentException]
+    }
 
   }
 
-  "getLiveFeatureType should retrieve the appropriate original schema" in new ZkContext(zkConnect) {
+  "getFeatureConfig" should {
 
-    //create two schemas (one replay, one live)
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-getlive"
+    "throws exception when type doesn't exists" in new ZkContext(zkConnect) {
 
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
-    datastore.createSchema(livePrepped)
+      val datastore = new TestDataStore(zkConnect, zkPath)
+      val typeName = "test-get-doesNotExist"
 
-    val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-    val replayPrepped = KafkaDataStoreHelper.createReplaySFT(livePrepped, rc)
-    datastore.createSchema(replayPrepped)
+      datastore.getFeatureConfig(typeName) must throwA[RuntimeException]
+    }
 
-    val origSft = datastore.getLiveFeatureType(replayPrepped).
-      getOrElse(throw new RuntimeException(s"Failed to find original type for ${replayPrepped.getTypeName}"))
-    origSft mustEqual livePrepped
-    origSft.getUserData mustEqual livePrepped.getUserData
+    "retrieve an existing schema" >> {
+
+      "for a Streaming SFT" in new ZkContext(zkConnect) {
+        val datastore = new TestDataStore(zkConnect, zkPath)
+        val typename = "test-get-streaming"
+        val sft = createStreamingSFT(typename)
+        val topic = KafkaDataStoreHelper.extractTopic(sft).get
+        datastore.createSchema(sft)
+
+        val fc = datastore.getFeatureConfig(sft.getTypeName)
+        fc must not(beNull)
+
+        fc.topic mustEqual topic
+        fc.replayConfig must beNone
+        fc.sft mustEqual sft
+        fc.sft.getUserData mustEqual sft.getUserData
+      }
+
+      "for a Replay SFT" in new ZkContext(zkConnect) {
+        val datastore = new TestDataStore(zkConnect, zkPath)
+        val typename = "test-get-replay"
+        val sft = createReplaySFT(typename)
+        val topic = KafkaDataStoreHelper.extractTopic(sft).get
+        datastore.createSchema(sft)
+
+        val fc = datastore.getFeatureConfig(sft.getTypeName)
+        fc must not(beNull)
+
+        fc.topic mustEqual topic
+        fc.replayConfig must beSome(replayConfig)
+        fc.sft mustEqual sft
+        fc.sft.getUserData mustEqual sft.getUserData
+      }
+    }
   }
 
-  "getLiveFeatureType should return None if the original schema doesn't exist" in new ZkContext(zkConnect) {
+  "getNames" should {
 
-    //create two schemas (one replay, one live)
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-getlive-noexists"
+    "return all created type names" >> {
 
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
-    datastore.createSchema(livePrepped)
+      "when there are none" in new ZkContext(zkConnect) {
 
-    val rc = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
-    val replayPrepped = KafkaDataStoreHelper.createReplaySFT(livePrepped, rc)
-    datastore.createSchema(replayPrepped)
+        val datastore = new TestDataStore(zkConnect, zkPath)
 
-    datastore.removeSchema(livePrepped.getTypeName)
-    datastore.getLiveFeatureType(replayPrepped) must beNone
+        val names = datastore.getNames()
+        names must haveSize(0)
+      }
+
+      "when there is one" in new ZkContext(zkConnect) {
+
+        val datastore = new TestDataStore(zkConnect, zkPath)
+        val typename = "test-getnames-single"
+
+        val liveSft = createStreamingSFT(typename)
+        datastore.createSchema(liveSft)
+
+        val expected = List(liveSft.getTypeName).map(name => new NameImpl(name): Name)
+
+        val names = datastore.getNames().asScala
+        names must containTheSameElementsAs(expected)
+      }
+
+      "when there are multiple" in new ZkContext(zkConnect) {
+
+        val datastore = new TestDataStore(zkConnect, zkPath)
+        val typename = "test-getnames-multiple"
+
+        val liveSft = createStreamingSFT(typename)
+        datastore.createSchema(liveSft)
+
+        val replaySft = KafkaDataStoreHelper.createReplaySFT(liveSft, replayConfig)
+        datastore.createSchema(replaySft)
+
+        val expected = List(liveSft.getTypeName, replaySft.getTypeName).map(name => new NameImpl(name): Name)
+
+        val names = datastore.getNames().asScala
+        names must containTheSameElementsAs(expected)
+      }
+
+    }
 
   }
 
-  "getLiveFeatureType should return None if not a replay schema" in new ZkContext(zkConnect) {
+  "removeSchema" should {
 
-    //create two schemas (one replay, one live)
-    val datastore = new TestDataStore(zkConnect, zkPath)
-    val typename = "test-test-live-notreplay"
+    "remove the specified schema" >> {
 
-    val sft = SimpleFeatureTypes.createType(typename, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val livePrepped = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
-    datastore.createSchema(livePrepped)
+      "when given a String" in new ZkContext(zkConnect) {
 
-    datastore.getLiveFeatureType(livePrepped) must beNone
+        //create two schemas (one replay, one live)
+        val datastore = new TestDataStore(zkConnect, zkPath)
+        val typename = "test-remove-string"
+
+        val liveSFT = createStreamingSFT(typename)
+        datastore.createSchema(liveSFT)
+
+        val replaySFT = KafkaDataStoreHelper.createReplaySFT(liveSFT, replayConfig)
+        datastore.createSchema(replaySFT)
+
+        // verify there are two
+        datastore.getNames must haveSize(2)
+
+        // now remove the replay
+        datastore.removeSchema(replaySFT.getTypeName)
+
+        datastore.getNames must haveSize(1)
+
+        datastore.getFeatureConfig(replaySFT.getTypeName) must throwA[RuntimeException]
+        datastore.getFeatureConfig(liveSFT.getTypeName) must not(beNull)
+
+        zkClient.exists(datastore.getSchemaPath(replaySFT.getTypeName)) must beFalse
+        zkClient.exists(datastore.getSchemaPath(liveSFT.getTypeName)) must beTrue
+
+        val topic = KafkaDataStoreHelper.extractTopic(liveSFT).get
+        AdminUtils.topicExists(zkClient, topic) must beTrue and (
+          zkClient.exists(ZkUtils.getDeleteTopicPath(topic)) must beFalse)
+      }
+
+      "when given a Name" in new ZkContext(zkConnect) {
+
+        //create two schemas (one replay, one live)
+        val datastore = new TestDataStore(zkConnect, zkPath)
+        val typename = "test-remove-string"
+
+        val liveSFT = createStreamingSFT(typename)
+        datastore.createSchema(liveSFT)
+
+        val replaySFT = KafkaDataStoreHelper.createReplaySFT(liveSFT, replayConfig)
+        datastore.createSchema(replaySFT)
+
+        // verify there are two
+        datastore.getNames must haveSize(2)
+
+        // now remove the replay
+        datastore.removeSchema(replaySFT.getName)
+
+        datastore.getNames must haveSize(1)
+
+        datastore.getFeatureConfig(replaySFT.getTypeName) must throwA[RuntimeException]
+        datastore.getFeatureConfig(liveSFT.getTypeName) must not(beNull)
+
+        zkClient.exists(datastore.getSchemaPath(replaySFT.getTypeName)) must beFalse
+        zkClient.exists(datastore.getSchemaPath(liveSFT.getTypeName)) must beTrue
+
+        val topic = KafkaDataStoreHelper.extractTopic(liveSFT).get
+        AdminUtils.topicExists(zkClient, topic) must beTrue and (
+          zkClient.exists(ZkUtils.getDeleteTopicPath(topic)) must beFalse)
+      }
+
+      "delete the topic when removing a Streaming SFT" in new ZkContext(zkConnect) {
+
+        val datastore = new TestDataStore(zkConnect, zkPath)
+        val typename = "test-remove-string"
+
+        val liveSFT = createStreamingSFT(typename)
+        datastore.createSchema(liveSFT)
+
+        // now remove the replay
+        datastore.removeSchema(liveSFT.getTypeName)
+
+        datastore.getNames must haveSize(0)
+
+        datastore.getFeatureConfig(liveSFT.getTypeName) must throwA[RuntimeException]
+
+        zkClient.exists(datastore.getSchemaPath(liveSFT.getTypeName)) must beFalse
+
+        // the topic should no longer exist or at a minimum be marked for deletion
+        val topic = KafkaDataStoreHelper.extractTopic(liveSFT).get
+        AdminUtils.topicExists(zkClient, topic) must beFalse or (
+          zkClient.exists(ZkUtils.getDeleteTopicPath(topic)) must beTrue)
+      }
+    }
+  }
+
+  "getLiveFeatureType" should {
+
+    "retrieve the appropriate original schema" in new ZkContext(zkConnect) {
+
+      //create two schemas (one replay, one live)
+      val datastore = new TestDataStore(zkConnect, zkPath)
+      val typename = "test-getlive"
+
+      val liveSFT = createStreamingSFT(typename)
+      datastore.createSchema(liveSFT)
+
+      val replaySFT = KafkaDataStoreHelper.createReplaySFT(liveSFT, replayConfig)
+      datastore.createSchema(replaySFT)
+
+      val result = datastore.getLiveFeatureType(replaySFT)
+      result must beSome(liveSFT)
+
+      val origSft = result.get
+      origSft.getUserData mustEqual liveSFT.getUserData
+    }
+
+    "return None if the original schema doesn't exist" in new ZkContext(zkConnect) {
+
+      //create two schemas (one replay, one live)
+      val datastore = new TestDataStore(zkConnect, zkPath)
+      val typename = "test-getlive-noexists"
+
+      val liveSFT = createStreamingSFT(typename)
+      datastore.createSchema(liveSFT)
+
+      val replaySFT = KafkaDataStoreHelper.createReplaySFT(liveSFT, replayConfig)
+      datastore.createSchema(replaySFT)
+
+      datastore.removeSchema(liveSFT.getTypeName)
+      datastore.getLiveFeatureType(replaySFT) must beNone
+    }
+
+    "return None if not a replay schema" in new ZkContext(zkConnect) {
+
+      val datastore = new TestDataStore(zkConnect, zkPath)
+      val typename = "test-getlive-notreplay"
+
+      val liveSFT = createStreamingSFT(typename)
+      datastore.createSchema(liveSFT)
+
+      datastore.getLiveFeatureType(liveSFT) must beNone
+    }
   }
 
   step {
@@ -290,7 +365,8 @@ class KafkaDataStoreSchemaManagerTest
 }
 
 class TestDataStore(override val zookeepers: String,
-                    override val zkPath: String) extends ContentDataStore with KafkaDataStoreSchemaManager with Logging {
+                    override val zkPath: String)
+  extends ContentDataStore with KafkaDataStoreSchemaManager with Logging {
 
   override val partitions: Int = 1
   override val replication: Int = 1
@@ -305,13 +381,29 @@ class TestDataStore(override val zookeepers: String,
 
 class ZkContext(val zkConnect: String) extends After with Logging {
 
+  val schema = "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"
+  lazy val replayConfig = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
+
   val zkClient = new ZkClient(zkConnect, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
   val zkPath = createRandomZkNode(zkClient)
   logger.trace(s"created $zkPath")
 
+  def createSFT(typeName: String): SimpleFeatureType = {
+    SimpleFeatureTypes.createType(typeName, schema)
+  }
+
+  def createStreamingSFT(typeName: String): SimpleFeatureType = {
+    KafkaDataStoreHelper.createStreamingSFT(createSFT(typeName), zkPath)
+  }
+
+  def createReplaySFT(typeName: String, rc: ReplayConfig = replayConfig): SimpleFeatureType = {
+    KafkaDataStoreHelper.createReplaySFT(createStreamingSFT(typeName), rc)
+  }
+
   override def after = {
     logger.trace(s"cleaning up $zkPath")
     zkClient.deleteRecursive(zkPath)
+//    zkClient.close()
   }
 
   private def createRandomZkNode(zkClient: ZkClient): String = {

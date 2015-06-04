@@ -17,7 +17,7 @@ methods:
 ###Data Producers
 
 Data *producers* should build a SimpleFeatureType object and pass it to `prepareForLive` along with a zookeeper path that 
-must be unique for a given KafkaDataStore.  The Consumer should pass the returned SimpleFeature type to the call to
+must be unique for a given KafkaDataStore.  The Producer should pass the returned SimpleFeature type to the call to
 `Datastore.createSchema`.  For example:
 
     val ds: DataStore = ...
