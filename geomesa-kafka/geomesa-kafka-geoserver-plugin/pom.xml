@@ -10,6 +10,17 @@
     <artifactId>geomesa-kafka-geoserver-plugin</artifactId>
     <name>GeoMesa Kafka Geoserver Plugin</name>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -48,10 +59,6 @@
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <shadedClassifierName>geoserver-plugin</shadedClassifierName>
                             <relocations>
-                                <relocation>
-                                    <pattern>org.slf4j.impl</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.shade.slf4j.impl</shadedPattern>
-                                </relocation>
                                 <relocation>
                                     <pattern>org.apache.commons</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shade.commons</shadedPattern>
