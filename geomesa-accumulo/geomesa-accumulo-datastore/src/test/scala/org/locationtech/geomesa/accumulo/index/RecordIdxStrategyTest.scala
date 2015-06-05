@@ -16,9 +16,16 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.filter._
+import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
+import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator._
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.opengis.filter.Id
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -37,7 +44,7 @@ case class IntersectionResult(idSeq: Option[Set[String]], correctIdSeq: Set[Stri
 
 
 @RunWith(classOf[JUnitRunner])
-class RecordIdxStrategyTest extends Specification {
+class RecordIdxStrategyTest extends Specification with TestWithDataStore {
 
   def intersectionTestHelper(stringSeqToTest: Seq[String],
                              correctIntersection: String): IntersectionResult = {
@@ -50,6 +57,34 @@ class RecordIdxStrategyTest extends Specification {
     val computedIntersectionIds = combinedIDFilter.map {_.getIDs.asScala.toSet.map { a:AnyRef =>a.toString } }
 
     IntersectionResult(computedIntersectionIds, trueIntersectionIds)
+  }
+
+  override val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
+  val features = (0 until 5).map { i =>
+    val name = s"name$i"
+    val dtg = s"2010-05-07T0$i:00:00.000Z"
+    val geom = s"POINT(40 6$i)"
+    val sf = new ScalaSimpleFeature(s"$i", sft)
+    sf.setAttributes(Array[AnyRef](name, dtg, geom))
+    sf
+  }
+
+  addFeatures(features)
+
+  "RecordIdxStrategy" should {
+    "support bin queries" in {
+      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      val query = new Query(sftName, ECQL.toFilter("IN ('2', '3')"))
+      query.getHints.put(BIN_TRACK_KEY, "name")
+      val strategy = new RecordIdxStrategy()
+      val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft),
+        ds.getIndexSchemaFmt(sftName), ds, ds.strategyHints(sft), ds.getGeomesaVersion(sft))
+      val results = queryPlanner.runQuery(query, Some(strategy)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      forall(results)(_ must beAnInstanceOf[Array[Byte]])
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      bins must haveSize(2)
+      bins.map(_.trackId) must containAllOf(Seq("name2", "name3").map(_.hashCode.toString))
+    }
   }
 
   "partitionID" should {

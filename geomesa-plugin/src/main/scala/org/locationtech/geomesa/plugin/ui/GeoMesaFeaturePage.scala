@@ -145,9 +145,9 @@ class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage wit
         val changed = attributes.zip(copy)
                       .filter { case (a, c) => a != c }
                       .map { case (a, _) => a }
-        if (!changed.isEmpty) {
+        if (changed.nonEmpty) {
           val (ds, sft) = loadStore().get
-          val added = changed.filter(_.index != IndexCoverage.NONE).map(_.name).toList
+          val added = changed.filter(_.options.get(OPT_INDEX).exists(i => i == "true" || i == "full" || i == "join")).map(_.name).toList
           val run =
             if (added.isEmpty) {
               Success(true)

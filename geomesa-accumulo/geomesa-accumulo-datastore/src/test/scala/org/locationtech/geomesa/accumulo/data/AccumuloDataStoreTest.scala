@@ -40,10 +40,13 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.CRS
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.iterators.{IndexIterator, TestData}
+import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator._
+import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, IndexIterator, TestData}
 import org.locationtech.geomesa.accumulo.util.{CloseableIterator, GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -334,8 +337,8 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val results = ds.getFeatureSource(sftName).getFeatures(query)
 
       "with the correct schema" >> {
-        SimpleFeatureTypes.encodeType(results.getSchema) mustEqual
-            s"name:String,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true,derived:String"
+        val schema = SimpleFeatureTypes.encodeType(results.getSchema)
+        schema mustEqual s"name:String,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true,derived:String"
       }
       "with the correct results" >> {
         val features = results.features
@@ -545,6 +548,26 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         results.size() mustEqual 226
       }
 
+    }
+
+    "support bin queries" in {
+      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      val sftName = "binTest"
+      val sft = createSchema(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+
+      addDefaultPoint(sft, List("name1", "2010-05-07T00:00:00.000Z", defaultGeom), "1")
+      addDefaultPoint(sft, List("name2", "2010-05-07T01:00:00.000Z", defaultGeom), "2")
+
+      val query = new Query(sftName, ECQL.toFilter("BBOX(geom,40,40,50,50)"))
+      query.getHints.put(BIN_TRACK_KEY, "name")
+      val strategy = new STIdxStrategy()
+      val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft),
+        ds.getIndexSchemaFmt(sftName), ds, ds.strategyHints(sft), ds.getGeomesaVersion(sft))
+      val results = queryPlanner.runQuery(query, Some(strategy)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      forall(results)(_ must beAnInstanceOf[Array[Byte]])
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      bins must haveSize(2)
+      bins.map(_.trackId) must containAllOf(Seq("name1", "name2").map(_.hashCode.toString))
     }
 
     "provide ability to configure authorizations" in {

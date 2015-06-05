@@ -36,7 +36,7 @@ class IndexPackageObjectTest extends Specification {
       origSFT.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
       val query = new Query(sftName, Filter.INCLUDE, Array("name", "helloName=strConcat('hello', name)", "geom"))
-      setQueryTransforms(query, origSFT)
+      QueryPlanner.setQueryTransforms(query, origSFT)
 
       val transform = getTransformSchema(query)
       transform must beSome

@@ -42,6 +42,8 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexFilteringIteratorTest extends Specification {
 
+  sequential
+
   val sftName = "AttributeIndexFilteringIteratorTest"
   val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,age:Integer:index=true,dtg:Date,*geom:Geometry:srid=4326")
   index.setDtgDescriptor(sft, "dtg")

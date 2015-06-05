@@ -89,10 +89,4 @@ import scala.collection.JavaConversions._
 
   type TASKIOCTX = TaskInputOutputContext[_, _, Key, Value]
   type SFFeatureWriter = FeatureWriter[SimpleFeatureType, SimpleFeature]
-
-  def extractDtgField(sft: SimpleFeatureType) =
-    sft.getAttributeDescriptors
-      .find { _.getUserData.contains(SF_PROPERTY_START_TIME) }
-      .map { _.getName.toString }
-      .getOrElse(DEFAULT_DTG_PROPERTY_NAME)
 }
