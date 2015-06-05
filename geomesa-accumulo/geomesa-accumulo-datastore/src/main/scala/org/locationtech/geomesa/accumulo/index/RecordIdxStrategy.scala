@@ -120,7 +120,8 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     val table = acc.getRecordTable(sft)
     val threads = acc.getSuggestedRecordThreads(sft)
-    val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query)
+    val retSFT = QueryPlanner.getReturnSFT(query, sft)
+    val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query, retSFT)
     Seq(BatchScanPlan(table, ranges.toSeq, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false))
   }
 }
