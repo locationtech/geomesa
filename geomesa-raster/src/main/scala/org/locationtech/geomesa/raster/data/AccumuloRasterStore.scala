@@ -314,7 +314,7 @@ object AccumuloRasterStore {
   def apply(config: JMap[String, Serializable]): AccumuloRasterStore = {
     val username: String     = userParam.lookUp(config).asInstanceOf[String]
     val password: String     = passwordParam.lookUp(config).asInstanceOf[String]
-    val instance: String     = passwordParam.lookUp(config).asInstanceOf[String]
+    val instance: String     = instanceIdParam.lookUp(config).asInstanceOf[String]
     val zookeepers: String   = zookeepersParam.lookUp(config).asInstanceOf[String]
     val auths: String        = authsParam.lookupOpt[String](config).getOrElse("")
     val vis: String          = visibilityParam.lookupOpt[String](config).getOrElse("")
@@ -325,8 +325,8 @@ object AccumuloRasterStore {
     val qThread: Option[Int] = queryThreadsParam.lookupOpt[Int](config)
     val cStats: Boolean      = java.lang.Boolean.valueOf(statsParam.lookupOpt[Boolean](config).getOrElse(false))
 
-    AccumuloRasterStore(username, password, instance, zookeepers, auths, vis,
-      tablename, useMock, wMem, wThread, qThread, cStats)
+    AccumuloRasterStore(username, password, instance, zookeepers, tablename,
+      auths, vis, useMock, wMem, wThread, qThread, cStats)
   }
 
   val boundsCache =
