@@ -86,8 +86,8 @@ object GeoMesaSpark extends Logging {
     val indexSchema = ds.getIndexSchemaFmt(typeName)
     val version = ds.getGeomesaVersion(sft)
     val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, ds.strategyHints(sft), version)
+    val qps = queryPlanner.planQuery(query, Some(new STIdxStrategy()), ExplainNull)
 
-    val qps = new STIdxStrategy().getQueryPlans(query, queryPlanner, ExplainNull)
     if (qps.length > 1) {
       logger.error("The query being executed requires multiple scans, which is not currently " +
           "supported by geomesa. Your result set will be partially incomplete. This is most likely due to " +

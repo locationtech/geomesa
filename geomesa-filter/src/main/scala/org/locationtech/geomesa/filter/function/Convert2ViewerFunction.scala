@@ -36,15 +36,13 @@ class Convert2ViewerFunction
       parameter("dtg", classOf[Long])
     )) {
 
-  import org.locationtech.geomesa.filter.function.Convert2ViewerFunction._
-
   override def evaluate(obj: scala.Any): String = {
     val id    = getExpression(0).evaluate(obj).asInstanceOf[String]
-    val label = id.getBytes().take(8).zipWithIndex.map { case (b, i) => (b & 0xffL) << (8*i) }.sum
+    val label = if (id == null) 0L else Convert2ViewerFunction.convertToLabel(id)
     val geom  = getExpression(1).evaluate(obj).asInstanceOf[Point]
     val dtg   = dtg2Long(getExpression(2).evaluate(obj))
-    val values = ExtendedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, None, Some(label))
-    Base64.encodeBytes(encodeToByteArray(values))
+    val values = ExtendedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, id, label)
+    Base64.encodeBytes(Convert2ViewerFunction.encodeToByteArray(values))
   }
 
   private def dtg2Long(d: Any): Long = d match {
@@ -75,6 +73,9 @@ object Convert2ViewerFunction {
     }
   }
 
+  def convertToLabel(label: String): Long =
+    label.getBytes.take(8).zipWithIndex.map { case (b, i) => (b & 0xffL) << (8 * i) }.sum
+
   /**
    * Reachback version is the simple version with an extra
    *
@@ -85,7 +86,7 @@ object Convert2ViewerFunction {
   def encode(values: ExtendedValues, out: OutputStream): Unit = {
     val buf = buffers.get()
     put(buf, values.lat, values.lon, values.dtg, values.trackId)
-    putOption(buf, values.label, 8)
+    buf.putLong(values.label)
     out.write(buf.array(), 0, 24)
   }
 
@@ -126,26 +127,12 @@ object Convert2ViewerFunction {
    * @param dtg
    * @param trackId
    */
-  private def put(buffer: ByteBuffer, lat: Float, lon: Float, dtg: Long, trackId: Option[String]): Unit = {
-    buffer.putInt(trackId.map(_.hashCode).getOrElse(0))
+  private def put(buffer: ByteBuffer, lat: Float, lon: Float, dtg: Long, trackId: String): Unit = {
+    buffer.putInt(if (trackId == null) 0 else trackId.hashCode)
     buffer.putInt((dtg / 1000).toInt)
     buffer.putFloat(lat)
     buffer.putFloat(lon)
   }
-
-  /**
-   * Puts a string into a fixed size bin, padding with spaces or truncating as needed. If value is
-   * 'None', puts 0s for each 4 byte chunk.
-   *
-   * @param buf
-   * @param value
-   * @param length number of bytes to use for storing the value
-   */
-  private def putOption(buf: ByteBuffer, value: Option[Long], length: Int): Unit =
-    value match {
-      case Some(v) => buf.putLong(v)
-      case None => buf.position(buf.position + length)
-    }
 
   /**
    * Decodes a byte array
@@ -155,16 +142,13 @@ object Convert2ViewerFunction {
    */
   def decode(encoded: Array[Byte]): EncodedValues = {
     val buf = ByteBuffer.wrap(encoded).order(ByteOrder.LITTLE_ENDIAN)
-    val trackId = buf.getInt match {
-      case i if i != 0 => Some(i.toString)
-      case _           => None
-    }
+    val trackId = buf.getInt.toString
     val time = buf.getInt * 1000L
     val lat = buf.getFloat
     val lon = buf.getFloat
     if (encoded.length > 16) {
       val label = buf.getLong
-      ExtendedValues(lat, lon, time, trackId, Some(label))
+      ExtendedValues(lat, lon, time, trackId, label)
     } else {
       BasicValues(lat, lon, time, trackId)
     }
@@ -175,14 +159,10 @@ sealed trait EncodedValues {
   def lat: Float
   def lon: Float
   def dtg: Long
-  def trackId: Option[String]
+  def trackId: String
 }
 
-case class BasicValues(lat: Float, lon: Float, dtg: Long, trackId: Option[String] = None)
-    extends EncodedValues
+case class BasicValues(lat: Float, lon: Float, dtg: Long, trackId: String) extends EncodedValues
 
-case class ExtendedValues(lat: Float,
-                          lon: Float,
-                          dtg: Long,
-                          trackId: Option[String] = None,
-                          label: Option[Long] = None) extends EncodedValues
+case class ExtendedValues(lat: Float, lon: Float, dtg: Long, trackId: String, label: Long)
+    extends EncodedValues

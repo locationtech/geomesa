@@ -19,24 +19,34 @@ package org.locationtech.geomesa.accumulo.index
 import java.util.Map.Entry
 import java.util.{Map => JMap}
 
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.{DataUtilities, Query}
+import org.geotools.feature.AttributeTypeBuilder
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.process.vector.TransformProcess
+import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.filter._
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator._
-import org.locationtech.geomesa.accumulo.iterators.{DeDuplicatingIterator, DensityIterator, MapAggregatingIterator, TemporalDensityIterator}
+import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.sumNumericValueMutableMaps
 import org.locationtech.geomesa.accumulo.util.CloseableIterator
 import org.locationtech.geomesa.accumulo.util.CloseableIterator._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
+import org.opengis.feature.GeometryAttribute
+import org.opengis.feature.`type`.{GeometryDescriptor, AttributeDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.sort.{SortBy, SortOrder}
 
 import scala.collection.JavaConverters._
@@ -59,16 +69,19 @@ case class QueryPlanner(sft: SimpleFeatureType,
   val indexValueEncoder = IndexValueEncoder(sft, version)
 
   /**
-   * Plan the query, but don't execute it - used for explain query
+   * Plan the query, but don't execute it - used for m/r jobs and explain query
    */
-  def planQuery(query: Query, output: ExplainerOutputType = log): Seq[QueryPlan] =
-    getStrategyPlans(query, output)._1.map(_.plan)
+  def planQuery(query: Query,
+                strategy: Option[Strategy] = None,
+                output: ExplainerOutputType = log): Seq[QueryPlan] = {
+    getStrategyPlans(query, strategy, output)._1.map(_.plan)
+  }
 
   /**
    * Execute a query against geomesa
    */
-  def query(query: Query): SFIter = {
-    val (plans, numClauses) = getStrategyPlans(query, log)
+  def runQuery(query: Query, strategy: Option[Strategy] = None): SFIter = {
+    val (plans, numClauses) = getStrategyPlans(query, strategy, log)
     val dedupe = numClauses > 1 || plans.exists(_.plan.hasDuplicates)
     executePlans(query, plans, dedupe)
   }
@@ -76,15 +89,16 @@ case class QueryPlanner(sft: SimpleFeatureType,
   /**
    * Execute a query plan. Split out to allow for easier testing.
    */
-  def executePlans(query: Query, strategyPlans: Seq[StrategyPlan], deduplicate: Boolean): SFIter = {
+  private def executePlans(query: Query, strategyPlans: Seq[StrategyPlan], deduplicate: Boolean): SFIter = {
     val features = strategyPlans.iterator.ciFlatMap { sp =>
       sp.strategy.execute(sp.plan, acc, log).map(sp.plan.kvsToFeatures)
     }
 
     val dedupedFeatures = if (deduplicate) new DeDuplicatingIterator(features) else features
 
+    //noinspection EmptyCheck
     val sortedFeatures = if (query.getSortBy != null && query.getSortBy.length > 0) {
-      new LazySortedIterator(dedupedFeatures, query.getSortBy)
+      new LazySortedIterator(dedupedFeatures, query.getHints.getReturnSft, query.getSortBy)
     } else {
       dedupedFeatures
     }
@@ -96,8 +110,13 @@ case class QueryPlanner(sft: SimpleFeatureType,
    * Set up the query plans and strategies used to execute them.
    * Returns the strategy plans and the number of distinct OR clauses, needed for determining deduplication
    */
-  private def getStrategyPlans(query: Query, output: ExplainerOutputType): (Seq[StrategyPlan], Int) = {
+  private def getStrategyPlans(query: Query,
+                               requested: Option[Strategy],
+                               output: ExplainerOutputType): (Seq[StrategyPlan], Int) = {
     output(s"Planning ${ExplainerOutputType.toString(query)}")
+    // configure the query - set hints that we'll need later on
+    configureQuery(query, sft)
+    requested.foreach(r => output(s"STRATEGY FORCED TO ${r.getClass.getName}"))
     implicit val timings = new TimingsImpl
     val (queryPlans, numClauses) = profile({
       val isDensity = query.getHints.containsKey(BBOX_KEY)
@@ -113,7 +132,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
         // TODO Work to make the queries non-overlapping
         val splitQueries = splitQueryOnOrs(query, output)
         val plans = splitQueries.flatMap { q =>
-          val strategy = QueryStrategyDecider.chooseStrategy(sft, q, hints, version)
+          val strategy = requested.getOrElse(QueryStrategyDecider.chooseStrategy(sft, q, hints, version))
           output(s"Strategy: ${strategy.getClass.getCanonicalName}")
           output(s"Transforms: ${getTransformDefinition(query).getOrElse("None")}")
           strategy.getQueryPlans(q, this, output).map { plan =>
@@ -134,8 +153,8 @@ case class QueryPlanner(sft: SimpleFeatureType,
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures
   def defaultKVsToFeatures(query: Query): FeatureFunction = {
     // Perform a projecting decode of the simple feature
-    val returnSFT = getReturnSFT(query)
-    val deserializer = SimpleFeatureDeserializers(returnSFT, featureEncoding)
+    val returnSft = query.getHints.getReturnSft
+    val deserializer = SimpleFeatureDeserializers(returnSft, featureEncoding)
     (kv: Entry[Key, Value]) => {
       val sf = deserializer.deserialize(kv.getValue.get)
       applyVisibility(sf, kv.getKey)
@@ -149,11 +168,11 @@ case class QueryPlanner(sft: SimpleFeatureType,
     if (query.getHints.containsKey(DENSITY_KEY)) {
       adaptDensityIterator(features)
     } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
-      adaptTemporalIterator(features, getReturnSFT(query), query.getHints.containsKey(RETURN_ENCODED))
+      adaptTemporalIterator(features, query.getHints.getReturnSft, query.getHints.containsKey(RETURN_ENCODED))
     } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
-      adaptMapAggregationIterator(features, getReturnSFT(query), query)
+      adaptMapAggregationIterator(features, query.getHints.getReturnSft, query)
     } else {
-      features
+      features // already decoded
     }
   }
 
@@ -196,20 +215,6 @@ case class QueryPlanner(sft: SimpleFeatureType,
       CloseableIterator.empty
     }
   }
-
-  // This function calculates the SimpleFeatureType of the returned SFs.
-  private def getReturnSFT(query: Query): SimpleFeatureType =
-    if (query.getHints.containsKey(DENSITY_KEY)) {
-      SimpleFeatureTypes.createType(sft.getTypeName, DensityIterator.DENSITY_FEATURE_SFT_STRING)
-    } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
-      createFeatureType(sft)
-    } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
-      val mapAggregationAttribute = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
-      val spec = MapAggregatingIterator.projectedSFTDef(mapAggregationAttribute, sft)
-      SimpleFeatureTypes.createType(sft.getTypeName, spec)
-    } else {
-      getTransformSchema(query).getOrElse(sft)
-    }
 }
 
 object QueryPlanner {
@@ -225,6 +230,99 @@ object QueryPlanner {
 
   type KVIter = CloseableIterator[Entry[Key,Value]]
   type SFIter = CloseableIterator[SimpleFeature]
+
+  private val threadedHints = new SoftThreadLocal[Map[AnyRef, AnyRef]]
+
+  def setPerThreadQueryHints(hints: Map[AnyRef, AnyRef]): Unit = threadedHints.put(hints)
+  def clearPerThreadQueryHints() = threadedHints.clear()
+
+  def configureQuery(query: Query, sft: SimpleFeatureType): Unit = {
+    // Query.ALL does not support setting query hints, which we need for our workflow
+    require(query != Query.ALL, "Query.ALL is not supported - please use 'new Query(schemaName)' instead")
+
+    // set query hints - we need this in certain situations where we don't have access to the query directly
+    QueryPlanner.threadedHints.get.foreach { hints =>
+      hints.foreach { case (k, v) => query.getHints.put(k, v) }
+      // clear any configured hints so we don't process them again
+      threadedHints.clear()
+    }
+    // set transformations in the query
+    QueryPlanner.setQueryTransforms(query, sft)
+    // set return SFT in the query
+    QueryPlanner.setReturnSft(query, sft)
+  }
+
+  /**
+   * Checks for attribute transforms in the query and sets them as hints if found
+   *
+   * @param query
+   * @param sft
+   * @return
+   */
+  def setQueryTransforms(query: Query, sft: SimpleFeatureType) =
+    if (query.getProperties != null && !query.getProperties.isEmpty) {
+      val (transformProps, regularProps) = query.getPropertyNames.partition(_.contains('='))
+      val convertedRegularProps = regularProps.map { p => s"$p=$p" }
+      val allTransforms = convertedRegularProps ++ transformProps
+      // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
+      val geomName = sft.getGeometryDescriptor.getLocalName
+      val geomTransform = if (allTransforms.exists(_.matches(s"$geomName\\s*=.*"))) {
+        Nil
+      } else {
+        Seq(s"$geomName=$geomName")
+      }
+      val transforms = (allTransforms ++ geomTransform).mkString(";")
+      val transformDefs = TransformProcess.toDefinition(transforms)
+      val derivedSchema = computeSchema(sft, transformDefs.asScala)
+      query.setProperties(Query.ALL_PROPERTIES)
+      query.getHints.put(TRANSFORMS, transforms)
+      query.getHints.put(TRANSFORM_SCHEMA, derivedSchema)
+    }
+
+  private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
+    val attributes: Seq[AttributeDescriptor] = transforms.map { definition =>
+      val name = definition.name
+      val cql  = definition.expression
+      cql match {
+        case p: PropertyName =>
+          val origAttr = origSFT.getDescriptor(p.getPropertyName)
+          val ab = new AttributeTypeBuilder()
+          ab.init(origAttr)
+          val descriptor = if (origAttr.isInstanceOf[GeometryDescriptor]) {
+            ab.buildDescriptor(name, ab.buildGeometryType())
+          } else {
+            ab.buildDescriptor(name, ab.buildType())
+          }
+          descriptor.getUserData.putAll(origAttr.getUserData)
+          descriptor
+
+        case f: FunctionExpressionImpl  =>
+          val clazz = f.getFunctionName.getReturn.getType
+          val ab = new AttributeTypeBuilder().binding(clazz)
+          if (classOf[Geometry].isAssignableFrom(clazz)) {
+            ab.buildDescriptor(name, ab.buildGeometryType())
+          } else {
+            ab.buildDescriptor(name, ab.buildType())
+          }
+      }
+    }
+
+    val geomAttributes = attributes.filter(_.isInstanceOf[GeometryAttribute]).map(_.getLocalName)
+    val sftBuilder = new SimpleFeatureTypeBuilder()
+    sftBuilder.setName(origSFT.getName)
+    sftBuilder.addAll(attributes.toArray)
+    if (geomAttributes.nonEmpty) {
+      val defaultGeom = if (geomAttributes.size == 1) { geomAttributes.head } else {
+        // try to find a geom with the same name as the original default geom
+        val origDefaultGeom = origSFT.getGeometryDescriptor.getLocalName
+        geomAttributes.find(_ == origDefaultGeom).getOrElse(geomAttributes.head)
+      }
+      sftBuilder.setDefaultGeometry(defaultGeom)
+    }
+    val schema = sftBuilder.buildFeatureType()
+    schema.getUserData.putAll(origSFT.getUserData)
+    schema
+  }
 
   def splitQueryOnOrs(query: Query, output: ExplainerOutputType): Seq[Query] = {
     val originalFilter = query.getFilter
@@ -252,9 +350,29 @@ object QueryPlanner {
       SecurityUtils.setFeatureVisibility(sf, visibility.toString)
     }
   }
+
+  // This function calculates the SimpleFeatureType of the returned SFs.
+  private def setReturnSft(query: Query, baseSft: SimpleFeatureType): SimpleFeatureType = {
+    val sft = if (query.getHints.containsKey(BIN_TRACK_KEY)) {
+      BinAggregatingIterator.BIN_SFT
+    } else if (query.getHints.containsKey(DENSITY_KEY)) {
+      SimpleFeatureTypes.createType(baseSft.getTypeName, DensityIterator.DENSITY_FEATURE_SFT_STRING)
+    } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
+      TemporalDensityIterator.createFeatureType(baseSft)
+    } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
+      val mapAggregationAttribute = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
+      val spec = MapAggregatingIterator.projectedSFTDef(mapAggregationAttribute, baseSft)
+      SimpleFeatureTypes.createType(baseSft.getTypeName, spec)
+    } else {
+      getTransformSchema(query).getOrElse(baseSft)
+    }
+    query.getHints.put(RETURN_SFT_KEY, sft)
+    sft
+  }
 }
 
 class LazySortedIterator(features: CloseableIterator[SimpleFeature],
+                         sft: SimpleFeatureType,
                          sortBy: Array[SortBy]) extends CloseableIterator[SimpleFeature] {
 
   private lazy val sorted: CloseableIterator[SimpleFeature] = {
@@ -264,7 +382,10 @@ class LazySortedIterator(features: CloseableIterator[SimpleFeature],
       case SortBy.REVERSE_ORDER => Ordering.by[SimpleFeature, String](_.getID).reverse
       case sb                   =>
         val prop = sb.getPropertyName.getPropertyName
-        val ord  = attributeToComparable(prop)
+        val idx = sft.indexOf(prop)
+        require(idx != -1, s"Trying to sort on unavailable property '$prop' in feature type " +
+            s"'${SimpleFeatureTypes.encodeType(sft)}'")
+        val ord  = attributeToComparable(idx)
         if (sb.getSortOrder == SortOrder.DESCENDING) ord.reverse else ord
     }
     val comp: (SimpleFeature, SimpleFeature) => Boolean =
@@ -284,16 +405,17 @@ class LazySortedIterator(features: CloseableIterator[SimpleFeature],
     CloseableIterator(buf.sortWith(comp).iterator)
   }
 
-  def attributeToComparable[T <: Comparable[T]](prop: String)(implicit ct: ClassTag[T]): Ordering[SimpleFeature] =
-    Ordering.by[SimpleFeature, T](_.getAttribute(prop).asInstanceOf[T])(new Ordering[T] {
+  def attributeToComparable[T <: Comparable[T]](i: Int)(implicit ct: ClassTag[T]): Ordering[SimpleFeature] =
+    Ordering.by[SimpleFeature, T](_.getAttribute(i).asInstanceOf[T])(new Ordering[T] {
       val evo = implicitly[Ordering[T]]
 
       override def compare(x: T, y: T): Int = {
-        (x, y) match {
-          case (null, null) => 0
-          case (null, _)    => -1
-          case (_, null)    => 1
-          case (_, _)       => evo.compare(x, y)
+        if (x == null) {
+          if (y == null) { 0 } else { -1 }
+        } else if (y == null) {
+          1
+        } else {
+          evo.compare(x, y)
         }
       }
     })

@@ -21,12 +21,12 @@ import java.util
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data
 import org.geotools.data.Query
-import org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.accumulo.data.tables.RecordTable
 import org.locationtech.geomesa.accumulo.filter._
 import org.locationtech.geomesa.accumulo.index.FilterHelper.filterListAsAnd
+import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.Strategy._
-import org.locationtech.geomesa.accumulo.iterators.IteratorTrigger
+import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, IteratorTrigger}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.{FeatureId, Identifier}
 import org.opengis.filter.{Filter, Id}
@@ -120,7 +120,12 @@ class RecordIdxStrategy extends Strategy with Logging {
 
     val table = acc.getRecordTable(sft)
     val threads = acc.getSuggestedRecordThreads(sft)
-    val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query)
+    val kvsToFeatures = if (query.getHints.isBinQuery) {
+      // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
+      BinAggregatingIterator.adaptNonAggregatedIterator(query, sft, featureEncoding)
+    } else {
+      queryPlanner.defaultKVsToFeatures(query)
+    }
     Seq(BatchScanPlan(table, ranges.toSeq, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false))
   }
 }

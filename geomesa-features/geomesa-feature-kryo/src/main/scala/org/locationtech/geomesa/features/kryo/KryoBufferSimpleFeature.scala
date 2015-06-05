@@ -16,6 +16,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.serialization.ObjectType
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
@@ -93,6 +94,11 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: Array[(Input) => 
     }
   }
 
+  def getDateAsLong(index: Int): Long = {
+    input.setPosition(offsets(index))
+    KryoBufferSimpleFeature.longReader(input).asInstanceOf[Long]
+  }
+
   override def getAttribute(index: Int) = {
     input.setPosition(offsets(index))
     readers(index)(input)
@@ -162,4 +168,8 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: Array[(Input) => 
   override def validate() = ???
 
   override def toString = s"KryoBufferSimpleFeature:$getID"
+}
+
+object KryoBufferSimpleFeature {
+  val longReader = KryoFeatureSerializer.matchReader(ObjectType.LONG)
 }

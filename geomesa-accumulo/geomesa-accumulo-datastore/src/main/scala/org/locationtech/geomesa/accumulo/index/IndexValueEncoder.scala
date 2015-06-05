@@ -308,11 +308,10 @@ object OldIndexValueEncoder {
 
   def getSchema(sft: SimpleFeatureType): Seq[String] = {
     import scala.collection.JavaConversions._
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
     val defaults = getDefaultSchema(sft)
-    val descriptors =  sft.getAttributeDescriptors
-        .filter(d => Option(d.getUserData.get(OPT_INDEX_VALUE).asInstanceOf[Boolean]).getOrElse(false))
-        .map(_.getLocalName)
+    val descriptors =  sft.getAttributeDescriptors.filter(_.isIndexValue()).map(_.getLocalName)
     if (descriptors.isEmpty) {
       defaults
     } else {

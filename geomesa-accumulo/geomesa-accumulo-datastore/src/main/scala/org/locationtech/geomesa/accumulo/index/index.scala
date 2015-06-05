@@ -20,6 +20,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.geotools.data.Query
+import org.geotools.factory.Hints
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -103,78 +104,6 @@ package object index {
   def getTransformSchema(query: Query): Option[SimpleFeatureType] =
     Option(query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
 
-  /**
-   * Checks for attribute transforms in the query and sets them as hints if found
-   *
-   * @param query
-   * @param sft
-   * @return
-   */
-  def setQueryTransforms(query: Query, sft: SimpleFeatureType) =
-    if (query.getProperties != null && !query.getProperties.isEmpty) {
-      val (transformProps, regularProps) = query.getPropertyNames.partition(_.contains('='))
-      val convertedRegularProps = regularProps.map { p => s"$p=$p" }
-      val allTransforms = convertedRegularProps ++ transformProps
-      // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
-      val geomName = sft.getGeometryDescriptor.getLocalName
-      val geomTransform = if (allTransforms.exists(_.matches(s"$geomName\\s*=.*"))) {
-        Nil
-      } else {
-        Seq(s"$geomName=$geomName")
-      }
-      val transforms = (allTransforms ++ geomTransform).mkString(";")
-      val transformDefs = TransformProcess.toDefinition(transforms)
-      val derivedSchema = computeSchema(sft, transformDefs)
-      query.setProperties(Query.ALL_PROPERTIES)
-      query.getHints.put(TRANSFORMS, transforms)
-      query.getHints.put(TRANSFORM_SCHEMA, derivedSchema)
-    }
-
-  private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
-    val attributes: Seq[AttributeDescriptor] = transforms.map { definition =>
-      val name = definition.name
-      val cql  = definition.expression
-      cql match {
-        case p: PropertyName =>
-          val origAttr = origSFT.getDescriptor(p.getPropertyName)
-          val ab = new AttributeTypeBuilder()
-          ab.init(origAttr)
-          val descriptor = if (origAttr.isInstanceOf[GeometryDescriptor]) {
-            ab.buildDescriptor(name, ab.buildGeometryType())
-          } else {
-            ab.buildDescriptor(name, ab.buildType())
-          }
-          descriptor.getUserData.putAll(origAttr.getUserData)
-          descriptor
-
-        case f: FunctionExpressionImpl  =>
-          val clazz = f.getFunctionName.getReturn.getType
-          val ab = new AttributeTypeBuilder().binding(clazz)
-          if (classOf[Geometry].isAssignableFrom(clazz)) {
-            ab.buildDescriptor(name, ab.buildGeometryType())
-          } else {
-            ab.buildDescriptor(name, ab.buildType())
-          }
-      }
-    }
-
-    val geomAttributes = attributes.filter(_.isInstanceOf[GeometryAttribute]).map(_.getLocalName)
-    val sftBuilder = new SimpleFeatureTypeBuilder()
-    sftBuilder.setName(origSFT.getName)
-    sftBuilder.addAll(attributes.toArray)
-    if (geomAttributes.nonEmpty) {
-      val defaultGeom = if (geomAttributes.size == 1) { geomAttributes.head } else {
-        // try to find a geom with the same name as the original default geom
-        val origDefaultGeom = origSFT.getGeometryDescriptor.getLocalName
-        geomAttributes.find(_ == origDefaultGeom).getOrElse(geomAttributes.head)
-      }
-      sftBuilder.setDefaultGeometry(defaultGeom)
-    }
-    val schema = sftBuilder.buildFeatureType()
-    schema.getUserData.putAll(origSFT.getUserData)
-    schema
-  }
-
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)
 
@@ -183,6 +112,8 @@ package object index {
   type KeyValuePair = (Key, Value)
 
   object QueryHints {
+    val RETURN_SFT_KEY       = new ClassKey(classOf[SimpleFeatureType])
+
     val DENSITY_KEY          = new ClassKey(classOf[java.lang.Boolean])
     val WIDTH_KEY            = new IntegerKey(256)
     val HEIGHT_KEY           = new IntegerKey(256)
@@ -196,6 +127,24 @@ package object index {
     val MAP_AGGREGATION_KEY  = new ClassKey(classOf[java.lang.String])
 
     val EXACT_COUNT          = new ClassKey(classOf[java.lang.Boolean])
+
+    val BIN_TRACK_KEY        = new ClassKey(classOf[java.lang.String])
+    val BIN_GEOM_KEY         = new ClassKey(classOf[java.lang.String])
+    val BIN_DTG_KEY          = new ClassKey(classOf[java.lang.String])
+    val BIN_LABEL_KEY        = new ClassKey(classOf[java.lang.String])
+    val BIN_SORT_KEY         = new ClassKey(classOf[java.lang.Boolean])
+    val BIN_BATCH_SIZE_KEY   = new ClassKey(classOf[java.lang.Integer])
+
+    implicit class RichHints(val hints: Hints) extends AnyRef {
+      def getReturnSft: SimpleFeatureType = hints.get(RETURN_SFT_KEY).asInstanceOf[SimpleFeatureType]
+      def isBinQuery: Boolean = hints.containsKey(BIN_TRACK_KEY)
+      def getBinTrackIdField: String = hints.get(BIN_TRACK_KEY).asInstanceOf[String]
+      def getBinGeomField: Option[String] = Option(hints.get(BIN_GEOM_KEY).asInstanceOf[String])
+      def getBinDtgField: Option[String] = Option(hints.get(BIN_DTG_KEY).asInstanceOf[String])
+      def getBinLabelField: Option[String] = Option(hints.get(BIN_LABEL_KEY).asInstanceOf[String])
+      def getBinBatchSize: Int = hints.get(BIN_BATCH_SIZE_KEY).asInstanceOf[Int]
+      def isBinSorting: Boolean = hints.get(BIN_SORT_KEY).asInstanceOf[Boolean]
+    }
   }
 
   type ExplainerOutputType = ( => String) => Unit

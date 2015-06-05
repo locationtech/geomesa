@@ -42,10 +42,8 @@ import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.{ExplainingConnectorCreator, GeoMesaBatchWriterConfig}
-import org.locationtech.geomesa.accumulo.data.TableSplitter
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SerializationType, SimpleFeatureSerializer}
-import org.locationtech.geomesa.features.SerializationType.SerializationType
+import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}
@@ -815,11 +813,12 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   // Implementation of Abstract method
-  def getFeatureReader(featureName: String): AccumuloFeatureReader = getFeatureReader(featureName, Query.ALL)
+  def getFeatureReader(featureName: String): AccumuloFeatureReader =
+    getFeatureReader(featureName, new Query(featureName))
 
   // This override is important as it allows us to optimize and plan our search with the Query.
   override def getFeatureReader(featureName: String, query: Query) = {
-    val qp = getQueryPlanner(featureName, query, this)
+    val qp = getQueryPlanner(featureName, this)
     new AccumuloFeatureReader(qp, query, this)
   }
 
@@ -841,21 +840,20 @@ class AccumuloDataStore(val connector: Connector,
    */
   private def planQuery(featureName: String, query: Query, o: ExplainerOutputType): Seq[QueryPlan] = {
     val cc = new ExplainingConnectorCreator(this, o)
-    val qp = getQueryPlanner(featureName, query, cc)
-    qp.planQuery(query, o)
+    val qp = getQueryPlanner(featureName, cc)
+    qp.planQuery(query, None, o)
   }
 
   /**
    * Gets a query planner. Also has side-effect of setting transforms in the query.
    */
-  private def getQueryPlanner(featureName: String, query: Query, cc: AccumuloConnectorCreator): QueryPlanner = {
+  private def getQueryPlanner(featureName: String, cc: AccumuloConnectorCreator): QueryPlanner = {
     validateMetadata(featureName)
     val sft = getSchema(featureName)
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
     val featureEncoding = getFeatureEncoding(sft)
     val version = getGeomesaVersion(sft)
     val hints = strategyHints(sft)
-    setQueryTransforms(query, sft)
     new QueryPlanner(sft, featureEncoding, indexSchemaFmt, cc, hints, version)
   }
 

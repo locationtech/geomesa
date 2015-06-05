@@ -59,7 +59,7 @@ object Conversions {
     }
   }
 
-  implicit def toRichSimpleFeatureIterator(iter: SimpleFeatureIterator) = new RichSimpleFeatureIterator(iter)
+  implicit def toRichSimpleFeatureIterator(iter: SimpleFeatureIterator): RichSimpleFeatureIterator = new RichSimpleFeatureIterator(iter)
   implicit def opengisInstantToJodaInstant(instant: Instant): org.joda.time.Instant = new DateTime(instant.getPosition.getDate).toInstant
   implicit def jodaInstantToOpengisInstant(instant: org.joda.time.Instant): org.opengis.temporal.Instant = new DefaultInstant(new DefaultPosition(instant.toDate))
   implicit def jodaIntervalToOpengisPeriod(interval: org.joda.time.Interval): org.opengis.temporal.Period =
@@ -105,16 +105,6 @@ object Conversions {
       }
     }
   }
-
-  implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
-
-    def userData[T](key: AnyRef)(implicit ct: ClassTag[T]): Option[T] = {
-      Option(sft.getUserData.get(key)).flatMap {
-        case ct(x) => Some(x)
-        case _ => None
-      }
-    }
-  }
 }
 
 
@@ -134,6 +124,7 @@ object RichAttributeDescriptors {
 
   import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 
+  //noinspection AccessorLikeMethodIsEmptyParen
   implicit class RichAttributeDescriptor(val ad: AttributeDescriptor) extends AnyVal {
 
     def setIndexCoverage(coverage: IndexCoverage): Unit = ad.getUserData.put(OPT_INDEX, coverage.toString)
@@ -142,11 +133,9 @@ object RichAttributeDescriptors {
       Option(ad.getUserData.get(OPT_INDEX).asInstanceOf[String])
           .flatMap(c => Try(IndexCoverage.withName(c)).toOption).getOrElse(IndexCoverage.NONE)
 
-    def setIndexValue(indexValue: Boolean): Unit =
-      ad.getUserData.put(OPT_INDEX_VALUE, new java.lang.Boolean(indexValue))
+    def setIndexValue(indexValue: Boolean): Unit = ad.getUserData.put(OPT_INDEX_VALUE, indexValue.toString)
 
-    def isIndexValue(): Boolean =
-      Option(ad.getUserData.get(OPT_INDEX_VALUE).asInstanceOf[Boolean]).getOrElse(false)
+    def isIndexValue(): Boolean = Option(ad.getUserData.get(OPT_INDEX_VALUE)).exists(_ == "true")
 
     def setCardinality(cardinality: Cardinality): Unit =
       ad.getUserData.put(OPT_CARDINALITY, cardinality.toString)
@@ -154,6 +143,10 @@ object RichAttributeDescriptors {
     def getCardinality(): Cardinality =
       Option(ad.getUserData.get(OPT_CARDINALITY).asInstanceOf[String])
           .flatMap(c => Try(Cardinality.withName(c)).toOption).getOrElse(Cardinality.UNKNOWN)
+
+    def setBinTrackId(opt: Boolean): Unit = ad.getUserData.put(OPT_BIN_TRACK_ID, opt.toString)
+
+    def isBinTrackId: Boolean = Option(ad.getUserData.get(OPT_BIN_TRACK_ID)).exists(_ == "true")
 
     def setCollectionType(typ: Class[_]): Unit = ad.getUserData.put(USER_DATA_LIST_TYPE, typ)
 
@@ -196,6 +189,27 @@ object RichAttributeDescriptors {
 
     def mapTypes(keyType: Class[_], valueType: Class[_]) =
       builder.userData(USER_DATA_MAP_KEY_TYPE, keyType).userData(USER_DATA_MAP_VALUE_TYPE, valueType)
+  }
+}
+
+object RichSimpleFeatureType {
+
+  import RichAttributeDescriptors.RichAttributeDescriptor
+  import SimpleFeatureTypes.DEFAULT_DATE_FIELD
+
+  import scala.collection.JavaConversions._
+
+  implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
+    def getGeomField: String = sft.getGeometryDescriptor.getLocalName
+    def getGeomIndex: Int = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
+    def getDtgField: Option[String] = Option(sft.getUserData.get(DEFAULT_DATE_FIELD)).map(_.toString)
+    def getDtgIndex: Option[Int] = getDtgField.map(sft.indexOf)
+    def getBinTrackId: Option[String] = sft.getAttributeDescriptors.find(_.isBinTrackId).map(_.getLocalName)
+    def userData[T](key: AnyRef)(implicit ct: ClassTag[T]): Option[T] =
+      Option(sft.getUserData.get(key)).flatMap {
+        case ct(x) => Some(x)
+        case _ => None
+      }
   }
 }
 

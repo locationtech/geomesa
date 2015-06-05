@@ -4,7 +4,7 @@ import java.util.UUID
 
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.opengis.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 /** Utilities for managing the user data in [[SimpleFeatureType]]s as required by [[KafkaDataStore]]
   * 

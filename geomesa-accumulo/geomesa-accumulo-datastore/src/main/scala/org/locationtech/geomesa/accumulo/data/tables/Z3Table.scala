@@ -10,7 +10,7 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom.Point
 import org.apache.accumulo.core.client.BatchDeleter
 import org.apache.accumulo.core.client.admin.TableOperations
-import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => aRange}
+import org.apache.accumulo.core.data.{Key, Mutation, Range => aRange, Value}
 import org.apache.hadoop.io.Text
 import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
@@ -19,7 +19,9 @@ import org.locationtech.geomesa.accumulo.index.QueryPlanners._
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.nio.{AttributeAccessor, LazySimpleFeature}
+import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.`type`.GeometryDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -46,15 +48,30 @@ object Z3Table extends GeoMesaTable {
   override val suffix: String = "z3"
 
   override def writer(sft: SimpleFeatureType): Option[FeatureToMutations] = {
-    val dtgIndex = index.getDtgDescriptor(sft)
-        .map { desc => sft.indexOf(desc.getName) }
-        .getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
+    val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
     val writer = new KryoFeatureSerializer(sft)
+    val binWriter: (FeatureToWrite, Mutation) => Unit = sft.getBinTrackId match {
+      case Some(trackId) =>
+        val geomIndex = sft.getGeomIndex
+        val trackIndex = sft.indexOf(trackId)
+        (fw: FeatureToWrite, m: Mutation) => {
+          val (lat, lon) = {
+            val geom = fw.feature.getAttribute(geomIndex).asInstanceOf[Point]
+            (geom.getY.toFloat, geom.getX.toFloat)
+          }
+          val dtg = fw.feature.getAttribute(dtgIndex).asInstanceOf[Date].getTime
+          val trackId = Option(fw.feature.getAttribute(trackIndex)).map(_.toString).getOrElse("")
+          val encoded = Convert2ViewerFunction.encodeToByteArray(BasicValues(lat, lon, dtg, trackId))
+          val value = new Value(encoded)
+          m.put(BIN_CF, EMPTY_TEXT, fw.columnVisibility, value)
+        }
+      case _ => (fw: FeatureToWrite, m: Mutation) => {}
+    }
     val fn = (fw: FeatureToWrite) => {
       val mutation = new Mutation(getRowKey(fw, dtgIndex))
       // TODO if we know we're using kryo we don't need to reserialize
       val payload = new Value(writer.serialize(fw.feature))
-      mutation.put(BIN_CF, EMPTY_TEXT, fw.columnVisibility, EMPTY_VALUE)
+      binWriter(fw, mutation)
       mutation.put(FULL_CF, EMPTY_TEXT, fw.columnVisibility, payload)
       Seq(mutation)
     }

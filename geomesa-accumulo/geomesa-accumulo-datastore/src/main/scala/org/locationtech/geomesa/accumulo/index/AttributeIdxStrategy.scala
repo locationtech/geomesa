@@ -30,6 +30,7 @@ import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable}
 import org.locationtech.geomesa.accumulo.filter._
 import org.locationtech.geomesa.accumulo.index.FilterHelper._
+import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.JoinFunction
 import org.locationtech.geomesa.accumulo.index.Strategy._
@@ -84,7 +85,13 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     val encoding = queryPlanner.featureEncoding
     val version = acc.getGeomesaVersion(sft)
     val hasDupes = sft.getDescriptor(attributeName).isMultiValued
-    val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query)
+
+    val kvsToFeatures = if (query.getHints.isBinQuery) {
+      // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
+      BinAggregatingIterator.adaptNonAggregatedIterator(query, sft, encoding)
+    } else {
+      queryPlanner.defaultKVsToFeatures(query)
+    }
 
     // choose which iterator we want to use - joining iterator or attribute only iterator
     val iteratorChoice: IteratorConfig =

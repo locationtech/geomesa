@@ -29,7 +29,7 @@ class AccumuloFeatureReader(queryPlanner: QueryPlanner, query: Query, dataStore:
 
   implicit val timings = if (writeStats) new TimingsImpl else NoOpTimings
 
-  private val iter = profile(queryPlanner.query(query), "planning")
+  private val iter = profile(queryPlanner.runQuery(query), "planning")
 
   override def getFeatureType = queryPlanner.sft
 

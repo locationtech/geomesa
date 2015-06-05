@@ -59,8 +59,8 @@ class BinaryOutputEncoderTest extends Specification {
           decoded.dtg mustEqual baseDtg - 60 * 1000 * i
           decoded.lat mustEqual 45
           decoded.lon mustEqual 50 + i
-          decoded.trackId mustEqual Some(s"1234-$i").map(_.hashCode.toString)
-          decoded.asInstanceOf[ExtendedValues].label mustEqual Some(java.lang.Long.valueOf(i))
+          decoded.trackId mustEqual s"1234-$i".hashCode.toString
+          decoded.asInstanceOf[ExtendedValues].label mustEqual java.lang.Long.valueOf(i)
         }
         success
       }
@@ -75,7 +75,7 @@ class BinaryOutputEncoderTest extends Specification {
           decoded.dtg mustEqual baseDtg - 60 * 1000 * i
           decoded.lat mustEqual 45
           decoded.lon mustEqual 50 + i
-          decoded.trackId mustEqual Some(s"1234-$i").map(_.hashCode.toString)
+          decoded.trackId mustEqual s"1234-$i".hashCode.toString
           decoded must beAnInstanceOf[BasicValues]
         }
         success
@@ -91,7 +91,7 @@ class BinaryOutputEncoderTest extends Specification {
           decoded.dtg mustEqual baseDtg - 60 * 1000 * i
           decoded.lat mustEqual 45
           decoded.lon mustEqual 50 + i
-          decoded.trackId mustEqual Some(s"$i").map(_.hashCode.toString)
+          decoded.trackId mustEqual s"$i".hashCode.toString
           decoded must beAnInstanceOf[BasicValues]
         }
         success
@@ -107,7 +107,7 @@ class BinaryOutputEncoderTest extends Specification {
           decoded.dtg mustEqual baseDtg - 60 * 1000 * i
           decoded.lat mustEqual 45 + i
           decoded.lon mustEqual 50
-          decoded.trackId mustEqual Some(s"1234-$i").map(_.hashCode.toString)
+          decoded.trackId mustEqual s"1234-$i".hashCode.toString
           decoded must beAnInstanceOf[BasicValues]
         }
         success
@@ -138,8 +138,8 @@ class BinaryOutputEncoderTest extends Specification {
           decoded.dtg mustEqual dates(i).getTime
           decoded.lat mustEqual line.getCoordinates()(i).x.toFloat
           decoded.lon mustEqual line.getCoordinates()(i).y.toFloat
-          decoded.trackId mustEqual Some("1234-0").map(_.hashCode.toString)
-          decoded.asInstanceOf[ExtendedValues].label mustEqual Some(0)
+          decoded.trackId mustEqual "1234-0".hashCode.toString
+          decoded.asInstanceOf[ExtendedValues].label mustEqual 0
         }
         success
       }
@@ -154,7 +154,7 @@ class BinaryOutputEncoderTest extends Specification {
           decoded.dtg mustEqual dates(i).getTime
           decoded.lat mustEqual line.getCoordinates()(i).x.toFloat
           decoded.lon mustEqual line.getCoordinates()(i).y.toFloat
-          decoded.trackId mustEqual Some("1234-0").map(_.hashCode.toString)
+          decoded.trackId mustEqual "1234-0".hashCode.toString
           decoded must beAnInstanceOf[BasicValues]
         }
         success
@@ -170,7 +170,7 @@ class BinaryOutputEncoderTest extends Specification {
           decoded.dtg mustEqual dates(3 - i).getTime
           decoded.lat mustEqual line.getCoordinates()(3 - i).x.toFloat
           decoded.lon mustEqual line.getCoordinates()(3 - i).y.toFloat
-          decoded.trackId mustEqual Some("1234-0").map(_.hashCode.toString)
+          decoded.trackId mustEqual "1234-0".hashCode.toString
           decoded must beAnInstanceOf[BasicValues]
         }
         success

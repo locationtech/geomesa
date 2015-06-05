@@ -29,56 +29,48 @@ class Convert2ViewerFunctionTest extends Specification {
   "Convert2ViewerFunction" should {
 
     "encode and decode simple attributes" in {
-      val initial = BasicValues(45.0f, 49.0f, System.currentTimeMillis(), Some("1200"))
+      val initial = BasicValues(45.0f, 49.0f, System.currentTimeMillis(), "1200")
       val encoded = Convert2ViewerFunction.encodeToByteArray(initial)
       encoded must haveLength(16)
       val decoded = Convert2ViewerFunction.decode(encoded)
-      decoded.lat mustEqual(initial.lat)
-      decoded.lon mustEqual(initial.lon)
+      decoded.lat mustEqual initial.lat
+      decoded.lon mustEqual initial.lon
       Math.abs(decoded.dtg - initial.dtg) must beLessThan(1000L) // dates get truncated to nearest second
-      decoded.trackId.get.toInt mustEqual(initial.trackId.get.hashCode)
+      decoded.trackId.toInt mustEqual initial.trackId.hashCode
     }
 
     "encode and decode optional simple attributes" in {
-      val initial = BasicValues(45.0f, 49.0f, System.currentTimeMillis(), None)
+      val initial = BasicValues(45.0f, 49.0f, System.currentTimeMillis(), "")
       val encoded = Convert2ViewerFunction.encodeToByteArray(initial)
       encoded must haveLength(16)
       val decoded = Convert2ViewerFunction.decode(encoded)
-      decoded.lat mustEqual(initial.lat)
-      decoded.lon mustEqual(initial.lon)
+      decoded.lat mustEqual initial.lat
+      decoded.lon mustEqual initial.lon
       Math.abs(decoded.dtg - initial.dtg) must beLessThan(1000L) // dates get truncated to nearest second
-      decoded.trackId mustEqual(initial.trackId)
+      decoded.trackId.toInt mustEqual initial.trackId.hashCode
     }
 
     "encode and decode extended attributes" in {
       val initial = ExtendedValues(45.0f,
                                    49.0f,
                                    System.currentTimeMillis(),
-                                   Some("1200"),
-                                   Some(10))
+                                   "1200",
+                                   10)
       val encoded = Convert2ViewerFunction.encodeToByteArray(initial)
       encoded must haveLength(24)
       val decoded = Convert2ViewerFunction.decode(encoded)
       decoded must beAnInstanceOf[ExtendedValues]
-      decoded.lat mustEqual(initial.lat)
-      decoded.lon mustEqual(initial.lon)
+      decoded.lat mustEqual initial.lat
+      decoded.lon mustEqual initial.lon
       Math.abs(decoded.dtg - initial.dtg) must beLessThan(1000L) // dates get truncated to nearest second
-      decoded.trackId.get.toInt mustEqual(initial.trackId.get.hashCode)
-      decoded.asInstanceOf[ExtendedValues].label mustEqual(initial.label)
+      decoded.trackId.toInt mustEqual initial.trackId.hashCode
+      decoded.asInstanceOf[ExtendedValues].label mustEqual initial.label
     }
 
     "encode and decode to an output stream" in {
       val time = System.currentTimeMillis()
-      val one = ExtendedValues(45.0f,
-        49.0f,
-        time,
-        Some("1200"),
-        Some(1000))
-      val two = ExtendedValues(45.0f,
-        49.0f,
-        time - 100,
-        Some("1201"),
-        Some(3000))
+      val one = ExtendedValues(45.0f, 49.0f, time, "1200", 1000)
+      val two = ExtendedValues(45.0f, 49.0f, time - 100, "1201", 3000)
       val out = new ByteArrayOutputStream(48)
       Convert2ViewerFunction.encode(one, out)
       Convert2ViewerFunction.encode(two, out)
@@ -87,25 +79,25 @@ class Convert2ViewerFunctionTest extends Specification {
 
       val decodedOne = Convert2ViewerFunction.decode(array.splitAt(24)._1)
       decodedOne must beAnInstanceOf[ExtendedValues]
-      decodedOne.lat mustEqual(one.lat)
-      decodedOne.lon mustEqual(one.lon)
+      decodedOne.lat mustEqual one.lat
+      decodedOne.lon mustEqual one.lon
       Math.abs(decodedOne.dtg - one.dtg) must beLessThan(1000L) // dates get truncated to nearest second
-      decodedOne.trackId.get.toInt mustEqual(one.trackId.get.hashCode)
-      decodedOne.asInstanceOf[ExtendedValues].label mustEqual(one.label)
+      decodedOne.trackId.toInt mustEqual one.trackId.hashCode
+      decodedOne.asInstanceOf[ExtendedValues].label mustEqual one.label
 
       val decodedTwo = Convert2ViewerFunction.decode(array.splitAt(24)._2)
       decodedTwo must beAnInstanceOf[ExtendedValues]
-      decodedTwo.lat mustEqual(two.lat)
-      decodedTwo.lon mustEqual(two.lon)
+      decodedTwo.lat mustEqual two.lat
+      decodedTwo.lon mustEqual two.lon
       Math.abs(decodedTwo.dtg - two.dtg) must beLessThan(1000L) // dates get truncated to nearest second
-      decodedTwo.trackId.get.toInt mustEqual(two.trackId.get.hashCode)
-      decodedTwo.asInstanceOf[ExtendedValues].label mustEqual(two.label)
+      decodedTwo.trackId.toInt mustEqual two.trackId.hashCode
+      decodedTwo.asInstanceOf[ExtendedValues].label mustEqual two.label
     }
 
     "encode faster to an output stream" in {
       skipped("integration")
       val times = 10000
-      val one = ExtendedValues(45.0f, 49.0f, System.currentTimeMillis(), Some("1200"), Some(10000))
+      val one = ExtendedValues(45.0f, 49.0f, System.currentTimeMillis(), "1200", 10000)
       val out = new ByteArrayOutputStream(24 * times)
 
       // the first test run always takes a long time, even with some initialization...

@@ -17,10 +17,9 @@ package org.locationtech.geomesa.tools.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.accumulo.data.extractDtgField
 import org.locationtech.geomesa.tools.commands.DescribeCommand._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-import org.opengis.feature.`type`.AttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import scala.collection.JavaConversions._
 
@@ -33,8 +32,6 @@ class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
     try {
       val sft = ds.getSchema(params.featureName)
 
-      def isIndexed(attr: AttributeDescriptor) = attr.isIndexed
-
       val sb = new StringBuilder()
       sft.getAttributeDescriptors.foreach { attr =>
         sb.clear()
@@ -45,9 +42,9 @@ class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
         sb.append(": ")
         sb.append(attr.getType.getBinding.getSimpleName)
 
-        if (extractDtgField(sft) == name)      sb.append(" (ST-Time-index)")
+        if (sft.getDtgField.exists(_ == name)) sb.append(" (ST-Time-index)")
         if (sft.getGeometryDescriptor == attr) sb.append(" (ST-Geo-index)")
-        if (isIndexed(attr))                   sb.append(" (Indexed)")
+        if (attr.isIndexed)                    sb.append(" (Indexed)")
         if (attr.getDefaultValue != null)      sb.append("- Default Value: ", attr.getDefaultValue)
 
         println(sb.toString())
