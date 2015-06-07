@@ -84,7 +84,9 @@ case class QueryPlanner(sft: SimpleFeatureType,
     val dedupedFeatures = if (deduplicate) new DeDuplicatingIterator(features) else features
 
     val sortedFeatures = if (query.getSortBy != null && query.getSortBy.length > 0) {
-      new LazySortedIterator(dedupedFeatures, query.getSortBy)
+      // TODO: is there a better place to compute the return SFT and propagate it through the query execution?
+      val retSFT = getReturnSFT(query, sft)
+      new LazySortedIterator(dedupedFeatures, query.getSortBy, retSFT)
     } else {
       dedupedFeatures
     }
@@ -132,9 +134,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
   }
 
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures
-  def defaultKVsToFeatures(query: Query): FeatureFunction = {
-    // Perform a projecting decode of the simple feature
-    val returnSFT = getReturnSFT(query)
+  def defaultKVsToFeatures(query: Query, returnSFT: SimpleFeatureType): FeatureFunction = {
     val deserializer = SimpleFeatureDeserializers(returnSFT, featureEncoding)
     (kv: Entry[Key, Value]) => {
       val sf = deserializer.deserialize(kv.getValue.get)
@@ -149,9 +149,9 @@ case class QueryPlanner(sft: SimpleFeatureType,
     if (query.getHints.containsKey(DENSITY_KEY)) {
       adaptDensityIterator(features)
     } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
-      adaptTemporalIterator(features, getReturnSFT(query), query.getHints.containsKey(RETURN_ENCODED))
+      adaptTemporalIterator(features, getReturnSFT(query, sft), query.getHints.containsKey(RETURN_ENCODED))
     } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
-      adaptMapAggregationIterator(features, getReturnSFT(query), query)
+      adaptMapAggregationIterator(features, getReturnSFT(query, sft), query)
     } else {
       features
     }
@@ -197,19 +197,6 @@ case class QueryPlanner(sft: SimpleFeatureType,
     }
   }
 
-  // This function calculates the SimpleFeatureType of the returned SFs.
-  private def getReturnSFT(query: Query): SimpleFeatureType =
-    if (query.getHints.containsKey(DENSITY_KEY)) {
-      SimpleFeatureTypes.createType(sft.getTypeName, DensityIterator.DENSITY_FEATURE_SFT_STRING)
-    } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
-      createFeatureType(sft)
-    } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
-      val mapAggregationAttribute = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
-      val spec = MapAggregatingIterator.projectedSFTDef(mapAggregationAttribute, sft)
-      SimpleFeatureTypes.createType(sft.getTypeName, spec)
-    } else {
-      getTransformSchema(query).getOrElse(sft)
-    }
 }
 
 object QueryPlanner {
@@ -252,10 +239,26 @@ object QueryPlanner {
       SecurityUtils.setFeatureVisibility(sf, visibility.toString)
     }
   }
+
+  // This function calculates the SimpleFeatureType of the returned SFs.
+  def getReturnSFT(query: Query, sft: SimpleFeatureType): SimpleFeatureType =
+    if (query.getHints.containsKey(DENSITY_KEY)) {
+      SimpleFeatureTypes.createType(sft.getTypeName, DensityIterator.DENSITY_FEATURE_SFT_STRING)
+    } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
+      createFeatureType(sft)
+    } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
+      val mapAggregationAttribute = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
+      val spec = MapAggregatingIterator.projectedSFTDef(mapAggregationAttribute, sft)
+      SimpleFeatureTypes.createType(sft.getTypeName, spec)
+    } else {
+      getTransformSchema(query).getOrElse(sft)
+    }
+
 }
 
 class LazySortedIterator(features: CloseableIterator[SimpleFeature],
-                         sortBy: Array[SortBy]) extends CloseableIterator[SimpleFeature] {
+                         sortBy: Array[SortBy],
+                         sft: SimpleFeatureType) extends CloseableIterator[SimpleFeature] {
 
   private lazy val sorted: CloseableIterator[SimpleFeature] = {
 
@@ -264,7 +267,9 @@ class LazySortedIterator(features: CloseableIterator[SimpleFeature],
       case SortBy.REVERSE_ORDER => Ordering.by[SimpleFeature, String](_.getID).reverse
       case sb                   =>
         val prop = sb.getPropertyName.getPropertyName
-        val ord  = attributeToComparable(prop)
+        val idx = sft.indexOf(prop)
+        if(idx == -1) throw new IllegalArgumentException("Cannot sort on unavailable property")
+        val ord  = attributeToComparable(idx)
         if (sb.getSortOrder == SortOrder.DESCENDING) ord.reverse else ord
     }
     val comp: (SimpleFeature, SimpleFeature) => Boolean =
@@ -284,8 +289,8 @@ class LazySortedIterator(features: CloseableIterator[SimpleFeature],
     CloseableIterator(buf.sortWith(comp).iterator)
   }
 
-  def attributeToComparable[T <: Comparable[T]](prop: String)(implicit ct: ClassTag[T]): Ordering[SimpleFeature] =
-    Ordering.by[SimpleFeature, T](_.getAttribute(prop).asInstanceOf[T])(new Ordering[T] {
+  def attributeToComparable[T <: Comparable[T]](idx: Int)(implicit ct: ClassTag[T]): Ordering[SimpleFeature] =
+    Ordering.by[SimpleFeature, T](_.getAttribute(idx).asInstanceOf[T])(new Ordering[T] {
       val evo = implicitly[Ordering[T]]
 
       override def compare(x: T, y: T): Int = {

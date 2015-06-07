@@ -112,7 +112,8 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val iterators = qp.iterators ++ List(Some(stiiIterCfg), densityIterCfg).flatten
     val numThreads = acc.getSuggestedSpatioTemporalThreads(sft)
     val hasDupes = IndexSchema.mayContainDuplicates(sft)
-    val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query)
+    val retSFT = QueryPlanner.getReturnSFT(query, sft)
+    val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query, retSFT)
     val res = qp.copy(table = table, iterators = iterators, kvsToFeatures = kvsToFeatures, numThreads = numThreads, hasDuplicates = hasDupes)
     Seq(res)
   }

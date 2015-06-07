@@ -84,7 +84,8 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     val encoding = queryPlanner.featureEncoding
     val version = acc.getGeomesaVersion(sft)
     val hasDupes = sft.getDescriptor(attributeName).isMultiValued
-    val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query)
+    val retSFT = QueryPlanner.getReturnSFT(query, sft)
+    val kvsToFeatures = queryPlanner.defaultKVsToFeatures(query, retSFT)
 
     // choose which iterator we want to use - joining iterator or attribute only iterator
     val iteratorChoice: IteratorConfig =
