@@ -21,9 +21,19 @@ if [[ (-z "$GEOMESA_HOME") ]]; then
     exit
 else
     url='http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib.zip'
+    urljttools="http://central.maven.org/maven2/org/jaitools/jt-utils/1.3.1/jt-utils-1.3.1.jar"
+    urlimageio="http://download.osgeo.org/webdav/geotools/javax/media/jai_imageio/1.1/jai_imageio-1.1.jar"
     read -r -p "Java Advanced Imaging (jai) is LGPL licensed and is not distributed with GeoMesa...are you sure you want to install it from $url ? [Y/n]" confirm
     confirm=${confirm,,} #lowercasing
     if [[ $confirm =~ ^(yes|y) ]]; then
+        echo "Trying to install JAItools from $urljttools to $GEOMESA_HOME"
+        wget -O $GEOMESA_HOME/lib/jt-utils-1.3.1.jar $urljttools \
+            && chmod 0755 $GEOMESA_HOME/lib/jt-utils-1.3.1.jar \
+            && echo "Successfully installed jai tools"
+        echo "Trying to install JAI ImageIO from $urlimageio to $GEOMESA_HOME"
+        wget -O $GEOMESA_HOME/lib/jai_imageio-1.1.jar $urlimageio \
+            && chmod 0755 $GEOMESA_HOME/lib/jai_imageio-1.1.jar \
+            && echo "Successfully installed jai imageio"
         echo "Trying to install Java Advanced Imaging (jai) from $url to $GEOMESA_HOME"
         wget -O /tmp/jai-1_1_3-lib.zip $url \
             && unzip -j -d $GEOMESA_HOME/lib/ /tmp/jai-1_1_3-lib.zip '*.jar' \

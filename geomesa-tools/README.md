@@ -101,6 +101,43 @@ To install, copy the jai_core.jar and jai_code.jar into `$GEOMESA_HOME/lib/`
 Optionally there is a script bundled as `$GEOMESA_HOME/bin/install-jai` that will attempt to wget and install 
 the jai libraries
 
+
+###Enabling Raster Ingest
+Due to licensing restrictions, a number of necessary dependencies required for raster ingest must be manually installed:
+
+    <dependency>
+    	<groupId>org.jaitools</groupId>
+    	<artifactId>jt-utils</artifactId>
+    	<version>1.3.1</version>
+    </dependency>
+    <dependency>
+        <groupId>javax.media</groupId>
+        <artifactId>jai_core</artifactId>
+        <version>1.1.3</version>
+    </dependency>
+    <dependency>
+        <groupId>javax.media</groupId>
+        <artifactId>jai_codec</artifactId>
+        <version>1.1.3</version>
+    </dependency>
+    <dependency>
+        <groupId>javax.media</groupId>
+        <artifactId>jai_imageio</artifactId>
+        <version>1.1</version>
+    </dependency>
+    <dependency>
+        <groupId>java3d</groupId>
+        <artifactId>vecmath</artifactId>
+        <version>1.3.2</version>
+    </dependency>
+
+
+To install, you can either locate the jar files or run the two following included scripts which will attempt to wget and install the jars.
+
+`$GEOMESA_HOME/bin/install-jai`
+ 
+`$GEOMESA_HOME/bin/install-vecmath`
+
 ###Logging configuration
 GeoMesa tools comes bundled by default with an slf4j implementation that is installed to the $GEOMESA_HOME/lib directory
  named `slf4j-log4j12-1.7.5.jar` If you already have an slf4j implementation installed on your Java Classpath you may
