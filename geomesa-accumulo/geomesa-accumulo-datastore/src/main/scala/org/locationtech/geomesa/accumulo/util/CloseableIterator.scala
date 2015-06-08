@@ -18,7 +18,7 @@ package org.locationtech.geomesa.accumulo.util
 
 import java.util.Map.Entry
 
-import org.apache.accumulo.core.client.{Scanner, BatchScanner, ScannerBase}
+import org.apache.accumulo.core.client.{BatchScanner, Scanner, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.FeatureReader
 import org.geotools.data.simple.SimpleFeatureIterator

@@ -17,8 +17,8 @@
 package org.locationtech.geomesa.raster.data
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.RasterTestsUtils._
+import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.locationtech.geomesa.utils.stats.{NoOpTimings, Timings}
 import org.specs2.mutable.Specification

@@ -29,10 +29,9 @@ import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index.{IndexFilterHelpers, QueryPlan, _}
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.process.knn.TouchingGeoHashes
-import org.locationtech.geomesa.raster.{rasterSft, rasterSftName}
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.iterators.RasterFilteringIterator
-import org.locationtech.geomesa.raster.lexiEncodeDoubleToString
+import org.locationtech.geomesa.raster.{lexiEncodeDoubleToString, rasterSft, rasterSftName}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeohashUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType

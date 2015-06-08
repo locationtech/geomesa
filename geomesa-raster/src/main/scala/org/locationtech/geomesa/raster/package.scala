@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa
 
-import java.math.{RoundingMode, MathContext}
+import java.math.{MathContext, RoundingMode}
 
 import org.calrissian.mango.types.LexiTypeEncoders
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

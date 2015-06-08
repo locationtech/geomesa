@@ -19,10 +19,12 @@ package org.locationtech.geomesa.raster
 import java.io.Serializable
 import java.util.{Map => JMap}
 import javax.imageio.spi.ServiceRegistry
-import org.apache.accumulo.core.client.{ZooKeeperInstance, Connector}
+
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.locationtech.geomesa.security._
+
 import scala.collection.JavaConversions._
 
 //TODO: WCS: refactor this and AccumuloDataStoreFactory to remove duplication, etc...
