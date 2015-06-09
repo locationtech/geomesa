@@ -39,6 +39,7 @@
         <module>geomesa-web</module>
         <module>geomesa-process</module>
         <module>geomesa-stream</module>
+        <module>geomesa-examples</module>
         <module>geomesa-z3</module>
         <module>geomesa-accumulo</module>
     </modules>
