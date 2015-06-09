@@ -37,22 +37,27 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-accumulo-datastore</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
+            <version>${hadoop.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
+            <version>${accumulo.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -68,19 +73,23 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_2.10</artifactId>
+            <version>${specs2.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
+            <version>1.1.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>javax.media</groupId>
             <artifactId>jai_imageio</artifactId>
+            <version>1.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

@@ -87,8 +87,7 @@ class RasterEntryEncoder extends Logging {
     new Text(RasterEntry.encodeIndexCQMetadata(raster.id, raster.metadata.geom, Option(raster.time.toDate)))
   }
 
-  private def encodeValue(raster: Raster): Value =
-    new Value(raster.serializedChunk)
+  private def encodeValue(raster: Raster): Value = new Value(raster.serializedChunk)
 
 }
 

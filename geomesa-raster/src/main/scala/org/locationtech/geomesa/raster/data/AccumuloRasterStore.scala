@@ -71,16 +71,16 @@ class AccumuloRasterStore(val connector: Connector,
     implicit val timings = if (collectStats) new TimingsImpl else NoOpTimings
     val rasters = getRasters(query)
     val (image, numRasters) = profile(
-        RasterUtils.mosaicChunks(rasters, params.width.toInt, params.height.toInt, params.envelope),
+      RasterUtils.mosaicChunks(rasters, params.width.toInt, params.height.toInt, params.envelope),
       "mosaic")
-    if (timings.isInstanceOf[TimingsImpl]) {
+    if (collectStats) {
       val stat = RasterQueryStat(tableName,
-        System.currentTimeMillis(),
-        query.toString,
-        timings.time("planning"),
-        timings.time("scanning") - timings.time("planning"),
-        timings.time("mosaic"),
-        numRasters)
+                                 System.currentTimeMillis(),
+                                 query.toString,
+                                 timings.time("planning"),
+                                 timings.time("scanning") - timings.time("planning"),
+                                 timings.time("mosaic"),
+                                 numRasters)
       this.writeStat(stat, profileTable)
     }
     image
@@ -117,18 +117,12 @@ class AccumuloRasterStore(val connector: Connector,
     }
   }
 
-  def getAvailableResolutions: Seq[Double] = {
-    // TODO: Consider adding resolutions + extent info  https://geomesa.atlassian.net/browse/GEOMESA-645
-    getAvailabilityMap.keySet.toSeq.sorted
-  }
+  // TODO: Consider adding resolutions + extent info  https://geomesa.atlassian.net/browse/GEOMESA-645
+  def getAvailableResolutions: Seq[Double] = getAvailabilityMap.keySet.toSeq.sorted
 
-  def getAvailableGeoHashLengths: Set[Int] = {
-    getAvailabilityMap.values().toSet
-  }
+  def getAvailableGeoHashLengths: Set[Int] = getAvailabilityMap.values().toSet
 
-  def getAvailabilityMap: ImmutableSetMultimap[Double, Int] = {
-    AccumuloRasterStore.boundsCache.get(tableName, callable)
-  }
+  def getAvailabilityMap: ImmutableSetMultimap[Double, Int] = AccumuloRasterStore.boundsCache.get(tableName, callable)
 
   def callable = new Callable[ImmutableSetMultimap[Double, Int]] {
     override def call(): ImmutableSetMultimap[Double, Int] = {
@@ -159,7 +153,7 @@ class AccumuloRasterStore(val connector: Connector,
   }
 
   def adaptIteratorToChunks(iter: java.util.Iterator[Entry[Key, Value]]): Iterator[Raster] = {
-    iter.map{ entry => schema.decode((entry.getKey, entry.getValue)) }
+    iter.map(entry => schema.decode((entry.getKey, entry.getValue)))
   }
 
   private def dateToAccTimestamp(dt: DateTime): Long =  dt.getMillis / 1000
@@ -187,9 +181,7 @@ class AccumuloRasterStore(val connector: Connector,
     mutation
   }
 
-  def putRasters(rasters: Seq[Raster]) {
-    rasters.foreach(putRaster)
-  }
+  def putRasters(rasters: Seq[Raster]) = rasters.foreach(putRaster)
 
   def putRaster(raster: Raster) {
     writeMutations(tableName, createMutation(raster))

@@ -78,11 +78,8 @@ package object raster {
     BigDecimal(number).round(mc).toDouble
   }
 
-  def lexiEncodeIntToString(number: Int): String = {
-    LexiTypeEncoders.LEXI_TYPES.encode(number)
-  }
+  def lexiEncodeIntToString(number: Int): String = LexiTypeEncoders.LEXI_TYPES.encode(number)
 
-  def lexiDecodeStringToInt(str: String): Int = {
-    LexiTypeEncoders.LEXI_TYPES.decode("integer", str).asInstanceOf[Int]
-  }
+  def lexiDecodeStringToInt(str: String): Int = LexiTypeEncoders.LEXI_TYPES.decode("integer", str).asInstanceOf[Int]
+
 }

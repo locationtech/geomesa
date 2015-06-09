@@ -61,7 +61,7 @@ class RasterChunking(config: Map[String, Option[String]]) extends RasterIngest {
     val llGh = GeoHash(minX, minY, chunkPrec)
     val urGh = GeoHash(maxX, maxY, chunkPrec)
     val (llX, llY, urX, urY) = (llGh.getPoint.getX, llGh.getPoint.getY, urGh.getPoint.getX, urGh.getPoint.getY)
-    val (deltaX, deltaY) = ((llGh.bbox.ur.getX - llGh.bbox.ll.getX), (llGh.bbox.ur.getY - llGh.bbox.ll.getY))
+    val (deltaX, deltaY) = (llGh.bbox.ur.getX - llGh.bbox.ll.getX, llGh.bbox.ur.getY - llGh.bbox.ll.getY)
     val (stepsX, stepsY) = (ceil((urX - llX) / deltaX).toInt, ceil((urY - llY) / deltaY).toInt)
 
     new File(outDir).mkdir
@@ -115,7 +115,7 @@ class RasterChunking(config: Map[String, Option[String]]) extends RasterIngest {
       if (coor - tmpCoor > 0.5D * step) tmpCoor + step
       //DUPLICATION POSSIBLE: With the following line, adjacent chunks may have one edge
       //(width = 1) overlapped.
-//      if (isMax && coor - tmpCoor > 0D) tmpCoor + step
+      //if (isMax && coor - tmpCoor > 0D) tmpCoor + step
       else tmpCoor
     }
     Math.min(Math.max(calCoor, minCoor), maxCoor)
@@ -126,9 +126,9 @@ object RasterChunking extends Logging {
   val BOUND_MIN_X = -180.0
   val BOUND_MIN_Y = -90.0
   val BOUND_MAX_X = 180.0
-  val BOUND_MAX_Y = 89.999999
+  val BOUND_MAX_Y = 90.0
 
-  //Get precision of geohashe with size no larger than given bound
+  //Get precision of geohash with size no larger than given bound
   def GetGeoHashPrecisionBySize(rasterGrid: GridCoverage2D, size: Double): Int = {
     val envelope = rasterGrid.getEnvelope2D
     val (stepX, stepY) = getSteps(rasterGrid)
@@ -138,7 +138,7 @@ object RasterChunking extends Logging {
       throw new Exception("No closest acceptable Geohash found. Cannot chunk raster."))
 
     while (getGridSize(gh, stepX, stepY) * pixelSize / 1000.0 > size) {
-      gh = GeoHash(s"${gh.hash}0")
+      gh = GeoHash(s"${gh.hash}") //There was a "0" in the string after the hash, was this a typo?
     }
 
     gh.prec

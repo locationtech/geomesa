@@ -112,10 +112,6 @@ object RasterUtils {
     new BufferedImage(colorModel, r.copyData(null), alphaPremultiplied, properties)
   }
 
-  def getEmptyImage(width: Int, height: Int, imageType: Int): BufferedImage = {
-    new BufferedImage(width, height, imageType)
-  }
-
   def writeToMosaic(mosaic: BufferedImage, raster: Raster, env: Envelope, resX: Double, resY: Double) = {
     val croppedRaster = cropRaster(raster, env)
     croppedRaster.foreach{ cropped =>
@@ -179,37 +175,29 @@ object RasterUtils {
     val rasterEnv = raster.referencedEnvelope
     val intersection = rasterEnv.intersection(envelopeToReferencedEnvelope(cropEnv))
     if (intersection.equals(rasterEnv)) {
+      // If the intersection of the crop envelope and tile is equal to the tile envelope we are done.
       Some(renderedImageToBufferedImage(raster.chunk))
     } else {
-      val chunkXRes = rasterEnv.getWidth / raster.chunk.getWidth
-      val chunkYRes = rasterEnv.getHeight / raster.chunk.getHeight
+      // Check the area of the intersection to ensure it is at least 1x1 pixels
+      val chunkWidth   = raster.chunk.getWidth
+      val chunkHeight  = raster.chunk.getHeight
+      val chunkXRes    = rasterEnv.getWidth / chunkWidth
+      val chunkYRes    = rasterEnv.getHeight / chunkHeight
       //TODO: check for corner cases: https://geomesa.atlassian.net/browse/GEOMESA-758
-      val widthP  = Math.round(intersection.getWidth / chunkXRes)
-      val heightP = Math.round(intersection.getHeight / chunkYRes)
-      if (widthP > 0 && heightP > 0) {
+      val widthPixels  = Math.round(intersection.getWidth / chunkXRes)
+      val heightPixels = Math.round(intersection.getHeight / chunkYRes)
+      if (widthPixels > 0 && heightPixels > 0) {
+        // Now that we know the area is at least 1x1 perform the cropping operation
         val uLX = Math.max(Math.floor((intersection.getMinX - rasterEnv.getMinimum(0)) / chunkXRes).toInt, 0)
         val uLY = Math.max(Math.floor((rasterEnv.getMaximum(1) - intersection.getMaxY) / chunkYRes).toInt, 0)
-        val wTemp = Math.max(Math.ceil(intersection.getWidth / chunkXRes).toInt, 0)
-        val w = if (wTemp + uLX > raster.chunk.getWidth) {
-          raster.chunk.getWidth - uLX
-        } else {
-          wTemp
-        }
-        val hTemp = Math.max(Math.ceil(intersection.getHeight / chunkYRes).toInt, 0)
-        val h = if (hTemp + uLY > raster.chunk.getHeight) {
-          raster.chunk.getHeight - uLY
-        } else {
-          hTemp
-        }
-        val b = renderedImageToBufferedImage(raster.chunk)
-        Some(bufferCrop(b, uLX, uLY, w, h))
+        val tempWidth     = Math.max(Math.ceil(intersection.getWidth / chunkXRes).toInt, 0)
+        val finalWidth    = if (tempWidth + uLX > chunkWidth) chunkWidth - uLX else tempWidth
+        val tempHeight    = Math.max(Math.ceil(intersection.getHeight / chunkYRes).toInt, 0)
+        val finalHeight   = if (tempHeight + uLY > chunkHeight) chunkHeight - uLY else tempHeight
+        val bufferedChunk = renderedImageToBufferedImage(raster.chunk)
+        Some(bufferedChunk.getSubimage(uLX, uLY, finalWidth, finalHeight))
       } else None
     }
-  }
-
-  def bufferCrop(src: BufferedImage, ulx: Int, uly: Int, w: Int, h: Int): BufferedImage = {
-    val result = src.getSubimage(ulx, uly, w, h)
-    result
   }
 
   def envelopeToReferencedEnvelope(e: Envelope): ReferencedEnvelope = {
@@ -266,13 +254,11 @@ object RasterUtils {
     writer.append(new BytesWritable(name.getBytes), new BytesWritable(bytes))
   }
 
-  def closeSequenceWriter(writer:  SequenceFile.Writer) {
-    IOUtils.closeStream(writer)
-  }
+  def closeSequenceWriter(writer:  SequenceFile.Writer) = IOUtils.closeStream(writer)
 
   //Encode a list of byte arrays into one byte array using protocol: length | data
   //Result is like: length[4 bytes], byte array, ... [length[4 bytes], byte array]
-  def encodeByteArrays(bas: List[Array[Byte]]): Array[Byte] =  {
+  def encodeByteArrays(bas: List[Array[Byte]]): Array[Byte] = {
     val totalLength = bas.map(_.length).sum
     val buffer = ByteBuffer.allocate(totalLength + 4 * bas.length)
     bas.foreach{ ba => buffer.putInt(ba.length).put(ba) }

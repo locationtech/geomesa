@@ -51,7 +51,8 @@
         <gt.version>11.2</gt.version>
         <jts.version>1.13</jts.version>
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
-
+        <junit.version>4.5</junit.version>
+        <specs2.version>2.3.13</specs2.version>
         <!-- environment-dependent versions -->
         <zookeeper.version>3.4.5</zookeeper.version>
         <accumulo.version>1.5.1</accumulo.version>
@@ -871,7 +872,7 @@
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.5</version>
+                <version>${junit.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

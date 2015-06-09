@@ -46,8 +46,7 @@ object RasterTestsUtils {
   val defaultGridCoverageFactory = new GridCoverageFactory
 
   def createMockRasterStore(tableName: String) = {
-    val rs = AccumuloRasterStore("user", "pass", "testInstance", "zk", tableName, "", "", useMock = true)
-    rs
+    AccumuloRasterStore("user", "pass", "testInstance", "zk", tableName, "", "", useMock = true)
   }
 
   def generateQuery(minX: Double, maxX: Double, minY: Double, maxY: Double, res: Double = 10.0) = {
