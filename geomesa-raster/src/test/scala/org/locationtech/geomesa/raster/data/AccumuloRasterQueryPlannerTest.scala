@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSetMultimap
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.raster._
-import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -30,12 +29,11 @@ class AccumuloRasterQueryPlannerTest extends Specification {
 
   sequential
 
-  val schema = RasterIndexSchema()
   val availableResolutions = List[Double](45.0/256.0, 45.0/1024.0)
 
   val dataMap: ImmutableSetMultimap[Double, Int] = ImmutableSetMultimap.of(45.0/256.0, 1, 45.0/1024.0, 1)
 
-  val arqp = AccumuloRasterQueryPlanner(schema)
+  val arqp = new AccumuloRasterQueryPlanner
 
   val testCases = List(
     (128, 45.0/256.0),

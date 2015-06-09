@@ -61,7 +61,7 @@ object RasterEntry {
   }
 }
 
-class RasterEntryEncoder extends Logging {
+object RasterEntryEncoder extends Logging {
 
   def encode(raster: Raster, visibility: String = ""): KeyValuePair = {
 
@@ -82,7 +82,7 @@ class RasterEntryEncoder extends Logging {
   //TODO: WCS: add band value to Raster and insert it into the CF here
   // GEOMESA-561
   private def getCF(raster: Raster): Text = new Text("")
-  
+
   private def getCQ(raster: Raster): Text = {
     new Text(RasterEntry.encodeIndexCQMetadata(raster.id, raster.metadata.geom, Option(raster.time.toDate)))
   }
@@ -102,14 +102,7 @@ object RasterEntryDecoder {
     }
     read
   }
-}
 
-import org.locationtech.geomesa.raster.index.RasterEntryDecoder._
-
-class RasterEntryDecoder() {
-  // this should not really need any parameters for the case class, it should simply
-  // construct a Raster from a Key (don't we need the value for this....)
-  // maybe this is not needed at all?
   def decode(entry: KeyValuePair) = {
     val renderedImage: RenderedImage = rasterImageDeserialize(entry._2.get)
     val metadata: DecodedIndexValue = RasterEntry.decodeIndexCQMetadata(entry._1)

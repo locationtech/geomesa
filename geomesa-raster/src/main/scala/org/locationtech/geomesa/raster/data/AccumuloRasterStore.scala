@@ -57,8 +57,8 @@ class AccumuloRasterStore(val connector: Connector,
   val numQThreads = queryThreadsConfig.getOrElse(20)
 
   // TODO: WCS: GEOMESA-585 Add ability to use arbitrary schemas
-  val schema = RasterIndexSchema()
-  lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner(schema)
+  val schema = RasterIndexSchema
+  lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner
 
   private val tableOps       = connector.tableOperations()
   private val securityOps    = connector.securityOperations

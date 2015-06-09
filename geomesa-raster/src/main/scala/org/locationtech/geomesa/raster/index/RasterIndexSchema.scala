@@ -21,20 +21,9 @@ package org.locationtech.geomesa.raster.index
 import org.locationtech.geomesa.accumulo.index.KeyValuePair
 import org.locationtech.geomesa.raster.data.Raster
 
-case class RasterIndexSchema(encoder: RasterEntryEncoder,
-                             decoder: RasterEntryDecoder) {
-
-  def encode(raster: Raster, visibility: String = "") = encoder.encode(raster, visibility)
-  def decode(entry: KeyValuePair): Raster = decoder.decode(entry)
-
-}
-
 object RasterIndexSchema {
 
-  def apply(): RasterIndexSchema = {
-    val keyEncoder = new RasterEntryEncoder()
-    val indexEntryDecoder = new RasterEntryDecoder()
-    RasterIndexSchema(keyEncoder, indexEntryDecoder)
-  }
+  def encode(raster: Raster, visibility: String = "") = RasterEntryEncoder.encode(raster, visibility)
+  def decode(entry: KeyValuePair): Raster = RasterEntryDecoder.decode(entry)
 
 }
