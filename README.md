@@ -4,7 +4,8 @@
 
 Version | Status
 ------ | -----
-| 1.x for Accumulo 1.5.x | [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.5.x%2F1.x)](https://travis-ci.org/locationtech/geomesa)  	| 
+| 1.1.x | [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)  	| 
+| 1.0.x | [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.5.x%2F1.x)](https://travis-ci.org/locationtech/geomesa)  	| 
 
 ## GeoMesa
 
@@ -16,7 +17,8 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 
 ## Download and Version Information
 
-<b>NOTE:</b> The current recommended version is ```1.0.0-rc5``` which is a breaking change from ```1.0.0-rc4``` and previous versions due to schema incompatibility. The most recent tar.gz assembly can be [downloaded here](http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-assemble-accumulo1.5/1.0.0-rc.5/geomesa-assemble-accumulo1.5-1.0.0-rc.5-bin.tar.gz) which contains the [Accumulo distributed runtime jar](geomesa-distributed-runtime), [GeoServer plugin](geomesa-plugin), and [command line tools](geomesa-tools).
+<b>NOTE:</b> The current recommended version is ```1.1.0-rc1```, which includes breaking changes from ```1.0.0-rc7``` and previous versions due to schema incompatibility and changes in indexing structure. The most recent tar.gz assembly can be 
+[downloaded here](http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-assemble/1.1.0-rc.1/geomesa-assemble-1.1.0-rc.1-bin.tar.gz) which contains the [Accumulo distributed runtime jar](geomesa-distributed-runtime), [GeoServer plugin](geomesa-plugin), and [command line tools](geomesa-tools).
 
 GeoMesa artifacts can be downloaded from the [LocationTech Maven repository](https://repo.locationtech.org/content/repositories/geomesa-releases/)
 
@@ -65,14 +67,10 @@ This sub-project creates a plugin which provides WFS and WMS support.  The JAR n
 
 This sub-project stores our GeoHash implementation and other general library functions unrelated to Accumulo. This sub-project contains any helper tools for geomesa.  Some of these tools such as the GeneralShapefileIngest have Map/Reduce components, so the geomesa-utils JAR lives on HDFS.
 
-#### geomesa-dist
-
-This sub-project contains the distribution-ready TAR-ball as well as the documentation (in DocBook form, rendered to PDF).
-
 #### geomesa-compute
 
 This sub-project contains utilities for working with distributed computing environments.  Currently, there are methods for instantiating an Apache Spark Resilient Distributed Dataset from a CQL query against data stored in GeoMesa.  Eventually, this project will contain bindings for traditional map-reduce processing, Scalding, and other environments.
 
 #### geomesa-tools
 
-This sub-project contains a set of command line tools for managing features, ingesting and exporting data, configuring tables, and explaining queries in GeoMesa. Please view the [geomesa-tools README](https://github.com/locationtech/geomesa/tree/accumulo1.5.x/1.x/geomesa-tools#geomesa-tools) to learn more.
+This sub-project contains a set of command line tools for managing features, ingesting and exporting data, configuring tables, and explaining queries in GeoMesa. Please view the [geomesa-tools README](https://github.com/locationtech/geomesa/tree/master/geomesa-tools) to learn more.
