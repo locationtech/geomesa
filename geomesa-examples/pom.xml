@@ -30,8 +30,8 @@
     <name>GeoMesa Examples</name>
 
     <modules>
-        <module>accumulo-quickstart</module>
-        <module>kafka-quickstart</module>
+        <module>geomesa-accumulo-quickstart</module>
+        <module>geomesa-kafka-quickstart</module>
     </modules>
 
 </project>

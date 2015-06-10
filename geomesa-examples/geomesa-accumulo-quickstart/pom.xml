@@ -25,7 +25,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>accumulo-quickstart</artifactId>
+    <artifactId>geomesa-accumulo-quickstart</artifactId>
     <name>GeoMesa Examples Accumulo Quickstart</name>
 
     <dependencies>
