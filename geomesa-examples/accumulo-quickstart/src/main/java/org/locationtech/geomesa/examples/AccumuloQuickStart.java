@@ -5,6 +5,7 @@ import com.google.common.base.Joiner;
 import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.cli.*;
 import org.geotools.data.*;
+import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.factory.Hints;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
@@ -15,10 +16,9 @@ import org.geotools.filter.text.cql2.CQL;
 import org.geotools.filter.text.cql2.CQLException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore;
 import org.locationtech.geomesa.accumulo.index.Constants;
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes$;
-import org.locationtech.geomesa.utils.text.WKTUtils$;
+import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
+import org.locationtech.geomesa.utils.interop.WKTUtils;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -47,12 +47,12 @@ import java.util.Random;
  */
 
 public class AccumuloQuickStart {
-    static String INSTANCE_ID = "instanceId";
-    static String ZOOKEEPERS = "zookeepers";
-    static String USER = "user";
-    static String PASSWORD = "password";
-    static String AUTHS = "auths";
-    static String TABLE_NAME = "tableName";
+    static final String INSTANCE_ID = "instanceId";
+    static final String ZOOKEEPERS = "zookeepers";
+    static final String USER = "user";
+    static final String PASSWORD = "password";
+    static final String AUTHS = "auths";
+    static final String TABLE_NAME = "tableName";
 
     // sub-set of parameters that are used to create the Accumulo DataStore
     static String[] ACCUMULO_CONNECTION_PARAMS = new String[]{INSTANCE_ID,
@@ -133,7 +133,7 @@ public class AccumuloQuickStart {
         // create the bare simple-feature type
         String simpleFeatureTypeSchema = Joiner.on(",").join(attributes);
         SimpleFeatureType simpleFeatureType =
-                SimpleFeatureTypes$.MODULE$.createType(simpleFeatureTypeName, simpleFeatureTypeSchema);
+                SimpleFeatureTypes.createType(simpleFeatureTypeName, simpleFeatureTypeSchema);
 
         // use the user-data (hints) to specify which date-time field is meant to be indexed;
         // if you skip this step, your data will still be stored, it simply won't be indexed
@@ -175,7 +175,7 @@ public class AccumuloQuickStart {
             // location:  construct a random point within a 2-degree-per-side square
             double x = MIN_X + random.nextDouble() * DX;
             double y = MIN_Y + random.nextDouble() * DY;
-            Geometry geometry = WKTUtils$.MODULE$.read("POINT(" + x + " " + y + ")");
+            Geometry geometry = WKTUtils.read("POINT(" + x + " " + y + ")");
 
             // date-time:  construct a random instant within a year
             simpleFeature.setAttribute("Where", geometry);
@@ -197,7 +197,7 @@ public class AccumuloQuickStart {
                                FeatureCollection featureCollection)
             throws IOException {
 
-        FeatureStore featureStore = (AccumuloFeatureStore)dataStore.getFeatureSource(simpleFeatureTypeName);
+        FeatureStore featureStore = (SimpleFeatureStore) dataStore.getFeatureSource(simpleFeatureTypeName);
         featureStore.addFeatures(featureCollection);
     }
 

@@ -7,6 +7,7 @@ import org.geotools.data.FeatureStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -17,6 +18,7 @@ import org.joda.time.Instant;
 import org.locationtech.geomesa.kafka.KafkaDataStoreHelper;
 import org.locationtech.geomesa.kafka.KafkaProducerFeatureStore;
 import org.locationtech.geomesa.kafka.ReplayConfig;
+import org.locationtech.geomesa.kafka.ReplayTimeHelper;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.locationtech.geomesa.utils.text.WKTUtils$;
 import org.opengis.feature.Property;
@@ -45,9 +47,9 @@ import java.util.*;
  */
 
 public class KafkaQuickStart {
-    public static String KAFKA_BROKER_PARAM = "brokers";
-    public static String ZOOKEEPERS_PARAM = "zookeepers";
-    public static String ZK_PATH = "zkPath";
+    public static final String KAFKA_BROKER_PARAM = "brokers";
+    public static final String ZOOKEEPERS_PARAM = "zookeepers";
+    public static final String ZK_PATH = "zkPath";
 
     public static final String[] KAFKA_CONNECTION_PARAMS = new String[] {
             KAFKA_BROKER_PARAM,
@@ -188,7 +190,7 @@ public class KafkaQuickStart {
         // in order to read streaming data.
         // i.e. the live consumer will only read data written after its instantiation
         SimpleFeatureSource consumerFS = consumerDS.getFeatureSource(sftName);
-        KafkaProducerFeatureStore producerFS = (KafkaProducerFeatureStore) producerDS.getFeatureSource(sftName);
+        SimpleFeatureStore producerFS = (SimpleFeatureStore) producerDS.getFeatureSource(sftName);
 
         // creates and adds SimpleFeatures to the producer every 1/5th of a second
         System.out.println("Writing features to Kafka... refresh GeoServer layer preview to see changes");
@@ -226,8 +228,8 @@ public class KafkaQuickStart {
         // by processing all of the messages that were sent in between queryTime-readBehind and queryTime.
         // only the messages in between replayStart and replayEnd are cached.
         FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
-        Date queryTime = replayEnd.minus(5000).toDate();
-        featureCollection = replayConsumerFS.getFeatures(ff.equals(ff.property("KafkaLogTime"), ff.literal(queryTime)));
+        Instant queryTime = replayEnd.minus(5000);
+        featureCollection = replayConsumerFS.getFeatures(ReplayTimeHelper.toFilter(queryTime));
         System.out.println(featureCollection.size() + " features were written to Kafka");
 
         System.out.println("Here are the two SimpleFeatures that were obtained with the replay consumer:");
