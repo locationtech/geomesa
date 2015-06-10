@@ -55,8 +55,14 @@ public class AccumuloQuickStart {
     static final String TABLE_NAME = "tableName";
 
     // sub-set of parameters that are used to create the Accumulo DataStore
-    static String[] ACCUMULO_CONNECTION_PARAMS = new String[]{INSTANCE_ID,
-            ZOOKEEPERS, USER, PASSWORD, AUTHS, TABLE_NAME};
+    static final String[] ACCUMULO_CONNECTION_PARAMS = new String[] {
+        INSTANCE_ID,
+        ZOOKEEPERS,
+        USER,
+        PASSWORD,
+        AUTHS,
+        TABLE_NAME
+    };
 
     /**
      * Creates a common set of command-line options for the parser.  Each option
