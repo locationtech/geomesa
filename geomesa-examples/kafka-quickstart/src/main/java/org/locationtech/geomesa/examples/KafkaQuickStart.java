@@ -227,7 +227,6 @@ public class KafkaQuickStart {
         // the ReplayKafkaConsumerFeatureSource will build the state of SimpleFeatures
         // by processing all of the messages that were sent in between queryTime-readBehind and queryTime.
         // only the messages in between replayStart and replayEnd are cached.
-        FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
         Instant queryTime = replayEnd.minus(5000);
         featureCollection = replayConsumerFS.getFeatures(ReplayTimeHelper.toFilter(queryTime));
         System.out.println(featureCollection.size() + " features were written to Kafka");
