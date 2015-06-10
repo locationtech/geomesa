@@ -25,7 +25,10 @@ import org.apache.accumulo.core.iterators.Combiner
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 
 import scala.collection.JavaConversions._
-
+/*
+    The BBOXCombiner is used to reduce known extents into a single Bounding Box
+    This is useful for figuring out the total extent of a raster pyramid layer as an example
+ */
 class BBOXCombiner extends Combiner {
   import org.locationtech.geomesa.accumulo.iterators.BBOXCombiner._
   override def reduce(p1: Key, p2: util.Iterator[Value]): Value = {

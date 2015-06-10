@@ -29,6 +29,7 @@ import org.geotools.gce.geotiff.GeoTiffReader
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.{params => dsp}
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
+import org.locationtech.geomesa.raster.{RasterParams => rsp}
 import org.locationtech.geomesa.tools.Utils.Formats._
 
 import scala.collection.JavaConversions._
@@ -43,7 +44,7 @@ trait RasterIngest extends Logging {
       dsp.tableNameParam.getName    -> config(IngestRasterParams.TABLE).get,
       dsp.authsParam.getName        -> config(IngestRasterParams.AUTHORIZATIONS),
       dsp.visibilityParam.getName   -> config(IngestRasterParams.VISIBILITIES),
-      dsp.writeMemoryParam.getName  -> config(IngestRasterParams.WRITE_MEMORY),
+      rsp.writeMemoryParam.getName  -> config(IngestRasterParams.WRITE_MEMORY),
       dsp.writeThreadsParam         -> config(IngestRasterParams.WRITE_THREADS),
       dsp.queryThreadsParam.getName -> config(IngestRasterParams.QUERY_THREADS),
       dsp.mockParam.getName         -> config(IngestRasterParams.ACCUMULO_MOCK)

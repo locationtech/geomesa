@@ -19,6 +19,7 @@ package org.locationtech.geomesa
 import java.math.{MathContext, RoundingMode}
 
 import org.calrissian.mango.types.LexiTypeEncoders
+import org.geotools.data.DataAccessFactory.Param
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 /**
@@ -37,6 +38,10 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
  * we save only four digits after the decimal point.
  */
 package object raster {
+
+  object RasterParams {
+    val writeMemoryParam = new Param("writeMemory", classOf[Integer], "The memory allocation to use for writing records", false)
+  }
 
   val rasterSftName: String = ""
 

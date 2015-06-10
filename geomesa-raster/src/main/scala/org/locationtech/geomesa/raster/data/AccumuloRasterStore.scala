@@ -32,7 +32,7 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators.BBOXCombiner._
 import org.locationtech.geomesa.accumulo.stats.{RasterQueryStat, RasterQueryStatTransform, StatWriter}
-import org.locationtech.geomesa.accumulo.util.{SelfClosingBatchScanner, SelfClosingScanner}
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.util.RasterUtils
@@ -93,7 +93,7 @@ class AccumuloRasterStore(val connector: Connector,
       plan match {
         case Some(qp) =>
           configureBatchScanner(batchScanner, qp)
-          adaptIteratorToChunks(SelfClosingBatchScanner(batchScanner))
+          adaptIteratorToChunks(SelfClosingIterator(batchScanner))
         case _        => Iterator.empty
       }
     }, "scanning")
@@ -108,7 +108,7 @@ class AccumuloRasterStore(val connector: Connector,
     ensureBoundsTableExists()
     val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, authorizationsProvider.getAuthorizations)
     scanner.setRange(new Range(getBoundsRowID))
-    val resultingBounds = SelfClosingScanner(scanner)
+    val resultingBounds = SelfClosingIterator(scanner)
     if (resultingBounds.isEmpty) {
       BoundingBox(-180, 180, -90, 90)
     } else {
@@ -129,7 +129,7 @@ class AccumuloRasterStore(val connector: Connector,
       ensureBoundsTableExists()
       val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths)
       scanner.setRange(new Range(getBoundsRowID))
-      val scanResultingKeys = SelfClosingScanner(scanner).map(_.getKey).toSeq
+      val scanResultingKeys = SelfClosingIterator(scanner).map(_.getKey).toSeq
       val geohashlens = scanResultingKeys.map(_.getColumnFamily.toString).map(lexiDecodeStringToInt)
       val resolutions = scanResultingKeys.map(_.getColumnQualifier.toString).map(lexiDecodeStringToDouble)
       val m = new ImmutableSetMultimap.Builder[Double, Int]()
@@ -312,7 +312,7 @@ object AccumuloRasterStore {
     val vis: String          = visibilityParam.lookupOpt[String](config).getOrElse("")
     val tablename: String    = tableNameParam.lookUp(config).asInstanceOf[String]
     val useMock: Boolean     = mockParam.lookUp(config).asInstanceOf[String].toBoolean
-    val wMem: Option[String] = writeMemoryParam.lookupOpt[String](config)
+    val wMem: Option[String] = RasterParams.writeMemoryParam.lookupOpt[String](config)
     val wThread: Option[Int] = writeThreadsParam.lookupOpt[Int](config)
     val qThread: Option[Int] = queryThreadsParam.lookupOpt[Int](config)
     val cStats: Boolean      = java.lang.Boolean.valueOf(statsParam.lookupOpt[Boolean](config).getOrElse(false))

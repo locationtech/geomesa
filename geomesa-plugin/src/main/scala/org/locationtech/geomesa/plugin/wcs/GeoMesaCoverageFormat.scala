@@ -16,8 +16,6 @@
 
 package org.locationtech.geomesa.plugin.wcs
 
-import java.io.File
-
 import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.coverage.grid.io.AbstractGridFormat._
 import org.geotools.factory.Hints
@@ -42,7 +40,6 @@ class GeoMesaCoverageFormat extends AbstractGridFormat() with Format {
   override def getReader(source: AnyRef) = getReader(source, null)
 
   override def getReader(source: AnyRef, hints: Hints) = source match {
-    case file: File => new GeoMesaCoverageReader(file.getPath, hints)
     case path: String => new GeoMesaCoverageReader(path, hints)
     case unk => throw new Exception(s"unexpected data type for reader source: ${Option(unk).map(_.getClass.getName).getOrElse("null")}")
   }
