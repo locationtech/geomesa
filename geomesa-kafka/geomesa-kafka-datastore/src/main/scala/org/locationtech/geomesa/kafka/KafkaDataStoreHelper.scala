@@ -113,7 +113,7 @@ object KafkaDataStoreHelper {
   private[kafka] def buildTopicName(zkPath: String, sft: SimpleFeatureType): String = {
     //kafka doesn't like slashes in topic names
     val prefix = (if (zkPath.startsWith("/")) zkPath.substring(1) else zkPath).replaceAll("/","-")
-    prefix + "-" +  sft.getTypeName
+    prefix + "-" + sft.getTypeName
   }
 
   private val replayIdentifier = "-REPLAY-"

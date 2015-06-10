@@ -28,4 +28,45 @@
                   value="org.locationtech.geomesa.kafka.plugin.KafkaDataStoreEditPanel"/>
     </bean>
 
+    <bean id="geomesaKafkaProcessFactory" class="org.locationtech.geomesa.kafka.plugin.GeomesaKafkaProcessFactory">
+        <constructor-arg index="0" value="Geomesa Kafka Processes"/>
+        <constructor-arg index="1" value="kafka"/>
+        <constructor-arg index="2" value="org.locationtech.geomesa.kafka.plugin.GeomesaKafkaProcess"/>
+    </bean>
+
+    <bean id="replayKafkaDataStoreProcess" class="org.locationtech.geomesa.kafka.plugin.ReplayKafkaDataStoreProcess">
+        <constructor-arg index="0" ref="catalog"/>
+    </bean>
+
+    <!-- The cleanup WPS that removes outdated replay layers and schemas.-->
+    <bean id="replayKafkaLayerReaper" class="org.locationtech.geomesa.kafka.plugin.ReplayKafkaLayerReaperProcess">
+        <constructor-arg index="0" ref="catalog"/>
+        <!--arg1: Number of hours after creation to delete -->
+        <constructor-arg index="1" value="1"/>
+    </bean>
+
+    <!-- Definition for how often to run the reaper-->
+    <bean id="replayKafkaCleanupTask"
+          class="org.springframework.scheduling.concurrent.ScheduledExecutorTask">
+        <property name="runnable" ref="replayKafkaLayerReaper"/>
+        <!-- wait 5 seconds before scheduling this task -->
+        <property name="delay" value="5000"/>
+        <!-- run the cleanup every five minutes -->
+        <property name="period" value="300000"/>
+        <property name="fixedRate" value="true"/>
+    </bean>
+
+    <!-- Instantiate the reaper -->
+    <bean id="replayKafkaCleanupTaskFactory"
+          class="org.springframework.scheduling.concurrent.ScheduledExecutorFactoryBean" lazy-init="false">
+        <property name="poolSize" value="1"/>
+        <property name="continueScheduledExecutionAfterException" value="true"/>
+        <property name="scheduledExecutorTasks">
+            <list>
+                <ref bean="replayKafkaCleanupTask"/>
+            </list>
+        </property>
+    </bean>
+
+
 </beans>
