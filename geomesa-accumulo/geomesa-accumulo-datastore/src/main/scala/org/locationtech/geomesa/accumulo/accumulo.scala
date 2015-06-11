@@ -52,6 +52,32 @@ package object accumulo {
   val GEOMESA_ITERATORS_INDEX_SCHEMA             = "geomesa.iterators.index.schema"
   val GEOMESA_ITERATORS_VERSION                  = "geomesa.iterators.version"
 
+  object GeomesaSystemProperties {
+
+    val CONFIG_FILE = PropAndDefault("geomesa.config.file", "geomesa-site.xml")
+
+    object QueryProperties {
+      val QUERY_EXACT_COUNT    = PropAndDefault("geomesa.force.count", "false")
+      val QUERY_TIMEOUT_MILLIS = PropAndDefault("geomesa.query.timeout.millis", "300000") // default 5 minutes
+    }
+
+    object BatchWriterProperties {
+      // Measured in millis, default 10 seconds
+      val WRITER_LATENCY_MILLIS  = PropAndDefault("geomesa.batchwriter.latency.millis", "10000")
+      // Measured in bytes, default 1 megabyte
+      val WRITER_MEMORY_BYTES    = PropAndDefault("geomesa.batchwriter.memory", "1000000")
+      val WRITER_THREADS         = PropAndDefault("geomesa.batchwriter.maxthreads", "10")
+      // Timeout measured in seconds.  Likely unnecessary.
+      val WRITE_TIMEOUT_MILLIS   = PropAndDefault("geomesa.batchwriter.timeout.millis", null)
+    }
+
+    case class PropAndDefault(property: String, default: String) {
+      def get: String = sys.props.getOrElse(property, default)
+      def set(value: String): Unit = sys.props.put(property, value)
+      def clear(): Unit = sys.props.remove(property)
+    }
+  }
+
   /**
    * Sums the values by key and returns a map containing all of the keys in the maps, with values
    * equal to the sum of all of the values for that key in the maps.

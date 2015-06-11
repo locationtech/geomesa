@@ -16,29 +16,35 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import org.geotools.data.{FeatureReader, Query}
+import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.stats._
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, NoOpTimings, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class AccumuloFeatureReader(queryPlanner: QueryPlanner, query: Query, dataStore: AccumuloDataStore)
+class AccumuloFeatureReader(queryPlanner: QueryPlanner, val query: Query, dataStore: AccumuloDataStore)
     extends FeatureReader[SimpleFeatureType, SimpleFeature] with MethodProfiling {
 
-  private val writeStats = dataStore.isInstanceOf[StatWriter]
+  private val start = System.currentTimeMillis()
+  private val closed = new AtomicBoolean(false)
 
+  ThreadManagement.register(this, start, dataStore.queryTimeoutMillis)
+
+  private val writeStats = dataStore.isInstanceOf[StatWriter]
   implicit val timings = if (writeStats) new TimingsImpl else NoOpTimings
 
   private val iter = profile(queryPlanner.runQuery(query), "planning")
-
-  override def getFeatureType = queryPlanner.sft
 
   override def next() = profile(iter.next(), "next")
 
   override def hasNext = profile(iter.hasNext, "hasNext")
 
-  override def close() = {
+  override def close() = if (!closed.getAndSet(true)) {
     iter.close()
+    ThreadManagement.unregister(this, start, dataStore.queryTimeoutMillis)
     if (writeStats) {
       val stat = QueryStat(queryPlanner.sft.getTypeName,
           System.currentTimeMillis(),
@@ -50,4 +56,8 @@ class AccumuloFeatureReader(queryPlanner: QueryPlanner, query: Query, dataStore:
       dataStore.asInstanceOf[StatWriter].writeStat(stat, dataStore.getQueriesTableName(queryPlanner.sft))
     }
   }
+
+  override def getFeatureType = query.getHints.getReturnSft
+
+  def isClosed: Boolean = closed.get()
 }

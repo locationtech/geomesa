@@ -25,6 +25,7 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.geotools.data.store.DataFeatureCollection
 import org.geotools.feature.collection.SortedSimpleFeatureCollection
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
+import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 import org.locationtech.geomesa.accumulo.index.QueryHints.{RichHints, _}
 import org.locationtech.geomesa.accumulo.index.QueryPlanner
 import org.locationtech.geomesa.accumulo.process.knn.KNNVisitor
@@ -69,7 +70,7 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource with Logging w
   //  Second, there is an EXACT_COUNT query hint.
   override def getCount(query: Query) = {
     val exactCount = query.getHints.get(EXACT_COUNT).asInstanceOf[Boolean] == java.lang.Boolean.TRUE ||
-        System.getProperty("geomesa.force.count") == "true"
+        GeomesaSystemProperties.QueryProperties.QUERY_EXACT_COUNT.get.toBoolean
 
     if (exactCount || longCount == -1) {
       getFeaturesNoCache(query).features().size
@@ -141,7 +142,7 @@ class AccumuloFeatureCollection(source: AccumuloAbstractFeatureSource, query: Qu
     }
 
   override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+    val reader = ds.getFeatureReader(query.getTypeName, query)
     val maxFeatures = query.getMaxFeatures
     if (maxFeatures != Integer.MAX_VALUE) {
       new MaxFeatureReader[SimpleFeatureType, SimpleFeature](reader, maxFeatures)

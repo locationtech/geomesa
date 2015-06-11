@@ -54,6 +54,7 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.time.Duration
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -567,6 +568,20 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(2)
       bins.map(_.trackId) must containAllOf(Seq("name1", "name2").map(_.hashCode.toString))
+    }
+
+    "kill queries after a configurable timeout" in {
+      val sftName = "timeoutTest"
+      val timeout = Map(AccumuloDataStoreFactory.params.queryTimeoutParam.getName -> "1")
+      val ds = DataStoreFinder.getDataStore(dsParams ++ timeout).asInstanceOf[AccumuloDataStore]
+      val sft = createSchema(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326", dataStore = ds)
+
+      addDefaultPoint(sft, List("name1", "2010-05-07T00:00:00.000Z", defaultGeom), "1", ds)
+      addDefaultPoint(sft, List("name2", "2010-05-07T01:00:00.000Z", defaultGeom), "2", ds)
+
+      val reader = ds.getFeatureReader(new Query(sftName, Filter.INCLUDE), Transaction.AUTO_COMMIT)
+      reader.isClosed must beFalse
+      reader.isClosed must eventually(10, new Duration(1000))(beTrue) // reaper thread runs every 5 seconds
     }
 
     "provide ability to configure authorizations" in {

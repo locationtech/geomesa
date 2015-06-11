@@ -39,9 +39,9 @@ import org.joda.time.Interval
 import org.locationtech.geomesa.accumulo
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore._
 import org.locationtech.geomesa.accumulo.data.tables._
-import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.{ExplainingConnectorCreator, GeoMesaBatchWriterConfig}
+import org.locationtech.geomesa.accumulo.{GeomesaSystemProperties, index}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -73,6 +73,7 @@ class AccumuloDataStore(val connector: Connector,
                         val catalogTable: String,
                         val authorizationsProvider: AuthorizationsProvider,
                         val writeVisibilities: String,
+                        val queryTimeoutConfig: Option[Long] = None,
                         val queryThreadsConfig: Option[Int] = None,
                         val recordThreadsConfig: Option[Int] = None,
                         val writeThreadsConfig: Option[Int] = None,
@@ -81,7 +82,10 @@ class AccumuloDataStore(val connector: Connector,
     extends AbstractDataStore(true) with AccumuloConnectorCreator with StrategyHintsProvider with Logging {
 
   // having at least as many shards as tservers provides optimal parallelism in queries
-  protected [accumulo] val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
+  protected[accumulo] val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
+
+  protected[data] val queryTimeoutMillis =
+    queryTimeoutConfig.getOrElse(GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.get.toLong)
 
   // record scans are single-row ranges - increasing the threads too much actually causes performance to decrease
   private val recordScanThreads = recordThreadsConfig.getOrElse(10)
@@ -817,10 +821,14 @@ class AccumuloDataStore(val connector: Connector,
     getFeatureReader(featureName, new Query(featureName))
 
   // This override is important as it allows us to optimize and plan our search with the Query.
-  override def getFeatureReader(featureName: String, query: Query) = {
+  override def getFeatureReader(featureName: String, query: Query): AccumuloFeatureReader = {
     val qp = getQueryPlanner(featureName, this)
     new AccumuloFeatureReader(qp, query, this)
   }
+
+  // override the abstract data store method - we already handle all projections, transformations, etc
+  override def getFeatureReader(query: Query, transaction: Transaction): AccumuloFeatureReader =
+    getFeatureReader(query.getTypeName, query)
 
   /**
    * Gets the query plan for a given query. The query plan consists of the tables, ranges, iterators etc

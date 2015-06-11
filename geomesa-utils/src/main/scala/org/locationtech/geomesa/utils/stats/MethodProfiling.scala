@@ -123,9 +123,47 @@ trait Timings extends Serializable {
 }
 
 /**
- * Class to hold timing results. Thread-safe.
+ * Class to hold timing results. Not thread-safe.
  */
 class TimingsImpl extends Timings {
+
+  private val map = scala.collection.mutable.Map.empty[String, Timing]
+
+  override def occurrence(identifier: String, time: Long): Unit =
+    map.getOrElseUpdate(identifier, new Timing).occurrence(time)
+
+  override def time(identifier: String): Long = map.getOrElseUpdate(identifier, new Timing).time
+
+  override def occurrences(identifier: String): Long = map.getOrElseUpdate(identifier, new Timing).occurrences
+
+  override def averageOccurrences(): String = if (map.isEmpty) {
+    "No occurrences"
+  } else {
+    val entries = map.toList.sortBy(_._1)
+    val total = entries.map(_._2.occurrences).sum
+    val percentOccurrences = entries.map { case (id, timing) =>
+      s"$id: ${(timing.occurrences * 100 / total.toDouble).formatted("%.1f%%")}"
+    }
+    percentOccurrences.mkString(s"Total occurrences: $total. Percent of occurrences - ", ", ", "")
+  }
+
+  override def averageTimes(): String = if (map.isEmpty) {
+    "No occurrences"
+  } else {
+    val entries = map.toList.sortBy(_._1)
+    val total = entries.map(_._2.time).sum
+    val percentTimes = entries.map { case (id, timing) =>
+      s"$id: ${(timing.time * 100 / total.toDouble).formatted("%.1f%%")}" +
+          s" ${timing.occurrences} times at ${timing.average().formatted("%.4f")} ms avg"
+    }
+    percentTimes.mkString(s"Total time: $total ms. Percent of time - ", ", ", "")
+  }
+}
+
+/**
+ * Class to hold timing results. Thread-safe.
+ */
+class ThreadSafeTimingsImpl extends Timings {
 
   private val map = scala.collection.mutable.Map.empty[String, Timing]
 
@@ -169,7 +207,7 @@ class TimingsImpl extends Timings {
  *
  * @param moduloToLog
  */
-class AutoLoggingTimings(moduloToLog: Int = 1000) extends TimingsImpl with Logging {
+class AutoLoggingTimings(moduloToLog: Int = 1000) extends ThreadSafeTimingsImpl with Logging {
 
   val count = new AtomicLong()
 
