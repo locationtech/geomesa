@@ -40,10 +40,8 @@ class RasterFilteringIterator
     init(featureType, options)
     logger.debug(s"In RFI with $filter")
 
-    setTopOptimized = filter match {
-      case null => setTopInclude
-      case _ => setTopFilter
-    }
+    setTopOptimized = if (filter == null) setTopInclude else setTopFilter
+
   }
 
   override def setTopFilter(key: Key): Unit = {
@@ -57,4 +55,9 @@ class RasterFilteringIterator
 
   override def setTopConditionally(): Unit = setTopOptimized(source.getTopKey)
 
+}
+
+object RasterFilteringIterator {
+  val name: String  = "raster-filtering-iterator"
+  val priority: Int = 90
 }

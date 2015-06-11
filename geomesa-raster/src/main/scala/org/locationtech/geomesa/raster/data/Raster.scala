@@ -32,14 +32,15 @@ trait Raster {
   def resolution: Double
   def serializedChunk: Array[Byte]
   def chunk: RenderedImage
-
   def id = metadata.id
 
-  lazy val time = new DateTime(metadata.date.map(new DateTime(_, DateTimeZone.UTC)).getOrElse(0L), DateTimeZone.forID("UTC"))
+  lazy val time: DateTime = new DateTime(metadata.date.getOrElse(0L), DateTimeZone.UTC)
 
+  // The minimum bounding geohash is the 32bit representable GeoHash that
+  // most closely matches the extent of the Raster. The permits fuzzy indexing of Rasters.
   lazy val minimumBoundingGeoHash = GeohashUtils.getClosestAcceptableGeoHash(metadata.geom.getEnvelopeInternal)
 
-  lazy val referencedEnvelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, DefaultGeographicCRS.WGS84 )
+  lazy val referencedEnvelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, DefaultGeographicCRS.WGS84)
 
   def encodeValue = RasterUtils.imageSerialize(chunk)
 }

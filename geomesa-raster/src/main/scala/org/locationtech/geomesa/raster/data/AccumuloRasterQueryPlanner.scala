@@ -29,8 +29,8 @@ import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index.{IndexFilterHelpers, QueryPlan, _}
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.process.knn.TouchingGeoHashes
-import org.locationtech.geomesa.raster.iterators.RasterFilteringIterator
-import org.locationtech.geomesa.raster.{lexiEncodeDoubleToString, rasterSft, rasterSftName}
+import org.locationtech.geomesa.raster.iterators.{RasterFilteringIterator => RFI}
+import org.locationtech.geomesa.raster.{defaultResolution, lexiEncodeDoubleToString, rasterSft, rasterSftName}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeohashUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
@@ -41,13 +41,7 @@ import scala.util.Try
 
 // TODO: Consider adding resolutions + extent info  https://geomesa.atlassian.net/browse/GEOMESA-645
 class AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
-
-  def modifyHashRange(hash: String, expectedLen: Int, res: String): ARange = expectedLen match {
-    case 0                                     => new ARange(new Text(s"$res~"))
-    case lucky if expectedLen == hash.length   => new ARange(new Text(s"$res~$hash"))
-    case shorten if expectedLen < hash.length  => new ARange(new Text(s"$res~${hash.substring(0, expectedLen)}"))
-    case lengthen if expectedLen > hash.length => new ARange(new Text(s"$res~$hash"), new Text(s"$res~$hash~"))
-  }
+  import AccumuloRasterQueryPlanner._
 
   def getQueryPlan(rq: RasterQuery, resAndGeoHashMap: ImmutableSetMultimap[Double, Int]): Option[QueryPlan] = {
     val availableResolutions = resAndGeoHashMap.keySet().toList.sorted
@@ -87,8 +81,8 @@ class AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
       val rows = ARange.mergeOverlapping(r)
       logger.debug(s"Scanning with ranges: $rows")
       // setup the RasterFilteringIterator
-      val cfg = new IteratorSetting(90, "raster-filtering-iterator", classOf[RasterFilteringIterator])
-      configureRasterFilter(cfg, AccumuloRasterQueryPlanner.constructRasterFilter(rq.bbox.geom, rasterSft))
+      val cfg = new IteratorSetting(RFI.priority, RFI.name, classOf[RFI])
+      configureRasterFilter(cfg, constructRasterFilter(rq.bbox.geom, rasterSft))
       configureRasterMetadataFeatureType(cfg, rasterSft)
 
       // TODO: WCS: setup a CFPlanner to match against a list of strings
@@ -100,13 +94,28 @@ class AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
   def selectResolution(suggestedResolution: Double, availableResolutions: List[Double]): Double = {
     logger.debug(s"RasterQueryPlanner: trying to get resolution $suggestedResolution " +
       s"from available Resolutions: ${availableResolutions.sorted}")
-    val ret = if (availableResolutions.length <= 1) availableResolutions.headOption.getOrElse(1.0) else {
+    val ret = if (availableResolutions.length <= 1) {
+      availableResolutions.headOption.getOrElse(defaultResolution)
+    } else {
       val finerResolutions = availableResolutions.filter(_ <= suggestedResolution)
       logger.debug(s"RasterQueryPlanner: Picking a resolution from: $finerResolutions")
       if (finerResolutions.isEmpty) availableResolutions.min else finerResolutions.max
     }
     logger.debug(s"RasterQueryPlanner: Decided to use resolution: $ret")
     ret
+  }
+
+
+}
+
+object AccumuloRasterQueryPlanner {
+  val ff = CommonFactoryFinder.getFilterFactory2
+
+  def constructRasterFilter(geom: Geometry, featureType: SimpleFeatureType): Filter = {
+    val property = ff.property(featureType.getGeometryDescriptor.getLocalName)
+    val bounds = ff.literal(geom)
+    // note: overlaps is not sufficient see DE-9IM definition
+    ff.and(ff.intersects(property, bounds), ff.not(ff.touches(property, bounds)))
   }
 
   def configureRasterFilter(cfg: IteratorSetting, filter: Filter) =
@@ -119,16 +128,11 @@ class AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
     cfg.encodeUserData(featureType.getUserData, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
   }
 
-}
-
-object AccumuloRasterQueryPlanner {
-  val ff = CommonFactoryFinder.getFilterFactory2
-
-  def constructRasterFilter(geom: Geometry, featureType: SimpleFeatureType): Filter = {
-    val property = ff.property(featureType.getGeometryDescriptor.getLocalName)
-    val bounds = ff.literal(geom)
-    // note: overlaps is not sufficient see DE-9IM definition
-    ff.and(ff.intersects(property, bounds), ff.not(ff.touches(property, bounds)))
+  def modifyHashRange(hash: String, expectedLen: Int, res: String): ARange = expectedLen match {
+    case 0                                     => new ARange(new Text(s"$res~"))
+    case lucky if expectedLen == hash.length   => new ARange(new Text(s"$res~$hash"))
+    case shorten if expectedLen < hash.length  => new ARange(new Text(s"$res~${hash.substring(0, expectedLen)}"))
+    case lengthen if expectedLen > hash.length => new ARange(new Text(s"$res~$hash"), new Text(s"$res~$hash~"))
   }
 
 }

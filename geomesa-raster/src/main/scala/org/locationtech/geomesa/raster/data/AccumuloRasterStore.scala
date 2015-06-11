@@ -67,6 +67,13 @@ class AccumuloRasterStore(val connector: Connector,
 
   def getAuths = authorizationsProvider.getAuthorizations
 
+  /**
+   *  Given A Query, return a single buffered image that is a mosaic of the tiles
+   *  This is primarily used to satisfy WCS/WMS queries.
+   * @param query
+   * @param params
+   * @return Buffered
+   */
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams) = {
     implicit val timings = if (collectStats) new TimingsImpl else NoOpTimings
     val rasters = getRasters(query)
@@ -141,14 +148,10 @@ class AccumuloRasterStore(val connector: Connector,
   def getGridRange: GridEnvelope2D = {
     val bounds = getBounds
     val resolutions = getAvailableResolutions
-    // If no resolutions are available, then we have an empty table so assume 1.0 for now
-    val resolution = resolutions match {
-      case Nil => 1.0
-      case _   => resolutions.min
-    }
+    // If no resolutions are available, then we have an empty table so assume default value for now
+    val resolution = if (resolutions.isEmpty) defaultResolution else resolutions.min
     val width  = Math.abs(bounds.getWidth / resolution).toInt
     val height = Math.abs(bounds.getHeight / resolution).toInt
-
     new GridEnvelope2D(0, 0, width, height)
   }
 
@@ -174,8 +177,6 @@ class AccumuloRasterStore(val connector: Connector,
     val colFam   = key.getColumnFamily
     val colQual  = key.getColumnQualifier
     val colVis   = key.getColumnVisibilityParsed
-    // TODO: WCS: determine if this is wise/useful
-    // GEOMESA-562
     val timestamp: Long = dateToAccTimestamp(raster.time)
     mutation.put(colFam, colQual, colVis, timestamp, value)
     mutation
@@ -356,10 +357,10 @@ object AccumuloRasterTableConfig {
    */
   def settings(visibilities: String): Map[String, String] = Map (
     "table.security.scan.visibility.default" -> visibilities,
-    "table.iterator.majc.vers.opt.maxVersions" -> "1",
-    "table.iterator.minc.vers.opt.maxVersions" -> "1",
-    "table.iterator.scan.vers.opt.maxVersions" -> "1",
-    "table.split.threshold" -> "512M"
+    "table.iterator.majc.vers.opt.maxVersions" -> rasterMajcMaxVers,
+    "table.iterator.minc.vers.opt.maxVersions" -> rasterMincMaxVers,
+    "table.iterator.scan.vers.opt.maxVersions" -> rasterScanMaxVers,
+    "table.split.threshold" -> rasterSplitThresh
   )
   val permissions = "BULK_IMPORT,READ,WRITE,ALTER_TABLE"
 }

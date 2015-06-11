@@ -54,6 +54,13 @@ package object raster {
   // dtg field name
   val rasterSftDtgName = "dtg"
 
+  // defaults
+  val defaultResolution = 1.0
+  val rasterMajcMaxVers = "1"
+  val rasterMincMaxVers = "1"
+  val rasterScanMaxVers = "1"
+  val rasterSplitThresh = "512M"
+
   // Sets the rounding mode to use floor() in order to minimize effects from round-off at higher precisions
   val roundingMode =  RoundingMode.FLOOR
 
