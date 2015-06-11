@@ -365,7 +365,7 @@ object GeohashUtils
    * @param ur Up right point of bounding box
    * @return GeoHash instance
    */
-  def getMBGH(ll: Point, ur: Point): GeoHash = {
+  def getMBGH(ll: Point, ur: Point): Option[GeoHash] = {
     val width = ur.getX - ll.getX
     val height = ur.getY - ll.getY
     require(width >= 0 && height >= 0, s"Wrong width $width and height $height of input bounding box, cannot process")
@@ -375,19 +375,19 @@ object GeohashUtils
       val latDelta = GeoHash.latitudeDeltaForPrecision(prec)
       if (lonDelta >= width && latDelta >= height) {
         val geo = GeoHash(ll.getX, ll.getY, prec)
-        if (geo.bbox.covers(ur)) return geo
+        if (geo.bbox.covers(ur)) return Some(geo)
       }
     })
-    null
+    None
   }
 
-  def getMBGH(env: Envelope): GeoHash =
+  def getMBGH(env: Envelope): Option[GeoHash] =
     GeohashUtils.getMBGH(env.getMinX, env.getMaxX, env.getMinY, env.getMaxY)
 
-  def getMBGH(bbox: BoundingBox): GeoHash =
+  def getMBGH(bbox: BoundingBox): Option[GeoHash] =
     getMBGH(bbox.getMinX, bbox.getMaxX, bbox.getMinY, bbox.getMaxY)
 
-  def getMBGH(minX: Double, maxX: Double, minY: Double, maxY: Double): GeoHash =
+  def getMBGH(minX: Double, maxX: Double, minY: Double, maxY: Double): Option[GeoHash] =
     getMBGH(GeoHash.factory.createPoint(new Coordinate(minX, minY)),
       GeoHash.factory.createPoint(new Coordinate(maxX, maxY)))
 
@@ -424,7 +424,7 @@ object GeohashUtils
   }
 
   /**
-   * Conataints the constraints that are used to guide the search for a bits-
+   * Contains the constraints that are used to guide the search for a bits-
    * resolution on a given geometry.
    *
    * It is unlikely that these defaults will need to change for most of our

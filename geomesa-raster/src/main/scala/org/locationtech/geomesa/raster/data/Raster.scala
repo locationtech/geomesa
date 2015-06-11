@@ -43,6 +43,8 @@ trait Raster {
   lazy val referencedEnvelope = new ReferencedEnvelope(metadata.geom.getEnvelopeInternal, DefaultGeographicCRS.WGS84)
 
   def encodeValue = RasterUtils.imageSerialize(chunk)
+
+  override def toString = id
 }
 
 case class RenderedImageRaster(chunk: RenderedImage, metadata: DecodedIndexValue, resolution: Double) extends Raster {

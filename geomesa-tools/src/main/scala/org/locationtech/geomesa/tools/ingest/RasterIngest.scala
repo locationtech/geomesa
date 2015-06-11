@@ -15,10 +15,8 @@
  */
 package org.locationtech.geomesa.tools.ingest
 
-import java.awt.RenderingHints
 import java.io.{File, Serializable}
 import java.util.{Map => JMap}
-import javax.media.jai.{ImageLayout, JAI}
 
 import com.twitter.scalding.Args
 import com.typesafe.scalalogging.slf4j.Logging
@@ -87,21 +85,11 @@ trait RasterIngest extends Logging {
 
   def getReader(imageFile: File, imageType: String): AbstractGridCoverage2DReader = {
     imageType match {
-      case TIFF => getTiffReader(imageFile)
-      case DTED => getDtedReader(imageFile)
-      case _ => throw new Exception("Image type is not supported.")
+      case TIFF => new GeoTiffReader(imageFile, defaultHints)
+      case DTED => new DTEDReader(imageFile, defaultHints)
+      case _    => throw new Exception("Image type is not supported.")
     }
   }
 
-  def getTiffReader(imageFile: File): AbstractGridCoverage2DReader = {
-    new GeoTiffReader(imageFile, new Hints(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true))
-  }
-
-  def getDtedReader(imageFile: File): AbstractGridCoverage2DReader = {
-    val l = new ImageLayout()
-    l.setTileGridXOffset(0).setTileGridYOffset(0).setTileHeight(512).setTileWidth(512)
-    val hints = new Hints
-    hints.add(new RenderingHints(JAI.KEY_IMAGE_LAYOUT, l))
-    new DTEDReader(imageFile, hints)
-  }
+  val defaultHints = new Hints(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 }
