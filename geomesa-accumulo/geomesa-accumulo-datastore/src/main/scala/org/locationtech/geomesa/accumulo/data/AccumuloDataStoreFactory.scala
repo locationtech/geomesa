@@ -95,6 +95,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         tableName,
         authorizationsProvider,
         visibility,
+        queryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L),
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
@@ -106,6 +107,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         tableName,
         authorizationsProvider,
         visibility,
+        queryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L),
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
@@ -147,14 +149,15 @@ object AccumuloDataStoreFactory {
   }
 
   object params {
-    val connParam           = new Param("connector", classOf[Connector], "The Accumulo connector", false)
-    val instanceIdParam     = new Param("instanceId", classOf[String], "The Accumulo Instance ID", true)
+    val connParam           = new Param("connector", classOf[Connector], "Accumulo connector", false)
+    val instanceIdParam     = new Param("instanceId", classOf[String], "Accumulo Instance ID", true)
     val zookeepersParam     = new Param("zookeepers", classOf[String], "Zookeepers", true)
     val userParam           = new Param("user", classOf[String], "Accumulo user", true)
-    val passwordParam       = new Param("password", classOf[String], "Password", true)
+    val passwordParam       = new Param("password", classOf[String], "Accumulo password", true)
     val authsParam          = org.locationtech.geomesa.security.authsParam
     val visibilityParam     = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
-    val tableNameParam      = new Param("tableName", classOf[String], "The Accumulo Table Name", true)
+    val tableNameParam      = new Param("tableName", classOf[String], "Accumulo catalog table name", true)
+    val queryTimeoutParam   = new Param("queryTimeout", classOf[Integer], "The max time a query will be allowed to run before being killed, in seconds", false)
     val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false)
     val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false)
     val writeMemoryParam    = new Param("writeMemory", classOf[Integer], "The memory allocation to use for writing records", false)

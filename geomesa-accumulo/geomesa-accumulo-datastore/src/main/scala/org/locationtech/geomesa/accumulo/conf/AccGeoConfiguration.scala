@@ -18,6 +18,7 @@ package org.locationtech.geomesa.accumulo.conf
 
 import org.apache.accumulo.core.conf.{AccumuloConfiguration, DefaultConfiguration}
 import org.apache.hadoop.conf.Configuration
+import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 
 import scala.collection.JavaConversions._
 
@@ -49,7 +50,7 @@ object AccGeoConfiguration {
   lazy val accConf: DefaultConfiguration = AccumuloConfiguration.getDefaultConfiguration
 
   lazy val accGeoConf = {
-    val configFile = System.getProperty("geomesa.config.file", "geomesa-site.xml")
+    val configFile = GeomesaSystemProperties.CONFIG_FILE.get
     val c = new Configuration(false)
     loadResource(configFile) match {
       case null => println("WARN: Config '" + configFile + "' not available")
