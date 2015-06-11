@@ -19,20 +19,15 @@ package org.locationtech.geomesa.raster.util
 import java.awt.RenderingHints
 import java.awt.image.{BufferedImage, Raster => JRaster, RenderedImage}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
-import java.nio.ByteBuffer
 import java.util.{Hashtable => JHashtable}
 import javax.media.jai.remote.SerializableRenderedImage
 
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
-import org.apache.hadoop.io.{BytesWritable, IOUtils, SequenceFile}
 import org.geotools.coverage.grid.GridGeometry2D
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.raster.data.Raster
 import org.opengis.geometry.Envelope
 
-import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 
 object RasterUtils {
@@ -46,16 +41,13 @@ object RasterUtils {
     val AUTHORIZATIONS      = "geomesa-tools.ingestraster.authorizations"
     val VISIBILITIES        = "geomesa-tools.ingestraster.visibilities"
     val FILE_PATH           = "geomesa-tools.ingestraster.path"
-    val HDFS_FILES          = "geomesa-tools.ingestraster.hdfs.files"
     val FORMAT              = "geomesa-tools.ingestraster.format"
     val TIME                = "geomesa-tools.ingestraster.time"
-    val GEOSERVER_REG       = "geomesa-tools.ingestraster.geoserver.reg"
     val TABLE               = "geomesa-tools.ingestraster.table"
     val WRITE_MEMORY        = "geomesa-tools.ingestraster.write.memory"
     val WRITE_THREADS       = "geomesa-tools.ingestraster.write.threads"
     val QUERY_THREADS       = "geomesa-tools.ingestraster.query.threads"
     val PARLEVEL            = "geomesa-tools.ingestraster.parallel.level"
-    val CHUNKSIZE           = "geomesa-tools.ingestraster.chunk.size"
     val IS_TEST_INGEST      = "geomesa.tools.ingestraster.is-test-ingest"
   }
 
@@ -235,57 +227,5 @@ object RasterUtils {
     val suggestedQueryResolution = math.min(resX, resY)
   }
 
-  def getSequenceFileWriter(outFile: String, conf: Configuration): SequenceFile.Writer = {
-    val outPath = new Path(outFile)
-    val key = new BytesWritable
-    val value = new BytesWritable
-    try {
-      val optPath = SequenceFile.Writer.file(outPath)
-      val optKey =  SequenceFile.Writer.keyClass(key.getClass)
-      val optVal =  SequenceFile.Writer.valueClass(value.getClass)
-      SequenceFile.createWriter(conf, optPath, optKey, optVal)
-    } catch {
-      case e: Exception =>
-        throw new Exception("Cannot create writer on Hdfs sequence file: " + e.getMessage())
-    }
-  }
-
-  def saveBytesToHdfsFile(name: String, bytes: Array[Byte], writer: SequenceFile.Writer) {
-    writer.append(new BytesWritable(name.getBytes), new BytesWritable(bytes))
-  }
-
-  def closeSequenceWriter(writer:  SequenceFile.Writer) = IOUtils.closeStream(writer)
-
-  //Encode a list of byte arrays into one byte array using protocol: length | data
-  //Result is like: length[4 bytes], byte array, ... [length[4 bytes], byte array]
-  def encodeByteArrays(bas: List[Array[Byte]]): Array[Byte] = {
-    val totalLength = bas.map(_.length).sum
-    val buffer = ByteBuffer.allocate(totalLength + 4 * bas.length)
-    bas.foreach{ ba => buffer.putInt(ba.length).put(ba) }
-    buffer.array
-  }
-
-  //Decode a byte array into a list of byte array using protocol: length | data
-  def decodeByteArrays(ba: Array[Byte], numToExtract: Int): List[Array[Byte]] = {
-    var pos = 0
-    var num = 1
-    val listBuf: ListBuffer[Array[Byte]] = new ListBuffer[Array[Byte]]()
-    while(num <= numToExtract && pos + 4 <= ba.length) {
-      val length = ByteBuffer.wrap(ba, pos, 4).getInt
-      listBuf += ba.slice(pos + 4, pos + 4 + length)
-      pos = pos + 4 + length
-      num += 1
-    }
-    listBuf.toList
-  }
-
-  val doubleSize = 8
-  def doubleToBytes(d: Double): Array[Byte] = {
-    val bytes = new Array[Byte](doubleSize)
-    ByteBuffer.wrap(bytes).putDouble(d)
-    bytes
-  }
-
-  def bytesToDouble(bs: Array[Byte]): Double = ByteBuffer.wrap(bs).getDouble
 }
 

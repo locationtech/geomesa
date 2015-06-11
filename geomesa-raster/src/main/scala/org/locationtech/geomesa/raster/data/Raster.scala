@@ -23,7 +23,6 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo.index.DecodedIndexValue
-import org.locationtech.geomesa.raster.index.RasterEntry
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 
@@ -65,19 +64,4 @@ object Raster {
   def getRasterId(rasterName: String): String =
     s"${rasterName}_${UUID.randomUUID.toString}"
 
-  def apply(bytes: Array[Byte]): Raster = {
-    //Todo: Fix this, we should not be taking just bytes
-    val byteArrays = RasterUtils.decodeByteArrays(bytes, 3)
-    val metaData = RasterEntry.decodeIndexCQMetadata(byteArrays(1)) // TODO: reimplement or fix
-    val resolution = RasterUtils.bytesToDouble(byteArrays(2))
-    Raster(byteArrays(0), metaData, resolution)
-  }
-
-  def encodeToBytes(raster: Raster): Array[Byte] = {
-    val chunkBytes = RasterUtils.imageSerialize(raster.chunk)
-    val metaDataBytes = RasterEntry.encodeIndexCQMetadata(raster.metadata)  // TODO: reimplement or fix
-    val resolutionBytes = RasterUtils.doubleToBytes(raster.resolution)
-
-    RasterUtils.encodeByteArrays(List(chunkBytes, metaDataBytes, resolutionBytes))
-  }
 }

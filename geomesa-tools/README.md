@@ -572,12 +572,6 @@ input_file out_file`.
       Options:
         -a, --auths
            Accumulo authorizations
-        -ck, --chunk
-           Create raster chunks before ingestion
-           Default: false
-        -cs, --chunk-size
-           Desired size (in kilobytes) of each chunk
-           Default: 600
       * -f, --file
            Single raster file or directory of raster files to be ingested
         -fmt, --format
@@ -589,9 +583,6 @@ input_file out_file`.
            Run everything with a mock accumulo instance instead of a real one
            (true/false)
            Default: false
-        -m, --mode
-           Ingestion mode (local | distributed, default to local)
-           Default: local
         -par, --parallel-level
            Maximum number of local threads for ingesting multiple raster files
            (default to 1)

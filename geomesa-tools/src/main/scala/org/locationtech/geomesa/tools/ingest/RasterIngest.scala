@@ -72,7 +72,6 @@ trait RasterIngest extends Logging {
         IngestRasterParams.ACCUMULO_USER     -> args.optional(IngestRasterParams.ACCUMULO_USER),
         IngestRasterParams.ACCUMULO_PASSWORD -> args.optional(IngestRasterParams.ACCUMULO_PASSWORD),
         IngestRasterParams.TABLE             -> args.optional(IngestRasterParams.TABLE),
-        IngestRasterParams.GEOSERVER_REG     -> args.optional(IngestRasterParams.GEOSERVER_REG),
         IngestRasterParams.AUTHORIZATIONS    -> args.optional(IngestRasterParams.AUTHORIZATIONS),
         IngestRasterParams.VISIBILITIES      -> args.optional(IngestRasterParams.VISIBILITIES),
         IngestRasterParams.WRITE_MEMORY      -> args.optional(IngestRasterParams.WRITE_MEMORY),
