@@ -39,7 +39,6 @@ import org.opengis.filter.Filter
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-// TODO: Constructor needs info to create Row Formatter
 // TODO: Consider adding resolutions + extent info  https://geomesa.atlassian.net/browse/GEOMESA-645
 class AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
 
@@ -54,31 +53,26 @@ class AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
     val availableResolutions = resAndGeoHashMap.keySet().toList.sorted
 
     // Step 1. Pick resolution
-
     val selectedRes: Double = selectResolution(rq.resolution, availableResolutions)
     val res = lexiEncodeDoubleToString(selectedRes)
 
     // Step 2. Pick GeoHashLength
     val GeoHashLenList = resAndGeoHashMap.get(selectedRes).toList
-    val expectedGeoHashLen = if (GeoHashLenList.isEmpty) {
-      0
-    } else {
-      GeoHashLenList.max
-    }
+    val expectedGeoHashLen = if (GeoHashLenList.isEmpty) 0 else GeoHashLenList.max
 
     // Step 3. Given an expected Length and the query, pad up or down the CAGH
     val closestAcceptableGeoHash = GeohashUtils.getClosestAcceptableGeoHash(rq.bbox)
 
     val hashes: List[String] = closestAcceptableGeoHash match {
       case Some(gh) =>
-        val preliminaryHashes = List(gh.hash)
+        val preliminaryGeoHash = List(gh.hash)
         if (rq.bbox.equals(gh.bbox) || gh.bbox.covers(rq.bbox)) {
-          preliminaryHashes
+          preliminaryGeoHash
         } else {
           val touching = TouchingGeoHashes.touching(gh).map(_.hash)
-          (preliminaryHashes ++ touching).distinct
+          (preliminaryGeoHash ++ touching).distinct
         }
-      case _ => Try {BoundingBox.getGeoHashesFromBoundingBox(rq.bbox) } getOrElse List.empty[String]
+      case _ => Try(BoundingBox.getGeoHashesFromBoundingBox(rq.bbox)) getOrElse List.empty[String]
     }
 
     logger.debug(s"RasterQueryPlanner: BBox: ${rq.bbox} has geohashes: $hashes, and has encoded Resolution: $res")
@@ -106,16 +100,10 @@ class AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
   def selectResolution(suggestedResolution: Double, availableResolutions: List[Double]): Double = {
     logger.debug(s"RasterQueryPlanner: trying to get resolution $suggestedResolution " +
       s"from available Resolutions: ${availableResolutions.sorted}")
-    val ret = availableResolutions match {
-      case empty if availableResolutions.isEmpty   => 1.0
-      case one if availableResolutions.length == 1 => availableResolutions.head
-      case _                                       =>
-            val lowerResolutions = availableResolutions.filter(_ <= suggestedResolution)
-            logger.debug(s"RasterQueryPlanner: Picking a resolution from: $lowerResolutions")
-            lowerResolutions match {
-              case Nil => availableResolutions.min
-              case _ => lowerResolutions.max
-            }
+    val ret = if (availableResolutions.length <= 1) availableResolutions.headOption.getOrElse(1.0) else {
+      val finerResolutions = availableResolutions.filter(_ <= suggestedResolution)
+      logger.debug(s"RasterQueryPlanner: Picking a resolution from: $finerResolutions")
+      if (finerResolutions.isEmpty) availableResolutions.min else finerResolutions.max
     }
     logger.debug(s"RasterQueryPlanner: Decided to use resolution: $ret")
     ret
