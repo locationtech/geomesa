@@ -168,7 +168,7 @@ sequential
 
   "RichSimpleFeatureType" should {
 
-    import Conversions.RichSimpleFeatureType
+    import RichSimpleFeatureType.RichSimpleFeatureType
 
     val sft = mock[SimpleFeatureType]
 

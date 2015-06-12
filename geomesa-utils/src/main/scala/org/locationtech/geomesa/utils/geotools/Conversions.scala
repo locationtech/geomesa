@@ -105,16 +105,6 @@ object Conversions {
       }
     }
   }
-
-  implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
-
-    def userData[T](key: AnyRef)(implicit ct: ClassTag[T]): Option[T] = {
-      Option(sft.getUserData.get(key)).flatMap {
-        case ct(x) => Some(x)
-        case _ => None
-      }
-    }
-  }
 }
 
 
@@ -215,6 +205,11 @@ object RichSimpleFeatureType {
     def getDtgField: Option[String] = Option(sft.getUserData.get(DEFAULT_DATE_FIELD)).map(_.toString)
     def getDtgIndex: Option[Int] = getDtgField.map(sft.indexOf)
     def getBinTrackId: Option[String] = sft.getAttributeDescriptors.find(_.isBinTrackId).map(_.getLocalName)
+    def userData[T](key: AnyRef)(implicit ct: ClassTag[T]): Option[T] =
+      Option(sft.getUserData.get(key)).flatMap {
+        case ct(x) => Some(x)
+        case _ => None
+      }
   }
 }
 
