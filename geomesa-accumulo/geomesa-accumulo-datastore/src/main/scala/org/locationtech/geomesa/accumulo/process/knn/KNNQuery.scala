@@ -20,7 +20,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.accumulo.filter._
+import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeature
 

@@ -31,10 +31,10 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.security.SecurityUtils
-import SecurityUtils.FEATURE_VISIBILITY
-import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
+import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 

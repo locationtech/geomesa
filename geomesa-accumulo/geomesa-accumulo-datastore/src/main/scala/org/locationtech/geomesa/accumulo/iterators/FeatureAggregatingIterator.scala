@@ -27,8 +27,8 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data.DEFAULT_ENCODING
 import org.locationtech.geomesa.accumulo.iterators.FeatureAggregatingIterator.Result
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features._
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 

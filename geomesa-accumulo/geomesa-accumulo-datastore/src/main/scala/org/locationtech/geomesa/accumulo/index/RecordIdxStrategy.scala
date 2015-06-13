@@ -22,11 +22,10 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo.data.tables.RecordTable
-import org.locationtech.geomesa.accumulo.filter._
-import org.locationtech.geomesa.accumulo.index.FilterHelper.filterListAsAnd
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, IteratorTrigger}
+import org.locationtech.geomesa.filter._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.{FeatureId, Identifier}
 import org.opengis.filter.{Filter, Id}
@@ -71,7 +70,7 @@ class RecordIdxStrategy extends Strategy with Logging {
     val (idFilters, oFilters) =  partitionID(query.getFilter)
 
     // recombine non-ID filters
-    val ecql = filterListAsAnd(oFilters)
+    val ecql = FilterHelper.filterListAsAnd(oFilters)
 
     // Multiple sets of IDs in a ID Filter are ORs. ANDs of these call for the intersection to be taken.
     // intersect together all groups of ID Filters, producing Some[Id] if the intersection returns something

@@ -4,7 +4,7 @@ import java.security.cert.X509Certificate
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import org.scalatra.ScalatraBase
-import org.scalatra.auth.{ScentryStrategy, ScentryConfig, ScentrySupport}
+import org.scalatra.auth.{ScentryConfig, ScentryStrategy, ScentrySupport}
 
 package object scalatra {
 

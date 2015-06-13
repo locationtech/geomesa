@@ -17,11 +17,7 @@
 package org.locationtech.geomesa.jobs.interop.mapred;
 
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.InputFormat;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.*;
 import org.geotools.data.Query;
 import org.locationtech.geomesa.jobs.mapred.GeoMesaInputFormat$;
 import org.opengis.feature.simple.SimpleFeature;

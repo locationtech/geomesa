@@ -15,10 +15,10 @@
  */
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.{Date, UUID, Map => JMap}
+import java.util.{Date, Map => JMap, UUID}
 
-import org.apache.accumulo.core.client.{IteratorSetting, ScannerBase}
 import org.apache.accumulo.core.client.mapreduce.InputFormatBase
+import org.apache.accumulo.core.client.{IteratorSetting, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SkippingIterator, SortedKeyValueIterator}
 import org.apache.hadoop.mapreduce.Job

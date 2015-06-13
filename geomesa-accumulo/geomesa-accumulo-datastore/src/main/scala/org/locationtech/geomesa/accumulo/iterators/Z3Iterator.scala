@@ -2,7 +2,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import com.google.common.primitives.Longs
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRange}
+import org.apache.accumulo.core.data.{ByteSequence, Key, Range => AccRange, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.curve.Z3

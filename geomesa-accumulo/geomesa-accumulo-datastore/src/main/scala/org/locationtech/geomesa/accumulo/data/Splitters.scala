@@ -18,7 +18,6 @@ package org.locationtech.geomesa.accumulo.data
 import java.util
 
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.data.TableSplitter
 
 import scala.collection.JavaConversions._
 

@@ -24,8 +24,8 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
-import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.locationtech.geomesa.utils.geohash.GeoHash
+import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._

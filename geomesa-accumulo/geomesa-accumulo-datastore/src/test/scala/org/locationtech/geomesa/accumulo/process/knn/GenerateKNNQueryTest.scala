@@ -22,8 +22,9 @@ import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.{Constants, FilterHelper}
-import org.locationtech.geomesa.accumulo.{filter, index}
+import org.locationtech.geomesa.accumulo.index
+import org.locationtech.geomesa.accumulo.index.Constants
+import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.expression.Literal
@@ -35,6 +36,8 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class GenerateKNNQueryTest extends Specification {
+
+  import filter._
 
   def createStore: AccumuloDataStore =
   // the specific parameter values should not matter, as we

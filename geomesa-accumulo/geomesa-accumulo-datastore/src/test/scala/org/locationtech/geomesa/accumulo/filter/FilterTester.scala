@@ -28,12 +28,13 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreTest, AccumuloFeatureStore}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
-import org.locationtech.geomesa.accumulo.index.SF_PROPERTY_START_TIME
+import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.accumulo.iterators.TestData
-import org.locationtech.geomesa.accumulo.iterators.TestData._
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.filter
+import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
@@ -41,7 +42,6 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
-
 
 @RunWith(classOf[JUnitRunner])
 class AllPredicateTest extends Specification with FilterTester {
@@ -121,7 +121,7 @@ class IdQueryTest extends Specification {
   }
   val geomBuilder = JTSFactoryFinder.getGeometryFactory
   val sft = SimpleFeatureTypes.createType("idquerysft", "age:Int:index=true,name:String:index=true,dtg:Date,*geom:Point:srid=4326")
-  sft.getUserData.put(SF_PROPERTY_START_TIME,"dtg")
+  sft.getUserData.put(Constants.SF_PROPERTY_START_TIME,"dtg")
   ds.createSchema(sft)
   val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
   val data = List(
@@ -142,10 +142,7 @@ class IdQueryTest extends Specification {
   fs.addFeatures(featureCollection)
   fs.flush()
 
-  import org.locationtech.geomesa.utils.geotools.Conversions._
-
   "Id queries" should {
-
     "use record table to return a result" >> {
       val idQ = ff.id(ff.featureId("2"))
       val res = fs.getFeatures(idQ).features().toList
@@ -173,7 +170,7 @@ class IdQueryTest extends Specification {
 }
 
 object FilterTester extends Logging {
-  val mediumDataFeatures: Seq[SimpleFeature] = mediumData.map(createSF)
+  val mediumDataFeatures: Seq[SimpleFeature] = TestData.mediumData.map(TestData.createSF)
   val sft = mediumDataFeatures.head.getFeatureType
 
   val ds = {
@@ -204,9 +201,10 @@ object FilterTester extends Logging {
   val afr = ds.getFeatureReader(sft.getTypeName)
 }
 
-import org.locationtech.geomesa.accumulo.filter.FilterTester._
-
 trait FilterTester extends Specification with Logging {
+  import FilterTester._
+  import filter._
+
   val fs = fs1
 
   def filters: Seq[String]
@@ -225,8 +223,5 @@ trait FilterTester extends Specification with Logging {
       }
     }
   }
-
-  import org.locationtech.geomesa.accumulo.filter.FilterUtils._
-  def runTest = filters.map { s => compareFilter(s)}
-
+  def runTest = filters.map { s => compareFilter(s) }
 }

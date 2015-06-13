@@ -32,7 +32,7 @@ import org.geotools.factory.Hints
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -40,8 +40,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

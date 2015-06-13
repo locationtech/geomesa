@@ -17,7 +17,6 @@
 package org.locationtech.geomesa.utils.cache
 
 import org.junit.runner.RunWith
-import org.junit.{Assert, Test}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

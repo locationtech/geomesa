@@ -28,16 +28,14 @@ import org.geotools.temporal.`object`.DefaultPeriod
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable}
-import org.locationtech.geomesa.accumulo.filter._
-import org.locationtech.geomesa.accumulo.index.FilterHelper._
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.JoinFunction
 import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.filter.PropertyLiteral
-import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.filter.FilterHelper._
+import org.locationtech.geomesa.filter.{PropertyLiteral, _}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}

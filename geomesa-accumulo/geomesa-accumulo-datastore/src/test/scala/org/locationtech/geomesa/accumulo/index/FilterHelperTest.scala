@@ -22,7 +22,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
-import org.locationtech.geomesa.accumulo.index.FilterHelper._
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.utils.filters.Filters._
 import org.opengis.filter.Filter
 import org.specs2.mock.Mockito

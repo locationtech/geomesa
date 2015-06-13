@@ -18,11 +18,7 @@ package org.locationtech.geomesa.jobs.interop.mapred;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.Counters.Counter;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.*;
 import org.geotools.data.Query;
 import org.geotools.filter.text.ecql.ECQL;
 import org.locationtech.geomesa.features.ScalaSimpleFeature;

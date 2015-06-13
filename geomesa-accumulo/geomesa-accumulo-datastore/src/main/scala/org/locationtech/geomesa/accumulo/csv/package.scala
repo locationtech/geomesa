@@ -37,7 +37,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.io.Source
-import scala.util.Success
 
 case class TypeSchema(name: String, schema: String, latLonFields: Option[(String, String)])
 

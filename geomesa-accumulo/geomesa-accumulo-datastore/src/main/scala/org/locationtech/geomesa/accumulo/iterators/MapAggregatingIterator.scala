@@ -28,9 +28,9 @@ import org.locationtech.geomesa.accumulo.sumNumericValueMutableMaps
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.languageFeature.implicitConversions
+import scala.collection.JavaConverters._
 
 class MapAggregatingIterator(other: MapAggregatingIterator, env: IteratorEnvironment)
   extends FeatureAggregatingIterator[MapAggregatingIteratorResult](other, env) {

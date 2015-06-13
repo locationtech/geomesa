@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.accumulo.filter
+package org.locationtech.geomesa.filter
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.filter.TestFilters._
-import org.locationtech.geomesa.accumulo.iterators.TestData._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter._
 import org.specs2.mutable.Specification
@@ -31,6 +29,8 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class FilterPackageObjectTest extends Specification with Logging {
+
+  import TestFilters._
 
   "The partitionGeom function" should {
     val sft = SimpleFeatureTypes.createType("filterPackageTest", "g:Geometry,*geom:Geometry")
@@ -174,8 +174,6 @@ class FilterPackageObjectTest extends Specification with Logging {
     }
   }
 
-  val mediumDataFeatures = mediumData.map(createSF)
-
   // Function defining rewriteFilter Properties.
   def testRewriteProps(filter: Filter): Fragments = {
     logger.debug(s"Filter: ${ECQL.toCQL(filter)}")
@@ -198,13 +196,6 @@ class FilterPackageObjectTest extends Specification with Logging {
 
       "return a Filter where NOTs do not have ANDs or ORs as children" in {
         foreachWhen(children) { case f if f.isInstanceOf[Not] => f.isInstanceOf[BinaryLogicOperator] must beFalse }
-      }
-
-      "return a Filter which is 'equivalent' to the original filter" in {
-        val originalCount = mediumDataFeatures.count(filter.evaluate)
-        val rewriteCount = mediumDataFeatures.count(rewrittenFilter.evaluate)
-        logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: filter hits: $originalCount rewrite hits: $rewriteCount")
-        rewriteCount mustEqual originalCount
       }
     }
   }

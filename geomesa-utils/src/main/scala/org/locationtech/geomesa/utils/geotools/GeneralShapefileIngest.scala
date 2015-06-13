@@ -23,6 +23,7 @@ import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
 import scala.util.Try
 
 object GeneralShapefileIngest {

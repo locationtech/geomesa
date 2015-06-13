@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.accumulo.filter
+package org.locationtech.geomesa.filter
 
 import org.geotools.filter.visitor.DefaultFilterVisitor
 import org.opengis.filter._

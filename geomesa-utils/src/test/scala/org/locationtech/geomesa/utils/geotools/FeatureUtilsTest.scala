@@ -15,11 +15,9 @@
  */
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

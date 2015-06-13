@@ -25,7 +25,7 @@ import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SerializationType, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification

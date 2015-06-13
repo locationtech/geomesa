@@ -36,7 +36,6 @@ import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.SimpleFeatureDeserializers
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
-import org.locationtech.geomesa.jobs.mapred.GeoMesaInputFormat._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 

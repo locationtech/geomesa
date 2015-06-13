@@ -35,7 +35,7 @@ import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataSt
 import org.locationtech.geomesa.accumulo.index.{getTransformSchema, _}
 import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureDeserializer, SimpleFeatureDeserializers}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializer, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
