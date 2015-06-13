@@ -19,18 +19,18 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="ingestRateServlet" class="org.locationtech.geomesa.plugin.servlet.IngestRateServlet"/>
+    <bean id="ingestRateServlet" class="org.locationtech.geomesa.plugin.servlet.IngestRateServlet"/>
 
-  <bean id="geoMesaDispatcherMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
-    <property name="alwaysUseFullPath" value="true"/>
-    <property name="mappings">
-      <props>
-        <prop key="/geomesa/ingest/rate">ingestRateServlet</prop>
-      </props>
-    </property>
-  </bean>
+    <bean id="geoMesaDispatcherMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+        <property name="alwaysUseFullPath" value="true"/>
+        <property name="mappings">
+            <props>
+                <prop key="/geomesa/ingest/rate">ingestRateServlet</prop>
+            </props>
+        </property>
+    </bean>
 
-  <bean id="accumuloDataStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
+    <bean id="accumuloDataStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
         <property name="id" value="accumuloDataStorePanel"/>
         <property name="factoryClass" value="org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory"/>
         <property name="iconBase" value="org.geoserver.web.GeoServerApplication"/>
@@ -39,9 +39,8 @@
                   value="org.locationtech.geomesa.plugin.wfs.AccumuloDataStoreEditPanel"/>
     </bean>
 
-    <bean id="accumuloCoverageStorePanel"
-          class="org.geoserver.web.data.resource.DataStorePanelInfo">
-        <property name="id" value="accumulo"/>
+    <bean id="coverageStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
+        <property name="id" value="coverageStorePanel"/>
         <property name="factoryClass" value="org.locationtech.geomesa.plugin.wms.CoverageFormat"/>
         <property name="iconBase" value="org.geoserver.web.GeoServerApplication"/>
         <property name="icon" value="img/icons/geosilk/database_raster.png"/>
@@ -49,55 +48,63 @@
                   value="org.locationtech.geomesa.plugin.wms.CoverageStoreEditPanel"/>
     </bean>
 
-  <bean id="binaryViewerOutputFormat" class="org.locationtech.geomesa.plugin.wfs.output.BinaryViewerOutputFormat">
-    <constructor-arg ref="geoServer"/>
-  </bean>
+    <bean id="binaryViewerOutputFormat" class="org.locationtech.geomesa.plugin.wfs.output.BinaryViewerOutputFormat">
+        <constructor-arg ref="geoServer"/>
+    </bean>
 
- <!-- Link category for grouping GeoMesa pages -->
-  <bean id="geoMesaCategory" class="org.geoserver.web.Category">
-    <property name="nameKey" value="GeoMesaCategory.title"/>
-    <!-- Optional, a key used to order the links in the menu. -->
-    <property name="order" value="110"/>
-  </bean>
+    <bean id="GeoMesaCoverageStorePanel" class="org.geoserver.web.data.resource.DataStorePanelInfo">
+        <property name="id" value="GeoMesaCoverageStorePanel"/>
+        <property name="factoryClass" value="org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageFormat"/>
+        <property name="iconBase" value="org.geoserver.web.GeoServerApplication"/>
+        <property name="icon" value="img/icons/geosilk/database_raster.png"/>
+        <property name="componentClass" value="org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageStoreEditPanel"/>
+    </bean>
 
-  <!-- link for the geomesa status page -->
-  <bean id="GeoMesaDataStoresPageLink" class="org.geoserver.web.MenuPageInfo">
-    <!-- An internal identifier for the link component -->
-    <property name="id" value="geoMesaDataStoresPage"/>
-    <!-- The i18n key for the link title - in GeoServerApplication.properties-->
-    <property name="titleKey" value="GeoMesaDataStoresPage.link.title"/>
-    <!-- The i18n key for a longer description of the page -->
-    <property name="descriptionKey" value="GeoMesaDataStoresPage.link.description"/>
-    <!-- The fully qualified name of the page class -->
-    <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.GeoMesaDataStoresPage"/>
-    <!-- Optional, an icon to display alongside the link. -->
-    <property name="icon" value="../../../../../org/geoserver/web/img/icons/silk/server_chart.png"/>
-    <!-- Optional, the category in which the link should be grouped. -->
-    <property name="category" ref="geoMesaCategory"/>
-    <!-- Optional, a key used to order the links in the menu. -->
-    <property name="order" value="100"/>
-  </bean>
+    <!-- Link category for grouping GeoMesa pages -->
+    <bean id="geoMesaCategory" class="org.geoserver.web.Category">
+        <property name="nameKey" value="GeoMesaCategory.title"/>
+        <!-- Optional, a key used to order the links in the menu. -->
+        <property name="order" value="110"/>
+    </bean>
 
-  <!-- link for the geomesa config page -->
-  <bean id="geoMesaConfigPageLink" class="org.geoserver.web.MenuPageInfo">
-    <property name="id" value="geoMesaConfigPage"/>
-    <property name="titleKey" value="GeoMesaConfigPage.link.title"/>
-    <property name="descriptionKey" value="GeoMesaConfigPage.link.description"/>
-    <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.GeoMesaConfigPage"/>
-    <property name="icon" value="../../../../../org/geoserver/web/img/icons/silk/wrench.png"/>
-    <property name="category" ref="geoMesaCategory"/>
-    <property name="order" value="300"/>
-  </bean>
+    <!-- link for the geomesa status page -->
+    <bean id="GeoMesaDataStoresPageLink" class="org.geoserver.web.MenuPageInfo">
+        <!-- An internal identifier for the link component -->
+        <property name="id" value="geoMesaDataStoresPage"/>
+        <!-- The i18n key for the link title - in GeoServerApplication.properties-->
+        <property name="titleKey" value="GeoMesaDataStoresPage.link.title"/>
+        <!-- The i18n key for a longer description of the page -->
+        <property name="descriptionKey" value="GeoMesaDataStoresPage.link.description"/>
+        <!-- The fully qualified name of the page class -->
+        <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.GeoMesaDataStoresPage"/>
+        <!-- Optional, an icon to display alongside the link. -->
+        <property name="icon" value="../../../../../org/geoserver/web/img/icons/silk/server_chart.png"/>
+        <!-- Optional, the category in which the link should be grouped. -->
+        <property name="category" ref="geoMesaCategory"/>
+        <!-- Optional, a key used to order the links in the menu. -->
+        <property name="order" value="100"/>
+    </bean>
 
-  <!-- link for the geomesa hadoop status page -->
-  <bean id="hadoopStatusPageLink" class="org.geoserver.web.MenuPageInfo">
-    <property name="id" value="hadoopStatusPage"/>
-    <property name="titleKey" value="HadoopStatusPage.link.title"/>
-    <property name="descriptionKey" value="HadoopStatusPage.link.description"/>
-    <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.HadoopStatusPage"/>
-    <property name="icon" value="../../../../../org/geoserver/web/img/icons/silk/information.png"/>
-    <property name="category" ref="geoMesaCategory"/>
-    <property name="order" value="200"/>
-  </bean>
+    <!-- link for the geomesa config page -->
+    <bean id="geoMesaConfigPageLink" class="org.geoserver.web.MenuPageInfo">
+        <property name="id" value="geoMesaConfigPage"/>
+        <property name="titleKey" value="GeoMesaConfigPage.link.title"/>
+        <property name="descriptionKey" value="GeoMesaConfigPage.link.description"/>
+        <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.GeoMesaConfigPage"/>
+        <property name="icon" value="../../../../../org/geoserver/web/img/icons/silk/wrench.png"/>
+        <property name="category" ref="geoMesaCategory"/>
+        <property name="order" value="300"/>
+    </bean>
+
+    <!-- link for the geomesa hadoop status page -->
+    <bean id="hadoopStatusPageLink" class="org.geoserver.web.MenuPageInfo">
+        <property name="id" value="hadoopStatusPage"/>
+        <property name="titleKey" value="HadoopStatusPage.link.title"/>
+        <property name="descriptionKey" value="HadoopStatusPage.link.description"/>
+        <property name="componentClass" value="org.locationtech.geomesa.plugin.ui.HadoopStatusPage"/>
+        <property name="icon" value="../../../../../org/geoserver/web/img/icons/silk/information.png"/>
+        <property name="category" ref="geoMesaCategory"/>
+        <property name="order" value="200"/>
+    </bean>
 
 </beans>

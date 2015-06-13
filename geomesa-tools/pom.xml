@@ -57,6 +57,10 @@
             <artifactId>geomesa-filter</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-raster</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
         </dependency>
@@ -139,6 +143,11 @@
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.media</groupId>
+            <artifactId>jai_core</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

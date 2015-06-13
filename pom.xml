@@ -36,6 +36,7 @@
         <module>geomesa-tools</module>
         <module>geomesa-compute</module>
         <module>geomesa-assemble</module>
+        <module>geomesa-raster</module>
         <module>geomesa-web</module>
         <module>geomesa-process</module>
         <module>geomesa-stream</module>
@@ -51,7 +52,8 @@
         <gt.version>11.2</gt.version>
         <jts.version>1.13</jts.version>
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
-
+        <junit.version>4.5</junit.version>
+        <specs2.version>2.3.13</specs2.version>
         <!-- environment-dependent versions -->
         <zookeeper.version>3.4.5</zookeeper.version>
         <accumulo.version>1.5.1</accumulo.version>
@@ -147,6 +149,12 @@
                 <groupId>javax.media</groupId>
                 <artifactId>jai_core</artifactId>
                 <version>1.1.3</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>javax.media</groupId>
+                <artifactId>jai_imageio</artifactId>
+                <version>1.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -340,13 +348,6 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-process-feature</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -514,6 +515,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-feature-kryo</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-raster</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -867,7 +873,7 @@
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.5</version>
+                <version>${junit.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

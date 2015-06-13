@@ -18,13 +18,10 @@ package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, GeometryCollection, Point, Polygon}
-import org.apache.accumulo.core.data.Key
-import org.geotools.data.Query
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
-import org.locationtech.geomesa.accumulo.util._
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.annotation.tailrec
 import scala.util.parsing.combinator.RegexParsers
