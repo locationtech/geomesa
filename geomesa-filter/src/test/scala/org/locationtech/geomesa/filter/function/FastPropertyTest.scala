@@ -9,7 +9,6 @@
 
 package org.locationtech.geomesa.filter.function
 
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.spatial.BBOXImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith

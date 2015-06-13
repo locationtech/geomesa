@@ -23,9 +23,6 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.accumulo.data.tables.SpatioTemporalTable.{DATA_CHECK, INDEX_CHECK}
-import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.accumulo.GEOMESA_ITERATORS_VERSION
 
 class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] with Logging {
 

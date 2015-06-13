@@ -18,12 +18,7 @@ package org.locationtech.geomesa.jobs.interop.mapreduce;
 
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.OutputCommitter;
-import org.apache.hadoop.mapreduce.OutputFormat;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.*;
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat$;
 import org.opengis.feature.simple.SimpleFeature;
 import scala.Predef;

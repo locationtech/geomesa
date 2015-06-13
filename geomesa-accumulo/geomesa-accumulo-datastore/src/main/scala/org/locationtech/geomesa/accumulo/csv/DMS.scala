@@ -53,7 +53,7 @@ object DMS {
   }
 }
 
-import DMS._
+import org.locationtech.geomesa.accumulo.csv.DMS._
 
 case class DMS(degrees: Int, minutes: Int, seconds: Double, hemisphere: Hemisphere) {
   require(0 <= seconds && seconds < 60, "Seconds must be between 0 and 60")

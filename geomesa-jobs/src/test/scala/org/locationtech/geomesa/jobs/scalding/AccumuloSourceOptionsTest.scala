@@ -16,11 +16,6 @@
 
 package org.locationtech.geomesa.jobs.scalding
 
-import com.twitter.scalding.{Hdfs, Read, Write}
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.mapred.JobConf
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

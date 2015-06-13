@@ -17,28 +17,18 @@
 package org.locationtech.geomesa.accumulo
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
-import org.geotools.feature.AttributeTypeBuilder
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.process.vector.TransformProcess
-import org.geotools.process.vector.TransformProcess.Definition
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.GeometryAttribute
-import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.identity.FeatureId
 
-import scala.collection.JavaConversions._
 import scala.languageFeature.implicitConversions
 
 /**

@@ -42,7 +42,6 @@ import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator._
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, IndexIterator, TestData}
 import org.locationtech.geomesa.accumulo.util.{CloseableIterator, GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory

@@ -27,9 +27,8 @@ import org.apache.hadoop.mapreduce._
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.accumulo
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
-import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable}
-import org.locationtech.geomesa.accumulo.data.{AccumuloFeatureWriter, AccumuloDataStore, AccumuloDataStoreFactory}
-import org.locationtech.geomesa.accumulo.index.{IndexSchema, IndexValueEncoder}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloFeatureWriter}
+import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
 import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.SimpleFeature

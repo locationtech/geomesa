@@ -24,18 +24,16 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.GEOMESA_ITERATORS_IS_DENSITY_TYPE
-import org.locationtech.geomesa.accumulo.filter._
-import org.locationtech.geomesa.accumulo.index.FilterHelper._
-import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.accumulo.index.QueryHints.{RichHints, _}
 import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.filter.checkOrder
+import org.locationtech.geomesa.filter.FilterHelper._
+import org.locationtech.geomesa.filter._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.spatial.BinarySpatialOperator
-import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 
 class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 

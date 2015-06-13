@@ -17,7 +17,7 @@ package org.locationtech.geomesa.kafka
 
 import java.util
 
-import com.google.common.cache.{CacheLoader, CacheBuilder}
+import com.google.common.cache.{CacheBuilder, CacheLoader}
 import kafka.admin.AdminUtils
 import kafka.utils.ZKStringSerializer
 import org.I0Itec.zkclient.ZkClient
@@ -27,6 +27,7 @@ import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
+
 import scala.collection.JavaConverters._
 import scala.util.Try
 import scala.util.control.NonFatal

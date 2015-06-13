@@ -18,12 +18,13 @@ package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
-import org.locationtech.geomesa.accumulo.index.FilterHelper._
+import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
 import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.utils.geotools.RichIterator.RichIterator
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Id, PropertyIsLike}
-import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
 
 import scala.collection.JavaConversions._
 

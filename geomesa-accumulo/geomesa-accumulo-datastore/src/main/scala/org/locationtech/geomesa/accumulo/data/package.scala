@@ -27,10 +27,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 package object data {
 
-  import org.locationtech.geomesa.accumulo.index._
-
-import scala.collection.JavaConversions._
-
   // Datastore parameters
   val INSTANCE_ID      = "geomesa.instance.id"
   val ZOOKEEPERS       = "geomesa.zookeepers"

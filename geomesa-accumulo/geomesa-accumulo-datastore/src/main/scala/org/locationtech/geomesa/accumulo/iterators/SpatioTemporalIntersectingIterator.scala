@@ -16,15 +16,8 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.Date
-
-import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.accumulo.data.tables.SpatioTemporalTable
-import org.locationtech.geomesa.accumulo.index
-import org.locationtech.geomesa.utils.stats.MethodProfiling
 
 /**
  * This iterator returns as its nextKey and nextValue responses the key and value

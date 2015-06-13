@@ -16,9 +16,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.Map.Entry
-
-import org.apache.accumulo.core.data.{Key, Value}
 import org.locationtech.geomesa.accumulo.util.CloseableIterator
 import org.opengis.feature.simple.SimpleFeature
 

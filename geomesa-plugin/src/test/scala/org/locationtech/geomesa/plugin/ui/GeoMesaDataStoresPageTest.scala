@@ -23,7 +23,7 @@ import java.io.File
 
 import com.google.common.io.Files
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, ZooKeeperInstance}
+import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.minicluster.MiniAccumuloCluster
 import org.apache.hadoop.io.Text

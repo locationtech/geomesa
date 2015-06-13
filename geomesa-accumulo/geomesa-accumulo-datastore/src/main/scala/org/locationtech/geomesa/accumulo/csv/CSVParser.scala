@@ -16,12 +16,12 @@
 
 package org.locationtech.geomesa.accumulo.csv
 
+import java.lang.{Double => jDouble, Integer => jInt}
 import java.util.Date
-import java.lang.{Integer => jInt, Double => jDouble}
 
 import com.vividsolutions.jts.geom._
 import org.joda.time.DateTime
-import org.joda.time.format.{DateTimeFormatter, DateTimeFormat}
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.locationtech.geomesa.accumulo.util.SftBuilder
 import org.locationtech.geomesa.utils.text.WKTUtils
 

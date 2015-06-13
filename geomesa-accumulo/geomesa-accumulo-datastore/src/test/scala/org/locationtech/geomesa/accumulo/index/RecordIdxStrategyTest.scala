@@ -20,11 +20,10 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.filter._
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
-import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.opengis.filter.Id
 import org.specs2.mutable.Specification
@@ -45,6 +44,8 @@ case class IntersectionResult(idSeq: Option[Set[String]], correctIdSeq: Set[Stri
 
 @RunWith(classOf[JUnitRunner])
 class RecordIdxStrategyTest extends Specification with TestWithDataStore {
+
+  import filter._
 
   def intersectionTestHelper(stringSeqToTest: Seq[String],
                              correctIntersection: String): IntersectionResult = {

@@ -20,8 +20,8 @@ import com.vividsolutions.jts.geom.Point
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.avro.{AvroFeatureDeserializer, ProjectingAvroFeatureDeserializer, AvroFeatureSerializer, AvroSimpleFeatureFactory}
-import org.locationtech.geomesa.features.kryo.{ProjectingKryoFeatureDeserializer, KryoFeatureSerializer}
+import org.locationtech.geomesa.features.avro.{AvroFeatureDeserializer, AvroFeatureSerializer, AvroSimpleFeatureFactory, ProjectingAvroFeatureDeserializer}
+import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils

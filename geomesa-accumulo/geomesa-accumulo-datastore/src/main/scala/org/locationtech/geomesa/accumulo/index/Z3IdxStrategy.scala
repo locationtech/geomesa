@@ -9,17 +9,19 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.joda.time.Weeks
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
+import org.locationtech.geomesa.accumulo.index
+import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, Z3Iterator}
-import org.locationtech.geomesa.accumulo.{filter, index}
 import org.locationtech.geomesa.curve.Z3SFC
-import org.locationtech.geomesa.filter.checkOrder
+import org.locationtech.geomesa.filter
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.iterators.{KryoLazyFilterTransformIterator, LazyFilterTransformIterator}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.spatial.BinarySpatialOperator
-import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
+
 import scala.collection.JavaConversions._
 
 class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {

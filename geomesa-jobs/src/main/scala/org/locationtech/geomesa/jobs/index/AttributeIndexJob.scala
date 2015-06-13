@@ -26,7 +26,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWri
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.jobs.GeoMesaBaseJob
 import org.locationtech.geomesa.jobs.scalding.ConnectionParams._
 import org.locationtech.geomesa.jobs.scalding._
