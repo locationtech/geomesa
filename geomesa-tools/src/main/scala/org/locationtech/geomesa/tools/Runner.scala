@@ -32,15 +32,18 @@ object Runner extends Logging {
     val commands = List(
       new CreateCommand(jc),
       new DeleteCatalogCommand(jc),
+      new DeleteRasterCommand(jc),
       new DescribeCommand(jc),
       new ExplainCommand(jc),
       new ExportCommand(jc),
       new HelpCommand(jc),
       new IngestCommand(jc),
+      new IngestRasterCommand(jc),
       new ListCommand(jc),
       new RemoveSchemaCommand(jc),
       new TableConfCommand(jc),
-      new VersionCommand(jc)
+      new VersionCommand(jc),
+      new QueryStatsCommand(jc)
     )
 
     commands.foreach(_.register)

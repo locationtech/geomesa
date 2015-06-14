@@ -18,7 +18,6 @@
 
 package org.locationtech.geomesa.accumulo.stats
 
-import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
@@ -32,7 +31,6 @@ import org.locationtech.geomesa.accumulo.stats.StatWriter.TableInstance
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 
 trait StatWriter {
 
@@ -157,6 +155,7 @@ object StatWriter extends Runnable with Logging {
       // get the appropriate transform for this type of stat
       val transform = group.clas match {
         case c if c == classOf[QueryStat] => QueryStatTransform.asInstanceOf[StatTransform[Stat]]
+        case r if r == classOf[RasterQueryStat] => RasterQueryStatTransform.asInstanceOf[StatTransform[Stat]]
         case _ => throw new RuntimeException("Not implemented")
       }
       // create the table if necessary

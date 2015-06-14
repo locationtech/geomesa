@@ -62,6 +62,7 @@
                 <include>geomesa</include>
                 <include>install-jai</include>
                 <include>install-jline</include>
+                <include>install-vecmath</include>
                 <include>test-geomesa</include>
             </includes>
             <filtered>true</filtered>
