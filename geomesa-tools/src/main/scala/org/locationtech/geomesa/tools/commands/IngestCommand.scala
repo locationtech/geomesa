@@ -26,7 +26,6 @@ import org.locationtech.geomesa.tools.ingest.DelimitedIngest
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 
 class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
   override val command = "ingest"

@@ -17,7 +17,7 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.{Properties, Date}
+import java.util.{Date, Properties}
 
 import com.google.common.collect.HashBasedTable
 import com.vividsolutions.jts.geom.{Envelope, Point}

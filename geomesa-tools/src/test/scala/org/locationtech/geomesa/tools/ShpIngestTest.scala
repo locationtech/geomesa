@@ -18,7 +18,6 @@ package org.locationtech.geomesa.tools
 
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Date
 
 import com.google.common.io.Files
 import com.vividsolutions.jts.geom.Coordinate

@@ -1,8 +1,8 @@
 package org.locationtech.geomesa.utils.index
 
-import com.vividsolutions.jts.geom.{Geometry, Coordinate}
+import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

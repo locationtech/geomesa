@@ -1,11 +1,24 @@
-package org.locationtech.geomesa.accumulo.filter
+/*
+ * Copyright 2014 Commonwealth Computer Research, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import org.locationtech.geomesa.filter
-import org.opengis.filter.Filter
+package org.locationtech.geomesa.filter
+
+import org.opengis.filter._
 
 object TestFilters {
-
-  import filter._
 
   val baseFilters: Seq[Filter] =
     Seq(
@@ -32,7 +45,7 @@ object TestFilters {
       "((INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) AND INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))) AND attr17 = val17)",
       "(INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) AND INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) AND attr17 = val17)",
       "(attr15 = val15 AND ((INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23))) AND attr37 = val37) AND attr19 = val19))"
-    )
+  )
 
   val oneLevelOrFilters: Seq[Filter] =
     Seq(
@@ -227,6 +240,6 @@ object TestFilters {
     "WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20))) AND IN('|data|100001')",
     "IN('|data|100001') AND WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20)))",
     "dtg DURING 2010-06-01T00:00:00.000Z/2010-08-31T23:59:59.000Z AND IN('|data|100001','|data|100002')" +
-      "AND WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20))) AND attr2 = '2nd100001'"
+    "AND WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20))) AND attr2 = '2nd100001'"
   )
 }

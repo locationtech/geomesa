@@ -16,11 +16,8 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.accumulo.data.tables.SpatioTemporalTable
-import org.locationtech.geomesa.utils.stats.MethodProfiling
 
 /**
  * This is an Index Only Iterator, to be used in situations where the data records are

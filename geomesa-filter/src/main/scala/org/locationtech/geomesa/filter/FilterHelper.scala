@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.accumulo.index
+package org.locationtech.geomesa.filter
 
 import java.util.Date
 
 import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Polygon}
-import org.joda.time.{DateTime, Interval}
-import org.locationtech.geomesa.accumulo.filter._
-import org.locationtech.geomesa.filter.checkOrder
+import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
@@ -87,7 +86,12 @@ object FilterHelper {
     prop.map(_.literal.evaluate(null, classOf[Geometry])).exists(isWholeWorld)
   }
 
-  def isWholeWorld[G <: Geometry](g: G): Boolean = g != null && g.union.covers(IndexSchema.everywhere)
+  val minDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.forID("UTC"))
+  val maxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.forID("UTC"))
+  val everywhen = new Interval(minDateTime, maxDateTime)
+  val everywhere = WKTUtils.read("POLYGON((-180 -90, 0 -90, 180 -90, 180 90, 0 90, -180 90, -180 -90))").asInstanceOf[Polygon]
+
+  def isWholeWorld[G <: Geometry](g: G): Boolean = g != null && g.union.covers(everywhere)
 
   def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
     for( i <- 0 until inMP.getNumGeometries ) yield inMP.getGeometryN(i)
@@ -168,14 +172,14 @@ object FilterHelper {
 
     def intervalFromAfterLike[B: BinaryFilter](b: B, dtfn: String) =
       endpointFromBinaryFilter(b, dtfn) match {
-        case Right(dt) => new Interval(dt, IndexSchema.maxDateTime)
-        case Left(dt)  => new Interval(IndexSchema.minDateTime, dt)
+        case Right(dt) => new Interval(dt, maxDateTime)
+        case Left(dt)  => new Interval(minDateTime, dt)
       }
 
     def intervalFromBeforeLike[B: BinaryFilter](b: B, dtfn: String) =
       endpointFromBinaryFilter(b, dtfn) match {
-        case Right(dt) => new Interval(IndexSchema.minDateTime, dt)
-        case Left(dt)  => new Interval(dt, IndexSchema.maxDateTime)
+        case Right(dt) => new Interval(minDateTime, dt)
+        case Left(dt)  => new Interval(dt, maxDateTime)
       }
 
     def extractInterval(dtfn: String): Filter => Interval = {
@@ -204,9 +208,9 @@ object FilterHelper {
 
     dtFieldName match {
       case None =>
-        _ => IndexSchema.everywhen
+        _ => everywhen
       case Some(dtfn) =>
-        filters => filters.map(extractInterval(dtfn)).fold(IndexSchema.everywhen)( _.overlap(_))
+        filters => filters.map(extractInterval(dtfn)).fold(everywhen)( _.overlap(_))
     }
   }
 
@@ -302,35 +306,3 @@ object FilterHelper {
   }
 }
 
-trait IndexFilterHelpers {
-
-  def buildFilter(geom: Geometry, interval: Interval): KeyPlanningFilter =
-    (IndexSchema.somewhere(geom), IndexSchema.somewhen(interval)) match {
-      case (None, None)       =>    AcceptEverythingFilter
-      case (None, Some(i))    =>
-        if (i.getStart == i.getEnd) DateFilter(i.getStart)
-        else                        DateRangeFilter(i.getStart, i.getEnd)
-      case (Some(p), None)    =>    SpatialFilter(p)
-      case (Some(p), Some(i)) =>
-        if (i.getStart == i.getEnd) SpatialDateFilter(p, i.getStart)
-        else                        SpatialDateRangeFilter(p, i.getStart, i.getEnd)
-    }
-
-  def netGeom(geom: Geometry): Geometry =
-    Option(geom).map(_.intersection(IndexSchema.everywhere)).orNull
-
-  def netInterval(interval: Interval): Interval = interval match {
-    case null => null
-    case _    => IndexSchema.everywhen.overlap(interval)
-  }
-
-  def netPolygon(poly: Polygon): Polygon = poly match {
-    case null => null
-    case p if p.covers(IndexSchema.everywhere) =>
-      IndexSchema.everywhere
-    case p if IndexSchema.everywhere.covers(p) => p
-    case _ => poly.intersection(IndexSchema.everywhere).
-      asInstanceOf[Polygon]
-  }
-
-}

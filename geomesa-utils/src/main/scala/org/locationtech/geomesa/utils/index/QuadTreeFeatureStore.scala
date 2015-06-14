@@ -4,7 +4,7 @@ import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.geotools.data.store.FilteringFeatureIterator
 import org.geotools.geometry.jts.JTS
-import org.locationtech.geomesa.utils.geotools.{DFR, DFI, FR}
+import org.locationtech.geomesa.utils.geotools.{DFI, DFR, FR}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}

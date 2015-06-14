@@ -19,7 +19,7 @@ import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
 import kafka.admin.AdminUtils
-import kafka.utils.{ZkUtils, ZKStringSerializer}
+import kafka.utils.{ZKStringSerializer, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
 import org.geotools.data.store.{ContentDataStore, ContentEntry}
 import org.geotools.feature.NameImpl

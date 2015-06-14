@@ -21,7 +21,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeIndexRow, AttributeTable}
 import org.locationtech.geomesa.accumulo.data.{DEFAULT_ENCODING, INTERNAL_GEOMESA_VERSION}
-import org.locationtech.geomesa.features.{SimpleFeatureSerializers, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._

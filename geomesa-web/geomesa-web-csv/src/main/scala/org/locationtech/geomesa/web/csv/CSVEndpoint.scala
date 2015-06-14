@@ -16,7 +16,7 @@
 
 package org.locationtech.geomesa.web.csv
 
-import java.io.{ByteArrayOutputStream, OutputStream, BufferedOutputStream, File}
+import java.io.{BufferedOutputStream, ByteArrayOutputStream, File, OutputStream}
 import java.net.URL
 import java.nio.charset.Charset
 import java.util.UUID
@@ -30,7 +30,7 @@ import org.geotools.gml.producer.FeatureTransformer
 import org.locationtech.geomesa.accumulo.{TypeSchema, csv}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
-import org.locationtech.geomesa.web.scalatra.{User, PkiAuthenticationSupport}
+import org.locationtech.geomesa.web.scalatra.{PkiAuthenticationSupport, User}
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 

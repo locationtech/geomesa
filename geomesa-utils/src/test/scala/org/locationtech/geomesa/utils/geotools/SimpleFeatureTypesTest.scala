@@ -17,9 +17,9 @@ package org.locationtech.geomesa.utils.geotools
 
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
-import org.locationtech.geomesa.utils.stats.{IndexCoverage, Cardinality}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
+import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

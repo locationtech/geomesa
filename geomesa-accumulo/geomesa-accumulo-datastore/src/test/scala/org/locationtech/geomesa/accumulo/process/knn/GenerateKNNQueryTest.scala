@@ -22,8 +22,9 @@ import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.{Constants, FilterHelper}
-import org.locationtech.geomesa.accumulo.{filter, index}
+import org.locationtech.geomesa.accumulo.index
+import org.locationtech.geomesa.accumulo.index.Constants
+import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.expression.Literal
@@ -106,7 +107,7 @@ class GenerateKNNQueryTest extends Specification {
       val newFilter =  newQuery.getFilter
 
       // process the newFilter to split out the geometry part
-      val (geomFilters, otherFilters) = filter.partitionGeom(newFilter, sft)
+      val (geomFilters, otherFilters) = partitionGeom(newFilter, sft)
 
       // rewrite the geometry filter
       val tweakedGeoms = geomFilters.map ( FilterHelper.updateTopologicalFilters(_, sft) )

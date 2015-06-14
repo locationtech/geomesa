@@ -15,7 +15,7 @@
  */
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.data.{DataUtilities, DelegatingFeatureReader, FeatureReader, ReTypeFeatureReader}
+import org.geotools.data.{DelegatingFeatureReader, FeatureReader, ReTypeFeatureReader}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /** A [[DelegatingFeatureReader]] that re-types simple features.  Unlike [[ReTypeFeatureReader]] this

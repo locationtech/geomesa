@@ -19,7 +19,7 @@ package org.locationtech.geomesa.jobs.scalding
 import cascading.tuple._
 import com.twitter.scalding._
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.jobs.scalding.taps.{GeoMesaScheme, GeoMesaTap, GeoMesaLocalScheme, GeoMesaLocalTap}
+import org.locationtech.geomesa.jobs.scalding.taps.{GeoMesaLocalScheme, GeoMesaLocalTap, GeoMesaScheme, GeoMesaTap}
 import org.opengis.feature.simple.SimpleFeature
 
 /**

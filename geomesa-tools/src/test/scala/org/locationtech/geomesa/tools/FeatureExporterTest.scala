@@ -20,10 +20,9 @@ import java.io.StringWriter
 import java.util.Date
 
 import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.{PasswordToken, AuthenticationToken}
-import org.geotools.data.{Query, DataStoreFinder}
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.feature.DefaultFeatureCollection
-import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory

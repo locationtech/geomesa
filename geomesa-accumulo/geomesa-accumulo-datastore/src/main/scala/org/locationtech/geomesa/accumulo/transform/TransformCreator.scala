@@ -18,7 +18,7 @@ package org.locationtech.geomesa.accumulo.transform
 
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.features.{SimpleFeatureSerializers, ScalaSimpleFeature, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializers}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._

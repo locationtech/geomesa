@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package org.locationtech.geomesa.accumulo.filter
+package org.locationtech.geomesa.filter
 
+import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.filter.FilterUtils._
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-object OrSplittingFilterTest {
-  val geom1: Filter = "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
-  val geom2: Filter = "INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))"
-  val date1: Filter = "(dtg between '0000-01-01T00:00:00.000Z' AND '9999-12-31T23:59:59.000Z')"
-}
-
-import org.locationtech.geomesa.accumulo.filter.OrSplittingFilterTest._
-
 @RunWith(classOf[JUnitRunner])
 class OrSplittingFilterTest extends Specification {
+
+  val geom1: Filter = CQL.toFilter("INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))")
+  val geom2: Filter = CQL.toFilter("INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))")
+  val date1: Filter = CQL.toFilter("(dtg between '0000-01-01T00:00:00.000Z' AND '9999-12-31T23:59:59.000Z')")
+
   val osf = new OrSplittingFilter
+
   def splitFilter(f: Filter) = osf.visit(f, null)
 
   "The OrSplittingFilter" should {

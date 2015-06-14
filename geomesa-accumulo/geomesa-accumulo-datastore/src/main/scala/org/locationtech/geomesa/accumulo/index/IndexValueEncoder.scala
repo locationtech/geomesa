@@ -22,17 +22,16 @@ import java.util.{Date, UUID}
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.accumulo
 import org.locationtech.geomesa.accumulo.index
-import org.locationtech.geomesa.features.kryo.{ProjectingKryoFeatureDeserializer, KryoFeatureSerializer}
+import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
 import org.locationtech.geomesa.features.serialization.CacheKeyGenerator
-import org.locationtech.geomesa.features.{SimpleFeatureSerializer, SimpleFeatureDeserializer, ScalaSimpleFeature}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializer, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 /**
@@ -69,7 +68,7 @@ object IndexValueEncoder {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-  import scala.collection.JavaConversions._
+import scala.collection.JavaConversions._
 
   private val cache = new SoftThreadLocalCache[String, (SimpleFeatureType, Seq[String])]()
 
@@ -307,7 +306,6 @@ object OldIndexValueEncoder {
     Seq(ID_FIELD, sft.getGeometryDescriptor.getLocalName) ++ index.getDtgFieldName(sft)
 
   def getSchema(sft: SimpleFeatureType): Seq[String] = {
-    import scala.collection.JavaConversions._
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
     val defaults = getDefaultSchema(sft)

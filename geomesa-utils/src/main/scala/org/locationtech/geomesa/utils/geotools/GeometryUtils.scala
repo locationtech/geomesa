@@ -19,7 +19,6 @@ package org.locationtech.geomesa.utils.geotools
 import com.vividsolutions.jts.geom._
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.GeodeticCalculator
-import org.geotools.referencing.crs.DefaultGeographicCRS
 
 /**
  * The object provides convenience methods for common operations on geometries.

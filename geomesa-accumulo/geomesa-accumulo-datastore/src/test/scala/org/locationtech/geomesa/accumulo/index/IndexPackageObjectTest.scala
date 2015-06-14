@@ -17,7 +17,6 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.data.Query
-import org.geotools.process.vector.TransformProcess
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._

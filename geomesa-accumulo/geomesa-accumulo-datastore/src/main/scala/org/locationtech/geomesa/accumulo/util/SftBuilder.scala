@@ -17,9 +17,9 @@ package org.locationtech.geomesa.accumulo.util
 
 import java.util.{Date, UUID}
 
+import org.locationtech.geomesa.accumulo.data.TableSplitter
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.SftBuilder._
-import org.locationtech.geomesa.accumulo.data.TableSplitter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{Splitter, _}
 import org.locationtech.geomesa.utils.stats.Cardinality

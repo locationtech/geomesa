@@ -20,18 +20,16 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.filter._
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
-import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.opengis.filter.Id
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
-
 
 case class IntersectionResult(idSeq: Option[Set[String]], correctIdSeq: Set[String] ) {
   // checks to see if idSeq and correctIdSeq are equivalent
@@ -41,7 +39,6 @@ case class IntersectionResult(idSeq: Option[Set[String]], correctIdSeq: Set[Stri
     case _ => false
   }
 }
-
 
 @RunWith(classOf[JUnitRunner])
 class RecordIdxStrategyTest extends Specification with TestWithDataStore {

@@ -15,7 +15,7 @@
  */
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.{UUID, Map => JMap}
+import java.util.{Map => JMap, UUID}
 
 import org.apache.accumulo.core.client.mapreduce.InputFormatBase
 import org.apache.accumulo.core.client.{IteratorSetting, ScannerBase}

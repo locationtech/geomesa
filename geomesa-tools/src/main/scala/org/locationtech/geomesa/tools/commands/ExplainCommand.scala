@@ -17,9 +17,8 @@ package org.locationtech.geomesa.tools.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
-import org.geotools.data.{Query, Transaction}
+import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureReader
 import org.locationtech.geomesa.tools.commands.ExplainCommand.ExplainParameters
 
 class ExplainCommand(parent: JCommander) extends CommandWithCatalog(parent) with Logging {

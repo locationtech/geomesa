@@ -5,9 +5,7 @@ import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.commands.GeoMesaParams
 import org.locationtech.geomesa.tools.commands.RemoveSchemaCommand.RemoveSchemaParams
 import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
-import org.locationtech.geomesa.web.scalatra.PkiAuthenticationSupport
 import org.scalatra.Ok
-import org.scalatra.servlet.FileUploadSupport
 
 import scala.util.Try
 
