@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.util.{Collection => jCollection, HashMap => jHashMap, List => jList, Map => jMap}
+import java.util.{Collection => jCollection, List => jList, Map => jMap}
 
 import com.esotericsoftware.kryo.io.Input
 import com.vividsolutions.jts.geom.Geometry
@@ -30,12 +30,15 @@ object LazySimpleFeature {
   val NULL_BYTE = 0.asInstanceOf[Byte]
 }
 
-class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: Array[(Input) => AnyRef]) extends SimpleFeature {
+class KryoBufferSimpleFeature(sft: SimpleFeatureType,
+                              readers: Array[(Input) => AnyRef],
+                              readUserData: (Input) => jMap[AnyRef, AnyRef]) extends SimpleFeature {
 
   private val input = new Input
   private val offsets = Array.ofDim[Int](sft.getAttributeCount)
   private lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
-  private var userData: jHashMap[AnyRef, AnyRef] = null
+  private var userData: jMap[AnyRef, AnyRef] = null
+  private var userDataOffset: Int = -1
 
   private var binaryTransform: () => Array[Byte] = input.getBuffer
 
@@ -52,6 +55,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: Array[(Input) => 
       i += 1
     }
     userData = null
+    userDataOffset = input.position()
   }
 
   def setTransforms(transforms: String, transformSchema: SimpleFeatureType) = {
@@ -140,7 +144,8 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType, readers: Array[(Input) => 
 
   override def getUserData: jMap[AnyRef, AnyRef] = {
     if (userData == null) {
-      userData = new jHashMap[AnyRef, AnyRef]()
+      input.setPosition(userDataOffset)
+      userData = readUserData(input)
     }
     userData
   }

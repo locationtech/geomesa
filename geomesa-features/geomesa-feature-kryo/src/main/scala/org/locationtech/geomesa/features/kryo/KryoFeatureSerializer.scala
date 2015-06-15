@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.util.{Date, List => jList, Map => jMap, UUID}
+import java.util.{Date, List => jList, Map => jMap, HashMap => jHashMap, UUID}
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.slf4j.Logging
@@ -35,8 +35,13 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
   protected[kryo] val readers = getReaders(cacheKey, sft)
 
   private lazy val legacySerializer = serialization.KryoFeatureSerializer(sft, sft, options)
+  private lazy val lazyUserData: (Input) => jMap[AnyRef, AnyRef] = if (options.withUserData) {
+    (input) => kryoReader.readGenericMap(VERSION)(input)
+  } else {
+    (input) => new jHashMap[AnyRef, AnyRef]
+  }
 
-  def getReusableFeature: KryoBufferSimpleFeature = new KryoBufferSimpleFeature(sft, readers)
+  def getReusableFeature: KryoBufferSimpleFeature = new KryoBufferSimpleFeature(sft, readers, lazyUserData)
 
   override def serialize(sf: SimpleFeature): Array[Byte] = doWrite(sf)
   override def deserialize(bytes: Array[Byte]): SimpleFeature = doRead(bytes)

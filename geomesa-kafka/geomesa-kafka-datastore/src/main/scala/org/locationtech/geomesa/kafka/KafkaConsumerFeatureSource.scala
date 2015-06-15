@@ -51,8 +51,7 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
 
   override def buildFeatureType(): SimpleFeatureType = schema
 
-  override def getCountInternal(query: Query): Int =
-    getReaderInternal(query).getIterator.size
+  override def getCountInternal(query: Query): Int = getReaderInternal(query).getIterator.length
 
   override val canFilter: Boolean = true
 
@@ -73,6 +72,15 @@ case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
 trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
 
   def features: mutable.Map[String, FeatureHolder]
+
+  // optimized for filter.include
+  def size(f: Filter): Int = {
+    if (f == Filter.INCLUDE) {
+      features.size
+    } else {
+      getReaderForFilter(f).getIterator.length
+    }
+  }
 
   def getReaderForFilter(f: Filter): FR =
     f match {

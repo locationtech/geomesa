@@ -15,11 +15,11 @@
  */
 package org.locationtech.geomesa.kafka
 
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{Executors, LinkedBlockingQueue, TimeUnit}
 
 import com.google.common.base.Ticker
 import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNotification}
-import com.google.common.eventbus.{EventBus, Subscribe}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.Query
 import org.geotools.data.store.ContentEntry
@@ -40,23 +40,86 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
                                      expirationPeriod: Option[Long] = None,
                                      query: Query = null)
                                     (implicit ticker: Ticker = Ticker.systemTicker())
-  extends KafkaConsumerFeatureSource(entry, sft, query) {
+  extends KafkaConsumerFeatureSource(entry, sft, query) with Runnable with Logging {
 
   private[kafka] val featureCache = new LiveFeatureCache(sft, expirationPeriod)
 
-  val eb = new EventBus(topic)
-  eb.register(this)
+  private val msgDecoder = new KafkaGeoMessageDecoder(sft)
+  private val queue = new LinkedBlockingQueue[GeoMessage]()
+  private val stream = kf.messageStreams(topic, 1).head
 
-  // create a consumer that reads from kafka and sends to the event bus
-  new KafkaFeatureConsumer(sft, topic, kf, eb)
+  private val running = new AtomicBoolean(true)
 
-  @Subscribe
-  def processProtocolMessage(msg: GeoMessage): Unit = msg match {
-    case update: CreateOrUpdate => featureCache.createOrUpdateFeature(update)
-    case del: Delete            => featureCache.removeFeature(del)
-    case clr: Clear             => featureCache.clear()
-    case _     => throw new IllegalArgumentException("Unknown message: " + msg)
+  val es = Executors.newFixedThreadPool(2)
+  sys.addShutdownHook { running.set(false); es.shutdownNow() }
+
+  es.submit(this)
+  es.submit(new Runnable() {
+    override def run(): Unit = {
+      var count = 0
+      // keep track of last offset we've read to avoid re-processing messages
+      // each index in the array corresponds to a partition - since we don't know the number of partitions
+      // up front, we start with 3 and expand as needed below
+      var lastOffsets = mutable.ArrayBuffer.fill(3)(-1L)
+      while (running.get) {
+        try {
+          val iter = stream.iterator()
+          while (running.get && iter.hasNext()) {
+            val msg = iter.next()
+            val isValid = try {
+              msg.offset > lastOffsets(msg.partition)
+            } catch {
+              case e: IndexOutOfBoundsException =>
+                // resize the offsets array to accommodate the partitions
+                // since this should happen very infrequently, it should be cheaper than checking the size
+                // each time through the loop
+                val copy = mutable.ArrayBuffer.fill(msg.partition + 1)(-1L)
+                lastOffsets.indices.foreach(i => copy(i) = lastOffsets(i))
+                lastOffsets = copy
+                true
+            }
+            if (isValid) {
+              lastOffsets(msg.partition) = msg.offset // keep track of last read offset
+              count = 0 // reset error count
+              val geoMessage = msgDecoder.decode(msg)
+              logger.debug(s"Consumed message $geoMessage")
+              if (!queue.offer(geoMessage)) {
+                logger.warn(s"Dropped message $geoMessage due to queue capacity")
+              }
+            } else {
+              logger.debug(s"Ignoring replayed message from kafka with offset ${msg.offset}")
+            }
+          }
+        } catch {
+          case t: InterruptedException =>
+            logger.error("Caught interrupted exception in consumer", t)
+            running.set(false)
+
+          case t: Throwable =>
+            logger.error("Caught exception while running consumer", t)
+            count += 1
+            if (count == 300) {
+              count = 0
+              running.set(false)
+            } else {
+              Thread.sleep(1000)
+            }
+        }
+      }
+    }
+  })
+
+  override def run(): Unit = while (running.get) {
+    queue.take() match {
+      case update: CreateOrUpdate => featureCache.createOrUpdateFeature(update)
+      case del: Delete            => featureCache.removeFeature(del)
+      case clr: Clear             => featureCache.clear()
+      case m                      => throw new IllegalArgumentException(s"Unknown message: $m")
+    }
   }
+
+  // optimized for filter.include
+  override def getCountInternal(query: Query): Int = featureCache.size(query.getFilter)
 
   override def getReaderForFilter(f: Filter): FR = featureCache.getReaderForFilter(f)
 }
@@ -73,9 +136,7 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
   var qt = new SynchronizedQuadtree
 
   val cache: Cache[String, FeatureHolder] = {
-
     val cb = CacheBuilder.newBuilder().ticker(ticker)
-
     expirationPeriod.foreach { ep =>
       cb.expireAfterWrite(ep, TimeUnit.MILLISECONDS)
         .removalListener(
@@ -86,7 +147,6 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
           }
         )
     }
-
     cb.build()
   }
 
@@ -95,7 +155,10 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
   def createOrUpdateFeature(update: CreateOrUpdate): Unit = {
     val sf = update.feature
     val id = sf.getID
-    Option(cache.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
+    val old = cache.getIfPresent(id)
+    if (old != null) {
+      qt.remove(old.env, old.sf)
+    }
     val env = sf.geometry.getEnvelopeInternal
     qt.insert(env, sf)
     cache.put(id, FeatureHolder(sf, env))
@@ -103,61 +166,15 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
 
   def removeFeature(toDelete: Delete): Unit = {
     val id = toDelete.id
-    Option(cache.getIfPresent(id)).foreach { old => qt.remove(old.env, old.sf) }
-    cache.invalidate(toDelete.id)
+    val old = cache.getIfPresent(id)
+    if (old != null) {
+      qt.remove(old.env, old.sf)
+      cache.invalidate(id)
+    }
   }
 
   def clear(): Unit = {
     cache.invalidateAll()
     qt = new SynchronizedQuadtree
   }
-}
-
-class KafkaFeatureConsumer(sft: SimpleFeatureType,
-                           topic: String,
-                           kf: KafkaConsumerFactory,
-                           eventBus: EventBus) extends Logging {
-
-  private val msgDecoder = new KafkaGeoMessageDecoder(sft)
-
-  private val stream = kf.messageStreams(topic, 1).head
-
-  val es = Executors.newSingleThreadExecutor()
-  es.submit(new Runnable {
-
-    override def run(): Unit = {
-      var cont = true
-      var count = 0
-      while (cont) {
-        try {
-          val iter = stream.iterator()
-          while (iter.hasNext()) {
-            val msg = iter.next()
-            if (msg != null) {
-              count = 0 // reset error count
-
-              val geoMessage: GeoMessage = msgDecoder.decode(msg)
-              logger.debug("consumed message: {}", geoMessage)
-              eventBus.post(geoMessage)
-            }
-          }
-        } catch {
-          case t: InterruptedException =>
-            logger.error("Caught interrupted exception in consumer", t)
-            Thread.currentThread().interrupt()
-            cont = false
-
-          case t: Throwable =>
-            logger.error("Caught exception while running consumer", t)
-            count += 1
-            if (count == 300) {
-              count = 0
-              cont = false
-            } else {
-              Thread.sleep(1000)
-            }
-        }
-      }
-    }
-  })
 }
