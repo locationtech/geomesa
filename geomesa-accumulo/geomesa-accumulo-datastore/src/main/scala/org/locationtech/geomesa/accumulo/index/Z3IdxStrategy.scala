@@ -161,7 +161,15 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     val epochWeekStart = Weeks.weeks(week)
     val prefix = Shorts.toByteArray(epochWeekStart.getWeeks.toShort)
 
-    val z3ranges = Z3_CURVE.ranges(lx, ly, ux, uy, lt, ut, 8)
+    // lazily try to find the min recursion that will give us ranges
+    // if recursion is too high, big ranges will be expensive to compute
+    // if too low then small ranges will not return anything
+    val z3rangeCandidates = Z3_RECURSION_TIERS.iterator.map(Z3_CURVE.ranges(lx, ly, ux, uy, lt, ut, _))
+    val z3ranges = z3rangeCandidates.find(_.nonEmpty).getOrElse {
+      logger.warn("Z3 curve did not create any ranges using precisions" +
+          s" ${Z3_RECURSION_TIERS.mkString(", ")} from $lx, $ly, $ux, $uy, $lt, $ut")
+      Seq.empty[(Long, Long)]
+    }
 
     val accRanges = z3ranges.map { case (s, e) =>
       val startRowBytes = Bytes.concat(prefix, Longs.toByteArray(s))
@@ -184,6 +192,8 @@ object Z3IdxStrategy extends StrategyProvider {
 
   val Z3_ITER_PRIORITY = 21
   val FILTERING_ITER_PRIORITY = 25
+
+  val Z3_RECURSION_TIERS = Seq(8, 12, 16)
 
   /**
    * Returns details on a potential strategy if the filter is valid for this strategy.
