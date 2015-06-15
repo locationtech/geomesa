@@ -73,7 +73,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "return all features for inclusive filter" >> {
       val filter = "bbox(geom, 35, 55, 45, 75)" +
-          " AND dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z"
+          "AND dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z"
       val features = execute(filter)
       features must haveSize(10)
       features.map(_.getID.toInt) must containTheSameElementsAs(0 to 9)
@@ -125,6 +125,14 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val features = execute(filter)
       features must haveSize(20)
       features.map(_.getID.toInt) must containTheSameElementsAs(10 to 29)
+    }
+
+    "work with small bboxes and date ranges" >> {
+      val filter = "bbox(geom, 39.999, 60.999, 40.001, 61.001)" +
+        " AND dtg during 2010-05-07T00:59:00.000Z/2010-05-07T01:01:00.000Z"
+      val features = execute(filter)
+      features must haveSize(1)
+      features.head.getID.toInt mustEqual 1
     }
 
     "apply secondary filters" >> {

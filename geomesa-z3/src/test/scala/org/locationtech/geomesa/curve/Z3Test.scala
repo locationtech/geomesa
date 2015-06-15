@@ -167,5 +167,29 @@ class Z3Test extends Specification {
       ranges must containTheSameElementsAs(Seq((Z3(2, 2, 0).z, Z3(3, 3, 0).z),
         (Z3(2, 4, 0).z, Z3(3, 5, 0).z), (Z3(2, 6, 0).z, Z3(3, 6, 0).z)))
     }
+
+    "return non-empty ranges for a number of cases" >> {
+      val ranges = Seq(
+        (new Z3(0), new Z3(3961898555948381951l)),
+        (new Z3(0), new Z3(4611686018427387903l)),
+        (new Z3(0), new Z3(8645783181317881599l)),
+        (new Z3(3754665181066933258l), new Z3(3810634797035430054l)),
+        (new Z3(3754665181066933258l), new Z3(4460422259514436006l)),
+        (new Z3(3759195186253968780l), new Z3(3842344833344678918l)),
+        (new Z3(3759195186253968780l), new Z3(3873808578109778054l)),
+        (new Z3(3759336199158152616l), new Z3(3873808578109778054l)),
+        (new Z3(3763173268547295545l), new Z3(3763173268556857195l)),
+        (new Z3(3763831019838881066l), new Z3(4460422259514436006l)),
+        (new Z3(73185697271398432l), new Z3(4611686018427387903l)),
+        (new Z3(9165529533122820l), new Z3(3963006867897054943l)),
+        (new Z3(9165838771947808l), new Z3(4611686018427387903l))
+      )
+
+      forall(ranges) {
+        r =>
+          val ret = Z3.zranges(r._1, r._2, 8)
+          ret.length must be greaterThan(0)
+      }
+    } 
   }
 }
