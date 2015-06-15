@@ -113,24 +113,28 @@ object Z3 {
       val min: Long = prefix | (quad << offset) // QR + 000..
       val max: Long = min | (1L << offset) - 1 // QR + 111..
       val qr = Z3Range(new Z3(min), new Z3(max))
-      if (level < maxRecurse) {
+      if (level <= maxRecurse) {
         if (sr containsInUserSpace qr) {
           // whole range matches, happy day
           mq += (qr.min.z, qr.max.z)
           reportCounter += 1
-        } else if (offset > 0 && (sr overlapsInUserSpace qr)) { // TODO move this?
-          // some portion of this range are excluded
-          zranges(min, offset - MAX_DIM, 0, level + 1)
-          zranges(min, offset - MAX_DIM, 1, level + 1)
-          zranges(min, offset - MAX_DIM, 2, level + 1)
-          zranges(min, offset - MAX_DIM, 3, level + 1)
-          zranges(min, offset - MAX_DIM, 4, level + 1)
-          zranges(min, offset - MAX_DIM, 5, level + 1)
-          zranges(min, offset - MAX_DIM, 6, level + 1)
-          zranges(min, offset - MAX_DIM, 7, level + 1)
-          //let our children punt on each subrange
+        } else if (sr overlapsInUserSpace qr) { // TODO move this?
+          if (offset > 0) {
+            // some portion of this range are excluded
+            zranges(min, offset - MAX_DIM, 0, level + 1)
+            zranges(min, offset - MAX_DIM, 1, level + 1)
+            zranges(min, offset - MAX_DIM, 2, level + 1)
+            zranges(min, offset - MAX_DIM, 3, level + 1)
+            zranges(min, offset - MAX_DIM, 4, level + 1)
+            zranges(min, offset - MAX_DIM, 5, level + 1)
+            zranges(min, offset - MAX_DIM, 6, level + 1)
+            zranges(min, offset - MAX_DIM, 7, level + 1)
+            //let our children punt on each subrange
+          } else {
+            mq += (qr.min.z, qr.max.z)
+          }
         }
-      } else if (sr overlaps qr) {
+      } else if ((sr overlaps qr) || (sr overlapsInUserSpace qr)) {
         mq += (qr.min.z, qr.max.z)
       }
     }
