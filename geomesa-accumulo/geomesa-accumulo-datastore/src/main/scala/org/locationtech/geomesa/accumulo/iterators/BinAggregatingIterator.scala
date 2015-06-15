@@ -190,7 +190,12 @@ class BinAggregatingIterator extends SortedKeyValueIterator[Key, Value] with Log
    * Writes a point to our buffer in the bin format
    */
   private def writeBinToBuffer(sf: KryoBufferSimpleFeature, pt: Point): Unit = {
-    byteBuffer.putInt(sf.getAttribute(trackIndex).hashCode())
+    val track = sf.getAttribute(trackIndex)
+    if (track == null) {
+      byteBuffer.putInt(0)
+    } else {
+      byteBuffer.putInt(track.hashCode())
+    }
     byteBuffer.putInt((sf.getDateAsLong(dtgIndex) / 1000).toInt)
     byteBuffer.putFloat(pt.getY.toFloat) // y is lat
     byteBuffer.putFloat(pt.getX.toFloat) // x is lon
@@ -417,7 +422,10 @@ object BinAggregatingIterator extends Logging {
     }
     (e: Entry[Key, Value]) => {
       val deserialized = deserializer.deserialize(e.getValue.get())
-      val trackId = Option(deserialized.getAttribute(trackIdIndex)).map(_.toString).getOrElse("")
+      val trackId = {
+        val t = deserialized.getAttribute(trackIdIndex)
+        if (t == null) "" else t.toString
+      }
       val dtg = deserialized.getAttribute(dtgIndex).asInstanceOf[Date].getTime
       val (lat, lon) = {
         val geom = getGeom(deserialized)
