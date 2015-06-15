@@ -58,7 +58,7 @@ package object accumulo {
 
     object QueryProperties {
       val QUERY_EXACT_COUNT    = PropAndDefault("geomesa.force.count", "false")
-      val QUERY_TIMEOUT_MILLIS = PropAndDefault("geomesa.query.timeout.millis", "300000") // default 5 minutes
+      val QUERY_TIMEOUT_MILLIS = PropAndDefault("geomesa.query.timeout.millis", null) // default is no timeout
     }
 
     object BatchWriterProperties {
@@ -73,6 +73,7 @@ package object accumulo {
 
     case class PropAndDefault(property: String, default: String) {
       def get: String = sys.props.getOrElse(property, default)
+      def option: Option[String] = sys.props.get(property).orElse(Option(default))
       def set(value: String): Unit = sys.props.put(property, value)
       def clear(): Unit = sys.props.remove(property)
     }

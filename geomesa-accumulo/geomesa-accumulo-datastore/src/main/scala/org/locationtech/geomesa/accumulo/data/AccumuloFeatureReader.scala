@@ -31,7 +31,7 @@ class AccumuloFeatureReader(queryPlanner: QueryPlanner, val query: Query, dataSt
   private val start = System.currentTimeMillis()
   private val closed = new AtomicBoolean(false)
 
-  ThreadManagement.register(this, start, dataStore.queryTimeoutMillis)
+  dataStore.queryTimeoutMillis.foreach(timeout => ThreadManagement.register(this, start, timeout))
 
   private val writeStats = dataStore.isInstanceOf[StatWriter]
   implicit val timings = if (writeStats) new TimingsImpl else NoOpTimings
@@ -44,7 +44,7 @@ class AccumuloFeatureReader(queryPlanner: QueryPlanner, val query: Query, dataSt
 
   override def close() = if (!closed.getAndSet(true)) {
     iter.close()
-    ThreadManagement.unregister(this, start, dataStore.queryTimeoutMillis)
+    dataStore.queryTimeoutMillis.foreach(timeout => ThreadManagement.unregister(this, start, timeout))
     if (writeStats) {
       val stat = QueryStat(queryPlanner.sft.getTypeName,
           System.currentTimeMillis(),

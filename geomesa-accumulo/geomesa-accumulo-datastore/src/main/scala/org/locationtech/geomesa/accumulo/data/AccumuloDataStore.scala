@@ -84,8 +84,8 @@ class AccumuloDataStore(val connector: Connector,
   // having at least as many shards as tservers provides optimal parallelism in queries
   protected[accumulo] val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
 
-  protected[data] val queryTimeoutMillis =
-    queryTimeoutConfig.getOrElse(GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.get.toLong)
+  protected[data] val queryTimeoutMillis: Option[Long] = queryTimeoutConfig
+      .orElse(GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong))
 
   // record scans are single-row ranges - increasing the threads too much actually causes performance to decrease
   private val recordScanThreads = recordThreadsConfig.getOrElse(10)
