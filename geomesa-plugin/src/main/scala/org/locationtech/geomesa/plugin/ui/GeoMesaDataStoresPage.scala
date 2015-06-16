@@ -17,7 +17,7 @@ import org.apache.wicket.markup.html.list.{ListItem, ListView}
 import org.geoserver.catalog.StoreInfo
 import org.geoserver.web.data.store.{StorePanel, StoreProvider}
 import org.geotools.data.{DataStoreFinder, Query}
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStore}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.plugin.ui.components.DataStoreInfoPanel
 
@@ -31,7 +31,7 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
   // TODO count in results chart shows total stores, not just the filtered ones
   private val storeProvider = new StoreProvider() {
     override def getFilteredItems: java.util.List[StoreInfo] = {
-      getItems.asScala.filter(_.getType == "Accumulo Feature Data Store").asJava
+      getItems.asScala.filter(_.getType == AccumuloDataStoreFactory.DISPLAY_NAME).asJava
     }
   }
 
@@ -108,7 +108,7 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
       map <- metadata.values
       (feature, metadataList) <- map
       metadata <- metadataList
-      if (metadata.displayName.contains("Record"))
+      if metadata.displayName.contains("Record")
     } {
       entries.append(s"""{name:"${metadata.feature}",value:${metadata.numEntries}}""")
       tables.append(s"""{name:"${metadata.feature}",table:"${metadata.table}"}""")
