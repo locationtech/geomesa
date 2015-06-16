@@ -108,9 +108,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     }
   }
 
-  override def getDisplayName = "Accumulo (GeoMesa)"
+  override def getDisplayName = AccumuloDataStoreFactory.DISPLAY_NAME
 
-  override def getDescription = "Apache Accumulo\u2122 distributed key/value store"
+  override def getDescription = AccumuloDataStoreFactory.DESCRIPTION
 
   override def getParametersInfo =
     Array(
@@ -133,7 +133,11 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 }
 
 object AccumuloDataStoreFactory {
+
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
+
+  val DISPLAY_NAME = "Accumulo (GeoMesa)"
+  val DESCRIPTION = "Apache Accumulo\u2122 distributed key/value store"
 
   implicit class RichParam(val p: Param) {
     def lookupOpt[A](params: JMap[String, Serializable]) =
