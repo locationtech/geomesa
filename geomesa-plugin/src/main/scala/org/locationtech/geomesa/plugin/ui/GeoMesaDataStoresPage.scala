@@ -23,6 +23,7 @@ import org.locationtech.geomesa.plugin.ui.components.DataStoreInfoPanel
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.util.Try
 
 class GeoMesaDataStoresPage extends GeoMesaBasePage {
 
@@ -60,7 +61,7 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
     val dataStore = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
     dataStoreNames.append(name)
 
-    val featureNames = dataStore.getTypeNames.toList
+    val featureNames = dataStore.getTypeNames.filter(fn => Try(dataStore.getSchema(fn)).isSuccess).toList
     features.put(name, featureNames)
 
     val metadataPerFeature = featureNames.map { typeName =>
