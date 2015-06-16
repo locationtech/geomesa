@@ -233,7 +233,7 @@ package object filter {
   //  Of particular note, we should not give negations to the STII.
   def partitionSubFilters(filter: Filter, filterFilter: Filter => Boolean): (Seq[Filter], Seq[Filter]) = {
     filter match {
-      case a: And => a.getChildren.partition(filterFilter)
+      case a: And => decomposeAnd(a).partition(filterFilter)
       case _ => Seq(filter).partition(filterFilter)
     }
   }
@@ -346,6 +346,12 @@ package object filter {
   def decomposeBinary(f: Filter): Seq[Filter] =
     f match {
       case b: BinaryLogicOperator => b.getChildren.toSeq.flatMap(decomposeBinary)
+      case f: Filter => Seq(f)
+    }
+
+  def decomposeAnd(f: Filter): Seq[Filter] =
+    f match {
+      case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
       case f: Filter => Seq(f)
     }
 

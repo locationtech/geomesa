@@ -25,6 +25,7 @@ class FilterPackageObjectTest extends Specification with Logging {
 
   "The partitionGeom function" should {
     val sft = SimpleFeatureTypes.createType("filterPackageTest", "g:Geometry,*geom:Geometry")
+    val geomFilter = ECQL.toFilter("BBOX(geom, -45.0,-45.0,45.0,45.0)")
 
     "filter bbox based on default geom" in {
       val filter = ECQL.toFilter("BBOX(geom, -45.0,-45.0,45.0,45.0) AND BBOX(g, -30.0,-30.0,30.0,30.0)")
@@ -53,6 +54,16 @@ class FilterPackageObjectTest extends Specification with Logging {
       nongeoms must haveLength(1)
       ECQL.toCQL(geoms(0)) mustEqual("INTERSECTS(POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)), geom)")
       ECQL.toCQL(nongeoms(0)) mustEqual("INTERSECTS(POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)), g)")
+    }
+
+    "handle ANDs with multiple predicates" in {
+      val filters= Seq(1 && geomFilter && 2, 1 && 2 && geomFilter, geomFilter && 1 && 2)
+
+      forall(filters) { filter => 
+        val (geoms, nongeoms) = partitionGeom(filter, sft)
+        geoms must haveLength(1)
+        nongeoms must haveLength(2)
+      }
     }
   }
 
@@ -169,11 +180,18 @@ class FilterPackageObjectTest extends Specification with Logging {
   def testRewriteProps(filter: Filter): Fragments = {
     logger.debug(s"Filter: ${ECQL.toCQL(filter)}")
 
+    def breakUpOr(f: Filter): Seq[Filter] = {
+       f match {
+         case or: Or => or.getChildren
+         case _ => Seq(f)
+       }
+    }
+
     "The function rewriteFilter" should {
       val rewrittenFilter: Filter = rewriteFilterInDNF(filter)
 
       "return a Filter with at most one OR at the top" in {
-        val decomp = decomposeBinary(rewrittenFilter)
+        val decomp = breakUpOr(rewrittenFilter)
         val orCount = decomp.count(_.isInstanceOf[Or])
 
         orCount mustEqual 0
