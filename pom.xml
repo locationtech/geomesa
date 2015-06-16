@@ -1007,6 +1007,8 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <recompileMode>incremental</recompileMode>
+                    <useZincServer>true</useZincServer>
                     <jvmArgs>
                         <jvmArg>-Xms1024m</jvmArg>
                         <jvmArg>-Xmx8G</jvmArg>
