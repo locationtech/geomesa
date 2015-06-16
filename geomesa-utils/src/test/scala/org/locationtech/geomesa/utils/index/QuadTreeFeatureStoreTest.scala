@@ -6,7 +6,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -19,7 +19,7 @@ class QuadTreeFeatureStoreTest extends Specification {
     val builder = new SimpleFeatureBuilder(testsft)
     val qtfs = new QuadTreeFeatureStore {
       override def sft: SimpleFeatureType = testsft
-      override val qt: SynchronizedQuadtree = new SynchronizedQuadtree
+      override val spatialIndex = new SynchronizedQuadtree[SimpleFeature]
     }
 
     builder.addAll(Array[AnyRef]("one", gf.createPoint(new Coordinate(48.9,80))))
@@ -28,8 +28,8 @@ class QuadTreeFeatureStoreTest extends Specification {
     builder.addAll(Array[AnyRef]("two", gf.createPoint(new Coordinate(49.5,80))))
     val f2 = builder.buildFeature("two")
 
-    qtfs.qt.insert(f1.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal, f1)
-    qtfs.qt.insert(f2.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal, f2)
+    qtfs.spatialIndex.insert(f1.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal, f1)
+    qtfs.spatialIndex.insert(f2.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal, f2)
 
     "properly handle bbox queries" in {
       import org.locationtech.geomesa.utils.geotools.Conversions._

@@ -19,7 +19,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.stream.SimpleFeatureStreamSource
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.{DFI, DFR, FR}
-import org.locationtech.geomesa.utils.index.{QuadTreeFeatureStore, SynchronizedQuadtree}
+import org.locationtech.geomesa.utils.index.{SpatialIndex, QuadTreeFeatureStore, SynchronizedQuadtree}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
@@ -40,7 +40,7 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int) extends C
   
   val sft = source.sft
   source.init()
-  val qt = new SynchronizedQuadtree
+  val qt = new SynchronizedQuadtree[SimpleFeature]
 
   val cb =
     CacheBuilder
@@ -105,7 +105,7 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int) extends C
 class StreamFeatureStore(entry: ContentEntry,
                          query: Query,
                          features: Cache[String, FeatureHolder],
-                         val qt: SynchronizedQuadtree,
+                         val spatialIndex: SpatialIndex[SimpleFeature],
                          val sft: SimpleFeatureType)
   extends ContentFeatureStore(entry, query) with QuadTreeFeatureStore {
 

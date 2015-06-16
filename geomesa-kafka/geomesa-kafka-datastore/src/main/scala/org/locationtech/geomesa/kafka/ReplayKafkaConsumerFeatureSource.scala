@@ -18,7 +18,6 @@ package org.locationtech.geomesa.kafka
 import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.index.quadtree.Quadtree
 import org.geotools.data.store.ContentEntry
 import org.geotools.data.{EmptyFeatureReader, Query}
 import org.geotools.factory.CommonFactoryFinder
@@ -30,6 +29,7 @@ import org.locationtech.geomesa.kafka.consumer.KafkaStreamLike.KafkaStreamLikeIt
 import org.locationtech.geomesa.kafka.consumer.offsets.FindOffset
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.FR
+import org.locationtech.geomesa.utils.index.{SpatialIndex, WrappedQuadtree}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 import org.opengis.filter.expression.PropertyName
@@ -154,8 +154,11 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
     // required: there is only 1 partition;  validate??
     val stream = kafkaConsumer.createMessageStreams(1, offsetRequest).head
 
+    val msgIds = scala.collection.mutable.HashSet.empty[(Int, Long)]
+
     val msgs = stream.iterator
       .stopOnTimeout
+      .filter(m => msgIds.add((m.partition, m.offset))) // avoid replayed duplicates
       .map(msgDecoder.decode)
       .dropWhile(replayConfig.isBeforeRealStart)
       .takeWhile(replayConfig.isNotAfterEnd)
@@ -223,11 +226,11 @@ private[kafka] case class ReplaySnapshotFeatureCache(override val sft: SimpleFea
 
   extends KafkaConsumerFeatureCache {
 
-  override lazy val (qt, features) = processMessages
+  override lazy val (spatialIndex, features) = processMessages
 
-  private def processMessages: (Quadtree, mutable.Map[String, FeatureHolder]) = {
+  private def processMessages: (SpatialIndex[SimpleFeature], mutable.Map[String, FeatureHolder]) = {
     val features = new mutable.HashMap[String, FeatureHolder]()
-    val qt = new Quadtree
+    val qt = new WrappedQuadtree[SimpleFeature]
     val seen = new mutable.HashSet[String]
 
     val timeHelper = new ReplayTimeHelper(sft, replayTime)

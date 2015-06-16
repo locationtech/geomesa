@@ -26,8 +26,8 @@ import org.geotools.data.store.ContentEntry
 import org.locationtech.geomesa.kafka.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.FR
-import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.index.{BucketIndex, SpatialIndex}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConverters._
@@ -133,7 +133,7 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
                        expirationPeriod: Option[Long])(implicit ticker: Ticker)
   extends KafkaConsumerFeatureCache {
 
-  var qt = new SynchronizedQuadtree
+  var spatialIndex: SpatialIndex[SimpleFeature] = newSpatialIndex()
 
   val cache: Cache[String, FeatureHolder] = {
     val cb = CacheBuilder.newBuilder().ticker(ticker)
@@ -142,7 +142,7 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
         .removalListener(
           new RemovalListener[String, FeatureHolder] {
             def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
-              qt.remove(removal.getValue.env, removal.getValue.sf)
+              spatialIndex.remove(removal.getValue.env, removal.getValue.sf)
             }
           }
         )
@@ -157,10 +157,10 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
     val id = sf.getID
     val old = cache.getIfPresent(id)
     if (old != null) {
-      qt.remove(old.env, old.sf)
+      spatialIndex.remove(old.env, old.sf)
     }
     val env = sf.geometry.getEnvelopeInternal
-    qt.insert(env, sf)
+    spatialIndex.insert(env, sf)
     cache.put(id, FeatureHolder(sf, env))
   }
 
@@ -168,13 +168,15 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
     val id = toDelete.id
     val old = cache.getIfPresent(id)
     if (old != null) {
-      qt.remove(old.env, old.sf)
+      spatialIndex.remove(old.env, old.sf)
       cache.invalidate(id)
     }
   }
 
   def clear(): Unit = {
     cache.invalidateAll()
-    qt = new SynchronizedQuadtree
+    spatialIndex = newSpatialIndex()
   }
+
+  private def newSpatialIndex() = new BucketIndex[SimpleFeature]
 }

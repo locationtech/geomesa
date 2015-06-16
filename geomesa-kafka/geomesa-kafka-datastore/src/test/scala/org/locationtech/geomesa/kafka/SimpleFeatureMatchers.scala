@@ -51,7 +51,7 @@ trait SimpleFeatureMatchers extends Specification {
     fh: FeatureHolder => fh.sf must equalSF(expected)
   }
 
-  def containFeatureHolders(expected: SimpleFeature*): Matcher[JList[_]] = {
+  def containTheSameFeatureHoldersAs(expected: SimpleFeature*): Matcher[JList[_]] = {
     // don't care about order so convert to a set
     val expectedSet = expected.toSet
 

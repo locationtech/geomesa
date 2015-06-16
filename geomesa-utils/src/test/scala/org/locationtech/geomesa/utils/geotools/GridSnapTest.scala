@@ -82,8 +82,8 @@ class GridSnapTest extends Specification with Logging {
 
       val iReturn = gridSnap.i(bbox.getMinX - 1)
       val jReturn = gridSnap.j(bbox.getMinY - 1)
-      iReturn should be equalTo -1
-      jReturn should be equalTo -1
+      iReturn should be equalTo 0
+      jReturn should be equalTo 0
       gridSnap.x(iReturn) should be equalTo bbox.getMinX
       gridSnap.y(jReturn) should be equalTo bbox.getMinY
     }

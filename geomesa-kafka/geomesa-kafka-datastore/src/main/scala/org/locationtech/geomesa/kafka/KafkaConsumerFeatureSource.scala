@@ -72,6 +72,7 @@ case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
 trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
 
   def features: mutable.Map[String, FeatureHolder]
+  private val ff = CommonFactoryFinder.getFilterFactory2
 
   // optimized for filter.include
   def size(f: Filter): Int = {
@@ -101,7 +102,6 @@ trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
     new DFR(sft, new DFI(iter))
   }
 
-  private val ff = CommonFactoryFinder.getFilterFactory2
   def and(a: And): FR = {
     // assume just one spatialFilter for now, i.e. 'bbox() && attribute equals ??'
     val (spatialFilter, others) = a.getChildren.partition(_.isInstanceOf[BinarySpatialOperator])

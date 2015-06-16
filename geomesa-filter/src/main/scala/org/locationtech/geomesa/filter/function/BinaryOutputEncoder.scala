@@ -142,7 +142,10 @@ object BinaryOutputEncoder extends Logging {
 
       case Some(trackId) =>
         val trackIndex  = sft.indexOf(trackId)
-        (f) => f.getAttribute(trackIndex).toString
+        (f) => {
+          val track = f.getAttribute(trackIndex)
+          if (track == null) null else track.toString
+        }
 
       case None =>
         (_) => null
