@@ -31,6 +31,7 @@ import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.iterators.QuerySizeIterator
+
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter

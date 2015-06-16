@@ -28,6 +28,7 @@ import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator._
 import org.locationtech.geomesa.accumulo.iterators._
+
 import org.locationtech.geomesa.accumulo.sumNumericValueMutableMaps
 import org.locationtech.geomesa.accumulo.util.CloseableIterator
 import org.locationtech.geomesa.accumulo.util.CloseableIterator._
@@ -159,8 +160,6 @@ case class QueryPlanner(sft: SimpleFeatureType,
     }
   }
 
-  def adaptDensityIterator(features: SFIter): SFIter = features.flatMap(DensityIterator.expandFeature)
-
   /**
    * Standard iterator of simple features
    */
@@ -191,6 +190,8 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
     CloseableIterator(Iterator(featureBuilder.buildFeature("resultFeature")))
   }
+
+  def adaptDensityIterator(features: SFIter): SFIter = features.flatMap(DensityIterator.expandFeature)
 
   def adaptTemporalIterator(features: SFIter, sft: SimpleFeatureType, returnEncoded: Boolean): SFIter = {
     val timeSeriesStrings = features.map(f => decodeTimeSeries(f.getAttribute(TIME_SERIES).toString))
