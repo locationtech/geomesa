@@ -154,6 +154,49 @@ class KryoFeatureSerializerTest extends Specification with Logging {
       deserialized.getAttributeCount mustEqual 4
     }
 
+    "allow for attributes to be appended to the sft" in {
+      val sft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date")
+
+      val sf = new ScalaSimpleFeature("testFeature", sft)
+      sf.setAttribute("name", "foo")
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+      val serialized = new KryoFeatureSerializer(sft).write(sf)
+
+      val newSft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date,attr1:String,attr2:Long")
+
+      val deserialized = new KryoFeatureSerializer(newSft).read(serialized)
+
+      deserialized.getID mustEqual sf.getID
+      deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
+      deserialized.getAttributeCount mustEqual 5
+      deserialized.getAttribute(3) must beNull
+      deserialized.getAttribute(4) must beNull
+      deserialized.getAttribute("attr1") must beNull
+      deserialized.getAttribute("attr2") must beNull
+    }
+
+    "allow for attributes to be appended to the sft and still transform" in {
+      val sft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date")
+
+      val sf = new ScalaSimpleFeature("testFeature", sft)
+      sf.setAttribute("name", "foo")
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+      val serialized = new KryoFeatureSerializer(sft).write(sf)
+
+      val newSft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date,attr1:String,attr2:Long")
+      val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point")
+
+      val deserialized = new ProjectingKryoFeatureDeserializer(newSft, projectedSft).read(serialized)
+
+      deserialized.getID mustEqual sf.getID
+      deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
+      deserialized.getAttributeCount mustEqual 1
+    }
+
     "be backwards compatible" in {
       val spec = "dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("testType", spec)

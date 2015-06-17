@@ -141,13 +141,64 @@ class KryoBufferSimpleFeatureTest extends Specification {
 
       val laz = serializer.getReusableFeature
       laz.setBuffer(serialized)
-      laz.setTransforms("geom:geom", projectedSft)
+      laz.setTransforms("geom=geom", projectedSft)
 
       val transformed = new KryoFeatureSerializer(projectedSft).deserialize(laz.transform())
 
       transformed.getID mustEqual sf.getID
       transformed.getDefaultGeometry mustEqual sf.getDefaultGeometry
       transformed.getAttributeCount mustEqual 1
+    }
+
+    "allow for attributes to be appended to the sft" in {
+      val sft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date")
+
+      val sf = new ScalaSimpleFeature("testFeature", sft)
+      sf.setAttribute("name", "foo")
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+      val serialized = new KryoFeatureSerializer(sft).write(sf)
+
+      val newSft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date,attr1:String,attr2:Long")
+
+      val laz = new KryoFeatureSerializer(newSft).getReusableFeature
+      laz.setBuffer(serialized)
+
+      laz.getID mustEqual sf.getID
+      laz.getDefaultGeometry mustEqual sf.getDefaultGeometry
+      laz.getAttributeCount mustEqual 5
+      laz.getAttribute(3) must beNull
+      laz.getAttribute(4) must beNull
+      laz.getAttribute("attr1") must beNull
+      laz.getAttribute("attr2") must beNull
+    }
+
+    "allow for attributes to be appended to the sft and still transform" in {
+      val sft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date")
+
+      val sf = new ScalaSimpleFeature("testFeature", sft)
+      sf.setAttribute("name", "foo")
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+      val serialized = new KryoFeatureSerializer(sft).write(sf)
+
+      val newSft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date,attr1:String,attr2:Long")
+
+      val laz = new KryoFeatureSerializer(newSft).getReusableFeature
+      laz.setBuffer(serialized)
+
+      val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point,attr1:String")
+      laz.setTransforms("geom=geom;attr1=attr1", projectedSft)
+
+      val transformed = new KryoFeatureSerializer(projectedSft).deserialize(laz.transform())
+
+      transformed.getID mustEqual sf.getID
+      transformed.getDefaultGeometry mustEqual sf.getDefaultGeometry
+      transformed.getAttributeCount mustEqual 2
+      transformed.getAttribute(1) must beNull
+      transformed.getAttribute("attr1") must beNull
     }
 
     "be faster than full deserialization" in {

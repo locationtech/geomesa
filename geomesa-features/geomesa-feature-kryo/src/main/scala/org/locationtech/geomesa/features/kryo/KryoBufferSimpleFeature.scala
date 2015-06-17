@@ -51,7 +51,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     input.setPosition(input.readInt()) // set to offsets start
     var i = 0
     while (i < offsets.length) {
-      offsets(i) = input.readInt(true)
+      offsets(i) = if (input.position < input.limit) input.readInt(true) else -1
       i += 1
     }
     userData = null
@@ -60,7 +60,9 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 
   def setTransforms(transforms: String, transformSchema: SimpleFeatureType) = {
     val tdefs = TransformProcess.toDefinition(transforms)
-    val isSimpleMapping = tdefs.forall(_.expression.isInstanceOf[PropertyName])
+    // if we have new attributes in the sft that weren't serialized, the binary transform becomes complicated,
+    // so just fall back to the normal expression evaluation
+    val isSimpleMapping = tdefs.forall(_.expression.isInstanceOf[PropertyName]) && !offsets.contains(-1)
     binaryTransform = if (isSimpleMapping) {
       // simple mapping of existing fields - we can array copy the existing data without parsing it
       val indices = transformSchema.getAttributeDescriptors.map(d => sft.indexOf(d.getLocalName))
@@ -73,7 +75,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
             (offsets(i), l)
           }
         val dst = Array.ofDim[Byte](length)
-        // copy the version, offset block and id - offset block isn't used by non-lazy deserialization
+        // copy the version, offset block and id
         System.arraycopy(buf, 0, dst, 0, offsets(0))
         var dstPos = offsets(0)
         offsetsAndLengths.foreach { case (o, l) =>
@@ -99,13 +101,23 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   }
 
   def getDateAsLong(index: Int): Long = {
-    input.setPosition(offsets(index))
-    KryoBufferSimpleFeature.longReader(input).asInstanceOf[Long]
+    val offset = offsets(index)
+    if (offset == -1) {
+      0L
+    } else {
+      input.setPosition(offset)
+      KryoBufferSimpleFeature.longReader(input).asInstanceOf[Long]
+    }
   }
 
   override def getAttribute(index: Int) = {
-    input.setPosition(offsets(index))
-    readers(index)(input)
+    val offset = offsets(index)
+    if (offset == -1) {
+      null
+    } else {
+      input.setPosition(offset)
+      readers(index)(input)
+    }
   }
 
   override def getType: SimpleFeatureType = sft
