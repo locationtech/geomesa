@@ -114,7 +114,6 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
       Option(params.auths)        .map(      IngestParams.AUTHORIZATIONS  -> List(_)),
       Option(params.visibilities) .map(      IngestParams.VISIBILITIES    -> List(_)),
       Option(params.indexSchema)  .map(      IngestParams.INDEX_SCHEMA_FMT-> List(_)),
-      Option(params.numShards)    .map(ns => IngestParams.SHARDS          -> List(ns.toString)),
       Option(params.listDelimiter).map(      IngestParams.LIST_DELIMITER  -> List(_)),
       Option(params.mapDelimiters).map(      IngestParams.MAP_DELIMITERS  -> _.asScala.toList)).flatten.toMap
 

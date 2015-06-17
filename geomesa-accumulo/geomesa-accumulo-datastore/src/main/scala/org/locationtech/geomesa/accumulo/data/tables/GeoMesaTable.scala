@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.data.tables
 
 import org.apache.accumulo.core.client.BatchDeleter
+import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
@@ -49,6 +50,8 @@ trait GeoMesaTable {
     bd.setRanges(Seq(range))
     bd.delete()
   }
+
+  def configureTable(sft: SimpleFeatureType, table: String, tableOps: TableOperations): Unit
 }
 
 object GeoMesaTable {

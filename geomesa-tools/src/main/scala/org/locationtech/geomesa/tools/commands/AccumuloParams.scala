@@ -68,9 +68,6 @@ class CreateFeatureParams extends FeatureParams {
 
   @Parameter(names = Array("-st", "--use-shared-tables"), description = "Use shared tables in Accumulo for feature storage (true/false)", arity = 1)
   var useSharedTables: Boolean = true //default to true in line with datastore
-
-  @Parameter(names = Array("-sh", "--shards"), description = "Number of shards to use for the storage tables (defaults to number of tservers)")
-  var numShards: Integer = null
 }
 
 class ForceParams {
