@@ -12,15 +12,12 @@ package org.locationtech.geomesa.accumulo.data
 import java.io.IOException
 import java.util.{Map => JMap, NoSuchElementException}
 
-import com.google.common.collect.ImmutableSortedSet
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken
 import org.apache.accumulo.core.data.{Key, Value}
-import org.apache.accumulo.core.file.keyfunctor.{ColumnFamilyFunctor, RowFunctor}
 import org.apache.commons.codec.binary.Hex
-import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
@@ -29,18 +26,18 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.Interval
 import org.locationtech.geomesa.accumulo
+import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore._
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.{ExplainingConnectorCreator, GeoMesaBatchWriterConfig}
-import org.locationtech.geomesa.accumulo.{GeomesaSystemProperties, index}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}
 import org.locationtech.geomesa.utils.time.Time._
-import org.opengis.feature.`type`.{AttributeDescriptor, Name}
+import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.referencing.crs.CoordinateReferenceSystem
@@ -74,7 +71,7 @@ class AccumuloDataStore(val connector: Connector,
     extends AbstractDataStore(true) with AccumuloConnectorCreator with StrategyHintsProvider with Logging {
 
   // having at least as many shards as tservers provides optimal parallelism in queries
-  protected[accumulo] val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
+  val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
 
   protected[data] val queryTimeoutMillis: Option[Long] = queryTimeoutConfig
       .orElse(GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong))
@@ -206,7 +203,9 @@ class AccumuloDataStore(val connector: Connector,
     metadata.insert(featureName, ATTRIBUTES_KEY, attributes)
 
     // reconfigure the splits on the attribute table
-    configureAttrIdxTable(getSchema(featureName), getAttributeTable(featureName))
+    val sft = getSchema(featureName)
+    val table = getAttributeTable(featureName)
+    AttributeTable.configureTable(sft, table, tableOps)
   }
 
   type KVEntry = JMap.Entry[Key,Value]
@@ -287,7 +286,7 @@ class AccumuloDataStore(val connector: Connector,
     IndexSchema.maxShard(indexSchemaFmt)
   }
 
-  def createTablesForType(featureType: SimpleFeatureType, maxShard: Int) {
+  def createTablesForType(featureType: SimpleFeatureType) {
     val z3Table                = formatZ3TableName(catalogTable, featureType)
     val spatioTemporalIdxTable = formatSpatioTemporalIdxTableName(catalogTable, featureType)
     val attributeIndexTable    = formatAttrIdxTableName(catalogTable, featureType)
@@ -295,10 +294,10 @@ class AccumuloDataStore(val connector: Connector,
 
     List(z3Table, spatioTemporalIdxTable, attributeIndexTable, recordTable).foreach(ensureTableExists)
 
-    configureZ3Table(featureType, z3Table)
-    configureRecordTable(featureType, recordTable)
-    configureAttrIdxTable(featureType, attributeIndexTable)
-    configureSpatioTemporalIdxTable(maxShard, featureType, spatioTemporalIdxTable)
+    Z3Table.configureTable(featureType, z3Table, tableOps)
+    SpatioTemporalTable.configureTable(featureType, spatioTemporalIdxTable, tableOps)
+    RecordTable.configureTable(featureType, recordTable, tableOps)
+    AttributeTable.configureTable(featureType, attributeIndexTable, tableOps)
   }
 
   private def ensureTableExists(table: String) =
@@ -310,61 +309,16 @@ class AccumuloDataStore(val connector: Connector,
       }
     }
 
-  def configureZ3Table(featureType: SimpleFeatureType, z3Table: String): Unit = Z3Table.configureTable(featureType, z3Table, tableOps)
 
-  def configureRecordTable(featureType: SimpleFeatureType, recordTable: String): Unit = {
-    val prefix = index.getTableSharingPrefix(featureType)
-    val prefixFn = RecordTable.getRowKey(prefix, _: String)
-    val splitterClazz = featureType.getUserData.getOrElse(SimpleFeatureTypes.TABLE_SPLITTER, classOf[HexSplitter].getCanonicalName).asInstanceOf[String]
-    val clazz = Class.forName(splitterClazz)
-    val splitter = clazz.newInstance().asInstanceOf[TableSplitter]
-    val splitterOptions = featureType.getUserData.getOrElse(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS, Map.empty[String, String]).asInstanceOf[Map[String, String]]
-    val splits = splitter.getSplits(splitterOptions)
-    val sortedSplits = ImmutableSortedSet.copyOf(splits.map(_.toString).map(prefixFn).map(new Text(_)))
-    tableOps.addSplits(recordTable, sortedSplits)
-    // enable the row functor as the feature ID is stored in the Row ID
-    tableOps.setProperty(recordTable, "table.bloom.key.functor", classOf[RowFunctor].getCanonicalName)
-    tableOps.setProperty(recordTable, "table.bloom.enabled", "true")
-  }
 
-  // configure splits for each of the attribute names
-  def configureAttrIdxTable(featureType: SimpleFeatureType, attributeIndexTable: String): Unit = {
-    val indexedAttrs = SimpleFeatureTypes.getSecondaryIndexedAttributes(featureType)
-    if (indexedAttrs.nonEmpty) {
-      val prefix = index.getTableSharingPrefix(featureType)
-      val prefixFn = AttributeTable.getAttributeIndexRowPrefix(prefix, _: AttributeDescriptor)
-      val names = indexedAttrs.map(prefixFn).map(new Text(_))
-      val splits = ImmutableSortedSet.copyOf(names.toArray)
-      tableOps.addSplits(attributeIndexTable, splits)
-    }
-  }
-
-  def configureSpatioTemporalIdxTable(maxShard: Int,
-                                      featureType: SimpleFeatureType,
-                                      tableName: String) {
-
-    if (maxShard > 1) {
-      val splits = (1 to maxShard - 1).map(i => new Text(s"%0${maxShard.toString.length}d".format(i)))
-      tableOps.addSplits(tableName, new java.util.TreeSet(splits))
-    }
-
-    // enable the column-family functor
-    tableOps.setProperty(tableName, "table.bloom.key.functor", classOf[ColumnFamilyFunctor].getCanonicalName)
-    tableOps.setProperty(tableName, "table.bloom.enabled", "true")
-  }
 
   // Retrieves or computes the indexSchema
-  def computeSpatioTemporalSchema(sft: SimpleFeatureType, maxShard: Int): String = {
+  def computeSpatioTemporalSchema(sft: SimpleFeatureType): String = {
     val spatioTemporalIdxSchemaFmt: Option[String] = accumulo.index.getIndexSchema(sft)
 
     spatioTemporalIdxSchemaFmt match {
-      case None => buildDefaultSpatioTemporalSchema(getFeatureName(sft), maxShard)
-      case Some(schema) =>
-        if (maxShard != DEFAULT_MAX_SHARD) {
-          logger.warn("Calling create schema with a custom index format AND a custom shard number. " +
-            "The custom index format will take precedence.")
-        }
-        schema
+      case None         => buildDefaultSpatioTemporalSchema(getFeatureName(sft))
+      case Some(schema) => schema
     }
   }
 
@@ -373,13 +327,12 @@ class AccumuloDataStore(val connector: Connector,
    * If the schema already exists, log a message and continue without error.
    *
    * @param featureType
-   * @param maxShard numerical id of the max shard (creates maxShard + 1 splits)
    */
-  def createSchema(featureType: SimpleFeatureType, maxShard: Int) =
+  override def createSchema(featureType: SimpleFeatureType) =
     if (getSchema(featureType.getTypeName) == null) {
-      val spatioTemporalSchema = computeSpatioTemporalSchema(featureType, maxShard)
+      val spatioTemporalSchema = computeSpatioTemporalSchema(featureType)
       checkSchemaRequirements(featureType, spatioTemporalSchema)
-      createTablesForType(featureType, maxShard)
+      createTablesForType(featureType)
       writeMetadata(featureType, featureEncoding, spatioTemporalSchema)
     }
 
@@ -470,15 +423,6 @@ class AccumuloDataStore(val connector: Connector,
     indexTables.filter(tableOps.exists).foreach(tableOps.delete)
     tableOps.delete(catalogTable)
   }
-
-  /**
-   * GeoTools API createSchema() method for a featureType...creates tables with
-   * ${numTabletServers} splits. To control the number of splits use the
-   * createSchema(featureType, maxShard) method or a custom index schema format.
-   *
-   * @param featureType
-   */
-  override def createSchema(featureType: SimpleFeatureType) = createSchema(featureType, DEFAULT_MAX_SHARD)
 
   /**
    * Validates the configuration of this data store instance against the stored configuration in

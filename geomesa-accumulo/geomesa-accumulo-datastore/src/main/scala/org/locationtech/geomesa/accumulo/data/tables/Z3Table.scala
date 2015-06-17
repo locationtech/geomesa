@@ -10,6 +10,7 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom.Point
 import org.apache.accumulo.core.client.BatchDeleter
 import org.apache.accumulo.core.client.admin.TableOperations
+import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.{Key, Mutation, Range => aRange, Value}
 import org.apache.hadoop.io.Text
 import org.joda.time.{DateTime, Seconds, Weeks}
@@ -133,11 +134,15 @@ object Z3Table extends GeoMesaTable {
     }
   }
 
-  def configureTable(sft: SimpleFeatureType, z3Table: String, tableOps: TableOperations): Unit = {
+
+  def configureTable(sft: SimpleFeatureType, table: String, tableOps: TableOperations): Unit = {
+    tableOps.setProperty(table, Property.TABLE_SPLIT_THRESHOLD.getKey, "128M")
+    tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+
     val indexedAttributes = getAttributesToIndex(sft)
     val localityGroups: Map[Text, Text] =
       indexedAttributes.map { case (name, _) => (name, name) }.toMap.+((BIN_CF, BIN_CF)).+((FULL_CF, FULL_CF))
-    tableOps.setLocalityGroups(z3Table, localityGroups.map { case (k, v) => (k.toString, ImmutableSet.of(v)) } )
+    tableOps.setLocalityGroups(table, localityGroups.map { case (k, v) => (k.toString, ImmutableSet.of(v)) } )
   }
 
   private def getAttributesToIndex(sft: SimpleFeatureType) =

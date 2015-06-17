@@ -10,8 +10,12 @@ package org.locationtech.geomesa.accumulo.data.tables
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.BatchDeleter
+import org.apache.accumulo.core.client.admin.TableOperations
+import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data
 import org.apache.accumulo.core.data.Key
+import org.apache.accumulo.core.file.keyfunctor.ColumnFamilyFunctor
+import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
 import org.locationtech.geomesa.accumulo.index.{IndexSchema, _}
@@ -86,4 +90,20 @@ object SpatioTemporalTable extends GeoMesaTable with Logging {
     bd.delete()
     bd.close()
   }
+
+
+  override def configureTable(sft: SimpleFeatureType, tableName: String, tableOps: TableOperations): Unit = {
+    // NOTE: since the ST table is likely going away, I'm not inclined to thread maxShards all the way through
+    // the call chain so I just set a default of 40 here
+    val maxShard = 40
+    val splits = (1 to maxShard - 1).map(i => new Text(s"%0${maxShard.toString.length}d".format(i)))
+    tableOps.addSplits(tableName, new java.util.TreeSet(splits))
+
+    // enable the column-family functor
+    tableOps.setProperty(tableName, Property.TABLE_BLOOM_KEY_FUNCTOR.getKey, classOf[ColumnFamilyFunctor].getCanonicalName)
+    tableOps.setProperty(tableName, Property.TABLE_BLOOM_ENABLED.getKey, "true")
+    tableOps.setProperty(tableName, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+    tableOps.setProperty(tableName, Property.TABLE_SPLIT_THRESHOLD.getKey, "128M")
+  }
+
 }
