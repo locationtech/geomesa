@@ -12,14 +12,12 @@ import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Map.Entry
 import java.util.{Collection => jCollection, Date, Map => jMap}
 
-import com.typesafe.scalalogging.slf4j.{Logger, Logging}
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.geotools.data.Query
-import org.geotools.factory.GeoTools
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index.QueryPlanners._
@@ -69,7 +67,7 @@ class BinAggregatingIterator extends SortedKeyValueIterator[Key, Value] with Log
   override def init(src: SortedKeyValueIterator[Key, Value],
                     jOptions: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
-    BinAggregatingIterator.initClassLoader(logger)
+    IteratorClassLoader.initClassLoader(getClass)
 
     this.source = src.deepCopy(env)
     val options = jOptions.asScala
@@ -290,8 +288,6 @@ class BinAggregatingIterator extends SortedKeyValueIterator[Key, Value] with Log
 
 object BinAggregatingIterator extends Logging {
 
-  private var initialized = false
-
   // need to be lazy to avoid class loading issues before init is called
   lazy val BIN_SFT = SimpleFeatureTypes.createType("bin", "bin:String,*geom:Point:srid=4326")
   val BIN_ATTRIBUTE_INDEX = 0 // index of 'bin' attribute in BIN_SFT
@@ -367,7 +363,7 @@ object BinAggregatingIterator extends Logging {
    * Adapts the iterator to create simple features.
    * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
    */
-  def adaptIterator(): FeatureFunction = {
+  def kvsToFeatures(): FeatureFunction = {
     val sf = new ScalaSimpleFeature("", BIN_SFT)
     sf.setAttribute(1, zeroPoint)
     (e: Entry[Key, Value]) => {
@@ -384,7 +380,7 @@ object BinAggregatingIterator extends Logging {
    *
    * Only supports 1 bin per geom.
    */
-  def adaptNonAggregatedIterator(query: Query,
+  def nonAggregatedKvsToFeatures(query: Query,
                                  sft: SimpleFeatureType,
                                  serializationType: SerializationType): FeatureFunction = {
 
@@ -435,38 +431,6 @@ object BinAggregatingIterator extends Logging {
       // TODO GEOMESA-823 support byte arrays natively
       sf.values(BIN_ATTRIBUTE_INDEX) = encode(sf, lat, lon, dtg, trackId)
       sf
-    }
-  }
-
-  def initClassLoader(log: Logger) = synchronized {
-    if (!initialized) {
-      try {
-        log.trace("Initializing classLoader")
-        // locate the geomesa-distributed-runtime jar
-        val cl = this.getClass.getClassLoader
-        cl match {
-          case vfsCl: VFSClassLoader =>
-            var url = vfsCl.getFileObjects.map(_.getURL).filter {
-              _.toString.contains("geomesa-distributed-runtime")
-            }.head
-            if (log != null) log.debug(s"Found geomesa-distributed-runtime at $url")
-            var u = java.net.URLClassLoader.newInstance(Array(url), vfsCl)
-            GeoTools.addClassLoader(u)
-
-            url = vfsCl.getFileObjects.map(_.getURL).filter {
-              _.toString.contains("geomesa-feature")
-            }.head
-            if (log != null) log.debug(s"Found geomesa-feature at $url")
-            u = java.net.URLClassLoader.newInstance(Array(url), vfsCl)
-            GeoTools.addClassLoader(u)
-          case _ =>
-        }
-      } catch {
-        case t: Throwable =>
-          if (log != null) log.error("Failed to initialize GeoTools' ClassLoader ", t)
-      } finally {
-        initialized = true
-      }
     }
   }
 }

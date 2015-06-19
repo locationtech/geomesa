@@ -122,8 +122,7 @@ class LiveDensityIteratorTest extends Specification with Logging {
     val q = new Query(sftName, ECQL.toFilter(query))
     val geom = q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope]
     val env = new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84)
-    q.getHints.put(QueryHints.DENSITY_KEY, java.lang.Boolean.TRUE)
-    q.getHints.put(QueryHints.BBOX_KEY, env)
+    q.getHints.put(QueryHints.DENSITY_BBOX_KEY, env)
     q.getHints.put(QueryHints.WIDTH_KEY, width)
     q.getHints.put(QueryHints.HEIGHT_KEY, height)
 

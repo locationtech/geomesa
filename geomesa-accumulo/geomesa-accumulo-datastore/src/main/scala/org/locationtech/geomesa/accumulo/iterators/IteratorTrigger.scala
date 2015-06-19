@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.{Collection => JCollection}
-
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.process.vector.TransformProcess
@@ -71,7 +69,7 @@ object IteratorTrigger extends Logging {
     if (useIndexOnlyIterator(filter, query, sourceSFT)) {
       // if the transforms cover the filtered attributes, we can decode into the transformed feature
       // otherwise, we need to decode into the original feature, apply the filter, and then transform
-      IteratorConfig(IndexOnlyIterator, false, transformsCoverFilter)
+      IteratorConfig(IndexOnlyIterator, hasTransformOrFilter = false, transformsCoverFilter)
     } else {
       IteratorConfig(SpatioTemporalIterator, useSimpleFeatureFilteringIterator(filter, query), transformsCoverFilter)
     }
@@ -182,7 +180,7 @@ object IteratorTrigger extends Logging {
   /**
    * get the query hint that activates the Density Iterator
    */
-  def useDensityIterator(query: Query) = query.getHints.containsKey(DENSITY_KEY)
+  def useDensityIterator(query: Query) = query.getHints.isDensityQuery
 
   /**
    * Scans the ECQL, query, and sourceSFTspec and determines which Iterators should be configured.
@@ -194,7 +192,7 @@ object IteratorTrigger extends Logging {
     // if the transforms cover the filtered attributes, we can decode into the transformed feature
     // otherwise, we need to decode into the original feature, apply the filter, and then transform
     if (useIndexOnlyIterator(ecqlPredicate, query, sourceSFT, Some(indexedAttribute))) {
-      IteratorConfig(IndexOnlyIterator, false, true)
+      IteratorConfig(IndexOnlyIterator, hasTransformOrFilter = false, transformCoversFilter = true)
     } else {
       val hasEcqlOrTransform = useSimpleFeatureFilteringIterator(ecqlPredicate, query)
       val transformsCoverFilter = if (hasEcqlOrTransform) doTransformsCoverFilters(query) else true

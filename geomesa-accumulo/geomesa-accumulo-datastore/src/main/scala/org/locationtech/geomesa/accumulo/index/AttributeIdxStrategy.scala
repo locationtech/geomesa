@@ -78,7 +78,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 
     val kvsToFeatures = if (query.getHints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
-      BinAggregatingIterator.adaptNonAggregatedIterator(query, sft, encoding)
+      BinAggregatingIterator.nonAggregatedKvsToFeatures(query, sft, encoding)
     } else {
       queryPlanner.defaultKVsToFeatures(query)
     }
@@ -126,8 +126,8 @@ trait AttributeIdxStrategy extends Strategy with Logging {
         val recordTable = acc.getRecordTable(sft)
         val recordRanges = Seq(new AccRange()) // this will get overwritten in the join method
         val recordThreads = acc.getSuggestedRecordThreads(sft)
-        val joinQuery =
-          BatchScanPlan(recordTable, recordRanges, recordIterators.toSeq, Seq.empty, kvsToFeatures, recordThreads, hasDupes)
+        val joinQuery = BatchScanPlan(recordTable, recordRanges, recordIterators.toSeq, Seq.empty,
+          kvsToFeatures, recordThreads, hasDupes)
 
         val attrTable = acc.getAttributeTable(sft)
         val attrThreads = acc.getSuggestedAttributeThreads(sft)

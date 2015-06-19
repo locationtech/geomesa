@@ -22,11 +22,13 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
+import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
 import org.locationtech.geomesa.accumulo.index.getDtgFieldName
 import org.locationtech.geomesa.accumulo.iterators.FeatureAggregatingIterator.Result
 import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator.TimeSeries
+import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.buildTypeName
-import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, TimeSnap}
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes, TimeSnap}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -160,6 +162,24 @@ object TemporalDensityIterator extends Logging {
       table.put(dateIdx, weight)
     }
     table
+  }
+
+  def reduceTemporalFeatures(features: SFIter, sft: SimpleFeatureType, returnEncoded: Boolean): SFIter = {
+    val timeSeriesStrings = features.map(f => decodeTimeSeries(f.getAttribute(TIME_SERIES).toString))
+    val summedTimeSeries = timeSeriesStrings.reduceOption(combineTimeSeries)
+
+    val feature = summedTimeSeries.map { sum =>
+      val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(sft)
+      if (returnEncoded) {
+        featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(sum))
+      } else {
+        featureBuilder.add(timeSeriesToJSON(sum))
+      }
+      featureBuilder.add(GeometryUtils.zeroPoint) // Filler value as Feature requires a geometry
+      featureBuilder.buildFeature(null)
+    }
+
+    feature.iterator
   }
 }
 
