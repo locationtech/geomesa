@@ -97,16 +97,15 @@ case class QueryPlanner(sft: SimpleFeatureType,
       SelfClosingIterator(iter)
     }
 
-    def expand(iter: SFIter): SFIter = if (query.getHints.isTemporalDensityQuery) {
-      val encode = query.getHints.containsKey(RETURN_ENCODED)
-      TemporalDensityIterator.reduceTemporalFeatures(iter, query.getHints.getReturnSft, encode)
+    def reduce(iter: SFIter): SFIter = if (query.getHints.isTemporalDensityQuery) {
+      TemporalDensityIterator.reduceTemporalFeatures(iter, query)
     } else if (query.getHints.isMapAggregatingQuery) {
-      MapAggregatingIterator.reduceMapAggregationFeatures(iter, query.getHints.getReturnSft, query)
+      MapAggregatingIterator.reduceMapAggregationFeatures(iter, query)
     } else {
       iter
     }
 
-    expand(sort(dedupe(scan(strategyPlans))))
+    reduce(sort(dedupe(scan(strategyPlans))))
   }
 
   /**

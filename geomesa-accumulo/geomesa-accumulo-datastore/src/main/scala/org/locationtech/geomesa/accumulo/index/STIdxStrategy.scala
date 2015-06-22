@@ -130,7 +130,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 
     val table = acc.getSpatioTemporalTable(sft)
     val numThreads = acc.getSuggestedSpatioTemporalThreads(sft)
-    val hasDupes = !query.getHints.isDensityQuery && IndexSchema.mayContainDuplicates(sft)
+    val hasDupes = STIdxStrategy.mayContainDuplicates(query, sft)
     val res = qp.copy(table = table, iterators = iterators, kvsToFeatures = kvsToFeatures,
       numThreads = numThreads, hasDuplicates = hasDupes)
 
@@ -263,4 +263,7 @@ object STIdxStrategy extends StrategyProvider {
     } else {
       None
     }
+
+  def mayContainDuplicates(query: Query, sft: SimpleFeatureType): Boolean =
+    !query.getHints.isDensityQuery && IndexSchema.mayContainDuplicates(sft)
 }

@@ -76,7 +76,8 @@ object MapAggregatingIterator extends Logging {
     iterSettings.addOption(MAP_ATTRIBUTE, mapAttribute)
 
 
-  def reduceMapAggregationFeatures(features: SFIter, sft: SimpleFeatureType, query: Query): SFIter = {
+  def reduceMapAggregationFeatures(features: SFIter, query: Query): SFIter = {
+    val sft = query.getHints.getReturnSft
     val aggregateKeyName = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
 
     val maps = features.map(_.getAttribute(aggregateKeyName).asInstanceOf[JMap[AnyRef, Int]].asScala)

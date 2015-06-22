@@ -18,10 +18,12 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.apache.commons.codec.binary.Base64
 import org.codehaus.jackson.`type`.TypeReference
 import org.codehaus.jackson.map.ObjectMapper
+import org.geotools.data.Query
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
+import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
 import org.locationtech.geomesa.accumulo.index.getDtgFieldName
 import org.locationtech.geomesa.accumulo.iterators.FeatureAggregatingIterator.Result
@@ -164,13 +166,16 @@ object TemporalDensityIterator extends Logging {
     table
   }
 
-  def reduceTemporalFeatures(features: SFIter, sft: SimpleFeatureType, returnEncoded: Boolean): SFIter = {
+  def reduceTemporalFeatures(features: SFIter, query: Query): SFIter = {
+    val encode = query.getHints.containsKey(RETURN_ENCODED)
+    val sft = query.getHints.getReturnSft
+
     val timeSeriesStrings = features.map(f => decodeTimeSeries(f.getAttribute(TIME_SERIES).toString))
     val summedTimeSeries = timeSeriesStrings.reduceOption(combineTimeSeries)
 
     val feature = summedTimeSeries.map { sum =>
       val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(sft)
-      if (returnEncoded) {
+      if (encode) {
         featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(sum))
       } else {
         featureBuilder.add(timeSeriesToJSON(sum))
