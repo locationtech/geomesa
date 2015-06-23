@@ -14,9 +14,14 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
+import org.geotools.data.Query
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
 import org.locationtech.geomesa.accumulo.iterators.FeatureAggregatingIterator.Result
 import org.locationtech.geomesa.accumulo.sumNumericValueMutableMaps
+import org.locationtech.geomesa.accumulo.util.CloseableIterator
+import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -69,6 +74,28 @@ object MapAggregatingIterator extends Logging {
 
   def setMapAttribute(iterSettings: IteratorSetting, mapAttribute: String): Unit =
     iterSettings.addOption(MAP_ATTRIBUTE, mapAttribute)
+
+
+  def reduceMapAggregationFeatures(features: SFIter, query: Query): SFIter = {
+    val sft = query.getHints.getReturnSft
+    val aggregateKeyName = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
+
+    val maps = features.map(_.getAttribute(aggregateKeyName).asInstanceOf[JMap[AnyRef, Int]].asScala)
+
+    if (maps.nonEmpty) {
+      val reducedMap = sumNumericValueMutableMaps(maps.toIterable).toMap // to immutable map
+
+      val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(sft)
+      featureBuilder.reset()
+      featureBuilder.add(reducedMap)
+      featureBuilder.add(GeometryUtils.zeroPoint) // Filler value as Feature requires a geometry
+      val result = featureBuilder.buildFeature(null)
+
+      Iterator(result)
+    } else {
+      CloseableIterator.empty
+    }
+  }
 }
 
 case class MapAggregatingIteratorResult(mapAttributeName: String,

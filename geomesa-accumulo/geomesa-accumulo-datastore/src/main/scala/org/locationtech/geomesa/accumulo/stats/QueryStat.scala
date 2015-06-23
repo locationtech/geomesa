@@ -97,10 +97,10 @@ object QueryStatTransform extends StatTransform[QueryStat] {
   // list of query hints we want to persist
   val QUERY_HINTS = List[Hints.Key](TRANSFORMS,
                                     TRANSFORM_SCHEMA,
-                                    DENSITY_KEY,
-                                    BBOX_KEY,
+                                    DENSITY_BBOX_KEY,
                                     WIDTH_KEY,
                                     HEIGHT_KEY,
+                                    BIN_TRACK_KEY,
                                     TEMPORAL_DENSITY_KEY,
                                     TIME_INTERVAL_KEY,
                                     TIME_BUCKETS_KEY)
@@ -127,12 +127,12 @@ object QueryStatTransform extends StatTransform[QueryStat] {
     key match {
       case TRANSFORMS           => "TRANSFORMS"
       case TRANSFORM_SCHEMA     => "TRANSFORM_SCHEMA"
-      case DENSITY_KEY          => "DENSITY_KEY"
+      case BIN_TRACK_KEY        => "BIN_TRACK_KEY"
       case TEMPORAL_DENSITY_KEY => "TEMPORAL_DENSITY_KEY"
       case TIME_INTERVAL_KEY    => "TIME_INTERVAL_KEY"
       case RETURN_ENCODED       => "RETURN_ENCODED"
       case TIME_BUCKETS_KEY     => "TIME_BUCKETS_KEY"
-      case BBOX_KEY             => "BBOX_KEY"
+      case DENSITY_BBOX_KEY     => "DENSITY_BBOX_KEY"
       case WIDTH_KEY            => "WIDTH_KEY"
       case HEIGHT_KEY           => "HEIGHT_KEY"
       case _                    => "unknown_hint"

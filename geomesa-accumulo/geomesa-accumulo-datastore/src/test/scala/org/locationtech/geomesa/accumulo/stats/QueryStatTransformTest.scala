@@ -13,6 +13,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.geotools.filter.text.cql2.CQL
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index.QueryHints
@@ -56,13 +57,14 @@ class QueryStatTransformTest extends Specification {
     "convert hints to readable string" in {
 
       val query = new Query("test", CQL.toFilter("INCLUDE"))
-      query.getHints.put(QueryHints.DENSITY_KEY, java.lang.Boolean.TRUE)
+      val env = new ReferencedEnvelope()
+      query.getHints.put(QueryHints.DENSITY_BBOX_KEY, env)
       query.getHints.put(QueryHints.WIDTH_KEY, 500)
       query.getHints.put(QueryHints.HEIGHT_KEY, 500)
 
       val hints = QueryStatTransform.hintsToString(query.getHints)
 
-      hints must contain("DENSITY_KEY=true")
+      hints must contain(s"DENSITY_BBOX_KEY=$env")
       hints must contain("WIDTH_KEY=500")
       hints must contain("HEIGHT_KEY=500")
     }

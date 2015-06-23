@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo
 
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.Envelope
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.geotools.data.Query
 import org.geotools.factory.Hints
@@ -96,10 +97,10 @@ package object index {
   object QueryHints {
     val RETURN_SFT_KEY       = new ClassKey(classOf[SimpleFeatureType])
 
-    val DENSITY_KEY          = new ClassKey(classOf[java.lang.Boolean])
+    val DENSITY_BBOX_KEY     = new ClassKey(classOf[ReferencedEnvelope])
+    val DENSITY_WEIGHT       = new ClassKey(classOf[java.lang.String])
     val WIDTH_KEY            = new IntegerKey(256)
     val HEIGHT_KEY           = new IntegerKey(256)
-    val BBOX_KEY             = new ClassKey(classOf[ReferencedEnvelope])
 
     val TEMPORAL_DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
     val TIME_INTERVAL_KEY    = new ClassKey(classOf[org.joda.time.Interval])
@@ -126,6 +127,14 @@ package object index {
       def getBinLabelField: Option[String] = Option(hints.get(BIN_LABEL_KEY).asInstanceOf[String])
       def getBinBatchSize: Int = hints.get(BIN_BATCH_SIZE_KEY).asInstanceOf[Int]
       def isBinSorting: Boolean = hints.get(BIN_SORT_KEY).asInstanceOf[Boolean]
+      def isDensityQuery: Boolean = hints.containsKey(DENSITY_BBOX_KEY)
+      def getDensityEnvelope: Option[Envelope] = Option(hints.get(DENSITY_BBOX_KEY).asInstanceOf[Envelope])
+      def getDensityBounds: Option[(Int, Int)] =
+        for { w <- Option(hints.get(WIDTH_KEY).asInstanceOf[Int])
+              h <- Option(hints.get(HEIGHT_KEY).asInstanceOf[Int]) } yield (w, h)
+      def getDensityWeight: Option[String] = Option(hints.get(DENSITY_WEIGHT).asInstanceOf[String])
+      def isTemporalDensityQuery: Boolean = hints.containsKey(TEMPORAL_DENSITY_KEY)
+      def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION_KEY)
     }
   }
 
