@@ -27,12 +27,12 @@ class KafkaDataStoreEditPanel(componentId: String, storeEditForm: Form[_])
   setDefaultModel(model)
   val paramsModel = new PropertyModel(model, "connectionParameters")
 
-  val brokers       = addTextPanel(paramsModel, KAFKA_BROKER_PARAM)
-  val zookeepers    = addTextPanel(paramsModel, ZOOKEEPERS_PARAM)
-  val zkPath        = addTextPanel(paramsModel, ZK_PATH)
+  val brokers          = addTextPanel(paramsModel, KAFKA_BROKER_PARAM)
+  val zookeepers       = addTextPanel(paramsModel, ZOOKEEPERS_PARAM)
+  val zkPath           = addTextPanel(paramsModel, ZK_PATH)
+  val expirationPeriod = addTextPanel(paramsModel, EXPIRATION_PERIOD)
 
-  val dependentFormComponents =
-    Array[FormComponent[_]](brokers, zookeepers, zkPath)
+  val dependentFormComponents = Array[FormComponent[_]](brokers, zookeepers, zkPath, expirationPeriod)
 
   dependentFormComponents.foreach(_.setOutputMarkupId(true))
 

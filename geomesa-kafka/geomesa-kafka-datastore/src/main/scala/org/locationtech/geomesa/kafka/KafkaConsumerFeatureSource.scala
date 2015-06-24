@@ -9,10 +9,9 @@
 package org.locationtech.geomesa.kafka
 
 import java.io.Serializable
-import java.{lang => jl, util => ju}
+import java.{util => ju}
 
 import com.vividsolutions.jts.geom.Envelope
-import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
 import org.geotools.data.{FilteringFeatureReader, Query}
 import org.geotools.factory.CommonFactoryFinder
@@ -111,18 +110,10 @@ trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
 
 object KafkaConsumerFeatureSourceFactory {
 
-  val EXPIRY            = new Param("expiry", classOf[jl.Boolean], "Expiry", false, false)
-  val EXPIRATION_PERIOD = new Param("expirationPeriod", classOf[jl.Long], "Expiration Period in milliseconds", false)
-
   def apply(brokers: String, zk: String, params: ju.Map[String, Serializable]): FeatureSourceFactory = {
 
     lazy val expirationPeriod: Option[Long] = {
-      val expiry = Option(EXPIRY.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
-      if (expiry) {
-        Option(EXPIRATION_PERIOD.lookUp(params)).map(_.toString.toLong).orElse(Some(0L))
-      } else {
-        None
-      }
+      Option(KafkaDataStoreFactoryParams.EXPIRATION_PERIOD.lookUp(params)).map(_.toString.toLong).filter(_ > 0)
     }
 
     (entry: ContentEntry, schemaManager: KafkaDataStoreSchemaManager) => {

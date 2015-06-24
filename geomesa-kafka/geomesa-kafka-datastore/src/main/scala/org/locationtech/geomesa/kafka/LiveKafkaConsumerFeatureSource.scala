@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Executors, LinkedBlockingQueue, TimeUnit}
 
 import com.google.common.base.Ticker
-import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNotification}
+import com.google.common.cache._
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.Query
 import org.geotools.data.store.ContentEntry
@@ -84,7 +84,6 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
           }
         } catch {
           case t: InterruptedException =>
-            logger.error("Caught interrupted exception in consumer", t)
             running.set(false)
 
           case t: Throwable =>
@@ -123,7 +122,7 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
   */
 class LiveFeatureCache(override val sft: SimpleFeatureType,
                        expirationPeriod: Option[Long])(implicit ticker: Ticker)
-  extends KafkaConsumerFeatureCache {
+  extends KafkaConsumerFeatureCache with Logging {
 
   var spatialIndex: SpatialIndex[SimpleFeature] = newSpatialIndex()
 
@@ -131,13 +130,14 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
     val cb = CacheBuilder.newBuilder().ticker(ticker)
     expirationPeriod.foreach { ep =>
       cb.expireAfterWrite(ep, TimeUnit.MILLISECONDS)
-        .removalListener(
-          new RemovalListener[String, FeatureHolder] {
-            def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
+        .removalListener(new RemovalListener[String, FeatureHolder] {
+          def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
+            if (removal.getCause == RemovalCause.EXPIRED) {
+              logger.debug(s"Removing feature ${removal.getKey} due to expiration after ${ep}ms")
               spatialIndex.remove(removal.getValue.env, removal.getValue.sf)
             }
           }
-        )
+        })
     }
     cb.build()
   }
