@@ -11,13 +11,17 @@ package org.locationtech.geomesa.accumulo.data.tables
 
 import java.util.{Collection => JCollection, Date, Locale, Map => JMap}
 
+import com.google.common.collect.ImmutableSortedSet
 import com.typesafe.scalalogging.slf4j.Logging
+import org.apache.accumulo.core.client.admin.TableOperations
+import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.IndexCoverage
@@ -232,6 +236,20 @@ object AttributeTable extends GeoMesaTable with Logging {
         value
     }
   }
+
+  override def configureTable(featureType: SimpleFeatureType, table: String, tableOps: TableOperations): Unit = {
+    tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+    tableOps.setProperty(table, Property.TABLE_SPLIT_THRESHOLD.getKey, "128M")
+    val indexedAttrs = SimpleFeatureTypes.getSecondaryIndexedAttributes(featureType)
+    if (indexedAttrs.nonEmpty) {
+      val prefix = index.getTableSharingPrefix(featureType)
+      val prefixFn = AttributeTable.getAttributeIndexRowPrefix(prefix, _: AttributeDescriptor)
+      val names = indexedAttrs.map(prefixFn).map(new Text(_))
+      val splits = ImmutableSortedSet.copyOf(names.toArray)
+      tableOps.addSplits(table, splits)
+    }
+  }
+
 }
 
 case class AttributeIndexRow(attributeName: String, attributeValue: Any)

@@ -12,7 +12,6 @@ import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
 import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.utils.geotools.RichIterator.RichIterator
 import org.opengis.feature.simple.SimpleFeatureType
@@ -21,13 +20,12 @@ import org.opengis.filter.{And, Filter, Id, PropertyIsLike}
 import scala.collection.JavaConversions._
 
 trait VersionedQueryStrategyDecider {
-  def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints, version: Int): Strategy
+  def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints): Strategy
 }
 
 object VersionedQueryStrategyDecider {
-  def apply(version: Int): VersionedQueryStrategyDecider = version match {
-    case i if i <= 4 => new QueryStrategyDeciderV4
-    case 5           => new QueryStrategyDeciderV5
+  def apply(version: Int): VersionedQueryStrategyDecider = {
+    if (version <= 4) new QueryStrategyDeciderV4 else new QueryStrategyDeciderV5
   }
 }
 
@@ -37,7 +35,7 @@ object QueryStrategyDecider {
       (1 to INTERNAL_GEOMESA_VERSION).map(VersionedQueryStrategyDecider.apply)
 
   def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints, version: Int): Strategy =
-    strategies(version).chooseStrategy(sft, query, hints, version)
+    strategies(version).chooseStrategy(sft, query, hints)
 
   // TODO try to use wildcard values from the Filter itself (https://geomesa.atlassian.net/browse/GEOMESA-309)
   // Currently pulling the wildcard values from the filter
@@ -65,9 +63,9 @@ class QueryStrategyDeciderV4 extends VersionedQueryStrategyDecider {
   val REASONABLE_COST = 10000
   val OPTIMAL_COST = 10
 
-  def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints, version: Int): Strategy = {
+  def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints): Strategy = {
     // check for density queries
-    if (query.getHints.containsKey(BBOX_KEY) || query.getHints.contains(TIME_BUCKETS_KEY)) {
+    if (query.getHints.containsKey(DENSITY_BBOX_KEY) || query.getHints.contains(TIME_BUCKETS_KEY)) {
       // TODO GEOMESA-322 use other strategies with density iterator
       return new STIdxStrategy
     }
@@ -113,9 +111,7 @@ class QueryStrategyDeciderV4 extends VersionedQueryStrategyDecider {
   /**
    * We've already eliminated record filters - look for attribute + spatio-temporal filters
    */
-  def processNonRecordFilters(filters: Seq[Filter],
-                                      sft: SimpleFeatureType,
-                                      hints: StrategyHints): Strategy = {
+  def processNonRecordFilters(filters: Seq[Filter], sft: SimpleFeatureType, hints: StrategyHints): Strategy = {
     // look for reasonable cost attribute strategies - expensive ones will not be considered
     val attributeStrategies =
       filters.flatMap(f => AttributeIndexStrategy.getStrategy(f, sft, hints)).filter(_.cost < REASONABLE_COST)
@@ -140,13 +136,24 @@ class QueryStrategyDeciderV4 extends VersionedQueryStrategyDecider {
     val stStrategy = filters.iterator.flatMap(f => STIdxStrategy.getStrategy(f, sft, hints)).headOption
     stStrategy.orElse(fallback).map(_.strategy).getOrElse(new STIdxStrategy)
   }
-
-
 }
 
 class QueryStrategyDeciderV5 extends QueryStrategyDeciderV4 {
 
   val ff = CommonFactoryFinder.getFilterFactory2
+
+  /**
+   * Adds in preferred z3 density check before falling back to regular checks
+   */
+  override def chooseStrategy(sft: SimpleFeatureType, query: Query, hints: StrategyHints): Strategy = {
+    if (query.getHints.containsKey(DENSITY_BBOX_KEY) && query.getFilter.isInstanceOf[And]) {
+      val filters = decomposeAnd(query.getFilter.asInstanceOf[And]) // z3 needs at least a geom and dtg
+      Z3IdxStrategy.getStrategy(ff.and(filters), sft, hints).map(_.strategy).foreach { s =>
+        return s
+      }
+    }
+    super.chooseStrategy(sft, query, hints)
+  }
 
   /**
    * Adds in a preferred z3 check before falling back to regular st index

@@ -106,11 +106,11 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
     if (input.readInt(true) == 1) {
       return (legacySerializer.read(bytes), input)
     }
-    input.setPosition(5) // skip version and offsets
+    val limit = input.readInt() // read the start of the offsets - we'll stop reading when we hit this
     val id = input.readString()
     val attributes = Array.ofDim[AnyRef](numAttributes)
     var i = 0
-    while (i < numAttributes) {
+    while (i < numAttributes && input.position < limit) {
       attributes(i) = readers(i)(input)
       i += 1
     }
@@ -165,17 +165,19 @@ class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
     input.setPosition(offsetStart)
     var i = 0
     while (i < numAttributes) {
-      val offset = input.readInt(true)
-      if (indices(i) != -1) {
-        offsets(indices(i)) = offset
+      val offset = if (input.position < input.limit) input.readInt(true) else -1
+      val index = indices(i)
+      if (index != -1) {
+        offsets(index) = offset
       }
       i += 1
     }
     // read in the values
     i = 0
     while (i < numProjectedAttributes) {
-      if (offsets(i) != -1) {
-        input.setPosition(offsets(i))
+      val offset = offsets(i)
+      if (offset != -1) {
+        input.setPosition(offset)
         attributes(i) = readersInOrder(i)(input)
       }
       i += 1

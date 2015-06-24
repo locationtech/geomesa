@@ -27,16 +27,14 @@ object FeatureCreator extends Logging {
       params.featureName,
       Option(params.dtgField),
       Option(params.useSharedTables),
-      params.catalog,
-      Option(params.numShards))
+      params.catalog)
 
   def createFeature(ds: AccumuloDataStore,
                     sftspec: String,
                     featureName: String,
                     dtField: Option[String],
                     sharedTable: Option[Boolean],
-                    catalog: String,
-                    maxShards: Option[Integer] = None): Unit = {
+                    catalog: String): Unit = {
     logger.info(s"Creating '$featureName' on catalog table '$catalog' with spec " +
       s"'$sftspec'. Just a few moments...")
 
@@ -52,11 +50,7 @@ object FeatureCreator extends Logging {
 
       sharedTable.foreach { org.locationtech.geomesa.accumulo.index.setTableSharing(sft, _) }
 
-      if (maxShards.isDefined) {
-        ds.createSchema(sft, maxShards.get)
-      } else {
-        ds.createSchema(sft)
-      }
+      ds.createSchema(sft)
 
       if (ds.getSchema(featureName) != null) {
         logger.info(s"Feature '$featureName' on catalog table '$catalog' with spec " +

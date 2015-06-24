@@ -59,7 +59,7 @@ class AttributeIndexStrategyTest extends Specification {
              // note the table needs to be different to prevent testing errors
              "tableName"   -> "AttributeIndexStrategyTest").asJava).asInstanceOf[AccumuloDataStore]
 
-  ds.createSchema(sft, 2)
+  ds.createSchema(sft)
 
   val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
   val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)

@@ -81,6 +81,8 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
       if (ret >= ySize) ySize - 1 else ret.toInt
     }
 
+  def snap(x: Double, y: Double): (Double, Double) = (this.x(i(x)), this.y(j(y)))
+
   /** Generate a Sequence of Coordinates between two given Snap Coordinates using Bresenham's Line Algorithm */
   def genBresenhamCoordSet(x0: Int, y0: Int, x1: Int, y1: Int): Set[Coordinate] = {
     val ( deltaX, deltaY ) = (abs(x1 - x0), abs(y1 - y0))

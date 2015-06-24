@@ -95,7 +95,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
       val mockMaxShards = ds.DEFAULT_MAX_SHARD
-      val indexSchema = ds.computeSpatioTemporalSchema(sft, mockMaxShards)
+      val indexSchema = ds.computeSpatioTemporalSchema(sft)
 
       ds.createSchema(sft)
 

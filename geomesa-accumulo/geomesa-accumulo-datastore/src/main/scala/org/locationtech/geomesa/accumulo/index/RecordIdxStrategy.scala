@@ -113,7 +113,7 @@ class RecordIdxStrategy extends Strategy with Logging {
     val threads = acc.getSuggestedRecordThreads(sft)
     val kvsToFeatures = if (query.getHints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
-      BinAggregatingIterator.adaptNonAggregatedIterator(query, sft, featureEncoding)
+      BinAggregatingIterator.nonAggregatedKvsToFeatures(query, sft, featureEncoding)
     } else {
       queryPlanner.defaultKVsToFeatures(query)
     }
