@@ -240,13 +240,14 @@ class StringFunctionFactory extends TransformerFunctionFactory {
 class DateFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFn] =
-    Seq(now, customFormatDateParser, datetime, isodate, isodatetime, dateHourMinuteSecondMillis, millisToDate)
+    Seq(now, customFormatDateParser, datetime, isodate, isodatetime, basicDateTimeNoMillis, dateHourMinuteSecondMillis, millisToDate)
 
   val now = TransformerFn("now") { args => DateTime.now.toDate }
   val customFormatDateParser = CustomFormatDateParser()
   val datetime = StandardDateParser("datetime", ISODateTimeFormat.dateTime().withZoneUTC())
   val isodate = StandardDateParser("isodate", ISODateTimeFormat.basicDate().withZoneUTC())
   val isodatetime = StandardDateParser("isodatetime", ISODateTimeFormat.basicDateTime().withZoneUTC())
+  val basicDateTimeNoMillis = StandardDateParser("basicDateTimeNoMillis", ISODateTimeFormat.basicDateTimeNoMillis().withZoneUTC())
   val dateHourMinuteSecondMillis = StandardDateParser("dateHourMinuteSecondMillis", ISODateTimeFormat.dateHourMinuteSecondMillis().withZoneUTC())
   val millisToDate = TransformerFn("millisToDate") { args => new Date(args(0).asInstanceOf[Long]) }
 
