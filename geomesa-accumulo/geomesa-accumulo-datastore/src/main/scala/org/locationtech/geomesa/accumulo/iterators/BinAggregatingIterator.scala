@@ -17,7 +17,7 @@ import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.geotools.data.Query
+import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index.QueryPlanners._
@@ -380,8 +380,8 @@ object BinAggregatingIterator extends Logging {
    *
    * Only supports 1 bin per geom.
    */
-  def nonAggregatedKvsToFeatures(query: Query,
-                                 sft: SimpleFeatureType,
+  def nonAggregatedKvsToFeatures(sft: SimpleFeatureType,
+                                 hints: Hints,
                                  serializationType: SerializationType): FeatureFunction = {
 
     import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
@@ -390,12 +390,12 @@ object BinAggregatingIterator extends Logging {
     sf.setAttribute(1, zeroPoint)
 
     // don't use return sft from query hints, as it will be bin_sft
-    val returnSft = index.getTransformSchema(query).getOrElse(sft)
+    val returnSft = index.getTransformSchema(hints).getOrElse(sft)
     val deserializer = SimpleFeatureDeserializers(returnSft, serializationType)
-    val trackIdIndex = returnSft.indexOf(query.getHints.getBinTrackIdField)
-    val geomIndex = query.getHints.getBinGeomField.map(returnSft.indexOf).getOrElse(returnSft.getGeomIndex)
-    val dtgIndex= query.getHints.getBinDtgField.map(returnSft.indexOf).getOrElse(returnSft.getDtgIndex.get)
-    val labelIndex= query.getHints.getBinLabelField.map(returnSft.indexOf)
+    val trackIdIndex = returnSft.indexOf(hints.getBinTrackIdField)
+    val geomIndex = hints.getBinGeomField.map(returnSft.indexOf).getOrElse(returnSft.getGeomIndex)
+    val dtgIndex= hints.getBinDtgField.map(returnSft.indexOf).getOrElse(returnSft.getDtgIndex.get)
+    val labelIndex= hints.getBinLabelField.map(returnSft.indexOf)
 
     val getGeom: (SimpleFeature) => Point =
       if (returnSft.getGeometryDescriptor.getType.getBinding == classOf[Point]) {

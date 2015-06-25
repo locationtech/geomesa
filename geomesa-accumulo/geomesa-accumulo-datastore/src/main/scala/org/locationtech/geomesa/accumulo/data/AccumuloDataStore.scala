@@ -770,14 +770,18 @@ class AccumuloDataStore(val connector: Connector,
    * Gets the query plan for a given query. The query plan consists of the tables, ranges, iterators etc
    * required to run a query against accumulo.
    */
-  def getQueryPlan(featureName: String, query: Query): Seq[QueryPlan] =
-    planQuery(featureName, query, ExplainNull)
+  def getQueryPlan(query: Query): Seq[QueryPlan] = {
+    require(query.getTypeName != null, "Type name is required in the query")
+    planQuery(query.getTypeName, query, ExplainNull)
+  }
 
   /**
    * Prints the query plan for a given query to the provided output.
    */
-  def explainQuery(featureName: String, query: Query, o: ExplainerOutputType = ExplainPrintln): Unit =
-    planQuery(featureName, query, o)
+  def explainQuery(query: Query, o: ExplainerOutputType = ExplainPrintln): Unit = {
+    require(query.getTypeName != null, "Type name is required in the query")
+    planQuery(query.getTypeName, query, o)
+  }
 
   /**
    *

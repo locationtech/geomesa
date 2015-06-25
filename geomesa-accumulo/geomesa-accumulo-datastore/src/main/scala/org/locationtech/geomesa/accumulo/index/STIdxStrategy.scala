@@ -13,7 +13,7 @@ import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
-import org.geotools.data.Query
+import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.GEOMESA_ITERATORS_IS_DENSITY_TYPE
 import org.locationtech.geomesa.accumulo.index.QueryHints._
@@ -25,13 +25,12 @@ import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.filter._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.opengis.filter.spatial.BinarySpatialOperator
 
 import scala.collection.JavaConversions._
 
-class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
+class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with IndexFilterHelpers {
 
-  override def getQueryPlans(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
+  override def getQueryPlans(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
 
     val sft             = queryPlanner.sft
     val acc             = queryPlanner.acc
@@ -42,18 +41,15 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val cfPlanner       = IndexSchema.buildColumnFamilyPlanner(schema)
 
     output(s"Scanning ST index table for feature type ${sft.getTypeName}")
-    output(s"Filter: ${query.getFilter}")
+    output(s"Filter: ${filter.primary} ${filter.secondary.map(_.toString).getOrElse("")}")
 
     val dtgField = getDtgFieldName(sft)
 
-    val (geomFilters, otherFilters) = partitionGeom(query.getFilter, sft)
-    val (temporalFilters, ecqlFilters) = partitionTemporal(otherFilters, dtgField)
+    val (geomFilters, temporalFilters) = filter.primary.partition(isSpatialFilter)
+    val ecql = filter.secondary
 
-    val ecql = filterListAsAnd(ecqlFilters)
-
-    output(s"Geometry filters: $geomFilters")
-    output(s"Temporal filters: $temporalFilters")
-    output(s"Other filters: $ecqlFilters")
+    output(s"Geometry filters: ${filtersToString(geomFilters)}")
+    output(s"Temporal filters: ${filtersToString(temporalFilters)}")
 
     val tweakedGeomFilters = geomFilters.map(updateTopologicalFilters(_, sft))
 
@@ -73,7 +69,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     val interval = netInterval(temporal)
     val geometryToCover = netGeom(collectionToCover)
 
-    val filter = buildFilter(geometryToCover, interval)
+    val keyPlanningFilter = buildFilter(geometryToCover, interval)
     // This catches the case when a whole world query slips through DNF/CNF
     // The union on this geometry collection is necessary at the moment but is not true
     // If given spatial predicates like disjoint.
@@ -89,12 +85,12 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 
     output(s"STII Filter: ${ofilter.getOrElse("No STII Filter")}")
     output(s"Interval:  ${oint.getOrElse("No interval")}")
-    output(s"Filter: ${Option(filter).getOrElse("No Filter")}")
+    output(s"Filter: ${Option(keyPlanningFilter).getOrElse("No Filter")}")
 
-    val (iterators, kvsToFeatures, useIndexEntries) = if (query.getHints.isDensityQuery) {
-      val (width, height) = query.getHints.getDensityBounds.get
-      val envelope = query.getHints.getDensityEnvelope.get
-      val weight = query.getHints.getDensityWeight
+    val (iterators, kvsToFeatures, useIndexEntries) = if (hints.isDensityQuery) {
+      val (width, height) = hints.getDensityBounds.get
+      val envelope = hints.getDensityEnvelope.get
+      val weight = hints.getDensityWeight
       val p = iteratorPriority_AnalysisIterator
       val filterSeq = (ecql ++ ofilter).toSeq
       val filter = if (filterSeq.length > 1) {
@@ -107,30 +103,30 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
         DensityIterator.configure(sft, featureEncoding, schema, filter, envelope, width, height, weight, p)
       (Seq(iter), Z3DensityIterator.kvsToFeatures(), false)
     } else {
-      val iteratorConfig = IteratorTrigger.chooseIterator(ecql, query, sft)
-      val stiiIterCfg = getSTIIIterCfg(iteratorConfig, query, sft, ofilter, ecql, featureEncoding, version)
-      val aggIterCfg = configureAggregatingIterator(query, geometryToCover, schema, featureEncoding, sft)
+      val iteratorConfig = IteratorTrigger.chooseIterator(filter.filter, ecql, hints, sft)
+      val stiiIterCfg = getSTIIIterCfg(iteratorConfig, hints, sft, ofilter, ecql, featureEncoding, version)
+      val aggIterCfg = configureAggregatingIterator(hints, geometryToCover, schema, featureEncoding, sft)
 
       val indexEntries = iteratorConfig.iterator match {
         case IndexOnlyIterator      => true
         case SpatioTemporalIterator => false
       }
       val iters = Seq(stiiIterCfg) ++ aggIterCfg
-      val kvs = if (query.getHints.isBinQuery) {
+      val kvs = if (hints.isBinQuery) {
         // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
-        BinAggregatingIterator.nonAggregatedKvsToFeatures(query, sft, featureEncoding)
+        BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, hints, featureEncoding)
       } else {
-        queryPlanner.defaultKVsToFeatures(query)
+        queryPlanner.defaultKVsToFeatures(hints)
       }
       (iters, kvs, indexEntries)
     }
 
     // set up row ranges and regular expression filter
-    val qp = planQuery(filter, useIndexEntries, output, keyPlanner, cfPlanner)
+    val qp = planQuery(keyPlanningFilter, useIndexEntries, output, keyPlanner, cfPlanner)
 
     val table = acc.getSpatioTemporalTable(sft)
     val numThreads = acc.getSuggestedSpatioTemporalThreads(sft)
-    val hasDupes = STIdxStrategy.mayContainDuplicates(query, sft)
+    val hasDupes = STIdxStrategy.mayContainDuplicates(hints, sft)
     val res = qp.copy(table = table, iterators = iterators, kvsToFeatures = kvsToFeatures,
       numThreads = numThreads, hasDuplicates = hasDupes)
 
@@ -138,7 +134,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
   }
 
   private def getSTIIIterCfg(iteratorConfig: IteratorConfig,
-                     query: Query,
+                     hints: Hints,
                      featureType: SimpleFeatureType,
                      stFilter: Option[Filter],
                      ecqlFilter: Option[Filter],
@@ -146,11 +142,11 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
                      version: Int): IteratorSetting = {
     iteratorConfig.iterator match {
       case IndexOnlyIterator =>
-        configureIndexIterator(featureType, query, featureEncoding, stFilter,
+        configureIndexIterator(featureType, hints, featureEncoding, stFilter,
           iteratorConfig.transformCoversFilter, version)
       case SpatioTemporalIterator =>
-        configureSpatioTemporalIntersectingIterator(featureType, query, featureEncoding, stFilter,
-          ecqlFilter, query.getHints.isDensityQuery)
+        configureSpatioTemporalIntersectingIterator(featureType, hints, featureEncoding, stFilter,
+          ecqlFilter, hints.isDensityQuery)
     }
   }
 
@@ -169,7 +165,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
   def configureIndexIterator(
       featureType: SimpleFeatureType,
-      query: Query,
+      hints: Hints,
       featureEncoding: SerializationType,
       filter: Option[Filter],
       transformsCoverFilter: Boolean,
@@ -183,12 +179,12 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     configureVersion(cfg, version)
     if (transformsCoverFilter) {
       // apply the transform directly to the index iterator
-      getTransformSchema(query).foreach(testType => configureFeatureType(cfg, testType))
+      getTransformSchema(hints).foreach(testType => configureFeatureType(cfg, testType))
     } else {
       // we need to evaluate the original feature before transforming
       // transforms are applied afterwards
       configureFeatureType(cfg, featureType)
-      configureTransforms(cfg, query)
+      configureTransforms(cfg, hints)
     }
     configureIndexValues(cfg, featureType)
     configureFeatureEncoding(cfg, featureEncoding)
@@ -200,7 +196,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
   // 2) the DateTime intersects the query interval; this is a coarse-grained filter
   def configureSpatioTemporalIntersectingIterator(
       featureType: SimpleFeatureType,
-      query: Query,
+      hints: Hints,
       featureEncoding: SerializationType,
       stFilter: Option[Filter],
       ecqlFilter: Option[Filter],
@@ -216,7 +212,7 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
     }
     configureFeatureType(cfg, featureType)
     configureFeatureEncoding(cfg, featureEncoding)
-    configureTransforms(cfg, query)
+    configureTransforms(cfg, hints)
     configureEcqlFilter(cfg, combinedFilter.map(ECQL.toCQL))
     if (isDensity) {
       cfg.addOption(GEOMESA_ITERATORS_IS_DENSITY_TYPE, "isDensity")
@@ -254,16 +250,16 @@ class STIdxStrategy extends Strategy with Logging with IndexFilterHelpers {
 
 object STIdxStrategy extends StrategyProvider {
 
-  override def getStrategy(filter: Filter, sft: SimpleFeatureType, hints: StrategyHints) =
-    if (spatialFilters(filter) && !isFilterWholeWorld(filter)) {
-      val geom = sft.getGeometryDescriptor.getLocalName
-      val e1 = filter.asInstanceOf[BinarySpatialOperator].getExpression1
-      val e2 = filter.asInstanceOf[BinarySpatialOperator].getExpression2
-      checkOrder(e1, e2).filter(_.name == geom).map(_ => StrategyDecision(new STIdxStrategy, -1))
-    } else {
-      None
-    }
+  /**
+   * Gets the estimated cost of running the query. Currently, cost is hard-coded to sort between
+   * strategies the way we want. STIdx should be more than id lookups (at 1), high-cardinality attributes
+   * (at 1) and z3 queries (at 200) but less than unknown cardinality attributes (at 999).
+   *
+   * Eventually cost will be computed based on dynamic metadata and the query.
+   */
+  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) = 400
 
-  def mayContainDuplicates(query: Query, sft: SimpleFeatureType): Boolean =
-    !query.getHints.isDensityQuery && IndexSchema.mayContainDuplicates(sft)
+  def mayContainDuplicates(hints: Hints, sft: SimpleFeatureType): Boolean =
+    !hints.isDensityQuery && IndexSchema.mayContainDuplicates(sft)
+
 }

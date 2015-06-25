@@ -24,6 +24,7 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.{getTransformSchema, _}
 import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
 import org.locationtech.geomesa.features.SerializationType.SerializationType
@@ -64,7 +65,7 @@ object GeoMesaInputFormat extends Logging {
     // set up the underlying accumulo input format
     val user = AccumuloDataStoreFactory.params.userParam.lookUp(dsParams).asInstanceOf[String]
     val password = AccumuloDataStoreFactory.params.passwordParam.lookUp(dsParams).asInstanceOf[String]
-    InputFormatBase.setConnectorInfo(job, user, new PasswordToken(password.getBytes()))
+    InputFormatBase.setConnectorInfo(job, user, new PasswordToken(password.getBytes))
 
     val instance = AccumuloDataStoreFactory.params.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
     val zookeepers = AccumuloDataStoreFactory.params.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
@@ -75,7 +76,7 @@ object GeoMesaInputFormat extends Logging {
 
     // run an explain query to set up the iterators, ranges, etc
     val featureTypeName = query.getTypeName
-    val queryPlans = ds.getQueryPlan(featureTypeName, query)
+    val queryPlans = ds.getQueryPlan(query)
 
     // see if the plan is something we can execute from a single table
     val tryPlan = if (queryPlans.length > 1) None else queryPlans.headOption.filter {
@@ -92,7 +93,7 @@ object GeoMesaInputFormat extends Logging {
       val hints = ds.strategyHints(sft)
       val version = ds.getGeomesaVersion(sft)
       val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, hints, version)
-      val qps = queryPlanner.planQuery(query, Some(new STIdxStrategy()), ExplainNull)
+      val qps = queryPlanner.planQuery(query, Some(StrategyType.ST), ExplainNull)
       if (qps.length > 1) {
         logger.error("The query being executed requires multiple scans, which is not currently " +
             "supported by geomesa. Your result set will be partially incomplete. This is most likely due " +

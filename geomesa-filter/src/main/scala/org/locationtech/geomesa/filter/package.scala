@@ -10,13 +10,15 @@ package org.locationtech.geomesa
 
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.spatial._
-import org.opengis.filter.temporal.{BinaryTemporalOperator, TEquals}
+import org.opengis.filter.temporal._
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 package object filter {
 
@@ -39,7 +41,9 @@ package object filter {
 
   implicit def intToFilter(i: Int): RichFilter = intToAttributeFilter(i)
 
-
+  def filterToString(filter: Filter): String = Try(ECQL.toCQL(filter)).getOrElse(filter.toString)
+  def filterToString(filter: Option[Filter]): String = filter.map(filterToString).getOrElse("None")
+  def filtersToString(filters: Seq[Filter]): String = filters.map(filterToString).mkString(", ")
 
   /**
    * This function rewrites a org.opengis.filter.Filter in terms of a top-level OR with children filters which
@@ -174,14 +178,12 @@ package object filter {
    */
   def rewriteFilterInCNF(filter: Filter)(implicit ff: FilterFactory): Filter = {
     val ll =  logicDistributionCNF(filter)
-    if(ll.size == 1) {
-      if(ll(0).size == 1) ll(0)(0)
-      else ff.or(ll(0))
-    }
-    else  {
+    if (ll.size == 1) {
+      if (ll.head.size == 1) ll.head.head else ff.or(ll.head)
+    } else {
       val children = ll.map { l =>
         l.size match {
-          case 1 => l(0)
+          case 1 => l.head
           case _ => ff.or(l)
         }
       }
@@ -226,27 +228,39 @@ package object filter {
     case not: Not => not.getFilter
   }
 
+  type PartionedFilter = (Seq[Filter], Seq[Filter])
+
   // Takes a filter and returns a Seq of Geometric/Topological filters under it.
   //  As a note, currently, only 'good' filters are considered.
   //  The list of acceptable filters is defined by 'spatialFilters'
   //  The notion of 'good' here means *good* to handle to the STII.
   //  Of particular note, we should not give negations to the STII.
-  def partitionSubFilters(filter: Filter, filterFilter: Filter => Boolean): (Seq[Filter], Seq[Filter]) = {
+  def partitionSubFilters(filter: Filter, filterFilter: Filter => Boolean): PartionedFilter = {
     filter match {
       case a: And => decomposeAnd(a).partition(filterFilter)
-      case _ => Seq(filter).partition(filterFilter)
+      case _      => Seq(filter).partition(filterFilter)
     }
   }
 
-  def partitionGeom(filter: Filter, sft: SimpleFeatureType) =
-    partitionSubFilters(filter, primarySpatialFilters(_, sft))
+  def partitionPrimarySpatials(filter: Filter, sft: SimpleFeatureType): PartionedFilter =
+    partitionSubFilters(filter, isPrimarySpatialFilter(_, sft))
 
-  def partitionTemporal(filters: Seq[Filter], dtgAttr: Option[String]): (Seq[Filter], Seq[Filter]) =
-    dtgAttr.map { dtga => filters.partition(temporalFilters(dtga)) }.getOrElse((Seq(), filters))
+  def partitionPrimarySpatials(filters: Seq[Filter], sft: SimpleFeatureType): PartionedFilter =
+    filters.partition(isPrimarySpatialFilter(_, sft))
 
-  def partitionID(filter: Filter) = partitionSubFilters(filter, filterIsId)
+  def partitionPrimaryTemporals(filters: Seq[Filter], sft: SimpleFeatureType): PartionedFilter = {
+    val isTemporal = isPrimaryTemporalFilter(_: Filter, sft)
+    filters.partition(isTemporal)
+  }
 
-  def primarySpatialFilters(filter: Filter, sft: SimpleFeatureType): Boolean = {
+  def partitionIndexedAttributes(filters: Seq[Filter], sft: SimpleFeatureType): PartionedFilter =
+    filters.partition(isIndexedAttributeFilter(_, sft))
+
+  def partitionID(filter: Filter) = partitionSubFilters(filter, isIdFilter)
+
+  def isIdFilter(f: Filter): Boolean = f.isInstanceOf[Id]
+
+  def isPrimarySpatialFilter(filter: Filter, sft: SimpleFeatureType): Boolean = {
     val geom = sft.getGeometryDescriptor.getLocalName
     val primary = filter match {
       case f: BinarySpatialOperator =>
@@ -254,9 +268,129 @@ package object filter {
             .exists(p => p.name == null || p.name.isEmpty || p.name == geom)
       case _ => false
     }
-    primary && spatialFilters(filter)
+    primary && isSpatialFilter(filter)
   }
 
+  // Defines the topological predicates we like for use in the STII.
+  def isSpatialFilter(f: Filter): Boolean = {
+    f match {
+      case _: BBOX => true
+      case _: DWithin => true
+      case _: Contains => true
+      case _: Crosses => true
+      case _: Intersects => true
+      case _: Overlaps => true
+      case _: Within => true
+      case _ => false        // Beyond, Disjoint, DWithin, Equals, Touches
+    }
+  }
+
+  def isPrimaryTemporalFilter(f: Filter, sft: SimpleFeatureType): Boolean = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    sft.getDtgField.exists(dtg => getAttributeProperty(f).exists(_.name == dtg))
+  }
+
+  def isIndexedAttributeFilter(f: Filter, sft: SimpleFeatureType): Boolean = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+    def indexed(p: PropertyLiteral) = Option(sft.getDescriptor(p.name)).exists(_.isIndexed)
+    getAttributeProperty(f).exists(indexed)
+  }
+
+  def getAttributeProperty(f: Filter): Option[PropertyLiteral] = {
+    f match {
+      // equals checks
+      case f: PropertyIsEqualTo => checkOrder(f.getExpression1, f.getExpression2)
+      case f: TEquals           => checkOrder(f.getExpression1, f.getExpression2)
+
+      // like checks
+      case f: PropertyIsLike =>
+        if (likeEligible(f)) {
+          val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
+          Some(PropertyLiteral(prop, ff.literal(f.getLiteral), None))
+        } else {
+          None
+        }
+
+      // range checks
+      case f: PropertyIsGreaterThan          => checkOrder(f.getExpression1, f.getExpression2)
+      case f: PropertyIsGreaterThanOrEqualTo => checkOrder(f.getExpression1, f.getExpression2)
+      case f: PropertyIsLessThan             => checkOrder(f.getExpression1, f.getExpression2)
+      case f: PropertyIsLessThanOrEqualTo    => checkOrder(f.getExpression1, f.getExpression2)
+      case f: PropertyIsBetween =>
+        val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
+        val (left, right) = (f.getLowerBoundary, f.getUpperBoundary) match {
+          case (l: Literal, r: Literal) => (l, r)
+          case _ => (null, null)
+        }
+        if (left != null && right != null) {
+          Some(PropertyLiteral(prop, left, Some(right)))
+        } else {
+          None
+        }
+
+      // date range checks
+      case f: Before => checkOrder(f.getExpression1, f.getExpression2)
+      case f: After  => checkOrder(f.getExpression1, f.getExpression2)
+      case f: During => checkOrder(f.getExpression1, f.getExpression2)
+
+      // not check - we only support 'not null' for an indexed attribute
+      case n: Not =>
+        Option(n.getFilter).collect { case f: PropertyIsNull => f }.map { f =>
+          val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
+          PropertyLiteral(prop, null, None)
+        }
+
+      case _ => None
+    }
+  }
+
+  // Currently pulling the wildcard values from the filter
+  // leads to inconsistent results...so use % as wildcard
+  // TODO try to use wildcard values from the Filter itself (https://geomesa.atlassian.net/browse/GEOMESA-309)
+  val MULTICHAR_WILDCARD = "%"
+  val SINGLE_CHAR_WILDCARD = "_"
+
+  /* Like queries that can be handled by current reverse index */
+  def likeEligible(filter: PropertyIsLike): Boolean = containsNoSingles(filter) && trailingOnlyWildcard(filter)
+
+  /* contains no single character wildcards */
+  private def containsNoSingles(filter: PropertyIsLike) =
+    !filter.getLiteral.replace("\\\\", "").replace(s"\\$SINGLE_CHAR_WILDCARD", "").contains(SINGLE_CHAR_WILDCARD)
+
+  private def trailingOnlyWildcard(filter: PropertyIsLike) =
+    (filter.getLiteral.endsWith(MULTICHAR_WILDCARD) &&
+        filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == filter.getLiteral.length - MULTICHAR_WILDCARD.length) ||
+        filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == -1
+
+  def decomposeBinary(f: Filter): Seq[Filter] =
+    f match {
+      case b: BinaryLogicOperator => b.getChildren.toSeq.flatMap(decomposeBinary)
+      case f: Filter => Seq(f)
+    }
+
+  def decomposeAnd(f: Filter): Seq[Filter] =
+    f match {
+      case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
+      case f: Filter => Seq(f)
+    }
+
+  def decomposeOr(f: Filter): Seq[Filter] =
+    f match {
+      case b: Or => b.getChildren.toSeq.flatMap(decomposeOr)
+      case f: Filter => Seq(f)
+    }
+
+  def orFilters(filters: Seq[Filter])(implicit ff: FilterFactory): Filter =
+    if (filters.size == 1) { filters.head } else { ff.or(filters) }
+
+  def andFilters(filters: Seq[Filter])(implicit ff: FilterFactory): Filter =
+    if (filters.size == 1) { filters.head } else { ff.and(filters) }
+
+  def orOption(filters: Seq[Filter])(implicit ff: FilterFactory): Option[Filter] =
+    if (filters.size < 2) { filters.headOption } else { Some(ff.or(filters)) }
+
+  def andOption(filters: Seq[Filter])(implicit ff: FilterFactory): Option[Filter] =
+    if (filters.size < 2) { filters.headOption } else { Some(ff.and(filters)) }
 
   /**
    * Checks the order of properties and literals in the expression
@@ -286,78 +420,5 @@ package object filter {
    */
   def checkOrderUnsafe(one: Expression, two: Expression): PropertyLiteral =
     checkOrder(one, two)
-      .getOrElse(throw new RuntimeException("Expressions did not contain valid property and literal"))
-  // Defines the topological predicates we like for use in the STII.
-  def spatialFilters(f: Filter): Boolean = {
-    f match {
-      case _: BBOX => true
-      case _: DWithin => true
-      case _: Contains => true
-      case _: Crosses => true
-      case _: Intersects => true
-      case _: Overlaps => true
-      case _: Within => true
-      case _ => false        // Beyond, Disjoint, DWithin, Equals, Touches
-    }
-  }
-
-  // This function identifies filters which are either BinaryTemporal or between filters.
-  // Either way, we only want to use filters which use the indexed date attribute.
-  def temporalFilters(dtgAttr: String): Filter => Boolean = {
-    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter
-    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter.ops
-
-    def eitherSideIsAttribute[B](b: B)(implicit bf: BinaryFilter[B]) =
-      dtgAttr == b.left.toString || dtgAttr == b.right.toString
-
-    def filterIsApplicableTemporal: Filter => Boolean = {
-      // TEQUALS can't convert to ECQL, so don't consider it here
-      case _: TEquals => false
-      case bto: BinaryTemporalOperator => eitherSideIsAttribute(bto)
-      case _ => false
-    }
-
-    def filterIsBetween: Filter => Boolean = {
-      case between: PropertyIsBetween => dtgAttr == between.getExpression.toString
-      case _ => false
-    }
-
-    def filterIsComparisonTemporal: Filter => Boolean = {
-      case lt: PropertyIsLessThan             => eitherSideIsAttribute(lt)
-      case le: PropertyIsLessThanOrEqualTo    => eitherSideIsAttribute(le)
-      case gt: PropertyIsGreaterThan          => eitherSideIsAttribute(gt)
-      case ge: PropertyIsGreaterThanOrEqualTo => eitherSideIsAttribute(ge)
-      case _ => false
-    }
-
-    f => filterIsApplicableTemporal(f) ||
-         filterIsBetween(f) ||
-         filterIsComparisonTemporal(f)
-  }
-
-
-  def filterIsId(f: Filter): Boolean =
-    f match {
-      case _: Id => true
-      case _     => false
-    }
-
-
-  def decomposeBinary(f: Filter): Seq[Filter] =
-    f match {
-      case b: BinaryLogicOperator => b.getChildren.toSeq.flatMap(decomposeBinary)
-      case f: Filter => Seq(f)
-    }
-
-  def decomposeAnd(f: Filter): Seq[Filter] =
-    f match {
-      case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
-      case f: Filter => Seq(f)
-    }
-
-  def decomposeOr(f: Filter): Seq[Filter] =
-    f match {
-      case b: Or => b.getChildren.toSeq.flatMap(decomposeOr)
-      case f: Filter => Seq(f)
-    }
+        .getOrElse(throw new RuntimeException("Expressions did not contain valid property and literal"))
 }

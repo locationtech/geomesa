@@ -12,20 +12,17 @@ import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Coordinate
-import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
-import org.geotools.data.{DataStoreFinder, Query}
+import org.geotools.data.Query
 import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
-import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.accumulo.iterators.TestData
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
@@ -33,30 +30,44 @@ import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class AllPredicateTest extends Specification with FilterTester {
   val filters = goodSpatialPredicates
-  runTest
+  "all predicates" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
 }
 
 @RunWith(classOf[JUnitRunner])
 class AndGeomsPredicateTest extends FilterTester {
   val filters = andedSpatialPredicates
-  runTest
+  "and geom predicates" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
 }
 
 @RunWith(classOf[JUnitRunner])
 class OrGeomsPredicateTest extends FilterTester {
   val filters = oredSpatialPredicates
-  runTest
+  "or geom predicates" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
 }
 
 @RunWith(classOf[JUnitRunner])
 class OrGeomsPredicateWithProjectionTest extends FilterTester {
   val filters = oredSpatialPredicates
-  runTest
+  "or geom predicates with projection" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
 
   override def modifyQuery(query: Query): Unit = query.setPropertyNames(Array("geom"))
 }
@@ -64,75 +75,86 @@ class OrGeomsPredicateWithProjectionTest extends FilterTester {
 @RunWith(classOf[JUnitRunner])
 class BasicTemporalPredicateTest extends FilterTester {
   val filters = temporalPredicates
-  runTest
+  "basic temporal predicates" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
 }
 
 @RunWith(classOf[JUnitRunner])
 class BasicSpatioTemporalPredicateTest extends FilterTester {
   val filters = spatioTemporalPredicates
-  runTest
+  "basic spatiotemporal predicates" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
 }
 
 @RunWith(classOf[JUnitRunner])
 class AttributePredicateTest extends FilterTester {
   val filters = attributePredicates
-  runTest
+  "attribute predicates" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
 }
 
 @RunWith(classOf[JUnitRunner])
 class AttributeGeoPredicateTest extends FilterTester {
   val filters = attributeAndGeometricPredicates
-  runTest
+  "attribute geo predicates" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
 }
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class DWithinPredicateTest extends FilterTester {   
   val filters = dwithinPointPredicates
+  "dwithin predicates" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
 }
 
 @RunWith(classOf[JUnitRunner])
 class IdPredicateTest extends FilterTester {
   val filters = idPredicates
-  runTest
+  "id predicates" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
 }
 
 @RunWith(classOf[JUnitRunner])
-class IdQueryTest extends Specification {
+class IdQueryTest extends Specification with TestWithDataStore {
+
+  override val spec = "age:Int:index=true,name:String:index=true,dtg:Date,*geom:Point:srid=4326"
 
   val ff = CommonFactoryFinder.getFilterFactory2
-  val ds = {
-    DataStoreFinder.getDataStore(Map(
-      "instanceId"        -> "mycloud",
-      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"              -> "myuser",
-      "password"          -> "mypassword",
-      "auths"             -> "A,B,C",
-      "tableName"         -> "idquerytest",
-      "useMock"           -> "true",
-      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
-  }
   val geomBuilder = JTSFactoryFinder.getGeometryFactory
-  val sft = SimpleFeatureTypes.createType("idquerysft", "age:Int:index=true,name:String:index=true,dtg:Date,*geom:Point:srid=4326")
-  sft.getUserData.put(Constants.SF_PROPERTY_START_TIME,"dtg")
-  ds.createSchema(sft)
   val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
   val data = List(
     ("1", Array(10, "johndoe", new Date), geomBuilder.createPoint(new Coordinate(10, 10))),
     ("2", Array(20, "janedoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20))),
     ("3", Array(30, "johnrdoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20)))
   )
-  val featureCollection = new DefaultFeatureCollection()
-  val features = data.foreach { case (id, attrs, geom) =>
+  val features = data.map { case (id, attrs, geom) =>
     builder.reset()
     builder.addAll(attrs.asInstanceOf[Array[AnyRef]])
     val f = builder.buildFeature(id)
     f.setDefaultGeometry(geom)
     f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-    featureCollection.add(f)
+    f
   }
-  val fs = ds.getFeatureSource("idquerysft").asInstanceOf[SimpleFeatureStore]
-  fs.addFeatures(featureCollection)
-  fs.flush()
+
+  addFeatures(features)
 
   "Id queries" should {
     "use record table to return a result" >> {
@@ -155,65 +177,33 @@ class IdQueryTest extends Specification {
       val idQ =  ff.and(idQ1, idQ2)
       val qRes = fs.getFeatures(idQ)
       val res= qRes.features().toList
-
       res.length mustEqual 0
     }
   }
 }
 
-object FilterTester extends Logging {
-  val mediumDataFeatures: Seq[SimpleFeature] = TestData.mediumData.map(TestData.createSF)
-  val sft = mediumDataFeatures.head.getFeatureType
+trait FilterTester extends Specification with TestWithDataStore with Logging {
 
-  val ds = {
-    DataStoreFinder.getDataStore(Map(
-      "instanceId"        -> "mycloud",
-      "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      "user"              -> "myuser",
-      "password"          -> "mypassword",
-      "auths"             -> "A,B,C",
-      "tableName"         -> "filtertester",
-      "useMock"           -> "true",
-      "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
-  }
+  override def spec = SimpleFeatureTypes.encodeType(TestData.featureType)
 
-  def buildFeatureSource(): SimpleFeatureSource = {
-    ds.createSchema(sft)
-    val fs: AccumuloFeatureStore = ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore]
-    val coll = new DefaultFeatureCollection(sft.getTypeName)
-    coll.addAll(mediumDataFeatures)
+  val mediumDataFeatures: Seq[SimpleFeature] =
+    TestData.mediumData.map(TestData.createSF).map(f => new ScalaSimpleFeature(f.getID, sft, f.getAttributes.toArray))
 
-    logger.debug("Adding SimpleFeatures to feature store.")
-    fs.addFeatures(coll)
-    logger.debug("Done adding SimpleFeaturest to feature store.")
-
-    fs
-  }
-  val fs1 = buildFeatureSource()
-  val afr = ds.getFeatureReader(sft.getTypeName)
-}
-
-trait FilterTester extends Specification with Logging {
-  import FilterTester._
-  import filter._
-
-  val fs = fs1
+  addFeatures(mediumDataFeatures)
 
   def filters: Seq[String]
 
   def modifyQuery(query: Query): Unit = {}
 
   def compareFilter(filter: Filter) = {
-    logger.debug(s"Filter: ${ECQL.toCQL(filter)}")
-    s"The filter $filter" should {
-      "return the same number of results from filtering and querying" in {
-        val filterCount = mediumDataFeatures.count(filter.evaluate)
-        val queryCount = fs.getFeatures(filter).size
-        logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
-            s"filter hits: $filterCount query hits: $queryCount")
-        queryCount mustEqual filterCount
-      }
-    }
+    val filterCount = mediumDataFeatures.count(filter.evaluate)
+    val query = new Query(sftName, filter)
+    modifyQuery(query) // allow for tweaks in subclasses
+    val queryCount = fs.getFeatures(query).size
+    logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
+      s"filter hits: $filterCount query hits: $queryCount")
+    queryCount mustEqual filterCount
   }
-  def runTest = filters.map { s => compareFilter(s) }
+
+  def runTest() = forall(filters.map(ECQL.toFilter))(compareFilter)
 }

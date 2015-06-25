@@ -13,6 +13,7 @@ import java.util.Map.Entry
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.Query
+import org.geotools.factory.Hints
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.FunctionExpressionImpl
@@ -22,6 +23,7 @@ import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
+import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.util.CloseableIterator._
 import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIterator}
@@ -39,7 +41,6 @@ import org.opengis.filter.Filter
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.sort.{SortBy, SortOrder}
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
@@ -63,27 +64,27 @@ case class QueryPlanner(sft: SimpleFeatureType,
    * Plan the query, but don't execute it - used for m/r jobs and explain query
    */
   def planQuery(query: Query,
-                strategy: Option[Strategy] = None,
+                strategy: Option[StrategyType] = None,
                 output: ExplainerOutputType = log): Seq[QueryPlan] = {
-    getStrategyPlans(query, strategy, output)._1.map(_.plan)
+    getQueryPlans(query, strategy, output)._1
   }
 
   /**
    * Execute a query against geomesa
    */
-  def runQuery(query: Query, strategy: Option[Strategy] = None): SFIter = {
-    val (plans, numClauses) = getStrategyPlans(query, strategy, log)
+  def runQuery(query: Query, strategy: Option[StrategyType] = None): SFIter = {
+    val (plans, numClauses) = getQueryPlans(query, strategy, log)
     // don't deduplicate density queries, as they don't have dupes but re-use feature ids in the results
-    val dedupe = !query.getHints.isDensityQuery && (numClauses > 1 || plans.exists(_.plan.hasDuplicates))
+    val dedupe = !query.getHints.isDensityQuery && (numClauses > 1 || plans.exists(_.hasDuplicates))
     executePlans(query, plans, dedupe)
   }
 
   /**
    * Execute a sequence of query plans
    */
-  private def executePlans(query: Query, strategyPlans: Seq[StrategyPlan], deduplicate: Boolean): SFIter = {
-    def scan(sps: Seq[StrategyPlan]): SFIter = sps.iterator.ciFlatMap { sp =>
-      sp.strategy.execute(sp.plan, acc, log).map(sp.plan.kvsToFeatures)
+  private def executePlans(query: Query, queryPlans: Seq[QueryPlan], deduplicate: Boolean): SFIter = {
+    def scan(qps: Seq[QueryPlan]): SFIter = qps.iterator.ciFlatMap { qp =>
+      Strategy.execute(qp, acc, log).map(qp.kvsToFeatures)
     }
 
     def dedupe(iter: SFIter): SFIter = if (deduplicate) new DeDuplicatingIterator(iter) else iter
@@ -105,63 +106,64 @@ case class QueryPlanner(sft: SimpleFeatureType,
       iter
     }
 
-    reduce(sort(dedupe(scan(strategyPlans))))
+    reduce(sort(dedupe(scan(queryPlans))))
   }
 
   /**
    * Set up the query plans and strategies used to execute them.
    * Returns the strategy plans and the number of distinct OR clauses, needed for determining deduplication
    */
-  private def getStrategyPlans(query: Query,
-                               requested: Option[Strategy],
-                               output: ExplainerOutputType): (Seq[StrategyPlan], Int) = {
+  private def getQueryPlans(query: Query,
+                            requested: Option[StrategyType],
+                            output: ExplainerOutputType): (Seq[QueryPlan], Int) = {
     output(s"Planning ${ExplainerOutputType.toString(query)}")
-    // configure the query - set hints that we'll need later on
-    configureQuery(query, sft)
-    requested.foreach(r => output(s"STRATEGY FORCED TO ${r.getClass.getName}"))
+    requested.foreach(r => output(s"STRATEGY FORCED TO $r"))
+
+    configureQuery(query, sft) // configure the query - set hints that we'll need later on
+    if (query.getHints.isDensityQuery) { // add the bbox from the density query to the filter
+      val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
+      val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
+      if (query.getFilter == Filter.INCLUDE) {
+        query.setFilter(bbox)
+      } else {
+        // add the bbox - try to not duplicate an existing bbox
+        val filter = andFilters((decomposeAnd(query.getFilter) ++ Seq(bbox)).distinct)
+        query.setFilter(filter)
+      }
+    }
+
     implicit val timings = new TimingsImpl
     val (queryPlans, numClauses) = profile({
-      if (query.getHints.isDensityQuery) {
-        val env = query.getHints.get(DENSITY_BBOX_KEY).asInstanceOf[ReferencedEnvelope]
-        val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
-        val densityQuery = new Query(query)
-        if (densityQuery.getFilter == Filter.INCLUDE) {
-          densityQuery.setFilter(bbox)
-        } else {
-          // quick check to try to remove duplicate bboxes
-          val filters = (decomposeAnd(densityQuery.getFilter) ++ Seq(bbox)).distinct
-          densityQuery.setFilter(ff.and(filters))
-        }
-        val strategy = QueryStrategyDecider.chooseStrategy(sft, densityQuery, hints, version)
-        val plans = strategy.getQueryPlans(densityQuery, this, output)
-        (plans.map { p => StrategyPlan(strategy, p) }, 1)
-      } else {
-        // As a pre-processing step, we examine the query/filter and split it into multiple queries.
-        // TODO Work to make the queries non-overlapping
-        val splitQueries = splitQueryOnOrs(query, output)
-        val plans = splitQueries.flatMap { q =>
-          val strategy = requested.getOrElse(QueryStrategyDecider.chooseStrategy(sft, q, hints, version))
-          output(s"Strategy: ${strategy.getClass.getCanonicalName}")
-          output(s"Transforms: ${getTransformDefinition(query).getOrElse("None")}")
-          strategy.getQueryPlans(q, this, output).map { plan =>
-            output(s"Table: ${plan.table}")
-            output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all" else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
-            output(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).mkString(", ")}")
-            output(s"Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", ", ", "]")}")
-            StrategyPlan(strategy, plan)
-          }
-        }
-        (plans, splitQueries.length)
+      val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requested, version)
+      output(s"Strategy count: ${strategies.length}")
+      output(s"Transforms: ${getTransformDefinition(query).getOrElse("None")}")
+      val plans = strategies.flatMap { strategy =>
+        output(s"Strategy: ${strategy.getClass.getCanonicalName}")
+        output(s"Filter: ${strategy.filter.filterString}")
+        val plans = strategy.getQueryPlans(this, query.getHints, output)
+        plans.foreach(outputPlan(_, output))
+        plans
       }
+      (plans, strategies.length)
     }, "plan")
-    output(s"Query planning took ${timings.time("plan")} ms for $numClauses distinct queries.")
+    output(s"Query planning took ${timings.time("plan")}ms for $numClauses distinct queries.")
     (queryPlans, numClauses)
   }
 
+  // output the query plan for explain logging
+  private def outputPlan(plan: QueryPlan, output: ExplainerOutputType, joinPrefix: String = ""): Unit = {
+    output(s"${joinPrefix}Table: ${plan.table}")
+    output(s"${joinPrefix}Column Families${if (plan.columnFamilies.isEmpty) ": all"
+      else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
+    output(s"${joinPrefix}Ranges (${plan.ranges.size}): ${plan.ranges.take(5).mkString(", ")}")
+    output(s"${joinPrefix}Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", "],[", "]")}")
+    plan.join.foreach(j => outputPlan(j._2, output, "Join "))
+  }
+
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures
-  def defaultKVsToFeatures(query: Query): FeatureFunction = {
+  def defaultKVsToFeatures(hints: Hints): FeatureFunction = {
     // Perform a projecting decode of the simple feature
-    val returnSft = query.getHints.getReturnSft
+    val returnSft = hints.getReturnSft
     val deserializer = SimpleFeatureDeserializers(returnSft, featureEncoding)
     (kv: Entry[Key, Value]) => {
       val sf = deserializer.deserialize(kv.getValue.get)

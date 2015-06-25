@@ -100,7 +100,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
     def checkExplainStrategy(filter: String) = {
       val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg"))
       val explain = new ExplainString()
-      ds.explainQuery(sftName, query, explain)
+      ds.explainQuery(query, explain)
       val output = explain.toString()
       val iter = output.split("\n").filter(_.startsWith("Iterators")).headOption
       iter must beSome
@@ -134,7 +134,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       filters.foreach { case (filter, prop) =>
         val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg") ++ prop)
         val explain = new ExplainString()
-        ds.explainQuery(sftName, query, explain)
+        ds.explainQuery(query, explain)
         val output = explain.toString().split("\n")
         output.forall(s => !s.startsWith("AttributeIndexIterator:")) must beTrue
       }

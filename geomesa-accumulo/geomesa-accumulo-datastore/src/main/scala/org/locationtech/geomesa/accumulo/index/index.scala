@@ -78,14 +78,23 @@ package object index {
   /**
    * Get the transforms set in the query
    */
-  def getTransformDefinition(query: Query): Option[String] =
-    Option(query.getHints.get(TRANSFORMS).asInstanceOf[String])
+  def getTransformDefinition(query: Query): Option[String] = getTransformDefinition(query.getHints)
+
+  /**
+   * Get the transforms set in the query
+   */
+  def getTransformDefinition(hints: Hints): Option[String] = Option(hints.get(TRANSFORMS).asInstanceOf[String])
 
   /**
    * Get the transform schema set in the query
    */
-  def getTransformSchema(query: Query): Option[SimpleFeatureType] =
-    Option(query.getHints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
+  def getTransformSchema(query: Query): Option[SimpleFeatureType] = getTransformSchema(query.getHints)
+
+  /**
+   * Get the transform schema set in the query hints
+   */
+  def getTransformSchema(hints: Hints): Option[SimpleFeatureType] =
+    Option(hints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
 
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)

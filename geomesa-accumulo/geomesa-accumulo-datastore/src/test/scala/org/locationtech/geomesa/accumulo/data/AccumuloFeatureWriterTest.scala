@@ -22,7 +22,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
-import org.locationtech.geomesa.accumulo.index.{AttributeIdxEqualsStrategy, QueryStrategyDecider}
+import org.locationtech.geomesa.accumulo.index.{AttributeIdxStrategy, QueryStrategyDecider}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -363,7 +363,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
       val hints = ds.strategyHints(sft)
       val q = new Query(sft.getTypeName, filter)
-      QueryStrategyDecider.chooseStrategy(sft, q, hints, INTERNAL_GEOMESA_VERSION) must beAnInstanceOf[AttributeIdxEqualsStrategy]
+      QueryStrategyDecider.chooseStrategies(sft, q, hints, None, INTERNAL_GEOMESA_VERSION).head must beAnInstanceOf[AttributeIdxStrategy]
 
       import org.locationtech.geomesa.utils.geotools.Conversions._
 

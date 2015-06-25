@@ -55,8 +55,8 @@ class IteratorTriggerTest extends Specification {
      */
 
     def extractReWrittenCQL(query: Query, featureType: SimpleFeatureType): Option[Filter] = {
-      val (_, otherFilters) = partitionGeom(query.getFilter, featureType)
-      val (_, ecqlFilters: Seq[Filter]) = partitionTemporal(otherFilters, getDtgFieldName(featureType))
+      val (_, otherFilters) = partitionPrimarySpatials(query.getFilter, featureType)
+      val (_, ecqlFilters: Seq[Filter]) = partitionPrimaryTemporals(otherFilters, featureType)
 
       filterListAsAnd(ecqlFilters)
     }
@@ -111,7 +111,7 @@ class IteratorTriggerTest extends Specification {
     def useIndexOnlyIteratorTest(ecqlPred: String, transformText: Array[String]): Boolean = {
       val aQuery = TestTable.sampleQuery(ECQL.toFilter(ecqlPred), transformText)
       val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType)
-      IteratorTrigger.useIndexOnlyIterator(modECQLPred, aQuery, TestTable.testFeatureType)
+      IteratorTrigger.useIndexOnlyIterator(modECQLPred, aQuery.getHints, TestTable.testFeatureType)
     }
 
     /**
@@ -120,7 +120,7 @@ class IteratorTriggerTest extends Specification {
     def useSimpleFeatureFilteringIteratorTest(ecqlPred: String, transformText: Array[String]): Boolean = {
       val aQuery = TestTable.sampleQuery(ECQL.toFilter(ecqlPred), transformText)
       val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType)
-      IteratorTrigger.useSimpleFeatureFilteringIterator(modECQLPred, aQuery)
+      IteratorTrigger.useSimpleFeatureFilteringIterator(modECQLPred, aQuery.getHints)
     }
 
     /**
@@ -129,7 +129,7 @@ class IteratorTriggerTest extends Specification {
     def chooseIteratorTest(ecqlPred: String, transformText: Array[String]): IteratorConfig = {
       val aQuery = TestTable.sampleQuery(ECQL.toFilter(ecqlPred), transformText)
       val modECQLPred = TestTable.extractReWrittenCQL(aQuery, TestTable.testFeatureType)
-      IteratorTrigger.chooseIterator(modECQLPred, aQuery, TestTable.testFeatureType)
+      IteratorTrigger.chooseIterator(aQuery.getFilter, modECQLPred, aQuery.getHints, TestTable.testFeatureType)
     }
   }
     "useIndexOnlyIterator" should {
@@ -249,7 +249,7 @@ class IteratorTriggerTest extends Specification {
       def testOverlap(filter: String, attributes: Array[String]) = {
         val query = new Query("overlaptest", ECQL.toFilter(filter), attributes)
         QueryPlanner.setQueryTransforms(query, sft)
-        IteratorTrigger.doTransformsCoverFilters(query)
+        IteratorTrigger.doTransformsCoverFilters(query.getHints, query.getFilter)
       }
 
       "for single geom attribute" >> {
@@ -295,8 +295,8 @@ class IteratorTriggerTest extends Specification {
       val sft = SimpleFeatureTypes.createType(sftName, spec)
       val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg", "name"))
       QueryPlanner.setQueryTransforms(query, sft) // normally called by data store when getting feature reader
-      val iteratorChoice = IteratorTrigger.chooseAttributeIterator(None, query, sft, "name")
-      iteratorChoice.iterator mustEqual(IndexOnlyIterator)
+      val iteratorChoice = IteratorTrigger.chooseAttributeIterator(None, query.getHints, sft, "name")
+      iteratorChoice.iterator mustEqual IndexOnlyIterator
     }
     "be run when requesting extra index-encoded attributes" in {
       val sftName = "AttributeIndexIteratorTriggerTest"
@@ -304,8 +304,8 @@ class IteratorTriggerTest extends Specification {
       val sft = SimpleFeatureTypes.createType(sftName, spec)
       val query = new Query(sftName, ECQL.toFilter("name='bob'"), Array("geom", "dtg", "name", "age"))
       QueryPlanner.setQueryTransforms(query, sft) // normally called by data store when getting feature reader
-      val iteratorChoice = IteratorTrigger.chooseAttributeIterator(None, query, sft, "name")
-      iteratorChoice.iterator mustEqual(IndexOnlyIterator)
+      val iteratorChoice = IteratorTrigger.chooseAttributeIterator(None, query.getHints, sft, "name")
+      iteratorChoice.iterator mustEqual IndexOnlyIterator
     }
   }
 }

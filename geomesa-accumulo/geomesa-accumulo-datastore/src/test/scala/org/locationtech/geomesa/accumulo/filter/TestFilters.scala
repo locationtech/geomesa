@@ -189,9 +189,6 @@ object TestFilters {
     "attr1 = 'dummy' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND attr2 = 'dummy'",
     "attr1 = 'dummy' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
     "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
-    "attr1 = 'val56'",
-    "attr1 ILIKE '2nd1%'",
-    "attr1 ILIKE '2nd1%'",
     // The next query is *not* 'like-eligible'.  As such, we do *not* want to use it with the current attribute inde.
     "attr2 ILIKE '%1' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
     "dtgNonIdx DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND attr2 = 'val56'"
@@ -208,13 +205,19 @@ object TestFilters {
     "attr1 = 'val56' AND attr2 = 'val56'",
     "attr2 = 'val56' AND attr1 = 'val3'",
     "attr1 = 'val56' AND attr1 = 'val57' AND attr2 = 'val56'",
+    "high = 'val56' AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z",
+    "dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND high = 'val56'",
+    "attr2 = 'val56' AND NOT (INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))))"
+  )
+
+  val z3Predicates = Seq(
     "attr2 = 'val56' AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z",
-    "dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND attr2 = 'val56'",
-    "attr2 = 'val56' AND NOT (INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))))",
     "attr2 = 'val56' AND dtg BETWEEN '2010-07-01T00:00:00.000Z' AND '2010-07-31T00:00:00.000Z'",
+    "dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND attr2 = 'val56'",
     "dtg BETWEEN '2010-07-01T00:00:00.000Z' AND '2010-07-31T00:00:00.000Z' AND attr2 = 'val56'"
   )
 
+  // id queries
   val idPredicates = Seq(
     "IN('|data|100001','|data|100002')" ,
     "IN('|data|100003','|data|100005') AND IN('|data|100001')",
@@ -228,5 +231,12 @@ object TestFilters {
     "IN('|data|100001') AND WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20)))",
     "dtg DURING 2010-06-01T00:00:00.000Z/2010-08-31T23:59:59.000Z AND IN('|data|100001','|data|100002')" +
       "AND WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20))) AND attr2 = '2nd100001'"
+  )
+
+  // anything that can't be fulfilled with any other indexing strategy goes here
+  val nonIndexedPredicates = Seq(
+    "attr1 = 'val56'",
+    "attr1 ILIKE '2nd1%'",
+    "attr1 ILIKE '2nd1%'"
   )
 }

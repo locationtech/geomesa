@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.hadoop.io.Text
-import org.geotools.data.Query
+import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.temporal.`object`.DefaultPeriod
 import org.locationtech.geomesa.accumulo._
@@ -27,84 +27,75 @@ import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.FilterHelper._
-import org.locationtech.geomesa.filter.{PropertyLiteral, _}
+import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage.IndexCoverage
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.filter.{Filter, PropertyIsEqualTo, PropertyIsLike, _}
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
-trait AttributeIdxStrategy extends Strategy with Logging {
+class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Logging {
 
-  import org.locationtech.geomesa.accumulo.index.AttributeIndexStrategy._
+  import org.locationtech.geomesa.accumulo.index.AttributeIdxStrategy._
 
   /**
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
    */
-  def getAttributeIdxQueryPlan(query: Query,
-                               queryPlanner: QueryPlanner,
-                               attributeName: String,
-                               range: AccRange,
-                               output: ExplainerOutputType): QueryPlan = {
+  override def getQueryPlans(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
+    val propsAndRanges = filter.primary.map(getPropertyAndRange(_, queryPlanner.sft))
+    val attributeName = propsAndRanges.head._1
+    val ranges = propsAndRanges.map(_._2)
+    // ensure we only have 1 prop we're working on
+    assert(propsAndRanges.forall(_._1 == attributeName))
 
     val sft = queryPlanner.sft
     val acc = queryPlanner.acc
-
-    output(s"Scanning attribute table for feature type ${sft.getTypeName}")
-    output(s"Range: ${ExplainerOutputType.toString(range)}")
-    output(s"Filter: ${query.getFilter}")
-
-    val attributeIterators = scala.collection.mutable.ArrayBuffer.empty[IteratorSetting]
-
-    val (geomFilters, otherFilters) = partitionGeom(query.getFilter, sft)
-    val (temporalFilters, nonSTFilters) = partitionTemporal(otherFilters, getDtgFieldName(sft))
-
-    output(s"Geometry filters: $geomFilters")
-    output(s"Temporal filters: $temporalFilters")
-    output(s"Other filters: $nonSTFilters")
-
-    val stFilter: Option[Filter] = filterListAsAnd(geomFilters ++ temporalFilters)
-    val ecqlFilter: Option[Filter] = filterListAsAnd(nonSTFilters)
-
     val encoding = queryPlanner.featureEncoding
     val version = acc.getGeomesaVersion(sft)
     val hasDupes = sft.getDescriptor(attributeName).isMultiValued
 
-    val kvsToFeatures = if (query.getHints.isBinQuery) {
+    val attributeIterators = scala.collection.mutable.ArrayBuffer.empty[IteratorSetting]
+
+    val (stFilter, ecqlFilter) = filter.secondary.map { f =>
+      val (geomFilters, otherFilters) = partitionPrimarySpatials(f, sft)
+      val (temporalFilters, nonSTFilters) = partitionPrimaryTemporals(otherFilters, sft)
+      val st = andOption(geomFilters ++ temporalFilters)
+      val ecql = andOption(nonSTFilters)
+      (st, ecql)
+    }.getOrElse((None, None))
+
+    val kvsToFeatures = if (hints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
-      BinAggregatingIterator.nonAggregatedKvsToFeatures(query, sft, encoding)
+      BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, hints, encoding)
     } else {
-      queryPlanner.defaultKVsToFeatures(query)
+      queryPlanner.defaultKVsToFeatures(hints)
     }
 
     // choose which iterator we want to use - joining iterator or attribute only iterator
     val iteratorChoice: IteratorConfig =
-      IteratorTrigger.chooseAttributeIterator(ecqlFilter, query, sft, attributeName)
+      IteratorTrigger.chooseAttributeIterator(ecqlFilter, hints, sft, attributeName)
 
     iteratorChoice.iterator match {
       case IndexOnlyIterator =>
         // the attribute index iterator also handles transforms and date/geom filters
-        val cfg = configureAttributeIndexIterator(sft, encoding, query, stFilter, ecqlFilter,
+        val cfg = configureAttributeIndexIterator(sft, encoding, hints, stFilter, ecqlFilter,
           iteratorChoice.transformCoversFilter, attributeName, version)
         attributeIterators.append(cfg)
 
         // if this is a request for unique attribute values, add the skipping iterator to speed up response
-        if (query.getHints.containsKey(GEOMESA_UNIQUE)) {
+        if (hints.containsKey(GEOMESA_UNIQUE)) {
           attributeIterators.append(configureUniqueAttributeIterator())
         }
 
         // there won't be any non-date/time-filters if the index only iterator has been selected
         val table = acc.getAttributeTable(sft)
-        ScanPlan(table, range, attributeIterators.toSeq, Seq.empty, kvsToFeatures, hasDupes)
+        ranges.map(ScanPlan(table, _, attributeIterators.toSeq, Seq.empty, kvsToFeatures, hasDupes))
 
       case RecordJoinIterator =>
-        output("Using record join iterator")
         val recordIterators = scala.collection.mutable.ArrayBuffer.empty[IteratorSetting]
 
         stFilter.foreach { filter =>
@@ -114,7 +105,7 @@ trait AttributeIdxStrategy extends Strategy with Logging {
 
         if (iteratorChoice.hasTransformOrFilter) {
           // apply an iterator for any remaining transforms/filters
-          recordIterators.append(configureRecordTableIterator(sft, encoding, ecqlFilter, query))
+          recordIterators.append(configureRecordTableIterator(sft, encoding, ecqlFilter, hints))
         }
 
         // function to join the attribute index scan results to the record table
@@ -132,14 +123,14 @@ trait AttributeIdxStrategy extends Strategy with Logging {
         val attrTable = acc.getAttributeTable(sft)
         val attrThreads = acc.getSuggestedAttributeThreads(sft)
         val attrIters = attributeIterators.toSeq
-        JoinPlan(attrTable, Seq(range), attrIters, Seq.empty, attrThreads, hasDupes, joinFunction, joinQuery)
+        Seq(JoinPlan(attrTable, ranges, attrIters, Seq.empty, attrThreads, hasDupes, joinFunction, joinQuery))
     }
   }
 
   private def configureAttributeIndexIterator(
       featureType: SimpleFeatureType,
       encoding: SerializationType,
-      query: Query,
+      hints: Hints,
       stFilter: Option[Filter],
       ecqlFilter: Option[Filter],
       needsTransform: Boolean,
@@ -171,10 +162,10 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     if (needsTransform) {
       // we have to evaluate the filter against full feature then apply the transform
       configureFeatureType(cfg, featureType)
-      configureTransforms(cfg, query)
+      configureTransforms(cfg, hints)
     } else {
       // we can evaluate the filter against the transformed schema, so skip the original feature decoding
-      getTransformSchema(query).foreach(transformedType => configureFeatureType(cfg, transformedType))
+      getTransformSchema(hints).foreach(transformedType => configureFeatureType(cfg, transformedType))
     }
 
     cfg
@@ -212,119 +203,19 @@ trait AttributeIdxStrategy extends Strategy with Logging {
     )
 }
 
-class AttributeIdxEqualsStrategy extends AttributeIdxStrategy {
+object AttributeIdxStrategy extends StrategyProvider {
 
-  import org.locationtech.geomesa.accumulo.index.AttributeIndexStrategy._
-
-  override def getQueryPlans(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
-    val (strippedQuery, filter) = partitionFilter(query, queryPlanner.sft)
-    val (prop, range) = getPropertyAndRange(filter, queryPlanner.sft)
-    val ret = getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
-    Seq(ret)
-  }
-}
-
-class AttributeIdxRangeStrategy extends AttributeIdxStrategy {
-
-  import org.locationtech.geomesa.accumulo.index.AttributeIndexStrategy._
-
-  override def getQueryPlans(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
-    val (strippedQuery, filter) = partitionFilter(query, queryPlanner.sft)
-    val (prop, range) = getPropertyAndRange(filter, queryPlanner.sft)
-    val ret = getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
-    Seq(ret)
-  }
-}
-
-class AttributeIdxLikeStrategy extends AttributeIdxStrategy {
-
-  import org.locationtech.geomesa.accumulo.index.AttributeIndexStrategy._
-
-  override def getQueryPlans(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType) = {
-    val (strippedQuery, extractedFilter) = partitionFilter(query, queryPlanner.sft)
-    val (prop, range) = getPropertyAndRange(extractedFilter, queryPlanner.sft)
-    val ret = getAttributeIdxQueryPlan(strippedQuery, queryPlanner, prop, range, output)
-    Seq(ret)
-  }
-}
-
-object AttributeIndexStrategy extends StrategyProvider {
-
-  def cost(ad: AttributeDescriptor) = ad.getCardinality() match {
-    case Cardinality.HIGH => 1
-    case Cardinality.UNKNOWN => 999
-    case Cardinality.LOW => Int.MaxValue
-  }
-
-  override def getStrategy(filter: Filter, sft: SimpleFeatureType, hints: StrategyHints) = {
-    val indexed: (PropertyLiteral) => Boolean = (p: PropertyLiteral) => sft.getDescriptor(p.name).isIndexed
-    val costp: (PropertyLiteral) => Int = (p: PropertyLiteral) => cost(sft.getDescriptor(p.name))
-
-    filter match {
-      // equals strategy checks
-      case f: PropertyIsEqualTo =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(indexed)
-            .map(p => StrategyDecision(new AttributeIdxEqualsStrategy, costp(p)))
-      case f: TEquals =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(indexed)
-            .map(p => StrategyDecision(new AttributeIdxEqualsStrategy, costp(p)))
-
-      // like strategy checks
-      case f: PropertyIsLike =>
-        val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-        val descriptor = sft.getDescriptor(prop)
-        if (descriptor.isIndexed && QueryStrategyDecider.likeEligible(f)) {
-          Some(StrategyDecision(new AttributeIdxLikeStrategy, cost(descriptor)))
-        } else {
-          None
-        }
-
-      // range strategy checks
-      case f: PropertyIsBetween =>
-        val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-        val descriptor = sft.getDescriptor(prop)
-        if (descriptor.isIndexed) {
-          Some(StrategyDecision(new AttributeIdxRangeStrategy, cost(descriptor)))
-        } else {
-          None
-        }
-      case f: PropertyIsGreaterThan =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(indexed)
-            .map(p => StrategyDecision(new AttributeIdxRangeStrategy, costp(p)))
-      case f: PropertyIsGreaterThanOrEqualTo =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(indexed)
-            .map(p => StrategyDecision(new AttributeIdxRangeStrategy, costp(p)))
-      case f: PropertyIsLessThan =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(indexed)
-            .map(p => StrategyDecision(new AttributeIdxRangeStrategy, costp(p)))
-      case f: PropertyIsLessThanOrEqualTo =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(indexed)
-            .map(p => StrategyDecision(new AttributeIdxRangeStrategy, costp(p)))
-      case f: Before =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(indexed)
-            .map(p => StrategyDecision(new AttributeIdxRangeStrategy, costp(p)))
-      case f: After =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(indexed)
-            .map(p => StrategyDecision(new AttributeIdxRangeStrategy, costp(p)))
-      case f: During =>
-        checkOrder(f.getExpression1, f.getExpression2).filter(indexed)
-            .map(p => StrategyDecision(new AttributeIdxRangeStrategy, costp(p)))
-
-      // not check - we only support 'not null' for an indexed attribute
-      case n: Not =>
-        Option(n.getFilter).collect { case f: PropertyIsNull => f }.flatMap { f =>
-          val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-          val descriptor = sft.getDescriptor(prop)
-          if (descriptor.isIndexed) {
-            Some(StrategyDecision(new AttributeIdxRangeStrategy, cost(descriptor)))
-          } else {
-            None
-          }
-        }
-
-      // doesn't match any attribute strategy
-      case _ => None
-    }
+  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) = {
+    val cost = filter.primary.flatMap(getAttributeProperty).map { p =>
+      val descriptor = sft.getDescriptor(p.name)
+      val multiplier = if (descriptor.getIndexCoverage() == IndexCoverage.JOIN) 2 else 1
+      hints.cardinality(descriptor) match {
+        case Cardinality.HIGH    => 1 * multiplier
+        case Cardinality.UNKNOWN => 999 * multiplier
+        case Cardinality.LOW     => Int.MaxValue
+      }
+    }.sum
+    if (cost == 0) Int.MaxValue else cost // cost == 0 if somehow the filters don't match anything
   }
 
   /**
@@ -455,8 +346,8 @@ object AttributeIndexStrategy extends StrategyProvider {
         val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
         // Remove the trailing wildcard and create a range prefix
         val literal = f.getLiteral
-        val value = if (literal.endsWith(QueryStrategyDecider.MULTICHAR_WILDCARD)) {
-          literal.substring(0, literal.length - QueryStrategyDecider.MULTICHAR_WILDCARD.length)
+        val value = if (literal.endsWith(MULTICHAR_WILDCARD)) {
+          literal.substring(0, literal.length - MULTICHAR_WILDCARD.length)
         } else {
           literal
         }
@@ -514,33 +405,6 @@ object AttributeIndexStrategy extends StrategyProvider {
     val rowIdPrefix = getTableSharingPrefix(sft)
     val end = new Text(AttributeTable.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop)))
     AccRange.followingPrefix(end)
-  }
-
-  // This function assumes that the query's filter object is or has an attribute-idx-satisfiable
-  //  filter.  If not, you will get a None.get exception.
-  def partitionFilter(query: Query, sft: SimpleFeatureType): (Query, Filter) = {
-
-    val filter = query.getFilter
-
-    val (indexFilter: Option[Filter], cqlFilter) = filter match {
-      case and: And =>
-        val costFn = AttributeIndexStrategy.getStrategy(_ : Filter, sft, NoOpHints).map(_.cost)
-        findBest(costFn)(and.getChildren).extract
-      case f: Filter =>
-        (Some(f), Seq())
-    }
-
-    val nonIndexFilters = filterListAsAnd(cqlFilter).getOrElse(Filter.INCLUDE)
-
-    val newQuery = new Query(query)
-    newQuery.setFilter(nonIndexFilters)
-
-    if (indexFilter.isEmpty) {
-      throw new Exception(s"Partition Filter was called on $query for filter $filter. " +
-          "The AttributeIdxStrategy did not find a compatible sub-filter.")
-    }
-
-    (newQuery, indexFilter.get)
   }
 
   def configureAttributeName(cfg: IteratorSetting, attributeName: String) =

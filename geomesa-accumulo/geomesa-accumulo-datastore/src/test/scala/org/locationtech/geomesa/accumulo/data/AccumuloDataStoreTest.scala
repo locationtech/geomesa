@@ -33,6 +33,7 @@ import org.geotools.referencing.CRS
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, IndexIterator, TestData}
 import org.locationtech.geomesa.accumulo.util.{CloseableIterator, GeoMesaBatchWriterConfig, SelfClosingIterator}
@@ -196,7 +197,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       def testThreads(numThreads: Int) = {
         val params = dsParams ++ Map(param -> numThreads)
         val dst = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
-        val qpt = dst.getQueryPlan(sftName, query)
+        val qpt = dst.getQueryPlan(query)
         qpt must haveSize(1)
         qpt.head.table mustEqual dst.getZ3Table(sftName)
         qpt.head.numThreads mustEqual numThreads
@@ -205,7 +206,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       forall(Seq(1, 5, 8, 20, 100))(testThreads)
 
       // check default
-      val qpt = ds.getQueryPlan(sftName, query)
+      val qpt = ds.getQueryPlan(query)
       qpt must haveSize(1)
       qpt.head.table mustEqual ds.getZ3Table(sftName)
       qpt.head.numThreads mustEqual 8
@@ -248,17 +249,17 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
       val explainNull = {
         val o = new ExplainString
-        ds.explainQuery(sftName, queryNull, o)
+        ds.explainQuery(queryNull, o)
         o.toString()
       }
       val explainEmpty = {
         val o = new ExplainString
-        ds.explainQuery(sftName, queryEmpty, o)
+        ds.explainQuery(queryEmpty, o)
         o.toString()
       }
 
-      explainNull must contain("Geometry filters: List([ null bbox POLYGON ((40 44, 40 54, 50 54, 50 44, 40 44)) ])")
-      explainEmpty must contain("Geometry filters: List([  bbox POLYGON ((40 44, 40 54, 50 54, 50 44, 40 44)) ])")
+      explainNull must contain("Geometry filters: BBOX(null, 40.0,44.0,50.0,54.0)")
+      explainEmpty must contain("Geometry filters: BBOX(, 40.0,44.0,50.0,54.0)")
 
       val featuresNull = ds.getFeatureSource(sftName).getFeatures(queryNull).features.toSeq.map(_.getID)
       val featuresEmpty = ds.getFeatureSource(sftName).getFeatures(queryEmpty).features.toSeq.map(_.getID)
@@ -552,10 +553,9 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
       val query = new Query(sftName, ECQL.toFilter("BBOX(geom,40,40,50,50)"))
       query.getHints.put(BIN_TRACK_KEY, "name")
-      val strategy = new STIdxStrategy()
       val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft),
         ds.getIndexSchemaFmt(sftName), ds, ds.strategyHints(sft), ds.getGeomesaVersion(sft))
-      val results = queryPlanner.runQuery(query, Some(strategy)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      val results = queryPlanner.runQuery(query, Some(StrategyType.ST)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(2)
@@ -691,7 +691,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val fr = ds.getFeatureReader(sftName)
       fr must not beNull;
       val out = new ExplainString
-      ds.explainQuery(sftName, new Query(sftName, Filter.INCLUDE), out)
+      ds.explainQuery(new Query(sftName, Filter.INCLUDE), out)
       val explain = out.toString()
       explain must startWith(s"Planning Query")
     }
@@ -1144,7 +1144,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       // verify that the IndexIterator is getting used with the extra field
       val explain = {
         val out = new ExplainString
-        ds.explainQuery(sftName, query, out)
+        ds.explainQuery(query, out)
         out.toString()
       }
       explain must contain(classOf[IndexIterator].getName)
@@ -1191,7 +1191,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       // verify that the IndexIterator is getting used
       val explain = {
         val out = new ExplainString
-        ds.explainQuery(sftName, query, out)
+        ds.explainQuery(query, out)
         out.toString()
       }
       explain must contain(classOf[IndexIterator].getName)
@@ -1216,7 +1216,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val query = new Query(sftName, filter, Array("geom"))
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(sftName, query, o)
+        ds.explainQuery(query, o)
         o.toString()
       }
       ds.removeSchema(sftName)
@@ -1230,12 +1230,11 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val query = new Query(sftName, filter, Array("geom"))
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(sftName, query, o)
+        ds.explainQuery(query, o)
         o.toString()
       }
       ds.removeSchema(sftName)
-      explain must contain("No STII Filter")
-      explain must contain("Filter: AcceptEverythingFilter")
+      explain.split("\n").filter(_.startsWith("Filter:")).toSeq mustEqual Seq("Filter: primary filter: INCLUDE, secondary filter: None")
     }
 
     "create key plan that does not use STII when given something larger than the Whole World bbox" in {
@@ -1245,12 +1244,11 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val query = new Query(sftName, filter, Array("geom"))
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(sftName, query, o)
+        ds.explainQuery(query, o)
         o.toString()
       }
       ds.removeSchema(sftName)
-      explain must contain("No STII Filter")
-      explain must contain("Filter: AcceptEverythingFilter")
+      explain.split("\n").filter(_.startsWith("Filter:")).toSeq mustEqual Seq("Filter: primary filter: INCLUDE, secondary filter: None")
     }
 
     "create key plan that does not use STII when given an or'd geometry query with redundant bbox" in {
@@ -1261,13 +1259,11 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val query = new Query(sftName, filter, Array("geom"))
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(sftName, query, o)
+        ds.explainQuery(query, o)
         o.toString()
       }
       ds.removeSchema(sftName)
-      explain must not contain("STII Filter: [ geom bbox ")
-      explain must contain("No STII Filter")
-      explain must contain("Filter: AcceptEverythingFilter")
+      explain.split("\n").filter(_.startsWith("Filter:")) mustEqual Seq("Filter: primary filter: INCLUDE, secondary filter: None")
     }.pendingUntilFixed("Fixed query planner to deal with OR'd redundant geom with whole world")
 
     "create key plan that does not use STII when given two bboxes that when unioned are the whole world" in {
@@ -1278,7 +1274,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val query = new Query(sftName, filter, Array("geom"))
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(sftName, query, o)
+        ds.explainQuery(query, o)
         o.toString()
       }
       ds.removeSchema(sftName)
@@ -1308,7 +1304,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(sftName1, query, o)
+        ds.explainQuery(query, o)
         o.toString()
       }
       explain must not contain "GeoHashKeyPlanner: KeyInvalid"

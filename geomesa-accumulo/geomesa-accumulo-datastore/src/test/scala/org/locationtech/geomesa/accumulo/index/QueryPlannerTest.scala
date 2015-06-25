@@ -16,7 +16,6 @@ import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security._
 import org.opengis.filter.sort.SortBy
@@ -75,7 +74,7 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
         new SimpleEntry[Key, Value](key, value)
       }
 
-      val expectedResult = kvs.map(planner.defaultKVsToFeatures(query)).map(_.visibility)
+      val expectedResult = kvs.map(planner.defaultKVsToFeatures(query.getHints)).map(_.visibility)
 
       expectedResult must haveSize(kvs.length)
       expectedResult mustEqual expectedVis
