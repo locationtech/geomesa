@@ -48,6 +48,10 @@ object Z3Table extends GeoMesaTable {
 
   override val suffix: String = "z3"
 
+  // z3 always needs a separate table since we don't include the feature name in the row key
+  override def formatTableName(prefix: String, sft: SimpleFeatureType): String =
+    GeoMesaTable.formatSoloTableName(prefix, suffix, sft)
+
   override def writer(sft: SimpleFeatureType): Option[FeatureToMutations] = {
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
     val writer = new KryoFeatureSerializer(sft)
