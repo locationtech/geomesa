@@ -72,7 +72,7 @@ GeoMesa provides the ability to analyze your data through histograms.
 The job can be invoked through yarn as follows (jar version may vary slightly):
 
 ```shell
-geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0-shaded.jar \
+geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
     com.twitter.scalding.Tool \
     org.locationtech.geomesa.jobs.analytics.HistogramJob \
     --hdfs \
@@ -112,7 +112,7 @@ index additional attributes, you can use the attribute indexing job. You only ne
 The job can be invoked through yarn as follows (jar version may vary slightly):
 
 ```shell
-geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0-shaded.jar \
+geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
     com.twitter.scalding.Tool \
     org.locationtech.geomesa.jobs.index.AttributeIndexJob \
     --hdfs \
@@ -137,7 +137,7 @@ to update to the new version, you may use the SortedIndexUpdateJob.
 The job can be invoked through yarn as follows (jar version may vary slightly):
 
 ```shell
-yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0-shaded.jar \
+yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
     com.twitter.scalding.Tool \
     org.locationtech.geomesa.jobs.index.SortedIndexUpdateJob \
     --hdfs \
@@ -147,6 +147,38 @@ yarn jar geomesa-jobs/target/geomesa-jobs-accumulo1.5-1.0.0-shaded.jar \
     --geomesa.input.password <pwd> \
     --geomesa.input.tableName <catalog-table> \
     --geomesa.input.feature <feature>
+```
+
+(Note that if you did not build with the 'assemble' profile, you will also need to include an extensive
+-libjars argument with all dependent jars)
+
+#### Updating Existing Data to the Latest Index Format
+
+GeoMesa is constantly improving our indexing. We strive to maintain backwards comaptiblity, but old data
+can't always take advantage of the improvements we make. However, old data can be updated through the
+SchemaCopyJob. This will copy it to a new table (or feature name), rewriting all the data using the latest
+codebase. Once the data is updated, you can drop the old tables and rename the new tables back to the
+original names.
+
+The job can be invoked through yarn as follows (jar version may vary slightly):
+
+```shell
+yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
+    com.twitter.scalding.Tool \
+    org.locationtech.geomesa.jobs.index.SchemaCopyJob \
+    --hdfs \
+    --geomesa.input.instanceId <instance> \
+    --geomesa.output.instanceId <instance> \
+    --geomesa.input.zookeepers <zookeepers> \
+    --geomesa.output.zookeepers <zookeepers> \
+    --geomesa.input.user <user> \
+    --geomesa.output.user <user> \
+    --geomesa.input.password <pwd> \
+    --geomesa.output.password <pwd> \
+    --geomesa.input.tableName <catalog-table> \
+    --geomesa.output.tableName <new-catalog-table> \
+    --geomesa.input.feature <feature> \
+    --geomesa.output.feature <feature>
 ```
 
 (Note that if you did not build with the 'assemble' profile, you will also need to include an extensive
