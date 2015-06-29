@@ -26,6 +26,7 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
+import org.locationtech.geomesa.utils.uuid.TimeSortedUuidGenerator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -88,8 +89,11 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
     featureWriter(writers)
   }
 
-  /* Return a String representing nextId - use UUID.random for universal uniqueness across multiple ingest nodes */
-  protected def nextFeatureId = UUID.randomUUID().toString
+  /**
+   *  Return a String representing nextId - we use a partially time based UUID so we get some data locality,
+   *  but partially random to ensure uniqueness across multiple ingest nodes.
+   */
+  protected def nextFeatureId = TimeSortedUuidGenerator.createUuid().toString
 
   protected val builder = ScalaSimpleFeatureFactory.featureBuilder(sft)
 
