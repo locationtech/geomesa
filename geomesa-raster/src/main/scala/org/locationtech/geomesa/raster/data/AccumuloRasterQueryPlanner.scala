@@ -9,9 +9,9 @@
 
 package org.locationtech.geomesa.raster.data
 
-import com.google.common.collect.ImmutableSetMultimap
+import com.google.common.collect.{ImmutableMap, ImmutableSetMultimap}
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.hadoop.io.Text
@@ -28,18 +28,35 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-// TODO: Consider adding resolutions + extent info  https://geomesa.atlassian.net/browse/GEOMESA-645
-class AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
-  import AccumuloRasterQueryPlanner._
+object AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
 
-  def getQueryPlan(rq: RasterQuery, resAndGeoHashMap: ImmutableSetMultimap[Double, Int]): Option[QueryPlan] = {
-    val availableResolutions = resAndGeoHashMap.keySet().toList.sorted
+  def improvedOverlaps(a: Envelope, b: Envelope): Boolean = a.intersects(b) && a.intersection(b).getArea != 0.0
 
-    // Step 1. Pick resolution
-    val selectedRes: Double = selectResolution(rq.resolution, availableResolutions)
+  def getAcceptableResolution(rq: RasterQuery, resAndBoundsMap: ImmutableMap[Double, BoundingBox]): Option[Double] = {
+    val availableResolutions = resAndBoundsMap.keySet().toList.sorted
+    val preferredRes: Double = selectResolution(rq.resolution, availableResolutions)
+    getCourserBounds(rq.bbox, preferredRes, resAndBoundsMap)
+  }
+
+  @tailrec
+  def getCourserBounds(qb: BoundingBox, r: Double, rToB: ImmutableMap[Double, BoundingBox]): Option[Double] = {
+    // get finest bounds that satisfies our needs
+    if (rToB.containsKey(r)) {
+      if (improvedOverlaps(qb.envelope, rToB.get(r).envelope)) Some(r) else {
+        val cr = rToB.keys.filter(_ > r)
+        if (cr.nonEmpty) getCourserBounds(qb, cr.min, rToB) else None
+      }
+    } else None
+  }
+
+  def getQueryPlan(rq: RasterQuery, resAndGeoHashMap: ImmutableSetMultimap[Double, Int],
+                    resAndBoundsMap: ImmutableMap[Double, BoundingBox]): Option[QueryPlan] = {
+    // Step 1. Pick resolution and Make sure the query extent is contained in the extent at that resolution
+    val selectedRes: Double = getAcceptableResolution(rq, resAndBoundsMap).getOrElse(defaultResolution)
     val res = lexiEncodeDoubleToString(selectedRes)
 
     // Step 2. Pick GeoHashLength
@@ -61,17 +78,16 @@ class AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
       case _ => Try(BoundingBox.getGeoHashesFromBoundingBox(rq.bbox)) getOrElse List.empty[String]
     }
 
-    logger.debug(s"RasterQueryPlanner: BBox: ${rq.bbox} has geohashes: $hashes, and has encoded Resolution: $res")
-    logger.debug(s"Scanning at res: $selectedRes, with hashes: $hashes")
+    // Step 4. Arrive at final ranges
     val r = hashes.map { gh => modifyHashRange(gh, expectedGeoHashLen, res) }.distinct
 
     if (r.isEmpty) {
-      logger.debug(s"RasterQueryPlanner: Query was invalid given BBox: ${rq.bbox}")
+      logger.warn(s"AccumuloRasterQueryPlanner: Query was invalid given RasterQuery: $rq")
       None
     } else {
       // of the Ranges enumerated, get the merge of the overlapping Ranges
       val rows = ARange.mergeOverlapping(r)
-      logger.debug(s"Scanning with ranges: $rows")
+      logger.debug(s"AccumuloRasterQueryPlanner: Decided to Scan at res: $selectedRes, at rows: $rows, for BBox: ${rq.bbox}")
       // setup the RasterFilteringIterator
       val cfg = new IteratorSetting(RFI.priority, RFI.name, classOf[RFI])
       configureRasterFilter(cfg, constructRasterFilter(rq.bbox.geom, rasterSft))
@@ -97,10 +113,6 @@ class AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
     ret
   }
 
-
-}
-
-object AccumuloRasterQueryPlanner {
   val ff = CommonFactoryFinder.getFilterFactory2
 
   def constructRasterFilter(geom: Geometry, featureType: SimpleFeatureType): Filter = {

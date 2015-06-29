@@ -35,6 +35,8 @@ object RasterTestsUtils {
   val quadrant3 = BoundingBox(-112.5, -90.0, 0, 22.5)
   val quadrant4 = BoundingBox(-90.0, -67.5, 0, 22.5)
 
+  val wholeworld = BoundingBox(-180, 180, -90, 90)
+
   val defaultGridCoverageFactory = new GridCoverageFactory
 
   def createMockRasterStore(tableName: String) = {

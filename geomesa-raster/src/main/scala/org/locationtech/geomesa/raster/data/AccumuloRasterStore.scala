@@ -14,7 +14,7 @@ import java.util.concurrent.{Callable, TimeUnit}
 import java.util.{Map => JMap}
 
 import com.google.common.cache.CacheBuilder
-import com.google.common.collect.ImmutableSetMultimap
+import com.google.common.collect.{ImmutableMap, ImmutableSetMultimap}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
@@ -50,7 +50,7 @@ class AccumuloRasterStore(val connector: Connector,
 
   // TODO: WCS: GEOMESA-585 Add ability to use arbitrary schemas
   val schema = RasterIndexSchema
-  lazy val queryPlanner: AccumuloRasterQueryPlanner = new AccumuloRasterQueryPlanner
+  val queryPlanner = AccumuloRasterQueryPlanner
 
   private val tableOps       = connector.tableOperations()
   private val securityOps    = connector.securityOperations
@@ -88,7 +88,7 @@ class AccumuloRasterStore(val connector: Connector,
   def getRasters(rasterQuery: RasterQuery)(implicit timings: Timings): Iterator[Raster] = {
     profile({
       val batchScanner = connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, numQThreads)
-      val plan = queryPlanner.getQueryPlan(rasterQuery, getAvailabilityMap)
+      val plan = queryPlanner.getQueryPlan(rasterQuery, getResToGeoHashLenMap, getResToBoundsMap)
       plan match {
         case Some(qp) =>
           configureBatchScanner(batchScanner, qp)
@@ -116,25 +116,43 @@ class AccumuloRasterStore(val connector: Connector,
     }
   }
 
-  // TODO: Consider adding resolutions + extent info  https://geomesa.atlassian.net/browse/GEOMESA-645
-  def getAvailableResolutions: Seq[Double] = getAvailabilityMap.keySet.toSeq.sorted
+  def getAvailableBoundingBoxes: Seq[BoundingBox] = getResToBoundsMap.values().toSeq
 
-  def getAvailableGeoHashLengths: Set[Int] = getAvailabilityMap.values().toSet
+  def getAvailableResolutions: Seq[Double] = getResToGeoHashLenMap.keySet.toSeq.sorted
 
-  def getAvailabilityMap: ImmutableSetMultimap[Double, Int] = AccumuloRasterStore.boundsCache.get(tableName, callable)
+  def getAvailableGeoHashLengths: Set[Int] = getResToGeoHashLenMap.values().toSet
 
-  def callable = new Callable[ImmutableSetMultimap[Double, Int]] {
+  def getResToGeoHashLenMap: ImmutableSetMultimap[Double, Int] = AccumuloRasterStore.geoHashLenCache.get(tableName, resToGeoHashLenMapCallable)
+
+  def resToGeoHashLenMapCallable = new Callable[ImmutableSetMultimap[Double, Int]] {
     override def call(): ImmutableSetMultimap[Double, Int] = {
-      ensureBoundsTableExists()
-      val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths)
-      scanner.setRange(new Range(getBoundsRowID))
-      val scanResultingKeys = SelfClosingIterator(scanner).map(_.getKey).toSeq
+      val scanResultingKeys = metaScanner().map(_.getKey).toSeq
       val geohashlens = scanResultingKeys.map(_.getColumnFamily.toString).map(lexiDecodeStringToInt)
       val resolutions = scanResultingKeys.map(_.getColumnQualifier.toString).map(lexiDecodeStringToDouble)
       val m = new ImmutableSetMultimap.Builder[Double, Int]()
       (resolutions zip geohashlens).foreach(x => m.put(x._1, x._2))
       m.build()
     }
+  }
+
+  def getResToBoundsMap: ImmutableMap[Double, BoundingBox] = AccumuloRasterStore.extentCache.get(tableName, resToBoundsCallable)
+
+  def resToBoundsCallable = new Callable[ImmutableMap[Double, BoundingBox]] {
+    override def call(): ImmutableMap[Double, BoundingBox] = {
+      val kvs = metaScanner().toVector
+      val resolutions = kvs.map(_.getKey.getColumnQualifier.toString).map(lexiDecodeStringToDouble)
+      val bounds = kvs.map(_.getValue).map(valueToBbox)
+      val m = new ImmutableMap.Builder[Double, BoundingBox]()
+      (resolutions zip bounds).foreach(x => m.put(x._1, x._2))
+      m.build()
+    }
+  }
+
+  val metaScanner = () => {
+    ensureBoundsTableExists()
+    val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths)
+    scanner.setRange(new Range(getBoundsRowID))
+    SelfClosingIterator(scanner)
   }
 
   def getGridRange: GridEnvelope2D = {
@@ -258,7 +276,7 @@ class AccumuloRasterStore(val connector: Connector,
         deleter.setRanges(Seq(deleteRange))
         deleter.delete()
         deleter.close()
-        AccumuloRasterStore.boundsCache.invalidate(tableName)
+        AccumuloRasterStore.geoHashLenCache.invalidate(tableName)
       }
     } catch {
       case e: Exception => logger.warn(s"Error occurred when attempting to delete Metadata for table: $tableName")
@@ -314,11 +332,17 @@ object AccumuloRasterStore {
       auths, vis, useMock, wMem, wThread, qThread, cStats)
   }
 
-  val boundsCache =
+  val geoHashLenCache =
     CacheBuilder.newBuilder()
       .expireAfterAccess(10, TimeUnit.MINUTES)
       .expireAfterWrite(10, TimeUnit.MINUTES)
       .build[String, ImmutableSetMultimap[Double, Int]]
+
+  val extentCache =
+    CacheBuilder.newBuilder()
+      .expireAfterAccess(10, TimeUnit.MINUTES)
+      .expireAfterWrite(10, TimeUnit.MINUTES)
+      .build[String, ImmutableMap[Double, BoundingBox]]
 }
 
 object AccumuloRasterTableConfig {

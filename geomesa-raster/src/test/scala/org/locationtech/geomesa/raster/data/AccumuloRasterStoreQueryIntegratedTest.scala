@@ -70,7 +70,7 @@ class AccumuloRasterStoreQueryIntegratedTest extends Specification {
       rasters.length must beEqualTo(1)
 
       // test the bounds
-      theStore.getAvailabilityMap.isEmpty must beFalse
+      theStore.getResToGeoHashLenMap.isEmpty must beFalse
       val theBounds = theStore.getBounds
       theBounds must beAnInstanceOf[BoundingBox]
       theBounds.maxLon must beEqualTo(50.0)
@@ -91,7 +91,7 @@ class AccumuloRasterStoreQueryIntegratedTest extends Specification {
       tableOps.exists(s"${tableName}_queries") must beFalse
       // the deleteRasterTable does not delete the bounds table, just metadata rows contained in the table
       tableOps.exists(GEOMESA_RASTER_BOUNDS_TABLE) must beTrue
-      theStore.getAvailabilityMap.isEmpty must beTrue
+      theStore.getResToGeoHashLenMap.isEmpty must beTrue
     }
 
     "create an empty RasterStore and return nothing" in {
@@ -102,8 +102,8 @@ class AccumuloRasterStoreQueryIntegratedTest extends Specification {
       val query = generateQuery(0, 50, 0, 50)
 
       rasterStore must beAnInstanceOf[AccumuloRasterStore]
-      val theResults = rasterStore.getRasters(query).toList
-      theResults.length must beEqualTo(0)
+      val theResults = rasterStore.getRasters(query)
+      theResults.toList.length must beEqualTo(0)
     }
 
     "create a Raster Store, populate it and run a query" in {
@@ -580,7 +580,7 @@ class AccumuloRasterStoreQueryIntegratedTest extends Specification {
       rasterStore.putRaster(testRaster4)
 
       rasterStore must beAnInstanceOf[AccumuloRasterStore]
-      val theAvailability = rasterStore.getAvailabilityMap
+      val theAvailability = rasterStore.getResToGeoHashLenMap
       theAvailability.keys().size() must beEqualTo(3)
       theAvailability.keySet().size() must beEqualTo(2)
       theAvailability.values().size() must beEqualTo(3)
