@@ -20,7 +20,7 @@
 
     <properties>
         <geotools.version>11.2</geotools.version>
-        <geomesa.version>1.1.0-rc.2-SNAPSHOT</geomesa.version>
+        <geomesa.version>1.1.0-rc.3-SNAPSHOT</geomesa.version>
         <kafka.version>0.8.2.1</kafka.version>
     </properties>
 

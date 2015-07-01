@@ -11,7 +11,6 @@ package org.locationtech.geomesa.filter
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.filter.TestFilters._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter._
 import org.specs2.mutable.Specification
@@ -22,6 +21,8 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class FilterPackageObjectTest extends Specification with Logging {
+
+  import TestFilters._
 
   "The partitionGeom function" should {
     val sft = SimpleFeatureTypes.createType("filterPackageTest", "g:Geometry,*geom:Geometry")

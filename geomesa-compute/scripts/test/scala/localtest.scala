@@ -7,7 +7,7 @@
 *************************************************************************/
 
 // Run with:
-// bin/spark-shell --driver-class-path /path/to/geomesa-compute-accumulo1.5-1.0.0-rc.2-SNAPSHOT-shaded.jar
+// bin/spark-shell --driver-class-path /path/to/geomesa-compute-accumulo1.5-1.0.0-rc.3-SNAPSHOT-shaded.jar
 // copy paste all this into the spark shell version 1.1.0
 
 import java.text.SimpleDateFormat
