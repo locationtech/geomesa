@@ -10,6 +10,7 @@ package org.locationtech.geomesa.filter
 
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.filter
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

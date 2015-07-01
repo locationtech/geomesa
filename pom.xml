@@ -35,6 +35,7 @@
         <module>geomesa-examples</module>
         <module>geomesa-z3</module>
         <module>geomesa-accumulo</module>
+        <module>geomesa-hbase</module>
     </modules>
 
     <properties>
