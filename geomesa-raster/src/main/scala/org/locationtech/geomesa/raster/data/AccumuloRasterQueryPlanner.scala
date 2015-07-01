@@ -9,9 +9,9 @@
 
 package org.locationtech.geomesa.raster.data
 
-import com.google.common.collect.{ImmutableMap, ImmutableSetMultimap}
+import com.google.common.collect.{ImmutableMap => IMap, ImmutableSetMultimap}
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Envelope, Geometry}
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.hadoop.io.Text
@@ -28,33 +28,26 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.util.Try
 
 object AccumuloRasterQueryPlanner extends Logging with IndexFilterHelpers {
 
-  def improvedOverlaps(a: Envelope, b: Envelope): Boolean = a.intersects(b) && a.intersection(b).getArea != 0.0
+  // The two geometries must at least have some intersection that is two-dimensional
+  def improvedOverlaps(a: Geometry, b: Geometry): Boolean = a.relate(b, "2********")
 
-  def getAcceptableResolution(rq: RasterQuery, resAndBoundsMap: ImmutableMap[Double, BoundingBox]): Option[Double] = {
+  // Given a Query, determine the closest resolution that has coverage over the bounds
+  def getAcceptableResolution(rq: RasterQuery, resAndBoundsMap: IMap[Double, BoundingBox]): Option[Double] = {
     val availableResolutions = resAndBoundsMap.keySet().toList.sorted
     val preferredRes: Double = selectResolution(rq.resolution, availableResolutions)
-    getCourserBounds(rq.bbox, preferredRes, resAndBoundsMap)
+    getCoarserBounds(rq.bbox, preferredRes, resAndBoundsMap)
   }
 
-  @tailrec
-  def getCourserBounds(qb: BoundingBox, r: Double, rToB: ImmutableMap[Double, BoundingBox]): Option[Double] = {
-    // get finest bounds that satisfies our needs
-    if (rToB.containsKey(r)) {
-      if (improvedOverlaps(qb.envelope, rToB.get(r).envelope)) Some(r) else {
-        val cr = rToB.keys.filter(_ > r)
-        if (cr.nonEmpty) getCourserBounds(qb, cr.min, rToB) else None
-      }
-    } else None
-  }
+  def getCoarserBounds(queryBounds: BoundingBox, res: Double, resToBounds: IMap[Double, BoundingBox]): Option[Double] =
+    resToBounds.keys.toArray.filter(_ >= res).sorted.find(c => improvedOverlaps(queryBounds.geom, resToBounds(c).geom))
 
   def getQueryPlan(rq: RasterQuery, resAndGeoHashMap: ImmutableSetMultimap[Double, Int],
-                    resAndBoundsMap: ImmutableMap[Double, BoundingBox]): Option[QueryPlan] = {
+                    resAndBoundsMap: IMap[Double, BoundingBox]): Option[QueryPlan] = {
     // Step 1. Pick resolution and Make sure the query extent is contained in the extent at that resolution
     val selectedRes: Double = getAcceptableResolution(rq, resAndBoundsMap).getOrElse(defaultResolution)
     val res = lexiEncodeDoubleToString(selectedRes)
