@@ -11,7 +11,9 @@ package org.locationtech.geomesa.accumulo.data.tables
 import org.apache.accumulo.core.client.BatchDeleter
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.{Range => AccRange}
+import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
+import org.locationtech.geomesa.accumulo
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index._
@@ -25,6 +27,12 @@ trait GeoMesaTable {
    * Is the table compatible with the given feature type
    */
   def supports(sft: SimpleFeatureType): Boolean
+
+  /**
+   * Create a name usable for an accumulo table
+   */
+  def formatTableName(prefix: String, sft: SimpleFeatureType) =
+    GeoMesaTable.formatTableName(prefix, suffix, sft)
 
   /**
    * The name used to identify the table
@@ -68,5 +76,64 @@ object GeoMesaTable {
       Seq(rec, z3, st, attr)
     }
     tables.filter(_._1.supports(sft))
+  }
+
+  def getTableNames(sft: SimpleFeatureType, acc: AccumuloConnectorCreator): Seq[String] =
+    getTablesAndNames(sft, acc).map(_._2)
+
+  // only alphanumeric is safe
+  private val SAFE_FEATURE_NAME_PATTERN = "^[a-zA-Z0-9]+$"
+  private val alphaNumeric = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
+
+  /**
+   * Format a table name with a namespace. Non alpha-numeric characters present in
+   * featureType names will be underscore hex encoded (e.g. _2a) including multibyte
+   * UTF8 characters (e.g. _2a_f3_8c) to make them safe for accumulo table names
+   * but still human readable.
+   */
+  protected[tables] def formatTableName(prefix: String, suffix: String, sft: SimpleFeatureType): String =
+    if (accumulo.index.getTableSharing(sft)) {
+      formatSharedTableName(prefix, suffix)
+    } else {
+      formatSoloTableName(prefix, suffix, sft)
+    }
+
+  protected[tables] def formatSoloTableName(prefix: String, suffix: String, sft: SimpleFeatureType): String = {
+    val typeName = sft.getTypeName
+    val safeTypeName = if (typeName.matches(SAFE_FEATURE_NAME_PATTERN)) {
+      typeName
+    } else {
+      hexEncodeNonAlphaNumeric(typeName)
+    }
+    concatenateNameParts(prefix, safeTypeName, suffix)
+  }
+
+  protected[tables] def formatSharedTableName(prefix: String, suffix: String): String =
+    concatenateNameParts(prefix, suffix)
+
+  /**
+   * Format a table name for the shared tables
+   */
+  protected[data] def concatenateNameParts(parts: String *): String = parts.mkString("_")
+
+  /**
+   * Encode non-alphanumeric characters in a string with
+   * underscore plus hex digits representing the bytes. Note
+   * that multibyte characters will be represented with multiple
+   * underscores and bytes...e.g. _8a_2f_3b
+   */
+  protected[data] def hexEncodeNonAlphaNumeric(input: String): String = {
+    val sb = new StringBuilder
+    input.toCharArray.foreach { c =>
+      if (alphaNumeric.contains(c)) {
+        sb.append(c)
+      } else {
+        val encoded =
+          Hex.encodeHex(c.toString.getBytes("UTF8")).grouped(2)
+              .map{ arr => "_" + arr(0) + arr(1) }.mkString.toLowerCase
+        sb.append(encoded)
+      }
+    }
+    sb.toString()
   }
 }

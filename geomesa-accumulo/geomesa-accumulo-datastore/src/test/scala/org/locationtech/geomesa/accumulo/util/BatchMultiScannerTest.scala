@@ -22,7 +22,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
+import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable}
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -85,7 +85,7 @@ class BatchMultiScannerTest extends Specification {
     val instance = new MockInstance(instanceName)
     val conn = instance.getConnector(user, new PasswordToken(pass))
 
-    val attrIdxTable = AccumuloDataStore.formatAttrIdxTableName(catalogTable, sft)
+    val attrIdxTable = AttributeTable.formatTableName(catalogTable, sft)
     conn.tableOperations.exists(attrIdxTable) must beTrue
     val attrScanner = conn.createScanner(attrIdxTable, new Authorizations())
 
@@ -94,7 +94,7 @@ class BatchMultiScannerTest extends Specification {
     val range = new ARange(AttributeTable.getAttributeIndexRows(rowIdPrefix, descriptor, value).head)
     attrScanner.setRange(range)
 
-    val recordTable = AccumuloDataStore.formatRecordTableName(catalogTable, sft)
+    val recordTable = RecordTable.formatTableName(catalogTable, sft)
     conn.tableOperations().exists(recordTable) must beTrue
     val recordScanner = conn.createBatchScanner(recordTable, new Authorizations(), 5)
 
