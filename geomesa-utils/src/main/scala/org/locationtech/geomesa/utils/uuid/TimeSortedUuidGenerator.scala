@@ -29,7 +29,7 @@ object TimeSortedUuidGenerator {
   private val byteCache = new SoftThreadLocal[Array[Byte]]
 
   /**
-   * Creates a UUID where the first 16 bytes are based on the current time and the second 16 bytes are
+   * Creates a UUID where the first 8 bytes are based on the current time and the second 8 bytes are
    * based on a random number. This should provide uniqueness along with sorting by date.
    *
    * Doesn't support negative time values.
