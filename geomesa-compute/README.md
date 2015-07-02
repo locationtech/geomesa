@@ -72,4 +72,4 @@ $ /opt/spark/bin/spark-submit --master yarn-client --num-executors 40 --executor
 ### Spark Shell Execution
 To run the spark shell (for spark version 1.1.0) compile and run:
 
-    bin/spark-shell --driver-class-path /path/to/geomesa-compute-accumulo1.5-1.0.0-rc.2-SNAPSHOT-shaded.jar
+    bin/spark-shell --driver-class-path /path/to/geomesa-compute-accumulo1.5-1.0.0-rc.3-SNAPSHOT-shaded.jar

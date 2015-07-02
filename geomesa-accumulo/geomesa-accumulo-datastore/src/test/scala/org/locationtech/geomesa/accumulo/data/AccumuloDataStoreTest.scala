@@ -32,6 +32,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.CRS
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.data.tables.{RecordTable, AttributeTable, SpatioTemporalTable, GeoMesaTable}
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index._
@@ -769,7 +770,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should end up hex encoded
       val sftName = "nihao你好"
-      val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,dtg:Date,*geom:Point:srid=4326")
       org.locationtech.geomesa.accumulo.index.setTableSharing(sft, false)
       ds.createSchema(sft)
 
@@ -782,13 +783,13 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       enc("好") must haveLength(9)
 
       val encodedSFT = "nihao" + enc("你") + enc("好")
-      encodedSFT mustEqual AccumuloDataStore.hexEncodeNonAlphaNumeric(sftName)
+      encodedSFT mustEqual GeoMesaTable.hexEncodeNonAlphaNumeric(sftName)
 
-      AccumuloDataStore.formatSpatioTemporalIdxTableName(defaultTable, sft) mustEqual
+      SpatioTemporalTable.formatTableName(defaultTable, sft) mustEqual
           s"${defaultTable}_${encodedSFT}_st_idx"
-      AccumuloDataStore.formatRecordTableName(defaultTable, sft) mustEqual
+      RecordTable.formatTableName(defaultTable, sft) mustEqual
           s"${defaultTable}_${encodedSFT}_records"
-      AccumuloDataStore.formatAttrIdxTableName(defaultTable, sft) mustEqual
+      AttributeTable.formatTableName(defaultTable, sft) mustEqual
           s"${defaultTable}_${encodedSFT}_attr_idx"
 
       val c = ds.connector
@@ -873,7 +874,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       }
 
       def createFeature(sftName: String, ds: AccumuloDataStore, sharedTables: Boolean = true) = {
-        val sft = SimpleFeatureTypes.createType(sftName, defaultSchema)
+        val sft = SimpleFeatureTypes.createType(sftName, "name:String:index=true,geom:Point:srid=4326,dtg:Date")
         org.locationtech.geomesa.accumulo.index.setTableSharing(sft, sharedTables)
         ds.createSchema(sft)
         addDefaultPoint(sft, dataStore = ds)
@@ -1367,6 +1368,22 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         }
         success
       }
+    }
+
+    "delete all associated tables" >> {
+      val catalog = "AccumuloDataStoreDeleteTest"
+      val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
+      val ds = DataStoreFinder.getDataStore(Map(
+        "connector" -> connector,
+        // note the table needs to be different to prevent testing errors
+        "tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
+      val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+      val tables = GeoMesaTable.getTableNames(sft, ds) ++ Seq(catalog)
+      tables must haveSize(5)
+      connector.tableOperations().list().toSeq must containAllOf(tables)
+      ds.delete()
+      connector.tableOperations().list().toSeq must not(containAnyOf(tables))
     }
   }
 }

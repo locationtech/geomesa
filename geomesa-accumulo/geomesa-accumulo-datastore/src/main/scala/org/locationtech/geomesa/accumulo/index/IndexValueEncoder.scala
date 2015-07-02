@@ -300,6 +300,8 @@ object OldIndexValueEncoder {
   def getSchema(sft: SimpleFeatureType): Seq[String] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
+    import scala.collection.JavaConversions._
+
     val defaults = getDefaultSchema(sft)
     val descriptors =  sft.getAttributeDescriptors.filter(_.isIndexValue()).map(_.getLocalName)
     if (descriptors.isEmpty) {

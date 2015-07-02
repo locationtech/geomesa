@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>geomesa</artifactId>
+        <groupId>org.locationtech.geomesa</groupId>
+        <version>1.1.0-rc.3-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>geomesa-hbase</artifactId>
+    <name>GeoMesa HBase Parent</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>geomesa-hbase-datastore</module>
+    </modules>
+
+    <profiles>
+        <profile>
+            <id>bigtable</id>
+            <modules>
+                <module>geomesa-bigtable-datastore</module>
+                <module>geomesa-bigtable-geoserver-plugin</module>
+            </modules>
+        </profile>
+    </profiles>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-hbase-datastore</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+
+    <properties>
+        <hbase.version>1.0.0</hbase.version>
+        <hbase.hadoop.version>2.4.1</hbase.hadoop.version>
+    </properties>
+
+
+</project>

@@ -1,3 +1,10 @@
+/***********************************************************************
+* Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0 which
+* accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
 package org.locationtech.geomesa.accumulo.data.tables
 
 import java.nio.ByteBuffer
@@ -47,6 +54,10 @@ object Z3Table extends GeoMesaTable {
     sft.getGeometryDescriptor.getType.getBinding == classOf[Point] && index.getDtgFieldName(sft).isDefined
 
   override val suffix: String = "z3"
+
+  // z3 always needs a separate table since we don't include the feature name in the row key
+  override def formatTableName(prefix: String, sft: SimpleFeatureType): String =
+    GeoMesaTable.formatSoloTableName(prefix, suffix, sft)
 
   override def writer(sft: SimpleFeatureType): Option[FeatureToMutations] = {
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
