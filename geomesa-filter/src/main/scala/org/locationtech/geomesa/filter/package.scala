@@ -285,9 +285,11 @@ package object filter {
     }
   }
 
+  def isTemporalFilter(f: Filter, dtg: String): Boolean = getAttributeProperty(f).exists(_.name == dtg)
+
   def isPrimaryTemporalFilter(f: Filter, sft: SimpleFeatureType): Boolean = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    sft.getDtgField.exists(dtg => getAttributeProperty(f).exists(_.name == dtg))
+    sft.getDtgField.exists(isTemporalFilter(f, _))
   }
 
   def isIndexedAttributeFilter(f: Filter, sft: SimpleFeatureType): Boolean = {

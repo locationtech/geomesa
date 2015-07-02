@@ -65,11 +65,11 @@ class HBaseFeatureSource(entry: ContentEntry,
     // TODO: currently assumes BBOX then DURING
     import filter._
 
-    val dtFieldName = Some(sft.getDescriptor(dtgIndex).getLocalName)
-    val (i, _) = partitionTemporal(a.getChildren, dtFieldName)
-    val interval = FilterHelper.extractTemporal(dtFieldName)(i)
+    val dtFieldName = sft.getDescriptor(dtgIndex).getLocalName
+    val (i, _) = a.getChildren.partition(isTemporalFilter(_, dtFieldName))
+    val interval = FilterHelper.extractTemporal(Some(dtFieldName))(i)
 
-    val (b, _) = partitionGeom(a, sft)
+    val (b, _) = partitionPrimarySpatials(a.getChildren, sft)
     val geom = FilterHelper.extractGeometry(b.head.asInstanceOf[BinarySpatialOperator]).head
 
     val env = geom.getEnvelopeInternal
