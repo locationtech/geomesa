@@ -134,6 +134,6 @@ fi
 # Set any `mvn` options if not already present
 export MAVEN_OPTS=${MAVEN_OPTS:-"$_COMPILE_JVM_OPTS"}
 
-# Last, call the `mvn` command as usual
-${MVN_BIN} "$@"
+# Last, call the `mvn` command as usual, but with the 'zinc' profile
+${MVN_BIN} "-Pzinc " "$@"
 
