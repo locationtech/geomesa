@@ -2,6 +2,8 @@
 
 ### Build Status
 
+[![Join the chat at https://gitter.im/locationtech/geomesa](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Version | Status
 ------ | -----
 | 1.1.x | [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)  	| 
