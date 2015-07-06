@@ -134,7 +134,7 @@ class Z3IdxStrategy extends Strategy with Logging with IndexFilterHelpers  {
     val epochWeekEnd = Weeks.weeksBetween(Z3Table.EPOCH, interval.getEnd)
     val weeks = scala.Range.inclusive(epochWeekStart.getWeeks, epochWeekEnd.getWeeks)
     val lt = Z3Table.secondsInCurrentWeek(interval.getStart, epochWeekStart)
-    val ut = Z3Table.secondsInCurrentWeek(interval.getEnd, epochWeekStart)
+    val ut = Z3Table.secondsInCurrentWeek(interval.getEnd, epochWeekEnd)
     if (weeks.length == 1) {
       Seq(queryPlanForPrefix(weeks.head, lt ,ut, lx, ly, ux, uy,
         z3table, kvsToFeatures, iterators, colFamily, numThreads, contained = false))
