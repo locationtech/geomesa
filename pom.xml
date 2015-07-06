@@ -81,6 +81,22 @@
                 <maven.test.jvmargs>-Xms1g -Xmx2g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.jvmargs>
             </properties>
         </profile>
+        <profile>
+            <id>zinc</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>net.alchim31.maven</groupId>
+                        <artifactId>scala-maven-plugin</artifactId>
+                        <version>3.2.0</version>
+                        <configuration>
+                            <recompileMode>incremental</recompileMode>
+                            <useZincServer>true</useZincServer>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <distributionManagement>
