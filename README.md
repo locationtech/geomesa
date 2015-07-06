@@ -1,5 +1,7 @@
 <p align="center"><a href="http://geomesa.github.io"><img src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png"></img></a></p>
 
+[![Join the chat at https://gitter.im/locationtech/geomesa](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ### Build Status
 
 Version | Status
