@@ -24,6 +24,7 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.{AttributeIdxStrategy, QueryStrategyDecider}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
@@ -398,6 +399,42 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
       val features =fs.getFeatures(filter).features().toSeq
       features must haveSize(1)
+    }
+
+    "create uuids that sort by time" in {
+      val toAdd = Seq(
+        AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("will", 56.asInstanceOf[AnyRef], dateToIndex, geomToIndex), "fid1"),
+        AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("george", 33.asInstanceOf[AnyRef], dateToIndex, geomToIndex), "fid2"),
+        AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("sue", 99.asInstanceOf[AnyRef], dateToIndex, geomToIndex), "fid3"),
+        AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("karen", 50.asInstanceOf[AnyRef], dateToIndex, geomToIndex), "fid4"),
+        AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("bob", 56.asInstanceOf[AnyRef], dateToIndex, geomToIndex), "fid5")
+      )
+      // space out the adding slightly so we ensure they sort how we want - resolution is to the ms
+      // also ensure we don't set use_provided_fid
+      toAdd.foreach { f =>
+        val featureCollection = new DefaultFeatureCollection(sftName, sft)
+        f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.FALSE)
+        featureCollection.add(f)
+        // write the feature to the store
+        fs.addFeatures(featureCollection)
+        Thread.sleep(2)
+      }
+
+      val scanner = ds.connector.createScanner(ds.getRecordTable(sftName), new Authorizations)
+      val serializer = new KryoFeatureSerializer(sft)
+      val features = scanner.toList.map(e => serializer.deserialize(e.getValue.get))
+      scanner.close()
+
+      features must haveLength(5)
+      features.head.getAttribute(0) mustEqual "will"
+      features(1).getAttribute(0) mustEqual "george"
+      features(2).getAttribute(0) mustEqual "sue"
+      features(3).getAttribute(0) mustEqual "karen"
+      features(4).getAttribute(0) mustEqual "bob"
+
+      val ids = features.map(_.getID)
+      forall(ids)(_ must not(beMatching("fid\\d")))
+      ids mustEqual ids.sorted
     }
   }
 
