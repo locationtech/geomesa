@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import java.util.Date
 
+import com.google.common.primitives.{Longs, Shorts}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
@@ -20,6 +21,7 @@ import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
+import org.locationtech.geomesa.curve.{Z3, Z3SFC}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType}
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
 import org.opengis.feature.simple.SimpleFeature
@@ -66,8 +68,13 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
   "Z3IdxStrategy" should {
     "print values" in {
       skipped("used for debugging")
-      val scanner = connector.createScanner(ds.getZ3Table(sftName), new Authorizations())
-      scanner.foreach(e => println(e.getKey.getRow.getBytes.toSeq))
+      ds.connector.createScanner(ds.getZ3Table(sftName), new Authorizations()).foreach { r =>
+        val bytes = r.getKey.getRow.getBytes
+        val keyZ = Longs.fromByteArray(bytes.drop(2))
+        val (x, y, t) = new Z3SFC().invert(Z3(keyZ))
+        val weeks = Shorts.fromBytes(bytes.head, bytes(1))
+        println(s"row: $weeks $x $y $t")
+      }
       println()
       success
     }
@@ -110,6 +117,14 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val features = execute(filter)
       features must haveSize(9)
       features.map(_.getID.toInt) must containTheSameElementsAs((6 to 9) ++ (15 to 19))
+    }
+
+    "work across 2 weeks" >> {
+      val filter = "bbox(geom, 35, 64.5, 45, 70)" +
+          " AND dtg DURING 2010-05-10T00:00:00.000Z/2010-05-17T23:59:59.999Z"
+      val features = execute(filter)
+      features must haveSize(3)
+      features.map(_.getID.toInt) must containTheSameElementsAs(15 to 17)
     }
 
     "work with whole world filter across week bounds" >> {
