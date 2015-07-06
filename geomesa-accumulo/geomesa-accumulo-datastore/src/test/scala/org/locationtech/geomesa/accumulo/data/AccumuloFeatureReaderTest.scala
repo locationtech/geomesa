@@ -24,13 +24,13 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
   "AccumuloFeatureReader" should {
 
     "be able to run explainQuery" in {
-      val query = new Query()
+      val query = new Query(sftName)
       val fs = "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
       val f = ECQL.toFilter(fs)
       query.setFilter(f)
 
       val out = new ExplainString()
-      ds.explainQuery(sftName, query, out)
+      ds.explainQuery(query, out)
 
       val explanation = out.toString()
       explanation must not be null

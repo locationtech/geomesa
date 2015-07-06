@@ -9,16 +9,16 @@
 package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Geometry, Polygon}
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.geotools.data.Query
+import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner._
-import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators.{FEATURE_ENCODING, _}
 import org.locationtech.geomesa.accumulo.util.{BatchMultiScanner, CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
@@ -32,9 +32,24 @@ import scala.util.Random
 trait Strategy extends Logging {
 
   /**
+   * The filter this strategy will execute
+   */
+  def filter: QueryFilter
+
+  /**
    * Plans the query - strategy implementations need to define this
    */
-  def getQueryPlans(query: Query, queryPlanner: QueryPlanner, output: ExplainerOutputType): Seq[QueryPlan]
+  def getQueryPlans(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType): Seq[QueryPlan]
+}
+
+
+object Strategy extends Logging {
+
+  // enumeration of the various strategies we implement - don't forget to add new impls here
+  object StrategyType extends Enumeration {
+    type StrategyType = Value
+    val Z3, ST, RECORD, ATTRIBUTE = Value
+  }
 
   /**
    * Execute a query against this strategy
@@ -86,10 +101,6 @@ trait Strategy extends Logging {
         val bms = new BatchMultiScanner(primary, secondary, qp.joinFunction)
         SelfClosingIterator(bms.iterator, () => bms.close())
     }
-}
-
-
-object Strategy {
 
   def configureBatchScanner(bs: BatchScanner, qp: QueryPlan) {
     qp.iterators.foreach { i => bs.addScanIterator(i) }
@@ -132,12 +143,12 @@ object Strategy {
     ecql.foreach(filter => cfg.addOption(GEOMESA_ITERATORS_ECQL_FILTER, filter))
 
   // store transform information into an Iterator's settings
-  def configureTransforms(cfg: IteratorSetting, query:Query) =
+  def configureTransforms(cfg: IteratorSetting, hints: Hints) =
     for {
-      transformOpt  <- org.locationtech.geomesa.accumulo.index.getTransformDefinition(query)
+      transformOpt  <- org.locationtech.geomesa.accumulo.index.getTransformDefinition(hints)
       transform     = transformOpt.asInstanceOf[String]
       _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
-      sfType        <- org.locationtech.geomesa.accumulo.index.getTransformSchema(query)
+      sfType        <- org.locationtech.geomesa.accumulo.index.getTransformSchema(hints)
       encodedSFType = SimpleFeatureTypes.encodeType(sfType)
       _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, encodedSFType)
     } yield Unit
@@ -146,7 +157,7 @@ object Strategy {
       simpleFeatureType: SimpleFeatureType,
       featureEncoding: SerializationType,
       ecql: Option[Filter],
-      query: Query): IteratorSetting = {
+      hints: Hints): IteratorSetting = {
 
     val cfg = new IteratorSetting(
       iteratorPriority_SimpleFeatureFilteringIterator,
@@ -156,27 +167,27 @@ object Strategy {
     configureFeatureType(cfg, simpleFeatureType)
     configureFeatureEncoding(cfg, featureEncoding)
     configureEcqlFilter(cfg, ecql.map(ECQL.toCQL))
-    configureTransforms(cfg, query)
+    configureTransforms(cfg, hints)
     cfg
   }
 
   def randomPrintableString(length:Int=5) : String = (1 to length).
     map(i => Random.nextPrintableChar()).mkString
 
-  def configureAggregatingIterator(query: Query,
+  def configureAggregatingIterator(hints: Hints,
                                    geometryToCover: Geometry,
                                    schema: String,
                                    featureEncoding: SerializationType,
-                                   featureType: SimpleFeatureType) = query match {
-    case _ if query.getHints.containsKey(TEMPORAL_DENSITY_KEY) =>
+                                   featureType: SimpleFeatureType) = hints match {
+    case _ if hints.containsKey(TEMPORAL_DENSITY_KEY) =>
       val clazz = classOf[TemporalDensityIterator]
 
       val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
         "topfilter-" + randomPrintableString(5),
         clazz)
 
-      val interval = query.getHints.get(TIME_INTERVAL_KEY).asInstanceOf[Interval]
-      val buckets = query.getHints.get(TIME_BUCKETS_KEY).asInstanceOf[Int]
+      val interval = hints.get(TIME_INTERVAL_KEY).asInstanceOf[Interval]
+      val buckets = hints.get(TIME_BUCKETS_KEY).asInstanceOf[Int]
 
       TemporalDensityIterator.configure(cfg, interval, buckets)
 
@@ -184,14 +195,14 @@ object Strategy {
       configureFeatureType(cfg, featureType)
 
       Some(cfg)
-    case _ if query.getHints.containsKey(MAP_AGGREGATION_KEY) =>
+    case _ if hints.containsKey(MAP_AGGREGATION_KEY) =>
       val clazz = classOf[MapAggregatingIterator]
 
       val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
         "topfilter-" + randomPrintableString(5),
         clazz)
 
-      val mapAttribute = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
+      val mapAttribute = hints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
 
       MapAggregatingIterator.configure(cfg, mapAttribute)
 
@@ -206,14 +217,7 @@ object Strategy {
 trait StrategyProvider {
 
   /**
-   * Returns details on a potential strategy if the filter is valid for this strategy.
-   *
-   * @param filter
-   * @param sft
-   * @return
+   * Gets the estimated cost of running the query
    */
-  def getStrategy(filter: Filter, sft: SimpleFeatureType, hints: StrategyHints): Option[StrategyDecision]
+  def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints): Int
 }
-
-case class StrategyDecision(strategy: Strategy, cost: Long)
-case class StrategyPlan(strategy: Strategy, plan: QueryPlan)

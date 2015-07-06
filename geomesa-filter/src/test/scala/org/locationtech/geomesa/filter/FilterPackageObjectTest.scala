@@ -30,7 +30,7 @@ class FilterPackageObjectTest extends Specification with Logging {
 
     "filter bbox based on default geom" in {
       val filter = ECQL.toFilter("BBOX(geom, -45.0,-45.0,45.0,45.0) AND BBOX(g, -30.0,-30.0,30.0,30.0)")
-      val (geoms, nongeoms) = partitionGeom(filter, sft)
+      val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
       geoms must haveLength(1)
       nongeoms must haveLength(1)
       ECQL.toCQL(geoms(0)) mustEqual("BBOX(geom, -45.0,-45.0,45.0,45.0)")
@@ -40,7 +40,7 @@ class FilterPackageObjectTest extends Specification with Logging {
       val filter =
         ECQL.toFilter("INTERSECTS(geom, POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45))) " +
           "AND INTERSECTS(g, POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)))")
-      val (geoms, nongeoms) = partitionGeom(filter, sft)
+      val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
       geoms must haveLength(1)
       nongeoms must haveLength(1)
       ECQL.toCQL(geoms(0)) mustEqual("INTERSECTS(geom, POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)))")
@@ -50,7 +50,7 @@ class FilterPackageObjectTest extends Specification with Logging {
       val filter =
         ECQL.toFilter("INTERSECTS(POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)), g) " +
             "AND INTERSECTS(POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)), geom)")
-      val (geoms, nongeoms) = partitionGeom(filter, sft)
+      val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
       geoms must haveLength(1)
       nongeoms must haveLength(1)
       ECQL.toCQL(geoms(0)) mustEqual("INTERSECTS(POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)), geom)")
@@ -61,7 +61,7 @@ class FilterPackageObjectTest extends Specification with Logging {
       val filters= Seq(1 && geomFilter && 2, 1 && 2 && geomFilter, geomFilter && 1 && 2)
 
       forall(filters) { filter => 
-        val (geoms, nongeoms) = partitionGeom(filter, sft)
+        val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
         geoms must haveLength(1)
         nongeoms must haveLength(2)
       }

@@ -75,7 +75,7 @@ trait TestWithDataStore {
 
   def explain(query: Query): String = {
     val o = new ExplainString
-    ds.explainQuery(sftName, query, o)
+    ds.explainQuery(query, o)
     o.toString()
   }
 }

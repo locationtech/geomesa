@@ -28,7 +28,6 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index
-import org.locationtech.geomesa.accumulo.index.{ExplainNull, QueryPlanner, STIdxStrategy}
 import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
 import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
@@ -61,7 +60,7 @@ object GeoMesaSpark extends Logging {
           dsParams: Map[String, String],
           query: Query,
           numberOfSplits: Option[Int]): RDD[SimpleFeature] = {
-    rdd(conf, sc, dsParams, query, false, numberOfSplits)
+    rdd(conf, sc, dsParams, query, useMock = false, numberOfSplits)
   }
 
   def rdd(conf: Configuration,
@@ -72,13 +71,7 @@ object GeoMesaSpark extends Logging {
           numberOfSplits: Option[Int] = None): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     val typeName = query.getTypeName
-    val sft = ds.getSchema(typeName)
-    val spec = SimpleFeatureTypes.encodeType(sft)
-    val featureEncoding = ds.getFeatureEncoding(sft)
-    val indexSchema = ds.getIndexSchemaFmt(typeName)
-    val version = ds.getGeomesaVersion(sft)
-    val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, ds.strategyHints(sft), version)
-    val qps = queryPlanner.planQuery(query, Some(new STIdxStrategy()), ExplainNull)
+    val qps = ds.getQueryPlan(query)
 
     if (qps.length > 1) {
       logger.error("The query being executed requires multiple scans, which is not currently " +
@@ -99,11 +92,11 @@ object GeoMesaSpark extends Logging {
         ds.connector.getInstance().getInstanceName,
         ds.connector.getInstance().getZooKeepers)
     }
-    InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, ds.getSpatioTemporalTable(sft))
+    InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, qp.table)
     InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
     qp.iterators.foreach { is => InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, is)}
 
-    if (!qp.columnFamilies.isEmpty) {
+    if (qp.columnFamilies.nonEmpty) {
       InputConfigurator.fetchColumns(classOf[AccumuloInputFormat],
         conf,
         qp.columnFamilies.map(cf => new AccPair[Text, Text](cf, null)))

@@ -18,6 +18,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
+import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType}
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
@@ -58,7 +59,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
   addFeatures(features)
 
   implicit val ff = CommonFactoryFinder.getFilterFactory2
-  val strategy = new Z3IdxStrategy
+  val strategy = StrategyType.Z3
   val queryPlanner = new QueryPlanner(sft, SerializationType.KRYO, null, ds, NoOpHints, INTERNAL_GEOMESA_VERSION)
   val output = ExplainNull
 
@@ -274,6 +275,6 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
   }
 
   def getQueryPlans(query: Query): Seq[QueryPlan] = {
-    strategy.getQueryPlans(query, queryPlanner, output)
+    queryPlanner.planQuery(query, Some(strategy), output)
   }
 }

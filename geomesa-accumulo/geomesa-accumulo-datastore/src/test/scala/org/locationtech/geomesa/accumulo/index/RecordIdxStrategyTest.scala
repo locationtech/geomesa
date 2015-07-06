@@ -13,6 +13,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
@@ -42,7 +43,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       .asInstanceOf[Id].getIDs.asScala.toSet.map { a:AnyRef =>a.toString }
     // process the string sequences for the test
     val filterSeq=stringSeqToTest.map ( ECQL.toFilter )
-    val combinedIDFilter = RecordIdxStrategy.intersectIDFilters(filterSeq)
+    val combinedIDFilter = RecordIdxStrategy.intersectIdFilters(filterSeq)
     val computedIntersectionIds = combinedIDFilter.map {_.getIDs.asScala.toSet.map { a:AnyRef =>a.toString } }
 
     IntersectionResult(computedIntersectionIds, trueIntersectionIds)
@@ -65,10 +66,9 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("IN ('2', '3')"))
       query.getHints.put(BIN_TRACK_KEY, "name")
-      val strategy = new RecordIdxStrategy()
       val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft),
         ds.getIndexSchemaFmt(sftName), ds, ds.strategyHints(sft), ds.getGeomesaVersion(sft))
-      val results = queryPlanner.runQuery(query, Some(strategy)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      val results = queryPlanner.runQuery(query, Some(StrategyType.RECORD)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(2)

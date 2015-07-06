@@ -12,56 +12,35 @@ import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}
 
 import com.vividsolutions.jts.geom.Geometry
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
-import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
-import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
-import org.locationtech.geomesa.features.SimpleFeatureSerializers
+import org.locationtech.geomesa.accumulo.{TestWithDataStore, index}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexStrategyTest extends Specification {
+class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
-  val sftName = "AttributeIndexStrategyTest"
-  val spec = "name:String:index=true,age:Integer:index=true,count:Long:index=true," +
+  override val spec = "name:String:index=true,age:Integer:index=true,count:Long:index=true," +
       "weight:Double:index=true,height:Float:index=true,admin:Boolean:index=true," +
       "geom:Geometry:srid=4326,dtg:Date:index=true," +
       "fingers:List[String]:index=true,toes:List[Double]:index=true"
-  val sft = SimpleFeatureTypes.createType(sftName, spec)
-  sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
 
-  val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
-
-  val ds = DataStoreFinder.getDataStore(Map(
-             "connector"   -> connector,
-             // note the table needs to be different to prevent testing errors
-             "tableName"   -> "AttributeIndexStrategyTest").asJava).asInstanceOf[AccumuloDataStore]
-
-  ds.createSchema(sft)
-
-  val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
   val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
   val dtFormat = new SimpleDateFormat("yyyyMMdd HH:mm:SS")
   dtFormat.setTimeZone(TimeZone.getTimeZone("UTC"))
@@ -79,37 +58,30 @@ class AttributeIndexStrategyTest extends Specification {
 
   val geom = WKTUtils.read("POINT(45.0 49.0)")
 
-  Seq(TestAttributes("alice",   20,   1, 5.0, 10.0F, true,  geom, dtFormat.parse("20120101 12:00:00"),
-        List("index"), List(1.0)),
-      TestAttributes("bill",    21,   2, 6.0, 11.0F, false, geom, dtFormat.parse("20130101 12:00:00"),
-        List("ring", "middle"), List(1.0, 2.0)),
-      TestAttributes("bob",     30,   3, 6.0, 12.0F, false, geom, dtFormat.parse("20140101 12:00:00"),
-        List("index", "thumb", "pinkie"), List(3.0, 2.0, 5.0)),
-      TestAttributes("charles", null, 4, 7.0, 12.0F, false, geom, dtFormat.parse("20140101 12:30:00"),
-        List("thumb", "ring", "index", "pinkie", "middle"), List()))
-  .foreach { entry =>
-    val feature = builder.buildFeature(entry.name)
-    feature.setDefaultGeometry(entry.geom)
-    feature.setAttributes(entry.productIterator.toArray.asInstanceOf[Array[AnyRef]])
+  val features =
+    Seq(TestAttributes("alice",   20,   1, 5.0, 10.0F, admin = true,  geom, dtFormat.parse("20120101 12:00:00"),
+          List("index"), List(1.0)),
+        TestAttributes("bill",    21,   2, 6.0, 11.0F, admin = false, geom, dtFormat.parse("20130101 12:00:00"),
+          List("ring", "middle"), List(1.0, 2.0)),
+        TestAttributes("bob",     30,   3, 6.0, 12.0F, admin = false, geom, dtFormat.parse("20140101 12:00:00"),
+          List("index", "thumb", "pinkie"), List(3.0, 2.0, 5.0)),
+        TestAttributes("charles", null, 4, 7.0, 12.0F, admin = false, geom, dtFormat.parse("20140101 12:30:00"),
+          List("thumb", "ring", "index", "pinkie", "middle"), List()))
+    .map { entry =>
+      val feature = builder.buildFeature(entry.name)
+      feature.setDefaultGeometry(entry.geom)
+      feature.setAttributes(entry.productIterator.toArray.asInstanceOf[Array[AnyRef]])
+      feature
+    }
 
-    // make sure we ask the system to re-use the provided feature-ID
-    feature.getUserData().asScala(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-    featureCollection.add(feature)
-  }
-
-  // write the feature to the store
-  val fs = ds.getFeatureSource(sftName).asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
-  fs.addFeatures(featureCollection)
-
-  val featureEncoder = SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft))
-  val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
+  addFeatures(features)
 
   val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft), ds.getIndexSchemaFmt(sftName), ds,
     ds.strategyHints(sft), ds.getGeomesaVersion(sft))
 
-  def execute(strategy: AttributeIdxStrategy, filter: String): List[String] = {
+  def execute(filter: String): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))
-    val results = queryPlanner.runQuery(query, Some(strategy))
+    val results = queryPlanner.runQuery(query, Some(StrategyType.ATTRIBUTE))
     results.map(_.getAttribute("name").toString).toList
   }
 
@@ -125,121 +97,20 @@ class AttributeIndexStrategyTest extends Specification {
       success
     }
 
-    "partition a query by selecting the best filter" >> {
-
-      val spec = "name:String:index=true:cardinality=high," +
-        "age:Integer:index=true:cardinality=low," +
-        "weight:Double:index=false," +
-        "height:Float:index=false:cardinality=unknown"
-      val sft = SimpleFeatureTypes.createType(sftName, spec)
-
-      val ff = CommonFactoryFinder.getFilterFactory(null)
-      val ageFilter = ff.equals(ff.property("age"), ff.literal(21))
-      val nameFilter = ff.equals(ff.literal("foo"), ff.property("name"))
-      val heightFilter = ff.equals(ff.property("height"), ff.literal(12.0D))
-      val weightFilter = ff.equals(ff.literal(21.12D), ff.property("weight"))
-
-      "when best is first" >> {
-        val filter = ff.and(Seq[Filter](nameFilter, heightFilter, weightFilter, ageFilter).asJava)
-
-        val query = new Query(sft.getTypeName, filter)
-
-        val expectedQuery = new Query(sft.getTypeName, ff.and(Seq[Filter](heightFilter, weightFilter, ageFilter).asJava))
-
-        val (strippedQuery, extractedFilter) = AttributeIndexStrategy.partitionFilter(query, sft)
-        strippedQuery mustEqual expectedQuery
-        extractedFilter mustEqual nameFilter
-      }
-
-      "when best is in the middle" >> {
-        val filter = ff.and(Seq[Filter](ageFilter, nameFilter, heightFilter, weightFilter).asJava)
-
-        val query = new Query(sft.getTypeName, filter)
-
-        val expectedQuery = new Query(sft.getTypeName, ff.and(Seq[Filter](ageFilter, heightFilter, weightFilter).asJava))
-
-        val (strippedQuery, extractedFilter) = AttributeIndexStrategy.partitionFilter(query, sft)
-        strippedQuery mustEqual expectedQuery
-        extractedFilter mustEqual nameFilter
-      }
-
-      "when best is last" >> {
-        val filter = ff.and(Seq[Filter](ageFilter, heightFilter, weightFilter, nameFilter).asJava)
-
-        val query = new Query(sft.getTypeName, filter)
-
-        val expectedQuery = new Query(sft.getTypeName, ff.and(Seq[Filter](ageFilter, heightFilter, weightFilter).asJava))
-
-        val (strippedQuery, extractedFilter) = AttributeIndexStrategy.partitionFilter(query, sft)
-        strippedQuery mustEqual expectedQuery
-        extractedFilter mustEqual nameFilter
-      }
-    }
-
-    "use first indexable attribute if equals" in {
-      val filter = ECQL.toFilter("age=21 AND count<5")
-      val query = new Query(sft.getTypeName, filter)
-      val (strippedQuery, extractedFilter) = AttributeIndexStrategy.partitionFilter(query, sft)
-      AttributeIndexStrategy.getStrategy(extractedFilter, sft, NoOpHints).get.strategy must beAnInstanceOf[AttributeIdxEqualsStrategy]
-      val (secondStripped, secondExtractedFilter) = AttributeIndexStrategy.partitionFilter(strippedQuery, sft)
-      AttributeIndexStrategy.getStrategy(secondExtractedFilter, sft, NoOpHints).get.strategy must beAnInstanceOf[AttributeIdxRangeStrategy]
-    }
-
-    "use first indexable attribute if range" in {
-      val filter = ECQL.toFilter("count<5 AND age=21")
-      val query = new Query(sft.getTypeName, filter)
-      val (strippedQuery, extractedFilter) = AttributeIndexStrategy.partitionFilter(query, sft)
-      AttributeIndexStrategy.getStrategy(extractedFilter, sft, NoOpHints).get.strategy must beAnInstanceOf[AttributeIdxRangeStrategy]
-      val (secondStripped, secondExtractedFilter) = AttributeIndexStrategy.partitionFilter(strippedQuery, sft)
-      AttributeIndexStrategy.getStrategy(secondExtractedFilter, sft, NoOpHints).get.strategy must beAnInstanceOf[AttributeIdxEqualsStrategy]
-    }
-
-    "use first indexable attribute if like" in {
-      val filter = ECQL.toFilter("name LIKE 'baddy' AND age=21")
-      val query = new Query(sft.getTypeName, filter)
-      val (strippedQuery, extractedFilter) = AttributeIndexStrategy.partitionFilter(query, sft)
-      AttributeIndexStrategy.getStrategy(extractedFilter, sft, NoOpHints).get.strategy must beAnInstanceOf[AttributeIdxLikeStrategy]
-      val (secondStripped, secondExtractedFilter) = AttributeIndexStrategy.partitionFilter(strippedQuery, sft)
-      AttributeIndexStrategy.getStrategy(secondExtractedFilter, sft, NoOpHints).get.strategy must beAnInstanceOf[AttributeIdxEqualsStrategy]
-    }
-
-    "use first indexable attribute if like and retain all children for > 2 filters" in {
-      val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("name LIKE 'baddy'"), ECQL.toFilter("age=21"), ECQL.toFilter("count<5"))).get
-      val query = new Query(sft.getTypeName, filter)
-      val (strippedQuery, extractedFilter) = AttributeIndexStrategy.partitionFilter(query, sft)
-      AttributeIndexStrategy.getStrategy(extractedFilter, sft, NoOpHints).get.strategy must beAnInstanceOf[AttributeIdxLikeStrategy]
-      val (secondStripped, secondExtractedFilter) = AttributeIndexStrategy.partitionFilter(strippedQuery, sft)
-      AttributeIndexStrategy.getStrategy(secondExtractedFilter, sft, NoOpHints).get.strategy must beAnInstanceOf[AttributeIdxEqualsStrategy]
-      val (thirdStripped, thirdExtractedFilter) = AttributeIndexStrategy.partitionFilter(secondStripped, sft)
-      AttributeIndexStrategy.getStrategy(thirdExtractedFilter, sft, NoOpHints).get.strategy must beAnInstanceOf[AttributeIdxRangeStrategy]
-    }
-
     "all attribute filters should be applied to SFFI" in {
-      val strategy = new AttributeIdxLikeStrategy
-      val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("name LIKE 'b%'"), ECQL.toFilter("count<27"), ECQL.toFilter("age<29"))).get
+      val filter = andFilters(Seq(ECQL.toFilter("name LIKE 'b%'"), ECQL.toFilter("count<27"), ECQL.toFilter("age<29")))
       val query = new Query(sftName, filter)
-      val results = queryPlanner.runQuery(query, Some(strategy))
+      val results = queryPlanner.runQuery(query, Some(StrategyType.ATTRIBUTE))
       val resultNames = results.map(_.getAttribute("name").toString).toList
-      resultNames must have size(1)
+      resultNames must haveLength(1)
       resultNames must contain ("bill")
-    }
-
-    import scala.collection.JavaConversions._
-
-    "there are no attribute filters" in {
-      val filter = FilterHelper.filterListAsAnd(Seq(ECQL.toFilter("INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"),
-                                                    ECQL.toFilter("INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"))).get
-      val (extractedFilter, strippedFilters) = FilterHelper.findFirst(AttributeIndexStrategy.getStrategy(_, sft, NoOpHints).isDefined)(filter.asInstanceOf[org.opengis.filter.And].getChildren)
-      extractedFilter must beEmpty
-      strippedFilters must have size(2)
     }
 
     "support bin queries" in {
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
       query.getHints.put(BIN_TRACK_KEY, "name")
-      val strategy = new AttributeIdxRangeStrategy()
-      val results = queryPlanner.runQuery(query, Some(strategy)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      val results = queryPlanner.runQuery(query, Some(StrategyType.ATTRIBUTE)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(3)
@@ -249,425 +120,419 @@ class AttributeIndexStrategyTest extends Specification {
 
   "AttributeIndexEqualsStrategy" should {
 
-    val strategy = new AttributeIdxEqualsStrategy
-
     "correctly query on ints" in {
-      val features = execute(strategy, "age=21")
-      features must have size(1)
+      val features = execute("age=21")
+      features must haveLength(1)
       features must contain("bill")
     }
 
     "correctly query on longs" in {
-      val features = execute(strategy, "count=2")
-      features must have size(1)
+      val features = execute("count=2")
+      features must haveLength(1)
       features must contain("bill")
     }
 
     "correctly query on floats" in {
-      val features = execute(strategy, "height=12.0")
-      features must have size(2)
+      val features = execute("height=12.0")
+      features must haveLength(2)
       features must contain("bob", "charles")
     }
 
     "correctly query on floats in different precisions" in {
-      val features = execute(strategy, "height=10")
-      features must have size(1)
+      val features = execute("height=10")
+      features must haveLength(1)
       features must contain("alice")
     }
 
     "correctly query on doubles" in {
-      val features = execute(strategy, "weight=6.0")
-      features must have size(2)
+      val features = execute("weight=6.0")
+      features must haveLength(2)
       features must contain("bill", "bob")
     }
 
     "correctly query on doubles in different precisions" in {
-      val features = execute(strategy, "weight=6")
-      features must have size(2)
+      val features = execute("weight=6")
+      features must haveLength(2)
       features must contain("bill", "bob")
     }
 
     "correctly query on booleans" in {
-      val features = execute(strategy, "admin=false")
-      features must have size(3)
+      val features = execute("admin=false")
+      features must haveLength(3)
       features must contain("bill", "bob", "charles")
     }
 
     "correctly query on strings" in {
-      val features = execute(strategy, "name='bill'")
-      features must have size(1)
+      val features = execute("name='bill'")
+      features must haveLength(1)
       features must contain("bill")
     }
 
     "correctly query on date objects" in {
-      val features = execute(strategy, "dtg TEQUALS 2014-01-01T12:30:00.000Z")
-      features must have size(1)
+      val features = execute("dtg TEQUALS 2014-01-01T12:30:00.000Z")
+      features must haveLength(1)
       features must contain("charles")
     }
 
     "correctly query on date strings in standard format" in {
-      val features = execute(strategy, "dtg = '2014-01-01T12:30:00.000Z'")
-      features must have size(1)
+      val features = execute("dtg = '2014-01-01T12:30:00.000Z'")
+      features must haveLength(1)
       features must contain("charles")
     }
 
     "correctly query on lists of strings" in {
-      val features = execute(strategy, "fingers = 'index'")
-      features must have size(3)
+      val features = execute("fingers = 'index'")
+      features must haveLength(3)
       features must contain("alice", "bob", "charles")
     }
 
     "correctly query on lists of doubles" in {
-      val features = execute(strategy, "toes = 2.0")
-      features must have size(2)
+      val features = execute("toes = 2.0")
+      features must haveLength(2)
       features must contain("bill", "bob")
     }
   }
 
   "AttributeIndexRangeStrategy" should {
 
-    val strategy = new AttributeIdxRangeStrategy
-
     "correctly query on ints (with nulls)" >> {
       "lt" >> {
-        val features = execute(strategy, "age<21")
-        features must have size(1)
+        val features = execute("age<21")
+        features must haveLength(1)
         features must contain("alice")
       }
       "gt" >> {
-        val features = execute(strategy, "age>21")
-        features must have size(1)
+        val features = execute("age>21")
+        features must haveLength(1)
         features must contain("bob")
       }
       "lte" >> {
-        val features = execute(strategy, "age<=21")
-        features must have size(2)
+        val features = execute("age<=21")
+        features must haveLength(2)
         features must contain("alice", "bill")
       }
       "gte" >> {
-        val features = execute(strategy, "age>=21")
-        features must have size(2)
+        val features = execute("age>=21")
+        features must haveLength(2)
         features must contain("bill", "bob")
       }
       "between (inclusive)" >> {
-        val features = execute(strategy, "age BETWEEN 20 AND 25")
-        features must have size(2)
+        val features = execute("age BETWEEN 20 AND 25")
+        features must haveLength(2)
         features must contain("alice", "bill")
       }
     }
 
     "correctly query on longs" >> {
       "lt" >> {
-        val features = execute(strategy, "count<2")
-        features must have size(1)
+        val features = execute("count<2")
+        features must haveLength(1)
         features must contain("alice")
       }
       "gt" >> {
-        val features = execute(strategy, "count>2")
-        features must have size(2)
+        val features = execute("count>2")
+        features must haveLength(2)
         features must contain("bob", "charles")
       }
       "lte" >> {
-        val features = execute(strategy, "count<=2")
-        features must have size(2)
+        val features = execute("count<=2")
+        features must haveLength(2)
         features must contain("alice", "bill")
       }
       "gte" >> {
-        val features = execute(strategy, "count>=2")
-        features must have size(3)
+        val features = execute("count>=2")
+        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "between (inclusive)" >> {
-        val features = execute(strategy, "count BETWEEN 3 AND 7")
-        features must have size(2)
+        val features = execute("count BETWEEN 3 AND 7")
+        features must haveLength(2)
         features must contain("bob", "charles")
       }
     }
 
     "correctly query on floats" >> {
       "lt" >> {
-        val features = execute(strategy, "height<12.0")
-        features must have size(2)
+        val features = execute("height<12.0")
+        features must haveLength(2)
         features must contain("alice", "bill")
       }
       "gt" >> {
-        val features = execute(strategy, "height>12.0")
-        features must have size(0)
+        val features = execute("height>12.0")
+        features must haveLength(0)
       }
       "lte" >> {
-        val features = execute(strategy, "height<=12.0")
-        features must have size(4)
+        val features = execute("height<=12.0")
+        features must haveLength(4)
         features must contain("alice", "bill", "bob", "charles")
       }
       "gte" >> {
-        val features = execute(strategy, "height>=12.0")
-        features must have size(2)
+        val features = execute("height>=12.0")
+        features must haveLength(2)
         features must contain("bob", "charles")
       }
       "between (inclusive)" >> {
-        val features = execute(strategy, "height BETWEEN 10.0 AND 11.5")
-        features must have size(2)
+        val features = execute("height BETWEEN 10.0 AND 11.5")
+        features must haveLength(2)
         features must contain("alice", "bill")
       }
     }
 
     "correctly query on floats in different precisions" >> {
       "lt" >> {
-        val features = execute(strategy, "height<11")
-        features must have size(1)
+        val features = execute("height<11")
+        features must haveLength(1)
         features must contain("alice")
       }
       "gt" >> {
-        val features = execute(strategy, "height>11")
-        features must have size(2)
+        val features = execute("height>11")
+        features must haveLength(2)
         features must contain("bob", "charles")
       }
       "lte" >> {
-        val features = execute(strategy, "height<=11")
-        features must have size(2)
+        val features = execute("height<=11")
+        features must haveLength(2)
         features must contain("alice", "bill")
       }
       "gte" >> {
-        val features = execute(strategy, "height>=11")
-        features must have size(3)
+        val features = execute("height>=11")
+        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "between (inclusive)" >> {
-        val features = execute(strategy, "height BETWEEN 11 AND 12")
-        features must have size(3)
+        val features = execute("height BETWEEN 11 AND 12")
+        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
     }
 
     "correctly query on doubles" >> {
       "lt" >> {
-        val features = execute(strategy, "weight<6.0")
-        features must have size(1)
+        val features = execute("weight<6.0")
+        features must haveLength(1)
         features must contain("alice")
       }
       "lt fraction" >> {
-        val features = execute(strategy, "weight<6.1")
-        features must have size(3)
+        val features = execute("weight<6.1")
+        features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
       "gt" >> {
-        val features = execute(strategy, "weight>6.0")
-        features must have size(1)
+        val features = execute("weight>6.0")
+        features must haveLength(1)
         features must contain("charles")
       }
       "gt fractions" >> {
-        val features = execute(strategy, "weight>5.9")
-        features must have size(3)
+        val features = execute("weight>5.9")
+        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "lte" >> {
-        val features = execute(strategy, "weight<=6.0")
-        features must have size(3)
+        val features = execute("weight<=6.0")
+        features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
       "gte" >> {
-        val features = execute(strategy, "weight>=6.0")
-        features must have size(3)
+        val features = execute("weight>=6.0")
+        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "between (inclusive)" >> {
-        val features = execute(strategy, "weight BETWEEN 5.5 AND 6.5")
-        features must have size(2)
+        val features = execute("weight BETWEEN 5.5 AND 6.5")
+        features must haveLength(2)
         features must contain("bill", "bob")
       }
     }
 
     "correctly query on doubles in different precisions" >> {
       "lt" >> {
-        val features = execute(strategy, "weight<6")
-        features must have size(1)
+        val features = execute("weight<6")
+        features must haveLength(1)
         features must contain("alice")
       }
       "gt" >> {
-        val features = execute(strategy, "weight>6")
-        features must have size(1)
+        val features = execute("weight>6")
+        features must haveLength(1)
         features must contain("charles")
       }
       "lte" >> {
-        val features = execute(strategy, "weight<=6")
-        features must have size(3)
+        val features = execute("weight<=6")
+        features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
       "gte" >> {
-        val features = execute(strategy, "weight>=6")
-        features must have size(3)
+        val features = execute("weight>=6")
+        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "between (inclusive)" >> {
-        val features = execute(strategy, "weight BETWEEN 5 AND 6")
-        features must have size(3)
+        val features = execute("weight BETWEEN 5 AND 6")
+        features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
     }
 
     "correctly query on strings" >> {
       "lt" >> {
-        val features = execute(strategy, "name<'bill'")
-        features must have size(1)
+        val features = execute("name<'bill'")
+        features must haveLength(1)
         features must contain("alice")
       }
       "gt" >> {
-        val features = execute(strategy, "name>'bill'")
-        features must have size(2)
+        val features = execute("name>'bill'")
+        features must haveLength(2)
         features must contain("bob", "charles")
       }
       "lte" >> {
-        val features = execute(strategy, "name<='bill'")
-        features must have size(2)
+        val features = execute("name<='bill'")
+        features must haveLength(2)
         features must contain("alice", "bill")
       }
       "gte" >> {
-        val features = execute(strategy, "name>='bill'")
-        features must have size(3)
+        val features = execute("name>='bill'")
+        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "between (inclusive)" >> {
-        val features = execute(strategy, "name BETWEEN 'bill' AND 'bob'")
-        features must have size(2)
+        val features = execute("name BETWEEN 'bill' AND 'bob'")
+        features must haveLength(2)
         features must contain("bill", "bob")
       }
     }
 
     "correctly query on date objects" >> {
       "before" >> {
-        val features = execute(strategy, "dtg BEFORE 2014-01-01T12:30:00.000Z")
-        features must have size(3)
+        val features = execute("dtg BEFORE 2014-01-01T12:30:00.000Z")
+        features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
       "after" >> {
-        val features = execute(strategy, "dtg AFTER 2013-01-01T12:30:00.000Z")
-        features must have size(2)
+        val features = execute("dtg AFTER 2013-01-01T12:30:00.000Z")
+        features must haveLength(2)
         features must contain("bob", "charles")
       }
       "during (exclusive)" >> {
-        val features = execute(strategy, "dtg DURING 2012-01-01T11:00:00.000Z/2014-01-01T12:15:00.000Z")
-        features must have size(3)
+        val features = execute("dtg DURING 2012-01-01T11:00:00.000Z/2014-01-01T12:15:00.000Z")
+        features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
     }
 
     "correctly query on date strings in standard format" >> {
       "lt" >> {
-        val features = execute(strategy, "dtg < '2014-01-01T12:30:00.000Z'")
-        features must have size(3)
+        val features = execute("dtg < '2014-01-01T12:30:00.000Z'")
+        features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
       "gt" >> {
-        val features = execute(strategy, "dtg > '2013-01-01T12:00:00.000Z'")
-        features must have size(2)
+        val features = execute("dtg > '2013-01-01T12:00:00.000Z'")
+        features must haveLength(2)
         features must contain("bob", "charles")
       }
       "between (inclusive)" >> {
-        val features = execute(strategy, "dtg BETWEEN '2012-01-01T12:00:00.000Z' AND '2013-01-01T12:00:00.000Z'")
-        features must have size(2)
+        val features = execute("dtg BETWEEN '2012-01-01T12:00:00.000Z' AND '2013-01-01T12:00:00.000Z'")
+        features must haveLength(2)
         features must contain("alice", "bill")
       }
     }
 
     "correctly query with attribute on right side" >> {
       "lt" >> {
-        val features = execute(strategy, "'bill' > name")
-        features must have size(1)
+        val features = execute("'bill' > name")
+        features must haveLength(1)
         features must contain("alice")
       }
       "gt" >> {
-        val features = execute(strategy, "'bill' < name")
-        features must have size(2)
+        val features = execute("'bill' < name")
+        features must haveLength(2)
         features must contain("bob", "charles")
       }
       "lte" >> {
-        val features = execute(strategy, "'bill' >= name")
-        features must have size(2)
+        val features = execute("'bill' >= name")
+        features must haveLength(2)
         features must contain("alice", "bill")
       }
       "gte" >> {
-        val features = execute(strategy, "'bill' <= name")
-        features must have size(3)
+        val features = execute("'bill' <= name")
+        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "before" >> {
-        execute(strategy, "2014-01-01T12:30:00.000Z AFTER dtg") should throwA[CQLException]
+        execute("2014-01-01T12:30:00.000Z AFTER dtg") should throwA[CQLException]
       }
       "after" >> {
-        execute(strategy, "2013-01-01T12:30:00.000Z BEFORE dtg") should throwA[CQLException]
+        execute("2013-01-01T12:30:00.000Z BEFORE dtg") should throwA[CQLException]
       }
     }
 
     "correctly query on lists of strings" in {
       "lt" >> {
-        val features = execute(strategy, "fingers<'middle'")
-        features must have size(3)
+        val features = execute("fingers<'middle'")
+        features must haveLength(3)
         features must contain("alice", "bob", "charles")
       }
       "gt" >> {
-        val features = execute(strategy, "fingers>'middle'")
-        features must have size(3)
+        val features = execute("fingers>'middle'")
+        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "lte" >> {
-        val features = execute(strategy, "fingers<='middle'")
-        features must have size(4)
+        val features = execute("fingers<='middle'")
+        features must haveLength(4)
         features must contain("alice", "bill", "bob", "charles")
       }
       "gte" >> {
-        val features = execute(strategy, "fingers>='middle'")
-        features must have size(3)
+        val features = execute("fingers>='middle'")
+        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "between (inclusive)" >> {
-        val features = execute(strategy, "fingers BETWEEN 'pinkie' AND 'thumb'")
-        features must have size(3)
+        val features = execute("fingers BETWEEN 'pinkie' AND 'thumb'")
+        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
     }
 
     "correctly query on lists of doubles" in {
       "lt" >> {
-        val features = execute(strategy, "toes<2.0")
-        features must have size(2)
+        val features = execute("toes<2.0")
+        features must haveLength(2)
         features must contain("alice", "bill")
       }
       "gt" >> {
-        val features = execute(strategy, "toes>2.0")
-        features must have size(1)
+        val features = execute("toes>2.0")
+        features must haveLength(1)
         features must contain("bob")
       }
       "lte" >> {
-        val features = execute(strategy, "toes<=2.0")
-        features must have size(3)
+        val features = execute("toes<=2.0")
+        features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
       "gte" >> {
-        val features = execute(strategy, "toes>=2.0")
-        features must have size(2)
+        val features = execute("toes>=2.0")
+        features must haveLength(2)
         features must contain("bill", "bob")
       }
       "between (inclusive)" >> {
-        val features = execute(strategy, "toes BETWEEN 1.5 AND 2.5")
-        features must have size(2)
+        val features = execute("toes BETWEEN 1.5 AND 2.5")
+        features must haveLength(2)
         features must contain("bill", "bob")
       }
     }
 
     "correctly query on not nulls" in {
-      val features = execute(strategy, "age IS NOT NULL")
-      features must have size(3)
+      val features = execute("age IS NOT NULL")
+      features must haveLength(3)
       features must contain("alice", "bill", "bob")
     }
   }
 
   "AttributeIndexLikeStrategy" should {
 
-    val strategy = new AttributeIdxLikeStrategy
-
     "correctly query on strings" in {
-      val features = execute(strategy, "name LIKE 'b%'")
-      features must have size(2)
+      val features = execute("name LIKE 'b%'")
+      features must haveLength(2)
       features must contain("bill", "bob")
     }
   }
