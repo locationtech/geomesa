@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.index
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
-import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Interval
@@ -145,10 +144,10 @@ object Strategy extends Logging {
   // store transform information into an Iterator's settings
   def configureTransforms(cfg: IteratorSetting, hints: Hints) =
     for {
-      transformOpt  <- org.locationtech.geomesa.accumulo.index.getTransformDefinition(hints)
+      transformOpt  <- hints.getTransformDefinition
       transform     = transformOpt.asInstanceOf[String]
       _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM, transform)
-      sfType        <- org.locationtech.geomesa.accumulo.index.getTransformSchema(hints)
+      sfType        <- hints.getTransformSchema
       encodedSFType = SimpleFeatureTypes.encodeType(sfType)
       _             = cfg.addOption(GEOMESA_ITERATORS_TRANSFORM_SCHEMA, encodedSFType)
     } yield Unit

@@ -12,9 +12,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
-import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Id, Or}
 
@@ -25,8 +23,6 @@ import scala.collection.mutable.ArrayBuffer
  * Class for splitting queries up based on Boolean clauses and the available query strategies.
  */
 class QueryFilterSplitter(sft: SimpleFeatureType, includeZ3: Boolean) extends Logging {
-
-  private lazy val wholeWorldGeom = ff.bbox(sft.getGeomField, -180.0, -90.0, 180.0, 90.0, "EPSG:4326")
 
   /**
    * Splits the query up into different filter plans to be evaluated. Each filter plan will consist of one or
@@ -92,10 +88,8 @@ class QueryFilterSplitter(sft: SimpleFeatureType, includeZ3: Boolean) extends Lo
 
     // z3 and spatio-temporal
     if (includeZ3 && temporal.nonEmpty) {
-      // z3 works pretty well for temporal only queries, but it still needs a spatial
-      // filter, even if it is just a whole world bbox
-      val ensureSpatial = if (spatial.nonEmpty) spatial else Seq(wholeWorldGeom)
-      val primary = ensureSpatial ++ temporal
+      // z3 works pretty well for temporal only queries - we add a whole world bbox later
+      val primary = spatial ++ temporal
       val secondary = andOption(attribute ++ others)
       options.append(FilterPlan(Seq(QueryFilter(StrategyType.Z3, primary, secondary))))
     } else if (spatial.nonEmpty) {
@@ -239,13 +233,14 @@ class QueryFilterSplitter(sft: SimpleFeatureType, includeZ3: Boolean) extends Lo
  */
 case class QueryFilter(strategy: StrategyType, primary: Seq[Filter], secondary: Option[Filter] = None) {
   lazy val filter = andFilters(primary ++ secondary)
-  lazy val filterString: String =
-    s"primary filter: ${primary.map(QueryStatTransform.filterToString).mkString(", ")}, " +
-      s"secondary filter: ${secondary.map(QueryStatTransform.filterToString).getOrElse("None")}"
+  override lazy val toString: String = s"$strategy[${primary.map(filterToString).mkString(" AND ")}]" +
+      s"[${secondary.map(filterToString).getOrElse("None")}]"
 }
 
 /**
  * A series of queries required to satisfy a filter - basically split on ORs
  */
-case class FilterPlan(filters: Seq[QueryFilter])
+case class FilterPlan(filters: Seq[QueryFilter]) {
+  override lazy val toString: String = s"FilterPlan[${filters.mkString(",")}]"
+}
 

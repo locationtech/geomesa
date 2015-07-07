@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util.UUID
-
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
@@ -59,18 +57,15 @@ object AccumuloFeatureWriter {
   /**
    * Gets writers and table names for each table (e.g. index) that supports the sft
    */
-  def getTablesAndWriters(sft: SimpleFeatureType, ds: AccumuloConnectorCreator): Seq[TableAndWriter] = {
-    val tablesAndNames = GeoMesaTable.getTablesAndNames(sft, ds)
-    tablesAndNames.flatMap { case (table, name) => table.writer(sft).map((name, _)) }
-  }
+  def getTablesAndWriters(sft: SimpleFeatureType, ds: AccumuloConnectorCreator): Seq[TableAndWriter] =
+    GeoMesaTable.getTables(sft).map(table => (ds.getTableName(sft.getTypeName, table), table.writer(sft)))
 
   /**
    * Gets removers and table names for each table (e.g. index) that supports the sft
    */
-  def getTablesAndRemovers(sft: SimpleFeatureType, ds: AccumuloConnectorCreator): Seq[TableAndWriter] = {
-    val tablesAndNames = GeoMesaTable.getTablesAndNames(sft, ds)
-    tablesAndNames.flatMap { case (table, name) => table.remover(sft).map((name, _)) }
-  }
+  def getTablesAndRemovers(sft: SimpleFeatureType, ds: AccumuloConnectorCreator): Seq[TableAndWriter] =
+    GeoMesaTable.getTables(sft).map(table => (ds.getTableName(sft.getTypeName, table), table.remover(sft)))
+
 }
 
 abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,

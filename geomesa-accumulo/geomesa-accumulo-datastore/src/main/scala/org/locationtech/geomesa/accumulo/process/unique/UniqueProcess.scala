@@ -19,7 +19,6 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
 import org.locationtech.geomesa.accumulo.data.GEOMESA_UNIQUE
-import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.opengis.feature.Feature
@@ -62,8 +61,8 @@ class UniqueProcess extends VectorProcess with Logging {
         .find(_.getLocalName == attribute)
         .getOrElse(throw new IllegalArgumentException(s"Attribute $attribute does not exist in feature schema."))
 
-    val hist = Option(histogram).map(_.booleanValue).getOrElse(false)
-    val sortBy = Option(sortByCount).map(_.booleanValue).getOrElse(false)
+    val hist = Option(histogram).exists(_.booleanValue)
+    val sortBy = Option(sortByCount).exists(_.booleanValue)
 
     val visitor = new AttributeVisitor(features, attributeDescriptor.getLocalName, Option(filter), hist)
     features.accepts(visitor, progressListener)
@@ -229,7 +228,7 @@ object AttributeVisitor {
    * @param attribute
    * @return
    */
-  def getIncludeAttributeFilter(attribute: String) = ff.greater(ff.property(attribute), ff.literal(""))
+  def getIncludeAttributeFilter(attribute: String) = ff.greaterOrEqual(ff.property(attribute), ff.literal(""))
 }
 
 /**

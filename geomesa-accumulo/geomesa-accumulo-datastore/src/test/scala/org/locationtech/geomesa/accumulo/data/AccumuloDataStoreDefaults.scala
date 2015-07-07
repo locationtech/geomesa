@@ -16,8 +16,8 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
@@ -69,7 +69,7 @@ trait AccumuloDataStoreDefaults {
                    dateField: Option[String] = Some("dtg"),
                    dataStore: DataStore = ds) = {
     val sft = SimpleFeatureTypes.createType(sftName, spec)
-    dateField.foreach(dt => sft.getUserData.put(SF_PROPERTY_START_TIME, dt))
+    dateField.foreach(sft.setDtgField)
     dataStore.createSchema(sft)
     sft
   }

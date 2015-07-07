@@ -16,6 +16,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.GEOMESA_ITERATORS_IS_DENSITY_TYPE
+import org.locationtech.geomesa.accumulo.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 import org.locationtech.geomesa.accumulo.index.Strategy._
@@ -23,6 +24,7 @@ import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -34,7 +36,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
 
     val sft             = queryPlanner.sft
     val acc             = queryPlanner.acc
-    val version         = queryPlanner.version
+    val version         = sft.getSchemaVersion
     val schema          = queryPlanner.stSchema
     val featureEncoding = queryPlanner.featureEncoding
     val keyPlanner      = IndexSchema.buildKeyPlanner(schema)
@@ -43,7 +45,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     output(s"Scanning ST index table for feature type ${sft.getTypeName}")
     output(s"Filter: ${filter.primary} ${filter.secondary.map(_.toString).getOrElse("")}")
 
-    val dtgField = getDtgFieldName(sft)
+    val dtgField = sft.getDtgField
 
     val (geomFilters, temporalFilters) = filter.primary.partition(isSpatialFilter)
     val ecql = filter.secondary
@@ -65,8 +67,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
       case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
     }
 
-    val temporal = extractTemporal(dtgField)(temporalFilters)
-    val interval = netInterval(temporal)
+    val interval = extractInterval(temporalFilters, dtgField)
     val geometryToCover = netGeom(collectionToCover)
 
     val keyPlanningFilter = buildFilter(geometryToCover, interval)
@@ -124,8 +125,8 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     // set up row ranges and regular expression filter
     val qp = planQuery(keyPlanningFilter, useIndexEntries, output, keyPlanner, cfPlanner)
 
-    val table = acc.getSpatioTemporalTable(sft)
-    val numThreads = acc.getSuggestedSpatioTemporalThreads(sft)
+    val table = acc.getTableName(sft.getTypeName, SpatioTemporalTable)
+    val numThreads = acc.getSuggestedThreads(sft.getTypeName, SpatioTemporalTable)
     val hasDupes = STIdxStrategy.mayContainDuplicates(hints, sft)
     val res = qp.copy(table = table, iterators = iterators, kvsToFeatures = kvsToFeatures,
       numThreads = numThreads, hasDuplicates = hasDupes)
@@ -179,7 +180,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     configureVersion(cfg, version)
     if (transformsCoverFilter) {
       // apply the transform directly to the index iterator
-      getTransformSchema(hints).foreach(testType => configureFeatureType(cfg, testType))
+      hints.getTransformSchema.foreach(testType => configureFeatureType(cfg, testType))
     } else {
       // we need to evaluate the original feature before transforming
       // transforms are applied afterwards

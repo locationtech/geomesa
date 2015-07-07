@@ -150,6 +150,31 @@ class KryoBufferSimpleFeatureTest extends Specification {
       transformed.getAttributeCount mustEqual 1
     }
 
+    "correctly project index values" in {
+      val sft = SimpleFeatureTypes.createType("fullType", "dtg:Date,*geom:Point")
+      val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point,dtg:Date")
+
+      val sf = new ScalaSimpleFeature("testFeature", sft)
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+      val serializer = new KryoFeatureSerializer(sft)
+      val serialized = serializer.serialize(sf)
+
+      val laz = serializer.getReusableFeature
+      laz.setBuffer(serialized)
+      laz.setTransforms("geom=geom;dtg=dtg", projectedSft)
+
+      val bytes = laz.transform()
+      val deserializer = new KryoFeatureSerializer(projectedSft)
+      val transformed = deserializer.deserialize(bytes)
+
+      transformed.getID mustEqual sf.getID
+      transformed.getAttributeCount mustEqual 2
+      transformed.getAttribute("geom") mustEqual sf.getAttribute("geom")
+      transformed.getAttribute("dtg") mustEqual sf.getAttribute("dtg")
+    }
+
     "allow for attributes to be appended to the sft" in {
       val sft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date")
 

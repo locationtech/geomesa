@@ -16,7 +16,7 @@ import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -28,24 +28,22 @@ object RecordTable extends GeoMesaTable {
 
   override val suffix: String = "records"
 
-  override def writer(sft: SimpleFeatureType): Option[FeatureToMutations] = {
-    val rowIdPrefix = org.locationtech.geomesa.accumulo.index.getTableSharingPrefix(sft)
-    val fn = (toWrite: FeatureToWrite) => {
+  override def writer(sft: SimpleFeatureType): FeatureToMutations = {
+    val rowIdPrefix = sft.getTableSharingPrefix
+    (toWrite: FeatureToWrite) => {
       val m = new Mutation(getRowKey(rowIdPrefix, toWrite.feature.getID))
       m.put(SFT_CF, EMPTY_COLQ, toWrite.columnVisibility, toWrite.dataValue)
       Seq(m)
     }
-    Some(fn)
   }
 
-  override def remover(sft: SimpleFeatureType): Option[FeatureToMutations] = {
-    val rowIdPrefix = org.locationtech.geomesa.accumulo.index.getTableSharingPrefix(sft)
-    val fn = (toWrite: FeatureToWrite) => {
+  override def remover(sft: SimpleFeatureType): FeatureToMutations = {
+    val rowIdPrefix = sft.getTableSharingPrefix
+    (toWrite: FeatureToWrite) => {
       val m = new Mutation(getRowKey(rowIdPrefix, toWrite.feature.getID))
       m.putDelete(SFT_CF, EMPTY_COLQ, toWrite.columnVisibility)
       Seq(m)
     }
-    Some(fn)
   }
 
   def getRowKey(rowIdPrefix: String, id: String): String = rowIdPrefix + id
@@ -53,7 +51,7 @@ object RecordTable extends GeoMesaTable {
   override def configureTable(featureType: SimpleFeatureType, recordTable: String, tableOps: TableOperations): Unit = {
     import scala.collection.JavaConversions._
 
-    val prefix = index.getTableSharingPrefix(featureType)
+    val prefix = featureType.getTableSharingPrefix
     val prefixFn = RecordTable.getRowKey(prefix, _: String)
     val splitterClazz = featureType.getUserData.getOrElse(SimpleFeatureTypes.TABLE_SPLITTER, classOf[HexSplitter].getCanonicalName).asInstanceOf[String]
     val clazz = Class.forName(splitterClazz)

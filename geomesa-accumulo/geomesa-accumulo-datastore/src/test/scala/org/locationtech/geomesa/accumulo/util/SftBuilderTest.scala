@@ -18,6 +18,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import scala.collection.JavaConversions._
 
@@ -97,29 +98,29 @@ class SftBuilderTest extends Specification {
     "set default dtg correctly" >> {
       new SftBuilder()
         .date("foobar", default = true)
-        .build("foobar").getUserData.get(SF_PROPERTY_START_TIME) mustEqual "foobar"
+        .build("foobar").getDtgField must beSome("foobar")
 
       new SftBuilder()
         .date("foobar")
         .withDefaultDtg("foobar")
-        .build("foobar").getUserData.get(SF_PROPERTY_START_TIME) mustEqual "foobar"
+        .build("foobar").getDtgField must beSome("foobar")
 
       new SftBuilder()
         .date("foobar")
         .date("dtg")
         .withDefaultDtg("foobar")
-        .build("foobar").getUserData.get(SF_PROPERTY_START_TIME) mustEqual "foobar"
+        .build("foobar").getDtgField must beSome("foobar")
 
       new SftBuilder()
         .date("dtg")
         .date("foobar")
         .withDefaultDtg("foobar")
-        .build("foobar").getUserData.get(SF_PROPERTY_START_TIME) mustEqual "foobar"
+        .build("foobar").getDtgField must beSome("foobar")
 
       new SftBuilder()
         .date("dtg")
         .date("foobar", default = true)
-        .build("foobar").getUserData.get(SF_PROPERTY_START_TIME) mustEqual "foobar"
+        .build("foobar").getDtgField must beSome("foobar")
     }
 
     "build lists" >> {

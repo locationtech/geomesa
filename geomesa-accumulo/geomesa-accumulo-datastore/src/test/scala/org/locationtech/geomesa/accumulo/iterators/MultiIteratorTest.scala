@@ -57,8 +57,7 @@ class MultiIteratorTest extends Specification with Logging {
         passwordParam.key   -> "pass",
         authsParam.key      -> "S,USA",
         tableNameParam.key  -> tableName,
-        mockParam.key       -> "true",
-        featureEncParam.key -> "avro"))
+        mockParam.key       -> "true"))
 
       ds.createSchema(TestData.featureType)
       val fs = ds.getFeatureSource(TestData.featureName).asInstanceOf[SimpleFeatureStore]

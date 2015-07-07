@@ -13,8 +13,10 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -31,22 +33,19 @@ trait TestWithDataStore {
 
   // we use class name to prevent spillage between unit tests in the mock connector
   val sftName = getClass.getSimpleName
-  lazy val sft = {
-    val sft = SimpleFeatureTypes.createType(sftName, spec)
-    sft.getUserData.put(SF_PROPERTY_START_TIME, dtgField)
-    sft
-  }
 
   lazy val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
-  lazy val ds = {
+  lazy val (ds, sft) = {
+    val sft = SimpleFeatureTypes.createType(sftName, spec)
+    sft.setDtgField(dtgField)
     val ds = DataStoreFinder.getDataStore(Map(
       "connector" -> connector,
       "caching"   -> false,
       // note the table needs to be different to prevent testing errors
       "tableName" -> sftName).asJava).asInstanceOf[AccumuloDataStore]
     ds.createSchema(sft)
-    ds
+    (ds, ds.getSchema(sftName)) // reload the sft from the ds to ensure all user data is set properly
   }
 
   lazy val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
@@ -78,4 +77,6 @@ trait TestWithDataStore {
     ds.explainQuery(query, o)
     o.toString()
   }
+
+  def explain(filter: String): String = explain(new Query(sftName, ECQL.toFilter(filter)))
 }

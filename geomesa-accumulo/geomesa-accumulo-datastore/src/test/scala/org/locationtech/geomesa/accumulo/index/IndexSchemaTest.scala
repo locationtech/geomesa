@@ -15,9 +15,9 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
-import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -30,10 +30,10 @@ class IndexSchemaTest extends Specification {
 
   val dummyType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
   val customType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,*the_geom:Geometry,dt_start:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
-  customType.getUserData.put(SF_PROPERTY_START_TIME, "dt_start")
+  customType.setDtgField("dt_start")
   val dummyEncoder = SimpleFeatureSerializers(dummyType, SerializationType.AVRO)
   val customEncoder = SimpleFeatureSerializers(customType, SerializationType.AVRO)
-  val dummyIndexValueEncoder = IndexValueEncoder(dummyType, INTERNAL_GEOMESA_VERSION)
+  val dummyIndexValueEncoder = IndexValueEncoder(dummyType)
 
   "SpatioTemporalIndexSchemaTest" should {
     "parse a valid string" in {

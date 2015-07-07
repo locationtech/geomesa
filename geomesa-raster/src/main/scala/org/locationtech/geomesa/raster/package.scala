@@ -12,7 +12,9 @@ import java.math.{MathContext, RoundingMode}
 
 import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.data.DataAccessFactory.Param
+import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 /**
  * In these lexiEncode and -Decode functions, a double is encoded or decoded into a lexical
@@ -38,7 +40,12 @@ package object raster {
   val rasterSftName: String = ""
 
   // Raster CQ MetaData SFT
-  val rasterSft = SimpleFeatureTypes.createType("RasterIndexEntry", "*geom:Geometry:srid=4326,dtg:Date")
+  val rasterSft = {
+    val sft = SimpleFeatureTypes.createType("RasterIndexEntry", "*geom:Geometry:srid=4326,dtg:Date")
+    sft.setSchemaVersion(CURRENT_SCHEMA_VERSION)
+    sft.setDtgField("dtg")
+    sft
+  }
 
   // geom field name
   val rasterSftGeomName = "geom"

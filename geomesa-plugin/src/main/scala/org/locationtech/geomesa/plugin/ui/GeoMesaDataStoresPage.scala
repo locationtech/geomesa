@@ -17,6 +17,7 @@ import org.apache.wicket.markup.html.list.{ListItem, ListView}
 import org.geoserver.catalog.StoreInfo
 import org.geoserver.web.data.store.{StorePanel, StoreProvider}
 import org.geotools.data.{DataStoreFinder, Query}
+import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStore}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
 import org.locationtech.geomesa.plugin.ui.components.DataStoreInfoPanel
@@ -65,7 +66,7 @@ class GeoMesaDataStoresPage extends GeoMesaBasePage {
     features.put(name, featureNames)
 
     val metadataPerFeature = featureNames.map { typeName =>
-      typeName -> getFeatureMetadata(dataStore, typeName, dataStore.catalogTable)
+      typeName -> getFeatureMetadata(dataStore, typeName)
     }.toMap[String, List[TableMetadata]]
     metadata.put(name, metadataPerFeature)
 
@@ -174,23 +175,25 @@ object GeoMesaDataStoresPage {
    *
    * @param dataStore
    * @param featureName
-   * @param table
    * @return
    *   (tableName, number of tablets, number of splits, total number of entries, total file size)
    */
-  def getFeatureMetadata(dataStore: AccumuloDataStore, featureName: String, table: String): List[TableMetadata] = {
+  def getFeatureMetadata(dataStore: AccumuloDataStore, featureName: String): List[TableMetadata] = {
     val connector = dataStore.connector
-
-    val tables =
-      if (dataStore.getGeomesaVersion(featureName) < 1) {
-        List(("Record Table/GeoSpatial Index", table))
-      } else {
-        List(("Record Table", dataStore.getRecordTable(featureName)),
-          ("GeoSpatial Index", dataStore.getSpatioTemporalTable(featureName)),
-          ("Attribute Index", dataStore.getAttributeTable(featureName)))
+    val sft = dataStore.getSchema(featureName)
+    val tables = GeoMesaTable.getTables(sft).map { t =>
+      val name = dataStore.getTableName(featureName, t)
+      val title = t match {
+        case RecordTable => "Record Index"
+        case AttributeTable | AttributeTableV5 => "Attribute Index"
+        case SpatioTemporalTable => "Spatio-temporal Index"
+        case Z3Table => "Z3 Spatio-temporal Index"
+        case _ => t.getClass.getSimpleName
       }
+      (title, name)
+    }
 
-    tables.map { case (displayName, table) =>
+    tables.toList.map { case (displayName, table) =>
       val tableId = Option(connector.tableOperations.tableIdMap.get(table))
       tableId match {
         case Some(id) => getTableMetadata(connector, featureName, table, id, displayName)

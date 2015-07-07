@@ -14,10 +14,10 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data.{Key, Mutation}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -28,8 +28,7 @@ case class STIndexEncoder(sft: SimpleFeatureType, rowf: TextFormatter, cff: Text
   import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 
   val formats = Array(rowf, cff, cqf)
-  val dtgFieldIndex =
-    getDtgFieldName(sft).orElse(Some(DEFAULT_DTG_PROPERTY_NAME)).map(sft.indexOf).filter(_ != -1)
+  val dtgFieldIndex = sft.getDtgIndex
 
   val mutations: (Seq[GeoHash], FeatureToWrite, DateTime, Boolean) => Seq[Mutation] =
     if (IndexSchema.mayContainDuplicates(sft)) polyMutations else pointMutations

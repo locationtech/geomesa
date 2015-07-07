@@ -80,7 +80,7 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
 
   lazy val sft = {
     val ret = SimpleFeatureTypes.createType(featureName, sftSpec)
-    ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField.getOrElse(Constants.SF_PROPERTY_START_TIME))
+    ret.getUserData.put(Constants.SF_PROPERTY_START_TIME, dtgField.orNull)
     args.optional(IngestParams.INDEX_SCHEMA_FMT).foreach { indexSchema =>
       ret.getUserData.put(Constants.SFT_INDEX_SCHEMA, indexSchema)
     }
@@ -130,7 +130,7 @@ class ScaldingDelimitedIngestJob(args: Args) extends Job(args) with Logging {
   }
 
   // TODO unit test class without having an internal helper method
-  def runTestIngest(lines: Iterator[String]) = Try {
+  def runTestIngest(lines: Iterator[String]) = {
     val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
     ds.createSchema(sft)
     val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)

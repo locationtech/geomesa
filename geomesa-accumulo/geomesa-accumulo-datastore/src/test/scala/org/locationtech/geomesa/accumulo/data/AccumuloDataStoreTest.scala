@@ -32,7 +32,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.CRS
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.tables.{RecordTable, AttributeTable, SpatioTemporalTable, GeoMesaTable}
+import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index._
@@ -42,6 +42,7 @@ import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider}
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -80,21 +81,21 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
           .id()
           .build()
       val sft = SimpleFeatureTypes.createType(sftName, defaultSchema)
-      sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
-      sft.getUserData.put(SFT_INDEX_SCHEMA, indexSchema)
+      sft.setDtgField("dtg")
+      sft.setStIndexSchema(indexSchema)
       ds.createSchema(sft)
 
       val retrievedSft = ds.getSchema(sftName)
 
       retrievedSft must equalTo(sft)
-      retrievedSft.getUserData.get(SF_PROPERTY_START_TIME) mustEqual "dtg"
-      retrievedSft.getUserData.get(SFT_INDEX_SCHEMA) must beEqualTo(indexSchema)
-      getIndexSchema(retrievedSft) must beEqualTo(Option(indexSchema))
+      retrievedSft.getDtgField must beSome("dtg")
+      retrievedSft.getStIndexSchema mustEqual indexSchema
+      retrievedSft.getStIndexSchema mustEqual indexSchema
     }
     "create and retrieve a schema without a custom IndexSchema" in {
       val sftName = "schematestDefaultSchema"
       val sft = SimpleFeatureTypes.createType(sftName, defaultSchema)
-      sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+      sft.setDtgField("dtg")
 
       val mockMaxShards = ds.DEFAULT_MAX_SHARD
       val indexSchema = ds.computeSpatioTemporalSchema(sft)
@@ -105,9 +106,8 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
       mockMaxShards mustEqual 0
       retrievedSft mustEqual sft
-      retrievedSft.getUserData.get(SF_PROPERTY_START_TIME) mustEqual "dtg"
-      retrievedSft.getUserData.get(SFT_INDEX_SCHEMA) mustEqual indexSchema
-      getIndexSchema(retrievedSft) mustEqual Option(indexSchema)
+      retrievedSft.getDtgField must beSome("dtg")
+      retrievedSft.getStIndexSchema mustEqual indexSchema
     }
     "return NULL when a feature name does not exist" in {
       ds.getSchema("testTypeThatDoesNotExist") must beNull
@@ -180,9 +180,9 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=" +
           s"${classOf[DigitSplitter].getName},table.splitter.options=fmt:%02d,min:0,max:99"
       val sft = SimpleFeatureTypes.createType("customsplit", spec)
-      org.locationtech.geomesa.accumulo.index.setTableSharing(sft, false)
+      sft.setTableSharing(false)
       ds.createSchema(sft)
-      val recTable = ds.getRecordTable(sft)
+      val recTable = ds.getTableName(sft.getTypeName, RecordTable)
       val splits = ds.connector.tableOperations().listSplits(recTable)
       splits.size() mustEqual 100
       splits.head mustEqual new Text("00")
@@ -200,7 +200,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         val dst = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
         val qpt = dst.getQueryPlan(query)
         qpt must haveSize(1)
-        qpt.head.table mustEqual dst.getZ3Table(sftName)
+        qpt.head.table mustEqual dst.getTableName(sftName, Z3Table)
         qpt.head.numThreads mustEqual numThreads
       }
 
@@ -209,7 +209,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       // check default
       val qpt = ds.getQueryPlan(query)
       qpt must haveSize(1)
-      qpt.head.table mustEqual ds.getZ3Table(sftName)
+      qpt.head.table mustEqual ds.getTableName(sftName, Z3Table)
       qpt.head.numThreads mustEqual 8
     }
 
@@ -555,7 +555,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val query = new Query(sftName, ECQL.toFilter("BBOX(geom,40,40,50,50)"))
       query.getHints.put(BIN_TRACK_KEY, "name")
       val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft),
-        ds.getIndexSchemaFmt(sftName), ds, ds.strategyHints(sft), ds.getGeomesaVersion(sft))
+        ds.getIndexSchemaFmt(sftName), ds, ds.strategyHints(sft))
       val results = queryPlanner.runQuery(query, Some(StrategyType.ST)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
@@ -690,11 +690,11 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       createSchema(sftName)
       val query = new Query(sftName, Filter.INCLUDE)
       val fr = ds.getFeatureReader(sftName)
-      fr must not beNull;
+      fr must not beNull
       val out = new ExplainString
       ds.explainQuery(new Query(sftName, Filter.INCLUDE), out)
       val explain = out.toString()
-      explain must startWith(s"Planning Query")
+      explain must startWith(s"Planning '$sftName'")
     }
 
     "allow secondary attribute indexes" in {
@@ -771,7 +771,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       // this should end up hex encoded
       val sftName = "nihao你好"
       val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,dtg:Date,*geom:Point:srid=4326")
-      org.locationtech.geomesa.accumulo.index.setTableSharing(sft, false)
+      sft.setTableSharing(false)
       ds.createSchema(sft)
 
       // encode groups of 2 hex chars since we are doing multibyte chars
@@ -842,7 +842,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
           "000000013500000015000000000140468000000000004046800000000000000001349ccf6e18").map {v =>
           hex.decode(v.getBytes)}
         val sft = SimpleFeatureTypes.createType(sftName, s"name:String,$geotimeAttributes")
-        sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+        sft.setDtgField("dtg")
 
         val instance = new MockInstance(params("instanceId"))
         val connector = instance.getConnector(params("user"), new PasswordToken(params("password").getBytes))
@@ -875,7 +875,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
       def createFeature(sftName: String, ds: AccumuloDataStore, sharedTables: Boolean = true) = {
         val sft = SimpleFeatureTypes.createType(sftName, "name:String:index=true,geom:Point:srid=4326,dtg:Date")
-        org.locationtech.geomesa.accumulo.index.setTableSharing(sft, sharedTables)
+        sft.setTableSharing(sharedTables)
         ds.createSchema(sft)
         addDefaultPoint(sft, dataStore = ds)
       }
@@ -1235,7 +1235,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         o.toString()
       }
       ds.removeSchema(sftName)
-      explain.split("\n").filter(_.startsWith("Filter:")).toSeq mustEqual Seq("Filter: primary filter: INCLUDE, secondary filter: None")
+      explain.split("\n").filter(_.startsWith("Filter:")).toSeq mustEqual Seq("Filter: RECORD[INCLUDE][None]")
     }
 
     "create key plan that does not use STII when given something larger than the Whole World bbox" in {
@@ -1249,7 +1249,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         o.toString()
       }
       ds.removeSchema(sftName)
-      explain.split("\n").filter(_.startsWith("Filter:")).toSeq mustEqual Seq("Filter: primary filter: INCLUDE, secondary filter: None")
+      explain.split("\n").filter(_.startsWith("Filter:")).toSeq mustEqual Seq("Filter: RECORD[INCLUDE][None]")
     }
 
     "create key plan that does not use STII when given an or'd geometry query with redundant bbox" in {

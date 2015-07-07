@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import org.apache.accumulo.core.data.{Range => AccRange}
 import org.geotools.data._
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -43,7 +42,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithDataStore {
 
     "support full coverage of attributes" in {
       val query = new Query(sftName, ECQL.toFilter("name = '3name3'"))
-      explain(query).indexOf("Using record join iterator") mustEqual(-1)
+      explain(query).indexOf(joinIndicator) mustEqual(-1)
 
       val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
 

@@ -13,7 +13,6 @@
 
     <modules>
         <module>geomesa-accumulo-datastore</module>
-        <module>geomesa-iterators</module>
     </modules>
 
 </project>

@@ -335,7 +335,8 @@ class ScaldingDelimitedIngestJobTest extends Specification{
       val ingest = new ScaldingDelimitedIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
         new Args(csvNormParams)))
 
-      ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
+      success
     }
 
     "properly write the features from a valid TSV" in {
@@ -343,7 +344,8 @@ class ScaldingDelimitedIngestJobTest extends Specification{
       val ingest = new ScaldingDelimitedIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
         new Args(csvNormParams.updated(IngestParams.FORMAT, List("TSV")))))
 
-      ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
+      success
     }
 
     "properly write the features from a valid CSV containing WKT geometries" in {
@@ -351,7 +353,8 @@ class ScaldingDelimitedIngestJobTest extends Specification{
       val ingest = new ScaldingDelimitedIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
         new Args(csvWktParams)))
 
-      ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
+      success
     }
 
     "properly write the features from a valid TSV containing WKT geometries" in {
@@ -359,7 +362,8 @@ class ScaldingDelimitedIngestJobTest extends Specification{
       val ingest = new ScaldingDelimitedIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
         new Args(csvWktParams.updated(IngestParams.FORMAT, List("TSV")))))
 
-      ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
+      success
     }
 
     "properly write the features from a valid CSV with no date/time" in {
@@ -369,7 +373,8 @@ class ScaldingDelimitedIngestJobTest extends Specification{
         .updated(IngestParams.DT_FIELD, List.empty)
         .updated(IngestParams.SFT_SPEC, List("fid:Double,lon:Double,lat:Double,*geom:Point:srid=4326")))))
 
-      ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
+      success
     }
 
     "properly write the features from a valid TSV with no date/time" in {
@@ -379,7 +384,8 @@ class ScaldingDelimitedIngestJobTest extends Specification{
         .updated(IngestParams.DT_FIELD, List.empty).updated(IngestParams.FORMAT, List("TSV"))
         .updated(IngestParams.SFT_SPEC, List("fid:Double,lon:Double,lat:Double,*geom:Point:srid=4326")))))
 
-      ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
+      success
     }
 
     "properly create subset of column list" in {
@@ -410,7 +416,8 @@ class ScaldingDelimitedIngestJobTest extends Specification{
         new Args(csvNormParams.updated(IngestParams.SFT_SPEC,
         List("time:Date,lon:Double,lat:Double,*geom:Point:srid=4326")) ++ Map(IngestParams.COLS -> List("1-3")))))
 
-      ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
+      success
     }
 
     "properly write a subset of features from a valid TSV" in {
@@ -420,7 +427,8 @@ class ScaldingDelimitedIngestJobTest extends Specification{
         List("time:Date,lon:Double,lat:Double,*geom:Point:srid=4326")).updated(IngestParams.FORMAT, List("TSV"))
         ++ Map(IngestParams.COLS -> List("1-3")))))
 
-      ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
+      success
     }
 
     "properly write the features from a valid CSV containing WKT geometries" in {
@@ -429,7 +437,8 @@ class ScaldingDelimitedIngestJobTest extends Specification{
         new Args(csvWktParams.updated(IngestParams.SFT_SPEC,
         List("time:Date,*geom:Geometry:srid=4326")) ++ Map(IngestParams.COLS -> List("1-2")))))
 
-      ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
+      success
     }
 
     "properly write the features from a valid TSV containing WKT geometries" in {
@@ -439,7 +448,8 @@ class ScaldingDelimitedIngestJobTest extends Specification{
         List("time:Date,*geom:Geometry:srid=4326")).updated(IngestParams.FORMAT, List("TSV"))
         ++ Map(IngestParams.COLS -> List("1-2")))))
 
-      ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+      ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
+      success
     }
 
     "ingest using lat/lon to set default geom without lat/lon attributes in sft" in {
@@ -447,6 +457,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
         val path = Runner.getClass.getResource(testFileName)
         val ingest = new ScaldingDelimitedIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
           new Args(csvNormParams
+          .updated(IngestParams.DT_FIELD, List(null))
           .updated(IngestParams.SFT_SPEC, List("i:Integer,*geom:Point:srid=4326"))
           .updated(IngestParams.FORMAT, List(format))
           .updated(IngestParams.FEATURE_NAME, List(featureName))
@@ -454,7 +465,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
           .updated(IngestParams.LAT_ATTRIBUTE, List("4"))
           .updated(IngestParams.COLS, List("0")))))
 
-        ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+        ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
 
         val geoms = ds.getFeatureSource(featureName).getFeatures.features().map { sf =>
           sf.get[Integer]("i") -> (sf.point.getX, sf.point.getY)
@@ -480,6 +491,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
         val ingest = new ScaldingDelimitedIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
           new Args(
           csvWktParams
+            .updated(IngestParams.DT_FIELD, List(null))
             .updated(IngestParams.SFT_SPEC, List(spec))
             .updated(IngestParams.FORMAT, List(format))
             .updated(IngestParams.FEATURE_NAME, List(featureName))
@@ -499,7 +511,8 @@ class ScaldingDelimitedIngestJobTest extends Specification{
           sf
         }
 
-        ingest.runTestIngest(testStrings.toIterator) must beASuccessfulTry
+        ingest.runTestIngest(testStrings.toIterator)
+
         forall(features) { _.getAttribute("foobar") must beAnInstanceOf[java.util.List[Integer]] }
 
         val values = ds.getFeatureSource(featureName).getFeatures.features().map { sf =>
@@ -528,7 +541,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
           .updated(IngestParams.FORMAT, List(format))
           .updated(IngestParams.FEATURE_NAME, List(featureName)))))
 
-        ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+        ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
 
         val values = ds.getFeatureSource(featureName).getFeatures.features().map { sf =>
           // must convert list to scala list for equality tests below
@@ -556,7 +569,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
           .updated(IngestParams.FORMAT, List(format))
           .updated(IngestParams.FEATURE_NAME, List(featureName)))))
 
-        ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+        ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
 
         val values = ds.getFeatureSource(featureName).getFeatures.features().map { sf =>
           // must convert list to scala list for equality tests below
@@ -587,7 +600,7 @@ class ScaldingDelimitedIngestJobTest extends Specification{
           .updated(IngestParams.FEATURE_NAME, List(featureName))
           .updated(IngestParams.MAP_DELIMITERS, List(":", "_")))))
 
-        ingest.runTestIngest(Source.fromFile(path.toURI).getLines()) must beASuccessfulTry
+        ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
 
         val values = ds.getFeatureSource(featureName).getFeatures.features().map { sf =>
           // must convert list to scala list for equality tests below

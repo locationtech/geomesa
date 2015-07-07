@@ -16,9 +16,9 @@ import org.geotools.factory.Hints
 import org.geotools.feature._
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.MinMaxTimeVisitor
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId
@@ -35,7 +35,7 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
     if (collection.size > 0) {
       writeBounds(collection.getBounds)
 
-      val minMaxVisitorO = index.getDtgFieldName(collection.getSchema).map { new MinMaxTimeVisitor(_) }
+      val minMaxVisitorO = collection.getSchema.getDtgField.map { new MinMaxTimeVisitor(_) }
       val fw = dataStore.getFeatureWriterAppend(featureName.getLocalPart, Transaction.AUTO_COMMIT)
 
       val updateTimeBounds: SimpleFeature => Unit = { feature => minMaxVisitorO.foreach { _.visit(feature) } }
@@ -89,7 +89,7 @@ class AccumuloFeatureStore(val dataStore: AccumuloDataStore, val featureName: Na
 
   def updateTimeBounds(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]) = {
     val sft = collection.getSchema
-    val dateField = org.locationtech.geomesa.accumulo.index.getDtgFieldName(sft)
+    val dateField = sft.getDtgField
 
     dateField.flatMap { dtg =>
       val minMax = new MinMaxTimeVisitor(dtg)

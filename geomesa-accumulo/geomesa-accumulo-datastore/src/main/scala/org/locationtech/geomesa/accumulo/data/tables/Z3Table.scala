@@ -22,7 +22,7 @@ import org.apache.accumulo.core.data.{Key, Mutation, Range => aRange, Value}
 import org.apache.hadoop.io.Text
 import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
-import org.locationtech.geomesa.accumulo.index
+import org.locationtech.geomesa.accumulo.data.EMPTY_TEXT
 import org.locationtech.geomesa.accumulo.index.QueryPlanners._
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -43,7 +43,6 @@ object Z3Table extends GeoMesaTable {
   val BIN_CF = new Text("B")
   val EMPTY_BYTES = Array.empty[Byte]
   val EMPTY_VALUE = new Value(EMPTY_BYTES)
-  val EMPTY_TEXT = new Text(EMPTY_BYTES)
 
   def secondsInCurrentWeek(dtg: DateTime, weeks: Weeks) =
     Seconds.secondsBetween(EPOCH, dtg).getSeconds - weeks.toStandardSeconds.getSeconds
@@ -51,7 +50,9 @@ object Z3Table extends GeoMesaTable {
   def epochWeeks(dtg: DateTime) = Weeks.weeksBetween(EPOCH, new DateTime(dtg))
 
   override def supports(sft: SimpleFeatureType): Boolean =
-    sft.getGeometryDescriptor.getType.getBinding == classOf[Point] && index.getDtgFieldName(sft).isDefined
+    sft.getSchemaVersion > 4 &&
+      sft.getGeometryDescriptor.getType.getBinding == classOf[Point] &&
+      sft.getDtgField.isDefined
 
   override val suffix: String = "z3"
 
@@ -59,9 +60,8 @@ object Z3Table extends GeoMesaTable {
   override def formatTableName(prefix: String, sft: SimpleFeatureType): String =
     GeoMesaTable.formatSoloTableName(prefix, suffix, sft)
 
-  override def writer(sft: SimpleFeatureType): Option[FeatureToMutations] = {
+  override def writer(sft: SimpleFeatureType): FeatureToMutations = {
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
-    val writer = new KryoFeatureSerializer(sft)
     val binWriter: (FeatureToWrite, Mutation) => Unit = sft.getBinTrackId match {
       case Some(trackId) =>
         val geomIndex = sft.getGeomIndex
@@ -79,28 +79,36 @@ object Z3Table extends GeoMesaTable {
         }
       case _ => (fw: FeatureToWrite, m: Mutation) => {}
     }
-    val fn = (fw: FeatureToWrite) => {
-      val mutation = new Mutation(getRowKey(fw, dtgIndex))
-      // TODO if we know we're using kryo we don't need to reserialize
-      val payload = new Value(writer.serialize(fw.feature))
-      binWriter(fw, mutation)
-      mutation.put(FULL_CF, EMPTY_TEXT, fw.columnVisibility, payload)
-      Seq(mutation)
+    if (sft.getSchemaVersion > 5) {
+      // we know the data is kryo serialized in version 6+
+      (fw: FeatureToWrite) => {
+        val mutation = new Mutation(getRowKey(fw, dtgIndex))
+        binWriter(fw, mutation)
+        mutation.put(FULL_CF, EMPTY_TEXT, fw.columnVisibility, fw.dataValue)
+        Seq(mutation)
+      }
+    } else {
+      // we always want to use kryo - reserialize the value to ensure it
+      val writer = new KryoFeatureSerializer(sft)
+      (fw: FeatureToWrite) => {
+        val mutation = new Mutation(getRowKey(fw, dtgIndex))
+        val payload = new Value(writer.serialize(fw.feature))
+        binWriter(fw, mutation)
+        mutation.put(FULL_CF, EMPTY_TEXT, fw.columnVisibility, payload)
+        Seq(mutation)
+      }
     }
-    Some(fn)
+
   }
 
-  override def remover(sft: SimpleFeatureType): Option[FeatureToMutations] = {
-    val dtgIndex = index.getDtgDescriptor(sft)
-        .map { desc => sft.indexOf(desc.getName) }
-        .getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
-    val fn = (fw: FeatureToWrite) => {
+  override def remover(sft: SimpleFeatureType): FeatureToMutations = {
+    val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
+    (fw: FeatureToWrite) => {
       val mutation = new Mutation(getRowKey(fw, dtgIndex))
       mutation.putDelete(BIN_CF, EMPTY_TEXT, fw.columnVisibility)
       mutation.putDelete(FULL_CF, EMPTY_TEXT, fw.columnVisibility)
       Seq(mutation)
     }
-    Some(fn)
   }
 
   override def deleteFeaturesForType(sft: SimpleFeatureType, bd: BatchDeleter): Unit = {

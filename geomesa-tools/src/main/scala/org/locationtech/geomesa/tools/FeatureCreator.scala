@@ -11,6 +11,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.tools.commands.CreateFeatureParams
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 object FeatureCreator extends Logging {
@@ -45,10 +46,10 @@ object FeatureCreator extends Logging {
       val sft = SimpleFeatureTypes.createType(featureName, sftspec)
       if (dtField.orNull != null) {
         // Todo: fix logic here, it is a bit strange
-        sft.getUserData.put(SF_PROPERTY_START_TIME, dtField.getOrElse(Constants.SF_PROPERTY_START_TIME))
+        sft.setDtgField(dtField.getOrElse(Constants.SF_PROPERTY_START_TIME))
       }
 
-      sharedTable.foreach { org.locationtech.geomesa.accumulo.index.setTableSharing(sft, _) }
+      sharedTable.foreach(sft.setTableSharing)
 
       ds.createSchema(sft)
 

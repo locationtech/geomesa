@@ -17,6 +17,7 @@ import org.geotools.data.DataStoreFinder
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.data.tables.{RecordTable, SpatioTemporalTable}
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.accumulo.iterators.TestData._
 import org.opengis.filter._
@@ -67,7 +68,6 @@ class TableSharingTest extends Specification with Logging {
   // Check the sft's indexschema
 
   val retrievedSFT1 = ds.getSchema(sft1.getTypeName)
-  val sft1Schema = org.locationtech.geomesa.accumulo.index.getIndexSchema(retrievedSFT1)
 
   val list2: util.SortedSet[String] = c.tableOperations().list
 
@@ -116,8 +116,8 @@ class TableSharingTest extends Specification with Logging {
 
   // Delete one shared table feature to ensure that deleteSchema works.
   s"Removing ${sft2.getTypeName}" should {
-    val sft2Scanner = ds.getScanner(ds.getSpatioTemporalTable(sft2))
-    val sft2RecordScanner = ds.getScanner(ds.getRecordTable(sft2))
+    val sft2Scanner = ds.getScanner(ds.getTableName(sft2.getTypeName, SpatioTemporalTable))
+    val sft2RecordScanner = ds.getScanner(ds.getTableName(sft2.getTypeName, RecordTable))
 
     ds.removeSchema(sft2.getTypeName)
 

@@ -14,6 +14,7 @@ import org.locationtech.geomesa.accumulo.iterators.IteratorExtensions.OptionMap
 import org.locationtech.geomesa.accumulo.transform.TransformCreator
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -76,7 +77,8 @@ trait HasIndexValueDecoder extends HasVersion {
     val version = options.get(GEOMESA_ITERATORS_VERSION).toInt
     indexSft = SimpleFeatureTypes.createType(featureType.getTypeName,
       options.get(GEOMESA_ITERATORS_SFT_INDEX_VALUE))
-    indexEncoder = IndexValueEncoder(indexSft, featureType, version)
+    indexSft.setSchemaVersion(version)
+    indexEncoder = IndexValueEncoder(indexSft, featureType)
   }
 }
 

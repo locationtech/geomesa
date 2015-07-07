@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.accumulo.index
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{DEFAULT_DATE_KEY, RichSimpleFeatureType}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
@@ -22,36 +22,25 @@ import scala.collection.JavaConverters._
  *
  * This is useful since the only symptom of this mistake is slower than normal queries on temporal ranges.
  */
-
 object TemporalIndexCheck extends Logging {
-  def extractNewDTGFieldCandidate(sft: SimpleFeatureType): Option[String] = {
-    //if the attribute is not actually present, look for one
-    if (!index.getDtgDescriptor(sft).isDefined) {
-      val dtgCandidates = scanForTemporalAttributes(sft)      // get all attributes which may be used
-      emitDtgWarning(dtgCandidates)                           // emits a warning if candidates were found
-      dtgCandidates.headOption                                // emits the first candidate or None
-    }
-    else None
-  }
 
-  def emitDtgWarning(matches: List[String]) {
-    if (matches.nonEmpty) {
-      lazy val theWarning =
-        s"""
-        |__________Possible problem detected in the SimpleFeatureType_____________
-        |SF_PROPERTY_START_TIME points to no existing SimpleFeature attribute, or isn't defined.
-        |However, the following attribute(s) could be used in GeoMesa's temporal index:
-        |${matches.mkString("\n", "\n", "\n")}
-        |Please note that while queries on a temporal attribute will still work,
-        |queries will be faster if SF_PROPERTY_START_TIME, located in the SimpleFeatureType's UserData,
-        |points to the attribute's name
-        |
-        |GeoMesa will now point SF_PROPERTY_START_TIME to the first temporal attribute found:
-        |${matches.head}
-        |so that the index will include a temporal component.
-        |
-      """.stripMargin
-      logger.warn(theWarning)
+  def validateDtgField(sft: SimpleFeatureType): Unit = {
+    val dtgCandidates = scanForTemporalAttributes(sft) // all attributes which may be used
+    // validate that we have an ok field, and replace it if not
+    if (!sft.getDtgField.exists(dtgCandidates.contains)) {
+      sft.getDtgField.foreach { dtg => // clear out any existing invalid field
+        logger.warn(s"Invalid date field '$dtg' specified for schema $sft")
+        sft.clearDtgField()
+      }
+      // if there are valid fields, warn and set to the first available
+      dtgCandidates.headOption.foreach { candidate =>
+        lazy val theWarning = s"$DEFAULT_DATE_KEY is not valid or defined for simple feature type $sft. " +
+            "However, the following attribute(s) can be used in GeoMesa's temporal index: " +
+            s"${dtgCandidates.mkString(", ")}. GeoMesa will now point $DEFAULT_DATE_KEY to the first " +
+            s"temporal attribute found: $candidate"
+        logger.warn(theWarning)
+        sft.setDtgField(candidate)
+      }
     }
   }
 

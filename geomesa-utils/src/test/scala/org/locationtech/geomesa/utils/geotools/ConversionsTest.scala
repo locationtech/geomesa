@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.geotools
 
 import com.vividsolutions.jts.geom.Geometry
 import org.junit.runner.RunWith
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -162,34 +162,32 @@ sequential
 
     import RichSimpleFeatureType.RichSimpleFeatureType
 
-    val sft = mock[SimpleFeatureType]
-
+    def newSft = SimpleFeatureTypes.createType("test", "dtg:Date,*geom:Point:srid=4326")
     "support implicit conversion" >> {
+      val sft = newSft
       val rsft: RichSimpleFeatureType = sft
       success
+    }
+
+    "set and get table sharing boolean" >> {
+      val sft = newSft
+      sft.setTableSharing(true)
+      sft.isTableSharing must beTrue
     }
 
     "provide type safe access to user data" >> {
 
       val expected: Integer = 5
 
-      val userData = Map[AnyRef, AnyRef]("key" -> expected).asJava
-      sft.getUserData returns userData
+      val sft = newSft
+      sft.getUserData.put("key", expected)
 
       "when type is correct" >> {
-
         val result = sft.userData[Integer]("key")
         result must beSome(expected)
       }
 
-      "or none when type is not correct" >> {
-
-        val result = sft.userData[String]("key")
-        result must beNone
-      }
-
       "or none when value does not exist" >> {
-
         val result: Option[String] = sft.userData[String]("foo")
         result must beNone
       }

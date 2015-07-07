@@ -19,6 +19,7 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
@@ -49,7 +50,7 @@ class VisibilitiesTest extends Specification {
 
     val sftName = "perfeatureauthtest"
     val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
-    sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+    sft.setDtgField("dtg")
     ds.createSchema(sft)
 
     // write some data
@@ -148,7 +149,7 @@ class VisibilitiesTest extends Specification {
 
     val sftName = "perfeatureauthtest"
     val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
-    sft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+    sft.setDtgField("dtg")
     ds.createSchema(sft)
 
     // write some data

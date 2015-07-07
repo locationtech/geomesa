@@ -15,8 +15,9 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.tables.RecordTable
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.Strategy._
-import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, IteratorTrigger}
+import org.locationtech.geomesa.accumulo.iterators.{KryoLazyFilterTransformIterator, BinAggregatingIterator}
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{Filter, Id}
 
@@ -47,7 +48,7 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with Logging {
     val sft = queryPlanner.sft
     val acc = queryPlanner.acc
     val featureEncoding = queryPlanner.featureEncoding
-    val prefix = getTableSharingPrefix(sft)
+    val prefix = sft.getTableSharingPrefix
 
     val ranges = if (filter.primary.forall(_ == Filter.INCLUDE)) {
       // allow for full table scans - we use the record index for queries that can't be satisfied elsewhere
@@ -69,20 +70,40 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with Logging {
       }
     }
 
-    val iters = if (filter.secondary.isDefined || getTransformSchema(hints).isDefined) {
-      Seq(configureRecordTableIterator(sft, featureEncoding, filter.secondary, hints))
+    val table = acc.getTableName(sft.getTypeName, RecordTable)
+    val threads = acc.getSuggestedThreads(sft.getTypeName, RecordTable)
+
+    val plan = if (sft.getSchemaVersion > 5) {
+      // optimized path when we know we're using kryo serialization
+      val priority = 25
+      if (hints.isBinQuery) {
+        // use the server side aggregation
+        val iters = Seq(BinAggregatingIterator.configureDynamic(sft, hints, filter.secondary, priority))
+        val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
+        BatchScanPlan(table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
+      } else {
+        val iterators = if (filter.secondary.isDefined || hints.getTransform.isDefined) {
+          Seq(KryoLazyFilterTransformIterator.configure(sft, filter.secondary, hints.getTransform, priority))
+        } else {
+          Seq.empty
+        }
+        val kvsToFeatures = queryPlanner.defaultKVsToFeatures(hints)
+        BatchScanPlan(table, ranges, iterators, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
+      }
     } else {
-      Seq.empty
+      val iters = if (filter.secondary.isDefined || hints.getTransformSchema.isDefined) {
+        Seq(configureRecordTableIterator(sft, featureEncoding, filter.secondary, hints))
+      } else {
+        Seq.empty
+      }
+      val kvsToFeatures = if (hints.isBinQuery) {
+        BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, hints, featureEncoding)
+      } else {
+        queryPlanner.defaultKVsToFeatures(hints)
+      }
+      BatchScanPlan(table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
     }
 
-    val table = acc.getRecordTable(sft)
-    val threads = acc.getSuggestedRecordThreads(sft)
-    val kvsToFeatures = if (hints.isBinQuery) {
-      // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
-      BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, hints, featureEncoding)
-    } else {
-      queryPlanner.defaultKVsToFeatures(hints)
-    }
-    Seq(BatchScanPlan(table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false))
+    Seq(plan)
   }
 }

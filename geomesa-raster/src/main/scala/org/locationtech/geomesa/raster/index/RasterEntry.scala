@@ -16,7 +16,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
+import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.raster._
@@ -26,7 +26,7 @@ import org.opengis.feature.simple.SimpleFeature
 object RasterEntry {
 
   val encoder = new ThreadLocal[IndexValueEncoder] {
-    override def initialValue(): IndexValueEncoder = IndexValueEncoder(rasterSft, INTERNAL_GEOMESA_VERSION)
+    override def initialValue(): IndexValueEncoder = IndexValueEncoder(rasterSft)
   }
 
   def encodeIndexCQMetadata(metadata: DecodedIndexValue): Array[Byte] = {

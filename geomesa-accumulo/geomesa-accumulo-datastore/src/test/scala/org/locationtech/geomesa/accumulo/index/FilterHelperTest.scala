@@ -22,6 +22,8 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.util.Random
+
 @RunWith(classOf[JUnitRunner])
 class FilterHelperTest extends Specification with Mockito with Logging {
   val ff = CommonFactoryFinder.getFilterFactory2
@@ -64,11 +66,10 @@ class FilterHelperTest extends Specification with Mockito with Logging {
   def afterInterval(dt: DateTime): Interval   = new Interval(dt, max)
   def beforeInterval(dt: DateTime): Interval  = new Interval(min, dt)
 
-  val extractDT = extractTemporal(Some(dtFieldName))
+  val extractDT: (Seq[Filter]) => Interval = extractInterval(_, Some(dtFieldName))
 
-  def extractInterval(fs: String): Interval = {
+  def extractDateTime(fs: String): Interval = {
     val filter = ECQL.toFilter(fs)
-
     val filters = decomposeAnd(filter)
     extractDT(filters)
   }
@@ -120,6 +121,26 @@ class FilterHelperTest extends Specification with Mockito with Logging {
 
         val extractedInterval = extractDT(Seq(filter))
         val expectedInterval = new Interval(start, end)
+        logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
+        extractedInterval must equalTo(expectedInterval)
+      }
+    }
+
+    "offset dates for during filters" in {
+      forall(dts.combinations(2).map(sortDates)) { case (start, end) =>
+        val filter = during(start, end)
+        val extractedInterval = extractInterval(Seq(filter), Some(dtFieldName), offsetDuring = true)
+        val expectedInterval = new Interval(start.plusSeconds(1), end.minusSeconds(1))
+        logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
+        extractedInterval must equalTo(expectedInterval)
+      }
+      val r = new Random(-7)
+      forall(dts.combinations(2).map(sortDates)) { case (s, e) =>
+        val start = s.plusMillis(r.nextInt(998) + 1)
+        val end = e.plusMillis(r.nextInt(998) + 1)
+        val filter = during(start, end)
+        val extractedInterval = extractInterval(Seq(filter), Some(dtFieldName), offsetDuring = true)
+        val expectedInterval = new Interval(s.plusSeconds(1), e)
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)
       }

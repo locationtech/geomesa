@@ -95,10 +95,10 @@ object TableConfCommand {
   
   def getTableName(ds: AccumuloDataStore, params: ListParams) =
     params.tableSuffix match {
-      case SpatioTemporalTable.suffix => params.ds.getSpatioTemporalTable(params.featureName)
-      case AttributeTable.suffix      => params.ds.getAttributeTable(params.featureName)
-      case RecordTable.suffix         => params.ds.getRecordTable(params.featureName)
-      case Z3Table.suffix             => params.ds.getZ3Table(params.featureName)
+      case SpatioTemporalTable.suffix => params.ds.getTableName(params.featureName, SpatioTemporalTable)
+      case AttributeTable.suffix      => params.ds.getTableName(params.featureName, AttributeTable)
+      case RecordTable.suffix         => params.ds.getTableName(params.featureName, RecordTable)
+      case Z3Table.suffix             => params.ds.getTableName(params.featureName, Z3Table)
       case _                          => throw new Exception(s"Invalid table suffix: ${params.tableSuffix}")
     }
   

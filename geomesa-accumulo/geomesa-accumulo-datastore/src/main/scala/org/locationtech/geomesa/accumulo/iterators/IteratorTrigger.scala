@@ -12,15 +12,16 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.{Function, PropertyName}
 
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 sealed trait IteratorChoice
@@ -42,9 +43,6 @@ object IteratorTrigger extends Logging {
    */
   implicit class IndexAttributeNames(sft: SimpleFeatureType) {
     def geoName = sft.getGeometryDescriptor.getLocalName
-
-    def startTimeName =  attributeNameHandler(SF_PROPERTY_START_TIME,DEFAULT_DTG_PROPERTY_NAME)
-    def endTimeName   =  attributeNameHandler(SF_PROPERTY_END_TIME,DEFAULT_DTG_END_PROPERTY_NAME)
 
     def attributeNameHandler(attributeKey: String, attributeDefault:String): Option[String] = {
       // try to get the name from the user data, which may not exist, then check if the attribute exists
@@ -94,7 +92,7 @@ object IteratorTrigger extends Logging {
       true
     } else {
       // get transforms if they exist
-      val transformDefs = getTransformDefinition(hints)
+      val transformDefs = hints.getTransformDefinition
 
       // if the transforms exist, check if the transform is simple enough to be handled by the IndexIterator
       // if it does not exist, then set this variable to false
@@ -117,7 +115,7 @@ object IteratorTrigger extends Logging {
    * @return
    */
   def doTransformsCoverFilters(hints: Hints, filter: Filter): Boolean =
-    getTransformDefinition(hints).map { transformString =>
+    hints.getTransformDefinition.map { transformString =>
       val filterAttributes = getFilterAttributes(filter) // attributes we are filtering on
       val transforms: Seq[String] = // names of the attributes the transform contains
         TransformProcess.toDefinition(transformString).asScala
@@ -142,7 +140,7 @@ object IteratorTrigger extends Logging {
    */
   def useSimpleFeatureFilteringIterator(ecqlPredicate: Option[Filter], hints: Hints): Boolean = {
     // get transforms if they exist
-    val transformDefs = getTransformDefinition(hints)
+    val transformDefs = hints.getTransformDefinition
     // if the ecql predicate exists, check that it is a trivial filter that does nothing
     val nonPassThroughFilter = ecqlPredicate.exists { ecql => !passThroughFilter(ecql)}
     // the Density Iterator is run in place of the SFFI. If it is requested we keep the SFFI config in the stack
@@ -199,5 +197,25 @@ object IteratorTrigger extends Logging {
       IteratorConfig(RecordJoinIterator, hasEcqlOrTransform, transformsCoverFilter)
     }
   }
+
+  /**
+   * Determines if the given filter and transform can operate on index encoded values.
+   */
+  def canUseIndexValues(sft: SimpleFeatureType,
+                        filter: Option[Filter],
+                        transform: Option[SimpleFeatureType]): Boolean = {
+    lazy val indexSft = IndexValueEncoder.getIndexSft(sft)
+    // verify that transform *does* exists and only contains fields in the index sft,
+    // and that filter *does not* exist or can be fulfilled by the index sft
+    transform.exists(_.getAttributeDescriptors.map(_.getLocalName).forall(indexSft.indexOf(_) != -1)) &&
+      filter.forall(supportsFilter(indexSft, _))
+  }
+
+  /**
+   * Returns true if the filters can be evaluated successfully against the feature type.
+   */
+  def supportsFilter(sft: SimpleFeatureType, filter: Filter): Boolean =
+    DataUtilities.attributeNames(filter).forall(sft.indexOf(_) != -1)
+
 }
 

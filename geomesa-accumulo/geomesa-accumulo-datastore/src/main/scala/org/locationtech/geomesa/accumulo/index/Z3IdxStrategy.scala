@@ -16,13 +16,11 @@ import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.joda.time.Weeks
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
-import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
-import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, Z3DensityIterator, Z3Iterator}
+import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.iterators.{KryoLazyFilterTransformIterator, LazyFilterTransformIterator}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -40,9 +38,17 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     val sft = queryPlanner.sft
     val acc = queryPlanner.acc
 
-    val dtgField = getDtgFieldName(sft)
+    val dtgField = sft.getDtgField
 
-    val (geomFilters, temporalFilters) = filter.primary.partition(isSpatialFilter)
+    val (geomFilters, temporalFilters) = {
+      val (g, t) = filter.primary.partition(isSpatialFilter)
+      if (g.isEmpty) {
+        // allow for date only queries - if no geom, use whole world
+        (Seq(ff.bbox(sft.getGeomField, -180, -90, 180, 90, "EPSG:4326")), t)
+      } else {
+        (g, t)
+      }
+    }
     val ecql = filter.secondary
 
     output(s"Geometry filters: ${filtersToString(geomFilters)}")
@@ -60,7 +66,10 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
       case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
     }
 
-    val interval = netInterval(extractTemporal(dtgField)(temporalFilters))
+    // since we don't apply a temporal filter, we pass offsetDuring to
+    // make sure we exclude the non-inclusive endpoints of a during filter.
+    // note that this isn't completely accurate, as we only index down to the second
+    val interval = extractInterval(temporalFilters, dtgField, offsetDuring = true)
     val geometryToCover = netGeom(collectionToCover)
 
     output(s"GeomsToCover: $geometryToCover")
@@ -98,21 +107,20 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
       (Seq(iter), Z3DensityIterator.kvsToFeatures(), Z3Table.FULL_CF)
     } else {
       val transforms = for {
-        tdef <- index.getTransformDefinition(hints)
-        tsft <- index.getTransformSchema(hints)
+        tdef <- hints.getTransformDefinition
+        tsft <- hints.getTransformSchema
       } yield { (tdef, tsft) }
       output(s"Transforms: $transforms")
 
       val iters = (ecql, transforms) match {
         case (None, None) => Seq.empty
-        case _ =>
-          Seq(LazyFilterTransformIterator.configure[KryoLazyFilterTransformIterator](sft, ecql, transforms, fp))
+        case _ => Seq(KryoLazyFilterTransformIterator.configure(sft, ecql, transforms, fp))
       }
       (iters, Z3Table.adaptZ3KryoIterator(hints.getReturnSft), Z3Table.FULL_CF)
     }
 
-    val z3table = acc.getZ3Table(sft)
-    val numThreads = acc.getSuggestedZ3Threads(sft)
+    val z3table = acc.getTableName(sft.getTypeName, Z3Table)
+    val numThreads = acc.getSuggestedThreads(sft.getTypeName, Z3Table)
 
     // setup Z3 iterator
     val env = geometryToCover.getEnvelopeInternal
@@ -180,5 +188,6 @@ object Z3IdxStrategy extends StrategyProvider {
    *
    * Eventually cost will be computed based on dynamic metadata and the query.
    */
-  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) = 200
+  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) =
+    if (filter.primary.length > 1) 200 else 400
 }

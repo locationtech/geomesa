@@ -46,6 +46,7 @@ package object data {
   val Z3_TABLE_KEY           = "tables.z3.name"
   val QUERIES_TABLE_KEY      = "tables.queries.name"
   val SHARED_TABLES_KEY      = "tables.sharing"
+  val SCHEMA_ID_KEY          = "id"
   val VERSION_KEY            = "version"
 
   // Storage implementation constants
@@ -58,17 +59,10 @@ package object data {
   val EMPTY_COLF           = new Text(EMPTY_STRING)
   val EMPTY_COLQ           = new Text(EMPTY_STRING)
   val EMPTY_VIZ            = new Text(EMPTY_STRING)
+  val EMPTY_TEXT           = new Text()
   val WHOLE_WORLD_BOUNDS   = "-180.0:180.0:-90.0:90.0"
   val ALL_TIME_BOUNDS      = new Interval(new DateTime(0l), new DateTime())  // Epoch till now
   val DEFAULT_ENCODING     = SerializationType.KRYO
-
-  // 0 == old single table style
-  // 1 == multi-table style
-  // 2 == sorted keys in the STIDX table
-  // skipping 3 for integration...
-  // 4 is kryo encoded index values
-  // 5 == z3 index
-  val INTERNAL_GEOMESA_VERSION = 5
 
   // SimpleFeature Hints
   val TRANSFORMS           = new ClassKey(classOf[String])

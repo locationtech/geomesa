@@ -29,7 +29,6 @@ object SimpleFeatureTypes {
 
   val TABLE_SPLITTER           = "table.splitter.class"
   val TABLE_SPLITTER_OPTIONS   = "table.splitter.options"
-  val DEFAULT_DATE_FIELD       = "geomesa_index_start_time"
 
   val OPT_DEFAULT              = "default"
   val OPT_SRID                 = "srid"
@@ -88,6 +87,7 @@ object SimpleFeatureTypes {
                  name: String,
                  attributeSpecs: Seq[AttributeSpec],
                  opts: Seq[FeatureOption]): SimpleFeatureType = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val geomAttributes = attributeSpecs.collect { case g: GeomAttributeSpec => g }
     val dateAttributes = attributeSpecs.collect {
@@ -105,7 +105,7 @@ object SimpleFeatureTypes {
     b.addAll(attributeSpecs.map(_.toAttribute))
     defaultGeom.foreach(dg => b.setDefaultGeometry(dg.name))
     val sft = b.buildFeatureType()
-    defaultDate.foreach(dt => sft.getUserData.put(DEFAULT_DATE_FIELD, dt.name))
+    defaultDate.foreach(dt => sft.setDtgField(dt.name))
     opts.foreach(_.decorateSFT(sft))
     sft
   }

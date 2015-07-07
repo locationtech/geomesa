@@ -11,23 +11,17 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.text.SimpleDateFormat
 import java.util.{Collections, Date, TimeZone}
 
-import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.accumulo.core.security.Authorizations
+import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
-import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
-import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
-import org.locationtech.geomesa.features.SimpleFeatureSerializers
-import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -36,6 +30,8 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
+
+  sequential
 
   val spec = "name:String:index=true,age:Integer:index=true,scars:List[String]:index=true,dtg:Date:index=true,*geom:Geometry:srid=4326"
 
@@ -63,83 +59,6 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
   val ff = CommonFactoryFinder.getFilterFactory2
 
   "AttributeIndexIterator" should {
-
-    "implement the Accumulo iterator stack properly" in {
-      import Conversions._
-      val table = "AttributeIndexIteratorTest_2"
-      connector.tableOperations.create(table, true, TimeType.LOGICAL)
-
-      val bw = connector.createBatchWriter(table, GeoMesaBatchWriterConfig())
-      val attributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).zipWithIndex
-      val indexValueEncoder = IndexValueEncoder(sft, INTERNAL_GEOMESA_VERSION)
-      val featureEncoder = SimpleFeatureSerializers(sft, DEFAULT_ENCODING)
-      val rowIdPrefix = org.locationtech.geomesa.accumulo.index.getTableSharingPrefix(sft)
-
-      fs.getFeatures().features().foreach { feature =>
-        val toWrite = new FeatureToWrite(feature, "", featureEncoder, indexValueEncoder)
-        val muts = AttributeTable.getAttributeIndexMutations(toWrite, attributes, rowIdPrefix)
-        bw.addMutations(muts)
-      }
-      bw.close()
-
-      // Scan and retrieve type = b manually with the iterator
-      val scanner = connector.createScanner(table, new Authorizations())
-      val opts = Map[String, String](
-        GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE -> "dtg:Date,*geom:Geometry:srid=4326",
-        GEOMESA_ITERATORS_SFT_NAME -> sftName,
-        GEOMESA_ITERATORS_SFT_INDEX_VALUE -> spec,
-        GEOMESA_ITERATORS_VERSION -> INTERNAL_GEOMESA_VERSION.toString
-      )
-      val is = new IteratorSetting(40, classOf[AttributeIndexIterator], opts)
-      scanner.addScanIterator(is)
-      val range = AttributeTable.getAttributeIndexRows(rowIdPrefix, sft.getDescriptor("name"), "b").head
-      scanner.setRange(new ARange(range))
-      scanner.iterator.size mustEqual 4
-    }
-
-    def checkExplainStrategy(filter: String) = {
-      val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg"))
-      val explain = new ExplainString()
-      ds.explainQuery(query, explain)
-      val output = explain.toString()
-      val iter = output.split("\n").filter(_.startsWith("Iterators")).headOption
-      iter must beSome
-      iter.get must contain(classOf[AttributeIndexIterator].getName)
-    }
-
-    "be selected for appropriate queries" in {
-      val filters = List(
-        "name = 'b'",
-        "name < 'b'",
-        "name > 'b'",
-        "dtg TEQUALS 2014-01-01T12:30:00.000Z",
-        "dtg = '2014-01-01T12:30:00.000Z'",
-        "dtg BETWEEN '2012-01-01T12:00:00.000Z' AND '2013-01-01T12:00:00.000Z'",
-        "age < 10"
-      )
-      forall(filters) { filter => checkExplainStrategy(filter) }
-    }
-
-    "be selected for appropriate queries" in {
-      val filters = Seq("name = 'b' AND dtg = '2014-01-01T12:30:00.000Z'")
-      filters.foreach(checkExplainStrategy)
-      success
-    }.pendingUntilFixed("GEOMESA-394 AttributeIndexIterator should be able to handle attribute + date queries")
-
-    "not be selected for inappropriate queries" in {
-      val filters = Map(
-        "name = 'b' AND age = 3" -> None,
-        "scars = 'face'" -> Some("scars")
-      )
-      filters.foreach { case (filter, prop) =>
-        val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg") ++ prop)
-        val explain = new ExplainString()
-        ds.explainQuery(query, explain)
-        val output = explain.toString().split("\n")
-        output.forall(s => !s.startsWith("AttributeIndexIterator:")) must beTrue
-      }
-      success
-    }
 
     "return correct results" >> {
 
@@ -255,7 +174,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
         results must haveSize(4)
         results.map(_.getAttributeCount) must contain(2).foreach
         results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
-        results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
+        forall(results.map(_.getAttribute("dtg").asInstanceOf[Date]))(_ mustEqual dateToIndex)
       }
 
       "not including geom" >> {
@@ -302,5 +221,4 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
       }
     }
   }
-
 }

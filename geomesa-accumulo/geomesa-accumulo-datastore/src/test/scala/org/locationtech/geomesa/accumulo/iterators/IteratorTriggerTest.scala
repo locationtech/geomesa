@@ -12,9 +12,9 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.FilterHelper._
+import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.opengis.feature.simple.SimpleFeatureType
@@ -37,7 +37,7 @@ class IteratorTriggerTest extends Specification {
 
     val testFeatureType: SimpleFeatureType = {
       val featureType: SimpleFeatureType = SimpleFeatureTypes.createType(featureName, testFeatureTypeSpec)
-      featureType.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
+      featureType.setDtgField("dtg")
       featureType
     }
 
