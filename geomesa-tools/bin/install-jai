@@ -12,26 +12,37 @@ if [[ (-z "$GEOMESA_HOME") ]]; then
     echo "Error: GEOMESA_HOME environmental variable not found...install geomesa or define GEOMESA_HOME and try again"
     exit
 else
-    url='http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib.zip'
-    urljttools="http://central.maven.org/maven2/org/jaitools/jt-utils/1.3.1/jt-utils-1.3.1.jar"
-    urlimageio="http://download.osgeo.org/webdav/geotools/javax/media/jai_imageio/1.1/jai_imageio-1.1.jar"
-    read -r -p "Java Advanced Imaging (jai) is LGPL licensed and is not distributed with GeoMesa...are you sure you want to install it from $url ? [Y/n]" confirm
+    osgeo_url='http://download.osgeo.org'
+    mvn_url='http://central.maven.org'
+
+    url_codec="${osgeo_url}/webdav/geotools/javax/media/jai_codec/1.1.3/jai_codec-1.1.3.jar"
+    url_core="${osgeo_url}/webdav/geotools/javax/media/jai_core/1.1.3/jai_core-1.1.3.jar"
+    url_jttools="${mvn_url}/maven2/org/jaitools/jt-utils/1.3.1/jt-utils-1.3.1.jar"
+    url_imageio="${osgeo_url}/webdav/geotools/javax/media/jai_imageio/1.1/jai_imageio-1.1.jar"
+
+    NL=$'\n'
+    read -r -p "Java Advanced Imaging (jai) is LGPL licensed and is not distributed with GeoMesa...are you sure you want to install the following files:${NL}${url_codec}${NL}${url_core}${NL}${url_jttools}${NL}${url_imageio}${NL}Confirm? [Y/n]" confirm
     confirm=${confirm,,} #lowercasing
     if [[ $confirm =~ ^(yes|y) ]]; then
-        echo "Trying to install JAItools from $urljttools to $GEOMESA_HOME"
-        wget -O $GEOMESA_HOME/lib/jt-utils-1.3.1.jar $urljttools \
+        echo "Trying to install JAI tools from $url_jttools to $GEOMESA_HOME"
+        wget -O $GEOMESA_HOME/lib/jt-utils-1.3.1.jar $url_jttools \
             && chmod 0755 $GEOMESA_HOME/lib/jt-utils-1.3.1.jar \
-            && echo "Successfully installed jai tools"
-        echo "Trying to install JAI ImageIO from $urlimageio to $GEOMESA_HOME"
-        wget -O $GEOMESA_HOME/lib/jai_imageio-1.1.jar $urlimageio \
+            && echo "Successfully installed JAI tools"
+
+        echo "Trying to install JAI ImageIO from $url_imageio to $GEOMESA_HOME"
+        wget -O $GEOMESA_HOME/lib/jai_imageio-1.1.jar $url_imageio \
             && chmod 0755 $GEOMESA_HOME/lib/jai_imageio-1.1.jar \
-            && echo "Successfully installed jai imageio"
-        echo "Trying to install Java Advanced Imaging (jai) from $url to $GEOMESA_HOME"
-        wget -O /tmp/jai-1_1_3-lib.zip $url \
-            && unzip -j -d $GEOMESA_HOME/lib/ /tmp/jai-1_1_3-lib.zip '*.jar' \
-            && rm /tmp/jai-1_1_3-lib.zip -f \
-            && chmod 0755 $GEOMESA_HOME/lib/jai_codec.jar $GEOMESA_HOME/lib/jai_core.jar \
-            && echo "Successfully installed jai to $GEOMESA_HOME"
+            && echo "Successfully installed JAI imageio"
+
+        echo "Trying to install JAI Codec from $url_codec to $GEOMESA_HOME"
+        wget -O "${GEOMESA_HOME}/lib/jai_codec-1.1.3.jar" $url_codec \
+            && chmod 0755 "${GEOMESA_HOME}/lib/jai_codec-1.1.3.jar" \
+            && echo "Successfully installed JAI codec to $GEOMESA_HOME"
+
+        echo "Trying to install JAI Core from $url_core to $GEOMESA_HOME"
+        wget -O "${GEOMESA_HOME}/lib/jai_core-1.1.3.jar" $url_core \
+            && chmod 0755 "${GEOMESA_HOME}/lib/jai_core-1.1.3.jar" \
+            && echo "Successfully installed JAI core to $GEOMESA_HOME"
     else
         echo "Cancelled installation of Java Advanced Imaging (jai)"
     fi
