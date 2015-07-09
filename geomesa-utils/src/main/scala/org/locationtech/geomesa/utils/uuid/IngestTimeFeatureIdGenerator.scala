@@ -11,7 +11,17 @@ package org.locationtech.geomesa.utils.uuid
 import java.security.SecureRandom
 import java.util.UUID
 
+import com.google.common.primitives.Longs
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
+import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+
+/**
+ * Creates feature id based on current system time.
+ */
+class IngestTimeFeatureIdGenerator extends FeatureIdGenerator {
+  override def createId(sft: SimpleFeatureType, sf: SimpleFeature) =
+    TimeSortedUuidGenerator.createUuid().toString
+}
 
 /**
  * UUID generator that creates UUIDs that sort by creation time (useful for accumulo).
@@ -23,10 +33,7 @@ import org.locationtech.geomesa.utils.cache.SoftThreadLocal
  * the same machine (at least not without some complicated distributed locking), as MAC address
  * (or IP address) is the unique factor.
  */
-object TimeSortedUuidGenerator {
-
-  private val r = new SecureRandom()
-  private val byteCache = new SoftThreadLocal[Array[Byte]]
+object TimeSortedUuidGenerator extends RandomLsbUuidGenerator {
 
   /**
    * Creates a UUID where the first 8 bytes are based on the current time and the second 8 bytes are
@@ -35,17 +42,17 @@ object TimeSortedUuidGenerator {
    * Doesn't support negative time values.
    */
   def createUuid(time: Long = System.currentTimeMillis()): UUID = {
-    // get a reusable byte array
-    val bytes = byteCache.getOrElseUpdate(Array.ofDim[Byte](8))
-    val mostSigBits = timeBytes(time, bytes)
-    val leastSigBits = randomBytes(bytes)
+    val mostSigBits = timeBytes(time)
+    val leastSigBits = createRandomLsb()
     new UUID(mostSigBits, leastSigBits)
   }
 
   /**
    * Creates the time based part of the uuid.
    */
-  private def timeBytes(time: Long, array: Array[Byte]): Long = {
+  private def timeBytes(time: Long): Long = {
+    val array = getTempByteArray
+
     // write the time in a sorted fashion
     // we drop the 4 most significant bits as we need 4 bits extra for the version
     // this shouldn't matter as we use sys time, so we don't need to worry about negative numbers
@@ -59,32 +66,8 @@ object TimeSortedUuidGenerator {
     array(7) = time.asInstanceOf[Byte]
 
     // set the version number for the UUID
-    array(6) = (array(6) | 0x40).asInstanceOf[Byte] // set to version 4 (designates a random uuid)
-    bytesToLong(array)
-  }
+    setVersion(array)
 
-  /**
-   * Creates the random part of the uuid.
-   */
-  private def randomBytes(array: Array[Byte]): Long = {
-    // set the random bytes
-    r.nextBytes(array)
-    // set the variant number for the UUID
-    array(0) = (array(0) & 0x3f).asInstanceOf[Byte] // clear variant
-    array(0) = (array(0) | 0x80).asInstanceOf[Byte] // set to IETF variant
-    bytesToLong(array)
-  }
-
-  /**
-   * Converts 8 bytes to a long
-   */
-  private def bytesToLong(bytes: Array[Byte]): Long = {
-    var bits = 0L
-    var i = 0
-    while (i < 8) {
-      bits = (bits << 8) | (bytes(i) & 0xff)
-      i += 1
-    }
-    bits
+    Longs.fromByteArray(array)
   }
 }

@@ -401,7 +401,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       features must haveSize(1)
     }
 
-    "create uuids that sort by time" in {
+    "create z3 based uuids" in {
       val toAdd = Seq(
         AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("will", 56.asInstanceOf[AnyRef], dateToIndex, geomToIndex), "fid1"),
         AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("george", 33.asInstanceOf[AnyRef], dateToIndex, geomToIndex), "fid2"),
@@ -422,19 +422,22 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
       val scanner = ds.connector.createScanner(ds.getRecordTable(sftName), new Authorizations)
       val serializer = new KryoFeatureSerializer(sft)
-      val features = scanner.toList.map(e => serializer.deserialize(e.getValue.get))
+      val rows = scanner.toList
       scanner.close()
 
-      features must haveLength(5)
-      features.head.getAttribute(0) mustEqual "will"
-      features(1).getAttribute(0) mustEqual "george"
-      features(2).getAttribute(0) mustEqual "sue"
-      features(3).getAttribute(0) mustEqual "karen"
-      features(4).getAttribute(0) mustEqual "bob"
+      val rowKeys = rows.map(_.getKey.getRow.toString)
+      rowKeys must haveLength(5)
+      rowKeys.map(_.substring(0, 19)).toSet must haveLength(1)
+      // ensure that the second part of the UUID is random
+      rowKeys.map(_.substring(20)).toSet must haveLength(5)
 
-      val ids = features.map(_.getID)
+      val ids = rows.map(e => serializer.deserialize(e.getValue.get).getID)
+      ids must haveLength(5)
       forall(ids)(_ must not(beMatching("fid\\d")))
-      ids mustEqual ids.sorted
+      // ensure they share a common prefix, since they have the same dtg/geom
+      ids.map(_.substring(0, 18)).toSet must haveLength(1)
+      // ensure that the second part of the UUID is random
+      ids.map(_.substring(19)).toSet must haveLength(5)
     }
   }
 
