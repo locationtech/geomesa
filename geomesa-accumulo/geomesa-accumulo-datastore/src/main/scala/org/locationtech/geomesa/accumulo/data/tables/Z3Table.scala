@@ -108,21 +108,25 @@ object Z3Table extends GeoMesaTable {
     bd.delete()
   }
 
+  def getRowPrefix(x: Double, y: Double, time: Long): Array[Byte] = {
+    val dtg = new DateTime(time)
+    val weeks = epochWeeks(dtg)
+    val prefix = Shorts.toByteArray(weeks.getWeeks.toShort)
+    val secondsInWeek = secondsInCurrentWeek(dtg, weeks)
+    val z3 = SFC.index(x, y, secondsInWeek)
+    val z3idx = Longs.toByteArray(z3.z)
+    Bytes.concat(prefix, z3idx)
+  }
+
   private def getRowKey(ftw: FeatureToWrite, dtgIndex: Int): Array[Byte] = {
     val geom = ftw.feature.point
     val x = geom.getX
     val y = geom.getY
-    val dtg = new DateTime(ftw.feature.getAttribute(dtgIndex).asInstanceOf[Date])
-    val weeks = epochWeeks(dtg)
-    val prefix = Shorts.toByteArray(weeks.getWeeks.toShort)
-
-    val secondsInWeek = secondsInCurrentWeek(dtg, weeks)
-    val z3 = SFC.index(x, y, secondsInWeek)
-    val z3idx = Longs.toByteArray(z3.z)
-
+    val dtg = ftw.feature.getAttribute(dtgIndex).asInstanceOf[Date]
+    val time = if (dtg == null) System.currentTimeMillis() else dtg.getTime
+    val prefix = getRowPrefix(x, y, time)
     val idBytes = ftw.feature.getID.getBytes(Charsets.UTF_8)
-
-    Bytes.concat(prefix, z3idx, idBytes)
+    Bytes.concat(prefix, idBytes)
   }
 
   def adaptZ3Iterator(sft: SimpleFeatureType): FeatureFunction = {

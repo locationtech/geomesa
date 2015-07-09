@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa
 
+import org.locationtech.geomesa.accumulo.util.Z3FeatureIdGenerator
+
 import scala.collection.mutable
 
 package object accumulo {
@@ -61,6 +63,11 @@ package object accumulo {
       val WRITER_THREADS         = PropAndDefault("geomesa.batchwriter.maxthreads", "10")
       // Timeout measured in seconds.  Likely unnecessary.
       val WRITE_TIMEOUT_MILLIS   = PropAndDefault("geomesa.batchwriter.timeout.millis", null)
+    }
+
+    object FeatureIdProperties {
+      val FEATURE_ID_GENERATOR =
+        PropAndDefault("geomesa.feature.id-generator", classOf[Z3FeatureIdGenerator].getCanonicalName)
     }
 
     case class PropAndDefault(property: String, default: String) {
