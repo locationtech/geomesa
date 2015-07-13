@@ -35,6 +35,10 @@ class RequestedOffsetTest extends Specification {
         val conf = ConfigFactory.parseString(s"{ offset = ${classOf[TestPredicate].getName} }")
         RequestedOffset(conf) must beAnInstanceOf[Some[FindOffset]]
       }
+      "for specific numbers" >> {
+        val conf = ConfigFactory.parseString("{ offset = \"5\"}")
+        RequestedOffset(conf) must beSome(SpecificOffset(5))
+      }
       "for empty" >> {
         val conf = ConfigFactory.parseString("{}")
         RequestedOffset(conf) must beNone
