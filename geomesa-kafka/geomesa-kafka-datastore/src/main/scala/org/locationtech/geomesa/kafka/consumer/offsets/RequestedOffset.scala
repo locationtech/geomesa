@@ -15,7 +15,7 @@ import kafka.message.Message
 import kafka.serializer.Decoder
 import org.locationtech.geomesa.kafka.consumer.offsets.FindOffset.MessagePredicate
 
-import scala.util.{Success, Try}
+import scala.util.Try
 
 
 sealed trait RequestedOffset
@@ -31,8 +31,10 @@ object RequestedOffset {
         case "group"                   => Some(GroupOffset)
         case d if d.startsWith("date") => Try(d.substring(5).trim.toLong).map(DateOffset).toOption
         case _                         =>
-          Try(Class.forName(conf.getString("offset")).newInstance().asInstanceOf[FindMessage])
-              .map(f => FindOffset(f.predicate)).toOption
+          val o = conf.getString("offset")
+          Try(Class.forName(o).newInstance().asInstanceOf[FindMessage])
+              .map(f => FindOffset(f.predicate))
+              .orElse(Try(SpecificOffset(o.toLong))).toOption
       }
     }
   }
@@ -44,6 +46,7 @@ case object GroupOffset                             extends RequestedOffset
 // NOTE: date offset is only to the log level resolution
 case class DateOffset(date: Long)                   extends RequestedOffset
 case class FindOffset(predicate: MessagePredicate)  extends RequestedOffset
+case class SpecificOffset(offset: Long)             extends RequestedOffset
 
 object FindOffset {
   // 0 indicates a match, -1 indicates less than, 1 indicates greater than

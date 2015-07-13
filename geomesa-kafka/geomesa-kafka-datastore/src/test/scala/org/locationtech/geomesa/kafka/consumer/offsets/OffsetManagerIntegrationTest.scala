@@ -45,6 +45,9 @@ class OffsetManagerIntegrationTest extends Specification with HasEmbeddedKafka {
       }
       producer.close()
 
+      "by number" >> {
+        offsetManager.getOffsets(topic, SpecificOffset(1)) mustEqual Map(TopicAndPartition(topic, 0) -> 1)
+      }
       "by earliest" >> {
         offsetManager.getOffsets(topic, EarliestOffset) mustEqual Map(TopicAndPartition(topic, 0) -> 0)
       }

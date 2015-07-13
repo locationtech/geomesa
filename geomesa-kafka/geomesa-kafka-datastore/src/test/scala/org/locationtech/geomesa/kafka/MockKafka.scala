@@ -205,12 +205,13 @@ class MockOffsetManager(mk: MockKafka, consumerConfig: ConsumerConfig) extends O
     getOffsets(topic, findPartitions(topic), when)
 
   override def getOffsets(topic: String, partitions: Seq[PartitionMetadata], when: RequestedOffset): Offsets = when match {
-    case GroupOffset      => getGroupOffsets(partitions.map(p => TopicAndPartition(topic, p.partitionId)), config)
-    case EarliestOffset   => getOffsetsBefore(topic, partitions, OffsetRequest.EarliestTime, config)
-    case LatestOffset     => getLatestOffset(topic, partitions)
-    case DateOffset(date) => getOffsetsBefore(topic, partitions, date, config)
-    case FindOffset(pred) => findOffsets(topic, partitions, pred, config)
-    case _                => throw new NotImplementedError()
+    case GroupOffset       => getGroupOffsets(partitions.map(p => TopicAndPartition(topic, p.partitionId)), config)
+    case EarliestOffset    => getOffsetsBefore(topic, partitions, OffsetRequest.EarliestTime, config)
+    case LatestOffset      => getLatestOffset(topic, partitions)
+    case DateOffset(date)  => getOffsetsBefore(topic, partitions, date, config)
+    case FindOffset(pred)  => findOffsets(topic, partitions, pred, config)
+    case SpecificOffset(o) => partitions.map(p => TopicAndPartition(topic, p.partitionId)).map(_ -> o).toMap
+    case _                 => throw new NotImplementedError()
   }
 
   override def commitOffsets(offsets: Map[TopicAndPartition, OffsetAndMetadata], isAutoCommit: Boolean): Unit =
