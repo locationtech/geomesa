@@ -8,7 +8,7 @@
 package org.locationtech.geomesa.kafka
 
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{Executors, LinkedBlockingQueue, TimeUnit}
+import java.util.concurrent.{ScheduledThreadPoolExecutor, Executors, LinkedBlockingQueue, TimeUnit}
 
 import com.google.common.base.Ticker
 import com.google.common.cache._
@@ -100,6 +100,12 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
     }
   })
 
+  val ses = new ScheduledThreadPoolExecutor(1)
+
+  ses.scheduleAtFixedRate(new Runnable() {
+    override def run(): Unit = featureCache.cleanUp()
+  }, 0, 1, TimeUnit.SECONDS)
+
   override def run(): Unit = while (running.get) {
     queue.take() match {
       case update: CreateOrUpdate => featureCache.createOrUpdateFeature(update)
@@ -123,6 +129,10 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
 class LiveFeatureCache(override val sft: SimpleFeatureType,
                        expirationPeriod: Option[Long])(implicit ticker: Ticker)
   extends KafkaConsumerFeatureCache with Logging {
+
+  def cleanUp(): Unit = {
+    cache.cleanUp()
+  }
 
   var spatialIndex: SpatialIndex[SimpleFeature] = newSpatialIndex()
 
