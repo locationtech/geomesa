@@ -56,7 +56,7 @@ object KafkaDataStoreFactoryParams {
   val TOPIC_REPLICATION  = new Param("replication", classOf[Integer], "Replication factor to use in kafka topics", false)
   val IS_PRODUCER_PARAM  = new Param("isProducer", classOf[java.lang.Boolean], "Is Producer", false, false)
   val EXPIRATION_PERIOD  = new Param("expirationPeriod", classOf[java.lang.Long], "Features will be auto-dropped (expired) after this delay in milliseconds. Leave blank or use -1 to not drop features.", false)
-  val CLEANUP_LIVE_CACHE = new Param("cleanUpCache", classOf[java.lang.Boolean], "Run a thread to clean up the guava cache for the LiveKafkaConsumerFeatureSource if true", false)
+  val CLEANUP_LIVE_CACHE = new Param("cleanUpCache", classOf[java.lang.Boolean], "Run a thread to clean up the live feature cache every second if set to true. False by default.", false)
 }
 
 object KafkaDataStore {
