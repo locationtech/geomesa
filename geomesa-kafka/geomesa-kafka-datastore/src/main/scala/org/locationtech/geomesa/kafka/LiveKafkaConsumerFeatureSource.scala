@@ -43,6 +43,8 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
   private val running = new AtomicBoolean(true)
 
   val es = Executors.newFixedThreadPool(2)
+  val ses = new ScheduledThreadPoolExecutor(1)
+
   sys.addShutdownHook {
     running.set(false)
     es.shutdownNow()
@@ -104,11 +106,11 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
     }
   })
 
-  val ses = new ScheduledThreadPoolExecutor(1)
-
-  ses.scheduleAtFixedRate(new Runnable() {
-    override def run(): Unit = featureCache.cleanUp()
-  }, 0, 1, TimeUnit.SECONDS)
+  if (expirationPeriod == Some) {
+    ses.scheduleAtFixedRate(new Runnable() {
+      override def run(): Unit = featureCache.cleanUp()
+    }, 0, 1, TimeUnit.SECONDS)
+  }
 
   override def run(): Unit = while (running.get) {
     queue.take() match {
