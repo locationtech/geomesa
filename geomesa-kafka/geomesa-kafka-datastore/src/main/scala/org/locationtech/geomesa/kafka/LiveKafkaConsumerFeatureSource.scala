@@ -43,7 +43,11 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
   private val running = new AtomicBoolean(true)
 
   val es = Executors.newFixedThreadPool(2)
-  sys.addShutdownHook { running.set(false); es.shutdownNow() }
+  sys.addShutdownHook {
+    running.set(false)
+    es.shutdownNow()
+    ses.shutdownNow()
+  }
 
   es.submit(this)
   es.submit(new Runnable() {
