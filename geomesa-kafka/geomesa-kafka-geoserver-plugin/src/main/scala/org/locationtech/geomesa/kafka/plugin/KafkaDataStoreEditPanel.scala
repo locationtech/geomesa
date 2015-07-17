@@ -31,8 +31,9 @@ class KafkaDataStoreEditPanel(componentId: String, storeEditForm: Form[_])
   val zookeepers       = addTextPanel(paramsModel, ZOOKEEPERS_PARAM)
   val zkPath           = addTextPanel(paramsModel, ZK_PATH)
   val expirationPeriod = addTextPanel(paramsModel, EXPIRATION_PERIOD)
+  val cleanUpCache     = addTextPanel(paramsModel, CLEANUP_LIVE_CACHE)
 
-  val dependentFormComponents = Array[FormComponent[_]](brokers, zookeepers, zkPath, expirationPeriod)
+  val dependentFormComponents = Array[FormComponent[_]](brokers, zookeepers, zkPath, expirationPeriod, cleanUpCache)
 
   dependentFormComponents.foreach(_.setOutputMarkupId(true))
 

@@ -30,6 +30,7 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
                                      topic: String,
                                      kf: KafkaConsumerFactory,
                                      expirationPeriod: Option[Long] = None,
+                                     cleanUpCache: Boolean,
                                      query: Query = null)
                                     (implicit ticker: Ticker = Ticker.systemTicker())
   extends KafkaConsumerFeatureSource(entry, sft, query) with Runnable with Logging {
@@ -106,7 +107,7 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
     }
   })
 
-  if (expirationPeriod == Some) {
+  if (expirationPeriod == Some && cleanUpCache) {
     ses.scheduleAtFixedRate(new Runnable() {
       override def run(): Unit = featureCache.cleanUp()
     }, 0, 1, TimeUnit.SECONDS)
