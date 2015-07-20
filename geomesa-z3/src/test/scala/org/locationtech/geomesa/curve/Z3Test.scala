@@ -190,7 +190,8 @@ class Z3Test extends Specification {
         (sfc.index(35, 65, day), sfc.index(40, 70, day + hour * 6)), // 5^2 degrees, 6 hours
         (sfc.index(39.999, 60.999, day + 3000), sfc.index(40.001, 61.001, day + 3120)), // small bounds
         (sfc.index(51.0, 51.0, 6000), sfc.index(51.1, 51.1, 6100)), // small bounds
-        (sfc.index(51.0, 51.0, 30000), sfc.index(51.001, 51.001, 30100)) // small bounds
+        (sfc.index(51.0, 51.0, 30000), sfc.index(51.001, 51.001, 30100)), // small bounds
+        (Z3(sfc.index(51.0, 51.0, 30000).z - 1), Z3(sfc.index(51.0, 51.0, 30000).z + 1)) // 62 bits in common
       )
 
       def print(l: Z3, u: Z3, size: Int): Unit =
