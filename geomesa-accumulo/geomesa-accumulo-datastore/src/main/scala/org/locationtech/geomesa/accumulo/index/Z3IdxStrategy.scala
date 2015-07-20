@@ -128,14 +128,16 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     val lt = Z3Table.secondsInCurrentWeek(interval.getStart, epochWeekStart)
     val ut = Z3Table.secondsInCurrentWeek(interval.getEnd, epochWeekEnd)
 
+    // the z3 index breaks time into 1 week chunks, so create a query plan for each week in our range
     if (weeks.length == 1) {
       Seq(qp(weeks.head, lt, ut, contained = false))
     } else {
       val head +: xs :+ last = weeks.toList
-      val oneWeekInSeconds = Weeks.ONE.toStandardSeconds.getSeconds
-      val startQP = qp(head, lt, oneWeekInSeconds, contained = false)
+      // time range for a chunk is 0 to 1 week (in seconds)
+      val timeMax = Weeks.ONE.toStandardSeconds.getSeconds
+      val startQP = qp(head, lt, timeMax, contained = false)
       val endQP = qp(last, 0, ut, contained = false)
-      val middleQPs = xs.map(w => qp(w, 0, oneWeekInSeconds, contained = true))
+      val middleQPs = xs.map(w => qp(w, 0, timeMax, contained = true))
       Seq(startQP, endQP) ++ middleQPs
     }
   }

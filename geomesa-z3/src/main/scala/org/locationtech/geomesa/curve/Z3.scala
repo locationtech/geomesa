@@ -115,7 +115,7 @@ object Z3 {
     val maxRecurse = if (commonBits < 30) 7 else if (commonBits < 40) 6 else 5
 
     val searchRange = Z3Range(min, max)
-    var mq: MergeQueue = new MergeQueue // stores our results
+    var mq = new MergeQueue // stores our results
 
     def zranges(prefix: Long, offset: Int, oct: Long, level: Int): Unit = {
       val min: Long = prefix | (oct << offset) // QR + 000...
