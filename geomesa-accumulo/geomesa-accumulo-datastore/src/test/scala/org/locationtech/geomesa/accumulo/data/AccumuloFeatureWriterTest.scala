@@ -31,7 +31,7 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeExample
-
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
@@ -414,6 +414,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       toAdd.foreach { f =>
         val featureCollection = new DefaultFeatureCollection(sftName, sft)
         f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.FALSE)
+        f.getUserData.remove(Hints.PROVIDED_FID)
         featureCollection.add(f)
         // write the feature to the store
         fs.addFeatures(featureCollection)
@@ -425,11 +426,15 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       val rows = scanner.toList
       scanner.close()
 
-      val rowKeys = rows.map(_.getKey.getRow.toString)
+      // trim off table prefix to get the UUIDs
+      val rowKeys = rows.map(_.getKey.getRow.toString).map(r => r.substring(r.length - 36))
       rowKeys must haveLength(5)
-      rowKeys.map(_.substring(0, 19)).toSet must haveLength(1)
+      rowKeys.foreach(println)
+
+      // ensure that the z3 range is the same
+      rowKeys.map(_.substring(0, 18)).toSet must haveLength(1)
       // ensure that the second part of the UUID is random
-      rowKeys.map(_.substring(20)).toSet must haveLength(5)
+      rowKeys.map(_.substring(19)).toSet must haveLength(5)
 
       val ids = rows.map(e => serializer.deserialize(e.getValue.get).getID)
       ids must haveLength(5)

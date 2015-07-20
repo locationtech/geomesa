@@ -100,18 +100,15 @@ object AccumuloFeatureWriter extends Logging {
     }
   }
 
-  private def withFid(sft: SimpleFeatureType, feature: SimpleFeature, fid: String): SimpleFeature = {
-    try {
-      // FeatureIdImpl appears to be the only implementing class for FeatureId,
-      // but just in case wrap in a try/catch
-      feature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(fid)
-      feature
-    } catch {
-      case e: ClassCastException =>
-        logger.warn("Unknown feature ID implementation found, rebuilding feature", e)
+  private def withFid(sft: SimpleFeatureType, feature: SimpleFeature, fid: String): SimpleFeature =
+    feature.getIdentifier match {
+      case f: FeatureIdImpl =>
+        f.setID(fid)
+        feature
+      case f =>
+        logger.warn(s"Unknown feature ID implementation found, rebuilding feature: ${f.getClass} $f")
         ScalaSimpleFeatureFactory.copyFeature(sft, feature, fid)
     }
-  }
 }
 
 abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,

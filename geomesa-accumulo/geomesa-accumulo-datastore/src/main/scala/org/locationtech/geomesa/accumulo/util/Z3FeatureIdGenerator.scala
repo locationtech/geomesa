@@ -58,20 +58,18 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
     // this uses the same temp array we use later, so be careful with the order this gets called
     val leastSigBits = createRandomLsb()
 
-    // NOTE: at this point the byte array has the random lsb in it - important for the shard generated next
-    val msb = getTempByteArray
-    // shard is first 4 bits of our uuid (e.g. 1 hex char) - this allows nice pre-splitting
-    val shard = math.abs(MurmurHash3.bytesHash(msb) % 16).toByte
-
     val time = sft.getDtgIndex.flatMap(i => Option(sf.getAttribute(i)).map(_.asInstanceOf[Date].getTime))
         .getOrElse(System.currentTimeMillis())
     val pt = sf.getAttribute(sft.getGeomIndex) match {
       case p: Point => p
       case g: Geometry => g.getCentroid
     }
-
     val z3 = Z3Table.getRowPrefix(pt.getX, pt.getY, time)
 
+    // shard is first 4 bits of our uuid (e.g. 1 hex char) - this allows nice pre-splitting
+    val shard = math.abs(MurmurHash3.bytesHash(z3) % 16).toByte
+
+    val msb = getTempByteArray
     // set the shard bits, then the z3 bits
     msb(0) = lohi(shard, z3(0))
     msb(1) = lohi(z3(0), z3(1))
