@@ -116,13 +116,17 @@ object KafkaConsumerFeatureSourceFactory {
       Option(KafkaDataStoreFactoryParams.EXPIRATION_PERIOD.lookUp(params)).map(_.toString.toLong).filter(_ > 0)
     }
 
+    val cleanUpCache: Boolean = {
+      Option(KafkaDataStoreFactoryParams.CLEANUP_LIVE_CACHE.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
+    }
+
     (entry: ContentEntry, schemaManager: KafkaDataStoreSchemaManager) => {
       val kf = new KafkaConsumerFactory(brokers, zk)
       val fc = schemaManager.getFeatureConfig(entry.getTypeName)
 
       fc.replayConfig match {
         case None =>
-          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod)
+          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache)
 
         case Some(rc) =>
           val replaySFT = fc.sft

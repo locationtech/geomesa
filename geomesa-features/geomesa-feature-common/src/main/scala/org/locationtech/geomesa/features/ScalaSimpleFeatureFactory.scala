@@ -13,7 +13,7 @@ import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
@@ -42,9 +42,15 @@ object ScalaSimpleFeatureFactory {
 
   def init() = Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[ScalaSimpleFeatureFactory])
 
-  def buildFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String) = {
+  def buildFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String): SimpleFeature = {
     val builder = getFeatureBuilder(sft)
     builder.addAll(attrs)
+    builder.buildFeature(id)
+  }
+
+  def copyFeature(sft: SimpleFeatureType, feature: SimpleFeature, id: String): SimpleFeature = {
+    val builder = getFeatureBuilder(sft)
+    builder.init(feature)
     builder.buildFeature(id)
   }
 

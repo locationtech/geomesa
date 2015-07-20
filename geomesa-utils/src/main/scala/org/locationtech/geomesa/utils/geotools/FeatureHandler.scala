@@ -19,12 +19,6 @@ import org.opengis.filter.identity.FeatureId
 
 import scala.collection.mutable.ListBuffer
 
-/**
- * Created with IntelliJ IDEA.
- * User: jnh5y
- * Date: 2/8/13
- * Time: 4:50 PM
- */
 object FeatureHandler {
   val OUTPUT_FIELD_SEPARATOR : String = "|"
   val OUTPUT_FIELD_SEPARATOR_CHAR : Char = OUTPUT_FIELD_SEPARATOR.charAt(0)

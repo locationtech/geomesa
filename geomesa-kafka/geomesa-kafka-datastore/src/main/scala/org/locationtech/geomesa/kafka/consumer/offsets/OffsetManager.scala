@@ -61,15 +61,16 @@ class OffsetManager(val config: ConsumerConfig)
   def getOffsets(topic: String, partitions: Seq[PartitionMetadata], when: RequestedOffset): Offsets = {
     assert(partitions.nonEmpty, "Topic and partitions are required")
     val function: () => Offsets = when match {
-      case EarliestOffset   => () => getOffsetsBefore(topic, partitions, OffsetRequest.EarliestTime, config)
-      case LatestOffset     => () => getOffsetsBefore(topic, partitions, OffsetRequest.LatestTime, config)
-      case DateOffset(date) => () => getOffsetsBefore(topic, partitions, date, config)
-      case FindOffset(pred) => () => findOffsets(topic, partitions, pred, config)
-      case GroupOffset      => () =>
+      case EarliestOffset    => () => getOffsetsBefore(topic, partitions, OffsetRequest.EarliestTime, config)
+      case LatestOffset      => () => getOffsetsBefore(topic, partitions, OffsetRequest.LatestTime, config)
+      case SpecificOffset(s) => () => partitions.map(p => TopicAndPartition(topic, p.partitionId) -> s).toMap
+      case DateOffset(date)  => () => getOffsetsBefore(topic, partitions, date, config)
+      case FindOffset(pred)  => () => findOffsets(topic, partitions, pred, config)
+      case GroupOffset       => () =>
         val taps = partitions.map(p => TopicAndPartition(topic, p.partitionId))
         getGroupOffsets(channel.channel(), taps, config)
 
-      case _                => throw new NotImplementedError()
+      case _  => throw new NotImplementedError()
     }
 
     val result = retryOffsets(function, 1).filterNot { case (_, offset) => offset < 0}

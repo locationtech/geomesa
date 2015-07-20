@@ -50,9 +50,10 @@ class Z3(val z: Long) extends AnyVal {
 
 object Z3 {
 
+  final val MAX_DIM = 3
   final val MAX_BITS = 21
   final val MAX_MASK = 0x1fffffL
-  final val MAX_DIM = 3
+  final val TOTAL_BITS = MAX_BITS * MAX_DIM
 
   def apply(zvalue: Long) = new Z3(zvalue)
 
@@ -107,49 +108,63 @@ object Z3 {
    * Recurse down the oct-tree and report all z-ranges which are contained
    * in the cube defined by the min and max points
    */
-  def zranges(min: Z3, max: Z3, maxRecurse: Int): Seq[(Long, Long)] = {
-    var mq: MergeQueue = new MergeQueue
-    val sr = Z3Range(min, max)
+  def zranges(min: Z3, max: Z3): Seq[(Long, Long)] = {
+    val (commonPrefix, commonBits) = longestCommonPrefix(min.z, max.z)
 
-    var recCounter = 0
-    var reportCounter = 0
+    // base our recursion on the depth of the tree that we get 'for free' from the common prefix
+    val maxRecurse = if (commonBits < 30) 7 else if (commonBits < 40) 6 else 5
 
-    def zranges(prefix: Long, offset: Int, quad: Long, level: Int): Unit = {
-      recCounter += 1
+    val searchRange = Z3Range(min, max)
+    var mq = new MergeQueue // stores our results
 
-      val min: Long = prefix | (quad << offset) // QR + 000..
-      val max: Long = min | (1L << offset) - 1 // QR + 111..
-      val qr = Z3Range(new Z3(min), new Z3(max))
-      if (level <= maxRecurse) {
-        if (sr containsInUserSpace qr) {
-          // whole range matches, happy day
-          mq += (qr.min.z, qr.max.z)
-          reportCounter += 1
-        } else if (sr overlapsInUserSpace qr) { // TODO move this?
-          if (offset > 0) {
-            // some portion of this range are excluded
-            zranges(min, offset - MAX_DIM, 0, level + 1)
-            zranges(min, offset - MAX_DIM, 1, level + 1)
-            zranges(min, offset - MAX_DIM, 2, level + 1)
-            zranges(min, offset - MAX_DIM, 3, level + 1)
-            zranges(min, offset - MAX_DIM, 4, level + 1)
-            zranges(min, offset - MAX_DIM, 5, level + 1)
-            zranges(min, offset - MAX_DIM, 6, level + 1)
-            zranges(min, offset - MAX_DIM, 7, level + 1)
-            //let our children punt on each subrange
-          } else {
-            mq += (qr.min.z, qr.max.z)
-          }
+    def zranges(prefix: Long, offset: Int, oct: Long, level: Int): Unit = {
+      val min: Long = prefix | (oct << offset) // QR + 000...
+      val max: Long = min | (1L << offset) - 1 // QR + 111...
+      val octRange = Z3Range(new Z3(min), new Z3(max))
+
+      if (searchRange containsInUserSpace octRange) {
+        // whole range matches, happy day
+        mq += (octRange.min.z, octRange.max.z)
+      } else if (searchRange overlapsInUserSpace octRange) {
+        if (level < maxRecurse && offset > 0) {
+          // some portion of this range is excluded
+          // let our children work on each subrange
+          val nextOffset = offset - MAX_DIM
+          val nextLevel = level + 1
+          zranges(min, nextOffset, 0, nextLevel)
+          zranges(min, nextOffset, 1, nextLevel)
+          zranges(min, nextOffset, 2, nextLevel)
+          zranges(min, nextOffset, 3, nextLevel)
+          zranges(min, nextOffset, 4, nextLevel)
+          zranges(min, nextOffset, 5, nextLevel)
+          zranges(min, nextOffset, 6, nextLevel)
+          zranges(min, nextOffset, 7, nextLevel)
+        } else {
+          // bottom out - add the entire range so we don't miss anything
+          mq += (octRange.min.z, octRange.max.z)
         }
-      } else if ((sr overlaps qr) || (sr overlapsInUserSpace qr)) {
-        mq += (qr.min.z, qr.max.z)
       }
     }
 
-    val prefix: Long = 0
-    val offset = MAX_BITS * MAX_DIM
-    zranges(prefix, offset, 0, 0) // the entire space
+    // kick off recursion over the narrowed space
+    zranges(commonPrefix, TOTAL_BITS - commonBits, 0, 0)
+
+    // return our aggregated results
     mq.toSeq
+  }
+
+  /**
+   * Calculates the longest common binary prefix between two z longs
+   *
+   * @return (common prefix, number of bits in common)
+   */
+  def longestCommonPrefix(lower: Long, upper: Long): (Long, Int) = {
+    var bitShift = TOTAL_BITS - MAX_DIM
+    while ((lower >>> bitShift) == (upper >>> bitShift) && bitShift > -1) {
+      bitShift -= MAX_DIM
+    }
+    bitShift += MAX_DIM // increment back to the last valid value
+    (lower & (Long.MaxValue << bitShift), TOTAL_BITS - bitShift)
   }
 
   /**
@@ -173,8 +188,8 @@ object Z3 {
     def bit(x: Long, idx: Int) = {
       ((x & (1L << idx)) >> idx).toInt
     }
-    def over(bits: Long)  = (1L << (bits-1))
-    def under(bits: Long) = (1L << (bits-1)) - 1
+    def over(bits: Long)  = 1L << (bits - 1)
+    def under(bits: Long) = (1L << (bits - 1)) - 1
 
     var i = 64
     while (i > 0) {

@@ -42,7 +42,7 @@ object GeoMesaOutputFormat {
     // set up the underlying accumulo input format
     val user = AccumuloDataStoreFactory.params.userParam.lookUp(dsParams).asInstanceOf[String]
     val password = AccumuloDataStoreFactory.params.passwordParam.lookUp(dsParams).asInstanceOf[String]
-    AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(password.getBytes()))
+    AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(password.getBytes))
 
     val instance = AccumuloDataStoreFactory.params.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
     val zookeepers = AccumuloDataStoreFactory.params.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
@@ -119,9 +119,10 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
       }
     })
 
+    val withFid = AccumuloFeatureWriter.featureWithFid(sft, value)
     val encoder = encoderCache.getOrElseUpdate(sftName, SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft)))
     val ive = indexEncoderCache.getOrElseUpdate(sftName, IndexValueEncoder(sft))
-    val featureToWrite = new FeatureToWrite(value, ds.writeVisibilities, encoder, ive)
+    val featureToWrite = new FeatureToWrite(withFid, ds.writeVisibilities, encoder, ive)
 
     writers.foreach { case (table, featureToMutations) =>
       featureToMutations(featureToWrite).foreach(delegate.write(table, _))

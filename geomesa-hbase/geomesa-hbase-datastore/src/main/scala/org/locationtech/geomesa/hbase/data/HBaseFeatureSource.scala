@@ -83,7 +83,7 @@ class HBaseFeatureSource(entry: ContentEntry,
 
     val kryoFeatureSerializer = new KryoFeatureSerializer(sft)
     if (weeks.length == 1) {
-      val z3ranges = Z3_CURVE.ranges(lx, ly, ux, uy, lt, ut, 8)
+      val z3ranges = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, ut))
       // TODO: cache serializers
       new HBaseFeatureReader(
         ds.getZ3Table(sft), sft, weeks.head, z3ranges,
@@ -94,7 +94,7 @@ class HBaseFeatureSource(entry: ContentEntry,
       val oneWeekInSeconds = Weeks.ONE.toStandardSeconds.getSeconds
       val head +: xs :+ last = weeks.toList
       // TODO: ignoring seconds for now
-      val z3ranges = Z3_CURVE.ranges(lx, ly, ux, uy, 0, oneWeekInSeconds, 8)
+      val z3ranges = Z3_CURVE.ranges((lx, ux), (ly, uy), (0, oneWeekInSeconds))
       val middleQPs = xs.map { w =>
         new HBaseFeatureReader(ds.getZ3Table(sft), sft, w, z3ranges,
           Z3_CURVE.normLon(lx), Z3_CURVE.normLat(ly), interval.getStart.getMillis,

@@ -27,10 +27,12 @@ import org.locationtech.geomesa.accumulo.process.temporalDensity.TemporalDensity
 import org.locationtech.geomesa.accumulo.process.tube.TubeVisitor
 import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor
 import org.locationtech.geomesa.accumulo.util.TryLoggingFailure
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.sort.SortBy
 import org.opengis.util.ProgressListener
 
@@ -121,8 +123,11 @@ class AccumuloFeatureCollection(source: AccumuloAbstractFeatureSource, query: Qu
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener): Unit =
     visitor match {
       // TODO GEOMESA-421 implement min/max iterators
-      case v: MinVisitor             => v.setValue(ds.getTimeBounds(query.getTypeName).getStart.toDate)
-      case v: MaxVisitor             => v.setValue(ds.getTimeBounds(query.getTypeName).getEnd.toDate)
+      case v: MinVisitor if isTime(v.getExpression) =>
+        v.setValue(ds.getTimeBounds(query.getTypeName).getStart.toDate)
+      case v: MaxVisitor if isTime(v.getExpression) =>
+        v.setValue(ds.getTimeBounds(query.getTypeName).getEnd.toDate)
+
       case v: BoundsVisitor          => v.reset(ds.getBounds(query))
       case v: TubeVisitor            => v.setValue(v.tubeSelect(source, query))
       case v: ProximityVisitor       => v.setValue(v.proximitySearch(source, query))
@@ -132,6 +137,11 @@ class AccumuloFeatureCollection(source: AccumuloAbstractFeatureSource, query: Qu
       case v: AttributeVisitor       => v.setValue(v.unique(source, query))
       case _                         => super.accepts(visitor, progress)
     }
+
+  private def isTime(e: Expression) = e match {
+    case p: PropertyName => getSchema.getDtgField.exists(_ == p.getPropertyName)
+    case _ => false
+  }
 
   override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     val reader = ds.getFeatureReader(query.getTypeName, query)
