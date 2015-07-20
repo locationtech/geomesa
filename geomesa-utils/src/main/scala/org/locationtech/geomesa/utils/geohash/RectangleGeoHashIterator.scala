@@ -12,10 +12,6 @@ import com.vividsolutions.jts.geom.Geometry
 
 
 /**
- * Created by IntelliJ IDEA.
- * User: cne1x
- * Date: 1/20/12
- * Time: 9:54 AM
  * <p/>
  * Iterates over the GeoHashes at a fixed resolution within a given rectangle.  The difference
  * between this iterator and the default iteration available through GeoHash is that this
