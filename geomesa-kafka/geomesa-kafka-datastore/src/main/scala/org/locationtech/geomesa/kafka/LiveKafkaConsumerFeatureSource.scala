@@ -107,7 +107,7 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
     }
   })
 
-  if (expirationPeriod == Some && cleanUpCache) {
+  if (expirationPeriod.isDefined && cleanUpCache) {
     ses.scheduleAtFixedRate(new Runnable() {
       override def run(): Unit = featureCache.cleanUp()
     }, 0, 1, TimeUnit.SECONDS)
