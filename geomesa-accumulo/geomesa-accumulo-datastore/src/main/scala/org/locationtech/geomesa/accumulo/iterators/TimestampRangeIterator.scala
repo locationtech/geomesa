@@ -38,7 +38,7 @@ object TimestampRangeIterator {
     val cfg = new IteratorSetting(priority, iteratorName, classOf[TimestampRangeIterator])
     cfg.addOptions(Map(startOption -> (startTime.getTime / 1000).toString,
                        endOption   -> (endTime.getTime / 1000).toString).asJava)
-    InputFormatBase.addIterator(job.getConfiguration, cfg)
+    InputFormatBase.addIterator(job, cfg)
   }
 
   def setupIterator(job: Job, startTime: Date, endTime: Date) {

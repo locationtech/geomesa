@@ -16,4 +16,55 @@
         <module>geomesa-iterators</module>
     </modules>
 
+    <profiles>
+        <profile>
+            <id>Accumulo 1.6</id>
+            <activation>
+                <property><name>!accumulo-1.5</name></property>
+            </activation>
+            <properties>
+                <accumulo.version>1.6.2</accumulo.version>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <!-- Accumulo 1.6 dependency -->
+                    <dependency>
+                        <groupId>org.apache.accumulo</groupId>
+                        <artifactId>accumulo-server-base</artifactId>
+                        <version>${accumulo.version}</version>
+                        <scope>provided</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <modules>
+                <module>geomesa-accumulo-adapter-1.6</module>
+            </modules>
+        </profile>
+
+        <profile>
+        <id>Accumulo 1.5</id>
+        <activation>
+            <property><name>accumulo-1.5</name></property>
+        </activation>
+        <properties>
+            <accumulo.version>1.5.2</accumulo.version>
+        </properties>
+        <dependencyManagement>
+            <dependencies>
+                <!-- Accumulo 1.5 dependency -->
+                <dependency>
+                    <groupId>org.apache.accumulo</groupId>
+                    <artifactId>accumulo-server</artifactId>
+                    <version>${accumulo.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+        </dependencyManagement>
+            <modules>
+                <module>geomesa-accumulo-adapter-1.5</module>
+            </modules>
+    </profile>
+
+</profiles>
+
 </project>

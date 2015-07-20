@@ -26,6 +26,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.{getTransformSchema, _}
+import org.locationtech.geomesa.accumulo.mapred.AccumuloAdapter
 import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializer, SimpleFeatureDeserializers}
@@ -65,14 +66,14 @@ object GeoMesaInputFormat extends Logging {
     // set up the underlying accumulo input format
     val user = AccumuloDataStoreFactory.params.userParam.lookUp(dsParams).asInstanceOf[String]
     val password = AccumuloDataStoreFactory.params.passwordParam.lookUp(dsParams).asInstanceOf[String]
-    InputFormatBase.setConnectorInfo(job, user, new PasswordToken(password.getBytes))
+    AccumuloAdapter.setConnectorInfo(job, user, password)
 
     val instance = AccumuloDataStoreFactory.params.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
     val zookeepers = AccumuloDataStoreFactory.params.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
-    InputFormatBase.setZooKeeperInstance(job, instance, zookeepers)
+    AccumuloAdapter.setZooKeeperInstance(job, instance, zookeepers)
 
     val auths = Option(AccumuloDataStoreFactory.params.authsParam.lookUp(dsParams).asInstanceOf[String])
-    auths.foreach(a => InputFormatBase.setScanAuthorizations(job, new Authorizations(a.split(","): _*)))
+    auths.foreach(a => AccumuloAdapter.setScanAuthorizations(job, new Authorizations(a.split(","): _*)))
 
     // run an explain query to set up the iterators, ranges, etc
     val featureTypeName = query.getTypeName
