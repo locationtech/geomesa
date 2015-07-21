@@ -51,6 +51,7 @@
         <zookeeper.version>3.4.5</zookeeper.version>
 
         <hadoop.version>2.2.0</hadoop.version>
+        <thrift.version>0.9.1</thrift.version>
         <scalding.version>0.13.1</scalding.version>
 
         <!-- logging properties
