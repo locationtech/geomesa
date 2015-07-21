@@ -17,24 +17,20 @@ else
     confirm=${confirm,,} #lowercasing
     if [[ $confirm =~ ^(yes|y) ]]; then
         # get stuff
-        hadoop_ver="2.2.0"
-        acc_ver="1.5.1"
-        thrift_ver="0.9.1"
-        zk_ver="3.4.5"
-        declare -a urls=("https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/${acc_ver}/accumulo-core-${acc_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-fate/${acc_ver}/accumulo-fate-${acc_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-trace/${acc_ver}/accumulo-trace-${acc_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/zookeeper/zookeeper/${zk_ver}/zookeeper-${zk_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-auth/${hadoop_ver}/hadoop-auth-${hadoop_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-client/${hadoop_ver}/hadoop-client-${hadoop_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-common/${hadoop_ver}/hadoop-common-${hadoop_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-hdfs/${hadoop_ver}/hadoop-hdfs-${hadoop_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-mapreduce-client-app/${hadoop_ver}/hadoop-mapreduce-client-app-${hadoop_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-mapreduce-client-common/${hadoop_ver}/hadoop-mapreduce-client-common-${hadoop_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-mapreduce-client-core/${hadoop_ver}/hadoop-mapreduce-client-core-${hadoop_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-mapreduce-client-jobclient/${hadoop_ver}/hadoop-mapreduce-client-jobclient-${hadoop_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-mapreduce-client-shuffle/${hadoop_ver}/hadoop-mapreduce-client-shuffle-${hadoop_ver}.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/thrift/libthrift/${thrift_ver}/libthrift-${thrift_ver}.jar")
+        declare -a urls=("https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/${accumulo.version}/accumulo-core-${accumulo.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-fate/${accumulo.version}/accumulo-fate-${accumulo.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-trace/${accumulo.version}/accumulo-trace-${accumulo.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/zookeeper/zookeeper/${zookeeper.version}/zookeeper-${zookeeper.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-auth/${hadoop.version}/hadoop-auth-${hadoop.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-client/${hadoop.version}/hadoop-client-${hadoop.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-common/${hadoop.version}/hadoop-common-${hadoop.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-hdfs/${hadoop.version}/hadoop-hdfs-${hadoop.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-mapreduce-client-app/${hadoop.version}/hadoop-mapreduce-client-app-${hadoop.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-mapreduce-client-common/${hadoop.version}/hadoop-mapreduce-client-common-${hadoop.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-mapreduce-client-core/${hadoop.version}/hadoop-mapreduce-client-core-${hadoop.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-mapreduce-client-jobclient/${hadoop.version}/hadoop-mapreduce-client-jobclient-${hadoop.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-mapreduce-client-shuffle/${hadoop.version}/hadoop-mapreduce-client-shuffle-${hadoop.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/thrift/libthrift/${thrift.version}/libthrift-${thrift.version}.jar")
 
         for x in "${urls[@]}"; do
             fname=$(basename "$x");
