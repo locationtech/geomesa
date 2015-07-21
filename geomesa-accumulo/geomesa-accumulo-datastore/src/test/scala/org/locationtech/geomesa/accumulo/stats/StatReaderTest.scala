@@ -29,6 +29,7 @@ class StatReaderTest extends Specification {
   val statsTable = s"${catalogTable}_${featureName}_queries"
 
   val connector = new MockInstance().getConnector("user", new PasswordToken("password"))
+  val user = connector.whoami
 
   val auths = new Authorizations()
 
@@ -38,9 +39,9 @@ class StatReaderTest extends Specification {
   "QueryStatReader" should {
 
     val stats = Seq(
-      QueryStat(featureName, df.parseMillis("2014.07.26 13:20:01"), "query1", "hint1=true", 101L, 201L, 11),
-      QueryStat(featureName, df.parseMillis("2014.07.26 14:20:01"), "query2", "hint2=true", 102L, 202L, 12),
-      QueryStat(featureName, df.parseMillis("2014.07.27 13:20:01"), "query3", "hint3=true", 102L, 202L, 12)
+      QueryStat(user, featureName, df.parseMillis("2014.07.26 13:20:01"), "query1", "hint1=true", 101L, 201L, 11),
+      QueryStat(user, featureName, df.parseMillis("2014.07.26 14:20:01"), "query2", "hint2=true", 102L, 202L, 12),
+      QueryStat(user, featureName, df.parseMillis("2014.07.27 13:20:01"), "query3", "hint3=true", 102L, 202L, 12)
     )
     writeStat(stats, statsTable)
 

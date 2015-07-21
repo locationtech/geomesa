@@ -38,7 +38,8 @@ class AccumuloFeatureReader(queryPlanner: QueryPlanner, val query: Query, dataSt
     iter.close()
     dataStore.queryTimeoutMillis.foreach(timeout => ThreadManagement.unregister(this, start, timeout))
     if (writeStats) {
-      val stat = QueryStat(queryPlanner.sft.getTypeName,
+      val stat = QueryStat(dataStore.connector.whoami(),
+          queryPlanner.sft.getTypeName,
           System.currentTimeMillis(),
           QueryStatTransform.filterToString(query.getFilter),
           QueryStatTransform.hintsToString(query.getHints),
