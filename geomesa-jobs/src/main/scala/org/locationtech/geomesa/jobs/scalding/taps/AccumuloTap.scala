@@ -22,6 +22,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred.{JobConf, Reporter}
+import org.locationtech.geomesa.accumulo.iterators.InputFormatBaseAdapter
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.jobs.scalding._
 
@@ -124,7 +125,7 @@ case class AccumuloScheme(options: AccumuloSourceOptions)
 
     // this method may be called more than once so check to see if we've already configured
     if (!ConfiguratorBase.isConnectorInfoSet(classOf[AccumuloInputFormat], conf)) {
-      InputFormatBase.setZooKeeperInstance(conf, input.instance, input.zooKeepers)
+      InputFormatBaseAdapter.setZooKeeperInstance(conf, input.instance, input.zooKeepers)
       InputFormatBase.setConnectorInfo(conf, input.user, new PasswordToken(input.password.getBytes))
       InputFormatBase.setInputTableName(conf, input.table)
       InputFormatBase.setScanAuthorizations(conf, input.authorizations)
