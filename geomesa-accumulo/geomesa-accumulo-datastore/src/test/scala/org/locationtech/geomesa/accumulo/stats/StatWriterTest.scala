@@ -38,6 +38,7 @@ class StatWriterTest extends Specification {
   }
 
   val statReader = new QueryStatReader(connector, (_: String) => statsTable)
+  val user = connector.whoami()
 
   "StatWriter" should {
 
@@ -45,7 +46,8 @@ class StatWriterTest extends Specification {
       skipped("concurrency issues cause intermittent failures- GEOMESA-323")
       val writer = new MockWriter(connector) with StatWriter
 
-      writer.writeStat(QueryStat(featureName,
+      writer.writeStat(QueryStat(user,
+                                 featureName,
                                  df.parseMillis("2014.07.26 13:20:01"),
                                  "query1",
                                  "hint1=true",
@@ -53,7 +55,8 @@ class StatWriterTest extends Specification {
                                  201L,
                                  11),
                        statsTable)
-      writer.writeStat(QueryStat(featureName,
+      writer.writeStat(QueryStat(user,
+                                 featureName,
                                  df.parseMillis("2014.07.26 14:20:01"),
                                  "query2",
                                  "hint2=true",
@@ -61,7 +64,8 @@ class StatWriterTest extends Specification {
                                  202L,
                                  12),
                        statsTable)
-      writer.writeStat(QueryStat(featureName,
+      writer.writeStat(QueryStat(user,
+                                 featureName,
                                  df.parseMillis("2014.07.27 13:20:01"),
                                  "query3",
                                  "hint3=true",
@@ -85,6 +89,7 @@ class StatWriterTest extends Specification {
 
       written must not beNull;
       written.size mustEqual 3
+      written.head.accumuloUser mustEqual user
     }
   }
 }

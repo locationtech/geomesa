@@ -22,7 +22,8 @@ import scala.util.Try
 /**
  * Class for capturing query-related stats
  */
-case class QueryStat(featureName:   String,
+case class QueryStat(accumuloUser: String,
+                     featureName:   String,
                      date:          Long,
                      queryFilter:   String,
                      queryHints:    String,
@@ -35,6 +36,7 @@ case class QueryStat(featureName:   String,
  */
 object QueryStatTransform extends StatTransform[QueryStat] {
 
+  private val CQ_ACCUMULO_USER = "accumuloUser"
   private val CQ_QUERY_FILTER = "queryFilter"
   private val CQ_QUERY_HINTS = "queryHints"
   private val CQ_PLANTIME = "timePlanning"
@@ -45,6 +47,7 @@ object QueryStatTransform extends StatTransform[QueryStat] {
   override def statToMutation(stat: QueryStat): Mutation = {
     val mutation = createMutation(stat)
     val cf = createRandomColumnFamily
+    mutation.put(cf, CQ_ACCUMULO_USER, stat.accumuloUser)
     mutation.put(cf, CQ_QUERY_FILTER, stat.queryFilter)
     mutation.put(cf, CQ_QUERY_HINTS, stat.queryHints)
     mutation.put(cf, CQ_PLANTIME, stat.planningTime + "ms")
@@ -67,6 +70,7 @@ object QueryStatTransform extends StatTransform[QueryStat] {
 
     entries.foreach { e =>
       e.getKey.getColumnQualifier.toString match {
+        case CQ_ACCUMULO_USER => values.put(CQ_ACCUMULO_USER, e.getValue.toString)
         case CQ_QUERY_FILTER => values.put(CQ_QUERY_FILTER, e.getValue.toString)
         case CQ_QUERY_HINTS => values.put(CQ_QUERY_HINTS, e.getValue.toString)
         case CQ_PLANTIME => values.put(CQ_PLANTIME, e.getValue.toString.stripSuffix("ms").toLong)
@@ -77,13 +81,14 @@ object QueryStatTransform extends StatTransform[QueryStat] {
       }
     }
 
+    val accumuloUser = values.getOrElse(CQ_ACCUMULO_USER, "").asInstanceOf[String]
     val queryHints = values.getOrElse(CQ_QUERY_HINTS, "").asInstanceOf[String]
     val queryFilter = values.getOrElse(CQ_QUERY_FILTER, "").asInstanceOf[String]
     val planTime = values.getOrElse(CQ_PLANTIME, 0L).asInstanceOf[Long]
     val scanTime = values.getOrElse(CQ_SCANTIME, 0L).asInstanceOf[Long]
     val hits = values.getOrElse(CQ_HITS, 0).asInstanceOf[Int]
 
-    QueryStat(featureName, date, queryFilter, queryHints, planTime, scanTime, hits)
+    QueryStat(accumuloUser, featureName, date, queryFilter, queryHints, planTime, scanTime, hits)
   }
 
   // list of query hints we want to persist
